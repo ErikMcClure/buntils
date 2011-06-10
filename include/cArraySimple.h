@@ -120,6 +120,12 @@ namespace bss_util {
       _array=narray;
       _size=nsize;
     }
+    inline void Remove(SizeType index)
+    {
+      _array[index].~T();
+      memmove(_array+index,_array+index+1,sizeof(T)*(_size-index-1));
+      --_size;
+    }
     inline operator T*() { return _array; }
     inline operator const T*() const { return _array; }
     inline cArrayConstruct<T,SizeType>& operator=(const cArrayConstruct<T,SizeType>& copy)

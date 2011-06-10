@@ -24,6 +24,14 @@ namespace bss_util {
 		target->prev = node;
   }
 
+  /* Inserts the node before the target. Does not assign values to node or re-assign root. */
+  template<typename T>
+  inline void BSS_FASTCALL LLInsert(T* node, T* target)
+  {
+		if(target->prev != 0) target->prev->next = node;
+		target->prev = node;
+  }
+
   /* Assigns node's values for a before insertion (used before LLInsert) */
   template<typename T>
   inline void BSS_FASTCALL LLInsertAssign(T* node, T* target)
@@ -73,6 +81,14 @@ namespace bss_util {
   {
 		if(node->prev != 0) node->prev->next = node->next;
 		else root = node->next;
+		if(node->next != 0) node->next->prev = node->prev;
+  }
+
+  /* Removes a node from a list. Does not zero values on node */
+  template<typename T>
+  inline void BSS_FASTCALL LLRemove(T* node)
+  {
+		if(node->prev != 0) node->prev->next = node->next;
 		if(node->next != 0) node->next->prev = node->prev;
   }
 }

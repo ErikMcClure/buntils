@@ -23,7 +23,7 @@
 #include <math.h>
 
 namespace bss_util { 
-  static const VersionType BSSUTIL_VERSION = { 0,3,8 };
+  static const VersionType BSSUTIL_VERSION = { 0,3,81 };
 
   __declspec(dllexport) extern void BSS_FASTCALL SetWorkDirToCur(); //Sets the working directory to the actual goddamn location of the EXE instead of the freaking start menu, or possibly the desktop. The possibilities are endless! Fuck you, windows.
   __declspec(dllexport) extern unsigned int BSS_FASTCALL bssFileSize(const char* path);
@@ -268,6 +268,32 @@ namespace bss_util {
   //}
 
   /* Bit-twiddling hack for base 2 log by Sean Eron Anderson */
+  inline unsigned int BSS_FASTCALL log2(unsigned char v)
+  {
+    const unsigned int b[] = {0x2, 0xC, 0xF0};
+    const unsigned int S[] = {1, 2, 4};
+
+    register unsigned int r = 0; // result of log2(v) will go here
+    if (v & b[2]) { v >>= S[2]; r |= S[2]; } 
+    if (v & b[1]) { v >>= S[1]; r |= S[1]; } 
+    if (v & b[0]) { v >>= S[0]; r |= S[0]; } 
+
+    return r;
+  }
+  inline unsigned int BSS_FASTCALL log2(unsigned short v)
+  {
+    const unsigned int b[] = {0x2, 0xC, 0xF0, 0xFF00};
+    const unsigned int S[] = {1, 2, 4, 8};
+
+    register unsigned int r = 0; // result of log2(v) will go here
+    if (v & b[3]) { v >>= S[3]; r |= S[3]; } 
+    if (v & b[2]) { v >>= S[2]; r |= S[2]; } 
+    if (v & b[1]) { v >>= S[1]; r |= S[1]; } 
+    if (v & b[0]) { v >>= S[0]; r |= S[0]; } 
+
+    return r;
+  }
+
   inline unsigned int BSS_FASTCALL log2(unsigned int v)
   {
     const unsigned int b[] = {0x2, 0xC, 0xF0, 0xFF00, 0xFFFF0000};

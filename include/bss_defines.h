@@ -60,8 +60,10 @@
 
 //These can be used to define properties
 #define CLASS_PROP(typeref, varname, funcname) CLASS_PROP_READONLY(typeref,varname,funcname) CLASS_PROP_WRITEONLY(typeref,varname,funcname)
+#define CLASS_PROP_VAL(typeref, varname, funcname) CLASS_PROP_READONLY(typeref,varname,funcname) CLASS_PROP_WRITEONLY_VAL(typeref,varname,funcname)
 #define CLASS_PROP_READONLY(typeref, varname, funcname) inline typeref Get##funcname() const { return varname; }
 #define CLASS_PROP_WRITEONLY(typeref, varname, funcname) inline void Set##funcname(const typeref m##varname##) { varname=m##varname##; }
+#define CLASS_PROP_WRITEONLY_VAL(typeref, varname, funcname) inline void Set##funcname(typeref m##varname##) { varname=m##varname##; }
 
 #define VARCLAMP(var,max,min) ((var>max)?(max):((var<min)?(min):(var)))
 

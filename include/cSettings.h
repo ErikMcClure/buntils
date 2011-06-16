@@ -77,7 +77,6 @@ namespace bss_util {
   /* Main #define for declaring a group of settings. Note that the optional NAME parameter is for INI loading and determines the section
      name of the settings. MAX is the maximum number of settings in this group, but unless you are using LoadAllFromINI, it is optional. */
 #define DECL_SETGROUP(I,NAME,MAX) template<int N> class cSetting<I,N> { public: inline static const char* secname() { return NAME; } static const unsigned int COUNT=(MAX-1); };
-#define GtS(GROUP,NAME) 
 
   /* Struct class for defining the INILoad function. Can be overriden for custom types */
   template<typename T, typename C>
@@ -108,6 +107,18 @@ namespace bss_util {
   struct cSetting_CMDLOAD {
     inline static void CmdLoad(cCmdLineArgs<C>& ini, T& v, unsigned int& index)
     { std::basic_stringstream<C>(std::basic_string<C>(ini[index++]), std::stringstream::in) >> v; }
+  };
+
+  template<typename C>
+  struct cSetting_CMDLOAD<const C*,C> {
+    inline static void CmdLoad(cCmdLineArgs<C>& ini, const C*& s, unsigned int& index)
+    { s=ini[index++]; }
+  };
+
+  template<typename C>
+  struct cSetting_CMDLOAD<bool,C> {
+    inline static void CmdLoad(cCmdLineArgs<C>& ini, bool& v, unsigned int& index)
+    { v=true; }
   };
 
   /* Main class for managing settings. Here you can load and save settings from INIs */

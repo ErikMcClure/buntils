@@ -1,8 +1,8 @@
 // Copyright ©2011 Black Sphere Studios
 // For conditions of distribution and use, see copyright notice in "bss_util.h"
 
-#ifndef __FUNCTOR_H__
-#define __FUNCTOR_H__
+#ifndef __FUNCTOR_H__BSS__
+#define __FUNCTOR_H__BSS__
 
 namespace bss_util {
   template<typename R, typename T1=void,typename T2=void,typename T3=void>

@@ -1,8 +1,8 @@
 // Copyright ©2011 Black Sphere Studios
 // For conditions of distribution and use, see copyright notice in "bss_util.h"
 
-#ifndef __C_TASKSTACK_H__
-#define __C_TASKSTACK_H__
+#ifndef __C_TASKSTACK_H__BSS__
+#define __C_TASKSTACK_H__BSS__
 
 #include "cKhash.h"
 #include "cMutex.h"

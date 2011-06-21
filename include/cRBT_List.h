@@ -4,8 +4,8 @@
 // http://archive.gamedev.net/reference/programming/features/TStorage/TStorage.h
 
 #pragma once
-#ifndef __C_RBT_LIST_H__
-#define __C_RBT_LIST_H__
+#ifndef __C_RBT_LIST_H__BSS__
+#define __C_RBT_LIST_H__BSS__
 
 #include "bss_compare.h"
 #include "bss_alloc.h"

@@ -1,8 +1,8 @@
 // Copyright ©2011 Black Sphere Studios
 // For conditions of distribution and use, see copyright notice in "bss_util.h"
 
-#ifndef __C_HOLDER_H__
-#define __C_HOLDER_H__
+#ifndef __C_HOLDER_H__BSS__
+#define __C_HOLDER_H__BSS__
 
 #define COP(cls) cHolder<cls>::_holdobject //shorthand for easy access in multiple inheritance cases
 #define COR(cls) (*cHolder<cls>::_holdobject) //shorthand for easy access in multiple inheritance cases

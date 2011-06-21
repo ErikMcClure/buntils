@@ -107,9 +107,6 @@
     <ClInclude Include="include\cArraySort.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="include\cAutoPtr_Ex.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
     <ClInclude Include="include\cAVLtree.h">
       <Filter>Header Files</Filter>
     </ClInclude>
@@ -240,6 +237,9 @@
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="include\Iterator.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="include\cAutoPtr.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>

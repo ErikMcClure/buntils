@@ -272,7 +272,7 @@
     <ClInclude Include="include\bss_win32_includes.h" />
     <ClInclude Include="include\cArraySimple.h" />
     <ClInclude Include="include\cArraySort.h" />
-    <ClInclude Include="include\cAutoPtr_Ex.h" />
+    <ClInclude Include="include\cAutoPtr.h" />
     <ClInclude Include="include\cAVLtree.h" />
     <ClInclude Include="include\cBinaryHeap.h" />
     <ClInclude Include="include\cBitArray.h" />

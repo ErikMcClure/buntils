@@ -1,8 +1,8 @@
 // Copyright ©2011 Black Sphere Studios
 // For conditions of distribution and use, see copyright notice in "bss_util.h"
 
-#ifndef __C_INISTORAGE_H__
-#define __C_INISTORAGE_H__
+#ifndef __C_INISTORAGE_H__BSS__
+#define __C_INISTORAGE_H__BSS__
 
 #include "cKhash.h"
 #include "cStr.h"
@@ -29,9 +29,11 @@ namespace bss_util {
     inline double GetDouble() const { return _dvalue; }
     
     inline operator bool() const { return _lvalue!=0; }
+    inline operator char() const { return (char)_lvalue; }
     inline operator short() const { return (short)_lvalue; }
     inline operator int() const { return (int)_lvalue; }
     inline operator long() const { return (long)_lvalue; }
+    inline operator unsigned char() const { return (unsigned char)_lvalue; }
     inline operator unsigned short() const { return (unsigned short)_lvalue; }
     inline operator unsigned int() const { return (unsigned int)_lvalue; }
     inline operator unsigned long() const { return (unsigned long)_lvalue; }

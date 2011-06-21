@@ -21,6 +21,7 @@
 #include "bss_util_c.h"
 #include <assert.h>
 #include <math.h>
+#include <memory.h>
 
 namespace bss_util { 
   static const VersionType BSSUTIL_VERSION = { 0,3,81 };
@@ -246,6 +247,25 @@ namespace bss_util {
     return FastSqrt<T>(distsqr<T>(X,Y,x,y));
   }
 
+  inline const void* bytesearch(const void* search, size_t length, const void* find, size_t flength)
+  {
+    if(!search || !length || !find || !flength || length < flength) return 0;
+
+    unsigned char* s=(unsigned char*)search;
+    size_t d = length-flength; //Because flength > 0, d < length and so i is always valid
+    for(size_t i = 0; i <= length; ++i)
+    {
+      search=s+i;
+      if(!memcmp(search,find,flength))
+        return search;
+    }
+    return 0;
+  }
+
+  inline void* bytesearch(void* search, size_t length, void* find, size_t flength)
+  {
+    return const_cast<void*>(bytesearch((const void*)search,length,(const void*)find,flength));
+  }
   //Unlike FastSqrt, these are useless unless you are on a CPU without SSE instructions, or have a terrible std implementation.
   ///* Fast sin function with 0.078% error when extra precision is left in. See http://www.devmaster.net/forums/showthread.php?t=5784 */
   //inline float BSS_FASTCALL FastSin(float x)

@@ -1,8 +1,8 @@
 // Copyright ©2011 Black Sphere Studios
 // For conditions of distribution and use, see copyright notice in "bss_util.h"
 
-#ifndef __INIPARSE_H__
-#define __INIPARSE_H__
+#ifndef __INIPARSE_H__BSS__
+#define __INIPARSE_H__BSS__
 
 #include "bss_dlldef.h"
 #include <wchar.h>

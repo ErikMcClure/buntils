@@ -1,8 +1,8 @@
 // Copyright ©2011 Black Sphere Studios
 // For conditions of distribution and use, see copyright notice in "bss_util.h"
 
-#ifndef __C_SETTINGS_H__ 
-#define __C_SETTINGS_H__
+#ifndef __C_SETTINGS_H__BSS__ 
+#define __C_SETTINGS_H__BSS__
 
 #include "cINIstorage.h"
 #include <sstream>
@@ -100,6 +100,17 @@ namespace bss_util {
   struct cSetting_INISAVE<const C*,C> {
     inline static void INISave(cINIstorage<C>& ini, const C* v, const C* name, const C* section)
     { if(name!=0) { ini.EditAddEntry(section,name,v); } }
+  };
+  /* Force char types to write as numbers */
+  template<typename C>
+  struct cSetting_INISAVE<unsigned char,C> {
+    inline static void INISave(cINIstorage<C>& ini, unsigned char v, const C* name, const C* section)
+    { char s[4]; itoa((int)v,s,10); if(name!=0) { ini.EditAddEntry(section,name,s); } }
+  };
+  template<typename C>
+  struct cSetting_INISAVE<char,C> {
+    inline static void INISave(cINIstorage<C>& ini, char v, const C* name, const C* section)
+    { char s[4]; itoa((int)v,s,10); if(name!=0) { ini.EditAddEntry(section,name,s); } }
   };
 
   /* Struct class for defining the CmdLoad function. Can be overriden for custom types */

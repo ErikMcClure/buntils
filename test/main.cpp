@@ -146,20 +146,18 @@ struct weird
 
 void printout(cLinkedList<int,Allocator<cLLNode<int>>,true>& list)
 {
-  cLLNode<int>* cur=list.GetRoot();
+  LLIterator<cLLNode<int>> cur(list.GetRoot());
 
-  while(cur)
-  {
-    std::cout<<cur->item;
-    cur=cur->next;
-  }
+  while(cur.HasNext())
+    std::cout<<(++cur)->item;
+
   std::cout<<std::endl;
 }
 
 DECL_SETGROUP(0,"main",3);
-DECL_SETTING(0,0,float,0.0f,0,0);
+DECL_SETTING(0,0,float,0.0f,"ANIME",0);
 DECL_SETTING(0,1,int,0,"MANGA","-manga");
-DECL_SETTING(0,2,double,0.0,0,0);
+DECL_SETTING(0,2,double,0.0,"pow",0);
 DECL_SETGROUP(1,"submain",2);
 DECL_SETTING(1,0,float,15.0f,"zip",0);
 DECL_SETTING(1,1,int,5,"poofers",0);
@@ -181,17 +179,8 @@ int main(int argc, char** argv)
 
   cCmdLineArgsA cmdtest(argc,argv);
 
-  const char* blar = "blar";
-  cINIstorage<char> blarini("test.ini");
-  
-  float bler = Setting<0,0>();
-  cSettingManage<0,2>::LoadFromINI(blarini);
-  LoadFromCmd<char>(cmdtest);
-  cSettingManage<1,0>::LoadAllFromINI(blarini);
-  LoadFromCmd<char>(cmdtest);
-
-  cSettingManage<1,0>::SaveAllToINI(blarini);
-
+  cSettingManage<1,0>::LoadAllFromINI(cINIstorage<char>("test.ini"));
+  cSettingManage<1,0>::SaveAllToINI(cINIstorage<char>("test.ini"));
   //{
   //cArrayConstruct<CreateDestroyTracker> ac1(1);
   //cArrayConstruct<CreateDestroyTracker> ac2(0);

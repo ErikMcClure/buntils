@@ -80,14 +80,16 @@ void _futfwrite(const wchar_t* source, char discard, int size, FILE* f)
 }
 
 
+#define _T(s) (s)
 
-#define STR_RT "rt"
-#define STR_NONE ""
-#define STR_NNSL "\n\n["
-#define STR_NSES "\n%s=%s"
-#define STR_WT "wt"
-#define STR_APT "a+b"
-#define STR_LB "]"
+//#define STR_RT "rt"
+//#define STR_NONE ""
+//#define STR_SL "["
+//
+//#define STR_NSES "\n%s=%s"
+//#define STR_WT "wt"
+//#define STR_APT "a+b"
+//#define STR_LB "]"
 
 #define CHAR char
 #include "cINIstorage.inl"
@@ -107,20 +109,22 @@ void _futfwrite(const wchar_t* source, char discard, int size, FILE* f)
 #define bss_parseLine bss_wparseLine
 #define fwrite _futfwrite
 
-#undef STR_RT
-#undef STR_WT
-#undef STR_NONE
-#undef STR_NNSL
-#undef STR_NSES
-#undef STR_APT 
-#undef STR_LB
-#define STR_RT L"rb" //So apparently text mode is assumed to be ASCII... even if you use a wchar_t function. You have to open a unicode file in binary and the parser magically works
-#define STR_WT L"wb"
-#define STR_NONE L""
-#define STR_NNSL L"\n\n["
-#define STR_NSES L"\n%s=%s"
-#define STR_APT L"a+b"
-#define STR_LB L"]"
+#undef _T
+#define _T(s) WIDEN(s)
+//#undef STR_RT
+//#undef STR_WT
+//#undef STR_NONE
+//#undef STR_NNSL
+//#undef STR_NSES
+//#undef STR_APT 
+//#undef STR_LB
+//#define STR_RT L"rb" //So apparently text mode is assumed to be ASCII... even if you use a wchar_t function. You have to open a unicode file in binary and the parser magically works
+//#define STR_WT L"wb"
+//#define STR_NONE L""
+//#define STR_NNSL L"\n\n["
+//#define STR_NSES L"\n%s=%s"
+//#define STR_APT L"a+b"
+//#define STR_LB L"]"
 
 #include "cINIstorage.inl"
 #undef CHAR

@@ -1,8 +1,8 @@
 // Copyright ©2011 Black Sphere Studios
 // For conditions of distribution and use, see copyright notice in "bss_util.h"
 
-#ifndef __C_LINKEDLIST_H__
-#define __C_LINKEDLIST_H__
+#ifndef __C_LINKEDLIST_H__BSS__
+#define __C_LINKEDLIST_H__BSS__
 
 #include "LLBase.h"
 #include "bss_alloc.h"

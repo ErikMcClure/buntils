@@ -18,7 +18,7 @@ template<>
 cINIstorage<CHAR>::cINIstorage(const CHAR* file, std::ostream* logger) : _ini(0), _logger(logger)
 {
   FILE* f;
-  FOPEN(f,file,STR_RT);
+  FOPEN(f,file,_T("rt"));
   if(f)
   {
     _loadINI(f);
@@ -87,9 +87,22 @@ cINIsection<CHAR>& BSS_FASTCALL cINIstorage<CHAR>::AddSection(const CHAR* name)
 {
   if(!_ini) _openINI();
   _ini->reserve(_ini->size()+strlen(name)+4);
-  _ini->append(STR_NNSL);
+  CHAR c;
+  size_t i;
+  for(i = _ini->size(); i > 0;)
+  {
+    c=_ini->GetChar(--i);
+    if(!(c==' ' || c=='\n' || c=='\r')) { ++i; break; }
+  }
+  if(i>0)
+  {
+    _ini->UnsafeString()[i]='\0';
+    _ini->RecalcSize();
+    _ini->append(_T("\n\n"));
+  }
+  _ini->append(_T("["));
   _ini->append(name);
-  _ini->append(STR_LB);
+  _ini->append(_T("]"));
   return *_addsection(name);
 }
 
@@ -165,13 +178,23 @@ char cINIstorage<CHAR>::EditEntry(const CHAR* section, const CHAR* key, const CH
   {
     psec->_addentry(key,nvalue);
     _ini->reserve(_ini->size()+strlen(key)+strlen(nvalue)+2);
-    cStrT<CHAR> construct(STR_NSES,key,!nvalue?STR_NONE:nvalue); //build keyvalue string
+    cStrT<CHAR> construct(_T("\n%s=%s"),key,!nvalue?_T(""):nvalue); //build keyvalue string
     const CHAR* ins=strchr((const CHAR*)chunk.start,'\n');
     if(!ins) //end of file
     {
       _ini->append(construct);
       return 0;
     }
+    
+    //CHAR c;
+    //size_t i;
+    //for(i = ins-(*_ini); i > 0;)
+    //{
+    //  c=_ini->GetChar(--i);
+    //  if(!(c==' ' || c=='\n' || c=='\r')) { ++i; break; }
+    //}
+
+    //_ini->insert(i,construct);
     _ini->insert(ins-(*_ini),construct);
     return 0;
   } //If it wasn't an insert we need to find the entry before the other two possible cases
@@ -219,7 +242,7 @@ void cINIstorage<CHAR>::EndINIEdit(const CHAR* overridepath)
   cStrT<CHAR> targetpath=_path;
   targetpath+=_filename;
   FILE* f;
-  FOPEN(f,targetpath,STR_WT);
+  FOPEN(f,targetpath,_T("wb"));
   fwrite(*_ini,sizeof(CHAR),_ini->size(),f);
   fclose(f);
   DiscardINIEdit();
@@ -243,7 +266,7 @@ void cINIstorage<CHAR>::_loadINI(FILE* f)
       cursec=_addsection(parse.cursection);
     else
     {
-      if(!cursec) cursec=_addsection(STR_NONE);
+      if(!cursec) cursec=_addsection(_T(""));
       cursec->_addentry(parse.curkey, parse.curvalue);
     }
   }

@@ -1,8 +1,8 @@
 // Copyright ©2011 Black Sphere Studios
 // For conditions of distribution and use, see copyright notice in "bss_util.h"
 
-#ifndef __C_CMDLINEARGS_H__
-#define __C_CMDLINEARGS_H__
+#ifndef __C_CMDLINEARGS_H__BSS__
+#define __C_CMDLINEARGS_H__BSS__
 
 #include <vector>
 #include "bss_dlldef.h"
@@ -31,4 +31,4 @@ private:
 typedef cCmdLineArgs<char> cCmdLineArgsA;
 typedef cCmdLineArgs<wchar_t> cCmdLineArgsW;
 
-#endif // __C_CMDLINEARGS_H__
+#endif // __C_CMDLINEARGS_H__BSS__

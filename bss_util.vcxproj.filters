@@ -239,6 +239,9 @@
     <ClInclude Include="include\cLambdaStack.h">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="include\Iterator.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <None Include="cINIstorage.inl">

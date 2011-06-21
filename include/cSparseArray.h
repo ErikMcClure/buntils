@@ -1,8 +1,8 @@
 // Copyright ©2011 Black Sphere Studios
 // For conditions of distribution and use, see copyright notice in "bss_util.h"
 
-#ifndef __C_SPARSE_ARRAY_H__
-#define __C_SPARSE_ARRAY_H__
+#ifndef __C_SPARSE_ARRAY_H__BSS__
+#define __C_SPARSE_ARRAY_H__BSS__
 
 #include "cBitArray.h"
 

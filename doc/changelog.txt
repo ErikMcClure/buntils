@@ -1,0 +1,20 @@
+**************************************************
+* Black Sphere Studios Utility Library Changelog *
+**************************************************
+
+0.3.81
+------
+- Added CLASS_PROP_VAL and CLASS_PROP_WRITEONLY_VAL for value-type class property generation
+- Added smaller valued log2() overloads (ushort and uchar)
+- Changed cSettings CMD parsing to simply interprete the existence of a boolean flag as setting the value to true
+- Fixed a cSettings const char* assignment glitch
+- cSettings now forces char values to write as numbers
+- Added char values to possible conversions for cINIEntry
+- Added bytesearch() function
+- Fixed bizarre bug where fopen in text mode "helpfully" replaced all \n with \n\r and caused infinitely expanding newlines.
+- Added generic Iterator class and linkedlist implementations
+- Made header gaurds more unique
+
+0.3.8
+-----
+- Initial Public Release

@@ -1,10 +1,11 @@
 // Copyright ©2011 Black Sphere Studios
 // For conditions of distribution and use, see copyright notice in "bss_util.h"
 
-#ifndef __LL_BASE_H__
-#define __LL_BASE_H__
+#ifndef __LL_BASE_H__BSS__
+#define __LL_BASE_H__BSS__
 
 #include "bss_call.h"
+#include "Iterator.h"
 
 namespace bss_util {
   /* A base node for a doubly-linked list. The given parameter T may be any class that publically inherits cLLBase */
@@ -91,6 +92,51 @@ namespace bss_util {
 		if(node->prev != 0) node->prev->next = node->next;
 		if(node->next != 0) node->next->prev = node->prev;
   }
+
+  /* Iterator for doubly linked list */
+  template<typename T>
+  class __declspec(dllexport) LLIterator : public Iterator<T*>
+  {
+    typedef typename ValueTraits<T*>::const_reference const_reference;
+    typedef typename ValueTraits<T*>::value_type value_type;
+
+  public:
+    inline explicit LLIterator(T* start) { cur=start; next=start; }
+    inline virtual const_reference operator++() { cur=next; next=next->next; return cur; } //prefix
+    inline virtual value_type operator++(int) { T* r=cur; cur=next; next=next->next; return r; } //postfix
+    inline virtual const_reference operator--() { next=cur; cur=cur->prev; return cur;} //prefix
+    inline virtual value_type operator--(int) { next=cur; cur=cur->prev; return next; } //postfix
+    inline virtual const_reference Peek() { return cur; }
+    inline virtual bool Remove() { LLRemove<T>(cur); cur=0; return true; }
+    inline virtual bool HasNext() { return next!=0; }
+    inline virtual bool HasPrev() { return cur->prev!=0; }
+
+  protected:
+    T* cur;
+    T* next;
+  };
+
+  template<typename T>
+  class __declspec(dllexport) LLIteratorR : public LLIterator<T>
+  {
+  public:
+    inline explicit LLIteratorR(T* start, T*& root) : LLIterator<T>(start), _root(root) { }
+    inline virtual bool Remove() { LLRemove<T>(cur,_root); cur=0; return true; }
+
+  protected:
+    T*& _root;
+  };
+
+  template<typename T>
+  class __declspec(dllexport) LLIteratorRL : public LLIteratorR<T>
+  {
+  public:
+    inline explicit LLIteratorRL(T* start, T*& root, T*& last) : LLIteratorR<T>(start,root), _last(last) { }
+    inline virtual bool Remove() { LLRemove<T>(cur,_root,_last); cur=0; return true; }
+
+  protected:
+    T*& _last;
+  };
 }
 
 

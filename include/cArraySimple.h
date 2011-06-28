@@ -86,9 +86,9 @@ namespace bss_util {
   public:
     inline cArrayConstruct(const cArrayConstruct& copy) : _array((T*)malloc(copy._size*sizeof(T))), _size(copy._size)
     {
-      memcpy(_array,copy._array,_size*sizeof(T));
+      //memcpy(_array,copy._array,_size*sizeof(T));
       for(SizeType i = 0; i < _size; ++i)
-        new (_array+i) T();
+        new (_array+i) T(copy._array[i]);
     }
     inline explicit cArrayConstruct(SizeType size) : _array((T*)malloc(size*sizeof(T))), _size(size)
     {
@@ -108,7 +108,7 @@ namespace bss_util {
       T* narray = (T*)malloc(sizeof(T)*nsize);
       memcpy(narray,_array,sizeof(T)*((nsize<_size)?(nsize):(_size)));
 
-      if(((int)(nsize-_size))<0) { //we removed some so we need to destroy them
+      if(nsize<_size) { //we removed some so we need to destroy them
         for(SizeType i = _size; i > nsize;)
           (_array+(--i))->~T();
       } else { //we created some so we need to construct them
@@ -133,9 +133,9 @@ namespace bss_util {
       free(_array);
       _size=copy._size;
       _array=(T*)malloc(_size*sizeof(T));
-      memcpy(_array,copy._array,_size*sizeof(T));
+      //memcpy(_array,copy._array,_size*sizeof(T));
       for(SizeType i = 0; i < _size; ++i)
-        new (_array+i) T();
+        new (_array+i) T(copy._array[i]);
       return *this;
     }
     inline cArrayConstruct<T,SizeType>& operator +=(const cArrayConstruct<T,SizeType>& add)
@@ -143,12 +143,12 @@ namespace bss_util {
       SizeType nsize=_size+add._size;
       T* narray = (T*)malloc(sizeof(T)*nsize);
       memcpy(narray,_array,_size*sizeof(T));
-      memcpy(narray+_size,add._array,add._size*sizeof(T));
+      //memcpy(narray+_size,add._array,add._size*sizeof(T));
       free(_array);
       _array=narray;
       
       for(SizeType i = _size; i < nsize; ++i)
-        new (_array+i) T();
+        new (_array+i) T(add._array[i-_size]);
 
       _size=nsize;
       return *this;

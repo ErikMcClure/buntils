@@ -19,6 +19,7 @@ typedef __int64 TIMEVALUSED;
 #define WCSCPY(dst,size,src) wcscpy_s(dst,size,src)
 #define STRICMP(a,b) _stricmp(a,b)
 #define WCSICMP(a,b) _wcsicmp(a,b)
+#define SSCANF sscanf_s
 #else
 typedef time_t TIMEVALUSED;
 #define FTIME(ptime) time(ptime)
@@ -34,6 +35,7 @@ typedef time_t TIMEVALUSED;
 #define WCSCPY(dst,size,src) wcscpy(dst,src)
 #define STRICMP(a,b) stricmp(a,b)
 #define WCSICMP(a,b) wcsicmp(a,b)
+#define SSCANF sscanf
 #endif
 
 #endif

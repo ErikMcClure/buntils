@@ -27,8 +27,8 @@ namespace bss_util {
   static const VersionType BSSUTIL_VERSION = { 0,3,81 };
 
   __declspec(dllexport) extern void BSS_FASTCALL SetWorkDirToCur(); //Sets the working directory to the actual goddamn location of the EXE instead of the freaking start menu, or possibly the desktop. The possibilities are endless! Fuck you, windows.
-  __declspec(dllexport) extern unsigned int BSS_FASTCALL bssFileSize(const char* path);
-  __declspec(dllexport) extern unsigned int BSS_FASTCALL bssFileSize(const wchar_t* path);
+  __declspec(dllexport) extern unsigned long long BSS_FASTCALL bssFileSize(const char* path);
+  __declspec(dllexport) extern unsigned long long BSS_FASTCALL bssFileSize(const wchar_t* path);
 
   //Useful numbers
   const double PI = 3.141592653589793238462643383279;

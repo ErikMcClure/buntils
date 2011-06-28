@@ -31,6 +31,7 @@
 #include "cRBT_List.h"
 #include "cBSS_Stack.h"
 #include "cSettings.h"
+#include "cAutoPtr.h"
 
 #define BOOST_FILESYSTEM_VERSION 3
 //#define BOOST_ALL_NO_LIB
@@ -161,11 +162,17 @@ DECL_SETTING(0,2,double,0.0,"pow",0);
 DECL_SETGROUP(1,"submain",2);
 DECL_SETTING(1,0,float,15.0f,"zip",0);
 DECL_SETTING(1,1,int,5,"poofers",0);
+DECL_SETTING(1,2,std::vector<cStr>,std::vector<cStr>(),"lots",0);
 
 struct CreateDestroyTracker {
   static int count;
-  CreateDestroyTracker() { ++count; }
-  ~CreateDestroyTracker() { --count; }
+  CreateDestroyTracker(const CreateDestroyTracker& copy) { ++count; isdead=this; }
+  CreateDestroyTracker() { ++count; isdead=this; }
+  ~CreateDestroyTracker() { if(!isdead) count/=0; --count; isdead=0; }
+  CreateDestroyTracker* isdead;
+
+  bool operator<(const CreateDestroyTracker& other) const { return isdead<other.isdead; }
+  bool operator==(const CreateDestroyTracker& other) const { return isdead==other.isdead; }
 };
 
 int CreateDestroyTracker::count=0;
@@ -176,11 +183,27 @@ int main(int argc, char** argv)
   srand(seed);
   //srand(433690314);
   rand();
+  
+  cAutoPtr<uint> ps(&seed);
 
-  cCmdLineArgsA cmdtest(argc,argv);
+  //{
+  //cArraySort<CreateDestroyTracker> arrtest;
+  //arrtest.Insert(CreateDestroyTracker());
+  //arrtest.Insert(CreateDestroyTracker());
+  //arrtest.Insert(CreateDestroyTracker());
+  //arrtest.Remove(2);
+  //arrtest.Insert(CreateDestroyTracker());
+  //arrtest.Insert(CreateDestroyTracker());
+  //arrtest.Insert(CreateDestroyTracker());
+  //arrtest.Remove(0);
+  //arrtest.Insert(CreateDestroyTracker());
+  //arrtest.Remove(3);
+  //}
 
-  cSettingManage<1,0>::LoadAllFromINI(cINIstorage<char>("test.ini"));
-  cSettingManage<1,0>::SaveAllToINI(cINIstorage<char>("test.ini"));
+  //cCmdLineArgsA cmdtest(argc,argv);
+
+  //cSettingManage<1,0>::LoadAllFromINI(cINIstorage<char>("test.ini"));
+  //cSettingManage<1,0>::SaveAllToINI(cINIstorage<char>("test.ini"));
   //{
   //cArrayConstruct<CreateDestroyTracker> ac1(1);
   //cArrayConstruct<CreateDestroyTracker> ac2(0);
@@ -247,6 +270,7 @@ int main(int argc, char** argv)
   //  }
   //}
 
+  //std::cout << CreateDestroyTracker::count;
   return 0;
 
   char prof;

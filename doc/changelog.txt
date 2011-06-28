@@ -14,6 +14,15 @@
 - Fixed bizarre bug where fopen in text mode "helpfully" replaced all \n with \n\r and caused infinitely expanding newlines.
 - Added generic Iterator class and linkedlist implementations
 - Made header gaurds more unique
+- Changed the command argument parser to return an unsigned int on size
+- filesize returns an unsigned long long instead of an unsigned int
+- Added SSCANF to deprecated list
+- cMap now properly uses the Key traits
+- Fixed unholy deluge of useless dll warnings spawned by cStr
+- cArrayConstruct now properly copies values from other cArrayConstruct objects with respect to constructors
+- cArraySort now uses a cArrayConstruct to ensure type safety
+- Added IsValid() helper function to cINIentry
+- Implemented cAutoPtr (modification of standard auto_ptr)
 
 0.3.8
 -----

@@ -5,34 +5,37 @@
 #define __C_ARRAY_SORT_H__BSS__
 
 #include "bss_traits.h"
+#include "bss_util.h"
 #include <memory.h>
+#include "cArraySimple.h"
 
 namespace bss_util {
   /* Sorted dynamic array */
   template<typename T, typename CompareTraits=CompareKeysTraits<T>, typename _SizeType=unsigned int>
-  class __declspec(dllexport) cArraySort : public CompareTraits
+  class __declspec(dllexport) cArraySort : public CompareTraits, protected cArrayConstruct<T,_SizeType>
   {
   public:
     typedef _SizeType __ST;
     typedef typename CompareTraits::constref constref;
     typedef typename CompareTraits::reference reference;
 
-    inline cArraySort(__ST size=1) : _array(new T[size]), _size(size), _length(0) { }
-    inline cArraySort(const cArraySort& copy) : _array(new T[copy._size]), _size(copy._size), _length(copy._length)
-    {
-      memcpy(_array,copy._array,_length*sizeof(T));
-    }
-    inline ~cArraySort() { delete [] _array; }
+    inline cArraySort(__ST size=1) : _length(0), cArrayConstruct(size) {} //,_array(new T[size]), _size(size) { }
+    inline cArraySort(const cArraySort& copy) : _length(copy._length), cArrayConstruct(copy) {} //, _array(new T[copy._size]), _size(copy._size), 
+    inline ~cArraySort() { /*delete [] _array;*/ }
     inline __ST BSS_FASTCALL Insert(constref data)
     {
-      if(_length>=_size) Expand(!_size?1:_size<<1);
+      if(_length>=_size) Expand(fbnext(_size));
       if(!_length) _array[_length++]=data;
       else
       {
         __ST loc = _findnear(data,false);
-        for(__ST i=_length++; i>loc; --i)
-          _array[i]=_array[i-1];
-        _array[loc] = data;
+        (_array+_length)->~T();
+        memmove(_array+(loc+1),_array+loc,(_length-loc)*sizeof(T));
+        ++_length;
+        new (_array+loc) T(data);
+        //for(__ST i=_length++; i>loc; --i)
+        //  _array[i]=_array[i-1];
+        //_array[loc] = data;
         return loc;
       }
       return 0;
@@ -60,18 +63,22 @@ namespace bss_util {
     inline bool BSS_FASTCALL Remove(__ST index)
     {
       if(index<0||index>=_length) return false;
-      while(++index<_length)
-        _array[index-1]=_array[index];
-      --_length;
+      (_array+index)->~T(); //call destructor on item about to be destroyed
+      memmove(_array+index,_array+(index+1),((--_length)-index)*sizeof(T));
+      new (_array+_length) T(); //call constructor on now empty last chunk
+      //while(++index<_length)
+      //  _array[index-1]=_array[index];
+      //--_length;
       return true;
     }
     inline void BSS_FASTCALL Expand(__ST newsize)
     {
-      T* narray = new T[newsize];
-      memcpy(narray,_array,(_length<newsize?_length:newsize)*sizeof(T));
-      delete [] _array;
-      _array=narray;
-      _size=newsize;
+      cArrayConstruct::SetSize(newsize);
+      //T* narray = new T[newsize];
+      //memcpy(narray,_array,(_length<newsize?_length:newsize)*sizeof(T));
+      //delete [] _array;
+      //_array=narray;
+      //_size=newsize;
     }
     inline __ST BSS_FASTCALL Find(constref data) const
     {
@@ -87,20 +94,18 @@ namespace bss_util {
     inline bool IsEmpty() const { return !_length; }
     inline __ST GetLength() const { return _length; }
     inline constref operator [](__ST index) const { return _array[index]; }
-    inline T& operator [](__ST index)
-    { 
-      return _array[index];
-    }
+    inline T& operator [](__ST index) { return _array[index]; }
     inline cArraySort& operator=(const cArraySort& right)
     { 
-      if(_size<right._size)
-      {
-        delete [] _array;
-        T* _array = new T[right._size];
-        _size=right._size;
-      }
+      cArrayConstruct::operator=(right);
+      //if(_size<right._size)
+      //{
+      //  delete [] _array;
+      //  T* _array = new T[right._size];
+      //  _size=right._size;
+      //}
       _length=right._length;
-      memcpy(_array,right._array,_length*sizeof(T));
+      //memcpy(_array,right._array,_length*sizeof(T));
       return *this;
     }
   protected:
@@ -134,8 +139,8 @@ namespace bss_util {
       return retval;
     }
 
-    T* _array;
-    __ST _size; //actual size of the whole thing
+    //T* _array;
+    //__ST _size; //actual size of the whole thing
     __ST _length; //How many slots are used
   };
 }

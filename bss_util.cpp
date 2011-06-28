@@ -80,12 +80,12 @@ extern void BSS_FASTCALL bss_util::SetWorkDirToCur()
   SetCurrentDirectoryW(commands);
 }
 
-__declspec(dllexport) extern unsigned int BSS_FASTCALL bss_util::bssFileSize(const char* path)
+__declspec(dllexport) extern unsigned long long BSS_FASTCALL bss_util::bssFileSize(const char* path)
 {
   filesystem3::path p(path);
   return filesystem3::file_size(path);
 }
-__declspec(dllexport) extern unsigned int BSS_FASTCALL bss_util::bssFileSize(const wchar_t* path)
+__declspec(dllexport) extern unsigned long long BSS_FASTCALL bss_util::bssFileSize(const wchar_t* path)
 {
   filesystem3::path p(path);
   return filesystem3::file_size(path);

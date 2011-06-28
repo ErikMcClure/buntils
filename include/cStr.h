@@ -106,6 +106,7 @@ public:
 
 #pragma warning(push)
 #pragma warning(disable: 4275)
+#pragma warning(disable: 4251)
 //template<typename Alloc = bss_util::AllocatorPolicyRef<char, bss_util::StringPoolAllocPolicy<char>, bss_util::ObjectTraits<char>>>
 //template<typename Alloc = bss_util::Allocator<CHAR,bss_util::StringPoolPolicy<CHAR>>>
 template<typename T=char, typename Alloc=std::allocator<T>>

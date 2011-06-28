@@ -27,7 +27,8 @@ namespace bss_util {
     inline const T* GetString() const { return _svalue; }
     inline long GetLong() const { return _lvalue; }
     inline double GetDouble() const { return _dvalue; }
-    
+    inline bool IsValid() const { return !_key.empty(); }
+
     inline operator bool() const { return _lvalue!=0; }
     inline operator char() const { return (char)_lvalue; }
     inline operator short() const { return (short)_lvalue; }
@@ -63,6 +64,7 @@ namespace bss_util {
     BSS_DLLEXPORT cINIentry<T>& GetEntry(const T* key, unsigned int instance=0) const;
     BSS_DLLEXPORT cINIentry<T>* GetEntryPtr(const T* key, unsigned int instance=0) const;
     inline char EditEntry(const T* key, const T* data, unsigned int instance=0) { return !_parent?-1:_parent->EditEntry(_name,key,data,_index,instance); } //if data is NULL the entry is deleted. if instance is -1 the entry is inserted
+
     /* Builds a list of all entries */
     BSS_DLLEXPORT const std::vector<std::pair<std::pair<cStrT<T>,cStrT<T>>,unsigned int>>& BuildEntryList() const;
 

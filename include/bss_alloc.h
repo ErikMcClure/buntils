@@ -342,7 +342,7 @@ namespace bss_util {
     T* BSS_FASTCALL alloc(_Sz num)
     {
       _Sz slot;
-      _Sz offset = _freeslots.GetLength();
+      _Sz offset = _freeslots.Length();
       for(slot = 0; slot < offset; ++slot)
         if(_freeslots[slot]>=num)
           break;
@@ -363,7 +363,7 @@ namespace bss_util {
           _maxfree=0;
           _maxfreesecond=0; //we do this in case _freeslots is about to be set to a length of 0.
 
-          for(_Sz i = _freeslots.GetLength()-1; i != ((_Sz)-1); --i)
+          for(_Sz i = _freeslots.Length()-1; i != ((_Sz)-1); --i)
             if(_maxfreesecond<=_freeslots[i])
             {
               if(_maxfree<=_freeslots[i])
@@ -403,7 +403,7 @@ namespace bss_util {
       _Sz prevlength;
 
       bool store;
-      _Sz slotoffsetlength=_freeslots.GetLength();
+      _Sz slotoffsetlength=_freeslots.Length();
       if(store=find<slotoffsetlength && find>=0) { prevoffset=_freeslots.KeyIndex(find); prevlength = _freeslots[find]; }
       if(store && prevoffset+prevlength==offset) //we are linked to our previous one 
       {
@@ -486,7 +486,7 @@ namespace bss_util {
     {
       if(_freesort.ReplaceKey(target->_index, target->_maxfree)!=target->_index)
       {
-        for(_Sz i = _freesort.GetLength()-1; i != (_Sz)(-1); --i) //We do this backwards because the length cannot change so it saves memory
+        for(_Sz i = _freesort.Length()-1; i != (_Sz)(-1); --i) //We do this backwards because the length cannot change so it saves memory
           _freesort[i]->_index=i;
       }
     }

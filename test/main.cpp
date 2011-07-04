@@ -164,18 +164,26 @@ DECL_SETTING(1,0,float,15.0f,"zip",0);
 DECL_SETTING(1,1,int,5,"poofers",0);
 DECL_SETTING(1,2,std::vector<cStr>,std::vector<cStr>(),"lots",0);
 
-struct CreateDestroyTracker {
+struct DEBUG_CDT {
+  inline DEBUG_CDT(const DEBUG_CDT& copy) : _index(copy._index) { ++count; isdead=this; }
+  inline DEBUG_CDT(int index=0) : _index(index) { ++count; isdead=this; }
+  inline ~DEBUG_CDT() { if(isdead!=this) count/=0; --count; isdead=0; }
+
+  inline DEBUG_CDT& operator=(const DEBUG_CDT& right) { _index=right._index; return *this; }
+  inline bool operator<(const DEBUG_CDT& other) const { return _index<other._index; }
+  inline bool operator>(const DEBUG_CDT& other) const { return _index>other._index; }
+  inline bool operator<=(const DEBUG_CDT& other) const { return _index<=other._index; }
+  inline bool operator>=(const DEBUG_CDT& other) const { return _index>=other._index; }
+  inline bool operator==(const DEBUG_CDT& other) const { return _index==other._index; }
+  inline bool operator!=(const DEBUG_CDT& other) const { return _index!=other._index; }
+
   static int count;
-  CreateDestroyTracker(const CreateDestroyTracker& copy) { ++count; isdead=this; }
-  CreateDestroyTracker() { ++count; isdead=this; }
-  ~CreateDestroyTracker() { if(!isdead) count/=0; --count; isdead=0; }
-  CreateDestroyTracker* isdead;
-
-  bool operator<(const CreateDestroyTracker& other) const { return isdead<other.isdead; }
-  bool operator==(const CreateDestroyTracker& other) const { return isdead==other.isdead; }
+  DEBUG_CDT* isdead;
+  int _index;
 };
+int DEBUG_CDT::count=0;
 
-int CreateDestroyTracker::count=0;
+const char* FAKESTRINGLIST[5] = { "FOO", "BAR", "MEH", "SILLY", "EXACERBATION" };
 
 int main(int argc, char** argv)
 {
@@ -183,22 +191,30 @@ int main(int argc, char** argv)
   srand(seed);
   //srand(433690314);
   rand();
-  
-  cAutoPtr<uint> ps(&seed);
 
-  //{
-  //cArraySort<CreateDestroyTracker> arrtest;
-  //arrtest.Insert(CreateDestroyTracker());
-  //arrtest.Insert(CreateDestroyTracker());
-  //arrtest.Insert(CreateDestroyTracker());
-  //arrtest.Remove(2);
-  //arrtest.Insert(CreateDestroyTracker());
-  //arrtest.Insert(CreateDestroyTracker());
-  //arrtest.Insert(CreateDestroyTracker());
-  //arrtest.Remove(0);
-  //arrtest.Insert(CreateDestroyTracker());
-  //arrtest.Remove(3);
-  //}
+  int c = STRSWAP("bar",FAKESTRINGLIST);
+
+  {
+    cArraySort<DEBUG_CDT,CompareKeysTraits<DEBUG_CDT>,unsigned int,cArraySafe<DEBUG_CDT,unsigned int>> arrtest;
+  arrtest.Insert(DEBUG_CDT(0));
+  arrtest.Insert(DEBUG_CDT(1));
+  arrtest.Insert(DEBUG_CDT(2));
+  arrtest.Remove(2);
+  arrtest.Insert(DEBUG_CDT(3));
+  arrtest.Insert(DEBUG_CDT(4));
+  arrtest.Insert(DEBUG_CDT(5));
+  arrtest.Remove(0);
+  arrtest.Insert(DEBUG_CDT(6));
+  arrtest.Remove(3);
+  cArraySort<DEBUG_CDT,CompareKeysTraits<DEBUG_CDT>,unsigned int,cArraySafe<DEBUG_CDT,unsigned int>> arrtest2;
+  
+  for(uint i = 0; i < arrtest.Length(); ++i)
+    std::cout << arrtest[i]._index << std::endl;
+
+  arrtest2.Insert(DEBUG_CDT(7));
+  arrtest2.Insert(DEBUG_CDT(8));
+  arrtest=arrtest2;
+  }
 
   //cCmdLineArgsA cmdtest(argc,argv);
 
@@ -270,8 +286,11 @@ int main(int argc, char** argv)
   //  }
   //}
 
-  //std::cout << CreateDestroyTracker::count;
+  std::cout << DEBUG_CDT::count;
+  std::cout << std::endl << std::endl << "Press Enter to continue" << std::endl;
+  std::cin.get();
   return 0;
+
 
   char prof;
   BSS_DebugInfo _debug("log.txt");

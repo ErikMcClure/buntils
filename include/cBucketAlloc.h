@@ -106,7 +106,7 @@
 //    unsigned int prev;
 //
 //    bool store;
-//    BUCKET_SlotSize slotoffsetlength=_slotoffsets.GetLength();
+//    BUCKET_SlotSize slotoffsetlength=_slotoffsets.Length();
 //    if(store=find<slotoffsetlength) prev=_slotoffsets[find];
 //    if(store && ((unsigned short)prev)+(prev>>16)==offset) //we are linked to our previous one NOTE: This may be an off by one error
 //    {

@@ -88,7 +88,7 @@ void* operator new(size_t size, const char* file, int line)
 
 void* operator new[](size_t size, const char *file, int line) 
 {
-  return operator new(size, file, line);
+  return operator new(size, file, line); //This shouldn't work. Are the constructors called elsewhere?
 }
 
 void operator delete(void* ptr) 

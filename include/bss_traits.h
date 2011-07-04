@@ -5,6 +5,7 @@
 #define __BSS_TRAITS_H__
 
 #include "bss_call.h"
+#include "bss_deprecated.h"
 
 namespace bss_util {
   template<typename T>

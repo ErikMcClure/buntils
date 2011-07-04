@@ -9,13 +9,13 @@
 
 namespace bss_util {
   /* A map class implemented as an associative sorted array */
-  template<class Key, class Data, typename CompareTraits=CompareKeysTraits<Key>, typename DataTraits=ValueTraits<Data>, typename _SizeType=unsigned int>
-  class __declspec(dllexport) cMap : protected cArraySort<std::pair<Key,Data>, ComparePairTraits_first<std::pair<Key,Data>, RefTraits<std::pair<Key,Data>>, CompareTraits>, _SizeType>, DataTraits
+  template<class Key, class Data, typename CompareTraits=CompareKeysTraits<Key>, typename DataTraits=ValueTraits<Data>, typename _SizeType=unsigned int, typename ArrayType=cArraySimple<std::pair<Key,Data>,_SizeType>>
+  class __declspec(dllexport) cMap : protected cArraySort<std::pair<Key,Data>, ComparePairTraits_first<std::pair<Key,Data>, RefTraits<std::pair<Key,Data>>, CompareTraits>, _SizeType, ArrayType>, DataTraits
   {
   protected:
     typedef std::pair<Key,Data> pair_t;
     typedef cMap<Key,Data,CompareTraits,_SizeType> cMap_t;
-    typedef cArraySort<pair_t, ComparePairTraits_first<pair_t, RefTraits<pair_t>, CompareTraits>, __ST> cArraySort_t;
+    typedef cArraySort<pair_t, ComparePairTraits_first<pair_t, RefTraits<pair_t>, CompareTraits>, __ST, ArrayType> cArraySort_t;
     typedef typename DataTraits::const_reference constref;
     typedef typename DataTraits::reference reference;
     typedef typename CompareTraits::const_reference CKEYREF;
@@ -36,7 +36,7 @@ namespace bss_util {
     inline _SizeType BSS_FASTCALL ReplaceKey(__ST index, CKEYREF key) { if(index<0 || index >= _length) return (__ST)(-1); return cArraySort_t::ReplaceData(index, pair_t(key,_array[index].second)); }
     inline KEYREF BSS_FASTCALL KeyIndex(__ST index) const { return cArraySort_t::operator [](index).first; }
     inline reference BSS_FASTCALL DataIndex(__ST index) const { return cArraySort_t::operator [](index).second; }
-    inline _SizeType BSS_FASTCALL GetLength() const { return _length; }
+    inline _SizeType BSS_FASTCALL Length() const { return _length; }
     inline void BSS_FASTCALL Expand(__ST size) { cArraySort_t::Expand(size); }
     inline _SizeType BSS_FASTCALL Set(CKEYREF key, constref data)
     {

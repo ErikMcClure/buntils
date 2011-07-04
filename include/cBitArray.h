@@ -25,7 +25,7 @@ namespace bss_util
     inline cBitArray(__ST numbits=0) : _bits(0), _numbits(0), _reservedbytes(0), DIV_AMT(log2_p2(sizeof(_StorageType)<<3)), MOD_AMT((sizeof(_StorageType)<<3)-1) { SetSize(numbits); }
     inline ~cBitArray() { if(_bits) delete [] _bits; }
     inline void BSS_FASTCALL SetSize(__ST numbits) { _resize((numbits&MOD_AMT)==0?(numbits>>DIV_AMT):((numbits>>DIV_AMT)+1)); _numbits=numbits; }
-    inline __ST GetSize() const { return _numbits; }
+    inline __ST Size() const { return _numbits; }
     inline bool BSS_FASTCALL SetBit(__ST bitindex, bool value)
     {
       if(bitindex>=_numbits) return false;

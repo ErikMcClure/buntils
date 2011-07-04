@@ -51,6 +51,9 @@ namespace bss_util {
 		  _result = _compobj(src, num, vl);
 		  va_end(vl);
 	  }
+    inline explicit cObjSwap(constref src, T* tarray, int num) : _result(CompareObjectsArray(src,num,tarray)) {}
+    template<int N>
+    inline explicit cObjSwap(constref src, const T (&tarray)[N]) : _result(CompareObjectsArray<N>(src,tarray)) {}
 
     inline operator int() const { return _result; }
 
@@ -62,6 +65,20 @@ namespace bss_util {
 		  va_end(vl);
 		  return retval;
 	  }
+
+    template<int N>
+    inline static int CompareObjectsArray(constref src, const T (&tarray)[N])
+    {
+      return CompareObjectsArray(src,N,tarray);
+    }
+
+    inline static int CompareObjectsArray(constref src, int num, const T* tarray)
+    {
+		  for(int i = 0; i < num; ++i)
+			  if(Comp::Compare(tarray[i], src)==0)
+				  return i;
+		  return -1;
+    }
 
   private:
 	  inline static int _compobj(constref src, int num, va_list args)

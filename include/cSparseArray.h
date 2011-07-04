@@ -78,9 +78,9 @@ namespace bss_util {
     /* Tells you if a given index is valid */
     inline bool BSS_FASTCALL IsValid(__ST index) { return (index<_size)?GetBit(index):false; }
     /* Gets the total size of the array */
-    inline __ST GetSize() const { return _size; }
+    inline __ST Size() const { return _size; }
     /* Gets the number of used spots in the array */
-    inline __ST GetLength() const { return _count; }
+    inline __ST Length() const { return _count; }
     /* Expands the array by the sparsity amount */
     inline void Expand(__ST size) { float a = _size*Sparsity; size+=size%Sparsity; _expand((size<a)?a:size); }
     /* Gets the next valid index */

@@ -11,16 +11,16 @@
 
 namespace bss_util {
   /* Sorted dynamic array */
-  template<typename T, typename CompareTraits=CompareKeysTraits<T>, typename _SizeType=unsigned int>
-  class __declspec(dllexport) cArraySort : public CompareTraits, protected cArrayConstruct<T,_SizeType>
+  template<typename T, typename CompareTraits=CompareKeysTraits<T>, typename _SizeType=unsigned int, typename ArrayType=cArraySimple<T,_SizeType>>
+  class __declspec(dllexport) cArraySort : public CompareTraits, protected ArrayType
   {
   public:
     typedef _SizeType __ST;
     typedef typename CompareTraits::constref constref;
     typedef typename CompareTraits::reference reference;
 
-    inline cArraySort(__ST size=1) : _length(0), cArrayConstruct(size) {} //,_array(new T[size]), _size(size) { }
-    inline cArraySort(const cArraySort& copy) : _length(copy._length), cArrayConstruct(copy) {} //, _array(new T[copy._size]), _size(copy._size), 
+    inline cArraySort(__ST size=1) : _length(0), ArrayType(size) {} //,_array(new T[size]), _size(size) { }
+    inline cArraySort(const cArraySort& copy) : _length(copy._length), ArrayType(copy) {} //, _array(new T[copy._size]), _size(copy._size), 
     inline ~cArraySort() { /*delete [] _array;*/ }
     inline __ST BSS_FASTCALL Insert(constref data)
     {
@@ -29,10 +29,11 @@ namespace bss_util {
       else
       {
         __ST loc = _findnear(data,false);
-        (_array+_length)->~T();
-        memmove(_array+(loc+1),_array+loc,(_length-loc)*sizeof(T));
-        ++_length;
-        new (_array+loc) T(data);
+        ArrayType::_pushback(loc,(_length++)-loc,data);
+        //(_array+_length)->~T();
+        //memmove(_array+(loc+1),_array+loc,(_length-loc)*sizeof(T));
+        //++_length;
+        //new (_array+loc) T(data);
         //for(__ST i=_length++; i>loc; --i)
         //  _array[i]=_array[i-1];
         //_array[loc] = data;
@@ -63,17 +64,18 @@ namespace bss_util {
     inline bool BSS_FASTCALL Remove(__ST index)
     {
       if(index<0||index>=_length) return false;
-      (_array+index)->~T(); //call destructor on item about to be destroyed
-      memmove(_array+index,_array+(index+1),((--_length)-index)*sizeof(T));
-      new (_array+_length) T(); //call constructor on now empty last chunk
-      //while(++index<_length)
-      //  _array[index-1]=_array[index];
-      //--_length;
+      ArrayType::Remove(index);
+      //(_array+index)->~T(); //call destructor on item about to be destroyed
+      //memmove(_array+index,_array+(index+1),((--_length)-index)*sizeof(T));
+      //new (_array+_length) T(); //call constructor on now empty last chunk
+      ////while(++index<_length)
+      ////  _array[index-1]=_array[index];
+      --_length;
       return true;
     }
     inline void BSS_FASTCALL Expand(__ST newsize)
     {
-      cArrayConstruct::SetSize(newsize);
+      ArrayType::SetSize(newsize);
       //T* narray = new T[newsize];
       //memcpy(narray,_array,(_length<newsize?_length:newsize)*sizeof(T));
       //delete [] _array;
@@ -92,12 +94,12 @@ namespace bss_util {
       return retval<_length?retval:(__ST)(-1);
     }
     inline bool IsEmpty() const { return !_length; }
-    inline __ST GetLength() const { return _length; }
+    inline __ST Length() const { return _length; }
     inline constref operator [](__ST index) const { return _array[index]; }
-    inline T& operator [](__ST index) { return _array[index]; }
+    inline reference operator [](__ST index) { return _array[index]; }
     inline cArraySort& operator=(const cArraySort& right)
     { 
-      cArrayConstruct::operator=(right);
+      ArrayType::operator=(right);
       //if(_size<right._size)
       //{
       //  delete [] _array;

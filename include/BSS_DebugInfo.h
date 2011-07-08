@@ -6,13 +6,13 @@
 
 #include "bss_dlldef.h"
 #include "cHighPrecisionTimer.h"
-#include "BSS_log.h"
+#include "bss_Log.h"
 
 struct HINSTANCE__; //so we can avoid windows.h
 struct _PROCESS_MEMORY_COUNTERS; //Include <psapi.h> to read the information
 
 /* An inheritable debug class that exposes process information and provides profiling tools */
-typedef class BSS_DLLEXPORT BSS_DebugInfo : public bss_util::cHighPrecisionTimer, public BSS_Log
+typedef class BSS_DLLEXPORT BSS_DebugInfo : public bss_util::cHighPrecisionTimer, public bss_Log
 {
 public:
   BSS_DebugInfo(const BSS_DebugInfo& copy);

@@ -234,7 +234,7 @@
     <ClCompile Include="INIParser.c" />
     <ClCompile Include="chess_tests.cpp" />
     <ClCompile Include="BSS_DebugInfo.cpp" />
-    <ClCompile Include="BSS_Log.cpp" />
+    <ClCompile Include="bss_Log.cpp" />
     <ClCompile Include="bss_util.cpp" />
     <ClCompile Include="cCmdLineArgs.cpp" />
     <ClCompile Include="cHighPrecisionTimer.cpp" />
@@ -250,6 +250,7 @@
   <ItemGroup>
     <ClInclude Include="include\bss_alloc_additive.h" />
     <ClInclude Include="include\bss_alloc_fixed.h" />
+    <ClInclude Include="include\bss_Log.h" />
     <ClInclude Include="include\cLambdaStack.h" />
     <ClInclude Include="include\cRBT_List.h" />
     <ClInclude Include="include\bss_util_c.h" />
@@ -266,7 +267,7 @@
     <ClInclude Include="include\bss_defines.h" />
     <ClInclude Include="include\bss_deprecated.h" />
     <ClInclude Include="include\bss_dlldef.h" />
-    <ClInclude Include="include\BSS_Log.h" />
+    <ClInclude Include="include\BSS_Log.h.bak" />
     <ClInclude Include="include\bss_traits.h" />
     <ClInclude Include="include\bss_util.h" />
     <ClInclude Include="include\bss_win32_includes.h" />
@@ -306,6 +307,7 @@
     <ClInclude Include="include\LLBase.h" />
     <ClInclude Include="include\os.h" />
     <ClInclude Include="include\Shiny.h" />
+    <ClInclude Include="include\StreamSplitter.h" />
   </ItemGroup>
   <ItemGroup>
     <None Include="cINIstorage.inl" />

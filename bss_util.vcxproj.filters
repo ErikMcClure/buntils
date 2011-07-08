@@ -21,9 +21,6 @@
     <ClCompile Include="BSS_DebugInfo.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="BSS_Log.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
     <ClCompile Include="cCmdLineArgs.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
@@ -66,6 +63,9 @@
     <ClCompile Include="bss_util_c.c">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="bss_Log.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="include\bss_alloc.h">
@@ -87,9 +87,6 @@
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="include\bss_dlldef.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="include\BSS_Log.h">
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="include\bss_traits.h">
@@ -240,6 +237,15 @@
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="include\cAutoPtr.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="include\BSS_Log.h.bak">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="include\bss_Log.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="include\StreamSplitter.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>

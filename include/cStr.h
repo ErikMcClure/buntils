@@ -120,7 +120,7 @@ public:
   inline cStrT(const cStrT& copy) : CSTRALLOC(CHAR)(copy) {}
   template<class U> inline cStrT(const cStrT<T,U>& copy) : CSTRALLOC(CHAR)(copy) {}
   template<class U> inline cStrT(const cStrT<OTHER_C,U>& copy) : CSTRALLOC(CHAR)() { size_t numchar=copy.size(); reserve(++numchar); CSTR_CT<T>::WTOMB(&_Mysize,_Myptr(),_Myres, copy.String(), numchar); RecalcSize(); }
-  inline cStrT(const OTHER_C* text) : CSTRALLOC(CHAR)() { size_t numchar=CSTR_CT<T>::O_SLEN(text); reserve(++numchar); CSTR_CT<T>::WTOMB(&_Mysize,_Myptr(),_Myres, text, numchar); RecalcSize(); }
+  inline cStrT(const OTHER_C* text) : CSTRALLOC(CHAR)() { if(!text) return; size_t numchar=CSTR_CT<T>::O_SLEN(text); reserve(++numchar); CSTR_CT<T>::WTOMB(&_Mysize,_Myptr(),_Myres, text, numchar); RecalcSize(); }
   inline cStrT(unsigned short index, const CHAR* text, const CHAR delim) : CSTRALLOC(CHAR)() //Creates a new string from the specified chunk
   {
     for(unsigned short i = 0; i < index; ++i)
@@ -179,6 +179,7 @@ public:
   inline cStrT& ReplaceChar(CHAR search, CHAR replace) { CHAR* pmod=_Myptr(); for(size_t i = 0; i < _Mysize; ++i) if(pmod[i] == search) pmod[i] = replace; return *this; }
   inline void RecalcSize() { _Mysize = CSTR_CT<T>::SLEN(_Myptr()); }
   inline void SetSize(size_t nsize) { _Mysize=nsize; }
+  inline cStrT Trim() const { cStrT r(*this); r=_ltrim(_rtrim(r._Myptr(),r._Mysize)); return r; }
 
   static inline void Explode(std::vector<cStrT> &dest, const CHAR delim, const CHAR* text)
   {
@@ -195,6 +196,8 @@ public:
   }
 
 private:
+  inline static T* BSS_FASTCALL _ltrim(T* str) { for(;*str>0 && *str<33;++str); return str; }
+  inline static T* BSS_FASTCALL _rtrim(T* str, size_t size) { T* inter=str+size; for(;inter>str && *inter<33;--inter); *(++inter)=0; return str; }
   //The following line of code is in such a twisted state because it must overload the operator[] inherent in the basic_string class and render it totally unusable so as to force the compiler to disregard it as a possibility, otherwise it gets confused with the CHAR* type conversion
   void __CLR_OR_THIS_CALL operator[](std::allocator<CHAR>& f) { }//return CSTRALLOC(CHAR)::operator [](_Off); }
 

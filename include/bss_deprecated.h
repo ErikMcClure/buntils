@@ -4,7 +4,9 @@
 #ifndef __BSS_DEPRECATED_H__
 #define __BSS_DEPRECATED_H__
 
-#if __STDC_WANT_SECURE_LIB__
+#include <time.h> //Done so we can use time_t, and as a way to get VC++ to include crtdefs.h without ruining compatability with other compilers
+
+#if defined(__STDC_WANT_SECURE_LIB__) && __STDC_WANT_SECURE_LIB__
 typedef __int64 TIMEVALUSED;
 #define FTIME(ptime) _time64(ptime)
 #define GMTIMEFUNC(raw, assign) if(_gmtime64_s(assign, raw)) return false

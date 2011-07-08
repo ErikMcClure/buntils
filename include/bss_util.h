@@ -29,6 +29,7 @@ namespace bss_util {
   __declspec(dllexport) extern void BSS_FASTCALL SetWorkDirToCur(); //Sets the working directory to the actual goddamn location of the EXE instead of the freaking start menu, or possibly the desktop. The possibilities are endless! Fuck you, windows.
   __declspec(dllexport) extern unsigned long long BSS_FASTCALL bssFileSize(const char* path);
   __declspec(dllexport) extern unsigned long long BSS_FASTCALL bssFileSize(const wchar_t* path);
+  __declspec(dllexport) extern long BSS_FASTCALL GetTimeZoneMinutes(); //Returns the current time zone difference from UTC in minutes
 
   //Useful numbers
   const double PI = 3.141592653589793238462643383279;
@@ -97,6 +98,29 @@ namespace bss_util {
     q=h;
   }
   
+  template<typename T>
+  inline T* BSS_FASTCALL strltrim(T* str)
+  {
+    for(;*str>0 && *str<33;++str);
+    return str;
+  }
+  
+  template<typename T>
+  inline T* BSS_FASTCALL strrtrim(T* str)
+  {
+    T* inter=str+strlen(str);
+
+    for(;inter>str && *inter<33;--inter);
+    *(++inter)='\0';
+    return str;
+  }
+
+  template<typename T>
+  inline T* BSS_FASTCALL strtrim(T* str)
+  {
+    return strrtrim(strltrim(str));
+  }
+
   /* Shuffler using Fisher-Yates/Knuth Shuffle algorithm based on Durstenfeld's implementation. This is an in-place algorithm and works with any numeric type T. */
   template<typename T, typename ST, ST (*RandFunc)(ST min, ST max)>
   inline void BSS_FASTCALL shuffle(T* p, ST size)

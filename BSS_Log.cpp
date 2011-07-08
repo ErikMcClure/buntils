@@ -1,9 +1,223 @@
 // Copyright ©2011 Black Sphere Studios
 // For conditions of distribution and use, see copyright notice in "bss_util.h"
 
-#include "BSS_Log.h"
-#include <fstream>
+#include "bss_Log.h"
 #include "bss_deprecated.h"
+#include "StreamSplitter.h"
+#include "bss_util.h"
+#include <fstream>
+#include <iomanip>
+
+using namespace bss_util;
+using namespace std;
+
+bss_Log::bss_Log(const bss_Log& copy) : _split(new StreamSplitter<char>(*copy._split)), _stream(_split), _tz(GetTimeZoneMinutes())
+{
+}
+bss_Log::bss_Log(std::ostream* log) : _split(new StreamSplitter<char>()), _stream(_split), _tz(GetTimeZoneMinutes())
+{
+  if(log!=0)
+    AddTarget(*log);
+}
+
+bss_Log::bss_Log(std::wostream* log) : _split(new StreamSplitter<char>()), _stream(_split), _tz(GetTimeZoneMinutes())
+{
+  if(log!=0)
+    AddTarget(*log);
+}
+bss_Log::bss_Log(const char* logfile, std::ostream* log) : _split(new StreamSplitter<char>()), _stream(_split), _tz(GetTimeZoneMinutes())
+{
+  AddTarget(logfile);
+  if(log!=0)
+    AddTarget(*log);
+}
+bss_Log::bss_Log(const wchar_t* logfile, std::ostream* log) : _split(new StreamSplitter<char>()), _stream(_split), _tz(GetTimeZoneMinutes())
+{
+  AddTarget(logfile);
+  if(log!=0)
+    AddTarget(*log);
+}
+bss_Log::bss_Log(const char* logfile, std::wostream* log) : _split(new StreamSplitter<char>()), _stream(_split), _tz(GetTimeZoneMinutes())
+{
+  AddTarget(logfile);
+  if(log!=0)
+    AddTarget(*log);
+}
+bss_Log::bss_Log(const wchar_t* logfile, std::wostream* log) : _split(new StreamSplitter<char>()), _stream(_split), _tz(GetTimeZoneMinutes())
+{
+  AddTarget(logfile);
+  if(log!=0)
+    AddTarget(*log);
+}
+bss_Log::~bss_Log()
+{
+  ClearTargets();
+  for(size_t i = 0; i < _backup.size(); ++i) //restore stream buffer backups so we don't blow up someone else's stream when destroying ourselves (suicide bombing is bad for your health)
+    _backup[i].first.rdbuf(_backup[i].second);
+  delete _split;
+}
+void BSS_FASTCALL bss_Log::Assimilate(std::ostream& stream)
+{
+  _backup.push_back(std::pair<std::ostream&, std::streambuf*>(stream,stream.rdbuf()));
+  stream.rdbuf(_split);
+}
+void BSS_FASTCALL bss_Log::AddTarget(std::ostream& stream)
+{
+  _split->AddTarget(&stream);
+}
+void BSS_FASTCALL bss_Log::AddTarget(std::wostream& stream)
+{
+  _split->AddTarget(&stream);
+}
+void BSS_FASTCALL bss_Log::AddTarget(const char* file)
+{
+  if(!file) return;
+  _files.push_back(ofstream(file,ios_base::out|ios_base::trunc));
+  AddTarget(_files.back());
+}
+void BSS_FASTCALL bss_Log::AddTarget(const wchar_t* file)
+{
+  if(!file) return;
+  _files.push_back(ofstream(file,ios_base::out|ios_base::trunc));
+  AddTarget(_files.back());
+}
+void bss_Log::ClearTargets()
+{
+  _split->ClearTargets();
+  for(size_t i = 0; i < _files.size(); ++i)
+    _files[i].close();
+  _files.clear();
+}
+bool BSS_FASTCALL bss_Log::_writedatetime(long timez, std::ostream& log, bool timeonly)
+{
+  tm* ptm=0;
+  TIMEVALUSED rawtime;
+  FTIME(&rawtime);
+#if __STDC_WANT_SECURE_LIB__
+  ptm = new tm();
+#endif
+  GMTIMEFUNC(&rawtime, ptm);
+
+  long htimez=(timez/60); //timezone adjustments
+  long mtimez=(timez%60)+ptm->tm_min;
+  htimez += ((mtimez<0)?-1:(mtimez/60));
+
+  char logchar = log.fill();
+  std::streamsize logwidth = log.width();
+  log.fill('0');
+  //Write date if we need to
+  if(!timeonly) log << std::setw(4) << ptm->tm_year+1900 << std::setw(1) << '-' << std::setw(2) << ptm->tm_mon+1 << std::setw(1) << '-' << std::setw(2) << ptm->tm_mday << std::setw(1) << ' ';
+  //Write time and flush stream
+  log << std::setw(1) << (ptm->tm_hour+htimez)%24 << std::setw(0) << ':' << std::setw(2) << (mtimez%60) << std::setw(0) << ':' << std::setw(2) << ptm->tm_sec;
+  
+  //Reset values of stream
+  log.width(logwidth);
+  log.fill(logchar);
+
+#if __STDC_WANT_SECURE_LIB__
+  delete ptm;
+#endif
+  return true;
+}
+bss_Log& bss_Log::operator=(const bss_Log& right)
+{
+  ClearTargets();
+  *_split=*right._split;
+
+  return *this; //We don't copy _stream because its attached to _split which gets copied anyway and we want it to stay that way.
+}
+
+const char* BSS_FASTCALL bss_Log::_trimpath(const char* path)
+{
+	const char* retval=strrchr(path,'/');
+	if(!retval)
+	{
+		retval=strrchr(path,'\\');
+		if(!retval) retval=path;
+		else ++retval;
+	}
+	else
+	{
+		path=strrchr(path,'\\');
+		retval=path>retval?++path:++retval;
+	}
+	return retval;
+}
+
+const wchar_t* BSS_FASTCALL bss_Log::_trimpath(const wchar_t* path)
+{
+	const wchar_t* retval=wcsrchr(path,'/');
+	if(!retval)
+	{
+		retval=wcsrchr(path,'\\');
+		if(!retval) retval=path;
+		else ++retval;
+	}
+	else
+	{
+		path=wcsrchr(path,'\\');
+		retval=path>retval?++path:++retval;
+	}
+	return retval;
+}
+
+
+//  #ifdef _M_CEE_PURE
+//	_Myt& __CLR_OR_THIS_CALL operator<<(_Myt& (__clrcall *_Pfn)(_Myt&));
+//	_Myt& __CLR_OR_THIS_CALL operator<<(_Myios& (__clrcall *_Pfn)(_Myios&));
+//	_Myt& __CLR_OR_THIS_CALL operator<<(ios_base& (__clrcall *_Pfn)(ios_base&));
+//  #endif /* _M_CEE_PURE */
+//
+//	_Myt& __CLR_OR_THIS_CALL operator<<(_Myt& (__cdecl *_Pfn)(_Myt&));
+//	_Myt& __CLR_OR_THIS_CALL operator<<(_Myios& (__cdecl *_Pfn)(_Myios&));
+//	_Myt& __CLR_OR_THIS_CALL operator<<(ios_base& (__cdecl *_Pfn)(ios_base&));
+//	_Myt& __CLR_OR_THIS_CALL operator<<(_Bool _Val);
+//	_Myt& __CLR_OR_THIS_CALL operator<<(short _Val);
+//	_Myt& __CLR_OR_THIS_CALL operator<<(unsigned short _Val);
+//	_Myt& __CLR_OR_THIS_CALL operator<<(int _Val);
+//	_Myt& __CLR_OR_THIS_CALL operator<<(unsigned int _Val);
+//	_Myt& __CLR_OR_THIS_CALL operator<<(long _Val);
+//	_Myt& __CLR_OR_THIS_CALL operator<<(unsigned long _Val);
+// #ifdef _LONGLONG
+//	_Myt& __CLR_OR_THIS_CALL operator<<(_LONGLONG _Val);
+//	_Myt& __CLR_OR_THIS_CALL operator<<(_ULONGLONG _Val);
+// #endif /* _LONGLONG */
+//	_Myt& __CLR_OR_THIS_CALL operator<<(float _Val);
+//	_Myt& __CLR_OR_THIS_CALL operator<<(double _Val);
+//	_Myt& __CLR_OR_THIS_CALL operator<<(long double _Val);
+//	_Myt& __CLR_OR_THIS_CALL operator<<(const void *_Val);
+//	_Myt& __CLR_OR_THIS_CALL operator<<(_Mysb *_Strbuf);
+//  
+//template<class _Elem,
+//	class _Traits> inline
+//	basic_ostream<_Elem, _Traits>& operator<<(
+//		basic_ostream<_Elem, _Traits>& _Ostr, const char *_Val)
+//template<class _Traits> inline
+//	basic_ostream<char, _Traits>& operator<<(
+//		basic_ostream<char, _Traits>& _Ostr, const signed char *_Val)
+//	{	// insert a signed char NTBS
+//	return (_Ostr << (const char *)_Val);
+//	}
+//
+//template<class _Traits> inline
+//	basic_ostream<char, _Traits>& operator<<(
+//		basic_ostream<char, _Traits>& _Ostr, signed char _Ch)
+//	{	// insert a signed char
+//	return (_Ostr << (char)_Ch);
+//	}
+//
+//template<class _Traits> inline
+//	basic_ostream<char, _Traits>& operator<<(
+//		basic_ostream<char, _Traits>& _Ostr, const unsigned char *_Val)
+//	{	// insert an unsigned char NTBS
+//	return (_Ostr << (const char *)_Val);
+//	}
+
+
+/*
+#include "BSS_Log.h"
+#include "bss_deprecated.h"
+#include <fstream>
 #include <stdarg.h> //va_start() va_end()
 #include <time.h>
 #include <iomanip> //setw
@@ -13,23 +227,23 @@
 const char* BSS_Log::_errlevels[NUMERRLEVELS] = { "INFO: ", "WARNING: ", "ERROR: ", "FATAL: ", "DEBUG: " };
 //const wchar_t* BSS_Log::_werrlevels[NUMERRLEVELS] = { L"INFO: ", L"WARNING: ", L"ERROR: ", L"FATAL: ", L"DEBUG: " };
 
-BSS_Log::BSS_Log(const BSS_Log& copy) : _curtimez(0), _winit(copy._winit),_init(copy._init), _wname(*new cStrW()), _name(*new cStr()), _cutofflevel(copy._cutofflevel), _streams(*(new TSTREAMVAL(copy._streams))), _filestreams(*(new TFILESTREAMVAL())),/*_wstreams(*(new TWSTREAMVAL())), _wfilestreams(*(new TWFILESTREAMVAL())),*/  _buf(*(new TBUFVAL(32)))
+BSS_Log::BSS_Log(const BSS_Log& copy) : _curtimez(0), _winit(copy._winit),_init(copy._init), _wname(*new cStrW()), _name(*new cStr()), _cutofflevel(copy._cutofflevel), _streams(*(new TSTREAMVAL(copy._streams))), _filestreams(*(new TFILESTREAMVAL())),  _buf(*(new TBUFVAL(32)))
 {
   NameModule(copy._wname);
 }
-BSS_Log::BSS_Log(std::ostream* log) : _winit(-1),_curtimez(0), _wname(*new cStrW()), _name(*new cStr()), _streams(*(new TSTREAMVAL())), _filestreams(*(new TFILESTREAMVAL())),/*_wstreams(*(new TWSTREAMVAL())), _wfilestreams(*(new TWFILESTREAMVAL())),*/ _buf(*(new TBUFVAL(32)))
+BSS_Log::BSS_Log(std::ostream* log) : _winit(-1),_curtimez(0), _wname(*new cStrW()), _name(*new cStr()), _streams(*(new TSTREAMVAL())), _filestreams(*(new TFILESTREAMVAL())),_buf(*(new TBUFVAL(32)))
 {
 	_cutofflevel=0;
 	_init=!log?(IDVAL)-1:AddSource(*log);
 }
-BSS_Log::BSS_Log(const char* logfile, std::ostream* log) : _winit(-1),_curtimez(0), _wname(*new cStrW()), _name(*new cStr()), _streams(*(new TSTREAMVAL())), _filestreams(*(new TFILESTREAMVAL())), /*_wstreams(*(new TWSTREAMVAL())), _wfilestreams(*(new TWFILESTREAMVAL())),*/ _buf(*(new TBUFVAL(32)))
+BSS_Log::BSS_Log(const char* logfile, std::ostream* log) : _winit(-1),_curtimez(0), _wname(*new cStrW()), _name(*new cStr()), _streams(*(new TSTREAMVAL())), _filestreams(*(new TFILESTREAMVAL())),  _buf(*(new TBUFVAL(32)))
 {
 	_cutofflevel=0;
 	IDVAL hold=!log?(IDVAL)-1:AddSource(*log);
 	_init=AddSource(logfile);
 	_init=(_init==(IDVAL)-1)?hold:_init;
 }
-BSS_Log::BSS_Log(const wchar_t* logfile, std::ostream* log) : _init(-1),_curtimez(0), _wname(*new cStrW()), _name(*new cStr()), _streams(*(new TSTREAMVAL())), _filestreams(*(new TFILESTREAMVAL())), /*_wstreams(*(new TWSTREAMVAL())), _wfilestreams(*(new TWFILESTREAMVAL())),*/ _buf(*(new TBUFVAL(32)))
+BSS_Log::BSS_Log(const wchar_t* logfile, std::ostream* log) : _init(-1),_curtimez(0), _wname(*new cStrW()), _name(*new cStr()), _streams(*(new TSTREAMVAL())), _filestreams(*(new TFILESTREAMVAL())), _buf(*(new TBUFVAL(32)))
 {
 	_cutofflevel=0;
 	IDVAL hold=!log?(IDVAL)-1:AddSource(*log);
@@ -358,3 +572,4 @@ void BSS_FASTCALL BSS_Log::NameModule(const wchar_t* wname)
   _wname=wname;
   _name=wname;
 }
+*/

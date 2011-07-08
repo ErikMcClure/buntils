@@ -191,6 +191,20 @@ int main(int argc, char** argv)
   srand(seed);
   //srand(433690314);
   rand();
+  
+  {
+  std::stringbuf unitbuf;
+  std::ostream unit(&unitbuf,true);
+  bss_Log log("test.txt");
+  log.AddTarget(unit);
+  log.GetStream() << "normal";
+  log.GetStream() << L"これはサンプルテキストです。";
+  log.GetStream() << 5;
+  log.GetStream() << 2.0f;
+
+  BSSLOG(log,1) << 1 << std::endl  << 2 << std::endl  << 3 << std::endl  << 4 << std::endl  << 5 << std::endl  << 6 << std::endl; 
+  BSSLOG(log,1) << "fail" << 2 << L"これはサン" << 2987324.387453 << 0xFF << "aslkj slkdfjasld kfjsadlkfj sks ss           " << "" << std::endl << std::endl << "";
+  }
 
   int c = STRSWAP("bar",FAKESTRINGLIST);
 
@@ -294,7 +308,7 @@ int main(int argc, char** argv)
 
   char prof;
   BSS_DebugInfo _debug("log.txt");
-  BSSLOGONE(&_debug,1,L"Test こんにちは世界 Log %s",L"こんにちは世界");
+//  BSSLOGONE(&_debug,1,L"Test こんにちは世界 Log %s",L"こんにちは世界");
 
   int testnums[TESTNUM];
   for(int i = 0; i<TESTNUM; ++i)
@@ -749,14 +763,6 @@ int main(int argc, char** argv)
   return 0;
 
   cKhash_Int64<void*> testkhash;
-
-  {
-  std::stringbuf unitbuf;
-  std::ostream unit(&unitbuf,true);
-  BSS_Log log("test.txt");
-  log.AddSource(unit);
-  log.WriteLog("fail",0, __FILE__,__LINE__);
-  }
 
   system("Pause");
 	return 0;

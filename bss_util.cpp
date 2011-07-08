@@ -148,6 +148,20 @@ extern void BSS_FASTCALL bss_util::FileDialog(wchar_t (&buf)[MAX_PATH], bool ope
   //return (void*)buf;
 }
 
+extern long BSS_FASTCALL bss_util::GetTimeZoneMinutes()
+{
+  DYNAMIC_TIME_ZONE_INFORMATION dtime;
+  DWORD r=GetDynamicTimeZoneInformation(&dtime);
+  switch(r)
+  {
+  case 0:
+  case 1: //None or unknown daylight savings time
+    return -(dtime.Bias+dtime.StandardBias); //This should be negated because the equation is UTC = local time + bias, so that means UTC - bias = local time
+  case 2: //Using daylight savings time
+    return -(dtime.Bias+dtime.DaylightBias);
+  }
+  return 0; //error
+}
 
 //bss_util::FREEPTRDLL::FREEPTRDLL(void* ptr) : _ptr(ptr)
 //{

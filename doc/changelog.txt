@@ -27,6 +27,7 @@
 - Changed all GetSize/GetLength to just Size()/Length()
 - Added cAutoRef
 - cObjSwap now allows arrays
+- Completely rewrote bss_Log
 
 0.3.8
 -----

@@ -64,37 +64,12 @@ namespace bss_util {
         if(!_strings[i]) { ++j; if(j<_numindices) _indexarray[j]=_indexarray[j-1]; }
       }
     }
-
+    
+    /* Constructor for array with compile-time determined size */
+    template<ST N>
+    inline cStrTable(const T* (&const strings)[N]) : _sasize(0), _numindices(N) { _construct(strings,N); }
     /* Constructor with a null-terminated array of strings. */
-    inline cStrTable(const T* const* strings, ST size) : _sasize(0), _numindices(size)
-    {
-      if(!strings || !size) //special handling for empty case
-      {
-        _numindices=0;
-        _indexarray=(ST*)malloc(sizeof(ST));
-        _indexarray[0]=0;
-        _strings=(T*)malloc(1); //malloc(0) is undefined
-        return;
-      }
-
-      _indexarray=(ST*)malloc(_numindices*sizeof(ST));
-      for(ST i = 0; i < size; ++i) //this will cause an infinite loop if someone is dumb enough to set ST to an unsigned type and set size equal to -1. If you actually think you could make that mistake, stop using this class.
-      {
-        _indexarray[i] = STRTABLE_FUNC<T,ST>::_lstr(strings[i])+1; //include null terminator in length count
-        _sasize+=_indexarray[i];
-      }
-      _strings=(T*)malloc(_sasize*sizeof(T));
-
-      ST curlength=0;
-      ST hold;
-      for(ST i = 0; i < size; ++i) //this loop does two things - it copies the strings over, and it sets the index values to the correct ones while discarding intermediate lengths
-      {
-        hold=_indexarray[i];
-        _indexarray[i]=curlength;
-        memcpy(_strings+curlength,strings[i],hold*sizeof(T)); //we could recalculate strlen here but that's dangerous because it might overwrite memory
-        curlength+=hold;
-      }
-    }
+    inline cStrTable(const T* const* strings, ST size) : _sasize(0), _numindices(size) { _construct(strings,size); }
     /* Destructor */
     inline ~cStrTable() { free(_strings); free(_indexarray); }
     /* Gets number of strings in table (index cannot be greater then this) */
@@ -146,6 +121,36 @@ namespace bss_util {
     inline cStrTable operator+(const cStrTable& right) { return (cStrTable retval(*this))+=right; }
 
   protected:
+    inline void BSS_FASTCALL _construct(const T* const* strings, ST size)
+    {
+      if(!strings || !size) //special handling for empty case
+      {
+        _numindices=0;
+        _indexarray=(ST*)malloc(sizeof(ST));
+        _indexarray[0]=0;
+        _strings=(T*)malloc(1); //malloc(0) is undefined
+        return;
+      }
+
+      _indexarray=(ST*)malloc(_numindices*sizeof(ST));
+      for(ST i = 0; i < size; ++i) //this will cause an infinite loop if someone is dumb enough to set ST to an unsigned type and set size equal to -1. If you actually think you could make that mistake, stop using this class.
+      {
+        _indexarray[i] = STRTABLE_FUNC<T,ST>::_lstr(strings[i])+1; //include null terminator in length count
+        _sasize+=_indexarray[i];
+      }
+      _strings=(T*)malloc(_sasize*sizeof(T));
+
+      ST curlength=0;
+      ST hold;
+      for(ST i = 0; i < size; ++i) //this loop does two things - it copies the strings over, and it sets the index values to the correct ones while discarding intermediate lengths
+      {
+        hold=_indexarray[i];
+        _indexarray[i]=curlength;
+        memcpy(_strings+curlength,strings[i],hold*sizeof(T)); //we could recalculate strlen here but that's dangerous because it might overwrite memory
+        curlength+=hold;
+      }
+    }
+
     T* _strings;
     ST* _indexarray;
     ST _sasize;

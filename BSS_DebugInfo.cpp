@@ -8,7 +8,7 @@
 
 //using namespace bss_util;
 
-BSS_DebugInfo::BSS_DebugInfo(const BSS_DebugInfo& copy) : cHighPrecisionTimer(copy), BSS_Log(copy),_flstart(copy._flstart),_flend(copy._flend) //,_profiles(copy._profiles)
+BSS_DebugInfo::BSS_DebugInfo(const BSS_DebugInfo& copy) : cHighPrecisionTimer(copy), bss_Log(copy),_flstart(copy._flstart),_flend(copy._flend) //,_profiles(copy._profiles)
 {
   memcpy(_profilers,copy._profilers, sizeof(unsigned __int64)*NUMPROFILERS);
   memcpy(_flprof,copy._flprof, sizeof(unsigned char)*NUMPROFILERS);
@@ -17,20 +17,20 @@ BSS_DebugInfo::BSS_DebugInfo(const BSS_DebugInfo& copy) : cHighPrecisionTimer(co
   *_counter=*copy._counter;
 }
 
-BSS_DebugInfo::BSS_DebugInfo(std::ostream* log) : cHighPrecisionTimer(), BSS_Log(log)
+BSS_DebugInfo::BSS_DebugInfo(std::ostream* log) : cHighPrecisionTimer(), bss_Log(log)
 {
   ClearProfilers();
   memset(_modpath, 0, DOUBLEPATHBUF);
   _counter = new PROCESS_MEMORY_COUNTERS();
 }
 
-BSS_DebugInfo::BSS_DebugInfo(const char* logfile, std::ostream* log) : cHighPrecisionTimer(), BSS_Log(logfile,log)
+BSS_DebugInfo::BSS_DebugInfo(const char* logfile, std::ostream* log) : cHighPrecisionTimer(), bss_Log(logfile,log)
 {
   ClearProfilers();
   memset(_modpath, 0, DOUBLEPATHBUF);
   _counter = new PROCESS_MEMORY_COUNTERS();
 }
-BSS_DebugInfo::BSS_DebugInfo(const wchar_t* logfile, std::ostream* log) : cHighPrecisionTimer(), BSS_Log(logfile,log)
+BSS_DebugInfo::BSS_DebugInfo(const wchar_t* logfile, std::ostream* log) : cHighPrecisionTimer(), bss_Log(logfile,log)
 {
   ClearProfilers();
   memset(_modpath, 0, DOUBLEPATHBUF);

@@ -17,12 +17,18 @@ namespace bss_util {
     {
       memcpy(_array,copy._array,_size*sizeof(T));
     }
+    inline cArraySimple<T,SizeType>(cArraySimple<T,SizeType>&& mov) : _array(mov._array), _size(mov._size)
+    {
+      mov._array=0;
+      mov._size=0;
+    }
     inline explicit cArraySimple<T,SizeType>(SizeType size) : _array((T*)_minmalloc(size*sizeof(T))), _size(size)
     {
     }
     inline ~cArraySimple<T,SizeType>()
     {
-      free(_array);
+      if(_array!=0)
+        free(_array);
     }
     inline SizeType Size() const { return _size; }
     inline void SetSize(SizeType nsize)
@@ -58,6 +64,15 @@ namespace bss_util {
       _size=copy._size;
       _array=(T*)_minmalloc(_size*sizeof(T));
       memcpy(_array,copy._array,_size*sizeof(T));
+      return *this;
+    }
+    inline cArraySimple<T,SizeType>& operator=(cArraySimple<T,SizeType>&& mov)
+    {
+      free(_array);
+      _array=mov._array;
+      _size=mov._size;
+      mov._array=0;
+      mov._size=0;
       return *this;
     }
     inline cArraySimple<T,SizeType>& operator +=(const cArraySimple<T,SizeType>& add)
@@ -98,6 +113,11 @@ namespace bss_util {
       for(SizeType i = 0; i < _size; ++i)
         new (_array+i) T(copy._array[i]);
     }
+    inline cArrayConstruct(cArrayConstruct&& mov) : _array(mov._array), _size(mov._size)
+    {
+      mov._array=0;
+      mov._size=0;
+    }
     inline explicit cArrayConstruct(SizeType size) : _array((T*)_minmalloc(size*sizeof(T))), _size(size)
     {
       for(SizeType i = 0; i < _size; ++i)
@@ -107,7 +127,8 @@ namespace bss_util {
     {
       for(SizeType i = 0; i < _size; ++i)
         (_array+i)->~T();
-      free(_array);
+      if(_array!=0)
+        free(_array);
     }
     inline SizeType Size() const { return _size; }
     inline void SetSize(SizeType nsize)
@@ -146,6 +167,17 @@ namespace bss_util {
       //memcpy(_array,copy._array,_size*sizeof(T));
       for(SizeType i = 0; i < _size; ++i)
         new (_array+i) T(copy._array[i]);
+      return *this;
+    }
+    inline cArrayConstruct<T,SizeType>& operator=(cArrayConstruct<T,SizeType>&& mov)
+    {
+      for(SizeType i = 0; i < _size; ++i)
+        (_array+i)->~T();
+      free(_array);
+      _array=mov._array;
+      _size=mov._size;
+      mov._array=0;
+      mov._size=0;
       return *this;
     }
     inline cArrayConstruct<T,SizeType>& operator +=(const cArrayConstruct<T,SizeType>& add)
@@ -194,6 +226,11 @@ namespace bss_util {
       for(SizeType i = 0; i < _size; ++i)
         new (_array+i) T(copy._array[i]);
     }
+    inline cArraySafe(cArraySafe&& mov) : _array(mov._array), _size(mov._size)
+    {
+      mov._array=0;
+      mov._size=0;
+    }
     inline explicit cArraySafe(SizeType size) : _array((T*)_minmalloc(size*sizeof(T))), _size(size)
     {
       for(SizeType i = 0; i < _size; ++i)
@@ -203,7 +240,8 @@ namespace bss_util {
     {
       for(SizeType i = 0; i < _size; ++i)
         (_array+i)->~T();
-      free(_array);
+      if(_array!=0)
+        free(_array);
     }
     inline SizeType Size() const { return _size; }
     inline void SetSize(SizeType nsize)
@@ -213,7 +251,7 @@ namespace bss_util {
       
       SizeType smax = _size<nsize?_size:nsize;
       for(SizeType i = 0; i < smax; ++i) //copy over any we aren't discarding
-        new (narray+i) T(_array[i]);
+        new (narray+i) T(std::move(_array[i])); //We're going to be deleting the old ones so use move semantics if possible
       for(SizeType i = smax; i < nsize; ++i) //Initialize any newcomers
         new (narray+i) T();
       for(SizeType i = 0; i < _size; ++i) //Demolish the old ones
@@ -244,13 +282,24 @@ namespace bss_util {
         new (_array+i) T(copy._array[i]);
       return *this;
     }
+    inline cArraySafe<T,SizeType>& operator=(cArraySafe<T,SizeType>&& move)
+    {
+      for(SizeType i = 0; i < _size; ++i)
+        (_array+i)->~T();
+      free(_array);
+      _array=move._array;
+      _size=move._size;
+      move._array=0;
+      move._size=0;
+      return *this;
+    }
     inline cArraySafe<T,SizeType>& operator +=(const cArraySafe<T,SizeType>& add)
     {
       SizeType nsize=_size+add._size;
       T* narray = (T*)_minmalloc(sizeof(T)*nsize);
       
       for(SizeType i = 0; i < _size; ++i) //copy over old ones
-        new (narray+i) T(_array[i]);
+        new (narray+i) T(std::move(_array[i])); //We're going to delete the old ones so use move semantics if possible
       for(SizeType i = _size; i < nsize; ++i) //Copy over newcomers
         new (_array+i) T(add._array[i-_size]);
       for(SizeType i = 0; i < _size; ++i) //Demolish the old ones

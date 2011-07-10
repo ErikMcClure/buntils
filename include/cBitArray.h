@@ -22,6 +22,7 @@ namespace bss_util
   
   public:
     inline cBitArray(const cBitArray& copy) : _bits(0), DIV_AMT(log2_p2(sizeof(_StorageType)<<3)), MOD_AMT((sizeof(_StorageType)<<3)-1) { operator=(copy); } 
+    inline cBitArray(cBitArray&& mov) : _bits(0), DIV_AMT(log2_p2(sizeof(_StorageType)<<3)), MOD_AMT((sizeof(_StorageType)<<3)-1) { operator=(std::move(mov)); } 
     inline cBitArray(__ST numbits=0) : _bits(0), _numbits(0), _reservedbytes(0), DIV_AMT(log2_p2(sizeof(_StorageType)<<3)), MOD_AMT((sizeof(_StorageType)<<3)-1) { SetSize(numbits); }
     inline ~cBitArray() { if(_bits) delete [] _bits; }
     inline void BSS_FASTCALL SetSize(__ST numbits) { _resize((numbits&MOD_AMT)==0?(numbits>>DIV_AMT):((numbits>>DIV_AMT)+1)); _numbits=numbits; }
@@ -57,6 +58,16 @@ namespace bss_util
       memset(_bits, 0, _reservedbytes*sizeof(__STORE));
       memcpy(_bits, right._bits,_reservedbytes*sizeof(__STORE));
       return *this;
+    }
+    inline cBitArray& operator=(cBitArray&& mov)
+    {
+      if(_bits) delete [] _bits;
+      _bits=mov._bits;
+      _numbits=mov._numbits;
+      _reservedbytes=mov._reservedbytes;
+      mov._bits=0;
+      mov._reservedbytes=0;
+      mov._numbits=0;
     }
     inline char operator[](__ST index) const { return GetBit(index); } //returns -1 on failure, 0 for false and 1 for true
 

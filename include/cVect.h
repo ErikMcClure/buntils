@@ -25,6 +25,7 @@ namespace bss_util {
 
     inline cVectUnique() {}
     inline cVectUnique(const cVectUnique<T,Traits>& copy) { operator =(copy); }
+    inline cVectUnique(cVectUnique<T,Traits>&& mov) : _vector(std::move(mov._vector)) {}
     inline ~cVectUnique() { Clear(); }
     inline VECTID BSS_FASTCALL AddVect(const_reference obj)
     {
@@ -65,6 +66,7 @@ namespace bss_util {
     inline const_reference operator [](VECTID index) const { return _vector[index]->first; }
     inline reference operator [](VECTID index) { return _vector[index]->first; }
     inline cVectUnique<T,Traits>& operator =(const cVectUnique<T,Traits>& right) { Clear(); unsigned int svar=right._vector.size(); for(unsigned int i=0; i<svar; ++i) AddVect(right._vector[i]->first); return *this; }
+    inline cVectUnique<T,Traits>& operator =(cVectUnique<T,Traits>&& right) { Clear(); _vector=std::move(right._vector); return *this; }
   
   protected:
 #pragma warning(push)

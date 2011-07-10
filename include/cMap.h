@@ -22,8 +22,9 @@ namespace bss_util {
     typedef typename CompareTraits::reference KEYREF;
 
   public:
-    cMap(_SizeType init=1) : cArraySort_t(init) {}
+    explicit cMap(_SizeType init=1) : cArraySort_t(init) {}
     cMap(const cMap& copy) : cArraySort_t(copy) {}
+    cMap(cMap&& mov) : cArraySort_t(std::move(mov)) {}
     //~cMap() {}
     inline void BSS_FASTCALL Clear() { cArraySort_t::Clear(); }
     inline void BSS_FASTCALL Discard(unsigned int num) { cArraySort_t::Discard(num); }
@@ -74,6 +75,7 @@ namespace bss_util {
     }
 
     inline cMap& operator =(const cMap& right) { cArraySort_t::operator =(right); /*_lastindex=right._lastindex;*/ return *this; }
+    inline cMap& operator =(cMap&& right) { cArraySort_t::operator =(std::move(right)); /*_lastindex=right._lastindex;*/ return *this; }
     inline constref operator [](__ST index) const { return cArraySort_t::operator [](index).second; }
     inline Data& operator [](__ST index) { return cArraySort_t::operator [](index).second; }
   };

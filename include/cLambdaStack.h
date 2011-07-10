@@ -15,12 +15,16 @@ namespace bss_util {
   public:
     /* Copy constructor */
     inline cLambdaStack(const cBSS_Stack& copy) : cBSS_Stack(copy) {}
+    inline cLambdaStack(cBSS_Stack&& mov) : cBSS_Stack(std::move(mov)) {}
     /* Constructor, takes an initial size for the stack */
     inline explicit cLambdaStack(int init=8) : cBSS_Stack(8) {}
     /* Destructor */
     inline ~cLambdaStack() {}
     /* Deferres a lambda function for later execution */
     inline void DeferLambda(const std::function<Fx>& lambda) { Push(lambda); }
+
+    inline cLambdaStack& operator=(const cBSS_Stack& right) { cBSS_Stack::operator=(right); return *this; }
+    inline cLambdaStack& operator=(cBSS_Stack&& mov) { cBSS_Stack::operator=(std::move(mov)); return *this; }
 
   protected:
     template<typename SizeType>

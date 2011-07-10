@@ -14,6 +14,8 @@ namespace bss_util {
     typedef typename cBinaryHeap<K,D,Compare>::BINHEAP_CELL BINHEAP_CELL;
 
   public:
+    inline cPriorityQueue(const cPriorityQueue& copy) : cBinaryHeap(copy) {}
+    inline cPriorityQueue(cPriorityQueue&& mov) : cBinaryHeap(std::move(mov)) {}
     inline cPriorityQueue() {}
     inline ~cPriorityQueue() {}
     inline void Insert(const K& key, D value)
@@ -38,6 +40,9 @@ namespace bss_util {
     {
       return cBinaryHeap<K,D,Compare>::Empty();
     }
+
+    inline cPriorityQueue& operator=(const cPriorityQueue& copy) { cBinaryHeap::operator=(copy); return *this; }
+    inline cPriorityQueue& operator=(cPriorityQueue&& mov) { cBinaryHeap::operator=(std::move(mov)); return *this; }
   };
 }
 

@@ -14,6 +14,8 @@ namespace bss_util
   class __declspec(dllexport) cByteQueue : protected cArraySimple<unsigned char,SizeType> //cArraySimple does not have a virtual destructor. Because its inherited via protected, no one can delete it from there anyway.
   {
   public:
+    inline cByteQueue(const cByteQueue& copy) : cArraySimple<unsigned char,SizeType>(copy), _cur(copy._cur) {}
+    inline cByteQueue(cByteQueue&& mov) : cArraySimple<unsigned char,SizeType>(std::move(mov)), _cur(copy._cur) {}
     /* Constructor takes initial size */
     inline explicit cByteQueue(SizeType size=64) : cArraySimple<unsigned char,SizeType>(!size?1:size), _cur(0) {}
     /* Destructor */
@@ -42,7 +44,8 @@ namespace bss_util
 
     inline void* operator[](SizeType index) { return (index<_cur)?_array[index]:0; }
     inline cByteQueue& operator=(const cByteQueue& copy) { cArraySimple<unsigned char,SizeType>::operator=(copy); _cur=copy._cur; return *this; }
-  
+    inline cByteQueue& operator=(cByteQueue&& mov) { cArraySimple<unsigned char,SizeType>::operator=(std::move(mov)); _cur=copy._cur; return *this; }
+    
   protected:
     void _expand()
     { 

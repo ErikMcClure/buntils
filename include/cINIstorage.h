@@ -18,6 +18,7 @@ namespace bss_util {
   struct cINIentry
   {
     //cINIentry(const cINIentry& copy);
+    BSS_DLLEXPORT cINIentry(cINIentry&& mov);
     BSS_DLLEXPORT cINIentry();
     BSS_DLLEXPORT cINIentry(const T* key, const T* svalue, long lvalue, double dvalue);
     BSS_DLLEXPORT cINIentry(const T* key, const T* data);
@@ -44,6 +45,7 @@ namespace bss_util {
 
     BSS_DLLEXPORT bool operator ==(cINIentry &other) const; //these can't be inlined because the compare function is different.
     BSS_DLLEXPORT bool operator !=(cINIentry &other) const;
+    BSS_DLLEXPORT cINIentry& operator=(cINIentry&& mov);
 
   private:
     cStrT<T> _key;
@@ -58,6 +60,7 @@ namespace bss_util {
     typedef std::pair<const T*,unsigned int> KEYPAIR;
   public:
     BSS_DLLEXPORT cINIsection(const cINIsection& copy);
+    BSS_DLLEXPORT cINIsection(cINIsection&& mov);
     BSS_DLLEXPORT cINIsection();
     BSS_DLLEXPORT cINIsection(const T* name, cINIstorage<T>* parent,unsigned int index);
     BSS_DLLEXPORT ~cINIsection();
@@ -73,6 +76,7 @@ namespace bss_util {
     inline unsigned int GetIndex() const { return _index; }
     inline cINIentry<T>& operator[](const T* key) const { return GetEntry(key,0); }
     BSS_DLLEXPORT cINIsection& operator=(const cINIsection& right);
+    BSS_DLLEXPORT cINIsection& operator=(cINIsection&& mov);
 
   protected:
     friend class cINIstorage<T>;
@@ -97,6 +101,7 @@ namespace bss_util {
   public:
     /* Constructor - takes a filepath */
     BSS_DLLEXPORT cINIstorage(const cINIstorage& copy);
+    BSS_DLLEXPORT cINIstorage(cINIstorage&& mov);
     BSS_DLLEXPORT cINIstorage(const T* file=0, std::ostream* logger=0);
     BSS_DLLEXPORT cINIstorage(FILE* file, std::ostream* logger=0);
     /* Destructor */
@@ -117,6 +122,7 @@ namespace bss_util {
 
     inline cINIsection<T>& operator [](const T *section) const { cINIsection<T>* ret=GetSection(section,0); return !ret?_sectionsentinel:*ret; }
     BSS_DLLEXPORT cINIstorage& operator=(const cINIstorage& right);
+    BSS_DLLEXPORT cINIstorage& operator=(cINIstorage&& mov);
     inline const T* GetPath() const { return _path; } //gets path to folder this INI was in
     inline cINIentry<T>& GetEntry(const T *section, const T* key, unsigned int keyinstance=0, unsigned int instance=0) const { cINIentry<T>* ret=GetEntryPtr(section,key,keyinstance,instance); return !ret?cINIsection<T>::_entrysentinel:*ret; }
 

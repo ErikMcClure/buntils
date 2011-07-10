@@ -14,7 +14,7 @@ namespace bss_util {
   class __declspec(dllexport) cLocklessQueue
   {
   public:
-    inline cLocklessQueue(unsigned int startsize);
+    inline explicit cLocklessQueue(unsigned int startsize);
     inline ~cLocklessQueue();
     inline std::pair<void*,unsigned int> ReadNextChunk(); //This will return chunk after consecutive chunk until there are none left, at which point it will return null. Each successive call will set the previous chunk as read.
     inline void FinishRead(); //Automatically called by ReadNextChunk()

@@ -53,6 +53,13 @@ namespace bss_util {
     {
       operator =(copy);
     }
+    inline cLinkedList(cLinkedList<T,Alloc>&& mov) : cAllocTracker<Alloc>(std::move(mov)), _last(mov._last), _root(mov._root)
+    {
+      mov._root=0;
+      mov._last=0;
+      cLinkedList_FuncSize<useSize>::operator=(mov);
+      mov._zerosize();
+    }
     /* Destructor */
     inline ~cLinkedList()
     {
@@ -129,6 +136,10 @@ namespace bss_util {
     
     template<typename U, bool V>
     inline cLinkedList<T,Alloc,useSize>& operator =(const cLinkedList<T,U,V>& right) { Clear(); return operator +=(right); }
+    template<typename U, bool V>
+    inline cLinkedList<T,Alloc,useSize>& operator =(cLinkedList<T,U,V>&& mov) {
+      Clear(); _root=mov._root; _last=mov._last; mov._root=0; mov._last=0; cLinkedList_FuncSize<useSize>::operator=(mov); mov._zerosize();
+    }
     template<typename U, bool V>
     inline cLinkedList<T,Alloc,useSize>& operator +=(const cLinkedList<T,U,V>& right) 
     { 

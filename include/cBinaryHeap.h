@@ -18,7 +18,7 @@ namespace bss_util {
 #define CBH_RIGHT(i) ((i<<1)+2)
 
   public:
-    inline cBinaryHeap() : _array((BINHEAP_CELL*)malloc(0)), _totalsize(0), _length(0) {}
+    inline cBinaryHeap() : _array((BINHEAP_CELL*)malloc(1)), _totalsize(0), _length(0) {}
     inline ~cBinaryHeap()
     {
       free(_array);

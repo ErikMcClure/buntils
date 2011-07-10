@@ -93,9 +93,9 @@ namespace bss_util {
   template<typename T>
   inline void BSS_FASTCALL rswap(T& p, T& q)
   {
-    T h=p;
-    p=q;
-    q=h;
+    T h(std::move(p));
+    p=std::move(q);
+    q=std::move(h);
   }
   
   template<typename T>
@@ -276,7 +276,7 @@ namespace bss_util {
     if(!search || !length || !find || !flength || length < flength) return 0;
 
     unsigned char* s=(unsigned char*)search;
-    size_t d = length-flength; //Because flength > 0, d < length and so i is always valid
+//    size_t d = length-flength; //Because flength > 0, d < length and so i is always valid
     for(size_t i = 0; i <= length; ++i)
     {
       search=s+i;

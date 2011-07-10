@@ -19,9 +19,10 @@ namespace bss_util {
     typedef typename CompareTraits::constref constref;
     typedef typename CompareTraits::reference reference;
 
-    inline cArraySort(__ST size=1) : _length(0), ArrayType(size) {} //,_array(new T[size]), _size(size) { }
-    inline cArraySort(const cArraySort& copy) : _length(copy._length), ArrayType(copy) {} //, _array(new T[copy._size]), _size(copy._size), 
-    inline ~cArraySort() { /*delete [] _array;*/ }
+    inline cArraySort(const cArraySort& copy) : _length(copy._length), ArrayType(copy) {} 
+    inline cArraySort(cArraySort&& mov) : _length(mov._length), ArrayType(std::move(mov)) {} 
+    inline explicit cArraySort(__ST size=1) : _length(0), ArrayType(size) {}
+    inline ~cArraySort() { }
     inline __ST BSS_FASTCALL Insert(constref data)
     {
       if(_length>=_size) Expand(fbnext(_size));
@@ -85,13 +86,13 @@ namespace bss_util {
     inline __ST BSS_FASTCALL Find(constref data) const
     {
       __ST retval=_findnear(data,true);
-      return retval!=(__ST)(-1)&&!Compare(_array[retval],data)?retval:(__ST)(-1);
+      return ((retval!=(__ST)(-1))&&(!Compare(_array[retval],data)))?retval:(__ST)(-1);
     }
     /* Can actually return -1 if there isn't anything in the array */
     inline __ST BSS_FASTCALL FindNearest(constref data, bool before=true) const
     {
       __ST retval=_findnear(data,before);
-      return retval<_length?retval:(__ST)(-1);
+      return (retval<_length)?retval:(__ST)(-1);
     }
     inline bool IsEmpty() const { return !_length; }
     inline __ST Length() const { return _length; }
@@ -108,6 +109,12 @@ namespace bss_util {
       //}
       _length=right._length;
       //memcpy(_array,right._array,_length*sizeof(T));
+      return *this;
+    }
+    inline cArraySort& operator=(cArraySort&& mov)
+    {
+      ArrayType::operator=(std::move(mov));
+      _length=mov._length;
       return *this;
     }
   protected:
@@ -141,8 +148,6 @@ namespace bss_util {
       return retval;
     }
 
-    //T* _array;
-    //__ST _size; //actual size of the whole thing
     __ST _length; //How many slots are used
   };
 }

@@ -30,6 +30,13 @@ namespace bss_util {
       _indexarray=(ST*)malloc(_numindices*sizeof(ST));
       memcpy(_indexarray,copy._indexarray,_numindices*sizeof(ST));
     }
+    inline cStrTable(cStrTable&& mov) : _sasize(mov._sasize), _numindices(mov._numindices),_strings(mov._strings),_indexarray(mov._indexarray)
+    {
+      mov._sasize=0;
+      mov._numindices=0;
+      mov._strings=0;
+      mov._indexarray=0;
+    }
     /* Generic Copy Constructor (for conversions) */
     template<class U> inline cStrTable(const cStrTable<T,U>& copy) : _sasize((ST)copy.TotalWordSize()), _numindices((ST)copy.Length())
     {
@@ -67,11 +74,11 @@ namespace bss_util {
     
     /* Constructor for array with compile-time determined size */
     template<ST N>
-    inline cStrTable(const T* (&const strings)[N]) : _sasize(0), _numindices(N) { _construct(strings,N); }
+    inline cStrTable(const T* (&strings)[N]) : _sasize(0), _numindices(N) { _construct(strings,N); }
     /* Constructor with a null-terminated array of strings. */
     inline cStrTable(const T* const* strings, ST size) : _sasize(0), _numindices(size) { _construct(strings,size); }
     /* Destructor */
-    inline ~cStrTable() { free(_strings); free(_indexarray); }
+    inline ~cStrTable() { if(_strings!=0) free(_strings); if(_indexarray!=0) free(_indexarray); }
     /* Gets number of strings in table (index cannot be greater then this) */
     inline ST Length() const { return _numindices; }
     /* Gets total length of all strings */
@@ -85,8 +92,8 @@ namespace bss_util {
     inline const T* operator[](ST index) { return GetString(index); }
     inline cStrTable& operator=(const cStrTable& right)
     { 
-      free(_strings);
-      free(_indexarray);
+      if(_strings!=0) free(_strings);
+      if(_indexarray!=0) free(_indexarray);
       _sasize=right._sasize;
       _numindices=right._numindices;
       _strings=(T*)malloc(_sasize*sizeof(T)); 
@@ -95,6 +102,21 @@ namespace bss_util {
       memcpy(_indexarray,right._indexarray,_numindices*sizeof(ST));
       return *this;
     }
+    inline cStrTable& operator=(cStrTable&& right)
+    {
+      if(_strings!=0) free(_strings);
+      if(_indexarray!=0) free(_indexarray);
+      _sasize=right._sasize;
+      _numindices=right._numindices;
+      _strings=right._strings;
+      _indexarray=right._indexarray;
+      right._sasize=0;
+      right._numindices=0;
+      right._strings=0;
+      right._indexarray=0;
+      return *this;
+    }
+
     inline cStrTable& operator+=(const cStrTable& right)
     {
       T* nstrings=(T*)malloc((_sasize+right._sasize)*sizeof(T));

@@ -117,7 +117,9 @@ class __declspec(dllexport) cStrT : public CSTRALLOC(T)//If dllimport is used on
 public:
   explicit inline cStrT(size_t length = 1) : CSTRALLOC(CHAR)() { reserve(length); } //an implicit constructor here would be bad
   inline cStrT(const CSTRALLOC(CHAR)& copy) : CSTRALLOC(CHAR)(copy) {}
+  inline cStrT(CSTRALLOC(CHAR)&& mov) : CSTRALLOC(CHAR)(std::move(mov)) {}
   inline cStrT(const cStrT& copy) : CSTRALLOC(CHAR)(copy) {}
+  inline cStrT(cStrT&& mov) : CSTRALLOC(CHAR)(std::move(mov)) {}
   template<class U> inline cStrT(const cStrT<T,U>& copy) : CSTRALLOC(CHAR)(copy) {}
   template<class U> inline cStrT(const cStrT<OTHER_C,U>& copy) : CSTRALLOC(CHAR)() { size_t numchar=copy.size(); reserve(++numchar); CSTR_CT<T>::WTOMB(&_Mysize,_Myptr(),_Myres, copy.String(), numchar); RecalcSize(); }
   inline cStrT(const OTHER_C* text) : CSTRALLOC(CHAR)() { if(!text) return; size_t numchar=CSTR_CT<T>::O_SLEN(text); reserve(++numchar); CSTR_CT<T>::WTOMB(&_Mysize,_Myptr(),_Myres, text, numchar); RecalcSize(); }
@@ -166,6 +168,7 @@ public:
   template<class U> inline cStrT& operator =(const cStrT<T,U>& right) { CSTRALLOC(CHAR)::operator =(right); return *this; }
   inline cStrT& operator =(const CHAR* right) { if(right != 0) CSTRALLOC(CHAR)::operator =(right); return *this; }
   inline cStrT& operator =(const CHAR right) { CSTRALLOC(CHAR)::operator =(right); return *this; } //resize(2); _Myptr()[0] = right; _Myptr()[1] = '\0'; return *this; } 
+  inline cStrT& operator =(cStrT&& right) { CSTRALLOC(CHAR)::operator =(std::move(right)); return *this; }
 
   //inline cStrT& operator +=(const cStrT* right) { if(!_Mysize) return CSTRALLOC(CHAR)::operator =(*right); CSTRALLOC(CHAR)::operator +=(*right); return *this; }
   inline cStrT& operator +=(const cStrT& right) { CSTRALLOC(CHAR)::operator +=(right); return *this; }
@@ -212,5 +215,40 @@ typedef cStrW TStr;
 #else
 typedef cStr TStr;
 #endif
+
+// This allows cStr to inherit all the string operations
+template<class _Elem, class _Alloc> // return NTCS + string
+inline cStrT<_Elem,_Alloc> operator+(const _Elem *_Left,const cStrT<_Elem,_Alloc>& _Right)
+	{	cStrT<_Elem,_Alloc> _Ans(_Traits::length(_Left) + _Right.size()); _Ans += _Left; return (_Ans += _Right); }
+template<class _Elem, class _Alloc> // return character + string
+inline cStrT<_Elem,_Alloc> operator+(const _Elem _Left,const cStrT<_Elem,_Alloc>& _Right)
+	{	cStrT<_Elem,_Alloc> _Ans(1+_Right.size()); _Ans += _Left; return (_Ans += _Right); }
+template<class _Elem, class _Alloc> // return string + string
+inline cStrT<_Elem,_Alloc> operator+(const cStrT<_Elem,_Alloc>& _Left,cStrT<_Elem,_Alloc>&& _Right) 
+	{	return (_STD move(_Right.insert(0, _Left))); }
+template<class _Elem, class _Alloc> // return string + string
+inline cStrT<_Elem,_Alloc> operator+(cStrT<_Elem,_Alloc>&& _Left,const cStrT<_Elem,_Alloc>& _Right)
+	{	return (_STD move(_Left.append(_Right))); }
+template<class _Elem, class _Alloc> // return NTCS + string
+inline cStrT<_Elem,_Alloc> operator+(const _Elem *_Left,cStrT<_Elem,_Alloc>&& _Right)
+	{	return (_STD move(_Right.insert(0, _Left))); }
+template<class _Elem, class _Alloc> // return character + string
+inline cStrT<_Elem,_Alloc> operator+(const _Elem _Left,cStrT<_Elem,_Alloc>&& _Right)
+	{	return (_STD move(_Right.insert(0, 1, _Left))); }
+template<class _Elem, class _Alloc> // return string + NTCS
+inline cStrT<_Elem,_Alloc> operator+(cStrT<_Elem,_Alloc>&& _Left,const _Elem *_Right)
+	{	return (_STD move(_Left.append(_Right)));	}
+template<class _Elem, class _Alloc> // return string + character
+inline cStrT<_Elem,_Alloc> operator+(cStrT<_Elem,_Alloc>&& _Left,const _Elem _Right)
+	{	return (_STD move(_Left.append(1, _Right))); }
+template<class _Elem, class _Alloc> // return string + string
+inline cStrT<_Elem,_Alloc> operator+(cStrT<_Elem,_Alloc>&& _Left,cStrT<_Elem,_Alloc>&& _Right)
+	{	
+	if (_Right.size() <= _Left.capacity() - _Left.size()
+		|| _Right.capacity() - _Right.size() < _Left.size())
+		return (_STD move(_Left.append(_Right)));
+	else
+		return (_STD move(_Right.insert(0, _Left)));
+	}
 
 #endif

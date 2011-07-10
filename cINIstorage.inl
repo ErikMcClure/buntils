@@ -9,11 +9,18 @@ cINIsection<CHAR> cINIstorage<CHAR>::_sectionsentinel;
 cINIentry<CHAR> cINIsection<CHAR>::_entrysentinel;
 
 template<>
-cINIstorage<CHAR>::cINIstorage(const cINIstorage& copy) : _path(copy._path), _filename(copy._filename), _ini(!copy._ini?0:new cStrT<CHAR>(*copy._ini)), _logger(copy._logger)
+cINIstorage<CHAR>::cINIstorage(const cINIstorage& copy) : _path(copy._path), _filename(copy._filename),
+  _ini(!copy._ini?0:new cStrT<CHAR>(*copy._ini)), _logger(copy._logger)
 {
   _copyhash(copy);
 }
 
+template<>
+cINIstorage<CHAR>::cINIstorage(cINIstorage&& mov) : _path(std::move(mov._path)), _filename(std::move(mov._filename)), _ini(mov._ini),
+  _logger(mov._logger), _sections(std::move(mov._sections))
+{
+  mov._ini=0;
+}
 template<>
 cINIstorage<CHAR>::cINIstorage(const CHAR* file, std::ostream* logger) : _ini(0), _logger(logger)
 {
@@ -38,15 +45,18 @@ cINIstorage<CHAR>::~cINIstorage()
 {
   if(_ini) delete _ini;
 
-	khiter_t iter;
-	_sections.ResetWalk();
-  cArraySimple<cINIsection<CHAR>>* arr;
-	while((iter=_sections.GetNext())!=_sections.End())
+  if(!_sections.Nullified()) //If it was nullified we moved it somewhere else
   {
-    arr=_sections[iter];
-    unsigned int svar=arr->Size();
-    for(unsigned int i =0; i<svar; ++i) (*arr)[i].~cINIsection<CHAR>();
-    delete arr;
+	  khiter_t iter;
+	  _sections.ResetWalk();
+    cArraySimple<cINIsection<CHAR>>* arr;
+	  while((iter=_sections.GetNext())!=_sections.End())
+    {
+      arr=_sections[iter];
+      unsigned int svar=arr->Size();
+      for(unsigned int i =0; i<svar; ++i) (*arr)[i].~cINIsection<CHAR>();
+      delete arr;
+    }
   }
 }
 template<>
@@ -314,13 +324,25 @@ cINIstorage<CHAR>& cINIstorage<CHAR>::operator=(const cINIstorage<CHAR>& right)
  { 
    _path=right._path;
    _filename=right._filename;
+   if(_ini!=0) delete _ini;
    _ini=!right._ini?0:new cStrT<CHAR>(*right._ini);
    _logger=right._logger;
    _sections.Clear();
    _copyhash(right);
    return *this;
 }
-
+template<>
+cINIstorage<CHAR>& cINIstorage<CHAR>::operator=(cINIstorage<CHAR>&& mov)
+{
+   _path=std::move(mov._path);
+   _filename=mov._filename;
+   if(_ini!=0) delete _ini;
+   _ini=mov._ini;
+   mov._ini=0;
+   _logger=mov._logger;
+   _sections=std::move(mov._sections);
+   return *this;
+}
 
 
 
@@ -328,6 +350,10 @@ template<>
 cINIsection<CHAR>::cINIsection(const cINIsection& copy) : _name(copy._name),_parent(copy._parent),_index(copy._index)
 {
   _copyhash(copy);
+}
+template<>
+cINIsection<CHAR>::cINIsection(cINIsection&& mov) : _name(std::move(mov._name)),_parent(mov._parent),_index(mov._index), _entries(std::move(mov._entries))
+{
 }
 template<>
 cINIsection<CHAR>::cINIsection() : _parent(0)
@@ -340,23 +366,25 @@ cINIsection<CHAR>::cINIsection(const CHAR* name, cINIstorage<CHAR>* parent, unsi
 template<>
 cINIsection<CHAR>::~cINIsection()
 {
-	khiter_t iter;
-	_entries.ResetWalk();
-  
-  cArraySimple<cINIentry<CHAR>>* arr;
-	while((iter=_entries.GetNext())!=_entries.End())
+  if(!_entries.Nullified()) //If the hash has been nullified it was moved somewhere else so don't touch it
   {
-    arr=_entries[iter];
-    unsigned int svar=arr->Size();
-    for(unsigned int i =0; i<svar; ++i) (*arr)[i].~cINIentry<CHAR>();
-    delete arr;
+	  khiter_t iter;
+	  _entries.ResetWalk();
+  
+    cArraySimple<cINIentry<CHAR>>* arr;
+	  while((iter=_entries.GetNext())!=_entries.End())
+    {
+      arr=_entries[iter];
+      unsigned int svar=arr->Size();
+      for(unsigned int i =0; i<svar; ++i) (*arr)[i].~cINIentry<CHAR>();
+      delete arr;
+    }
   }
 }
 template<>
 void cINIsection<CHAR>::_copyhash(const cINIsection& copy)
 {
   khiter_t iter;
-  unsigned int i=0;
   cArraySimple<cINIentry<CHAR>>* old;
   cArraySimple<cINIentry<CHAR>>* arr;
 	copy._entries.ResetWalk();
@@ -419,6 +447,16 @@ cINIsection<CHAR>& cINIsection<CHAR>::operator=(const cINIsection<CHAR>& right)
 }
 
 template<>
+cINIsection<CHAR>& cINIsection<CHAR>::operator=(cINIsection<CHAR>&& mov)
+{
+  _name=std::move(mov._name);
+  _index=mov._index;
+  _parent=mov._parent;
+  _entries=std::move(mov._entries);
+  return *this;
+}
+
+template<>
 cINIentry<CHAR>* cINIsection<CHAR>::GetEntryPtr(const CHAR* key, unsigned int instance) const
 { 
   khiter_t iter= _entries.GetIterator(key);
@@ -436,8 +474,10 @@ cINIentry<CHAR>& cINIsection<CHAR>::GetEntry(const CHAR* key, unsigned int insta
 
 
 
-
-
+template<>
+cINIentry<CHAR>::cINIentry(cINIentry&& mov) : _key(std::move(mov._key)),_svalue(std::move(mov._svalue)),_lvalue(mov._lvalue),_dvalue(mov._dvalue)
+{
+}
 template<>
 cINIentry<CHAR>::cINIentry() : _lvalue(0),_dvalue(0.0)//,_index(0)
 {
@@ -456,6 +496,15 @@ cINIentry<CHAR>::cINIentry(const CHAR* key, const CHAR* data) : _key(key)//,_ind
 template<>
 cINIentry<CHAR>::~cINIentry()
 {
+}
+
+cINIentry<CHAR>& cINIentry<CHAR>::operator=(cINIentry<CHAR>&& mov)
+{
+  _key=std::move(mov._key);
+  _svalue=std::move(mov._svalue);
+  _lvalue=mov._lvalue;
+  _dvalue=mov._dvalue;
+  return *this;
 }
 //
 //template<> const CHAR* cINIentry<CHAR>::GetKey() const { return _key; }

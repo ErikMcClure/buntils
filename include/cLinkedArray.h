@@ -31,6 +31,7 @@ namespace bss_util {
   public:
     inline cLinkedArray() : _ref(1),_length(0),_start(-1),_end(-1),_freelist(-1) { _setupchunk(0); }
     inline cLinkedArray(const cLinkedArray& copy) : _ref(copy._ref),_length(copy._length),_start(copy._start),_end(copy._end),_freelist(copy._freelist) { }
+    inline cLinkedArray(cLinkedArray&& mov) : _ref(std::move(mov._ref)),_length(mov._length),_start(mov._start),_end(mov._end),_freelist(mov._freelist) { }
     inline explicit cLinkedArray(SizeType size) : _ref(size),_length(0),_start(-1),_end(-1),_freelist(-1) { _setupchunk(0); }
     inline ~cLinkedArray() {}
     inline SizeType BSS_FASTCALL Add(const_reference item) { return InsertAfter(item,_end); }
@@ -92,6 +93,7 @@ namespace bss_util {
     //inline cLinkedArray& BSS_FASTCALL operator +=(const cLinkedArray& right);
     //inline cLinkedArray BSS_FASTCALL operator +(const cLinkedArray& right) const { cLinkedArray retval(*this); retval+=right; return retval; }
     inline cLinkedArray& BSS_FASTCALL operator =(const cLinkedArray& right) { _ref=right._ref; _length=right._length;_start=right._start;_end=right._end;_freelist=right._freelist; return *this; }
+    inline cLinkedArray& BSS_FASTCALL operator =(cLinkedArray&& mov) { _ref=std::move(mov._ref); _length=mov._length;_start=mov._start;_end=mov._end;_freelist=mov._freelist; return *this; }
     inline reference BSS_FASTCALL GetItem(SizeType index) { return _ref[index].val; }
     inline const_reference BSS_FASTCALL GetItem(SizeType index) const { return _ref[index].val; }
     inline pointer BSS_FASTCALL GetItemPtr(SizeType index) { return &_ref[index].val; }

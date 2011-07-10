@@ -16,7 +16,10 @@ namespace bss_util {
   struct __declspec(dllexport) cRBT_Node
   {
   public:
-    inline cRBT_Node(Key key, Data data, cRBT_Node<Key,Data>* pNIL) : _key(key),_data(data),_next(0),_prev(0),_left(pNIL),_right(pNIL),_parent(0),_color(1) {}
+    inline cRBT_Node(cRBT_Node&& mov) : _key(std::move(mov._key)),_data(std::move(mov._data)),_next(mov._next),_prev(mov._prev),
+      _left(mov._left),_right(mov._right),_parent(mov._parent),_color(mov._color) {}
+    inline cRBT_Node(Key key, Data data, cRBT_Node<Key,Data>* pNIL) : _key(key),_data(data),_next(0),_prev(0),_left(pNIL),_right(pNIL),
+      _parent(0),_color(1) {}
     inline explicit cRBT_Node(cRBT_Node<Key,Data>* pNIL) : _next(0),_prev(0),_left(0),_right(0),_parent(0),_color(0) {} //NIL constructor
     inline cRBT_Node() {} //Empty constructor
     Data _data;
@@ -32,6 +35,19 @@ namespace bss_util {
       };
       struct { cRBT_Node<Key,Data>* _children[2]; };
     };
+
+    inline cRBT_Node& operator=(cRBT_Node&& mov) 
+    {
+      _key=std::move(mov._key);
+      _data=std::move(mov._data);
+      _next=mov._next;
+      _prev=mov._prev;
+      _left=mov._left;
+      _right=mov._right;
+      _parent=mov._parent;
+      _color=mov._color;
+      return *this;
+    }
   };
 
   /* Public node wrapper for cRBT_Node */
@@ -51,9 +67,9 @@ namespace bss_util {
 	class __declspec(dllexport) cRBT_List : protected cAllocTracker<A>
 	{
 	public:
-    
 		/* Constructor - takes an optional allocator */
 		inline explicit cRBT_List(A* allocator=0);
+    inline cRBT_List(cRBT_List&& mov);
 		/* Destructor */
 		inline ~cRBT_List();
     /* Retrieves a given node by key if it exists */
@@ -78,6 +94,8 @@ namespace bss_util {
 		inline cRBT_PNode<K,D>* GetLast() const { return (cRBT_PNode<K,D>*)_last; }
     inline size_t Size() const { return _size; }
     
+    inline cRBT_List& operator=(cRBT_List&& mov);
+
 	protected:
     /* Insert node before target */
     inline void _llbinsert(cRBT_Node<K,D>* node, cRBT_Node<K,D>* target);
@@ -116,7 +134,16 @@ namespace bss_util {
   inline cRBT_List<K,D,C,A>::cRBT_List(A* alloc) : cAllocTracker<A>(alloc), _size(0),_first(0),_last(0),_root(pNIL)
   {
   }
-
+  
+  template<class K, class D, char (*C)(const K& keyleft, const K& keyright), typename A>
+  inline cRBT_List<K,D,C,A>::cRBT_List(cRBT_List&& mov) : cAllocTracker<A>(std::move(mov)), _size(mov._size),_first(mov._first),
+    _last(mov._last),_root(mov._root)
+  {
+		mov._first = NULL;
+		mov._last = NULL;
+		mov._root = pNIL;
+		mov._size = 0;
+  }
   template<class K, class D, char (*C)(const K& keyleft, const K& keyright), typename A>
   inline cRBT_List<K,D,C,A>::~cRBT_List()
   {
@@ -241,6 +268,21 @@ namespace bss_util {
 			_root = pNIL;
 			_size = 0;
 	}
+
+	template<class K, class D, char (*C)(const K& keyleft, const K& keyright), typename A>
+  inline cRBT_List<K,D,C,A>& cRBT_List<K,D,C,A>::operator=(cRBT_List<K,D,C,A>&& mov)
+  {
+    Clear();
+    
+		_first = mov._first;
+		_last = mov._last;
+		_root = mov._root;
+		_size = mov._size;
+		mov._first = NULL;
+		mov._last = NULL;
+		mov._root = pNIL;
+		mov._size = 0;
+  }
 
 	template<class K, class D, char (*C)(const K& keyleft, const K& keyright), typename A>
 	inline void cRBT_List<K,D,C,A>::_rightrotate(cRBT_Node<K,D> * node)

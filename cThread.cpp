@@ -64,14 +64,14 @@ unsigned int cThread::Join(unsigned int waitms)
   //Unlock(); //If the thread is locked and we try to join it, DEADLOCK!
   _syncobj.Unravel();
   if(!/*_bools.*/GetBit((1<<4)) || WaitForSingleObject((void*)_handle, !waitms?INFINITE:waitms)==WAIT_FAILED)
-    return -1;
+    return (unsigned int)-1;
   /*_bools.*/RemoveBit((1<<4));
   return _threadret;
 }
 unsigned int cThread::Stop()
 {
   if(/*!GetBit((1<<2)) ||*/ !/*_bools.*/GetBit((1<<4)))
-    return -1;
+    return (unsigned int)-1;
 
   //Unlock(); //Ensure that we unlock the thread before re-locking it or we'll deadlock.
   //_syncobj.Lock();

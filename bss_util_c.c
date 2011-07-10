@@ -29,7 +29,7 @@ const unsigned short MASK3BYTES=0xE0;
 int BSS_FASTCALL UTF8Decode2BytesUnicode(const char* input,wchar_t* output)
 {
   int count=-1;
-  wchar_t ch;
+  wchar_t ch=0;
   const char* pos;
 
   if(!output) //count mode

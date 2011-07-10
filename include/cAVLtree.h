@@ -42,11 +42,14 @@ namespace bss_util {
   {
   public:
     cAVLtree(const cAVLtree& copy) : cAllocTracker<Alloc>(copy), _root(0) {}
+    cAVLtree(cAVLtree&& mov) : cAllocTracker<Alloc>(copy), _root(mov._root) { mov._root=0; }
     cAVLtree(Alloc* allocator=0) : cAllocTracker<Alloc>(allocator), _root(0) {}
     ~cAVLtree() { Clear(); }
     void Clear() { _clear(_root); _root=0; }
     void Traverse(const AVL_Functor<Data>& lambda) { _traverse(lambda, _root); }
     void Traverse(void (*lambda)(Data)) { _traverse(lambda, _root); }
+
+    inline cAVLtree& operator=(cAVLtree&& mov) { Clear(); _root=mov._root; mov._root=0; }
 
     Data BSS_FASTCALL Insert(Key key, Data data)
     {

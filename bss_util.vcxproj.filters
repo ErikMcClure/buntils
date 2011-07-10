@@ -248,6 +248,9 @@
     <ClInclude Include="include\StreamSplitter.h">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="include\cArrayCircular.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <None Include="cINIstorage.inl">

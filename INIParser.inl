@@ -215,7 +215,7 @@ INICHUNK BSS_FASTCALL bss_findINIsection(const void* data, unsigned length, cons
   const CHAR* line;
   const CHAR* tc;
   const CHAR* sec;
-  unsigned int curinstance=-1;
+  unsigned int curinstance=(unsigned int)-1;
   INICHUNK retval;
   memset(&retval,0,sizeof(INICHUNK));
 
@@ -249,7 +249,7 @@ INICHUNK BSS_FASTCALL bss_findINIentry(INICHUNK section, const CHAR* key, unsign
   const CHAR* line;
   const CHAR* tc;
   const CHAR* sec;
-  unsigned int curinstance=-1;
+  unsigned int curinstance=(unsigned int)-1;
   INICHUNK retval;
   memset(&retval,0,sizeof(INICHUNK));
 

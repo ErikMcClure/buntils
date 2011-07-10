@@ -195,23 +195,26 @@ namespace bss_util {
     typedef typename Traits::reference mut_ref;
 
 	public:
-    cKhash(const cKhash& copy): _h(kh_init_template<KHKEY,KHVAL,kh_is_map,__hash_func,__hash_equal>()), _cur(0)
+    inline cKhash(const cKhash& copy) : _h(kh_init_template<KHKEY,KHVAL,kh_is_map,__hash_func,__hash_equal>()), _cur(0)
 		{
 			operator =(copy);
 		}
-
-		cKhash(unsigned int size=0) : _h(kh_init_template<KHKEY,KHVAL,kh_is_map,__hash_func,__hash_equal>()), _cur(0)
+    inline cKhash(cKhash&& mov) : _h(mov._h), _cur(0)
+    { 
+      mov._h=0;
+    }
+		inline cKhash(unsigned int size=0) : _h(kh_init_template<KHKEY,KHVAL,kh_is_map,__hash_func,__hash_equal>()), _cur(0)
 		{
 			if(size<8)
         kh_resize_template(_h, 8);
       else
         kh_resize_template(_h, size);
 		};
-    ~cKhash()
+    inline ~cKhash()
 		{
 			kh_destroy_template(_h);
 		}
-    bool Insert(KHKEY key, const_ref value)
+    inline bool Insert(KHKEY key, const_ref value)
 		{
       if(!__validate_p(key)) return false;
 			if(kh_size(_h) >= _h->n_buckets) _resize();
@@ -224,20 +227,20 @@ namespace bss_util {
 			}
 			return false;
 		}
-    bool SetValue(khiter_t iterator, const_ref newvalue) { if(iterator >= kh_end(_h) || !kh_exist(_h, iterator)) return false; kh_val(_h, iterator)=newvalue; return true; }
-    KHKEY GetIterKey(khiter_t iterator) { return kh_key(_h,iterator); }
-    bool OverrideKeyPtr(khiter_t iterator, KHKEY key) { if(!__validate_p(key)) return false; kh_key(_h,iterator)=key; return true; }
+    inline bool SetValue(khiter_t iterator, const_ref newvalue) { if(iterator >= kh_end(_h) || !kh_exist(_h, iterator)) return false; kh_val(_h, iterator)=newvalue; return true; }
+    inline KHKEY GetIterKey(khiter_t iterator) { return kh_key(_h,iterator); }
+    inline bool OverrideKeyPtr(khiter_t iterator, KHKEY key) { if(!__validate_p(key)) return false; kh_key(_h,iterator)=key; return true; }
     /* Gets the corresponding data attached to the given key */
-    ptrtype GetKey(KHKEY key) const { if(!__validate_p(key)) return 0; khiter_t iterator= kh_get_template(_h, key); if(kh_end(_h) == iterator) return 0; return &kh_val(_h, iterator); }
+    inline ptrtype GetKey(KHKEY key) const { if(!__validate_p(key)) return 0; khiter_t iterator= kh_get_template(_h, key); if(kh_end(_h) == iterator) return 0; return &kh_val(_h, iterator); }
     /* This is a pointer-only version of the above that simplifies verification when the type pointed to is a pointer */
-    mut_ref GetKeyPtrOnly(KHKEY key) const { if(!__validate_p(key)) return 0; khiter_t iterator= kh_get_template(_h, key); if(kh_end(_h) == iterator) return 0; return kh_val(_h, iterator); }
+    inline mut_ref GetKeyPtrOnly(KHKEY key) const { if(!__validate_p(key)) return 0; khiter_t iterator= kh_get_template(_h, key); if(kh_end(_h) == iterator) return 0; return kh_val(_h, iterator); }
     /* Gets the corresponding data attached to the given iterator */
-    ptrtype Get(khiter_t iterator) const { if(iterator >= kh_end(_h) || !kh_exist(_h, iterator)) return 0; return &kh_val(_h, iterator); }
+    inline ptrtype Get(khiter_t iterator) const { if(iterator >= kh_end(_h) || !kh_exist(_h, iterator)) return 0; return &kh_val(_h, iterator); }
     /* This is a pointer-only version of the above that simplifies verification when the type pointed to is a pointer */
-    mut_ref GetPtrOnly(khiter_t iterator) const { if(iterator >= kh_end(_h) || !kh_exist(_h, iterator)) return 0; return kh_val(_h, iterator); }
-    khiter_t GetIterator(KHKEY key) const { return !(__validate_p(key))?0:kh_get_template(_h, key); }
-    void SetSize(unsigned int size) { if(_h->n_buckets < size) kh_resize_template(_h,size); }
-		bool Remove(KHKEY key) const
+    inline mut_ref GetPtrOnly(khiter_t iterator) const { if(iterator >= kh_end(_h) || !kh_exist(_h, iterator)) return 0; return kh_val(_h, iterator); }
+    inline khiter_t GetIterator(KHKEY key) const { return !(__validate_p(key))?0:kh_get_template(_h, key); }
+    inline void SetSize(unsigned int size) { if(_h->n_buckets < size) kh_resize_template(_h,size); }
+		inline bool Remove(KHKEY key) const
     {
       if(!__validate_p(key)) return false;
       khiter_t iterator = kh_get_template(_h, key);
@@ -249,7 +252,7 @@ namespace bss_util {
 			//}
 			return true;
     }
-    bool RemoveIterator(khiter_t iterator) const
+    inline bool RemoveIterator(khiter_t iterator) const
     {
       if(!Exists(iterator)) return false;
 			//KHVAL retval=kh_val(_h, iterator);
@@ -259,16 +262,16 @@ namespace bss_util {
 			//}
 			return true;
     }
-		void Clear() { kh_clear_template(_h); }
-		unsigned int Length() const { return kh_size(_h); }
-		unsigned int Size() const { return _h->n_buckets; }
-		khiter_t Start() const { return kh_begin(_h); }
-		khiter_t End() const { return kh_end(_h); }
-    bool Exists(khiter_t iterator) const { if(iterator<_h->n_buckets) return kh_exist(_h, iterator)!=0; return false; }
-		void ResetWalk() const { _cur=-1; }
-		khiter_t GetNext() const { while((++_cur)<kh_end(_h) && !kh_exist(_h, _cur)); return _cur<kh_end(_h)?_cur:kh_end(_h); }
-		khiter_t GetPrev() const { while((--_cur)<kh_end(_h) && !kh_exist(_h, _cur)); return _cur<kh_end(_h)?_cur:kh_end(_h); }
-		cKhash& operator =(const cKhash& right)
+		inline void Clear() { kh_clear_template(_h); }
+		inline unsigned int Length() const { return kh_size(_h); }
+		inline unsigned int Size() const { return _h->n_buckets; }
+		inline khiter_t Start() const { return kh_begin(_h); }
+		inline khiter_t End() const { return kh_end(_h); }
+    inline bool Exists(khiter_t iterator) const { if(iterator<_h->n_buckets) return kh_exist(_h, iterator)!=0; return false; }
+		inline void ResetWalk() const { _cur=(khiter_t)-1; }
+		inline khiter_t GetNext() const { while((++_cur)<kh_end(_h) && !kh_exist(_h, _cur)); return _cur<kh_end(_h)?_cur:kh_end(_h); }
+		inline khiter_t GetPrev() const { while((--_cur)<kh_end(_h) && !kh_exist(_h, _cur)); return _cur<kh_end(_h)?_cur:kh_end(_h); }
+		inline cKhash& operator =(const cKhash& right)
 		{
 			kh_clear_template(_h);
 			kh_resize_template(_h, right._h->n_buckets);
@@ -280,8 +283,17 @@ namespace bss_util {
 			_cur=0;
 			return *this; 
 		}
-    mut_ref operator[](khiter_t iterator) { return kh_val(_h, iterator); }
-    const_ref operator[](khiter_t iterator) const { return kh_val(_h, iterator); }
+		inline cKhash& operator =(cKhash&& mov)
+    {
+			kh_destroy_template(_h);
+      _h=mov._h;
+      mov._h=0;
+      _cur=0;
+      return *this;
+    }
+    inline mut_ref operator[](khiter_t iterator) { return kh_val(_h, iterator); }
+    inline const_ref operator[](khiter_t iterator) const { return kh_val(_h, iterator); }
+    inline bool Nullified() const { return !_h; }
 
 	protected:
 		void _resize()

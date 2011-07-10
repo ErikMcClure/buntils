@@ -251,6 +251,7 @@
     <ClInclude Include="include\bss_alloc_additive.h" />
     <ClInclude Include="include\bss_alloc_fixed.h" />
     <ClInclude Include="include\bss_Log.h" />
+    <ClInclude Include="include\cArrayCircular.h" />
     <ClInclude Include="include\cLambdaStack.h" />
     <ClInclude Include="include\cRBT_List.h" />
     <ClInclude Include="include\bss_util_c.h" />

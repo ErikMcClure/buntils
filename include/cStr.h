@@ -173,7 +173,7 @@ public:
   //inline cStrT& operator +=(const cStrT* right) { if(!_Mysize) return CSTRALLOC(CHAR)::operator =(*right); CSTRALLOC(CHAR)::operator +=(*right); return *this; }
   inline cStrT& operator +=(const cStrT& right) { CSTRALLOC(CHAR)::operator +=(right); return *this; }
   template<class U> inline cStrT& operator +=(const cStrT<T,U>& right) { CSTRALLOC(CHAR)::operator +=(right); return *this; }
-  inline cStrT& operator +=(const CHAR* right) { if(right != 0) CSTRALLOC(CHAR)::operator +=(right); return *this; }
+  inline cStrT& operator +=(const CHAR* right) { if(right != 0 && right != _Myptr()) CSTRALLOC(CHAR)::operator +=(right); return *this; }
   inline cStrT& operator +=(const CHAR right) { CSTRALLOC(CHAR)::operator +=(right); return *this; }
   
   inline CHAR* UnsafeString() { return _Myptr(); } //This is potentially dangerous if the string is modified
@@ -196,6 +196,18 @@ public:
       dest.push_back(res);
       res = CSTR_CT<T>::STOK(NULL,delimhold,&hold);
     }
+  }
+  static inline std::vector<cStrT> Explode(const CHAR delim, const CHAR* text) { std::vector<cStrT> r; Explode(r,delim,text); return r; }
+  static inline cStrT StripChar(const CHAR* text, const CHAR c)
+  { 
+    cStrT r(CSTR_CT<T>::SLEN(text)+1);
+    unsigned int i;
+    for(i=0;*text!=0;++text)
+      if(*text>32)
+        r.UnsafeString()[i++]=*text;
+    r.UnsafeString()[i]=0;
+    r.RecalcSize();
+    return r;
   }
 
 private:

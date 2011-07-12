@@ -48,6 +48,12 @@ namespace bss_util {
   template<> struct TSignPick<16> { typedef __int128 SIGNED; typedef unsigned __int128 UNSIGNED; };
 #endif 
 
+  /* template inferred version of T_GETBIT and T_GETBITRANGE */
+  template<class T>
+  inline T BSS_FASTCALL GetBitMask(int bit) { return T_GETBIT(T,bit); }
+  template<class T>
+  inline T BSS_FASTCALL GetBitMask(int low, int high) { return T_GETBITRANGE(T,low,high); }
+
   /* Replaces one character with another in a string */
   inline char* BSS_FASTCALL strreplace(char* string, const char find, const char replace)
 	{

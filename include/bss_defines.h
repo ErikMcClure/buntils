@@ -66,15 +66,17 @@
 #define CLASS_PROP_WRITEONLY_VAL(typeref, varname, funcname) inline void Set##funcname(typeref m##varname##) { varname=m##varname##; }
 
 #define VARCLAMP(var,max,min) ((var>max)?(max):((var<min)?(min):(var)))
+#define T_GETBIT(type, bit) ((type)(1<<((bit)%(sizeof(type)<<3))))
+#define T_GETBITRANGE(type, low, high) ((type)((((2<<((high)-(low)))-1)<<(low))|(((2<<((high)-(low)))-1)>>(-(low)))|(((2<<((high)-(low)))-1)<<((low)%(sizeof(type)<<3)))))
 
 //unsigned shortcuts
 #ifndef BSS_NOSHORTTYPES
 #ifdef  __cplusplus
 namespace bss_util {
 #endif
+typedef unsigned short ushort;
 typedef unsigned int uint;
 typedef unsigned __int64 uint64;
-typedef unsigned short ushort;
 typedef unsigned long ulong;
 typedef unsigned long long ulonglong;
 #ifdef  __cplusplus

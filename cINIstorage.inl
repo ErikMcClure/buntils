@@ -44,27 +44,14 @@ template<>
 cINIstorage<CHAR>::~cINIstorage()
 {
   if(_ini) delete _ini;
-
-  if(!_sections.Nullified()) //If it was nullified we moved it somewhere else
-  {
-	  khiter_t iter;
-	  _sections.ResetWalk();
-    cArraySimple<cINIsection<CHAR>>* arr;
-	  while((iter=_sections.GetNext())!=_sections.End())
-    {
-      arr=_sections[iter];
-      unsigned int svar=arr->Size();
-      for(unsigned int i =0; i<svar; ++i) (*arr)[i].~cINIsection<CHAR>();
-      delete arr;
-    }
-  }
+  _destroyhash(); //_destroyhash checks for nullification
 }
 template<>
 cINIsection<CHAR>* cINIstorage<CHAR>::GetSection(const CHAR* section, unsigned int instance) const
 {
   khiter_t iter= _sections.GetIterator(section);
   if(iter==_sections.End()) return 0;
-  cArraySimple<cINIsection<CHAR>>* arr=_sections[iter];
+  __ARR* arr=_sections[iter];
   return instance<arr->Size()?(*arr)+instance:0;
 }
 template<>
@@ -72,7 +59,7 @@ cINIentry<CHAR>* cINIstorage<CHAR>::GetEntryPtr(const CHAR *section, const CHAR*
 {
   khiter_t iter= _sections.GetIterator(section);
   if(iter==_sections.End()) return 0;
-  cArraySimple<cINIsection<CHAR>>* arr=_sections[iter];
+  __ARR* arr=_sections[iter];
   return instance<arr->Size()?(*arr)[instance].GetEntryPtr(key,keyinstance):0;
 }
 template<>
@@ -81,7 +68,7 @@ const std::vector<std::pair<cStrT<CHAR>,unsigned int>>& cINIstorage<CHAR>::Build
   _seclist.clear();
   _sections.ResetWalk();
   khiter_t iter;
-  cArraySimple<cINIsection<CHAR>>* arr;
+  __ARR* arr;
   unsigned int i =0;
   while((iter=_sections.GetNext())!=_sections.End())
   {
@@ -120,10 +107,10 @@ template<>
 cINIsection<CHAR>* cINIstorage<CHAR>::_addsection(const CHAR* name)
 {
   khiter_t iter=_sections.GetIterator(name);
-  cArraySimple<cINIsection<CHAR>>* arr;
+  __ARR* arr;
   if(iter==_sections.End()) //need to add in an array for this
   {
-    arr= new cArraySimple<cINIsection<CHAR>>(1);
+    arr= new __ARR(1);
     new ((*arr)+0) cINIsection<CHAR>(name,this,0);
     _sections.Insert((*arr)[0].GetName(),arr);
     return ((*arr)+0);
@@ -142,7 +129,7 @@ template<>
 bool cINIstorage<CHAR>::RemoveSection(const CHAR* name, unsigned int instance)
 {
   if(!_ini) _openINI();
-  cArraySimple<cINIsection<CHAR>>* arr;
+  __ARR* arr;
   INICHUNK chunk = bss_findINIsection(*_ini,_ini->size(),name,instance);
   khiter_t iter = _sections.GetIterator(name);
   if(iter!=_sections.End() && chunk.start!=0)
@@ -177,7 +164,7 @@ char cINIstorage<CHAR>::EditEntry(const CHAR* section, const CHAR* key, const CH
 
   khiter_t iter = _sections.GetIterator(section);
   if(iter==_sections.End()) return -1; //if it doesn't exist at this point, fail
-  cArraySimple<cINIsection<CHAR>>* arr=_sections[iter];
+  __ARR* arr=_sections[iter];
   if(secinstance==-1) secinstance=arr->Size()-1; //if we just added it, it will be the last entry
   if(secinstance>=arr->Size()) return -2; //if secinstance is not valid, fail
   cINIsection<CHAR>* psec = (*arr)+secinstance;
@@ -211,7 +198,7 @@ char cINIstorage<CHAR>::EditEntry(const CHAR* section, const CHAR* key, const CH
 
   iter=psec->_entries.GetIterator(key);
   if(iter==psec->_entries.End()) return -4; //if key doesn't exist at this point, fail
-  cArraySimple<cINIentry<CHAR>>* entarr=psec->_entries[iter];
+  __ENTARR* entarr=psec->_entries[iter];
   if(keyinstance>=entarr->Size()) return -5; //if keyinstance is not valid, fail
   chunk=bss_findINIentry(chunk,key,keyinstance);
   if(!chunk.start) return -7; //if we can't find it
@@ -301,17 +288,35 @@ void cINIstorage<CHAR>::_setfilepath(const CHAR* file)
   _path.RecalcSize();
 }
 template<>
+void cINIstorage<CHAR>::_destroyhash()
+{
+  if(!_sections.Nullified())
+  {
+    khiter_t iter;
+	  _sections.ResetWalk();
+    __ARR* arr;
+	  while((iter=_sections.GetNext())!=_sections.End())
+    {
+      arr=_sections[iter];
+      unsigned int svar=arr->Size();
+      for(unsigned int i =0; i<svar; ++i) (*arr)[i].~cINIsection<CHAR>();
+      delete arr;
+    }
+  }
+}
+
+template<>
 void cINIstorage<CHAR>::_copyhash(const cINIstorage& copy)
 {
   khiter_t iter;
   unsigned int i=0;
-  cArraySimple<cINIsection<CHAR>>* old;
-  cArraySimple<cINIsection<CHAR>>* arr;
+  __ARR* old;
+  __ARR* arr;
 	copy._sections.ResetWalk();
 	while((iter=copy._sections.GetNext())!=copy._sections.End())
   {
     old=copy._sections[iter];
-    arr=new cArraySimple<cINIsection<CHAR>>(*old);
+    arr=new __ARR(*old);
     unsigned int svar=arr->Size();
     for(unsigned int i =0; i < svar; ++i)
       new ((*arr)+i) cINIsection<CHAR>((*old)[i]);
@@ -322,11 +327,13 @@ void cINIstorage<CHAR>::_copyhash(const cINIstorage& copy)
 template<>
 cINIstorage<CHAR>& cINIstorage<CHAR>::operator=(const cINIstorage<CHAR>& right)
  { 
+   if(&right == this) return *this;
    _path=right._path;
    _filename=right._filename;
    if(_ini!=0) delete _ini;
    _ini=!right._ini?0:new cStrT<CHAR>(*right._ini);
    _logger=right._logger;
+   _destroyhash();
    _sections.Clear();
    _copyhash(right);
    return *this;
@@ -334,12 +341,14 @@ cINIstorage<CHAR>& cINIstorage<CHAR>::operator=(const cINIstorage<CHAR>& right)
 template<>
 cINIstorage<CHAR>& cINIstorage<CHAR>::operator=(cINIstorage<CHAR>&& mov)
 {
+   if(&mov == this) return *this;
    _path=std::move(mov._path);
    _filename=mov._filename;
    if(_ini!=0) delete _ini;
    _ini=mov._ini;
    mov._ini=0;
    _logger=mov._logger;
+   _destroyhash();
    _sections=std::move(mov._sections);
    return *this;
 }
@@ -366,12 +375,17 @@ cINIsection<CHAR>::cINIsection(const CHAR* name, cINIstorage<CHAR>* parent, unsi
 template<>
 cINIsection<CHAR>::~cINIsection()
 {
-  if(!_entries.Nullified()) //If the hash has been nullified it was moved somewhere else so don't touch it
+  _destroyhash();
+}
+template<>
+void cINIsection<CHAR>::_destroyhash()
+{
+  if(!_entries.Nullified())
   {
 	  khiter_t iter;
 	  _entries.ResetWalk();
   
-    cArraySimple<cINIentry<CHAR>>* arr;
+    __ARR* arr;
 	  while((iter=_entries.GetNext())!=_entries.End())
     {
       arr=_entries[iter];
@@ -385,13 +399,13 @@ template<>
 void cINIsection<CHAR>::_copyhash(const cINIsection& copy)
 {
   khiter_t iter;
-  cArraySimple<cINIentry<CHAR>>* old;
-  cArraySimple<cINIentry<CHAR>>* arr;
+  __ARR* old;
+  __ARR* arr;
 	copy._entries.ResetWalk();
 	while((iter=copy._entries.GetNext())!=copy._entries.End())
   {
     old=copy._entries[iter];
-    arr=new cArraySimple<cINIentry<CHAR>>(*old);
+    arr=new __ARR(*old);
     unsigned int svar=arr->Size();
     for(unsigned int i =0; i < svar; ++i)
       new ((*arr)+i) cINIentry<CHAR>((*old)[i]);
@@ -402,10 +416,10 @@ template<>
 void cINIsection<CHAR>::_addentry(const CHAR* key, const CHAR* data)
 {
   khiter_t iter=_entries.GetIterator(key);
-  cArraySimple<cINIentry<CHAR>>* arr;
+  __ARR* arr;
   if(iter==_entries.End()) //need to add in an array for this
   {
-    arr= new cArraySimple<cINIentry<CHAR>>(1);
+    arr= new __ARR(1);
     new ((*arr)+0) cINIentry<CHAR>(key,data);
     _entries.Insert((*arr)[0].GetKey(),arr);
   } else {
@@ -424,7 +438,7 @@ const std::vector<std::pair<std::pair<cStrT<CHAR>,cStrT<CHAR>>,unsigned int>>& c
   _parent->_entlist.clear();
   _entries.ResetWalk();
   khiter_t iter;
-  cArraySimple<cINIentry<CHAR>>* arr;
+  __ARR* arr;
   unsigned int i =0;
   while((iter=_entries.GetNext())!=_entries.End())
   {
@@ -438,9 +452,11 @@ const std::vector<std::pair<std::pair<cStrT<CHAR>,cStrT<CHAR>>,unsigned int>>& c
 template<>
 cINIsection<CHAR>& cINIsection<CHAR>::operator=(const cINIsection<CHAR>& right)
 { 
+  if(&right == this) return *this;
   _name=right._name;
   _index=right._index;
   _parent=right._parent;
+  _destroyhash();
   _entries.Clear();
   _copyhash(right);
   return *this;
@@ -449,9 +465,11 @@ cINIsection<CHAR>& cINIsection<CHAR>::operator=(const cINIsection<CHAR>& right)
 template<>
 cINIsection<CHAR>& cINIsection<CHAR>::operator=(cINIsection<CHAR>&& mov)
 {
+  if(&mov == this) return *this;
   _name=std::move(mov._name);
   _index=mov._index;
   _parent=mov._parent;
+  _destroyhash();
   _entries=std::move(mov._entries);
   return *this;
 }
@@ -461,7 +479,7 @@ cINIentry<CHAR>* cINIsection<CHAR>::GetEntryPtr(const CHAR* key, unsigned int in
 { 
   khiter_t iter= _entries.GetIterator(key);
   if(iter==_entries.End()) return 0;
-  cArraySimple<cINIentry<CHAR>>* arr=_entries[iter];
+  __ARR* arr=_entries[iter];
   return instance<arr->Size()?(*arr)+instance:0;
 }
 

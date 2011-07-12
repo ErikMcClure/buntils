@@ -48,6 +48,7 @@ namespace bss_util
 
     inline cBitArray& operator=(const cBitArray& right)
     { 
+      if(this == &right) return *this;
       if(right._reservedbytes>_reservedbytes)
       { 
         if(_bits) delete [] _bits;
@@ -61,6 +62,7 @@ namespace bss_util
     }
     inline cBitArray& operator=(cBitArray&& mov)
     {
+      if(this == &mov) return *this;
       if(_bits) delete [] _bits;
       _bits=mov._bits;
       _numbits=mov._numbits;

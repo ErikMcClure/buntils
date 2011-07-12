@@ -126,7 +126,7 @@ namespace bss_util {
     SizeType _freelist;
 
   private:
-    cArraySimple<LINKEDNODE<T,SizeType>,SizeType> _ref;
+    cArrayWrap<cArraySimple<LINKEDNODE<T,SizeType>,SizeType>> _ref;
   };
 }
 

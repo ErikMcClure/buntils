@@ -191,7 +191,15 @@ int main(int argc, char** argv)
   srand(seed);
   //srand(433690314);
   rand();
-  
+
+  unsigned char vn2 = GetBitMask<unsigned char>(4); // 0001 0000
+  unsigned char vn3 = GetBitMask<unsigned char>(2,4); // 0001 1100
+  unsigned char vn4 = GetBitMask<unsigned char>(-2,2); // 1100 0111
+  unsigned char vn5 = GetBitMask<unsigned char>(-2,-2); // 0100 0000
+
+  cArrayWrap<cArraySimple<int,unsigned char>> artst(5);
+  int v = artst[3];
+
   {
   std::stringbuf unitbuf;
   std::ostream unit(&unitbuf,true);

@@ -28,6 +28,11 @@
 - Added cAutoRef
 - cObjSwap now allows arrays
 - Completely rewrote bss_Log
+- Added cArrayCircular
+- Added check for self-assignment to most assignment operators where necessary
+- Added move semantics to all low-level objects
+- Added GetBitMask and C equivelent
+- Changed cArraySimple to require cArrayWrap to be accessible (reduces inheritance issues)
 
 0.3.8
 -----

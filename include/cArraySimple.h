@@ -36,7 +36,7 @@ namespace bss_util {
       if(nsize==_size) return;
       T* narray = (T*)_minmalloc(sizeof(T)*nsize);
       memcpy(narray,_array,sizeof(T)*((nsize<_size)?(nsize):(_size)));
-      free(_array);
+      if(_array!=0) free(_array);
       _array=narray;
       _size=nsize;
     }
@@ -52,15 +52,16 @@ namespace bss_util {
       memcpy(narray,_array,location*sizeof(T));
       narray[location]=item;
       memcpy(narray+location+1,_array+location,(_size-location)*sizeof(T));
-      free(_array);
+      if(_array!=0) free(_array);
       _array=narray;
       _size=nsize;
     }
-    inline operator T*() { return _array; }
-    inline operator const T*() const { return _array; }
+    //inline operator T*() { return _array; }
+    //inline operator const T*() const { return _array; }
     inline cArraySimple<T,SizeType>& operator=(const cArraySimple<T,SizeType>& copy)
     {
-      free(_array);
+      if(this == &copy) return *this;
+      if(_array!=0) free(_array);
       _size=copy._size;
       _array=(T*)_minmalloc(_size*sizeof(T));
       memcpy(_array,copy._array,_size*sizeof(T));
@@ -68,7 +69,8 @@ namespace bss_util {
     }
     inline cArraySimple<T,SizeType>& operator=(cArraySimple<T,SizeType>&& mov)
     {
-      free(_array);
+      if(this == &mov) return *this;
+      if(_array!=0) free(_array);
       _array=mov._array;
       _size=mov._size;
       mov._array=0;
@@ -100,6 +102,9 @@ namespace bss_util {
 
     T* _array;
     SizeType _size;
+
+    typedef SizeType __ST;
+    typedef T __T;
   };
 
   /* Very simple "dynamic" array that calls the constructor and destructor */
@@ -145,7 +150,7 @@ namespace bss_util {
           new(narray+i) T();
       }
 
-      free(_array);
+      if(_array!=0) free(_array);
       _array=narray;
       _size=nsize;
     }
@@ -155,13 +160,14 @@ namespace bss_util {
       memmove(_array+index,_array+index+1,sizeof(T)*(_size-index-1));
       new(_array+(_size-1)) T();
     }
-    inline operator T*() { return _array; }
-    inline operator const T*() const { return _array; }
+    //inline operator T*() { return _array; }
+    //inline operator const T*() const { return _array; }
     inline cArrayConstruct<T,SizeType>& operator=(const cArrayConstruct<T,SizeType>& copy)
     {
+      if(this == &copy) return *this;
       for(SizeType i = 0; i < _size; ++i)
         (_array+i)->~T();
-      free(_array);
+      if(_array!=0) free(_array);
       _size=copy._size;
       _array=(T*)_minmalloc(_size*sizeof(T));
       //memcpy(_array,copy._array,_size*sizeof(T));
@@ -171,9 +177,10 @@ namespace bss_util {
     }
     inline cArrayConstruct<T,SizeType>& operator=(cArrayConstruct<T,SizeType>&& mov)
     {
+      if(this == &mov) return *this;
       for(SizeType i = 0; i < _size; ++i)
         (_array+i)->~T();
-      free(_array);
+      if(_array!=0) free(_array);
       _array=mov._array;
       _size=mov._size;
       mov._array=0;
@@ -186,7 +193,7 @@ namespace bss_util {
       T* narray = (T*)_minmalloc(sizeof(T)*nsize);
       memcpy(narray,_array,_size*sizeof(T));
       //memcpy(narray+_size,add._array,add._size*sizeof(T));
-      free(_array);
+      if(_array!=0) free(_array);
       _array=narray;
       
       for(SizeType i = _size; i < nsize; ++i)
@@ -214,6 +221,9 @@ namespace bss_util {
 
     T* _array;
     SizeType _size;
+    
+    typedef SizeType __ST;
+    typedef T __T;
   };
 
   /* Typesafe array that reconstructs everything properly, without any memory moving tricks */
@@ -257,7 +267,7 @@ namespace bss_util {
       for(SizeType i = 0; i < _size; ++i) //Demolish the old ones
         (_array+i)->~T();
 
-      free(_array);
+      if(_array!=0) free(_array);
       _array=narray;
       _size=nsize;
     }
@@ -269,28 +279,30 @@ namespace bss_util {
       _array[_size].~T();
       new(_array+(_size++)) T();
     }
-    inline operator T*() { return _array; }
-    inline operator const T*() const { return _array; }
+    //inline operator T*() { return _array; }
+    //inline operator const T*() const { return _array; }
     inline cArraySafe<T,SizeType>& operator=(const cArraySafe<T,SizeType>& copy)
     {
+      if(this == &copy) return *this;
       for(SizeType i = 0; i < _size; ++i)
         (_array+i)->~T();
-      free(_array);
+      if(_array!=0) free(_array);
       _size=copy._size;
       _array=(T*)_minmalloc(_size*sizeof(T));
       for(SizeType i = 0; i < _size; ++i)
         new (_array+i) T(copy._array[i]);
       return *this;
     }
-    inline cArraySafe<T,SizeType>& operator=(cArraySafe<T,SizeType>&& move)
+    inline cArraySafe<T,SizeType>& operator=(cArraySafe<T,SizeType>&& mov)
     {
+      if(this == &mov) return *this;
       for(SizeType i = 0; i < _size; ++i)
         (_array+i)->~T();
-      free(_array);
-      _array=move._array;
-      _size=move._size;
-      move._array=0;
-      move._size=0;
+      if(_array!=0) free(_array);
+      _array=mov._array;
+      _size=mov._size;
+      mov._array=0;
+      mov._size=0;
       return *this;
     }
     inline cArraySafe<T,SizeType>& operator +=(const cArraySafe<T,SizeType>& add)
@@ -305,7 +317,7 @@ namespace bss_util {
       for(SizeType i = 0; i < _size; ++i) //Demolish the old ones
         (_array+i)->~T();
 
-      free(_array);
+      if(_array!=0) free(_array);
       _array=narray;
       _size=nsize;
       return *this;
@@ -329,6 +341,30 @@ namespace bss_util {
 
     T* _array;
     SizeType _size;
+    
+    typedef SizeType __ST;
+    typedef T __T;
+  };
+  
+  /* Wrapper for underlying arrays that expose the array, making them independently usable without blowing up everything that inherits them */
+  template<class ARRAYTYPE>
+  class __declspec(dllexport) cArrayWrap : public ARRAYTYPE
+  {
+    typedef typename ARRAYTYPE::__ST __ST;
+    typedef typename ARRAYTYPE::__T __T;
+    typedef ARRAYTYPE __AT;
+
+  public:
+    //inline cArrayWrap(const cArrayWrap& copy) : __AT(copy) {}
+    inline cArrayWrap(cArrayWrap&& mov) : __AT(std::move(mov)) {}
+    inline explicit cArrayWrap(__ST size=1): __AT(size) {}
+    
+    inline operator __T*() { return _array; }
+    inline operator const __T*() const { return _array; }
+    //inline cArrayWrap& operator=(const __AT& copy) { __AT::operator=(copy); return *this; }
+    inline cArrayWrap& operator=(__AT&& mov) { __AT::operator=(std::move(mov)); return *this; }
+    inline cArrayWrap& operator +=(const __AT& add) { __AT::operator+=(add); return *this; }
+    inline cArrayWrap operator +(const __AT& add) { cArrayWrap r(*this); return (r+=add); }
   };
 }
 

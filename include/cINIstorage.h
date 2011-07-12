@@ -58,6 +58,8 @@ namespace bss_util {
   class cINIsection
   {
     typedef std::pair<const T*,unsigned int> KEYPAIR;
+    typedef cArrayWrap<cArraySimple<cINIentry<T>>> __ARR;
+
   public:
     BSS_DLLEXPORT cINIsection(const cINIsection& copy);
     BSS_DLLEXPORT cINIsection(cINIsection&& mov);
@@ -85,11 +87,12 @@ namespace bss_util {
     static BSS_DLLEXPORT cINIentry<T> _entrysentinel;
 #pragma warning(pop)
     BSS_DLLEXPORT void _copyhash(const cINIsection& copy);
+    BSS_DLLEXPORT void _destroyhash();
     BSS_DLLEXPORT void _addentry(const T* key, const T* data);
 
     cStrT<T> _name;
     unsigned int _index;
-    cKhash_StringTIns<T,cArraySimple<cINIentry<T>>*,true> _entries;
+    cKhash_StringTIns<T,__ARR*,true> _entries;
     cINIstorage<T>* _parent;
   };
 
@@ -97,6 +100,8 @@ namespace bss_util {
   class cINIstorage
   {
     typedef std::pair<const T*,unsigned int> KEYPAIR;
+    typedef cArrayWrap<cArraySimple<cINIsection<T>>> __ARR;
+    typedef cArrayWrap<cArraySimple<cINIentry<T>>> __ENTARR;
 
   public:
     /* Constructor - takes a filepath */
@@ -141,8 +146,9 @@ namespace bss_util {
     BSS_DLLEXPORT void _setfilepath(const T* path);
     BSS_DLLEXPORT cINIsection<T>* _addsection(const T* name);
     BSS_DLLEXPORT void _copyhash(const cINIstorage& copy);
+    BSS_DLLEXPORT void _destroyhash();
 
-    cKhash_StringTIns<T,cArraySimple<cINIsection<T>>*,true> _sections;
+    cKhash_StringTIns<T,__ARR*,true> _sections;
     cStrT<T> _path; //holds path to INI
     cStrT<T> _filename; //holds INI filename;
     cStrT<T>* _ini; //holds entire INI file

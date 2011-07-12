@@ -135,9 +135,9 @@ namespace bss_util {
     inline cLLNode<T>* GetLast() const { return _last; }
     
     template<typename U, bool V>
-    inline cLinkedList<T,Alloc,useSize>& operator =(const cLinkedList<T,U,V>& right) { Clear(); return operator +=(right); }
+    inline cLinkedList<T,Alloc,useSize>& operator =(const cLinkedList<T,U,V>& right) { if(&right==this) return *this; Clear(); return operator +=(right); }
     template<typename U, bool V>
-    inline cLinkedList<T,Alloc,useSize>& operator =(cLinkedList<T,U,V>&& mov) {
+    inline cLinkedList<T,Alloc,useSize>& operator =(cLinkedList<T,U,V>&& mov) { if(&mov==this) return *this;
       Clear(); _root=mov._root; _last=mov._last; mov._root=0; mov._last=0; cLinkedList_FuncSize<useSize>::operator=(mov); mov._zerosize();
     }
     template<typename U, bool V>

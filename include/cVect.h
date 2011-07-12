@@ -65,8 +65,8 @@ namespace bss_util {
 
     inline const_reference operator [](VECTID index) const { return _vector[index]->first; }
     inline reference operator [](VECTID index) { return _vector[index]->first; }
-    inline cVectUnique<T,Traits>& operator =(const cVectUnique<T,Traits>& right) { Clear(); unsigned int svar=right._vector.size(); for(unsigned int i=0; i<svar; ++i) AddVect(right._vector[i]->first); return *this; }
-    inline cVectUnique<T,Traits>& operator =(cVectUnique<T,Traits>&& right) { Clear(); _vector=std::move(right._vector); return *this; }
+    inline cVectUnique<T,Traits>& operator =(const cVectUnique<T,Traits>& right) { if(&right == this) return *this; Clear(); unsigned int svar=right._vector.size(); for(unsigned int i=0; i<svar; ++i) AddVect(right._vector[i]->first); return *this; }
+    inline cVectUnique<T,Traits>& operator =(cVectUnique<T,Traits>&& right) { if(&right == this) return *this; Clear(); _vector=std::move(right._vector); return *this; }
   
   protected:
 #pragma warning(push)

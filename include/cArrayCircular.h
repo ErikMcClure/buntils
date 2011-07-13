@@ -6,6 +6,7 @@
 
 #include "cArraySimple.h"
 #include "bss_traits.h"
+#include "bss_util.h"
 
 namespace bss_util {
   /* Simple circular array implementation */
@@ -15,13 +16,14 @@ namespace bss_util {
     typedef _SizeType __ST;
     typedef typename Traits::const_reference constref;
     typedef typename Traits::reference reference;
+    typedef typename TSignPick<sizeof(__ST)>::SIGNED __ST_SIGNED;
 
   public:
     inline cArrayCircular(const cArrayCircular& copy) : ArrayType(copy), _cur(copy._cur), _length(copy._length) {}
     inline cArrayCircular(cArrayCircular&& mov) : ArrayType(std::move(mov)), _cur(mov._cur), _length(mov._length) {}
     inline explicit cArrayCircular(__ST size=1) : ArrayType(size), _cur((__ST)-1), _length(0) {}
     inline ~cArrayCircular() {}
-    inline void Push(constref item) { _array[_cur=((++_cur)%_size)]=item; }
+    inline void Push(constref item) { _array[_cur=((++_cur)%_size)]=item; if(_length<_size) ++_length; }
     inline T Pop() { assert(_length>0); --_length; return _array[_cur=((_cur--)%_size)]; }
     inline __ST Size() const { return _size; }
     inline __ST Length() const { return _length; }
@@ -32,8 +34,8 @@ namespace bss_util {
       _cur=(__ST)-1;
     }
 
-    inline T& operator[](__ST index) { return _array[(_cur-index)%_size]; } // an index of 0 is the most recent item pushed into the circular array.
-    inline constref operator[](__ST index) const { return _array[(_cur-index)%_size]; }
+    inline T& operator[](__ST_SIGNED index) { return _array[((__ST)(_cur-index))%_size]; } // an index of 0 is the most recent item pushed into the circular array.
+    inline constref operator[](__ST_SIGNED index) const { return _array[((__ST)(_cur-index))%_size]; }
     inline cArrayCircular& operator=(const cArrayCircular& right) { ArrayType::operator=(right); _cur=right._cur; _length=right._length; return *this; }
     inline cArrayCircular& operator=(cArrayCircular&& right) { ArrayType::operator=(std::move(right)); _cur=right._cur; _length=right._length; right._length=0; right._cur=0; return *this; }
   

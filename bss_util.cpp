@@ -150,8 +150,8 @@ extern void BSS_FASTCALL bss_util::FileDialog(wchar_t (&buf)[MAX_PATH], bool ope
 
 extern long BSS_FASTCALL bss_util::GetTimeZoneMinutes()
 {
-  DYNAMIC_TIME_ZONE_INFORMATION dtime;
-  DWORD r=GetDynamicTimeZoneInformation(&dtime);
+  TIME_ZONE_INFORMATION dtime;
+  DWORD r=GetTimeZoneInformation(&dtime);
   switch(r)
   {
   case 0:

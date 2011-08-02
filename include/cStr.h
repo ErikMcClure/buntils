@@ -231,7 +231,7 @@ typedef cStr TStr;
 // This allows cStr to inherit all the string operations
 template<class _Elem, class _Alloc> // return NTCS + string
 inline cStrT<_Elem,_Alloc> operator+(const _Elem *_Left,const cStrT<_Elem,_Alloc>& _Right)
-	{	cStrT<_Elem,_Alloc> _Ans(_Traits::length(_Left) + _Right.size()); _Ans += _Left; return (_Ans += _Right); }
+	{	cStrT<_Elem,_Alloc> _Ans(std::char_traits<_Elem>::length(_Left) + _Right.size()); _Ans += _Left; return (_Ans += _Right); }
 template<class _Elem, class _Alloc> // return character + string
 inline cStrT<_Elem,_Alloc> operator+(const _Elem _Left,const cStrT<_Elem,_Alloc>& _Right)
 	{	cStrT<_Elem,_Alloc> _Ans(1+_Right.size()); _Ans += _Left; return (_Ans += _Right); }

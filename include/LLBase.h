@@ -93,23 +93,23 @@ namespace bss_util {
 		if(node->next != 0) node->next->prev = node->prev;
   }
 
-  /* Iterator for doubly linked list */
+  /* Iterator for doubly linked list. By default it does not initialize the previous node. */
   template<typename T>
   class __declspec(dllexport) LLIterator : public Iterator<T*>
   {
-    typedef typename ValueTraits<T*>::const_reference const_reference;
-    typedef typename ValueTraits<T*>::value_type value_type;
+    typedef typename Iterator<T*>::const_reference const_reference;
+    typedef typename Iterator<T*>::value_type value_type;
 
   public:
-    inline explicit LLIterator(T* start) { cur=start; next=start; }
+    inline explicit LLIterator(T* start) : cur(0), next(start) { }
+    inline explicit LLIterator(T* start, char initPrev) : cur(start), next(start) { if(start!=0) cur=start->prev; }
     inline virtual const_reference operator++() { cur=next; next=next->next; return cur; } //prefix
-    inline virtual value_type operator++(int) { T* r=cur; cur=next; next=next->next; return r; } //postfix
     inline virtual const_reference operator--() { next=cur; cur=cur->prev; return cur;} //prefix
-    inline virtual value_type operator--(int) { next=cur; cur=cur->prev; return next; } //postfix
-    inline virtual const_reference Peek() { return cur; }
-    inline virtual bool Remove() { LLRemove<T>(cur); cur=0; return true; }
+    inline virtual const_reference Peek() { return next; }
+    //inline virtual const_reference Last() { return cur; }
+    inline virtual void Remove() { LLRemove<T>(cur); cur=0; }
     inline virtual bool HasNext() { return next!=0; }
-    inline virtual bool HasPrev() { return cur->prev!=0; }
+    inline virtual bool HasPrev() { return cur!=0 && cur->prev!=0; }
 
   protected:
     T* cur;
@@ -121,7 +121,8 @@ namespace bss_util {
   {
   public:
     inline explicit LLIteratorR(T* start, T*& root) : LLIterator<T>(start), _root(root) { }
-    inline virtual bool Remove() { LLRemove<T>(cur,_root); cur=0; return true; }
+    inline explicit LLIteratorR(T* start, T*& root, char initPrev) : LLIterator<T>(start,0), _root(root) { }
+    inline virtual void Remove() { LLRemove<T>(cur,_root); cur=0; }
 
   protected:
     T*& _root;
@@ -132,7 +133,8 @@ namespace bss_util {
   {
   public:
     inline explicit LLIteratorRL(T* start, T*& root, T*& last) : LLIteratorR<T>(start,root), _last(last) { }
-    inline virtual bool Remove() { LLRemove<T>(cur,_root,_last); cur=0; return true; }
+    inline explicit LLIteratorRL(T* start, T*& root, T*& last, char initPrev) : LLIteratorR<T>(start,root,0), _last(last) { }
+    inline virtual void Remove() { LLRemove<T>(cur,_root,_last); cur=0; }
 
   protected:
     T*& _last;

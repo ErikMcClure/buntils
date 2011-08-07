@@ -359,6 +359,8 @@ namespace bss_util {
     inline cArrayWrap(cArrayWrap&& mov) : __AT(std::move(mov)) {}
     inline explicit cArrayWrap(__ST size=1): __AT(size) {}
     
+    //Implementation of Remove that adjusts the size of the array.
+    inline void RemoveShrink(__ST index) { __AT::Remove(index); __AT::SetSize(_size-1); }
     inline operator __T*() { return _array; }
     inline operator const __T*() const { return _array; }
     //inline cArrayWrap& operator=(const __AT& copy) { __AT::operator=(copy); return *this; }

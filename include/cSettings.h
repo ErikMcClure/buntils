@@ -69,15 +69,21 @@ namespace bss_util {
   template<int I, int N>
   static typename cSetting<I,N>::TYPE& Setting() { return cSetting<I,N>::v; }
 
+#ifdef INSTANTIATE_SETTINGS //Declare this in a CPP file that includes all DECL_SETTINGs used in your project to instantiate them
+#define __INST_SET__(I,N,T,INIT,NAME,CMD) T bss_util::cSetting<I,N>::v=INIT; \
+  bss_util::AddToSettingHash<char> bss_util::cSetting<I,N>::_shashinit(CMD,[](cCmdLineArgs<char>& rcmd, unsigned int& ind) -> void { bss_util::cSetting_CMDLOAD<T,char>::CmdLoad(rcmd,bss_util::cSetting<I,N>::v,ind); })
+#else
+#define __INST_SET__(I,N,T,INIT,NAME,CMD) 
+#endif
+
   /* Main #define for declaring a setting. NAME and CMD can both be set to 0 if INIs and command line parsing, respectively, are not needed. */
-#define DECL_SETTING(I,N,T,INIT,NAME,CMD) template<> class cSetting<I,N> { public: typedef T TYPE; static T v; \
+#define DECL_SETTING(I,N,T,INIT,NAME,CMD) template<> class bss_util::cSetting<I,N> { public: typedef T TYPE; static T v; \
   inline static const char* name() { return NAME; } inline static const char* cmd() { return CMD; } \
-  static AddToSettingHash<char> _shashinit; }; T cSetting<I,N>::v=INIT; \
-  AddToSettingHash<char> cSetting<I,N>::_shashinit(CMD,[](cCmdLineArgs<char>& rcmd, unsigned int& ind) -> void { cSetting_CMDLOAD<T,char>::CmdLoad(rcmd,cSetting<I,N>::v,ind); })
+  static bss_util::AddToSettingHash<char> _shashinit; }; __INST_SET__(I,N,T,INIT,NAME,CMD)
 
   /* Main #define for declaring a group of settings. Note that the optional NAME parameter is for INI loading and determines the section
      name of the settings. MAX is the maximum number of settings in this group, but unless you are using LoadAllFromINI, it is optional. */
-#define DECL_SETGROUP(I,NAME,MAX) template<int N> class cSetting<I,N> { public: inline static const char* secname() { return NAME; } static const unsigned int COUNT=(MAX-1); };
+#define DECL_SETGROUP(I,NAME,MAX) template<int N> class bss_util::cSetting<I,N> { public: inline static const char* secname() { return NAME; } static const unsigned int COUNT=(MAX-1); };
 
   /* Struct class for defining the INILoad function. Can be overriden for custom types */
   template<typename T, typename C>
@@ -209,7 +215,7 @@ namespace bss_util {
   template<typename C>
   inline static void LoadFromCmd(cCmdLineArgs<C>& cmd) 
   {
-    int i=0;
+    unsigned int i=0;
     while(i<cmd.Size())
     {
       std::function<void (cCmdLineArgs<char>&,unsigned int&)>* pfunc = cSetting<-1,-1>::cmdhash.GetKey(cmd[i]);

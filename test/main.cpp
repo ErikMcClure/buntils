@@ -30,7 +30,6 @@
 //#include "cRBT_List_old.h"
 #include "cRBT_List.h"
 #include "cBSS_Stack.h"
-#include "cSettings.h"
 #include "cAutoPtr.h"
 
 #define BOOST_FILESYSTEM_VERSION 3
@@ -155,6 +154,9 @@ void printout(cLinkedList<int,Allocator<cLLNode<int>>,true>& list)
   std::cout<<std::endl;
 }
 
+#define INSTANTIATE_SETTINGS
+#include "cSettings.h"
+
 DECL_SETGROUP(0,"main",3);
 DECL_SETTING(0,0,float,0.0f,"ANIME",0);
 DECL_SETTING(0,1,int,0,"MANGA","-manga");
@@ -238,10 +240,10 @@ int main(int argc, char** argv)
   arrtest=arrtest2;
   }
 
-  //cCmdLineArgsA cmdtest(argc,argv);
+  cCmdLineArgsA cmdtest(argc,argv);
 
-  //cSettingManage<1,0>::LoadAllFromINI(cINIstorage<char>("test.ini"));
-  //cSettingManage<1,0>::SaveAllToINI(cINIstorage<char>("test.ini"));
+  cSettingManage<1,0>::LoadAllFromINI(cINIstorage<char>("test.ini"));
+  cSettingManage<1,0>::SaveAllToINI(cINIstorage<char>("test.ini"));
   //{
   //cArrayConstruct<CreateDestroyTracker> ac1(1);
   //cArrayConstruct<CreateDestroyTracker> ac2(0);

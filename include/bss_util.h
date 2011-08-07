@@ -168,6 +168,20 @@ namespace bss_util {
     return in + 1 + (in>>1) + (in>>3) - (in>>7);
   }
 
+  /* Gets the sign of any number (0 is assumed to be positive) */
+  template<typename T>
+  inline T BSS_FASTCALL tsign(T n)
+  {
+    return (n >= 0) - (n < 0);
+  }
+
+  /* Gets the sign of any number, where a value of 0 returns 0 */
+  template<typename T>
+  inline T BSS_FASTCALL tsignzero(T n)
+  {
+    return (n > 0) - (n < 0);
+  }
+
 	/* This is a super fast floating point comparison function with a significantly higher tolerance and no
 		 regard towards the size of the floats. */
 	inline bool BSS_FASTCALL fcompare(float fleft, float fright)

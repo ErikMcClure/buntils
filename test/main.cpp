@@ -31,6 +31,7 @@
 #include "cRBT_List.h"
 #include "cBSS_Stack.h"
 #include "cAutoPtr.h"
+#include "bss_fixedpt.h"
 
 #define BOOST_FILESYSTEM_VERSION 3
 //#define BOOST_ALL_NO_LIB
@@ -193,6 +194,24 @@ int main(int argc, char** argv)
   srand(seed);
   //srand(433690314);
   rand();
+
+  //FixedPt<12> fp(23563.2739);
+  //double res=fp;
+  //fp+=27.9;
+  //res+=27.9;
+  //res-=fp;
+  //res=fp;
+  //fp-=8327.9398437;
+  //res-=8327.9398437;
+  //res-=fp;
+  //res=fp;
+  //fp*=6.847399;
+  //res*=6.847399;
+  //res-=fp;
+  //res=fp;
+  //fp/=748.9272;
+  //res/=748.9272;
+  //res-=fp;
 
   unsigned char vn2 = GetBitMask<unsigned char>(4); // 0001 0000
   unsigned char vn3 = GetBitMask<unsigned char>(2,4); // 0001 1100

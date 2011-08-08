@@ -65,9 +65,11 @@
 #define CLASS_PROP_WRITEONLY(typeref, varname, funcname) inline void Set##funcname(const typeref m##varname##) { varname=m##varname##; }
 #define CLASS_PROP_WRITEONLY_VAL(typeref, varname, funcname) inline void Set##funcname(typeref m##varname##) { varname=m##varname##; }
 
+#define SAFESHIFT(v,s) ((s>0)?(v<<s):(v>>(-s))) //positive number shifts left, negative number shifts right, prevents undefined behavior.
 #define VARCLAMP(var,max,min) ((var>max)?(max):((var<min)?(min):(var)))
 #define T_GETBIT(type, bit) ((type)(1<<((bit)%(sizeof(type)<<3))))
-#define T_GETBITRANGE(type, low, high) ((type)((((2<<((high)-(low)))-1)<<(low))|(((2<<((high)-(low)))-1)>>(-(low)))|(((2<<((high)-(low)))-1)<<((low)%(sizeof(type)<<3)))))
+//#define T_GETBITRANGE(type, low, high) ((type)((((2<<((high)-(low)))-1)<<(low))|(((2<<((high)-(low)))-1)>>(-(low)))|(((2<<((high)-(low)))-1)<<((low)%(sizeof(type)<<3)))))
+#define T_GETBITRANGE(type, low, high) ((type)(SAFESHIFT(((2<<((high)-(low)))-1),low)|(((2<<((high)-(low)))-1)<<((low)%(sizeof(type)<<3)))))
 
 //unsigned shortcuts
 #ifndef BSS_NOSHORTTYPES

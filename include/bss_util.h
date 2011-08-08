@@ -48,6 +48,21 @@ namespace bss_util {
   template<> struct TSignPick<16> { typedef __int128 SIGNED; typedef unsigned __int128 UNSIGNED; };
 #endif 
 
+  /* Get max size of an arbitrary number of bits, either signed or unsigned (assuming one's or two's complement implementation) */
+  template<unsigned char BITS>
+  struct ABitLimit
+  {
+    typedef typename TSignPick<((BITS>>3) << (0+((BITS%3)>0)))>::SIGNED SIGNED; //rounds the type up if necessary.
+    typedef typename TSignPick<((BITS>>3) << (0+((BITS%3)>0)))>::UNSIGNED UNSIGNED;
+
+    static const SIGNED SIGNED_MIN=(((SIGNED)1)<<(BITS-1));
+    static const SIGNED SIGNED_MAX=(SIGNED_MIN-1);
+    static const UNSIGNED UNSIGNED_MIN=0;
+    static const UNSIGNED UNSIGNED_MAX=(SIGNED_MIN<<1)+1; //these are all done carefully to ensure no overflow is ever utilized and it respects an arbitrary bit limit
+  };
+  template<typename T>
+  struct TBitLimit : public ABitLimit<sizeof(T)<<3> {};
+
   /* template inferred version of T_GETBIT and T_GETBITRANGE */
   template<class T>
   inline T BSS_FASTCALL GetBitMask(int bit) { return T_GETBIT(T,bit); }

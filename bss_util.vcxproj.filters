@@ -251,6 +251,9 @@
     <ClInclude Include="include\cArrayCircular.h">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="include\bss_fixedpt.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <None Include="cINIstorage.inl">

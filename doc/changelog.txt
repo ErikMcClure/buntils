@@ -2,6 +2,10 @@
 * Black Sphere Studios Utility Library Changelog *
 **************************************************
 
+0.3.82
+------
+- Added windows-specific Registry manipulation functions
+
 0.3.81
 ------
 - Added CLASS_PROP_VAL and CLASS_PROP_WRITEONLY_VAL for value-type class property generation

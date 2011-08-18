@@ -190,6 +190,9 @@ const char* FAKESTRINGLIST[5] = { "FOO", "BAR", "MEH", "SILLY", "EXACERBATION" }
 
 int main(int argc, char** argv)
 {
+  //_controlfp( _PC_24, MCW_PC );
+  int zsdf = fFastRound(2734.82f);
+
   unsigned int seed=(unsigned int)GetTickCount();
   srand(seed);
   //srand(433690314);

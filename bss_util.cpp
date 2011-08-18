@@ -362,4 +362,147 @@ extern long BSS_FASTCALL bss_util::GetTimeZoneMinutes()
 //  return 0;
 //}
 
+template<typename C, LSTATUS (__stdcall *REGCREATEKEYEX)(HKEY,const C*,DWORD,C*,DWORD,REGSAM,const LPSECURITY_ATTRIBUTES,PHKEY,LPDWORD),class _Fn>
+inline int BSS_FASTCALL r_setregvalue(HKEY__*	hOpenKey, const C* szKey, const C* szValue, _Fn fn)
+{
+	BOOL 	bRetVal = FALSE;
+	DWORD	dwDisposition;
+	DWORD	dwReserved = 0;
+	HKEY  	hTempKey = (HKEY)0;
+
+	// Open key of interest
+	// Assume all access is okay and that all keys will be stored to file
+	// Utilize the default security attributes
+	//if( ERROR_SUCCESS == ::RegCreateKeyEx(hOpenKey, szKey, dwReserved,(LPTSTR)0, REG_OPTION_NON_VOLATILE, KEY_SET_VALUE, 0,&hTempKey, &dwDisposition))
+	if(ERROR_SUCCESS == REGCREATEKEYEX(hOpenKey, szKey, dwReserved,0, REG_OPTION_NON_VOLATILE, KEY_SET_VALUE, 0,&hTempKey, &dwDisposition))
+  {
+    if(fn(hTempKey, dwReserved) == ERROR_SUCCESS)
+      bRetVal = TRUE;
+	}
+
+	// close opened key
+	if( hTempKey )
+		::RegCloseKey(hTempKey);
+
+	return bRetVal;
+}
+
+int BSS_FASTCALL bss_util::SetRegistryValue(HKEY__*	hOpenKey, const char* szKey, const char* szValue, const char* szData)
+{
+  if(!hOpenKey || !szKey || !szKey[0] || !szValue || !szData) { ::SetLastError(E_INVALIDARG); return FALSE; } // validate input
+  
+  return r_setregvalue<char,&RegCreateKeyExA>(hOpenKey,szKey,szValue,[&](HKEY& hTempKey, DWORD& dwReserved) -> int {
+    return RegSetValueExA(hTempKey, (LPSTR)szValue, dwReserved, REG_SZ, (LPBYTE)szData, (lstrlenA(szData)+1)*sizeof(char));
+  });
+}
+
+int BSS_FASTCALL bss_util::SetRegistryValue(HKEY__*	hOpenKey, const wchar_t* szKey, const wchar_t* szValue, const wchar_t* szData)
+{
+  if(!hOpenKey || !szKey || !szKey[0] || !szValue || !szData) { ::SetLastError(E_INVALIDARG); return FALSE; } // validate input
+  
+  return r_setregvalue<wchar_t,&RegCreateKeyExW>(hOpenKey,szKey,szValue,[&](HKEY& hTempKey, DWORD& dwReserved) -> int {
+    return RegSetValueExW(hTempKey, (LPWSTR)szValue, dwReserved, REG_SZ, (LPBYTE)szData, (lstrlenW(szData)+1)*sizeof(wchar_t));
+  });
+}
+
+int BSS_FASTCALL bss_util::SetRegistryValue(HKEY__*	hOpenKey, const char* szKey, const char* szValue, __int32 szData)
+{
+  if(!hOpenKey || !szKey || !szKey[0] || !szValue) { ::SetLastError(E_INVALIDARG); return FALSE; } // validate input
+  
+  return r_setregvalue<char,&RegCreateKeyExA>(hOpenKey,szKey,szValue,[&](HKEY& hTempKey, DWORD& dwReserved) -> int {
+    return RegSetValueExA(hTempKey, (LPSTR)szValue, dwReserved, REG_DWORD, (LPBYTE)&szData, sizeof(__int32));
+  });
+}
+int BSS_FASTCALL bss_util::SetRegistryValue(HKEY__*	hOpenKey, const wchar_t* szKey, const wchar_t* szValue, __int32 szData)
+{
+  if(!hOpenKey || !szKey || !szKey[0] || !szValue) { ::SetLastError(E_INVALIDARG); return FALSE; } // validate input
+  
+  return r_setregvalue<wchar_t,&RegCreateKeyExW>(hOpenKey,szKey,szValue,[&](HKEY& hTempKey, DWORD& dwReserved) -> int {
+    return RegSetValueExW(hTempKey, (LPWSTR)szValue, dwReserved, REG_DWORD, (LPBYTE)&szData, sizeof(__int32));
+  });
+}
+int BSS_FASTCALL bss_util::SetRegistryValue64(HKEY__*	hOpenKey, const char* szKey, const char* szValue, __int64 szData)
+{
+  if(!hOpenKey || !szKey || !szKey[0] || !szValue) { ::SetLastError(E_INVALIDARG); return FALSE; } // validate input
+  
+  return r_setregvalue<char,&RegCreateKeyExA>(hOpenKey,szKey,szValue,[&](HKEY& hTempKey, DWORD& dwReserved) -> int {
+    return RegSetValueExA(hTempKey, (LPSTR)szValue, dwReserved, REG_QWORD, (LPBYTE)&szData, sizeof(__int64));
+  });
+}
+int BSS_FASTCALL bss_util::SetRegistryValue64(HKEY__*	hOpenKey, const wchar_t* szKey, const wchar_t* szValue, __int64 szData)
+{
+  if(!hOpenKey || !szKey || !szKey[0] || !szValue) { ::SetLastError(E_INVALIDARG); return FALSE; } // validate input
+  
+  return r_setregvalue<wchar_t,&RegCreateKeyExW>(hOpenKey,szKey,szValue,[&](HKEY& hTempKey, DWORD& dwReserved) -> int {
+    return RegSetValueExW(hTempKey, (LPWSTR)szValue, dwReserved, REG_QWORD, (LPBYTE)&szData, sizeof(__int64));
+  });
+}
+  
+template<typename C, LSTATUS (__stdcall *REGOPENKEYEX)(HKEY,const C*,DWORD,REGSAM,PHKEY),
+  LSTATUS (__stdcall *REGDELETEKEY)(HKEY,const C*), 
+  LSTATUS (__stdcall *REGENUMKEYEX)(HKEY,DWORD,C*,LPDWORD,LPDWORD,C*,LPDWORD,PFILETIME)>
+int BSS_FASTCALL r_delregnode(HKEY__* hKeyRoot, const C* lpSubKey)
+{
+  LONG lResult;
+  DWORD dwSize;
+  C szName[MAX_PATH];
+  HKEY hKey;
+  FILETIME ftWrite;
+
+  lResult = REGDELETEKEY(hKeyRoot, lpSubKey);
+
+  if (lResult == ERROR_SUCCESS) 
+      return TRUE;
+
+  lResult = REGOPENKEYEX(hKeyRoot, lpSubKey, 0, KEY_READ, &hKey);
+
+  if (lResult != ERROR_SUCCESS) 
+  {
+      if (lResult == ERROR_FILE_NOT_FOUND) {
+          OutputDebugString("Key not found.\n");
+          return TRUE;
+      } 
+      else {
+          OutputDebugString("Error opening key.\n");
+          return FALSE;
+      }
+  }
+  // Check for an ending slash and add one if it is missing.
+  cStrT<C> lpEnd = lpSubKey;
+  if (lpEnd[lpEnd.length()-1] != '\\') 
+    lpEnd += '\\';
+
+  dwSize = MAX_PATH;
+  lResult = REGENUMKEYEX(hKey, 0, szName, &dwSize, NULL, NULL, NULL, &ftWrite);
+
+  if (lResult == ERROR_SUCCESS) 
+  {
+      do {
+          //lpEnd = szName;
+          if (!r_delregnode<C,REGOPENKEYEX,REGDELETEKEY,REGENUMKEYEX>(hKeyRoot, lpEnd+szName))
+              break;
+
+          dwSize = MAX_PATH;
+          lResult = REGENUMKEYEX(hKey, 0, szName, &dwSize, NULL, NULL, NULL, &ftWrite);
+      } while (lResult == ERROR_SUCCESS);
+  }
+
+  lpEnd.SetSize(lpEnd.length());
+  RegCloseKey (hKey);
+
+  lResult = REGDELETEKEY(hKeyRoot, lpEnd);
+
+  return lResult == ERROR_SUCCESS?TRUE:FALSE;
+}
+
+int BSS_FASTCALL bss_util::DelRegistryNode(HKEY__* hKeyRoot, const char* lpSubKey)
+{
+  return r_delregnode<char, &RegOpenKeyExA,&RegDeleteKeyA, &RegEnumKeyExA>(hKeyRoot,lpSubKey);
+}
+
+int BSS_FASTCALL bss_util::DelRegistryNode(HKEY__* hKeyRoot, const wchar_t* lpSubKey)
+{
+  return r_delregnode<wchar_t, &RegOpenKeyExW,&RegDeleteKeyW, &RegEnumKeyExW>(hKeyRoot,lpSubKey);
+}
+
 #endif

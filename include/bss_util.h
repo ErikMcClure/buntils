@@ -24,7 +24,7 @@
 #include <memory.h>
 
 namespace bss_util { 
-  static const VersionType BSSUTIL_VERSION = { 0,3,81 };
+  static const VersionType BSSUTIL_VERSION = { 0,3,82 };
 
   __declspec(dllexport) extern void BSS_FASTCALL SetWorkDirToCur(); //Sets the working directory to the actual goddamn location of the EXE instead of the freaking start menu, or possibly the desktop. The possibilities are endless! Fuck you, windows.
   __declspec(dllexport) extern unsigned long long BSS_FASTCALL bssFileSize(const char* path);
@@ -195,6 +195,45 @@ namespace bss_util {
   inline T BSS_FASTCALL tsignzero(T n)
   {
     return (n > 0) - (n < 0);
+  }
+  
+  /* Directly calls the fistp function for float to int rounding. Because the FPU tends to be a rounding mode that doesn't clamp to 0, this
+     will usually round the float to the nearest integer instead of simply chopping off the decimal. This usually takes 6 cycles, compared
+     to the 80 or so cycles caused by a normal float to int cast, and works in any precision. */
+  template<typename T> //T must be either float or double or you need to stop programming when you're high
+  inline __int32 fFastRound(T f)
+  {
+	  __int32 retval;
+	  __asm fld f
+	  __asm fistp retval
+	  return retval;
+  }
+
+  /* Returns true if FPU is in single precision mode and false otherwise (false for both double and extended precision) */
+  inline bool FPUsingle()
+  { 
+    unsigned int i;
+    __asm fnstcw i;
+    return ((i&(0x0300))==0); //0x0300 is the mask for the precision bits, 0 indicates single precision
+  }
+
+  /* Extremely fast rounding function that again will usually round to the nearest integer, but only works in double precision mode */
+  inline __int32 fFastDoubleRound(double val)
+  {
+    const double _double2fixmagic = 4503599627370496.0*1.5; //2^52 for 52 bits of mantissa
+    assert(!FPUsingle());
+	  val		= val + _double2fixmagic;
+	  return ((__int32*)&val)[0]; 
+  }
+
+  /* Single precision version of the above function. While precision problems are mostly masked in the above function by limiting it to
+    __int32, in this function they are far more profound due to there only being 24 bits of mantissa to work with. Use with caution. */
+  inline __int32 fFastSingleRound(double val)
+  {
+    const double _single2fixmagic = 16777216.0*1.5; //2^24 for 24 bits of mantissa
+    assert(FPUsingle());
+	  val		= val + _single2fixmagic;
+	  return (__int32)(((((__int64*)&val)[0])&0xFFFFF0000000)>>28);
   }
 
 	/* This is a super fast floating point comparison function with a significantly higher tolerance and no

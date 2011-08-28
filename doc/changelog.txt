@@ -5,6 +5,10 @@
 0.3.82
 ------
 - Added windows-specific Registry manipulation functions
+- Fixed bug in AdditiveFixedAllocator that over-allocated memory when consolidating
+- Added AdditiveVariableAllocator
+- Changed all comparisons to use a branch free sign check
+- Fixed functor.h so Call() actually works.
 
 0.3.81
 ------

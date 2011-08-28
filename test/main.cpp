@@ -189,7 +189,7 @@ int DEBUG_CDT::count=0;
 const char* FAKESTRINGLIST[5] = { "FOO", "BAR", "MEH", "SILLY", "EXACERBATION" };
 
 int main(int argc, char** argv)
-{
+{  
   //_controlfp( _PC_24, MCW_PC );
   int zsdf = fFastRound(2734.82f);
 
@@ -197,6 +197,80 @@ int main(int argc, char** argv)
   srand(seed);
   //srand(433690314);
   rand();
+  
+  cAdditiveVariableAllocator<64> _variabletest;
+  std::vector<char*> phold;
+  for(int j=0; j<1000; ++j)
+  {
+    for(int i = 0; i < 1000; ++i)
+    {
+      if(RANDINTGEN(0,10)<5 || phold.size()<3)
+      {
+        char* test=_variabletest.alloc<char>(RANDINTGEN(4,1000));
+        *test=0xDEADBEEF;
+        phold.push_back(test);
+      }
+      else
+      {
+        int index=RANDINTGEN(0,phold.size()-1);
+        _variabletest.dealloc(phold[index]);
+        phold.erase(phold.begin()+index);
+      }
+    }
+    _variabletest.Clear();
+  }
+  char prof;
+  BSS_DebugInfo _debug("log.txt");
+//  BSSLOGONE(&_debug,1,L"Test こんにちは世界 Log %s",L"こんにちは世界");
+  
+  /*unsigned int avg[2];
+  avg[0]=0;
+  avg[1]=0;
+
+  for(int j=1; j<100; ++j)
+  {
+    Allocator<int,AdditiveFixedPolicy<int>> _fixedtest;
+  std::vector<int*> phold;
+
+    prof=_debug.OpenProfiler();
+  for(int i = 0; i < 100000; ++i)
+  {
+    if(RANDINTGEN(0,10)<5 || phold.size()<3)
+    {
+      int* test=_fixedtest.allocate(1);
+      *test=0xDEADBEEF;
+      phold.push_back(test);
+    }
+    else
+    {
+      int index=RANDINTGEN(0,phold.size()-1);
+      _fixedtest.deallocate(phold[index]);
+      phold.erase(phold.begin()+index);
+    }
+  }
+    std::cout << ((avg[0]+=_debug.CloseProfiler(prof))/j) << std::endl;
+
+    phold.clear();
+  Allocator<int> _normaltest;
+    prof=_debug.OpenProfiler();
+  for(int i = 0; i < 100000; ++i)
+  {
+    if(RANDINTGEN(0,10)<5 || phold.size()<3)
+    {
+      int* test=_normaltest.allocate(1);
+      *test=0xDEADBEEF;
+      phold.push_back(test);
+    }
+    else
+    {
+      int index=RANDINTGEN(0,phold.size()-1);
+      _normaltest.deallocate(phold[index]);
+      phold.erase(phold.begin()+index);
+    }
+  }
+    std::cout << ((avg[1]+=_debug.CloseProfiler(prof))/j) << std::endl;
+
+  }*/
 
   //FixedPt<12> fp(23563.2739);
   //double res=fp;
@@ -336,11 +410,6 @@ int main(int argc, char** argv)
   std::cout << std::endl << std::endl << "Press Enter to continue" << std::endl;
   std::cin.get();
   return 0;
-
-
-  char prof;
-  BSS_DebugInfo _debug("log.txt");
-//  BSSLOGONE(&_debug,1,L"Test こんにちは世界 Log %s",L"こんにちは世界");
 
   int testnums[TESTNUM];
   for(int i = 0; i<TESTNUM; ++i)
@@ -560,55 +629,6 @@ int main(int argc, char** argv)
   }
 
   //return 0;
-
-  unsigned int avg[2];
-  avg[0]=0;
-  avg[1]=0;
-
-  for(int j=1; j<100; ++j)
-  {
-    Allocator<int,AdditiveChunkPolicy<int>> _fixedtest;
-  std::vector<int*> phold;
-
-    prof=_debug.OpenProfiler();
-  for(int i = 0; i < 100000; ++i)
-  {
-    if(RANDINTGEN(0,10)<5 || phold.size()<3)
-    {
-      int* test=_fixedtest.allocate(1);
-      *test=0xDEADBEEF;
-      phold.push_back(test);
-    }
-    else
-    {
-      int index=RANDINTGEN(0,phold.size()-1);
-      _fixedtest.deallocate(phold[index]);
-      phold.erase(phold.begin()+index);
-    }
-  }
-    std::cout << ((avg[0]+=_debug.CloseProfiler(prof))/j) << std::endl;
-
-    phold.clear();
-  Allocator<int> _normaltest;
-    prof=_debug.OpenProfiler();
-  for(int i = 0; i < 100000; ++i)
-  {
-    if(RANDINTGEN(0,10)<5 || phold.size()<3)
-    {
-      int* test=_normaltest.allocate(1);
-      *test=0xDEADBEEF;
-      phold.push_back(test);
-    }
-    else
-    {
-      int index=RANDINTGEN(0,phold.size()-1);
-      _normaltest.deallocate(phold[index]);
-      phold.erase(phold.begin()+index);
-    }
-  }
-    std::cout << ((avg[1]+=_debug.CloseProfiler(prof))/j) << std::endl;
-
-  }
 
   system("Pause");
   {
@@ -860,7 +880,7 @@ int main2()
   unsigned int seed=time(NULL);
   void* val=(void*)&seed;
   rand();
-  
+
   char p1=1;
   char p2=2;
   volatile cLocklessFlipper<char> flipper(&p1,&p2);

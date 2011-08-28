@@ -7,8 +7,199 @@
 #include "bss_alloc.h"
 
 namespace bss_util {
+  /* Begin Additive Fixed Allocator */
+
+  struct AFLISTITEM
+  {
+    AFLISTITEM* next;
+    unsigned __int32 size;
+    char* mem;
+  };
+
+	template<typename T, __int32 init=8>
+	class __declspec(dllexport) cAdditiveFixedAllocator
+  {
+  public:
+    cAdditiveFixedAllocator() : _curpos(0), _root(0)
+    {
+      _allocchunk(init*sizeof(T));
+    }
+    ~cAdditiveFixedAllocator()
+    {
+      AFLISTITEM* hold=_root;
+      while(_root=hold)
+      {
+        hold=_root->next;
+        free(_root->mem);
+        free(_root);
+      }
+    }
+	  inline T* BSS_FASTCALL alloc(__int32 num)
+    {
+      if(_curpos>=_root->size) { _allocchunk(fbnext(_root->size/sizeof(T))*sizeof(T)); _curpos=0; }
+
+      T* retval= (T*)(_root->mem+_curpos);
+      _curpos+=sizeof(T);
+      return retval;
+    }
+    inline void BSS_FASTCALL dealloc(void* p) {}
+    inline void Clear()
+    {
+      _curpos=0;
+      if(!_root->next) return;
+      unsigned __int32 nsize=0;
+      AFLISTITEM* hold;
+      while(_root)
+      {
+        hold=_root->next;
+        nsize+=_root->size;
+        free(_root->mem);
+        free(_root);
+        _root=hold;
+      }
+      //_allocchunk(nsize*sizeof(T)); //don't do this, nsize is already in bytes
+      _allocchunk(nsize); //consolidates all memory into one chunk to try and take advantage of data locality
+    }
+  protected:
+    inline void _allocchunk(unsigned __int32 nsize)
+    {
+      AFLISTITEM* retval=(AFLISTITEM*)malloc(sizeof(AFLISTITEM));
+      retval->next=_root;
+      retval->size=nsize;
+      retval->mem=(char*)malloc(retval->size);
+      _root=retval;
+      assert(_prepDEBUG());
+    }
+    inline bool _prepDEBUG()
+    {
+      if(!_root || !_root->mem) return false;
+      memset(_root->mem,0xcdcdcdcd,_root->size);
+      return true;
+    }
+
+    AFLISTITEM* _root;
+    unsigned __int32 _curpos;
+  };
+  
+	template<typename T>
+  class __declspec(dllexport) AdditiveFixedPolicy : public AllocPolicySize<T>, protected cAdditiveFixedAllocator<T> {
+	public:
+    template<typename U>
+    struct rebind { typedef AdditiveFixedPolicy<U> other; };
+
+    inline explicit AdditiveFixedPolicy() {}
+    inline ~AdditiveFixedPolicy() {}
+    inline explicit AdditiveFixedPolicy(AdditiveFixedPolicy const&) {}
+    template <typename U>
+    inline explicit AdditiveFixedPolicy(AdditiveFixedPolicy<U> const&) {}
+
+    inline pointer allocate(std::size_t cnt, 
+      typename std::allocator<void>::const_pointer = 0) {
+        return alloc(cnt);
+    }
+    inline void deallocate(pointer p, std::size_t num = 0) { }
+    inline void BSS_FASTCALL clear() { Clear(); } //done for functor reasons, __fastcall has no effect here
+	};
+
+  /* End Additive Fixed Allocator */
+
+  /* Dynamic additive allocator that can allocate any number of bytes */
+	template<__int32 init=64>
+	class __declspec(dllexport) cAdditiveVariableAllocator
+  {
+  public:
+    cAdditiveVariableAllocator() : _curpos(0), _root(0)
+    {
+      _allocchunk(init);
+    }
+    ~cAdditiveVariableAllocator()
+    {
+      AFLISTITEM* hold=_root;
+      while(_root=hold)
+      {
+        hold=_root->next;
+        free(_root->mem);
+        free(_root);
+      }
+    }
+    template<class T>
+	  inline T* BSS_FASTCALL alloc(__int32 num)
+    {
+      return (T*)_allocbytes(num*sizeof(T));
+    }
+	  inline void* BSS_FASTCALL _allocbytes(unsigned __int32 _sz) //allows you to skip the automatic template resolution - important for allocating over DLL bounderies
+    {
+      if((_curpos+_sz)>=_root->size) { _allocchunk(fbnext(bssmax(_root->size,_sz))); _curpos=0; }
+
+      void* retval= _root->mem+_curpos;
+      _curpos+=_sz;
+      return retval;
+    }
+    inline void BSS_FASTCALL dealloc(void* p) {}
+    inline void Clear()
+    {
+      _curpos=0;
+      if(!_root->next) return;
+      unsigned __int32 nsize=0;
+      AFLISTITEM* hold;
+      while(_root)
+      {
+        hold=_root->next;
+        nsize+=_root->size;
+        free(_root->mem);
+        free(_root);
+        _root=hold;
+      }
+      _allocchunk(nsize); //consolidates all memory into one chunk to try and take advantage of data locality
+    }
+  protected:
+    inline void _allocchunk(unsigned __int32 nsize)
+    {
+      AFLISTITEM* retval=(AFLISTITEM*)malloc(sizeof(AFLISTITEM));
+      retval->next=_root;
+      retval->size=nsize;
+      retval->mem=(char*)malloc(retval->size);
+      _root=retval;
+      assert(_prepDEBUG());
+    }
+    inline bool _prepDEBUG()
+    {
+      if(!_root || !_root->mem) return false;
+      memset(_root->mem,0xcdcdcdcd,_root->size);
+      return true;
+    }
+
+    AFLISTITEM* _root;
+    unsigned __int32 _curpos;
+  };
+  
+	//template<typename T>
+ // class __declspec(dllexport) AdditiveVariablePolicy : public AllocPolicySize<T>, protected cAdditiveVariableAllocator<64> {
+	//public:
+ //   template<typename U>
+ //   struct rebind { typedef AdditiveVariablePolicy<U> other; };
+
+ //   inline explicit AdditiveVariablePolicy() {}
+ //   inline ~AdditiveVariablePolicy() {}
+ //   inline explicit AdditiveVariablePolicy(AdditiveVariablePolicy const&) {}
+ //   template <typename U>
+ //   inline explicit AdditiveVariablePolicy(AdditiveVariablePolicy<U> const&) {}
+
+ //   inline pointer allocate(std::size_t cnt, 
+ //     typename std::allocator<void>::const_pointer = 0) {
+ //       return alloc(cnt);
+ //   }
+ //   inline void deallocate(pointer p, std::size_t num = 0) { }
+ //   inline void BSS_FASTCALL clear() { Clear(); } //done for functor reasons, __fastcall has no effect here
+	//};
+}
+
+
+#endif
+
+
   /* Begin AdditiveChunkPolicy */
-  struct MEMBUCKET
+/*  struct MEMBUCKET
 	{
 		MEMBUCKET(size_t _size) : size(_size), mem((char*)malloc(_size)), next(0) {}
     ~MEMBUCKET() { if(mem) { free((void*)mem); } } //a failed allocation creates this possibility
@@ -147,7 +338,7 @@ namespace bss_util {
 	template<typename T, typename OtherAllocator> inline bool operator==(AdditiveChunkPolicy<T> const&, OtherAllocator const&) { return false; }
 
   /* End Additive Chunk Policy */
-
+/*
 	template<typename T>
 	class __declspec(dllexport) AdditiveChunkAllocator : public AdditiveChunkPolicy<T>, public ObjectTraits<T> {
 	private:
@@ -173,98 +364,4 @@ namespace bss_util {
     inline AdditiveChunkAllocator(AdditiveChunkAllocator const& rhs):ObjectTraits<T>(rhs), AdditiveChunkPolicy<T>(rhs) {}
     template <typename U>
     inline AdditiveChunkAllocator(AdditiveChunkAllocator<U> const& rhs):ObjectTraits<T>(rhs), AdditiveChunkPolicy<T>(rhs) {}
-	};
-
-  struct AFLISTITEM
-  {
-    AFLISTITEM* next;
-    unsigned __int32 size;
-    char* mem;
-  };
-
-	template<typename T, __int32 init=8>
-	class __declspec(dllexport) cAdditiveFixedAllocator
-  {
-  public:
-    cAdditiveFixedAllocator() : _curpos(0), _root(0)
-    {
-      _allocchunk(init*sizeof(T));
-    }
-    ~cAdditiveFixedAllocator()
-    {
-      AFLISTITEM* hold=_root;
-      while(_root=hold)
-      {
-        hold=_root->next;
-        free(_root->mem);
-        free(_root);
-      }
-    }
-	  inline T* BSS_FASTCALL alloc(__int32 num)
-    {
-      if(_curpos>=_root->size) { _allocchunk(fbnext(_root->size/sizeof(T))*sizeof(T)); _curpos=0; }
-
-      T* retval= (T*)(_root->mem+_curpos);
-      _curpos+=sizeof(T);
-      return retval;
-    }
-    inline void BSS_FASTCALL dealloc(void* p) {}
-    inline void Clear()
-    {
-      _curpos=0;
-      if(!_root->next) return;
-      unsigned __int32 nsize=0;
-      AFLISTITEM* hold;
-      while(_root)
-      {
-        hold=_root->next;
-        nsize+=_root->size;
-        free(_root->mem);
-        free(_root);
-        _root=hold;
-      }
-      _allocchunk(nsize*sizeof(T)); //consolidates all memory into one chunk to try and take advantage of data locality
-    }
-  protected:
-    inline void _allocchunk(__int32 nsize)
-    {
-      AFLISTITEM* retval=(AFLISTITEM*)malloc(sizeof(AFLISTITEM));
-      retval->next=_root;
-      retval->size=nsize;
-      retval->mem=(char*)malloc(retval->size);
-      _root=retval;
-      assert(_prepDEBUG());
-    }
-    inline bool _prepDEBUG()
-    {
-      if(!_root || !_root->mem) return false;
-      memset(_root->mem,0xcdcdcdcd,_root->size);
-      return true;
-    }
-
-    AFLISTITEM* _root;
-    unsigned __int32 _curpos;
-  };
-  
-	template<typename T>
-  class __declspec(dllexport) AdditiveFixedPolicy : public AllocPolicySize<T>, protected cAdditiveFixedAllocator<T> {
-	public:
-    template<typename U>
-    struct rebind { typedef AdditiveFixedPolicy<U> other; };
-
-    inline explicit AdditiveFixedPolicy() {}
-    inline ~AdditiveFixedPolicy() {}
-    inline explicit AdditiveFixedPolicy(AdditiveFixedPolicy const&) {}
-    template <typename U>
-    inline explicit AdditiveFixedPolicy(AdditiveFixedPolicy<U> const&) {}
-
-    inline pointer allocate(std::size_t cnt, 
-      typename std::allocator<void>::const_pointer = 0) {
-        return alloc(cnt);
-    }
-    inline void deallocate(pointer p, std::size_t num = 0) { }
-    inline void clear() { Clear(); }
-	};
-}
-
-#endif
+	};*/

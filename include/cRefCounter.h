@@ -8,7 +8,7 @@
 
 namespace bss_util {  
   /* A reference counter class that is entirely inline */
-  class __declspec(dllexport) cRefCounter
+  class BSS_COMPILER_DLLEXPORT cRefCounter
   {
   public:
     /* Constructor - Reference is set to 0 because you may or may not have a persistent reference to this, or something else will try to grab it or whatever */
@@ -29,7 +29,7 @@ namespace bss_util {
 
   /* This is an autoptr with copy semantics for a reference counter */
   template<class T>
-  class __declspec(dllexport) cRefPointer //only exported to make VC++ shut up with that stupid warning
+  class BSS_COMPILER_DLLEXPORT cRefPointer //only exported to make VC++ shut up with that stupid warning
   {
   public:
     cRefPointer(const cRefPointer& ptr) { _assign(ptr); }

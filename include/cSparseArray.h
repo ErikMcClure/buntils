@@ -9,7 +9,7 @@
 namespace bss_util {
   /* Sparse array implementation that allows you to specify how sparse it is */
   template<typename T, int Sparsity=4, typename _ST=unsigned int>
-  class __declspec(dllexport) cSparseArray : protected cBitArray<unsigned char, _ST>
+  class BSS_COMPILER_DLLEXPORT cSparseArray : protected cBitArray<unsigned char, _ST>
   {
   protected:
     union SPARSE_ELEM

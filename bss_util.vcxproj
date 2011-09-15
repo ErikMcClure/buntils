@@ -250,6 +250,7 @@
   <ItemGroup>
     <ClInclude Include="include\bss_alloc_additive.h" />
     <ClInclude Include="include\bss_alloc_fixed.h" />
+    <ClInclude Include="include\bss_compiler.h" />
     <ClInclude Include="include\bss_fixedpt.h" />
     <ClInclude Include="include\bss_Log.h" />
     <ClInclude Include="include\cArrayCircular.h" />
@@ -288,7 +289,7 @@
     <ClInclude Include="include\INIparse.h" />
     <ClInclude Include="include\cINIstorage.h" />
     <ClInclude Include="include\cKhash.h" />
-    <ClInclude Include="include\cLocklessQueue.h" />
+    <ClInclude Include="include\cLocklessByteQueue.h" />
     <ClInclude Include="include\cMap.h" />
     <ClInclude Include="include\cMiniList.h" />
     <ClInclude Include="include\cMutex.h" />
@@ -307,6 +308,7 @@
     <ClInclude Include="include\khash.h" />
     <ClInclude Include="include\leaktest.h" />
     <ClInclude Include="include\LLBase.h" />
+    <ClInclude Include="include\lockless.h" />
     <ClInclude Include="include\os.h" />
     <ClInclude Include="include\Shiny.h" />
     <ClInclude Include="include\StreamSplitter.h" />

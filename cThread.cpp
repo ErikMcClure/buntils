@@ -6,6 +6,7 @@
 #include <process.h>
 #include <windows.h>
 #include <utility>
+#include "lockless.h"
 
 using namespace bss_util;
 
@@ -14,7 +15,7 @@ _threadret(copy._threadret), cLockable(copy), _handle(-1L), _syncptr(copy._syncp
 {
 }
 
-cThread::cThread(unsigned int (__stdcall *funcptr)(void*), bool sync, bool sleep, unsigned short sleepms, unsigned long flips) :
+cThread::cThread(unsigned int (BSS_COMPILER_STDCALL *funcptr)(void*), bool sync, bool sleep, unsigned short sleepms, unsigned long flips) :
   _funcptr(funcptr), _sleepms(sleepms), cBitField<unsigned int>((sync?(1 << 3):0)), _threadret(0),
     _handle(-1L), _syncptr(sleep?&cThread::_sleepsync:&cThread::_blocksync), _delegate_arg(new __DOUBLEARG())
 {
@@ -33,7 +34,7 @@ cThread::~cThread()
     delete _delegate;
 }
 
-unsigned int __stdcall __threadstartdelegate(void* ptr)
+unsigned int BSS_COMPILER_STDCALL __threadstartdelegate(void* ptr)
 {
   return ((cThread::__DOUBLEARG*)ptr)->first->Call(((cThread::__DOUBLEARG*)ptr)->second);
 }

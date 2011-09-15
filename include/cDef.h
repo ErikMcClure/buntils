@@ -15,7 +15,7 @@
     inline virtual c* BSS_FASTCALL Clone() const { return new c(*this); } 
 
 template<class base>
-struct __declspec(dllexport) cDef {
+struct BSS_COMPILER_DLLEXPORT cDef {
   inline virtual base* BSS_FASTCALL Spawn() const { return 0; }; //This creates a new instance of whatever class this definition defines
   inline virtual cDef<base>* BSS_FASTCALL Clone() const=0;
   virtual ~cDef<base>() {}

@@ -13,7 +13,7 @@
 namespace bss_util {
   /* Node struct for cRBT_List */
   template<class Key, class Data>
-  struct __declspec(dllexport) cRBT_Node
+  struct BSS_COMPILER_DLLEXPORT cRBT_Node
   {
   public:
     inline cRBT_Node(cRBT_Node&& mov) : _key(std::move(mov._key)),_data(std::move(mov._data)),_next(mov._next),_prev(mov._prev),
@@ -52,7 +52,7 @@ namespace bss_util {
 
   /* Public node wrapper for cRBT_Node */
   template<class Key, class Data>
-  struct __declspec(dllexport) cRBT_PNode : public cRBT_Node<Key,Data>
+  struct BSS_COMPILER_DLLEXPORT cRBT_PNode : public cRBT_Node<Key,Data>
   {
   public:
     inline Data& GetData() { return _data; }
@@ -64,7 +64,7 @@ namespace bss_util {
 
 	/* This class is a combination of a red-black tree with a doubly linked list. */
 	template <class K, class D, char (*C)(const K& keyleft, const K& keyright)=CompareKeys<K>, typename A=Allocator<cRBT_Node<K,D>>>
-	class __declspec(dllexport) cRBT_List : protected cAllocTracker<A>
+	class BSS_COMPILER_DLLEXPORT cRBT_List : protected cAllocTracker<A>
 	{
 	public:
 		/* Constructor - takes an optional allocator */

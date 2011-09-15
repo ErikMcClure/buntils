@@ -22,7 +22,7 @@ namespace bss_util {
   
   /* Special constructor cKhash implementation, which cKhash is not really meant for so do not use this ever */
   template<typename K=char, typename T=void*, bool ismap=true>
-  class __declspec(dllexport) cKhash_StringTInsConstruct : public cKhash_StringTIns<K,T,ismap>
+  class BSS_COMPILER_DLLEXPORT cKhash_StringTInsConstruct : public cKhash_StringTIns<K,T,ismap>
   {
   public:
     cKhash_StringTInsConstruct() : cKhash_StringTIns<K,T,ismap>() {}

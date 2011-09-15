@@ -5,13 +5,13 @@
 #include <stdlib.h>
 #include <string.h>
 
-__declspec(dllexport)
+BSS_COMPILER_DLLEXPORT
 extern unsigned long BSS_FASTCALL strhex(const char* text)
 {
   return strtoul(text,0,16);
 }
 
-__declspec(dllexport)
+BSS_COMPILER_DLLEXPORT
 extern unsigned long BSS_FASTCALL wcshex(const wchar_t* text)
 {
   return wcstoul(text,0,16);

@@ -11,7 +11,7 @@ namespace bss_util
 {
   /* Generic queue that works on a single array and is designed to be flushed after every read-through. Uses cArraySimple due to preformance critical usage, which includes array resize time. */
   template<typename SizeType=unsigned int>
-  class __declspec(dllexport) cByteQueue : protected cArraySimple<unsigned char,SizeType> //cArraySimple does not have a virtual destructor. Because its inherited via protected, no one can delete it from there anyway.
+  class BSS_COMPILER_DLLEXPORT cByteQueue : protected cArraySimple<unsigned char,SizeType> //cArraySimple does not have a virtual destructor. Because its inherited via protected, no one can delete it from there anyway.
   {
   public:
     inline cByteQueue(const cByteQueue& copy) : cArraySimple<unsigned char,SizeType>(copy), _cur(copy._cur) {}

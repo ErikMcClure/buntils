@@ -18,7 +18,7 @@ inline bool khint_equalfunc(T a, T b) { return a==b; }
 
 //#define KHASH_INIT(name, khkey_t, khval_t, kh_is_map, __hash_func, __hash_equal)
 template<typename khkey_t, typename khval_t, bool kh_is_map, khint_t (*__hash_func)(khkey_t), bool (*__hash_equal)(khkey_t, khkey_t)>
-class __declspec(dllexport) kh_template_t
+class BSS_COMPILER_DLLEXPORT kh_template_t
 {					
 public:
 		khint_t n_buckets, size, n_occupied, upper_bound;	
@@ -184,7 +184,7 @@ static inline void kh_del_template(kh_template_t<khkey_t,khval_t,kh_is_map,__has
 namespace bss_util {
 
   template<typename khkey_t, typename khval_t, bool kh_is_map, khint_t (*__hash_func)(khkey_t), bool (*__hash_equal)(khkey_t, khkey_t), bool (*__validate_p)(khkey_t), class Traits=ValueTraits<khval_t>>
-  class __declspec(dllexport) cKhash
+  class BSS_COMPILER_DLLEXPORT cKhash
   {
   protected:
     typedef khkey_t KHKEY;
@@ -334,7 +334,7 @@ namespace bss_util {
   inline bool KH_STR_VALIDATEPTR(T p) { return p!=0; }
 
   template<typename T=void*, bool ismap=true>
-  class __declspec(dllexport) cKhash_Int64 : public cKhash<__int64, T, true, &KH_INT64_HASHFUNC, &KH_INT_EQUALFUNC<__int64>, &KH_INT_VALIDATEPTR<__int64>>
+  class BSS_COMPILER_DLLEXPORT cKhash_Int64 : public cKhash<__int64, T, true, &KH_INT64_HASHFUNC, &KH_INT_EQUALFUNC<__int64>, &KH_INT_VALIDATEPTR<__int64>>
   {
   public:
     cKhash_Int64() : cKhash<__int64, T, true, &KH_INT64_HASHFUNC, &KH_INT_EQUALFUNC<__int64>, &KH_INT_VALIDATEPTR<__int64>>() {}
@@ -343,7 +343,7 @@ namespace bss_util {
   };
 
   template<typename T=void*, bool ismap=true>
-  class __declspec(dllexport) cKhash_Int : public cKhash<__int32, T, true, &KH_INT_HASHFUNC, &KH_INT_EQUALFUNC<__int32>, &KH_INT_VALIDATEPTR<__int32>>
+  class BSS_COMPILER_DLLEXPORT cKhash_Int : public cKhash<__int32, T, true, &KH_INT_HASHFUNC, &KH_INT_EQUALFUNC<__int32>, &KH_INT_VALIDATEPTR<__int32>>
   {
   public:
     cKhash_Int() : cKhash<__int32, T, true, &KH_INT_HASHFUNC, &KH_INT_EQUALFUNC<__int32>, &KH_INT_VALIDATEPTR<__int32>>() {}
@@ -352,7 +352,7 @@ namespace bss_util {
   };
 
   template<typename T=void*, bool ismap=true>
-  class __declspec(dllexport) cKhash_String : public cKhash<const char*, T, true, &KH_STR_HASHFUNC, &KH_STR_EQUALFUNC, &KH_STR_VALIDATEPTR<const char*>>
+  class BSS_COMPILER_DLLEXPORT cKhash_String : public cKhash<const char*, T, true, &KH_STR_HASHFUNC, &KH_STR_EQUALFUNC, &KH_STR_VALIDATEPTR<const char*>>
   {
   public:
     cKhash_String() : cKhash<const char*, T, true, &KH_STR_HASHFUNC, &KH_STR_EQUALFUNC, &KH_STR_VALIDATEPTR<const char*>>() {}
@@ -361,7 +361,7 @@ namespace bss_util {
   };
 
   template<typename T=void*, bool ismap=true>
-  class __declspec(dllexport) cKhash_StringIns : public cKhash<const char*, T, true, &KH_STRINS_HASHFUNC, &KH_STRINS_EQUALFUNC, &KH_STR_VALIDATEPTR<const char*>>
+  class BSS_COMPILER_DLLEXPORT cKhash_StringIns : public cKhash<const char*, T, true, &KH_STRINS_HASHFUNC, &KH_STRINS_EQUALFUNC, &KH_STR_VALIDATEPTR<const char*>>
   {
   public:
     cKhash_StringIns() : cKhash<const char*, T, true, &KH_STRINS_HASHFUNC, &KH_STRINS_EQUALFUNC, &KH_STR_VALIDATEPTR<const char*>>() {}
@@ -370,7 +370,7 @@ namespace bss_util {
   };
 
   template<typename T=void*, bool ismap=true>
-  class __declspec(dllexport) cKhash_StringW : public cKhash<const wchar_t*, T, true, &KH_STRW_HASHFUNC, &KH_STRW_EQUALFUNC, &KH_STR_VALIDATEPTR<const wchar_t*>>
+  class BSS_COMPILER_DLLEXPORT cKhash_StringW : public cKhash<const wchar_t*, T, true, &KH_STRW_HASHFUNC, &KH_STRW_EQUALFUNC, &KH_STR_VALIDATEPTR<const wchar_t*>>
   {
   public:
     cKhash_StringW() : cKhash<const wchar_t*, T, true, &KH_STRW_HASHFUNC, &KH_STRW_EQUALFUNC, &KH_STR_VALIDATEPTR<const wchar_t*>>() {}
@@ -379,7 +379,7 @@ namespace bss_util {
   };
 
   template<typename T=void*, bool ismap=true>
-  class __declspec(dllexport) cKhash_StringWIns : public cKhash<const wchar_t*, T, true, &KH_STRWINS_HASHFUNC, &KH_STRWINS_EQUALFUNC, &KH_STR_VALIDATEPTR<const wchar_t*>>
+  class BSS_COMPILER_DLLEXPORT cKhash_StringWIns : public cKhash<const wchar_t*, T, true, &KH_STRWINS_HASHFUNC, &KH_STRWINS_EQUALFUNC, &KH_STR_VALIDATEPTR<const wchar_t*>>
   {
   public:
     cKhash_StringWIns() : cKhash<const wchar_t*, T, true, &KH_STRWINS_HASHFUNC, &KH_STRWINS_EQUALFUNC, &KH_STR_VALIDATEPTR<const wchar_t*>>() {}
@@ -388,7 +388,7 @@ namespace bss_util {
   };
 
   template<typename T=void*, bool ismap=true>
-  class __declspec(dllexport) cKhash_Pointer : public cKhash<void*, T, true, &KH_POINTER_HASHFUNC, &KH_INT_EQUALFUNC<void*>, &KH_STR_VALIDATEPTR<void*>>
+  class BSS_COMPILER_DLLEXPORT cKhash_Pointer : public cKhash<void*, T, true, &KH_POINTER_HASHFUNC, &KH_INT_EQUALFUNC<void*>, &KH_STR_VALIDATEPTR<void*>>
   {
   public:
     cKhash_Pointer() : cKhash<void*, T, true, &KH_POINTER_HASHFUNC, &KH_INT_EQUALFUNC<void*>, &KH_STR_VALIDATEPTR<void*>>() {}
@@ -399,7 +399,7 @@ namespace bss_util {
   
   //These are partial explicitely initialized template versions of the string classes for use in template situations. I'd use typedef'd versions of these instead of the ones above, but because of C++ restrictions they'd be extremely messy.
   template<typename K=char, typename T=void*, bool ismap=true>
-  class __declspec(dllexport) cKhash_StringT : public cKhash<const K*, T, true, &KH_STR_HASHFUNC, &KH_STR_EQUALFUNC, &KH_STR_VALIDATEPTR<const K*>>
+  class BSS_COMPILER_DLLEXPORT cKhash_StringT : public cKhash<const K*, T, true, &KH_STR_HASHFUNC, &KH_STR_EQUALFUNC, &KH_STR_VALIDATEPTR<const K*>>
   {
   public:
     cKhash_StringT() : cKhash<const K*, T, true, &KH_STR_HASHFUNC, &KH_STR_EQUALFUNC, &KH_STR_VALIDATEPTR<const K*>>() {}
@@ -408,7 +408,7 @@ namespace bss_util {
   };
   
   template<typename T, bool ismap>
-  class __declspec(dllexport) cKhash_StringT<char,T,ismap> : public cKhash<const char*, T, true, &KH_STR_HASHFUNC, &KH_STR_EQUALFUNC, &KH_STR_VALIDATEPTR<const char*>>
+  class BSS_COMPILER_DLLEXPORT cKhash_StringT<char,T,ismap> : public cKhash<const char*, T, true, &KH_STR_HASHFUNC, &KH_STR_EQUALFUNC, &KH_STR_VALIDATEPTR<const char*>>
   {
   public:
     cKhash_StringT() : cKhash<const char*, T, true, &KH_STR_HASHFUNC, &KH_STR_EQUALFUNC, &KH_STR_VALIDATEPTR<const char*>>() {}
@@ -417,7 +417,7 @@ namespace bss_util {
   };
   
   template<typename T, bool ismap>
-  class __declspec(dllexport) cKhash_StringT<wchar_t,T,ismap> : public cKhash<const wchar_t*, T, true, &KH_STRW_HASHFUNC, &KH_STRW_EQUALFUNC, &KH_STR_VALIDATEPTR<const wchar_t*>>
+  class BSS_COMPILER_DLLEXPORT cKhash_StringT<wchar_t,T,ismap> : public cKhash<const wchar_t*, T, true, &KH_STRW_HASHFUNC, &KH_STRW_EQUALFUNC, &KH_STR_VALIDATEPTR<const wchar_t*>>
   {
   public:
     cKhash_StringT() : cKhash<const wchar_t*, T, true, &KH_STRW_HASHFUNC, &KH_STRW_EQUALFUNC, &KH_STR_VALIDATEPTR<const wchar_t*>>() {}
@@ -426,7 +426,7 @@ namespace bss_util {
   };
 
   template<typename K=char, typename T=void*, bool ismap=true>
-  class __declspec(dllexport) cKhash_StringTIns : public cKhash<const K*, T, true, &KH_STRINS_HASHFUNC, &KH_STRINS_EQUALFUNC, &KH_STR_VALIDATEPTR<const K*>>
+  class BSS_COMPILER_DLLEXPORT cKhash_StringTIns : public cKhash<const K*, T, true, &KH_STRINS_HASHFUNC, &KH_STRINS_EQUALFUNC, &KH_STR_VALIDATEPTR<const K*>>
   {
   public:
     cKhash_StringTIns() : cKhash<const K*, T, true, &KH_STRINS_HASHFUNC, &KH_STRINS_EQUALFUNC, &KH_STR_VALIDATEPTR<const K*>>() {}
@@ -435,7 +435,7 @@ namespace bss_util {
   };
 
   template<typename T, bool ismap>
-  class __declspec(dllexport) cKhash_StringTIns<char,T,ismap> : public cKhash<const char*, T, true, &KH_STRINS_HASHFUNC, &KH_STRINS_EQUALFUNC, &KH_STR_VALIDATEPTR<const char*>>
+  class BSS_COMPILER_DLLEXPORT cKhash_StringTIns<char,T,ismap> : public cKhash<const char*, T, true, &KH_STRINS_HASHFUNC, &KH_STRINS_EQUALFUNC, &KH_STR_VALIDATEPTR<const char*>>
   {
   public:
     cKhash_StringTIns() : cKhash<const char*, T, true, &KH_STRINS_HASHFUNC, &KH_STRINS_EQUALFUNC, &KH_STR_VALIDATEPTR<const char*>>() {}
@@ -444,7 +444,7 @@ namespace bss_util {
   };
 
   template<typename T, bool ismap>
-  class __declspec(dllexport) cKhash_StringTIns<wchar_t,T,ismap> : public cKhash<const wchar_t*, T, true, &KH_STRWINS_HASHFUNC, &KH_STRWINS_EQUALFUNC, &KH_STR_VALIDATEPTR<const wchar_t*>>
+  class BSS_COMPILER_DLLEXPORT cKhash_StringTIns<wchar_t,T,ismap> : public cKhash<const wchar_t*, T, true, &KH_STRWINS_HASHFUNC, &KH_STRWINS_EQUALFUNC, &KH_STR_VALIDATEPTR<const wchar_t*>>
   {
   public:
     cKhash_StringTIns() : cKhash<const wchar_t*, T, true, &KH_STRWINS_HASHFUNC, &KH_STRWINS_EQUALFUNC, &KH_STR_VALIDATEPTR<const wchar_t*>>() {}

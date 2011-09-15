@@ -11,7 +11,7 @@
 
 namespace bss_util {
   template<class T,typename SizeType>
-  struct __declspec(dllexport) LINKEDNODE
+  struct BSS_COMPILER_DLLEXPORT LINKEDNODE
   {
     T val;
     SizeType next;
@@ -20,7 +20,7 @@ namespace bss_util {
 
   /* Linked list implemented as an array. */
   template<class T, class Traits=ValueTraits<T>, typename SizeType=unsigned int>
-  class __declspec(dllexport) cLinkedArray : protected Traits
+  class BSS_COMPILER_DLLEXPORT cLinkedArray : protected Traits
   {
     typedef LINKEDNODE<T,SizeType> TLNODE;
     typedef typename Traits::pointer pointer;
@@ -134,7 +134,7 @@ namespace bss_util {
   
   /* Iterator for doubly linked list */
   template<class T, class Traits=ValueTraits<T>, typename SizeType=unsigned int>
-  class __declspec(dllexport) LinkedArrayIterator : public Iterator<SizeType>
+  class BSS_COMPILER_DLLEXPORT LinkedArrayIterator : public Iterator<SizeType>
   {
     typedef typename Iterator<SizeType>::const_reference const_reference;
     typedef typename Iterator<SizeType>::value_type value_type;

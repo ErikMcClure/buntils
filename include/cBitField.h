@@ -10,7 +10,7 @@ namespace bss_util
 {
   /* Generic implementation of using an integral type's component bits to store flags. */
   template<class T=int>
-  class __declspec(dllexport) cBitField
+  class BSS_COMPILER_DLLEXPORT cBitField
   {
   public:
     /* Initializes the bitfield with the given flag values, if any */

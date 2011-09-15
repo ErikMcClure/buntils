@@ -22,7 +22,7 @@ namespace bss_util {
 
   /* This is a fixed size block allocator adapted from the box2D heap allocator */
   template<class T, __int32 chunkIncrement=128, __int32 __chunkSize=4096>
-  class __declspec(dllexport) cFixedSizeAllocator
+  class BSS_COMPILER_DLLEXPORT cFixedSizeAllocator
   {
   public:
 	  inline cFixedSizeAllocator()
@@ -148,7 +148,7 @@ namespace bss_util {
   };
 
 	template<typename T>
-  class __declspec(dllexport) FixedSizeAllocPolicy : public AllocPolicySize<T>, protected cFixedSizeAllocator<T> {
+  class BSS_COMPILER_DLLEXPORT FixedSizeAllocPolicy : public AllocPolicySize<T>, protected cFixedSizeAllocator<T> {
 	public:
     template<typename U>
     struct rebind { typedef FixedSizeAllocPolicy<U> other; };
@@ -185,7 +185,7 @@ namespace bss_util {
   };
 
   template<class T, unsigned __int32 init=8>
-  class __declspec(dllexport) cFixedChunkAlloc
+  class BSS_COMPILER_DLLEXPORT cFixedChunkAlloc
   {
   public:
     cFixedChunkAlloc() : _freelist(0), _root(0)
@@ -260,7 +260,7 @@ namespace bss_util {
   };
   
 	template<typename T>
-  class __declspec(dllexport) FixedChunkPolicy : public AllocPolicySize<T>, protected cFixedChunkAlloc<T> {
+  class BSS_COMPILER_DLLEXPORT FixedChunkPolicy : public AllocPolicySize<T>, protected cFixedChunkAlloc<T> {
 	public:
     template<typename U>
     struct rebind { typedef FixedChunkPolicy<U> other; };
@@ -282,7 +282,7 @@ namespace bss_util {
 
   /* Generic static allocator for a class. T is the type of the class implementing this allocator. Every single subclass has to implement this if its to be taken advantage of */
   template<typename T>
-  class __declspec(dllexport) cClassAllocator //: protected cSubClassAlloc<sizeof(T)>
+  class BSS_COMPILER_DLLEXPORT cClassAllocator //: protected cSubClassAlloc<sizeof(T)>
   {
   public:
     //cClassAllocator(size_t indexID=0) {}

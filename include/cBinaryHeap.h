@@ -9,7 +9,7 @@
 namespace bss_util {
   /* This is a binary min-heap implemented using an array. Use CompareKeysInverse to change it into a max-heap */
   template<class K, class D, char (*Compare)(const K& keyleft, const K& keyright)=CompareKeys<K>>
-  class __declspec(dllexport) cBinaryHeap
+  class BSS_COMPILER_DLLEXPORT cBinaryHeap
   {
   protected:
     typedef std::pair<K,D> BINHEAP_CELL;

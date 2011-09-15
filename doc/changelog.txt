@@ -9,6 +9,10 @@
 - Added AdditiveVariableAllocator
 - Changed all comparisons to use a branch free sign check
 - Fixed functor.h so Call() actually works.
+- Moved lockless functions from bss_util.h to lockless.h
+- Created bss_compiler.h and put in preliminary compiler detection.
+- Changed 32bit/64bit to specific architectures.
+- cLocklessQueue is now cLocklessByteQueue
 
 0.3.81
 ------

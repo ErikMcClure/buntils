@@ -11,7 +11,7 @@
 
 namespace bss_util {
   template<class T>
-  class __declspec(dllexport) AllocPolicySize
+  class BSS_COMPILER_DLLEXPORT AllocPolicySize
   {
   public:
     typedef std::size_t size_type;
@@ -34,7 +34,7 @@ namespace bss_util {
   };
 
 	template<typename T>
-  class __declspec(dllexport) StandardAllocPolicy : public AllocPolicySize<T> {
+  class BSS_COMPILER_DLLEXPORT StandardAllocPolicy : public AllocPolicySize<T> {
 	public:
     template<typename U>
     struct rebind { typedef StandardAllocPolicy<U> other; };
@@ -57,7 +57,7 @@ namespace bss_util {
 	template<typename T, typename OtherAllocator> inline bool operator==(StandardAllocPolicy<T> const&, OtherAllocator const&) { return false; }
 
 	template<typename T>
-	class __declspec(dllexport) ObjectTraits {
+	class BSS_COMPILER_DLLEXPORT ObjectTraits {
 	public: 
     template<typename U>
     struct rebind { typedef ObjectTraits<U> other; };
@@ -75,7 +75,7 @@ namespace bss_util {
 	}; 
 
 	template<typename T, typename Policy = StandardAllocPolicy<T>, typename Traits = ObjectTraits<T>>
-	class __declspec(dllexport) Allocator : public Policy, public Traits {
+	class BSS_COMPILER_DLLEXPORT Allocator : public Policy, public Traits {
 	private:
     typedef Policy AllocationPolicy;
     typedef Traits TTraits;
@@ -163,7 +163,7 @@ namespace bss_util {
 }
 
   //template<class T>
-  //struct __declspec(dllexport) ALLOCATOR_FUNCPTR
+  //struct BSS_COMPILER_DLLEXPORT ALLOCATOR_FUNCPTR
   //{
 	 // virtual T* Allocate()=0;
 	 // virtual void BSS_FASTCALL Deallocate(T* pointer)=0;
@@ -171,7 +171,7 @@ namespace bss_util {
   //};
 
   //template<class T>
-  //struct __declspec(dllexport) ALLOCATOR_FUNCPTR_DEFAULT : ALLOCATOR_FUNCPTR<T>
+  //struct BSS_COMPILER_DLLEXPORT ALLOCATOR_FUNCPTR_DEFAULT : ALLOCATOR_FUNCPTR<T>
   //{
 	 // inline virtual T* Allocate() { return new T(); }
   //  inline virtual void BSS_FASTCALL Deallocate(T* pointer) { delete pointer; }
@@ -179,7 +179,7 @@ namespace bss_util {
   //};
 
   //template<int size>
-  //struct __declspec(dllexport) STATICBIN
+  //struct BSS_COMPILER_DLLEXPORT STATICBIN
   //{
   //  STATICBIN() { memset(_mem,0,sizeof(char)*size); _next=0; _numfree=size; }
   //  char _mem[size];
@@ -188,7 +188,7 @@ namespace bss_util {
   //};
 
   //template<class T, int numitems>
-  //class __declspec(dllexport) ALLOCATOR_STATICBIN
+  //class BSS_COMPILER_DLLEXPORT ALLOCATOR_STATICBIN
   //{
   //public:
   //  ALLOCATOR_STATICBIN() : _root(new STATICBIN<sizeof(T)*numitems>()), _base(_root) { }
@@ -214,7 +214,7 @@ namespace bss_util {
   //};
 
   //template<class T, int numitems>
-  //struct __declspec(dllexport) ALLOCATOR_FUNCPTR_STATICBIN : ALLOCATOR_FUNCPTR<T>
+  //struct BSS_COMPILER_DLLEXPORT ALLOCATOR_FUNCPTR_STATICBIN : ALLOCATOR_FUNCPTR<T>
   //{
   //  ALLOCATOR_FUNCPTR_STATICBIN(ALLOCATOR_STATICBIN<T,numitems>& staticbin) : _staticbin(staticbin) {}
 	 // inline virtual T* Allocate() { return _staticbin.Allocate(); }
@@ -230,7 +230,7 @@ namespace bss_util {
 
  // /* This allows you to trick the default allocator into accepting a reference to an allocator object */
  // template<typename T, typename Policy, typename Traits = ObjectTraits<T>>
-	//class __declspec(dllexport) AllocatorPolicyRef : public Traits, public AllocPolicySize<T> {
+	//class BSS_COMPILER_DLLEXPORT AllocatorPolicyRef : public Traits, public AllocPolicySize<T> {
 	//private:
  //   typedef Traits TTraits;
 
@@ -533,7 +533,7 @@ namespace bss_util {
 
   // Fixed size chunk allocator
   template<typename T, typename _Sz=unsigned int>
-  class __declspec(dllexport) cFixedSizeAllocator : protected FSA_BASE<T,FIXED_SIZE_BUCKET<T, FIXED_SIZE_BUCKET_SINGLE<T,_Sz>, _Sz>,_Sz>, protected FSA_BASE<T,FIXED_SIZE_BUCKET<T, FIXED_SIZE_BUCKET_MULTI<T,_Sz>, _Sz>,_Sz>
+  class BSS_COMPILER_DLLEXPORT cFixedSizeAllocator : protected FSA_BASE<T,FIXED_SIZE_BUCKET<T, FIXED_SIZE_BUCKET_SINGLE<T,_Sz>, _Sz>,_Sz>, protected FSA_BASE<T,FIXED_SIZE_BUCKET<T, FIXED_SIZE_BUCKET_MULTI<T,_Sz>, _Sz>,_Sz>
   {
     typedef FIXED_SIZE_BUCKET<T, FIXED_SIZE_BUCKET_SINGLE<T,_Sz>, _Sz> FSB_SINGLE;
     typedef FIXED_SIZE_BUCKET<T, FIXED_SIZE_BUCKET_MULTI<T,_Sz>, _Sz> FSB_MULTI;

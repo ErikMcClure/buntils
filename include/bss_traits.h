@@ -9,7 +9,7 @@
 
 namespace bss_util {
   template<typename T>
-	class __declspec(dllexport) RefTraits
+	class BSS_COMPILER_DLLEXPORT RefTraits
   {
 	public: 
     typedef T *pointer;
@@ -20,7 +20,7 @@ namespace bss_util {
   };
   
   template<typename T>
-	class __declspec(dllexport) ValueTraits
+	class BSS_COMPILER_DLLEXPORT ValueTraits
   {
 	public: 
     typedef T *pointer;
@@ -31,7 +31,7 @@ namespace bss_util {
   };
 
   template<typename T, class Traits=ValueTraits<T>>
-  class __declspec(dllexport) CompareKeysTraits : public Traits
+  class BSS_COMPILER_DLLEXPORT CompareKeysTraits : public Traits
   {
   public:
     typedef typename Traits::const_reference constref;
@@ -46,7 +46,7 @@ namespace bss_util {
   };
 
   template<typename T, class Traits=ValueTraits<T>>
-  class __declspec(dllexport) CompareShortsTraits : public Traits
+  class BSS_COMPILER_DLLEXPORT CompareShortsTraits : public Traits
   {
   public:
     typedef typename Traits::const_reference constref;
@@ -61,7 +61,7 @@ namespace bss_util {
   };
 
   template<typename T, class Traits, class Inner>
-  class __declspec(dllexport) ComparePairTraits_first : public Traits
+  class BSS_COMPILER_DLLEXPORT ComparePairTraits_first : public Traits
   {
   public:
     typedef typename Traits::const_reference constref;
@@ -76,7 +76,7 @@ namespace bss_util {
   };
 
   template<typename T, class Traits=ValueTraits<T>>
-  class __declspec(dllexport) CompareStringsTraits : public Traits
+  class BSS_COMPILER_DLLEXPORT CompareStringsTraits : public Traits
   {
   public:
     typedef typename Traits::const_reference constref;
@@ -92,7 +92,7 @@ namespace bss_util {
   };
 
   template<typename T, class Traits=ValueTraits<T>>
-  class __declspec(dllexport) CompareStringsTraitsNoCase : public Traits
+  class BSS_COMPILER_DLLEXPORT CompareStringsTraitsNoCase : public Traits
   {
   public:
     typedef typename Traits::const_reference constref;

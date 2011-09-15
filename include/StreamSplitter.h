@@ -15,7 +15,7 @@ using namespace std;
 namespace bss_util {
   /* Stream buffer that can output to any number of possible external streams, and auto-converts all wchar_t* input to UTF-8 */
   template<typename _Elem=char>
-  class __declspec(dllexport) StreamSplitter : public basic_stringbuf<_Elem>
+  class BSS_COMPILER_DLLEXPORT StreamSplitter : public basic_stringbuf<_Elem>
   {
   public:
     inline StreamSplitter(const StreamSplitter& copy) : stringbuf(copy),_targets(copy._targets),_wtargets(copy._wtargets) {}

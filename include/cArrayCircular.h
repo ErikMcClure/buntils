@@ -11,7 +11,7 @@
 namespace bss_util {
   /* Simple circular array implementation */
   template<class T, class Traits=ValueTraits<T>, typename _SizeType=unsigned int, typename ArrayType=cArraySimple<T,_SizeType>>
-  class __declspec(dllexport) cArrayCircular : protected ArrayType, protected Traits
+  class BSS_COMPILER_DLLEXPORT cArrayCircular : protected ArrayType, protected Traits
   {
     typedef _SizeType __ST;
     typedef typename Traits::const_reference constref;

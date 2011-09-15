@@ -13,13 +13,13 @@
 
 namespace bss_util {
   /* helper class for template-izing */
-  template<typename T,typename ST> class __declspec(dllexport) STRTABLE_FUNC {};
-  template<typename ST> class __declspec(dllexport) STRTABLE_FUNC<char,ST> { public: inline ST _lstr(const char* str) { return strlen(str); } };
-  template<typename ST> class __declspec(dllexport) STRTABLE_FUNC<wchar_t,ST> { public: inline ST _lstr(const wchar_t* str) { return wcslen(str); } };
+  template<typename T,typename ST> class BSS_COMPILER_DLLEXPORT STRTABLE_FUNC {};
+  template<typename ST> class BSS_COMPILER_DLLEXPORT STRTABLE_FUNC<char,ST> { public: inline ST _lstr(const char* str) { return strlen(str); } };
+  template<typename ST> class BSS_COMPILER_DLLEXPORT STRTABLE_FUNC<wchar_t,ST> { public: inline ST _lstr(const wchar_t* str) { return wcslen(str); } };
 
   /* Given a large array of strings (or a memory dump), assembles a single chunk of memory into a series of strings that can be accessed by index instantly */
   template<typename T, typename ST = unsigned int>
-  class __declspec(dllexport) cStrTable : protected STRTABLE_FUNC<T,ST>
+  class BSS_COMPILER_DLLEXPORT cStrTable : protected STRTABLE_FUNC<T,ST>
   {
   public:
     /* Default Copy Constructor */

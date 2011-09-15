@@ -16,7 +16,7 @@
 //  class cBucketAlloc;
 //
 //  /* All functions here are expanded since this is a required class and I don't want to force a .lib include unless absolutely necessary */
-//  struct __declspec(dllexport) BUCKET_MEMALLOC
+//  struct BSS_COMPILER_DLLEXPORT BUCKET_MEMALLOC
 //  {
 //    inline BUCKET_MEMALLOC(unsigned short size, BUCKETMEM_ALLOCATOR_TYPE* alloc, cBucketAlloc* parent);
 //    inline ~BUCKET_MEMALLOC();
@@ -38,7 +38,7 @@
 //    cBucketAlloc* _parent;
 //  };
 //
-//  class __declspec(dllexport) cBucketAlloc
+//  class BSS_COMPILER_DLLEXPORT cBucketAlloc
 //  {
 //    typedef cRBT_ListNode<unsigned short,BUCKET_MEMALLOC*> B_RBTNODE;
 //

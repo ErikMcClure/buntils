@@ -7,7 +7,7 @@
 
 #include <stdio.h>
 #include "cThread.h"
-//#include "cLocklessQueue.h"
+//#include "cLocklessByteQueue.h"
 #include "include/bss_win32_includes.h"
 
 /* This is an implementation of the lockless queue using critical sections that mimic the atomic behavior of CAS, allowing Chess to debug the code */
@@ -25,11 +25,11 @@ CRITICAL_SECTION _critread;
 
 namespace bss_util {
   /* This provides lockless queue functionality for two interacting threads using an expandable circular buffer */
-  class cLocklessQueue
+  class cLocklessByteQueue
   {
   public:
-    inline cLocklessQueue(unsigned int startsize);
-    inline ~cLocklessQueue();
+    inline cLocklessByteQueue(unsigned int startsize);
+    inline ~cLocklessByteQueue();
     inline std::pair<void*,unsigned int> ReadNextChunk(); //This will return chunk after consecutive chunk until there are none left, at which point it will return null. Each successive call will set the previous chunk as read.
     inline void FinishRead(); //Automatically called by ReadNextChunk()
     inline void* StartWrite(unsigned int size);
@@ -53,7 +53,7 @@ namespace bss_util {
     char* _endmemread; //read pointer to end of current buffer
   };
 
-  cLocklessQueue::cLocklessQueue(unsigned int startsize)
+  cLocklessByteQueue::cLocklessByteQueue(unsigned int startsize)
   {
     InitializeCriticalSection(&_critwrite);
     InitializeCriticalSection(&_critread);
@@ -71,7 +71,7 @@ namespace bss_util {
     //_mem=*((char**)_readbuf);
   }
 
-  cLocklessQueue::~cLocklessQueue()
+  cLocklessByteQueue::~cLocklessByteQueue()
   {
     Clear(); //gets rid of any lingering read buffer
     free((void*)(_mem-=sizeof(char*)));
@@ -86,7 +86,7 @@ namespace bss_util {
       return std::pair<void*,unsigned int>((void*)0,0); \
     }
 
-  std::pair<void*,unsigned int> cLocklessQueue::ReadNextChunk()
+  std::pair<void*,unsigned int> cLocklessByteQueue::ReadNextChunk()
   {
     if(!_endread) {
       EnterCriticalSection(&_critwrite);
@@ -120,7 +120,7 @@ namespace bss_util {
 
     return std::pair<void*,unsigned int>((void*)(prev+sizeof(char*)),(_readbuf-prev)-sizeof(char*)); //or if we haven't return this as another chunk to read
   }
-  inline void cLocklessQueue::FinishRead()
+  inline void cLocklessByteQueue::FinishRead()
   {
     if(_readbuf!=0) {
       //asmcas<char*>(&_readstart,_readbuf,_readstart);
@@ -131,7 +131,7 @@ namespace bss_util {
     }
   }
 
-  inline void* cLocklessQueue::StartWrite(unsigned int size)
+  inline void* cLocklessByteQueue::StartWrite(unsigned int size)
   {
     EnterCriticalSection(&_critread);
     char* readptr = _readstart;
@@ -171,7 +171,7 @@ namespace bss_util {
 
     return (void*)retval;
   }
-  void cLocklessQueue::FinishWrite()
+  void cLocklessByteQueue::FinishWrite()
   {
     //asmcas<char*>(&_nextwrite,_writebuf,_nextwrite);
     EnterCriticalSection(&_critwrite);
@@ -179,7 +179,7 @@ namespace bss_util {
     LeaveCriticalSection(&_critwrite);
     assert(_nextwrite==_writebuf);
   }
-  void cLocklessQueue::Clear() //This does not even try to be atomic in any way.
+  void cLocklessByteQueue::Clear() //This does not even try to be atomic in any way.
   {
     while(ReadNextChunk().first); //Forces a read to the write spot, clearing all hanging buffers
 
@@ -194,7 +194,7 @@ namespace bss_util {
     _curmemread=_mem;
     _endmemread=_memend;
   }
-  inline void cLocklessQueue::_expand(unsigned int minsize)
+  inline void cLocklessByteQueue::_expand(unsigned int minsize)
   {
     _size*=2;
     if(_size<minsize) _size=minsize;
@@ -205,7 +205,7 @@ namespace bss_util {
     _mem+=sizeof(char*);
   }
 
-  inline bool cLocklessQueue::DEBUGVERIFY() const
+  inline bool cLocklessByteQueue::DEBUGVERIFY() const
   {
     DEBUGDUMP("dump.txt");
     char* start=_curmemread;
@@ -222,7 +222,7 @@ namespace bss_util {
     return false;
   }
 
-  inline void cLocklessQueue::DEBUGDUMP(const char* file) const
+  inline void cLocklessByteQueue::DEBUGDUMP(const char* file) const
   {
     FILE* f;
     fopen_s(&f,file,"w");
@@ -256,10 +256,10 @@ using namespace bss_util;
 
 static const int NUM_RUNS=1;
 static const int MAX_ALLOC=50;
-unsigned int __stdcall dorandomcrap(void* arg)
+unsigned int BSS_COMPILER_STDCALL dorandomcrap(void* arg)
 {
   //Sleep(1); //lets the other thread catch up
-  cLocklessQueue* args = (cLocklessQueue*)arg;
+  cLocklessByteQueue* args = (cLocklessByteQueue*)arg;
 
   int id;
   for(int i = 0; i < NUM_RUNS; ++i)
@@ -274,9 +274,9 @@ unsigned int __stdcall dorandomcrap(void* arg)
 }
 
 extern "C" 
-__declspec(dllexport) int ChessTestRun()
+BSS_COMPILER_DLLEXPORT int ChessTestRun()
 {
-  cLocklessQueue qtest(512);
+  cLocklessByteQueue qtest(512);
   bool expResult = true;
 
   cThread crapthread(&dorandomcrap);

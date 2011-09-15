@@ -13,7 +13,7 @@ namespace bss_util
 
   /* This is a class that must be inherited by the objects that will act as list items */
   template<class T> //T must inherit cMiniListItem<T>
-  class __declspec(dllexport) cMiniListItem : protected cHolder<cMiniList<T>>
+  class BSS_COMPILER_DLLEXPORT cMiniListItem : protected cHolder<cMiniList<T>>
   {
   public:
     cMiniListItem(const T& copy);
@@ -37,7 +37,7 @@ namespace bss_util
 
   /* The minilist is a way of abstracting the construction of a very fast and very simple doubly-linked list. */
   template<class T>
-  class __declspec(dllexport) cMiniList
+  class BSS_COMPILER_DLLEXPORT cMiniList
   {
   public:
     cMiniList() : _root(0) {}

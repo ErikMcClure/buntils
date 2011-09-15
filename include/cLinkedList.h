@@ -41,7 +41,7 @@ namespace bss_util {
 
   /* Doubly linked list implementation with _root, _last and an optional _size */
   template<typename T, typename Alloc=Allocator<cLLNode<T>>, bool useSize=false>
-  class __declspec(dllexport) cLinkedList : protected cAllocTracker<Alloc>, public cLinkedList_FuncSize<useSize>
+  class BSS_COMPILER_DLLEXPORT cLinkedList : protected cAllocTracker<Alloc>, public cLinkedList_FuncSize<useSize>
   {
   public:
     /* Constructor, takes an optional allocator instance */

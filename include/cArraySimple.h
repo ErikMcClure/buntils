@@ -10,7 +10,7 @@
 namespace bss_util {
   /* Very simple "dynamic" array. Designed to be used when size must be maintained at an exact value. */
   template<class T, typename SizeType=unsigned int>
-  class __declspec(dllexport) cArraySimple
+  class BSS_COMPILER_DLLEXPORT cArraySimple
   {
   public:
     inline cArraySimple<T,SizeType>(const cArraySimple<T,SizeType>& copy) : _array((T*)_minmalloc(copy._size*sizeof(T))), _size(copy._size)
@@ -109,7 +109,7 @@ namespace bss_util {
 
   /* Very simple "dynamic" array that calls the constructor and destructor */
   template<class T, typename SizeType=unsigned int>
-  class __declspec(dllexport) cArrayConstruct
+  class BSS_COMPILER_DLLEXPORT cArrayConstruct
   {
   public:
     inline cArrayConstruct(const cArrayConstruct& copy) : _array((T*)_minmalloc(copy._size*sizeof(T))), _size(copy._size)
@@ -228,7 +228,7 @@ namespace bss_util {
 
   /* Typesafe array that reconstructs everything properly, without any memory moving tricks */
   template<class T, typename SizeType=unsigned int>
-  class __declspec(dllexport) cArraySafe
+  class BSS_COMPILER_DLLEXPORT cArraySafe
   {
   public:
     inline cArraySafe(const cArraySafe& copy) : _array((T*)_minmalloc(copy._size*sizeof(T))), _size(copy._size)
@@ -348,7 +348,7 @@ namespace bss_util {
   
   /* Wrapper for underlying arrays that expose the array, making them independently usable without blowing up everything that inherits them */
   template<class ARRAYTYPE>
-  class __declspec(dllexport) cArrayWrap : public ARRAYTYPE
+  class BSS_COMPILER_DLLEXPORT cArrayWrap : public ARRAYTYPE
   {
     typedef typename ARRAYTYPE::__ST __ST;
     typedef typename ARRAYTYPE::__T __T;

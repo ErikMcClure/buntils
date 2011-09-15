@@ -16,7 +16,7 @@ namespace bss_util {
   {
   public:
     cThread(const cThread& copy);
-    cThread(unsigned int (__stdcall *funcptr)(void*), bool sync=false, bool sleep=false, unsigned short sleepms=1, unsigned long flips=0);
+    cThread(unsigned int (BSS_COMPILER_STDCALL *funcptr)(void*), bool sync=false, bool sleep=false, unsigned short sleepms=1, unsigned long flips=0);
     cThread(const Functor<unsigned int, void*>& funcptr, bool sync=false, bool sleep=false, unsigned short sleepms=1, unsigned long flips=0);
     ~cThread();
     bool Start(void* arg); //Starts the thread. Fails if the thread is already running
@@ -42,7 +42,7 @@ namespace bss_util {
     __w64 unsigned int _handle;
     union
     {
-      unsigned int (__stdcall *_funcptr)(void*);
+      unsigned int (BSS_COMPILER_STDCALL *_funcptr)(void*);
       Functor<unsigned int, void*>* _delegate;
     };
     unsigned int _threadret;

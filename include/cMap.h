@@ -10,7 +10,7 @@
 namespace bss_util {
   /* A map class implemented as an associative sorted array */
   template<class Key, class Data, typename CompareTraits=CompareKeysTraits<Key>, typename DataTraits=ValueTraits<Data>, typename _SizeType=unsigned int, typename ArrayType=cArraySimple<std::pair<Key,Data>,_SizeType>>
-  class __declspec(dllexport) cMap : protected cArraySort<std::pair<Key,Data>, ComparePairTraits_first<std::pair<Key,Data>, RefTraits<std::pair<Key,Data>>, CompareTraits>, _SizeType, ArrayType>, DataTraits
+  class BSS_COMPILER_DLLEXPORT cMap : protected cArraySort<std::pair<Key,Data>, ComparePairTraits_first<std::pair<Key,Data>, RefTraits<std::pair<Key,Data>>, CompareTraits>, _SizeType, ArrayType>, DataTraits
   {
   protected:
     typedef std::pair<Key,Data> pair_t;

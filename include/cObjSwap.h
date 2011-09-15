@@ -12,7 +12,7 @@
 
 namespace bss_util {
   template<typename T, class Traits=ValueTraits<T>>
-  class __declspec(dllexport) CompBoolTraits : public Traits
+  class BSS_COMPILER_DLLEXPORT CompBoolTraits : public Traits
   {
   public:
     typedef typename Traits::const_reference constref;
@@ -21,26 +21,26 @@ namespace bss_util {
 
   /* Default ignores case */
   template<>
-  class __declspec(dllexport) CompBoolTraits<char const*,ValueTraits<char const*>> : public ValueTraits<char const*>
+  class BSS_COMPILER_DLLEXPORT CompBoolTraits<char const*,ValueTraits<char const*>> : public ValueTraits<char const*>
   {
   public:
     typedef ValueTraits<char const*>::const_reference constref;
     static inline char Compare(constref keyleft, constref keyright) { return (STRICMP(keyleft,keyright)==0)?0:1; }
   };
   template<>
-  class __declspec(dllexport) CompBoolTraits<wchar_t const*,ValueTraits<wchar_t const*>> : public ValueTraits<wchar_t const*>
+  class BSS_COMPILER_DLLEXPORT CompBoolTraits<wchar_t const*,ValueTraits<wchar_t const*>> : public ValueTraits<wchar_t const*>
   {
   public:
     typedef ValueTraits<wchar_t const*>::const_reference constref;
     static inline char Compare(constref keyleft, constref keyright) { return (WCSICMP(keyleft,keyright)==0)?0:1;  }
   };
-  template<typename T> class __declspec(dllexport) CompCaseTraits {}; //causes compile error if an invalid typename is chosen
-  template<> class __declspec(dllexport) CompCaseTraits<char const*> { public: static inline char Compare(char const* keyleft, char const* keyright) { return (strcmp(keyleft,keyright)==0)?0:1; } };
-  template<> class __declspec(dllexport) CompCaseTraits<wchar_t const*> { public: static inline char Compare(wchar_t const* keyleft, wchar_t const* keyright) { return (wcscmp(keyleft,keyright)==0)?0:1; } };
+  template<typename T> class BSS_COMPILER_DLLEXPORT CompCaseTraits {}; //causes compile error if an invalid typename is chosen
+  template<> class BSS_COMPILER_DLLEXPORT CompCaseTraits<char const*> { public: static inline char Compare(char const* keyleft, char const* keyright) { return (strcmp(keyleft,keyright)==0)?0:1; } };
+  template<> class BSS_COMPILER_DLLEXPORT CompCaseTraits<wchar_t const*> { public: static inline char Compare(wchar_t const* keyleft, wchar_t const* keyright) { return (wcscmp(keyleft,keyright)==0)?0:1; } };
 
   /* Generalized solution to allow dynamic switch statements */
   template<class T, class Comp=CompBoolTraits<T>>
-  class __declspec(dllexport) cObjSwap 
+  class BSS_COMPILER_DLLEXPORT cObjSwap 
   {
     typedef typename Comp::constref constref;
   public:
@@ -202,7 +202,7 @@ typedef cStringSwapW<&cStringSwapW<0>::_compstrcase> SWITCHSTRW_CASE;
 
 
 template<class T, bool (*Compare)(const T& left, const T& right)=CompFunc<T>, class Traits=ValueTraits<T>>
-class __declspec(dllexport) cObjectSwap // Using the same idea as the class above, we can extend it into a template comparison function to compare any object in a switch statement
+class BSS_COMPILER_DLLEXPORT cObjectSwap // Using the same idea as the class above, we can extend it into a template comparison function to compare any object in a switch statement
 {
 public:
 	cObjectSwap(T* src, int num, ...) //These are all assumed to be T* pointers. If you are comparing a series of pointers, that means you'll have pointers to pointers

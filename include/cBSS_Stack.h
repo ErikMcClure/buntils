@@ -12,7 +12,7 @@
 namespace bss_util {
   /* Fast, tiny array-based stack. Pop and Top are only valid if there is an item in the stack; this check must be done by the user. */
   template<class T, class Traits=ValueTraits<T>, typename SizeType=unsigned int, typename ArrayClass=cArraySimple<T,SizeType>>
-  class __declspec(dllexport) cBSS_Stack : protected ArrayClass, protected Traits
+  class BSS_COMPILER_DLLEXPORT cBSS_Stack : protected ArrayClass, protected Traits
   {
     typedef typename Traits::const_reference constref;
     typedef typename Traits::reference reference;

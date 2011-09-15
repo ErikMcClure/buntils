@@ -4,10 +4,12 @@
 #ifndef __BSS_CALL_H__
 #define __BSS_CALL_H__
 
+#include "bss_compiler.h"
+
 #ifndef BSS_NO_FASTCALL
-#define BSS_FASTCALL __fastcall
+#define BSS_FASTCALL BSS_COMPILER_FASTCALL
 #else
-#define BSS_FASTCALL __stdcall
+#define BSS_FASTCALL BSS_COMPILER_STDCALL
 #endif
 
 #endif

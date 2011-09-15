@@ -10,7 +10,7 @@
 namespace bss_util {
   /* A class to provide the common functionality of storing a pointer to an object of a certain class */
   template<class T>
-  class __declspec(dllexport) cHolder
+  class BSS_COMPILER_DLLEXPORT cHolder
   {
   public:
     /* Constructor - takes a pointer to the object */

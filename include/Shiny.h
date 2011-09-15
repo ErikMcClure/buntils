@@ -36,7 +36,7 @@ restrictions:
 
 
 //namespace Shiny {
-//	struct __declspec(dllexport) ProfileManager {
+//	struct BSS_COMPILER_DLLEXPORT ProfileManager {
 //		//NOTE: data-members are intentionally public because the
 //		//		class needs to fulfil the definition of an aggregate
 //

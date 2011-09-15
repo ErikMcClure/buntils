@@ -4,22 +4,7 @@
 #ifndef __BSS_DEFINES_H__
 #define __BSS_DEFINES_H__
 
-#ifdef BSS64BIT
-#undef BSS64BIT
-#endif
-#ifdef BSS32BIT
-#undef BSS32BIT
-#endif
-#ifdef BSSUNKNOWNBIT
-#undef BSSUNKNOWNBIT
-#endif
-#if defined(_M_X64) || defined(__amd64__) || defined(_LP64)
-#define BSS64BIT
-#elif defined(_M_IX86) || defined(__i386) || defined(__i386__)
-#define BSS32BIT
-#elif
-#define BSSUNKNOWNBIT
-#endif
+#include "bss_compiler.h"
 
 #define DELETE_SAFE(p) if(p) { delete p; p = 0; }
 #define SAFE_DELETE DELETE_SAFE

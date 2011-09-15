@@ -9,7 +9,7 @@
 
 namespace bss_util {
   template<class TKey, class TVal, typename TLEVEL>
-  struct __declspec(dllexport) TAATreeNode
+  struct BSS_COMPILER_DLLEXPORT TAATreeNode
   {
    TAATreeNode* next;
    TAATreeNode* prev;
@@ -22,7 +22,7 @@ namespace bss_util {
 
   /* Single-Threaded AA Tree (A variant of the RBT tree). */ //BROKEN
   template<class TKey, class TVal, char (*Compare)(const TKey& keyleft, const TKey& keyright)=CompareKeys<TKey>, typename TLEVEL=unsigned short, typename TSIZE=unsigned int, class Alloc=bss_util::Allocator<TAATreeNode<TKey, TVal, TLEVEL>,bss_util::FixedChunkPolicy<TAATreeNode<TKey, TVal, TLEVEL>>>>
-  class __declspec(dllexport) cTAATree : cAllocTracker<Alloc>
+  class BSS_COMPILER_DLLEXPORT cTAATree : cAllocTracker<Alloc>
   {
   public:
     typedef TAATreeNode<TKey,TVal,TLEVEL> TNODE;

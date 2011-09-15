@@ -39,7 +39,7 @@
 
 using namespace boost;
 
-__declspec(dllexport)
+BSS_COMPILER_DLLEXPORT
 extern bool BSS_FASTCALL bss_util::FolderExists(const char* strpath)
 {
   filesystem3::path p(strpath);
@@ -47,7 +47,7 @@ extern bool BSS_FASTCALL bss_util::FolderExists(const char* strpath)
   return filesystem3::exists(p,system::error_code());
 }
 
-__declspec(dllexport)
+BSS_COMPILER_DLLEXPORT
 extern bool BSS_FASTCALL bss_util::FolderExists(const wchar_t* strpath)
 {
   filesystem3::path p(strpath);
@@ -55,7 +55,7 @@ extern bool BSS_FASTCALL bss_util::FolderExists(const wchar_t* strpath)
   return filesystem3::exists(p,system::error_code());
 }
 
-__declspec(dllexport)
+BSS_COMPILER_DLLEXPORT
 extern bool BSS_FASTCALL bss_util::FileExists(const char* strpath)
 {
   filesystem3::path p(strpath);
@@ -63,7 +63,7 @@ extern bool BSS_FASTCALL bss_util::FileExists(const char* strpath)
   return filesystem3::exists(p,system::error_code());
 }
 
-__declspec(dllexport)
+BSS_COMPILER_DLLEXPORT
 extern bool BSS_FASTCALL bss_util::FileExists(const wchar_t* strpath)
 {
   filesystem3::path p(strpath);
@@ -71,7 +71,7 @@ extern bool BSS_FASTCALL bss_util::FileExists(const wchar_t* strpath)
   return filesystem3::exists(p,system::error_code());
 }
 
-__declspec(dllexport)
+BSS_COMPILER_DLLEXPORT
 extern void BSS_FASTCALL bss_util::SetWorkDirToCur()
 {
   cStrW commands(MAX_PATH);
@@ -80,18 +80,18 @@ extern void BSS_FASTCALL bss_util::SetWorkDirToCur()
   SetCurrentDirectoryW(commands);
 }
 
-__declspec(dllexport) extern unsigned long long BSS_FASTCALL bss_util::bssFileSize(const char* path)
+BSS_COMPILER_DLLEXPORT extern unsigned long long BSS_FASTCALL bss_util::bssFileSize(const char* path)
 {
   filesystem3::path p(path);
   return filesystem3::file_size(path);
 }
-__declspec(dllexport) extern unsigned long long BSS_FASTCALL bss_util::bssFileSize(const wchar_t* path)
+BSS_COMPILER_DLLEXPORT extern unsigned long long BSS_FASTCALL bss_util::bssFileSize(const wchar_t* path)
 {
   filesystem3::path p(path);
   return filesystem3::file_size(path);
 }
 
-__declspec(dllexport)
+BSS_COMPILER_DLLEXPORT
 #if defined(WIN32) || defined(_WIN32) //Windows function
 extern void BSS_FASTCALL bss_util::FileDialog(char (&buf)[MAX_PATH], bool open, int flags, const char* file, const char* filter, HWND__* owner, const char* initdir, const char* defext)
 {
@@ -252,7 +252,7 @@ extern long BSS_FASTCALL bss_util::GetTimeZoneMinutes()
 //  return 0;
 //}
 //
-//__declspec(dllexport)
+//BSS_COMPILER_DLLEXPORT
 //#if defined(WIN32) || defined(_WIN32) //Windows function
 //extern int BSS_FASTCALL bss_util::GetDirFiles(const char* cdir, std::vector<cStr>* files)
 //{
@@ -362,7 +362,7 @@ extern long BSS_FASTCALL bss_util::GetTimeZoneMinutes()
 //  return 0;
 //}
 
-template<typename C, LSTATUS (__stdcall *REGCREATEKEYEX)(HKEY,const C*,DWORD,C*,DWORD,REGSAM,const LPSECURITY_ATTRIBUTES,PHKEY,LPDWORD),class _Fn>
+template<typename C, LSTATUS (BSS_COMPILER_STDCALL *REGCREATEKEYEX)(HKEY,const C*,DWORD,C*,DWORD,REGSAM,const LPSECURITY_ATTRIBUTES,PHKEY,LPDWORD),class _Fn>
 inline int BSS_FASTCALL r_setregvalue(HKEY__*	hOpenKey, const C* szKey, const C* szValue, _Fn fn)
 {
 	BOOL 	bRetVal = FALSE;
@@ -438,9 +438,9 @@ int BSS_FASTCALL bss_util::SetRegistryValue64(HKEY__*	hOpenKey, const wchar_t* s
   });
 }
   
-template<typename C, LSTATUS (__stdcall *REGOPENKEYEX)(HKEY,const C*,DWORD,REGSAM,PHKEY),
-  LSTATUS (__stdcall *REGDELETEKEY)(HKEY,const C*), 
-  LSTATUS (__stdcall *REGENUMKEYEX)(HKEY,DWORD,C*,LPDWORD,LPDWORD,C*,LPDWORD,PFILETIME)>
+template<typename C, LSTATUS (BSS_COMPILER_STDCALL *REGOPENKEYEX)(HKEY,const C*,DWORD,REGSAM,PHKEY),
+  LSTATUS (BSS_COMPILER_STDCALL *REGDELETEKEY)(HKEY,const C*), 
+  LSTATUS (BSS_COMPILER_STDCALL *REGENUMKEYEX)(HKEY,DWORD,C*,LPDWORD,LPDWORD,C*,LPDWORD,PFILETIME)>
 int BSS_FASTCALL r_delregnode(HKEY__* hKeyRoot, const C* lpSubKey)
 {
   LONG lResult;

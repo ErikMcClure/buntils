@@ -95,7 +95,7 @@ namespace bss_util {
 
   /* Iterator for doubly linked list. By default it does not initialize the previous node. */
   template<typename T>
-  class __declspec(dllexport) LLIterator : public Iterator<T*>
+  class BSS_COMPILER_DLLEXPORT LLIterator : public Iterator<T*>
   {
     typedef typename Iterator<T*>::const_reference const_reference;
     typedef typename Iterator<T*>::value_type value_type;
@@ -117,7 +117,7 @@ namespace bss_util {
   };
 
   template<typename T>
-  class __declspec(dllexport) LLIteratorR : public LLIterator<T>
+  class BSS_COMPILER_DLLEXPORT LLIteratorR : public LLIterator<T>
   {
   public:
     inline explicit LLIteratorR(T* start, T*& root) : LLIterator<T>(start), _root(root) { }
@@ -129,7 +129,7 @@ namespace bss_util {
   };
 
   template<typename T>
-  class __declspec(dllexport) LLIteratorRL : public LLIteratorR<T>
+  class BSS_COMPILER_DLLEXPORT LLIteratorRL : public LLIteratorR<T>
   {
   public:
     inline explicit LLIteratorRL(T* start, T*& root, T*& last) : LLIteratorR<T>(start,root), _last(last) { }

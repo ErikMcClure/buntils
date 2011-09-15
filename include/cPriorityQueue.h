@@ -9,7 +9,7 @@
 namespace bss_util {
   /* PriorityQueue that can be implemented as either a maxheap or a minheap */
   template<class K, class D, char (*Compare)(const K& keyleft, const K& keyright)=CompareKeys<K>>
-  class __declspec(dllexport) cPriorityQueue : private cBinaryHeap<K,D,Compare>
+  class BSS_COMPILER_DLLEXPORT cPriorityQueue : private cBinaryHeap<K,D,Compare>
   {
     typedef typename cBinaryHeap<K,D,Compare>::BINHEAP_CELL BINHEAP_CELL;
 

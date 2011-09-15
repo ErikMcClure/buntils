@@ -12,7 +12,7 @@ namespace bss_util
 {
   /* Extremely fast bit array for compressed storage of any number of bools. O(1) speed for access regardless of size. */
   template<typename _StorageType=unsigned char, typename _SizeType=unsigned int> //These should all be unsigned. If they aren't, things will explode and it will be YOUR FAULT
-  class __declspec(dllexport) cBitArray
+  class BSS_COMPILER_DLLEXPORT cBitArray
   {
   protected:
     typedef _StorageType __STORE;

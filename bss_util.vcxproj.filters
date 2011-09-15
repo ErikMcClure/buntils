@@ -137,9 +137,6 @@
     <ClInclude Include="include\cKhash.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="include\cLocklessQueue.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
     <ClInclude Include="include\cMap.h">
       <Filter>Header Files</Filter>
     </ClInclude>
@@ -252,6 +249,15 @@
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="include\bss_fixedpt.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="include\lockless.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="include\cLocklessByteQueue.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="include\bss_compiler.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>

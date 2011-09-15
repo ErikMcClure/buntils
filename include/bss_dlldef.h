@@ -8,9 +8,9 @@
 
 #ifndef BSS_STATIC_LIB
 #ifdef BSS_UTIL_EXPORTS
-#define BSS_DLLEXPORT __declspec(dllexport)
+#define BSS_DLLEXPORT BSS_COMPILER_DLLEXPORT
 #else
-#define BSS_DLLEXPORT __declspec(dllimport)
+#define BSS_DLLEXPORT BSS_COMPILER_DLLIMPORT
 #endif
 #else
 #define BSS_DLLEXPORT

@@ -10,7 +10,7 @@
 
 namespace bss_util {
   template<class T>
-  struct __declspec(dllexport) FUNC_DEF_BASE
+  struct BSS_COMPILER_DLLEXPORT FUNC_DEF_BASE
   {
     FUNC_DEF_BASE(unsigned int msize) : size(msize) {}
     const unsigned int size;
@@ -22,7 +22,7 @@ namespace bss_util {
 
   /* This is a thread-safe task stack that accumulates function calls for a class */
   template<class T>
-  class __declspec(dllexport) cTaskStack : public cLockable
+  class BSS_COMPILER_DLLEXPORT cTaskStack : public cLockable
   {
   public:
     cTaskStack(unsigned int stacksize=128, bool unlock=true) : _memory((unsigned char*)malloc(stacksize)), _memsize(stacksize), cLockable(4),_curindex(0),_unlock(unlock) {}
@@ -156,7 +156,7 @@ namespace bss_util {
     bool _unlock;
   };
 
-  template<class T> //if you try to put , typedef calltype=__stdcall it actually crashes the compiler, which I find amusing.
+  template<class T> //if you try to put , typedef calltype=BSS_COMPILER_STDCALL it actually crashes the compiler, which I find amusing.
   struct FUNC_DEF0 : public FUNC_DEF_BASE<T> 
   { 
     FUNC_DEF0(const FUNC_DEF0& copy) : _funcptr(copy._funcptr), FUNC_DEF_BASE<T>(0) {}

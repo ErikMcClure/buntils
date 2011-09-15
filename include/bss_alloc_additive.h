@@ -17,7 +17,7 @@ namespace bss_util {
   };
 
 	template<typename T, __int32 init=8>
-	class __declspec(dllexport) cAdditiveFixedAllocator
+	class BSS_COMPILER_DLLEXPORT cAdditiveFixedAllocator
   {
   public:
     cAdditiveFixedAllocator() : _curpos(0), _root(0)
@@ -82,7 +82,7 @@ namespace bss_util {
   };
   
 	template<typename T>
-  class __declspec(dllexport) AdditiveFixedPolicy : public AllocPolicySize<T>, protected cAdditiveFixedAllocator<T> {
+  class BSS_COMPILER_DLLEXPORT AdditiveFixedPolicy : public AllocPolicySize<T>, protected cAdditiveFixedAllocator<T> {
 	public:
     template<typename U>
     struct rebind { typedef AdditiveFixedPolicy<U> other; };
@@ -98,14 +98,14 @@ namespace bss_util {
         return alloc(cnt);
     }
     inline void deallocate(pointer p, std::size_t num = 0) { }
-    inline void BSS_FASTCALL clear() { Clear(); } //done for functor reasons, __fastcall has no effect here
+    inline void BSS_FASTCALL clear() { Clear(); } //done for functor reasons, BSS_COMPILER_FASTCALL has no effect here
 	};
 
   /* End Additive Fixed Allocator */
 
   /* Dynamic additive allocator that can allocate any number of bytes */
 	template<__int32 init=64>
-	class __declspec(dllexport) cAdditiveVariableAllocator
+	class BSS_COMPILER_DLLEXPORT cAdditiveVariableAllocator
   {
   public:
     cAdditiveVariableAllocator() : _curpos(0), _root(0)
@@ -174,7 +174,7 @@ namespace bss_util {
   };
   
 	//template<typename T>
- // class __declspec(dllexport) AdditiveVariablePolicy : public AllocPolicySize<T>, protected cAdditiveVariableAllocator<64> {
+ // class BSS_COMPILER_DLLEXPORT AdditiveVariablePolicy : public AllocPolicySize<T>, protected cAdditiveVariableAllocator<64> {
 	//public:
  //   template<typename U>
  //   struct rebind { typedef AdditiveVariablePolicy<U> other; };
@@ -190,7 +190,7 @@ namespace bss_util {
  //       return alloc(cnt);
  //   }
  //   inline void deallocate(pointer p, std::size_t num = 0) { }
- //   inline void BSS_FASTCALL clear() { Clear(); } //done for functor reasons, __fastcall has no effect here
+ //   inline void BSS_FASTCALL clear() { Clear(); } //done for functor reasons, BSS_COMPILER_FASTCALL has no effect here
 	//};
 }
 
@@ -209,7 +209,7 @@ namespace bss_util {
 	};
 
 	template<typename T>
-	class __declspec(dllexport) AdditiveChunkPolicy {
+	class BSS_COMPILER_DLLEXPORT AdditiveChunkPolicy {
 	public:
     typedef T value_type;
     typedef value_type* pointer;
@@ -340,7 +340,7 @@ namespace bss_util {
   /* End Additive Chunk Policy */
 /*
 	template<typename T>
-	class __declspec(dllexport) AdditiveChunkAllocator : public AdditiveChunkPolicy<T>, public ObjectTraits<T> {
+	class BSS_COMPILER_DLLEXPORT AdditiveChunkAllocator : public AdditiveChunkPolicy<T>, public ObjectTraits<T> {
 	private:
     typedef AdditiveChunkPolicy<T> AllocationPolicy;
     typedef ObjectTraits<T> TTraits;

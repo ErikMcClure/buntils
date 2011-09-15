@@ -25,7 +25,7 @@ namespace bss_util {
   };
 
   template<class Key, class Data>
-  struct __declspec(dllexport) AVL_Node
+  struct BSS_COMPILER_DLLEXPORT AVL_Node
   {
     inline AVL_Node() : _pkey(), _data(), _left(0), _right(0), _balance(0) {}
     //Data* _data;
@@ -38,7 +38,7 @@ namespace bss_util {
 
   /* AVL Tree implementation */
   template<class Key, class Data, char (*Compare)(const Key& keyleft, const Key& keyright)=CompareKeys<Key>, typename Alloc=Allocator<AVL_Node<Key,Data>>>
-	class __declspec(dllexport) cAVLtree : cAllocTracker<Alloc>
+	class BSS_COMPILER_DLLEXPORT cAVLtree : cAllocTracker<Alloc>
   {
   public:
     cAVLtree(const cAVLtree& copy) : cAllocTracker<Alloc>(copy), _root(0) {}

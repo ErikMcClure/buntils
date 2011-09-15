@@ -9,7 +9,7 @@
 namespace bss_util {
   // An implementation of a nice, clean abstract iterator class, based on the std implementation, but without all the stupidity.
   template<class T, class Traits=ValueTraits<T>>
-  class __declspec(dllexport) Iterator_Forward
+  class BSS_COMPILER_DLLEXPORT Iterator_Forward
   {
   protected:
     typedef typename ValueTraits<T>::const_reference const_reference;
@@ -28,7 +28,7 @@ namespace bss_util {
   
   //This iterator only gaurentees that you can progress backwards. Remove() and Peek() are not defined after a decrement call.
   template<class T, class Traits=ValueTraits<T>>
-  class __declspec(dllexport) Iterator : public Iterator_Forward<T,Traits> 
+  class BSS_COMPILER_DLLEXPORT Iterator : public Iterator_Forward<T,Traits> 
   {
   protected:
     typedef typename Iterator_Forward<T,Traits>::const_reference const_reference;

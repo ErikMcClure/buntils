@@ -15,7 +15,7 @@ namespace bss_util {
   static cBucketAlloc cstrpool_alloc[8];
 
 	template<typename T, unsigned char index=0>
-  class __declspec(dllexport) StringPoolPolicy : public AllocPolicySize<T> {
+  class BSS_COMPILER_DLLEXPORT StringPoolPolicy : public AllocPolicySize<T> {
 	public:
     template<typename U>
     struct rebind { typedef StringPoolPolicy<U,index> other; };
@@ -110,8 +110,8 @@ public:
 //template<typename Alloc = bss_util::AllocatorPolicyRef<char, bss_util::StringPoolAllocPolicy<char>, bss_util::ObjectTraits<char>>>
 //template<typename Alloc = bss_util::Allocator<CHAR,bss_util::StringPoolPolicy<CHAR>>>
 template<typename T=char, typename Alloc=std::allocator<T>>
-class __declspec(dllexport) cStrT : public CSTRALLOC(T)//If dllimport is used on this linker errors crop up. I have no idea why. Also, if the constructors aren't inlined, it causes heap corruption errors because the basic_string constructors are inlined
-{ //Note that you can take off __declspec(dllexport) but you'll pay for it with even more unnecessary 4251 warnings.
+class BSS_COMPILER_DLLEXPORT cStrT : public CSTRALLOC(T)//If dllimport is used on this linker errors crop up. I have no idea why. Also, if the constructors aren't inlined, it causes heap corruption errors because the basic_string constructors are inlined
+{ //Note that you can take off BSS_COMPILER_DLLEXPORT but you'll pay for it with even more unnecessary 4251 warnings.
   typedef typename CSTR_CT<T>::CHAR CHAR;
   typedef typename CSTR_CT<T>::OTHER_C OTHER_C;
 public:

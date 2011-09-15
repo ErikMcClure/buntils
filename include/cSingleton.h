@@ -6,7 +6,7 @@
 
 namespace bss_util {
   template<class T>
-  class __declspec(dllexport) cSingleton //exported to make VC++ shut up
+  class BSS_COMPILER_DLLEXPORT cSingleton //exported to make VC++ shut up
   {
   public:
     cSingleton(T* ptr) { _ptr = ptr; _instance = _ptr; }

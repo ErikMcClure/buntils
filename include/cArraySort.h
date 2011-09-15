@@ -12,7 +12,7 @@
 namespace bss_util {
   /* Sorted dynamic array */
   template<typename T, typename CompareTraits=CompareKeysTraits<T>, typename _SizeType=unsigned int, typename ArrayType=cArraySimple<T,_SizeType>>
-  class __declspec(dllexport) cArraySort : public CompareTraits, protected ArrayType
+  class BSS_COMPILER_DLLEXPORT cArraySort : public CompareTraits, protected ArrayType
   {
   public:
     typedef _SizeType __ST;

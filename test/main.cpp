@@ -21,7 +21,7 @@
 #include "cPriorityQueue.h"
 #include "bss_win32_includes.h"
 //#include "leaktest.h"
-#include "cLocklessQueue.h"
+//#include "cLocklessQueue.h"
 #include "cLinkedArray.h"
 #include "bss_alloc_additive.h"
 #include "bss_alloc_fixed.h"
@@ -84,6 +84,7 @@ struct foobar// : public cClassAllocator<foobar>
 //  return 0;
 //}
 
+/*
 static const int NUM_RUNS=1;
 static const int MAX_ALLOC=50;
 unsigned int __stdcall dorandomcrap(void* arg)
@@ -124,6 +125,7 @@ unsigned int __stdcall flippertest(void* arg)
     ((cLocklessFlipper<char>*)ptr)->EndRead();
   }
 }
+*/
 
 int PI_ITERATIONS=500;
 double pi=((PI_ITERATIONS<<1)-1)+(PI_ITERATIONS*PI_ITERATIONS);
@@ -883,7 +885,7 @@ int main2()
 
   char p1=1;
   char p2=2;
-  volatile cLocklessFlipper<char> flipper(&p1,&p2);
+  /*volatile cLocklessFlipper<char> flipper(&p1,&p2);
 
   cThread flipthread(&flippertest);
   flipthread.Start((void*)&flipper);
@@ -897,14 +899,14 @@ int main2()
       fliphold=((cLocklessFlipper<char>&)flipper).StartWrite();
       if(!fliphold)
         ++fail;
-      else { Sleep(1); /**fliphold=3;*/ fliphold=0; ((cLocklessFlipper<char>&)flipper).EndWrite(); }
+      else { Sleep(1); fliphold=0; ((cLocklessFlipper<char>&)flipper).EndWrite(); }
     }
     std::cout << "Failed: " << (fail/1000000.0f) << std::endl;
   }
   
   return 0;
 
-  cLocklessQueue qtest(512000);
+  cLocklessQueue qtest(512000);*/
   
 
   int id;
@@ -921,7 +923,7 @@ int main2()
   //  }
   //}
   
-  bool expResult = true;
+  /*bool expResult = true;
 
   cThread crapthread(&dorandomcrap);
   crapthread.Start(&qtest);
@@ -945,7 +947,7 @@ int main2()
   assert(expResult);
   if(!expResult) num=num/0;
 
-  qtest.Clear();
+  qtest.Clear();*/
 
   return 0;
 

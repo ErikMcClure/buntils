@@ -62,7 +62,7 @@ namespace bss_util {
   };
 
   /* Defines a class that has a semaphore */
-  class __declspec(dllexport) cLockable
+  class BSS_COMPILER_DLLEXPORT cLockable
   {
   public:
     inline cLockable(unsigned long flip=0) : _syncobj(4) {}
@@ -75,7 +75,7 @@ namespace bss_util {
   };
 
   /* Preforms a lock within a defined scope */
-  struct __declspec(dllexport) cScopeLock
+  struct BSS_COMPILER_DLLEXPORT cScopeLock
   {
     inline cScopeLock(const cLockable& lockable) : _syncobj(lockable.GetSyncObj()) { _syncobj.Lock(); }
     inline cScopeLock(const cThreadSync& syncobj) : _syncobj(syncobj) { _syncobj.Lock(); }

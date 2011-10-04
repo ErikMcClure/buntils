@@ -19,6 +19,8 @@ typedef __int64 TIMEVALUSED;
 #define WCSNCPY(dst,size,src,count) wcsncpy_s(dst,size,src,count)
 #define STRCPY(dst,size,src) strcpy_s(dst,size,src)
 #define WCSCPY(dst,size,src) wcscpy_s(dst,size,src)
+#define STRCPYx0(dst,src) strcpy_s(dst,src)
+#define WCSCPYx0(dst,src) wcscpy_s(dst,src)
 #define STRICMP(a,b) _stricmp(a,b)
 #define WCSICMP(a,b) _wcsicmp(a,b)
 #define SSCANF sscanf_s

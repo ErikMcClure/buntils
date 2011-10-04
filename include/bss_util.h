@@ -233,7 +233,7 @@ namespace bss_util {
     const double _single2fixmagic = 16777216.0*1.5; //2^24 for 24 bits of mantissa
     assert(FPUsingle());
 	  val		= val + _single2fixmagic;
-	  return (__int32)(((((__int64*)&val)[0])&0xFFFFF0000000)>>28);
+	  return (__int32)(((((unsigned __int64*)&val)[0])&0xFFFFF0000000)>>28);
   }
 
 	/* This is a super fast floating point comparison function with a significantly higher tolerance and no

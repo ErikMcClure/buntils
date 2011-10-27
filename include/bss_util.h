@@ -185,14 +185,14 @@ namespace bss_util {
 
   /* Gets the sign of any number (0 is assumed to be positive) */
   template<typename T>
-  inline T BSS_FASTCALL tsign(T n)
+  inline char BSS_FASTCALL tsign(T n)
   {
     return (n >= 0) - (n < 0);
   }
 
   /* Gets the sign of any number, where a value of 0 returns 0 */
   template<typename T>
-  inline T BSS_FASTCALL tsignzero(T n)
+  inline char BSS_FASTCALL tsignzero(T n)
   {
     return (n > 0) - (n < 0);
   }

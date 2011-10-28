@@ -7,6 +7,8 @@
 #define COP(cls) cHolder<cls>::_holdobject //shorthand for easy access in multiple inheritance cases
 #define COR(cls) (*cHolder<cls>::_holdobject) //shorthand for easy access in multiple inheritance cases
 
+#include "bss_compiler.h"
+
 namespace bss_util {
   /* A class to provide the common functionality of storing a pointer to an object of a certain class */
   template<class T>

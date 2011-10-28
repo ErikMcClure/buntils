@@ -4,7 +4,6 @@
 #ifndef __C_BSS_STACK_H__
 #define __C_BSS_STACK_H__
 
-//#include "bss_alloc.h"
 #include "cArraySimple.h"
 #include "bss_util.h"
 #include "bss_traits.h"

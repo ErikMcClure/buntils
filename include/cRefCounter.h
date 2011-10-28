@@ -6,6 +6,8 @@
 
 #define DELETE_REF(p) if(p) { p->Drop(); p = 0; }
 
+#include "bss_compiler.h"
+
 namespace bss_util {  
   /* A reference counter class that is entirely inline */
   class BSS_COMPILER_DLLEXPORT cRefCounter

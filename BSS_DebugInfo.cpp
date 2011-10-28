@@ -6,8 +6,6 @@
 #include "bss_win32_includes.h"
 #include <psapi.h>
 
-//using namespace bss_util;
-
 BSS_DebugInfo::BSS_DebugInfo(const BSS_DebugInfo& copy) : cHighPrecisionTimer(copy), bss_Log(copy),_flstart(copy._flstart),_flend(copy._flend) //,_profiles(copy._profiles)
 {
   memcpy(_profilers,copy._profilers, sizeof(unsigned __int64)*NUMPROFILERS);

@@ -35,8 +35,10 @@
 // CPU Architecture (possible pre-defined macros found on http://predef.sourceforge.net/prearch.html)
 #if defined(_M_X64) || defined(__amd64__) || defined(__amd64) || defined(__x86_64__) || defined(__x86_64) || defined(_LP64)
 #define BSS_CPU_x86_64  //x86-64 architecture
+#define BSS_64BIT
 #elif defined(__ia64__) || defined(_IA64) || defined(__IA64__) || defined(__ia64) || defined(_M_IA64)
 #define BSS_CPU_IA_64 //Itanium (IA-64) architecture
+#define BSS_64BIT
 #elif defined(_M_IX86) || defined(__i386) || defined(__i386__) || defined(__X86__) || defined(_X86_) || defined(__I86__) || defined(__THW_INTEL__) || defined(__INTEL__)
 #define BSS_CPU_x86  //x86 architecture
 #else

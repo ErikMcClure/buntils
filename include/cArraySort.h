@@ -6,7 +6,6 @@
 
 #include "bss_traits.h"
 #include "bss_util.h"
-#include <memory.h>
 #include "cArraySimple.h"
 
 namespace bss_util {

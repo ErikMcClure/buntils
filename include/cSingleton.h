@@ -4,6 +4,8 @@
 #ifndef __C_SINGLETON_H__BSS__ //These are used in case this header file is used by two different projects dependent on each other, resulting in duplicates which cannot be differentiated by #pragma once
 #define __C_SINGLETON_H__BSS__
 
+#include "bss_compiler.h"
+
 namespace bss_util {
   template<class T>
   class BSS_COMPILER_DLLEXPORT cSingleton //exported to make VC++ shut up

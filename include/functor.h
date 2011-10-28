@@ -4,6 +4,8 @@
 #ifndef __FUNCTOR_H__BSS__
 #define __FUNCTOR_H__BSS__
 
+#include "bss_compiler.h"
+
 namespace bss_util {
   template<typename R, typename T1=void,typename T2=void,typename T3=void>
   struct BSS_COMPILER_DLLEXPORT Functor

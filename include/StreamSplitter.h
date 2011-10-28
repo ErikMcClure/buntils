@@ -10,17 +10,17 @@
 #include "cAutoPtr.h"
 #include "cStr.h"
 
-using namespace std;
-
 namespace bss_util {
+  using namespace std;
+
   /* Stream buffer that can output to any number of possible external streams, and auto-converts all wchar_t* input to UTF-8 */
   template<typename _Elem=char>
   class BSS_COMPILER_DLLEXPORT StreamSplitter : public basic_stringbuf<_Elem>
   {
   public:
     inline StreamSplitter(const StreamSplitter& copy) : stringbuf(copy),_targets(copy._targets),_wtargets(copy._wtargets) {}
-    inline StreamSplitter(StreamSplitter&& mov) : stringbuf(std::move(mov)),_targets(std::move(copy._targets)),
-      _wtargets(std::move(copy._wtargets)) {}
+    inline StreamSplitter(StreamSplitter&& mov) : stringbuf(move(mov)),_targets(move(copy._targets)),
+      _wtargets(move(copy._wtargets)) {}
     inline explicit StreamSplitter(ios_base::openmode _Mode = ios_base::out) : stringbuf(_Mode) {}
     inline void BSS_FASTCALL AddTarget(ostream* stream) { _targets.push_back(stream); }
     inline void BSS_FASTCALL AddTarget(wostream* stream) { _wtargets.push_back(stream); }

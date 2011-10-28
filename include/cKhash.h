@@ -314,7 +314,7 @@ namespace bss_util {
   inline khint_t KH_STRW_HASHFUNC(const wchar_t * s) { khint_t h = *s; if (h) for (++s ; *s; ++s) h = (h << 5) - h + *s; return h; }
   inline khint_t KH_STRWINS_HASHFUNC(const wchar_t *s) { khint_t h = towlower(*s); if (h) for (++s ; *s; ++s) h = (h << 5) - h + towlower(*s); return h; }
   inline khint_t KH_POINTER_HASHFUNC(void* p) {
-#ifdef BSS64BIT
+#ifdef BSS_64BIT
   return (khint32_t)((p)>>33^(p)^(p)<<11);
 #else
   return (khint32_t)p;

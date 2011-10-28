@@ -4,7 +4,6 @@
 #ifndef __BSS_DEBUGINFO_H__
 #define __BSS_DEBUGINFO_H__
 
-#include "bss_dlldef.h"
 #include "cHighPrecisionTimer.h"
 #include "bss_Log.h"
 

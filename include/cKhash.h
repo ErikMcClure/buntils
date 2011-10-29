@@ -313,7 +313,7 @@ namespace bss_util {
   inline khint_t KH_STRINS_HASHFUNC(const char *s) { khint_t h = ((*s)>64&&(*s)<91)?(*s)+32:*s;	if (h) for (++s ; *s; ++s) h = (h << 5) - h + (((*s)>64&&(*s)<91)?(*s)+32:*s); return h; }
   inline khint_t KH_STRW_HASHFUNC(const wchar_t * s) { khint_t h = *s; if (h) for (++s ; *s; ++s) h = (h << 5) - h + *s; return h; }
   inline khint_t KH_STRWINS_HASHFUNC(const wchar_t *s) { khint_t h = towlower(*s); if (h) for (++s ; *s; ++s) h = (h << 5) - h + towlower(*s); return h; }
-  inline khint_t KH_POINTER_HASHFUNC(void* p) {
+  inline khint_t KH_POINTER_HASHFUNC(const void* p) {
 #ifdef BSS_64BIT
   return (khint32_t)((p)>>33^(p)^(p)<<11);
 #else
@@ -388,10 +388,10 @@ namespace bss_util {
   };
 
   template<typename T=void*, bool ismap=true>
-  class BSS_COMPILER_DLLEXPORT cKhash_Pointer : public cKhash<void*, T, true, &KH_POINTER_HASHFUNC, &KH_INT_EQUALFUNC<void*>, &KH_STR_VALIDATEPTR<void*>>
+  class BSS_COMPILER_DLLEXPORT cKhash_Pointer : public cKhash<const void*, T, true, &KH_POINTER_HASHFUNC, &KH_INT_EQUALFUNC<const void*>, &KH_STR_VALIDATEPTR<const void*>>
   {
   public:
-    cKhash_Pointer() : cKhash<void*, T, true, &KH_POINTER_HASHFUNC, &KH_INT_EQUALFUNC<void*>, &KH_STR_VALIDATEPTR<void*>>() {}
+    cKhash_Pointer() : cKhash<const void*, T, true, &KH_POINTER_HASHFUNC, &KH_INT_EQUALFUNC<const void*>, &KH_STR_VALIDATEPTR<const void*>>() {}
     cKhash_Pointer(cKhash_Pointer&& mov) : cKhash(std::move(mov)) {}
     cKhash_Pointer& operator=(cKhash_Pointer&& right) { cKhash::operator=(std::move(right)); return *this; }
   };

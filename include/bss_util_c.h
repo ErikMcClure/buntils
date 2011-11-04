@@ -28,7 +28,6 @@ BSS_COMPILER_DLLEXPORT extern unsigned long BSS_FASTCALL strhex(const char* text
 BSS_COMPILER_DLLEXPORT extern unsigned long BSS_FASTCALL wcshex(const wchar_t* text);
 BSS_COMPILER_DLLEXPORT extern int BSS_FASTCALL UTF8Decode2BytesUnicode(const char* input,wchar_t* output);
 BSS_COMPILER_DLLEXPORT extern int BSS_FASTCALL UTF8Encode2BytesUnicode(const wchar_t* input, unsigned char* output);
-//BSS_COMPILER_DLLEXPORT extern bool BSS_FASTCALL Util_Assert(const wchar_t* expression, const wchar_t* file, int line); //custom assert function so we can make it cross-platform and so the stupid gigantic windows headers don't have to be included
 
 #ifdef  __cplusplus
 }

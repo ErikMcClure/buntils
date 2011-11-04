@@ -24,6 +24,8 @@ typedef __int64 TIMEVALUSED;
 #define STRICMP(a,b) _stricmp(a,b)
 #define WCSICMP(a,b) _wcsicmp(a,b)
 #define SSCANF sscanf_s
+#define ITOA(v,buf,r) _itoa_s(v,buf,r)
+#define ITOA_S(v,buf,bufsize,r) _itoa_s(v,buf,bufsize,r)
 #else
 typedef time_t TIMEVALUSED;
 #define FTIME(ptime) time(ptime)
@@ -40,6 +42,8 @@ typedef time_t TIMEVALUSED;
 #define STRICMP(a,b) stricmp(a,b)
 #define WCSICMP(a,b) wcsicmp(a,b)
 #define SSCANF sscanf
+#define ITOA(v,buf,r) itoa(v,buf,r)
+#define ITOA_S(v,buf,bufsize,r) itoa(v,buf,r)
 #endif
 
 #endif

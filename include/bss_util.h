@@ -24,12 +24,12 @@
 #include <memory.h>
 
 namespace bss_util { 
-  static const VersionType BSSUTIL_VERSION = { 0,3,82 };
-
-  BSS_COMPILER_DLLEXPORT extern void BSS_FASTCALL SetWorkDirToCur(); //Sets the working directory to the actual goddamn location of the EXE instead of the freaking start menu, or possibly the desktop. The possibilities are endless! Fuck you, windows.
+  static const VersionType BSSUTIL_VERSION = { 0,3,82 }; //Returns the current time zone difference from UTC in minutes
+  
+BSS_COMPILER_DLLEXPORT extern void BSS_FASTCALL SetWorkDirToCur(); //Sets the working directory to the actual goddamn location of the EXE instead of the freaking start menu, or possibly the desktop. The possibilities are endless! Fuck you, windows.
   BSS_COMPILER_DLLEXPORT extern unsigned long long BSS_FASTCALL bssFileSize(const char* path);
   BSS_COMPILER_DLLEXPORT extern unsigned long long BSS_FASTCALL bssFileSize(const wchar_t* path);
-  BSS_COMPILER_DLLEXPORT extern long BSS_FASTCALL GetTimeZoneMinutes(); //Returns the current time zone difference from UTC in minutes
+  BSS_COMPILER_DLLEXPORT extern long BSS_FASTCALL GetTimeZoneMinutes();
 
   //Useful numbers
   const double PI = 3.141592653589793238462643383279;
@@ -256,7 +256,7 @@ namespace bss_util {
     return ((!check) && (!(i&0x007FFF80)))||(check<maxtolerance);
   }
 
-  /* This is a super fast length calculation for 2D coordinates; See http://www.azillionmonkeys.com/qed/sqroot.html for details (Algorithm by Paul Hsieh) */
+  /* This is a super fast length approximation for 2D coordinates; See http://www.azillionmonkeys.com/qed/sqroot.html for details (Algorithm by Paul Hsieh) */
   inline float BSS_FASTCALL flength(float x, float y)
   {
     x = abs(x);

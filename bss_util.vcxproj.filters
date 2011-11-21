@@ -236,9 +236,6 @@
     <ClInclude Include="include\cAutoPtr.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="include\BSS_Log.h.bak">
-      <Filter>Header Files</Filter>
-    </ClInclude>
     <ClInclude Include="include\bss_Log.h">
       <Filter>Header Files</Filter>
     </ClInclude>

@@ -270,7 +270,6 @@
     <ClInclude Include="include\bss_defines.h" />
     <ClInclude Include="include\bss_deprecated.h" />
     <ClInclude Include="include\bss_dlldef.h" />
-    <ClInclude Include="include\BSS_Log.h.bak" />
     <ClInclude Include="include\bss_traits.h" />
     <ClInclude Include="include\bss_util.h" />
     <ClInclude Include="include\bss_win32_includes.h" />

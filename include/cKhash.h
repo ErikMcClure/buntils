@@ -182,7 +182,7 @@ static inline void kh_del_template(kh_template_t<khkey_t,khval_t,kh_is_map,__has
 //KHASH_MAP_INIT_INT64(int64clr, void*);
 
 namespace bss_util {
-
+  /* Base template for cKhash. If you want a set instead of a map, set khval_t to 'char' and kh_is_map to 'false'. */
   template<typename khkey_t, typename khval_t, bool kh_is_map, khint_t (*__hash_func)(khkey_t), bool (*__hash_equal)(khkey_t, khkey_t), bool (*__validate_p)(khkey_t), class Traits=ValueTraits<khval_t>>
   class BSS_COMPILER_DLLEXPORT cKhash
   {
@@ -220,7 +220,7 @@ namespace bss_util {
 			if(kh_size(_h) >= _h->n_buckets) _resize();
 			int r;
 			khiter_t retval = kh_put_template(_h,key,&r);
-			if(r>0) //Only insert the value if the key didn't exist
+			if(r>0 && kh_is_map) //Only insert the value if the key didn't exist and this is a map, not a set
 			{
         kh_val(_h,retval)=value;
         return true;
@@ -279,8 +279,13 @@ namespace bss_util {
 			right.ResetWalk();
 			int r;
 			khiter_t cur;
-			while((cur=right.GetNext())!= right.End())
-				kh_val(_h, kh_put_template(_h, kh_key(right._h, cur),&r))=kh_val(right._h, cur);
+      if(kh_is_map) {
+			  while((cur=right.GetNext())!= right.End())
+				  kh_val(_h, kh_put_template(_h, kh_key(right._h, cur),&r))=kh_val(right._h, cur);
+      } else {
+			  while((cur=right.GetNext())!= right.End())
+				  kh_put_template(_h, kh_key(right._h, cur),&r);
+      }
 			_cur=0;
 			return *this; 
 		}

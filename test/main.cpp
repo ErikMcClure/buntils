@@ -7,7 +7,6 @@
 #include "BSS_DebugInfo.h"
 #include "cINIstorage.h"
 #include <time.h>
-//#include "bss_MasterAlloc.h"
 #include "cStrTable.h"
 #include "cMap.h"
 #include "cSparseArray.h"
@@ -21,17 +20,16 @@
 #include "cPriorityQueue.h"
 #include "bss_win32_includes.h"
 //#include "leaktest.h"
-//#include "cLocklessQueue.h"
 #include "cLinkedArray.h"
 #include "bss_alloc_additive.h"
 #include "bss_alloc_fixed.h"
 //#include "cTAATree.h"
 #include <fstream>
-//#include "cRBT_List_old.h"
 #include "cRBT_List.h"
 #include "cBSS_Stack.h"
 #include "cAutoPtr.h"
 #include "bss_fixedpt.h"
+#include "cKhash.h"
 
 #define BOOST_FILESYSTEM_VERSION 3
 //#define BOOST_ALL_NO_LIB
@@ -192,6 +190,22 @@ const char* FAKESTRINGLIST[5] = { "FOO", "BAR", "MEH", "SILLY", "EXACERBATION" }
 
 int main(int argc, char** argv)
 {  
+  //bool chk = fsmall(1);
+  //bool chk2 = dsmall(1/900000000000000.0);
+
+  //{
+  //cKhash<int, char,false,KH_INT_HASHFUNC,KH_INT_EQUALFUNC<int>,KH_INT_VALIDATEPTR<int>> hashtest;
+  //hashtest.Insert(21354,0);
+  //hashtest.Insert(34623,0);
+  //hashtest.Insert(52,0);
+  //hashtest.Insert(1,0);
+  //int r=hashtest.GetIterKey(hashtest.GetIterator(1));
+
+  //}
+  //return 0;
+  cStr sdfhold("blah");
+  cStr sdfderp(sdfhold+cStr("temp")+cStr("temp")+cStr("temp")+cStr("temp"));
+
   //_controlfp( _PC_24, MCW_PC );
   int zsdf = fFastRound(2734.82f);
 

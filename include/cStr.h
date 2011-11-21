@@ -157,20 +157,19 @@ public:
 
   inline operator const CHAR*() const { return _Myptr(); }
   
-  //inline const cStrT operator +(const cStrT* right) const { return cStrT(*this,right); }
   inline const cStrT operator +(const cStrT& right) const { return cStrT(*this)+=right; }
+  inline const cStrT operator +(cStrT&& right) const { right.insert(0, *this); return (_STD move(right)); }
   template<class U> inline const cStrT operator +(const cStrT<T,U>& right) const { return cStrT(*this)+=right; }
+  template<class U> inline const cStrT operator +(cStrT<T,U>&& right) const { right.insert(0, *this); return (_STD move(right)); }
   inline const cStrT operator +(const CHAR* right) const { return cStrT(*this)+=right; }
   inline const cStrT operator +(const CHAR right) const { return cStrT(*this)+=right; }
 
-  //inline cStrT& operator =(const cStrT* right) { CSTRALLOC(CHAR)::operator =(*right); return *this; } 
   inline cStrT& operator =(const cStrT& right) { CSTRALLOC(CHAR)::operator =(right); return *this; }
   template<class U> inline cStrT& operator =(const cStrT<T,U>& right) { CSTRALLOC(CHAR)::operator =(right); return *this; }
   inline cStrT& operator =(const CHAR* right) { if(right != 0) CSTRALLOC(CHAR)::operator =(right); return *this; }
   inline cStrT& operator =(const CHAR right) { CSTRALLOC(CHAR)::operator =(right); return *this; } //resize(2); _Myptr()[0] = right; _Myptr()[1] = '\0'; return *this; } 
   inline cStrT& operator =(cStrT&& right) { CSTRALLOC(CHAR)::operator =(std::move(right)); return *this; }
 
-  //inline cStrT& operator +=(const cStrT* right) { if(!_Mysize) return CSTRALLOC(CHAR)::operator =(*right); CSTRALLOC(CHAR)::operator +=(*right); return *this; }
   inline cStrT& operator +=(const cStrT& right) { CSTRALLOC(CHAR)::operator +=(right); return *this; }
   template<class U> inline cStrT& operator +=(const cStrT<T,U>& right) { CSTRALLOC(CHAR)::operator +=(right); return *this; }
   inline cStrT& operator +=(const CHAR* right) { if(right != 0 && right != _Myptr()) CSTRALLOC(CHAR)::operator +=(right); return *this; }
@@ -236,31 +235,29 @@ template<class _Elem, class _Alloc> // return character + string
 inline cStrT<_Elem,_Alloc> operator+(const _Elem _Left,const cStrT<_Elem,_Alloc>& _Right)
 	{	cStrT<_Elem,_Alloc> _Ans(1+_Right.size()); _Ans += _Left; return (_Ans += _Right); }
 template<class _Elem, class _Alloc> // return string + string
-inline cStrT<_Elem,_Alloc> operator+(const cStrT<_Elem,_Alloc>& _Left,cStrT<_Elem,_Alloc>&& _Right) 
-	{	return (_STD move(_Right.insert(0, _Left))); }
-template<class _Elem, class _Alloc> // return string + string
 inline cStrT<_Elem,_Alloc> operator+(cStrT<_Elem,_Alloc>&& _Left,const cStrT<_Elem,_Alloc>& _Right)
-	{	return (_STD move(_Left.append(_Right))); }
+	{	_Left.append(_Right); return (_STD move()); } //These operations are moved to the left because they return a basic_string, not cStr
 template<class _Elem, class _Alloc> // return NTCS + string
 inline cStrT<_Elem,_Alloc> operator+(const _Elem *_Left,cStrT<_Elem,_Alloc>&& _Right)
-	{	return (_STD move(_Right.insert(0, _Left))); }
+	{	_Right.insert(0, _Left); return (_STD move()); }
 template<class _Elem, class _Alloc> // return character + string
 inline cStrT<_Elem,_Alloc> operator+(const _Elem _Left,cStrT<_Elem,_Alloc>&& _Right)
-	{	return (_STD move(_Right.insert(0, 1, _Left))); }
+	{	_Right.insert(0, 1, _Left); return (_STD move()); }
 template<class _Elem, class _Alloc> // return string + NTCS
 inline cStrT<_Elem,_Alloc> operator+(cStrT<_Elem,_Alloc>&& _Left,const _Elem *_Right)
-	{	return (_STD move(_Left.append(_Right)));	}
+	{	_Left.append(_Right); return (_STD move());	}
 template<class _Elem, class _Alloc> // return string + character
 inline cStrT<_Elem,_Alloc> operator+(cStrT<_Elem,_Alloc>&& _Left,const _Elem _Right)
-	{	return (_STD move(_Left.append(1, _Right))); }
+	{	_Left.append(1, _Right); return (_STD move()); }
 template<class _Elem, class _Alloc> // return string + string
 inline cStrT<_Elem,_Alloc> operator+(cStrT<_Elem,_Alloc>&& _Left,cStrT<_Elem,_Alloc>&& _Right)
 	{	
-	if (_Right.size() <= _Left.capacity() - _Left.size()
-		|| _Right.capacity() - _Right.size() < _Left.size())
-		return (_STD move(_Left.append(_Right)));
-	else
-		return (_STD move(_Right.insert(0, _Left)));
+	  if (_Right.size() <= _Left.capacity() - _Left.size() || _Right.capacity() - _Right.size() < _Left.size()) {
+      _Left.append(_Right);
+		  return (_STD move(_Left));
+    }
+    _Right.insert(0, _Left);
+		return (_STD move(_Right));
 	}
 
 #endif

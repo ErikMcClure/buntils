@@ -6,24 +6,9 @@
 
 #include "bss_compare.h"
 #include "bss_alloc.h"
+#include "functor.h"
 
 namespace bss_util {
-  template<class Data>
-  struct AVL_Functor
-  {
-    virtual void BSS_FASTCALL Preform(Data data) const=0;
-  };
-  template<class Data, class Delegate>
-  struct AVL_Functor_Spec : AVL_Functor<Data>
-  {
-    AVL_Functor_Spec(Delegate* dclass, void (Delegate::*funcptr)(Data)) : _dclass(dclass),_funcptr(funcptr) {}
-    virtual void BSS_FASTCALL Preform(Data data) const { (_dclass->*_funcptr)(data); }
-
-  protected:
-    Delegate* _dclass;
-    void (Delegate::*_funcptr)(Data);
-  };
-
   template<class Key, class Data>
   struct BSS_COMPILER_DLLEXPORT AVL_Node
   {
@@ -46,7 +31,7 @@ namespace bss_util {
     cAVLtree(Alloc* allocator=0) : cAllocTracker<Alloc>(allocator), _root(0) {}
     ~cAVLtree() { Clear(); }
     void Clear() { _clear(_root); _root=0; }
-    void Traverse(const AVL_Functor<Data>& lambda) { _traverse(lambda, _root); }
+    void Traverse(const Functor<void,Data>& lambda) { _traverse(lambda, _root); }
     void Traverse(void (*lambda)(Data)) { _traverse(lambda, _root); }
 
     inline cAVLtree& operator=(cAVLtree&& mov) { Clear(); _root=mov._root; mov._root=0; }
@@ -91,11 +76,11 @@ namespace bss_util {
     }
 
   protected:
-    static void BSS_FASTCALL _traverse(const AVL_Functor<Data>& lambda, AVL_Node<Key,Data>* node)
+    static void BSS_FASTCALL _traverse(const Functor<void,Data>& lambda, AVL_Node<Key,Data>* node)
     {
       if(!node) return;
       _traverse(lambda,node->_left);
-      lambda.Preform(node->_data);
+      lambda(node->_data);
       _traverse(lambda,node->_right);
     }
     static void BSS_FASTCALL _traverse(void (*lambda)(Data), AVL_Node<Key,Data>* node)

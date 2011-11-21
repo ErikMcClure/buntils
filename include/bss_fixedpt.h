@@ -75,10 +75,10 @@ namespace bss_util {
     inline FixedPt& BSS_FASTCALL operator*=(const FixedPt& right) { _bits=__FIXED_PT_FUNC<T,DBITS,SATURATE>::fixedpt_mul(_bits,right._bits); return *this; }
     inline FixedPt& BSS_FASTCALL operator/=(const FixedPt& right) { _bits=__FIXED_PT_FUNC<T,DBITS,SATURATE>::fixedpt_div(_bits,right._bits); return *this; }
     
-    inline FixedPt BSS_FASTCALL operator+(const FixedPt& right) const { return FixedPt(*this)+=right; }
-    inline FixedPt BSS_FASTCALL operator-(const FixedPt& right) const { return FixedPt(*this)-=right; }
-    inline FixedPt BSS_FASTCALL operator*(const FixedPt& right) const { return FixedPt(*this)*=right; }
-    inline FixedPt BSS_FASTCALL operator/(const FixedPt& right) const { return FixedPt(*this)/=right; }
+    inline const FixedPt BSS_FASTCALL operator+(const FixedPt& right) const { return FixedPt(*this)+=right; }
+    inline const FixedPt BSS_FASTCALL operator-(const FixedPt& right) const { return FixedPt(*this)-=right; }
+    inline const FixedPt BSS_FASTCALL operator*(const FixedPt& right) const { return FixedPt(*this)*=right; }
+    inline const FixedPt BSS_FASTCALL operator/(const FixedPt& right) const { return FixedPt(*this)/=right; }
     
     inline bool BSS_FASTCALL operator !=(const FixedPt& right) const { return _bits!=right._bits; }
     inline bool BSS_FASTCALL operator ==(const FixedPt& right) const { return _bits==right._bits; }

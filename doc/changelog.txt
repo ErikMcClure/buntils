@@ -12,8 +12,11 @@
 - Moved lockless functions from bss_util.h to lockless.h
 - Created bss_compiler.h and put in preliminary compiler detection.
 - Changed 32bit/64bit to specific architectures.
+- There is now a 64BIT flag that should be used only when you need to know the pointer size, not when using architecture specific assembly
 - cLocklessQueue is now cLocklessByteQueue
-- Adjusted cKhash
+- Adjusted cKhash, which now properly handles hash sets
+- cAVL_Tree now uses standard old-style functors
+- Fixed fsmall and added dsmall
 
 0.3.81
 ------

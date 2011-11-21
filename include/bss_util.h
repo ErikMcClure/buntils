@@ -249,11 +249,17 @@ BSS_COMPILER_DLLEXPORT extern void BSS_FASTCALL SetWorkDirToCur(); //Sets the wo
 	}
 
   /* This determines if a float is sufficiently close to 0 */
-  inline bool BSS_FASTCALL fsmall(float f, int maxtolerance=-20)
+  inline bool BSS_FASTCALL fsmall(float f, float eps=1.192092896e-07F)
   {
-    __int32 i = *(__int32*)(&f);
-    int check = ((0x7F800000&i)>>23)-127;
-    return ((!check) && (!(i&0x007FFF80)))||(check<maxtolerance);
+    unsigned __int32 i=((*((unsigned __int32*)&f))&0x7FFFFFFF); //0x7FFFFFFF strips off the sign bit (which is always the highest bit)
+    return (*((float*)&i))<eps; 
+  }
+
+  /* This determines if a double is sufficiently close to 0 */
+  inline bool BSS_FASTCALL dsmall(double f, double eps=2.2204460492503131e-016F)
+  {
+    unsigned __int64 i=((*((unsigned __int64*)&f))&0x7FFFFFFFFFFFFFFF); //0x7FFFFFFFFFFFFFFF strips off the sign bit (which is always the highest bit)
+    return (*((double*)&i))<eps; 
   }
 
   /* This is a super fast length approximation for 2D coordinates; See http://www.azillionmonkeys.com/qed/sqroot.html for details (Algorithm by Paul Hsieh) */

@@ -85,7 +85,7 @@ namespace bss_util {
       memcpy(_array+oldsize,add._array,add._size*sizeof(T));
       return *this;
     }
-    inline cArraySimple<T,SizeType> operator +(const cArraySimple<T,SizeType>& add)
+    inline const cArraySimple<T,SizeType> operator +(const cArraySimple<T,SizeType>& add)
     {
       cArraySimple<T,SizeType> retval(*this);
       retval+=add;
@@ -203,7 +203,7 @@ namespace bss_util {
       _size=nsize;
       return *this;
     }
-    inline cArrayConstruct<T,SizeType> operator +(const cArrayConstruct<T,SizeType>& add)
+    inline const cArrayConstruct<T,SizeType> operator +(const cArrayConstruct<T,SizeType>& add)
     {
       cArrayConstruct<T,SizeType> retval(*this);
       retval+=add;
@@ -323,7 +323,7 @@ namespace bss_util {
       _size=nsize;
       return *this;
     }
-    inline cArraySafe<T,SizeType> operator +(const cArraySafe<T,SizeType>& add)
+    inline const cArraySafe<T,SizeType> operator +(const cArraySafe<T,SizeType>& add)
     {
       cArrayConstruct<T,SizeType> retval(*this);
       retval+=add;
@@ -367,7 +367,7 @@ namespace bss_util {
     //inline cArrayWrap& operator=(const __AT& copy) { __AT::operator=(copy); return *this; }
     inline cArrayWrap& operator=(__AT&& mov) { __AT::operator=(std::move(mov)); return *this; }
     inline cArrayWrap& operator +=(const __AT& add) { __AT::operator+=(add); return *this; }
-    inline cArrayWrap operator +(const __AT& add) { cArrayWrap r(*this); return (r+=add); }
+    inline const cArrayWrap operator +(const __AT& add) { cArrayWrap r(*this); return (r+=add); }
   };
 }
 

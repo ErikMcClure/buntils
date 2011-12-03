@@ -1,21 +1,22 @@
 // Copyright ©2011 Black Sphere Studios
 // For conditions of distribution and use, see copyright notice in "bss_util.h"
 
-#ifndef __C_LOCKLESS_QUEUE_H__BSS__
-#define __C_LOCKLESS_QUEUE_H__BSS__
+#ifndef __C_LOCKLESS_BYTE_QUEUE_H__BSS__
+#define __C_LOCKLESS_BYTE_QUEUE_H__BSS__
 
 #include "bss_util.h"
 #include <stdio.h>
 #include <utility>
 #include <stdlib.h>
+#include "lockless.h"
 
 namespace bss_util {
   /* This provides lockless queue functionality for two interacting threads using an expandable circular buffer */
-  class __declspec(dllexport) cLocklessQueue
+  class BSS_COMPILER_DLLEXPORT cLocklessByteQueue
   {
   public:
-    inline explicit cLocklessQueue(unsigned int startsize);
-    inline ~cLocklessQueue();
+    inline explicit cLocklessByteQueue(unsigned int startsize);
+    inline ~cLocklessByteQueue();
     inline std::pair<void*,unsigned int> ReadNextChunk(); //This will return chunk after consecutive chunk until there are none left, at which point it will return null. Each successive call will set the previous chunk as read.
     inline void FinishRead(); //Automatically called by ReadNextChunk()
     inline void* StartWrite(unsigned int size);
@@ -39,7 +40,7 @@ namespace bss_util {
     char* _endmemread; //read pointer to end of current buffer
   };
 
-  cLocklessQueue::cLocklessQueue(unsigned int startsize)
+  cLocklessByteQueue::cLocklessByteQueue(unsigned int startsize)
   {
     _mem=(char*)malloc(startsize+(sizeof(char*)*2));
     _size=startsize+sizeof(char*);
@@ -55,7 +56,7 @@ namespace bss_util {
     //_mem=*((char**)_readbuf);
   }
 
-  cLocklessQueue::~cLocklessQueue()
+  cLocklessByteQueue::~cLocklessByteQueue()
   {
     Clear(); //gets rid of any lingering read buffer
     free((void*)(_mem-=sizeof(char*)));
@@ -68,7 +69,7 @@ namespace bss_util {
       return std::pair<void*,unsigned int>((void*)0,0); \
     }
 
-  std::pair<void*,unsigned int> cLocklessQueue::ReadNextChunk()
+  std::pair<void*,unsigned int> cLocklessByteQueue::ReadNextChunk()
   {
     if(!_endread) _endread=_nextwrite; //if we haven't sampled _nextwrite yet we need to do so
     else FinishRead(); //otherwise we have a read to finish
@@ -96,7 +97,7 @@ namespace bss_util {
 
     return std::pair<void*,unsigned int>((void*)(prev+sizeof(char*)),(_readbuf-prev)-sizeof(char*)); //or if we haven't return this as another chunk to read
   }
-  inline void cLocklessQueue::FinishRead()
+  inline void cLocklessByteQueue::FinishRead()
   {
     if(_readbuf!=0) {
       asmcas<char*>(&_readstart,_readbuf,_readstart);
@@ -105,7 +106,7 @@ namespace bss_util {
     }
   }
 
-  inline void* cLocklessQueue::StartWrite(unsigned int size)
+  inline void* cLocklessByteQueue::StartWrite(unsigned int size)
   {
     char* readptr = _readstart;
     char* retval=_nextwrite; //_nextwrite has already been verified and evaluated
@@ -141,13 +142,13 @@ namespace bss_util {
 
     return (void*)retval;
   }
-  void cLocklessQueue::FinishWrite()
+  void cLocklessByteQueue::FinishWrite()
   {
     asmcas<char*>(&_nextwrite,_writebuf,_nextwrite);
     //_nextwrite=_writebuf;
     assert(_nextwrite==_writebuf);
   }
-  void cLocklessQueue::Clear() //This does not even try to be atomic in any way.
+  void cLocklessByteQueue::Clear() //This does not even try to be atomic in any way.
   {
     while(ReadNextChunk().first); //Forces a read to the write spot, clearing all hanging buffers
 
@@ -162,7 +163,7 @@ namespace bss_util {
     _curmemread=_mem;
     _endmemread=_memend;
   }
-  inline void cLocklessQueue::_expand(unsigned int minsize)
+  inline void cLocklessByteQueue::_expand(unsigned int minsize)
   {
     _size*=2;
     if(_size<minsize) _size=minsize;
@@ -173,7 +174,7 @@ namespace bss_util {
     _mem+=sizeof(char*);
   }
 
-  inline bool cLocklessQueue::DEBUGVERIFY() const
+  inline bool cLocklessByteQueue::DEBUGVERIFY() const
   {
     DEBUGDUMP("dump.txt");
     char* start=_curmemread;
@@ -190,7 +191,7 @@ namespace bss_util {
     return false;
   }
 
-  inline void cLocklessQueue::DEBUGDUMP(const char* file) const
+  inline void cLocklessByteQueue::DEBUGDUMP(const char* file) const
   {
     FILE* f;
     fopen_s(&f,file,"w");

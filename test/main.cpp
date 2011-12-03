@@ -30,6 +30,7 @@
 #include "cAutoPtr.h"
 #include "bss_fixedpt.h"
 #include "cKhash.h"
+#include "cRational.h"
 
 #define BOOST_FILESYSTEM_VERSION 3
 //#define BOOST_ALL_NO_LIB
@@ -190,8 +191,27 @@ const char* FAKESTRINGLIST[5] = { "FOO", "BAR", "MEH", "SILLY", "EXACERBATION" }
 
 int main(int argc, char** argv)
 {  
+  //cRational<int> tr(1,10);
+  //cRational<int> tr2(1,11);
+  //cRational<int> tr3(tr+tr2);
+  //tr3=(tr-tr2);
+  //tr3=(tr*tr2);
+  //tr3=(tr/tr2);
+  //tr3=(tr+3);
+  //tr3=(tr-3);
+  //tr3=(tr*3);
+  //tr3=(tr/3);
+  //bool ttb=tr<3;
+  //ttb=tr>3;
+  //ttb=tr<tr2;
+  //ttb=tr>tr2;
+  //ttb=tr==3;
+  //ttb=tr!=3;
+  //ttb=tr==tr2;
+  //ttb=tr!=tr2;
+
   //bool chk = fsmall(1);
-  //bool chk2 = dsmall(1/900000000000000.0);
+  //bool chk2 = dsmall(-1/900000000000000.0);
 
   //{
   //cKhash<int, char,false,KH_INT_HASHFUNC,KH_INT_EQUALFUNC<int>,KH_INT_VALIDATEPTR<int>> hashtest;

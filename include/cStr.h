@@ -236,19 +236,19 @@ inline cStrT<_Elem,_Alloc> operator+(const _Elem _Left,const cStrT<_Elem,_Alloc>
 	{	cStrT<_Elem,_Alloc> _Ans(1+_Right.size()); _Ans += _Left; return (_Ans += _Right); }
 template<class _Elem, class _Alloc> // return string + string
 inline cStrT<_Elem,_Alloc> operator+(cStrT<_Elem,_Alloc>&& _Left,const cStrT<_Elem,_Alloc>& _Right)
-	{	_Left.append(_Right); return (_STD move()); } //These operations are moved to the left because they return a basic_string, not cStr
+	{	_Left.append(_Right); return (_STD move(_Left)); } //These operations are moved to the left because they return a basic_string, not cStr
 template<class _Elem, class _Alloc> // return NTCS + string
 inline cStrT<_Elem,_Alloc> operator+(const _Elem *_Left,cStrT<_Elem,_Alloc>&& _Right)
-	{	_Right.insert(0, _Left); return (_STD move()); }
+	{	_Right.insert(0, _Left); return (_STD move(_Right)); }
 template<class _Elem, class _Alloc> // return character + string
 inline cStrT<_Elem,_Alloc> operator+(const _Elem _Left,cStrT<_Elem,_Alloc>&& _Right)
-	{	_Right.insert(0, 1, _Left); return (_STD move()); }
+	{	_Right.insert(0, 1, _Left); return (_STD move(_Right)); }
 template<class _Elem, class _Alloc> // return string + NTCS
 inline cStrT<_Elem,_Alloc> operator+(cStrT<_Elem,_Alloc>&& _Left,const _Elem *_Right)
-	{	_Left.append(_Right); return (_STD move());	}
+	{	_Left.append(_Right); return (_STD move(_Left));	}
 template<class _Elem, class _Alloc> // return string + character
 inline cStrT<_Elem,_Alloc> operator+(cStrT<_Elem,_Alloc>&& _Left,const _Elem _Right)
-	{	_Left.append(1, _Right); return (_STD move()); }
+	{	_Left.append(1, _Right); return (_STD move(_Left)); }
 template<class _Elem, class _Alloc> // return string + string
 inline cStrT<_Elem,_Alloc> operator+(cStrT<_Elem,_Alloc>&& _Left,cStrT<_Elem,_Alloc>&& _Right)
 	{	

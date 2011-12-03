@@ -255,6 +255,7 @@
     <ClInclude Include="include\bss_Log.h" />
     <ClInclude Include="include\cArrayCircular.h" />
     <ClInclude Include="include\cLambdaStack.h" />
+    <ClInclude Include="include\cRational.h" />
     <ClInclude Include="include\cRBT_List.h" />
     <ClInclude Include="include\bss_util_c.h" />
     <ClInclude Include="include\cLinkedArray.h" />

@@ -17,6 +17,8 @@
 - Adjusted cKhash, which now properly handles hash sets
 - cAVL_Tree now uses standard old-style functors
 - Fixed fsmall and added dsmall
+- VERSION_INFO.Patch is now VERSION_INFO.Revision
+- test.exe is now a comprehensive set of unit tests
 
 0.3.81
 ------

@@ -24,12 +24,12 @@
 #include <memory.h>
 
 namespace bss_util { 
-  static const VersionType BSSUTIL_VERSION = { 0,3,82 }; //Returns the current time zone difference from UTC in minutes
+  static const VersionType BSSUTIL_VERSION = { 0,3,82 };
   
-BSS_COMPILER_DLLEXPORT extern void BSS_FASTCALL SetWorkDirToCur(); //Sets the working directory to the actual goddamn location of the EXE instead of the freaking start menu, or possibly the desktop. The possibilities are endless! Fuck you, windows.
+  BSS_COMPILER_DLLEXPORT extern void BSS_FASTCALL SetWorkDirToCur(); //Sets the working directory to the actual goddamn location of the EXE instead of the freaking start menu, or possibly the desktop. The possibilities are endless! Fuck you, windows.
   BSS_COMPILER_DLLEXPORT extern unsigned long long BSS_FASTCALL bssFileSize(const char* path);
   BSS_COMPILER_DLLEXPORT extern unsigned long long BSS_FASTCALL bssFileSize(const wchar_t* path);
-  BSS_COMPILER_DLLEXPORT extern long BSS_FASTCALL GetTimeZoneMinutes();
+  BSS_COMPILER_DLLEXPORT extern long BSS_FASTCALL GetTimeZoneMinutes(); //Returns the current time zone difference from UTC in minutes
 
   //Useful numbers
   const double PI = 3.141592653589793238462643383279;
@@ -38,7 +38,7 @@ BSS_COMPILER_DLLEXPORT extern void BSS_FASTCALL SetWorkDirToCur(); //Sets the wo
   const double E_CONST = 2.718281828459045235360287471352;
   const double SQRT_TWO = 1.414213562373095048801688724209;
 
-  /* Given the size of a type, lets you return the signed or unsigned equivelent */
+  /* Given the size of a type, lets you return the signed or unsigned integral equivelent */
   template<int bytes> struct TSignPick {};
   template<> struct TSignPick<1> { typedef char SIGNED; typedef unsigned char UNSIGNED; };
   template<> struct TSignPick<2> { typedef __int16 SIGNED; typedef unsigned __int16 UNSIGNED; };

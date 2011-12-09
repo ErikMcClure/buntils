@@ -18,7 +18,7 @@ struct VersionType
     struct {
       unsigned char Major;
       unsigned char Minor;
-      unsigned short Patch;
+      unsigned short Revision;
     };
     unsigned __int32 Version;
   };

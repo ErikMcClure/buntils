@@ -3,34 +3,50 @@
 
 #include "Shiny.h"
 #include "bss_util.h"
-#include "cAVLtree.h"
 #include "BSS_DebugInfo.h"
-#include "cINIstorage.h"
-#include <time.h>
-#include "cStrTable.h"
-#include "cMap.h"
-#include "cSparseArray.h"
-#include <sstream>
-#include "os.h"
-#include "cTaskStack.h"
-#include "cThread.h"
-#include "cLinkedList.h"
-#include "cArraySimple.h"
-#include "cObjSwap.h"
-#include "cPriorityQueue.h"
-#include "bss_win32_includes.h"
-//#include "leaktest.h"
-#include "cLinkedArray.h"
 #include "bss_alloc_additive.h"
 #include "bss_alloc_fixed.h"
-//#include "cTAATree.h"
-#include <fstream>
-#include "cRBT_List.h"
-#include "cBSS_Stack.h"
-#include "cAutoPtr.h"
+#include "bss_deprecated.h"
 #include "bss_fixedpt.h"
+#include "bss_win32_includes.h"
+#include "cArrayCircular.h"
+#include "cAutoPtr.h"
+#include "cAVLtree.h"
+#include "cBinaryHeap.h"
+#include "cBitArray.h"
+#include "cBitField.h"
+#include "cBSS_Stack.h"
+#include "cByteQueue.h"
+#include "cCmdLineArgs.h"
+#include "cDef.h"
+#include "cHighPrecisionTimer.h"
+#include "cHolder.h"
+#include "cINIstorage.h"
 #include "cKhash.h"
+#include "cLambdaStack.h"
+#include "cLinkedArray.h"
+#include "cLinkedList.h"
+#include "cLocklessByteQueue.h"
+#include "cMap.h"
+#include "cMutex.h"
+#include "cObjSwap.h"
+#include "cPriorityQueue.h"
 #include "cRational.h"
+#include "cRBT_List.h"
+#include "cRefCounter.h"
+//#include "cSettings.h"
+#include "cSingleton.h"
+#include "cSparseArray.h"
+#include "cStr.h"
+#include "cStrTable.h"
+//#include "cTAATree.h"
+#include "cTaskStack.h"
+#include "cThread.h"
+#include "cVect.h"
+#include "functor.h"
+//#include "leaktest.h"
+#include "lockless.h"
+#include "StreamSplitter.h"
 
 #define BOOST_FILESYSTEM_VERSION 3
 //#define BOOST_ALL_NO_LIB
@@ -39,6 +55,124 @@
 //#include <boost/filesystem.hpp>
 
 using namespace bss_util;
+
+#define BEGINTEST unsigned int pass=0
+#define ENDTEST return pass
+#define TEST(t) try { if(t) ++pass; } catch(...) { }
+#define TESTERROR(t, e) try { t; } catch(e) { ++pass; }
+#define TESTERROR(t) TESTERROR(t,...)
+#define TESTNOERROR(t) try { t; ++pass; } catch(..) { }
+
+struct TEST
+{
+  const char* NAME;
+  unsigned int NUMTESTS;
+  unsigned int (*FUNC)();
+};
+
+unsigned int test_bss_util()
+{
+  BEGINTEST;
+  TESTNOERROR(SetWorkDirToCur());
+  char 
+  GetModuleFileNameA(0,
+  TEST(bssFileSize()!=0);
+  TEST(bssFileSize()!=0);
+  TESTNOERROR(GetTimeZoneMinutes());
+  ENDTEST;
+}
+
+unsigned int test_bss_DEBUGINFO()
+{
+  BEGINTEST;
+  ENDTEST;
+}
+
+unsigned int test_bss_ALLOC_ADDITIVE_FIXED()
+{
+  BEGINTEST;
+  ENDTEST;
+}
+unsigned int test_bss_ALLOC_ADDITIVE_VARIABLE()
+{
+  BEGINTEST;
+  ENDTEST;
+}
+unsigned int test_bss_ALLOC_FIXED_SIZE()
+{
+  BEGINTEST;
+  ENDTEST;
+}
+unsigned int test_bss_ALLOC_FIXED_CHUNK()
+{
+  BEGINTEST;
+  ENDTEST;
+}
+unsigned int test_bss_deprecated()
+{
+  BEGINTEST;
+  ENDTEST;
+}
+
+unsigned int test_bss_FIXEDPT()
+{
+  BEGINTEST;
+  ENDTEST;
+}
+
+unsigned int test_ARRAY_CIRCULAR()
+{
+  BEGINTEST;
+  ENDTEST;
+}
+unsigned int test_AUTOPTR()
+{
+  BEGINTEST;
+  ENDTEST;
+}
+unsigned int test_AVLTREE()
+{
+  BEGINTEST;
+  ENDTEST;
+}
+
+int main(int argc, char** argv)
+{
+  const unsigned int NUMTESTS=2;
+
+  TEST tests[NUMTESTS] = {
+    { "bss_util.h", 4, &test_bss_util },
+    { "FOOBAR", 1000, &fake },
+  };
+
+  std::cout << "Black Sphere Studios - Utility Library v." << (uint)BSSUTIL_VERSION.Major << '.' << (uint)BSSUTIL_VERSION.Minor << '.' <<
+    (uint)BSSUTIL_VERSION.Revision << ": Unit Tests\nCopyright (c)2011 Black Sphere Studios\n" << std::endl;
+  const int COLUMNS[3] = { 24, 11, 8 };
+  printf("%-*s %-*s %-*s\n",COLUMNS[0],"Test Name", COLUMNS[1],"Subtests", COLUMNS[2],"Pass/Fail");
+
+  unsigned int numpassed;
+  std::vector<uint> failures;
+  for(uint i = 0; i < NUMTESTS; ++i)
+  {
+    numpassed=tests[i].FUNC();
+    if(numpassed!=tests[i].NUMTESTS) failures.push_back(i);
+
+    printf("%-*s %*s %-*s\n",COLUMNS[0],tests[i].NAME, COLUMNS[1],cStr("%u/%u",numpassed,tests[i].NUMTESTS).String(), COLUMNS[2],(numpassed==tests[i].NUMTESTS)?"PASS":"FAIL");
+  }
+
+  if(failures.empty())
+    std::cout << "\nAll tests passed successfully!" << std::endl;
+  else
+  {
+    std::cout << "\nThe following tests failed: " << std::endl;
+    for (uint i = 0; i < failures.size(); i++)
+      std::cout << "  " << tests[failures[i]].NAME << std::endl;
+    std::cout << "\nThese failures indicate either a misconfiguration on your system, or a potential bug. Please report all bugs to http://code.google.com/p/bss-util/issues/list" << std::endl;
+  }
+
+  std::cout << "\nPress Enter to exit the program." << std::endl;
+  cin.get();
+}
 
 void destroynode(std::pair<int,int>* data)
 {
@@ -189,7 +323,7 @@ int DEBUG_CDT::count=0;
 
 const char* FAKESTRINGLIST[5] = { "FOO", "BAR", "MEH", "SILLY", "EXACERBATION" };
 
-int main(int argc, char** argv)
+int main3(int argc, char** argv)
 {  
   //cRational<int> tr(1,10);
   //cRational<int> tr2(1,11);
@@ -554,7 +688,7 @@ int main(int argc, char** argv)
   cStrTable<wchar_t> wcstable(WCSTESTSTRINGS,6);
   cStrTable<wchar_t,char> mbstable2(WCSTESTSTRINGS,6);
   
-  const wchar_t* stv = mbstable.GetString(0);
+  /*const wchar_t* stv = mbstable.GetString(0);
   stv = mbstable.GetString(4);
   mbstable+=mbstable2;
   stv = mbstable.GetString(4);
@@ -567,7 +701,8 @@ int main(int argc, char** argv)
   cStrTable<wchar_t> ldtable(&fs,bssFileSize("dump.txt"));
   stv = ldtable.GetString(4);
   stv = ldtable.GetString(11);
-  return 0;
+  return 0;*/
+
   //srand(433005251);
   //int length=sizeof(string)-1;
   //cStr cur;

@@ -34,10 +34,10 @@
 //Usage: #pragma message(TODO "Clean up code here")
 
 #ifndef RANDFLOATGEN
-#define RANDFLOATGEN(min,max) ((max - min) * (double)rand()/(double)RAND_MAX + min)
+#define RANDFLOATGEN(min,max) (((max) - (min)) * (double)rand()/(double)RAND_MAX + (min))
 #endif
 #ifndef RANDINTGEN
-#define RANDINTGEN(min,max) (min+(rand()%(max-min)))
+#define RANDINTGEN(min,max) ((min)+(rand()%((max)-(min))))
 #endif
 #ifndef RANDBOOLGEN
 #define RANDBOOLGEN() (rand()>(RAND_MAX>>1))

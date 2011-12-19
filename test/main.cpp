@@ -61,7 +61,7 @@ using namespace bss_util;
 #define TEST(t) try { if(t) ++pass; } catch(...) { }
 #define TESTERROR(t, e) try { t; } catch(e) { ++pass; }
 #define TESTERROR(t) TESTERROR(t,...)
-#define TESTNOERROR(t) try { t; ++pass; } catch(..) { }
+#define TESTNOERROR(t) try { t; ++pass; } catch(...) { }
 
 struct TEST
 {
@@ -74,10 +74,10 @@ unsigned int test_bss_util()
 {
   BEGINTEST;
   TESTNOERROR(SetWorkDirToCur());
-  char 
-  GetModuleFileNameA(0,
-  TEST(bssFileSize()!=0);
-  TEST(bssFileSize()!=0);
+  char fbuf[MAX_PATH];
+  GetModuleFileNameA(0,fbuf,MAX_PATH);
+  TEST(bssFileSize(fbuf)!=0);
+  TEST(bssFileSize(cStrW(fbuf))!=0);
   TESTNOERROR(GetTimeZoneMinutes());
   ENDTEST;
 }
@@ -142,7 +142,7 @@ int main(int argc, char** argv)
 
   TEST tests[NUMTESTS] = {
     { "bss_util.h", 4, &test_bss_util },
-    { "FOOBAR", 1000, &fake },
+    { "FOOBAR", 1000, &test_bss_DEBUGINFO },
   };
 
   std::cout << "Black Sphere Studios - Utility Library v." << (uint)BSSUTIL_VERSION.Major << '.' << (uint)BSSUTIL_VERSION.Minor << '.' <<
@@ -996,7 +996,7 @@ int main3(int argc, char** argv)
     int ascii = 0;
     int* cache = new int[roman.length()];
 
-    for (int i = 0; i < roman.length(); i++) {
+    for (uint i = 0; i < roman.length(); i++) {
         ascii = int(toupper(roman[i]));
 
         switch (ascii) {
@@ -1031,7 +1031,7 @@ int main3(int argc, char** argv)
         return (cache[0]);
     }
 
-    for (int i = 0; i < (roman.length() - 1); i++) {
+    for (uint i = 0; i < (roman.length() - 1); i++) {
         if (cache[i] >= cache[i + 1]) {
             total += cache[i];
         } else {

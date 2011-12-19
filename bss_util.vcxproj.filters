@@ -260,6 +260,9 @@
     <ClInclude Include="include\cRational.h">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="include\cIntervalTree.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <None Include="cINIstorage.inl">

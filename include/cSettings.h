@@ -123,12 +123,12 @@ namespace bss_util {
   template<typename C>
   struct cSetting_INISAVE<unsigned char,C> {
     inline static void INISave(cINIstorage<C>& ini, unsigned char v, const C* name, const C* section)
-    { char s[4]; itoa((int)v,s,10); if(name!=0) { ini.EditAddEntry(section,name,s); } }
+    { char s[4]; ITOA((int)v,s,10); if(name!=0) { ini.EditAddEntry(section,name,s); } }
   };
   template<typename C>
   struct cSetting_INISAVE<char,C> {
     inline static void INISave(cINIstorage<C>& ini, char v, const C* name, const C* section)
-    { char s[4]; itoa((int)v,s,10); if(name!=0) { ini.EditAddEntry(section,name,s); } }
+    { char s[4]; ITOA((int)v,s,10); if(name!=0) { ini.EditAddEntry(section,name,s); } }
   };
   template<typename C>
   struct cSetting_INISAVE<std::vector<cStrT<C>>,C> {

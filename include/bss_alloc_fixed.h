@@ -190,7 +190,7 @@ namespace bss_util {
   public:
     cFixedChunkAlloc() : _freelist(0), _root(0)
     {
-      assert(sizeof(T)>=sizeof(void*));
+		  static_assert((sizeof(T)>=sizeof(void*)),"T cannot be less than the size of a pointer");
       _allocchunk(init*sizeof(T));
     }
     ~cFixedChunkAlloc()

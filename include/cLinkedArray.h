@@ -88,7 +88,7 @@ namespace bss_util {
     }
     inline __ST Size() const { return _length; }
     inline void BSS_FASTCALL Reserve(__ST size) { if(size<_ref.Size()) return; __ST hold=_ref.Size(); _ref.SetSize(size); _setupchunk(hold); }
-    inline void Clear() { _start=_end=-1; _length=_freelist=0; }
+    inline void Clear() { _freelist=_start=_end=-1; _length=0; _setupchunk(0); }
     inline void Next(__ST& ref) const { ref=_ref[ref].next; }
     inline void Prev(__ST& ref) const { ref=_ref[ref].prev; }
     inline __ST Start() const { return _start; }

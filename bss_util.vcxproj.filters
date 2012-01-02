@@ -116,9 +116,6 @@
     <ClInclude Include="include\cBitField.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="include\cBucketAlloc.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
     <ClInclude Include="include\cCmdLineArgs.h">
       <Filter>Header Files</Filter>
     </ClInclude>
@@ -261,6 +258,9 @@
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="include\cIntervalTree.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="include\cAliasTable.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>

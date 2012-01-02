@@ -269,7 +269,7 @@ namespace bss_util {
     y = abs(y);
     //(1 + 1/(4-2*sqrt(2)))/2 = 0.92677669529663688
     float hold=0.7071067811865475f*(x+y), mval=(x > y)?x:y;
-    return 0.92677669529663688f * (hold > mval)?hold:mval;
+    return 0.92677669529663688f * ((hold > mval)?hold:mval);
   }
 
   /* The classic fast square root approximation, which is often mistakenly attributed to John Carmack. The algorithm is in fact over 15 years old and no one knows where it came from. */

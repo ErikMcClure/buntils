@@ -365,7 +365,7 @@ cINIsection<CHAR>::cINIsection(cINIsection&& mov) : _name(std::move(mov._name)),
 {
 }
 template<>
-cINIsection<CHAR>::cINIsection() : _parent(0)
+cINIsection<CHAR>::cINIsection() : _parent(0), _index(-1)
 {
 }
 template<>

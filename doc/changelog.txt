@@ -19,6 +19,7 @@
 - Fixed fsmall and added dsmall
 - VERSION_INFO.Patch is now VERSION_INFO.Revision
 - test.exe is now a comprehensive set of unit tests
+- cAutoPtr.h now modifies unique_ptr to be easier to use (this can be turned off)
 
 0.3.81
 ------

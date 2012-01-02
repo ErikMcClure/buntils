@@ -253,6 +253,7 @@
     <ClInclude Include="include\bss_compiler.h" />
     <ClInclude Include="include\bss_fixedpt.h" />
     <ClInclude Include="include\bss_Log.h" />
+    <ClInclude Include="include\cAliasTable.h" />
     <ClInclude Include="include\cArrayCircular.h" />
     <ClInclude Include="include\cIntervalTree.h" />
     <ClInclude Include="include\cLambdaStack.h" />
@@ -282,7 +283,6 @@
     <ClInclude Include="include\cBinaryHeap.h" />
     <ClInclude Include="include\cBitArray.h" />
     <ClInclude Include="include\cBitField.h" />
-    <ClInclude Include="include\cBucketAlloc.h" />
     <ClInclude Include="include\cCmdLineArgs.h" />
     <ClInclude Include="include\cDef.h" />
     <ClInclude Include="include\cHighPrecisionTimer.h" />

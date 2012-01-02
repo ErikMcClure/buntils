@@ -19,7 +19,6 @@
 #include "cByteQueue.h"
 #include "cCmdLineArgs.h"
 #include "cDef.h"
-#include "cHighPrecisionTimer.h"
 #include "cHolder.h"
 #include "cINIstorage.h"
 #include "cKhash.h"
@@ -47,6 +46,8 @@
 //#include "leaktest.h"
 #include "lockless.h"
 #include "StreamSplitter.h"
+
+#include <fstream>
 
 #define BOOST_FILESYSTEM_VERSION 3
 //#define BOOST_ALL_NO_LIB
@@ -85,6 +86,38 @@ unsigned int test_bss_util()
 unsigned int test_bss_DEBUGINFO()
 {
   BEGINTEST;
+  std::stringstream ss;
+  std::wfstream fs;
+  std::wstringstream wss;
+  fs.open(L"黑色球体工作室.log");
+  auto tf = [&](BSS_DebugInfo& di) {
+    TEST(di.CloseProfiler(di.OpenProfiler()) < 500000);
+    TEST(cStrW(di.GetModulePath(0)).compare(di.GetModulePathW(0))==0);
+    TEST(di.GetProcMemInfo()!=0);
+    TEST(GetWorkingSet()!=0);
+    TESTNOERROR(di.ClearProfilers());
+    di.OpenProfiler();
+    TESTNOERROR(di.ClearProfilers());
+    double d=di.GetDelta();
+    double t=di.GetTime();
+
+    ss.clear();
+    fs.clear();
+    wss.clear();
+    di.AddTarget(wss);
+
+    di << "黑色球体工作室";
+    di << "Black Sphere Studios";
+    di.ClearTargets();
+    di << "黑色球体工作室";
+  }
+
+  BSS_DebugInfo a(L"黑色球体工作室.txt",&s); //Supposedly 黑色球体工作室 is Black Sphere Studios in Chinese, but the literal translation appears to be Black Ball Studio. Oh well.
+  BSS_DebugInfo b("logtest.txt",&fs);
+  BSS_DebugInfo c();
+  tf(a);
+  tf(b);
+  tf(c);
   ENDTEST;
 }
 
@@ -142,7 +175,7 @@ int main(int argc, char** argv)
 
   TEST tests[NUMTESTS] = {
     { "bss_util.h", 4, &test_bss_util },
-    { "FOOBAR", 1000, &test_bss_DEBUGINFO },
+    { "FOOBAR", 24, &test_bss_DEBUGINFO },
   };
 
   std::cout << "Black Sphere Studios - Utility Library v." << (uint)BSSUTIL_VERSION.Major << '.' << (uint)BSSUTIL_VERSION.Minor << '.' <<

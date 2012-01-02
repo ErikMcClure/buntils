@@ -10,7 +10,7 @@
 #define UqP_ std::unique_ptr
 
 template<typename T, typename D>
-const std::unique_ptr<T,D> & operator<<(std::unique_ptr<T,D>& l, T* r) { return (l = std::unique_ptr<T,D>(r)); }
+const std::unique_ptr<T,D>& operator<<(std::unique_ptr<T,D>& l, typename std::unique_ptr<T,D>::pointer r) { return (l = std::unique_ptr<T,D>(r)); }
 #endif
 
 namespace bss_util

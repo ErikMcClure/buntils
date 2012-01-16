@@ -17,12 +17,19 @@ namespace bss_util {
 
   /* Public node prohibiting manipulation of pointers, has the same bit layout as the internal node */
   template<typename T>
-  struct cLLPNode : LLBase<cLLPNode<T>> 
+  struct cLLPNode : private LLBase<cLLPNode<T>> 
   {
     cLLPNode(const cLLNode<T>& copy) : item(copy.item) { next=(cLLPNode<T>*)copy.next; prev=(cLLPNode<T>*)copy.prev; }
     T item;
     inline cLLPNode<T>* GetNext() { return next; }
     inline cLLPNode<T>* GetPrev() { return prev; }
+  };
+  
+  /* Const node prohibiting manipulation of everything, has the same bit layout as the internal node */
+  template<typename T>
+  struct cLLCNode : LLBase<cLLCNode<const T>> 
+  {
+    T item;
   };
 
   /* Adaptive class template for Size usage */

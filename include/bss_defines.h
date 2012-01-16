@@ -52,9 +52,10 @@
 
 #define SAFESHIFT(v,s) ((s>0)?(v<<s):(v>>(-s))) //positive number shifts left, negative number shifts right, prevents undefined behavior.
 #define VARCLAMP(var,max,min) ((var>max)?(max):((var<min)?(min):(var)))
-#define T_GETBIT(type, bit) ((type)(1<<((bit)%(sizeof(type)<<3))))
+#define T_GETBIT(type, bit) ((type)(1<<(((type)bit)%(sizeof(type)<<3))))
 //#define T_GETBITRANGE(type, low, high) ((type)((((2<<((high)-(low)))-1)<<(low))|(((2<<((high)-(low)))-1)>>(-(low)))|(((2<<((high)-(low)))-1)<<((low)%(sizeof(type)<<3)))))
 #define T_GETBITRANGE(type, low, high) ((type)(SAFESHIFT(((2<<((high)-(low)))-1),low)|(((2<<((high)-(low)))-1)<<((low)%(sizeof(type)<<3)))))
+#define MAKEVERSIONINT(major,minor,revision) ((major) + ((minor)<<8) + ((revision)<<16))
 
 //unsigned shortcuts
 #ifndef BSS_NOSHORTTYPES

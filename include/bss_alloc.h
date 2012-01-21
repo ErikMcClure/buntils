@@ -75,7 +75,11 @@ namespace bss_util {
 	}; 
 
 	template<typename T, typename Policy = StandardAllocPolicy<T>, typename Traits = ObjectTraits<T>>
+#ifndef BSS_DISABLE_CUSTOM_ALLOCATORS
 	class BSS_COMPILER_DLLEXPORT Allocator : public Policy, public Traits {
+#else
+	class BSS_COMPILER_DLLEXPORT Allocator : public StandardAllocPolicy<T>, public ObjectTraits<T> {
+#endif
 	private:
     typedef Policy AllocationPolicy;
     typedef Traits TTraits;

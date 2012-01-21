@@ -213,21 +213,26 @@ namespace bss_util {
       //assert(_validpointer(ret));
       return (T*)ret;
     }
-    //inline bool _validpointer(const void* p) const
-    //{
-    //  const FIXEDCHUNKLIST* hold=_root;
-    //  while(hold)
-    //  {
-    //    if(p>=hold->mem && p<(((unsigned char*)hold->mem)+hold->size))
-    //      return ((((char*)p)-((char*)hold->mem))%sizeof(T))==0; //the pointer should be an exact multiple of sizeof(T)
-    //    
-    //    hold=hold->next;
-    //  }
-    //  return false;
-    //}
+#if defined(DEBUG) || defined(_DEBUG)
+    inline bool _validpointer(const void* p) const
+    {
+      const FIXEDCHUNKLIST* hold=_root;
+      while(hold)
+      {
+        if(p>=hold->mem && p<(((unsigned char*)hold->mem)+hold->size))
+          return ((((char*)p)-((char*)hold->mem))%sizeof(T))==0; //the pointer should be an exact multiple of sizeof(T)
+        
+        hold=hold->next;
+      }
+      return false;
+    }
+#endif
 	  inline void BSS_FASTCALL dealloc(void* p)
     {
-      //assert(_validpointer(p));
+      assert(_validpointer(p));
+#if defined(DEBUG) || defined(_DEBUG)
+      memset(p,0xDEADBEEF,sizeof(T));
+#endif
       *((void**)p)=_freelist;
       _freelist=p;
     }

@@ -42,7 +42,20 @@ namespace bss_util {
       _curpos+=sizeof(T);
       return retval;
     }
-    inline void BSS_FASTCALL dealloc(void* p) {}
+    inline void BSS_FASTCALL dealloc(void* p)
+    {
+#if defined(DEBUG) || defined(_DEBUG)
+      AFLISTITEM* cur=_root;
+      bool found;
+      while(cur)
+      {
+        if(p>cur->mem && p<(cur->mem+cur->size)) { found=true; break; }
+        cur=cur->next;
+      }
+      assert(found);
+      memset(p,0xFEEEFEEE,sizeof(T));
+#endif
+    }
     inline void Clear()
     {
       _curpos=0;
@@ -135,7 +148,20 @@ namespace bss_util {
       _curpos+=_sz;
       return retval;
     }
-    inline void BSS_FASTCALL dealloc(void* p) {}
+    inline void BSS_FASTCALL dealloc(void* p)
+    {
+#if defined(DEBUG) || defined(_DEBUG)
+      AFLISTITEM* cur=_root;
+      bool found;
+      while(cur)
+      {
+        if(p>cur->mem && p<(cur->mem+cur->size)) { found=true; break; }
+        cur=cur->next;
+      }
+      assert(found);
+      //memset(p,0xFEEEFEEE,sizeof(T)); //No way to know how big this is
+#endif
+    }
     inline void Clear()
     {
       _curpos=0;

@@ -1,6 +1,7 @@
 ﻿// Copyright ©2011 Black Sphere Studios
 // For conditions of distribution and use, see copyright notice in "bss_util.h"
 
+//#define __NO_UNIQUE_MODIFY__
 #include "Shiny.h"
 #include "bss_util.h"
 #include "BSS_DebugInfo.h"
@@ -94,7 +95,7 @@ unsigned int test_bss_DEBUGINFO()
     TEST(di.CloseProfiler(di.OpenProfiler()) < 500000);
     TEST(cStrW(di.GetModulePath(0)).compare(di.GetModulePathW(0))==0);
     TEST(di.GetProcMemInfo()!=0);
-    TEST(GetWorkingSet()!=0);
+    TEST(di.GetWorkingSet()!=0);
     TESTNOERROR(di.ClearProfilers());
     di.OpenProfiler();
     TESTNOERROR(di.ClearProfilers());
@@ -106,15 +107,16 @@ unsigned int test_bss_DEBUGINFO()
     wss.clear();
     di.AddTarget(wss);
 
-    di << "黑色球体工作室";
-    di << "Black Sphere Studios";
+    di.GetStream() << "黑色球体工作室";
+    di.GetStream() << "Black Sphere Studios";
     di.ClearTargets();
-    di << "黑色球体工作室";
-  }
+    di.GetStream() << "黑色球体工作室";
+  };
 
-  BSS_DebugInfo a(L"黑色球体工作室.txt",&s); //Supposedly 黑色球体工作室 is Black Sphere Studios in Chinese, but the literal translation appears to be Black Ball Studio. Oh well.
-  BSS_DebugInfo b("logtest.txt",&fs);
-  BSS_DebugInfo c();
+  BSS_DebugInfo a(L"黑色球体工作室.txt",&ss); //Supposedly 黑色球体工作室 is Black Sphere Studios in Chinese, but the literal translation appears to be Black Ball Studio. Oh well.
+  BSS_DebugInfo b("logtest.txt");
+  b.AddTarget(fs);
+  BSS_DebugInfo c;
   tf(a);
   tf(b);
   tf(c);

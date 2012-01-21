@@ -45,7 +45,7 @@ namespace bss_util {
   template<typename T>
   inline void BSS_FASTCALL LLInsertAfter(T* node, T* target, T*& last)
   {
-		if (target->next != 0) y->next->prev = node;
+		if (target->next != 0) target->next->prev = node;
 		else last = node;
 		target->next = node;
   }
@@ -54,7 +54,7 @@ namespace bss_util {
   template<typename T>
   inline void BSS_FASTCALL LLInsertAfter(T* node, T* target)
   {
-		if (target->next != 0) y->next->prev = node;
+		if (target->next != 0) target->next->prev = node;
 		target->next = node;
   }
 

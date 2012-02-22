@@ -5,142 +5,126 @@
 #define __C_HEAP_H__BSS__
 
 #include "bss_compare.h"
+#include "cArraySimple.h"
+#include <memory>
 
 namespace bss_util {
-  /* This is a binary min-heap implemented using an array. Use CompareKeysInverse to change it into a max-heap */
-  template<class K, class D, char (*Compare)(const K& keyleft, const K& keyright)=CompareKeys<K>>
-  class BSS_COMPILER_DLLEXPORT cBinaryHeap
+  /* This is a binary min-heap implemented using an array. Use CompareKeysInverse to change it into a max-heap, or to make it use pairs. */
+  template<class T, typename __ST=unsigned int, char (*Compare)(const T& keyleft, const T& keyright)=CompareKeys<T>, typename ArrayType=cArraySimple<T,__ST>>
+  class BSS_COMPILER_DLLEXPORT cBinaryHeap : protected ArrayType
   {
   protected:
-    typedef std::pair<K,D> BINHEAP_CELL;
 #define CBH_PARENT(i) ((i-1)/2)
 #define CBH_LEFT(i) ((i<<1)+1)
 #define CBH_RIGHT(i) ((i<<1)+2)
 
   public:
-    inline cBinaryHeap() : _array((BINHEAP_CELL*)malloc(1)), _totalsize(0), _length(0) {}
-    inline ~cBinaryHeap()
-    {
-      free(_array);
-    }
-    inline void Insert(const K& key, D data)
+    inline cBinaryHeap(const cBinaryHeap& copy) : ArrayType(copy),_length(copy._length) {}
+    inline cBinaryHeap(cBinaryHeap&& mov) : ArrayType(std::move(mov)),_length(mov._length) { mov._length=0; }
+    inline cBinaryHeap() : ArrayType(0),_length(0) {}
+    inline cBinaryHeap(const T* src, __ST length) : ArrayType(length),_length(length) { memcpy(_array,src,sizeof(T)*_length); Heapify(_array,_length); }
+    template<__ST SIZE>
+    inline cBinaryHeap(const T (&src)[SIZE]) : ArrayType(SIZE),_length(SIZE) { memcpy(_array,src,sizeof(T)*_length); Heapify(_array,_length); }
+    inline ~cBinaryHeap() {}
+    inline const T& GetRoot() { return _array[0]; }
+    inline T PopRoot() { T r=_array[0]; Remove(0); return r; }
+    inline bool Empty() { return !_length; }
+    inline __ST Length() { return _length; }
+    inline void Insert(const T& val)
     {
       int k = _length;
-      if(_length >= _totalsize) Expand(!_totalsize?2:(_totalsize<<1));
-      ++_length;
-      _array[k].first=key;
-      _array[k].second=data;
-      PercolateUp(k);
-    }
-
-    inline const BINHEAP_CELL& GetRoot()
-    {
-      return _array[0];
-    }
-
-    inline bool Empty()
-    {
-      return !_length;
+      if(_length >= _size) SetSize(fbnext(_size));
+      PercolateUp(_array,_length,_length++,val);
     }
 
     /* Sets a key and percolates */
-    inline bool SetKey(size_t index, const K& key)
+    inline bool Set(__ST index, const T& val)
     {
       if(index>=_length) return false;
-      if(Compare(_array[index].first,key) >= 0) //in this case we percolate up
-      {
-        _array[index].first=key;
-        PercolateUp(index);
-      }
+      if(Compare(_array[index],val) >= 0) //in this case we percolate up
+        PercolateUp(_array,_length,index,val);
       else
-      {
-        _array[index].first=key;
-        PercolateDown(index);
-      }
+        PercolateDown(_array,_length,index,val);
       return true;
     }
-    /* Sets data on a node */
-    inline bool SetData(size_t index, D data)
-    {
-      if(index>=_length) return false;
-      _array[index].second=data;
-      return true;
-    }
-
     /* To remove a node, we replace it with the last item in the heap and then percolate down */
-    inline bool Remove(size_t index)
+    inline bool Remove(__ST index)
     {
       if(index>=_length) return false;
-      _array[index]=_array[--_length];
-      if(_length>0) PercolateDown(index);
+      --_length; //We don't have to copy _array[--_length] because it stays valid during the percolation
+      if(_length>0) //We can't percolate down if there's nothing in the array! 
+        PercolateDown(_array,_length,index,_array[_length]);
       return true;
     }
-
-    /* This allows you to check if a given value exists */
-    inline const BINHEAP_CELL* GetValue(size_t index)
-    {
-      return index<_length?&_array[index]:0;
-    }
-
+    
     /* Percolate up through the heap */
-    inline void PercolateUp(unsigned int k)
+    inline static void PercolateUp(T* _array, __ST _length, __ST k, const T& val)
     {
       assert(k<_length);
       unsigned int parent;
-      BINHEAP_CELL store=_array[k];
 
       while (k > 0) {
         parent = CBH_PARENT(k);
-        if(Compare(_array[parent].first,store.first) <= 0) break;
+        if(Compare(_array[parent],val) < 0) break;
         _array[k] = _array[parent];
         k = parent;
       }
-      _array[k]=store;
+      _array[k]=val;
     }
     /* Percolate down a heap */
-    inline void PercolateDown(unsigned int k)
+    inline static void PercolateDown(T* _array, __ST _length, __ST k, const T& val)
     {
       assert(k<_length);
-      unsigned int largest;
-      unsigned int left;
-      unsigned int right;
-      BINHEAP_CELL store=_array[k];
+      __ST i;
 
-      while(k<_length)
+	    for (i = CBH_RIGHT(k); i < _length; i = CBH_RIGHT(i))
       {
-        left=CBH_LEFT(k);
-        right=CBH_RIGHT(k);
-        largest=k;
-        if(left<_length && Compare(_array[left].first,store.first) <= 0) {
-          largest=left;
-
-          if(right<_length && Compare(_array[right].first,_array[largest].first) <= 0)
-            largest=right;
-        } else if(right<_length && Compare(_array[right].first,store.first) <= 0)
-          largest=right;
-        if(largest==k) break;
-        _array[k]=_array[largest];
-        k=largest;
+        if(Compare(_array[i-1],_array[i]) < 0) // Compare (left,right) and return true if left < right
+          --i; //left is smaller than right so pick that one
+        if(Compare(val,_array[i]) < 0)
+          break;
+        _array[k]=std::move(_array[i]);
+        k=i;
       }
-      _array[k]=store;
+      if(i >= _length && --i < _length && Compare(val,_array[i])>=0) //Check if left child is also invalid (can only happen at the very end of the array)
+      {
+        _array[k]=std::move(_array[i]);
+        k=i;
+      }
+      _array[k]=val;
     }
-    /* Expands to the given size. Size must be >= _totalsize */
-    inline void Expand(unsigned int size)
+    operator T*() { return _array; }
+    operator const T*() const { return _array; }
+    inline cBinaryHeap& operator=(const cBinaryHeap& copy) { _length=copy._length; ArrayType::operator=(copy); return *this; }
+    inline cBinaryHeap& operator=(cBinaryHeap&& mov) { _length=mov._length; ArrayType::operator=(std::move(mov)); mov._length=0; return *this; }
+
+    template<__ST SIZE>
+    inline static void Heapify(T (&src)[SIZE]) { Heapify(src,SIZE); }
+    inline static void Heapify(T* src, __ST length)
     {
-      assert(size>=_totalsize);
-      BINHEAP_CELL* narray=(BINHEAP_CELL*)malloc(size*sizeof(BINHEAP_CELL));
-      memcpy(narray,_array,sizeof(BINHEAP_CELL)*_length);
-      free(_array);
-      _array=narray;
-      _totalsize=size;
+      T store;
+      for(__ST i = length/2; i>0;)
+      {
+        store=src[--i];
+        PercolateDown(src,length,i,store);
+      }
     }
-    operator BINHEAP_CELL*() { return _array; }
-    operator const BINHEAP_CELL*() const { return _array; }
+    template<__ST SIZE>
+    inline static void HeapSort(T (&src)[SIZE]) { HeapSort(src,SIZE); }
+    inline static void HeapSort(T* src, __ST length)
+    {
+      Heapify(src,length);
+      T store;
+      while(length>1)
+      {
+        store=src[--length];
+        src[length]=src[0];
+        PercolateDown(src,length,0,store);
+      }
+    }
 
   protected:
-    BINHEAP_CELL* _array;
-    unsigned int _totalsize;
-    unsigned int _length; //amount of used cells
+    __ST _length; //amount of used cells
   };
 
     /* This will grab the value closest to K while that value is still greater then or equal to K */
@@ -179,6 +163,24 @@ namespace bss_util {
     //    //}
     //  }
     //}
+
+      /*while(k<_length)
+      {
+        left=CBH_LEFT(k);
+        right=CBH_RIGHT(k);
+        largest=k;
+        if(left<_length && Compare(_array[left].first,store.first) <= 0) {
+          largest=left;
+
+          if(right<_length && Compare(_array[right].first,_array[largest].first) <= 0)
+            largest=right;
+        } else if(right<_length && Compare(_array[right].first,store.first) <= 0)
+          largest=right;
+        if(largest==k) break;
+        _array[k]=_array[largest];
+        k=largest;
+      }
+      _array[k]=store;*/
 }
 
 #endif

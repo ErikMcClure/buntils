@@ -70,7 +70,8 @@ namespace bss_util {
   inline T BSS_FASTCALL GetBitMask(int low, int high) { return T_GETBITRANGE(T,low,high); }
 
   /* Replaces one character with another in a string */
-  inline char* BSS_FASTCALL strreplace(char* string, const char find, const char replace)
+  template<typename T>
+  inline char* BSS_FASTCALL strreplace(T* string, const T find, const T replace)
 	{
 		if(!string) return 0;
 		unsigned int curpos = (unsigned int)-1; //this will wrap around to 0 when we increment
@@ -81,18 +82,8 @@ namespace bss_util {
 
 		return string;
 	}
-  inline wchar_t* BSS_FASTCALL wcsreplace(wchar_t* string, const wchar_t find, const wchar_t replace)
-	{
-		if(!string) return 0;
-		unsigned int curpos = (unsigned int)-1; //this will wrap around to 0 when we increment
 
-		while(string[++curpos] != '\0') //replace until the null-terminator
-			if(string[curpos] == find)
-				string[curpos] = replace;
-
-		return string;
-	}
-
+  /* Counts number of occurences of character c in string, up to the null terminator */
   template<typename T>
   inline unsigned int BSS_FASTCALL strccount(T* string, T c)
   {
@@ -101,11 +92,12 @@ namespace bss_util {
     return ret;
   }
   
+  /* Counts number of occurences of character c in string, up to length characters */
   template<typename T>
   inline unsigned int BSS_FASTCALL strccount(T* string, unsigned int length, T c)
   {
     unsigned int ret=0;
-    for(unsigned int i = 0; i < length; ++i)
+    for(unsigned int i = 0; (i < length) && ((*string)!=0); ++i)
       if(string[i]==c) ++ret;
     return ret;
   }
@@ -119,6 +111,19 @@ namespace bss_util {
     q=std::move(h);
   }
   
+  /* Uses rswap to reverse the order of an array */
+  template<typename T>
+  inline void BSS_FASTCALL bssreverse(T* src, unsigned int length)
+  {
+    assert(length>0);
+    for(unsigned int i = 0,j=(--length); i < j; j=length-(++i)) // Equivelent to: for(unsigned int i = 0,j=length-1; i < j; j=length-1-(++i))
+      rswap(src[i],src[j]);
+  }
+  template<typename T, unsigned int size>
+  inline void BSS_FASTCALL bssreverse(T (&p)[size]) { bssreverse(p,size); }
+
+  /* Trims space from left end of string by returning a different pointer. It is possible to use const char or const wchar_t as a type
+     here because the string itself is not modified. */
   template<typename T>
   inline T* BSS_FASTCALL strltrim(T* str)
   {
@@ -126,6 +131,7 @@ namespace bss_util {
     return str;
   }
   
+  /* Trims space from right end of string by inserting a null terminator in the appropriate location */
   template<typename T>
   inline T* BSS_FASTCALL strrtrim(T* str)
   {
@@ -136,6 +142,7 @@ namespace bss_util {
     return str;
   }
 
+  /* Trims space from left and right ends of a string */
   template<typename T>
   inline T* BSS_FASTCALL strtrim(T* str)
   {
@@ -309,7 +316,7 @@ namespace bss_util {
   }
 
   /* bit-twiddling based method of calculating an integral square root from Wilco Dijkstra - http://www.finesse.demon.co.uk/steven/sqrt.html */
-  template<typename T, unsigned int bits>
+  template<typename T, unsigned int bits> // WARNING: bits should be HALF the actual number of bits in (T)!
   inline T BSS_FASTCALL IntFastSqrt(T n)
   {
     T root = 0, t;
@@ -328,7 +335,7 @@ namespace bss_util {
   template<typename T>
   inline T BSS_FASTCALL IntFastSqrt(T n)
   {
-    return IntFastSqrt<T,sizeof(T)<<2>(n); //done to ensure loop gets unwound
+    return IntFastSqrt<T,sizeof(T)<<2>(n); //done to ensure loop gets unwound (the bit conversion here is <<2 because the function wants HALF the bits in T, so <<3 >>1 -> <<2)
   }
   
   template<typename T> //assumes integer type if not one of the floating point types
@@ -351,6 +358,7 @@ namespace bss_util {
     return FastSqrt<T>(distsqr<T>(X,Y,x,y));
   }
 
+  /* Searches an arbitrary series of bytes for another arbitrary series of bytes */
   inline const void* bytesearch(const void* search, size_t length, const void* find, size_t flength)
   {
     if(!search || !length || !find || !flength || length < flength) return 0;
@@ -370,6 +378,7 @@ namespace bss_util {
   {
     return const_cast<void*>(bytesearch((const void*)search,length,(const void*)find,flength));
   }
+
   //Unlike FastSqrt, these are useless unless you are on a CPU without SSE instructions, or have a terrible std implementation.
   ///* Fast sin function with 0.078% error when extra precision is left in. See http://www.devmaster.net/forums/showthread.php?t=5784 */
   //inline float BSS_FASTCALL FastSin(float x)
@@ -462,11 +471,36 @@ namespace bss_util {
 
   /* Basic lerp function with no bounds checking */
   template<class T>
-  inline T lerp(T a, T b, double bounds)
+  inline T lerp(T a, T b, double amt)
   {
-	  return a+((T)((b-a)*bounds));
+	  return a+((T)((b-a)*amt));
   }
+} 
+
+#endif
   
+
+  /* Utilizes Clone() to create a clone based reference */
+  /*template<class T>
+  class BSS_COMPILER_DLLEXPORT cCloneRef
+  {
+  public:
+    inline cCloneRef() : _ref(0) {}
+    inline cCloneRef(const cCloneRef& copy) : _ref(copy._ref->Clone()) {}
+    inline cCloneRef(const T& ref) : _ref(ref.Clone()) {}
+    inline ~cCloneRef() { if(_ref) delete _ref; }
+    inline T* GetRef() { return _ref; }
+
+    inline cCloneRef& operator =(const cCloneRef& right) { if(_ref) delete _ref; _ref=right._ref->Clone(); return *this; }
+    inline cCloneRef& operator =(const T& right) { if(_ref) delete _ref; _ref=right.Clone(); return *this; }
+    operator T*() { return _ref; }
+    T* operator ->() const { return _ref; }
+    T& operator *() const { return *_ref; }
+
+  protected:
+    T* _ref;
+  };*/
+
   /* Simple 128bit integer for x86 instruction set. Replaced with __int128 if possible */
 //#ifdef BSS32BIT
 //  struct int128
@@ -519,27 +553,3 @@ namespace bss_util {
 //  typedef __int128 int128;
 //  typedef unsigned __int128 uint128;
 //#endif
-
-  /* Utilizes Clone() to create a clone based reference */
-  template<class T>
-  class BSS_COMPILER_DLLEXPORT cCloneRef
-  {
-  public:
-    inline cCloneRef() : _ref(0) {}
-    inline cCloneRef(const cCloneRef& copy) : _ref(copy._ref->Clone()) {}
-    inline cCloneRef(const T& ref) : _ref(ref.Clone()) {}
-    inline ~cCloneRef() { if(_ref) delete _ref; }
-    inline T* GetRef() { return _ref; }
-
-    inline cCloneRef& operator =(const cCloneRef& right) { if(_ref) delete _ref; _ref=right._ref->Clone(); return *this; }
-    inline cCloneRef& operator =(const T& right) { if(_ref) delete _ref; _ref=right.Clone(); return *this; }
-    operator T*() { return _ref; }
-    T* operator ->() const { return _ref; }
-    T& operator *() const { return *_ref; }
-
-  protected:
-    T* _ref;
-  };
-} 
-
-#endif

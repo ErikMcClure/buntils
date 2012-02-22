@@ -9,6 +9,7 @@
 #include "bss_alloc_fixed.h"
 #include "bss_deprecated.h"
 #include "bss_fixedpt.h"
+#include "bss_sort.h"
 #include "bss_win32_includes.h"
 #include "cArrayCircular.h"
 #include "cAutoPtr.h"
@@ -49,6 +50,7 @@
 #include "StreamSplitter.h"
 
 #include <fstream>
+#include <algorithm>
 
 #define BOOST_FILESYSTEM_VERSION 3
 //#define BOOST_ALL_NO_LIB
@@ -61,9 +63,9 @@ using namespace bss_util;
 #define BEGINTEST unsigned int pass=0
 #define ENDTEST return pass
 #define TEST(t) try { if(t) ++pass; } catch(...) { }
-#define TESTERROR(t, e) try { t; } catch(e) { ++pass; }
+#define TESTERROR(t, e) try { (t); } catch(e) { ++pass; }
 #define TESTERROR(t) TESTERROR(t,...)
-#define TESTNOERROR(t) try { t; ++pass; } catch(...) { }
+#define TESTNOERROR(t) try { (t); ++pass; } catch(...) { }
 
 struct TEST
 {
@@ -171,13 +173,76 @@ unsigned int test_AVLTREE()
   ENDTEST;
 }
 
+template<class U, class V, class I>
+bool test_BINARYHEAP_arraycheck(const U& a, const V& b, I length)
+{
+  for(I i=0; i < length; ++i)
+    if(a[i]!=b[i])
+      return false;
+  return true;
+}
+
+unsigned int test_BINARYHEAP()
+{
+  BEGINTEST;
+  int a[] = { 7,33,55,7,45,1,43,4,3243,25,3,6,9,14,5,16,17,22,90,95,99,32 };
+  int a3[] = { 7,33,55,7,45,1,43,4,3243,25,3,6,9,14,5,16,17,22,90,95,99,32 };
+  int fill[] = { 0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0 };
+  int a2[] = { 7,33,55,75,45,1,43,4,3243,25,3,6,9,14,5,16,17,22,90,95,99,32 };
+  __insertion_sort<int,uint,&COMPARE<int>::lt>(a2,sizeof(a2)/sizeof(int));
+  cBinaryHeap<int,unsigned int, CompareKeysInverse<int>>::HeapSort(a3);
+  TEST(test_BINARYHEAP_arraycheck(a2,a3,sizeof(a2)/sizeof(int)));
+
+  __insertion_sort<int,uint,&COMPARE<int>::gt>(a2,sizeof(a2)/sizeof(int));
+  cBinaryHeap<int>::HeapSort(a3);
+  TEST(test_BINARYHEAP_arraycheck(a2,a3,sizeof(a2)/sizeof(int)));
+
+  std::vector<int> b;
+  cBinaryHeap<int> c;
+  for(uint i = 0; i < sizeof(a2)/sizeof(int); ++i)
+  {
+    b.push_back(a[i]);
+    std::push_heap(b.begin(),b.end(),[](const int& l, const int& r)->bool { return l>r; });
+    c.Insert(a[i]);
+    TEST(test_BINARYHEAP_arraycheck(b,c,c.Length()));
+  }
+  for(uint i = 0; i < sizeof(a2)/sizeof(int); ++i)
+  {
+    std::pop_heap(b.begin(),b.end()-i,[](const int& l, const int& r)->bool { return l>r; });
+    c.Remove(0);
+
+    //for(uint j = 0; j < c.Length(); ++j)
+    //  fill[j]=c[j]; //Let's us visualize C's array
+    //for(uint j = 0; j < c.Length(); ++j)
+    //  assert(c[j]==b[j]);
+    TEST(test_BINARYHEAP_arraycheck(b,c,c.Length()));
+  }
+  ENDTEST;
+}
+
+unsigned int test_bss_sort()
+{
+  BEGINTEST;
+  ENDTEST;
+}
+
 int main(int argc, char** argv)
 {
-  const unsigned int NUMTESTS=2;
+  const unsigned int NUMTESTS=12;
 
   TEST tests[NUMTESTS] = {
     { "bss_util.h", 4, &test_bss_util },
-    { "FOOBAR", 24, &test_bss_DEBUGINFO },
+    { "bss_DebugInfo.h", 24, &test_bss_DEBUGINFO },
+    { "bss_alloc_additive.h", 0, &test_bss_ALLOC_ADDITIVE_FIXED },
+    { "bss_alloc_additive.h", 0, &test_bss_ALLOC_ADDITIVE_VARIABLE },
+    { "bss_alloc_fixed.h", 0, &test_bss_ALLOC_FIXED_SIZE },
+    { "bss_alloc_fixed.h", 0, &test_bss_ALLOC_FIXED_CHUNK },
+    { "bss_depracated.h", 0, &test_bss_deprecated },
+    { "bss_fixedpt.h", 0, &test_bss_FIXEDPT },
+    { "cArrayCircular.h", 0, &test_ARRAY_CIRCULAR },
+    { "cAutoPtr.h", 0, &test_AUTOPTR },
+    { "cAVLtree.h", 0, &test_AVLTREE },
+    { "cBinaryHeap.h", 44, &test_BINARYHEAP },
   };
 
   std::cout << "Black Sphere Studios - Utility Library v." << (uint)BSSUTIL_VERSION.Major << '.' << (uint)BSSUTIL_VERSION.Minor << '.' <<
@@ -207,6 +272,7 @@ int main(int argc, char** argv)
 
   std::cout << "\nPress Enter to exit the program." << std::endl;
   cin.get();
+
 }
 
 void destroynode(std::pair<int,int>* data)

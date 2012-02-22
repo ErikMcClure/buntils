@@ -369,6 +369,15 @@ namespace bss_util {
     inline cArrayWrap& operator +=(const __AT& add) { __AT::operator+=(add); return *this; }
     inline const cArrayWrap operator +(const __AT& add) { cArrayWrap r(*this); return (r+=add); }
   };
+  
+  /* Templatized typedefs for making this easier to use */
+  template<class T, typename SizeType=unsigned int>
+  struct BSS_COMPILER_DLLEXPORT DArray
+  {
+    typedef cArrayWrap<cArraySimple<T,SizeType>> t;
+    typedef cArrayWrap<cArrayConstruct<T,SizeType>> tConstruct;
+    typedef cArrayWrap<cArraySafe<T,SizeType>> tSafe;
+  };
 }
 
 #endif

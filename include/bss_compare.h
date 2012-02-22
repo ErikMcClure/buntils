@@ -9,6 +9,25 @@
 #define SGNCOMPARE(left,right) (((left)>(right))-((left)<(right)))
 
 namespace bss_util {
+  template<class T>
+  struct COMPARE
+  {
+    static inline char sgn(const T& l, const T& r) { return SGNCOMPARE(l,r); }
+    static inline bool lt(const T& l, const T& r) { return (l)<(r); }
+    static inline bool gt(const T& l, const T& r) { return (l)>(r); }
+    static inline bool lte(const T& l, const T& r) { return (l)<=(r); }
+    static inline bool gte(const T& l, const T& r) { return (l)>=(r); }
+  };
+  template<class T>
+  struct COMPAREINV
+  {
+    static inline char sgn(const T& l, const T& r) { return SGNCOMPARE(r,l); }
+    static inline bool lt(const T& l, const T& r) { return (r)<(l); }
+    static inline bool gt(const T& l, const T& r) { return (r)>(l); }
+    static inline bool lte(const T& l, const T& r) { return (r)<=(l); }
+    static inline bool gte(const T& l, const T& r) { return (r)>=(l); }
+  };
+
   template<class Key>
   inline char CompareKeys(const Key& keyleft, const Key& keyright)
   {
@@ -19,7 +38,7 @@ namespace bss_util {
   template<class Key>
   inline char CompareKeysInverse(const Key& keyleft, const Key& keyright)
   {
-    return SGNCOMPARE(keyleft,keyright);
+    return SGNCOMPARE(keyright,keyleft);
     //return (keyleft < keyright)?1:((keyleft == keyright)?0:-1);
   }
 

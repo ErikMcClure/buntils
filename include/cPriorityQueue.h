@@ -8,10 +8,10 @@
 
 namespace bss_util {
   /* PriorityQueue that can be implemented as either a maxheap or a minheap */
-  template<class K, class D, char (*Compare)(const K& keyleft, const K& keyright)=CompareKeys<K>>
-  class BSS_COMPILER_DLLEXPORT cPriorityQueue : private cBinaryHeap<K,D,Compare>
+  template<class K, class D, char (*Compare)(const K& keyleft, const K& keyright)=CompareKeys<K>, typename __ST=unsigned int>
+  class BSS_COMPILER_DLLEXPORT cPriorityQueue : private cBinaryHeap<std::pair<K,D>,__ST,ComparePair_first<std::pair<K,D>,K,Compare>>
   {
-    typedef typename cBinaryHeap<K,D,Compare>::BINHEAP_CELL BINHEAP_CELL;
+    typedef std::pair<K,D> PAIR;
 
   public:
     inline cPriorityQueue(const cPriorityQueue& copy) : cBinaryHeap(copy) {}
@@ -20,9 +20,9 @@ namespace bss_util {
     inline ~cPriorityQueue() {}
     inline void Insert(const K& key, D value)
     {
-      cBinaryHeap<K,D,Compare>::Insert(key,value);
+      cBinaryHeap<K,D,Compare>::Insert(PAIR(key,value));
     }
-    inline const BINHEAP_CELL& GetRoot()
+    inline const PAIR& PeekRoot()
     {
       return cBinaryHeap<K,D,Compare>::GetRoot();
     }
@@ -30,9 +30,9 @@ namespace bss_util {
     {
       cBinaryHeap<K,D,Compare>::Remove(0);
     }
-    inline BINHEAP_CELL PopRoot()
+    inline PAIR PopRoot()
     {
-      BINHEAP_CELL retval = _array[0];
+      PAIR retval = _array[0];
       RemoveRoot();
       return retval;
     }

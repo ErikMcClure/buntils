@@ -253,6 +253,7 @@
     <ClInclude Include="include\bss_compiler.h" />
     <ClInclude Include="include\bss_fixedpt.h" />
     <ClInclude Include="include\bss_Log.h" />
+    <ClInclude Include="include\bss_sort.h" />
     <ClInclude Include="include\cAliasTable.h" />
     <ClInclude Include="include\cArrayCircular.h" />
     <ClInclude Include="include\cIntervalTree.h" />
@@ -269,7 +270,7 @@
     <ClInclude Include="include\bss_alloc.h" />
     <ClInclude Include="include\bss_call.h" />
     <ClInclude Include="include\bss_compare.h" />
-    <ClInclude Include="include\BSS_DebugInfo.h" />
+    <ClInclude Include="include\bss_DebugInfo.h" />
     <ClInclude Include="include\bss_defines.h" />
     <ClInclude Include="include\bss_deprecated.h" />
     <ClInclude Include="include\bss_dlldef.h" />

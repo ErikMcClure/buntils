@@ -43,7 +43,6 @@
 //#include "cTAATree.h"
 #include "cTaskStack.h"
 #include "cThread.h"
-#include "cVect.h"
 #include "functor.h"
 //#include "leaktest.h"
 #include "lockless.h"

@@ -304,7 +304,6 @@
     <ClInclude Include="include\cStrTable.h" />
     <ClInclude Include="include\cTaskStack.h" />
     <ClInclude Include="include\cThread.h" />
-    <ClInclude Include="include\cVect.h" />
     <ClInclude Include="include\functor.h" />
     <ClInclude Include="include\Iterator.h" />
     <ClInclude Include="include\khash.h" />

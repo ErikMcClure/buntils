@@ -164,9 +164,6 @@
     <ClInclude Include="include\cThread.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="include\cVect.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
     <ClInclude Include="include\functor.h">
       <Filter>Header Files</Filter>
     </ClInclude>

@@ -23,6 +23,8 @@ typedef __int64 TIMEVALUSED;
 #define WCSCPYx0(dst,src) wcscpy_s(dst,src)
 #define STRICMP(a,b) _stricmp(a,b)
 #define WCSICMP(a,b) _wcsicmp(a,b)
+#define STRTOK(str,delim,context) strtok_s(str,delim,context)
+#define WCSTOK(str,delim,context) wcstok_s(str,delim,context)
 #define SSCANF sscanf_s
 #define ITOA(v,buf,r) _itoa_s(v,buf,r)
 #define ITOA_S(v,buf,bufsize,r) _itoa_s(v,buf,bufsize,r)
@@ -41,6 +43,8 @@ typedef time_t TIMEVALUSED;
 #define WCSCPY(dst,size,src) wcscpy(dst,src)
 #define STRICMP(a,b) stricmp(a,b)
 #define WCSICMP(a,b) wcsicmp(a,b)
+#define STRTOK(str,delim,context) strtok(str,delim)
+#define WCSTOK(str,delim,context) wcstok(str,delim)
 #define SSCANF sscanf
 #define ITOA(v,buf,r) itoa(v,buf,r)
 #define ITOA_S(v,buf,bufsize,r) itoa(v,buf,r)

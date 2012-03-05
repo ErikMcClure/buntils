@@ -8,7 +8,6 @@
 #include <vector>
 #include "bss_dlldef.h"
 #include "bss_util_c.h"
-#include "cAutoPtr.h"
 
 #define BSSLOG(logger,level) ((logger).FORMATLOG<level>(__FILE__,__LINE__))
 
@@ -17,10 +16,10 @@ template<class _Traits>
 inline std::basic_ostream<char, _Traits>& operator<<(std::basic_ostream<char, _Traits>& _Ostr, const wchar_t *_Val)
 {
   size_t c=UTF8Encode2BytesUnicode(_Val,0);
-  cAutoPtr<char> utf(new char[++c]); //+1 for null terminator
-  UTF8Encode2BytesUnicode(_Val,(unsigned char*)(char*)utf);
-  utf[--c]=0;
-  _Ostr << (char*)utf;
+  std::unique_ptr<char[]> utf(new char[++c]); //+1 for null terminator
+  UTF8Encode2BytesUnicode(_Val,(unsigned char*)(char*)utf.get());
+  utf.get()[--c]=0;
+  _Ostr << (char*)utf.get();
   return _Ostr;
 }
 

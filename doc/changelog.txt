@@ -22,6 +22,10 @@
 - cAutoPtr.h now modifies unique_ptr to be easier to use (this can be turned off)
 - Custom allocators now verify deallocated pointers and fill them with junk values when possible in debug mode
 - All custom allocators using the Allocator class can be disabled by defining BSS_DISABLE_CUSTOM_ALLOCATORS. This is useful if a custom allocator does not fill deallocations with junk, or if the junk filling is insufficient, resulting in an invalid memory access bug being masked. Many compilers also have special hooks for detecting out of bounds memory accesses that only work with the default allocation routines.
+- Rewrote cBinaryHeap
+- Added bssreverse
+- removed cVect.h
+- Changed cAutoPtr to cUniquePtr
 
 0.3.81
 ------

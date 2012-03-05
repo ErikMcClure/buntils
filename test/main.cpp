@@ -12,7 +12,6 @@
 #include "bss_sort.h"
 #include "bss_win32_includes.h"
 #include "cArrayCircular.h"
-#include "cAutoPtr.h"
 #include "cAVLtree.h"
 #include "cBinaryHeap.h"
 #include "cBitArray.h"
@@ -43,6 +42,7 @@
 //#include "cTAATree.h"
 #include "cTaskStack.h"
 #include "cThread.h"
+#include "cUniquePtr.h"
 #include "functor.h"
 //#include "leaktest.h"
 #include "lockless.h"
@@ -161,11 +161,6 @@ unsigned int test_ARRAY_CIRCULAR()
   BEGINTEST;
   ENDTEST;
 }
-unsigned int test_AUTOPTR()
-{
-  BEGINTEST;
-  ENDTEST;
-}
 unsigned int test_AVLTREE()
 {
   BEGINTEST;
@@ -227,7 +222,7 @@ unsigned int test_bss_sort()
 
 int main(int argc, char** argv)
 {
-  const unsigned int NUMTESTS=12;
+  const unsigned int NUMTESTS=11;
 
   TEST tests[NUMTESTS] = {
     { "bss_util.h", 4, &test_bss_util },
@@ -239,7 +234,6 @@ int main(int argc, char** argv)
     { "bss_depracated.h", 0, &test_bss_deprecated },
     { "bss_fixedpt.h", 0, &test_bss_FIXEDPT },
     { "cArrayCircular.h", 0, &test_ARRAY_CIRCULAR },
-    { "cAutoPtr.h", 0, &test_AUTOPTR },
     { "cAVLtree.h", 0, &test_AVLTREE },
     { "cBinaryHeap.h", 44, &test_BINARYHEAP },
   };

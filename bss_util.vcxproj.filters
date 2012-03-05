@@ -224,9 +224,6 @@
     <ClInclude Include="include\Iterator.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="include\cAutoPtr.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
     <ClInclude Include="include\bss_Log.h">
       <Filter>Header Files</Filter>
     </ClInclude>
@@ -261,6 +258,15 @@
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="include\bss_DebugInfo.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="include\cUniquePtr.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="include\bss_literals.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="include\cDynArray.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>

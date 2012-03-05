@@ -7,7 +7,6 @@
 #include <sstream>
 #include <vector>
 #include "bss_dlldef.h"
-#include "cAutoPtr.h"
 #include "cStr.h"
 
 namespace bss_util {
@@ -33,12 +32,12 @@ namespace bss_util {
 	  inline virtual int __CLR_OR_THIS_CALL sync()
     {
       size_t length = basic_stringbuf<_Elem>::pptr() - basic_stringbuf<_Elem>::eback();
-      cAutoPtr<_Elem> hold(new _Elem[++length]); //+1 for null terminator
-      MEMCPY(hold, length*sizeof(_Elem), basic_stringbuf<_Elem>::eback(), (length-1)*sizeof(_Elem));
-      hold[length-1] = 0;
+      std::unique_ptr<_Elem[]> hold(new _Elem[++length]); //+1 for null terminator
+      MEMCPY(hold.get(), length*sizeof(_Elem), basic_stringbuf<_Elem>::eback(), (length-1)*sizeof(_Elem));
+      hold.get()[length-1] = 0;
 
-      _evaltargets(hold);
-      _convtargets(hold);
+      _evaltargets(hold.get());
+      _convtargets(hold.get());
 
       stringbuf::seekpos(0,ios_base::out); //Flush the buffer (make it overwrite itself because we no longer need what's in there)
       return stringbuf::sync();

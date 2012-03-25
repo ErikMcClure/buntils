@@ -9,7 +9,7 @@
 #include "bss_alloc_fixed.h"
 #include "bss_deprecated.h"
 #include "bss_fixedpt.h"
-#include "bss_sort.h"
+//#include "bss_sort.h"
 #include "bss_win32_includes.h"
 #include "cArrayCircular.h"
 #include "cAVLtree.h"
@@ -50,6 +50,7 @@
 
 #include <fstream>
 #include <algorithm>
+#include <time.h>
 
 #define BOOST_FILESYSTEM_VERSION 3
 //#define BOOST_ALL_NO_LIB
@@ -57,23 +58,27 @@
 #define BOOST_ALL_NO_DEPRECATED
 //#include <boost/filesystem.hpp>
 
-using namespace bss_util;
+#pragma warning(disable:4566)
 
-#define BEGINTEST unsigned int pass=0
-#define ENDTEST return pass
-#define TEST(t) try { if(t) ++pass; } catch(...) { }
-#define TESTERROR(t, e) try { (t); } catch(e) { ++pass; }
-#define TESTERROR(t) TESTERROR(t,...)
-#define TESTNOERROR(t) try { (t); ++pass; } catch(...) { }
+using namespace bss_util;
 
 struct TEST
 {
+  typedef std::pair<size_t,size_t> RETPAIR;
   const char* NAME;
-  unsigned int NUMTESTS;
-  unsigned int (*FUNC)();
+  RETPAIR (*FUNC)();
 };
 
-unsigned int test_bss_util()
+#define BEGINTEST TEST::RETPAIR __testret(0,0);
+#define ENDTEST return __testret
+#define TEST(t) ++__testret.first; try { if(t) ++__testret.second; } catch(...) { }
+#define TESTERROR(t, e) ++__testret.first; try { (t); } catch(e) { ++__testret.second; }
+#define TESTERR(t) TESTERROR(t,...)
+#define TESTNOERROR(t) ++__testret.first; try { (t); ++__testret.second; } catch(...) { }
+#define TESTALL(t) for_all([&__testret](bool __x){ ++__testret.first; if(__x) ++__testret.second; },t);
+#define TESTANY(t) { bool __val=true; for_all([&__testret,&__val](bool __x){ __val=__val&&__x; },t); TEST(__val); }
+
+TEST::RETPAIR test_bss_util()
 {
   BEGINTEST;
   TESTNOERROR(SetWorkDirToCur());
@@ -85,7 +90,7 @@ unsigned int test_bss_util()
   ENDTEST;
 }
 
-unsigned int test_bss_DEBUGINFO()
+TEST::RETPAIR test_bss_DEBUGINFO()
 {
   BEGINTEST;
   std::stringstream ss;
@@ -124,83 +129,136 @@ unsigned int test_bss_DEBUGINFO()
   ENDTEST;
 }
 
-unsigned int test_bss_ALLOC_ADDITIVE_FIXED()
+TEST::RETPAIR test_bss_algo()
+{
+  BEGINTEST;
+  int a[9] = { -5,-1,0,1,6,8,9,26,39 };
+  int v[17] = { -6,-5,-4,-2,-1,0,1,2,5,6,7,8,9,10,26,39,40 };
+  int u[17] = { -1,0,0,0,1,2,3,3,3,4,4,5,6,6,7,8,8 };
+  int u2[17] = { 0,0,1,1,1,2,3,4,4,4,5,5,6,7,7,8,9 };
+  bool r[17] = {};
+  for_all(r,[&a](int x, int y)->bool { return binsearch_before<int,uint,CompT<int>>(a,x)==y; },v,u);
+  
+  for_all(r,[&a](int x, int y)->bool { return binsearch_after<int,uint,CompT<int>>(a,x)==(lower_bound(std::begin(a),std::end(a),x)-a); },v,u2);
+  for_all([&__testret](bool __x){ ++__testret.first; if(__x) ++__testret.second; },r);
+  ENDTEST;
+}
+
+TEST::RETPAIR test_bss_ALLOC_ADDITIVE_FIXED()
 {
   BEGINTEST;
   ENDTEST;
 }
-unsigned int test_bss_ALLOC_ADDITIVE_VARIABLE()
+TEST::RETPAIR test_bss_ALLOC_ADDITIVE_VARIABLE()
 {
   BEGINTEST;
   ENDTEST;
 }
-unsigned int test_bss_ALLOC_FIXED_SIZE()
+TEST::RETPAIR test_bss_ALLOC_FIXED_SIZE()
 {
   BEGINTEST;
   ENDTEST;
 }
-unsigned int test_bss_ALLOC_FIXED_CHUNK()
+TEST::RETPAIR test_bss_ALLOC_FIXED_CHUNK()
 {
   BEGINTEST;
   ENDTEST;
 }
-unsigned int test_bss_deprecated()
+TEST::RETPAIR test_bss_deprecated()
+{
+  BEGINTEST;
+  __time64_t tmval=FTIME(NULL);
+  TEST(tmval!=0);
+  FTIME(&tmval);
+  TEST(tmval!=0);
+  tm tms;
+  TEST([&]()->bool { GMTIMEFUNC(&tmval,&tms); return true; }())
+  //TESTERR(GMTIMEFUNC(0,&tms));
+  char buf[12];
+//#define VSPRINTF(dest,length,format,list) _vsnprintf_s(dest,length,length,format,list)
+//#define VSWPRINTF(dest,length,format,list) _vsnwprintf_s(dest,length,length,format,list)
+  FILE* f=0;
+  FOPEN(f,"__valtest.tmp","wb");
+  TEST(f!=0);
+  f=0;
+  WFOPEN(f,L"石石石石shi.tmp",L"wb");
+  TEST(f!=0);
+  size_t a = 0;
+  size_t b = -1;
+  MEMCPY(&a,sizeof(size_t),&b,sizeof(size_t));
+  TEST(a==b);
+  a=0;
+  MEMCPY(&a,sizeof(size_t)-1,&b,sizeof(size_t)-1);
+  TEST(a==(b>>8));
+
+#define STRNCPY(dst,size,src,count) strncpy_s(dst,size,src,count)
+#define WCSNCPY(dst,size,src,count) wcsncpy_s(dst,size,src,count)
+#define STRCPY(dst,size,src) strcpy_s(dst,size,src)
+#define WCSCPY(dst,size,src) wcscpy_s(dst,size,src)
+#define STRCPYx0(dst,src) strcpy_s(dst,src)
+#define WCSCPYx0(dst,src) wcscpy_s(dst,src)
+#define STRICMP(a,b) _stricmp(a,b)
+#define WCSICMP(a,b) _wcsicmp(a,b)
+#define STRTOK(str,delim,context) strtok_s(str,delim,context)
+#define WCSTOK(str,delim,context) wcstok_s(str,delim,context)
+#define SSCANF sscanf_s
+#define ITOA(v,buf,r) _itoa_s(v,buf,r)
+#define ITOA_S(v,buf,bufsize,r) _itoa_s(v,buf,bufsize,r)
+  ENDTEST;
+}
+
+TEST::RETPAIR test_bss_FIXEDPT()
 {
   BEGINTEST;
   ENDTEST;
 }
 
-unsigned int test_bss_FIXEDPT()
+TEST::RETPAIR test_ARRAY_CIRCULAR()
+{
+  BEGINTEST;
+  ENDTEST;
+}
+TEST::RETPAIR test_AVLTREE()
 {
   BEGINTEST;
   ENDTEST;
 }
 
-unsigned int test_ARRAY_CIRCULAR()
-{
-  BEGINTEST;
-  ENDTEST;
-}
-unsigned int test_AVLTREE()
-{
-  BEGINTEST;
-  ENDTEST;
-}
-
-template<class U, class V, class I>
-bool test_BINARYHEAP_arraycheck(const U& a, const V& b, I length)
-{
-  for(I i=0; i < length; ++i)
-    if(a[i]!=b[i])
-      return false;
-  return true;
-}
-
-unsigned int test_BINARYHEAP()
+TEST::RETPAIR test_BINARYHEAP()
 {
   BEGINTEST;
   int a[] = { 7,33,55,7,45,1,43,4,3243,25,3,6,9,14,5,16,17,22,90,95,99,32 };
   int a3[] = { 7,33,55,7,45,1,43,4,3243,25,3,6,9,14,5,16,17,22,90,95,99,32 };
   int fill[] = { 0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0 };
-  int a2[] = { 7,33,55,75,45,1,43,4,3243,25,3,6,9,14,5,16,17,22,90,95,99,32 };
-  __insertion_sort<int,uint,&COMPARE<int>::lt>(a2,sizeof(a2)/sizeof(int));
-  cBinaryHeap<int,unsigned int, CompareKeysInverse<int>>::HeapSort(a3);
-  TEST(test_BINARYHEAP_arraycheck(a2,a3,sizeof(a2)/sizeof(int)));
+  int a2[] = { 7,33,55,7,45,1,43,4,3243,25,3,6,9,14,5,16,17,22,90,95,99,32 };
+  const int a2_SZ=sizeof(a2)/sizeof(int);
 
-  __insertion_sort<int,uint,&COMPARE<int>::gt>(a2,sizeof(a2)/sizeof(int));
+  auto arrtest = [&](int* a, int* b, size_t count){
+  bool __val=true;
+  for_all([&__val](int x, int y){__val=__val&&(x==y);},count,a,b);
+  TEST(__val);
+  };
+
+  //__insertion_sort<int,uint,CompT_LT<int>>(a2,sizeof(a2)/sizeof(int));
+  std::sort(std::begin(a2),std::end(a2));
+  cBinaryHeap<int,unsigned int, CompTInv<int>>::HeapSort(a3);
+  arrtest(a2,a3,a2_SZ);
+
+  //__insertion_sort<int,uint,CompT_GT<int>>(a2,sizeof(a2)/sizeof(int));
+  std::sort(std::begin(a2),std::end(a2), [](int x, int y)->bool{ return x>y; });
   cBinaryHeap<int>::HeapSort(a3);
-  TEST(test_BINARYHEAP_arraycheck(a2,a3,sizeof(a2)/sizeof(int)));
+  arrtest(a2,a3,a2_SZ);
 
   std::vector<int> b;
   cBinaryHeap<int> c;
-  for(uint i = 0; i < sizeof(a2)/sizeof(int); ++i)
+  for(uint i = 0; i < a2_SZ; ++i)
   {
     b.push_back(a[i]);
     std::push_heap(b.begin(),b.end(),[](const int& l, const int& r)->bool { return l>r; });
     c.Insert(a[i]);
-    TEST(test_BINARYHEAP_arraycheck(b,c,c.Length()));
+    arrtest(&b[0],c,c.Length());
   }
-  for(uint i = 0; i < sizeof(a2)/sizeof(int); ++i)
+  for(uint i = 0; i < a2_SZ; ++i)
   {
     std::pop_heap(b.begin(),b.end()-i,[](const int& l, const int& r)->bool { return l>r; });
     c.Remove(0);
@@ -209,12 +267,12 @@ unsigned int test_BINARYHEAP()
     //  fill[j]=c[j]; //Let's us visualize C's array
     //for(uint j = 0; j < c.Length(); ++j)
     //  assert(c[j]==b[j]);
-    TEST(test_BINARYHEAP_arraycheck(b,c,c.Length()));
+    arrtest(&b[0],c,c.Length());
   }
   ENDTEST;
 }
 
-unsigned int test_bss_sort()
+TEST::RETPAIR test_bss_sort()
 {
   BEGINTEST;
   ENDTEST;
@@ -222,35 +280,36 @@ unsigned int test_bss_sort()
 
 int main(int argc, char** argv)
 {
-  const unsigned int NUMTESTS=11;
-
-  TEST tests[NUMTESTS] = {
-    { "bss_util.h", 4, &test_bss_util },
-    { "bss_DebugInfo.h", 24, &test_bss_DEBUGINFO },
-    { "bss_alloc_additive.h", 0, &test_bss_ALLOC_ADDITIVE_FIXED },
-    { "bss_alloc_additive.h", 0, &test_bss_ALLOC_ADDITIVE_VARIABLE },
-    { "bss_alloc_fixed.h", 0, &test_bss_ALLOC_FIXED_SIZE },
-    { "bss_alloc_fixed.h", 0, &test_bss_ALLOC_FIXED_CHUNK },
-    { "bss_depracated.h", 0, &test_bss_deprecated },
-    { "bss_fixedpt.h", 0, &test_bss_FIXEDPT },
-    { "cArrayCircular.h", 0, &test_ARRAY_CIRCULAR },
-    { "cAVLtree.h", 0, &test_AVLTREE },
-    { "cBinaryHeap.h", 44, &test_BINARYHEAP },
+  TEST tests[] = {
+    { "bss_util.h", &test_bss_util },
+    { "bss_DebugInfo.h", &test_bss_DEBUGINFO },
+    { "bss_alloc_additive.h", &test_bss_algo },
+    { "bss_alloc_additive.h", &test_bss_ALLOC_ADDITIVE_FIXED },
+    { "bss_alloc_additive.h", &test_bss_ALLOC_ADDITIVE_VARIABLE },
+    { "bss_alloc_fixed.h", &test_bss_ALLOC_FIXED_SIZE },
+    { "bss_alloc_fixed.h", &test_bss_ALLOC_FIXED_CHUNK },
+    { "bss_depracated.h", &test_bss_deprecated },
+    { "bss_fixedpt.h", &test_bss_FIXEDPT },
+    { "cArrayCircular.h", &test_ARRAY_CIRCULAR },
+    { "cAVLtree.h", &test_AVLTREE },
+    { "cBinaryHeap.h", &test_BINARYHEAP },
   };
+
+  const size_t NUMTESTS=sizeof(tests)/sizeof(TEST);
 
   std::cout << "Black Sphere Studios - Utility Library v." << (uint)BSSUTIL_VERSION.Major << '.' << (uint)BSSUTIL_VERSION.Minor << '.' <<
     (uint)BSSUTIL_VERSION.Revision << ": Unit Tests\nCopyright (c)2011 Black Sphere Studios\n" << std::endl;
   const int COLUMNS[3] = { 24, 11, 8 };
   printf("%-*s %-*s %-*s\n",COLUMNS[0],"Test Name", COLUMNS[1],"Subtests", COLUMNS[2],"Pass/Fail");
 
-  unsigned int numpassed;
+  TEST::RETPAIR numpassed;
   std::vector<uint> failures;
   for(uint i = 0; i < NUMTESTS; ++i)
   {
-    numpassed=tests[i].FUNC();
-    if(numpassed!=tests[i].NUMTESTS) failures.push_back(i);
+    numpassed=tests[i].FUNC(); //First is total, second is succeeded
+    if(numpassed.first!=numpassed.second) failures.push_back(i);
 
-    printf("%-*s %*s %-*s\n",COLUMNS[0],tests[i].NAME, COLUMNS[1],cStr("%u/%u",numpassed,tests[i].NUMTESTS).String(), COLUMNS[2],(numpassed==tests[i].NUMTESTS)?"PASS":"FAIL");
+    printf("%-*s %*s %-*s\n",COLUMNS[0],tests[i].NAME, COLUMNS[1],cStr("%u/%u",numpassed.second,numpassed.first).String(), COLUMNS[2],(numpassed.first==numpassed.second)?"PASS":"FAIL");
   }
 
   if(failures.empty())
@@ -579,7 +638,7 @@ int main3(int argc, char** argv)
   int c = STRSWAP("bar",FAKESTRINGLIST);
 
   {
-    cArraySort<DEBUG_CDT,CompareKeysTraits<DEBUG_CDT>,unsigned int,cArraySafe<DEBUG_CDT,unsigned int>> arrtest;
+    cArraySort<DEBUG_CDT,CompT<DEBUG_CDT>,unsigned int,cArraySafe<DEBUG_CDT,unsigned int>> arrtest;
   arrtest.Insert(DEBUG_CDT(0));
   arrtest.Insert(DEBUG_CDT(1));
   arrtest.Insert(DEBUG_CDT(2));
@@ -590,7 +649,7 @@ int main3(int argc, char** argv)
   arrtest.Remove(0);
   arrtest.Insert(DEBUG_CDT(6));
   arrtest.Remove(3);
-  cArraySort<DEBUG_CDT,CompareKeysTraits<DEBUG_CDT>,unsigned int,cArraySafe<DEBUG_CDT,unsigned int>> arrtest2;
+  cArraySort<DEBUG_CDT,CompT<DEBUG_CDT>,unsigned int,cArraySafe<DEBUG_CDT,unsigned int>> arrtest2;
   
   for(uint i = 0; i < arrtest.Length(); ++i)
     std::cout << arrtest[i]._index << std::endl;
@@ -712,7 +771,7 @@ int main3(int argc, char** argv)
   */
 
   Allocator<cRBT_Node<int,int>,FixedChunkPolicy<cRBT_Node<int,int>>> fixedalloc;
-  cRBT_List<int, int,CompareKeys<int>,Allocator<cRBT_Node<int,int>,FixedChunkPolicy<cRBT_Node<int,int>>>> blah(&fixedalloc);
+  cRBT_List<int, int,CompT<int>,Allocator<cRBT_Node<int,int>,FixedChunkPolicy<cRBT_Node<int,int>>>> blah(&fixedalloc);
 
   prof=_debug.OpenProfiler();
   for(int i = 0; i<TESTNUM; ++i)

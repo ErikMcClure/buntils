@@ -254,9 +254,6 @@
     <ClInclude Include="include\cAliasTable.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="include\bss_sort.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
     <ClInclude Include="include\bss_DebugInfo.h">
       <Filter>Header Files</Filter>
     </ClInclude>
@@ -267,6 +264,9 @@
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="include\cDynArray.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="include\bss_algo.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>

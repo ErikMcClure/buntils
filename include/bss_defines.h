@@ -37,7 +37,7 @@
 #define RANDFLOATGEN(min,max) (((max) - (min)) * (double)rand()/(double)RAND_MAX + (min))
 #endif
 #ifndef RANDINTGEN
-#define RANDINTGEN(min,max) ((min)+(rand()%((max)-(min))))
+#define RANDINTGEN(min,max) ((min)+(rand()%((int)((max)-(min))))) // This is [min,max] instead of [min,max) to facilitate use of length as max
 #endif
 #ifndef RANDBOOLGEN
 #define RANDBOOLGEN() (rand()>(RAND_MAX>>1))

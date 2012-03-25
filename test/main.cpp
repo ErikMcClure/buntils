@@ -213,11 +213,47 @@ TEST::RETPAIR test_bss_FIXEDPT()
   ENDTEST;
 }
 
-TEST::RETPAIR test_ARRAY_CIRCULAR()
+TEST::RETPAIR test_ALIASTABLE()
 {
   BEGINTEST;
   ENDTEST;
 }
+
+TEST::RETPAIR test_ARRAYCIRCULAR()
+{
+  BEGINTEST;
+  ENDTEST;
+}
+
+TEST::RETPAIR test_ARRAYSIMPLE()
+{
+  BEGINTEST;
+  ENDTEST;
+}
+
+TEST::RETPAIR test_ARRAYSORT()
+{
+  BEGINTEST;
+  cMap<int,uint> test;
+  test.Clear();
+  int ins[] = { 0,5,6,237,289,12,3 };
+  int get[] = { 0,3,5,6,12 };
+  uint res[] = { 0,6,1,2,5 };
+  uint count=0;
+  for_all([&](int x){ TEST(test.Insert(x,count++)!=-1); },ins);
+  sort(std::begin(ins),std::end(ins));
+  for(int i = 0; i < test.Length(); ++i)
+  { TEST(test.KeyIndex(i)==ins[i]); }
+  for(int i = 0; i < sizeof(get)/sizeof(int); ++i)
+  { TEST(test[test.Get(get[i])]==res[i]); }
+
+  TEST(test.Remove(0)==0);
+  TEST(test.Get(0)==-1);
+  TEST(test.Length()==((sizeof(ins)/sizeof(int))-1));
+
+  ENDTEST;
+}
+
 TEST::RETPAIR test_AVLTREE()
 {
   BEGINTEST;
@@ -272,7 +308,31 @@ TEST::RETPAIR test_BINARYHEAP()
   ENDTEST;
 }
 
-TEST::RETPAIR test_bss_sort()
+TEST::RETPAIR test_BITARRAY()
+{
+  BEGINTEST;
+  ENDTEST;
+}
+
+TEST::RETPAIR test_BITFIELD()
+{
+  BEGINTEST;
+  ENDTEST;
+}
+
+TEST::RETPAIR test_BSS_STACK()
+{
+  BEGINTEST;
+  ENDTEST;
+}
+
+TEST::RETPAIR test_BYTEQUEUE()
+{
+  BEGINTEST;
+  ENDTEST;
+}
+
+TEST::RETPAIR test_CMDLINEARGS()
 {
   BEGINTEST;
   ENDTEST;
@@ -290,7 +350,10 @@ int main(int argc, char** argv)
     { "bss_alloc_fixed.h", &test_bss_ALLOC_FIXED_CHUNK },
     { "bss_depracated.h", &test_bss_deprecated },
     { "bss_fixedpt.h", &test_bss_FIXEDPT },
-    { "cArrayCircular.h", &test_ARRAY_CIRCULAR },
+    { "cAliasTable.h", &test_ALIASTABLE },
+    { "cArrayCircular.h", &test_ARRAYCIRCULAR },
+    { "cArraySimple.h", &test_ARRAYSIMPLE },
+    { "cArraySort.h", &test_ARRAYSORT },
     { "cAVLtree.h", &test_AVLTREE },
     { "cBinaryHeap.h", &test_BINARYHEAP },
   };

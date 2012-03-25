@@ -74,7 +74,7 @@ namespace bss_util {
     /* Can actually return -1 if there isn't anything in the array */
     inline __ST BSS_FASTCALL FindNear(constref data, bool before=true) const
     {
-      __ST retval=(binsearch_near<T,__ST,CFunc,before?CompT_NEQ:CompT_EQ>(_array,data,0,_length)-before);
+      __ST retval=before?binsearch_before<T,__ST,CFunc>(_array,_length,data):binsearch_after<T,__ST,CFunc>(_array,_length,data);
       return (retval<_length)?retval:(__ST)(-1); // This is only needed for before=false in case it returns a value outside the range.
     }
     inline bool IsEmpty() const { return !_length; }

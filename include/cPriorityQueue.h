@@ -8,8 +8,8 @@
 
 namespace bss_util {
   /* PriorityQueue that can be implemented as either a maxheap or a minheap */
-  template<class K, class D, char (*Compare)(const K& keyleft, const K& keyright)=CompareKeys<K>, typename __ST=unsigned int>
-  class BSS_COMPILER_DLLEXPORT cPriorityQueue : private cBinaryHeap<std::pair<K,D>,__ST,ComparePair_first<std::pair<K,D>,K,Compare>>
+  template<class K, class D, char (*CFunc)(const K&, const K&)=CompT<K>, typename __ST=unsigned int>
+  class BSS_COMPILER_DLLEXPORT cPriorityQueue : private cBinaryHeap<std::pair<K,D>,__ST,CompTFirst<std::pair<K,D>,K,CFunc>>
   {
     typedef std::pair<K,D> PAIR;
 
@@ -20,15 +20,15 @@ namespace bss_util {
     inline ~cPriorityQueue() {}
     inline void Insert(const K& key, D value)
     {
-      cBinaryHeap<K,D,Compare>::Insert(PAIR(key,value));
+      cBinaryHeap<K,D,CFunc>::Insert(PAIR(key,value));
     }
     inline const PAIR& PeekRoot()
     {
-      return cBinaryHeap<K,D,Compare>::GetRoot();
+      return cBinaryHeap<K,D,CFunc>::GetRoot();
     }
     inline void RemoveRoot()
     {
-      cBinaryHeap<K,D,Compare>::Remove(0);
+      cBinaryHeap<K,D,CFunc>::Remove(0);
     }
     inline PAIR PopRoot()
     {
@@ -38,7 +38,7 @@ namespace bss_util {
     }
     inline bool Empty()
     {
-      return cBinaryHeap<K,D,Compare>::Empty();
+      return cBinaryHeap<K,D,CFunc>::Empty();
     }
 
     inline cPriorityQueue& operator=(const cPriorityQueue& copy) { cBinaryHeap::operator=(copy); return *this; }

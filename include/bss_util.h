@@ -149,40 +149,6 @@ namespace bss_util {
     return strrtrim(strltrim(str));
   }
 
-  /* Shuffler using Fisher-Yates/Knuth Shuffle algorithm based on Durstenfeld's implementation. This is an in-place algorithm and works with any numeric type T. */
-  template<typename T, typename ST, ST (*RandFunc)(ST min, ST max)>
-  inline void BSS_FASTCALL shuffle(T* p, ST size)
-  {
-    for(ST i=size-1; i!=(ST)-1; --i)
-      rswap<T>(p[i],p[RandFunc(0,i)]);
-  }
-  template<typename T, typename ST, ST size, ST (*RandFunc)(ST min, ST max)>
-  inline void BSS_FASTCALL shuffle(T (&p)[size])
-  {
-    for(ST i=size-1; i!=(ST)-1; --i)
-      rswap<T>(p[i],p[RandFunc(0,i)]);
-  }
-
-#ifdef _INC_STDLIB //These shortcuts are only available if you have access to rand() in the first place
-  /* inline function wrapper to the #define RANDINTGEN */
-  inline int bss_randfunc(int min, int max)
-  {
-    return !(max-min)?min:RANDINTGEN(min,max);
-  }
-
-  /* Shuffler using default random number generator.*/
-  template<typename T>
-  inline void BSS_FASTCALL shuffle(T* p, int size)
-  {
-    shuffle<T,int,&bss_randfunc>(p,size);
-  }
-  template<typename T, int size>
-  inline void BSS_FASTCALL shuffle(T (&p)[size])
-  {
-    shuffle<T,int,size,&bss_randfunc>(p);
-  }
-#endif
-
   /* This is a bit-shift method of calculating the next number in the fibonacci sequence by approximating the golden ratio with 0.6171875 (1/2 + 1/8 - 1/128) */
   template<typename T>
   inline T BSS_FASTCALL fbnext(T in)
@@ -478,28 +444,6 @@ namespace bss_util {
 } 
 
 #endif
-  
-
-  /* Utilizes Clone() to create a clone based reference */
-  /*template<class T>
-  class BSS_COMPILER_DLLEXPORT cCloneRef
-  {
-  public:
-    inline cCloneRef() : _ref(0) {}
-    inline cCloneRef(const cCloneRef& copy) : _ref(copy._ref->Clone()) {}
-    inline cCloneRef(const T& ref) : _ref(ref.Clone()) {}
-    inline ~cCloneRef() { if(_ref) delete _ref; }
-    inline T* GetRef() { return _ref; }
-
-    inline cCloneRef& operator =(const cCloneRef& right) { if(_ref) delete _ref; _ref=right._ref->Clone(); return *this; }
-    inline cCloneRef& operator =(const T& right) { if(_ref) delete _ref; _ref=right.Clone(); return *this; }
-    operator T*() { return _ref; }
-    T* operator ->() const { return _ref; }
-    T& operator *() const { return *_ref; }
-
-  protected:
-    T* _ref;
-  };*/
 
   /* Simple 128bit integer for x86 instruction set. Replaced with __int128 if possible */
 //#ifdef BSS32BIT

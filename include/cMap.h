@@ -9,17 +9,16 @@
 
 namespace bss_util {
   /* A map class implemented as an associative sorted array */
-  template<class Key, class Data, typename CompareTraits=CompareKeysTraits<Key>, typename DataTraits=ValueTraits<Data>, typename _SizeType=unsigned int, typename ArrayType=cArraySimple<std::pair<Key,Data>,_SizeType>>
-  class BSS_COMPILER_DLLEXPORT cMap : protected cArraySort<std::pair<Key,Data>, ComparePairTraits_first<std::pair<Key,Data>, RefTraits<std::pair<Key,Data>>, CompareTraits>, _SizeType, ArrayType>, DataTraits
+  template<class Key, class Data, char (*CFunc)(const Key&,const Key&)=CompT<Key>, typename _SizeType=unsigned int, typename ArrayType=cArraySimple<std::pair<Key,Data>,_SizeType>, class DataTraits=ValueTraits<Data>, class KeyTraits=ValueTraits<Key>>
+  class BSS_COMPILER_DLLEXPORT cMap : protected cArraySort<std::pair<Key,Data>, CompTFirst<std::pair<Key,Data>, CFunc>, _SizeType, ArrayType, RefTraits<std::pair<Key,Data>>>, DataTraits, KeyTraits
   {
   protected:
     typedef std::pair<Key,Data> pair_t;
-    typedef cMap<Key,Data,CompareTraits,_SizeType> cMap_t;
-    typedef cArraySort<pair_t, ComparePairTraits_first<pair_t, RefTraits<pair_t>, CompareTraits>, __ST, ArrayType> cArraySort_t;
+    typedef cArraySort<pair_t, CompTFirst<pair_t, CFunc>, __ST, ArrayType, RefTraits<pair_t>> cArraySort_t;
     typedef typename DataTraits::const_reference constref;
     typedef typename DataTraits::reference reference;
-    typedef typename CompareTraits::const_reference CKEYREF;
-    typedef typename CompareTraits::reference KEYREF;
+    typedef typename KeyTraits::const_reference CKEYREF;
+    typedef typename KeyTraits::reference KEYREF;
 
   public:
     explicit cMap(_SizeType init=1) : cArraySort_t(init) {}
@@ -29,7 +28,7 @@ namespace bss_util {
     inline void BSS_FASTCALL Clear() { cArraySort_t::Clear(); }
     inline void BSS_FASTCALL Discard(unsigned int num) { cArraySort_t::Discard(num); }
     inline _SizeType BSS_FASTCALL Insert(CKEYREF key, constref data) { return cArraySort_t::Insert(pair_t(key,data)); }
-    inline _SizeType BSS_FASTCALL Get(CKEYREF key) const {  __ST retval=GetNear(key,true); return (retval!=(__ST)(-1)&&!CompareTraits::Compare(_array[retval].first,key))?retval:(__ST)(-1); }
+    inline _SizeType BSS_FASTCALL Get(CKEYREF key) const {  __ST retval=GetNear(key,true); return (retval!=(__ST)(-1)&&!CompT(_array[retval].first,key))?retval:(__ST)(-1); }
     inline constref BSS_FASTCALL GetData(CKEYREF key) const { return cArraySort_t::operator [](GetNear(key,true)).second; } //this has no checking
     inline _SizeType BSS_FASTCALL Remove(CKEYREF key) {  __ST retval=Get(key); cArraySort_t::Remove(retval); return retval; }
     inline _SizeType BSS_FASTCALL RemoveIndex(_SizeType index) { return cArraySort_t::Remove(index); }
@@ -42,19 +41,29 @@ namespace bss_util {
     inline _SizeType BSS_FASTCALL Set(CKEYREF key, constref data)
     {
       __ST retval=GetNear(key,true);
-      if(retval==(__ST)(-1) || CompareTraits::Compare(_array[retval].first,key)!=0) return (__ST)(-1);
+      if(retval==(__ST)(-1) || CompT(_array[retval].first,key)!=0) return (__ST)(-1);
 
       _array[retval].second=data;
       return retval;
     }
-    inline _SizeType BSS_FASTCALL GetNear(CKEYREF key, bool before) const
-    {
+    inline _SizeType BSS_FASTCALL GetNear(CKEYREF key, bool before) const { pair_t p; p.first=key; return cArraySort_t::FindNear(p,before); }
+
+    inline cMap& operator =(const cMap& right) { cArraySort_t::operator =(right); /*_lastindex=right._lastindex;*/ return *this; }
+    inline cMap& operator =(cMap&& right) { cArraySort_t::operator =(std::move(right)); /*_lastindex=right._lastindex;*/ return *this; }
+    inline constref operator [](__ST index) const { return cArraySort_t::operator [](index).second; }
+    inline Data& operator [](__ST index) { return cArraySort_t::operator [](index).second; }
+  };
+}
+
+#endif
+
+/*    {
       if(!_length) return (__ST)(-1);
       __ST last=_length;
       __ST first=0;
       __ST retval=last>>1;
       char compres;
-      while((compres=CompareTraits::Compare(key,_array[retval].first))!=0)
+      while((compres=CompT(key,_array[retval].first))!=0)
       {
         if(compres<0)
         {
@@ -72,13 +81,4 @@ namespace bss_util {
         }
       }
       return retval;
-    }
-
-    inline cMap& operator =(const cMap& right) { cArraySort_t::operator =(right); /*_lastindex=right._lastindex;*/ return *this; }
-    inline cMap& operator =(cMap&& right) { cArraySort_t::operator =(std::move(right)); /*_lastindex=right._lastindex;*/ return *this; }
-    inline constref operator [](__ST index) const { return cArraySort_t::operator [](index).second; }
-    inline Data& operator [](__ST index) { return cArraySort_t::operator [](index).second; }
-  };
-}
-
-#endif
+    }*/

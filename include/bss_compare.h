@@ -5,75 +5,58 @@
 #define __BSS_COMPARE_H__
 
 #include "bss_call.h"
+#include "bss_deprecated.h"
 
 #define SGNCOMPARE(left,right) (((left)>(right))-((left)<(right)))
 
 namespace bss_util {
-  template<class T>
-  struct COMPARE
-  {
-    static inline char sgn(const T& l, const T& r) { return SGNCOMPARE(l,r); }
-    static inline bool lt(const T& l, const T& r) { return (l)<(r); }
-    static inline bool gt(const T& l, const T& r) { return (l)>(r); }
-    static inline bool lte(const T& l, const T& r) { return (l)<=(r); }
-    static inline bool gte(const T& l, const T& r) { return (l)>=(r); }
-  };
-  template<class T>
-  struct COMPAREINV
-  {
-    static inline char sgn(const T& l, const T& r) { return SGNCOMPARE(r,l); }
-    static inline bool lt(const T& l, const T& r) { return (r)<(l); }
-    static inline bool gt(const T& l, const T& r) { return (r)>(l); }
-    static inline bool lte(const T& l, const T& r) { return (r)<=(l); }
-    static inline bool gte(const T& l, const T& r) { return (r)>=(l); }
-  };
+  template<typename T> // Returns -1,0,1
+  inline char CompT(const T& left, const T& right) { return SGNCOMPARE(left,right); }
 
-  template<class Key>
-  inline char CompareKeys(const Key& keyleft, const Key& keyright)
-  {
-    return SGNCOMPARE(keyleft,keyright);
-    //return (keyleft < keyright)?-1:((keyleft == keyright)?0:1);
-  }
+  template<typename T> // Returns -1,0,1
+  inline char CompTInv(const T& left, const T& right) { return SGNCOMPARE(right,left); }
 
-  template<class Key>
-  inline char CompareKeysInverse(const Key& keyleft, const Key& keyright)
-  {
-    return SGNCOMPARE(keyright,keyleft);
-    //return (keyleft < keyright)?1:((keyleft == keyright)?0:-1);
-  }
+  template<typename T> // Returns 1 if l<r or 0 otherwise
+  inline char CompT_LT(const T& left, const T& right) { return -(left<right); }
 
-  template<class Key>
-  inline char CompareShorts(const Key& keyleft, const Key& keyright)
-  {
-    return SGNCOMPARE((unsigned short)keyleft,(unsigned short)keyright);
-    //return ((unsigned short)keyleft < (unsigned short)keyright)?-1:(((unsigned short)keyleft == (unsigned short)keyright)?0:1);
-  }
+  template<typename T> // Returns 1 if l>r or 0 otherwise
+  inline char CompT_GT(const T& left, const T& right) { return (left>right); }
 
-  template<class Key, class Inner, char (*CompareFunc)(const Inner& keyleft, const Inner& keyright)>
-  inline char ComparePair_first(const Key& keyleft, const Key& keyright)
-  {
-    return CompareFunc(keyleft.first, keyright.first);
-  }
+  template<typename T> 
+  inline char CompT_EQ(const T& left, const T& right) { return (left==right); }
 
-  template<class Key, class Inner, char (*CompareFunc)(const Inner& keyleft, const Inner& keyright)>
-  inline char ComparePair_second(const Key& keyleft, const Key& keyright)
-  {
-    return CompareFunc(keyleft.second, keyright.second);
-  }
+  template<typename T> 
+  inline char CompT_NEQ(const T& left, const T& right) { return (left!=right); }
 
-  template<class Key>
-  inline char CompareStrings(const Key& keyleft, const Key& keyright)
+  template<typename T, char (*CFunc)(const typename T::first_type&, const typename T::first_type&)>
+  inline char CompTFirst(const T& left, const T& right) { return CFunc(left.first, right.first); }
+
+  template<typename T, char (*CFunc)(const typename T::first_type&, const typename T::first_type&)>
+  inline char CompTSecond(const T& left, const T& right) { return CFunc(left.second, right.second); }
+
+  template<typename T>
+  inline char CompStr(const T& left, const T& right)
   {
-    int result = strcmp(keyleft, keyright);
+    int result = strcmp(left, right);
     return SGNCOMPARE(result,0);
-    //return (result < 0)?-1:((result == 0)?0:1);
   }
-  template<class Key>
-  inline char CompareStringsNoCase(const Key& keyleft, const Key& keyright)
+  template<typename T>
+  inline char CompIStr(const T& left, const T& right)
   {
-    int result = _stricmp(keyleft, keyright);
+    int result = STRICMP(left, right);
     return SGNCOMPARE(result,0);
-    //return (result < 0)?-1:((result == 0)?0:1);
+  }
+  template<typename T>
+  inline char CompStrW(const T& left, const T& right)
+  {
+    int result = wcscmp(left, right);
+    return SGNCOMPARE(result,0);
+  }
+  template<typename T>
+  inline char CompIStrW(const T& left, const T& right)
+  {
+    int result = WCSICMP(left, right);
+    return SGNCOMPARE(result,0);
   }
 }
 

@@ -63,7 +63,7 @@ namespace bss_util {
   };
 
 	/* This class is a combination of a red-black tree with a doubly linked list. */
-	template <class K, class D, char (*C)(const K& keyleft, const K& keyright)=CompareKeys<K>, typename A=Allocator<cRBT_Node<K,D>>>
+	template <class K, class D, char (*C)(const K& keyleft, const K& keyright)=CompT<K>, typename A=Allocator<cRBT_Node<K,D>>>
 	class BSS_COMPILER_DLLEXPORT cRBT_List : protected cAllocTracker<A>
 	{
 	public:

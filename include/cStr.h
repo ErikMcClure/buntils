@@ -200,7 +200,7 @@ public:
   static inline cStrT StripChar(const CHAR* text, const CHAR c)
   { 
     cStrT r(CSTR_CT<T>::SLEN(text)+1);
-    unsigned int i;
+    size_t i;
     for(i=0;*text!=0;++text)
       if(*text>32)
         r.UnsafeString()[i++]=*text;

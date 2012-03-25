@@ -22,7 +22,7 @@ namespace bss_util {
   };
 
   /* AVL Tree implementation */
-  template<class Key, class Data, char (*Compare)(const Key& keyleft, const Key& keyright)=CompareKeys<Key>, typename Alloc=Allocator<AVL_Node<Key,Data>>>
+  template<class Key, class Data, char (*CFunc)(const Key&, const Key&)=CompT<Key>, typename Alloc=Allocator<AVL_Node<Key,Data>>>
 	class BSS_COMPILER_DLLEXPORT cAVLtree : cAllocTracker<Alloc>
   {
   public:
@@ -138,7 +138,7 @@ namespace bss_util {
         return *proot;
       }
 
-      char result=Compare(root->_pkey,key);
+      char result=CFunc(root->_pkey,key);
       AVL_Node<Key,Data>* retval=0;
       if(result<0)
         retval= _insert(key,&root->_left,change);
@@ -164,7 +164,7 @@ namespace bss_util {
         return 0;
       }
    
-      char result=Compare(root->_pkey,key);
+      char result=CFunc(root->_pkey,key);
       Data retval=0;
       if(result<0) {
         retval= _remove(key,&root->_left,change);
@@ -209,7 +209,7 @@ namespace bss_util {
       char result=0;
       while(cur)
       {
-        switch(Compare(cur->_pkey,key)) //This is faster then if/else statements because FUCK IF I KNOW!
+        switch(CFunc(cur->_pkey,key)) //This is faster then if/else statements because FUCK IF I KNOW!
         {
         case -1:
           cur=cur->_left;

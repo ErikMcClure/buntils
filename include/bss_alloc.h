@@ -451,7 +451,7 @@ namespace bss_util {
     FIXED_SIZE_BUCKET* _next;
 
   protected:
-    cMap<_Sz,_Sz,CompareKeysTraits<_Sz, ValueTraits<_Sz>>, _Sz> _freeslots; //key is offset, data is length
+    cMap<_Sz,_Sz,CompTTraits<_Sz, ValueTraits<_Sz>>, _Sz> _freeslots; //key is offset, data is length
   };
 
   template<typename T, typename rType, typename _Sz>
@@ -529,7 +529,7 @@ namespace bss_util {
       nbucket->_index = _freesort.Insert(nbucket->_maxfree, nbucket);
     }
 
-    cMap<_Sz, rType*, CompareKeysTraits<_Sz, ValueTraits<_Sz>>, _Sz> _freesort;
+    cMap<_Sz, rType*, CompTTraits<_Sz, ValueTraits<_Sz>>, _Sz> _freesort;
     rType* _root;
     _Sz _nextsize;
   };

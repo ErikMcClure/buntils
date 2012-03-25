@@ -26,6 +26,10 @@
 - Added bssreverse
 - removed cVect.h
 - Changed cAutoPtr to cUniquePtr
+- Refactored the entire Compare methodology and introduced methods of doing only LT and GT comparisons.
+- Created bss_algo.h and moved shuffle() to it.
+- added for_all()
+- added binsearch_near and variants
 
 0.3.81
 ------

@@ -10,7 +10,7 @@
 
 namespace bss_util {
   /* Performs a binary search on "arr" between first and last. if CEQ=NEQ and char CVAL=-1, uses an upper bound, otherwise uses lower bound. */
-  template<typename T, typename __ST, char (*CFunc)(const T&, const T&), char (*CEQ)(const T&, const T&), char CVAL>
+  template<typename T, typename __ST, char (*CFunc)(const T&, const T&), char (*CEQ)(const char&, const char&), char CVAL>
   static inline __ST BSS_FASTCALL binsearch_near(const T* arr, const T& data, __ST first, __ST last)
   {
     TSignPick<sizeof(__ST)>::SIGNED c = last-first; // Must be a signed version of whatever __ST is
@@ -34,20 +34,20 @@ namespace bss_util {
   }
   /* Either gets the element that matches the value in question or one immediately before the closest match. Could return an invalid -1 value. */
   template<typename T, typename __ST, char (*CFunc)(const T&, const T&)>
-  static inline __ST BSS_FASTCALL binsearch_before(const T* arr, const T& data, __ST first, __ST last) { return binsearch_near<T,__ST,CFunc,CompT_NEQ,-1>(arr,data,first,last)-1; }
+  static inline __ST BSS_FASTCALL binsearch_before(const T* arr, const T& data, __ST first, __ST last) { return binsearch_near<T,__ST,CFunc,CompT_NEQ<char>,-1>(arr,data,first,last)-1; }
 
   template<typename T, typename __ST, char (*CFunc)(const T&, const T&)>
-  static inline __ST BSS_FASTCALL binsearch_before(const T* arr, __ST length, const T& data) { return binsearch_near<T,__ST,CFunc,CompT_NEQ,-1>(arr,data,0,length)-1; }
+  static inline __ST BSS_FASTCALL binsearch_before(const T* arr, __ST length, const T& data) { return binsearch_near<T,__ST,CFunc,CompT_NEQ<char>,-1>(arr,data,0,length)-1; }
 
   template<typename T, typename __ST, char (*CFunc)(const T&, const T&), __ST I>
   static inline __ST BSS_FASTCALL binsearch_before(const T (&arr)[I], const T& data) { return binsearch_before<T,__ST,CFunc>(arr,I,data); }
 
   /* Either gets the element that matches the value in question or one immediately after the closest match. */
   template<typename T, typename __ST, char (*CFunc)(const T&, const T&)>
-  static inline __ST BSS_FASTCALL binsearch_after(const T* arr, const T& data, __ST first, __ST last) { return binsearch_near<T,__ST,CFunc,CompT_EQ,1>(arr,data,first,last); }
+  static inline __ST BSS_FASTCALL binsearch_after(const T* arr, const T& data, __ST first, __ST last) { return binsearch_near<T,__ST,CFunc,CompT_EQ<char>,1>(arr,data,first,last); }
 
   template<typename T, typename __ST, char (*CFunc)(const T&, const T&)>
-  static inline __ST BSS_FASTCALL binsearch_after(const T* arr, __ST length, const T& data) { return binsearch_near<T,__ST,CFunc,CompT_EQ,1>(arr,data,0,length); }
+  static inline __ST BSS_FASTCALL binsearch_after(const T* arr, __ST length, const T& data) { return binsearch_near<T,__ST,CFunc,CompT_EQ<char>,1>(arr,data,0,length); }
 
   template<typename T, typename __ST, char (*CFunc)(const T&, const T&), __ST I>
   static inline __ST BSS_FASTCALL binsearch_after(const T (&arr)[I], const T& data) { return binsearch_after<T,__ST,CFunc>(arr,I,data); }
@@ -111,28 +111,38 @@ namespace bss_util {
 #endif
   
   template<class F, typename T>
-  inline void for_all(const F& f, size_t size, T* arg) { for(size_t i = 0; i<size; ++i) f(arg[i]); }
+  inline void for_all(const F& f, size_t size, T* t) { for(size_t i = 0; i<size; ++i) f(t[i]); }
 
   template<class F, typename T, size_t SIZE>
-  inline void for_all(const F& f, T (&arg)[SIZE]) { for_all<F,T>(f,SIZE,arg); }
+  inline void for_all(F&& f, T (&t)[SIZE]) { for_all<F,T>(f,SIZE,t); }
+
+  //template<class F, typename T>
+  //inline void for_all(const F& f, T& t) { auto it_end=std::end(t); for(auto it=std::begin(t); it != it_end; ++it) f(*it); }
   
   template<class F, typename T, typename T2>
-  inline void for_all(const F& f, size_t size, T* arg1,  T2* arg2) { for(size_t i = 0; i<size; ++i) f(arg1[i],arg2[i]); }
+  inline void for_all(const F& f, size_t size, T* t1,  T2* t2) { for(size_t i = 0; i<size; ++i) f(t1[i],t2[i]); }
 
   template<class F, typename T, typename T2, size_t SIZE>
-  inline void for_all(const F& f, T (&arg1)[SIZE], T2 (&arg2)[SIZE]) { for_all<F,T,T2>(f,SIZE,arg1,arg2); }
+  inline void for_all(F&& f, T (&t1)[SIZE], T2 (&t2)[SIZE]) { for_all<F,T,T2>(f,SIZE,t1,t2); }
   
+  //template<class F, typename T, typename T2>
+  //inline void for_all(const F& f, T& t1, T2& t2) { 
+  //  auto it1 = std::begin(t1); auto it2 = std::begin(t2); auto it1_end = std::end(t1); auto it2_end = std::end(t2);
+  //  while(it1 != it1_end && it2 != it2_end)
+  //    f(*(it1++),*(it2)++);
+  //}
+
   template<class F, typename R, typename T>
-  inline void for_all(R* r, const F& f, size_t size, T* arg) { for(size_t i = 0; i<size; ++i) r[i]=f(arg[i]); }
+  inline void for_all(R* r, const F& f, size_t size, T* t) { for(size_t i = 0; i<size; ++i) r[i]=f(t[i]); }
 
   template<class F, typename R, typename T, size_t SIZE>
-  inline void for_all(R (&r)[SIZE], const F& f, T (&arg)[SIZE]) { for_all<F,R,T>(r,f,SIZE,arg); }
+  inline void for_all(R (&r)[SIZE], const F& f, T (&t)[SIZE]) { for_all<F,R,T>(r,f,SIZE,t); }
   
   template<class F, typename R, typename T, typename T2>
-  inline void for_all(R* r, const F& f, size_t size, T* arg1,  T2* arg2) { for(size_t i = 0; i<size; ++i) r[i]=f(arg1[i],arg2[i]); }
+  inline void for_all(R* r, const F& f, size_t size, T* t1,  T2* t2) { for(size_t i = 0; i<size; ++i) r[i]=f(t1[i],t2[i]); }
 
   template<class F, typename R, typename T, typename T2, size_t SIZE>
-  inline void for_all(R (&r)[SIZE], const F& f, T (&arg1)[SIZE], T2 (&arg2)[SIZE]) { for_all<F,R,T,T2>(r,f,SIZE,arg1,arg2); }
+  inline void for_all(R (&r)[SIZE], const F& f, T (&t1)[SIZE], T2 (&t2)[SIZE]) { for_all<F,R,T,T2>(r,f,SIZE,t1,t2); }
 
   /*
 #ifdef __GNUC__

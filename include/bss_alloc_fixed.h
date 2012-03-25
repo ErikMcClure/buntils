@@ -180,11 +180,11 @@ namespace bss_util {
   struct FIXEDCHUNKLIST
   {
     void* mem;
-    unsigned __int32 size;
+    size_t size;
     FIXEDCHUNKLIST* next;
   };
 
-  template<class T, unsigned __int32 init=8>
+  template<class T, size_t init=8>
   class BSS_COMPILER_DLLEXPORT cFixedChunkAlloc
   {
   public:
@@ -203,7 +203,7 @@ namespace bss_util {
         free(_root);
       }
     }
-	  inline T* BSS_FASTCALL alloc(__int32 num)
+	  inline T* BSS_FASTCALL alloc(size_t num)
     {
       if(!_freelist) _allocchunk(fbnext(_root->size/sizeof(T))*sizeof(T));
       assert(_freelist!=0);
@@ -238,7 +238,7 @@ namespace bss_util {
     }
 
   protected:
-    inline void _allocchunk(__int32 nsize)
+    inline void _allocchunk(size_t nsize)
     {
       FIXEDCHUNKLIST* retval=(FIXEDCHUNKLIST*)malloc(sizeof(FIXEDCHUNKLIST));
       retval->next=_root;

@@ -21,7 +21,7 @@ namespace bss_util {
   };
 
   /* Single-Threaded AA Tree (A variant of the RBT tree). */ //BROKEN
-  template<class TKey, class TVal, char (*Compare)(const TKey& keyleft, const TKey& keyright)=CompareKeys<TKey>, typename TLEVEL=unsigned short, typename TSIZE=unsigned int, class Alloc=bss_util::Allocator<TAATreeNode<TKey, TVal, TLEVEL>,bss_util::FixedChunkPolicy<TAATreeNode<TKey, TVal, TLEVEL>>>>
+  template<class TKey, class TVal, char (*CFunc)(const TKey& keyleft, const TKey& keyright)=CompT<TKey>, typename TLEVEL=unsigned short, typename TSIZE=unsigned int, class Alloc=bss_util::Allocator<TAATreeNode<TKey, TVal, TLEVEL>,bss_util::FixedChunkPolicy<TAATreeNode<TKey, TVal, TLEVEL>>>>
   class BSS_COMPILER_DLLEXPORT cTAATree : cAllocTracker<Alloc>
   {
   public:
@@ -65,7 +65,7 @@ namespace bss_util {
     inline TNODE* BSS_FASTCALL _insert(TNODE* node, const TKey key, const TVal data)
     {
       assert(node!=&_nil);
-      char cmp = Compare(key,node->key);
+      char cmp = CFunc(key,node->key);
       TNODE* retval=0;
       if(cmp<0) {
         retval=(node->left=(node->left==&_nil)?_nullcheckprev(node,key,data):_insert(node->left,key,data));
@@ -144,8 +144,8 @@ namespace bss_util {
     //TSIZE _size;
   };
 
-  template<class TKey, class TVal, char (*Compare)(const TKey& keyleft, const TKey& keyright), typename TLEVEL, typename TSIZE, class Alloc>
-  TAATreeNode<TKey,TVal,TLEVEL> cTAATree<TKey,TVal,Compare,TLEVEL,TSIZE,Alloc>::_nil = { 0, 0, &cTAATree<TKey,TVal,Compare,TLEVEL,TSIZE,Alloc>::_nil, &cTAATree<TKey,TVal,Compare,TLEVEL,TSIZE,Alloc>::_nil, 0, TKey(), TVal() };
+  template<class TKey, class TVal, char (*CFunc)(const TKey& keyleft, const TKey& keyright), typename TLEVEL, typename TSIZE, class Alloc>
+  TAATreeNode<TKey,TVal,TLEVEL> cTAATree<TKey,TVal,CFunc,TLEVEL,TSIZE,Alloc>::_nil = { 0, 0, &cTAATree<TKey,TVal,CFunc,TLEVEL,TSIZE,Alloc>::_nil, &cTAATree<TKey,TVal,CFunc,TLEVEL,TSIZE,Alloc>::_nil, 0, TKey(), TVal() };
 }
 
 #endif

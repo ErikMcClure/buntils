@@ -7,42 +7,33 @@
 #include "bss_deprecated.h"
 #include "bss_dlldef.h"
 #include "bss_traits.h"
+#include "bss_compare.h"
 #include <stdarg.h>
 #include <string.h>
 
 namespace bss_util {
-  template<typename T, class Traits=ValueTraits<T>>
-  class BSS_COMPILER_DLLEXPORT CompBoolTraits : public Traits
-  {
-  public:
-    typedef typename Traits::const_reference constref;
-    static inline char Compare(constref keyleft, constref keyright) { return (keyleft == keyright)?0:1; }
-  };
-
-  /* Default ignores case */
-  template<>
-  class BSS_COMPILER_DLLEXPORT CompBoolTraits<char const*,ValueTraits<char const*>> : public ValueTraits<char const*>
-  {
-  public:
-    typedef ValueTraits<char const*>::const_reference constref;
-    static inline char Compare(constref keyleft, constref keyright) { return (STRICMP(keyleft,keyright)==0)?0:1; }
-  };
-  template<>
-  class BSS_COMPILER_DLLEXPORT CompBoolTraits<wchar_t const*,ValueTraits<wchar_t const*>> : public ValueTraits<wchar_t const*>
-  {
-  public:
-    typedef ValueTraits<wchar_t const*>::const_reference constref;
-    static inline char Compare(constref keyleft, constref keyright) { return (WCSICMP(keyleft,keyright)==0)?0:1;  }
-  };
-  template<typename T> class BSS_COMPILER_DLLEXPORT CompCaseTraits {}; //causes compile error if an invalid typename is chosen
-  template<> class BSS_COMPILER_DLLEXPORT CompCaseTraits<char const*> { public: static inline char Compare(char const* keyleft, char const* keyright) { return (strcmp(keyleft,keyright)==0)?0:1; } };
-  template<> class BSS_COMPILER_DLLEXPORT CompCaseTraits<wchar_t const*> { public: static inline char Compare(wchar_t const* keyleft, wchar_t const* keyright) { return (wcscmp(keyleft,keyright)==0)?0:1; } };
-
+  template<class T, class Traits> // Specializes to case-sensitive string matching
+  struct OBJSWAPFUNC_ALL : Traits { typedef typename Traits::const_reference constref;
+    inline static char Comp(constref left, constref right) { return CompT_EQ(left,right); } };
+  template<class Traits> struct OBJSWAPFUNC_ALL<const char*,Traits> : Traits { typedef typename Traits::const_reference constref;
+    inline static char Comp(const char* l, const char* r) { return strcmp(l,r)!=0; } };
+  template<class Traits> struct OBJSWAPFUNC_ALL<const wchar_t*,Traits> : Traits { typedef typename Traits::const_reference constref;
+    inline static char Comp(const wchar_t* l, const wchar_t* r) { return wcscmp(l,r)!=0; } };
+  
+  template<class T, class Traits> // Specializes to case-insensitive string matching
+  struct OBJSWAPFUNC_INS : Traits { typedef typename Traits::const_reference constref;
+    inline static char Comp(constref left, constref right) { return CompT_EQ(left,right); } };
+  template<class Traits> struct OBJSWAPFUNC_INS<const char*,Traits> : Traits { typedef typename Traits::const_reference constref;
+    inline static char Comp(const char* l, const char* r) { return STRICMP(l,r)!=0; } };
+  template<class Traits> struct OBJSWAPFUNC_INS<const wchar_t*,Traits> : Traits { typedef typename Traits::const_reference constref;
+    inline static char Comp(const wchar_t* l, const wchar_t* r) { return WCSICMP(l,r)!=0; } };
+  
   /* Generalized solution to allow dynamic switch statements */
-  template<class T, class Comp=CompBoolTraits<T>>
-  class BSS_COMPILER_DLLEXPORT cObjSwap 
+  template<class T, class SWAP=OBJSWAPFUNC_ALL<T,ValueTraits<T>>>
+  class BSS_COMPILER_DLLEXPORT cObjSwap : protected SWAP
   {
-    typedef typename Comp::constref constref;
+    typedef typename SWAP::constref constref;
+
   public:
 	  inline explicit cObjSwap(constref src, int num, ...)
 	  {
@@ -75,7 +66,7 @@ namespace bss_util {
     inline static int CompareObjectsArray(constref src, int num, const T* tarray)
     {
 		  for(int i = 0; i < num; ++i)
-			  if(Comp::Compare(tarray[i], src)==0)
+			  if(SWAP::Comp(tarray[i], src)==0)
 				  return i;
 		  return -1;
     }
@@ -84,7 +75,7 @@ namespace bss_util {
 	  inline static int _compobj(constref src, int num, va_list args)
 	  {
 		  for(int i = 0; i < num; ++i)
-			  if(Comp::Compare((va_arg(args, constref)), src)==0)
+			  if(SWAP::Comp((va_arg(args, constref)), src)==0)
 				  return i;
 		  return -1;
 	  }

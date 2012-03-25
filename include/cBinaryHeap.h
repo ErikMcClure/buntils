@@ -9,8 +9,8 @@
 #include <memory>
 
 namespace bss_util {
-  /* This is a binary min-heap implemented using an array. Use CompareKeysInverse to change it into a max-heap, or to make it use pairs. */
-  template<class T, typename __ST=unsigned int, char (*Compare)(const T& keyleft, const T& keyright)=CompareKeys<T>, typename ArrayType=cArraySimple<T,__ST>>
+  /* This is a binary min-heap implemented using an array. Use CompTInverse to change it into a max-heap, or to make it use pairs. */
+  template<class T, typename __ST=unsigned int, char (*CFunc)(const T&, const T&)=CompT<T>, typename ArrayType=cArraySimple<T,__ST>>
   class BSS_COMPILER_DLLEXPORT cBinaryHeap : protected ArrayType
   {
   protected:
@@ -41,7 +41,7 @@ namespace bss_util {
     inline bool Set(__ST index, const T& val)
     {
       if(index>=_length) return false;
-      if(Compare(_array[index],val) >= 0) //in this case we percolate up
+      if(CFunc(_array[index],val) >= 0) //in this case we percolate up
         PercolateUp(_array,_length,index,val);
       else
         PercolateDown(_array,_length,index,val);
@@ -65,7 +65,7 @@ namespace bss_util {
 
       while (k > 0) {
         parent = CBH_PARENT(k);
-        if(Compare(_array[parent],val) < 0) break;
+        if(CFunc(_array[parent],val) < 0) break;
         _array[k] = _array[parent];
         k = parent;
       }
@@ -79,14 +79,14 @@ namespace bss_util {
 
 	    for (i = CBH_RIGHT(k); i < _length; i = CBH_RIGHT(i))
       {
-        if(Compare(_array[i-1],_array[i]) < 0) // Compare (left,right) and return true if left < right
+        if(CFunc(_array[i-1],_array[i]) < 0) // CFunc (left,right) and return true if left < right
           --i; //left is smaller than right so pick that one
-        if(Compare(val,_array[i]) < 0)
+        if(CFunc(val,_array[i]) < 0)
           break;
         _array[k]=std::move(_array[i]);
         k=i;
       }
-      if(i >= _length && --i < _length && Compare(val,_array[i])>=0) //Check if left child is also invalid (can only happen at the very end of the array)
+      if(i >= _length && --i < _length && CFunc(val,_array[i])>=0) //Check if left child is also invalid (can only happen at the very end of the array)
       {
         _array[k]=std::move(_array[i]);
         k=i;
@@ -131,7 +131,7 @@ namespace bss_util {
     //inline size_t GetNearest(const K& key) 
     //{
     //  BINHEAP_CELL& cur=_array[0];
-    //  if(_array.empty() || Compare(cur.first,key)<0)
+    //  if(_array.empty() || CFunc(cur.first,key)<0)
     //    return 0;
     //  //const BINHEAP_CELL& last=BINHEAP_CELL(key(),0);
     //  BINHEAP_CELL& right=cur;
@@ -143,7 +143,7 @@ namespace bss_util {
     //    //last=cur;
     //    left=_array[index*=2 + 1];
     //    right=_array[index + 2];
-    //    if(Compare(left.first,right.first)>0) //if this is true then left > right
+    //    if(CFunc(left.first,right.first)>0) //if this is true then left > right
     //    {
     //      ++index;
     //      left=right;
@@ -151,7 +151,7 @@ namespace bss_util {
     //    else
     //      index+=2;
 
-    //    //switch(Compare(key,left.first))
+    //    //switch(CFunc(key,left.first))
     //    //{
     //    //case 1: //this is a valid choice
     //    //  cur=left;
@@ -169,12 +169,12 @@ namespace bss_util {
         left=CBH_LEFT(k);
         right=CBH_RIGHT(k);
         largest=k;
-        if(left<_length && Compare(_array[left].first,store.first) <= 0) {
+        if(left<_length && CFunc(_array[left].first,store.first) <= 0) {
           largest=left;
 
-          if(right<_length && Compare(_array[right].first,_array[largest].first) <= 0)
+          if(right<_length && CFunc(_array[right].first,_array[largest].first) <= 0)
             largest=right;
-        } else if(right<_length && Compare(_array[right].first,store.first) <= 0)
+        } else if(right<_length && CFunc(_array[right].first,store.first) <= 0)
           largest=right;
         if(largest==k) break;
         _array[k]=_array[largest];

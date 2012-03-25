@@ -12,11 +12,11 @@ namespace bss_util {
   struct AFLISTITEM
   {
     AFLISTITEM* next;
-    unsigned __int32 size;
+    size_t size;
     char* mem;
   };
 
-	template<typename T, __int32 init=8>
+	template<typename T, size_t init=8>
 	class BSS_COMPILER_DLLEXPORT cAdditiveFixedAllocator
   {
   public:
@@ -34,7 +34,7 @@ namespace bss_util {
         free(_root);
       }
     }
-	  inline T* BSS_FASTCALL alloc(__int32 num)
+	  inline T* BSS_FASTCALL alloc(size_t num)
     {
       if(_curpos>=_root->size) { _allocchunk(fbnext(_root->size/sizeof(T))*sizeof(T)); _curpos=0; }
 
@@ -60,7 +60,7 @@ namespace bss_util {
     {
       _curpos=0;
       if(!_root->next) return;
-      unsigned __int32 nsize=0;
+      size_t nsize=0;
       AFLISTITEM* hold;
       while(_root)
       {
@@ -74,7 +74,7 @@ namespace bss_util {
       _allocchunk(nsize); //consolidates all memory into one chunk to try and take advantage of data locality
     }
   protected:
-    inline void _allocchunk(unsigned __int32 nsize)
+    inline void _allocchunk(size_t nsize)
     {
       AFLISTITEM* retval=(AFLISTITEM*)malloc(sizeof(AFLISTITEM));
       retval->next=_root;
@@ -91,7 +91,7 @@ namespace bss_util {
     }
 
     AFLISTITEM* _root;
-    unsigned __int32 _curpos;
+    size_t _curpos;
   };
   
 	template<typename T>
@@ -117,7 +117,7 @@ namespace bss_util {
   /* End Additive Fixed Allocator */
 
   /* Dynamic additive allocator that can allocate any number of bytes */
-	template<__int32 init=64>
+	template<size_t init=64>
 	class BSS_COMPILER_DLLEXPORT cAdditiveVariableAllocator
   {
   public:
@@ -136,11 +136,11 @@ namespace bss_util {
       }
     }
     template<class T>
-	  inline T* BSS_FASTCALL alloc(__int32 num)
+	  inline T* BSS_FASTCALL alloc(size_t num)
     {
       return (T*)_allocbytes(num*sizeof(T));
     }
-	  inline void* BSS_FASTCALL _allocbytes(unsigned __int32 _sz) //allows you to skip the automatic template resolution - important for allocating over DLL bounderies
+	  inline void* BSS_FASTCALL _allocbytes(size_t _sz) //allows you to skip the automatic template resolution - important for allocating over DLL bounderies
     {
       if((_curpos+_sz)>=_root->size) { _allocchunk(fbnext(bssmax(_root->size,_sz))); _curpos=0; }
 
@@ -166,7 +166,7 @@ namespace bss_util {
     {
       _curpos=0;
       if(!_root->next) return;
-      unsigned __int32 nsize=0;
+      size_t nsize=0;
       AFLISTITEM* hold;
       while(_root)
       {
@@ -179,7 +179,7 @@ namespace bss_util {
       _allocchunk(nsize); //consolidates all memory into one chunk to try and take advantage of data locality
     }
   protected:
-    inline void _allocchunk(unsigned __int32 nsize)
+    inline void _allocchunk(size_t nsize)
     {
       AFLISTITEM* retval=(AFLISTITEM*)malloc(sizeof(AFLISTITEM));
       retval->next=_root;
@@ -196,7 +196,7 @@ namespace bss_util {
     }
 
     AFLISTITEM* _root;
-    unsigned __int32 _curpos;
+    size_t _curpos;
   };
   
 	//template<typename T>

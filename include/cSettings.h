@@ -88,17 +88,17 @@ namespace bss_util {
   /* Struct class for defining the INILoad function. Can be overriden for custom types */
   template<typename T, typename C>
   struct cSetting_INILOAD {
-    inline static void INILoad(cINIstorage<C>& ini, T& v, const C* name, const C* section)
+    inline static void INILoad(cINIstorage& ini, T& v, const C* name, const C* section)
     { 
-      cINIentry<C>* p;
+      cINIentry* p;
       if(name!=0 && (p=ini.GetEntryPtr(section,name))!=0) { v=*p; }
     }
   };
   
   template<typename C>
   struct cSetting_INILOAD<std::vector<cStrT<C>>,C> {
-    inline static void INILoad(cINIstorage<C>& ini, std::vector<cStrT<C>>& v, const C* name, const C* section) { 
-      cINIentry<C>* p;
+    inline static void INILoad(cINIstorage& ini, std::vector<cStrT<C>>& v, const C* name, const C* section) { 
+      cINIentry* p;
       v.clear();
       if(name!=0) {
         for(int i = 0; (p=ini.GetEntryPtr(section,name,i))!=0; ++i) { v.push_back(p->GetString()); }
@@ -109,30 +109,30 @@ namespace bss_util {
   /* Struct class for defining the INISave function. Can be overriden for custom types */
   template<typename T, typename C>
   struct cSetting_INISAVE {
-    inline static void INISave(cINIstorage<C>& ini, T& v, const C* name, const C* section)
+    inline static void INISave(cINIstorage& ini, T& v, const C* name, const C* section)
     { if(name!=0) { ini.EditAddEntry(section,name,tostring<C,T>(v).c_str()); } }
   };
   
   /* Override for string types on INI loading */
   template<typename C>
   struct cSetting_INISAVE<const C*,C> {
-    inline static void INISave(cINIstorage<C>& ini, const C* v, const C* name, const C* section)
+    inline static void INISave(cINIstorage& ini, const C* v, const C* name, const C* section)
     { if(name!=0) { ini.EditAddEntry(section,name,v); } }
   };
   /* Force char types to write as numbers */
   template<typename C>
   struct cSetting_INISAVE<unsigned char,C> {
-    inline static void INISave(cINIstorage<C>& ini, unsigned char v, const C* name, const C* section)
+    inline static void INISave(cINIstorage& ini, unsigned char v, const C* name, const C* section)
     { char s[4]; ITOA((int)v,s,10); if(name!=0) { ini.EditAddEntry(section,name,s); } }
   };
   template<typename C>
   struct cSetting_INISAVE<char,C> {
-    inline static void INISave(cINIstorage<C>& ini, char v, const C* name, const C* section)
+    inline static void INISave(cINIstorage& ini, char v, const C* name, const C* section)
     { char s[4]; ITOA((int)v,s,10); if(name!=0) { ini.EditAddEntry(section,name,s); } }
   };
   template<typename C>
   struct cSetting_INISAVE<std::vector<cStrT<C>>,C> {
-    inline static void INISave(cINIstorage<C>& ini, const std::vector<cStrT<C>>& v, const C* name, const C* section)
+    inline static void INISave(cINIstorage& ini, const std::vector<cStrT<C>>& v, const C* name, const C* section)
     { if(name!=0) { for(unsigned int i = 0; i < v.size(); ++i) ini.EditAddEntry(section,name,v[i],0,i); } }
   };
 
@@ -165,29 +165,25 @@ namespace bss_util {
   class cSettingManage
   {
   public:
-    template<typename C>
-    inline static void LoadFromINI(cINIstorage<C>& ini)
+    inline static void LoadFromINI(cINIstorage& ini)
     {
-      cSetting_INILOAD<typename cSetting<I,N>::TYPE,C>::INILoad(ini, cSetting<I,N>::v, cSetting<I,N>::name(), cSetting<I,-1>::secname());
-      cSettingManage<I,N-1>::LoadFromINI<C>(ini);
+      cSetting_INILOAD<typename cSetting<I,N>::TYPE,char>::INILoad(ini, cSetting<I,N>::v, cSetting<I,N>::name(), cSetting<I,-1>::secname());
+      cSettingManage<I,N-1>::LoadFromINI(ini);
     };
-    template<typename C>
-    inline static void LoadAllFromINI(cINIstorage<C>& ini)
+    inline static void LoadAllFromINI(cINIstorage& ini)
     {
-      cSettingManage<I,cSetting<I,-1>::COUNT>::LoadFromINI<C>(ini);
-      cSettingManage<I-1,N>::LoadAllFromINI<C>(ini);
+      cSettingManage<I,cSetting<I,-1>::COUNT>::LoadFromINI(ini);
+      cSettingManage<I-1,N>::LoadAllFromINI(ini);
     };
-    template<typename C>
-    inline static void SaveToINI(cINIstorage<C>& ini)
+    inline static void SaveToINI(cINIstorage& ini)
     {
-      cSetting_INISAVE<typename cSetting<I,N>::TYPE,C>::INISave(ini, cSetting<I,N>::v, cSetting<I,N>::name(), cSetting<I,-1>::secname());
-      cSettingManage<I,N-1>::SaveToINI<C>(ini);
+      cSetting_INISAVE<typename cSetting<I,N>::TYPE,char>::INISave(ini, cSetting<I,N>::v, cSetting<I,N>::name(), cSetting<I,-1>::secname());
+      cSettingManage<I,N-1>::SaveToINI(ini);
     };
-    template<typename C>
-    inline static void SaveAllToINI(cINIstorage<C>& ini)
+    inline static void SaveAllToINI(cINIstorage& ini)
     {
-      cSettingManage<I,cSetting<I,-1>::COUNT>::SaveToINI<C>(ini);
-      cSettingManage<I-1,N>::SaveAllToINI<C>(ini);
+      cSettingManage<I,cSetting<I,-1>::COUNT>::SaveToINI(ini);
+      cSettingManage<I-1,N>::SaveAllToINI(ini);
     };
   };
   
@@ -195,20 +191,16 @@ namespace bss_util {
   class cSettingManage<I,-1>
   {
   public:
-    template<typename C>
-    inline static void LoadFromINI(cINIstorage<C>& ini) {} // recursive template evaluation terminator
-    template<typename C>
-    inline static void SaveToINI(cINIstorage<C>& ini) { ini.EndINIEdit(); } // recursive template evaluation terminator
+    inline static void LoadFromINI(cINIstorage& ini) {} // recursive template evaluation terminator
+    inline static void SaveToINI(cINIstorage& ini) { ini.EndINIEdit(); } // recursive template evaluation terminator
   };
 
   template<int N>
   class cSettingManage<-1,N>
   {
   public:
-    template<typename C>
-    inline static void LoadAllFromINI(cINIstorage<C>& ini) {} // recursive template evaluation terminator
-    template<typename C>
-    inline static void SaveAllToINI(cINIstorage<C>& ini) {} // recursive template evaluation terminator
+    inline static void LoadAllFromINI(cINIstorage& ini) {} // recursive template evaluation terminator
+    inline static void SaveAllToINI(cINIstorage& ini) {} // recursive template evaluation terminator
   };
 
   /* Static template function for loading settings from a command line. */

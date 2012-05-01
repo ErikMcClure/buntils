@@ -7,23 +7,11 @@
 #include <ostream>
 #include <vector>
 #include "bss_dlldef.h"
-#include "bss_util_c.h"
+#include "bss_util.h"
 
 #define BSSLOG(logger,level) ((logger).FORMATLOG<level>(__FILE__,__LINE__))
 
-/* modifies the basic_ostream so it takes wchar_t and converts it into UTF */
-template<class _Traits>
-inline std::basic_ostream<char, _Traits>& operator<<(std::basic_ostream<char, _Traits>& _Ostr, const wchar_t *_Val)
-{
-  size_t c=UTF8Encode2BytesUnicode(_Val,0);
-  std::unique_ptr<char[]> utf(new char[++c]); //+1 for null terminator
-  UTF8Encode2BytesUnicode(_Val,(unsigned char*)(char*)utf.get());
-  utf.get()[--c]=0;
-  _Ostr << (char*)utf.get();
-  return _Ostr;
-}
-
-namespace bss_util { template<typename _Elem> class StreamSplitter; }
+namespace bss_util { class StreamSplitter; }
 
 /* template defined error messages */
 template<unsigned char ERRLEVEL> struct bss_LOGERRLVL {};
@@ -41,19 +29,19 @@ public:
 	bss_Log(const bss_Log& copy);
 	/* Constructor - takes a stream and adds it */
 	explicit bss_Log(std::ostream* log=0);
-	explicit bss_Log(std::wostream* log);
+	//explicit bss_Log(std::wostream* log);
 	/* Constructor - takes either a stream or a file (or both) and adds them */
-	bss_Log(const char* logfile, std::ostream* log=0);
+	explicit bss_Log(const char* logfile, std::ostream* log=0);
 	bss_Log(const wchar_t* logfile, std::ostream* log);
-	bss_Log(const char* logfile, std::wostream* log);
-	bss_Log(const wchar_t* logfile, std::wostream* log);
+	//bss_Log(const char* logfile, std::wostream* log);
+	//bss_Log(const wchar_t* logfile, std::wostream* log);
   /* Destructor - destroys any file streams */
   ~bss_Log();
   /* Redirects an existing stream to write to this log's buffer */
   void BSS_FASTCALL Assimilate(std::ostream& stream); //Resistance is futile
   /* Adds a target stream to post logs to */
   void BSS_FASTCALL AddTarget(std::ostream& stream);
-  void BSS_FASTCALL AddTarget(std::wostream& stream);
+  //void BSS_FASTCALL AddTarget(std::wostream& stream);
   void BSS_FASTCALL AddTarget(const char* file);
   void BSS_FASTCALL AddTarget(const wchar_t* file);
   /* Clears all targets and closes all files */
@@ -68,17 +56,17 @@ public:
   inline std::ostream& BSS_FASTCALL FORMATLOG(const char* FILE, unsigned int LINE) { 
 		_stream << '['; _writedatetime(_tz,_stream,true);
     _stream << "] (" << _trimpath(FILE) << ':' << LINE << ") " << bss_LOGERRLVL<errlevel>::ERRLVL(); return _stream; }
-  template<unsigned char errlevel>
-  inline std::ostream& BSS_FASTCALL FORMATLOG(const wchar_t* FILE, unsigned int LINE) {
-		_stream << '['; _writedatetime(_tz,_stream,true);
-    _stream << "] (" << _trimpath(FILE) << ':' << LINE << ") " << bss_LOGERRLVL<errlevel>::ERRLVL(); return _stream; }
+  //template<unsigned char errlevel>
+  //inline std::ostream& BSS_FASTCALL FORMATLOG(const wchar_t* FILE, unsigned int LINE) {
+	//	_stream << '['; _writedatetime(_tz,_stream,true);
+  //  _stream << "] (" << _trimpath(FILE) << ':' << LINE << ") " << bss_LOGERRLVL<errlevel>::ERRLVL(); return _stream; }
 
 private:
   static bool BSS_FASTCALL _writedatetime(long timezone, std::ostream& log, bool timeonly);
   static const char* BSS_FASTCALL _trimpath(const char* path);
-  static const wchar_t* BSS_FASTCALL _trimpath(const wchar_t* path);
+  //static const wchar_t* BSS_FASTCALL _trimpath(const wchar_t* path);
 
-  bss_util::StreamSplitter<char>* _split;
+  bss_util::StreamSplitter* _split;
   long _tz;
 #pragma warning(push)
 #pragma warning(disable:4251)

@@ -10,7 +10,7 @@
 namespace bss_util {
   /* Implements a lambda stack used for deferred function evaluation */
   template<class Fx, typename SizeType=unsigned int>
-  class cLambdaStack : protected cBSS_Stack<std::function<Fx>,ValueTraits<std::function<Fx>>,SizeType, cArraySafe<std::function<Fx>,SizeType>>
+  class cLambdaStack : protected cBSS_Stack<std::function<Fx>,SizeType, cArraySafe<std::function<Fx>,SizeType>>
   {
   public:
     /* Copy constructor */
@@ -22,6 +22,7 @@ namespace bss_util {
     inline ~cLambdaStack() {}
     /* Deferres a lambda function for later execution */
     inline void DeferLambda(const std::function<Fx>& lambda) { Push(lambda); }
+    inline void DeferLambda(std::function<Fx>&& lambda) { Push(std::move(lambda)); }
 
     inline cLambdaStack& operator=(const cBSS_Stack& right) { cBSS_Stack::operator=(right); return *this; }
     inline cLambdaStack& operator=(cBSS_Stack&& mov) { cBSS_Stack::operator=(std::move(mov)); return *this; }

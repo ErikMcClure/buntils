@@ -30,6 +30,8 @@
 - Created bss_algo.h and moved shuffle() to it.
 - added for_all()
 - added binsearch_near and variants
+- Implemented library wide utf8 decoding. Most wchar_t implementations remain, but all char* functions are translated to wchar_t internally. If you happen to recieve strings in wchar_t format, this allows you to avoid unnecessary encoding/decoding while still ensuring all text is utf8 enabled. You should #define _UNICODE in your application if you want to enforce unicode compatability. cStr conversion between cStr <-> cStrW use unicode encoder/decoders, so unicode information is always preserved.
+- Removed wchar_t specialization from cINIstorage and certain other things. You can no longer output to a wostream - instead, all output will be utf8 encoded.
 
 0.3.81
 ------

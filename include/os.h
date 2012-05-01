@@ -21,12 +21,12 @@ namespace bss_util {
   BSS_COMPILER_DLLEXPORT extern bool BSS_FASTCALL FolderExists(const wchar_t* strpath); 
   BSS_COMPILER_DLLEXPORT extern bool BSS_FASTCALL FileExists(const char* strpath);
   BSS_COMPILER_DLLEXPORT extern bool BSS_FASTCALL FileExists(const wchar_t* strpath);
-  BSS_COMPILER_DLLEXPORT extern void BSS_FASTCALL FileDialog(char (&buf)[260], bool open, int flags, const char* file=0, const char* filter="All Files (*.*)\0*.*\0", HWND__* owner=0, const char* initdir=0, const char* defext=0);
+  BSS_COMPILER_DLLEXPORT extern void BSS_FASTCALL FileDialog(std::string& result, bool open, int flags, const char* file=0, const char* filter="All Files (*.*)\0*.*\0", HWND__* owner=0, const char* initdir=0, const char* defext=0);
   BSS_COMPILER_DLLEXPORT extern void BSS_FASTCALL FileDialog(wchar_t (&buf)[260], bool open, int flags, const wchar_t* file=0, const wchar_t* filter=L"All Files (*.*)\0*.*\0", HWND__* owner=0, const wchar_t* initdir=0, const wchar_t* defext=0);
   
 #if defined(WIN32) || defined(_WINDOWS)
   BSS_COMPILER_DLLEXPORT extern int BSS_FASTCALL SetRegistryValue(HKEY__*	hOpenKey, const char* szKey, const char* szValue, const char* szData);
-  BSS_COMPILER_DLLEXPORT extern int BSS_FASTCALL SetRegistryValue(HKEY__*	hOpenKey, const wchar_t* szKey, const wchar_t* szValue, const wchar_t* szData);
+  BSS_COMPILER_DLLEXPORT extern int BSS_FASTCALL SetRegistryValue(HKEY__*	hOpenKey, const wchar_t* szKey, const wchar_t* szValue, const char* szData);
   BSS_COMPILER_DLLEXPORT extern int BSS_FASTCALL SetRegistryValue(HKEY__*	hOpenKey, const char* szKey, const char* szValue, __int32 szData);
   BSS_COMPILER_DLLEXPORT extern int BSS_FASTCALL SetRegistryValue(HKEY__*	hOpenKey, const wchar_t* szKey, const wchar_t* szValue, __int32 szData);
   BSS_COMPILER_DLLEXPORT extern int BSS_FASTCALL SetRegistryValue64(HKEY__*	hOpenKey, const char* szKey, const char* szValue, __int64 szData);

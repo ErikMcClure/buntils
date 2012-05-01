@@ -95,10 +95,10 @@ namespace bss_util {
   protected:
     inline static void* _cdecl _minmalloc(size_t n) { return malloc((n<1)?1:n); } //Malloc can legally return NULL if it tries to allocate 0 bytes
     template<typename U>
-    inline void _pushback(SizeType index, SizeType length, U data) 
+    inline void _pushback(SizeType index, SizeType length, U && data) 
     {
       memmove(_array+(index+1),_array+index,length*sizeof(T));
-      _array[index]=data;
+      _array[index]=std::forward<U>(data);
     }
 
     T* _array;
@@ -213,11 +213,11 @@ namespace bss_util {
   protected:
     inline static void* _cdecl _minmalloc(size_t n) { return malloc((n<1)?1:n); } //Malloc can legally return NULL if it tries to allocate 0 bytes
     template<typename U>
-    inline void _pushback(SizeType index, SizeType length, U data) 
+    inline void _pushback(SizeType index, SizeType length, U && data) 
     {
       (_array+(index+length))->~T();
       memmove(_array+(index+1),_array+index,length*sizeof(T));
-      new (_array+index) T(data);
+      new (_array+index) T(std::forward<U>(data));
     }
 
     T* _array;
@@ -333,11 +333,11 @@ namespace bss_util {
   protected:
     inline static void* _cdecl _minmalloc(size_t n) { return malloc((n<1)?1:n); }  //Malloc can legally return NULL if it tries to allocate 0 bytes
     template<typename U>
-    inline void _pushback(SizeType index, SizeType length, U data) 
+    inline void _pushback(SizeType index, SizeType length, U && data) 
     {
       for(SizeType i=index+length; i>index; --i)
         _array[i]=_array[i-1];
-      _array[index] = data;
+      _array[index] = std::forward<U>(data);
     }
 
     T* _array;

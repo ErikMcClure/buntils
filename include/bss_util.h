@@ -30,7 +30,7 @@ namespace bss_util {
   BSS_COMPILER_DLLEXPORT extern unsigned long long BSS_FASTCALL bssFileSize(const char* path);
   BSS_COMPILER_DLLEXPORT extern unsigned long long BSS_FASTCALL bssFileSize(const wchar_t* path);
   BSS_COMPILER_DLLEXPORT extern long BSS_FASTCALL GetTimeZoneMinutes(); //Returns the current time zone difference from UTC in minutes
-
+  
   //Useful numbers
   const double PI = 3.141592653589793238462643383279;
   const double PI_HALF = PI*0.5;
@@ -290,7 +290,7 @@ namespace bss_util {
     for(unsigned int i = bits; i>0;)
     {
       --i;
-      t = root + (1 << (i)); 
+      t = root + (((T)1) << (i)); 
       if (n >= t << (i))   
       {   n -= t << (i);   
           root |= 2 << (i); 
@@ -343,6 +343,16 @@ namespace bss_util {
   inline void* bytesearch(void* search, size_t length, void* find, size_t flength)
   {
     return const_cast<void*>(bytesearch((const void*)search,length,(const void*)find,flength));
+  }
+
+  // Counts the number of bits in v (up to 128-bit types) using the parallel method detailed here: http://graphics.stanford.edu/~seander/bithacks.html#CountBitsSetParallel
+  template<typename T>
+  inline unsigned char bitcount(T v)
+  {
+    v = v - ((v >> 1) & (T)~(T)0/3);                           // temp
+    v = (v & (T)~(T)0/15*3) + ((v >> 2) & (T)~(T)0/15*3);      // temp
+    v = (v + (v >> 4)) & (T)~(T)0/255*15;                      // temp
+    return (unsigned char)((T)(v * ((T)~(T)0/255)) >> (sizeof(T) - 1) * CHAR_BIT);
   }
 
   //Unlike FastSqrt, these are useless unless you are on a CPU without SSE instructions, or have a terrible std implementation.

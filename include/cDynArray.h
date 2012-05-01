@@ -19,19 +19,20 @@ namespace bss_util {
     //inline cDynArray(const cDynArray& copy) : __AT(copy), _length(copy._length) {}
     inline cDynArray(cDynArray&& mov) : __AT(std::move(mov)), _length(mov._length) {}
     inline explicit cDynArray(__ST size=1): __AT(size), _length(0) {}
-    inline __ST Add(const __T& t) { _checksize(); _array[_length]=t; return _length++; }
+    inline __ST Add(const __T& t) { return _add(t); }
+    inline __ST Add(__T&& t) { return _add(std::move(t)); }
     inline void Remove(__ST index) { __AT::Remove(index); --_length; }
     inline void RemoveLast() { --_length; }
-    inline __ST Insert(const __T& t, __ST index=0)
-    {
-      _checksize();
-      __AT::_pushback(index,(_length++)-index,t);
-      return index;
-    }
+    inline __ST Insert(const __T& t, __ST index=0) { return _insert(t,index); }
+    inline __ST Insert(__T&& t, __ST index=0) { return _insert(std::move(t),index); }
     inline __ST Length() const { return _length; }
     inline bool IsEmpty() const { return !_length; }
     inline void Clear() { _length=0; }
     inline void SetLength(__ST length) { if(length>_size) SetSize(length); _length=length; }
+    inline const __T& Front() const { assert(_length>0); return _array[0]; }
+    inline __T& Front() { assert(_length>0); return _array[0]; }
+    inline const __T& Back() const { assert(_length>0); return _array[_length-1]; }
+    inline __T& Back() { assert(_length>0); return _array[_length-1]; }
 
     inline operator __T*() { return _array; }
     inline operator const __T*() const { return _array; }
@@ -43,6 +44,10 @@ namespace bss_util {
     //inline const cDynArray operator +(const cDynArray& add) { cArrayWrap r(*this); return (r+=add); }
 
   protected:
+    template<typename U>
+    inline __ST _add(U && t) { _checksize(); _array[_length]=std::forward<U>(t); return _length++; }
+    template<typename U>
+    inline __ST _insert(U && t, __ST index=0) { _checksize();__AT::_pushback(index,(_length++)-index,std::forward<U>(t)); assert(_length<_size); }
     inline void _checksize()
     {
       if(_length>=_size) SetSize(fbnext(_size));

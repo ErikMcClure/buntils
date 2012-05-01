@@ -8,8 +8,10 @@
 #include <stdarg.h>
 #include <vector>
 #include "bss_deprecated.h"
+#include "bss_util_c.h"
 //#include "cBucketAlloc.h"
-#include "bss_alloc.h"
+//#include "bss_alloc.h"
+
 /*
 namespace bss_util {
   static cBucketAlloc cstrpool_alloc[8];
@@ -80,9 +82,10 @@ public:
   static inline const CHAR* __cdecl SCHR(const CHAR* str, int val) { return strchr(str,val); }
   static inline size_t __cdecl SLEN(const CHAR* str) { return strlen(str); }
   static inline CHAR* __cdecl STOK(CHAR* str,const CHAR* delim, CHAR** context) { return strtok_s(str,delim,context); }
-  static inline errno_t __cdecl WTOMB(size_t* outsize, CHAR* dest, size_t destsize, const OTHER_C* src, size_t maxcount) { return wcstombs_s(outsize,dest,destsize,src,maxcount); }
+  //static inline errno_t __cdecl WTOMB(size_t* outsize, CHAR* dest, size_t destsize, const OTHER_C* src, size_t maxcount) { return wcstombs_s(outsize,dest,destsize,src,maxcount); }
   static inline int __cdecl VPF(CHAR *dest, size_t size, const CHAR *format, va_list args) { return VSPRINTF(dest,size,format,args); }
   static inline int __cdecl VPCF(const CHAR* str, va_list args) { return _vscprintf(str,args); }
+  static inline size_t __cdecl CONV(const OTHER_C* src, CHAR* dest, size_t len) { return UTF16toUTF8(src,dest,len); }
 
   static inline size_t __cdecl O_SLEN(const OTHER_C* str) { return wcslen(str); }
 };
@@ -97,9 +100,10 @@ public:
   static inline const CHAR* __cdecl SCHR(const CHAR* str, int val) { return wcschr(str,val); }
   static inline size_t __cdecl SLEN(const CHAR* str) { return wcslen(str); }
   static inline CHAR* __cdecl STOK(CHAR* str,const CHAR* delim, CHAR** context) { return wcstok_s(str,delim,context); }
-  static inline errno_t __cdecl WTOMB(size_t* outsize, CHAR* dest, size_t destsize, const OTHER_C* src, size_t maxcount) { return mbstowcs_s(outsize,dest,destsize,src,maxcount); }
+  //static inline errno_t __cdecl WTOMB(size_t* outsize, CHAR* dest, size_t destsize, const OTHER_C* src, size_t maxcount) { return mbstowcs_s(outsize,dest,destsize,src,maxcount); }
   static inline int __cdecl VPF(CHAR *dest, size_t size, const CHAR *format, va_list args) { return VSWPRINTF(dest,size,format,args); }
   static inline int __cdecl VPCF(const CHAR* str, va_list args) { return _vscwprintf(str,args); }
+  static inline size_t __cdecl CONV(const OTHER_C* src, CHAR* dest, size_t len) { return UTF8toUTF16(src,dest,len); }
 
   static inline size_t __cdecl O_SLEN(const OTHER_C* str) { return strlen(str); }
 };
@@ -121,8 +125,8 @@ public:
   inline cStrT(const cStrT& copy) : CSTRALLOC(CHAR)(copy) {}
   inline cStrT(cStrT&& mov) : CSTRALLOC(CHAR)(std::move(mov)) {}
   template<class U> inline cStrT(const cStrT<T,U>& copy) : CSTRALLOC(CHAR)(copy) {}
-  template<class U> inline cStrT(const cStrT<OTHER_C,U>& copy) : CSTRALLOC(CHAR)() { size_t numchar=copy.size(); reserve(++numchar); CSTR_CT<T>::WTOMB(&_Mysize,_Myptr(),_Myres, copy.String(), numchar); RecalcSize(); }
-  inline cStrT(const OTHER_C* text) : CSTRALLOC(CHAR)() { if(!text) return; size_t numchar=CSTR_CT<T>::O_SLEN(text); reserve(++numchar); CSTR_CT<T>::WTOMB(&_Mysize,_Myptr(),_Myres, text, numchar); RecalcSize(); }
+  template<class U> inline cStrT(const cStrT<OTHER_C,U>& copy) : CSTRALLOC(CHAR)() { _convstr(copy.c_str()); }
+  inline cStrT(const OTHER_C* text) : CSTRALLOC(CHAR)() { if(text!=0) _convstr(text); }
   inline cStrT(unsigned short index, const CHAR* text, const CHAR delim) : CSTRALLOC(CHAR)() //Creates a new string from the specified chunk
   {
     for(unsigned short i = 0; i < index; ++i)
@@ -166,8 +170,10 @@ public:
 
   inline cStrT& operator =(const cStrT& right) { CSTRALLOC(CHAR)::operator =(right); return *this; }
   template<class U> inline cStrT& operator =(const cStrT<T,U>& right) { CSTRALLOC(CHAR)::operator =(right); return *this; }
-  inline cStrT& operator =(const CHAR* right) { if(right != 0) CSTRALLOC(CHAR)::operator =(right); return *this; }
-  inline cStrT& operator =(const CHAR right) { CSTRALLOC(CHAR)::operator =(right); return *this; } //resize(2); _Myptr()[0] = right; _Myptr()[1] = '\0'; return *this; } 
+  template<class U> inline cStrT& operator =(const cStrT<OTHER_C,U>& right) { clear(); _convstr(right.c_str()); return *this; }
+  inline cStrT& operator =(const CHAR* right) { if(right != 0) CSTRALLOC(CHAR)::operator =(right); else clear(); return *this; }
+  inline cStrT& operator =(const OTHER_C* right) { clear(); if(right != 0) _convstr(right); return *this; }
+  //inline cStrT& operator =(const CHAR right) { CSTRALLOC(CHAR)::operator =(right); return *this; } //Removed because char is also a number, and therefore confuses the compiler whenever something could feasibly be a number of any kind. If you need it, cast to basic_string<>
   inline cStrT& operator =(cStrT&& right) { CSTRALLOC(CHAR)::operator =(std::move(right)); return *this; }
 
   inline cStrT& operator +=(const cStrT& right) { CSTRALLOC(CHAR)::operator +=(right); return *this; }
@@ -176,12 +182,19 @@ public:
   inline cStrT& operator +=(const CHAR right) { CSTRALLOC(CHAR)::operator +=(right); return *this; }
   
   inline CHAR* UnsafeString() { return _Myptr(); } //This is potentially dangerous if the string is modified
-  inline const CHAR* String() const { return _Myptr(); }
+  //inline const CHAR* String() const { return _Myptr(); }
   inline CHAR& GetChar(size_t index) { return CSTRALLOC(CHAR)::operator[](index); }
-  inline cStrT& ReplaceChar(CHAR search, CHAR replace) { CHAR* pmod=_Myptr(); for(size_t i = 0; i < _Mysize; ++i) if(pmod[i] == search) pmod[i] = replace; return *this; }
   inline void RecalcSize() { _Mysize = CSTR_CT<T>::SLEN(_Myptr()); }
   inline void SetSize(size_t nsize) { _Mysize=nsize; }
   inline cStrT Trim() const { cStrT r(*this); r=_ltrim(_rtrim(r._Myptr(),r._Mysize)); return r; }
+  inline cStrT& ReplaceChar(CHAR search, CHAR replace)
+  { 
+    CHAR* pmod=_Myptr();
+    for(size_t i = 0; i < _Mysize; ++i)
+      if(pmod[i] == search)
+        pmod[i] = replace;
+    return *this;
+  }
 
   static inline void Explode(std::vector<cStrT> &dest, const CHAR delim, const CHAR* text)
   {
@@ -210,6 +223,18 @@ public:
   }
 
 private:
+  inline void BSS_FASTCALL _convstr(const OTHER_C* src)
+  {
+    size_t r = CSTR_CT<T>::CONV(src,0,0);
+    if(r==(size_t)-1) return; // If invalid, bail
+    reserve(r);
+    r = CSTR_CT<T>::CONV(src,_Myptr(),capacity());
+    if(r==(size_t)-1) return; // If somehow still invalid, bail again
+    _Mysize=r-1; //Don't include null terminator in size
+    //r.RecalcSize();
+    //_Myptr()[r]=0; // Otherwise ensure we have a null terminator.
+  }
+
   inline static T* BSS_FASTCALL _ltrim(T* str) { for(;*str>0 && *str<33;++str); return str; }
   inline static T* BSS_FASTCALL _rtrim(T* str, size_t size) { T* inter=str+size; for(;inter>str && *inter<33;--inter); *(++inter)=0; return str; }
   //The following line of code is in such a twisted state because it must overload the operator[] inherent in the basic_string class and render it totally unusable so as to force the compiler to disregard it as a possibility, otherwise it gets confused with the CHAR* type conversion

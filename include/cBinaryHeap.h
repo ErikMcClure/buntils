@@ -30,23 +30,12 @@ namespace bss_util {
     inline T PopRoot() { T r=_array[0]; Remove(0); return r; }
     inline bool Empty() { return !_length; }
     inline __ST Length() { return _length; }
-    inline void Insert(const T& val)
-    {
-      int k = _length;
-      if(_length >= _size) SetSize(fbnext(_size));
-      PercolateUp(_array,_length,_length++,val);
-    }
-
+    /* Inserts a value */
+    inline void Insert(const T& val) { _insert(val); }
+    inline void Insert(T&& val) { _insert(std::move(val)); }
     /* Sets a key and percolates */
-    inline bool Set(__ST index, const T& val)
-    {
-      if(index>=_length) return false;
-      if(CFunc(_array[index],val) >= 0) //in this case we percolate up
-        PercolateUp(_array,_length,index,val);
-      else
-        PercolateDown(_array,_length,index,val);
-      return true;
-    }
+    inline bool Set(__ST index, const T& val) { _set(index, val); }
+    inline bool Set(__ST index, T&& val) { _set(index,std::move(val)); }
     /* To remove a node, we replace it with the last item in the heap and then percolate down */
     inline bool Remove(__ST index)
     {
@@ -58,21 +47,23 @@ namespace bss_util {
     }
     
     /* Percolate up through the heap */
-    inline static void PercolateUp(T* _array, __ST _length, __ST k, const T& val)
+    template<typename U>
+    inline static void PercolateUp(T* _array, __ST _length, __ST k, U && val)
     {
       assert(k<_length);
       unsigned int parent;
 
       while (k > 0) {
         parent = CBH_PARENT(k);
-        if(CFunc(_array[parent],val) < 0) break;
+        if(CFunc(_array[parent],std::forward<U>(val)) < 0) break;
         _array[k] = _array[parent];
         k = parent;
       }
-      _array[k]=val;
+      _array[k]=std::forward<U>(val);
     }
     /* Percolate down a heap */
-    inline static void PercolateDown(T* _array, __ST _length, __ST k, const T& val)
+    template<typename U>
+    inline static void PercolateDown(T* _array, __ST _length, __ST k, U && val)
     {
       assert(k<_length);
       __ST i;
@@ -81,17 +72,17 @@ namespace bss_util {
       {
         if(CFunc(_array[i-1],_array[i]) < 0) // CFunc (left,right) and return true if left < right
           --i; //left is smaller than right so pick that one
-        if(CFunc(val,_array[i]) < 0)
+        if(CFunc(std::forward<U>(val),_array[i]) < 0)
           break;
         _array[k]=std::move(_array[i]);
         k=i;
       }
-      if(i >= _length && --i < _length && CFunc(val,_array[i])>=0) //Check if left child is also invalid (can only happen at the very end of the array)
+      if(i >= _length && --i < _length && CFunc(std::forward<U>(val),_array[i])>=0) //Check if left child is also invalid (can only happen at the very end of the array)
       {
         _array[k]=std::move(_array[i]);
         k=i;
       }
-      _array[k]=val;
+      _array[k]=std::forward<U>(val);
     }
     operator T*() { return _array; }
     operator const T*() const { return _array; }
@@ -124,6 +115,26 @@ namespace bss_util {
     }
 
   protected:
+    template<typename U>
+    inline void _insert(U && val)
+    {
+      int k = _length;
+      if(_length >= _size) SetSize(fbnext(_size));
+      PercolateUp(_array,_length,_length++,std::forward<U>(val));
+    }
+
+    /* Sets a key and percolates */
+    template<typename U>
+    inline bool _set(__ST index, U && val)
+    {
+      if(index>=_length) return false;
+      if(CFunc(_array[index],std::forward<U>(val)) >= 0) //in this case we percolate up
+        PercolateUp(_array,_length,index,std::forward<U>(val));
+      else
+        PercolateDown(_array,_length,index,std::forward<U>(val));
+      return true;
+    }
+
     __ST _length; //amount of used cells
   };
 

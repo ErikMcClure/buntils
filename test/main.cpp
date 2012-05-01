@@ -78,6 +78,22 @@ struct TEST
 #define TESTALL(t) for_all([&__testret](bool __x){ ++__testret.first; if(__x) ++__testret.second; },t);
 #define TESTANY(t) { bool __val=true; for_all([&__testret,&__val](bool __x){ __val=__val&&__x; },t); TEST(__val); }
 
+template<class T>
+T naivebitcount(T v)
+{
+  T c;
+  for(c = 0; v; v >>= 1)
+    c += (v & 1);
+  return c;
+}
+
+template<class T>
+void testbitcount(TEST::RETPAIR& __testret)
+{ //Use fibonacci numbers to test this
+  for(T i = 0; i < (((T)1)<<(sizeof(T)<<2)); i=fbnext(i)) {
+    TEST(naivebitcount<T>(i)==bitcount<T>(i));
+  }
+}
 TEST::RETPAIR test_bss_util()
 {
   BEGINTEST;
@@ -85,8 +101,12 @@ TEST::RETPAIR test_bss_util()
   char fbuf[MAX_PATH];
   GetModuleFileNameA(0,fbuf,MAX_PATH);
   TEST(bssFileSize(fbuf)!=0);
-  TEST(bssFileSize(cStrW(fbuf))!=0);
+  //TEST(bssFileSize(cStrW(fbuf))!=0);
   TESTNOERROR(GetTimeZoneMinutes());
+  testbitcount<unsigned char>(__testret);
+  testbitcount<unsigned short>(__testret);
+  testbitcount<unsigned int>(__testret);
+  testbitcount<unsigned __int64>(__testret);
   ENDTEST;
 }
 
@@ -94,12 +114,12 @@ TEST::RETPAIR test_bss_DEBUGINFO()
 {
   BEGINTEST;
   std::stringstream ss;
-  std::wfstream fs;
+  std::fstream fs;
   std::wstringstream wss;
   fs.open(L"黑色球体工作室.log");
   auto tf = [&](BSS_DebugInfo& di) {
     TEST(di.CloseProfiler(di.OpenProfiler()) < 500000);
-    TEST(cStrW(di.GetModulePath(0)).compare(di.GetModulePathW(0))==0);
+    //TEST(cStrW(di.ModulePath(0)).compare(di.ModulePathW(0))==0);
     TEST(di.GetProcMemInfo()!=0);
     TEST(di.GetWorkingSet()!=0);
     TESTNOERROR(di.ClearProfilers());
@@ -111,12 +131,12 @@ TEST::RETPAIR test_bss_DEBUGINFO()
     ss.clear();
     fs.clear();
     wss.clear();
-    di.AddTarget(wss);
+    //di.AddTarget(wss);
 
-    di.GetStream() << "黑色球体工作室";
+    di.GetStream() << L"黑色球体工作室";
     di.GetStream() << "Black Sphere Studios";
     di.ClearTargets();
-    di.GetStream() << "黑色球体工作室";
+    di.GetStream() << L"黑色球体工作室";
   };
 
   BSS_DebugInfo a(L"黑色球体工作室.txt",&ss); //Supposedly 黑色球体工作室 is Black Sphere Studios in Chinese, but the literal translation appears to be Black Ball Studio. Oh well.
@@ -166,6 +186,7 @@ TEST::RETPAIR test_bss_ALLOC_FIXED_CHUNK()
 }
 TEST::RETPAIR test_bss_deprecated()
 {
+  std::vector<bool> test;
   BEGINTEST;
   __time64_t tmval=FTIME(NULL);
   TEST(tmval!=0);
@@ -231,6 +252,11 @@ TEST::RETPAIR test_ARRAYSIMPLE()
   ENDTEST;
 }
 
+struct FWDTEST {
+  FWDTEST& operator=(const FWDTEST& right) { return *this; }
+  FWDTEST& operator=(FWDTEST&& right) { return *this; }
+};
+
 TEST::RETPAIR test_ARRAYSORT()
 {
   BEGINTEST;
@@ -251,6 +277,10 @@ TEST::RETPAIR test_ARRAYSORT()
   TEST(test.Get(0)==-1);
   TEST(test.Length()==((sizeof(ins)/sizeof(int))-1));
 
+  cMap<int,FWDTEST> tst;
+  tst.Insert(0,FWDTEST());
+  FWDTEST lval;
+  tst.Insert(1,lval);
   ENDTEST;
 }
 
@@ -372,7 +402,7 @@ int main(int argc, char** argv)
     numpassed=tests[i].FUNC(); //First is total, second is succeeded
     if(numpassed.first!=numpassed.second) failures.push_back(i);
 
-    printf("%-*s %*s %-*s\n",COLUMNS[0],tests[i].NAME, COLUMNS[1],cStr("%u/%u",numpassed.second,numpassed.first).String(), COLUMNS[2],(numpassed.first==numpassed.second)?"PASS":"FAIL");
+    printf("%-*s %*s %-*s\n",COLUMNS[0],tests[i].NAME, COLUMNS[1],cStr("%u/%u",numpassed.second,numpassed.first).c_str(), COLUMNS[2],(numpassed.first==numpassed.second)?"PASS":"FAIL");
   }
 
   if(failures.empty())
@@ -698,8 +728,9 @@ int main3(int argc, char** argv)
   BSSLOG(log,1) << "fail" << 2 << L"これはサン" << 2987324.387453 << 0xFF << "aslkj slkdfjasld kfjsadlkfj sks ss           " << "" << std::endl << std::endl << "";
   }
 
+  std::function<void(DEBUG_CDT)> f;
+ 
   int c = STRSWAP("bar",FAKESTRINGLIST);
-
   {
     cArraySort<DEBUG_CDT,CompT<DEBUG_CDT>,unsigned int,cArraySafe<DEBUG_CDT,unsigned int>> arrtest;
   arrtest.Insert(DEBUG_CDT(0));
@@ -724,8 +755,8 @@ int main3(int argc, char** argv)
 
   cCmdLineArgsA cmdtest(argc,argv);
 
-  cSettingManage<1,0>::LoadAllFromINI(cINIstorage<char>("test.ini"));
-  cSettingManage<1,0>::SaveAllToINI(cINIstorage<char>("test.ini"));
+  cSettingManage<1,0>::LoadAllFromINI(cINIstorage("test.ini"));
+  cSettingManage<1,0>::SaveAllToINI(cINIstorage("test.ini"));
   //{
   //cArrayConstruct<CreateDestroyTracker> ac1(1);
   //cArrayConstruct<CreateDestroyTracker> ac2(0);
@@ -1165,14 +1196,14 @@ int main3(int argc, char** argv)
       if(add==target) ++sets;
     }
   }
-  
+  /*
   cINIstorage<wchar_t> wini(L"test.ini");
   wini.EditEntry(L"Video",L"test",L"fail",-1,-1);
   wini.EditEntry(L"Video",L"test",L"success");
-  wini.EndINIEdit();
+  wini.EndINIEdit();*/
 
   SetWorkDirToCur();
-  cINIstorage<char> ini("test.ini");
+  cINIstorage ini("test.ini");
   while(ini.RemoveSection("NEWSECTION"));
   ini.AddSection("NEWSECTION");
   ini.AddSection("NEWSECTION");
@@ -1448,7 +1479,7 @@ int main2()
   tree->Remove(test.first);
   tree->Clear();
 
-  cINIstorage<char> store("release/test.ini");
+  cINIstorage store("release/test.ini");
   //cINIstorage store;
   store.AddSection("Hello");
 

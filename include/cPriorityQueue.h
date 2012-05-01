@@ -18,28 +18,17 @@ namespace bss_util {
     inline cPriorityQueue(cPriorityQueue&& mov) : cBinaryHeap(std::move(mov)) {}
     inline cPriorityQueue() {}
     inline ~cPriorityQueue() {}
-    inline void Insert(const K& key, D value)
-    {
-      cBinaryHeap<K,D,CFunc>::Insert(PAIR(key,value));
-    }
-    inline const PAIR& PeekRoot()
-    {
-      return cBinaryHeap<K,D,CFunc>::GetRoot();
-    }
-    inline void RemoveRoot()
-    {
-      cBinaryHeap<K,D,CFunc>::Remove(0);
-    }
+    inline void Insert(const K& key, D value) { cBinaryHeap<K,D,CFunc>::Insert(PAIR(key,value)); }
+    inline void Insert(K&& key, D value) { cBinaryHeap<K,D,CFunc>::Insert(PAIR(std::move(key),value)); }
+    inline const PAIR& PeekRoot() { return cBinaryHeap<K,D,CFunc>::GetRoot(); }
+    inline void RemoveRoot() { cBinaryHeap<K,D,CFunc>::Remove(0); }
     inline PAIR PopRoot()
     {
       PAIR retval = _array[0];
       RemoveRoot();
       return retval;
     }
-    inline bool Empty()
-    {
-      return cBinaryHeap<K,D,CFunc>::Empty();
-    }
+    inline bool Empty() { return cBinaryHeap<K,D,CFunc>::Empty(); }
 
     inline cPriorityQueue& operator=(const cPriorityQueue& copy) { cBinaryHeap::operator=(copy); return *this; }
     inline cPriorityQueue& operator=(cPriorityQueue&& mov) { cBinaryHeap::operator=(std::move(mov)); return *this; }

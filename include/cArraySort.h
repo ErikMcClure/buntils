@@ -4,36 +4,26 @@
 #ifndef __C_ARRAY_SORT_H__BSS__
 #define __C_ARRAY_SORT_H__BSS__
 
-#include "bss_traits.h"
 #include "bss_algo.h"
+#include "bss_compare.h"
 #include "cArraySimple.h"
 
 namespace bss_util {
   /* Sorted dynamic array */
-  template<typename T, char (*CFunc)(const T&,const T&)=CompT<T>, typename _SizeType=unsigned int, class ArrayType=cArraySimple<T,_SizeType>, class Traits=ValueTraits<T>>
-  class BSS_COMPILER_DLLEXPORT cArraySort : public Traits, protected ArrayType
+  template<typename T, char (*CFunc)(const T&,const T&)=CompT<T>, typename _SizeType=unsigned int, class ArrayType=cArraySimple<T,_SizeType>>
+  class BSS_COMPILER_DLLEXPORT cArraySort : protected ArrayType
   {
   public:
     typedef _SizeType __ST;
-    typedef typename Traits::const_reference constref;
-    typedef typename Traits::reference reference;
+    typedef const T& constref;
+    typedef T&& moveref;
 
     inline cArraySort(const cArraySort& copy) : _length(copy._length), ArrayType(copy) {} 
     inline cArraySort(cArraySort&& mov) : _length(mov._length), ArrayType(std::move(mov)) {} 
     inline explicit cArraySort(__ST size=1) : _length(0), ArrayType(size) {}
     inline ~cArraySort() { }
-    inline __ST BSS_FASTCALL Insert(constref data)
-    {
-      if(_length>=_size) Expand(fbnext(_size));
-      if(!_length) _array[_length++]=data;
-      else
-      {
-        __ST loc = binsearch_after<T,__ST,CFunc>(_array,_length,data);
-        ArrayType::_pushback(loc,(_length++)-loc,data);
-        return loc;
-      }
-      return 0;
-    }
+    inline __ST BSS_FASTCALL Insert(constref data) { return _insert(data); }
+    inline __ST BSS_FASTCALL Insert(moveref data) { return _insert(std::move(data)); }
     inline void Clear() { _length=0; }
     inline void BSS_FASTCALL Discard(unsigned int num) { _length-=((num>_length)?_length:num); }
     inline __ST BSS_FASTCALL ReplaceData(__ST index, constref data)
@@ -80,7 +70,7 @@ namespace bss_util {
     inline bool IsEmpty() const { return !_length; }
     inline __ST Length() const { return _length; }
     inline constref operator [](__ST index) const { return _array[index]; }
-    inline reference operator [](__ST index) { return _array[index]; }
+    inline T& operator [](__ST index) { return _array[index]; }
     inline cArraySort& operator=(const cArraySort& right)
     { 
       ArrayType::operator=(right);
@@ -94,6 +84,20 @@ namespace bss_util {
       return *this;
     }
   protected:
+    template<typename U>
+    inline __ST BSS_FASTCALL _insert(U && data)
+    {
+      if(_length>=_size) Expand(fbnext(_size));
+      if(!_length) _array[_length++]=std::forward<U>(data);
+      else
+      {
+        __ST loc = binsearch_after<T,__ST,CFunc>(_array,_length,std::forward<U>(data));
+        ArrayType::_pushback(loc,(_length++)-loc,std::forward<U>(data));
+        return loc;
+      }
+      return 0;
+    }
+
     __ST _length; //How many slots are used
   };
 }

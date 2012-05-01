@@ -11,6 +11,7 @@
 #include "bss_util_c.h"
 #include "cStr.h"
 #include "INIparse.h"
+#include <assert.h>
 
 //#define STRINGCOPYLENGTH(from,to,length) size_t length = strlen(from); to = new char[++length]; STRCPY(to, length, from);
 //#define STRINGCOPY(from,to) STRINGCOPYLENGTH(from,to,length)
@@ -31,8 +32,7 @@ const T* BSS_FASTCALL _trimrstr(const T* end,const T* begin)
   return end;
 }
 
-template<>
-void cINIstorage<char>::_openINI()
+void cINIstorage::_openINI()
 {
   cStr targetpath=_path;
   targetpath+=_filename;
@@ -48,8 +48,7 @@ void cINIstorage<char>::_openINI()
   _ini->RecalcSize();
   fclose(f);
 }
-
-template<>
+/*
 void cINIstorage<wchar_t>::_openINI()
 {
   cStrW targetpath=_path;
@@ -69,18 +68,514 @@ void cINIstorage<wchar_t>::_openINI()
   _ini->UnsafeString()[size]='\0';
   _ini->RecalcSize();
   fclose(f);
-}
+}*/
 
-void _futfwrite(const wchar_t* source, char discard, int size, FILE* f)
+/*void _futfwrite(const wchar_t* source, char discard, int size, FILE* f)
 {
   unsigned char* buf = (unsigned char*)malloc(size*sizeof(wchar_t));
   size=UTF8Encode2BytesUnicode(source,buf);
   fwrite(buf,sizeof(unsigned char),size,f);
   free(buf);
+}*/
+
+cINIsection cINIstorage::_sectionsentinel;
+cINIentry cINIsection::_entrysentinel;
+
+cINIstorage::cINIstorage(const cINIstorage& copy) : _path(copy._path), _filename(copy._filename),
+  _ini(!copy._ini?0:new cStr(*copy._ini)), _logger(copy._logger)
+{
+  _copyhash(copy);
+}
+
+cINIstorage::cINIstorage(cINIstorage&& mov) : _path(std::move(mov._path)), _filename(std::move(mov._filename)), _ini(mov._ini),
+  _logger(mov._logger), _sections(std::move(mov._sections))
+{
+  mov._ini=0;
+}
+cINIstorage::cINIstorage(const char* file, std::ostream* logger) : _ini(0), _logger(logger)
+{
+  FILE* f;
+  FOPEN(f,file,("rt"));
+  if(f)
+  {
+    _loadINI(f);
+    fclose(f);
+  }
+  _setfilepath(file);
+}
+cINIstorage::cINIstorage(FILE* file, std::ostream* logger) : _ini(0), _logger(logger)
+{
+  _loadINI(file);
+}
+
+/* Destructor */
+cINIstorage::~cINIstorage()
+{
+  if(_ini) delete _ini;
+  _destroyhash(); //_destroyhash checks for nullification
+}
+cINIsection* cINIstorage::GetSection(const char* section, unsigned int instance) const
+{
+  khiter_t iter= _sections.GetIterator(section);
+  if(iter==_sections.End()) return 0;
+  __ARR* arr=_sections[iter];
+  return instance<arr->Size()?(*arr)+instance:0;
+}
+cINIentry* cINIstorage::GetEntryPtr(const char *section, const char* key, unsigned int keyinstance, unsigned int instance) const
+{
+  khiter_t iter= _sections.GetIterator(section);
+  if(iter==_sections.End()) return 0;
+  __ARR* arr=_sections[iter];
+  return instance<arr->Size()?(*arr)[instance].GetEntryPtr(key,keyinstance):0;
+}
+const std::vector<std::pair<cStr,unsigned int>>& cINIstorage::BuildSectionList() const
+{
+  _seclist.clear();
+  _sections.ResetWalk();
+  khiter_t iter;
+  __ARR* arr;
+  unsigned int i =0;
+  while((iter=_sections.GetNext())!=_sections.End())
+  {
+    arr=_sections[iter];
+    for(i=0; i<arr->Size();++i)
+      _seclist.push_back(std::pair<cStr,unsigned int>((*arr)[i].GetName(),i));
+  }
+  return _seclist;
+}
+
+cINIsection& BSS_FASTCALL cINIstorage::AddSection(const char* name)
+{
+  if(!_ini) _openINI();
+  _ini->reserve(_ini->size()+strlen(name)+4);
+  char c;
+  size_t i;
+  for(i = _ini->size(); i > 0;)
+  {
+    c=_ini->GetChar(--i);
+    if(!(c==' ' || c=='\n' || c=='\r')) { ++i; break; }
+  }
+  if(i>0)
+  {
+    _ini->UnsafeString()[i]='\0';
+    _ini->RecalcSize();
+    _ini->append(("\n\n"));
+  }
+  _ini->append(("["));
+  _ini->append(name);
+  _ini->append(("]"));
+  return *_addsection(name);
+}
+
+cINIsection* cINIstorage::_addsection(const char* name)
+{
+  khiter_t iter=_sections.GetIterator(name);
+  __ARR* arr;
+  if(iter==_sections.End()) //need to add in an array for this
+  {
+    arr= new __ARR(1);
+    new ((*arr)+0) cINIsection(name,this,0);
+    _sections.Insert((*arr)[0].GetName(),arr);
+    return ((*arr)+0);
+  } else {
+    arr=_sections[iter];
+    unsigned int index=arr->Size();
+    arr->SetSize(index+1);
+    new ((*arr)+index) cINIsection(name,this,index);
+    _sections.OverrideKeyPtr(iter,(*arr)[0].GetName()); //the key pointer gets corrupted when we resize the array
+    return ((*arr)+index);
+  }
+}
+
+//3 cases: removing something other then the beginning, removing the beginning, or removing the last one
+bool cINIstorage::RemoveSection(const char* name, unsigned int instance)
+{
+  if(!_ini) _openINI();
+  __ARR* arr;
+  INICHUNK chunk = bss_findINIsection(*_ini,_ini->size(),name,instance);
+  khiter_t iter = _sections.GetIterator(name);
+  if(iter!=_sections.End() && chunk.start!=0)
+  {
+    arr=_sections[iter];
+    if(instance>=arr->Size()) return false;
+    _ini->erase((const char*)chunk.start-_ini->c_str(),((const char*)chunk.end-(const char*)chunk.start)+1);
+    ((*arr)+instance)->~cINIsection();
+    if(arr->Size()==1) //this is the last one in the group
+    {
+      delete arr;
+      _sections.RemoveIterator(iter);
+    }
+    else
+    {
+      arr->Remove(instance);
+      if(!instance) _sections.OverrideKeyPtr(iter,(*arr)[0].GetName());
+      unsigned int svar=arr->Size();
+      for(;instance<svar;++instance) --(*arr)[instance]._index; //moves all the indices down
+    }
+
+    return true;
+  }
+  return false;
+}
+
+char cINIstorage::EditEntry(const char* section, const char* key, const char* nvalue, unsigned int secinstance, unsigned int keyinstance)
+{
+  if(!_ini) _openINI();
+  if(secinstance==(unsigned int)-1) AddSection(section);
+
+  khiter_t iter = _sections.GetIterator(section);
+  if(iter==_sections.End()) return -1; //if it doesn't exist at this point, fail
+  __ARR* arr=_sections[iter];
+  if(secinstance==-1) secinstance=arr->Size()-1; //if we just added it, it will be the last entry
+  if(secinstance>=arr->Size()) return -2; //if secinstance is not valid, fail
+  cINIsection* psec = (*arr)+secinstance;
+  INICHUNK chunk = bss_findINIsection(*_ini,_ini->size(),section,secinstance);
+  if(!chunk.start) return -3; //if we can't find it in the INI, fail
+
+  if(keyinstance==(unsigned int)-1) //insertion
+  {
+    psec->_addentry(key,nvalue);
+    _ini->reserve(_ini->size()+strlen(key)+strlen(nvalue)+2);
+    cStr construct(("\n%s=%s"),key,!nvalue?(""):nvalue); //build keyvalue string
+    const char* ins=strchr((const char*)chunk.start,'\n');
+    if(!ins) //end of file
+    {
+      _ini->append(construct);
+      return 0;
+    }
+    
+    //char c;
+    //size_t i;
+    //for(i = ins-(*_ini); i > 0;)
+    //{
+    //  c=_ini->GetChar(--i);
+    //  if(!(c==' ' || c=='\n' || c=='\r')) { ++i; break; }
+    //}
+
+    //_ini->insert(i,construct);
+    _ini->insert(ins-(*_ini),construct);
+    return 0;
+  } //If it wasn't an insert we need to find the entry before the other two possible cases
+
+  iter=psec->_entries.GetIterator(key);
+  if(iter==psec->_entries.End()) return -4; //if key doesn't exist at this point, fail
+  __ENTARR* entarr=psec->_entries[iter];
+  if(keyinstance>=entarr->Size()) return -5; //if keyinstance is not valid, fail
+  chunk=bss_findINIentry(chunk,key,keyinstance);
+  if(!chunk.start) return -7; //if we can't find it
+
+  if(!nvalue) //deletion
+  {
+    (*entarr+keyinstance)->~cINIentry();
+    if(entarr->Size()==1)
+    {
+      delete entarr;
+      psec->_entries.RemoveIterator(iter);
+    }
+    else 
+    {
+      entarr->Remove(keyinstance);
+      psec->_entries.OverrideKeyPtr(iter,(*entarr)[0].GetKey());
+    }
+    const char* end=strchr((const char*)chunk.end,'\n');
+    end=!end?(const char*)chunk.end:end+1;
+    _ini->erase((const char*)chunk.start-_ini->c_str(),end-(const char*)chunk.start);
+  }
+  else //edit
+  {
+    (*entarr+keyinstance)->SetData(nvalue);
+    const char* start=strchr((const char*)chunk.start,'=');
+    if(!start) return -6; //if this happens something is borked
+    start=_trimlstr(++start);
+    _ini->replace(start-*_ini,(_trimrstr(((const char*)chunk.end)-1,start)-start)+1,nvalue);
+  }
+
+  return 0;
+}
+void cINIstorage::EndINIEdit(const char* overridepath)
+{
+  if(!_ini) return;
+  if(overridepath!=0) _setfilepath(overridepath);
+  cStr targetpath=_path;
+  targetpath+=_filename;
+  FILE* f;
+  FOPEN(f,targetpath,("wb"));
+  fwrite(*_ini,sizeof(char),_ini->size(),f);
+  fclose(f);
+  DiscardINIEdit();
+}
+void cINIstorage::DiscardINIEdit()
+{
+  if(_ini) delete _ini;
+  _ini=0;
+}
+
+void cINIstorage::_loadINI(FILE* f)
+{
+  INIParser parse;
+  bss_initINI(&parse,f);
+  cINIsection* cursec=0;
+  while(bss_parseLine(&parse)!=0)
+  {
+    if(parse.newsection)
+      cursec=_addsection(parse.cursection);
+    else
+    {
+      if(!cursec) cursec=_addsection((""));
+      cursec->_addentry(parse.curkey, parse.curvalue);
+    }
+  }
+
+  //if(parse.newsection) //We don't check for empty sections
+  //  cursec=_addsection(parse.cursection); 
+
+  bss_destroyINI(&parse);
+}
+void cINIstorage::_setfilepath(const char* file)
+{
+  const char* hold=strrchr(file,'/');
+  hold=!hold?file :hold+1;
+  const char* hold2=strrchr(hold,'\\');
+  hold=!hold2?hold:hold2+1;
+  _filename=hold;
+  size_t length = hold-file;
+  _path.resize(++length);
+  memcpy(_path.UnsafeString(),file,length);
+  _path.UnsafeString()[length-1]='\0';
+  _path.RecalcSize();
+}
+void cINIstorage::_destroyhash()
+{
+  if(!_sections.Nullified())
+  {
+    khiter_t iter;
+	  _sections.ResetWalk();
+    __ARR* arr;
+	  while((iter=_sections.GetNext())!=_sections.End())
+    {
+      arr=_sections[iter];
+      unsigned int svar=arr->Size();
+      for(unsigned int i =0; i<svar; ++i) (*arr)[i].~cINIsection();
+      delete arr;
+    }
+  }
+}
+
+void cINIstorage::_copyhash(const cINIstorage& copy)
+{
+  khiter_t iter;
+  unsigned int i=0;
+  __ARR* old;
+  __ARR* arr;
+	copy._sections.ResetWalk();
+	while((iter=copy._sections.GetNext())!=copy._sections.End())
+  {
+    old=copy._sections[iter];
+    arr=new __ARR(*old);
+    unsigned int svar=arr->Size();
+    for(unsigned int i =0; i < svar; ++i)
+      new ((*arr)+i) cINIsection((*old)[i]);
+    _sections.Insert((*arr)[0].GetName(),arr);
+  }
+}
+
+cINIstorage& cINIstorage::operator=(const cINIstorage& right)
+ { 
+   if(&right == this) return *this;
+   _path=right._path;
+   _filename=right._filename;
+   if(_ini!=0) delete _ini;
+   _ini=!right._ini?0:new cStr(*right._ini);
+   _logger=right._logger;
+   _destroyhash();
+   _sections.Clear();
+   _copyhash(right);
+   return *this;
+}
+cINIstorage& cINIstorage::operator=(cINIstorage&& mov)
+{
+   if(&mov == this) return *this;
+   _path=std::move(mov._path);
+   _filename=mov._filename;
+   if(_ini!=0) delete _ini;
+   _ini=mov._ini;
+   mov._ini=0;
+   _logger=mov._logger;
+   _destroyhash();
+   _sections=std::move(mov._sections);
+   return *this;
 }
 
 
-#define _T(s) (s)
+
+cINIsection::cINIsection(const cINIsection& copy) : _name(copy._name),_parent(copy._parent),_index(copy._index)
+{
+  _copyhash(copy);
+}
+cINIsection::cINIsection(cINIsection&& mov) : _name(std::move(mov._name)),_parent(mov._parent),_index(mov._index), _entries(std::move(mov._entries))
+{
+}
+cINIsection::cINIsection() : _parent(0), _index(-1)
+{
+}
+cINIsection::cINIsection(const char* name, cINIstorage* parent, unsigned int index) : _name(name), _parent(parent), _index(index)
+{
+}
+cINIsection::~cINIsection()
+{
+  _destroyhash();
+}
+void cINIsection::_destroyhash()
+{
+  if(!_entries.Nullified())
+  {
+	  khiter_t iter;
+	  _entries.ResetWalk();
+  
+    __ARR* arr;
+	  while((iter=_entries.GetNext())!=_entries.End())
+    {
+      arr=_entries[iter];
+      unsigned int svar=arr->Size();
+      for(unsigned int i =0; i<svar; ++i) (*arr)[i].~cINIentry();
+      delete arr;
+    }
+  }
+}
+void cINIsection::_copyhash(const cINIsection& copy)
+{
+  khiter_t iter;
+  __ARR* old;
+  __ARR* arr;
+	copy._entries.ResetWalk();
+	while((iter=copy._entries.GetNext())!=copy._entries.End())
+  {
+    old=copy._entries[iter];
+    arr=new __ARR(*old);
+    unsigned int svar=arr->Size();
+    for(unsigned int i =0; i < svar; ++i)
+      new ((*arr)+i) cINIentry((*old)[i]);
+    _entries.Insert((*arr)[0].GetKey(),arr);
+  }
+}
+void cINIsection::_addentry(const char* key, const char* data)
+{
+  khiter_t iter=_entries.GetIterator(key);
+  __ARR* arr;
+  if(iter==_entries.End()) //need to add in an array for this
+  {
+    arr= new __ARR(1);
+    new ((*arr)+0) cINIentry(key,data);
+    _entries.Insert((*arr)[0].GetKey(),arr);
+  } else {
+    arr=_entries[iter];
+    unsigned int index=arr->Size();
+    arr->SetSize(index+1);
+    new ((*arr)+index) cINIentry(key,data);
+    _entries.OverrideKeyPtr(iter,(*arr)[0].GetKey());
+  }
+}
+
+const std::vector<std::pair<std::pair<cStr,cStr>,unsigned int>>& cINIsection::BuildEntryList() const
+{
+  assert(_parent!=0);
+  _parent->_entlist.clear();
+  _entries.ResetWalk();
+  khiter_t iter;
+  __ARR* arr;
+  unsigned int i =0;
+  while((iter=_entries.GetNext())!=_entries.End())
+  {
+    arr=_entries[iter];
+    for(i=0; i<arr->Size();++i)
+      _parent->_entlist.push_back(std::pair<std::pair<cStr,cStr>,unsigned int>(std::pair<cStr,cStr>((*arr)[i].GetKey(),(*arr)[i].GetString()),i));
+  }
+  return _parent->_entlist;
+}
+
+cINIsection& cINIsection::operator=(const cINIsection& right)
+{ 
+  if(&right == this) return *this;
+  _name=right._name;
+  _index=right._index;
+  _parent=right._parent;
+  _destroyhash();
+  _entries.Clear();
+  _copyhash(right);
+  return *this;
+}
+
+cINIsection& cINIsection::operator=(cINIsection&& mov)
+{
+  if(&mov == this) return *this;
+  _name=std::move(mov._name);
+  _index=mov._index;
+  _parent=mov._parent;
+  _destroyhash();
+  _entries=std::move(mov._entries);
+  return *this;
+}
+
+cINIentry* cINIsection::GetEntryPtr(const char* key, unsigned int instance) const
+{ 
+  khiter_t iter= _entries.GetIterator(key);
+  if(iter==_entries.End()) return 0;
+  __ARR* arr=_entries[iter];
+  return instance<arr->Size()?(*arr)+instance:0;
+}
+
+cINIentry& cINIsection::GetEntry(const char* key, unsigned int instance) const
+{ 
+  cINIentry* entry=GetEntryPtr(key,instance);
+  return !entry?_entrysentinel:*entry;
+}
+
+
+
+cINIentry::cINIentry(cINIentry&& mov) : _key(std::move(mov._key)),_svalue(std::move(mov._svalue)),_lvalue(mov._lvalue),_dvalue(mov._dvalue)
+{
+}
+cINIentry::cINIentry() : _lvalue(0),_dvalue(0.0)//,_index(0)
+{
+}
+cINIentry::cINIentry(const char *key, const char *svalue, long lvalue, double dvalue) : _key(key),_svalue(svalue),
+  _lvalue(lvalue),_dvalue(dvalue)//,_index(index)
+{
+}
+cINIentry::cINIentry(const char* key, const char* data) : _key(key)//,_index(index)
+{
+  SetData(data);
+}
+
+cINIentry::~cINIentry()
+{
+}
+
+cINIentry& cINIentry::operator=(cINIentry&& mov)
+{
+  _key=std::move(mov._key);
+  _svalue=std::move(mov._svalue);
+  _lvalue=mov._lvalue;
+  _dvalue=mov._dvalue;
+  return *this;
+}
+
+//
+//const char* cINIentry::GetKey() const { return _key; }
+//const char* cINIentry::GetString() const { return _svalue; }
+//long cINIentry::GetLong() const { return _lvalue; }
+//double cINIentry::GetDouble() const { return _dvalue; }
+//
+//cINIentry::operator bool() const { return _lvalue!=0; }
+//cINIentry::operator short() const { return (short)_lvalue; }
+//cINIentry::operator int() const { return (int)_lvalue; }
+//cINIentry::operator long() const { return (long)_lvalue; }
+//cINIentry::operator unsigned short() const { return (unsigned short)_lvalue; }
+//cINIentry::operator unsigned int() const { return (unsigned int)_lvalue; }
+//cINIentry::operator unsigned long() const { return (unsigned long)_lvalue; }
+//cINIentry::operator float() const { return (float)_dvalue; }
+//cINIentry::operator double() const { return _dvalue; }
+//cINIentry::operator const char*() const { return _svalue; }
 
 //#define STR_RT "rt"
 //#define STR_NONE ""
@@ -91,10 +586,11 @@ void _futfwrite(const wchar_t* source, char discard, int size, FILE* f)
 //#define STR_APT "a+b"
 //#define STR_LB "]"
 
-#define CHAR char
+/*
+#define char char
 #include "cINIstorage.inl"
-#undef CHAR
-#define CHAR wchar_t
+#undef char
+#define char wchar_t
 #undef FOPEN
 #define FOPEN WFOPEN
 #define strlen wcslen
@@ -109,8 +605,7 @@ void _futfwrite(const wchar_t* source, char discard, int size, FILE* f)
 #define bss_parseLine bss_wparseLine
 #define fwrite _futfwrite
 
-#undef _T
-#define _T(s) WIDEN(s)
+#define (s) WIDEN(s)
 //#undef STR_RT
 //#undef STR_WT
 //#undef STR_NONE
@@ -127,18 +622,17 @@ void _futfwrite(const wchar_t* source, char discard, int size, FILE* f)
 //#define STR_LB L"]"
 
 #include "cINIstorage.inl"
-#undef CHAR
+#undef char
 #undef FOPEN
-#undef strchr
+#undef strchr*/
 
-template<> bool cINIentry<char>::operator ==(cINIentry &other) const { return STRICMP(_key,other._key)==0 && STRICMP(_svalue,other._svalue)==0; }
-template<> bool cINIentry<char>::operator !=(cINIentry &other) const { return STRICMP(_key,other._key)!=0 || STRICMP(_svalue,other._svalue)!=0; }
+bool cINIentry::operator ==(cINIentry &other) const { return STRICMP(_key,other._key)==0 && STRICMP(_svalue,other._svalue)==0; }
+bool cINIentry::operator !=(cINIentry &other) const { return STRICMP(_key,other._key)!=0 || STRICMP(_svalue,other._svalue)!=0; }
 
-template<> bool cINIentry<wchar_t>::operator ==(cINIentry &other) const { return WCSICMP(_key,other._key)==0 && WCSICMP(_svalue,other._svalue)==0; }
-template<> bool cINIentry<wchar_t>::operator !=(cINIentry &other) const { return WCSICMP(_key,other._key)!=0 || WCSICMP(_svalue,other._svalue)!=0; }
+//bool cINIentry<wchar_t>::operator ==(cINIentry &other) const { return WCSICMP(_key,other._key)==0 && WCSICMP(_svalue,other._svalue)==0; }
+//bool cINIentry<wchar_t>::operator !=(cINIentry &other) const { return WCSICMP(_key,other._key)!=0 || WCSICMP(_svalue,other._svalue)!=0; }
 
-template<>
-void cINIentry<char>::SetData(const char* data)
+void cINIentry::SetData(const char* data)
 {  
   if(!data) return;
   _svalue=data;
@@ -165,7 +659,7 @@ void cINIentry<char>::SetData(const char* data)
   }
 }
 
-
+/*
 template<>
 void cINIentry<wchar_t>::SetData(const wchar_t* data)
 {  
@@ -192,7 +686,7 @@ void cINIentry<wchar_t>::SetData(const wchar_t* data)
     _dvalue = atof(cStr(_svalue));
     _lvalue = (long)_dvalue;
   }
-}
+}*/
 
 //cINIcomment::cINIcomment(const char* comment) : _comment(comment)
 //{

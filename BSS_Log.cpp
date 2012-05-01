@@ -5,39 +5,40 @@
 #include "bss_deprecated.h"
 #include "StreamSplitter.h"
 #include "bss_util.h"
+#include "cStr.h"
 #include <fstream>
 #include <iomanip>
 
 using namespace bss_util;
 using namespace std;
 
-bss_Log::bss_Log(const bss_Log& copy) : _split(new StreamSplitter<char>(*copy._split)), _stream(_split), _tz(GetTimeZoneMinutes())
+bss_Log::bss_Log(const bss_Log& copy) : _split(new StreamSplitter(*copy._split)), _stream(_split), _tz(GetTimeZoneMinutes())
 {
 }
-bss_Log::bss_Log(std::ostream* log) : _split(new StreamSplitter<char>()), _stream(_split), _tz(GetTimeZoneMinutes())
+bss_Log::bss_Log(std::ostream* log) : _split(new StreamSplitter()), _stream(_split), _tz(GetTimeZoneMinutes())
 {
   if(log!=0)
     AddTarget(*log);
 }
 
-bss_Log::bss_Log(std::wostream* log) : _split(new StreamSplitter<char>()), _stream(_split), _tz(GetTimeZoneMinutes())
-{
-  if(log!=0)
-    AddTarget(*log);
-}
-bss_Log::bss_Log(const char* logfile, std::ostream* log) : _split(new StreamSplitter<char>()), _stream(_split), _tz(GetTimeZoneMinutes())
-{
-  AddTarget(logfile);
-  if(log!=0)
-    AddTarget(*log);
-}
-bss_Log::bss_Log(const wchar_t* logfile, std::ostream* log) : _split(new StreamSplitter<char>()), _stream(_split), _tz(GetTimeZoneMinutes())
+//bss_Log::bss_Log(std::wostream* log) : _split(new StreamSplitter<char>()), _stream(_split), _tz(GetTimeZoneMinutes())
+//{
+//  if(log!=0)
+//    AddTarget(*log);
+//}
+bss_Log::bss_Log(const char* logfile, std::ostream* log) : _split(new StreamSplitter()), _stream(_split), _tz(GetTimeZoneMinutes())
 {
   AddTarget(logfile);
   if(log!=0)
     AddTarget(*log);
 }
-bss_Log::bss_Log(const char* logfile, std::wostream* log) : _split(new StreamSplitter<char>()), _stream(_split), _tz(GetTimeZoneMinutes())
+bss_Log::bss_Log(const wchar_t* logfile, std::ostream* log) : _split(new StreamSplitter()), _stream(_split), _tz(GetTimeZoneMinutes())
+{
+  AddTarget(logfile);
+  if(log!=0)
+    AddTarget(*log);
+}
+/*bss_Log::bss_Log(const char* logfile, std::wostream* log) : _split(new StreamSplitter<char>()), _stream(_split), _tz(GetTimeZoneMinutes())
 {
   AddTarget(logfile);
   if(log!=0)
@@ -48,7 +49,7 @@ bss_Log::bss_Log(const wchar_t* logfile, std::wostream* log) : _split(new Stream
   AddTarget(logfile);
   if(log!=0)
     AddTarget(*log);
-}
+}*/
 bss_Log::~bss_Log()
 {
   ClearTargets();
@@ -65,14 +66,14 @@ void BSS_FASTCALL bss_Log::AddTarget(std::ostream& stream)
 {
   _split->AddTarget(&stream);
 }
-void BSS_FASTCALL bss_Log::AddTarget(std::wostream& stream)
-{
-  _split->AddTarget(&stream);
-}
+//void BSS_FASTCALL bss_Log::AddTarget(std::wostream& stream)
+//{
+//  _split->AddTarget(&stream);
+//}
 void BSS_FASTCALL bss_Log::AddTarget(const char* file)
 {
   if(!file) return;
-  _files.push_back(ofstream(file,ios_base::out|ios_base::trunc));
+  _files.push_back(ofstream(cStrW(file).c_str(),ios_base::out|ios_base::trunc));
   AddTarget(_files.back());
 }
 void BSS_FASTCALL bss_Log::AddTarget(const wchar_t* file)
@@ -144,22 +145,22 @@ const char* BSS_FASTCALL bss_Log::_trimpath(const char* path)
 	return retval;
 }
 
-const wchar_t* BSS_FASTCALL bss_Log::_trimpath(const wchar_t* path)
-{
-	const wchar_t* retval=wcsrchr(path,'/');
-	if(!retval)
-	{
-		retval=wcsrchr(path,'\\');
-		if(!retval) retval=path;
-		else ++retval;
-	}
-	else
-	{
-		path=wcsrchr(path,'\\');
-		retval=path>retval?++path:++retval;
-	}
-	return retval;
-}
+//const wchar_t* BSS_FASTCALL bss_Log::_trimpath(const wchar_t* path)
+//{
+//	const wchar_t* retval=wcsrchr(path,'/');
+//	if(!retval)
+//	{
+//		retval=wcsrchr(path,'\\');
+//		if(!retval) retval=path;
+//		else ++retval;
+//	}
+//	else
+//	{
+//		path=wcsrchr(path,'\\');
+//		retval=path>retval?++path:++retval;
+//	}
+//	return retval;
+//}
 
 
 //  #ifdef _M_CEE_PURE
@@ -294,7 +295,7 @@ char BSS_FASTCALL BSS_Log::WriteLog(const char* format, unsigned char level, con
     ref =_streams[i];
 		(*ref) << '[';
 		_writedatetime(_curtimez, ref,true);
-    (*ref) << "] (" << _trimpath(file) << ':' << line << ") " << (const char*)_name.String() << addtmp << _errlevels[level] << ((const char*)_buf) << std::endl;
+    (*ref) << "] (" << _trimpath(file) << ':' << line << ") " << (const char*)_name.c_str() << addtmp << _errlevels[level] << ((const char*)_buf) << std::endl;
     _streams.Next(i);
   }
 
@@ -312,9 +313,9 @@ char BSS_FASTCALL BSS_Log::_writelog(const wchar_t* format, unsigned char level,
   const char* addtmp=_wname.empty()?"":"|";
   file=_trimpath(file);
 #if __STDC_WANT_SECURE_LIB__
-  length += _scwprintf(L"%s:%i) %s%s", file,line,_wname.String(),addtmp); //This gets a little complicated because the secure version of this function does not behave the same way as the unsecure function. To use the secure function we make use of a different function to find the length.
+  length += _scwprintf(L"%s:%i) %s%s", file,line,_wname.c_str(),addtmp); //This gets a little complicated because the secure version of this function does not behave the same way as the unsecure function. To use the secure function we make use of a different function to find the length.
 #else
-  length += _snwprintf(0,0,L"%s:%i) %s%s",file,line,_wname.String(),addtmp);
+  length += _snwprintf(0,0,L"%s:%i) %s%s",file,line,_wname.c_str(),addtmp);
 #endif
 
   if(_buf.size()<((length+=2)<<1)) _buf.reserve(length<<1); //account for both null terminators
@@ -324,10 +325,10 @@ char BSS_FASTCALL BSS_Log::_writelog(const wchar_t* format, unsigned char level,
 
   size_t length3=++length2; //increment length2 to account for null terminator
 #if __STDC_WANT_SECURE_LIB__
-  if((length3+=swprintf_s(((wchar_t*)(char*)_buf.UnsafeString())+length2, length-length2, L"%s:%i) %s%s", file,line,_wname.String(),addtmp)) < 0) //if this is negative something blew up
+  if((length3+=swprintf_s(((wchar_t*)(char*)_buf.UnsafeString())+length2, length-length2, L"%s:%i) %s%s", file,line,_wname.c_str(),addtmp)) < 0) //if this is negative something blew up
     return -3;
 #else
-  if((length3+=swprintf(((wchar_t*)(char*)_buf.UnsafeString())+length2,L"%s:%i) %s%s", file,line,_wname.String(),addtmp)) < 0)
+  if((length3+=swprintf(((wchar_t*)(char*)_buf.UnsafeString())+length2,L"%s:%i) %s%s", file,line,_wname.c_str(),addtmp)) < 0)
     return -3;
 #endif
   _buf.SetSize((++length3)<<1);

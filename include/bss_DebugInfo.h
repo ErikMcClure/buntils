@@ -6,6 +6,7 @@
 
 #include "cHighPrecisionTimer.h"
 #include "bss_Log.h"
+#include "cStr.h"
 
 struct HINSTANCE__; //so we can avoid windows.h
 struct _PROCESS_MEMORY_COUNTERS; //Include <psapi.h> to read the information
@@ -15,13 +16,12 @@ typedef class BSS_DLLEXPORT BSS_DebugInfo : public bss_util::cHighPrecisionTimer
 {
 public:
   BSS_DebugInfo(const BSS_DebugInfo& copy);
-  BSS_DebugInfo(std::ostream* log=0);
-  BSS_DebugInfo(const char* logfile, std::ostream* log=0);
-  BSS_DebugInfo(const wchar_t* logfile, std::ostream* log=0);
+  explicit BSS_DebugInfo(std::ostream* log=0);
+  explicit BSS_DebugInfo(const char* logfile, std::ostream* log=0);
+  explicit BSS_DebugInfo(const wchar_t* logfile, std::ostream* log=0);
   virtual ~BSS_DebugInfo();
   /* Gets the path of the given module - 0 returns path of calling executable */
-  const char* GetModulePath(HINSTANCE__ *mod=0);
-  const wchar_t* GetModulePathW(HINSTANCE__ *mod=0);
+  const char* ModulePath(HINSTANCE__ *mod=0); //If this is GetModulePath windows' stupid #defines screw it up
   /* Gets memory information about the process */
   const _PROCESS_MEMORY_COUNTERS* GetProcMemInfo();
   /* Gets total memory used by process */
@@ -53,13 +53,11 @@ public:
   void ClearProfilers();
 
   BSS_DebugInfo& operator =(const BSS_DebugInfo& right);
-  static const int PATHBUF = 261;
   static const char NUMPROFILERS = 64;
-  static const int DOUBLEPATHBUF=PATHBUF<<1;
 
 protected:
   _PROCESS_MEMORY_COUNTERS* _counter;
-  char _modpath[DOUBLEPATHBUF]; //by doubling the path but this lets us use this for both wchar_t and char
+  cStr _modpath;
   unsigned __int64 _profilers[NUMPROFILERS]; //You can have up to NUMPROFILERS profilers going at once
   unsigned char _flprof[NUMPROFILERS]; //profiler free list (circular buffer)
   unsigned char _flstart; //profiler free list location

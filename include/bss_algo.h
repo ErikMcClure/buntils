@@ -10,8 +10,8 @@
 
 namespace bss_util {
   /* Performs a binary search on "arr" between first and last. if CEQ=NEQ and char CVAL=-1, uses an upper bound, otherwise uses lower bound. */
-  template<typename T, typename __ST, char (*CFunc)(const T&, const T&), char (*CEQ)(const char&, const char&), char CVAL>
-  static inline __ST BSS_FASTCALL binsearch_near(const T* arr, const T& data, __ST first, __ST last)
+  template<typename T, typename D, typename __ST, char (*CFunc)(const D&, const T&), char (*CEQ)(const char&, const char&), char CVAL>
+  static inline __ST BSS_FASTCALL binsearch_near(const T* arr, const D& data, __ST first, __ST last)
   {
     TSignPick<sizeof(__ST)>::SIGNED c = last-first; // Must be a signed version of whatever __ST is
     __ST c2; //No possible operation can make this negative so we leave it as possibly unsigned.
@@ -34,20 +34,20 @@ namespace bss_util {
   }
   /* Either gets the element that matches the value in question or one immediately before the closest match. Could return an invalid -1 value. */
   template<typename T, typename __ST, char (*CFunc)(const T&, const T&)>
-  static inline __ST BSS_FASTCALL binsearch_before(const T* arr, const T& data, __ST first, __ST last) { return binsearch_near<T,__ST,CFunc,CompT_NEQ<char>,-1>(arr,data,first,last)-1; }
+  static inline __ST BSS_FASTCALL binsearch_before(const T* arr, const T& data, __ST first, __ST last) { return binsearch_near<T,T,__ST,CFunc,CompT_NEQ<char>,-1>(arr,data,first,last)-1; }
 
   template<typename T, typename __ST, char (*CFunc)(const T&, const T&)>
-  static inline __ST BSS_FASTCALL binsearch_before(const T* arr, __ST length, const T& data) { return binsearch_near<T,__ST,CFunc,CompT_NEQ<char>,-1>(arr,data,0,length)-1; }
+  static inline __ST BSS_FASTCALL binsearch_before(const T* arr, __ST length, const T& data) { return binsearch_near<T,T,__ST,CFunc,CompT_NEQ<char>,-1>(arr,data,0,length)-1; }
 
   template<typename T, typename __ST, char (*CFunc)(const T&, const T&), __ST I>
   static inline __ST BSS_FASTCALL binsearch_before(const T (&arr)[I], const T& data) { return binsearch_before<T,__ST,CFunc>(arr,I,data); }
 
   /* Either gets the element that matches the value in question or one immediately after the closest match. */
   template<typename T, typename __ST, char (*CFunc)(const T&, const T&)>
-  static inline __ST BSS_FASTCALL binsearch_after(const T* arr, const T& data, __ST first, __ST last) { return binsearch_near<T,__ST,CFunc,CompT_EQ<char>,1>(arr,data,first,last); }
+  static inline __ST BSS_FASTCALL binsearch_after(const T* arr, const T& data, __ST first, __ST last) { return binsearch_near<T,T,__ST,CFunc,CompT_EQ<char>,1>(arr,data,first,last); }
 
   template<typename T, typename __ST, char (*CFunc)(const T&, const T&)>
-  static inline __ST BSS_FASTCALL binsearch_after(const T* arr, __ST length, const T& data) { return binsearch_near<T,__ST,CFunc,CompT_EQ<char>,1>(arr,data,0,length); }
+  static inline __ST BSS_FASTCALL binsearch_after(const T* arr, __ST length, const T& data) { return binsearch_near<T,T,__ST,CFunc,CompT_EQ<char>,1>(arr,data,0,length); }
 
   template<typename T, typename __ST, char (*CFunc)(const T&, const T&), __ST I>
   static inline __ST BSS_FASTCALL binsearch_after(const T (&arr)[I], const T& data) { return binsearch_after<T,__ST,CFunc>(arr,I,data); }

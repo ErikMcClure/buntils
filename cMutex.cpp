@@ -4,12 +4,13 @@
 
 #include "cMutex.h"
 #include "bss_win32_includes.h"
+#include "cStr.h"
 
 using namespace bss_util;
 
 cMutex::cMutex(const char* name, unsigned long delay)
 {
-  _handle = OpenMutex(0, FALSE, name);
+  _handle = OpenMutexW(0, FALSE, cStrW(name));
   _default = delay;
 }
 

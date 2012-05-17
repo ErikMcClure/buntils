@@ -5,8 +5,41 @@
 #define __LOCKLESS_H__BSS__
 
 #include "bss_call.h"
+#include <WinNT.h>
+
+#ifdef BSS_CPU_x86
+#define BSSASM_PREG ECX
+#elif defined(BSS_CPU_x86_64)
+#define BSSASM_PREG RCX
+#endif
 
 namespace bss_util {
+
+#if defined(BSS_CPU_x86_64) || defined(BSS_CPU_x86)
+#pragma warning(push)
+#pragma warning(disable : 4793)
+	BSS_COMPILER_FORCEINLINE void CPU_Barrier()
+	{
+		__int32 Barrier;
+		__asm {
+			lock xchg Barrier, eax
+		}
+	}
+#pragma warning(pop)
+
+  template<typename T>
+  inline void BSS_COMPILER_FORCEINLINE BSS_FASTCALL atomic_inc(volatile T* p)
+  {
+      __asm
+      {
+#ifdef BSS_NO_FASTCALL //if we are using fastcall we don't need these instructions
+        mov BSSASM_PREG, p
+#endif
+          lock inc ptr [BSSASM_PREG]
+          ret
+      }
+  }
+
   template<typename T, int size>
   class ASMCAS_REGPICK_WRITE
   {
@@ -22,10 +55,10 @@ namespace bss_util {
       __asm {
 #ifdef BSS_NO_FASTCALL //if we are using fastcall we don't need these instructions
         mov DL, newval
-        mov ECX, pval
+        mov BSSASM_PREG, pval
 #endif
         mov AL, oldval
-        lock cmpxchg [ECX], DL
+        lock cmpxchg [BSSASM_PREG], DL
         sete rval // Note that sete sets a 'byte' not the word
       }
       return rval;
@@ -42,10 +75,10 @@ namespace bss_util {
       __asm {
 #ifdef BSS_NO_FASTCALL //if we are using fastcall we don't need these instructions
         mov DX, newval
-        mov ECX, pval
+        mov BSSASM_PREG, pval
 #endif
         mov AX, oldval
-        lock cmpxchg [ECX], DX
+        lock cmpxchg [BSSASM_PREG], DX
         sete rval // Note that sete sets a 'byte' not the word
       }
       return rval;
@@ -62,16 +95,17 @@ namespace bss_util {
       __asm {
 #ifdef BSS_NO_FASTCALL //if we are using fastcall we don't need these instructions
         mov EDX, newval
-        mov ECX, pval
+        mov BSSASM_PREG, pval
 #endif
         mov EAX, oldval
-        lock cmpxchg [ECX], EDX
+        lock cmpxchg [BSSASM_PREG], EDX
         sete rval // Note that sete sets a 'byte' not the word
       }
       return rval;
     }
   };
 
+#ifdef BSS_CPU_x86
   template<typename T>
   class ASMCAS_REGPICK_WRITE<T,8>
   {
@@ -97,6 +131,55 @@ namespace bss_util {
       return rval;
     }
   };
+#endif
+  
+#ifdef BSS_CPU_x86_64
+  template<typename T>
+  class ASMCAS_REGPICK_WRITE<T,8>
+  {
+  public:
+    inline static unsigned char BSS_FASTCALL asmcas(volatile T *pval, T newval, T oldval)
+    {
+      unsigned char rval;
+      __asm {
+#ifdef BSS_NO_FASTCALL //if we are using fastcall we don't need these instructions
+        mov RDX, newval
+        mov RCX, pval
+#endif
+        mov RAX, oldval
+        lock cmpxchg [RCX], RDX
+        sete rval // Note that sete sets a 'byte' not the word
+      }
+      return rval;
+    }
+  };
+  
+  template<typename T>
+  class ASMCAS_REGPICK_WRITE<T,16>
+  {
+  public:
+    inline static unsigned char BSS_FASTCALL asmcas(volatile T *dest, T newval, T oldval)
+    {
+      unsigned char rval;
+      __asm { 
+        lea rsi,oldval; 
+        lea rdi,newval; 
+        mov rax,[rsi]; 
+        mov rdx,8[rsi]; 
+        mov rbx,[rdi]; 
+        mov rcx,8[rdi]; 
+        mov rsi,dest; 
+        //lock CMPXCHG16B [rsi] is equivalent to the following except that it's atomic:
+        //ZeroFlag = (rdx:rax == *rsi); 
+        //if (ZeroFlag) *rsi = rcx:rbx; 
+        //else rdx:rax = *rsi; 
+        lock CMPXCHG16B [rsi];
+        sete rval;
+      } 
+      return rval;
+    }
+  };
+#endif
 
   /* Provides assembly level Compare and Exchange operation. Returns 1 if successful or 0 on failure. Implemented via
   inline template specialization so that the proper assembly is generated for the type given. If a type is provided
@@ -121,10 +204,10 @@ namespace bss_util {
       __asm {
 #ifdef BSS_NO_FASTCALL //if we are using fastcall we don't need these instructions
         mov DL, newval
-        mov ECX, pval
+        mov BSSASM_PREG, pval
 #endif
         mov AL, oldval
-        lock cmpxchg [ECX], DL
+        lock cmpxchg [BSSASM_PREG], DL
       }
     }
   };
@@ -138,10 +221,10 @@ namespace bss_util {
       __asm {
 #ifdef BSS_NO_FASTCALL //if we are using fastcall we don't need these instructions
         mov DX, newval
-        mov ECX, pval
+        mov BSSASM_PREG, pval
 #endif
         mov AX, oldval
-        lock cmpxchg [ECX], DX
+        lock cmpxchg [BSSASM_PREG], DX
       }
     }
   };
@@ -155,14 +238,15 @@ namespace bss_util {
       __asm {
 #ifdef BSS_NO_FASTCALL //if we are using fastcall we don't need these instructions
         mov EDX, newval
-        mov ECX, pval
+        mov BSSASM_PREG, pval
 #endif
         mov EAX, oldval
-        lock cmpxchg [ECX], EDX
+        lock cmpxchg [BSSASM_PREG], EDX
       }
     }
   };
 
+#ifdef BSS_CPU_x86
   template<typename T>
   class ASMCAS_REGPICK_READ<T,8>
   {
@@ -185,6 +269,49 @@ namespace bss_util {
       } 
     }
   };
+#endif
+
+#ifdef BSS_CPU_x86_64
+  template<typename T>
+  class ASMCAS_REGPICK_READ<T,8>
+  {
+  public:
+    inline static T BSS_FASTCALL asmcas(volatile T *pval, T newval, T oldval)
+    {
+      __asm {
+#ifdef BSS_NO_FASTCALL //if we are using fastcall we don't need these instructions
+        mov RDX, newval
+        mov RCX, pval
+#endif
+        mov RAX, oldval
+        lock cmpxchg [RCX], RDX
+      }
+    }
+  };
+  
+  template<typename T>
+  class ASMCAS_REGPICK_READ<T,16>
+  {
+  public:
+    inline static T BSS_FASTCALL asmcas(volatile T *dest, T newval, T oldval)
+    {
+      __asm { 
+        lea rsi,oldval; 
+        lea rdi,newval; 
+        mov rax,[rsi]; 
+        mov rdx,8[rsi]; 
+        mov rbx,[rdi]; 
+        mov rcx,8[rdi]; 
+        mov rsi,dest; 
+        //lock CMPXCHG16B [rsi] is equivalent to the following except that it's atomic: 
+        //ZeroFlag = (rdx:rax == *rsi); 
+        //if (ZeroFlag) *rsi = rcx:rbx; 
+        //else rdx:rax = *rsi; 
+        lock CMPXCHG16B [rsi];
+      } 
+    }
+  };
+#endif
 
   /* Provides assembly level Compare and Exchange operation. Always returns the old value. */
   template<typename T>
@@ -213,6 +340,7 @@ namespace bss_util {
   //    lock CMPXCHG8B [esi]; 
   //  } 
   //}
+#endif //defined(BSS_CPU_x86_64) || defined(BSS_CPU_x86)
 
   /* This is a flip-flop that allows lockless two thread communication using the exchange property of CAS */
   template<typename T>

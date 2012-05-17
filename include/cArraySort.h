@@ -57,7 +57,7 @@ namespace bss_util {
     }
     inline __ST BSS_FASTCALL Find(constref data) const
     {
-      return binsearch_exact<T,__ST,CFunc>(_array,_length,data);
+      return binsearch_exact<T,T,__ST,CFunc>(_array,data,0,_length);
       //__ST retval=_findnear(data,true);
       //return ((retval!=(__ST)(-1))&&(!CFunc(_array[retval],data)))?retval:(__ST)(-1);
     }

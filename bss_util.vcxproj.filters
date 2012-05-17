@@ -134,9 +134,6 @@
     <ClInclude Include="include\cMap.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="include\cMiniList.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
     <ClInclude Include="include\cMutex.h">
       <Filter>Header Files</Filter>
     </ClInclude>

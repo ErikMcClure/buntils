@@ -53,10 +53,9 @@ namespace bss_util {
   static inline __ST BSS_FASTCALL binsearch_after(const T (&arr)[I], const T& data) { return binsearch_after<T,__ST,CFunc>(arr,I,data); }
   
   /* Returns index of the item, if it exists, or -1 */
-  template<typename T, typename __ST, char (*CFunc)(const T&, const T&)>
-  static inline __ST BSS_FASTCALL binsearch_exact(const T* arr, const T& data, __ST f, __ST l)
+  template<typename T, typename D, typename __ST, char (*CFunc)(const T&, const D&)>
+  static inline __ST BSS_FASTCALL binsearch_exact(const T* arr, const D& data, __ST f, __ST l)
   {
-    std::upper_bound
     __ST m=(__ST)-1;
     char r;
     while(l>f)
@@ -74,7 +73,7 @@ namespace bss_util {
   }
   
   template<typename T, typename __ST, __ST I, char (*CFunc)(const T&, const T&)>
-  static inline __ST BSS_FASTCALL binsearch_exact(const T (&arr)[I], const T& data) { return binsearch_exact<T,__ST,CFunc>(arr,data,I,0); }
+  static inline __ST BSS_FASTCALL binsearch_exact(const T (&arr)[I], const T& data) { return binsearch_exact<T,T,__ST,CFunc>(arr,data,I,0); }
   
   /* Shuffler using Fisher-Yates/Knuth Shuffle algorithm based on Durstenfeld's implementation. This is an in-place algorithm and works with any numeric type T. */
   template<typename T, typename ST, ST (*RandFunc)(ST min, ST max)>

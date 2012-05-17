@@ -46,6 +46,7 @@
 #include "functor.h"
 //#include "leaktest.h"
 #include "lockless.h"
+#include "os.h"
 #include "StreamSplitter.h"
 
 #include <fstream>
@@ -368,6 +369,24 @@ TEST::RETPAIR test_CMDLINEARGS()
   ENDTEST;
 }
 
+TEST::RETPAIR test_OS()
+{
+  BEGINTEST;
+  TEST(FolderExists("../bin"));
+  TEST(FolderExists(L"D:/Erik Documents/Visual Studio 2010\\Projects\\bss_util\\bin"));
+  TEST(!FolderExists("abasdfwefs"));
+  TEST(!FolderExists(L"abasdfwefs/alkjsdfs/sdfjkd/alkjsdfs/sdfjkd/alkjsdfs/sdfjkd/"));
+  TEST(FileExists("test.exe"));
+  TEST(FileExists(L"test.exe"));
+  TEST(!FileExists("testaskdjlhfs.sdkj"));
+  TEST(!FileExists(L"testaskdjlhfs.sdkj"));
+  TEST(FileExists("testlink"));
+  TEST(FileExists(L"testlink"));
+  TEST(FolderExists("IGNORE/symlink/"));
+  TEST(FolderExists(L"IGNORE/symlink/"));
+  ENDTEST;
+}
+
 int main(int argc, char** argv)
 {
   TEST tests[] = {
@@ -386,6 +405,7 @@ int main(int argc, char** argv)
     { "cArraySort.h", &test_ARRAYSORT },
     { "cAVLtree.h", &test_AVLTREE },
     { "cBinaryHeap.h", &test_BINARYHEAP },
+    { "os.h", &test_OS },
   };
 
   const size_t NUMTESTS=sizeof(tests)/sizeof(TEST);

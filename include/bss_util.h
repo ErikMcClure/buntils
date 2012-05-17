@@ -37,6 +37,11 @@ namespace bss_util {
   const double PI_DOUBLE = PI*2.0;  
   const double E_CONST = 2.718281828459045235360287471352;
   const double SQRT_TWO = 1.414213562373095048801688724209;
+  const float PIf = 3.141592653589793238462643383279f; // Convenience definitions
+  const float PI_HALFf = PIf*0.5f;
+  const float PI_DOUBLEf = PIf*2.0f;  
+  const float E_CONSTf = 2.718281828459045235360287471352f;
+  const float SQRT_TWOf = 1.414213562373095048801688724209f;
 
   /* Given the size of a type, lets you return the signed or unsigned integral equivelent */
   template<int bytes> struct TSignPick {};
@@ -170,6 +175,20 @@ namespace bss_util {
     return (n > 0) - (n < 0);
   }
   
+  /* Gets the shortest distance between two angles in radians */
+  template<typename T>
+  inline T BSS_FASTCALL angledist(T a, T b)
+  {
+    return ((T)PI) - fabs(fmod(fabs(a - b), ((T)PI_DOUBLE)) - ((T)PI));
+  }
+  
+  /* Gets the SIGNED shortest distance between two angles starting with (a - b) in radians */
+  template<typename T>
+  inline T BSS_FASTCALL angledistsgn(T a, T b)
+  {
+    return fmod(a - b - ((T)PI), (T)PI_DOUBLE) + ((T)PI);
+  }
+
   /* Directly calls the fistp function for float to int rounding. Because the FPU tends to be a rounding mode that doesn't clamp to 0, this
      will usually round the float to the nearest integer instead of simply chopping off the decimal. This usually takes 6 cycles, compared
      to the 80 or so cycles caused by a normal float to int cast, and works in any precision. */

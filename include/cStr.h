@@ -7,6 +7,7 @@
 #include <string>
 #include <stdarg.h>
 #include <vector>
+#include <assert.h>
 #include "bss_deprecated.h"
 #include "bss_util_c.h"
 //#include "cBucketAlloc.h"
@@ -144,8 +145,8 @@ public:
   }
   inline cStrT(const CHAR* string, ...) : CSTRALLOC(CHAR)()
   {
-    if(!string);
-      //do nothing
+    if(!string)
+      assert(false); //If this happens, the compiler almost surely got confused with the above constructor
     else if(CSTR_CT<T>::SCHR(string, '%')==0) //Do we even need to check our va_list?
       CSTRALLOC(CHAR)::operator =(string);
     else

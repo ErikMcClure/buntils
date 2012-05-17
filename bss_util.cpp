@@ -12,55 +12,97 @@
 #include <io.h>   // access().
 #include <sys/types.h>  // stat().
 #include <sys/stat.h>   // stat().
-#if defined(WIN32) || defined(_WIN32)
+#ifdef BSS_PLATFORM_WIN32
 #include "bss_win32_includes.h"
 #include <Commdlg.h>
+#include <Shlwapi.h>
 #include <tchar.h> 
 #else
 #include <dirent.h> //Linux
 #endif
 #include "cAVLtree.h"
-#include "cMiniList.h"
 #include "cBinaryHeap.h"
 #include "bss_deprecated.h"
 #include <string.h>
 #include <locale>
 #include <codecvt>
 
-#define BOOST_FILESYSTEM_VERSION 3
-#define BOOST_ALL_NO_DEPRECATED
-#include <boost/filesystem.hpp>
+//#define BOOST_FILESYSTEM_VERSION 3
+//#define BOOST_ALL_NO_DEPRECATED
+//#include <boost/filesystem.hpp>
+
+//typedef DWORD (WINAPI *GETFINALNAMEBYHANDLE)(HANDLE,LPWSTR,DWORD,DWORD);
+//static const HMODULE bssdll_KERNAL = LoadLibraryA("Kernal32.dll");
+//static const GETFINALNAMEBYHANDLE bssdll_GetFinalNameByHandle = (GETFINALNAMEBYHANDLE)GetProcAddress(bssdll_KERNAL,"GetFinalPathNameByHandleW");
+
+template<DWORD T_FLAG>
+inline bool BSS_FASTCALL r_fexists(const wchar_t* path)
+{
+  assert(path!=0);
+#ifdef BSS_PLATFORM_WIN32
+  cStrW s(L"\\\\?\\"); //You must append \\?\ to the beginning of the string to allow paths up to 32767 characters long
+  if(!PathIsRelativeW(path)) // But only if its an absolute path
+  {
+     s+=path;
+     path=s;
+     s.ReplaceChar('/','\\'); //This doesn't behave nicely if you have / in there instead of \ for some reason.
+  }
+  
+  DWORD attr = GetFileAttributesW(path);
+
+  if(attr==INVALID_FILE_ATTRIBUTES)
+    return false;
+
+  /*if(attr&FILE_ATTRIBUTE_REPARSE_POINT !=0) // Navigate through symlink
+  { // This refuses to properly resolve attributes.
+    assert(bssdll_GetFinalNameByHandle!=0);
+    WIN32_FIND_DATAW dat;
+    if(FindFirstFile(path,&dat)==INVALID_HANDLE_VALUE)
+      return false;
+    if(dat.dwReserved0 != IO_REPARSE_TAG_SYMLINK)
+      return false;
+    HANDLE hf = CreateFileW(path,NULL,FILE_SHARE_READ|FILE_SHARE_WRITE|FILE_SHARE_DELETE,NULL,OPEN_EXISTING,FILE_FLAG_BACKUP_SEMANTICS,NULL);
+    if(hf == INVALID_HANDLE_VALUE)
+      return false;
+    size_t ln = bssdll_GetFinalNameByHandle(hf,0,0,VOLUME_NAME_DOS);
+    if(!ln) return false;
+    s.reserve(ln);
+    ln = bssdll_GetFinalNameByHandle(hf,s.UnsafeString(),ln-1,VOLUME_NAME_DOS);
+    if(!ln) return false;
+    s.UnsafeString()[ln]=0; //insert null terminator
+    attr = GetFileAttributesW(s); // Get attributes on final path
+    if(attr==INVALID_FILE_ATTRIBUTES)
+      return false;
+  }*/
+
+  return ((attr&FILE_ATTRIBUTE_DIRECTORY)^T_FLAG) !=0;
+#elif BSS_PLATFORM_POSIX
+
+#endif
+}
 
 BSS_COMPILER_DLLEXPORT
 extern bool BSS_FASTCALL bss_util::FolderExists(const char* strpath)
 {
-  boost::filesystem3::path p(cStrW(strpath).c_str());
-  if(!boost::filesystem3::is_directory(p)) return false; //the folder can't exist if its not a folder
-  return boost::filesystem3::exists(p,boost::system::error_code());
+  return r_fexists<0>(cStrW(strpath).c_str());
 }
 
 BSS_COMPILER_DLLEXPORT
 extern bool BSS_FASTCALL bss_util::FolderExists(const wchar_t* strpath)
 {
-  boost::filesystem3::path p(strpath);
-  if(!boost::filesystem3::is_directory(p)) return false; //the folder can't exist if its not a folder
-  return boost::filesystem3::exists(p,boost::system::error_code());
+  return r_fexists<0>(strpath);
 }
 
 BSS_COMPILER_DLLEXPORT
 extern bool BSS_FASTCALL bss_util::FileExists(const char* strpath)
 {
-  boost::filesystem3::path p(cStrW(strpath).c_str());
-  if(boost::filesystem3::is_directory(p)) return false; //the file can't exist if its not a file
-  return boost::filesystem3::exists(p,boost::system::error_code());
+  return r_fexists<1>(cStrW(strpath).c_str());
 }
 
 BSS_COMPILER_DLLEXPORT
 extern bool BSS_FASTCALL bss_util::FileExists(const wchar_t* strpath)
 {
-  boost::filesystem3::path p(strpath);
-  if(boost::filesystem3::is_directory(p)) return false; //the file can't exist if its not a file
-  return boost::filesystem3::exists(p,boost::system::error_code());
+  return r_fexists<1>(strpath);
 }
 
 BSS_COMPILER_DLLEXPORT
@@ -74,49 +116,40 @@ extern void BSS_FASTCALL bss_util::SetWorkDirToCur()
 
 BSS_COMPILER_DLLEXPORT extern unsigned long long BSS_FASTCALL bss_util::bssFileSize(const char* path)
 {
-  boost::filesystem3::path p(cStrW(path).c_str());
-  return boost::filesystem3::file_size(path);
+  return bssFileSize(cStrW(path).c_str());
 }
 BSS_COMPILER_DLLEXPORT extern unsigned long long BSS_FASTCALL bss_util::bssFileSize(const wchar_t* path)
 {
-  boost::filesystem3::path p(path);
-  return boost::filesystem3::file_size(path);
+#ifdef BSS_PLATFORM_WIN32
+  WIN32_FILE_ATTRIBUTE_DATA fad;
+
+  if(GetFileAttributesExW(path, GetFileExInfoStandard, &fad)==FALSE || (fad.dwFileAttributes & FILE_ATTRIBUTE_DIRECTORY)!=0)
+    return (unsigned long long)-1;
+
+  return (static_cast<unsigned long long>(fad.nFileSizeHigh) << (sizeof(fad.nFileSizeLow)*8)) + fad.nFileSizeLow;
+#elif BSS_PLATFORM_POSIX
+    struct stat path_stat;
+    if(::stat(p.c_str(), &path_stat)!=0 || !S_ISREG(path_stat.st_mode))
+    return (unsigned long long)-1;
+
+    return (unsigned long long)path_stat.st_size;
+#endif
 }
 
 BSS_COMPILER_DLLEXPORT
-#if defined(WIN32) || defined(_WIN32) //Windows function
-extern void BSS_FASTCALL bss_util::FileDialog(std::string& result, bool open, int flags, const char* file, const char* filter, HWND__* owner, const char* initdir, const char* defext)
+#ifdef BSS_PLATFORM_WIN32 //Windows function
+extern void BSS_FASTCALL bss_util::FileDialog(wchar_t (&buf)[MAX_PATH], bool open, int flags, const char* file, const char* filter, HWND__* owner, const char* initdir, const char* defext)
 {
-  wchar_t buf[MAX_PATH] = {0};
-  GetCurrentDirectoryW(MAX_PATH,buf);
-  cStrW curdirsave(buf);
-  cStrW wfile = file;
-  cStrW wfilter = filter;
-  cStrW winitdir = initdir;
-  cStrW wdefext = defext;
-  memset(buf,0,MAX_PATH*sizeof(wchar_t));
-
-  if(file!=0) WCSNCPY(buf, MAX_PATH, wfile, bssmin(wfile.length(),MAX_PATH-1));
-
-  OPENFILENAMEW ofn;
-  ZeroMemory(&ofn, sizeof(ofn));
-
-  ofn.lStructSize = sizeof(OPENFILENAMEW);
-  ofn.hwndOwner = owner;
-  ofn.lpstrFilter = wfilter;
-  ofn.lpstrFile = buf;
-  ofn.nMaxFile = MAX_PATH;
-  ofn.Flags = (open?OFN_EXPLORER|OFN_FILEMUSTEXIST:OFN_EXPLORER) | flags;
-  ofn.lpstrDefExt = wdefext;
-  ofn.lpstrInitialDir = winitdir;
-
-  BOOL res = open?GetOpenFileNameW(&ofn):GetSaveFileNameW(&ofn);
-
-  SetCurrentDirectoryW(curdirsave); //There is actually a flag that's supposed to do this for us but it doesn't work on XP for file open, so we have to do it manually just to be sure
-  if(!res) buf[0]='\0';
-  //return (void*)buf;
+  cStrW wfilter;
+  size_t c;
+  const char* i;
+  for(i=filter; *((const short*)i) != 0; ++i)
+  c=i-filter+1; //+1 to include null terminator
+  wfilter.reserve(MultiByteToWideChar(CP_UTF8, 0, filter, c, 0, 0));
+  MultiByteToWideChar(CP_UTF8, 0, filter, c, wfilter.UnsafeString(), wfilter.capacity());
+  FileDialog(buf,open,flags,cStrW(file),wfilter,owner,cStrW(initdir),cStrW(defext));
 }
-/*extern void BSS_FASTCALL bss_util::FileDialog(wchar_t (&buf)[MAX_PATH], bool open, int flags, const wchar_t* file, const wchar_t* filter, HWND__* owner, const wchar_t* initdir, const wchar_t* defext)
+extern void BSS_FASTCALL bss_util::FileDialog(wchar_t (&buf)[MAX_PATH], bool open, int flags, const wchar_t* file, const wchar_t* filter, HWND__* owner, const wchar_t* initdir, const wchar_t* defext)
 {
   //char* buf = (char*)calloc(MAX_PATH,1);
   GetCurrentDirectoryW(MAX_PATH,buf);
@@ -142,7 +175,7 @@ extern void BSS_FASTCALL bss_util::FileDialog(std::string& result, bool open, in
   SetCurrentDirectoryW(curdirsave); //There is actually a flag that's supposed to do this for us but it doesn't work on XP for file open, so we have to do it manually just to be sure
   if(!res) buf[0]='\0';
   //return (void*)buf;
-}*/
+}
 
 extern long BSS_FASTCALL bss_util::GetTimeZoneMinutes()
 {
@@ -249,7 +282,7 @@ extern long BSS_FASTCALL bss_util::GetTimeZoneMinutes()
 //}
 //
 //BSS_COMPILER_DLLEXPORT
-//#if defined(WIN32) || defined(_WIN32) //Windows function
+//#ifdef BSS_PLATFORM_WIN32 //Windows function
 //extern int BSS_FASTCALL bss_util::GetDirFiles(const char* cdir, std::vector<cStr>* files)
 //{
 //  WIN32_FIND_DATAA ffd;

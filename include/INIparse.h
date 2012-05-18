@@ -44,7 +44,7 @@ typedef struct {
 extern char BSS_FASTCALL bss_initINI(INIParser* init, FILE* stream);
 extern char BSS_FASTCALL bss_destroyINI(INIParser* destroy);
 extern char BSS_FASTCALL bss_parseLine(INIParser* parse);
-extern INICHUNK BSS_FASTCALL bss_findINIsection(const void* data, unsigned length, const char* section, unsigned int instance);
+extern INICHUNK BSS_FASTCALL bss_findINIsection(const void* data, size_t length, const char* section, unsigned int instance);
 extern INICHUNK BSS_FASTCALL bss_findINIentry(INICHUNK section, const char* key, unsigned int instance);
 //extern char BSS_FASTCALL bss_winitINI(INIParserW* init, FILE* stream);
 //extern char BSS_FASTCALL bss_wdestroyINI(INIParserW* destroy);

@@ -117,8 +117,8 @@ char* BSS_FASTCALL _validatevalue(char* str)
 
 char* BSS_FASTCALL _savestr(char* orig, const char* str)
 {
-  unsigned int olength=strlen(orig);
-  unsigned int nlength;
+  size_t olength=strlen(orig);
+  size_t nlength;
   str=_trimlstr(str);
   nlength=strlen(str);
   if(olength<nlength)
@@ -233,7 +233,7 @@ char BSS_FASTCALL comparevalues(const char* start, const char* end, const char* 
   b = strlen(comp);
   return _strnicmp(start,comp,bssmin(a,b));
 }
-INICHUNK BSS_FASTCALL bss_findINIsection(const void* data, unsigned length, const char* section, unsigned int instance)
+INICHUNK BSS_FASTCALL bss_findINIsection(const void* data, size_t length, const char* section, unsigned int instance)
 {
   const char* cur=(const char*)data;
   const char* end=cur+length;

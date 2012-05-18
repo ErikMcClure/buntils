@@ -189,19 +189,23 @@ namespace bss_util {
     return fmod(a - b - ((T)PI), (T)PI_DOUBLE) + ((T)PI);
   }
 
-#if defined(_MSC_VER) && !(defined(BSS_CPU_x86_64) || defined(BSS_CPU_IA_64))
   /* Directly calls the fistp function for float to int rounding. Because the FPU tends to be a rounding mode that doesn't clamp to 0, this
      will usually round the float to the nearest integer instead of simply chopping off the decimal. This usually takes 6 cycles, compared
      to the 80 or so cycles caused by a normal float to int cast, and works in any precision. */
   template<typename T> //T must be either float or double or you need to stop programming when you're high
   inline __int32 fFastRound(T f)
   {
+#ifndef BSS_MSC_NOASM
 	  __int32 retval;
 	  __asm fld f
 	  __asm fistp retval
 	  return retval;
+#else
+    return _mm_cvt_ss2si(_mm_load_ss(&f)); // HACK: Non-optimal workaround for MSC idiocy
+#endif
   }
 
+#ifndef BSS_MSC_NOASM
   /* Returns true if FPU is in single precision mode and false otherwise (false for both double and extended precision) */
   inline bool FPUsingle()
   { 

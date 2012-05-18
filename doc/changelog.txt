@@ -32,6 +32,13 @@
 - added binsearch_near and variants
 - Implemented library wide utf8 decoding. Most wchar_t implementations remain, but all char* functions are translated to wchar_t internally. If you happen to recieve strings in wchar_t format, this allows you to avoid unnecessary encoding/decoding while still ensuring all text is utf8 enabled. You should #define _UNICODE in your application if you want to enforce unicode compatability. cStr conversion between cStr <-> cStrW use unicode encoder/decoders, so unicode information is always preserved.
 - Removed wchar_t specialization from cINIstorage and certain other things. You can no longer output to a wostream - instead, all output will be utf8 encoded.
+- Removed Iterator.h and standardized iterators for linked lists, added iterator based begin/end functions.
+- Added non-standard removal specific iterator for linked lists.
+- Extended compiler specific switches and available information
+- Added x86_64 platform to project and configured for 64-bit compilation.
+- Created workarounds for assembly based functions and removed others in x86_64, allowing bss_util to compile in x86_64
+- Adjusted some x86 assembly and added CPU_Barrier() as an efficient way to prevent CPU re-ordering.
+- Added unit testing.
 
 0.3.81
 ------

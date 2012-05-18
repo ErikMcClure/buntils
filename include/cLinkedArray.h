@@ -21,16 +21,15 @@ namespace bss_util {
   template<class T, class Traits=ValueTraits<T>, typename SizeType=unsigned int>
   class BSS_COMPILER_DLLEXPORT cLinkedArray : protected Traits
   {
+  public:
     typedef LINKEDNODE<T,SizeType> TLNODE;
     typedef typename Traits::pointer pointer;
     typedef typename Traits::const_pointer const_pointer;
     typedef typename Traits::reference reference;
     typedef typename Traits::const_reference const_reference;
     typedef typename Traits::value_type value_type;
-    typedef T __T;
     typedef SizeType __ST;
   
-  public:
     inline cLinkedArray() : _ref(1),_length(0),_start(-1),_end(-1),_freelist(-1) { _setupchunk(0); }
     inline cLinkedArray(const cLinkedArray& copy) : _ref(copy._ref),_length(copy._length),_start(copy._start),_end(copy._end),_freelist(copy._freelist) { }
     inline cLinkedArray(cLinkedArray&& mov) : _ref(std::move(mov._ref)),_length(mov._length),_start(mov._start),_end(mov._end),_freelist(mov._freelist) { }
@@ -105,13 +104,12 @@ namespace bss_util {
 
     /* Iterator for cLinkedArray */
     template<typename _PP, typename _REF, typename D=cLinkedArray<T,Traits,SizeType>>
-    class BSS_COMPILER_DLLEXPORT cLAIter : public std::iterator<std::bidirectional_iterator_tag,typename D::__T,ptrdiff_t,_PP,_REF>
+    class BSS_COMPILER_DLLEXPORT cLAIter : public std::iterator<std::bidirectional_iterator_tag,typename D::value_type,ptrdiff_t,_PP,_REF>
 	  {
-      typedef typename D::__ST __ST;
-
-  public:
+    public:
       inline explicit cLAIter(D& src) : _src(src), cur((__ST)-1) {}
-      inline explicit cLAIter(D& src, __ST start) : _src(src), cur(start) {}
+      inline cLAIter(D& src, __ST start) : _src(src), cur(start) {}
+      inline cLAIter(const cLAIter& copy, __ST start) : _src(copy._src), cur(start) {}
       inline _REF operator*() const { return _src[cur]; }
       inline _PP operator->() const { return &_src[cur]; }
       inline cLAIter& operator++() { _src.Next(cur); return *this; } //prefix
@@ -133,6 +131,25 @@ namespace bss_util {
     inline cLAIter<const_pointer, const_reference, const cLinkedArray<T,Traits,SizeType>> IterEnd() const { return cLAIter<const T, const cLinkedArray<T,Traits,SizeType>>(*this); }
     inline cLAIter<pointer, reference, cLinkedArray<T,Traits,SizeType>> IterStart() { return cLAIter<pointer, reference, cLinkedArray<T,Traits,SizeType>>(*this,_start); } // Use these to get an iterator you can use in standard containers
     inline cLAIter<pointer, reference, cLinkedArray<T,Traits,SizeType>> IterEnd() { return cLAIter<pointer, reference, cLinkedArray<T,Traits,SizeType>>(*this); }
+    
+    /* Nonstandard Removal Iterator for cLinkedArray to make removing elements easier */
+    class BSS_COMPILER_DLLEXPORT cLAIterRM : protected cLAIter<pointer,reference,cLinkedArray<T,Traits,SizeType>>
+	  {
+      typedef cLAIter<pointer,reference,cLinkedArray<T,Traits,SizeType>> __BASE;
+
+    public:
+      inline cLAIterRM(const cLAIterRM& copy) : __BASE(copy), next(copy.next) { }
+      inline explicit cLAIterRM(const __BASE& from) : __BASE(from,(__ST)-1), next(from.cur) { }
+      inline reference operator*() const { return _src[cur]; }
+      inline cLAIterRM& operator++() { cur=next; _src.Next(next); return *this; } //prefix
+      inline cLAIterRM& operator--() { next=cur; _src.Prev(cur); return *this; } //prefix
+      //inline bool operator==(const cLAIterRM& _Right) const { return (next == _Right.next); }
+	    //inline bool operator!=(const cLAIterRM& _Right) const { return (next != _Right.next); }
+      inline bool HasNext() { return next!=(__ST)-1; }
+      inline void Remove() { _src.Remove(cur); }
+
+      __ST next;
+	  };
 
   protected:
     inline void BSS_FASTCALL _addfreelist(__ST index)
@@ -162,6 +179,7 @@ namespace bss_util {
   private:
     cArrayWrap<cArraySimple<LINKEDNODE<T,__ST>,__ST>> _ref;
   };
+    
 }
 
 #endif

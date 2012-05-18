@@ -25,7 +25,7 @@ public:
   /* Gets memory information about the process */
   const _PROCESS_MEMORY_COUNTERS* GetProcMemInfo();
   /* Gets total memory used by process */
-  __w64 unsigned long GetWorkingSet();
+  __w64 size_t GetWorkingSet();
   /* Starts a profiler and returns the ID. Returns -1 if you have used up all available profiler spaces */
   inline char OpenProfiler()
   {

@@ -32,6 +32,24 @@ namespace bss_util {
     T item;
   };
 
+  /* Generic Iterator for cLinkedList */
+  template<typename T, typename _Nd=cLLNode<T>>
+  class BSS_COMPILER_DLLEXPORT cLLIter : public LLIterator<T,_Nd>
+  {
+  public:
+    inline cLLIter() {}
+    inline explicit cLLIter(_Nd* node) : LLIterator<T,_Nd>(node) { }
+    inline reference operator*() const { return cur->item; }
+    inline pointer operator->() const { return &cur->item; }
+    inline cLLIter& operator++() { cur=cur->next; return *this; } //prefix
+    inline cLLIter operator++(int) { cLLIter r=*this; ++*this; return r; } //postfix
+    inline cLLIter& operator--() { cur=cur->prev; return *this; } //prefix
+    inline cLLIter operator--(int) { cLLIter r=*this; --*this; return r; } //postfix
+    inline bool operator==(const cLLIter& _Right) const { return (cur == _Right.cur); }
+	  inline bool operator!=(const cLLIter& _Right) const { return (cur != _Right.cur); }
+    inline bool operator!() const { return !cur; }
+  };
+
   /* Adaptive class template for Size usage */
   template<bool size> struct cLinkedList_FuncSize {};
   template<> struct cLinkedList_FuncSize<true> { 
@@ -140,7 +158,9 @@ namespace bss_util {
 
     inline cLLNode<T>* GetRoot() const { return _root; }
     inline cLLNode<T>* GetLast() const { return _last; }
-    
+    inline cLLIter<T> Begin() const { return cLLIter<T>(_root); } // Use these to get an iterator you can use in standard containers
+    inline cLLIter<T> End() const { return cLLIter<T>(0); }
+
     template<typename U, bool V>
     inline cLinkedList<T,Alloc,useSize>& operator =(const cLinkedList<T,U,V>& right) { if(&right==this) return *this; Clear(); return operator +=(right); }
     template<typename U, bool V>

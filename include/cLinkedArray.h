@@ -7,7 +7,6 @@
 #include "bss_traits.h"
 #include "bss_util.h"
 #include "cArraySimple.h"
-#include "Iterator.h"
 
 namespace bss_util {
   template<class T,typename SizeType>
@@ -28,6 +27,7 @@ namespace bss_util {
     typedef typename Traits::reference reference;
     typedef typename Traits::const_reference const_reference;
     typedef typename Traits::value_type value_type;
+    typedef T __T;
     typedef SizeType __ST;
   
   public:
@@ -103,6 +103,37 @@ namespace bss_util {
     inline reference BSS_FASTCALL operator [](__ST index) { return _ref[index].val; }
     inline const_reference BSS_FASTCALL operator [](__ST index) const { return _ref[index].val; }
 
+    /* Iterator for cLinkedArray */
+    template<typename _PP, typename _REF, typename D=cLinkedArray<T,Traits,SizeType>>
+    class BSS_COMPILER_DLLEXPORT cLAIter : public std::iterator<std::bidirectional_iterator_tag,typename D::__T,ptrdiff_t,_PP,_REF>
+	  {
+      typedef typename D::__ST __ST;
+
+  public:
+      inline explicit cLAIter(D& src) : _src(src), cur((__ST)-1) {}
+      inline explicit cLAIter(D& src, __ST start) : _src(src), cur(start) {}
+      inline _REF operator*() const { return _src[cur]; }
+      inline _PP operator->() const { return &_src[cur]; }
+      inline cLAIter& operator++() { _src.Next(cur); return *this; } //prefix
+      inline cLAIter operator++(int) { cLAIter r=*this; ++*this; return r; } //postfix
+      inline cLAIter& operator--() { _src.Prev(cur); return *this; } //prefix
+      inline cLAIter operator--(int) { cLAIter r=*this; --*this; return r; } //postfix
+      inline bool operator==(const cLAIter& _Right) const { return (cur == _Right.cur); }
+	    inline bool operator!=(const cLAIter& _Right) const { return (cur != _Right.cur); }
+      inline bool operator!() const { return cur==(__ST)-1; }
+      inline bool IsValid() { return cur!=(__ST)-1; }
+
+      __ST cur;
+
+    protected:
+      D& _src;
+	  };
+    
+    inline cLAIter<const_pointer, const_reference, const cLinkedArray<T,Traits,SizeType>> IterStart() const { return cLAIter<const_pointer, const_reference, const cLinkedArray<T,Traits,SizeType>>(*this,_start); } // Use these to get an iterator you can use in standard containers
+    inline cLAIter<const_pointer, const_reference, const cLinkedArray<T,Traits,SizeType>> IterEnd() const { return cLAIter<const T, const cLinkedArray<T,Traits,SizeType>>(*this); }
+    inline cLAIter<pointer, reference, cLinkedArray<T,Traits,SizeType>> IterStart() { return cLAIter<pointer, reference, cLinkedArray<T,Traits,SizeType>>(*this,_start); } // Use these to get an iterator you can use in standard containers
+    inline cLAIter<pointer, reference, cLinkedArray<T,Traits,SizeType>> IterEnd() { return cLAIter<pointer, reference, cLinkedArray<T,Traits,SizeType>>(*this); }
+
   protected:
     inline void BSS_FASTCALL _addfreelist(__ST index)
     {
@@ -130,31 +161,6 @@ namespace bss_util {
 
   private:
     cArrayWrap<cArraySimple<LINKEDNODE<T,__ST>,__ST>> _ref;
-  };
-  
-  /* Iterator for doubly linked list */
-  template<class T, class Traits=ValueTraits<T>, typename SizeType=unsigned int>
-  class BSS_COMPILER_DLLEXPORT LinkedArrayIterator : public Iterator<SizeType>
-  {
-    typedef typename Iterator<SizeType>::const_reference const_reference;
-    typedef typename Iterator<SizeType>::value_type value_type;
-
-  public:
-    inline explicit LinkedArrayIterator(cLinkedArray<T,Traits,SizeType>& Src) : src(Src), cur((SizeType)-1), next(src.Start()) {}
-    inline LinkedArrayIterator(cLinkedArray<T,Traits,SizeType>& Src, SizeType start) : src(Src), cur(start), next(start) { if(start!=((SizeType)-1)) Src.Prev(cur); }
-    inline virtual const_reference operator++() { cur=next; src.Next(next); return cur; } //prefix
-    inline virtual const_reference operator--() { next=cur; src.Prev(cur); return cur;} //prefix
-    inline virtual const_reference Peek() { return next; }
-    //inline virtual const_reference Last() { return cur; }
-    inline virtual void Remove() { src.Remove(cur); cur=((SizeType)-1); }
-    inline virtual bool HasNext() { return next!=((SizeType)-1); }
-    inline virtual bool HasPrev() { if(cur!=((SizeType)-1)) return false; value_type r=cur; src.Prev(r); return r!=((SizeType)-1); }
-    //inline const_reference operator*() const { return cur; } // extra operator to make it easy to use with cLinkedArray
-
-  protected:
-    cLinkedArray<T,Traits,SizeType>& src;
-    SizeType cur;
-    SizeType next;
   };
 }
 

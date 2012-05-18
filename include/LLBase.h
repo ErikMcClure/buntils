@@ -5,10 +5,11 @@
 #define __LL_BASE_H__BSS__
 
 #include "bss_call.h"
-#include "Iterator.h"
+#include <xutility>
+#include <list>
 
 namespace bss_util {
-  /* A base node for a doubly-linked list. The given parameter T may be any class that publically inherits cLLBase */
+  /* A base node for a doubly-linked list. The given parameter T may be any class that publically inherits LLBase */
   template<typename T>
   struct LLBase
   {
@@ -93,52 +94,26 @@ namespace bss_util {
 		if(node->next != 0) node->next->prev = node->prev;
   }
 
-  /* Iterator for doubly linked list. By default it does not initialize the previous node. */
-  template<typename T>
-  class BSS_COMPILER_DLLEXPORT LLIterator : public Iterator<T*>
-  {
-    typedef typename Iterator<T*>::const_reference const_reference;
-    typedef typename Iterator<T*>::value_type value_type;
+  /* Iterator for doubly linked list. Does not support remove; use postfix-- or the equivelent */
+  template<typename T, typename _Nd>
+  class BSS_COMPILER_DLLEXPORT LLIterator : public std::iterator<std::bidirectional_iterator_tag,T>
+	{
+public:
+    inline LLIterator() : cur(0) {}
+    inline explicit LLIterator(_Nd* node) : cur(node) { }
+    //inline reference operator*() const { } //Inherited iterators must define this based on where they store T
+    //inline pointer operator->() const { }
+    inline LLIterator& operator++() { cur=cur->next; return *this; } //prefix
+    inline LLIterator operator++(int) { LLIterator r=*this; ++*this; return r; } //postfix
+    inline LLIterator& operator--() { cur=cur->prev; return *this; } //prefix
+    inline LLIterator operator--(int) { LLIterator r=*this; --*this; return r; } //postfix
+    inline bool operator==(const LLIterator& _Right) const { return (cur == _Right.cur); }
+	  inline bool operator!=(const LLIterator& _Right) const { return (cur != _Right.cur); }
+    inline bool operator!() const { return !cur; }
+    inline bool IsValid() { return cur!=0; }
 
-  public:
-    inline explicit LLIterator(T* start) : cur(0), next(start) { }
-    inline explicit LLIterator(T* start, char initPrev) : cur(start), next(start) { if(start!=0) cur=start->prev; }
-    inline virtual const_reference operator++() { cur=next; next=next->next; return cur; } //prefix
-    inline virtual const_reference operator--() { next=cur; cur=cur->prev; return cur;} //prefix
-    inline virtual const_reference Peek() { return next; }
-    //inline virtual const_reference Last() { return cur; }
-    inline virtual void Remove() { LLRemove<T>(cur); cur=0; }
-    inline virtual bool HasNext() { return next!=0; }
-    inline virtual bool HasPrev() { return cur!=0 && cur->prev!=0; }
-
-  protected:
-    T* cur;
-    T* next;
-  };
-
-  template<typename T>
-  class BSS_COMPILER_DLLEXPORT LLIteratorR : public LLIterator<T>
-  {
-  public:
-    inline explicit LLIteratorR(T* start, T*& root) : LLIterator<T>(start), _root(root) { }
-    inline explicit LLIteratorR(T* start, T*& root, char initPrev) : LLIterator<T>(start,0), _root(root) { }
-    inline virtual void Remove() { LLRemove<T>(cur,_root); cur=0; }
-
-  protected:
-    T*& _root;
-  };
-
-  template<typename T>
-  class BSS_COMPILER_DLLEXPORT LLIteratorRL : public LLIteratorR<T>
-  {
-  public:
-    inline explicit LLIteratorRL(T* start, T*& root, T*& last) : LLIteratorR<T>(start,root), _last(last) { }
-    inline explicit LLIteratorRL(T* start, T*& root, T*& last, char initPrev) : LLIteratorR<T>(start,root,0), _last(last) { }
-    inline virtual void Remove() { LLRemove<T>(cur,_root,_last); cur=0; }
-
-  protected:
-    T*& _last;
-  };
+    _Nd* cur;
+	};
 }
 
 

@@ -208,7 +208,7 @@ char BSS_FASTCALL comparevalues(const CHAR* start, const CHAR* end, const CHAR* 
   end=_trimrstralt(--end,start);
   return _strnicmp(start,comp,_minfunc((end-start)+1,strlen(comp)));
 }
-INICHUNK BSS_FASTCALL bss_findINIsection(const void* data, unsigned length, const CHAR* section, unsigned int instance)
+INICHUNK BSS_FASTCALL bss_findINIsection(const void* data, size_t length, const CHAR* section, unsigned int instance)
 {
   const CHAR* cur=(const CHAR*)data;
   const CHAR* end=cur+length;

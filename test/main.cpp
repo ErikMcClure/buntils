@@ -196,7 +196,7 @@ TEST::RETPAIR test_bss_deprecated()
   tm tms;
   TEST([&]()->bool { GMTIMEFUNC(&tmval,&tms); return true; }())
   //TESTERR(GMTIMEFUNC(0,&tms));
-  char buf[12];
+  //char buf[12];
 //#define VSPRINTF(dest,length,format,list) _vsnprintf_s(dest,length,length,format,list)
 //#define VSWPRINTF(dest,length,format,list) _vsnwprintf_s(dest,length,length,format,list)
   FILE* f=0;
@@ -269,7 +269,7 @@ TEST::RETPAIR test_ARRAYSORT()
   uint count=0;
   for_all([&](int x){ TEST(test.Insert(x,count++)!=-1); },ins);
   sort(std::begin(ins),std::end(ins));
-  for(int i = 0; i < test.Length(); ++i)
+  for(unsigned int i = 0; i < test.Length(); ++i)
   { TEST(test.KeyIndex(i)==ins[i]); }
   for(int i = 0; i < sizeof(get)/sizeof(int); ++i)
   { TEST(test[test.Get(get[i])]==res[i]); }
@@ -376,8 +376,8 @@ TEST::RETPAIR test_OS()
   TEST(FolderExists(L"D:/Erik Documents/Visual Studio 2010\\Projects\\bss_util\\bin"));
   TEST(!FolderExists("abasdfwefs"));
   TEST(!FolderExists(L"abasdfwefs/alkjsdfs/sdfjkd/alkjsdfs/sdfjkd/alkjsdfs/sdfjkd/"));
-  TEST(FileExists("test.exe"));
-  TEST(FileExists(L"test.exe"));
+  TEST(FileExists("blank.txt"));
+  TEST(FileExists(L"blank.txt"));
   TEST(!FileExists("testaskdjlhfs.sdkj"));
   TEST(!FileExists(L"testaskdjlhfs.sdkj"));
   TEST(FileExists("testlink"));
@@ -548,13 +548,24 @@ struct weird
 
 void printout(cLinkedList<int,Allocator<cLLNode<int>>,true>& list)
 {
-  LLIterator<cLLNode<int>> cur(list.GetRoot());
+  cLLIter<int> cur(list.GetRoot());
 
-  while(cur.HasNext())
-    std::cout<<(++cur)->item;
+  while(cur.IsValid())
+    std::cout<<*(cur++);
 
   std::cout<<std::endl;
 }
+
+void printout(cLinkedArray<int>& list)
+{
+  auto cur=list.IterStart();
+
+  while(cur.IsValid())
+    std::cout<<*(cur++);
+
+  std::cout<<std::endl;
+}
+
 
 #define INSTANTIATE_SETTINGS
 #include "cSettings.h"
@@ -627,7 +638,9 @@ int main3(int argc, char** argv)
   cStr sdfderp(sdfhold+cStr("temp")+cStr("temp")+cStr("temp")+cStr("temp"));
 
   //_controlfp( _PC_24, MCW_PC );
+#ifndef BSS_MSC_NOASM
   int zsdf = fFastRound(2734.82f);
+#endif
 
   unsigned int seed=(unsigned int)GetTickCount();
   srand(seed);
@@ -931,12 +944,12 @@ int main3(int argc, char** argv)
   std::cin >> s4;
   return 0;
 
-  sp S1 = { RANDFLOATGEN(0.0f,100000.0f), RANDFLOATGEN(0.0f,100000.0f) };
-  sp S2 = { RANDFLOATGEN(0.0f,100000.0f), RANDFLOATGEN(0.0f,100000.0f) };
-  sp S3 = { RANDFLOATGEN(0.0f,100000.0f), RANDFLOATGEN(0.0f,100000.0f) };
-  sp S4 = { RANDFLOATGEN(0.0f,100000.0f), RANDFLOATGEN(0.0f,100000.0f) };
-  sp S5 = { RANDFLOATGEN(0.0f,100000.0f), RANDFLOATGEN(0.0f,100000.0f) };
-  sp S6 = { RANDFLOATGEN(0.0f,100000.0f), RANDFLOATGEN(0.0f,100000.0f) };
+  sp S1 = { (int)RANDFLOATGEN(0.0f,100000.0f), (int)RANDFLOATGEN(0.0f,100000.0f) };
+  sp S2 = { (int)RANDFLOATGEN(0.0f,100000.0f), (int)RANDFLOATGEN(0.0f,100000.0f) };
+  sp S3 = { (int)RANDFLOATGEN(0.0f,100000.0f), (int)RANDFLOATGEN(0.0f,100000.0f) };
+  sp S4 = { (int)RANDFLOATGEN(0.0f,100000.0f), (int)RANDFLOATGEN(0.0f,100000.0f) };
+  sp S5 = { (int)RANDFLOATGEN(0.0f,100000.0f), (int)RANDFLOATGEN(0.0f,100000.0f) };
+  sp S6 = { (int)RANDFLOATGEN(0.0f,100000.0f), (int)RANDFLOATGEN(0.0f,100000.0f) };
 
   _ReadWriteBarrier();
 
@@ -1076,7 +1089,7 @@ int main3(int argc, char** argv)
       tarrlink.Add(1);
 
     char prof=_debug.OpenProfiler();
-    unsigned int hold=0;
+    __int64 hold=0;
     unsigned int cur=tarrlink.Start();
     while(cur!=(unsigned int)-1)
     {
@@ -1112,7 +1125,7 @@ int main3(int argc, char** argv)
       tarrlink.Add(&i);
     
     char prof=_debug.OpenProfiler();
-    unsigned int hold=0;
+    __int64 hold=0;
     cLLNode<__int64*>* cur=tarrlink.GetRoot();
     while(cur!=0)
     {
@@ -1194,7 +1207,7 @@ int main3(int argc, char** argv)
   //  else
   //    std::cout << p << " does not exist\n";
 
-  char buf[260];
+  //char buf[260];
   //FileDialog(buf, false, 0, "test.bak");
 
   char arraysize=sizeof(numarray)/sizeof(char);
@@ -1345,7 +1358,7 @@ int main2()
   cLocklessQueue qtest(512000);*/
   
 
-  int id;
+  //int id;
   //while(true)
   //{
   //  for(unsigned int i = (last=rand()%10); i>0; --i) {

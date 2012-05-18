@@ -3,8 +3,8 @@
 
 #include "cThread.h"
 #include "bss_util.h"
+#include "bss_win32_includes.h"
 #include <process.h>
-#include <windows.h>
 #include <utility>
 #include "lockless.h"
 

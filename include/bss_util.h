@@ -49,9 +49,9 @@ namespace bss_util {
   template<> struct TSignPick<2> { typedef __int16 SIGNED; typedef unsigned __int16 UNSIGNED; };
   template<> struct TSignPick<4> { typedef __int32 SIGNED; typedef unsigned __int32 UNSIGNED; };
   template<> struct TSignPick<8> { typedef __int64 SIGNED; typedef unsigned __int64 UNSIGNED; };
-#ifdef BSS_64BIT
-  template<> struct TSignPick<16> { typedef __int128 SIGNED; typedef unsigned __int128 UNSIGNED; };
-#endif 
+//#ifdef BSS_64BIT
+//  template<> struct TSignPick<16> { typedef __int128 SIGNED; typedef unsigned __int128 UNSIGNED; };
+//#endif 
 
   /* Get max size of an arbitrary number of bits, either signed or unsigned (assuming one's or two's complement implementation) */
   template<unsigned char BITS>
@@ -189,6 +189,7 @@ namespace bss_util {
     return fmod(a - b - ((T)PI), (T)PI_DOUBLE) + ((T)PI);
   }
 
+#if defined(_MSC_VER) && !(defined(BSS_CPU_x86_64) || defined(BSS_CPU_IA_64))
   /* Directly calls the fistp function for float to int rounding. Because the FPU tends to be a rounding mode that doesn't clamp to 0, this
      will usually round the float to the nearest integer instead of simply chopping off the decimal. This usually takes 6 cycles, compared
      to the 80 or so cycles caused by a normal float to int cast, and works in any precision. */
@@ -227,6 +228,7 @@ namespace bss_util {
 	  val		= val + _single2fixmagic;
 	  return (__int32)(((((unsigned __int64*)&val)[0])&0xFFFFF0000000)>>28);
   }
+#endif
 
 	/* This is a super fast floating point comparison function with a significantly higher tolerance and no
 		 regard towards the size of the floats. */

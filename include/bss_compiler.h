@@ -41,7 +41,7 @@
 #define BSS_COMPILER_FASTCALL
 #define BSS_COMPILER_STDCALL
 #define BSS_COMPILER_NAKED
-#define BSS_COMPILER_FORCEINLINE
+#define BSS_FORCEINLINE
 
 # elif defined __GNUC__ // GCC
 #define BSS_COMPILER_DLLEXPORT __attribute__((dllexport))
@@ -52,7 +52,7 @@
 #define BSS_COMPILER_FASTCALL __attribute__((fastcall))
 #define BSS_COMPILER_STDCALL __attribute__((BSS_COMPILER_STDCALL__))
 #define BSS_COMPILER_NAKED __attribute__((naked)) // Will only work on ARM, AVR, MCORE, RX and SPU. 
-#define BSS_COMPILER_FORCEINLINE __attribute__((always_inline))
+#define BSS_FORCEINLINE __attribute__((always_inline))
 
 typedef char __int8;
 typedef short __int16;
@@ -69,8 +69,11 @@ typedef long long __int64;
 #define BSS_COMPILER_FASTCALL __fastcall
 #define BSS_COMPILER_STDCALL __stdcall
 #define BSS_COMPILER_NAKED __declspec(naked) 
-#define BSS_COMPILER_FORCEINLINE __forceinline
+#define BSS_FORCEINLINE __forceinline
 
+#ifndef BSS_CPU_x86 // The only platform VC++ supports inline assembly on is x86, because its a piece of shit.
+#define BSS_MSC_NOASM
+#endif
 #endif
 
 // Platform detection

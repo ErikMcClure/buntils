@@ -40,7 +40,7 @@ void cINIstorage::_openINI()
   FOPEN(f,targetpath,"a+b"); //this will create the file if it doesn't already exist
   if(!f) return;
   fseek(f,0,SEEK_END);
-  unsigned long size=ftell(f);
+  size_t size=ftell(f);
   fseek(f,0,SEEK_SET);
   _ini = new cStr(size+1);
   size=fread(_ini->UnsafeString(),sizeof(char),size,f); //reads in the entire file

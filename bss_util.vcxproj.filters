@@ -218,9 +218,6 @@
     <ClInclude Include="include\cLambdaStack.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="include\Iterator.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
     <ClInclude Include="include\bss_Log.h">
       <Filter>Header Files</Filter>
     </ClInclude>

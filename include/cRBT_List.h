@@ -1,4 +1,4 @@
-// Copyright ©2011 Black Sphere Studios
+// Copyright ©2012 Black Sphere Studios
 // For conditions of distribution and use, see copyright notice in "bss_util.h"
 // Insert/delete implementations modified from Arjan van den Boogaard (2004)
 // http://archive.gamedev.net/reference/programming/features/TStorage/TStorage.h

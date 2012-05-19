@@ -1,4 +1,4 @@
-// Copyright ©2011 Black Sphere Studios
+// Copyright ©2012 Black Sphere Studios
 // For conditions of distribution and use, see copyright notice in "bss_util.h"
 // WINDOWS ONLY (right now)
 
@@ -80,7 +80,7 @@ void cHighPrecisionTimer::_querytime(unsigned __int64* _pval)
 
 void cHighPrecisionTimer::_getaffinity()
 {
-#if _MSC_VER >= 1400 && defined (_M_X64)
+#if _MSC_VER >= 1400 && defined(BSS_CPU_x86_64)
   GetProcessAffinityMask(_curprocess, (PDWORD_PTR)&_procmask, (PDWORD_PTR)&_sysmask);
 #else
   GetProcessAffinityMask(_curprocess, &_procmask, &_sysmask);

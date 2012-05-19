@@ -1,4 +1,4 @@
-// Copyright ©2011 Black Sphere Studios
+// Copyright ©2012 Black Sphere Studios
 // For conditions of distribution and use, see copyright notice in "bss_util.h"
 
 #if defined(DEBUG) || defined(_DEBUG) || defined(BSS_LEAKTEST_RELEASEMODE) //debug only unless overriden

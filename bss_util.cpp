@@ -426,7 +426,7 @@ int BSS_FASTCALL bss_util::SetRegistryValue(HKEY__*	hOpenKey, const wchar_t* szK
   if(!hOpenKey || !szKey || !szKey[0] || !szValue || !szData) { ::SetLastError(E_INVALIDARG); return FALSE; } // validate input
   
   return r_setregvalue(hOpenKey,szKey,szValue,[&](HKEY& hTempKey, DWORD& dwReserved) -> int {
-    return RegSetValueExW(hTempKey, (LPWSTR)szValue, dwReserved, REG_SZ, (LPBYTE)szData, (strlen(szData)+1)*sizeof(wchar_t));
+    return RegSetValueExW(hTempKey, (LPWSTR)szValue, dwReserved, REG_SZ, (LPBYTE)szData, ((DWORD)strlen(szData)+1)*sizeof(wchar_t));
   });
 }
 

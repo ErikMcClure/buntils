@@ -39,7 +39,7 @@ namespace bss_util {
 
     //cBitField<unsigned char> _bools; //Boolean values are compressed to a single integral value for memory efficiency (0 - stop, 1 - sync, 2 - stoppable, 3 - syncable, 4 - running, 5 - delegate used)
     unsigned short _sleepms;
-    __w64 unsigned int _handle;
+    __w64 size_t _handle;
     union
     {
       unsigned int (BSS_COMPILER_STDCALL *_funcptr)(void*);

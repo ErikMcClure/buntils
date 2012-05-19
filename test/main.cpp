@@ -1,4 +1,4 @@
-﻿// Copyright ©2011 Black Sphere Studios
+﻿// Copyright ©2012 Black Sphere Studios
 // For conditions of distribution and use, see copyright notice in "bss_util.h"
 
 //#define __NO_UNIQUE_MODIFY__
@@ -373,7 +373,7 @@ TEST::RETPAIR test_OS()
 {
   BEGINTEST;
   TEST(FolderExists("../bin"));
-  TEST(FolderExists(L"D:/Erik Documents/Visual Studio 2010\\Projects\\bss_util\\bin"));
+  TEST(FolderExists(L"C:/windows/"));
   TEST(!FolderExists("abasdfwefs"));
   TEST(!FolderExists(L"abasdfwefs/alkjsdfs/sdfjkd/alkjsdfs/sdfjkd/alkjsdfs/sdfjkd/"));
   TEST(FileExists("blank.txt"));
@@ -411,7 +411,7 @@ int main(int argc, char** argv)
   const size_t NUMTESTS=sizeof(tests)/sizeof(TEST);
 
   std::cout << "Black Sphere Studios - Utility Library v." << (uint)BSSUTIL_VERSION.Major << '.' << (uint)BSSUTIL_VERSION.Minor << '.' <<
-    (uint)BSSUTIL_VERSION.Revision << ": Unit Tests\nCopyright (c)2011 Black Sphere Studios\n" << std::endl;
+    (uint)BSSUTIL_VERSION.Revision << ": Unit Tests\nCopyright (c)2012 Black Sphere Studios\n" << std::endl;
   const int COLUMNS[3] = { 24, 11, 8 };
   printf("%-*s %-*s %-*s\n",COLUMNS[0],"Test Name", COLUMNS[1],"Subtests", COLUMNS[2],"Pass/Fail");
 

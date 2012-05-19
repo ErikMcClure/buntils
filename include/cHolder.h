@@ -1,4 +1,4 @@
-// Copyright ©2011 Black Sphere Studios
+// Copyright ©2012 Black Sphere Studios
 // For conditions of distribution and use, see copyright notice in "bss_util.h"
 
 #ifndef __C_HOLDER_H__BSS__
@@ -16,7 +16,7 @@ namespace bss_util {
   {
   public:
     /* Constructor - takes a pointer to the object */
-    inline cHolder<T>(T* object = 0) { _holdobject = object; }
+    inline explicit cHolder<T>(T* object = 0) : _holdobject(object) { }
     inline ~cHolder<T>() {} //I think this is required because destructors can't be generated for a template class (which is why errors occur otherwise)
 
   protected:

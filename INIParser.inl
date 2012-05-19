@@ -1,4 +1,4 @@
-// Copyright ©2011 Black Sphere Studios
+// Copyright ©2012 Black Sphere Studios
 // For conditions of distribution and use, see copyright notice in "bss_util.h"
 
 char BSS_FASTCALL bss_initINI(INIParser* init, FILE* stream)

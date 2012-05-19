@@ -115,7 +115,7 @@ namespace bss_util {
   public:
     inline cArrayConstruct(const cArrayConstruct& copy) : _array((T*)_minmalloc(copy._size*sizeof(T))), _size(copy._size)
     {
-      //memcpy(_array,copy._array,_size*sizeof(T));
+      //memcpy(_array,copy._array,_size*sizeof(T)); // Can't use memcpy on an external source because you could end up copying a pointer that would later be destroyed
       for(SizeType i = 0; i < _size; ++i)
         new (_array+i) T(copy._array[i]);
     }
@@ -141,7 +141,7 @@ namespace bss_util {
     {
       if(nsize==_size) return;
       T* narray = (T*)_minmalloc(sizeof(T)*nsize);
-      memcpy(narray,_array,sizeof(T)*((nsize<_size)?(nsize):(_size)));
+      memcpy(narray,_array,sizeof(T)*((nsize<_size)?(nsize):(_size))); // We can do this because these aren't external sources.
 
       if(nsize<_size) { //we removed some so we need to destroy them
         for(SizeType i = _size; i > nsize;)

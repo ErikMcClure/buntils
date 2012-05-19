@@ -99,4 +99,8 @@ typedef long long __int64;
 #error "Unknown Platform"
 #endif
 
+#if defined(DEBUG) || defined(_DEBUG)
+#define BSS_DEBUG
+#endif
+
 #endif

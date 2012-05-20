@@ -14,7 +14,7 @@ class cCmdLineArgs
 public:
   BSS_DLLEXPORT cCmdLineArgs(int argc, char** argv);
   BSS_DLLEXPORT ~cCmdLineArgs();
-  inline int Size() const { return _lines.size(); }
+  inline size_t Size() const { return _lines.size(); }
   inline const C* Get(unsigned int index) const { return _lines[index]; }
 
   inline const C* operator [](unsigned int index) const { return _lines[index]; } 

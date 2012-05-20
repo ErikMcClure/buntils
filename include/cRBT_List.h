@@ -114,7 +114,10 @@ namespace bss_util {
 		cRBT_Node<K,D>*  _first;
 		cRBT_Node<K,D>*  _last;
 		cRBT_Node<K,D>*  _root;
+#pragma warning(push)
+#pragma warning(disable:4251)
 		static cRBT_Node<K,D> NIL;
+#pragma warning(pop)
     static cRBT_Node<K,D>* pNIL;
     size_t _size;
     

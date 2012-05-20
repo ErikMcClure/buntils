@@ -108,6 +108,11 @@ TEST::RETPAIR test_bss_util()
   testbitcount<unsigned short>(__testret);
   testbitcount<unsigned int>(__testret);
   testbitcount<unsigned __int64>(__testret);
+
+  cOwnerPtr<char> p(new char[56]);
+  cOwnerPtr<char> p2(p);
+  cOwnerPtr<char> p3(std::move(p));
+
   ENDTEST;
 }
 

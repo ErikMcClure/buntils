@@ -207,7 +207,7 @@ namespace bss_util {
   template<typename C>
   inline static void LoadFromCmd(cCmdLineArgs<C>& cmd) 
   {
-    unsigned int i=0;
+    unsigned int i=0; // Must be unsigned because of what pfunc accepts
     while(i<cmd.Size())
     {
       std::function<void (cCmdLineArgs<char>&,unsigned int&)>* pfunc = cSetting<-1,-1>::cmdhash.GetKey(cmd[i]);

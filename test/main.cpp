@@ -4,7 +4,7 @@
 //#define __NO_UNIQUE_MODIFY__
 #include "Shiny.h"
 #include "bss_util.h"
-#include "BSS_DebugInfo.h"
+#include "bss_DebugInfo.h"
 #include "bss_alloc_additive.h"
 #include "bss_alloc_fixed.h"
 #include "bss_deprecated.h"
@@ -123,7 +123,7 @@ TEST::RETPAIR test_bss_DEBUGINFO()
   std::fstream fs;
   std::wstringstream wss;
   fs.open(L"黑色球体工作室.log");
-  auto tf = [&](BSS_DebugInfo& di) {
+  auto tf = [&](bss_DebugInfo& di) {
     TEST(di.CloseProfiler(di.OpenProfiler()) < 500000);
     //TEST(cStrW(di.ModulePath(0)).compare(di.ModulePathW(0))==0);
     TEST(di.GetProcMemInfo()!=0);
@@ -145,10 +145,10 @@ TEST::RETPAIR test_bss_DEBUGINFO()
     di.GetStream() << L"黑色球体工作室";
   };
 
-  BSS_DebugInfo a(L"黑色球体工作室.txt",&ss); //Supposedly 黑色球体工作室 is Black Sphere Studios in Chinese, but the literal translation appears to be Black Ball Studio. Oh well.
-  BSS_DebugInfo b("logtest.txt");
+  bss_DebugInfo a(L"黑色球体工作室.txt",&ss); //Supposedly 黑色球体工作室 is Black Sphere Studios in Chinese, but the literal translation appears to be Black Ball Studio. Oh well.
+  bss_DebugInfo b("logtest.txt");
   b.AddTarget(fs);
-  BSS_DebugInfo c;
+  bss_DebugInfo c;
   tf(a);
   tf(b);
   tf(c);
@@ -674,7 +674,7 @@ int main3(int argc, char** argv)
     _variabletest.Clear();
   }
   char prof;
-  BSS_DebugInfo _debug("log.txt");
+  bss_DebugInfo _debug("log.txt");
 //  BSSLOGONE(&_debug,1,L"Test こんにちは世界 Log %s",L"こんにちは世界");
   
   /*unsigned int avg[2];
@@ -1332,7 +1332,7 @@ int main3(int argc, char** argv)
  
 int main2()
 {  
-  BSS_DebugInfo _debug("log.txt");
+  bss_DebugInfo _debug("log.txt");
   unsigned int seed=time(NULL);
   void* val=(void*)&seed;
   rand();
@@ -1542,16 +1542,16 @@ int main2()
   //nthread.Stop();
   //delete barfoothing;
 
-  cKhash_Int<BSS_DebugInfo*> hasherint;
+  cKhash_Int<bss_DebugInfo*> hasherint;
   hasherint.Insert(25, &_debug);
   hasherint.GetKey(25);
   hasherint.Remove(25);
-  cKhash_StringIns<BSS_DebugInfo*> hasher;
+  cKhash_StringIns<bss_DebugInfo*> hasher;
   int iter = hasher.Insert("",&_debug);
-  iter = hasher.Insert("Video",(BSS_DebugInfo*)5);
+  iter = hasher.Insert("Video",(bss_DebugInfo*)5);
   hasher.SetSize(100);
   iter = hasher.Insert("Physics",0);
-  BSS_DebugInfo* check = *hasher.GetKey("Video");
+  bss_DebugInfo* check = *hasher.GetKey("Video");
   check = *hasher.GetKey("Video");
   unsigned __int64 diff = _debug.CloseProfiler(ID);
 }

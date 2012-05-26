@@ -2,8 +2,7 @@
 // For conditions of distribution and use, see copyright notice in "bss_util.h"
 
 #include "cCmdLineArgs.h"
-#include <windows.h>
-#include <string.h>
+#include "bss_win32_includes.h"
 #include "bss_deprecated.h"
 
 template<>

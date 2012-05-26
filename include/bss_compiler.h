@@ -54,10 +54,18 @@
 #define BSS_COMPILER_NAKED __attribute__((naked)) // Will only work on ARM, AVR, MCORE, RX and SPU. 
 #define BSS_FORCEINLINE __attribute__((always_inline))
 
-typedef char __int8;
-typedef short __int16;
-typedef int __int32;
-typedef long long __int64;
+#ifndef __int8
+#define __int8 char
+#endif
+#ifndef __int16
+#define __int16 short
+#endif
+#ifndef __int32
+#define __int32 int
+#endif
+#ifndef __int64
+#define __int64 long long
+#endif
 //typedef __int128 __int128; // GCC doesn't have __int64/32/16/8, but it does have __int128 for whatever reason.
 
 #elif defined _MSC_VER // VC++

@@ -22,13 +22,13 @@ namespace bss_util
     inline ~cByteQueue() {}
     /* Writes a class reference */
     template<class T>
-    inline void Write(const T& ref) { if(_cur+sizeof(T)>_size) _expand();  memcpy(_array+_cur,&ref,sizeof(T)); _cur+=sizeof(T); }
+    inline void Write(const T& ref) { if(_cur+sizeof(T)>_size) _expand(); memcpy(_array+_cur,&ref,sizeof(T)); MEMBARRIER_WRITE; _cur+=sizeof(T); }
     template<class T, class T2>
-    inline void Write(const T& ref, const T2& ref2) { if(_cur+sizeof(T)+sizeof(T2)>_size) _expand();  memcpy(_array+_cur,&ref,sizeof(T)); _cur+=sizeof(T); memcpy(_array+_cur,&ref2,sizeof(T2)); _cur+=sizeof(T2); }
+    inline void Write(const T& ref, const T2& ref2) { if(_cur+sizeof(T)+sizeof(T2)>_size) _expand(); memcpy(_array+_cur,&ref,sizeof(T)); memcpy(_array+_cur+sizeof(T),&ref2,sizeof(T2)); MEMBARRIER_WRITE; _cur+=(sizeof(T)+sizeof(T2)); }
     template<class T, class T2, class T3>
-    inline void Write(const T& ref, const T2& ref2, const T3& ref3) { if(_cur+sizeof(T)+sizeof(T2)+sizeof(T3)>_size) _expand();  memcpy(_array+_cur,&ref,sizeof(T)); _cur+=sizeof(T); memcpy(_array+_cur,&ref2,sizeof(T2)); _cur+=sizeof(T2); memcpy(_array+_cur,&ref3,sizeof(T3)); _cur+=sizeof(T3); }
+    inline void Write(const T& ref, const T2& ref2, const T3& ref3) { if(_cur+(sizeof(T)+sizeof(T2)+sizeof(T3))>_size) _expand(); memcpy(_array+_cur,&ref,sizeof(T)); memcpy(_array+_cur+sizeof(T),&ref2,sizeof(T2)); memcpy(_array+_cur+sizeof(T)+sizeof(T2),&ref3,sizeof(T3)); MEMBARRIER_WRITE; _cur+=(sizeof(T)+sizeof(T2)+sizeof(T3)); }
     /* Writes an arbitrary memory location */
-    inline void Write(void* src, SizeType length) { if(_cur+length>_size) _expand();  memcpy(_array+_cur,src,length); _cur+=length; }
+    inline void Write(void* src, SizeType length) { if(_cur+length>_size) _expand(); memcpy(_array+_cur,src,length); _cur+=length; }
     /* Returns the given index as a pointer of the specified type */
     template<class T>
     inline T* Read(SizeType index) { return (T*)((index<_cur)?_array+index:0); }

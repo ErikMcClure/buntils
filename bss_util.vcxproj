@@ -441,11 +441,11 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClCompile Include="bss_DebugInfo.cpp" />
+    <ClCompile Include="bss_Log.cpp" />
     <ClCompile Include="bss_util_c.c" />
     <ClCompile Include="INIParser.c" />
     <ClCompile Include="chess_tests.cpp" />
-    <ClCompile Include="BSS_DebugInfo.cpp" />
-    <ClCompile Include="bss_Log.cpp" />
     <ClCompile Include="bss_util.cpp" />
     <ClCompile Include="cCmdLineArgs.cpp" />
     <ClCompile Include="cHighPrecisionTimer.cpp" />
@@ -463,6 +463,7 @@
     <ClInclude Include="include\bss_alloc_additive.h" />
     <ClInclude Include="include\bss_alloc_fixed.h" />
     <ClInclude Include="include\bss_compiler.h" />
+    <ClInclude Include="include\bss_DebugInfo.h" />
     <ClInclude Include="include\bss_fixedpt.h" />
     <ClInclude Include="include\bss_literals.h" />
     <ClInclude Include="include\bss_Log.h" />
@@ -483,7 +484,6 @@
     <ClInclude Include="include\bss_alloc.h" />
     <ClInclude Include="include\bss_call.h" />
     <ClInclude Include="include\bss_compare.h" />
-    <ClInclude Include="include\bss_DebugInfo.h" />
     <ClInclude Include="include\bss_defines.h" />
     <ClInclude Include="include\bss_deprecated.h" />
     <ClInclude Include="include\bss_dlldef.h" />
@@ -524,10 +524,6 @@
     <ClInclude Include="include\os.h" />
     <ClInclude Include="include\Shiny.h" />
     <ClInclude Include="include\StreamSplitter.h" />
-  </ItemGroup>
-  <ItemGroup>
-    <None Include="cINIstorage.inl" />
-    <None Include="INIParser.inl" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

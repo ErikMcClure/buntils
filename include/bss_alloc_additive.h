@@ -116,6 +116,8 @@ namespace bss_util {
 
   /* End Additive Fixed Allocator */
 
+  BSSBUILD_STATIC_POLICY(StaticAdditiveFixed,AdditiveFixedPolicy);
+
   /* Dynamic additive allocator that can allocate any number of bytes */
 	template<size_t init=64>
 	class BSS_COMPILER_DLLEXPORT cAdditiveVariableAllocator

@@ -2,11 +2,11 @@
 // For conditions of distribution and use, see copyright notice in "bss_util.h"
 // WINDOWS ONLY (right now)
 
-#include "BSS_DebugInfo.h"
+#include "bss_DebugInfo.h"
 #include "bss_win32_includes.h"
 #include <psapi.h>
 
-BSS_DebugInfo::BSS_DebugInfo(const BSS_DebugInfo& copy) : cHighPrecisionTimer(copy), bss_Log(copy),_flstart(copy._flstart),
+bss_DebugInfo::bss_DebugInfo(const bss_DebugInfo& copy) : cHighPrecisionTimer(copy), bss_Log(copy),_flstart(copy._flstart),
   _flend(copy._flend), _modpath(copy._modpath)
 {
   memcpy(_profilers,copy._profilers, sizeof(unsigned __int64)*NUMPROFILERS);
@@ -15,37 +15,37 @@ BSS_DebugInfo::BSS_DebugInfo(const BSS_DebugInfo& copy) : cHighPrecisionTimer(co
   *_counter=*copy._counter;
 }
 
-BSS_DebugInfo::BSS_DebugInfo(std::ostream* log) : cHighPrecisionTimer(), bss_Log(log)
+bss_DebugInfo::bss_DebugInfo(std::ostream* log) : cHighPrecisionTimer(), bss_Log(log)
 {
   ClearProfilers();
   _counter = new PROCESS_MEMORY_COUNTERS();
 }
 
-BSS_DebugInfo::BSS_DebugInfo(const char* logfile, std::ostream* log) : cHighPrecisionTimer(), bss_Log(logfile,log)
+bss_DebugInfo::bss_DebugInfo(const char* logfile, std::ostream* log) : cHighPrecisionTimer(), bss_Log(logfile,log)
 {
   ClearProfilers();
   _counter = new PROCESS_MEMORY_COUNTERS();
 }
-BSS_DebugInfo::BSS_DebugInfo(const wchar_t* logfile, std::ostream* log) : cHighPrecisionTimer(), bss_Log(logfile,log)
+bss_DebugInfo::bss_DebugInfo(const wchar_t* logfile, std::ostream* log) : cHighPrecisionTimer(), bss_Log(logfile,log)
 {
   ClearProfilers();
   _counter = new PROCESS_MEMORY_COUNTERS();
 }
 
-BSS_DebugInfo::~BSS_DebugInfo()
+bss_DebugInfo::~bss_DebugInfo()
 {
   delete _counter;
   //ClearProfiles();
 }
 
-void BSS_DebugInfo::ClearProfilers()
+void bss_DebugInfo::ClearProfilers()
 {
   memset(_profilers, 0, sizeof(unsigned __int64)*NUMPROFILERS);
   for(unsigned short i = 0; i < NUMPROFILERS; ++i) _flprof[i]=(unsigned char)i; //refill freelist
   _flstart=0;
   _flend=NUMPROFILERS-1;
 }
-const char* BSS_DebugInfo::ModulePath(HMODULE mod)
+const char* bss_DebugInfo::ModulePath(HMODULE mod)
 {
   wchar_t buf[MAX_PATH];
   GetModuleFileNameExW(_curprocess,mod,buf,MAX_PATH);
@@ -53,24 +53,24 @@ const char* BSS_DebugInfo::ModulePath(HMODULE mod)
   return _modpath;
 }
 
-//const wchar_t* BSS_DebugInfo::GetModulePathW(HMODULE mod)
+//const wchar_t* bss_DebugInfo::GetModulePathW(HMODULE mod)
 //{
 //  GetModuleFileNameExW(_curprocess,mod,(wchar_t*)_modpath,PATHBUF);
 //  return (wchar_t*)_modpath;
 //}
 
-__w64 size_t BSS_DebugInfo::GetWorkingSet()
+__w64 size_t bss_DebugInfo::GetWorkingSet()
 {
   return GetProcMemInfo()->WorkingSetSize;
 }
 
-const PROCESS_MEMORY_COUNTERS* BSS_DebugInfo::GetProcMemInfo()
+const PROCESS_MEMORY_COUNTERS* bss_DebugInfo::GetProcMemInfo()
 {
   GetProcessMemoryInfo(_curprocess, _counter, sizeof(PROCESS_MEMORY_COUNTERS));
   return _counter;
 }
 
-BSS_DebugInfo& BSS_DebugInfo::operator =(const BSS_DebugInfo &right)
+bss_DebugInfo& bss_DebugInfo::operator =(const bss_DebugInfo &right)
 {
   memcpy(_profilers,right._profilers, sizeof(unsigned __int64)*NUMPROFILERS);
   memcpy(_flprof,right._flprof, sizeof(unsigned char)*NUMPROFILERS);

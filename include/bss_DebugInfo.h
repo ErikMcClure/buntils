@@ -12,14 +12,14 @@ struct HINSTANCE__; //so we can avoid windows.h
 struct _PROCESS_MEMORY_COUNTERS; //Include <psapi.h> to read the information
 
 /* An inheritable debug class that exposes process information and provides profiling tools */
-typedef class BSS_DLLEXPORT BSS_DebugInfo : public bss_util::cHighPrecisionTimer, public bss_Log
+typedef class BSS_DLLEXPORT bss_DebugInfo : public bss_util::cHighPrecisionTimer, public bss_Log
 {
 public:
-  BSS_DebugInfo(const BSS_DebugInfo& copy);
-  explicit BSS_DebugInfo(std::ostream* log=0);
-  explicit BSS_DebugInfo(const char* logfile, std::ostream* log=0);
-  explicit BSS_DebugInfo(const wchar_t* logfile, std::ostream* log=0);
-  virtual ~BSS_DebugInfo();
+  bss_DebugInfo(const bss_DebugInfo& copy);
+  explicit bss_DebugInfo(std::ostream* log=0);
+  explicit bss_DebugInfo(const char* logfile, std::ostream* log=0);
+  explicit bss_DebugInfo(const wchar_t* logfile, std::ostream* log=0);
+  virtual ~bss_DebugInfo();
   /* Gets the path of the given module - 0 returns path of calling executable */
   const char* ModulePath(HINSTANCE__ *mod=0); //If this is GetModulePath windows' stupid #defines screw it up
   /* Gets memory information about the process */
@@ -52,7 +52,7 @@ public:
   /* Clears all profilers */
   void ClearProfilers();
 
-  BSS_DebugInfo& operator =(const BSS_DebugInfo& right);
+  bss_DebugInfo& operator =(const bss_DebugInfo& right);
   static const char NUMPROFILERS = 64;
 
 protected:

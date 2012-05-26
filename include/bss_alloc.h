@@ -51,6 +51,37 @@ namespace bss_util {
     }
     inline void deallocate(pointer p, std::size_t = 0) { ::operator delete(p); }
 	};
+  
+	template<typename T, typename Alloc>
+  class BSS_COMPILER_DLLEXPORT StaticAllocPolicy : public AllocPolicySize<T> {
+	public:
+    template<typename U>
+    struct rebind { typedef StaticAllocPolicy<U,Alloc> other; };
+
+    inline explicit StaticAllocPolicy() {}
+    inline ~StaticAllocPolicy() {}
+    inline explicit StaticAllocPolicy(StaticAllocPolicy const&) {}
+    template <typename U>
+    inline explicit StaticAllocPolicy(StaticAllocPolicy<U,Alloc> const&) {}
+
+    inline pointer allocate(std::size_t cnt, typename std::allocator<void>::const_pointer = 0) { return _alloc.allocate(cnt); }
+    inline void deallocate(pointer p, std::size_t = 0) { _alloc.deallocate(p); }
+
+    static Alloc _alloc;
+	};
+
+#define BSSBUILD_STATIC_POLICY(name,alloc) template<class T> \
+  class BSS_COMPILER_DLLEXPORT name : public StaticAllocPolicy<T,alloc<T>> \
+  { \
+  public: \
+    template<typename U> \
+    struct rebind { typedef name<U> other; }; \
+    inline explicit name() {} \
+    inline ~name() {} \
+    inline explicit name(name const&) {} \
+    template <typename U> \
+    inline explicit name(name<U> const&) {} \
+  }
 
 	template<typename T, typename T2>
 	inline bool operator==(StandardAllocPolicy<T> const&, StandardAllocPolicy<T2> const&) { return true; }

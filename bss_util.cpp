@@ -5,27 +5,17 @@
 #include "bss_util.h"
 #include "cStr.h"
 #include "os.h"
-#include <sstream>
-#include <iomanip>
-#include <sys/types.h>
-#include <stdio.h>
-#include <io.h>   // access().
-#include <sys/types.h>  // stat().
-#include <sys/stat.h>   // stat().
 #ifdef BSS_PLATFORM_WIN32
 #include "bss_win32_includes.h"
 #include <Commdlg.h>
 #include <Shlwapi.h>
-#include <tchar.h> 
 #else
+#include <sys/types.h>  // stat().
+#include <sys/stat.h>   // stat().
 #include <dirent.h> //Linux
 #endif
-#include "cAVLtree.h"
-#include "cBinaryHeap.h"
-#include "bss_deprecated.h"
-#include <string.h>
-#include <locale>
-#include <codecvt>
+//#include "cAVLtree.h"
+//#include "cBinaryHeap.h"
 
 //#define BOOST_FILESYSTEM_VERSION 3
 //#define BOOST_ALL_NO_DEPRECATED

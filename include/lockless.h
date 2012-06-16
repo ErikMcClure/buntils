@@ -9,8 +9,10 @@
 
 #ifdef BSS_CPU_x86
 #define BSSASM_PREG ECX
+#define BSSASM_PREGA EAX
 #elif defined(BSS_CPU_x86_64)
 #define BSSASM_PREG RCX
+#define BSSASM_PREGA RAX
 #endif
 
 namespace bss_util {
@@ -18,13 +20,12 @@ namespace bss_util {
 #if defined(BSS_CPU_x86_64) || defined(BSS_CPU_x86)
 #pragma warning(push)
 #pragma warning(disable : 4793)
+  // Enforces a CPU barrier to prevent any reordering attempts
 	BSS_FORCEINLINE void CPU_Barrier()
 	{
 #ifndef BSS_MSC_NOASM
 		__int32 Barrier;
-		__asm {
-			lock xchg Barrier, eax
-		}
+		__asm { lock xchg Barrier, eax }
 #else
 		long Barrier;
     _InterlockedExchange(&Barrier,0);
@@ -33,80 +34,85 @@ namespace bss_util {
 #pragma warning(pop)
 
 #ifndef BSS_MSC_NOASM
-  template<typename T>
-  inline void BSS_FORCEINLINE BSS_FASTCALL atomic_inc(volatile T* p)
-  {
-      __asm
-      {
+  /*template<typename T> // This performs a raw atomic increment.
+  inline void BSS_FORCEINLINE BSS_FASTCALL atomic_inc_raw(volatile T* p)
+  { 
 #ifdef BSS_NO_FASTCALL //if we are using fastcall we don't need these instructions
-        mov BSSASM_PREG, p
+    __asm mov BSSASM_PREG, p
 #endif
-          lock inc ptr [BSSASM_PREG]
-          ret
-      }
+    __asm lock inc byte ptr [BSSASM_PREG]
+  }*/
+#endif
+
+  template<typename T, int size>
+  struct ATOMIC_INCPICK { };
+  
+#ifndef BSS_MSC_NOASM
+  
+#ifndef BSS_NO_FASTCALL
+#define ATOMINC_FSTMOV 
+#else
+#define ATOMINC_FSTMOV __asm mov BSSASM_PREG, p
+#endif
+
+#define ATOMIC_INCPICK_MACRO(REG_VAL,SIZE)  template<typename T> \
+  struct ATOMIC_INCPICK<T,SIZE> \
+  { \
+    inline static T BSS_FORCEINLINE BSS_FASTCALL atomic_inc(volatile T* p) \
+    { \
+      ATOMINC_FSTMOV \
+      __asm mov REG_VAL, 1 \
+      __asm lock xadd [BSSASM_PREG], REG_VAL \
+    } \
   }
+
+  ATOMIC_INCPICK_MACRO(al,1);
+  ATOMIC_INCPICK_MACRO(ax,2);
+  ATOMIC_INCPICK_MACRO(eax,4);
+#ifdef BSS_CPU_x86_64
+  ATOMIC_INCPICK_MACRO(rax,8);
 #endif
+#else //#ifndef BSS_MSC_NOASM
+  template<typename T> struct ATOMIC_INCPICK<T,1> { inline static T BSS_FORCEINLINE BSS_FASTCALL atomic_inc(volatile T* p) { return (T)_InterlockedExchangeAdd8((volatile char*)p,1); } };
+  template<typename T> struct ATOMIC_INCPICK<T,2> { inline static T BSS_FORCEINLINE BSS_FASTCALL atomic_inc(volatile T* p) { return (T)_InterlockedExchangeAdd16((volatile short*)p,1); } };
+  template<typename T> struct ATOMIC_INCPICK<T,4> { inline static T BSS_FORCEINLINE BSS_FASTCALL atomic_inc(volatile T* p) { return (T)_InterlockedExchangeAdd((volatile long*)p,1); } };
+  template<typename T> struct ATOMIC_INCPICK<T,8> { inline static T BSS_FORCEINLINE BSS_FASTCALL atomic_inc(volatile T* p) { return (T)_InterlockedExchangeAdd64((volatile __int64*)p,1); } };
+#endif //#ifndef BSS_MSC_NOASM
+
+  template<typename T> // This performs an atomic increment, and returns the value of the variable BEFORE the increment. Values MUST BE 32-bit aligned!
+  inline T BSS_FORCEINLINE BSS_FASTCALL atomic_inc(volatile T* p)
+  { 
+    return ATOMIC_INCPICK<T,sizeof(T)>::atomic_inc(p);
+  }
 
   template<typename T, int size>
   struct ASMCAS_REGPICK_WRITE { };
 
 #ifndef BSS_MSC_NOASM
-  template<typename T>
-  struct ASMCAS_REGPICK_WRITE<T,1>
-  {
-    inline static unsigned char BSS_FORCEINLINE BSS_FASTCALL asmcas(volatile T *pval, T newval, T oldval)
-    {
-      unsigned char rval;
-      __asm {
-#ifdef BSS_NO_FASTCALL //if we are using fastcall we don't need these instructions
-        mov DL, newval
-        mov BSSASM_PREG, pval
-#endif
-        mov AL, oldval
-        lock cmpxchg [BSSASM_PREG], DL
-        sete rval // Note that sete sets a 'byte' not the word
-      }
-      return rval;
-    }
-  };
 
-  template<typename T>
-  struct ASMCAS_REGPICK_WRITE<T,2>
-  {
-    inline static unsigned char BSS_FORCEINLINE BSS_FASTCALL asmcas(volatile T *pval, T newval, T oldval)
-    {
-      unsigned char rval;
-      __asm {
-#ifdef BSS_NO_FASTCALL //if we are using fastcall we don't need these instructions
-        mov DX, newval
-        mov BSSASM_PREG, pval
+#ifndef BSS_NO_FASTCALL
+#define ASMCAS_FSTMOV(REG_VAL) 
+#else
+#define ASMCAS_FSTMOV(REG_VAL) __asm mov REG_VAL, newval __asm mov BSSASM_PREG, pval
 #endif
-        mov AX, oldval
-        lock cmpxchg [BSSASM_PREG], DX
-        sete rval // Note that sete sets a 'byte' not the word
-      }
-      return rval;
-    }
-  };
 
-  template<typename T>
-  struct ASMCAS_REGPICK_WRITE<T,4>
-  {
-    inline static unsigned char BSS_FORCEINLINE BSS_FASTCALL asmcas(volatile T *pval, T newval, T oldval)
-    {
-      unsigned char rval;
-      __asm {
-#ifdef BSS_NO_FASTCALL //if we are using fastcall we don't need these instructions
-        mov EDX, newval
-        mov BSSASM_PREG, pval
-#endif
-        mov EAX, oldval
-        lock cmpxchg [BSSASM_PREG], EDX
-        sete rval // Note that sete sets a 'byte' not the word
-      }
-      return rval;
-    }
-  };
+#define ASMCAS_REGPICK_MACRO(SIZE,REG_D,REG_A) template<typename T> \
+  struct ASMCAS_REGPICK_WRITE<T,SIZE> \
+  { \
+    inline static unsigned char BSS_FORCEINLINE BSS_FASTCALL asmcas(volatile T *pval, T newval, T oldval) \
+    { \
+      unsigned char rval; \
+      ASMCAS_FSTMOV(REG_D) \
+      __asm mov REG_A, oldval \
+      __asm lock cmpxchg [BSSASM_PREG], REG_D \
+      __asm { sete rval } /* If this isn't inside a {} block, the __asm directives expose a parsing bug in VC++ */ \
+      return rval; \
+    }; \
+  }
+
+  ASMCAS_REGPICK_MACRO(1,DL,AL);
+  ASMCAS_REGPICK_MACRO(2,DX,AX);
+  ASMCAS_REGPICK_MACRO(4,EDX,EAX);
 
 #ifdef BSS_CPU_x86
   template<typename T>
@@ -182,24 +188,16 @@ namespace bss_util {
 #endif
 
 #else
-  template<typename T>
-  struct ASMCAS_REGPICK_WRITE<T,1>
-  {
+  template<typename T> struct ASMCAS_REGPICK_WRITE<T,1> {
     inline static unsigned char BSS_FORCEINLINE BSS_FASTCALL asmcas(volatile T *dest, T newval, T oldval) { return _InterlockedCompareExchange8((volatile char*)dest,(__int8)newval, (__int8)oldval); }
   };
-  template<typename T>
-  struct ASMCAS_REGPICK_WRITE<T,2>
-  {
+  template<typename T> struct ASMCAS_REGPICK_WRITE<T,2> {
     inline static unsigned char BSS_FORCEINLINE BSS_FASTCALL asmcas(volatile T *dest, T newval, T oldval) { return _InterlockedCompareExchange16((volatile short*)dest,(__int16)newval, (__int16)oldval); }
   };
-  template<typename T>
-  struct ASMCAS_REGPICK_WRITE<T,4>
-  {
+  template<typename T> struct ASMCAS_REGPICK_WRITE<T,4> {
     inline static unsigned char BSS_FORCEINLINE BSS_FASTCALL asmcas(volatile T *dest, T newval, T oldval) { return _InterlockedCompareExchange((volatile long*)dest,(__int32)newval, (__int32)oldval); }
   };
-  template<typename T>
-  struct ASMCAS_REGPICK_WRITE<T,8>
-  {
+  template<typename T> struct ASMCAS_REGPICK_WRITE<T,8> {
     inline static unsigned char BSS_FORCEINLINE BSS_FASTCALL asmcas(volatile T *dest, T newval, T oldval) { return _InterlockedCompareExchange64((volatile long long*)dest,(__int64)newval, (__int64)oldval); }
   };
 #endif
@@ -223,14 +221,9 @@ namespace bss_util {
   public:
     inline static T BSS_FORCEINLINE BSS_FASTCALL asmcas(volatile T *pval, T newval, T oldval)
     {
-      __asm {
-#ifdef BSS_NO_FASTCALL //if we are using fastcall we don't need these instructions
-        mov DL, newval
-        mov BSSASM_PREG, pval
-#endif
-        mov AL, oldval
-        lock cmpxchg [BSSASM_PREG], DL
-      }
+      ASMCAS_FSTMOV(DL)
+      __asm mov AL, oldval
+      __asm lock cmpxchg [BSSASM_PREG], DL
     }
   };
 
@@ -240,14 +233,9 @@ namespace bss_util {
   public:
     inline static T BSS_FORCEINLINE BSS_FASTCALL asmcas(volatile T *pval, T newval, T oldval)
     {
-      __asm {
-#ifdef BSS_NO_FASTCALL //if we are using fastcall we don't need these instructions
-        mov DX, newval
-        mov BSSASM_PREG, pval
-#endif
-        mov AX, oldval
-        lock cmpxchg [BSSASM_PREG], DX
-      }
+      ASMCAS_FSTMOV(DX)
+      __asm mov AX, oldval
+      __asm lock cmpxchg [BSSASM_PREG], DX
     }
   };
 
@@ -257,14 +245,9 @@ namespace bss_util {
   public:
     inline static T BSS_FORCEINLINE BSS_FASTCALL asmcas(volatile T *pval, T newval, T oldval)
     {
-      __asm {
-#ifdef BSS_NO_FASTCALL //if we are using fastcall we don't need these instructions
-        mov EDX, newval
-        mov BSSASM_PREG, pval
-#endif
-        mov EAX, oldval
-        lock cmpxchg [BSSASM_PREG], EDX
-      }
+      ASMCAS_FSTMOV(EDX)
+      __asm mov EAX, oldval
+      __asm lock cmpxchg [BSSASM_PREG], EDX
     }
   };
 
@@ -387,32 +370,32 @@ namespace bss_util {
 #endif //defined(BSS_CPU_x86_64) || defined(BSS_CPU_x86)
 
   /* This is a flip-flop that allows lockless two thread communication using the exchange property of CAS */
-  template<typename T>
+  /*template<typename T>
   struct BSS_COMPILER_DLLEXPORT cLocklessFlipper
   {
   public:
     inline cLocklessFlipper(T* ptr1, T* ptr2) : _ptr1(ptr1), _ptr2(ptr2), _readnum(0), _curwrite(-1), _flag(0)
     {
     }
-    /* Call this before you do any reading. Use the returned pointer. */
+    // Call this before you do any reading. Use the returned pointer.
     inline T* StartRead()
     { 
       asmcas<unsigned char>(&_flag,1,_flag);
       return (T*)_ptr1;
     }
-    /* Call this after you finish all reading - do not use the pointer again */
+    // Call this after you finish all reading - do not use the pointer again
     inline void EndRead()
     {
       asmcas<unsigned char>(&_flag,0,_flag);
       asmcas<unsigned __int32>(&_readnum,_readnum+1,_readnum);
     }
-    /* Call this before you do any writing. Use only the returned pointer */
+    // Call this before you do any writing. Use only the returned pointer
     inline T* StartWrite()
     {
       if(_flag!=0 && _curwrite==_readnum) return 0; //We haven't finished a read since the last write
       return (T*)_ptr2;
     }
-    /* Call this after you finish writing - do not use the pointer again */
+    // Call this after you finish writing - do not use the pointer again
     inline void EndWrite()
     {
       //asmcas<unsigned __int32>(&_curwrite,_readnum,_curwrite);
@@ -429,7 +412,7 @@ namespace bss_util {
     volatile unsigned __int32 _curwrite;
     volatile unsigned __int32 _readnum;
     volatile unsigned char _flag;
-  };
+  };*/
 }
 
 #endif

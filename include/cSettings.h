@@ -28,10 +28,9 @@ namespace bss_util {
     cKhash_StringTInsConstruct() : cKhash_StringTIns<K,T,ismap>() {}
     ~cKhash_StringTInsConstruct()
     {
-      ResetWalk();
-      khiter_t iter;
-      while((iter=GetNext())!=kh_end(_h))
-        kh_val(_h,iter).~T();
+      for(khiter_t iter=kh_begin(_h); iter<kh_end(_h); ++iter)
+        if(kh_exist(_h,iter))
+          kh_val(_h,iter).~T();
     }
     bool Insert(KHKEY key, const_ref value)
 		{

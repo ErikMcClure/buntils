@@ -29,11 +29,9 @@ namespace bss_util {
     ~cTaskStack()
     {
       _syncobj.Lock();
-      _funchash.ResetWalk();
-      khiter_t iter; 
       const FUNC_DEF_BASE<T>* ptr;
-      while((iter=_funchash.GetNext())!=_funchash.End())
-        if(ptr=_funchash.Get(iter))
+      for(cKhash_Int<const FUNC_DEF_BASE<T>*>::cKhash_Iter iter(_funchash); iter.IsValid(); ++iter)
+        if(ptr=_funchash.Get(*iter))
           delete ptr;
 
       _funchash.Clear();

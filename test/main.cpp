@@ -1270,7 +1270,7 @@ int main3(int argc, char** argv)
   system("Pause");
   return 0;
 
-  cKhash_Int64<void*> testkhash;
+  cKhash_Int<void*,__int64> testkhash;
 
   system("Pause");
 	return 0;

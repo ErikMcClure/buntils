@@ -10,6 +10,7 @@
 #include "bss_deprecated.h"
 #include "bss_traits.h"
 #include <wchar.h>
+#include <xutility>
 
 template<typename T>
 inline khint_t khint_hashfunc(T in) { return (khint_t)in; }
@@ -195,15 +196,15 @@ namespace bss_util {
     typedef typename Traits::reference mut_ref;
 
 	public:
-    inline cKhash(const cKhash& copy) : _h(kh_init_template<KHKEY,KHVAL,kh_is_map,__hash_func,__hash_equal>()), _cur(0)
+    inline cKhash(const cKhash& copy) : _h(kh_init_template<KHKEY,KHVAL,kh_is_map,__hash_func,__hash_equal>())
 		{
 			operator =(copy);
 		}
-    inline cKhash(cKhash&& mov) : _h(mov._h), _cur(0)
+    inline cKhash(cKhash&& mov) : _h(mov._h)
     { 
       mov._h=0;
     }
-		inline cKhash(unsigned int size=0) : _h(kh_init_template<KHKEY,KHVAL,kh_is_map,__hash_func,__hash_equal>()), _cur(0)
+		inline cKhash(unsigned int size=0) : _h(kh_init_template<KHKEY,KHVAL,kh_is_map,__hash_func,__hash_equal>())
 		{
 			if(size<8)
         kh_resize_template(_h, 8);
@@ -268,25 +269,25 @@ namespace bss_util {
 		inline khiter_t Start() const { return kh_begin(_h); }
 		inline khiter_t End() const { return kh_end(_h); }
     inline bool Exists(khiter_t iterator) const { if(iterator<_h->n_buckets) return kh_exist(_h, iterator)!=0; return false; }
-		inline void ResetWalk() const { _cur=(khiter_t)-1; }
-		inline khiter_t GetNext() const { while((++_cur)<kh_end(_h) && !kh_exist(_h, _cur)); return _cur<kh_end(_h)?_cur:kh_end(_h); }
-		inline khiter_t GetPrev() const { while((--_cur)<kh_end(_h) && !kh_exist(_h, _cur)); return _cur<kh_end(_h)?_cur:kh_end(_h); }
+		//inline void ResetWalk() const { _cur=(khiter_t)-1; }
+		//inline khiter_t GetNext() const { while((++_cur)<kh_end(_h) && !kh_exist(_h, _cur)); return _cur<kh_end(_h)?_cur:kh_end(_h); }
+		//inline khiter_t GetPrev() const { while((--_cur)<kh_end(_h) && !kh_exist(_h, _cur)); return _cur<kh_end(_h)?_cur:kh_end(_h); }
 		inline cKhash& operator =(const cKhash& right)
 		{
       if(&right == this) return *this;
 			kh_clear_template(_h);
 			kh_resize_template(_h, right._h->n_buckets);
-			right.ResetWalk();
 			int r;
-			khiter_t cur;
+			khiter_t cur=(khiter_t)-1;
       if(kh_is_map) {
-			  while((cur=right.GetNext())!= right.End())
-				  kh_val(_h, kh_put_template(_h, kh_key(right._h, cur),&r))=kh_val(right._h, cur);
+			  while(++cur != right.End())
+          if(kh_exist(right._h,cur)!=0)
+				    kh_val(_h, kh_put_template(_h, kh_key(right._h, cur),&r))=kh_val(right._h, cur);
       } else {
-			  while((cur=right.GetNext())!= right.End())
-				  kh_put_template(_h, kh_key(right._h, cur),&r);
+			  while(++cur != right.End())
+          if(kh_exist(right._h,cur)!=0)
+				    kh_put_template(_h, kh_key(right._h, cur),&r);
       }
-			_cur=0;
 			return *this; 
 		}
 		inline cKhash& operator =(cKhash&& mov)
@@ -295,25 +296,44 @@ namespace bss_util {
 			kh_destroy_template(_h);
       _h=mov._h;
       mov._h=0;
-      _cur=0;
       return *this;
     }
     inline mut_ref operator[](khiter_t iterator) { return kh_val(_h, iterator); }
     inline const_ref operator[](khiter_t iterator) const { return kh_val(_h, iterator); }
     inline bool Nullified() const { return !_h; }
+    
+    class BSS_COMPILER_DLLEXPORT cKhash_Iter : public std::iterator<std::bidirectional_iterator_tag,khiter_t>
+	  {
+    public:
+      inline explicit cKhash_Iter(const cKhash& src) : _src(src), cur(0) { _chknext(); }
+      inline cKhash_Iter(const cKhash& src, khiter_t start) : _src(src), cur(start) { _chknext(); }
+      inline khiter_t operator*() const { return cur; }
+      inline cKhash_Iter& operator++() { ++cur; _chknext(); return *this; } //prefix
+      inline cKhash_Iter operator++(int) { cKhash_Iter r(*this); ++*this; return r; } //postfix
+      inline cKhash_Iter& operator--() {  while((--cur)<kh_end(_h) && !kh_exist(_h, cur)); return *this; } //prefix
+      inline cKhash_Iter operator--(int) { cKhash_Iter r(*this); --*this; return r; } //postfix
+      inline bool operator==(const cKhash_Iter& _Right) const { return (cur == _Right.cur); }
+	    inline bool operator!=(const cKhash_Iter& _Right) const { return (cur != _Right.cur); }
+      inline bool operator!() const { return !IsValid(); }
+      inline bool IsValid() { return cur<_src.End(); }
+
+      khiter_t cur; //khiter_t is unsigned (this is why operator--() works)
+
+    protected:
+      inline void _chknext() { while(cur<_src.End() && !_src.Exists(cur)) ++cur; }
+
+      const cKhash& _src;
+	  };
 
 	protected:
-		void _resize()
-		{ 
-			kh_resize_template(_h,kh_size(_h)*2);
-		}
+		void _resize() { kh_resize_template(_h,kh_size(_h)*2); }
 
 		KHTYPE* _h;
-		mutable khiter_t _cur; //holds current iterator for walking through
   };
 
   inline khint_t KH_INT64_HASHFUNC(__int64 key) { return (khint32_t)((key)>>33^(key)^(key)<<11); }
-  inline khint_t KH_INT_HASHFUNC(__int32 key) { return (khint32_t)key; }
+  template<class T>
+  inline khint_t KH_INT_HASHFUNC(T key) { return (khint32_t)key; }
   inline khint_t KH_STR_HASHFUNC(const char * s) { khint_t h = *s; if (h) for (++s ; *s; ++s) h = (h << 5) - h + *s; return h; }
   inline khint_t KH_STRINS_HASHFUNC(const char *s) { khint_t h = ((*s)>64&&(*s)<91)?(*s)+32:*s;	if (h) for (++s ; *s; ++s) h = (h << 5) - h + (((*s)>64&&(*s)<91)?(*s)+32:*s); return h; }
   inline khint_t KH_STRW_HASHFUNC(const wchar_t * s) { khint_t h = *s; if (h) for (++s ; *s; ++s) h = (h << 5) - h + *s; return h; }
@@ -338,20 +358,21 @@ namespace bss_util {
   template<class T>
   inline bool KH_STR_VALIDATEPTR(T p) { return p!=0; }
 
-  template<typename T=void*, bool ismap=true>
-  class BSS_COMPILER_DLLEXPORT cKhash_Int64 : public cKhash<__int64, T, true, &KH_INT64_HASHFUNC, &KH_INT_EQUALFUNC<__int64>, &KH_INT_VALIDATEPTR<__int64>>
-  {
-  public:
-    cKhash_Int64() : cKhash<__int64, T, true, &KH_INT64_HASHFUNC, &KH_INT_EQUALFUNC<__int64>, &KH_INT_VALIDATEPTR<__int64>>() {}
-    cKhash_Int64(cKhash_Int64&& mov) : cKhash(std::move(mov)) {}
-    cKhash_Int64& operator=(cKhash_Int64&& right) { cKhash::operator=(std::move(right)); return *this; }
-  };
-
-  template<typename T=void*, bool ismap=true>
-  class BSS_COMPILER_DLLEXPORT cKhash_Int : public cKhash<__int32, T, true, &KH_INT_HASHFUNC, &KH_INT_EQUALFUNC<__int32>, &KH_INT_VALIDATEPTR<__int32>>
+  /* Catch-all templatization for integral types. Automatically handles 64-bit integers */
+  template<typename T=void*, typename K=__int32, bool ismap=true>
+  class BSS_COMPILER_DLLEXPORT cKhash_Int : public cKhash<K, T, true, &KH_INT_HASHFUNC<K>, &KH_INT_EQUALFUNC<__int32>, &KH_INT_VALIDATEPTR<__int32>>
   {
   public:
     cKhash_Int() : cKhash<__int32, T, true, &KH_INT_HASHFUNC, &KH_INT_EQUALFUNC<__int32>, &KH_INT_VALIDATEPTR<__int32>>() {}
+    cKhash_Int(cKhash_Int&& mov) : cKhash(std::move(mov)) {}
+    cKhash_Int& operator=(cKhash_Int&& right) { cKhash::operator=(std::move(right)); return *this; }
+  };
+
+  template<typename T, bool ismap>
+  class BSS_COMPILER_DLLEXPORT cKhash_Int<T,__int64,ismap> : public cKhash<__int64, T, true, &KH_INT64_HASHFUNC, &KH_INT_EQUALFUNC<__int64>, &KH_INT_VALIDATEPTR<__int64>>
+  {
+  public:
+    cKhash_Int() : cKhash<__int64, T, true, &KH_INT64_HASHFUNC, &KH_INT_EQUALFUNC<__int64>, &KH_INT_VALIDATEPTR<__int64>>() {}
     cKhash_Int(cKhash_Int&& mov) : cKhash(std::move(mov)) {}
     cKhash_Int& operator=(cKhash_Int&& right) { cKhash::operator=(std::move(right)); return *this; }
   };

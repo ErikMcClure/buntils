@@ -42,7 +42,7 @@ namespace bss_util
     { 
       __ST last=_bits.Size();
       _bits.SetSize(_maxchunks(numbits));
-      if(last<_bits.Size()) // If we got bigger zero the new bytes
+      if(last<_bits.Size()) // If we got bigger, zero the new bytes
         memset(_bits+last,0,sizeof(__STORE)*(_bits.Size()-last));
       _numbits=numbits;
     }

@@ -131,13 +131,12 @@ cINIentry* cINIstorage::GetEntryPtr(const char *section, const char* key, unsign
 const std::vector<std::pair<cStr,unsigned int>>& cINIstorage::BuildSectionList() const
 {
   _seclist.clear();
-  _sections.ResetWalk();
-  khiter_t iter;
+  ;
   __ARR* arr;
   unsigned int i =0;
-  while((iter=_sections.GetNext())!=_sections.End())
+  for(cKhash_StringTIns<char,__ARR*,true>::cKhash_Iter iter(_sections); iter.IsValid(); ++iter)
   {
-    arr=_sections[iter];
+    arr=_sections[*iter];
     for(i=0; i<arr->Size();++i)
       _seclist.push_back(std::pair<cStr,unsigned int>((*arr)[i].GetName(),i));
   }
@@ -348,12 +347,10 @@ void cINIstorage::_destroyhash()
 {
   if(!_sections.Nullified())
   {
-    khiter_t iter;
-	  _sections.ResetWalk();
     __ARR* arr;
-	  while((iter=_sections.GetNext())!=_sections.End())
+    for(cKhash_StringTIns<char,__ARR*,true>::cKhash_Iter iter(_sections); iter.IsValid(); ++iter)
     {
-      arr=_sections[iter];
+      arr=_sections[*iter];
       unsigned int svar=arr->Size();
       for(unsigned int i =0; i<svar; ++i) (*arr)[i].~cINIsection();
       delete arr;
@@ -363,14 +360,12 @@ void cINIstorage::_destroyhash()
 
 void cINIstorage::_copyhash(const cINIstorage& copy)
 {
-  khiter_t iter;
   unsigned int i=0;
   __ARR* old;
   __ARR* arr;
-	copy._sections.ResetWalk();
-	while((iter=copy._sections.GetNext())!=copy._sections.End())
+  for(cKhash_StringTIns<char,__ARR*,true>::cKhash_Iter iter(copy._sections); iter.IsValid(); ++iter)
   {
-    old=copy._sections[iter];
+    old=copy._sections[*iter];
     arr=new __ARR(*old);
     unsigned int svar=arr->Size();
     for(unsigned int i =0; i < svar; ++i)
@@ -429,13 +424,10 @@ void cINIsection::_destroyhash()
 {
   if(!_entries.Nullified())
   {
-	  khiter_t iter;
-	  _entries.ResetWalk();
-  
     __ARR* arr;
-	  while((iter=_entries.GetNext())!=_entries.End())
+    for(cKhash_StringTIns<char,__ARR*,true>::cKhash_Iter iter(_entries); iter.IsValid(); ++iter)
     {
-      arr=_entries[iter];
+      arr=_entries[*iter];
       unsigned int svar=arr->Size();
       for(unsigned int i =0; i<svar; ++i) (*arr)[i].~cINIentry();
       delete arr;
@@ -444,13 +436,11 @@ void cINIsection::_destroyhash()
 }
 void cINIsection::_copyhash(const cINIsection& copy)
 {
-  khiter_t iter;
   __ARR* old;
   __ARR* arr;
-	copy._entries.ResetWalk();
-	while((iter=copy._entries.GetNext())!=copy._entries.End())
+  for(cKhash_StringTIns<char,__ARR*,true>::cKhash_Iter iter(copy._entries); iter.IsValid(); ++iter)
   {
-    old=copy._entries[iter];
+    old=copy._entries[*iter];
     arr=new __ARR(*old);
     unsigned int svar=arr->Size();
     for(unsigned int i =0; i < svar; ++i)
@@ -480,13 +470,11 @@ const std::vector<std::pair<std::pair<cStr,cStr>,unsigned int>>& cINIsection::Bu
 {
   assert(_parent!=0);
   _parent->_entlist.clear();
-  _entries.ResetWalk();
-  khiter_t iter;
   __ARR* arr;
   unsigned int i =0;
-  while((iter=_entries.GetNext())!=_entries.End())
+  for(cKhash_StringTIns<char,__ARR*,true>::cKhash_Iter iter(_entries); iter.IsValid(); ++iter)
   {
-    arr=_entries[iter];
+    arr=_entries[*iter];
     for(i=0; i<arr->Size();++i)
       _parent->_entlist.push_back(std::pair<std::pair<cStr,cStr>,unsigned int>(std::pair<cStr,cStr>((*arr)[i].GetKey(),(*arr)[i].GetString()),i));
   }

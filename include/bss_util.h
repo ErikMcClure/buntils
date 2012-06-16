@@ -315,9 +315,9 @@ namespace bss_util {
     for(unsigned int i = bits; i>0;)
     {
       --i;
-      t = root + (((T)1) << (i)); 
-      if (n >= t << (i))   
-      {   n -= t << (i);   
+      t = ((root + (((T)1) << (i))) << (i)); 
+      if (n >= t)   
+      {   n -= t;   
           root |= 2 << (i); 
       }
     }

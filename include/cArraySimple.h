@@ -100,6 +100,17 @@ namespace bss_util {
       memmove(_array+(index+1),_array+index,length*sizeof(T));
       _array[index]=std::forward<U>(data);
     }
+    inline void _scrub(int val)
+    {
+      memset(_array,val,_size*sizeof(T));
+    }
+    inline void _setsize(SizeType nsize, int val)
+    {
+      SizeType last=_size;
+      SetSize(nsize);
+      if(_size>last)
+        memset(_array+last,val,(_size-last)*sizeof(T));
+    }
 
     T* _array;
     SizeType _size;

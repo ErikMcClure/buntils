@@ -27,12 +27,10 @@ public:
   ~cBSS_LeakTracker()
   {
     fputs("\n--- Memory leaks---", f);
-    _leakinfo.ResetWalk();
-    khiter_t curiter;
     BSS_LEAKINFO* pinfo;
-    while((curiter=_leakinfo.GetNext())!=_leakinfo.End())
+    for(cKhash_Int<const FUNC_DEF_BASE<T>*>::cKhash_Iter curiter(_leakinfo); curiter.IsValid(); ++curiter)
     {
-      pinfo = _leakinfo.Get(curiter);
+      pinfo = _leakinfo.Get(*curiter);
       fprintf(f, "%p (Size: %i) leaked at %s:%i\n", pinfo->ptr, pinfo->size, pinfo->file, pinfo->line);
       free((void*)pinfo->file);
       free(pinfo); //Honestly it doesn't matter if we leak these or not since the process is about to explode but its nice to be tidy.

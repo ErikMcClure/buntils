@@ -9,8 +9,8 @@
 #ifndef __NO_UNIQUE_MODIFY__
 #define UqP_ std::unique_ptr
 
-template<typename T, typename D>
-const std::unique_ptr<T,D>& operator<<(std::unique_ptr<T,D>& l, typename std::unique_ptr<T,D>::pointer r) { l.reset(r); return l; }
+//template<typename T, typename D>
+//const std::unique_ptr<T,D>& operator<<(std::unique_ptr<T,D>& l, typename std::unique_ptr<T,D>::pointer r) { l.reset(r); return l; }
 #endif
 
 namespace bss_util

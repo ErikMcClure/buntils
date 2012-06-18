@@ -28,7 +28,7 @@ public:
   {
     fputs("\n--- Memory leaks---", f);
     BSS_LEAKINFO* pinfo;
-    for(cKhash_Int<const FUNC_DEF_BASE<T>*>::cKhash_Iter curiter(_leakinfo); curiter.IsValid(); ++curiter)
+    for(auto curiter=_leakinfo.begin(); curiter.IsValid(); ++curiter)
     {
       pinfo = _leakinfo.Get(*curiter);
       fprintf(f, "%p (Size: %i) leaked at %s:%i\n", pinfo->ptr, pinfo->size, pinfo->file, pinfo->line);

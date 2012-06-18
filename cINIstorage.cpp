@@ -134,7 +134,7 @@ const std::vector<std::pair<cStr,unsigned int>>& cINIstorage::BuildSectionList()
   ;
   __ARR* arr;
   unsigned int i =0;
-  for(cKhash_StringTIns<char,__ARR*,true>::cKhash_Iter iter(_sections); iter.IsValid(); ++iter)
+  for(auto iter=_sections.begin(); iter.IsValid(); ++iter)
   {
     arr=_sections[*iter];
     for(i=0; i<arr->Size();++i)
@@ -348,7 +348,7 @@ void cINIstorage::_destroyhash()
   if(!_sections.Nullified())
   {
     __ARR* arr;
-    for(cKhash_StringTIns<char,__ARR*,true>::cKhash_Iter iter(_sections); iter.IsValid(); ++iter)
+    for(auto iter=_sections.begin(); iter.IsValid(); ++iter)
     {
       arr=_sections[*iter];
       unsigned int svar=arr->Size();
@@ -363,7 +363,7 @@ void cINIstorage::_copyhash(const cINIstorage& copy)
   unsigned int i=0;
   __ARR* old;
   __ARR* arr;
-  for(cKhash_StringTIns<char,__ARR*,true>::cKhash_Iter iter(copy._sections); iter.IsValid(); ++iter)
+  for(auto iter=copy._sections.begin(); iter.IsValid(); ++iter)
   {
     old=copy._sections[*iter];
     arr=new __ARR(*old);
@@ -425,7 +425,7 @@ void cINIsection::_destroyhash()
   if(!_entries.Nullified())
   {
     __ARR* arr;
-    for(cKhash_StringTIns<char,__ARR*,true>::cKhash_Iter iter(_entries); iter.IsValid(); ++iter)
+    for(auto iter=_entries.begin(); iter.IsValid(); ++iter)
     {
       arr=_entries[*iter];
       unsigned int svar=arr->Size();
@@ -438,7 +438,7 @@ void cINIsection::_copyhash(const cINIsection& copy)
 {
   __ARR* old;
   __ARR* arr;
-  for(cKhash_StringTIns<char,__ARR*,true>::cKhash_Iter iter(copy._entries); iter.IsValid(); ++iter)
+  for(auto iter=copy._entries.begin(); iter.IsValid(); ++iter)
   {
     old=copy._entries[*iter];
     arr=new __ARR(*old);
@@ -472,7 +472,7 @@ const std::vector<std::pair<std::pair<cStr,cStr>,unsigned int>>& cINIsection::Bu
   _parent->_entlist.clear();
   __ARR* arr;
   unsigned int i =0;
-  for(cKhash_StringTIns<char,__ARR*,true>::cKhash_Iter iter(_entries); iter.IsValid(); ++iter)
+  for(auto iter=_entries.begin(); iter.IsValid(); ++iter)
   {
     arr=_entries[*iter];
     for(i=0; i<arr->Size();++i)

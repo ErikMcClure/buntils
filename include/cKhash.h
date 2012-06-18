@@ -239,7 +239,7 @@ namespace bss_util {
     inline ptrtype Get(khiter_t iterator) const { if(iterator >= kh_end(_h) || !kh_exist(_h, iterator)) return 0; return &kh_val(_h, iterator); }
     /* This is a pointer-only version of the above that simplifies verification when the type pointed to is a pointer */
     inline mut_ref GetPtrOnly(khiter_t iterator) const { if(iterator >= kh_end(_h) || !kh_exist(_h, iterator)) return 0; return kh_val(_h, iterator); }
-    inline khiter_t GetIterator(KHKEY key) const { return !(__validate_p(key))?0:kh_get_template(_h, key); }
+    inline khiter_t GetIterator(KHKEY key) const { return !(__validate_p(key))?kh_end(_h):kh_get_template(_h, key); }
     inline void SetSize(unsigned int size) { if(_h->n_buckets < size) kh_resize_template(_h,size); }
 		inline bool Remove(KHKEY key) const
     {
@@ -324,6 +324,9 @@ namespace bss_util {
 
       const cKhash& _src;
 	  };
+
+    inline cKhash_Iter begin() const { return cKhash_Iter(*this,Start()); }
+    inline cKhash_Iter end() const { return cKhash_Iter(*this,End()); }
 
 	protected:
 		void _resize() { kh_resize_template(_h,kh_size(_h)*2); }

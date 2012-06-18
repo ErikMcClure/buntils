@@ -39,6 +39,7 @@
 - Created workarounds for assembly based functions and removed others in x86_64, allowing bss_util to compile in x86_64
 - Adjusted some x86 assembly and added CPU_Barrier() as an efficient way to prevent CPU re-ordering.
 - Changed hash to use iterators
+- Existing iterator Begin/IterStart functions renamed to begin() to support range-based for loops
 - Added unit testing.
 
 0.3.81

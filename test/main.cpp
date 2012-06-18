@@ -563,7 +563,7 @@ void printout(cLinkedList<int,Allocator<cLLNode<int>>,true>& list)
 
 void printout(cLinkedArray<int>& list)
 {
-  auto cur=list.IterStart();
+  auto cur=list.begin();
 
   while(cur.IsValid())
     std::cout<<*(cur++);

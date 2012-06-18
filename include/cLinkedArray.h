@@ -128,10 +128,10 @@ namespace bss_util {
       D& _src;
 	  };
     
-    inline cLAIter<const_pointer, const_reference, const cLinkedArray<T,Traits,SizeType>> IterStart() const { return cLAIter<const_pointer, const_reference, const cLinkedArray<T,Traits,SizeType>>(*this,_start); } // Use these to get an iterator you can use in standard containers
-    inline cLAIter<const_pointer, const_reference, const cLinkedArray<T,Traits,SizeType>> IterEnd() const { return cLAIter<const T, const cLinkedArray<T,Traits,SizeType>>(*this); }
-    inline cLAIter<pointer, reference, cLinkedArray<T,Traits,SizeType>> IterStart() { return cLAIter<pointer, reference, cLinkedArray<T,Traits,SizeType>>(*this,_start); } // Use these to get an iterator you can use in standard containers
-    inline cLAIter<pointer, reference, cLinkedArray<T,Traits,SizeType>> IterEnd() { return cLAIter<pointer, reference, cLinkedArray<T,Traits,SizeType>>(*this); }
+    inline cLAIter<const_pointer, const_reference, const cLinkedArray<T,Traits,SizeType>> begin() const { return cLAIter<const_pointer, const_reference, const cLinkedArray<T,Traits,SizeType>>(*this,_start); } // Use these to get an iterator you can use in standard containers
+    inline cLAIter<const_pointer, const_reference, const cLinkedArray<T,Traits,SizeType>> end() const { return cLAIter<const T, const cLinkedArray<T,Traits,SizeType>>(*this); }
+    inline cLAIter<pointer, reference, cLinkedArray<T,Traits,SizeType>> begin() { return cLAIter<pointer, reference, cLinkedArray<T,Traits,SizeType>>(*this,_start); } // Use these to get an iterator you can use in standard containers
+    inline cLAIter<pointer, reference, cLinkedArray<T,Traits,SizeType>> end() { return cLAIter<pointer, reference, cLinkedArray<T,Traits,SizeType>>(*this); }
     
     /* Nonstandard Removal Iterator for cLinkedArray to make removing elements easier */
     class BSS_COMPILER_DLLEXPORT cLAIterRM : protected cLAIter<pointer,reference,cLinkedArray<T,Traits,SizeType>>

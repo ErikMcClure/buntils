@@ -30,7 +30,7 @@ namespace bss_util {
     {
       _syncobj.Lock();
       const FUNC_DEF_BASE<T>* ptr;
-      for(cKhash_Int<const FUNC_DEF_BASE<T>*>::cKhash_Iter iter(_funchash); iter.IsValid(); ++iter)
+      for(auto iter = _funchash.begin(); iter.IsValid(); ++iter)
         if(ptr=_funchash.Get(*iter))
           delete ptr;
 

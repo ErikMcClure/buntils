@@ -11,18 +11,18 @@
 using namespace bss_util;
 
 cThread::cThread(const cThread& copy) : _funcptr(copy._funcptr), _sleepms(copy._sleepms), cBitField<unsigned int>((copy./*_bools.*/GetBits()&(~(1 << 4)))),
-_threadret(copy._threadret), cLockable(copy), _handle(-1L), _syncptr(copy._syncptr), _delegate_arg(new __DOUBLEARG((Functor<unsigned int, void*>*)0,(void*)0))
+_threadret(copy._threadret), cLockable(copy), _handle((__w64 size_t)-1), _syncptr(copy._syncptr), _delegate_arg(new __DOUBLEARG((Functor<unsigned int, void*>*)0,(void*)0))
 {
 }
 
-cThread::cThread(unsigned int (BSS_COMPILER_STDCALL *funcptr)(void*), bool sync, bool sleep, unsigned short sleepms, unsigned long flips) :
+cThread::cThread(unsigned int (BSS_COMPILER_STDCALL *funcptr)(void*), bool sync, bool sleep, unsigned short sleepms) :
   _funcptr(funcptr), _sleepms(sleepms), cBitField<unsigned int>((sync?(1 << 3):0)), _threadret(0),
-    _handle(-1L), _syncptr(sleep?&cThread::_sleepsync:&cThread::_blocksync), _delegate_arg(new __DOUBLEARG())
+    _handle((__w64 size_t)-1), _syncptr(sleep?&cThread::_sleepsync:&cThread::_blocksync), _delegate_arg(new __DOUBLEARG())
 {
 }
-cThread::cThread(const Functor<unsigned int, void*>& funcptr, bool sync, bool sleep, unsigned short sleepms, unsigned long flips) : 
+cThread::cThread(const Functor<unsigned int, void*>& funcptr, bool sync, bool sleep, unsigned short sleepms) : 
 _delegate(funcptr.Clone()), _sleepms(sleepms), cBitField<unsigned int>((sync?(1 << 3):0)|(1 << 5)), _threadret(0),
-  _handle(-1L), _syncptr(sleep?&cThread::_sleepsync:&cThread::_blocksync), _delegate_arg(new __DOUBLEARG())
+  _handle((__w64 size_t)-1), _syncptr(sleep?&cThread::_sleepsync:&cThread::_blocksync), _delegate_arg(new __DOUBLEARG())
 {
 }
 
@@ -131,7 +131,7 @@ cThread& cThread::operator =(const bss_util::cThread &right)
   Stop();
   //_bools = (right./*_bools.*/GetBits()&(~(1 << 4)));
   _bitfield=right._bitfield;
-  _handle=-1L;
+  _handle=(__w64 size_t)-1;
   _funcptr=right._funcptr;
   _sleepms=right._sleepms;
   _syncptr=right._syncptr;

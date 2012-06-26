@@ -16,8 +16,8 @@ namespace bss_util {
   {
   public:
     cThread(const cThread& copy);
-    cThread(unsigned int (BSS_COMPILER_STDCALL *funcptr)(void*), bool sync=false, bool sleep=false, unsigned short sleepms=1, unsigned long flips=0);
-    cThread(const Functor<unsigned int, void*>& funcptr, bool sync=false, bool sleep=false, unsigned short sleepms=1, unsigned long flips=0);
+    cThread(unsigned int (BSS_COMPILER_STDCALL *funcptr)(void*), bool sync=false, bool sleep=false, unsigned short sleepms=1);
+    cThread(const Functor<unsigned int, void*>& funcptr, bool sync=false, bool sleep=false, unsigned short sleepms=1);
     ~cThread();
     bool Start(void* arg); //Starts the thread. Fails if the thread is already running
     unsigned int Join(unsigned int waitms=0); //Blocks until this thread has exited for waitms milliseconds (if this is 0 then it waits forever) (returns the thread's return value)

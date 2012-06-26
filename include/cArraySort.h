@@ -22,8 +22,8 @@ namespace bss_util {
     inline cArraySort(cArraySort&& mov) : _length(mov._length), ArrayType(std::move(mov)) {} 
     inline explicit cArraySort(__ST size=1) : _length(0), ArrayType(size) {}
     inline ~cArraySort() { }
-    inline __ST BSS_FASTCALL Insert(constref data) { return _insert(data); }
-    inline __ST BSS_FASTCALL Insert(moveref data) { return _insert(std::move(data)); }
+    inline BSS_FORCEINLINE __ST BSS_FASTCALL Insert(constref data) { return _insert(data); }
+    inline BSS_FORCEINLINE __ST BSS_FASTCALL Insert(moveref data) { return _insert(std::move(data)); }
     inline void Clear() { _length=0; }
     inline void BSS_FASTCALL Discard(unsigned int num) { _length-=((num>_length)?_length:num); }
     inline __ST BSS_FASTCALL ReplaceData(__ST index, constref data)
@@ -51,7 +51,7 @@ namespace bss_util {
       --_length;
       return true;
     }
-    inline void BSS_FASTCALL Expand(__ST newsize)
+    inline BSS_FORCEINLINE void BSS_FASTCALL Expand(__ST newsize)
     {
       ArrayType::SetSize(newsize);
     }

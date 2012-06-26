@@ -80,15 +80,15 @@ public:
   typedef char CHAR;
   typedef wchar_t OTHER_C;
 
-  static inline const CHAR* __cdecl SCHR(const CHAR* str, int val) { return strchr(str,val); }
-  static inline size_t __cdecl SLEN(const CHAR* str) { return strlen(str); }
-  static inline CHAR* __cdecl STOK(CHAR* str,const CHAR* delim, CHAR** context) { return strtok_s(str,delim,context); }
+  static inline BSS_FORCEINLINE const CHAR* __cdecl SCHR(const CHAR* str, int val) { return strchr(str,val); }
+  static inline BSS_FORCEINLINE size_t __cdecl SLEN(const CHAR* str) { return strlen(str); }
+  static inline BSS_FORCEINLINE CHAR* __cdecl STOK(CHAR* str,const CHAR* delim, CHAR** context) { return strtok_s(str,delim,context); }
   //static inline errno_t __cdecl WTOMB(size_t* outsize, CHAR* dest, size_t destsize, const OTHER_C* src, size_t maxcount) { return wcstombs_s(outsize,dest,destsize,src,maxcount); }
-  static inline int __cdecl VPF(CHAR *dest, size_t size, const CHAR *format, va_list args) { return VSPRINTF(dest,size,format,args); }
-  static inline int __cdecl VPCF(const CHAR* str, va_list args) { return _vscprintf(str,args); }
-  static inline size_t __cdecl CONV(const OTHER_C* src, CHAR* dest, size_t len) { return UTF16toUTF8(src,dest,len); }
+  static inline BSS_FORCEINLINE int __cdecl VPF(CHAR *dest, size_t size, const CHAR *format, va_list args) { return VSPRINTF(dest,size,format,args); }
+  static inline BSS_FORCEINLINE int __cdecl VPCF(const CHAR* str, va_list args) { return _vscprintf(str,args); }
+  static inline BSS_FORCEINLINE size_t __cdecl CONV(const OTHER_C* src, CHAR* dest, size_t len) { return UTF16toUTF8(src,dest,len); }
 
-  static inline size_t __cdecl O_SLEN(const OTHER_C* str) { return wcslen(str); }
+  static inline BSS_FORCEINLINE size_t __cdecl O_SLEN(const OTHER_C* str) { return wcslen(str); }
 };
 
 template<>
@@ -98,15 +98,15 @@ public:
   typedef wchar_t CHAR;
   typedef char OTHER_C;
 
-  static inline const CHAR* __cdecl SCHR(const CHAR* str, int val) { return wcschr(str,val); }
-  static inline size_t __cdecl SLEN(const CHAR* str) { return wcslen(str); }
-  static inline CHAR* __cdecl STOK(CHAR* str,const CHAR* delim, CHAR** context) { return wcstok_s(str,delim,context); }
+  static inline BSS_FORCEINLINE const CHAR* __cdecl SCHR(const CHAR* str, wchar_t val) { return wcschr(str,val); }
+  static inline BSS_FORCEINLINE size_t __cdecl SLEN(const CHAR* str) { return wcslen(str); }
+  static inline BSS_FORCEINLINE CHAR* __cdecl STOK(CHAR* str,const CHAR* delim, CHAR** context) { return wcstok_s(str,delim,context); }
   //static inline errno_t __cdecl WTOMB(size_t* outsize, CHAR* dest, size_t destsize, const OTHER_C* src, size_t maxcount) { return mbstowcs_s(outsize,dest,destsize,src,maxcount); }
-  static inline int __cdecl VPF(CHAR *dest, size_t size, const CHAR *format, va_list args) { return VSWPRINTF(dest,size,format,args); }
-  static inline int __cdecl VPCF(const CHAR* str, va_list args) { return _vscwprintf(str,args); }
-  static inline size_t __cdecl CONV(const OTHER_C* src, CHAR* dest, size_t len) { return UTF8toUTF16(src,dest,len); }
+  static inline BSS_FORCEINLINE int __cdecl VPF(CHAR *dest, size_t size, const CHAR *format, va_list args) { return VSWPRINTF(dest,size,format,args); }
+  static inline BSS_FORCEINLINE int __cdecl VPCF(const CHAR* str, va_list args) { return _vscwprintf(str,args); }
+  static inline BSS_FORCEINLINE size_t __cdecl CONV(const OTHER_C* src, CHAR* dest, size_t len) { return UTF8toUTF16(src,dest,len); }
 
-  static inline size_t __cdecl O_SLEN(const OTHER_C* str) { return strlen(str); }
+  static inline BSS_FORCEINLINE size_t __cdecl O_SLEN(const OTHER_C* str) { return strlen(str); }
 };
 
 #pragma warning(push)
@@ -224,7 +224,7 @@ public:
   }
 
 private:
-  inline void BSS_FASTCALL _convstr(const OTHER_C* src)
+  inline BSS_FORCEINLINE void BSS_FASTCALL _convstr(const OTHER_C* src)
   {
     size_t r = CSTR_CT<T>::CONV(src,0,0);
     if(r==(size_t)-1) return; // If invalid, bail

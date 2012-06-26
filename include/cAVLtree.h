@@ -13,7 +13,6 @@ namespace bss_util {
   struct BSS_COMPILER_DLLEXPORT AVL_Node
   {
     inline AVL_Node() : _pkey(), _data(), _left(0), _right(0), _balance(0) {}
-    //Data* _data;
     Data _data;
     Key _pkey;
     AVL_Node<Key,Data>* _left;
@@ -22,7 +21,7 @@ namespace bss_util {
   };
 
   /* AVL Tree implementation */
-  template<class Key, class Data, char (*CFunc)(const Key&, const Key&)=CompT<Key>, typename Alloc=Allocator<AVL_Node<Key,Data>>>
+  template<class Key, class Data, char (*CFunc)(const Key&, const Key&)=CompT<Key>, typename Alloc=Allocator<AVL_Node<Key,Data>>, Data INVALID = 0>
 	class BSS_COMPILER_DLLEXPORT cAVLtree : cAllocTracker<Alloc>
   {
   public:
@@ -31,8 +30,8 @@ namespace bss_util {
     inline cAVLtree(Alloc* allocator=0) : cAllocTracker<Alloc>(allocator), _root(0) {}
     inline ~cAVLtree() { Clear(); }
     inline void Clear() { _clear(_root); _root=0; }
-    inline void Traverse(const Functor<void,Data>& lambda) { _traverse(lambda, _root); }
-    inline void Traverse(void (*lambda)(Data)) { _traverse(lambda, _root); }
+    inline BSS_FORCEINLINE void Traverse(const Functor<void,Data>& lambda) { _traverse(lambda, _root); }
+    inline BSS_FORCEINLINE void Traverse(void (*lambda)(Data)) { _traverse(lambda, _root); }
 
     inline cAVLtree& operator=(cAVLtree&& mov) { Clear(); _root=mov._root; mov._root=0; }
 
@@ -45,7 +44,7 @@ namespace bss_util {
         cur->_data=data;
         return cur->_data;
       }
-      return 0;
+      return INVALID;
     }
     inline Data BSS_FASTCALL Remove(const Key key)
     {
@@ -55,7 +54,7 @@ namespace bss_util {
     inline Data BSS_FASTCALL Get(const Key key) const
     {
       AVL_Node<Key,Data>* retval=_find(key);
-      return !retval?0:retval->_data;
+      return !retval?INVALID:retval->_data;
     }
     inline Data* BSS_FASTCALL GetRef(const Key key) const
     {
@@ -72,7 +71,7 @@ namespace bss_util {
         cur->_data=retval;
         return cur->_data;
       }
-      return 0;
+      return INVALID;
     }
 
   protected:
@@ -161,7 +160,7 @@ namespace bss_util {
       if(!root)
       {
         change=0;
-        return 0;
+        return INVALID;
       }
    
       char result=CFunc(root->_pkey,key);
@@ -200,7 +199,7 @@ namespace bss_util {
       root->_balance -= result;
 
       change=(result)?((root->_balance)?_rebalance(proot):1):0;
-      return  retval;
+      return retval;
     }
 
     inline AVL_Node<Key,Data>* BSS_FASTCALL _find(const Key& key) const

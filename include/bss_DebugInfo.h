@@ -59,7 +59,7 @@ protected:
   _PROCESS_MEMORY_COUNTERS* _counter;
   cStr _modpath;
   unsigned __int64 _profilers[NUMPROFILERS]; //You can have up to NUMPROFILERS profilers going at once
-  unsigned char _flprof[NUMPROFILERS]; //profiler free list (circular buffer)
+  char _flprof[NUMPROFILERS]; //profiler free list (circular buffer)
   unsigned char _flstart; //profiler free list location
   unsigned char _flend;
 } BSSDEBUG;

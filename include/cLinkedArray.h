@@ -36,7 +36,7 @@ namespace bss_util {
     inline cLinkedArray(cLinkedArray&& mov) : _ref(std::move(mov._ref)),_length(mov._length),_start(mov._start),_end(mov._end),_freelist(mov._freelist) { }
     inline explicit cLinkedArray(__ST size) : _ref(size),_length(0),_start(-1),_end(-1),_freelist(-1) { _setupchunk(0); }
     inline ~cLinkedArray() {}
-    inline __ST BSS_FASTCALL Add(const_reference item) { return InsertAfter(item,_end); }
+    inline BSS_FORCEINLINE __ST BSS_FASTCALL Add(const_reference item) { return InsertAfter(item,_end); }
     inline __ST BSS_FASTCALL InsertAfter(const_reference item, __ST index)
     {
       __ST cur=_insprep();
@@ -89,19 +89,19 @@ namespace bss_util {
     inline __ST Length() const { return _length; }
     inline void BSS_FASTCALL Reserve(__ST size) { if(size<_ref.Size()) return; __ST hold=_ref.Size(); _ref.SetSize(size); _setupchunk(hold); }
     inline void Clear() { _freelist=_start=_end=-1; _length=0; _setupchunk(0); }
-    inline void Next(__ST& ref) const { ref=_ref[ref].next; }
-    inline void Prev(__ST& ref) const { ref=_ref[ref].prev; }
-    inline __ST Start() const { return _start; }
-    inline __ST End() const { return _end; }
+    inline BSS_FORCEINLINE void Next(__ST& ref) const { ref=_ref[ref].next; }
+    inline BSS_FORCEINLINE void Prev(__ST& ref) const { ref=_ref[ref].prev; }
+    inline BSS_FORCEINLINE __ST Start() const { return _start; }
+    inline BSS_FORCEINLINE __ST End() const { return _end; }
     //inline cLinkedArray& BSS_FASTCALL operator +=(const cLinkedArray& right);
     //inline cLinkedArray BSS_FASTCALL operator +(const cLinkedArray& right) const { cLinkedArray retval(*this); retval+=right; return retval; }
     inline cLinkedArray& BSS_FASTCALL operator =(const cLinkedArray& right) { _ref=right._ref; _length=right._length;_start=right._start;_end=right._end;_freelist=right._freelist; return *this; }
     inline cLinkedArray& BSS_FASTCALL operator =(cLinkedArray&& mov) { _ref=std::move(mov._ref); _length=mov._length;_start=mov._start;_end=mov._end;_freelist=mov._freelist; return *this; }
-    inline reference BSS_FASTCALL GetItem(__ST index) { return _ref[index].val; }
-    inline const_reference BSS_FASTCALL GetItem(__ST index) const { return _ref[index].val; }
-    inline pointer BSS_FASTCALL GetItemPtr(__ST index) { return &_ref[index].val; }
-    inline reference BSS_FASTCALL operator [](__ST index) { return _ref[index].val; }
-    inline const_reference BSS_FASTCALL operator [](__ST index) const { return _ref[index].val; }
+    inline BSS_FORCEINLINE reference BSS_FASTCALL GetItem(__ST index) { return _ref[index].val; }
+    inline BSS_FORCEINLINE const_reference BSS_FASTCALL GetItem(__ST index) const { return _ref[index].val; }
+    inline BSS_FORCEINLINE pointer BSS_FASTCALL GetItemPtr(__ST index) { return &_ref[index].val; }
+    inline BSS_FORCEINLINE reference BSS_FASTCALL operator [](__ST index) { return _ref[index].val; }
+    inline BSS_FORCEINLINE const_reference BSS_FASTCALL operator [](__ST index) const { return _ref[index].val; }
 
     /* Iterator for cLinkedArray */
     template<typename _PP, typename _REF, typename D=cLinkedArray<T,Traits,SizeType>>
@@ -111,16 +111,16 @@ namespace bss_util {
       inline explicit cLAIter(D& src) : _src(src), cur((__ST)-1) {}
       inline cLAIter(D& src, __ST start) : _src(src), cur(start) {}
       inline cLAIter(const cLAIter& copy, __ST start) : _src(copy._src), cur(start) {}
-      inline _REF operator*() const { return _src[cur]; }
-      inline _PP operator->() const { return &_src[cur]; }
-      inline cLAIter& operator++() { _src.Next(cur); return *this; } //prefix
-      inline cLAIter operator++(int) { cLAIter r=*this; ++*this; return r; } //postfix
-      inline cLAIter& operator--() { _src.Prev(cur); return *this; } //prefix
-      inline cLAIter operator--(int) { cLAIter r=*this; --*this; return r; } //postfix
-      inline bool operator==(const cLAIter& _Right) const { return (cur == _Right.cur); }
-	    inline bool operator!=(const cLAIter& _Right) const { return (cur != _Right.cur); }
-      inline bool operator!() const { return cur==(__ST)-1; }
-      inline bool IsValid() { return cur!=(__ST)-1; }
+      inline BSS_FORCEINLINE _REF operator*() const { return _src[cur]; }
+      inline BSS_FORCEINLINE _PP operator->() const { return &_src[cur]; }
+      inline BSS_FORCEINLINE cLAIter& operator++() { _src.Next(cur); return *this; } //prefix
+      inline BSS_FORCEINLINE cLAIter operator++(int) { cLAIter r=*this; ++*this; return r; } //postfix
+      inline BSS_FORCEINLINE cLAIter& operator--() { _src.Prev(cur); return *this; } //prefix
+      inline BSS_FORCEINLINE cLAIter operator--(int) { cLAIter r=*this; --*this; return r; } //postfix
+      inline BSS_FORCEINLINE bool operator==(const cLAIter& _Right) const { return (cur == _Right.cur); }
+	    inline BSS_FORCEINLINE bool operator!=(const cLAIter& _Right) const { return (cur != _Right.cur); }
+      inline BSS_FORCEINLINE bool operator!() const { return cur==(__ST)-1; }
+      inline BSS_FORCEINLINE bool IsValid() { return cur!=(__ST)-1; }
 
       __ST cur;
 
@@ -141,13 +141,13 @@ namespace bss_util {
     public:
       inline cLAIterRM(const cLAIterRM& copy) : __BASE(copy), next(copy.next) { }
       inline explicit cLAIterRM(const __BASE& from) : __BASE(from,(__ST)-1), next(from.cur) { }
-      inline reference operator*() const { return _src[cur]; }
-      inline cLAIterRM& operator++() { cur=next; _src.Next(next); return *this; } //prefix
-      inline cLAIterRM& operator--() { next=cur; _src.Prev(cur); return *this; } //prefix
+      inline BSS_FORCEINLINE reference operator*() const { return _src[cur]; }
+      inline BSS_FORCEINLINE cLAIterRM& operator++() { cur=next; _src.Next(next); return *this; } //prefix
+      inline BSS_FORCEINLINE cLAIterRM& operator--() { next=cur; _src.Prev(cur); return *this; } //prefix
       //inline bool operator==(const cLAIterRM& _Right) const { return (next == _Right.next); }
 	    //inline bool operator!=(const cLAIterRM& _Right) const { return (next != _Right.next); }
-      inline bool HasNext() { return next!=(__ST)-1; }
-      inline void Remove() { _src.Remove(cur); }
+      inline BSS_FORCEINLINE bool HasNext() { return next!=(__ST)-1; }
+      inline BSS_FORCEINLINE void Remove() { _src.Remove(cur); }
 
       __ST next;
 	  };

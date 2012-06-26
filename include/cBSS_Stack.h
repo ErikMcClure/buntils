@@ -18,8 +18,8 @@ namespace bss_util {
     inline cBSS_Stack(cBSS_Stack&& mov) : ArrayClass(std::move(mov)), _length(mov._length) {}
     inline explicit cBSS_Stack(int init=8) : ArrayClass(8), _length(0) {}
     inline ~cBSS_Stack() {}
-    inline void BSS_FASTCALL Push(const T& value) { _push(value); }
-    inline void BSS_FASTCALL Push(T&& value) { _push(std::move(value)); }
+    inline BSS_FORCEINLINE void BSS_FASTCALL Push(const T& value) { _push(value); }
+    inline BSS_FORCEINLINE void BSS_FASTCALL Push(T&& value) { _push(std::move(value)); }
     inline T BSS_FASTCALL Pop() { assert(_length!=0); return T(std::move(_array[--_length])); }
     inline T& BSS_FASTCALL Top() { assert(_length!=0); return _array[_length-1]; }
     inline const T& BSS_FASTCALL Top() const { assert(_length!=0); return _array[_length-1]; }

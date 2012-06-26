@@ -305,24 +305,24 @@ namespace bss_util {
     class BSS_COMPILER_DLLEXPORT cKhash_Iter : public std::iterator<std::bidirectional_iterator_tag,khiter_t>
 	  {
     public:
-      inline explicit cKhash_Iter(const cKhash& src) : _src(src), cur(0) { _chknext(); }
-      inline cKhash_Iter(const cKhash& src, khiter_t start) : _src(src), cur(start) { _chknext(); }
+      inline explicit cKhash_Iter(const cKhash& src) : _src(&src), cur(0) { _chknext(); }
+      inline cKhash_Iter(const cKhash& src, khiter_t start) : _src(&src), cur(start) { _chknext(); }
       inline khiter_t operator*() const { return cur; }
       inline cKhash_Iter& operator++() { ++cur; _chknext(); return *this; } //prefix
       inline cKhash_Iter operator++(int) { cKhash_Iter r(*this); ++*this; return r; } //postfix
-      inline cKhash_Iter& operator--() {  while((--cur)<kh_end(_h) && !kh_exist(_h, cur)); return *this; } //prefix
+      inline cKhash_Iter& operator--() {  while((--cur)<_src->End() && !_src->Exists(cur)); return *this; } //prefix
       inline cKhash_Iter operator--(int) { cKhash_Iter r(*this); --*this; return r; } //postfix
       inline bool operator==(const cKhash_Iter& _Right) const { return (cur == _Right.cur); }
 	    inline bool operator!=(const cKhash_Iter& _Right) const { return (cur != _Right.cur); }
       inline bool operator!() const { return !IsValid(); }
-      inline bool IsValid() { return cur<_src.End(); }
+      inline bool IsValid() { return cur<_src->End(); }
 
       khiter_t cur; //khiter_t is unsigned (this is why operator--() works)
 
     protected:
-      inline void _chknext() { while(cur<_src.End() && !_src.Exists(cur)) ++cur; }
+      inline void _chknext() { while(cur<_src->End() && !_src->Exists(cur)) ++cur; }
 
-      const cKhash& _src;
+      const cKhash* _src;
 	  };
 
     inline cKhash_Iter begin() const { return cKhash_Iter(*this,Start()); }
@@ -368,7 +368,7 @@ namespace bss_util {
   public:
     cKhash_Int() : cKhash<__int32, T, true, &KH_INT_HASHFUNC, &KH_INT_EQUALFUNC<__int32>, &KH_INT_VALIDATEPTR<__int32>>() {}
     cKhash_Int(cKhash_Int&& mov) : cKhash(std::move(mov)) {}
-    cKhash_Int& operator=(cKhash_Int&& right) { cKhash::operator=(std::move(right)); return *this; }
+    inline cKhash_Int& operator=(cKhash_Int&& right) { cKhash::operator=(std::move(right)); return *this; }
   };
 
   template<typename T, bool ismap>
@@ -377,7 +377,7 @@ namespace bss_util {
   public:
     cKhash_Int() : cKhash<__int64, T, true, &KH_INT64_HASHFUNC, &KH_INT_EQUALFUNC<__int64>, &KH_INT_VALIDATEPTR<__int64>>() {}
     cKhash_Int(cKhash_Int&& mov) : cKhash(std::move(mov)) {}
-    cKhash_Int& operator=(cKhash_Int&& right) { cKhash::operator=(std::move(right)); return *this; }
+    inline cKhash_Int& operator=(cKhash_Int&& right) { cKhash::operator=(std::move(right)); return *this; }
   };
 
   template<typename T=void*, bool ismap=true>
@@ -386,7 +386,7 @@ namespace bss_util {
   public:
     cKhash_String() : cKhash<const char*, T, true, &KH_STR_HASHFUNC, &KH_STR_EQUALFUNC, &KH_STR_VALIDATEPTR<const char*>>() {}
     cKhash_String(cKhash_String&& mov) : cKhash(std::move(mov)) {}
-    cKhash_String& operator=(cKhash_String&& right) { cKhash::operator=(std::move(right)); return *this; }
+    inline cKhash_String& operator=(cKhash_String&& right) { cKhash::operator=(std::move(right)); return *this; }
   };
 
   template<typename T=void*, bool ismap=true>
@@ -395,7 +395,7 @@ namespace bss_util {
   public:
     cKhash_StringIns() : cKhash<const char*, T, true, &KH_STRINS_HASHFUNC, &KH_STRINS_EQUALFUNC, &KH_STR_VALIDATEPTR<const char*>>() {}
     cKhash_StringIns(cKhash_StringIns&& mov) : cKhash(std::move(mov)) {}
-    cKhash_StringIns& operator=(cKhash_StringIns&& right) { cKhash::operator=(std::move(right)); return *this; }
+    inline cKhash_StringIns& operator=(cKhash_StringIns&& right) { cKhash::operator=(std::move(right)); return *this; }
   };
 
   template<typename T=void*, bool ismap=true>
@@ -404,7 +404,7 @@ namespace bss_util {
   public:
     cKhash_StringW() : cKhash<const wchar_t*, T, true, &KH_STRW_HASHFUNC, &KH_STRW_EQUALFUNC, &KH_STR_VALIDATEPTR<const wchar_t*>>() {}
     cKhash_StringW(cKhash_StringW&& mov) : cKhash(std::move(mov)) {}
-    cKhash_StringW& operator=(cKhash_StringW&& right) { cKhash::operator=(std::move(right)); return *this; }
+    inline cKhash_StringW& operator=(cKhash_StringW&& right) { cKhash::operator=(std::move(right)); return *this; }
   };
 
   template<typename T=void*, bool ismap=true>
@@ -413,7 +413,7 @@ namespace bss_util {
   public:
     cKhash_StringWIns() : cKhash<const wchar_t*, T, true, &KH_STRWINS_HASHFUNC, &KH_STRWINS_EQUALFUNC, &KH_STR_VALIDATEPTR<const wchar_t*>>() {}
     cKhash_StringWIns(cKhash_StringWIns&& mov) : cKhash(std::move(mov)) {}
-    cKhash_StringWIns& operator=(cKhash_StringWIns&& right) { cKhash::operator=(std::move(right)); return *this; }
+    inline cKhash_StringWIns& operator=(cKhash_StringWIns&& right) { cKhash::operator=(std::move(right)); return *this; }
   };
 
   template<typename T=void*, bool ismap=true>
@@ -422,7 +422,7 @@ namespace bss_util {
   public:
     cKhash_Pointer() : cKhash<const void*, T, true, &KH_POINTER_HASHFUNC, &KH_INT_EQUALFUNC<const void*>, &KH_STR_VALIDATEPTR<const void*>>() {}
     cKhash_Pointer(cKhash_Pointer&& mov) : cKhash(std::move(mov)) {}
-    cKhash_Pointer& operator=(cKhash_Pointer&& right) { cKhash::operator=(std::move(right)); return *this; }
+    inline cKhash_Pointer& operator=(cKhash_Pointer&& right) { cKhash::operator=(std::move(right)); return *this; }
   };
 
   
@@ -433,7 +433,7 @@ namespace bss_util {
   public:
     cKhash_StringT() : cKhash<const K*, T, true, &KH_STR_HASHFUNC, &KH_STR_EQUALFUNC, &KH_STR_VALIDATEPTR<const K*>>() {}
     cKhash_StringT(cKhash_StringT&& mov) : cKhash(std::move(mov)) {}
-    cKhash_StringT& operator=(cKhash_StringT&& right) { cKhash::operator=(std::move(right)); return *this; }
+    inline cKhash_StringT& operator=(cKhash_StringT&& right) { cKhash::operator=(std::move(right)); return *this; }
   };
   
   template<typename T, bool ismap>
@@ -442,7 +442,7 @@ namespace bss_util {
   public:
     cKhash_StringT() : cKhash<const char*, T, true, &KH_STR_HASHFUNC, &KH_STR_EQUALFUNC, &KH_STR_VALIDATEPTR<const char*>>() {}
     cKhash_StringT(cKhash_StringT&& mov) : cKhash(std::move(mov)) {}
-    cKhash_StringT& operator=(cKhash_StringT&& right) { cKhash::operator=(std::move(right)); return *this; }
+    inline cKhash_StringT& operator=(cKhash_StringT&& right) { cKhash::operator=(std::move(right)); return *this; }
   };
   
   template<typename T, bool ismap>
@@ -451,7 +451,7 @@ namespace bss_util {
   public:
     cKhash_StringT() : cKhash<const wchar_t*, T, true, &KH_STRW_HASHFUNC, &KH_STRW_EQUALFUNC, &KH_STR_VALIDATEPTR<const wchar_t*>>() {}
     cKhash_StringT(cKhash_StringT&& mov) : cKhash(std::move(mov)) {}
-    cKhash_StringT& operator=(cKhash_StringT&& right) { cKhash::operator=(std::move(right)); return *this; }
+    inline cKhash_StringT& operator=(cKhash_StringT&& right) { cKhash::operator=(std::move(right)); return *this; }
   };
 
   template<typename K=char, typename T=void*, bool ismap=true>
@@ -460,7 +460,7 @@ namespace bss_util {
   public:
     cKhash_StringTIns() : cKhash<const K*, T, true, &KH_STRINS_HASHFUNC, &KH_STRINS_EQUALFUNC, &KH_STR_VALIDATEPTR<const K*>>() {}
     cKhash_StringTIns(cKhash_StringTIns&& mov) : cKhash(std::move(mov)) {}
-    cKhash_StringTIns& operator=(cKhash_StringTIns&& right) { cKhash::operator=(std::move(right)); return *this; }
+    inline cKhash_StringTIns& operator=(cKhash_StringTIns&& right) { cKhash::operator=(std::move(right)); return *this; }
   };
 
   template<typename T, bool ismap>
@@ -469,7 +469,7 @@ namespace bss_util {
   public:
     cKhash_StringTIns() : cKhash<const char*, T, true, &KH_STRINS_HASHFUNC, &KH_STRINS_EQUALFUNC, &KH_STR_VALIDATEPTR<const char*>>() {}
     cKhash_StringTIns(cKhash_StringTIns&& mov) : cKhash(std::move(mov)) {}
-    cKhash_StringTIns& operator=(cKhash_StringTIns&& right) { cKhash::operator=(std::move(right)); return *this; }
+    inline cKhash_StringTIns& operator=(cKhash_StringTIns&& right) { cKhash::operator=(std::move(right)); return *this; }
   };
 
   template<typename T, bool ismap>
@@ -478,7 +478,7 @@ namespace bss_util {
   public:
     cKhash_StringTIns() : cKhash<const wchar_t*, T, true, &KH_STRWINS_HASHFUNC, &KH_STRWINS_EQUALFUNC, &KH_STR_VALIDATEPTR<const wchar_t*>>() {}
     cKhash_StringTIns(cKhash_StringTIns&& mov) : cKhash(std::move(mov)) {}
-    cKhash_StringTIns& operator=(cKhash_StringTIns&& right) { cKhash::operator=(std::move(right)); return *this; }
+    inline cKhash_StringTIns& operator=(cKhash_StringTIns&& right) { cKhash::operator=(std::move(right)); return *this; }
   };
 }
 

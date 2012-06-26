@@ -27,15 +27,15 @@ namespace bss_util
     explicit inline cUniquePtr(const cUniquePtr_Ref<_Ty>& pref) : std::unique_ptr<_Ty>(pref._p) {}
     inline cUniquePtr() {}
 
-    inline bool operator !() { return !get(); }
-    inline bool operator ==(const _Ty* right) { return get()==right; }
-    inline bool operator !=(const _Ty* right) { return get()!=right; }
-    inline operator _Ty*() { return get(); }
-    inline operator const _Ty*() const { return get(); }
-    inline _Ty* operator->() { return get(); }
-    inline const _Ty* operator->() const { return get(); }
-    inline _Ty& operator*() { return *get(); }
-    inline const _Ty& operator*() const { return *get(); }
+    inline BSS_FORCEINLINE bool operator !() { return !get(); }
+    inline BSS_FORCEINLINE bool operator ==(const _Ty* right) { return get()==right; }
+    inline BSS_FORCEINLINE bool operator !=(const _Ty* right) { return get()!=right; }
+    inline BSS_FORCEINLINE operator _Ty*() { return get(); }
+    inline BSS_FORCEINLINE operator const _Ty*() const { return get(); }
+    inline BSS_FORCEINLINE _Ty* operator->() { return get(); }
+    inline BSS_FORCEINLINE const _Ty* operator->() const { return get(); }
+    inline BSS_FORCEINLINE _Ty& operator*() { return *get(); }
+    inline BSS_FORCEINLINE const _Ty& operator*() const { return *get(); }
     inline cUniquePtr& operator=(const cUniquePtr_Ref<_Ty>& right) { reset(right._p); return *this; }
     inline cUniquePtr& operator=(cUniquePtr&& right) { std::unique_ptr<_Ty>::operator=(std::move(right)); return *this; }
 
@@ -61,24 +61,24 @@ namespace bss_util
     inline cOwnerPtr() : _p(0), _owner(false) { }
     inline ~cOwnerPtr() { _disown(); }
 
-    inline bool operator !() { return !get(); }
-    inline bool operator ==(const _Ty* right) { return _p==right; }
-    inline bool operator !=(const _Ty* right) { return _p!=right; }
-    inline bool operator ==(const cOwnerPtr& right) { return _p==right._p; }
-    inline bool operator !=(const cOwnerPtr& right) { return _p!=right._p; }
-    inline operator _Ty*() { return _p; }
-    inline operator const _Ty*() const { return _p; }
-    inline _Ty* operator->() { return _p; }
-    inline const _Ty* operator->() const { return _p; }
-    inline _Ty& operator*() { return *_p; }
-    inline const _Ty& operator*() const { return *_p; }
+    inline BSS_FORCEINLINE bool operator !() { return !get(); }
+    inline BSS_FORCEINLINE bool operator ==(const _Ty* right) { return _p==right; }
+    inline BSS_FORCEINLINE bool operator !=(const _Ty* right) { return _p!=right; }
+    inline BSS_FORCEINLINE bool operator ==(const cOwnerPtr& right) { return _p==right._p; }
+    inline BSS_FORCEINLINE bool operator !=(const cOwnerPtr& right) { return _p!=right._p; }
+    inline BSS_FORCEINLINE operator _Ty*() { return _p; }
+    inline BSS_FORCEINLINE operator const _Ty*() const { return _p; }
+    inline BSS_FORCEINLINE _Ty* operator->() { return _p; }
+    inline BSS_FORCEINLINE const _Ty* operator->() const { return _p; }
+    inline BSS_FORCEINLINE _Ty& operator*() { return *_p; }
+    inline BSS_FORCEINLINE const _Ty& operator*() const { return *_p; }
     inline cOwnerPtr& operator=(const cOwnerPtr_Ref<_Ty>& right) { _disown(); _p=right._p; _owner=true; return *this; }
     inline cOwnerPtr& operator=(const cOwnerPtr& right) { _disown(); _p=right._p; _owner=false; return *this; }
     inline cOwnerPtr& operator=(_Ty& ref) { _disown(); _p=&ref; _owner=false; return *this; }
     inline cOwnerPtr& operator=(cOwnerPtr&& right) { _disown(); _p=right._p; _owner=true; right._owner=false; return *this; }
 
   protected:
-    inline void _disown() const { if(_owner) { _Dy::operator()(_p); } }
+    inline BSS_FORCEINLINE void _disown() const { if(_owner) { _Dy::operator()(_p); } }
 
     _Ty* _p;
     bool _owner;

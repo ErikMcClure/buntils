@@ -11,49 +11,49 @@
 
 namespace bss_util {
   template<typename T> // Returns -1,0,1
-  inline char CompT(const T& left, const T& right) { return SGNCOMPARE(left,right); }
+  inline BSS_FORCEINLINE char CompT(const T& left, const T& right) { return SGNCOMPARE(left,right); }
 
   template<typename T> // Returns -1,0,1
-  inline char CompTInv(const T& left, const T& right) { return SGNCOMPARE(right,left); }
+  inline BSS_FORCEINLINE char CompTInv(const T& left, const T& right) { return SGNCOMPARE(right,left); }
 
   template<typename T> // Returns 1 if l<r or 0 otherwise
-  inline char CompT_LT(const T& left, const T& right) { return -(left<right); }
+  inline BSS_FORCEINLINE char CompT_LT(const T& left, const T& right) { return -(left<right); }
 
   template<typename T> // Returns 1 if l>r or 0 otherwise
-  inline char CompT_GT(const T& left, const T& right) { return (left>right); }
+  inline BSS_FORCEINLINE char CompT_GT(const T& left, const T& right) { return (left>right); }
 
   template<typename T> 
-  inline char CompT_EQ(const T& left, const T& right) { return (left==right); }
+  inline BSS_FORCEINLINE char CompT_EQ(const T& left, const T& right) { return (left==right); }
 
   template<typename T> 
-  inline char CompT_NEQ(const T& left, const T& right) { return (left!=right); }
+  inline BSS_FORCEINLINE char CompT_NEQ(const T& left, const T& right) { return (left!=right); }
 
   template<typename T, char (*CFunc)(const typename T::first_type&, const typename T::first_type&)>
-  inline char CompTFirst(const T& left, const T& right) { return CFunc(left.first, right.first); }
+  inline BSS_FORCEINLINE char CompTFirst(const T& left, const T& right) { return CFunc(left.first, right.first); }
 
   template<typename T, char (*CFunc)(const typename T::first_type&, const typename T::first_type&)>
-  inline char CompTSecond(const T& left, const T& right) { return CFunc(left.second, right.second); }
+  inline BSS_FORCEINLINE char CompTSecond(const T& left, const T& right) { return CFunc(left.second, right.second); }
 
   template<typename T>
-  inline char CompStr(const T& left, const T& right)
+  inline BSS_FORCEINLINE char CompStr(const T& left, const T& right)
   {
     int result = strcmp(left, right);
     return SGNCOMPARE(result,0);
   }
   template<typename T>
-  inline char CompIStr(const T& left, const T& right)
+  inline BSS_FORCEINLINE char CompIStr(const T& left, const T& right)
   {
     int result = STRICMP(left, right);
     return SGNCOMPARE(result,0);
   }
   template<typename T>
-  inline char CompStrW(const T& left, const T& right)
+  inline BSS_FORCEINLINE char CompStrW(const T& left, const T& right)
   {
     int result = wcscmp(left, right);
     return SGNCOMPARE(result,0);
   }
   template<typename T>
-  inline char CompIStrW(const T& left, const T& right)
+  inline BSS_FORCEINLINE char CompIStrW(const T& left, const T& right)
   {
     int result = WCSICMP(left, right);
     return SGNCOMPARE(result,0);

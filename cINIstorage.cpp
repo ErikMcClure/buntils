@@ -40,7 +40,7 @@ void cINIstorage::_openINI()
   FOPEN(f,targetpath,"a+b"); //this will create the file if it doesn't already exist
   if(!f) return;
   fseek(f,0,SEEK_END);
-  size_t size=ftell(f);
+  size_t size=(size_t)ftell(f);
   fseek(f,0,SEEK_SET);
   _ini = new cStr(size+1);
   size=fread(_ini->UnsafeString(),sizeof(char),size,f); //reads in the entire file
@@ -206,7 +206,7 @@ bool cINIstorage::RemoveSection(const char* name, unsigned int instance)
     }
     else
     {
-      arr->Remove(instance);
+      arr->RemoveShrink(instance);
       if(!instance) _sections.OverrideKeyPtr(iter,(*arr)[0].GetName());
       unsigned int svar=arr->Size();
       for(;instance<svar;++instance) --(*arr)[instance]._index; //moves all the indices down
@@ -273,7 +273,7 @@ char cINIstorage::EditEntry(const char* section, const char* key, const char* nv
     }
     else 
     {
-      entarr->Remove(keyinstance);
+      entarr->RemoveShrink(keyinstance);
       psec->_entries.OverrideKeyPtr(iter,(*entarr)[0].GetKey());
     }
     const char* end=strchr((const char*)chunk.end,'\n');
@@ -299,6 +299,7 @@ void cINIstorage::EndINIEdit(const char* overridepath)
   targetpath+=_filename;
   FILE* f;
   FOPEN(f,targetpath,("wb"));
+  if(!f) return; // IF the file fails, bail out and do not discard the edit.
   fwrite(*_ini,sizeof(char),_ini->size(),f);
   fclose(f);
   DiscardINIEdit();
@@ -360,7 +361,6 @@ void cINIstorage::_destroyhash()
 
 void cINIstorage::_copyhash(const cINIstorage& copy)
 {
-  unsigned int i=0;
   __ARR* old;
   __ARR* arr;
   for(auto iter=copy._sections.begin(); iter.IsValid(); ++iter)
@@ -410,7 +410,7 @@ cINIsection::cINIsection(const cINIsection& copy) : _name(copy._name),_parent(co
 cINIsection::cINIsection(cINIsection&& mov) : _name(std::move(mov._name)),_parent(mov._parent),_index(mov._index), _entries(std::move(mov._entries))
 {
 }
-cINIsection::cINIsection() : _parent(0), _index(-1)
+cINIsection::cINIsection() : _parent(0), _index((unsigned int)-1)
 {
 }
 cINIsection::cINIsection(const char* name, cINIstorage* parent, unsigned int index) : _name(name), _parent(parent), _index(index)

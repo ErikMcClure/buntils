@@ -30,7 +30,7 @@ namespace bss_util
   protected:
     typedef StorageType __STORE;
     typedef SizeType __ST;
-    static const __ST DIV_AMT=/*log2_p2*/(sizeof(__STORE)<<3); 
+    static const __ST DIV_AMT=(sizeof(__STORE)<<3); 
     static const __ST MOD_AMT=(sizeof(__STORE)<<3)-1;
     
   public:

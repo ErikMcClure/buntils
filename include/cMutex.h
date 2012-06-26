@@ -65,7 +65,7 @@ namespace bss_util {
   class BSS_COMPILER_DLLEXPORT cLockable
   {
   public:
-    inline cLockable(unsigned long flip=0) : _syncobj(4) {}
+    inline cLockable() : _syncobj(4) {}
     inline const cThreadSync& GetSyncObj() const { return _syncobj; }
     inline void Lock() const { _syncobj.Lock(); }
     inline void Unlock() const { _syncobj.Unlock(); }
@@ -80,6 +80,7 @@ namespace bss_util {
     inline cScopeLock(const cLockable& lockable) : _syncobj(lockable.GetSyncObj()) { _syncobj.Lock(); }
     inline cScopeLock(const cThreadSync& syncobj) : _syncobj(syncobj) { _syncobj.Lock(); }
     inline ~cScopeLock() { _syncobj.Unlock(); }
+    inline cScopeLock& operator=(const cScopeLock& right) { return *this; } // Disallow assignment because it makes no sense
 
   protected:
     const cThreadSync& _syncobj;

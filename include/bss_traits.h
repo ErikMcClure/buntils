@@ -28,7 +28,7 @@ namespace bss_util {
     typedef const T *const_pointer;
     typedef T reference;
     typedef const T const_reference;
-    typedef T&& move_reference;
+    typedef void move_reference;
     typedef T value_type;
   };
 }

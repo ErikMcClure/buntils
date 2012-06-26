@@ -22,24 +22,24 @@ namespace bss_util {
     BSS_DLLEXPORT cINIentry(const char* key, const char* data);
     BSS_DLLEXPORT ~cINIentry();
     BSS_DLLEXPORT void SetData(const char* data);
-    inline const char* GetKey() const { return _key; }
-    inline const char* GetString() const { return _svalue; }
-    inline long GetLong() const { return _lvalue; }
-    inline double GetDouble() const { return _dvalue; }
-    inline bool IsValid() const { return !_key.empty(); }
+    inline BSS_FORCEINLINE const char* GetKey() const { return _key; }
+    inline BSS_FORCEINLINE const char* GetString() const { return _svalue; }
+    inline BSS_FORCEINLINE long GetLong() const { return _lvalue; }
+    inline BSS_FORCEINLINE double GetDouble() const { return _dvalue; }
+    inline BSS_FORCEINLINE bool IsValid() const { return !_key.empty(); }
 
-    inline operator bool() const { return _lvalue!=0; }
-    inline operator char() const { return (char)_lvalue; }
-    inline operator short() const { return (short)_lvalue; }
-    inline operator int() const { return (int)_lvalue; }
-    inline operator long() const { return (long)_lvalue; }
-    inline operator unsigned char() const { return (unsigned char)_lvalue; }
-    inline operator unsigned short() const { return (unsigned short)_lvalue; }
-    inline operator unsigned int() const { return (unsigned int)_lvalue; }
-    inline operator unsigned long() const { return (unsigned long)_lvalue; }
-    inline operator float() const { return (float)_dvalue; }
-    inline operator double() const { return _dvalue; }
-    inline operator const char*() const { return _svalue; }
+    inline BSS_FORCEINLINE operator bool() const { return _lvalue!=0; }
+    inline BSS_FORCEINLINE operator char() const { return (char)_lvalue; }
+    inline BSS_FORCEINLINE operator short() const { return (short)_lvalue; }
+    inline BSS_FORCEINLINE operator int() const { return (int)_lvalue; }
+    inline BSS_FORCEINLINE operator long() const { return (long)_lvalue; }
+    inline BSS_FORCEINLINE operator unsigned char() const { return (unsigned char)_lvalue; }
+    inline BSS_FORCEINLINE operator unsigned short() const { return (unsigned short)_lvalue; }
+    inline BSS_FORCEINLINE operator unsigned int() const { return (unsigned int)_lvalue; }
+    inline BSS_FORCEINLINE operator unsigned long() const { return (unsigned long)_lvalue; }
+    inline BSS_FORCEINLINE operator float() const { return (float)_dvalue; }
+    inline BSS_FORCEINLINE operator double() const { return _dvalue; }
+    inline BSS_FORCEINLINE operator const char*() const { return _svalue; }
 
     BSS_DLLEXPORT bool operator ==(cINIentry &other) const; //these can't be inlined because the compare function is different.
     BSS_DLLEXPORT bool operator !=(cINIentry &other) const;
@@ -73,7 +73,7 @@ namespace bss_util {
     inline cINIstorage* GetParent() const { return _parent; }
     inline const char* GetName() const { return _name; }
     inline unsigned int GetIndex() const { return _index; }
-    inline cINIentry& operator[](const char* key) const { return GetEntry(key,0); }
+    inline BSS_FORCEINLINE cINIentry& operator[](const char* key) const { return GetEntry(key,0); }
     BSS_DLLEXPORT cINIsection& operator=(const cINIsection& right);
     BSS_DLLEXPORT cINIsection& operator=(cINIsection&& mov);
 
@@ -121,7 +121,7 @@ namespace bss_util {
     BSS_DLLEXPORT void EndINIEdit(const char* overridepath=0); //Saves changes to file (INI files are automatically opened when an edit operation is done)
     BSS_DLLEXPORT void DiscardINIEdit();
 
-    inline cINIsection& operator [](const char *section) const { cINIsection* ret=GetSection(section,0); return !ret?_sectionsentinel:*ret; }
+    inline BSS_FORCEINLINE cINIsection& operator [](const char *section) const { cINIsection* ret=GetSection(section,0); return !ret?_sectionsentinel:*ret; }
     BSS_DLLEXPORT cINIstorage& operator=(const cINIstorage& right);
     BSS_DLLEXPORT cINIstorage& operator=(cINIstorage&& mov);
     inline const char* GetPath() const { return _path; } //gets path to folder this INI was in

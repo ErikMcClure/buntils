@@ -28,10 +28,13 @@ char BSS_FASTCALL bss_initINI(INIParser* init, FILE* stream)
   if(!init) return 0;
   init->file=stream;
   init->curvalue=(char*)malloc(sizeof(char)); //If this isn't sizeof(char), when the next line gets executed, the system thinks its 2 bytes long for wchar_t and overwrites memory
+  if(!init->curvalue) return 0;
   *init->curvalue=0;
   init->curkey=(char*)malloc(sizeof(char));
+  if(!init->curkey) return 0;
   *init->curkey=0;
   init->cursection=(char*)malloc(sizeof(char));
+  if(!init->cursection) return 0;
   *init->cursection=0;
   return 1;
 }
@@ -125,6 +128,7 @@ char* BSS_FASTCALL _savestr(char* orig, const char* str)
   {
     free(orig);
     orig=(char*)malloc((nlength+1)*sizeof(char));
+    if(!orig) return 0;
   }
   memcpy(orig,str,nlength*sizeof(char));
   orig[nlength]='\0';
@@ -224,7 +228,7 @@ const char* BSS_FASTCALL _trimrstralt(const char* end,const char* begin)
   return end;
 }
 
-char BSS_FASTCALL comparevalues(const char* start, const char* end, const char* comp)
+int BSS_FASTCALL comparevalues(const char* start, const char* end, const char* comp)
 {
   ptrdiff_t a,b;
   start=_trimlstr(start);

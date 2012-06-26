@@ -128,18 +128,18 @@ BSS_COMPILER_DLLEXPORT extern unsigned long long BSS_FASTCALL bss_util::bssFileS
 
 BSS_COMPILER_DLLEXPORT
 #ifdef BSS_PLATFORM_WIN32 //Windows function
-extern void BSS_FASTCALL bss_util::FileDialog(wchar_t (&buf)[MAX_PATH], bool open, int flags, const char* file, const char* filter, HWND__* owner, const char* initdir, const char* defext)
+extern void BSS_FASTCALL bss_util::FileDialog(wchar_t (&buf)[MAX_PATH], bool open, unsigned long flags, const char* file, const char* filter, HWND__* owner, const char* initdir, const char* defext)
 {
   cStrW wfilter;
   size_t c;
   const char* i;
-  for(i=filter; *((const short*)i) != 0; ++i)
+  for(i=filter; *((const short*)i) != 0; ++i);
   c=i-filter+1; //+1 to include null terminator
   wfilter.reserve(MultiByteToWideChar(CP_UTF8, 0, filter, c, 0, 0));
   MultiByteToWideChar(CP_UTF8, 0, filter, c, wfilter.UnsafeString(), wfilter.capacity());
   FileDialog(buf,open,flags,cStrW(file),wfilter,owner,cStrW(initdir),cStrW(defext));
 }
-extern void BSS_FASTCALL bss_util::FileDialog(wchar_t (&buf)[MAX_PATH], bool open, int flags, const wchar_t* file, const wchar_t* filter, HWND__* owner, const wchar_t* initdir, const wchar_t* defext)
+extern void BSS_FASTCALL bss_util::FileDialog(wchar_t (&buf)[MAX_PATH], bool open, unsigned long flags, const wchar_t* file, const wchar_t* filter, HWND__* owner, const wchar_t* initdir, const wchar_t* defext)
 {
   //char* buf = (char*)calloc(MAX_PATH,1);
   GetCurrentDirectoryW(MAX_PATH,buf);
@@ -382,7 +382,7 @@ extern long BSS_FASTCALL bss_util::GetTimeZoneMinutes()
 //}
 
 template<class _Fn>
-inline int BSS_FASTCALL r_setregvalue(HKEY__*	hOpenKey, const wchar_t* szKey, const wchar_t* szValue, _Fn fn)
+inline int BSS_FASTCALL r_setregvalue(HKEY__*	hOpenKey, const wchar_t* szKey, _Fn fn)
 {
 	BOOL 	bRetVal = FALSE;
 	DWORD	dwDisposition;
@@ -413,9 +413,9 @@ int BSS_FASTCALL bss_util::SetRegistryValue(HKEY__*	hOpenKey, const char* szKey,
 
 int BSS_FASTCALL bss_util::SetRegistryValue(HKEY__*	hOpenKey, const wchar_t* szKey, const wchar_t* szValue, const char* szData)
 {
-  if(!hOpenKey || !szKey || !szKey[0] || !szValue || !szData) { ::SetLastError(E_INVALIDARG); return FALSE; } // validate input
+  if(!hOpenKey || !szKey || !szKey[0] || !szValue || !szData) { ::SetLastError((DWORD)E_INVALIDARG); return FALSE; } // validate input
   
-  return r_setregvalue(hOpenKey,szKey,szValue,[&](HKEY& hTempKey, DWORD& dwReserved) -> int {
+  return r_setregvalue(hOpenKey,szKey,[&](HKEY& hTempKey, DWORD& dwReserved) -> int {
     return RegSetValueExW(hTempKey, (LPWSTR)szValue, dwReserved, REG_SZ, (LPBYTE)szData, ((DWORD)strlen(szData)+1)*sizeof(wchar_t));
   });
 }
@@ -426,9 +426,9 @@ int BSS_FASTCALL bss_util::SetRegistryValue(HKEY__*	hOpenKey, const char* szKey,
 }
 int BSS_FASTCALL bss_util::SetRegistryValue(HKEY__*	hOpenKey, const wchar_t* szKey, const wchar_t* szValue, __int32 szData)
 {
-  if(!hOpenKey || !szKey || !szKey[0] || !szValue) { ::SetLastError(E_INVALIDARG); return FALSE; } // validate input
+  if(!hOpenKey || !szKey || !szKey[0] || !szValue) { ::SetLastError((DWORD)E_INVALIDARG); return FALSE; } // validate input
   
-  return r_setregvalue(hOpenKey,szKey,szValue,[&](HKEY& hTempKey, DWORD& dwReserved) -> int {
+  return r_setregvalue(hOpenKey,szKey,[&](HKEY& hTempKey, DWORD& dwReserved) -> int {
     return RegSetValueExW(hTempKey, (LPWSTR)szValue, dwReserved, REG_DWORD, (LPBYTE)&szData, sizeof(__int32));
   });
 }
@@ -438,9 +438,9 @@ int BSS_FASTCALL bss_util::SetRegistryValue64(HKEY__*	hOpenKey, const char* szKe
 }
 int BSS_FASTCALL bss_util::SetRegistryValue64(HKEY__*	hOpenKey, const wchar_t* szKey, const wchar_t* szValue, __int64 szData)
 {
-  if(!hOpenKey || !szKey || !szKey[0] || !szValue) { ::SetLastError(E_INVALIDARG); return FALSE; } // validate input
+  if(!hOpenKey || !szKey || !szKey[0] || !szValue) { ::SetLastError((DWORD)E_INVALIDARG); return FALSE; } // validate input
   
-  return r_setregvalue(hOpenKey,szKey,szValue,[&](HKEY& hTempKey, DWORD& dwReserved) -> int {
+  return r_setregvalue(hOpenKey,szKey,[&](HKEY& hTempKey, DWORD& dwReserved) -> int {
     return RegSetValueExW(hTempKey, (LPWSTR)szValue, dwReserved, REG_QWORD, (LPBYTE)&szData, sizeof(__int64));
   });
 }

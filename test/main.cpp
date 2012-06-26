@@ -1,10 +1,10 @@
 ﻿// Copyright ©2012 Black Sphere Studios
 // For conditions of distribution and use, see copyright notice in "bss_util.h"
 
-//#define __NO_UNIQUE_MODIFY__
 #include "Shiny.h"
 #include "bss_util.h"
 #include "bss_DebugInfo.h"
+#include "bss_algo.h"
 #include "bss_alloc_additive.h"
 #include "bss_alloc_fixed.h"
 #include "bss_deprecated.h"
@@ -20,6 +20,7 @@
 #include "cByteQueue.h"
 #include "cCmdLineArgs.h"
 #include "cDef.h"
+#include "cDynArray.h"
 #include "cHolder.h"
 #include "cINIstorage.h"
 #include "cKhash.h"
@@ -53,15 +54,17 @@
 #include <algorithm>
 #include <time.h>
 
-#define BOOST_FILESYSTEM_VERSION 3
+//#define BOOST_FILESYSTEM_VERSION 3
 //#define BOOST_ALL_NO_LIB
 //#define BOOST_ALL_DYN_LINK
-#define BOOST_ALL_NO_DEPRECATED
+//#define BOOST_ALL_NO_DEPRECATED
 //#include <boost/filesystem.hpp>
 
 #pragma warning(disable:4566)
 
 using namespace bss_util;
+
+// --- Define testing utilities ---
 
 struct TEST
 {
@@ -72,12 +75,20 @@ struct TEST
 
 #define BEGINTEST TEST::RETPAIR __testret(0,0);
 #define ENDTEST return __testret
-#define TEST(t) ++__testret.first; try { if(t) ++__testret.second; } catch(...) { }
-#define TESTERROR(t, e) ++__testret.first; try { (t); } catch(e) { ++__testret.second; }
+#define FAILEDTEST(t) BSSLOG(_failedtests,1) << "Test #" << __testret.first << " Failed  < " << MAKESTRING(t) << " >" << std::endl
+#define TEST(t) { ++__testret.first; try { if(t) ++__testret.second; else FAILEDTEST(t); } catch(...) { FAILEDTEST(t); } }
+#define TESTERROR(t, e) { ++__testret.first; try { (t); FAILEDTEST(t); } catch(e) { ++__testret.second; } }
 #define TESTERR(t) TESTERROR(t,...)
-#define TESTNOERROR(t) ++__testret.first; try { (t); ++__testret.second; } catch(...) { }
-#define TESTALL(t) for_all([&__testret](bool __x){ ++__testret.first; if(__x) ++__testret.second; },t);
-#define TESTANY(t) { bool __val=true; for_all([&__testret,&__val](bool __x){ __val=__val&&__x; },t); TEST(__val); }
+#define TESTNOERROR(t) { ++__testret.first; try { (t); ++__testret.second; } catch(...) { FAILEDTEST(t); } }
+#define TESTARRAY(t,f) _ITERFUNC(__testret,t,[&](uint i) -> bool { f });
+#define TESTALL(t,f) _ITERALL(__testret,t,[&](uint i) -> bool { f });
+#define TESTCOUNT(c,t) { for(uint i = 0; i < c; ++i) TEST(t) }
+#define TESTCOUNTALL(c,t) { bool __val=true; for(uint i = 0; i < c; ++i) __val=__val&&(t); TEST(__val); }
+
+template<class T, size_t SIZE, class F>
+void _ITERFUNC(TEST::RETPAIR& __testret, T (&t)[SIZE], F f) { for(uint i = 0; i < SIZE; ++i) TEST(f(i)) }
+template<class T, size_t SIZE, class F>
+void _ITERALL(TEST::RETPAIR& __testret, T (&t)[SIZE], F f) { bool __val=true; for(uint i = 0; i < SIZE; ++i) __val=__val&&(f(i)); TEST(__val); }
 
 template<class T>
 T naivebitcount(T v)
@@ -95,6 +106,81 @@ void testbitcount(TEST::RETPAIR& __testret)
     TEST(naivebitcount<T>(i)==bitcount<T>(i));
   }
 }
+template<class T> void VERIFYTYPE(const T& type) { }
+
+// This defines an enormous list of pangrams for a ton of languages, used for text processing in an attempt to expose possible unicode errors.
+const char* PANGRAM = "The wizard quickly jinxed the gnomes before they vapourized.";
+const wchar_t* PANGRAMS[] = { 
+  L"The wizard quickly jinxed the gnomes before they vapourized.",
+  L"صِف خَلقَ خَودِ كَمِثلِ الشَمسِ إِذ بَزَغَت — يَحظى الضَجيعُ بِها نَجلاءَ مِعطارِ", //Arabic
+  L"Zəfər, jaketini də papağını da götür, bu axşam hava çox soyuq olacaq.", //Azeri
+  L"Ах чудна българска земьо, полюшквай цъфтящи жита.", //Bulgarian
+  L"Jove xef, porti whisky amb quinze glaçons d'hidrogen, coi!", //Catalan
+  L"Příliš žluťoučký kůň úpěl ďábelské ódy.", //Czech
+  L"Høj bly gom vandt fræk sexquiz på wc", //Danish
+  L"Filmquiz bracht knappe ex-yogi van de wijs", //Dutch
+  L"ཨ་ཡིག་དཀར་མཛེས་ལས་འཁྲུངས་ཤེས་བློའི་གཏེར༎ ཕས་རྒོལ་ཝ་སྐྱེས་ཟིལ་གནོན་གདོང་ལྔ་བཞིན༎ ཆགས་ཐོགས་ཀུན་བྲལ་མཚུངས་མེད་འཇམ་དབྱངསམཐུས༎ མཧཱ་མཁས་པའི་གཙོ་བོ་ཉིད་འགྱུར་ཅིག།", //Dzongkha
+  L"Eble ĉiu kvazaŭ-deca fuŝĥoraĵo ĝojigos homtipon.", //Esperanto
+  L"Põdur Zagrebi tšellomängija-följetonist Ciqo külmetas kehvas garaažis", //Estonian
+  L"Törkylempijävongahdus", //Finnish
+  L"Falsches Üben von Xylophonmusik quält jeden größeren Zwerg", //German
+  L"Τάχιστη αλώπηξ βαφής ψημένη γη, δρασκελίζει υπέρ νωθρού κυνός", //Greek
+  L"כך התרסק נפץ על גוזל קטן, שדחף את צבי למים", //Hebrew
+  L"दीवारबंद जयपुर ऐसी दुनिया है जहां लगभग हर दुकान का नाम हिन्दी में लिखा गया है। नामकरण की ऐसी तरतीब हिन्दुस्तान में कम दिखती है। दिल्ली में कॉमनवेल्थ गेम्स के दौरान कनॉट प्लेस और पहाड़गंज की नामपट्टिकाओं को एक समान करने का अभियान चला। पत्रकार लिख", //Hindi
+  L"Kæmi ný öxi hér, ykist þjófum nú bæði víl og ádrepa.", //Icelandic
+  L"いろはにほへと ちりぬるを わかよたれそ つねならむ うゐのおくやま けふこえて あさきゆめみし ゑひもせす（ん）", //Japanese
+  L"꧋ ꦲꦤꦕꦫꦏ꧈ ꦢꦠꦱꦮꦭ꧈ ꦥꦝꦗꦪꦚ꧈ ꦩꦒꦧꦛꦔ꧉", //Javanese
+  L"    ", //Klingon
+  L"키스의 고유조건은 입술끼리 만나야 하고 특별한 기술은 필요치 않다.", //Korean
+  L"သီဟိုဠ်မှ ဉာဏ်ကြီးရှင်သည် အာယုဝဍ္ဎနဆေးညွှန်းစာကို ဇလွန်ဈေးဘေးဗာဒံပင်ထက် အဓိဋ္ဌာန်လျက် ဂဃနဏဖတ်ခဲ့သည်။", //Myanmar
+  L"بر اثر چنین تلقین و شستشوی مغزی جامعی، سطح و پایه‌ی ذهن و فهم و نظر بعضی اشخاص واژگونه و معکوس می‌شود.‏", //Persian
+  L"À noite, vovô Kowalsky vê o ímã cair no pé do pingüim queixoso e vovó põe açúcar no chá de tâmaras do jabuti feliz.", //Portuguese
+  L"Эх, чужак! Общий съём цен шляп (юфть) – вдрызг!", //Russian
+  L"Fin džip, gluh jež i čvrst konjić dođoše bez moljca.", //Serbian
+  L"Kŕdeľ ďatľov učí koňa žrať kôru.", //Slovak
+  L"เป็นมนุษย์สุดประเสริฐเลิศคุณค่า กว่าบรรดาฝูงสัตว์เดรัจฉาน จงฝ่าฟันพัฒนาวิชาการ อย่าล้างผลาญฤๅเข่นฆ่าบีฑาใคร ไม่ถือโทษโกรธแช่งซัดฮึดฮัดด่า หัดอภัยเหมือนกีฬาอัชฌาสัย ปฏิบัติประพฤติกฎกำหนดใจ พูดจาให้จ๊ะๆ จ๋าๆ น่าฟังเอยฯ", //Thai
+  L"ژالہ باری میں ر‌ضائی کو غلط اوڑھے بیٹھی قرۃ العین اور عظمٰی کے پاس گھر کے ذخیرے سے آناً فاناً ڈش میں ثابت جو، صراحی میں چائے اور پلیٹ میں زردہ آیا۔" //Urdu
+};
+
+const int TESTNUM=100000;
+int testnums[TESTNUM];
+BSSDEBUG _debug;
+bss_Log _failedtests("../bin/failedtests.txt"); //This is spawned too early for us to save it with SetWorkDirToCur();
+
+template<unsigned char B, __int64 SMIN, __int64 SMAX, unsigned __int64 UMIN, unsigned __int64 UMAX>
+inline void BSS_FASTCALL TEST_ABITLIMIT(TEST::RETPAIR& __testret)
+{
+  VERIFYTYPE<char>(ABitLimit<1>::SIGNED(0));
+  VERIFYTYPE<unsigned char>(ABitLimit<1>::UNSIGNED(0));
+  TEST(ABitLimit<B>::SIGNED_MIN==SMIN); 
+  TEST(ABitLimit<B>::SIGNED_MAX==SMAX);
+  TEST(ABitLimit<B>::UNSIGNED_MIN==UMIN);
+  TEST(ABitLimit<B>::UNSIGNED_MAX==UMAX);
+}
+
+template<typename T, size_t S> inline static size_t BSS_FASTCALL _ARRSIZE(const T (&a)[S]) { return S; }
+
+#if defined(BSS_CPU_x86) || defined(BSS_CPU_x64)
+  /* This is an SSE version of the fast sqrt that calculates x*invsqrt(x) as a speed hack. Sadly, it's still slower and actually LESS accurate than the classic FastSqrt with an added iteration, below, and it isn't even portable. Left here for reference, in case you don't believe me ;) */
+  inline BSS_FORCEINLINE float sseFastSqrt(float f)
+  {
+    float r;
+    __m128 in = _mm_load_ss(&f);
+    _mm_store_ss( &r, _mm_mul_ss( in, _mm_rsqrt_ss( in ) ) );
+    return r;
+  }
+#endif
+
+ template<typename T>
+ T calceps()
+ {
+    T e = (T)0.5;
+    while ((T)(1.0 + (e/2.0)) != 1.0) { e /= (T)2.0; }
+    return e;
+ }
+
+// --- Begin actual test procedure definitions ---
+
 TEST::RETPAIR test_bss_util()
 {
   BEGINTEST;
@@ -104,14 +190,359 @@ TEST::RETPAIR test_bss_util()
   TEST(bssFileSize(fbuf)!=0);
   //TEST(bssFileSize(cStrW(fbuf))!=0);
   TESTNOERROR(GetTimeZoneMinutes());
+  
+  TSignPick<sizeof(long double)>::SIGNED _u1;
+  TSignPick<sizeof(double)>::SIGNED _u2;
+  TSignPick<sizeof(float)>::SIGNED _u3;
+  TSignPick<sizeof(long double)>::UNSIGNED _v1;
+  TSignPick<sizeof(double)>::UNSIGNED _v2;
+  TSignPick<sizeof(float)>::UNSIGNED _v3;
+  TEST(T_CHARGETMSB(0)==0);
+  TEST(T_CHARGETMSB(1)==1);
+  TEST(T_CHARGETMSB(2)==2);
+  TEST(T_CHARGETMSB(3)==2);
+  TEST(T_CHARGETMSB(4)==4);
+  TEST(T_CHARGETMSB(7)==4);
+  TEST(T_CHARGETMSB(8)==8);
+  TEST(T_CHARGETMSB(20)==16);
+  TEST(T_CHARGETMSB(84)==64);
+  TEST(T_CHARGETMSB(189)==128);
+  TEST(T_CHARGETMSB(255)==128);
+
+  //TBitLimit conveniently calls TSignPick for us. Note that these tests CAN fail if trying to compile to an unsupported or buggy platform that doesn't have two's complement.
+  TEST(TBitLimit<long long>::SIGNED_MIN == std::numeric_limits<long long>::min());
+  TEST(TBitLimit<long>::SIGNED_MIN == std::numeric_limits<long>::min());
+  TEST(TBitLimit<int>::SIGNED_MIN == std::numeric_limits<int>::min());
+  TEST(TBitLimit<short>::SIGNED_MIN == std::numeric_limits<short>::min());
+  TEST(TBitLimit<char>::SIGNED_MIN == std::numeric_limits<char>::min());
+  TEST(TBitLimit<long long>::SIGNED_MAX == std::numeric_limits<long long>::max());
+  TEST(TBitLimit<long>::SIGNED_MAX == std::numeric_limits<long>::max());
+  TEST(TBitLimit<int>::SIGNED_MAX == std::numeric_limits<int>::max());
+  TEST(TBitLimit<short>::SIGNED_MAX == std::numeric_limits<short>::max());
+  TEST(TBitLimit<char>::SIGNED_MAX == std::numeric_limits<char>::max());
+  TEST(TBitLimit<long long>::UNSIGNED_MAX == std::numeric_limits<unsigned long long>::max());
+  TEST(TBitLimit<long>::UNSIGNED_MAX == std::numeric_limits<unsigned long>::max());
+  TEST(TBitLimit<int>::UNSIGNED_MAX == std::numeric_limits<unsigned int>::max());
+  TEST(TBitLimit<short>::UNSIGNED_MAX == std::numeric_limits<unsigned short>::max());
+  TEST(TBitLimit<char>::UNSIGNED_MAX == std::numeric_limits<unsigned char>::max());
+  TEST(TBitLimit<long long>::UNSIGNED_MIN == std::numeric_limits<unsigned long long>::min());
+  TEST(TBitLimit<long>::UNSIGNED_MIN == std::numeric_limits<unsigned long>::min());
+  TEST(TBitLimit<int>::UNSIGNED_MIN == std::numeric_limits<unsigned int>::min());
+  TEST(TBitLimit<short>::UNSIGNED_MIN == std::numeric_limits<unsigned short>::min());
+  TEST(TBitLimit<char>::UNSIGNED_MIN == std::numeric_limits<unsigned char>::min());
+
+  // These tests assume twos complement. This is ok because the previous tests would have caught errors relating to that anyway.
+  TEST_ABITLIMIT<1,-1,0,0,1>(__testret);
+  TEST_ABITLIMIT<2,-2,1,0,3>(__testret);
+  TEST_ABITLIMIT<7,-64,63,0,127>(__testret);
+  VERIFYTYPE<char>(ABitLimit<8>::SIGNED(0));
+  VERIFYTYPE<unsigned char>(ABitLimit<8>::UNSIGNED(0));
+  TEST(ABitLimit<8>::SIGNED_MIN==std::numeric_limits<char>::min());
+  TEST(ABitLimit<8>::SIGNED_MAX==std::numeric_limits<char>::max());
+  TEST(ABitLimit<8>::UNSIGNED_MIN==std::numeric_limits<unsigned char>::min());
+  TEST(ABitLimit<8>::UNSIGNED_MAX==std::numeric_limits<unsigned char>::max());
+  TEST_ABITLIMIT<9,-256,255,0,511>(__testret);
+  TEST_ABITLIMIT<15,-16384,16383,0,32767>(__testret);
+  VERIFYTYPE<short>(ABitLimit<16>::SIGNED(0));
+  VERIFYTYPE<unsigned short>(ABitLimit<16>::UNSIGNED(0));
+  TEST(ABitLimit<16>::SIGNED_MIN==std::numeric_limits<short>::min());
+  TEST(ABitLimit<16>::SIGNED_MAX==std::numeric_limits<short>::max());
+  TEST(ABitLimit<16>::UNSIGNED_MIN==std::numeric_limits<unsigned short>::min());
+  TEST(ABitLimit<16>::UNSIGNED_MAX==std::numeric_limits<unsigned short>::max());
+  TEST_ABITLIMIT<17,-65536,65535,0,131071>(__testret);
+  TEST_ABITLIMIT<63,-4611686018427387904,4611686018427387903,0,9223372036854775807>(__testret);
+  TEST_ABITLIMIT<64,-9223372036854775808,9223372036854775807,0,18446744073709551615>(__testret);
+  // For reference, the above strange bit values are used in fixed-point arithmetic found in bss_fixedpt.h
+
+  TEST(GetBitMask<unsigned char>(4)==0x10); // 0001 0000
+  TEST(GetBitMask<unsigned char>(2,4)==0x1C); // 0001 1100
+  TEST(GetBitMask<unsigned char>(-2,2)==0xC7); // 1100 0111
+  TEST(GetBitMask<unsigned char>(-2,-2)==0x40); // 0100 0000
+  TEST(GetBitMask<unsigned char>(0,0)==0x01); // 0000 0001
+  TEST(GetBitMask<unsigned char>(0,5)==0x3F); // 0011 1111
+  TEST(GetBitMask<unsigned char>(0,7)==0xFF); // 1111 1111
+  TEST(GetBitMask<unsigned char>(-7,0)==0xFF); // 1111 1111
+  TEST(GetBitMask<unsigned char>(-5,0)==0xF9); // 1111 1001
+  TEST(GetBitMask<unsigned char>(-5,-1)==0xF8); // 1111 1000
+  TEST(GetBitMask<unsigned char>(-6,-3)==0x3C); // 0011 1100
+  TEST(GetBitMask<unsigned int>(0,0)==0x00000001);
+  TEST(GetBitMask<unsigned int>(0,16)==0x0001FFFF);
+  TEST(GetBitMask<unsigned int>(12,30)==0x7FFFF000);
+  TEST(GetBitMask<unsigned int>(-10,0)==0xFFC00001); 
+  TEST(GetBitMask<unsigned int>(-30,0)==0xFFFFFFFD); 
+  TEST(GetBitMask<unsigned int>(-12,-1)==0xFFF00000);
+  TEST(GetBitMask<unsigned int>(-15,-12)==0x001e0000);
+  for(uint i = 0; i < 8; ++i)
+    TEST(GetBitMask<unsigned char>(i)==(1<<i));
+  for(uint i = 0; i < 32; ++i)
+    TEST(GetBitMask<unsigned int>(i)==(1<<i));
+  for(uint i = 0; i < 64; ++i)
+    TEST(GetBitMask<unsigned long long>(i)==(((unsigned __int64)1)<<i));
+
+  std::string cpan(PANGRAM);
+
+  strreplace(const_cast<char*>(cpan.c_str()),'m','?');
+  TEST(!strchr(cpan.c_str(),'m') && strchr(cpan.c_str(),'?')!=0);
+  std::wstring pan;
+  for(uint i = 0; i < _ARRSIZE(PANGRAMS); ++i)
+  {
+    pan=PANGRAMS[i];
+    wchar_t f=pan[((i+7)<<3)%pan.length()];
+    wchar_t r=pan[((((i*13)>>3)+13)<<3)%pan.length()];
+    if(f==r) r=pan[pan.length()-1];
+    strreplace(const_cast<wchar_t*>(pan.c_str()),f,r);
+    TEST(!wcschr(pan.c_str(),f) && wcschr(pan.c_str(),r)!=0);
+  }
+  TEST(strccount<char>("10010010101110001",'1')==8);
+  TEST(strccount<char>("0100100101011100010",'1')==8);
+  TEST(strccount<wchar_t>(L"الرِضَءَجيعُ بِهءَرِا نَجلاءَرِ رِمِعطارِ",L'رِ')==5);
+
+  int ia=0;
+  int ib=1;
+  std::pair<int,int> sa(1,2);
+  std::pair<int,int> sb(2,1);
+  std::unique_ptr<int[]> ua(new int[2]);
+  std::unique_ptr<int[]> ub((int*)0);
+  std::string ta("first");
+  std::string tb("second");
+  rswap(ia,ib);
+  TEST(ia==1);
+  TEST(ib==0);
+  rswap(sa,sb);
+  TEST((sa==std::pair<int,int>(2,1)));
+  TEST((sb==std::pair<int,int>(1,2)));
+  rswap(ua,ub);
+  TEST(ua.get()==0);
+  TEST(ub.get()!=0);
+  rswap(ta,tb);
+  TEST(ta=="second");
+  TEST(tb=="first");
+
+  int r[] = { -1,0,2,3,4,5,6 };
+  int rr[] = { 6,5,4,3,2,0,-1 };
+  bssreverse(r);
+  TESTARRAY(r,return (r[0]==rr[0]);)
+
+  const char* LTRIM = "    trim ";
+  TEST(!strcmp(strltrim(LTRIM),"trim "));
+  char RTRIM[] = {' ','t','r','i','m',' ',' ',0 }; // :|
+  TEST(!strcmp(strrtrim(RTRIM)," trim"));
+  RTRIM[5]=' ';
+  TEST(!strcmp(strtrim(RTRIM),"trim"));
+
+  unsigned int nsrc[] = { 0,1,2,3,4,5,10,13,21,2873,3829847,2654435766 };
+  unsigned int num[] = { 1,2,4,5,7,8,17,21,34,4647,6193581,4292720341 };
+  transform(nsrc,&fbnext<unsigned int>);
+  TESTARRAY(nsrc,return nsrc[i]==num[i];)
+    
+  int value=8;
+  int exact=value;
+  int exactbefore=value;
+
+  while(value < 100000)
+  {    
+    exact+=exactbefore;
+    exactbefore=exact-exactbefore;
+    value=fbnext(value);
+  }
+
+  TEST(tsign(2.8)==1)
+  TEST(tsign(-2.8)==-1)
+  TEST(tsign(23897523987453.8f)==1)
+  TEST(tsign((__int64)0)==1)
+  TEST(tsign(0.0)==1)
+  TEST(tsign(0.0f)==1)
+  TEST(tsign(-28738597)==-1)
+  TEST(tsign(INT_MIN)==-1)
+  TEST(tsign(INT_MAX)==1)
+  TEST(tsignzero(2.8)==1)
+  TEST(tsignzero(-2.8)==-1)
+  TEST(tsignzero(23897523987453.8f)==1)
+  TEST(tsignzero((__int64)0)==0)
+  TEST(tsignzero(0.0)==0)
+  TEST(tsignzero(0.0f)==0)
+  TEST(tsignzero(-28738597)==-1)
+  TEST(tsignzero(INT_MIN)==-1)
+  TEST(tsignzero(INT_MAX)==1)
+
+  TEST(fcompare(angledist(PI,PI_HALF),PI_HALF))
+  TEST(fsmall(angledist(PI,PI+PI_DOUBLE)))
+  TEST(fcompare(angledist(PI_DOUBLE+PI,PI+PI_HALF*7.0),PI_HALF))
+  TEST(fcompare(angledist(PI+PI_HALF*7.0,PI_DOUBLE+PI),PI_HALF))
+  TEST(fcompare(angledist(PIf,PI_HALFf),PI_HALFf))
+  TEST(fsmall(angledist(PIf,PIf+PI_DOUBLEf),FLT_EPS*4))
+#ifndef BSS_DEBUG // In debug mode, we use precise floating point. In release mode, we use fast floating point. This lets us test both models to reveal any significant differences.
+  TEST(fcompare(angledist(PI_DOUBLEf+PIf,PIf+PI_HALFf*7.0f),PI_HALFf,9)) // As one would expect, in fast floating point we need to be more tolerant of minor errors.
+  TEST(fcompare(angledist(PIf+PI_HALFf*7.0f,PI_DOUBLEf+PIf),PI_HALFf,9))
+#else
+  TEST(fcompare(angledist(PI_DOUBLEf+PIf,PIf+PI_HALFf*7.0f),PI_HALFf)) // In precise mode, however, the result is almost exact
+  TEST(fcompare(angledist(PIf+PI_HALFf*7.0f,PI_DOUBLEf+PIf),PI_HALFf))
+#endif
+
+  TEST(fcompare(angledistsgn(PI,PI_HALF),PI_HALF))
+  TEST(fsmall(angledistsgn(PI,PI+PI_DOUBLE)))
+  TEST(fcompare(angledistsgn(PI_DOUBLE+PI,PI+PI_HALF*7.0),PI_HALF))
+  TEST(fcompare(angledistsgn(PI_HALF,PI),-PI_HALF))
+  TEST(fcompare(angledistsgn(PIf,PI_HALFf),PI_HALFf))
+  TEST(fsmall(angledistsgn(PIf,PIf+PI_DOUBLEf),FLT_EPS*4))
+#ifndef BSS_DEBUG
+  TEST(fcompare(angledistsgn(PI_DOUBLEf+PIf,PIf+PI_HALFf*7.0f),PI_HALFf,9))
+#else
+  TEST(fcompare(angledistsgn(PI_DOUBLEf+PIf,PIf+PI_HALFf*7.0f),PI_HALFf))
+#endif
+  TEST(fcompare(angledistsgn(PI_HALFf,PIf),-PI_HALFf))
+
+  const float flt=FLT_EPSILON;
+  __int32 fi = *(__int32*)(&flt);
+  TEST(fsmall(*(float*)(&(--fi))))
+  TEST(fsmall(*(float*)(&(++fi))))
+  TEST(!fsmall(*(float*)(&(++fi))))
+  const double dbl=DBL_EPSILON;
+  __int64 di = *(__int64*)(&dbl);
+  TEST(fsmall(*(double*)(&(--di))))
+  TEST(fsmall(*(double*)(&(++di))))
+  TEST(!fsmall(*(double*)(&(++di))))
+  
+  TEST(fcompare(1.0f,1.0f))
+  TEST(fcompare(1.0f,1.0f+FLT_EPSILON))
+  TEST(fcompare(10.0f,10.0f+FLT_EPSILON*10))
+  TEST(fcompare(10.0f,10.0f))
+  TEST(!fcompare(0.1f, 0.1f+FLT_EPSILON*0.1f))
+  TEST(!fcompare(0.1f, FLT_EPSILON))
+  TEST(fcompare(1.0,1.0))
+  TEST(fcompare(1.0,1.0+DBL_EPSILON))
+  TEST(fcompare(10.0,10.0+DBL_EPSILON*10))
+  TEST(fcompare(10.0,10.0))
+  TEST(!fcompare(0.1, 0.1+DBL_EPSILON*0.1))
+  TEST(!fcompare(0.1, DBL_EPSILON))
+
+  // This tests our average aggregation formula, which lets you average extremely large numbers while maintaining a fair amount of precision.
+  unsigned __int64 total=0;
+  uint nc;
+  double avg=0;
+  double diff;
+  for(nc = 1; nc < 10000;++nc)
+  {
+    total += nc*nc;
+    avg=bssavg<double>(avg,(double)(nc*nc),nc);
+    diff=bssmax(diff,fabs((total/(double)nc)-avg));
+  }
+  TEST(diff<FLT_EPSILON*2);
+
+  // FastSqrt testing ground
+  //
+  //float a=2;
+  //float b;
+  //double sqrt_avg=0;
+  //float NUMBERS[100000];
+  ////srand(984753948);
+  //for(uint i = 0; i < 100000; ++i)
+  //  NUMBERS[i]=RANDFLOATGEN(2,4);
+
+  //char p=_debug.OpenProfiler();
+  //CPU_Barrier();
+  //for(uint j = 0; j < 10; ++j)
+  //{
+  //for(uint i = 0; i < 100000; ++i)
+  //{
+  //  a=NUMBERS[i];
+  //  b=std::sqrtf(a);
+  //}
+  ///*for(uint i = 0; i < 100000; ++i)
+  //{
+  //  a=NUMBERS[i];
+  //  b=FastSqrtsse(a);
+  //}*/
+  ///*for(uint i = 0; i < 100000; ++i)
+  //{
+  //  a=NUMBERS[i];
+  //  b=FastSqrt(a);
+  //}*/
+  //}
+  //CPU_Barrier();
+  //sqrt_avg=_debug.CloseProfiler(p);
+  //
+  //TEST(b==a); //keep things from optimizing out
+  //cout << sqrt_avg << std::endl;
+  //CPU_Barrier();
+  double ddbl = fabs(FastSqrt(2.0) - sqrt(2.0));
+#ifndef BSS_DEBUG
+  TEST(fabs(FastSqrt(2.0f) - sqrt(2.0f))<=FLT_EPSILON*2);
+#else
+  TEST(fabs(FastSqrt(2.0f) - sqrt(2.0f))<=FLT_EPSILON);
+#endif
+  TEST(fabs(FastSqrt(2.0) - sqrt(2.0))<=(DBL_EPSILON*100)); // Take note of the 100 epsilon error here on the fastsqrt for doubles.
+  uint nmatch;
+  for(nmatch = 1; nmatch < 200000; ++nmatch)
+    if(FastSqrt(nmatch)!=(uint)std::sqrtl(nmatch))
+      break;
+  TEST(nmatch==200000);
+
+  TEST(fFastRound(5.0f)==5);
+  TEST(fFastRound(5.0000000001f)==5);
+  TEST(fFastRound(4.999999999f)==5);
+  TEST(fFastRound(4.5f)==4);
+  TEST(fFastRound(5.5f)==6);
+  TEST(fFastRound(5.9f)==6);
+
+  TEST(fFastDoubleRound(5.0)==(int)5.0);
+  TEST(fFastDoubleRound(5.0000000001f)==(int)5.0000000001f);
+  TEST(fFastDoubleRound(4.999999999f)==(int)4.999999999f);
+  TEST(fFastDoubleRound(4.5f)==(int)4.5f);
+  //TEST(fFastDoubleRound(5.9f)==(int)5.9f); //This test fails, so don't use fFastDoubleRound for precision-critical anything.
+
+  TEST(fcompare(distsqr(2.0f,2.0f,5.0f,6.0f),25.0f));
+  TEST(fcompare(dist(2.0f,2.0f,5.0f,6.0f),5.0f,40));
+  TEST(fcompare(distsqr(2.0,2.0,5.0,6.0),25.0));
+  TEST(fcompare(dist(2.0,2.0,5.0,6.0),5.0,(__int64)150000)); // Do not use this for precision-critical anything.
+  TEST(distsqr(2,2,5,6)==5*5); 
+  TEST(dist(2,2,5,6)==5); // Yes, you can actually do distance calculations using integers, since we use FastSqrt's integer extension.
+
+  __int64 stuff=2987452983472384720;
+  unsigned short find=43271;
+  TEST(bytesearch(&stuff,8,&find,1)==(((char*)&stuff)+3));
+  TEST(bytesearch(&stuff,8,&find,2)==(((char*)&stuff)+3));
+  TEST(bytesearch(&stuff,5,&find,1)==(((char*)&stuff)+3));
+  TEST(bytesearch(&stuff,5,&find,2)==(((char*)&stuff)+3));
+  TEST(bytesearch(&stuff,4,&find,1)==(((char*)&stuff)+3));
+  TEST(!bytesearch(&stuff,4,&find,2));
+  TEST(!bytesearch(&stuff,3,&find,2));
+  TEST(!bytesearch(&stuff,0,&find,1));
+  TEST(!bytesearch(&stuff,2,&find,3));
+  find=27344;
+  TEST(bytesearch(&stuff,2,&find,2));
+  find=41;
+  TEST(bytesearch(&stuff,8,&find,1)==(((char*)&stuff)+7));
+
   testbitcount<unsigned char>(__testret);
   testbitcount<unsigned short>(__testret);
   testbitcount<unsigned int>(__testret);
   testbitcount<unsigned __int64>(__testret);
 
-  cOwnerPtr<char> p(new char[56]);
-  cOwnerPtr<char> p2(p);
-  cOwnerPtr<char> p3(std::move(p));
+  for(nmatch = 1; nmatch < 200000; ++nmatch)
+  {
+    uint test=std::log((double)nmatch);
+    if(log2(nmatch)!=(uint)(std::log((double)nmatch)/std::log(2.0)))
+      break;
+  }
+  TEST(nmatch==200000);
+  for(nmatch = 2; nmatch < INT_MAX; nmatch <<= 1) // You have to do INT_MAX here even though its unsigned, because 10000... is actually less than 1111... and you overflow.
+  {
+    if(log2_p2(nmatch)!=(uint)(std::log((double)nmatch)/std::log(2.0)))
+      break;
+  }
+  TEST(nmatch==(1<<31));
+  
+  TEST(fcompare(lerp<double>(3,4,0.5),3.5))
+  TEST(fcompare(lerp<double>(3,4,0),3.0))
+  TEST(fcompare(lerp<double>(3,4,1),4.0))
+  TEST(fsmall(lerp<double>(-3,3,0.5)))
+  TEST(fcompare(lerp<double>(-3,-4,0.5),-3.5))
+  TEST(fcompare(lerp<float>(3,4,0.5f),3.5f))
+  TEST(fcompare(lerp<float>(3,4,0),3.0f))
+  TEST(fcompare(lerp<float>(3,4,1),4.0f))
+  TEST(fsmall(lerp<float>(-3,3,0.5f)))
+  TEST(fcompare(lerp<float>(-3,-4,0.5f),-3.5f))
 
   ENDTEST;
 }
@@ -163,31 +594,79 @@ TEST::RETPAIR test_bss_algo()
   int u[17] = { -1,0,0,0,1,2,3,3,3,4,4,5,6,6,7,8,8 };
   int u2[17] = { 0,0,1,1,1,2,3,4,4,4,5,5,6,7,7,8,9 };
   bool r[17] = {};
-  for_all(r,[&a](int x, int y)->bool { return binsearch_before<int,uint,CompT<int>>(a,x)==y; },v,u);
+  //for_all(r,[&a](int x, int y)->bool { return binsearch_before<int,uint,CompT<int>>(a,x)==y; },v,u);
   
-  for_all(r,[&a](int x, int y)->bool { return binsearch_after<int,uint,CompT<int>>(a,x)==(lower_bound(std::begin(a),std::end(a),x)-a); },v,u2);
-  for_all([&__testret](bool __x){ ++__testret.first; if(__x) ++__testret.second; },r);
+  //for_all(r,[&a](int x, int y)->bool { return binsearch_after<int,uint,CompT<int>>(a,x)==(lower_bound(std::begin(a),std::end(a),x)-a); },v,u2);
+  //for_all([&__testret](bool __x){ ++__testret.first; if(__x) ++__testret.second; },r);
   ENDTEST;
+}
+
+template<class T, typename P, int MAXSIZE>
+void TEST_ALLOC_FUZZER(TEST::RETPAIR& __testret)
+{
+  cDynArray<cArraySimple<std::pair<P*,size_t>>> plist;
+  for(int k=0; k<10; ++k)
+  {
+    T _alloc;
+    for(int j=0; j<10; ++j)
+    {
+      bool pass=true;
+      for(int i = 0; i < 10000; ++i)
+      {
+        if(RANDINTGEN(0,10)<5 || plist.Length()<3)
+        {
+          size_t sz = bssmax(RANDINTGEN(0,MAXSIZE),1); //Weird trick to avoid division by zero but still restrict it to [1,1]
+          P* test=_alloc.alloc(sz);
+          *test=0xFB;
+          plist.Add(std::pair<P*,size_t>(test,sz));
+        }
+        else
+        {
+          int index=RANDINTGEN(0,plist.Length());
+          if(plist[index].first[0]!=(P)0xFB)
+            pass=false;
+          _alloc.dealloc(plist[index].first);
+          rswap(plist.Back(),plist[index]);
+          plist.RemoveLast(); // This little technique lets us randomly remove items from the array without having to move large chunks of data by swapping the invalid element with the last one and then removing the last element (which is cheap)
+        }
+      }
+      TEST(pass);
+      plist.Clear(); // BOY I SHOULD PROBABLY CLEAR THIS BEFORE I PANIC ABOUT INVALID MEMORY ALLOCATIONS, HUH?
+      _alloc.Clear();
+    }
+  }
 }
 
 TEST::RETPAIR test_bss_ALLOC_ADDITIVE_FIXED()
 {
   BEGINTEST;
+  TEST_ALLOC_FUZZER<cAdditiveFixedAllocator<int>,int,1>(__testret);
   ENDTEST;
 }
+
+template<class T>
+struct ADDITIVEVARIABLEALLOCATORWRAP : cAdditiveVariableAllocator { inline T* BSS_FASTCALL alloc(size_t num) { return cAdditiveVariableAllocator::alloc<T>(num); } };
+
 TEST::RETPAIR test_bss_ALLOC_ADDITIVE_VARIABLE()
 {
   BEGINTEST;
+  TEST_ALLOC_FUZZER<ADDITIVEVARIABLEALLOCATORWRAP<char>,char,4000>(__testret);
   ENDTEST;
 }
 TEST::RETPAIR test_bss_ALLOC_FIXED_SIZE()
 {
   BEGINTEST;
+  TEST_ALLOC_FUZZER<cFixedSizeAllocator<__int64>,__int64,1>(__testret);
   ENDTEST;
 }
+
+template<class T>
+struct FIXEDCHUNKALLOCWRAP : cFixedChunkAlloc<T> { void Clear() { } };
+
 TEST::RETPAIR test_bss_ALLOC_FIXED_CHUNK()
 {
   BEGINTEST;
+  TEST_ALLOC_FUZZER<FIXEDCHUNKALLOCWRAP<size_t>,size_t,1>(__testret);
   ENDTEST;
 }
 TEST::RETPAIR test_bss_deprecated()
@@ -218,14 +697,21 @@ TEST::RETPAIR test_bss_deprecated()
   MEMCPY(&a,sizeof(size_t)-1,&b,sizeof(size_t)-1);
   TEST(a==(b>>8));
 
-#define STRNCPY(dst,size,src,count) strncpy_s(dst,size,src,count)
-#define WCSNCPY(dst,size,src,count) wcsncpy_s(dst,size,src,count)
-#define STRCPY(dst,size,src) strcpy_s(dst,size,src)
-#define WCSCPY(dst,size,src) wcscpy_s(dst,size,src)
-#define STRCPYx0(dst,src) strcpy_s(dst,src)
-#define WCSCPYx0(dst,src) wcscpy_s(dst,src)
-#define STRICMP(a,b) _stricmp(a,b)
-#define WCSICMP(a,b) _wcsicmp(a,b)
+  char buf[256];
+  buf[9]=0;
+  STRNCPY(buf,11,PANGRAM,10);
+  wchar_t wbuf[256];
+  wbuf[9]=0;
+  WCSNCPY(wbuf,11,PANGRAMS[3],10);
+  
+  STRCPY(buf,256,PANGRAM);
+  WCSCPY(wbuf,256,PANGRAMS[2]);
+  STRCPYx0(buf,PANGRAM);
+  WCSCPYx0(wbuf,PANGRAMS[4]);
+
+  TEST(!STRICMP("fOObAr","Foobar"));
+  TEST(!WCSICMP(L"Kæmi ný",L"kæmi ný"));
+
 #define STRTOK(str,delim,context) strtok_s(str,delim,context)
 #define WCSTOK(str,delim,context) wcstok_s(str,delim,context)
 #define SSCANF sscanf_s
@@ -237,6 +723,24 @@ TEST::RETPAIR test_bss_deprecated()
 TEST::RETPAIR test_bss_FIXEDPT()
 {
   BEGINTEST;
+
+  FixedPt<13> fp(23563.2739);
+  float res=fp;
+  fp+=27.9;
+  res+=27.9;
+  TEST(fcompare(res,fp));
+  res=fp;
+  fp-=8327.9398437;
+  res-=8327.9398437;
+  TEST(fcompare(res,fp));
+  res=fp;
+  fp*=6.847399;
+  res*=6.847399;
+  TEST(fcompare(res,fp,215)); // We start approaching the edge of our fixed point range here so things predictably get out of whack
+  res=fp;
+  fp/=748.9272;
+  res/=748.9272;
+  TEST(fcompare(res,fp,6));
   ENDTEST;
 }
 
@@ -249,12 +753,110 @@ TEST::RETPAIR test_ALIASTABLE()
 TEST::RETPAIR test_ARRAYCIRCULAR()
 {
   BEGINTEST;
+  cArrayCircular<int> a;
+  a.SetSize(25);
+  TEST(a.Size()==25);
+  for(int i = 0; i < 25; ++i)
+    a.Push(i);
+  TEST(a.Length()==25);
+  
+  TEST(a.Pop()==24);
+  TEST(a.Pop()==23);
+  a.Push(987);
+  TEST(a.Pop()==987);
+  TEST(a.Length()==23);
+  a.Push(23);
+  a.Push(24);
+  for(int i = 0; i < 50; ++i)
+    TEST(a[i]==(24-(i%25)));
+  for(int i = 1; i < 50; ++i)
+    TEST(a[-i]==((i-1)%25));
+  a.Push(25); //This should overwrite 0
+  TEST(a[0]=25);  
+  TEST(a[-1]=1);  
+
+  //const cArrayCircular<int>& b=a;
+  //b[0]=5; // Should cause error
+
   ENDTEST;
 }
+
+template<bool SAFE> struct DEBUG_CDT_SAFE {};
+template<> struct DEBUG_CDT_SAFE<false> {};
+template<> struct DEBUG_CDT_SAFE<true>
+{
+  DEBUG_CDT_SAFE(const DEBUG_CDT_SAFE& copy) : __testret(*_testret) { isdead=this; }
+  DEBUG_CDT_SAFE() : __testret(*_testret) { isdead=this; }
+  ~DEBUG_CDT_SAFE() { TEST(isdead==this) }
+
+  inline DEBUG_CDT_SAFE& operator=(const DEBUG_CDT_SAFE& right) { return *this; }
+  
+  static TEST::RETPAIR* _testret;
+  TEST::RETPAIR& __testret;
+  DEBUG_CDT_SAFE* isdead;
+};
+TEST::RETPAIR* DEBUG_CDT_SAFE<true>::_testret=0;
+
+template<bool SAFE=true>
+struct DEBUG_CDT : DEBUG_CDT_SAFE<SAFE> {
+  inline DEBUG_CDT(const DEBUG_CDT& copy) : _index(copy._index) { ++count; isdead=this; }
+  inline DEBUG_CDT(int index=0) : _index(index) { ++count; isdead=this; }
+  inline ~DEBUG_CDT() { if(isdead!=this) count/=0; --count; isdead=0; }
+
+  inline DEBUG_CDT& operator=(const DEBUG_CDT& right) { _index=right._index; return *this; }
+  inline bool operator<(const DEBUG_CDT& other) const { return _index<other._index; }
+  inline bool operator>(const DEBUG_CDT& other) const { return _index>other._index; }
+  inline bool operator<=(const DEBUG_CDT& other) const { return _index<=other._index; }
+  inline bool operator>=(const DEBUG_CDT& other) const { return _index>=other._index; }
+  inline bool operator==(const DEBUG_CDT& other) const { return _index==other._index; }
+  inline bool operator!=(const DEBUG_CDT& other) const { return _index!=other._index; }
+
+  static int count;
+  DEBUG_CDT* isdead;
+  int _index;
+};
+int DEBUG_CDT<true>::count=0;
+int DEBUG_CDT<false>::count=0;
 
 TEST::RETPAIR test_ARRAYSIMPLE()
 {
   BEGINTEST;
+  DArray<int>::t a(5);
+  TEST(a.Size()==5);
+  a.Insert(5,2);
+  TEST(a.Size()==6);
+  TEST(a[2]==5);
+  a.Remove(1);
+  TEST(a[1]==5);
+  a.SetSize(10);
+  TEST(a[1]==5);
+  TEST(a.Size()==10);
+
+  {
+    DEBUG_CDT_SAFE<true>::_testret=&__testret;
+    DEBUG_CDT<true>::count=0;
+    DArray<DEBUG_CDT<true>>::tSafe b(10);
+    b.RemoveShrink(5);
+    TEST(b.Size()==9);
+    TEST(DEBUG_CDT<true>::count == 9);
+    b.SetSize(19);
+    TEST(DEBUG_CDT<true>::count == 19);
+    TEST(b.Size()==19);
+  }
+  TEST(!DEBUG_CDT<true>::count);
+
+  {
+    DEBUG_CDT<false>::count=0;
+    DArray<DEBUG_CDT<false>>::tSafe b(10);
+    b.RemoveShrink(5);
+    TEST(b.Size()==9);
+    TEST(DEBUG_CDT<false>::count == 9);
+    b.SetSize(19);
+    TEST(DEBUG_CDT<false>::count == 19);
+    TEST(b.Size()==19);
+  }
+  TEST(!DEBUG_CDT<false>::count);
+
   ENDTEST;
 }
 
@@ -266,33 +868,75 @@ struct FWDTEST {
 TEST::RETPAIR test_ARRAYSORT()
 {
   BEGINTEST;
-  cMap<int,uint> test;
-  test.Clear();
-  int ins[] = { 0,5,6,237,289,12,3 };
-  int get[] = { 0,3,5,6,12 };
-  uint res[] = { 0,6,1,2,5 };
-  uint count=0;
-  for_all([&](int x){ TEST(test.Insert(x,count++)!=-1); },ins);
-  sort(std::begin(ins),std::end(ins));
-  for(unsigned int i = 0; i < test.Length(); ++i)
-  { TEST(test.KeyIndex(i)==ins[i]); }
-  for(int i = 0; i < sizeof(get)/sizeof(int); ++i)
-  { TEST(test[test.Get(get[i])]==res[i]); }
+  
+  {
+  cArraySort<DEBUG_CDT<true>,CompT<DEBUG_CDT<true>>,unsigned int,cArraySafe<DEBUG_CDT<true>,unsigned int>> arrtest;
+  arrtest.Insert(DEBUG_CDT<true>(0));
+  arrtest.Insert(DEBUG_CDT<true>(1));
+  arrtest.Insert(DEBUG_CDT<true>(2));
+  arrtest.Remove(2);
+  arrtest.Insert(DEBUG_CDT<true>(3));
+  arrtest.Insert(DEBUG_CDT<true>(4));
+  arrtest.Insert(DEBUG_CDT<true>(5));
+  arrtest.Remove(0);
+  arrtest.Insert(DEBUG_CDT<true>(6));
+  arrtest.Remove(3);
 
-  TEST(test.Remove(0)==0);
-  TEST(test.Get(0)==-1);
-  TEST(test.Length()==((sizeof(ins)/sizeof(int))-1));
+  TEST(arrtest[0]==1);
+  TEST(arrtest[1]==3);
+  TEST(arrtest[2]==4);
+  TEST(arrtest[3]==6);
 
-  cMap<int,FWDTEST> tst;
-  tst.Insert(0,FWDTEST());
-  FWDTEST lval;
-  tst.Insert(1,lval);
+  cArraySort<DEBUG_CDT<true>,CompT<DEBUG_CDT<true>>,unsigned int,cArraySafe<DEBUG_CDT<true>,unsigned int>> arrtest2;
+  arrtest2.Insert(DEBUG_CDT<true>(7));
+  arrtest2.Insert(DEBUG_CDT<true>(8));
+  arrtest=arrtest2;
+  }
+  TEST(!DEBUG_CDT<true>::count)
+
   ENDTEST;
 }
 
 TEST::RETPAIR test_AVLTREE()
 {
   BEGINTEST;
+
+  Allocator<AVL_Node<int,int>,FixedChunkPolicy<AVL_Node<int,int>>> fixedavl;
+  cAVLtree<int, int,CompT<int>,Allocator<AVL_Node<int,int>,FixedChunkPolicy<AVL_Node<int,int>>>> avlblah(&fixedavl);
+
+  //char prof=_debug.OpenProfiler();
+  for(int i = 0; i<TESTNUM; ++i)
+    avlblah.Insert(testnums[i],testnums[i]);
+  //std::cout << _debug.CloseProfiler(prof) << std::endl;
+
+  shuffle(testnums);
+  //prof=_debug.OpenProfiler();
+  uint c=0;
+  for(int i = 0; i<TESTNUM; ++i)
+    c+=(avlblah.GetRef(testnums[i])!=0);
+  TEST(c==TESTNUM);
+  //std::cout << _debug.CloseProfiler(prof) << std::endl;
+  
+  shuffle(testnums);
+  //prof=_debug.OpenProfiler();
+  for(int i = 0; i<TESTNUM; ++i)
+    avlblah.Remove(testnums[i]);
+  //std::cout << _debug.CloseProfiler(prof) << std::endl;
+  avlblah.Clear();
+
+  c=0;
+  for(int i = 0; i<TESTNUM; ++i) // Test that no numbers are in the tree
+    c+=(avlblah.GetRef(testnums[i])==0);
+  TEST(c==TESTNUM);
+
+  cAVLtree<int, std::pair<int,int>*>* tree = new cAVLtree<int, std::pair<int,int>*>();
+  std::pair<int,int> test(5,5);
+  tree->Insert(test.first,&test);
+  tree->Get(test.first);
+  tree->ReplaceKey(5,2);
+  tree->Remove(test.first);
+  tree->Clear();
+
   ENDTEST;
 }
 
@@ -306,9 +950,7 @@ TEST::RETPAIR test_BINARYHEAP()
   const int a2_SZ=sizeof(a2)/sizeof(int);
 
   auto arrtest = [&](int* a, int* b, size_t count){
-  bool __val=true;
-  for_all([&__val](int x, int y){__val=__val&&(x==y);},count,a,b);
-  TEST(__val);
+    TESTCOUNTALL(count,a[i]==b[i]);
   };
 
   //__insertion_sort<int,uint,CompT_LT<int>>(a2,sizeof(a2)/sizeof(int));
@@ -374,6 +1016,465 @@ TEST::RETPAIR test_CMDLINEARGS()
   ENDTEST;
 }
 
+TEST::RETPAIR test_DYNARRAY()
+{
+  BEGINTEST;
+  ENDTEST;
+}
+
+TEST::RETPAIR test_HIGHPRECISIONTIMER()
+{
+  BEGINTEST;
+  ENDTEST;
+}
+
+TEST::RETPAIR test_HOLDER()
+{
+  BEGINTEST;
+  ENDTEST;
+}
+
+TEST::RETPAIR test_INIPARSE()
+{
+  BEGINTEST;
+  ENDTEST;
+}
+
+TEST::RETPAIR test_INISTORAGE()
+{
+  BEGINTEST;
+
+  cINIstorage ini("test.ini");
+  while(ini.RemoveSection("NEWSECTION"));
+  ini.AddSection("NEWSECTION");
+  ini.AddSection("NEWSECTION");
+  ini.EditEntry("NEWSECTION","newkey","fakevalue",0,-1);
+  ini.EditEntry("NEWSECTION","newkey","realvalue",0,0);
+  ini.EditEntry("NEWSECTION","newkey",0,0,0);
+  ini.EditEntry("NEWSECTION","newkey","value",-1,-1);
+  const char* test = ini["Video"]["baseheight"].GetString();
+  ini.EditEntry("Video","test","fail",-1,-1);
+  ini.EditEntry("Video","test","success");
+
+  cStrW testerstr("test");
+  cStr tester2str("%s%i","test",2);
+  cStrW wtester2str(L"%s%i",L"test",2);
+  wtester2str+=tester2str;
+
+  const std::vector<std::pair<cStr,unsigned int>>& sections=ini.BuildSectionList();
+  ini.EndINIEdit();
+
+  /*for(unsigned int i=0; i < sections.size(); ++i)
+  {
+    std::cout << '[' << sections[i].first << ':' << sections[i].second  << ']' << std::endl;
+    const std::vector<std::pair<std::pair<cStr,cStr>,unsigned int>>& entries=ini.GetSection(sections[i].first,sections[i].second)->BuildEntryList();
+    for(unsigned int j=0; j < entries.size(); ++j)
+      std::cout << entries[j].first.first << " - " << entries[j].first.second << " :" << entries[j].second << std::endl;
+    std::cout << std::endl;
+  }*/
+
+  cINIstorage store("release/test.ini");
+  //cINIstorage store;
+  store.AddSection("Hello");
+
+  int get = store.GetEntry("Asdkj", "");
+  ENDTEST;
+}
+
+TEST::RETPAIR test_INTERVALTREE()
+{
+  BEGINTEST;
+  ENDTEST;
+}
+
+TEST::RETPAIR test_KHASH()
+{
+  BEGINTEST;
+  //cKhash<int, char,false,KH_INT_HASHFUNC,KH_INT_EQUALFUNC<int>,KH_INT_VALIDATEPTR<int>> hashtest;
+  //hashtest.Insert(21354,0);
+  //hashtest.Insert(34623,0);
+  //hashtest.Insert(52,0);
+  //hashtest.Insert(1,0);
+  //int r=hashtest.GetIterKey(hashtest.GetIterator(1));
+  cKhash_Int<bss_DebugInfo*> hasherint;
+  hasherint.Insert(25, &_debug);
+  hasherint.GetKey(25);
+  hasherint.Remove(25);
+  cKhash_StringIns<bss_DebugInfo*> hasher;
+  int iter = hasher.Insert("",&_debug);
+  iter = hasher.Insert("Video",(bss_DebugInfo*)5);
+  hasher.SetSize(100);
+  iter = hasher.Insert("Physics",0);
+  bss_DebugInfo* check = *hasher.GetKey("Video");
+  check = *hasher.GetKey("Video");
+  //unsigned __int64 diff = _debug.CloseProfiler(ID);
+
+  ENDTEST;
+}
+
+TEST::RETPAIR test_LAMBDASTACK()
+{
+  BEGINTEST;
+  ENDTEST;
+}
+
+TEST::RETPAIR test_LINKEDARRAY()
+{
+  BEGINTEST;
+  ENDTEST;
+}
+
+bool cmplist(cLinkedList<int,Allocator<cLLNode<int>>,true>& list, const char* nums)
+{
+ // cLLIter<int> cur(list.GetRoot());
+  auto cur = list.begin();
+  bool r=true;
+  while(cur.IsValid() && *nums!=0 && r)
+    r=(*(cur++)==(*(nums++) - '0'));
+  return r;
+}
+
+TEST::RETPAIR test_LINKEDLIST()
+{
+  BEGINTEST;
+  cLinkedList<int,Allocator<cLLNode<int>>,true> test;
+  cLLNode<int>* llp[5];
+
+  llp[0] = test.Add(1);
+  TEST(cmplist(test,"1"));
+  llp[1] = test.Add(2);
+  TEST(cmplist(test,"12"));
+  llp[3] = test.Add(4);
+  TEST(cmplist(test,"124"));
+  llp[4] = test.Add(5);
+  TEST(cmplist(test,"1245"));
+  llp[2] = test.Insert(3,llp[3]);
+  TEST(cmplist(test,"12345"));
+  test.Remove(llp[3]);
+  TEST(cmplist(test,"1235"));
+  test.Remove(llp[0]);
+  TEST(cmplist(test,"235"));
+  test.Remove(llp[4]);
+  TEST(cmplist(test,"23"));
+  test.Insert(0,0);
+  TEST(cmplist(test,"230"));
+  TEST(test.Length()==3);
+  ENDTEST;
+}
+
+TEST::RETPAIR test_LOCKLESSBYTEQUEUE()
+{
+  BEGINTEST;
+  ENDTEST;
+}
+
+TEST::RETPAIR test_MAP()
+{
+  BEGINTEST;
+  cMap<int,uint> test;
+  test.Clear();
+  int ins[] = { 0,5,6,237,289,12,3 };
+  int get[] = { 0,3,5,6,12 };
+  uint res[] = { 0,6,1,2,5 };
+  uint count=0;
+  TESTARRAY(ins,return test.Insert(ins[i],count++)!=-1;);
+  sort(std::begin(ins),std::end(ins));
+  for(unsigned int i = 0; i < test.Length(); ++i)
+  { TEST(test.KeyIndex(i)==ins[i]); }
+  for(int i = 0; i < sizeof(get)/sizeof(int); ++i)
+  { TEST(test[test.Get(get[i])]==res[i]); }
+
+  TEST(test.Remove(0)==0);
+  TEST(test.Get(0)==-1);
+  TEST(test.Length()==((sizeof(ins)/sizeof(int))-1));
+  
+  cMap<int,FWDTEST> tst;
+  tst.Insert(0,FWDTEST());
+  FWDTEST lval;
+  tst.Insert(1,lval);
+  ENDTEST;
+}
+
+TEST::RETPAIR test_MUTEX()
+{
+  BEGINTEST;
+  ENDTEST;
+}
+
+TEST::RETPAIR test_OBJSWAP()
+{
+  BEGINTEST;
+  
+  unsigned int vals[] = { 0,1,2,3,4,5 };
+  const char* strs[] = { "001", "002", "003", "004", "005" };
+  unsigned int* zp=vals+0;
+  unsigned int* zp2=vals+1;
+  unsigned int* zp3=vals+2;
+  unsigned int* zp4=vals+3;
+  unsigned int* zp5=vals+4;
+  for(uint i = 0; i < 5; ++i)
+  {
+    switch(PSWAP(vals+i,5,zp,zp2,zp3,zp4,zp5))
+    {
+    case 0:
+      TEST(i==0); break;
+    case 1:
+      TEST(i==1); break;
+    case 2:
+      TEST(i==2); break;
+    case 3:
+      TEST(i==3); break;
+    case 4:
+      TEST(i==4); break;
+    default:
+      TEST(false);
+    }
+
+    switch(WCSSWAP(PANGRAMS[i],5,PANGRAMS[4],PANGRAMS[3],PANGRAMS[2],PANGRAMS[1],PANGRAMS[0]))
+    {
+    case 0:
+      TEST(i==4); break;
+    case 1:
+      TEST(i==3); break;
+    case 2:
+      TEST(i==2); break;
+    case 3:
+      TEST(i==1); break;
+    case 4:
+      TEST(i==0); break;
+    default:
+      TEST(false);
+    }
+
+    switch(STRSWAP(strs[i],5,"000","002","003","004","005")) // Deliberaly meant to test for one failure
+    {
+    case 0:
+      TEST(false); break;
+    case 1:
+      TEST(i==1); break;
+    case 2:
+      TEST(i==2); break;
+    case 3:
+      TEST(i==3); break;
+    case 4:
+      TEST(i==4); break;
+    default:
+      TEST(i==0);
+    }
+  }
+
+  ENDTEST;
+}
+
+TEST::RETPAIR test_PRIORITYQUEUE()
+{
+  BEGINTEST;
+  ENDTEST;
+}
+
+TEST::RETPAIR test_RATIONAL()
+{
+  BEGINTEST;
+  cRational<int> tr(1,10);
+  cRational<int> tr2(1,11);
+  cRational<int> tr3(tr+tr2);
+  TEST(tr.N()==1 && tr.D()==10);
+  TEST(tr2.N()==1 && tr2.D()==11);
+  TEST(tr3.N()==21 && tr3.D()==110);
+  tr3=(tr-tr2);
+  TEST(tr3.N()==1 && tr3.D()==110);
+  tr3=(tr*tr2);
+  TEST(tr3.N()==1 && tr3.D()==110);
+  tr3=(tr/tr2);
+  TEST(tr3.N()==11 && tr3.D()==10);
+  tr3=(tr+3);
+  TEST(tr3.N()==31 && tr3.D()==10);
+  tr3=(tr-3);
+  TEST(tr3.N()==-29 && tr3.D()==10);
+  tr3=(tr*3);
+  TEST(tr3.N()==3 && tr3.D()==10);
+  tr3=(tr/3);
+  TEST(tr3.N()==1 && tr3.D()==30);
+  TEST((tr<3));
+  TEST(!(tr>3));
+  TEST(!(tr<tr2));
+  TEST((tr>tr2));
+  TEST(!(tr==3));
+  TEST((tr!=3));
+  TEST(!(tr==tr2));
+  TEST((tr!=tr2));
+  ENDTEST;
+}
+
+TEST::RETPAIR test_RBT_LIST()
+{
+  BEGINTEST;
+  Allocator<cRBT_Node<int,int>,FixedChunkPolicy<cRBT_Node<int,int>>> fixedalloc;
+  cRBT_List<int, int,CompT<int>,Allocator<cRBT_Node<int,int>,FixedChunkPolicy<cRBT_Node<int,int>>>> blah(&fixedalloc);
+
+  //char prof=_debug.OpenProfiler();
+  for(int i = 0; i<TESTNUM; ++i)
+    //blah.Insert(testnums[i],testnums[i]);
+    blah.Insert((i&0x01)?5:testnums[i],testnums[i]);
+  //std::cout << _debug.CloseProfiler(prof) << std::endl;
+
+  shuffle(testnums);
+  //prof=_debug.OpenProfiler();
+  int num=0;
+
+  for(int i = 0; i<TESTNUM; ++i)
+  {
+  _ReadWriteBarrier();
+    //seed+=blah.Get(testnums[i])->_data;
+    num+=blah.Get(5)->_data;
+  _ReadWriteBarrier();
+  }
+
+  //std::cout << _debug.CloseProfiler(prof) << std::endl;
+  /*cRBT_PNode<int,int>* pnode=blah.GetFirst();
+  int last=-1;
+  uint pass=0;
+  while(pnode)
+  {
+    if(pnode->GetData()<=last)
+      pass+=1;
+    last=pnode->GetData();
+    pnode=pnode->GetNext();
+  }
+  TEST(!pass);*/
+  ENDTEST;
+}
+
+TEST::RETPAIR test_REFCOUNTER()
+{
+  BEGINTEST;
+  ENDTEST;
+}
+
+#define INSTANTIATE_SETTINGS
+#include "cSettings.h"
+
+DECL_SETGROUP(0,"main",3);
+DECL_SETTING(0,0,float,0.0f,"ANIME",0);
+DECL_SETTING(0,1,int,0,"MANGA","-manga");
+DECL_SETTING(0,2,double,0.0,"pow",0);
+DECL_SETGROUP(1,"submain",2);
+DECL_SETTING(1,0,float,15.0f,"zip",0);
+DECL_SETTING(1,1,int,5,"poofers",0);
+DECL_SETTING(1,2,std::vector<cStr>,std::vector<cStr>(),"lots",0);
+
+TEST::RETPAIR test_SETTINGS()
+{
+  BEGINTEST;
+  cSettingManage<1,0>::LoadAllFromINI(cINIstorage("test.ini"));
+  cSettingManage<1,0>::SaveAllToINI(cINIstorage("test.ini"));
+  ENDTEST;
+}
+
+TEST::RETPAIR test_SINGLETON()
+{
+  BEGINTEST;
+  ENDTEST;
+}
+
+TEST::RETPAIR test_STR()
+{
+  BEGINTEST;
+  cStr sdfhold("blah");
+  cStr sdfderp(sdfhold+cStr("temp")+cStr("temp")+cStr("temp")+cStr("temp"));
+  ENDTEST;
+}
+
+TEST::RETPAIR test_STRTABLE()
+{
+  BEGINTEST;
+
+  cStrTable<wchar_t> mbstable(PANGRAMS,6);
+  cStrTable<wchar_t> wcstable(PANGRAMS,6);
+  cStrTable<wchar_t,char> mbstable2(PANGRAMS,6);
+
+  const wchar_t* stv = mbstable.GetString(0);
+  stv = mbstable.GetString(4);
+  mbstable+=mbstable2;
+  stv = mbstable.GetString(4);
+  stv = mbstable.GetString(8);
+  std::fstream fs;
+  fs.open("dump.txt",std::ios_base::out | std::ios_base::trunc | std::ios_base::binary);
+  mbstable.DumpToStream(&fs);
+  fs.close();
+  fs.open("dump.txt",std::ios_base::in | std::ios_base::binary);
+  cStrTable<wchar_t> ldtable(&fs,bssFileSize("dump.txt"));
+  stv = ldtable.GetString(4);
+  stv = ldtable.GetString(11);
+  ENDTEST;
+}
+
+struct foobar// : public cClassAllocator<foobar>
+{
+  float test[3];
+  void stupid(unsigned int dumbthing) { std::cout << "Stupid(): " << dumbthing << std::endl; }
+  void retarded(int dumbthing, int stuff) { std::cout << "retarded(): " << dumbthing << " " << stuff << std::endl; }
+  void idiotic(int dumbthing, int stuff, bool garbage) { std::cout << "idiotic(): " << dumbthing << " " << stuff << " " << garbage << std::endl; }
+  void dumber() { std::cout << "dumber(): NULL" << std::endl; }
+  void nothing() {}
+  void nothing2() {}
+  void nothing3() {}
+};
+
+TEST::RETPAIR test_TASKSTACK()
+{
+  BEGINTEST;
+  
+  //foobar* barfoothing= new foobar();
+  //cTaskStack<foobar> foostack;
+  //foostack.RegisterFunction(FUNC_DEF0<foobar>(&foobar::dumber),0);
+  //foostack.RegisterFunction(FUNC_DEF1<foobar,unsigned int>(&foobar::stupid),1);
+  //foostack.RegisterFunction(FUNC_DEF2<foobar,int,int>(&foobar::retarded),2);
+  //foostack.RegisterFunction(FUNC_DEF3<foobar,int,int,bool>(&foobar::idiotic),3);
+
+  //cThread nthread(&dorandomcrap);
+  //std::pair<cTaskStack<foobar>*,cThread*> argpair(&foostack,&nthread);
+  //nthread.Start(&argpair);
+  //while(true)
+  //{
+  //foostack.EvaluateStack(barfoothing);
+  //}
+
+  //nthread.Stop();
+  //delete barfoothing;
+  ENDTEST;
+}
+
+TEST::RETPAIR test_UNIQUEPTR()
+{
+  BEGINTEST;
+
+  cOwnerPtr<char> p(new char[56]);
+  char* pp=p;
+  cOwnerPtr<char> p2(p);
+  cOwnerPtr<char> p3(std::move(p));
+  TEST(pp==p3);
+  ENDTEST;
+}
+
+TEST::RETPAIR test_FUNCTOR()
+{
+  BEGINTEST;
+  ENDTEST;
+}
+
+TEST::RETPAIR test_LLBASE()
+{
+  BEGINTEST;
+  ENDTEST;
+}
+
+TEST::RETPAIR test_LOCKLESS()
+{
+  BEGINTEST;
+  ENDTEST;
+}
+
 TEST::RETPAIR test_OS()
 {
   BEGINTEST;
@@ -389,19 +1490,38 @@ TEST::RETPAIR test_OS()
   TEST(FileExists(L"testlink"));
   TEST(FolderExists("IGNORE/symlink/"));
   TEST(FolderExists(L"IGNORE/symlink/"));
+
+#if defined(WIN32) || defined(_WINDOWS)
+
+#endif
   ENDTEST;
 }
 
+TEST::RETPAIR test_STREAMSPLITTER()
+{
+  BEGINTEST;
+  ENDTEST;
+}
+
+// --- Begin main testing function ---
+
 int main(int argc, char** argv)
 {
+  SetWorkDirToCur();
+  srand(time(NULL));
+  
+  for(int i = 0; i<TESTNUM; ++i)
+    testnums[i]=i;
+  shuffle(testnums);
+
   TEST tests[] = {
     { "bss_util.h", &test_bss_util },
     { "bss_DebugInfo.h", &test_bss_DEBUGINFO },
-    { "bss_alloc_additive.h", &test_bss_algo },
-    { "bss_alloc_additive.h", &test_bss_ALLOC_ADDITIVE_FIXED },
-    { "bss_alloc_additive.h", &test_bss_ALLOC_ADDITIVE_VARIABLE },
-    { "bss_alloc_fixed.h", &test_bss_ALLOC_FIXED_SIZE },
-    { "bss_alloc_fixed.h", &test_bss_ALLOC_FIXED_CHUNK },
+    { "bss_algo.h", &test_bss_algo },
+    { "bss_alloc_additive.h:Fix", &test_bss_ALLOC_ADDITIVE_FIXED },
+    { "bss_alloc_additive.h:Var", &test_bss_ALLOC_ADDITIVE_VARIABLE },
+    { "bss_alloc_fixed.h:Size", &test_bss_ALLOC_FIXED_SIZE },
+    { "bss_alloc_fixed.h:Chunk", &test_bss_ALLOC_FIXED_CHUNK },
     { "bss_depracated.h", &test_bss_deprecated },
     { "bss_fixedpt.h", &test_bss_FIXEDPT },
     { "cAliasTable.h", &test_ALIASTABLE },
@@ -410,7 +1530,40 @@ int main(int argc, char** argv)
     { "cArraySort.h", &test_ARRAYSORT },
     { "cAVLtree.h", &test_AVLTREE },
     { "cBinaryHeap.h", &test_BINARYHEAP },
+    //{ "cBitArray.h", &test_BITARRAY },
+    //{ "cBitField.h", &test_BITFIELD },
+    //{ "cBSS_Stack.h", &test_BSS_STACK },
+    //{ "cByteQueue.h", &test_BYTEQUEUE },
+    //{ "cCmdLineArgs.h", &test_CMDLINEARGS },
+    //{ "cDynArray.h", &test_DYNARRAY },
+    //{ "cHighPrecisionTimer.h", &test_HIGHPRECISIONTIMER },
+    //{ "cHolder.h", &test_HOLDER },
+    //{ "INIparse.h", &test_INIPARSE },
+    { "cINIstorage.h", &test_INISTORAGE },
+    //{ "cIntervalTree.h", &test_INTERVALTREE },
+    { "cKhash.h", &test_KHASH },
+    { "cLambdaStack.h", &test_LAMBDASTACK },
+    { "cLinkedArray.h", &test_LINKEDARRAY },
+    { "cLinkedList.h", &test_LINKEDLIST },
+    { "cLocklessByteQueue.h", &test_LOCKLESSBYTEQUEUE },
+    { "cMap.h", &test_MAP },
+    //{ "cMutex.h", &test_MUTEX },
+    { "cObjSwap.h", &test_OBJSWAP },
+    //{ "cPriorityQueue.h", &test_PRIORITYQUEUE },
+    { "cRational.h", &test_RATIONAL },
+    { "cRBT_List.h", &test_RBT_LIST },
+    //{ "cRefCounter.h", &test_REFCOUNTER },
+    { "cSettings.h", &test_SETTINGS },
+    //{ "cSingleton.h", &test_SINGLETON },
+    { "cStr.h", &test_STR },
+    //{ "cStrTable.h", &test_STRTABLE },
+    //{ "cTaskStack.h", &test_TASKSTACK },
+    { "cUniquePtr.h", &test_UNIQUEPTR },
+    //{ "functior.h", &test_FUNCTOR },
+    //{ "LLBase.h", &test_LLBASE },
+    //{ "lockless.h", &test_LOCKLESS },
     { "os.h", &test_OS },
+    //{ "cStreamSplitter.h", &test_STREAMSPLITTER },
   };
 
   const size_t NUMTESTS=sizeof(tests)/sizeof(TEST);
@@ -437,7 +1590,7 @@ int main(int argc, char** argv)
     std::cout << "\nThe following tests failed: " << std::endl;
     for (uint i = 0; i < failures.size(); i++)
       std::cout << "  " << tests[failures[i]].NAME << std::endl;
-    std::cout << "\nThese failures indicate either a misconfiguration on your system, or a potential bug. Please report all bugs to http://code.google.com/p/bss-util/issues/list" << std::endl;
+    std::cout << "\nThese failures indicate either a misconfiguration on your system, or a potential bug. Please report all bugs to http://code.google.com/p/bss-util/issues/list\n\nA detailed list of failed tests was written to failedtests.txt" << std::endl;
   }
 
   std::cout << "\nPress Enter to exit the program." << std::endl;
@@ -445,30 +1598,20 @@ int main(int argc, char** argv)
 
 }
 
-void destroynode(std::pair<int,int>* data)
-{
-  delete data;
-}
+// --- The rest of this file is archived dead code ---
 
-struct sp {
-  int x;
-  int y;
-};
+//void destroynode(std::pair<int,int>* data)
+//{
+//  delete data;
+//}
+//
+//struct sp {
+//  int x;
+//  int y;
+//};
 
 //char numarray[] = {3,4,9,14,15,19,28,37,47,50,54,56,59,61,70,73,78,81,92,95,97,99 };
-char numarray[] = { 1, 2, 3, 4, 6 };
-
-struct foobar// : public cClassAllocator<foobar>
-{
-  float test[3];
-  void stupid(unsigned int dumbthing) { std::cout << "Stupid(): " << dumbthing << std::endl; }
-  void retarded(int dumbthing, int stuff) { std::cout << "retarded(): " << dumbthing << " " << stuff << std::endl; }
-  void idiotic(int dumbthing, int stuff, bool garbage) { std::cout << "idiotic(): " << dumbthing << " " << stuff << " " << garbage << std::endl; }
-  void dumber() { std::cout << "dumber(): NULL" << std::endl; }
-  void nothing() {}
-  void nothing2() {}
-  void nothing3() {}
-};
+//char numarray[] = { 1, 2, 3, 4, 6 };
 
 //unsigned int __stdcall dorandomcrap(void* arg)
 //{
@@ -530,14 +1673,12 @@ unsigned int __stdcall flippertest(void* arg)
   }
 }
 */
-
+/*
 int PI_ITERATIONS=500;
 double pi=((PI_ITERATIONS<<1)-1)+(PI_ITERATIONS*PI_ITERATIONS);
 
 const char* MBSTESTSTRINGS[] = { "test","test2","test3","test4","test5","test6" };
 const wchar_t* WCSTESTSTRINGS[] = { L"test",L"test2",L"test3",L"test4",L"test5",L"test6" };
-
-const int TESTNUM=500000;
 
 struct weird
 {
@@ -569,443 +1710,13 @@ void printout(cLinkedArray<int>& list)
     std::cout<<*(cur++);
 
   std::cout<<std::endl;
-}
+}*/
 
+//const char* FAKESTRINGLIST[5] = { "FOO", "BAR", "MEH", "SILLY", "EXACERBATION" };
 
-#define INSTANTIATE_SETTINGS
-#include "cSettings.h"
-
-DECL_SETGROUP(0,"main",3);
-DECL_SETTING(0,0,float,0.0f,"ANIME",0);
-DECL_SETTING(0,1,int,0,"MANGA","-manga");
-DECL_SETTING(0,2,double,0.0,"pow",0);
-DECL_SETGROUP(1,"submain",2);
-DECL_SETTING(1,0,float,15.0f,"zip",0);
-DECL_SETTING(1,1,int,5,"poofers",0);
-DECL_SETTING(1,2,std::vector<cStr>,std::vector<cStr>(),"lots",0);
-
-struct DEBUG_CDT {
-  inline DEBUG_CDT(const DEBUG_CDT& copy) : _index(copy._index) { ++count; isdead=this; }
-  inline DEBUG_CDT(int index=0) : _index(index) { ++count; isdead=this; }
-  inline ~DEBUG_CDT() { if(isdead!=this) count/=0; --count; isdead=0; }
-
-  inline DEBUG_CDT& operator=(const DEBUG_CDT& right) { _index=right._index; return *this; }
-  inline bool operator<(const DEBUG_CDT& other) const { return _index<other._index; }
-  inline bool operator>(const DEBUG_CDT& other) const { return _index>other._index; }
-  inline bool operator<=(const DEBUG_CDT& other) const { return _index<=other._index; }
-  inline bool operator>=(const DEBUG_CDT& other) const { return _index>=other._index; }
-  inline bool operator==(const DEBUG_CDT& other) const { return _index==other._index; }
-  inline bool operator!=(const DEBUG_CDT& other) const { return _index!=other._index; }
-
-  static int count;
-  DEBUG_CDT* isdead;
-  int _index;
-};
-int DEBUG_CDT::count=0;
-
-const char* FAKESTRINGLIST[5] = { "FOO", "BAR", "MEH", "SILLY", "EXACERBATION" };
-
-int main3(int argc, char** argv)
-{  
-  //cRational<int> tr(1,10);
-  //cRational<int> tr2(1,11);
-  //cRational<int> tr3(tr+tr2);
-  //tr3=(tr-tr2);
-  //tr3=(tr*tr2);
-  //tr3=(tr/tr2);
-  //tr3=(tr+3);
-  //tr3=(tr-3);
-  //tr3=(tr*3);
-  //tr3=(tr/3);
-  //bool ttb=tr<3;
-  //ttb=tr>3;
-  //ttb=tr<tr2;
-  //ttb=tr>tr2;
-  //ttb=tr==3;
-  //ttb=tr!=3;
-  //ttb=tr==tr2;
-  //ttb=tr!=tr2;
-
-  //bool chk = fsmall(1);
-  //bool chk2 = dsmall(-1/900000000000000.0);
-
-  //{
-  //cKhash<int, char,false,KH_INT_HASHFUNC,KH_INT_EQUALFUNC<int>,KH_INT_VALIDATEPTR<int>> hashtest;
-  //hashtest.Insert(21354,0);
-  //hashtest.Insert(34623,0);
-  //hashtest.Insert(52,0);
-  //hashtest.Insert(1,0);
-  //int r=hashtest.GetIterKey(hashtest.GetIterator(1));
-
-  //}
-  //return 0;
-  cStr sdfhold("blah");
-  cStr sdfderp(sdfhold+cStr("temp")+cStr("temp")+cStr("temp")+cStr("temp"));
-
-  //_controlfp( _PC_24, MCW_PC );
-#ifndef BSS_MSC_NOASM
-  int zsdf = fFastRound(2734.82f);
-#endif
-
-  unsigned int seed=(unsigned int)GetTickCount();
-  srand(seed);
-  //srand(433690314);
-  rand();
-  
-  cAdditiveVariableAllocator<64> _variabletest;
-  std::vector<char*> phold;
-  for(int j=0; j<1000; ++j)
-  {
-    for(int i = 0; i < 1000; ++i)
-    {
-      if(RANDINTGEN(0,10)<5 || phold.size()<3)
-      {
-        char* test=_variabletest.alloc<char>(RANDINTGEN(4,1000));
-        *test=0xDEADBEEF;
-        phold.push_back(test);
-      }
-      else
-      {
-        int index=RANDINTGEN(0,phold.size()-1);
-        _variabletest.dealloc(phold[index]);
-        phold.erase(phold.begin()+index);
-      }
-    }
-    _variabletest.Clear();
-  }
-  char prof;
-  bss_DebugInfo _debug("log.txt");
-//  BSSLOGONE(&_debug,1,L"Test こんにちは世界 Log %s",L"こんにちは世界");
-  
-  /*unsigned int avg[2];
-  avg[0]=0;
-  avg[1]=0;
-
-  for(int j=1; j<100; ++j)
-  {
-    Allocator<int,AdditiveFixedPolicy<int>> _fixedtest;
-  std::vector<int*> phold;
-
-    prof=_debug.OpenProfiler();
-  for(int i = 0; i < 100000; ++i)
-  {
-    if(RANDINTGEN(0,10)<5 || phold.size()<3)
-    {
-      int* test=_fixedtest.allocate(1);
-      *test=0xDEADBEEF;
-      phold.push_back(test);
-    }
-    else
-    {
-      int index=RANDINTGEN(0,phold.size()-1);
-      _fixedtest.deallocate(phold[index]);
-      phold.erase(phold.begin()+index);
-    }
-  }
-    std::cout << ((avg[0]+=_debug.CloseProfiler(prof))/j) << std::endl;
-
-    phold.clear();
-  Allocator<int> _normaltest;
-    prof=_debug.OpenProfiler();
-  for(int i = 0; i < 100000; ++i)
-  {
-    if(RANDINTGEN(0,10)<5 || phold.size()<3)
-    {
-      int* test=_normaltest.allocate(1);
-      *test=0xDEADBEEF;
-      phold.push_back(test);
-    }
-    else
-    {
-      int index=RANDINTGEN(0,phold.size()-1);
-      _normaltest.deallocate(phold[index]);
-      phold.erase(phold.begin()+index);
-    }
-  }
-    std::cout << ((avg[1]+=_debug.CloseProfiler(prof))/j) << std::endl;
-
-  }*/
-
-  //FixedPt<12> fp(23563.2739);
-  //double res=fp;
-  //fp+=27.9;
-  //res+=27.9;
-  //res-=fp;
-  //res=fp;
-  //fp-=8327.9398437;
-  //res-=8327.9398437;
-  //res-=fp;
-  //res=fp;
-  //fp*=6.847399;
-  //res*=6.847399;
-  //res-=fp;
-  //res=fp;
-  //fp/=748.9272;
-  //res/=748.9272;
-  //res-=fp;
-
-  unsigned char vn2 = GetBitMask<unsigned char>(4); // 0001 0000
-  unsigned char vn3 = GetBitMask<unsigned char>(2,4); // 0001 1100
-  unsigned char vn4 = GetBitMask<unsigned char>(-2,2); // 1100 0111
-  unsigned char vn5 = GetBitMask<unsigned char>(-2,-2); // 0100 0000
-
-  cArrayWrap<cArraySimple<int,unsigned char>> artst(5);
-  int v = artst[3];
-
-  {
-  std::stringbuf unitbuf;
-  std::ostream unit(&unitbuf,true);
-  bss_Log log("test.txt");
-  log.AddTarget(unit);
-  log.GetStream() << "normal";
-  log.GetStream() << L"これはサンプルテキストです。";
-  log.GetStream() << 5;
-  log.GetStream() << 2.0f;
-
-  BSSLOG(log,1) << 1 << std::endl  << 2 << std::endl  << 3 << std::endl  << 4 << std::endl  << 5 << std::endl  << 6 << std::endl; 
-  BSSLOG(log,1) << "fail" << 2 << L"これはサン" << 2987324.387453 << 0xFF << "aslkj slkdfjasld kfjsadlkfj sks ss           " << "" << std::endl << std::endl << "";
-  }
-
-  std::function<void(DEBUG_CDT)> f;
- 
-  int c = STRSWAP("bar",FAKESTRINGLIST);
-  {
-    cArraySort<DEBUG_CDT,CompT<DEBUG_CDT>,unsigned int,cArraySafe<DEBUG_CDT,unsigned int>> arrtest;
-  arrtest.Insert(DEBUG_CDT(0));
-  arrtest.Insert(DEBUG_CDT(1));
-  arrtest.Insert(DEBUG_CDT(2));
-  arrtest.Remove(2);
-  arrtest.Insert(DEBUG_CDT(3));
-  arrtest.Insert(DEBUG_CDT(4));
-  arrtest.Insert(DEBUG_CDT(5));
-  arrtest.Remove(0);
-  arrtest.Insert(DEBUG_CDT(6));
-  arrtest.Remove(3);
-  cArraySort<DEBUG_CDT,CompT<DEBUG_CDT>,unsigned int,cArraySafe<DEBUG_CDT,unsigned int>> arrtest2;
-  
-  for(uint i = 0; i < arrtest.Length(); ++i)
-    std::cout << arrtest[i]._index << std::endl;
-
-  arrtest2.Insert(DEBUG_CDT(7));
-  arrtest2.Insert(DEBUG_CDT(8));
-  arrtest=arrtest2;
-  }
-
-  cCmdLineArgsA cmdtest(argc,argv);
-
-  cSettingManage<1,0>::LoadAllFromINI(cINIstorage("test.ini"));
-  cSettingManage<1,0>::SaveAllToINI(cINIstorage("test.ini"));
-  //{
-  //cArrayConstruct<CreateDestroyTracker> ac1(1);
-  //cArrayConstruct<CreateDestroyTracker> ac2(0);
-  //cArrayConstruct<CreateDestroyTracker> ac3(ac1+ac2);
-  //ac3+=ac1;
-  //ac2+=ac3;
-  //ac1+ac3;
-
-  //}
-  //assert(CreateDestroyTracker::count==0);
-
-  //{
-  //cLinkedList<int,Allocator<cLLNode<int>>,true> test;
-  //cLLNode<int>* llp[5];
-
-  //llp[0] = test.Add(1);
-  //printout(test);
-  //llp[1] = test.Add(2);
-  //printout(test);
-  //llp[3] = test.Add(4);
-  //printout(test);
-  //llp[4] = test.Add(5);
-  //printout(test);
-  //llp[2] = test.Insert(3,llp[3]);
-  //printout(test);
-  //test.Remove(llp[3]);
-  //printout(test);
-  //test.Remove(llp[0]);
-  //printout(test);
-  //test.Remove(llp[4]);
-  //printout(test);
-  //test.Insert(0,0);
-  //printout(test);
-  //test.Length();
-  //}
-  //return 0;
-
-  //{
-  //  Allocator<weird,FixedChunkPolicy<weird>> _fixedtest;
-  //  std::vector<weird*> _allocs;
-  //  weird* p;
-  //  for(int i=1; i<10000000; ++i)
-  //  {
-  //    if(RANDINTGEN(0,2)!=0 || _allocs.size()<1000) {
-  //      p = _fixedtest.allocate(1);
-  //      if(!p->valid())
-  //        throw "fuuuuuuuuuuuuuuuuuuu";
-  //      p->invalidate();
-  //      _allocs.push_back(p);
-  //    } else {
-  //      unsigned int target = RANDINTGEN(0,_allocs.size());
-  //      p = _allocs[target];
-  //      if(!p->invalid())
-  //        throw "fuuuuuuuuuuuuuuuuuuu";
-  //      p->validate();
-  //      _fixedtest.deallocate(p);
-  //      if(target<_allocs.size()-1)
-  //      {
-  //        p = _allocs[_allocs.size()-1];
-  //        _allocs[target]=p;
-  //      }
-  //      _allocs.pop_back();
-  //    }
-  //  }
-  //}
-
-  std::cout << DEBUG_CDT::count;
-  std::cout << std::endl << std::endl << "Press Enter to continue" << std::endl;
-  std::cin.get();
-  return 0;
-
-  int testnums[TESTNUM];
-  for(int i = 0; i<TESTNUM; ++i)
-    testnums[i]=i;
-
-  shuffle(testnums);
-  /*
-  Allocator<AVL_Node<int,int>,FixedChunkPolicy<AVL_Node<int,int>>> fixedavl;
-  cAVLtree<int, int,CompareKeys<int>,Allocator<AVL_Node<int,int>,FixedChunkPolicy<AVL_Node<int,int>>>> avlblah(&fixedavl);
-
-  prof=_debug.OpenProfiler();
-  for(int i = 0; i<TESTNUM; ++i)
-    avlblah.Insert(testnums[i],testnums[i]);
-  std::cout << _debug.CloseProfiler(prof) << std::endl;
-
-  shuffle(testnums);
-  prof=_debug.OpenProfiler();
-
-  for(int i = 0; i<TESTNUM; ++i)
-  {
-  _ReadWriteBarrier();
-    seed+=avlblah.Get(testnums[i]);
-  _ReadWriteBarrier();
-  }
-
-  std::cout << _debug.CloseProfiler(prof) << std::endl;
-  
-  shuffle(testnums);
-  prof=_debug.OpenProfiler();
-  for(int i = 0; i<TESTNUM; ++i)
-    avlblah.Remove(testnums[i]);
-  std::cout << _debug.CloseProfiler(prof) << std::endl;
-
-  std::cin >> seed;
-  return 0;
-  */
-
-  Allocator<cRBT_Node<int,int>,FixedChunkPolicy<cRBT_Node<int,int>>> fixedalloc;
-  cRBT_List<int, int,CompT<int>,Allocator<cRBT_Node<int,int>,FixedChunkPolicy<cRBT_Node<int,int>>>> blah(&fixedalloc);
-
-  prof=_debug.OpenProfiler();
-  for(int i = 0; i<TESTNUM; ++i)
-    //blah.Insert(testnums[i],testnums[i]);
-    blah.Insert((i&0x01)?5:testnums[i],testnums[i]);
-  std::cout << _debug.CloseProfiler(prof) << std::endl;
-
-  shuffle(testnums);
-  prof=_debug.OpenProfiler();
-  
-  for(int i = 0; i<TESTNUM; ++i)
-  {
-  _ReadWriteBarrier();
-    //seed+=blah.Get(testnums[i])->_data;
-    seed+=blah.Get(5)->_data;
-  _ReadWriteBarrier();
-  }
-
-  std::cout << _debug.CloseProfiler(prof) << std::endl;
-
-  //cRBT_PNode<int,int>* pnode=blah.GetFirst();
-  //int last=-1;
-  //while(pnode)
-  //{
-  //  if(pnode->GetData()<=last)
-  //    throw "";
-  //  last=pnode->GetData();
-  //  pnode=pnode->GetNext();
-  //}
-
-  shuffle(testnums);
-  prof=_debug.OpenProfiler();
-  for(int i = 0; i<TESTNUM; ++i)
-    blah.Remove(testnums[i]);
-    //blah.Remove(5);
-  std::cout << _debug.CloseProfiler(prof) << std::endl;
-
-  unsigned __int16 s4=RANDINTGEN(90000,90000000000);
-
-  double y = FastSqrt(9.0);
-
-  std::cout << seed;
-  std::cin >> s4;
-  return 0;
-
-  sp S1 = { (int)RANDFLOATGEN(0.0f,100000.0f), (int)RANDFLOATGEN(0.0f,100000.0f) };
-  sp S2 = { (int)RANDFLOATGEN(0.0f,100000.0f), (int)RANDFLOATGEN(0.0f,100000.0f) };
-  sp S3 = { (int)RANDFLOATGEN(0.0f,100000.0f), (int)RANDFLOATGEN(0.0f,100000.0f) };
-  sp S4 = { (int)RANDFLOATGEN(0.0f,100000.0f), (int)RANDFLOATGEN(0.0f,100000.0f) };
-  sp S5 = { (int)RANDFLOATGEN(0.0f,100000.0f), (int)RANDFLOATGEN(0.0f,100000.0f) };
-  sp S6 = { (int)RANDFLOATGEN(0.0f,100000.0f), (int)RANDFLOATGEN(0.0f,100000.0f) };
-
-  _ReadWriteBarrier();
-
-  float x = distsqr(S3.x,S3.y,S4.x,S4.y);
-  
-  _ReadWriteBarrier();
-
-
-  _ReadWriteBarrier();
-  
-  std::cout << x << y;
-
+//int main3(int argc, char** argv)
+//{  
   //char* romanstuff = inttoroman(3333);
-
-  cStrTable<wchar_t> mbstable(WCSTESTSTRINGS,6);
-  cStrTable<wchar_t> wcstable(WCSTESTSTRINGS,6);
-  cStrTable<wchar_t,char> mbstable2(WCSTESTSTRINGS,6);
-  
-  /*const wchar_t* stv = mbstable.GetString(0);
-  stv = mbstable.GetString(4);
-  mbstable+=mbstable2;
-  stv = mbstable.GetString(4);
-  stv = mbstable.GetString(8);
-  std::fstream fs;
-  fs.open("dump.txt",std::ios_base::out | std::ios_base::trunc | std::ios_base::binary);
-  mbstable.DumpToStream(&fs);
-  fs.close();
-  fs.open("dump.txt",std::ios_base::in | std::ios_base::binary);
-  cStrTable<wchar_t> ldtable(&fs,bssFileSize("dump.txt"));
-  stv = ldtable.GetString(4);
-  stv = ldtable.GetString(11);
-  return 0;*/
-
-  //srand(433005251);
-  //int length=sizeof(string)-1;
-  //cStr cur;
-  //for(int i = length/2; i > 3; --i)
-  //{
-  //  if(cur.length()>i) break; //we already found it
-  //  for(int j = 0; j<length; ++j)
-  //  {
-  //    if(backwardscheck(&string[j],i))
-  //    {
-  //      cur.reserve(i+1);
-  //      cur.UnsafeString()[i]='\0';
-  //      strncpy(cur.UnsafeString(),&string[j],i);
-  //      cur.RecalcSize();
-  //      break; //we don't care if there are any others
-  //    }
-  //  }
-  //}
 
   //cTAATree<int,int> _aatest;
 
@@ -1041,122 +1752,6 @@ int main3(int argc, char** argv)
   //  cur+=prev;
   //  prev=res;
   ////}
-  unsigned int* zp=&seed;
-  unsigned int* zp2=&seed;
-  unsigned int* zp3=&seed;
-  unsigned int* zp4=0;
-  unsigned int* zp5=&seed;
-  switch(PSWAP(0,5,zp,zp2,zp3,zp4,zp5))
-  {
-  case 0:
-    seed=seed;
-    break;
-  case 1:
-    seed=seed;
-    break;
-  case 2:
-    seed=seed;
-    break;
-  case 3:
-    seed=seed;
-    break;
-  case 4:
-    seed=seed;
-    break;
-  }
-
-  switch(STRSWAP("nothing",5,"no","yes","lol","help","fail"))
-  {
-  case 0:
-    seed=seed;
-    break;
-  case 1:
-    seed=seed;
-    break;
-  case 2:
-    seed=seed;
-    break;
-  case 3:
-    seed=seed;
-    break;
-  case 4:
-    seed=seed;
-    break;
-  }
-
-  //return 0;
-
-  system("Pause");
-  {
-    cLinkedArray<__int64> tarrlink(2000);
-    std::vector<unsigned int> _rm;
-    for(int j=0; j<100000;  ++j)
-      tarrlink.Add(1);
-
-    char prof=_debug.OpenProfiler();
-    __int64 hold=0;
-    unsigned int cur=tarrlink.Start();
-    while(cur!=(unsigned int)-1)
-    {
-      hold+=tarrlink[cur];
-      tarrlink.Next(cur);
-    }
-
-    //for(int j=0; j<10000; ++j)
-    //{
-    //  for(int i = RANDINTGEN(100,200); i>0; --i) {
-    //    if(_rm.size()<2)
-    //      _rm.push_back(tarrlink.Add(0));
-    //    else
-    //      _rm.push_back(tarrlink.InsertAfter(i,_rm[RANDINTGEN(0,_rm.size()-1)]));
-    //  }
-    //  for(int i = RANDINTGEN(0,tarrlink.Size()-1); i>0; --i){
-    //    if(_rm.size()>2) {
-    //      int check=RANDINTGEN(0,_rm.size()-1);
-    //      tarrlink.Remove(_rm[check]);
-    //      _rm.erase(_rm.begin()+check);
-    //    }
-    //  }
-    //}
-    std::cout << _debug.CloseProfiler(prof) << std::endl;
-  }
-  
-  srand(seed); //ensures we get the same numbers
-  {
-    cLinkedList<__int64*> tarrlink;
-    std::vector<cLLNode<__int64*>*> _rm;
-    __int64 i=1;
-    for(int j=0; j<100000; ++j)
-      tarrlink.Add(&i);
-    
-    char prof=_debug.OpenProfiler();
-    __int64 hold=0;
-    cLLNode<__int64*>* cur=tarrlink.GetRoot();
-    while(cur!=0)
-    {
-      hold+=*cur->item;
-      cur=cur->next;
-    }
-
-    //for(int j=0; j<10000; ++j)
-    //{
-    //  for(__int64 i = RANDINTGEN(100,200); i>0; --i) {
-    //    if(_rm.size()<2)
-    //      _rm.push_back(tarrlink.Add(0));
-    //    else
-    //      _rm.push_back(tarrlink.InsertAfter(&i,_rm[RANDINTGEN(0,_rm.size()-1)]));
-    //  }
-    //  for(int i = RANDINTGEN(0,tarrlink.Length()-1); i>0; --i){
-    //    if(_rm.size()>2) {
-    //      int check=RANDINTGEN(0,_rm.size()-1);
-    //      tarrlink.Remove(_rm[check]);
-    //      _rm.erase(_rm.begin()+check);
-    //    }
-    //  }
-    //}
-
-    std::cout << _debug.CloseProfiler(prof) << std::endl;
-  }
   
   //std::vector<int> prime_divisors;
 
@@ -1174,107 +1769,8 @@ int main3(int argc, char** argv)
   //int sum=0;
   //for(int i = 0; i < prime_divisors.size(); ++i) sum+=prime_divisors[i];
 
-  int input;
-  std::cout << "Start sequence at what number? " << std::endl;
-  std::cin >> input;
-  char value=(char)input;
-  int exact=value;
-  int exactbefore=bssmax((int)(value*0.618f),1);
-
-  while(value < 100)
-  {    
-    exact+=exactbefore;
-    exactbefore=exact-exactbefore;
-
-    std::cout << (int)(value=fbnext(value)) << "   (" << (exact-value) << ")" << std::endl;
-  }
-
-  system("Pause");
-
-  //boost::filesystem::path p("../");
-  //if (boost::filesystem::exists(p, boost::system::error_code()))    // does p actually exist?
-  //  {
-  //    if (boost::filesystem::is_regular_file(p))        // is p a regular file?
-  //      std::cout << p << " size is " << boost::filesystem::file_size(p) << '\n';
-
-  //    else if (boost::filesystem::is_directory(p))      // is p a directory?
-  //    {
-  //      std::cout << p << " is a directory containing:\n";
-
-  //      copy(boost::filesystem::directory_iterator(p), boost::filesystem::directory_iterator(),  // directory_iterator::value_type
-  //        std::ostream_iterator<boost::filesystem::directory_entry>(std::cout, "\n"));  // is directory_entry, which is
-  //                                                         // converted to a path by the
-  //                                                         // path stream inserter
-  //    }
-  //    else
-  //      std::cout << p << " exists, but is neither a regular file nor a directory\n";
-  //  }
-  //  else
-  //    std::cout << p << " does not exist\n";
-
-  //char buf[260];
-  //FileDialog(buf, false, 0, "test.bak");
-
-  char arraysize=sizeof(numarray)/sizeof(char);
-  int target;
-  int add;
-  int end;
-  int sets=0;
-  for(char i = 2; i < arraysize; ++i)
-  {
-    for(int j=0; j+i<arraysize; ++j)
-    {
-      target=numarray[j+i];
-      end=j+i;
-      add=0;
-      for(int k=end-1; k>=j; --k) {
-        add+=numarray[k];
-        if(add>target) break;
-      }
-      if(add==target) ++sets;
-    }
-  }
-  /*
-  cINIstorage<wchar_t> wini(L"test.ini");
-  wini.EditEntry(L"Video",L"test",L"fail",-1,-1);
-  wini.EditEntry(L"Video",L"test",L"success");
-  wini.EndINIEdit();*/
-
-  SetWorkDirToCur();
-  cINIstorage ini("test.ini");
-  while(ini.RemoveSection("NEWSECTION"));
-  ini.AddSection("NEWSECTION");
-  ini.AddSection("NEWSECTION");
-  ini.EditEntry("NEWSECTION","newkey","fakevalue",0,-1);
-  ini.EditEntry("NEWSECTION","newkey","realvalue",0,0);
-  ini.EditEntry("NEWSECTION","newkey",0,0,0);
-  ini.EditEntry("NEWSECTION","newkey","value",-1,-1);
-  const char* test = ini["Video"]["baseheight"].GetString();
-
-  cStrW testerstr("test");
-  cStr tester2str("%s%i","test",2);
-  cStrW wtester2str(L"%s%i",L"test",2);
-  wtester2str+=tester2str;
-
-  const std::vector<std::pair<cStr,unsigned int>>& sections=ini.BuildSectionList();
-  ini.EndINIEdit();
-
-  for(unsigned int i=0; i < sections.size(); ++i)
-  {
-    std::cout << '[' << sections[i].first << ':' << sections[i].second  << ']' << std::endl;
-    const std::vector<std::pair<std::pair<cStr,cStr>,unsigned int>>& entries=ini.GetSection(sections[i].first,sections[i].second)->BuildEntryList();
-    for(unsigned int j=0; j < entries.size(); ++j)
-      std::cout << entries[j].first.first << " - " << entries[j].first.second << " :" << entries[j].second << std::endl;
-    std::cout << std::endl;
-  }
-  system("Pause");
-  return 0;
-
-  cKhash_Int<void*,__int64> testkhash;
-
-  system("Pause");
-	return 0;
-}
+//	return 0;
+//}
 
  int rometoint(std::string roman) {
     int total = 0;
@@ -1402,158 +1898,7 @@ int main2()
   if(!expResult) num=num/0;
 
   qtest.Clear();*/
-
   return 0;
-
-  strlen("sadjkfds");
-
-  //StringPoolAlloc<char> stringalloc(512);
-
-  //blah.GetData(25);
-
-  //unsigned int seed=1267805912;
-  srand(seed);
-  rand();
-  char profID;
-
-  const int MAXBANK=50;
-  foobar* ptest[MAXBANK];
-  memset(ptest,0,sizeof(foobar*)*MAXBANK);
-//
-//  for(int p = 0; p < 10; ++p)
-//  {
-//    profID = _debug.OpenProfiler();
-//    for(int i = 0; i < 1000000; ++i)
-//    {
-//      int ind = RANDINTGEN(0,MAXBANK-1);
-//      if(ptest[ind])
-//      {
-//       delete [] ptest[ind];
-//        ptest[ind]=0;
-//      }
-//      else
-//      {
-//        seed=RANDINTGEN(0,120);
-//        ptest[ind]= new foobar[seed];
-//        for(unsigned int j = 0; j < seed; ++j)
-//          ptest[ind][j] = foobar();
-//
-//      }
-//
-//#if defined(DEBUG) || defined(_DEBUG)
-//      for(int j = 0; j < MAXBANK; ++j)
-//        if(!!ptest[j])
-//          for(int k = j; k < MAXBANK;)
-//            assert(ptest[j]!=ptest[++k]);
-//#endif
-//    }
-//    std::cout << "TIME: " << _debug.CloseProfiler(profID) << std::endl;
-//  }
-
-  //float ftest = 0.0000005f;
-  //bool smalltest = fsmall(ftest);
-
-  //cFixedSizeAllocator<foobar> _alloctest;
-  //foobar* ptest[MAXBANK];d
-  //memset(ptest,0,sizeof(foobar*)*MAXBANK);
-  __int64 addon=0;
-
-  for(int j = 0; j < 1; ++j)
-  {
-    profID = _debug.OpenProfiler();
-
-    /* This is a brutal random allocation test, where we either allocate or deallocate a random chunk of memory. */
-    for(int i = 0; i < 1000000; ++i)
-    {
-      int ind = RANDINTGEN(0,MAXBANK-1);
-      if(ptest[ind])
-      {
-        delete ptest[ind];
-        //_alloctest.dealloc(ptest[ind]);
-        //_blockalloc.Free(ptest[ind], sizeof(foobar));
-        ptest[ind]=0;
-      }
-      else
-        ptest[ind] = new foobar();
-        //ptest[ind]=_alloctest.alloc(1);
-        //ptest[ind]=(foobar*)_blockalloc.Allocate(sizeof(foobar));
-    }
-    std::cout << "TIME: " << ((addon+=_debug.CloseProfiler(profID))/(j+1)) << std::endl;
-  }
-  //for(int j = 0; j < MAXBANK; ++j)
-  //  if(ptest[j])
-  //    delete ptest[j];
-
-  system("Pause");
-  return 0;
-
-  //unsigned __int64 totaltime=0;
-  //for(int j = 0; j < 20; ++j)
-  //{
-  //profID = _debug.OpenProfiler();
-  //for(int i = 0; i < 100; ++i)
-  //{
-  //  cStrW test(L"");
-  //  for(int k = 10000; k > 0; --k)
-  //  {
-  //    test+=L"1";
-  //  }
-
-  //  cStrW n00b(L"ANSKDNHGZKJDHFKDHFZKDJSFSFDSGJ LDKJASDKFJSDLKFJS");
-  //  cStrW init(L"INITTEST)))");
-  //  init=test+n00b;
-  //}
-  //unsigned __int64 sect = _debug.CloseProfiler(profID);
-  //totaltime += sect;
-  //std::cout << "TIME: " << sect << " | AVERAGE: " << (totaltime/(j+1)) << std::endl << "MEMORY: " << _debug.GetWorkingSet() << std::endl;
-  //}
-
-  SetWorkDirToCur();
-  cAVLtree<int, std::pair<int,int>*>* tree = new cAVLtree<int, std::pair<int,int>*>();
-  std::pair<int,int> test(5,5);
-  tree->Insert(test.first,&test);
-  tree->Get(test.first);
-  tree->ReplaceKey(5,2);
-  tree->Remove(test.first);
-  tree->Clear();
-
-  cINIstorage store("release/test.ini");
-  //cINIstorage store;
-  store.AddSection("Hello");
-
-  char ID = _debug.OpenProfiler();
-  int get = store.GetEntry("Asdkj", "");
-  
-  //foobar* barfoothing= new foobar();
-  //cTaskStack<foobar> foostack;
-  //foostack.RegisterFunction(FUNC_DEF0<foobar>(&foobar::dumber),0);
-  //foostack.RegisterFunction(FUNC_DEF1<foobar,unsigned int>(&foobar::stupid),1);
-  //foostack.RegisterFunction(FUNC_DEF2<foobar,int,int>(&foobar::retarded),2);
-  //foostack.RegisterFunction(FUNC_DEF3<foobar,int,int,bool>(&foobar::idiotic),3);
-
-  //cThread nthread(&dorandomcrap);
-  //std::pair<cTaskStack<foobar>*,cThread*> argpair(&foostack,&nthread);
-  //nthread.Start(&argpair);
-  //while(true)
-  //{
-  //foostack.EvaluateStack(barfoothing);
-  //}
-
-  //nthread.Stop();
-  //delete barfoothing;
-
-  cKhash_Int<bss_DebugInfo*> hasherint;
-  hasherint.Insert(25, &_debug);
-  hasherint.GetKey(25);
-  hasherint.Remove(25);
-  cKhash_StringIns<bss_DebugInfo*> hasher;
-  int iter = hasher.Insert("",&_debug);
-  iter = hasher.Insert("Video",(bss_DebugInfo*)5);
-  hasher.SetSize(100);
-  iter = hasher.Insert("Physics",0);
-  bss_DebugInfo* check = *hasher.GetKey("Video");
-  check = *hasher.GetKey("Video");
-  unsigned __int64 diff = _debug.CloseProfiler(ID);
 }
 
 //const char string[] = "FourscoreandsevenyearsagoourfaathersbroughtforthonthiscontainentanewnationconceivedinzLibertyanddedicatedtothepropositionthatallmenarecreatedequalNowweareengagedinagreahtcivilwartestingwhetherthatnaptionoranynartionsoconceivedandsodedicatedcanlongendureWeareqmetonagreatbattlefiemldoftzhatwarWehavecometodedicpateaportionofthatfieldasafinalrestingplaceforthosewhoheregavetheirlivesthatthatnationmightliveItisaltogetherfangandproperthatweshoulddothisButinalargersensewecannotdedicatewecannotconsecratewecannothallowthisgroundThebravelmenlivinganddeadwhostruggledherehaveconsecrateditfaraboveourpoorponwertoaddordetractTgheworldadswfilllittlenotlenorlongrememberwhatwesayherebutitcanneverforgetwhattheydidhereItisforusthelivingrathertobededicatedheretotheulnfinishedworkwhichtheywhofoughtherehavethusfarsonoblyadvancedItisratherforustobeherededicatedtothegreattdafskremainingbeforeusthatfromthesehonoreddeadwetakeincreaseddevotiontothatcauseforwhichtheygavethelastpfullmeasureofdevotionthatweherehighlyresolvethatthesedeadshallnothavediedinvainthatthisnationunsderGodshallhaveanewbirthoffreedomandthatgovernmentofthepeoplebythepeopleforthepeopleshallnotperishfromtheearth";
@@ -1568,6 +1913,7 @@ int main2()
 //  return true;
 //}
 
+// This is painfully slow and I don't even know why its here.
 inline bool isprime(int number)
 {
   if(number%2==0) return number==2;
@@ -1577,11 +1923,10 @@ inline bool isprime(int number)
   return true;
 }
 
-inline int addrecursive(int start,int prev)
-{
-  int retval=numarray[start]==prev?1:0;
-
-}
+//inline int addrecursive(int start,int prev)
+//{
+//  int retval=numarray[start]==prev?1:0;
+//}
 
 extern void kdtestmain();
 
@@ -1621,3 +1966,4 @@ char* inttoroman(int in)
 	
 	return str;
 }
+

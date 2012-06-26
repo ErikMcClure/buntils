@@ -27,6 +27,7 @@ namespace bss_util {
   public:
 	  inline cFixedSizeAllocator()
     {
+		  static_assert((sizeof(T)>=sizeof(void*)),"T cannot be less than the size of a pointer");
 	    _chunkspace = chunkIncrement;
 	    _chunknum = 0;
 	    _chunks = (fsaChunk*)malloc(_chunkspace * sizeof(fsaChunk));
@@ -48,8 +49,9 @@ namespace bss_util {
     {
 	    if (num == 0)
 		    return NULL;
-      else if(num > 1)
-        return (T*)malloc(num*sizeof(T));
+      assert(num==1);
+      //else if(num > 1)
+      //  return (T*)malloc(num*sizeof(T));
 
 	    if (_freelist)
 	    {
@@ -130,7 +132,7 @@ namespace bss_util {
 
 	  inline void Clear()
     {
-	    for (int32 i = 0; i < _chunknum; ++i)
+	    for(__int32 i = 0; i < _chunknum; ++i)
 	    {
 		    free(_chunks[i].blocks);
 	    }
@@ -205,6 +207,7 @@ namespace bss_util {
     }
 	  inline T* BSS_FASTCALL alloc(size_t num)
     {
+      assert(num<=1);
       if(!_freelist) _allocchunk(fbnext(_root->size/sizeof(T))*sizeof(T));
       assert(_freelist!=0);
 

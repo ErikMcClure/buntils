@@ -42,6 +42,7 @@
 #define BSS_COMPILER_STDCALL
 #define BSS_COMPILER_NAKED
 #define BSS_FORCEINLINE
+#define BSS_RESTRICT __restrict__
 
 # elif defined __GNUC__ // GCC
 #define BSS_COMPILER_DLLEXPORT __attribute__((dllexport))
@@ -53,6 +54,7 @@
 #define BSS_COMPILER_STDCALL __attribute__((BSS_COMPILER_STDCALL__))
 #define BSS_COMPILER_NAKED __attribute__((naked)) // Will only work on ARM, AVR, MCORE, RX and SPU. 
 #define BSS_FORCEINLINE __attribute__((always_inline))
+#define BSS_RESTRICT __restrict__
 
 #ifndef __int8
 #define __int8 char
@@ -78,6 +80,7 @@
 #define BSS_COMPILER_STDCALL __stdcall
 #define BSS_COMPILER_NAKED __declspec(naked) 
 #define BSS_FORCEINLINE __forceinline
+#define BSS_RESTRICT __restrict
 
 #ifndef BSS_CPU_x86 // The only platform VC++ supports inline assembly on is x86, because its a piece of shit.
 #define BSS_MSC_NOASM

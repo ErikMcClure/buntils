@@ -14,14 +14,14 @@ namespace bss_util {
   {
   public:
     /* Constructor - Reference is set to 0 because you may or may not have a persistent reference to this, or something else will try to grab it or whatever */
-    cRefCounter() { _refs = 0; }
-    cRefCounter(const cRefCounter& copy) { _refs = 0; }
+    inline cRefCounter() { _refs = 0; }
+    inline cRefCounter(const cRefCounter& copy) { _refs = 0; }
     /* Destructor - Does nothing, but because it is virtual, ensures that all superclasses get destroyed as well */
     virtual ~cRefCounter() { }
     /* Increments and returns the reference counter */
-    inline unsigned int Grab() { return ++_refs; } const
+    inline BSS_FORCEINLINE unsigned int Grab() { return ++_refs; } const
     /* Decrements the reference counter and calls delete this; if it is equal to or less then 0 */
-    inline void Drop() { if(--_refs <= 0) DestroyThis(); }
+    inline BSS_FORCEINLINE void Drop() { if(--_refs <= 0) DestroyThis(); }
     /* Destroys this object - made a seperate virtual function so it is overridable to ensure it is deleted in the proper DLL */
     virtual void DestroyThis() { delete this; }
 
@@ -30,27 +30,27 @@ namespace bss_util {
   };
 
   /* This is an autoptr with copy semantics for a reference counter */
-  template<class T>
-  class BSS_COMPILER_DLLEXPORT cRefPointer //only exported to make VC++ shut up with that stupid warning
+  /*template<class T>
+  class BSS_COMPILER_DLLEXPORT cRefPointer
   {
   public:
-    cRefPointer(const cRefPointer& ptr) { _assign(ptr); }
-    cRefPointer(T* ptr) { _assign(ptr); }
-    ~cRefPointer() { _drop(); }
-    void ReleasePtr() { _drop(); }
+    inline cRefPointer(const cRefPointer& ptr) { _assign(ptr); }
+    inline cRefPointer(T* ptr) { _assign(ptr); }
+    inline ~cRefPointer() { _drop(); }
+    inline void ReleasePtr() { _drop(); }
 
-    cRefPointer& operator=(T* right) { _drop(); _assign(right) }
-    cRefPointer& operator=(const cRefPointer& right) { _drop(); _assign(right); }
-    T& operator*() const { return *_ptr; }
-    T* operator->() const { return _ptr; }
+    inline cRefPointer& operator=(T* right) { _drop(); _assign(right) }
+    inline cRefPointer& operator=(const cRefPointer& right) { _drop(); _assign(right); }
+    inline T& operator*() const { return *_ptr; }
+    inline T* operator->() const { return _ptr; }
     //operator T*() const { return _ptr; }
 
   protected:
-    void _assign(T* ptr) { _ptr = ptr; if(_ptr) ((cRefCounter*)_ptr)->Grab(); }
-    void _drop() { if(_ptr) ((cRefCounter*)_ptr)->Drop(); _ptr=0; }
+    inline void _assign(T* ptr) { _ptr = ptr; if(_ptr) ((cRefCounter*)_ptr)->Grab(); }
+    inline void _drop() { if(_ptr) ((cRefCounter*)_ptr)->Drop(); _ptr=0; }
 
     T* _ptr;
-  };
+  };*/
 }
 
 #endif

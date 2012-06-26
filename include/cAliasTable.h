@@ -27,7 +27,7 @@ namespace bss_util {
       if(_alias!=0) delete [] _alias;
       if(_prob!=0) delete [] _prob;
     }
-    inline UINT Get() const
+    inline BSS_FORCEINLINE UINT Get() const
     {
       UINT c = (UINT)(rand()%_count);
       return (((F)rand()/(F)RAND_MAX) < _prob[c])?c:_alias[c];

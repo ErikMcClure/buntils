@@ -16,11 +16,11 @@ namespace bss_util {
     char* mem;
   };
 
-	template<typename T, size_t init=8>
+	template<typename T>
 	class BSS_COMPILER_DLLEXPORT cAdditiveFixedAllocator
   {
   public:
-    cAdditiveFixedAllocator() : _curpos(0), _root(0)
+    cAdditiveFixedAllocator(size_t init=8) : _curpos(0), _root(0)
     {
       _allocchunk(init*sizeof(T));
     }
@@ -36,6 +36,7 @@ namespace bss_util {
     }
 	  inline T* BSS_FASTCALL alloc(size_t num)
     {
+      assert(num==1);
       if(_curpos>=_root->size) { _allocchunk(fbnext(_root->size/sizeof(T))*sizeof(T)); _curpos=0; }
 
       T* retval= (T*)(_root->mem+_curpos);
@@ -44,12 +45,13 @@ namespace bss_util {
     }
     inline void BSS_FASTCALL dealloc(void* p)
     {
+      assert(p!=0);
 #if defined(DEBUG) || defined(_DEBUG)
       AFLISTITEM* cur=_root;
-      bool found;
+      bool found=false;
       while(cur)
       {
-        if(p>cur->mem && p<(cur->mem+cur->size)) { found=true; break; }
+        if(p>=cur->mem && p<(cur->mem+cur->size)) { found=true; break; }
         cur=cur->next;
       }
       assert(found);
@@ -74,7 +76,7 @@ namespace bss_util {
       _allocchunk(nsize); //consolidates all memory into one chunk to try and take advantage of data locality
     }
   protected:
-    inline void _allocchunk(size_t nsize)
+    inline BSS_FORCEINLINE void _allocchunk(size_t nsize)
     {
       AFLISTITEM* retval=(AFLISTITEM*)malloc(sizeof(AFLISTITEM));
       retval->next=_root;
@@ -83,7 +85,7 @@ namespace bss_util {
       _root=retval;
       assert(_prepDEBUG());
     }
-    inline bool _prepDEBUG()
+    inline BSS_FORCEINLINE bool _prepDEBUG()
     {
       if(!_root || !_root->mem) return false;
       memset(_root->mem,0xcdcdcdcd,_root->size);
@@ -119,11 +121,10 @@ namespace bss_util {
   BSSBUILD_STATIC_POLICY(StaticAdditiveFixed,AdditiveFixedPolicy);
 
   /* Dynamic additive allocator that can allocate any number of bytes */
-	template<size_t init=64>
 	class BSS_COMPILER_DLLEXPORT cAdditiveVariableAllocator
   {
   public:
-    cAdditiveVariableAllocator() : _curpos(0), _root(0)
+    explicit cAdditiveVariableAllocator(size_t init=64) : _curpos(0), _root(0)
     {
       _allocchunk(init);
     }
@@ -154,10 +155,10 @@ namespace bss_util {
     {
 #if defined(DEBUG) || defined(_DEBUG)
       AFLISTITEM* cur=_root;
-      bool found;
+      bool found=false;
       while(cur)
       {
-        if(p>cur->mem && p<(cur->mem+cur->size)) { found=true; break; }
+        if(p>=cur->mem && p<(cur->mem+cur->size)) { found=true; break; }
         cur=cur->next;
       }
       assert(found);
@@ -181,7 +182,7 @@ namespace bss_util {
       _allocchunk(nsize); //consolidates all memory into one chunk to try and take advantage of data locality
     }
   protected:
-    inline void _allocchunk(size_t nsize)
+    inline BSS_FORCEINLINE void _allocchunk(size_t nsize)
     {
       AFLISTITEM* retval=(AFLISTITEM*)malloc(sizeof(AFLISTITEM));
       retval->next=_root;

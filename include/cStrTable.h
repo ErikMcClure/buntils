@@ -60,7 +60,7 @@ namespace bss_util {
       stream->read((char*)_strings,_sasize*sizeof(T));
       _strings[(stream->gcount()/sizeof(T))-1]='\0'; //make sure the end is a null terminator
 
-      _numindices=strccount<T>(_strings,_sasize,0);
+      _numindices=strccount<T>(_strings,0,_sasize);
       _indexarray=(ST*)malloc(_numindices*sizeof(ST));
       memset(_indexarray,0,_numindices*sizeof(ST));
 

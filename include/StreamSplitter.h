@@ -19,9 +19,11 @@ namespace bss_util {
   using namespace std;
 
   /* Stream buffer that can output to any number of possible external streams, and auto-converts all wchar_t* input to UTF-8 */
-  //template<typename _Elem=char>
+#pragma warning(push)
+#pragma warning(disable:4251)
   class BSS_COMPILER_DLLEXPORT StreamSplitter : public basic_stringbuf<char>
   {
+#pragma warning(pop)
   public:
     inline StreamSplitter(const StreamSplitter& copy) : stringbuf(copy),_targets(copy._targets) {}//,_wtargets(copy._wtargets) {}
     inline StreamSplitter(StreamSplitter&& mov) : stringbuf(move(mov)),_targets(move(mov._targets)) {}//, _wtargets(move(copy._wtargets)) {}

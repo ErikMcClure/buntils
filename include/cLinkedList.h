@@ -21,8 +21,8 @@ namespace bss_util {
   {
     cLLPNode(const cLLNode<T>& copy) : item(copy.item) { next=(cLLPNode<T>*)copy.next; prev=(cLLPNode<T>*)copy.prev; }
     T item;
-    inline cLLPNode<T>* GetNext() { return next; }
-    inline cLLPNode<T>* GetPrev() { return prev; }
+    inline BSS_FORCEINLINE cLLPNode<T>* GetNext() { return next; }
+    inline BSS_FORCEINLINE cLLPNode<T>* GetPrev() { return prev; }
   };
   
   /* Const node prohibiting manipulation of everything, has the same bit layout as the internal node */

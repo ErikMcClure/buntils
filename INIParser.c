@@ -232,7 +232,7 @@ int BSS_FASTCALL comparevalues(const char* start, const char* end, const char* c
 {
   ptrdiff_t a,b;
   start=_trimlstr(start);
-  end=_trimrstralt(--end,start);
+  end=_trimrstralt(end-1,start);
   a = (end-start)+1;
   b = strlen(comp);
   return _strnicmp(start,comp,bssmin(a,b));

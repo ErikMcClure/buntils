@@ -470,7 +470,6 @@
     <ClInclude Include="include\cAliasTable.h" />
     <ClInclude Include="include\cArrayCircular.h" />
     <ClInclude Include="include\cDynArray.h" />
-    <ClInclude Include="include\cIntervalTree.h" />
     <ClInclude Include="include\cLambdaStack.h" />
     <ClInclude Include="include\cRational.h" />
     <ClInclude Include="include\cRBT_List.h" />

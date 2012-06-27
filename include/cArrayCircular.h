@@ -23,7 +23,7 @@ namespace bss_util {
     inline ~cArrayCircular() {}
     inline BSS_FORCEINLINE void Push(const T& item) { _push<const T&>(item); }
     inline BSS_FORCEINLINE void Push(T&& item) { _push<T&&>(std::move(item)); }
-    inline T Pop() { assert(_length>0); --_length; __ST prev=_cur; _cur=bssmod<__ST_SIGNED>(--_cur,_size); return _array[prev]; }
+    inline T Pop() { assert(_length>0); --_length; __ST prev=_cur; _cur=bssmod<__ST_SIGNED>(_cur-1,_size); return _array[prev]; }
     inline __ST Size() const { return _size; }
     inline __ST Length() const { return _length; }
     inline void SetSize(__ST nsize) //Wipes out the array

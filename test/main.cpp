@@ -1479,7 +1479,9 @@ TEST::RETPAIR test_OS()
 {
   BEGINTEST;
   TEST(FolderExists("../bin"));
+#ifdef BSS_PLATFORM_WIN32
   TEST(FolderExists(L"C:/windows/"));
+#endif
   TEST(!FolderExists("abasdfwefs"));
   TEST(!FolderExists(L"abasdfwefs/alkjsdfs/sdfjkd/alkjsdfs/sdfjkd/alkjsdfs/sdfjkd/"));
   TEST(FileExists("blank.txt"));
@@ -1488,8 +1490,8 @@ TEST::RETPAIR test_OS()
   TEST(!FileExists(L"testaskdjlhfs.sdkj"));
   TEST(FileExists("testlink"));
   TEST(FileExists(L"testlink"));
-  TEST(FolderExists("IGNORE/symlink/"));
-  TEST(FolderExists(L"IGNORE/symlink/"));
+  //TEST(FolderExists("IGNORE/symlink/"));
+  //TEST(FolderExists(L"IGNORE/symlink/"));
 
 #if defined(WIN32) || defined(_WINDOWS)
 

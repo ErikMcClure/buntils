@@ -228,31 +228,23 @@ char cINIstorage::EditEntry(const char* section, const char* key, const char* nv
   if(secinstance==-1) secinstance=arr->Size()-1; //if we just added it, it will be the last entry
   if(secinstance>=arr->Size()) return -2; //if secinstance is not valid, fail
   cINIsection* psec = (*arr)+secinstance;
-  INICHUNK chunk = bss_findINIsection(*_ini,_ini->size(),section,secinstance);
+  INICHUNK chunk = bss_findINIsection(_ini->c_str(),_ini->size(),section,secinstance);
   if(!chunk.start) return -3; //if we can't find it in the INI, fail
 
   if(keyinstance==(unsigned int)-1) //insertion
   {
     psec->_addentry(key,nvalue);
-    _ini->reserve(_ini->size()+strlen(key)+strlen(nvalue)+2);
+    //_ini->reserve(_ini->size()+strlen(key)+strlen(nvalue)+2); // This is incredibly stupid. It invalidates all our pointers causing strange horrifying bugs.
     cStr construct(("\n%s=%s"),key,!nvalue?(""):nvalue); //build keyvalue string
+    const char* peek=(const char*)chunk.start;
     const char* ins=strchr((const char*)chunk.start,'\n');
     if(!ins) //end of file
     {
       _ini->append(construct);
       return 0;
     }
-    
-    //char c;
-    //size_t i;
-    //for(i = ins-(*_ini); i > 0;)
-    //{
-    //  c=_ini->GetChar(--i);
-    //  if(!(c==' ' || c=='\n' || c=='\r')) { ++i; break; }
-    //}
 
-    //_ini->insert(i,construct);
-    _ini->insert(ins-(*_ini),construct);
+    _ini->insert(ins-_ini->c_str(),construct);
     return 0;
   } //If it wasn't an insert we need to find the entry before the other two possible cases
 
@@ -286,7 +278,7 @@ char cINIstorage::EditEntry(const char* section, const char* key, const char* nv
     const char* start=strchr((const char*)chunk.start,'=');
     if(!start) return -6; //if this happens something is borked
     start=_trimlstr(++start);
-    _ini->replace(start-*_ini,(_trimrstr(((const char*)chunk.end)-1,start)-start)+1,nvalue);
+    _ini->replace(start-_ini->c_str(),(_trimrstr(((const char*)chunk.end)-1,start)-start)+1,nvalue);
   }
 
   return 0;

@@ -1073,7 +1073,7 @@ TEST::RETPAIR test_INISTORAGE()
     std::cout << std::endl;
   }*/
 
-  cINIstorage store("release/test.ini");
+  cINIstorage store("test.ini");
   //cINIstorage store;
   store.AddSection("Hello");
 
@@ -1488,8 +1488,8 @@ TEST::RETPAIR test_OS()
   TEST(FileExists(L"blank.txt"));
   TEST(!FileExists("testaskdjlhfs.sdkj"));
   TEST(!FileExists(L"testaskdjlhfs.sdkj"));
-  TEST(FileExists("testlink"));
-  TEST(FileExists(L"testlink"));
+  //TEST(FileExists("testlink"));
+  //TEST(FileExists(L"testlink"));
   //TEST(FolderExists("IGNORE/symlink/"));
   //TEST(FolderExists(L"IGNORE/symlink/"));
 

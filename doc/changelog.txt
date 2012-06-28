@@ -41,6 +41,7 @@
 - Changed hash to use iterators
 - Existing iterator Begin/IterStart functions renamed to begin() to support range-based for loops
 - Added unit testing.
+- Fixed extremely subtle bug in cINIStorage and several other bugs
 
 0.3.81
 ------

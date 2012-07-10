@@ -24,13 +24,14 @@
 #include <memory.h>
 
 namespace bss_util { 
-  static const VersionType BSSUTIL_VERSION = { 0,3,82 };
+  static const VersionType BSSUTIL_VERSION = { 0,3,83 };
   
   BSS_COMPILER_DLLEXPORT extern void BSS_FASTCALL SetWorkDirToCur(); //Sets the working directory to the actual goddamn location of the EXE instead of the freaking start menu, or possibly the desktop. The possibilities are endless! Fuck you, windows.
+  BSS_COMPILER_DLLEXPORT extern void BSS_FASTCALL ForceWin64Crash(); // I can't believe this function exists (forces 64-bit windows to not silently ignore fatal errors)
   BSS_COMPILER_DLLEXPORT extern unsigned long long BSS_FASTCALL bssFileSize(const char* path);
   BSS_COMPILER_DLLEXPORT extern unsigned long long BSS_FASTCALL bssFileSize(const wchar_t* path);
   BSS_COMPILER_DLLEXPORT extern long BSS_FASTCALL GetTimeZoneMinutes(); //Returns the current time zone difference from UTC in minutes
-  
+
   //Useful numbers
   const double PI = 3.141592653589793238462643383279;
   const double PI_HALF = PI*0.5;

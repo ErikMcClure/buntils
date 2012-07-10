@@ -8,6 +8,7 @@
 - Fixed the project to throw on Win32 errors to bypass AFX stack corruption bugs in the debugger.
 - Changed how cAllocTracker works
 - Optimized cAllocTracker so that, if using the default allocator, it uses no memory.
+- Improved lambda handling
 
 0.3.82
 ------

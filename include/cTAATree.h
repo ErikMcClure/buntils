@@ -35,7 +35,7 @@ namespace bss_util {
       while(_root)
       { 
         hold=_root->next;
-        _alloc->deallocate(_root);
+        _deallocate(_root);
         _root=hold;
       }
     }
@@ -127,7 +127,7 @@ namespace bss_util {
 
     inline TNODE* BSS_FASTCALL _allocnew(const TKey key, const TVal value)
     {
-      TNODE* retval=_alloc->allocate(1);
+      TNODE* retval=_allocate(1);
       //retval->next=parent->next;
       //parent->next=retval;
       retval->left=&_nil;

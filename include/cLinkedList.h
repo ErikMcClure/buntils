@@ -182,7 +182,7 @@ namespace bss_util {
   protected:
     inline cLLNode<T>* BSS_FASTCALL _createnode(T _item, cLLNode<T>* _prev=0, cLLNode<T>* _next=0)
     {
-			cLLNode<T>* retval = _alloc->allocate(1);
+			cLLNode<T>* retval = _allocate(1);
 			retval->item=_item;
 			retval->prev=_prev;
 			retval->next=_next;
@@ -191,7 +191,7 @@ namespace bss_util {
 
     inline void BSS_FASTCALL _delnode(cLLNode<T>* target)
     {
-			_alloc->deallocate(target, 1);
+			_deallocate(target, 1);
     }
 
     cLLNode<T>* _root;

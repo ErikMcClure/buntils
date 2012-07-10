@@ -20,9 +20,11 @@ namespace bss_util {
     inline explicit cLambdaStack(int init=8) : cBSS_Stack(8) {}
     /* Destructor */
     inline ~cLambdaStack() {}
-    /* Deferres a lambda function for later execution */
-    inline void DeferLambda(const std::function<Fx>& lambda) { Push(lambda); }
-    inline void DeferLambda(std::function<Fx>&& lambda) { Push(std::move(lambda)); }
+    /* Deferres a function for later execution */
+    template<typename U>
+    inline void DeferLambda(U && lambda) { Push(std::forward<U>(lambda)); }
+    inline void Clear() { _length=0; }
+    inline SizeType Length() const { return _length; }
 
     inline cLambdaStack& operator=(const cBSS_Stack& right) { cBSS_Stack::operator=(right); return *this; }
     inline cLambdaStack& operator=(cBSS_Stack&& mov) { cBSS_Stack::operator=(std::move(mov)); return *this; }

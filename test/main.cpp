@@ -1115,6 +1115,15 @@ TEST::RETPAIR test_KHASH()
 TEST::RETPAIR test_LAMBDASTACK()
 {
   BEGINTEST;
+  cLambdaStack<void(void)> ls;
+  auto l = [&](){ ls.Clear(); };
+  std::function<void(void)> lf(l);
+  ls.DeferLambda([&](){ ls.Clear(); });
+  ls.DeferLambda(l);
+  ls.DeferLambda(lf);
+  ls.DeferLambda(std::function<void(void)>(l));
+  ls.DeferLambda(&SetWorkDirToCur);
+
   ENDTEST;
 }
 
@@ -1509,6 +1518,7 @@ TEST::RETPAIR test_STREAMSPLITTER()
 
 int main(int argc, char** argv)
 {
+  ForceWin64Crash();
   SetWorkDirToCur();
   srand(time(NULL));
   
@@ -1570,7 +1580,7 @@ int main(int argc, char** argv)
 
   const size_t NUMTESTS=sizeof(tests)/sizeof(TEST);
 
-  std::cout << "Black Sphere Studios - Utility Library v." << (uint)BSSUTIL_VERSION.Major << '.' << (uint)BSSUTIL_VERSION.Minor << '.' <<
+  std::cout << "Black Sphere Studios - Utility Library v" << (uint)BSSUTIL_VERSION.Major << '.' << (uint)BSSUTIL_VERSION.Minor << '.' <<
     (uint)BSSUTIL_VERSION.Revision << ": Unit Tests\nCopyright (c)2012 Black Sphere Studios\n" << std::endl;
   const int COLUMNS[3] = { 24, 11, 8 };
   printf("%-*s %-*s %-*s\n",COLUMNS[0],"Test Name", COLUMNS[1],"Subtests", COLUMNS[2],"Pass/Fail");

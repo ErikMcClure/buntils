@@ -168,7 +168,7 @@ namespace bss_util {
   template<class K, class D, char (*C)(const K& keyleft, const K& keyright), typename A>
   inline cRBT_PNode<K,D>* cRBT_List<K,D,C,A>::Insert(const K& key, D data)
   {
-    cRBT_Node<K,D>* node= _alloc->allocate(1);
+    cRBT_Node<K,D>* node= _allocate(1);
     new(node) cRBT_Node<K,D>(key,data,pNIL);
 
     _insert(node);
@@ -192,7 +192,7 @@ namespace bss_util {
     if(!node) return false;
     //D retval=node->_data;
     _remove(node);
-		_alloc->deallocate(node, 1);
+		_deallocate(node, 1);
     --_size;
     //return retval;
     return true;
@@ -263,7 +263,7 @@ namespace bss_util {
 			{
 					hold = node;
           node = node->_next;
-					_alloc->deallocate(hold, 1);
+					_deallocate(hold, 1);
 			}
 
 			_first = NULL;

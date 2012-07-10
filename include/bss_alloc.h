@@ -98,16 +98,16 @@ namespace bss_util {
     template <typename U>
     inline explicit ObjectTraits(ObjectTraits<U> const&) {}
 
-    inline T* address(T& r) { return &r; }
-    inline T const* address(T const& r) { return &r; }
+    inline static T* address(T& r) { return &r; }
+    inline static T const* address(T const& r) { return &r; }
 
-    inline void construct(T* p, const T& t) { new(p) T(t); }
-    inline void destroy(T* p) { p->~T(); }
+    inline static void construct(T* p, const T& t) { new(p) T(t); }
+    inline static void destroy(T* p) { p->~T(); }
 	}; 
 
 	template<typename T, typename Policy = StandardAllocPolicy<T>, typename Traits = ObjectTraits<T>>
 #ifndef BSS_DISABLE_CUSTOM_ALLOCATORS
-	class BSS_COMPILER_DLLEXPORT Allocator : public Policy, public Traits {
+	class BSS_COMPILER_DLLEXPORT Allocator : public Policy {
 #else
 	class BSS_COMPILER_DLLEXPORT Allocator : public StandardAllocPolicy<T>, public ObjectTraits<T> {
 #endif
@@ -132,11 +132,11 @@ namespace bss_util {
 
     inline explicit Allocator() {}
     inline ~Allocator() {}
-    inline Allocator(Allocator const& rhs):Traits(rhs), Policy(rhs) {}
+    inline Allocator(Allocator const& rhs) : Policy(rhs) {}
     template <typename U>
     inline Allocator(Allocator<U> const&) {}
     template <typename U, typename P, typename T2>
-    inline Allocator(Allocator<U, P, T2> const& rhs):Traits(rhs), Policy(rhs) {}
+    inline Allocator(Allocator<U, P, T2> const& rhs) : Policy(rhs) {}
 
     /* These methods are called for classes that have constructors and destructors */
     //void construct(pointer ptr, const_reference val) { new ((void *)ptr) T(val); }
@@ -180,21 +180,40 @@ namespace bss_util {
 			return !operator==(lhs, rhs); 
 	}
 
-	template<typename _Ax>
-	class cAllocTracker
+	template<typename T, typename _Ax>
+	class __AllocTracker
 	{
+    typedef typename _Ax::pointer pointer;
 	public:
-		cAllocTracker(const cAllocTracker& copy) : _alloc(copy._alloc_extern?copy._alloc:new _Ax(*copy._alloc)) {}
-		cAllocTracker(_Ax* ptr=0) :	_alloc((!ptr)?(new _Ax()):(ptr)), _alloc_extern(ptr!=0) {}
-		~cAllocTracker() { if(!_alloc_extern) delete _alloc; }
-    _Ax* GetTrackerAlloc() const { return _alloc; }
+		inline __AllocTracker(const __AllocTracker& copy) : _alloca(copy._alloc_extern?copy._alloca:new _Ax(*copy._alloca)) {}
+		inline __AllocTracker(_Ax* ptr=0) :	_alloca((!ptr)?(new _Ax()):(ptr)), _alloc_extern(ptr!=0) {}
+		inline ~__AllocTracker() { if(!_alloc_extern) delete _alloca; }
+    inline pointer _allocate(std::size_t cnt, typename std::allocator<void>::const_pointer p = 0) { return _alloca->allocate(cnt,p); }
+    inline void _deallocate(pointer p, std::size_t s = 0) { _alloca->deallocate(p,s); }
 
-		cAllocTracker& operator =(const cAllocTracker& copy) { if(!_alloc_extern) delete _alloc; _alloc = copy._alloc_extern?copy._alloc:new _Ax(*copy._alloc); return *this; }
+		inline __AllocTracker& operator =(const __AllocTracker& copy) { if(!_alloc_extern) delete _alloca; _alloca = copy._alloc_extern?copy._alloca:new _Ax(*copy._alloca); return *this; }
 
 	protected:
-		_Ax* _alloc;
+		_Ax* _alloca;
 		bool _alloc_extern;
 	};
+
+	template<typename T>
+	class __AllocTracker<T, Allocator<T>>
+	{
+    typedef typename Allocator<T>::pointer pointer;
+	public:
+		inline __AllocTracker(Allocator<T>* ptr=0) {}
+    inline pointer _allocate(std::size_t cnt, typename std::allocator<void>::const_pointer=0) { return reinterpret_cast<pointer>(::operator new(cnt * sizeof (T))); }
+    inline void _deallocate(pointer p, std::size_t = 0) { ::operator delete(p); }
+	};
+
+	template<typename _Ax>
+	class cAllocTracker : public __AllocTracker<typename _Ax::value_type, _Ax>
+  {
+  public:
+		inline cAllocTracker(_Ax* ptr=0) : __AllocTracker(ptr) {}
+  };
 }
 
   //template<class T>

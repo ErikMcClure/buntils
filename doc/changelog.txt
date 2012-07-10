@@ -2,6 +2,13 @@
 * Black Sphere Studios Utility Library Changelog *
 **************************************************
 
+0.3.83
+------
+- Added ForceWin64Crash(), which is a function that shouldn't exist but is necessary to prevent 64-bit Windows 7 from pretending crashes that occur over a kernal barrier never happened, which causes undefined, insanely weird and unpredictable behavior.
+- Fixed the project to throw on Win32 errors to bypass AFX stack corruption bugs in the debugger.
+- Changed how cAllocTracker works
+- Optimized cAllocTracker so that, if using the default allocator, it uses no memory.
+
 0.3.82
 ------
 - Added windows-specific Registry manipulation functions

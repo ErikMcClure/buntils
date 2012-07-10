@@ -95,6 +95,7 @@ extern bool BSS_FASTCALL bss_util::FileExists(const wchar_t* strpath)
   return r_fexists<1>(strpath);
 }
 
+#ifdef BSS_PLATFORM_WIN32
 BSS_COMPILER_DLLEXPORT
 extern void BSS_FASTCALL bss_util::SetWorkDirToCur()
 {
@@ -103,6 +104,30 @@ extern void BSS_FASTCALL bss_util::SetWorkDirToCur()
   commands.UnsafeString()[wcsrchr(commands, '\\')-commands+1] = '\0';
   SetCurrentDirectoryW(commands);
 }
+#elif BSS_PLATFORM_POSIX
+
+#endif
+
+#ifdef BSS_PLATFORM_WIN32
+BSS_COMPILER_DLLEXPORT
+extern void BSS_FASTCALL bss_util::ForceWin64Crash() 
+{ 
+    typedef BOOL (WINAPI *tGetPolicy)(LPDWORD lpFlags); 
+    typedef BOOL (WINAPI *tSetPolicy)(DWORD dwFlags); 
+    const DWORD EXCEPTION_SWALLOWING = 0x1;
+    DWORD dwFlags; 
+
+    HMODULE kernel32 = LoadLibraryA("kernel32.dll"); 
+    tGetPolicy pGetPolicy = (tGetPolicy)GetProcAddress(kernel32, "GetProcessUserModeExceptionPolicy"); 
+    tSetPolicy pSetPolicy = (tSetPolicy)GetProcAddress(kernel32, "SetProcessUserModeExceptionPolicy"); 
+    if (pGetPolicy && pSetPolicy && pGetPolicy(&dwFlags)) 
+      pSetPolicy(dwFlags & ~EXCEPTION_SWALLOWING); // Turn off the filter 
+}
+#else
+extern void BSS_FASTCALL bss_util::ForceWin32Crash() 
+{ // Obviously in linux this function does nothing becuase linux isn't a BROKEN PIECE OF SHIT
+}
+#endif
 
 BSS_COMPILER_DLLEXPORT extern unsigned long long BSS_FASTCALL bss_util::bssFileSize(const char* path)
 {

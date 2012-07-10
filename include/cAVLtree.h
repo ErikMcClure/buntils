@@ -94,8 +94,7 @@ namespace bss_util {
       if(!node) return;
       _clear(node->_left);
       _clear(node->_right);
-			_alloc->deallocate(node, 1);
-      //_alloc->Deallocate(node);
+			_deallocate(node, 1);
     }
 
     inline static void BSS_FASTCALL _leftrotate(AVL_Node<Key,Data>** root)
@@ -130,8 +129,8 @@ namespace bss_util {
       AVL_Node<Key,Data>* root=*proot;
       if(!root)
       {
-				*proot=_alloc->allocate(1);
-				_alloc->construct(*proot, AVL_Node<Key,Data>());
+				*proot=_allocate(1);
+        ObjectTraits<AVL_Node<Key,Data>>::construct(*proot, AVL_Node<Key,Data>());
         (*proot)->_pkey=key;
         change=1;
         return *proot;
@@ -175,14 +174,14 @@ namespace bss_util {
         retval=root->_data;
         if(!root->_left&&!root->_right) //leaf node
         {
-          _alloc->deallocate(root,1);
+          _deallocate(root,1);
           *proot=0;
           change=1;
           return retval;
         } else if(!root->_left||!root->_right) { //one child
           AVL_Node<Key,Data>* hold=root;
           *proot = !root->_left?root->_right:root->_left;
-          _alloc->deallocate(root,1);
+          _deallocate(root,1);
           change=1;
           return retval;
 				} else {

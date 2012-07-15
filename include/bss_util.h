@@ -366,6 +366,7 @@ namespace bss_util {
   template<typename T, unsigned int bits> // WARNING: bits should be HALF the actual number of bits in (T)!
   inline BSS_FORCEINLINE T BSS_FASTCALL IntFastSqrt(T n)
   {
+    static_assert(std::is_integral<T>::value,"T must be integral");
     T root = 0, t;
 
     for(unsigned int i = bits; i>0;)
@@ -409,6 +410,8 @@ namespace bss_util {
   template<typename T, typename __ST> // T must be float or double, __ST must be integral
   inline BSS_FORCEINLINE T BSS_FASTCALL bssavg(T curavg, T nvalue, __ST nextnum)
   {
+    static_assert(std::is_integral<__ST>::value,"__ST must be integral");
+    static_assert(std::is_floating_point<T>::value,"T must be float, double, or long double");
     return (curavg*(((T)(nextnum-1))/((T)nextnum))) + nvalue/((T)nextnum);
   }
 

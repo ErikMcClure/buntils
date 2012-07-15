@@ -9,6 +9,8 @@
 - Changed how cAllocTracker works
 - Optimized cAllocTracker so that, if using the default allocator, it uses no memory.
 - Improved lambda handling
+- Removed [] from cBitField because of all the conflicts it created
+- Adjusted logging functions
 
 0.3.82
 ------

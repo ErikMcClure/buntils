@@ -51,15 +51,16 @@ public:
 
   bss_Log& operator=(const bss_Log& right);
   inline operator std::ostream&() { return _stream; }
-
+  
   template<unsigned char errlevel>
-  inline std::ostream& BSS_FASTCALL FORMATLOG(const char* FILE, unsigned int LINE) { 
-		_stream << '['; _writedatetime(_tz,_stream,true);
-    _stream << "] (" << _trimpath(FILE) << ':' << LINE << ") " << bss_LOGERRLVL<errlevel>::ERRLVL(); return _stream; }
-  //template<unsigned char errlevel>
-  //inline std::ostream& BSS_FASTCALL FORMATLOG(const wchar_t* FILE, unsigned int LINE) {
-	//	_stream << '['; _writedatetime(_tz,_stream,true);
-  //  _stream << "] (" << _trimpath(FILE) << ':' << LINE << ") " << bss_LOGERRLVL<errlevel>::ERRLVL(); return _stream; }
+  inline std::ostream& BSS_FASTCALL FORMATLOG(const char* FILE, unsigned int LINE) { return FORMATLOGLEVEL(bss_LOGERRLVL<errlevel>::ERRLVL(),FILE,LINE); }
+  inline std::ostream& BSS_FASTCALL FORMATLOGLEVEL(const char* LEVEL, const char* FILE, unsigned int LINE)
+  {
+		_stream << '[';
+    _writedatetime(_tz,_stream,true);
+    _stream << "] (" << _trimpath(FILE) << ':' << LINE << ") " << LEVEL;
+    return _stream;
+  }
 
 private:
   static bool BSS_FASTCALL _writedatetime(long timezone, std::ostream& log, bool timeonly);

@@ -27,7 +27,7 @@ namespace bss_util
     /* Gets one or more bit flags from the bitfield (WARNING: This will return true if ANY of the supplied flags are true) */
     inline BSS_FORCEINLINE bool BSS_FASTCALL GetBit(T bits) const { return (_bitfield & bits)!=0; }
 
-    inline BSS_FORCEINLINE bool operator[](T bit) const { return GetBit(bit); } //returns -1 on failure, 0 for false and 1 for true
+    //inline BSS_FORCEINLINE bool operator[](T bit) const { return GetBit(bit); } //This is a great way to cause ambiguity problems :|
     inline bool operator==(const cBitField& right) const { return _bitfield==right.GetBits(); }
     inline bool operator!=(const cBitField& right) const { return _bitfield!=right.GetBits(); }
 

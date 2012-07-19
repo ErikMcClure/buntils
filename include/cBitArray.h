@@ -86,7 +86,7 @@ namespace bss_util
       __ST c = bitcount<__STORE>(_bits[start]&smask);
       c += bitcount<__STORE>(_bits[end]&emask);
 
-      for(__ST i = ++start; i < end; ++i)
+      for(__ST i = start+1; i < end; ++i)
         c += bitcount<__STORE>(_bits[i]);
 
       return c;

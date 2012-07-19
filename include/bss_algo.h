@@ -24,8 +24,8 @@ namespace bss_util {
 		  //if(!(_Val < *_Mid))
       if(CEQ(CFunc(data,arr[m]),CVAL))
 			{	// try top half
-			  first = ++m;
-			  c -= ++c2;
+			  first = m+1;
+			  c -= c2+1;
 			}
 		  else
 			  c = c2;
@@ -54,18 +54,19 @@ namespace bss_util {
   
   /* Returns index of the item, if it exists, or -1 */
   template<typename T, typename D, typename __ST, char (*CFunc)(const T&, const D&)>
-  static inline __ST BSS_FASTCALL binsearch_exact(const T* arr, const D& data, __ST f, __ST l)
+  static inline __ST BSS_FASTCALL binsearch_exact(const T* arr, const D& data, typename TSignPick<sizeof(__ST)>::SIGNED f, typename TSignPick<sizeof(__ST)>::SIGNED l)
   {
-    __ST m=(__ST)-1;
+    --l; // Done so l can be an exclusive size parameter even though the algorithm is inclusive.
+    __ST m; // While f and l must be signed ints or the algorithm breaks, m does not.
     char r;
-    while(l>f)
+    while(l>=f) // This only works when l is an inclusive max indice
     {
       m=f+((l-f)>>1);
 
       if((r=CFunc(arr[m],data))<0)
-        f=++m;
+        f=m+1;
       else if(r>0)
-        l=--m;
+        l=m-1;
       else
         return m;
     }
@@ -73,7 +74,7 @@ namespace bss_util {
   }
   
   template<typename T, typename __ST, __ST I, char (*CFunc)(const T&, const T&)>
-  static inline BSS_FORCEINLINE __ST BSS_FASTCALL binsearch_exact(const T (&arr)[I], const T& data) { return binsearch_exact<T,T,__ST,CFunc>(arr,data,I,0); }
+  static inline BSS_FORCEINLINE __ST BSS_FASTCALL binsearch_exact(const T (&arr)[I], const T& data) { return binsearch_exact<T,T,__ST,CFunc>(arr,data,0,I); }
   
   /* Shuffler using Fisher-Yates/Knuth Shuffle algorithm based on Durstenfeld's implementation. This is an in-place algorithm and works with any numeric type T. */
   template<typename T, typename ST, ST (*RandFunc)(ST min, ST max)>

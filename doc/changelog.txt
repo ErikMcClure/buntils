@@ -11,6 +11,7 @@
 - Improved lambda handling
 - Removed [] from cBitField because of all the conflicts it created
 - Adjusted logging functions
+- cArraySafe now uses std::move in Remove()
 
 0.3.82
 ------

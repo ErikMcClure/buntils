@@ -593,11 +593,15 @@ TEST::RETPAIR test_bss_algo()
   int v[17] = { -6,-5,-4,-2,-1,0,1,2,5,6,7,8,9,10,26,39,40 };
   int u[17] = { -1,0,0,0,1,2,3,3,3,4,4,5,6,6,7,8,8 };
   int u2[17] = { 0,0,1,1,1,2,3,4,4,4,5,5,6,7,7,8,9 };
-  bool r[17] = {};
-  //for_all(r,[&a](int x, int y)->bool { return binsearch_before<int,uint,CompT<int>>(a,x)==y; },v,u);
-  
-  //for_all(r,[&a](int x, int y)->bool { return binsearch_after<int,uint,CompT<int>>(a,x)==(lower_bound(std::begin(a),std::end(a),x)-a); },v,u2);
-  //for_all([&__testret](bool __x){ ++__testret.first; if(__x) ++__testret.second; },r);
+  TESTARRAY(v,return (binsearch_before<int,uint,CompT<int>>(a,v[i])==u[i]););
+  TESTARRAY(v,return (binsearch_after<int,uint,CompT<int>>(a,v[i])==(lower_bound(std::begin(a),std::end(a),v[i])-a)););
+
+  int b[2] = { 2,3 };
+  TEST((binsearch_exact<int,uint,2,CompT<int>>(b,2)==0));
+  TEST((binsearch_exact<int,uint,2,CompT<int>>(b,1)==-1));
+  TEST((binsearch_exact<int,uint,2,CompT<int>>(b,3)==1));
+  TEST((binsearch_exact<int,uint,2,CompT<int>>(b,4)==-1));
+
   ENDTEST;
 }
 

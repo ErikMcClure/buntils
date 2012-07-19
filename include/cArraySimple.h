@@ -285,9 +285,9 @@ namespace bss_util {
     }
     inline void Remove(SizeType index)
     {
-      --_size;
+      --_size; // Note that this _size decrease is reversed at the end of this function, so _size doesn't actually change, matching the behavior of cArraySimple/cArraySafe
       for(SizeType i=index; i<_size;++i)
-        _array[i]=_array[i+1];
+        _array[i]=std::move(_array[i+1]);
       _array[_size].~T();
       new(_array+(_size++)) T();
     }
@@ -362,6 +362,7 @@ namespace bss_util {
   template<class ARRAYTYPE>
   class BSS_COMPILER_DLLEXPORT cArrayWrap : public ARRAYTYPE
   {
+  protected:
     typedef typename ARRAYTYPE::__ST __ST;
     typedef typename ARRAYTYPE::__T __T;
     typedef ARRAYTYPE __AT;

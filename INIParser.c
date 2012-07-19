@@ -266,7 +266,7 @@ INICHUNK BSS_FASTCALL bss_findINIsection(const void* data, size_t length, const 
         retval.end=end; //just in case this is the last section
       } //Now we search for the next section
     }
-    cur=++line;
+    cur=line+1;
   }
   return retval;
 }
@@ -295,7 +295,7 @@ INICHUNK BSS_FASTCALL bss_findINIentry(INICHUNK section, const char* key, unsign
         break;
       }
     }
-    cur=++line;
+    cur=line+1;
   }
   return retval;
 }

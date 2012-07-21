@@ -589,18 +589,26 @@ TEST::RETPAIR test_bss_DEBUGINFO()
 TEST::RETPAIR test_bss_algo()
 {
   BEGINTEST;
-  int a[9] = { -5,-1,0,1,6,8,9,26,39 };
-  int v[17] = { -6,-5,-4,-2,-1,0,1,2,5,6,7,8,9,10,26,39,40 };
-  int u[17] = { -1,0,0,0,1,2,3,3,3,4,4,5,6,6,7,8,8 };
-  int u2[17] = { 0,0,1,1,1,2,3,4,4,4,5,5,6,7,7,8,9 };
-  TESTARRAY(v,return (binsearch_before<int,uint,CompT<int>>(a,v[i])==u[i]););
-  TESTARRAY(v,return (binsearch_after<int,uint,CompT<int>>(a,v[i])==(lower_bound(std::begin(a),std::end(a),v[i])-a)););
+  int a[] = { -5,-1,0,1,1,1,1,6,8,8,9,26,26,26,35 };
+  for(int i = -10; i < 40; ++i) 
+  {
+    TEST((binsearch_before<int,uint,CompT<int>>(a,i)==((upper_bound(std::begin(a),std::end(a),i)-a)-1)));
+    TEST((binsearch_after<int,uint,CompT<int>>(a,i)==(lower_bound(std::begin(a),std::end(a),i)-a)));
+  }
 
   int b[2] = { 2,3 };
-  TEST((binsearch_exact<int,uint,2,CompT<int>>(b,2)==0));
-  TEST((binsearch_exact<int,uint,2,CompT<int>>(b,1)==-1));
-  TEST((binsearch_exact<int,uint,2,CompT<int>>(b,3)==1));
-  TEST((binsearch_exact<int,uint,2,CompT<int>>(b,4)==-1));
+  int d[1] = { 1 };
+  TEST((binsearch_exact<int,uint,CompT<int>>(b,1)==-1));
+  TEST((binsearch_exact<int,uint,CompT<int>>(b,2)==0));
+  TEST((binsearch_exact<int,uint,CompT<int>>(b,3)==1));
+  TEST((binsearch_exact<int,uint,CompT<int>>(b,4)==-1));
+  TEST((binsearch_exact<int,int,uint,CompT<int>>(0,0,0,0)==-1));
+  TEST((binsearch_exact<int,int,uint,CompT<int>>(0,-1,0,0)==-1));
+  TEST((binsearch_exact<int,int,uint,CompT<int>>(0,1,0,0)==-1));
+  TEST((binsearch_exact<int,uint,CompT<int>>(d,-1)==-1));
+  TEST((binsearch_exact<int,uint,CompT<int>>(d,1)==0));
+  TEST((binsearch_exact<int,int,uint,CompT<int>>(d,1,1,1)==-1));
+  TEST((binsearch_exact<int,uint,CompT<int>>(d,2)==-1));
 
   ENDTEST;
 }
@@ -957,12 +965,10 @@ TEST::RETPAIR test_BINARYHEAP()
     TESTCOUNTALL(count,a[i]==b[i]);
   };
 
-  //__insertion_sort<int,uint,CompT_LT<int>>(a2,sizeof(a2)/sizeof(int));
   std::sort(std::begin(a2),std::end(a2));
   cBinaryHeap<int,unsigned int, CompTInv<int>>::HeapSort(a3);
   arrtest(a2,a3,a2_SZ);
 
-  //__insertion_sort<int,uint,CompT_GT<int>>(a2,sizeof(a2)/sizeof(int));
   std::sort(std::begin(a2),std::end(a2), [](int x, int y)->bool{ return x>y; });
   cBinaryHeap<int>::HeapSort(a3);
   arrtest(a2,a3,a2_SZ);
@@ -1134,6 +1140,24 @@ TEST::RETPAIR test_LAMBDASTACK()
 TEST::RETPAIR test_LINKEDARRAY()
 {
   BEGINTEST;
+  cLinkedArray<int> _arr;
+  uint a = _arr.Add(4);
+  uint b=_arr.InsertAfter(6,a);
+  _arr.InsertBefore(5,b);
+  TEST(_arr.Length()==3);
+  int v[]={4,5,6};
+  uint c=0;
+  for(auto i=_arr.begin(); i!=_arr.end(); ++i)
+    TEST(*i==v[c++]);
+  _arr.Remove(b);
+  TEST(_arr.Length()==2);
+  TEST(_arr.GetItem(a)==4);
+  TEST(*_arr.GetItemPtr(a)==4);
+  c=0;
+  for(auto i=_arr.begin(); i!=_arr.end(); ++i)
+    TEST(*i==v[c++]);
+  _arr.Clear();
+  TEST(!_arr.Length());
   ENDTEST;
 }
 

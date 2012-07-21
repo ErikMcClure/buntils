@@ -22,7 +22,7 @@ namespace bss_util {
       m = first+c2;
 
 		  //if(!(_Val < *_Mid))
-      if(CEQ(CFunc(data,arr[m]),CVAL))
+      if((*CEQ)((*CFunc)(data,arr[m]),CVAL))
 			{	// try top half
 			  first = m+1;
 			  c -= c2+1;
@@ -63,7 +63,7 @@ namespace bss_util {
     {
       m=f+((l-f)>>1);
 
-      if((r=CFunc(arr[m],data))<0)
+      if((r=(*CFunc)(arr[m],data))<0)
         f=m+1;
       else if(r>0)
         l=m-1;
@@ -73,7 +73,7 @@ namespace bss_util {
     return (__ST)-1;
   }
   
-  template<typename T, typename __ST, __ST I, char (*CFunc)(const T&, const T&)>
+  template<typename T, typename __ST, char (*CFunc)(const T&, const T&), __ST I>
   static inline BSS_FORCEINLINE __ST BSS_FASTCALL binsearch_exact(const T (&arr)[I], const T& data) { return binsearch_exact<T,T,__ST,CFunc>(arr,data,0,I); }
   
   /* Shuffler using Fisher-Yates/Knuth Shuffle algorithm based on Durstenfeld's implementation. This is an in-place algorithm and works with any numeric type T. */

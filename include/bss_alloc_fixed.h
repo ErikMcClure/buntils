@@ -21,7 +21,7 @@ namespace bss_util {
   };
 
   /* This is a fixed size block allocator adapted from the box2D heap allocator */
-  template<class T, __int32 chunkIncrement=128, __int32 __chunkSize=4096>
+  template<typename T, __int32 chunkIncrement=128, __int32 __chunkSize=4096>
   class BSS_COMPILER_DLLEXPORT cFixedSizeAllocator
   {
   public:

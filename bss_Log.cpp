@@ -161,59 +161,6 @@ const char* BSS_FASTCALL bss_Log::_trimpath(const char* path)
 //	return retval;
 //}
 
-
-//  #ifdef _M_CEE_PURE
-//	_Myt& __CLR_OR_THIS_CALL operator<<(_Myt& (__clrcall *_Pfn)(_Myt&));
-//	_Myt& __CLR_OR_THIS_CALL operator<<(_Myios& (__clrcall *_Pfn)(_Myios&));
-//	_Myt& __CLR_OR_THIS_CALL operator<<(ios_base& (__clrcall *_Pfn)(ios_base&));
-//  #endif /* _M_CEE_PURE */
-//
-//	_Myt& __CLR_OR_THIS_CALL operator<<(_Myt& (__cdecl *_Pfn)(_Myt&));
-//	_Myt& __CLR_OR_THIS_CALL operator<<(_Myios& (__cdecl *_Pfn)(_Myios&));
-//	_Myt& __CLR_OR_THIS_CALL operator<<(ios_base& (__cdecl *_Pfn)(ios_base&));
-//	_Myt& __CLR_OR_THIS_CALL operator<<(_Bool _Val);
-//	_Myt& __CLR_OR_THIS_CALL operator<<(short _Val);
-//	_Myt& __CLR_OR_THIS_CALL operator<<(unsigned short _Val);
-//	_Myt& __CLR_OR_THIS_CALL operator<<(int _Val);
-//	_Myt& __CLR_OR_THIS_CALL operator<<(unsigned int _Val);
-//	_Myt& __CLR_OR_THIS_CALL operator<<(long _Val);
-//	_Myt& __CLR_OR_THIS_CALL operator<<(unsigned long _Val);
-// #ifdef _LONGLONG
-//	_Myt& __CLR_OR_THIS_CALL operator<<(_LONGLONG _Val);
-//	_Myt& __CLR_OR_THIS_CALL operator<<(_ULONGLONG _Val);
-// #endif /* _LONGLONG */
-//	_Myt& __CLR_OR_THIS_CALL operator<<(float _Val);
-//	_Myt& __CLR_OR_THIS_CALL operator<<(double _Val);
-//	_Myt& __CLR_OR_THIS_CALL operator<<(long double _Val);
-//	_Myt& __CLR_OR_THIS_CALL operator<<(const void *_Val);
-//	_Myt& __CLR_OR_THIS_CALL operator<<(_Mysb *_Strbuf);
-//  
-//template<class _Elem,
-//	class _Traits> inline
-//	basic_ostream<_Elem, _Traits>& operator<<(
-//		basic_ostream<_Elem, _Traits>& _Ostr, const char *_Val)
-//template<class _Traits> inline
-//	basic_ostream<char, _Traits>& operator<<(
-//		basic_ostream<char, _Traits>& _Ostr, const signed char *_Val)
-//	{	// insert a signed char NTBS
-//	return (_Ostr << (const char *)_Val);
-//	}
-//
-//template<class _Traits> inline
-//	basic_ostream<char, _Traits>& operator<<(
-//		basic_ostream<char, _Traits>& _Ostr, signed char _Ch)
-//	{	// insert a signed char
-//	return (_Ostr << (char)_Ch);
-//	}
-//
-//template<class _Traits> inline
-//	basic_ostream<char, _Traits>& operator<<(
-//		basic_ostream<char, _Traits>& _Ostr, const unsigned char *_Val)
-//	{	// insert an unsigned char NTBS
-//	return (_Ostr << (const char *)_Val);
-//	}
-
-
 /*
 #include "BSS_Log.h"
 #include "bss_deprecated.h"

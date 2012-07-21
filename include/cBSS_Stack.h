@@ -6,7 +6,6 @@
 
 #include "cArraySimple.h"
 #include "bss_util.h"
-#include "bss_traits.h"
 
 namespace bss_util {
   /* Fast, tiny array-based stack. Pop and Top are only valid if there is an item in the stack; this check must be done by the user. */

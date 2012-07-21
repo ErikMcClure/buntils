@@ -138,7 +138,7 @@ namespace bss_util {
         free(_root);
       }
     }
-    template<class T>
+    template<typename T>
 	  inline T* BSS_FASTCALL alloc(size_t num)
     {
       return (T*)_allocbytes(num*sizeof(T));

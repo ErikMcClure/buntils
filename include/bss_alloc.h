@@ -127,7 +127,7 @@ namespace bss_util {
         typedef Allocator<U, typename AllocationPolicy::rebind<U>::other, 
             typename TTraits::rebind<U>::other > other;
     };
-    template<class U>
+    template<typename U>
     Allocator& operator=(const Allocator<U>&) { return *this; }
 
     inline explicit Allocator() {}

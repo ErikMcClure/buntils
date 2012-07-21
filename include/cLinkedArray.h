@@ -4,7 +4,6 @@
 #ifndef __C_LINKED_ARRAY_H__BSS__
 #define __C_LINKED_ARRAY_H__BSS__
 
-#include "bss_traits.h"
 #include "bss_util.h"
 #include "cArraySimple.h"
 #include <xutility>
@@ -19,60 +18,25 @@ namespace bss_util {
   };
 
   /* Linked list implemented as an array. */
-  template<class T, class Traits=ValueTraits<T>, typename SizeType=unsigned int>
-  class BSS_COMPILER_DLLEXPORT cLinkedArray : protected Traits
+  template<class T, typename SizeType=unsigned int>
+  class BSS_COMPILER_DLLEXPORT cLinkedArray
   {
   public:
     typedef LINKEDNODE<T,SizeType> TLNODE;
-    typedef typename Traits::pointer pointer;
-    typedef typename Traits::const_pointer const_pointer;
-    typedef typename Traits::reference reference;
-    typedef typename Traits::const_reference const_reference;
-    typedef typename Traits::value_type value_type;
     typedef SizeType __ST;
-  
+    typedef T value_type;
+
     inline cLinkedArray() : _ref(1),_length(0),_start(-1),_end(-1),_freelist(-1) { _setupchunk(0); }
     inline cLinkedArray(const cLinkedArray& copy) : _ref(copy._ref),_length(copy._length),_start(copy._start),_end(copy._end),_freelist(copy._freelist) { }
     inline cLinkedArray(cLinkedArray&& mov) : _ref(std::move(mov._ref)),_length(mov._length),_start(mov._start),_end(mov._end),_freelist(mov._freelist) { }
     inline explicit cLinkedArray(__ST size) : _ref(size),_length(0),_start(-1),_end(-1),_freelist(-1) { _setupchunk(0); }
     inline ~cLinkedArray() {}
-    inline BSS_FORCEINLINE __ST BSS_FASTCALL Add(const_reference item) { return InsertAfter(item,_end); }
-    inline __ST BSS_FASTCALL InsertAfter(const_reference item, __ST index)
-    {
-      __ST cur=_insprep();
-
-      TLNODE& pcur=_ref[cur];
-      pcur.next=(__ST)-1;
-      pcur.prev=(index==(__ST)-1)?_end:index;;
-      pcur.val=item;
-
-      if(pcur.prev==(__ST)-1) _start=cur;
-      else { pcur.next=_ref[pcur.prev].next; _ref[pcur.prev].next=cur; }
-      if(pcur.next==(__ST)-1) _end=cur;
-      else _ref[pcur.next].prev=cur;
-      
-      ++_length;
-      return cur;
-    }
-  
-    inline __ST BSS_FASTCALL InsertBefore(const_reference item, __ST index)
-    {
-      __ST cur=_insprep();
-
-      TLNODE& pcur=_ref[cur];
-      pcur.next=index;
-      pcur.prev=(index==(__ST)-1)?_end:(__ST)-1; //This allows one to insert after the end with this function
-      pcur.val=item;
-
-      if(pcur.next==(__ST)-1) _end=cur;
-      else { pcur.prev=_ref[pcur.next].prev; _ref[pcur.next].prev=cur; }
-      if(pcur.prev==(__ST)-1) _start=cur;
-      else { _ref[pcur.prev].next=cur; }
-      
-      ++_length;
-      return cur;
-    }
-    
+    inline BSS_FORCEINLINE __ST BSS_FASTCALL Add(const T& item) { return InsertAfter(item,_end); }
+    inline BSS_FORCEINLINE __ST BSS_FASTCALL Add(T&& item) { return InsertAfter(std::move(item),_end); }
+    inline BSS_FORCEINLINE __ST BSS_FASTCALL InsertBefore(const T& item, __ST index) { return _insertbefore<const T&>(item,index); }
+    inline BSS_FORCEINLINE __ST BSS_FASTCALL InsertBefore(T&& item, __ST index) { return _insertbefore<T&&>(std::move(item),index); }
+    inline BSS_FORCEINLINE __ST BSS_FASTCALL InsertAfter(const T& item, __ST index) { return _insertafter<const T&>(item,index); }
+    inline BSS_FORCEINLINE __ST BSS_FASTCALL InsertAfter(T&& item, __ST index) { return _insertafter<T&&>(std::move(item),index); }
     inline T BSS_FASTCALL Remove(__ST index)
     {
       assert(index<_ref.Size());
@@ -97,14 +61,14 @@ namespace bss_util {
     //inline cLinkedArray BSS_FASTCALL operator +(const cLinkedArray& right) const { cLinkedArray retval(*this); retval+=right; return retval; }
     inline cLinkedArray& BSS_FASTCALL operator =(const cLinkedArray& right) { _ref=right._ref; _length=right._length;_start=right._start;_end=right._end;_freelist=right._freelist; return *this; }
     inline cLinkedArray& BSS_FASTCALL operator =(cLinkedArray&& mov) { _ref=std::move(mov._ref); _length=mov._length;_start=mov._start;_end=mov._end;_freelist=mov._freelist; return *this; }
-    inline BSS_FORCEINLINE reference BSS_FASTCALL GetItem(__ST index) { return _ref[index].val; }
-    inline BSS_FORCEINLINE const_reference BSS_FASTCALL GetItem(__ST index) const { return _ref[index].val; }
-    inline BSS_FORCEINLINE pointer BSS_FASTCALL GetItemPtr(__ST index) { return &_ref[index].val; }
-    inline BSS_FORCEINLINE reference BSS_FASTCALL operator [](__ST index) { return _ref[index].val; }
-    inline BSS_FORCEINLINE const_reference BSS_FASTCALL operator [](__ST index) const { return _ref[index].val; }
+    inline BSS_FORCEINLINE T& BSS_FASTCALL GetItem(__ST index) { return _ref[index].val; }
+    inline BSS_FORCEINLINE const T& BSS_FASTCALL GetItem(__ST index) const { return _ref[index].val; }
+    inline BSS_FORCEINLINE T* BSS_FASTCALL GetItemPtr(__ST index) { return &_ref[index].val; }
+    inline BSS_FORCEINLINE T& BSS_FASTCALL operator [](__ST index) { return _ref[index].val; }
+    inline BSS_FORCEINLINE const T& BSS_FASTCALL operator [](__ST index) const { return _ref[index].val; }
 
     /* Iterator for cLinkedArray */
-    template<typename _PP, typename _REF, typename D=cLinkedArray<T,Traits,SizeType>>
+    template<typename _PP, typename _REF, typename D=cLinkedArray<T,SizeType>>
     class BSS_COMPILER_DLLEXPORT cLAIter : public std::iterator<std::bidirectional_iterator_tag,typename D::value_type,ptrdiff_t,_PP,_REF>
 	  {
     public:
@@ -128,20 +92,20 @@ namespace bss_util {
       D& _src;
 	  };
     
-    inline cLAIter<const_pointer, const_reference, const cLinkedArray<T,Traits,SizeType>> begin() const { return cLAIter<const_pointer, const_reference, const cLinkedArray<T,Traits,SizeType>>(*this,_start); } // Use these to get an iterator you can use in standard containers
-    inline cLAIter<const_pointer, const_reference, const cLinkedArray<T,Traits,SizeType>> end() const { return cLAIter<const T, const cLinkedArray<T,Traits,SizeType>>(*this); }
-    inline cLAIter<pointer, reference, cLinkedArray<T,Traits,SizeType>> begin() { return cLAIter<pointer, reference, cLinkedArray<T,Traits,SizeType>>(*this,_start); } // Use these to get an iterator you can use in standard containers
-    inline cLAIter<pointer, reference, cLinkedArray<T,Traits,SizeType>> end() { return cLAIter<pointer, reference, cLinkedArray<T,Traits,SizeType>>(*this); }
+    inline cLAIter<const T*, const T&, const cLinkedArray<T,SizeType>> begin() const { return cLAIter<const T*, const T&, const cLinkedArray<T,SizeType>>(*this,_start); } // Use these to get an iterator you can use in standard containers
+    inline cLAIter<const T*, const T&, const cLinkedArray<T,SizeType>> end() const { return cLAIter<const T, const cLinkedArray<T,SizeType>>(*this); }
+    inline cLAIter<T*, T&, cLinkedArray<T,SizeType>> begin() { return cLAIter<T*, T&, cLinkedArray<T,SizeType>>(*this,_start); } // Use these to get an iterator you can use in standard containers
+    inline cLAIter<T*, T&, cLinkedArray<T,SizeType>> end() { return cLAIter<T*, T&, cLinkedArray<T,SizeType>>(*this); }
     
     /* Nonstandard Removal Iterator for cLinkedArray to make removing elements easier */
-    class BSS_COMPILER_DLLEXPORT cLAIterRM : protected cLAIter<pointer,reference,cLinkedArray<T,Traits,SizeType>>
+    class BSS_COMPILER_DLLEXPORT cLAIterRM : protected cLAIter<T*,T&,cLinkedArray<T,SizeType>>
 	  {
-      typedef cLAIter<pointer,reference,cLinkedArray<T,Traits,SizeType>> __BASE;
+      typedef cLAIter<T*,T&,cLinkedArray<T,SizeType>> __BASE;
 
     public:
       inline cLAIterRM(const cLAIterRM& copy) : __BASE(copy), next(copy.next) { }
       inline explicit cLAIterRM(const __BASE& from) : __BASE(from,(__ST)-1), next(from.cur) { }
-      inline BSS_FORCEINLINE reference operator*() const { return _src[cur]; }
+      inline BSS_FORCEINLINE T& operator*() const { return _src[cur]; }
       inline BSS_FORCEINLINE cLAIterRM& operator++() { cur=next; _src.Next(next); return *this; } //prefix
       inline BSS_FORCEINLINE cLAIterRM& operator--() { next=cur; _src.Prev(cur); return *this; } //prefix
       //inline bool operator==(const cLAIterRM& _Right) const { return (next == _Right.next); }
@@ -153,6 +117,42 @@ namespace bss_util {
 	  };
 
   protected:
+    template<typename U>
+    inline BSS_FORCEINLINE __ST BSS_FASTCALL _insertafter(U && item, __ST index)
+    {
+      __ST cur=_insprep();
+
+      TLNODE& pcur=_ref[cur];
+      pcur.val=std::forward<U>(item);
+      pcur.next=(__ST)-1;
+      pcur.prev=(index==(__ST)-1)?_end:index;
+
+      if(pcur.prev==(__ST)-1) _start=cur;
+      else { pcur.next=_ref[pcur.prev].next; _ref[pcur.prev].next=cur; }
+      if(pcur.next==(__ST)-1) _end=cur;
+      else _ref[pcur.next].prev=cur;
+
+      ++_length;
+      return cur;
+    }
+    template<typename U>
+    inline BSS_FORCEINLINE __ST BSS_FASTCALL _insertbefore(U && item, __ST index)
+    {
+      __ST cur=_insprep();
+
+      TLNODE& pcur=_ref[cur];
+      pcur.val=std::forward<U>(item);
+      pcur.next=index;
+      pcur.prev=(index==(__ST)-1)?_end:(__ST)-1; //This allows one to insert after the end with this function
+
+      if(pcur.next==(__ST)-1) _end=cur;
+      else { pcur.prev=_ref[pcur.next].prev; _ref[pcur.next].prev=cur; }
+      if(pcur.prev==(__ST)-1) _start=cur;
+      else { _ref[pcur.prev].next=cur; }
+
+      ++_length;
+      return cur;
+    }
     inline void BSS_FASTCALL _addfreelist(__ST index)
     {
       _ref[index].next=_freelist;

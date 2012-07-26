@@ -14,6 +14,8 @@
 - cArraySafe now uses std::move in Remove()
 - cLinkedArray now uses move semantics and no longer supports traits (traits are incompatible with move semantics)
 - Standardized function pointer calls to use less ambiguous syntax in certain functions
+- Fixed broken algorithm in binsearch_exact and added unit tests.
+- Added __restrict to UTF8 conversion functions because they explode if output==input anyway.
 
 0.3.82
 ------

@@ -21,8 +21,8 @@ namespace bss_util {
     /* Destructor */
     inline ~cLambdaStack() {}
     /* Deferres a function for later execution */
-    template<typename U>
-    inline void DeferLambda(U && lambda) { Push(std::forward<U>(lambda)); }
+    template<typename F>
+    inline void DeferLambda(F lambda) { Push(lambda); }
     inline void Clear() { _length=0; }
     inline SizeType Length() const { return _length; }
 

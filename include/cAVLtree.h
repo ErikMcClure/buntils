@@ -30,8 +30,8 @@ namespace bss_util {
     inline cAVLtree(Alloc* allocator=0) : cAllocTracker<Alloc>(allocator), _root(0) {}
     inline ~cAVLtree() { Clear(); }
     inline void Clear() { _clear(_root); _root=0; }
-    inline BSS_FORCEINLINE void Traverse(const Functor<void,Data>& lambda) { _traverse(lambda, _root); }
-    inline BSS_FORCEINLINE void Traverse(void (*lambda)(Data)) { _traverse(lambda, _root); }
+    template<typename F> // std::function<void(Data)>
+    inline BSS_FORCEINLINE void Traverse(F lambda) { _traverse<F>(lambda, _root); }
 
     inline cAVLtree& operator=(cAVLtree&& mov) { Clear(); _root=mov._root; mov._root=0; }
 
@@ -75,19 +75,13 @@ namespace bss_util {
     }
 
   protected:
-    inline static void BSS_FASTCALL _traverse(const Functor<void,Data>& lambda, AVL_Node<Key,Data>* node)
+    template<typename F>
+    BSS_FORCEINLINE static void BSS_FASTCALL _traverse(F lambda, AVL_Node<Key,Data>* node)
     {
       if(!node) return;
-      _traverse(lambda,node->_left);
+      _traverse<F>(lambda,node->_left);
       lambda(node->_data);
-      _traverse(lambda,node->_right);
-    }
-    inline static void BSS_FASTCALL _traverse(void (*lambda)(Data), AVL_Node<Key,Data>* node)
-    {
-      if(!node) return;
-      _traverse(lambda,node->_left);
-      (*lambda)(node->_data);
-      _traverse(lambda,node->_right);
+      _traverse<F>(lambda,node->_right);
     }
     inline void BSS_FASTCALL _clear(AVL_Node<Key,Data>* node)
     {

@@ -1159,6 +1159,7 @@ TEST::RETPAIR test_LINKEDARRAY()
   _arr.Clear();
   TEST(!_arr.Length());
   ENDTEST;
+
 }
 
 bool cmplist(cLinkedList<int,Allocator<cLLNode<int>>,true>& list, const char* nums)

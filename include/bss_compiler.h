@@ -43,6 +43,7 @@
 #define BSS_COMPILER_NAKED
 #define BSS_FORCEINLINE
 #define BSS_RESTRICT __restrict__
+#define BSS_ALIGNED(sn, n) sn
 
 # elif defined __GNUC__ // GCC
 #define BSS_COMPILER_DLLEXPORT __attribute__((dllexport))
@@ -55,7 +56,8 @@
 #define BSS_COMPILER_NAKED __attribute__((naked)) // Will only work on ARM, AVR, MCORE, RX and SPU. 
 #define BSS_FORCEINLINE __attribute__((always_inline))
 #define BSS_RESTRICT __restrict__
-
+#define BSS_ALIGN(n) __attribute__((aligned(n)));
+#define BSS_ALIGNED(sn, n) sn BSS_ALIGN(n)
 #ifndef __int8
 #define __int8 char
 #endif
@@ -81,11 +83,16 @@
 #define BSS_COMPILER_NAKED __declspec(naked) 
 #define BSS_FORCEINLINE __forceinline
 #define BSS_RESTRICT __restrict
+#define BSS_ALIGN(n) __declspec(align(n))
+#define BSS_ALIGNED(sn, n) BSS_ALIGN(n) sn
 
 #ifndef BSS_CPU_x86 // The only platform VC++ supports inline assembly on is x86, because its a piece of shit.
 #define BSS_MSC_NOASM
 #endif
 #endif
+
+#define BSS_ALIGNED_STRUCT(n) BSS_ALIGNED(struct,n)
+#define BSS_ALIGNED_CLASS(n) BSS_ALIGNED(class,n)
 
 // Platform detection
 #if defined(WIN32) || defined(_WIN32) || defined(_WIN64) || defined(__TOS_WIN__) || defined(__WINDOWS__)

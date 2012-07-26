@@ -25,7 +25,7 @@ namespace bss_util {
 	{
 #ifndef BSS_MSC_NOASM
 		__int32 Barrier;
-		__asm { lock xchg Barrier, eax }
+		__asm { /*lock*/ xchg Barrier, eax } //xchg locks itself if both operands are registers and blows up if you lock it anyway in a multiprocessor environment.
 #else
 		long Barrier;
     _InterlockedExchange(&Barrier,0);
@@ -79,7 +79,7 @@ namespace bss_util {
   template<typename T> struct ATOMIC_INCPICK<T,8> { inline static BSS_FORCEINLINE T BSS_FASTCALL atomic_inc(volatile T* p) { return (T)_InterlockedExchangeAdd64((volatile __int64*)p,1); } };
 #endif //#ifndef BSS_MSC_NOASM
 
-  template<typename T> // This performs an atomic increment, and returns the value of the variable BEFORE the increment. Values MUST BE 32-bit aligned!
+  template<typename T> // This performs an atomic increment, and returns the value of the variable BEFORE the increment. This access is faster if values are 32-bit aligned.
   inline BSS_FORCEINLINE T BSS_FASTCALL atomic_inc(volatile T* p)
   { 
     return ATOMIC_INCPICK<T,sizeof(T)>::atomic_inc(p);

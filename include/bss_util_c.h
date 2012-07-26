@@ -26,8 +26,8 @@ struct VersionType
 
 BSS_COMPILER_DLLEXPORT extern unsigned long BSS_FASTCALL strhex(const char* text);
 BSS_COMPILER_DLLEXPORT extern unsigned long BSS_FASTCALL wcshex(const wchar_t* text);
-BSS_COMPILER_DLLEXPORT extern size_t BSS_FASTCALL UTF8toUTF16(const char* input,wchar_t* output, size_t buflen);
-BSS_COMPILER_DLLEXPORT extern size_t BSS_FASTCALL UTF16toUTF8(const wchar_t* input, char* output, size_t buflen);
+BSS_COMPILER_DLLEXPORT extern size_t BSS_FASTCALL UTF8toUTF16(const char*BSS_RESTRICT input,wchar_t*BSS_RESTRICT output, size_t buflen);
+BSS_COMPILER_DLLEXPORT extern size_t BSS_FASTCALL UTF16toUTF8(const wchar_t*BSS_RESTRICT input, char*BSS_RESTRICT output, size_t buflen);
 
 #ifdef  __cplusplus
 }

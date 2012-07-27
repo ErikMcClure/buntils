@@ -1,6 +1,6 @@
 // Copyright ©2012 Black Sphere Studios
 // For conditions of distribution and use, see copyright notice in "bss_util.h"
-
+/*
 #include "cThread.h"
 #include "bss_util.h"
 #include "bss_win32_includes.h"
@@ -10,7 +10,7 @@
 
 using namespace bss_util;
 
-cThread::cThread(const cThread& copy) : _funcptr(copy._funcptr), _sleepms(copy._sleepms), cBitField<unsigned int>((copy./*_bools.*/GetBits()&(~(1 << 4)))),
+cThread::cThread(const cThread& copy) : _funcptr(copy._funcptr), _sleepms(copy._sleepms), cBitField<unsigned int>((copy.GetBits()&(~(1 << 4)))),
 _threadret(copy._threadret), cLockable(copy), _handle((__w64 size_t)-1), _syncptr(copy._syncptr), _delegate_arg(new __DOUBLEARG((Functor<unsigned int, void*>*)0,(void*)0))
 {
 }
@@ -30,7 +30,7 @@ cThread::~cThread()
 {
   Stop();
   delete _delegate_arg;
-  if(/*_bools.*/GetBit(1<<5))
+  if(GetBit(1<<5))
     delete _delegate;
 }
 
@@ -41,13 +41,13 @@ unsigned int BSS_COMPILER_STDCALL __threadstartdelegate(void* ptr)
 
 bool cThread::Start(void* arg)
 {
-  if(/*_bools.*/GetBit((1<<4)))
+  if(GetBit((1<<4)))
     return false;
 
-  /*_bools.*/RemoveBit((1<<0)); //Ensure that these don't carry over from something else
-  /*_bools.*/AddBit((1<<4)); //this is done up here so we don't accidentally create thread sync issues
+  RemoveBit((1<<0)); //Ensure that these don't carry over from something else
+  AddBit((1<<4)); //this is done up here so we don't accidentally create thread sync issues
 
-  if(/*_bools.*/GetBit(1<<5)) { //if this is true its a functor instead of a function pointer
+  if(GetBit(1<<5)) { //if this is true its a functor instead of a function pointer
     _delegate_arg->first=_delegate;
     _delegate_arg->second=arg;
     _handle=_beginthreadex(0,0, &__threadstartdelegate, _delegate_arg, 0, &_threadret);
@@ -57,21 +57,22 @@ bool cThread::Start(void* arg)
   if(_handle != -1L)
     return true;
 
-  /*_bools.*/RemoveBit((1<<4));
+  RemoveBit((1<<4));
   return false;
 }
 unsigned int cThread::Join(unsigned int waitms)
 {
   //Unlock(); //If the thread is locked and we try to join it, DEADLOCK!
   _syncobj.Unravel();
-  if(!/*_bools.*/GetBit((1<<4)) || WaitForSingleObject((void*)_handle, !waitms?INFINITE:waitms)==WAIT_FAILED)
+  if(!GetBit((1<<4)) || WaitForSingleObject((void*)_handle, !waitms?INFINITE:waitms)==WAIT_FAILED)
     return (unsigned int)-1;
-  /*_bools.*/RemoveBit((1<<4));
+  RemoveBit((1<<4));
   return _threadret;
 }
 unsigned int cThread::Stop()
 {
-  if(/*!GetBit((1<<2)) ||*/ !/*_bools.*/GetBit((1<<4)))
+  //if(!GetBit((1<<2)) || !GetBit((1<<4)))
+  if(!GetBit((1<<4)))
     return (unsigned int)-1;
 
   //Unlock(); //Ensure that we unlock the thread before re-locking it or we'll deadlock.
@@ -81,7 +82,7 @@ unsigned int cThread::Stop()
   //_syncobj.Unlock();
   unsigned int retval= Join(0);
   if(retval!=-1)
-    /*_bools.*/RemoveBit((1<<0));
+    RemoveBit((1<<0));
   return retval;
 }
 void cThread::_blocksync()
@@ -96,10 +97,10 @@ void cThread::_sleepsync()
 
 bool cThread::ThreadStop()
 {
-  return /*_bools.*/GetBit((1<<0));
+  return GetBit((1<<0));
   //if(_syncobj.TryLock())
   //{
-  //  bool retval = /*_bools.*/GetBit((1<<0));
+  //  bool retval = GetBit((1<<0));
   //  _syncobj.Unlock();
   //  return retval;
   //}
@@ -109,7 +110,7 @@ bool cThread::ThreadStop()
 bool cThread::ThreadStopAndSync()
 {
   (this->*_syncptr)();
-  bool retval = /*_bools.*/GetBit((1<<0));
+  bool retval = GetBit((1<<0));
   _syncobj.Unlock();
   return retval;
 }
@@ -122,14 +123,14 @@ void cThread::ThreadSync()
 void cThread::ThreadExit()
 {
   _syncobj.Lock();
-  /*_bools.*/RemoveBit((1<<4));
+  RemoveBit((1<<4));
   _syncobj.Unlock();
 }
 
 cThread& cThread::operator =(const bss_util::cThread &right)
 {
   Stop();
-  //_bools = (right./*_bools.*/GetBits()&(~(1 << 4)));
+  //_bools = (right.GetBits()&(~(1 << 4)));
   _bitfield=right._bitfield;
   _handle=(__w64 size_t)-1;
   _funcptr=right._funcptr;
@@ -137,3 +138,4 @@ cThread& cThread::operator =(const bss_util::cThread &right)
   _syncptr=right._syncptr;
   return *this;
 }
+*/

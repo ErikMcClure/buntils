@@ -33,6 +33,7 @@
 
 // Compiler detection and macro generation
 #if defined(__INTEL_COMPILER) || defined(__ICL) || defined(__ICC) || defined(__ECC) // Intel C++ compiler
+#define BSS_COMPILER_INTEL
 #define BSS_COMPILER_DLLEXPORT __declspec(dllexport)
 #define BSS_COMPILER_DLLIMPORT __declspec(dllimport)
 #define MEMBARRIER_READWRITE __memory_barrier()
@@ -46,6 +47,7 @@
 #define BSS_ALIGNED(sn, n) sn
 
 # elif defined __GNUC__ // GCC
+#define BSS_COMPILER_GCC
 #define BSS_COMPILER_DLLEXPORT __attribute__((dllexport))
 #define BSS_COMPILER_DLLIMPORT __attribute__((dllimport))
 #define MEMBARRIER_READWRITE __asm__ __volatile__ ("" ::: "memory");
@@ -73,6 +75,7 @@
 //typedef __int128 __int128; // GCC doesn't have __int64/32/16/8, but it does have __int128 for whatever reason.
 
 #elif defined _MSC_VER // VC++
+#define BSS_COMPILER_MSC
 #define BSS_COMPILER_DLLEXPORT __declspec(dllexport)
 #define BSS_COMPILER_DLLIMPORT __declspec(dllimport)
 #define MEMBARRIER_READWRITE _ReadWriteBarrier()

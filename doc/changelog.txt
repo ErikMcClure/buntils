@@ -16,6 +16,10 @@
 - Standardized function pointer calls to use less ambiguous syntax in certain functions
 - Fixed broken algorithm in binsearch_exact and added unit tests.
 - Added __restrict to UTF8 conversion functions because they explode if output==input anyway.
+- Removed cThread
+- Removed atomic_inc and replaced with atomic_xadd. Intrinsics are now used when possible for MSC in lockless.h
+- Added atomic_xchg
+- x64 compile now passes all tests
 
 0.3.82
 ------

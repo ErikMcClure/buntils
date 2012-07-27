@@ -371,7 +371,7 @@ TEST::RETPAIR test_bss_util()
   TEST(fcompare(angledist(PI+PI_HALF*7.0,PI_DOUBLE+PI),PI_HALF))
   TEST(fcompare(angledist(PIf,PI_HALFf),PI_HALFf))
   TEST(fsmall(angledist(PIf,PIf+PI_DOUBLEf),FLT_EPS*4))
-#ifndef BSS_DEBUG // In debug mode, we use precise floating point. In release mode, we use fast floating point. This lets us test both models to reveal any significant differences.
+#if !defined(BSS_DEBUG) || defined(BSS_CPU_x86_64) // In debug mode, we use precise floating point. In release mode, we use fast floating point. This lets us test both models to reveal any significant differences.
   TEST(fcompare(angledist(PI_DOUBLEf+PIf,PIf+PI_HALFf*7.0f),PI_HALFf,9)) // As one would expect, in fast floating point we need to be more tolerant of minor errors.
   TEST(fcompare(angledist(PIf+PI_HALFf*7.0f,PI_DOUBLEf+PIf),PI_HALFf,9))
 #else
@@ -385,7 +385,7 @@ TEST::RETPAIR test_bss_util()
   TEST(fcompare(angledistsgn(PI_HALF,PI),-PI_HALF))
   TEST(fcompare(angledistsgn(PIf,PI_HALFf),PI_HALFf))
   TEST(fsmall(angledistsgn(PIf,PIf+PI_DOUBLEf),FLT_EPS*4))
-#ifndef BSS_DEBUG
+#if !defined(BSS_DEBUG) || defined(BSS_CPU_x86_64)
   TEST(fcompare(angledistsgn(PI_DOUBLEf+PIf,PIf+PI_HALFf*7.0f),PI_HALFf,9))
 #else
   TEST(fcompare(angledistsgn(PI_DOUBLEf+PIf,PIf+PI_HALFf*7.0f),PI_HALFf))
@@ -466,7 +466,7 @@ TEST::RETPAIR test_bss_util()
   //cout << sqrt_avg << std::endl;
   //CPU_Barrier();
   double ddbl = fabs(FastSqrt(2.0) - sqrt(2.0));
-#ifndef BSS_DEBUG
+#if !defined(BSS_DEBUG) || defined(BSS_CPU_x86_64)
   TEST(fabs(FastSqrt(2.0f) - sqrt(2.0f))<=FLT_EPSILON*2);
 #else
   TEST(fabs(FastSqrt(2.0f) - sqrt(2.0f))<=FLT_EPSILON);
@@ -592,7 +592,7 @@ TEST::RETPAIR test_bss_algo()
   int a[] = { -5,-1,0,1,1,1,1,6,8,8,9,26,26,26,35 };
   for(int i = -10; i < 40; ++i) 
   {
-    TEST((binsearch_before<int,uint,CompT<int>>(a,i)==((upper_bound(std::begin(a),std::end(a),i)-a)-1)));
+    TEST((binsearch_before<int,uint,CompT<int>>(a,i)==(uint)((upper_bound(std::begin(a),std::end(a),i)-a)-1)));
     TEST((binsearch_after<int,uint,CompT<int>>(a,i)==(lower_bound(std::begin(a),std::end(a),i)-a)));
   }
 
@@ -1510,6 +1510,40 @@ TEST::RETPAIR test_LLBASE()
 TEST::RETPAIR test_LOCKLESS()
 {
   BEGINTEST;
+  CPU_Barrier();
+
+  {//Sanity checks for atomic_inc
+  int a = 1;
+  atomic_xadd(&a);
+  TEST(a==2);
+  CPU_Barrier();
+  int* b=&a;
+  atomic_xadd(b);
+  CPU_Barrier();
+  TEST(a==3);
+  volatile int* c=&a;
+  atomic_xadd<int>(c);
+  atomic_xadd<int>(c=b);
+  CPU_Barrier();
+  TEST(a==5);
+  }
+  {//Sanity checks for atomic_xchg
+  int a = 1;
+  int b = 2;
+  b=atomic_xchg<int>(&a,b);
+  TEST(a==2);
+  TEST(b==1);
+  atomic_xchg<int>(&b,a);
+  TEST(a==2);
+  TEST(b==2);
+  int* c=&a;
+  atomic_xchg<int>(c,3);
+  TEST(a==3);
+  volatile int* d=&b;
+  a=atomic_xchg<int>(d,5);
+  TEST(a==2);
+  TEST(b==5);
+  }
   ENDTEST;
 }
 
@@ -1602,7 +1636,7 @@ int main(int argc, char** argv)
     { "cUniquePtr.h", &test_UNIQUEPTR },
     //{ "functior.h", &test_FUNCTOR },
     //{ "LLBase.h", &test_LLBASE },
-    //{ "lockless.h", &test_LOCKLESS },
+    { "lockless.h", &test_LOCKLESS },
     { "os.h", &test_OS },
     //{ "cStreamSplitter.h", &test_STREAMSPLITTER },
   };

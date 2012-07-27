@@ -1,7 +1,7 @@
 // Copyright ©2012 Black Sphere Studios
 // For conditions of distribution and use, see copyright notice in "bss_util.h"
 
-#ifndef __C_THREAD_H__BSS__
+/*#ifndef __C_THREAD_H__BSS__
 #define __C_THREAD_H__BSS__
 
 #include "cMutex.h"
@@ -11,7 +11,7 @@
 namespace std { template<class _Ty1, class _Ty2> struct pair; }
 
 namespace bss_util {
-  /* This is thread class designed for maximum efficiency */
+  // This is thread class designed for maximum efficiency
   class BSS_DLLEXPORT cThread : public cLockable, protected cBitField<unsigned int>
   {
   public:
@@ -51,4 +51,4 @@ namespace bss_util {
   };
 }
 
-#endif
+#endif*/

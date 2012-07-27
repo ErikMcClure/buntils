@@ -100,7 +100,7 @@ namespace bss_util {
   inline void cLocklessByteQueue::FinishRead()
   {
     if(_readbuf!=0) {
-      asmcas<char*>(&_readstart,_readbuf,_readstart);
+      atomic_xchg<char*>(&_readstart,_readbuf);
       //_readstart=_readbuf;
       assert(_readstart==_readbuf);
     }
@@ -144,7 +144,7 @@ namespace bss_util {
   }
   void cLocklessByteQueue::FinishWrite()
   {
-    asmcas<char*>(&_nextwrite,_writebuf,_nextwrite);
+    atomic_xchg<char*>(&_nextwrite,_writebuf);
     //_nextwrite=_writebuf;
     assert(_nextwrite==_writebuf);
   }
@@ -154,11 +154,11 @@ namespace bss_util {
 
     *(((char**)_memend)-1) = _mem;
     _readbuf=(_memend-sizeof(char*));
-    asmcas<char*>(&_readstart,_readbuf,_readstart);
+    atomic_xchg<char*>(&_readstart,_readbuf);
     //_readstart=_readbuf;
 
     _writebuf=_mem;
-    asmcas<char*>(&_nextwrite,_writebuf,_nextwrite);
+    atomic_xchg<char*>(&_nextwrite,_writebuf);
     //_nextwrite=_writebuf;
     _curmemread=_mem;
     _endmemread=_memend;

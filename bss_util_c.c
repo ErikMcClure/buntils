@@ -85,7 +85,7 @@ size_t countutf16(const unsigned char* s)
 }
 
 BSS_COMPILER_DLLEXPORT
-extern size_t BSS_FASTCALL UTF8toUTF16(const char* input,wchar_t* output, size_t buflen)
+extern size_t BSS_FASTCALL UTF8toUTF16(const char*BSS_RESTRICT input,wchar_t*BSS_RESTRICT output, size_t buflen)
 {
   return (size_t)MultiByteToWideChar(CP_UTF8, 0, input, -1, output, !output?0:buflen);
   /*const unsigned char* s = src;
@@ -116,7 +116,7 @@ extern size_t BSS_FASTCALL UTF8toUTF16(const char* input,wchar_t* output, size_t
 }
 
 BSS_COMPILER_DLLEXPORT
-extern size_t BSS_FASTCALL UTF16toUTF8(const wchar_t* input, char* output, size_t buflen)
+extern size_t BSS_FASTCALL UTF16toUTF8(const wchar_t*BSS_RESTRICT input, char*BSS_RESTRICT output, size_t buflen)
 {
   return (size_t)WideCharToMultiByte(CP_UTF8, 0, input, -1, output, !output?0:buflen, NULL, NULL);
 }

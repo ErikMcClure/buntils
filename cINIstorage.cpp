@@ -225,7 +225,7 @@ char cINIstorage::EditEntry(const char* section, const char* key, const char* nv
   khiter_t iter = _sections.GetIterator(section);
   if(iter==_sections.End()) return -1; //if it doesn't exist at this point, fail
   __ARR* arr=_sections[iter];
-  if(secinstance==-1) secinstance=arr->Size()-1; //if we just added it, it will be the last entry
+  if(secinstance==(unsigned int)-1) secinstance=arr->Size()-1; //if we just added it, it will be the last entry
   if(secinstance>=arr->Size()) return -2; //if secinstance is not valid, fail
   cINIsection* psec = (*arr)+secinstance;
   INICHUNK chunk = bss_findINIsection(_ini->c_str(),_ini->size(),section,secinstance);

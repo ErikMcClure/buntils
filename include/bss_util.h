@@ -22,6 +22,9 @@
 #include <assert.h>
 #include <math.h>
 #include <memory.h>
+#ifdef BSS_MSC_NOASM
+#include <intrin.h>
+#endif
 
 namespace bss_util { 
   static const VersionType BSSUTIL_VERSION = { 0,3,83 };

@@ -32,7 +32,7 @@ namespace bss_util {
         free(_array);
     }
     inline SizeType Size() const { return _size; }
-    inline void SetSize(SizeType nsize)
+    inline void BSS_FASTCALL SetSize(SizeType nsize)
     {
       if(nsize==_size) return;
       T* narray = (T*)_minmalloc(sizeof(T)*nsize);
@@ -41,12 +41,12 @@ namespace bss_util {
       _array=narray;
       _size=nsize;
     }
-    inline void Remove(SizeType index)
+    inline void BSS_FASTCALL Remove(SizeType index)
     {
       memmove(_array+index,_array+index+1,sizeof(T)*(_size-index-1));
       //--_size;
     }
-    inline void Insert(T item, SizeType location)
+    inline void BSS_FASTCALL Insert(T item, SizeType location)
     {
       SizeType nsize=_size+1;
       T* narray = (T*)_minmalloc(sizeof(T)*nsize);
@@ -104,13 +104,13 @@ namespace bss_util {
     {
       memset(_array,val,_size*sizeof(T));
     }
-    inline void _setsize(SizeType nsize, int val)
-    {
-      SizeType last=_size;
-      SetSize(nsize);
-      if(_size>last)
-        memset(_array+last,val,(_size-last)*sizeof(T));
-    }
+    //inline void _setsize(SizeType nsize, int val)
+    //{
+    //  SizeType last=_size;
+    //  SetSize(nsize);
+    //  if(_size>last)
+    //    memset(_array+last,val,(_size-last)*sizeof(T));
+    //}
 
     T* _array;
     SizeType _size;
@@ -148,7 +148,7 @@ namespace bss_util {
         free(_array);
     }
     inline SizeType Size() const { return _size; }
-    inline void SetSize(SizeType nsize)
+    inline void BSS_FASTCALL SetSize(SizeType nsize)
     {
       if(nsize==_size) return;
       T* narray = (T*)_minmalloc(sizeof(T)*nsize);
@@ -166,7 +166,7 @@ namespace bss_util {
       _array=narray;
       _size=nsize;
     }
-    inline void Remove(SizeType index)
+    inline void BSS_FASTCALL Remove(SizeType index)
     {
       _array[index].~T();
       memmove(_array+index,_array+index+1,sizeof(T)*(_size-index-1));
@@ -266,7 +266,7 @@ namespace bss_util {
         free(_array);
     }
     inline SizeType Size() const { return _size; }
-    inline void SetSize(SizeType nsize)
+    inline void BSS_FASTCALL SetSize(SizeType nsize)
     {
       if(nsize==_size) return;
       T* narray = (T*)_minmalloc(sizeof(T)*nsize);
@@ -283,7 +283,7 @@ namespace bss_util {
       _array=narray;
       _size=nsize;
     }
-    inline void Remove(SizeType index)
+    inline void BSS_FASTCALL Remove(SizeType index)
     {
       --_size; // Note that this _size decrease is reversed at the end of this function, so _size doesn't actually change, matching the behavior of cArraySimple/cArraySafe
       for(SizeType i=index; i<_size;++i)

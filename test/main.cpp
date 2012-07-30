@@ -583,6 +583,25 @@ TEST::RETPAIR test_bss_DEBUGINFO()
   tf(a);
   tf(b);
   tf(c);
+
+  bss_Log lg("logtest2.txt");
+  lg.FORMATLOG<0>("main.cpp",-1) << std::endl;
+  lg.FORMATLOG<0>("main.cpp",0) << std::endl;
+  lg.FORMATLOG<0>(__FILE__,0) << std::endl;
+  lg.FORMATLOG<0>(__FILE__,__LINE__) << std::endl;
+  lg.FORMATLOG<0>("main.cpp",__LINE__) << std::endl;
+  lg.FORMATLOG<0>("\\main.cpp",__LINE__) << std::endl;
+  lg.FORMATLOG<0>("/main.cpp",__LINE__) << std::endl;
+  lg.FORMATLOG<0>("a\\main.cpp",__LINE__) << std::endl;
+  lg.FORMATLOG<0>("a/main.cpp",__LINE__) << std::endl;
+  lg.FORMATLOG<0>("asfsdbs dsfs ds/main.cpp",__LINE__) << std::endl;
+  lg.FORMATLOG<0>("asfsdbs dsfs ds\\main.cpp",__LINE__) << std::endl;
+  lg.FORMATLOG<0>("asfsdbs\\dsfs/ds/main.cpp",__LINE__) << std::endl;
+  lg.FORMATLOG<0>("\\asfsdbs\\dsfs/ds/main.cpp",__LINE__) << std::endl;
+  lg.FORMATLOG<0>("\\asfsdbs/dsfs\\ds/main.cpp",__LINE__) << std::endl;
+  lg.FORMATLOG<0>("\\asfsdbs/dsfs\\ds/main.cpp\\",__LINE__) << std::endl;
+  lg.FORMATLOG<0>("\\asfsdbs/dsfs\\ds/main.cpp/",__LINE__) << std::endl;
+
   ENDTEST;
 }
 

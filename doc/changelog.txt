@@ -20,6 +20,8 @@
 - Removed atomic_inc and replaced with atomic_xadd. Intrinsics are now used when possible for MSC in lockless.h
 - Added atomic_xchg
 - x64 compile now passes all tests
+- _trimpath more efficient
+- log times now work properly and don't give negative hours
 
 0.3.82
 ------

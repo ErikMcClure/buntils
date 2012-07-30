@@ -19,12 +19,6 @@ bss_Log::bss_Log(std::ostream* log) : _split(new StreamSplitter()), _stream(_spl
   if(log!=0)
     AddTarget(*log);
 }
-
-//bss_Log::bss_Log(std::wostream* log) : _split(new StreamSplitter<char>()), _stream(_split), _tz(GetTimeZoneMinutes())
-//{
-//  if(log!=0)
-//    AddTarget(*log);
-//}
 bss_Log::bss_Log(const char* logfile, std::ostream* log) : _split(new StreamSplitter()), _stream(_split), _tz(GetTimeZoneMinutes())
 {
   AddTarget(logfile);
@@ -37,18 +31,6 @@ bss_Log::bss_Log(const wchar_t* logfile, std::ostream* log) : _split(new StreamS
   if(log!=0)
     AddTarget(*log);
 }
-/*bss_Log::bss_Log(const char* logfile, std::wostream* log) : _split(new StreamSplitter<char>()), _stream(_split), _tz(GetTimeZoneMinutes())
-{
-  AddTarget(logfile);
-  if(log!=0)
-    AddTarget(*log);
-}
-bss_Log::bss_Log(const wchar_t* logfile, std::wostream* log) : _split(new StreamSplitter<char>()), _stream(_split), _tz(GetTimeZoneMinutes())
-{
-  AddTarget(logfile);
-  if(log!=0)
-    AddTarget(*log);
-}*/
 bss_Log::~bss_Log()
 {
   ClearTargets();
@@ -65,10 +47,6 @@ void BSS_FASTCALL bss_Log::AddTarget(std::ostream& stream)
 {
   _split->AddTarget(&stream);
 }
-//void BSS_FASTCALL bss_Log::AddTarget(std::wostream& stream)
-//{
-//  _split->AddTarget(&stream);
-//}
 void BSS_FASTCALL bss_Log::AddTarget(const char* file)
 {
   if(!file) return;
@@ -90,17 +68,15 @@ void bss_Log::ClearTargets()
 }
 bool BSS_FASTCALL bss_Log::_writedatetime(long timez, std::ostream& log, bool timeonly)
 {
-  tm* ptm=0;
   TIMEVALUSED rawtime;
   FTIME(&rawtime);
-#if __STDC_WANT_SECURE_LIB__
-  ptm = new tm();
-#endif
+  tm stm;
+  tm* ptm=&stm;
   GMTIMEFUNC(&rawtime, ptm);
 
-  long htimez=(timez/60); //timezone adjustments
-  long mtimez=(timez%60)+ptm->tm_min;
-  htimez += ((mtimez<0)?-1:(mtimez/60));
+  long m=ptm->tm_hour*60 + ptm->tm_min + 1440 + timez; //+1440 ensures this is never negative because % does not properly respond to negative numbers.
+  long h=((m/60)%24);
+  m%=60;
 
   char logchar = log.fill();
   std::streamsize logwidth = log.width();
@@ -108,15 +84,12 @@ bool BSS_FASTCALL bss_Log::_writedatetime(long timez, std::ostream& log, bool ti
   //Write date if we need to
   if(!timeonly) log << std::setw(4) << ptm->tm_year+1900 << std::setw(1) << '-' << std::setw(2) << ptm->tm_mon+1 << std::setw(1) << '-' << std::setw(2) << ptm->tm_mday << std::setw(1) << ' ';
   //Write time and flush stream
-  log << std::setw(1) << (ptm->tm_hour+htimez)%24 << std::setw(0) << ':' << std::setw(2) << (mtimez%60) << std::setw(0) << ':' << std::setw(2) << ptm->tm_sec;
+  log << std::setw(1) << h << std::setw(0) << ':' << std::setw(2) << m << std::setw(0) << ':' << std::setw(2) << ptm->tm_sec;
   
   //Reset values of stream
   log.width(logwidth);
   log.fill(logchar);
 
-#if __STDC_WANT_SECURE_LIB__
-  delete ptm;
-#endif
   return true;
 }
 bss_Log& bss_Log::operator=(const bss_Log& right)
@@ -129,19 +102,10 @@ bss_Log& bss_Log::operator=(const bss_Log& right)
 
 const char* BSS_FASTCALL bss_Log::_trimpath(const char* path)
 {
-	const char* retval=strrchr(path,'/');
-	if(!retval)
-	{
-		retval=strrchr(path,'\\');
-		if(!retval) retval=path;
-		else ++retval;
-	}
-	else
-	{
-		path=strrchr(path,'\\');
-		retval=path>retval?++path:++retval;
-	}
-	return retval;
+	const char* r=strrchr(path,'/');
+	const char* r2=strrchr(path,'\\');
+  r=bssmax(r,r2);
+  return (!r)?path:(r+1);
 }
 
 //const wchar_t* BSS_FASTCALL bss_Log::_trimpath(const wchar_t* path)

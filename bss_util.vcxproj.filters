@@ -260,10 +260,10 @@
     <ClInclude Include="include\bss_Log.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="bss_sse.h">
+    <ClInclude Include="cLocklessArray.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="cLocklessArray.h">
+    <ClInclude Include="include\bss_sse.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>

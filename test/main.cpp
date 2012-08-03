@@ -9,7 +9,7 @@
 #include "bss_alloc_fixed.h"
 #include "bss_deprecated.h"
 #include "bss_fixedpt.h"
-//#include "bss_sort.h"
+#include "bss_sse.h"
 #include "bss_win32_includes.h"
 #include "cArrayCircular.h"
 #include "cAVLtree.h"
@@ -775,6 +775,46 @@ TEST::RETPAIR test_bss_FIXEDPT()
   ENDTEST;
 }
 
+#define TESTFOUR(s,a,b,c,d) TEST(((s)[0]==(a)) && ((s)[1]==(b)) && ((s)[2]==(c)) && ((s)[3]==(d)))
+#define TESTRELFOUR(s,a,b,c,d) TEST(fcompare((s)[0],(a)) && fcompare((s)[1],(b)) && fcompare((s)[2],(c)) && fcompare((s)[3],(d)))
+
+TEST::RETPAIR test_bss_SSE()
+{
+  BEGINTEST;
+  
+  __declspec(align(16)) float arr[4] = { -1,-2,-3,-5 };
+  float uarr[4] = { -1,-2,-3,-4 };
+  sseVec u(1,2,3,4);
+  sseVec v(5);
+  sseVec w(arr);
+  w >> arr;
+  TESTFOUR(arr,-1,-2,-3,-5)
+  w = sseVec(BSS_UNALIGNED<float>(uarr));
+  w >> arr;
+  TESTFOUR(arr,-1,-2,-3,-4)
+  sseVec uw(u*w);
+  uw >> arr;
+  TESTFOUR(arr,-1,-4,-9,-16)
+  sseVec uv(u*v);
+  uv >> arr;
+  TESTFOUR(arr,5,10,15,20)
+  sseVec u_w(u/v);
+  u_w >> arr;
+  TESTFOUR(arr,0.2f,0.4f,0.6f,0.8f)
+  sseVec u_v(u/w);
+  u_v >> arr;
+  TESTFOUR(arr,-1,-1,-1,-1)
+  u_v = uw*w/v+u*v-v/w;
+  u_v >> arr;
+  TESTRELFOUR(arr,10.2f,14.1f,22.0666666f,34.05f)
+  (u/w + v - u) >> arr;
+  TESTFOUR(arr,3,2,1,0)
+  (u/w + v - u) >> BSS_UNALIGNED<float>(uarr);
+  TESTFOUR(uarr,3,2,1,0)
+
+  ENDTEST;
+}
+
 TEST::RETPAIR test_ALIASTABLE()
 {
   BEGINTEST;
@@ -1258,6 +1298,12 @@ TEST::RETPAIR test_MUTEX()
   ENDTEST;
 }
 
+struct OBJSWAP_TEST {
+  unsigned int i;
+  bool operator==(const OBJSWAP_TEST& j) const { return i==j.i; }
+  bool operator!=(const OBJSWAP_TEST& j) const { return i!=j.i; }
+};
+
 TEST::RETPAIR test_OBJSWAP()
 {
   BEGINTEST;
@@ -1269,6 +1315,7 @@ TEST::RETPAIR test_OBJSWAP()
   unsigned int* zp3=vals+2;
   unsigned int* zp4=vals+3;
   unsigned int* zp5=vals+4;
+  OBJSWAP_TEST o[6] = { {1},{2},{3},{4},{5},{6} };
   for(uint i = 0; i < 5; ++i)
   {
     switch(PSWAP(vals+i,5,zp,zp2,zp3,zp4,zp5))
@@ -1317,6 +1364,22 @@ TEST::RETPAIR test_OBJSWAP()
       TEST(i==4); break;
     default:
       TEST(i==0);
+    }
+
+    switch(cObjSwap<OBJSWAP_TEST>(o[i],5,o[0],o[1],o[5],o[3],o[4])) // Deliberaly meant to test for one failure
+    {
+    case 0:
+      TEST(i==0); break;
+    case 1:
+      TEST(i==1); break;
+    case 2:
+      TEST(false); break;
+    case 3:
+      TEST(i==3); break;
+    case 4:
+      TEST(i==4); break;
+    default:
+      TEST(i==2);
     }
   }
 
@@ -1618,6 +1681,7 @@ int main(int argc, char** argv)
     { "bss_alloc_fixed.h:Chunk", &test_bss_ALLOC_FIXED_CHUNK },
     { "bss_depracated.h", &test_bss_deprecated },
     { "bss_fixedpt.h", &test_bss_FIXEDPT },
+    { "bss_sse.h", &test_bss_SSE },
     { "cAliasTable.h", &test_ALIASTABLE },
     { "cArrayCircular.h", &test_ARRAYCIRCULAR },
     { "cArraySimple.h", &test_ARRAYSIMPLE },

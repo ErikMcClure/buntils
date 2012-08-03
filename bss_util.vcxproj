@@ -459,7 +459,6 @@
     <ClCompile Include="ShinyTools.cpp" />
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="bss_sse.h" />
     <ClInclude Include="cLocklessArray.h" />
     <ClInclude Include="include\bss_algo.h" />
     <ClInclude Include="include\bss_alloc_additive.h" />
@@ -469,6 +468,7 @@
     <ClInclude Include="include\bss_fixedpt.h" />
     <ClInclude Include="include\bss_literals.h" />
     <ClInclude Include="include\bss_Log.h" />
+    <ClInclude Include="include\bss_sse.h" />
     <ClInclude Include="include\cAliasTable.h" />
     <ClInclude Include="include\cArrayCircular.h" />
     <ClInclude Include="include\cDynArray.h" />

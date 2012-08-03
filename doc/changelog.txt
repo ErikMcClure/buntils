@@ -22,6 +22,9 @@
 - x64 compile now passes all tests
 - _trimpath more efficient
 - log times now work properly and don't give negative hours
+- cObjSwap no longer uses Traits (which is a good thing because it would have exploded the instant someone tried using reference traits in it)
+- Added sseVec for safe SSE optimized vector operations.
+- Added tests for object-based cObjSwap and sseVec.
 
 0.3.82
 ------

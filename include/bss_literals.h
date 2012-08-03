@@ -26,5 +26,6 @@ VersionType operator "" UNDERSCORE(ver)(const char* str, size_t) {
   r.Revision = (unsigned short)(atoi(STRTOK(NULL,".",context))&0xFFFF);
   return r;
 }
+//cRational operator "" UNDERSCORE(over)(long double d) { return cRational(d,1); }
 
 #endif

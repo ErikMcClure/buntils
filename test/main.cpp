@@ -775,13 +775,103 @@ TEST::RETPAIR test_bss_FIXEDPT()
   ENDTEST;
 }
 
+inline static unsigned int Interpolate(unsigned int l, unsigned int r, float c)
+{
+  //float inv=1.0f-c;
+  /*return ((unsigned int)(((l&0xFF000000)*inv)+((r&0xFF000000)*c))&0xFF000000)|
+          ((unsigned int)(((l&0x00FF0000)*inv)+((r&0x00FF0000)*c))&0x00FF0000)|
+	        ((unsigned int)(((l&0x0000FF00)*inv)+((r&0x0000FF00)*c))&0x0000FF00)|
+			    ((unsigned int)(((l&0x000000FF)*inv)+((r&0x000000FF)*c))&0x000000FF);*/
+  /*BSS_SSE_M128i xl = _mm_set1_epi32(l); // duplicate l 4 times in the 128-bit register (l,l,l,l)
+  BSS_SSE_M128i xm = _mm_set_epi32(0xFF000000,0x00FF0000,0x0000FF00,0x000000FF); // Channel masks (alpha,red,green,blue)
+  xl=_mm_and_si128(xl,xm); // l&mask
+  xl=_mm_shufflehi_epi16(xl,0xB1); // Now we have to shuffle these values down because there is no way to convert an unsigned int to a float. In any instruction set. Ever.
+  BSS_SSE_M128 xfl = _mm_cvtepi32_ps(xl); // Convert to float
+  BSS_SSE_M128 xc = _mm_set_ps1(c); // (c,c,c,c)
+  BSS_SSE_M128 xinv = _mm_set_ps1(1.0f);  // (1.0,1.0,1.0,1.0)
+  xinv = _mm_sub_ps(xinv,xc); // (1.0-c,1.0-c,1.0-c,1.0-c)
+  xfl = _mm_mul_ps(xfl,xinv); // Multiply l by 1.0-c (inverted factor)
+  BSS_SSE_M128i xr = _mm_set1_epi32(r); // duplicate r 4 times across the 128-bit register (r,r,r,r)
+  xr=_mm_and_si128(xr,xm); // r & mask
+  xr=_mm_shufflehi_epi16(xr,0xB1); // Do the same shift we did on xl earlier so they match up
+  BSS_SSE_M128 xrl = _mm_cvtepi32_ps(xr); // convert to float
+  xrl = _mm_mul_ps(xrl,xc); // Multiply r by c
+  xfl = _mm_add_ps(xfl,xrl); // Add l and r
+  xl = _mm_cvttps_epi32(xfl); // Convert back to integer
+  xl=_mm_shufflehi_epi16(xl,0xB1); // Shuffle the last two back up (this is actually the same shuffle, since before we just swapped locations, so we swap locations again and then we're back where we started).
+  xl = _mm_and_si128(xl,xm); // l&mask
+  xr = xl;
+  xr = _mm_shuffle_epi32(xr,0x1B); // Reverses the order of xr so we now have (d,c,b,a)
+  xl = _mm_or_si128(xl,xr); // Or xl and xr so we get (d|a,c|b,b|c,a|d) in xl
+  xr = _mm_castps_si128(_mm_movehl_ps(_mm_castsi128_ps(xr),_mm_castsi128_ps(xl))); // Move upper 2 ints to bottom 2 ints in xr so xr = (d,c,d|a,c|b)
+  xl = _mm_or_si128(xl,xr); // Now or them again so we get (d|a,c|b,b|c | d|a,a|d | c|b) which lets us take out the bottom integer as our result
+  */ 
+  sseVeci xl(l); // duplicate l 4 times in the 128-bit register (l,l,l,l)
+  sseVeci xm(0x000000FF,0x0000FF00,0x00FF0000,0xFF000000); // Channel masks (alpha,red,green,blue), these are loaded in reverse order.
+  xl=_mm_shufflehi_epi16(xl&xm,0xB1); // Now we have to shuffle (l&m) down because there is no way to convert an unsigned int to a float. In any instruction set. Ever.
+  sseVec xc(c); // (c,c,c,c)
+  sseVeci xr(r); // duplicate r 4 times across the 128-bit register (r,r,r,r)
+  xr=_mm_shufflehi_epi16(xr&xm,0xB1); // Shuffle r down just like l
+  xl=((sseVec(xr)*xc)+(sseVec(xl)*(sseVec(1.0f)-xc))); //do the operation (r*c) + (l*(1.0-c)) across all 4 integers, converting to and from floating point in the process.
+  xl=_mm_shufflehi_epi16(xl,0xB1); // reverse our shuffling from before (this is actually the same shuffle, since before we just swapped locations, so we swap locations again, and then we're back where we started).
+  xl&=xm; // mask l with m again.
+  xr = _mm_shuffle_epi32(xl,0x1B); // assign the values of xl to xr, but reversed, so we have (d,c,b,a)
+  xl|=xr; // OR xl and xr so we get (d|a,c|b,b|c,a|d) in xl
+  xr = _mm_castps_si128(_mm_movehl_ps(_mm_castsi128_ps(xr),_mm_castsi128_ps(xl))); // Move upper 2 ints to bottom 2 ints in xr so xr = (d,c,d|a,c|b)
+  return (unsigned int)_mm_cvtsi128_si32(xl|xr); // Now OR them again so we get (d|a,c|b,b|c | d|a,a|d | c|b), then store the bottom 32-bit integer. What kind of fucked up name is _mm_cvtsi128_si32 anyway?
+}
+
 #define TESTFOUR(s,a,b,c,d) TEST(((s)[0]==(a)) && ((s)[1]==(b)) && ((s)[2]==(c)) && ((s)[3]==(d)))
+#define TESTALLFOUR(s,a) TEST(((s)[0]==(a)) && ((s)[1]==(a)) && ((s)[2]==(a)) && ((s)[3]==(a)))
 #define TESTRELFOUR(s,a,b,c,d) TEST(fcompare((s)[0],(a)) && fcompare((s)[1],(b)) && fcompare((s)[2],(c)) && fcompare((s)[3],(d)))
 
 TEST::RETPAIR test_bss_SSE()
 {
   BEGINTEST;
-  
+
+  CPU_Barrier();
+  uint r=Interpolate(0xFF00FFAA,0x00FFAACC,0.5f);
+  sseVeci xr(r);
+  sseVeci xz(r);
+  xr+=xz;
+  xr-=xz;
+  xr&=xz;
+  xr|=xz;
+  xr^=xz;
+  xr>>=5;
+  xr<<=3;
+  xr<<=xz;
+  xr>>=xz;
+  sseVeci xw(r>>3);
+  xw= ((xz+xw)|(xz&xw))-(xw<<2)+((xz<<xw)^((xz>>xw)>>1));
+  sseVeci c1(xw==r);
+  sseVeci c2(xw!=r);
+  sseVeci c3(xw<r);
+  sseVeci c4(xw>r);
+  sseVeci c5(xw<=r);
+  sseVeci c6(xw>=r);
+  CPU_Barrier();
+  TEST(r==0x7F7FD4BB);
+  BSS_ALIGN(16) int rv[4] = { -1, -1, -1, -1 };
+  sseVeci::ZeroVector()>>rv;
+  TESTALLFOUR(rv,0);
+  xz >> rv;
+  TESTALLFOUR(rv,2139083963);
+  xw >> rv;
+  TESTALLFOUR(rv,1336931703);
+  c1 >> rv;
+  TESTALLFOUR(rv,0);
+  c2 >> rv;
+  TESTALLFOUR(rv,-1);
+  c3 >> rv;
+  TESTALLFOUR(rv,-1);
+  c4 >> rv;
+  TESTALLFOUR(rv,0);
+  c5 >> rv;
+  TESTALLFOUR(rv,-1);
+  c6 >> rv;
+  TESTALLFOUR(rv,0);
+
   __declspec(align(16)) float arr[4] = { -1,-2,-3,-5 };
   float uarr[4] = { -1,-2,-3,-4 };
   sseVec u(1,2,3,4);
@@ -789,7 +879,7 @@ TEST::RETPAIR test_bss_SSE()
   sseVec w(arr);
   w >> arr;
   TESTFOUR(arr,-1,-2,-3,-5)
-  w = sseVec(BSS_UNALIGNED<float>(uarr));
+  w = sseVec(BSS_UNALIGNED<const float>(uarr));
   w >> arr;
   TESTFOUR(arr,-1,-2,-3,-4)
   sseVec uw(u*w);

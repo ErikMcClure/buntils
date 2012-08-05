@@ -808,14 +808,14 @@ inline static unsigned int Interpolate(unsigned int l, unsigned int r, float c)
   */ 
   sseVeci xl(l); // duplicate l 4 times in the 128-bit register (l,l,l,l)
   sseVeci xm(0x000000FF,0x0000FF00,0x00FF0000,0xFF000000); // Channel masks (alpha,red,green,blue), these are loaded in reverse order.
-  xl=_mm_shufflehi_epi16(xl&xm,0xB1); // Now we have to shuffle (l&m) down because there is no way to convert an unsigned int to a float. In any instruction set. Ever.
+  xl=BSS_SSE_SHUFFLEHI_EPI16(xl&xm,0xB1); // Now we have to shuffle (l&m) down because there is no way to convert an unsigned int to a float. In any instruction set. Ever.
   sseVec xc(c); // (c,c,c,c)
   sseVeci xr(r); // duplicate r 4 times across the 128-bit register (r,r,r,r)
-  xr=_mm_shufflehi_epi16(xr&xm,0xB1); // Shuffle r down just like l
+  xr=BSS_SSE_SHUFFLEHI_EPI16(xr&xm,0xB1); // Shuffle r down just like l
   xl=((sseVec(xr)*xc)+(sseVec(xl)*(sseVec(1.0f)-xc))); //do the operation (r*c) + (l*(1.0-c)) across all 4 integers, converting to and from floating point in the process.
-  xl=_mm_shufflehi_epi16(xl,0xB1); // reverse our shuffling from before (this is actually the same shuffle, since before we just swapped locations, so we swap locations again, and then we're back where we started).
+  xl=BSS_SSE_SHUFFLEHI_EPI16(xl,0xB1); // reverse our shuffling from before (this is actually the same shuffle, since before we just swapped locations, so we swap locations again, and then we're back where we started).
   xl&=xm; // mask l with m again.
-  xr = _mm_shuffle_epi32(xl,0x1B); // assign the values of xl to xr, but reversed, so we have (d,c,b,a)
+  xr = BSS_SSE_SHUFFLE_EPI32(xl,0x1B); // assign the values of xl to xr, but reversed, so we have (d,c,b,a)
   xl|=xr; // OR xl and xr so we get (d|a,c|b,b|c,a|d) in xl
   xr = _mm_castps_si128(_mm_movehl_ps(_mm_castsi128_ps(xr),_mm_castsi128_ps(xl))); // Move upper 2 ints to bottom 2 ints in xr so xr = (d,c,d|a,c|b)
   return (unsigned int)_mm_cvtsi128_si32(xl|xr); // Now OR them again so we get (d|a,c|b,b|c | d|a,a|d | c|b), then store the bottom 32-bit integer. What kind of fucked up name is _mm_cvtsi128_si32 anyway?
@@ -824,6 +824,23 @@ inline static unsigned int Interpolate(unsigned int l, unsigned int r, float c)
 #define TESTFOUR(s,a,b,c,d) TEST(((s)[0]==(a)) && ((s)[1]==(b)) && ((s)[2]==(c)) && ((s)[3]==(d)))
 #define TESTALLFOUR(s,a) TEST(((s)[0]==(a)) && ((s)[1]==(a)) && ((s)[2]==(a)) && ((s)[3]==(a)))
 #define TESTRELFOUR(s,a,b,c,d) TEST(fcompare((s)[0],(a)) && fcompare((s)[1],(b)) && fcompare((s)[2],(c)) && fcompare((s)[3],(d)))
+
+static unsigned int flttoint(const float (&ch)[4])
+{
+  //return (((uint)(ch[0]*255.0f))<<24)|(((uint)(ch[1]*255.0f))<<16)|(((uint)(ch[2]*255.0f))<<8)|(((uint)(ch[3]*255.0f)));
+  sseVeci xch=(BSS_SSE_SHUFFLEHI_EPI16(sseVeci(sseVec(ch)*sseVec(255.0f,65280.0f,255.0f,65280.0f)),0xB1));
+  xch&=sseVeci(0x000000FF,0x0000FF00,0x00FF0000,0xFF000000);
+  sseVeci xh = BSS_SSE_SHUFFLE_EPI32(xch,0x1B); // assign the values of xl to xr, but reversed, so we have (d,c,b,a)
+  xch|=xh; // OR xl and xr so we get (d|a,c|b,b|c,a|d) in xl
+  xh = _mm_castps_si128(_mm_movehl_ps(_mm_castsi128_ps(xh),_mm_castsi128_ps(xch))); // Move upper 2 ints to bottom 2 ints in xr so xr = (d,c,d|a,c|b)
+  return (unsigned int)_mm_cvtsi128_si32(xch|xh);
+}
+
+static void inttoflt(unsigned int from, float (&ch)[4])
+{
+  sseVec c(BSS_SSE_SHUFFLEHI_EPI16(sseVeci(from)&sseVeci(0x000000FF,0x0000FF00,0x00FF0000,0xFF000000),0xB1));
+  (c/sseVec(255.0f,65280.0f,255.0f,65280.0f)) >> ch; 
+}
 
 TEST::RETPAIR test_bss_SSE()
 {
@@ -871,6 +888,14 @@ TEST::RETPAIR test_bss_SSE()
   TESTALLFOUR(rv,-1);
   c6 >> rv;
   TESTALLFOUR(rv,0);
+  CPU_Barrier();
+
+  BSS_ALIGN(16) float ch[4] = { 1.0f, 0.5f, 0.5f,1.0f };
+  uint chr=flttoint(ch);
+  TEST(chr==0xFF7F7FFF);
+  inttoflt(chr,ch);
+  TESTRELFOUR(ch,1.0f,0.49803922f,0.49803922f,1.0f);
+  CPU_Barrier();
 
   __declspec(align(16)) float arr[4] = { -1,-2,-3,-5 };
   float uarr[4] = { -1,-2,-3,-4 };

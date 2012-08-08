@@ -463,6 +463,7 @@
     <ClInclude Include="include\bss_algo.h" />
     <ClInclude Include="include\bss_alloc_additive.h" />
     <ClInclude Include="include\bss_alloc_fixed.h" />
+    <ClInclude Include="include\bss_alloc_fixed_lockless.h" />
     <ClInclude Include="include\bss_compiler.h" />
     <ClInclude Include="include\bss_DebugInfo.h" />
     <ClInclude Include="include\bss_fixedpt.h" />
@@ -488,7 +489,6 @@
     <ClInclude Include="include\bss_defines.h" />
     <ClInclude Include="include\bss_deprecated.h" />
     <ClInclude Include="include\bss_dlldef.h" />
-    <ClInclude Include="include\bss_traits.h" />
     <ClInclude Include="include\bss_util.h" />
     <ClInclude Include="include\bss_win32_includes.h" />
     <ClInclude Include="include\cArraySimple.h" />

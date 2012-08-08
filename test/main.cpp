@@ -7,6 +7,7 @@
 #include "bss_algo.h"
 #include "bss_alloc_additive.h"
 #include "bss_alloc_fixed.h"
+#include "bss_alloc_fixed_lockless.h"
 #include "bss_deprecated.h"
 #include "bss_fixedpt.h"
 #include "bss_sse.h"
@@ -53,6 +54,7 @@
 #include <fstream>
 #include <algorithm>
 #include <time.h>
+#include <process.h> // for _beginthreadex
 
 //#define BOOST_FILESYSTEM_VERSION 3
 //#define BOOST_ALL_NO_LIB
@@ -687,7 +689,7 @@ TEST::RETPAIR test_bss_ALLOC_ADDITIVE_VARIABLE()
 TEST::RETPAIR test_bss_ALLOC_FIXED_SIZE()
 {
   BEGINTEST;
-  TEST_ALLOC_FUZZER<cFixedSizeAllocator<__int64>,__int64,1>(__testret);
+  //TEST_ALLOC_FUZZER<cFixedSizeAllocator<__int64>,__int64,1>(__testret);
   ENDTEST;
 }
 
@@ -700,6 +702,62 @@ TEST::RETPAIR test_bss_ALLOC_FIXED_CHUNK()
   TEST_ALLOC_FUZZER<FIXEDCHUNKALLOCWRAP<size_t>,size_t,1>(__testret);
   ENDTEST;
 }
+
+template<class T, typename P, int NUM>
+void MULTITHREADED_ALLOC_FUZZER(TEST::RETPAIR& __testret)
+{
+  cDynArray<cArraySimple<P*>> plist;
+  T alloc;
+	static_assert((sizeof(P)>=sizeof(void*)),"P cannot be less than the size of a pointer");
+  bool pass;
+  for(int j=0; j<100; ++j)
+  {
+    for(int i=0; i<NUM; ++i)
+    {
+      if(RANDINTGEN(0,10)<5 || plist.Length()<3)
+      {
+        P* test=alloc.alloc(1);
+        *((size_t*)test)=(size_t)test;
+        plist.Add(test);
+      }
+      else
+      {
+        int index=RANDINTGEN(0,plist.Length());
+        if(((size_t)plist[index])!=plist[index][0]) {
+          assert(false);
+          pass=false;
+        }
+        alloc.dealloc(plist[index]);
+        rswap(plist.Back(),plist[index]);
+        plist.RemoveLast();
+      }
+    }
+  }
+}
+
+template<class T, typename P, int NUM>
+unsigned int __stdcall _mt_alloc_fuzzer(void* p)
+{
+  MULTITHREADED_ALLOC_FUZZER<T,P,NUM>(*((TEST::RETPAIR*)p));
+  return 1;
+}
+
+TEST::RETPAIR test_bss_ALLOC_FIXED_LOCKLESS()
+{
+  BEGINTEST;
+
+  const int NUMTHREADS=10;
+  unsigned int tret[NUMTHREADS] = {0};
+  uintptr_t handles[NUMTHREADS] = {0};
+  for(int i=0; i<NUMTHREADS; ++i)
+    handles[i]=_beginthreadex(0,0, &_mt_alloc_fuzzer<cLocklessFixedAlloc<__int64>,__int64,1000>, &__testret, 0, tret+i);
+
+  for(int i=0; i<NUMTHREADS; ++i)
+    WaitForSingleObject((void*)handles[i], INFINITE);
+
+  ENDTEST;
+}
+
 TEST::RETPAIR test_bss_deprecated()
 {
   std::vector<bool> test;
@@ -808,7 +866,7 @@ inline static unsigned int Interpolate(unsigned int l, unsigned int r, float c)
   */ 
   sseVeci xl(l); // duplicate l 4 times in the 128-bit register (l,l,l,l)
   sseVeci xm(0x000000FF,0x0000FF00,0x00FF0000,0xFF000000); // Channel masks (alpha,red,green,blue), these are loaded in reverse order.
-  xl=BSS_SSE_SHUFFLEHI_EPI16(xl&xm,0xB1); // Now we have to shuffle (l&m) down because there is no way to convert an unsigned int to a float. In any instruction set. Ever.
+  xl=BSS_SSE_SHUFFLEHI_EPI16(xl&xm,0xB1); // Now we have to shuffle (l&m) down because there is no way to convert an unsigned int xmm register to a float. In any instruction set. Ever.
   sseVec xc(c); // (c,c,c,c)
   sseVeci xr(r); // duplicate r 4 times across the 128-bit register (r,r,r,r)
   xr=BSS_SSE_SHUFFLEHI_EPI16(xr&xm,0xB1); // Shuffle r down just like l
@@ -1794,6 +1852,7 @@ int main(int argc, char** argv)
     { "bss_alloc_additive.h:Var", &test_bss_ALLOC_ADDITIVE_VARIABLE },
     { "bss_alloc_fixed.h:Size", &test_bss_ALLOC_FIXED_SIZE },
     { "bss_alloc_fixed.h:Chunk", &test_bss_ALLOC_FIXED_CHUNK },
+    { "bss_alloc_fixed_lockless.h", &test_bss_ALLOC_FIXED_LOCKLESS },
     { "bss_depracated.h", &test_bss_deprecated },
     { "bss_fixedpt.h", &test_bss_FIXEDPT },
     { "bss_sse.h", &test_bss_SSE },

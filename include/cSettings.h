@@ -32,7 +32,7 @@ namespace bss_util {
         if(kh_exist(_h,iter))
           kh_val(_h,iter).~T();
     }
-    bool Insert(KHKEY key, const_ref value)
+    bool Insert(KHKEY key, const KHVAL& value)
 		{
       if(!KH_STR_VALIDATEPTR<const K*>(key)) return false;
 			if(kh_size(_h) >= _h->n_buckets) _resize();

@@ -8,7 +8,6 @@
 #include "bss_call.h"
 #include "bss_defines.h"
 #include "bss_deprecated.h"
-#include "bss_traits.h"
 #include <wchar.h>
 #include <xutility>
 
@@ -184,61 +183,48 @@ static inline void kh_del_template(kh_template_t<khkey_t,khval_t,kh_is_map,__has
 
 namespace bss_util {
   /* Base template for cKhash. If you want a set instead of a map, set khval_t to 'char' and kh_is_map to 'false'. */
-  template<typename khkey_t, typename khval_t, bool kh_is_map, khint_t (*__hash_func)(khkey_t), bool (*__hash_equal)(khkey_t, khkey_t), bool (*__validate_p)(khkey_t), class Traits=ValueTraits<khval_t>>
+  template<typename khkey_t, typename khval_t, bool kh_is_map, khint_t (*__hash_func)(khkey_t), bool (*__hash_equal)(khkey_t, khkey_t), bool (*__validate_p)(khkey_t)>
   class BSS_COMPILER_DLLEXPORT cKhash
   {
   protected:
     typedef khkey_t KHKEY;
     typedef khval_t KHVAL;
     typedef kh_template_t<KHKEY,KHVAL,kh_is_map,__hash_func,__hash_equal> KHTYPE;
-    typedef typename Traits::const_reference const_ref;
-    typedef typename Traits::pointer ptrtype;
-    typedef typename Traits::reference mut_ref;
 
-	public:
+  public:
     inline cKhash(const cKhash& copy) : _h(kh_init_template<KHKEY,KHVAL,kh_is_map,__hash_func,__hash_equal>())
-		{
-			operator =(copy);
-		}
+    {
+      operator =(copy);
+    }
     inline cKhash(cKhash&& mov) : _h(mov._h)
     { 
       mov._h=0;
     }
-		inline cKhash(unsigned int size=0) : _h(kh_init_template<KHKEY,KHVAL,kh_is_map,__hash_func,__hash_equal>())
-		{
-			if(size<8)
+    inline cKhash(unsigned int size=0) : _h(kh_init_template<KHKEY,KHVAL,kh_is_map,__hash_func,__hash_equal>())
+    {
+      if(size<8)
         kh_resize_template(_h, 8);
       else
         kh_resize_template(_h, size);
-		};
+    };
     inline ~cKhash()
-		{
-			kh_destroy_template(_h);
-		}
-    inline bool Insert(KHKEY key, const_ref value)
-		{
-      if(!__validate_p(key)) return false;
-			if(kh_size(_h) >= _h->n_buckets) _resize();
-			int r;
-			khiter_t retval = kh_put_template(_h,key,&r);
-			if(r>0 && kh_is_map) //Only insert the value if the key didn't exist and this is a map, not a set
-			{
-        kh_val(_h,retval)=value;
-        return true;
-			}
-			return false;
-		}
-    inline bool SetValue(khiter_t iterator, const_ref newvalue) { if(iterator >= kh_end(_h) || !kh_exist(_h, iterator)) return false; kh_val(_h, iterator)=newvalue; return true; }
+    {
+      kh_destroy_template(_h);
+    }
+    inline bool Insert(KHKEY key, const KHVAL& value) { return _insert<const KHVAL&>(key,value); }
+    inline bool Insert(KHKEY key, KHVAL&& value) { return _insert<KHVAL&&>(key,std::move(value)); }
+    inline bool SetValue(khiter_t iterator, const KHVAL& newvalue) { return _setvalue<const KHVAL&>(iterator,newvalue); } 
+    inline bool SetValue(khiter_t iterator, KHVAL&& newvalue) { return _setvalue<KHVAL&&>(iterator,std::move(newvalue)); } 
     inline KHKEY GetIterKey(khiter_t iterator) { return kh_key(_h,iterator); }
     inline bool OverrideKeyPtr(khiter_t iterator, KHKEY key) { if(!__validate_p(key)) return false; kh_key(_h,iterator)=key; return true; }
     /* Gets the corresponding data attached to the given key */
-    inline ptrtype GetKey(KHKEY key) const { if(!__validate_p(key)) return 0; khiter_t iterator= kh_get_template(_h, key); if(kh_end(_h) == iterator) return 0; return &kh_val(_h, iterator); }
+    inline KHVAL* GetKey(KHKEY key) const { if(!__validate_p(key)) return 0; khiter_t iterator= kh_get_template(_h, key); if(kh_end(_h) == iterator) return 0; return &kh_val(_h, iterator); }
     /* This is a pointer-only version of the above that simplifies verification when the type pointed to is a pointer */
-    inline mut_ref GetKeyPtrOnly(KHKEY key) const { if(!__validate_p(key)) return 0; khiter_t iterator= kh_get_template(_h, key); if(kh_end(_h) == iterator) return 0; return kh_val(_h, iterator); }
+    inline KHVAL& GetKeyPtrOnly(KHKEY key) const { if(!__validate_p(key)) return 0; khiter_t iterator= kh_get_template(_h, key); if(kh_end(_h) == iterator) return 0; return kh_val(_h, iterator); }
     /* Gets the corresponding data attached to the given iterator */
-    inline ptrtype Get(khiter_t iterator) const { if(iterator >= kh_end(_h) || !kh_exist(_h, iterator)) return 0; return &kh_val(_h, iterator); }
+    inline KHVAL* Get(khiter_t iterator) const { if(iterator >= kh_end(_h) || !kh_exist(_h, iterator)) return 0; return &kh_val(_h, iterator); }
     /* This is a pointer-only version of the above that simplifies verification when the type pointed to is a pointer */
-    inline mut_ref GetPtrOnly(khiter_t iterator) const { if(iterator >= kh_end(_h) || !kh_exist(_h, iterator)) return 0; return kh_val(_h, iterator); }
+    inline KHVAL& GetPtrOnly(khiter_t iterator) const { if(iterator >= kh_end(_h) || !kh_exist(_h, iterator)) return 0; return kh_val(_h, iterator); }
     inline khiter_t GetIterator(KHKEY key) const { return !(__validate_p(key))?kh_end(_h):kh_get_template(_h, key); }
     inline void SetSize(unsigned int size) { if(_h->n_buckets < size) kh_resize_template(_h,size); }
 		inline bool Remove(KHKEY key) const
@@ -298,8 +284,8 @@ namespace bss_util {
       mov._h=0;
       return *this;
     }
-    inline mut_ref operator[](khiter_t iterator) { return kh_val(_h, iterator); }
-    inline const_ref operator[](khiter_t iterator) const { return kh_val(_h, iterator); }
+    inline KHVAL& operator[](khiter_t iterator) { return kh_val(_h, iterator); }
+    inline const KHVAL& operator[](khiter_t iterator) const { return kh_val(_h, iterator); }
     inline bool Nullified() const { return !_h; }
     
     class BSS_COMPILER_DLLEXPORT cKhash_Iter : public std::iterator<std::bidirectional_iterator_tag,khiter_t>
@@ -329,6 +315,22 @@ namespace bss_util {
     inline cKhash_Iter end() const { return cKhash_Iter(*this,End()); }
 
 	protected:
+    template<typename U>
+    inline bool _insert(KHKEY key, U && value)
+		{
+      if(!__validate_p(key)) return false;
+			if(kh_size(_h) >= _h->n_buckets) _resize();
+			int r;
+			khiter_t retval = kh_put_template(_h,key,&r);
+			if(r>0 && kh_is_map) //Only insert the value if the key didn't exist and this is a map, not a set
+			{
+        kh_val(_h,retval)=std::forward<U>(value);
+        return true;
+			}
+			return false;
+		}
+    template<typename U>
+    inline bool _setvalue(khiter_t iterator, U && newvalue) { if(iterator >= kh_end(_h) || !kh_exist(_h, iterator)) return false; kh_val(_h, iterator)=std::forward<U>(newvalue); return true; }
 		void _resize() { kh_resize_template(_h,kh_size(_h)*2); }
 
 		KHTYPE* _h;

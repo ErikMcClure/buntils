@@ -6,6 +6,7 @@
 
 #include "bss_call.h"
 #include <intrin.h>
+#include "bss_win32_includes.h"
 
 #ifdef BSS_CPU_x86
 #define BSSASM_PREG ECX
@@ -32,17 +33,21 @@
 // These are all implemented using compiler intrinsics on MS compilers because the inline assembly does not behave well when inlined. GCC 
 // intrinsics are not used due to inconsistent locking barriers, and the wide availability of standardized inline assembly for them.
 namespace bss_util {
+  template<typename T> struct ABAPointer { T* p; size_t tag; }; // Stores a pointer and a tag value
+  
 #if defined(BSS_CPU_x86_64) || defined(BSS_CPU_x86)
 #pragma warning(push)
 #pragma warning(disable : 4793)
   // Enforces a CPU barrier to prevent any reordering attempts
 	BSS_FORCEINLINE void CPU_Barrier()
 	{
-#ifdef BSS_COMPILER_GCC
+#if !defined(BSS_COMPILER_MSC) || defined(BSS_CPU_x86)
 		__int32 Barrier;
 		__asm { /*lock*/ xchg Barrier, eax } //xchg locks itself if both operands are registers and blows up if you lock it anyway in a multiprocessor environment.
-#else
-    MemoryBarrier();
+#elif defined(BSS_CPU_x86_64)
+    __faststorefence();
+#elif defined(BSS_CPU_IA_64)
+    __mf();
 #endif
 	}
 #pragma warning(pop)

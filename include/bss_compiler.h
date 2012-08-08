@@ -5,7 +5,7 @@
 #define __BSS_COMPILER_H__
 
 // CPU Architecture (possible pre-defined macros found on http://predef.sourceforge.net/prearch.html)
-#if defined(_M_X64) || defined(__amd64__) || defined(__amd64) || defined(__x86_64__) || defined(__x86_64) || defined(_LP64)
+#if defined(_M_X64) || defined(__amd64__) || defined(__amd64) || defined(_AMD64_) || defined(__x86_64__) || defined(__x86_64) || defined(_LP64)
 #define BSS_CPU_x86_64  //x86-64 architecture
 #define BSS_64BIT
 #elif defined(__ia64__) || defined(_IA64) || defined(__IA64__) || defined(__ia64) || defined(_M_IA64)

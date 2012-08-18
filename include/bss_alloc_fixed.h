@@ -19,15 +19,15 @@ namespace bss_util {
   };
 
   template<class T, size_t init=8>
-  class BSS_COMPILER_DLLEXPORT cFixedChunkAlloc
+  class BSS_COMPILER_DLLEXPORT cFixedAlloc
   {
   public:
-    cFixedChunkAlloc() : _freelist(0), _root(0)
+    cFixedAlloc() : _freelist(0), _root(0)
     {
 		  static_assert((sizeof(T)>=sizeof(void*)),"T cannot be less than the size of a pointer");
       _allocchunk(init*sizeof(T));
     }
-    ~cFixedChunkAlloc()
+    ~cFixedAlloc()
     {
       FIXEDCHUNKLIST* hold=_root;
       while(_root=hold)
@@ -39,7 +39,10 @@ namespace bss_util {
     }
 	  inline T* BSS_FASTCALL alloc(size_t num)
     {
-      assert(num<=1);
+      assert(num==1);
+#ifdef BSS_DISABLE_CUSTOM_ALLOCATORS
+      return (T*)malloc(num*sizeof(T));
+#endif
       if(!_freelist) _allocchunk(fbnext(_root->size/sizeof(T))*sizeof(T));
       assert(_freelist!=0);
 
@@ -48,7 +51,21 @@ namespace bss_util {
       //assert(_validpointer(ret));
       return (T*)ret;
     }
-#if defined(DEBUG) || defined(_DEBUG)
+	  inline void BSS_FASTCALL dealloc(void* p)
+    {
+#ifdef BSS_DISABLE_CUSTOM_ALLOCATORS
+      delete p; return;
+#endif
+      assert(_validpointer(p));
+#ifdef BSS_DEBUG
+      memset(p,0xDEADBEEF,sizeof(T));
+#endif
+      *((void**)p)=_freelist;
+      _freelist=p;
+    }
+
+  protected:
+#ifdef BSS_DEBUG
     inline bool _validpointer(const void* p) const
     {
       const FIXEDCHUNKLIST* hold=_root;
@@ -62,17 +79,6 @@ namespace bss_util {
       return false;
     }
 #endif
-	  inline void BSS_FASTCALL dealloc(void* p)
-    {
-      assert(_validpointer(p));
-#if defined(DEBUG) || defined(_DEBUG)
-      memset(p,0xDEADBEEF,sizeof(T));
-#endif
-      *((void**)p)=_freelist;
-      _freelist=p;
-    }
-
-  protected:
     inline void _allocchunk(size_t nsize)
     {
       FIXEDCHUNKLIST* retval=(FIXEDCHUNKLIST*)malloc(sizeof(FIXEDCHUNKLIST));
@@ -100,7 +106,7 @@ namespace bss_util {
   };
   
 	template<typename T>
-  class BSS_COMPILER_DLLEXPORT FixedChunkPolicy : public AllocPolicySize<T>, protected cFixedChunkAlloc<T> {
+  class BSS_COMPILER_DLLEXPORT FixedChunkPolicy : public AllocPolicySize<T>, protected cFixedAlloc<T> {
 	public:
     template<typename U>
     struct rebind { typedef FixedChunkPolicy<U> other; };

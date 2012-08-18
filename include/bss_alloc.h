@@ -108,11 +108,13 @@ namespace bss_util {
 	template<typename T, typename Policy = StandardAllocPolicy<T>, typename Traits = ObjectTraits<T>>
 #ifndef BSS_DISABLE_CUSTOM_ALLOCATORS
 	class BSS_COMPILER_DLLEXPORT Allocator : public Policy {
-#else
-	class BSS_COMPILER_DLLEXPORT Allocator : public StandardAllocPolicy<T>, public ObjectTraits<T> {
-#endif
 	private:
     typedef Policy AllocationPolicy;
+#else
+	class BSS_COMPILER_DLLEXPORT Allocator : public StandardAllocPolicy<T>, public ObjectTraits<T> {
+	private:
+    typedef StandardAllocPolicy<T> AllocationPolicy;
+#endif
     typedef Traits TTraits;
 
 	public: 
@@ -132,11 +134,11 @@ namespace bss_util {
 
     inline explicit Allocator() {}
     inline ~Allocator() {}
-    inline Allocator(Allocator const& rhs) : Policy(rhs) {}
+    inline Allocator(Allocator const& rhs) : AllocationPolicy(rhs) {}
     template <typename U>
     inline Allocator(Allocator<U> const&) {}
     template <typename U, typename P, typename T2>
-    inline Allocator(Allocator<U, P, T2> const& rhs) : Policy(rhs) {}
+    inline Allocator(Allocator<U, P, T2> const& rhs) : AllocationPolicy(rhs) {}
 
     /* These methods are called for classes that have constructors and destructors */
     //void construct(pointer ptr, const_reference val) { new ((void *)ptr) T(val); }

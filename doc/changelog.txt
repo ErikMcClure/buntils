@@ -27,11 +27,9 @@
 - Added tests for object-based cObjSwap and sseVec.
 - cKhash now supports move semantics on insert and setvalue, and no longer uses Traits
 - bss_traits.h has been removed
-- Added cLocklessFixedAlloc and related tests
-
--? Removed cFixedSizeAlloc (can the same functionality be replicated in the chunk alloc by overallocating space?)
--? Renamed cFixedChunkAlloc to cFixedAlloc
-
+- Removed cFixedSizeAlloc
+- Renamed cFixedChunkAlloc to cFixedAlloc
+- Fixed compile crash when using DISABLE_CUSTOM_ALLOCATORS
 
 0.3.82
 ------

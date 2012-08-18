@@ -1,7 +1,7 @@
 // Copyright ©2012 Black Sphere Studios
 // For conditions of distribution and use, see copyright notice in "bss_util.h"
 
-#if defined(DEBUG) || defined(_DEBUG) || defined(BSS_LEAKTEST_RELEASEMODE) //debug only unless overriden
+#if defined(BSS_DEBUG) || defined(BSS_LEAKTEST_RELEASEMODE) //debug only unless overriden
 #ifndef __BSS_LEAKTEST_H__
 #define __BSS_LEAKTEST_H__
 

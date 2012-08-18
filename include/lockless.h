@@ -33,7 +33,7 @@
 // These are all implemented using compiler intrinsics on MS compilers because the inline assembly does not behave well when inlined. GCC 
 // intrinsics are not used due to inconsistent locking barriers, and the wide availability of standardized inline assembly for them.
 namespace bss_util {
-  template<typename T> struct ABAPointer { T* p; size_t tag; }; // Stores a pointer and a tag value
+  template<typename T> struct bss_PTag { volatile T* p; volatile size_t tag; }; // Stores a pointer and a tag value
   
 #if defined(BSS_CPU_x86_64) || defined(BSS_CPU_x86)
 #pragma warning(push)
@@ -208,24 +208,30 @@ namespace bss_util {
 
 #else
   template<typename T> struct ASMCAS_REGPICK_WRITE<T,1> {
-    inline static unsigned char BSS_FORCEINLINE BSS_FASTCALL asmcas(volatile T *dest, T newval, T oldval) { return _InterlockedCompareExchange8((volatile char*)dest,(char)newval, (char)oldval)==(__int64)oldval; } 
+    inline BSS_FORCEINLINE static unsigned char BSS_FASTCALL asmcas(volatile T *dest, T newval, T oldval) { return _InterlockedCompareExchange8((volatile char*)dest,(char)newval, (char)oldval)==(__int64)oldval; } 
   };
   template<typename T> struct ASMCAS_REGPICK_WRITE<T,2> {
-    inline static unsigned char BSS_FORCEINLINE BSS_FASTCALL asmcas(volatile T *dest, T newval, T oldval) { return _InterlockedCompareExchange16((volatile short*)dest,(short)newval, (short)oldval)==(__int64)oldval; } 
+    inline BSS_FORCEINLINE static unsigned char BSS_FASTCALL asmcas(volatile T *dest, T newval, T oldval) { return _InterlockedCompareExchange16((volatile short*)dest,(short)newval, (short)oldval)==(__int64)oldval; } 
   };
   template<typename T> struct ASMCAS_REGPICK_WRITE<T,4> {
-    inline static unsigned char BSS_FORCEINLINE BSS_FASTCALL asmcas(volatile T *dest, T newval, T oldval) { return _InterlockedCompareExchange((volatile long*)dest,(long)newval, (long)oldval)==(__int64)oldval; } 
+    inline BSS_FORCEINLINE static unsigned char BSS_FASTCALL asmcas(volatile T *dest, T newval, T oldval) { return _InterlockedCompareExchange((volatile long*)dest,(long)newval, (long)oldval)==(__int64)oldval; } 
   };
   template<typename T> struct ASMCAS_REGPICK_WRITE<T,8> {
-    inline static unsigned char BSS_FORCEINLINE BSS_FASTCALL asmcas(volatile T *dest, T newval, T oldval) { return _InterlockedCompareExchange64((volatile __int64*)dest,(__int64)newval, (__int64)oldval)==(__int64)oldval; } 
+    inline BSS_FORCEINLINE static unsigned char BSS_FASTCALL asmcas(volatile T *dest, T newval, T oldval) { return _InterlockedCompareExchange64((volatile __int64*)dest,(__int64)newval, (__int64)oldval)==(__int64)oldval; } 
   };
+#ifdef BSS_CPU_x86_64
+  template<typename T> struct ASMCAS_REGPICK_WRITE<T,16> {
+    inline BSS_FORCEINLINE static unsigned char BSS_FASTCALL asmcas(volatile T *dest, T newval, T oldval) { assert(!(((size_t)dest)%16));
+    return _InterlockedCompareExchange128((volatile __int64*)dest,((__int64*)&newval)[1],((__int64*)&newval)[0], (__int64*)&oldval); } 
+  };
+#endif
 #endif
 
   // Provides assembly level Compare and Exchange operation. Returns 1 if successful or 0 on failure. Implemented via
   // inline template specialization so that the proper assembly is generated for the type given. If a type is provided
   // that isn't exactly 1,2,4,or 8 bytes,the compiler will explode.
   template<typename T>
-  inline unsigned char BSS_FASTCALL asmcas(volatile T *pval, T newval, T oldval)
+  static inline unsigned char BSS_FASTCALL asmcas(volatile T *pval, T newval, T oldval)
   {
     return ASMCAS_REGPICK_WRITE<T,sizeof(T)>::asmcas(pval,newval,oldval);
   }
@@ -320,7 +326,7 @@ namespace bss_util {
 
   // Provides assembly level Compare and Exchange operation. Always returns the old value.
   template<typename T>
-  inline T BSS_FASTCALL rasmcas(volatile T *pval, T newval, T oldval)
+  static inline T BSS_FASTCALL rasmcas(volatile T *pval, T newval, T oldval)
   {
     return ASMCAS_REGPICK_READ<T,sizeof(T)>::asmcas(pval,newval,oldval);
   }

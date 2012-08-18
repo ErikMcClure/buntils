@@ -7,7 +7,7 @@
 #include "bss_algo.h"
 #include "bss_alloc_additive.h"
 #include "bss_alloc_fixed.h"
-#include "bss_alloc_fixed_lockless.h"
+//#include "bss_alloc_fixed_MT.h"
 #include "bss_deprecated.h"
 #include "bss_fixedpt.h"
 #include "bss_sse.h"
@@ -29,6 +29,7 @@
 #include "cLinkedArray.h"
 #include "cLinkedList.h"
 #include "cLocklessByteQueue.h"
+//#include "cLocklessQueue.h"
 #include "cMap.h"
 #include "cMutex.h"
 #include "cObjSwap.h"
@@ -42,7 +43,7 @@
 #include "cStr.h"
 #include "cStrTable.h"
 //#include "cTAATree.h"
-#include "cTaskStack.h"
+#include "cTaskStack.h"c
 #include "cThread.h"
 #include "cUniquePtr.h"
 #include "functor.h"
@@ -648,15 +649,16 @@ void TEST_ALLOC_FUZZER(TEST::RETPAIR& __testret)
       {
         if(RANDINTGEN(0,10)<5 || plist.Length()<3)
         {
-          size_t sz = bssmax(RANDINTGEN(0,MAXSIZE),1); //Weird trick to avoid division by zero but still restrict it to [1,1]
+          size_t sz = RANDINTGEN(0,MAXSIZE);
+          sz=bssmax(sz,1); //Weird trick to avoid division by zero but still restrict it to [1,1]
           P* test=_alloc.alloc(sz);
-          *test=0xFB;
+          *((unsigned char*)test)=0xFB;
           plist.Add(std::pair<P*,size_t>(test,sz));
         }
         else
         {
           int index=RANDINTGEN(0,plist.Length());
-          if(plist[index].first[0]!=(P)0xFB)
+          if(*((unsigned char*)plist[index].first)!=0xFB)
             pass=false;
           _alloc.dealloc(plist[index].first);
           rswap(plist.Back(),plist[index]);
@@ -694,7 +696,7 @@ TEST::RETPAIR test_bss_ALLOC_FIXED_SIZE()
 }
 
 template<class T>
-struct FIXEDCHUNKALLOCWRAP : cFixedChunkAlloc<T> { void Clear() { } };
+struct FIXEDCHUNKALLOCWRAP : cFixedAlloc<T> { void Clear() { } };
 
 TEST::RETPAIR test_bss_ALLOC_FIXED_CHUNK()
 {
@@ -709,9 +711,9 @@ void MULTITHREADED_ALLOC_FUZZER(TEST::RETPAIR& __testret)
   cDynArray<cArraySimple<P*>> plist;
   T alloc;
 	static_assert((sizeof(P)>=sizeof(void*)),"P cannot be less than the size of a pointer");
-  bool pass;
   for(int j=0; j<100; ++j)
   {
+    bool pass=true;
     for(int i=0; i<NUM; ++i)
     {
       if(RANDINTGEN(0,10)<5 || plist.Length()<3)
@@ -723,7 +725,7 @@ void MULTITHREADED_ALLOC_FUZZER(TEST::RETPAIR& __testret)
       else
       {
         int index=RANDINTGEN(0,plist.Length());
-        if(((size_t)plist[index])!=plist[index][0]) {
+        if(((size_t)plist[index])!=*((size_t*)plist[index])) {
           assert(false);
           pass=false;
         }
@@ -732,6 +734,7 @@ void MULTITHREADED_ALLOC_FUZZER(TEST::RETPAIR& __testret)
         plist.RemoveLast();
       }
     }
+    TEST(pass);
   }
 }
 
@@ -749,11 +752,20 @@ TEST::RETPAIR test_bss_ALLOC_FIXED_LOCKLESS()
   const int NUMTHREADS=10;
   unsigned int tret[NUMTHREADS] = {0};
   uintptr_t handles[NUMTHREADS] = {0};
-  for(int i=0; i<NUMTHREADS; ++i)
-    handles[i]=_beginthreadex(0,0, &_mt_alloc_fuzzer<cLocklessFixedAlloc<__int64>,__int64,1000>, &__testret, 0, tret+i);
 
-  for(int i=0; i<NUMTHREADS; ++i)
-    WaitForSingleObject((void*)handles[i], INFINITE);
+  //handles[0]=_beginthreadex(0,0, &_mt_alloc_fuzzer<cLocklessFixedAlloc<__int64>,__int64,100000>, &__testret, 0, tret+0);
+  //WaitForSingleObject((void*)handles[0], INFINITE);
+
+  //handles[0]=_beginthreadex(0,0, &_mt_alloc_fuzzer<cLocklessFixedAlloc<__int64>,__int64,50000>, &__testret, 0, tret+0);
+  //handles[1]=_beginthreadex(0,0, &_mt_alloc_fuzzer<cLocklessFixedAlloc<__int64>,__int64,50000>, &__testret, 0, tret+1);
+  //WaitForSingleObject((void*)handles[0], INFINITE);
+  //WaitForSingleObject((void*)handles[1], INFINITE);
+
+  //for(int i=0; i<NUMTHREADS; ++i)
+  //  handles[i]=_beginthreadex(0,0, &_mt_alloc_fuzzer<cLocklessFixedAlloc<__int64>,__int64,10000>, &__testret, 0, tret+i);
+
+  //for(int i=0; i<NUMTHREADS; ++i)
+  //  WaitForSingleObject((void*)handles[i], INFINITE);
 
   ENDTEST;
 }
@@ -1438,6 +1450,108 @@ TEST::RETPAIR test_LOCKLESSBYTEQUEUE()
   ENDTEST;
 }
 
+unsigned int lq_c;
+static const int TOTALNUM=1000000;
+unsigned int lq_end[TOTALNUM];
+unsigned int lq_pos;
+
+template<class T>
+unsigned int __stdcall _locklessqueue_consume(void* p)
+{
+  T* q = (T*)p;
+  uint c;
+  while(lq_pos<TOTALNUM || q->Length()>0) {
+    c=atomic_xadd(&lq_pos);
+    while(q->Length()>0 && !q->Consume(lq_end[c])); // Keep trying to consume something and put it into our given bucket until it works
+  }
+  return 0;
+}
+
+template<class T>
+unsigned int __stdcall _locklessqueue_produce(void* p)
+{
+  T* q = (T*)p;
+  while(lq_c<=TOTALNUM)
+    q->Produce(atomic_xadd(&lq_c));
+
+  return 0;
+}
+
+TEST::RETPAIR test_LOCKLESSQUEUE()
+{
+  BEGINTEST;
+  /*{
+  cLocklessQueue<__int64> q; // Basic sanity test
+  q.Produce(5);
+  __int64 c;
+  TEST(q.Consume(c));
+  TEST(c==5);
+  TEST(!q.Consume(c));
+  TEST(c==5);
+  q.Produce(4);
+  q.Produce(3);
+  TEST(q.Consume(c));
+  TEST(c==4);
+  q.Produce(2);
+  q.Produce(1);
+  TEST(q.Consume(c));
+  TEST(c==3);
+  TEST(q.Consume(c));
+  TEST(c==2);
+  TEST(q.Consume(c));
+  TEST(c==1);
+  TEST(!q.Consume(c));
+  TEST(c==1);
+  }
+
+  const int NUMTHREADS=24;
+  unsigned int tret[NUMTHREADS] = {0};
+  uintptr_t handles[NUMTHREADS] = {0};
+  std::vector<size_t> values;
+
+  typedef cLocklessQueue<unsigned int,true,true,size_t,size_t> LLQUEUE_SCSP; 
+  {
+  LLQUEUE_SCSP q; // single consumer single producer test
+  char ppp=_debug.OpenProfiler();
+
+  handles[1]=_beginthreadex(0,0, _locklessqueue_consume<LLQUEUE_SCSP>, &q, 0, tret+1);
+  handles[0]=_beginthreadex(0,0, _locklessqueue_produce<LLQUEUE_SCSP>, &q, 0, tret+0);
+  while(WaitForSingleObject((void*)handles[0], 1)==WAIT_TIMEOUT)
+    values.push_back(q.Length());
+  WaitForSingleObject((void*)handles[1], INFINITE);
+  std::cout << '\n' << _debug.CloseProfiler(ppp) << std::endl;
+  //std::sort(std::begin(lq_end),std::end(lq_end));
+  bool check=true;
+  for(int i = 0; i < TOTALNUM; ++i)
+    check=check&&(lq_end[i]==i);
+  //TEST(check);
+  }*/
+
+  /*lq_c=lq_pos=0;
+  typedef cLocklessQueue<unsigned int,false,false,size_t,size_t> LLQUEUE_MCMP; 
+  {
+  for(int j=1; j<=NUMTHREADS; ++j) {
+  LLQUEUE_MCMP q;   // multi consumer multi producer test
+    _locklessqueue_produce<LLQUEUE_MCMP>(&q);
+    for(int i=0; i<j; ++i)
+      handles[i]=_beginthreadex(0,0, _locklessqueue_consume<LLQUEUE_MCMP>, &q, 0, tret+1);
+    for(int i=0; i<j; ++i)
+      WaitForSingleObject((void*)handles[i], INFINITE);
+    
+    std::sort(std::begin(lq_end),std::end(lq_end));
+    bool check=true;
+    for(int i = 0; i < TOTALNUM; ++i)
+      check=check&&(lq_end[i]==i);
+    TEST(check);
+      
+    std::cout << '\n' << j << " threads: " << q.GetContentions() << std::endl;
+  }
+  }*/
+
+  ENDTEST;
+}
+
+
 TEST::RETPAIR test_MAP()
 {
   BEGINTEST;
@@ -1850,9 +1964,9 @@ int main(int argc, char** argv)
     { "bss_algo.h", &test_bss_algo },
     { "bss_alloc_additive.h:Fix", &test_bss_ALLOC_ADDITIVE_FIXED },
     { "bss_alloc_additive.h:Var", &test_bss_ALLOC_ADDITIVE_VARIABLE },
-    { "bss_alloc_fixed.h:Size", &test_bss_ALLOC_FIXED_SIZE },
-    { "bss_alloc_fixed.h:Chunk", &test_bss_ALLOC_FIXED_CHUNK },
-    { "bss_alloc_fixed_lockless.h", &test_bss_ALLOC_FIXED_LOCKLESS },
+    //{ "bss_alloc_fixed.h:Size", &test_bss_ALLOC_FIXED_SIZE }, //Removed
+    { "bss_alloc_fixed.h", &test_bss_ALLOC_FIXED_CHUNK },
+    //{ "bss_alloc_fixed_MT.h", &test_bss_ALLOC_FIXED_LOCKLESS },
     { "bss_depracated.h", &test_bss_deprecated },
     { "bss_fixedpt.h", &test_bss_FIXEDPT },
     { "bss_sse.h", &test_bss_SSE },
@@ -1877,7 +1991,8 @@ int main(int argc, char** argv)
     { "cLambdaStack.h", &test_LAMBDASTACK },
     { "cLinkedArray.h", &test_LINKEDARRAY },
     { "cLinkedList.h", &test_LINKEDLIST },
-    { "cLocklessByteQueue.h", &test_LOCKLESSBYTEQUEUE },
+    //{ "cLocklessByteQueue.h", &test_LOCKLESSBYTEQUEUE },
+    //{ "cLocklessQueue.h", &test_LOCKLESSQUEUE },
     { "cMap.h", &test_MAP },
     //{ "cMutex.h", &test_MUTEX },
     { "cObjSwap.h", &test_OBJSWAP },

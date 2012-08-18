@@ -257,13 +257,7 @@
     <ClInclude Include="include\bss_Log.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="cLocklessArray.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
     <ClInclude Include="include\bss_sse.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="include\bss_alloc_fixed_lockless.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>

@@ -459,11 +459,9 @@
     <ClCompile Include="ShinyTools.cpp" />
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="cLocklessArray.h" />
     <ClInclude Include="include\bss_algo.h" />
     <ClInclude Include="include\bss_alloc_additive.h" />
     <ClInclude Include="include\bss_alloc_fixed.h" />
-    <ClInclude Include="include\bss_alloc_fixed_lockless.h" />
     <ClInclude Include="include\bss_compiler.h" />
     <ClInclude Include="include\bss_DebugInfo.h" />
     <ClInclude Include="include\bss_fixedpt.h" />

@@ -37,6 +37,9 @@ namespace bss_util {
 	  inline T* BSS_FASTCALL alloc(size_t num)
     {
       assert(num==1);
+#ifdef BSS_DISABLE_CUSTOM_ALLOCATORS
+      return (T*)malloc(num*sizeof(T));
+#endif
       if(_curpos>=_root->size) { _allocchunk(fbnext(_root->size/sizeof(T))*sizeof(T)); _curpos=0; }
 
       T* retval= (T*)(_root->mem+_curpos);
@@ -45,8 +48,11 @@ namespace bss_util {
     }
     inline void BSS_FASTCALL dealloc(void* p)
     {
+#ifdef BSS_DISABLE_CUSTOM_ALLOCATORS
+      delete p; return;
+#endif
       assert(p!=0);
-#if defined(DEBUG) || defined(_DEBUG)
+#ifdef BSS_DEBUG
       AFLISTITEM* cur=_root;
       bool found=false;
       while(cur)
@@ -145,6 +151,9 @@ namespace bss_util {
     }
 	  inline void* BSS_FASTCALL _allocbytes(size_t _sz) //allows you to skip the automatic template resolution - important for allocating over DLL bounderies
     {
+#ifdef BSS_DISABLE_CUSTOM_ALLOCATORS
+      return malloc(_sz);
+#endif
       if((_curpos+_sz)>=_root->size) { _allocchunk(fbnext(bssmax(_root->size,_sz))); _curpos=0; }
 
       void* retval= _root->mem+_curpos;
@@ -153,7 +162,10 @@ namespace bss_util {
     }
     inline void BSS_FASTCALL dealloc(void* p)
     {
-#if defined(DEBUG) || defined(_DEBUG)
+#ifdef BSS_DISABLE_CUSTOM_ALLOCATORS
+      delete p; return;
+#endif
+#ifdef BSS_DEBUG
       AFLISTITEM* cur=_root;
       bool found=false;
       while(cur)

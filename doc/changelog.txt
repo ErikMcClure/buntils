@@ -30,6 +30,7 @@
 - Removed cFixedSizeAlloc
 - Renamed cFixedChunkAlloc to cFixedAlloc
 - Fixed compile crash when using DISABLE_CUSTOM_ALLOCATORS
+- Reorganized source folder
 
 0.3.82
 ------

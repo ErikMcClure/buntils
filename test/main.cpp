@@ -64,8 +64,17 @@
 //#include <boost/filesystem.hpp>
 
 #pragma warning(disable:4566)
-
 using namespace bss_util;
+
+#if defined(BSS_DEBUG) && defined(BSS_CPU_x86_64)
+#pragma comment(lib, "../bin/bss_util64_d.lib")
+#elif defined(BSS_CPU_x86_64)
+#pragma comment(lib, "../bin/bss_util64.lib")
+#elif defined(BSS_DEBUG)
+#pragma comment(lib, "../bin/bss_util_d.lib")
+#else
+#pragma comment(lib, "../bin/bss_util.lib")
+#endif
 
 // --- Define testing utilities ---
 

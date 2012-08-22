@@ -10,8 +10,10 @@
 typedef __int64 TIMEVALUSED;
 #define FTIME(ptime) _time64(ptime)
 #define GMTIMEFUNC(raw, assign) if(_gmtime64_s(assign, raw)) return false
-#define VSPRINTF(dest,length,format,list) _vsnprintf_s(dest,length,length,format,list)
-#define VSWPRINTF(dest,length,format,list) _vsnwprintf_s(dest,length,length,format,list)
+#define VSNPRINTF(dest,length,format,list) _vsnprintf_s(dest,length,length,format,list)
+#define VSNWPRINTF(dest,length,format,list) _vsnwprintf_s(dest,length,length,format,list)
+#define VSCPRINTF(format,args) _vscprintf(format,args)
+#define VSCWPRINTF(format,args) _vscwprintf(format,args)
 #define FOPEN(f, path, mode) fopen_s(&f, path, mode)
 #define WFOPEN(f, path, mode) _wfopen_s(&f, path, mode)
 #define MEMCPY(dest,length,source,count) memcpy_s(dest,length,source,count)
@@ -32,8 +34,8 @@ typedef __int64 TIMEVALUSED;
 typedef time_t TIMEVALUSED;
 #define FTIME(ptime) time(ptime)
 #define GMTIMEFUNC(raw, assign) assign = gmtime(raw); if(!assign) return false
-#define VSPRINTF(dest,length,format,list) vsprintf(dest,format,list)
-#define VSWPRINTF(dest,length,format,list) vswprintf(dest,length,length,format,list)
+#define VSNPRINTF(dest,length,format,list) vsnprintf(dest,length,format,list)
+#define VSNWPRINTF(dest,length,format,list) vsnwprintf(dest,length,format,list)
 #define FOPEN(f, path, mode) f = fopen(path, mode)
 #define WFOPEN(f, path, mode) f = _wfopen(path, mode)
 #define MEMCPY(dest,length,source,count) memcpy(dest,source,count)
@@ -43,11 +45,22 @@ typedef time_t TIMEVALUSED;
 #define WCSCPY(dst,size,src) wcscpy(dst,src)
 #define STRICMP(a,b) stricmp(a,b)
 #define WCSICMP(a,b) wcsicmp(a,b)
-#define STRTOK(str,delim,context) strtok(str,delim)
-#define WCSTOK(str,delim,context) wcstok(str,delim)
 #define SSCANF sscanf
 #define ITOA(v,buf,r) itoa(v,buf,r)
 #define ITOA_S(v,buf,bufsize,r) itoa(v,buf,r)
+
+#ifdef BSS_COMPILER_GCC
+#define VSCPRINTF(format,args) vsnprintf(format,args)
+#define VSCWPRINTF(format,args) vsnwprintf(format,args)
+#define STRTOK(str,delim,context) strtok_r(str,delim,context)
+#define WCSTOK(str,delim,context) wcstok_r(str,delim,context)
+#else
+#define VSCPRINTF(format,args) _vscprintf(format,args)
+#define VSCWPRINTF(format,args) _vscwprintf(format,args)
+#define STRTOK(str,delim,context) strtok(str,delim)
+#define WCSTOK(str,delim,context) wcstok(str,delim)
+#endif
+
 #endif
 
 #endif

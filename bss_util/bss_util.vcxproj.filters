@@ -233,9 +233,6 @@
     <ClCompile Include="cCmdLineArgs.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="chess_tests.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
     <ClCompile Include="cHighPrecisionTimer.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>

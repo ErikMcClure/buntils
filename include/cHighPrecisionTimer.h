@@ -31,8 +31,8 @@ namespace bss_util
     void* _curprocess;
 
   private:
-    __w64 unsigned long _procmask; //DWORD
-    __w64 unsigned long _sysmask;
+    unsigned long _procmask; //DWORD
+    unsigned long _sysmask;
     void* _curthread; //this is private because it only reflects the thread that happened to call Update()
   };
 }

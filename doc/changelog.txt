@@ -31,6 +31,9 @@
 - Renamed cFixedChunkAlloc to cFixedAlloc
 - Fixed compile crash when using DISABLE_CUSTOM_ALLOCATORS
 - Reorganized source folder
+- Cleared out unnecessary CLR related tags
+- Renamed VSPRINTF to VSNPRINTF because vsprintf is actually an unrelated function, and updated cStr references
+- Added VSCPRINTF to deprecated function list in preperation for GCC compilation (currently nonfunctional)
 
 0.3.82
 ------

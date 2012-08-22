@@ -36,7 +36,7 @@ namespace bss_util {
     inline StreamSplitter& operator =(StreamSplitter&& right) { stringbuf::operator=(std::move(right)); _targets=std::move(right._targets); /*_wtargets=std::move(right._wtargets);*/ return *this;}
 
   protected:
-	  inline virtual int __CLR_OR_THIS_CALL sync()
+	  inline virtual int sync()
     {
       size_t length = basic_stringbuf<char>::pptr() - basic_stringbuf<char>::eback();
       std::unique_ptr<char[]> hold(new char[++length]); //+1 for null terminator
@@ -79,10 +79,10 @@ namespace bss_util {
       }*
     }*/
 
-	  //virtual streamsize __CLR_OR_THIS_CALL xsputn(const char *_Ptr,	streamsize _Count);
-	  //virtual streamsize __CLR_OR_THIS_CALL xsputn(const wchar_t *_Ptr,	streamsize _Count);
-    //inline virtual StreamSplitter* __CLR_OR_THIS_CALL setbuf( wchar_t *, streamsize) { return 0; }
-	  //virtual int_type __CLR_OR_THIS_CALL overflow(int_type = _Traits::eof());
+	  //virtual streamsize xsputn(const char *_Ptr,	streamsize _Count);
+	  //virtual streamsize xsputn(const wchar_t *_Ptr,	streamsize _Count);
+    //inline virtual StreamSplitter* setbuf( wchar_t *, streamsize) { return 0; }
+	  //virtual int_type overflow(int_type = _Traits::eof());
 
   private:
 #pragma warning(push)

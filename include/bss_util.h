@@ -222,7 +222,15 @@ namespace bss_util {
   inline BSS_FORCEINLINE __int32 fFastRound(T f)
   {
     static_assert(std::is_floating_point<T>::value,"T must be float, double, or long double");
-#ifndef BSS_MSC_NOASM
+#ifdef BSS_COMPILER_GCC
+	  __int32 retval;
+    __asm__("fld %1\n\t"
+            "fistp %0\n\t"
+            : "=m" (retval) //outputs
+            : "f" (f)); //inputs
+	  return retval;
+#elif defined(BSS_COMPILER_MSC)
+#ifdef BSS_CPU_x86
 	  __int32 retval;
 	  __asm fld f
 	  __asm fistp retval
@@ -230,16 +238,21 @@ namespace bss_util {
 #else
     return _mm_cvt_ss2si(_mm_load_ss(&f)); // HACK: Non-optimal workaround for MSC idiocy
 #endif
+#endif
   }
 
   /* Returns true if FPU is in single precision mode and false otherwise (false for both double and extended precision) */
   inline BSS_FORCEINLINE bool FPUsingle()
   { 
-#ifndef BSS_MSC_NOASM
     unsigned int i;
+#ifdef BSS_COMPILER_GCC
+    __asm__ __volatile__ ("fnstcw %0" : "=m" (i));
+#elif defined(BSS_COMPILER_MSC)
+#ifdef BSS_CPU_x86
     __asm fnstcw i;
 #else
-    unsigned int i=_mm_getcsr();
+    i=_mm_getcsr();
+#endif
 #endif
     return ((i&(0x0300))==0); //0x0300 is the mask for the precision bits, 0 indicates single precision
   }
@@ -322,8 +335,8 @@ namespace bss_util {
   /* This is a super fast length approximation for 2D coordinates; See http://www.azillionmonkeys.com/qed/sqroot.html for details (Algorithm by Paul Hsieh) */
   inline BSS_FORCEINLINE float BSS_FASTCALL flength(float x, float y)
   {
-    x = abs(x);
-    y = abs(y);
+    x = fabs(x);
+    y = fabs(y);
     //(1 + 1/(4-2*sqrt(2)))/2 = 0.92677669529663688
     float hold=0.7071067811865475f*(x+y), mval=(x > y)?x:y;
     return 0.92677669529663688f * ((hold > mval)?hold:mval);
@@ -447,7 +460,7 @@ namespace bss_util {
     v = v - ((v >> 1) & (T)~(T)0/3);                           // temp
     v = (v & (T)~(T)0/15*3) + ((v >> 2) & (T)~(T)0/15*3);      // temp
     v = (v + (v >> 4)) & (T)~(T)0/255*15;                      // temp
-    return (unsigned char)((T)(v * ((T)~(T)0/255)) >> (sizeof(T) - 1) * CHAR_BIT);
+    return (unsigned char)((T)(v * ((T)~(T)0/255)) >> (sizeof(T) - 1) * (sizeof(char)<<3));
   }
 
   //Unlike FastSqrt, these are useless unless you are on a CPU without SSE instructions, or have a terrible std implementation.
@@ -458,12 +471,12 @@ namespace bss_util {
   //  const float B = 4/(float)PI;
   //  const float C = -4/(float)PI_DOUBLE;
 
-  //  float y = B * x + C * x * abs(x);
+  //  float y = B * x + C * x * fabs(x);
 
   //  //const float Q = 0.775f;
   //  const float P = 0.225f;
 
-  //  return (P * (y * abs(y) - y) + y);   // Q * y + P * y * abs(y) (extra precision)
+  //  return (P * (y * fabs(y) - y) + y);   // Q * y + P * y * fabs(y) (extra precision)
   //}
 
   //inline float BSS_FASTCALL FastCos(float x)

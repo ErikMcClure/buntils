@@ -82,10 +82,10 @@ public:
 
   static inline BSS_FORCEINLINE const CHAR* __cdecl SCHR(const CHAR* str, int val) { return strchr(str,val); }
   static inline BSS_FORCEINLINE size_t __cdecl SLEN(const CHAR* str) { return strlen(str); }
-  static inline BSS_FORCEINLINE CHAR* __cdecl STOK(CHAR* str,const CHAR* delim, CHAR** context) { return strtok_s(str,delim,context); }
+  static inline BSS_FORCEINLINE CHAR* __cdecl STOK(CHAR* str,const CHAR* delim, CHAR** context) { return STRTOK(str,delim,context); }
   //static inline errno_t __cdecl WTOMB(size_t* outsize, CHAR* dest, size_t destsize, const OTHER_C* src, size_t maxcount) { return wcstombs_s(outsize,dest,destsize,src,maxcount); }
-  static inline BSS_FORCEINLINE int __cdecl VPF(CHAR *dest, size_t size, const CHAR *format, va_list args) { return VSPRINTF(dest,size,format,args); }
-  static inline BSS_FORCEINLINE int __cdecl VPCF(const CHAR* str, va_list args) { return _vscprintf(str,args); }
+  static inline BSS_FORCEINLINE int __cdecl VPF(CHAR *dest, size_t size, const CHAR *format, va_list args) { return VSNPRINTF(dest,size,format,args); }
+  static inline BSS_FORCEINLINE int __cdecl VPCF(const CHAR* str, va_list args) { return VSCPRINTF(str,args); }
   static inline BSS_FORCEINLINE size_t __cdecl CONV(const OTHER_C* src, CHAR* dest, size_t len) { return UTF16toUTF8(src,dest,len); }
 
   static inline BSS_FORCEINLINE size_t __cdecl O_SLEN(const OTHER_C* str) { return wcslen(str); }
@@ -100,10 +100,10 @@ public:
 
   static inline BSS_FORCEINLINE const CHAR* __cdecl SCHR(const CHAR* str, wchar_t val) { return wcschr(str,val); }
   static inline BSS_FORCEINLINE size_t __cdecl SLEN(const CHAR* str) { return wcslen(str); }
-  static inline BSS_FORCEINLINE CHAR* __cdecl STOK(CHAR* str,const CHAR* delim, CHAR** context) { return wcstok_s(str,delim,context); }
+  static inline BSS_FORCEINLINE CHAR* __cdecl STOK(CHAR* str,const CHAR* delim, CHAR** context) { return WCSTOK(str,delim,context); }
   //static inline errno_t __cdecl WTOMB(size_t* outsize, CHAR* dest, size_t destsize, const OTHER_C* src, size_t maxcount) { return mbstowcs_s(outsize,dest,destsize,src,maxcount); }
-  static inline BSS_FORCEINLINE int __cdecl VPF(CHAR *dest, size_t size, const CHAR *format, va_list args) { return VSWPRINTF(dest,size,format,args); }
-  static inline BSS_FORCEINLINE int __cdecl VPCF(const CHAR* str, va_list args) { return _vscwprintf(str,args); }
+  static inline BSS_FORCEINLINE int __cdecl VPF(CHAR *dest, size_t size, const CHAR *format, va_list args) { return VSNWPRINTF(dest,size,format,args); }
+  static inline BSS_FORCEINLINE int __cdecl VPCF(const CHAR* str, va_list args) { return VSCWPRINTF(str,args); }
   static inline BSS_FORCEINLINE size_t __cdecl CONV(const OTHER_C* src, CHAR* dest, size_t len) { return UTF8toUTF16(src,dest,len); }
 
   static inline BSS_FORCEINLINE size_t __cdecl O_SLEN(const OTHER_C* str) { return strlen(str); }
@@ -163,9 +163,9 @@ public:
   inline operator const CHAR*() const { return _Myptr(); }
   
   inline const cStrT operator +(const cStrT& right) const { return cStrT(*this)+=right; }
-  inline const cStrT operator +(cStrT&& right) const { right.insert(0, *this); return (_STD move(right)); }
+  inline const cStrT operator +(cStrT&& right) const { right.insert(0, *this); return (std::move(right)); }
   template<class U> inline const cStrT operator +(const cStrT<T,U>& right) const { return cStrT(*this)+=right; }
-  template<class U> inline const cStrT operator +(cStrT<T,U>&& right) const { right.insert(0, *this); return (_STD move(right)); }
+  template<class U> inline const cStrT operator +(cStrT<T,U>&& right) const { right.insert(0, *this); return (std::move(right)); }
   inline const cStrT operator +(const CHAR* right) const { return cStrT(*this)+=right; }
   inline const cStrT operator +(const CHAR right) const { return cStrT(*this)+=right; }
 
@@ -239,7 +239,7 @@ private:
   inline static T* BSS_FASTCALL _ltrim(T* str) { for(;*str>0 && *str<33;++str); return str; }
   inline static T* BSS_FASTCALL _rtrim(T* str, size_t size) { T* inter=str+size; for(;inter>str && *inter<33;--inter); *(++inter)=0; return str; }
   //The following line of code is in such a twisted state because it must overload the operator[] inherent in the basic_string class and render it totally unusable so as to force the compiler to disregard it as a possibility, otherwise it gets confused with the CHAR* type conversion
-  void __CLR_OR_THIS_CALL operator[](std::allocator<CHAR>& f) { }//return CSTRALLOC(CHAR)::operator [](_Off); }
+  void operator[](std::allocator<CHAR>& f) { }//return CSTRALLOC(CHAR)::operator [](_Off); }
 
 };
 #pragma warning(pop)
@@ -262,28 +262,28 @@ inline cStrT<_Elem,_Alloc> operator+(const _Elem _Left,const cStrT<_Elem,_Alloc>
 	{	cStrT<_Elem,_Alloc> _Ans(1+_Right.size()); _Ans += _Left; return (_Ans += _Right); }
 template<class _Elem, class _Alloc> // return string + string
 inline cStrT<_Elem,_Alloc> operator+(cStrT<_Elem,_Alloc>&& _Left,const cStrT<_Elem,_Alloc>& _Right)
-	{	_Left.append(_Right); return (_STD move(_Left)); } //These operations are moved to the left because they return a basic_string, not cStr
+	{	_Left.append(_Right); return (std::move(_Left)); } //These operations are moved to the left because they return a basic_string, not cStr
 template<class _Elem, class _Alloc> // return NTCS + string
 inline cStrT<_Elem,_Alloc> operator+(const _Elem *_Left,cStrT<_Elem,_Alloc>&& _Right)
-	{	_Right.insert(0, _Left); return (_STD move(_Right)); }
+	{	_Right.insert(0, _Left); return (std::move(_Right)); }
 template<class _Elem, class _Alloc> // return character + string
 inline cStrT<_Elem,_Alloc> operator+(const _Elem _Left,cStrT<_Elem,_Alloc>&& _Right)
-	{	_Right.insert(0, 1, _Left); return (_STD move(_Right)); }
+	{	_Right.insert(0, 1, _Left); return (std::move(_Right)); }
 template<class _Elem, class _Alloc> // return string + NTCS
 inline cStrT<_Elem,_Alloc> operator+(cStrT<_Elem,_Alloc>&& _Left,const _Elem *_Right)
-	{	_Left.append(_Right); return (_STD move(_Left));	}
+	{	_Left.append(_Right); return (std::move(_Left));	}
 template<class _Elem, class _Alloc> // return string + character
 inline cStrT<_Elem,_Alloc> operator+(cStrT<_Elem,_Alloc>&& _Left,const _Elem _Right)
-	{	_Left.append(1, _Right); return (_STD move(_Left)); }
+	{	_Left.append(1, _Right); return (std::move(_Left)); }
 template<class _Elem, class _Alloc> // return string + string
 inline cStrT<_Elem,_Alloc> operator+(cStrT<_Elem,_Alloc>&& _Left,cStrT<_Elem,_Alloc>&& _Right)
 	{	
 	  if (_Right.size() <= _Left.capacity() - _Left.size() || _Right.capacity() - _Right.size() < _Left.size()) {
       _Left.append(_Right);
-		  return (_STD move(_Left));
+		  return (std::move(_Left));
     }
     _Right.insert(0, _Left);
-		return (_STD move(_Right));
+		return (std::move(_Right));
 	}
 
 #endif

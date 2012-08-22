@@ -59,7 +59,7 @@ const char* bss_DebugInfo::ModulePath(HMODULE mod)
 //  return (wchar_t*)_modpath;
 //}
 
-__w64 size_t bss_DebugInfo::GetWorkingSet()
+size_t bss_DebugInfo::GetWorkingSet()
 {
   return GetProcMemInfo()->WorkingSetSize;
 }

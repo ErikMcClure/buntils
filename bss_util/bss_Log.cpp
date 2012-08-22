@@ -191,7 +191,7 @@ char BSS_FASTCALL BSS_Log::WriteLog(const char* format, unsigned char level, con
 
   //char* buf = new char[++length]; //+1 for null terminator
   if(_buf.size()<++length) _buf.reserve(length); //this prevents lots of memory from being allocated, drastically speeding up logging
-  if(VSPRINTF(_buf.UnsafeString(), length, format, args) < 0) //if this is negative something blew up
+  if(VSNPRINTF(_buf.UnsafeString(), length, format, args) < 0) //if this is negative something blew up
     return -2;
 
   va_end(args);

@@ -116,7 +116,6 @@
     <ClCompile Include="bss_util.cpp" />
     <ClCompile Include="bss_util_c.c" />
     <ClCompile Include="cCmdLineArgs.cpp" />
-    <ClCompile Include="chess_tests.cpp" />
     <ClCompile Include="cHighPrecisionTimer.cpp" />
     <ClCompile Include="cINIstorage.cpp" />
     <ClCompile Include="cMutex.cpp" />

@@ -5,6 +5,7 @@
 #define __BSS_ALLOC_ADDITIVE_H__
 
 #include "bss_alloc.h"
+#include "bss_util.h"
 
 namespace bss_util {
   /* Begin Additive Fixed Allocator */

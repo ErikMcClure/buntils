@@ -9,7 +9,7 @@
 #include "cArraySimple.h"
 
 namespace bss_util {
-  /* Sorted dynamic array */
+  // Sorted dynamic array
   template<typename T, char (*CFunc)(const T&,const T&)=CompT<T>, typename _SizeType=unsigned int, class ArrayType=cArraySimple<T,_SizeType>>
   class BSS_COMPILER_DLLEXPORT cArraySort : protected ArrayType
   {
@@ -61,7 +61,7 @@ namespace bss_util {
       //__ST retval=_findnear(data,true);
       //return ((retval!=(__ST)(-1))&&(!CFunc(_array[retval],data)))?retval:(__ST)(-1);
     }
-    /* Can actually return -1 if there isn't anything in the array */
+    // Can actually return -1 if there isn't anything in the array
     inline __ST BSS_FASTCALL FindNear(constref data, bool before=true) const
     {
       __ST retval=before?binsearch_before<T,__ST,CFunc>(_array,_length,data):binsearch_after<T,__ST,CFunc>(_array,_length,data);

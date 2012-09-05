@@ -182,7 +182,7 @@ static inline void kh_del_template(kh_template_t<khkey_t,khval_t,kh_is_map,__has
 //KHASH_MAP_INIT_INT64(int64clr, void*);
 
 namespace bss_util {
-  /* Base template for cKhash. If you want a set instead of a map, set khval_t to 'char' and kh_is_map to 'false'. */
+  // Base template for cKhash. If you want a set instead of a map, set khval_t to 'char' and kh_is_map to 'false'.
   template<typename khkey_t, typename khval_t, bool kh_is_map, khint_t (*__hash_func)(khkey_t), bool (*__hash_equal)(khkey_t, khkey_t), bool (*__validate_p)(khkey_t)>
   class BSS_COMPILER_DLLEXPORT cKhash
   {
@@ -217,13 +217,13 @@ namespace bss_util {
     inline bool SetValue(khiter_t iterator, KHVAL&& newvalue) { return _setvalue<KHVAL&&>(iterator,std::move(newvalue)); } 
     inline KHKEY GetIterKey(khiter_t iterator) { return kh_key(_h,iterator); }
     inline bool OverrideKeyPtr(khiter_t iterator, KHKEY key) { if(!__validate_p(key)) return false; kh_key(_h,iterator)=key; return true; }
-    /* Gets the corresponding data attached to the given key */
+    // Gets the corresponding data attached to the given key
     inline KHVAL* GetKey(KHKEY key) const { if(!__validate_p(key)) return 0; khiter_t iterator= kh_get_template(_h, key); if(kh_end(_h) == iterator) return 0; return &kh_val(_h, iterator); }
-    /* This is a pointer-only version of the above that simplifies verification when the type pointed to is a pointer */
+    // This is a pointer-only version of the above that simplifies verification when the type pointed to is a pointer
     inline KHVAL& GetKeyPtrOnly(KHKEY key) const { if(!__validate_p(key)) return 0; khiter_t iterator= kh_get_template(_h, key); if(kh_end(_h) == iterator) return 0; return kh_val(_h, iterator); }
-    /* Gets the corresponding data attached to the given iterator */
+    // Gets the corresponding data attached to the given iterator
     inline KHVAL* Get(khiter_t iterator) const { if(iterator >= kh_end(_h) || !kh_exist(_h, iterator)) return 0; return &kh_val(_h, iterator); }
-    /* This is a pointer-only version of the above that simplifies verification when the type pointed to is a pointer */
+    // This is a pointer-only version of the above that simplifies verification when the type pointed to is a pointer
     inline KHVAL& GetPtrOnly(khiter_t iterator) const { if(iterator >= kh_end(_h) || !kh_exist(_h, iterator)) return 0; return kh_val(_h, iterator); }
     inline khiter_t GetIterator(KHKEY key) const { return !(__validate_p(key))?kh_end(_h):kh_get_template(_h, key); }
     inline void SetSize(unsigned int size) { if(_h->n_buckets < size) kh_resize_template(_h,size); }
@@ -363,7 +363,7 @@ namespace bss_util {
   template<class T>
   inline bool KH_STR_VALIDATEPTR(T p) { return p!=0; }
 
-  /* Catch-all templatization for integral types. Automatically handles 64-bit integers */
+  // Catch-all templatization for integral types. Automatically handles 64-bit integers
   template<typename T=void*, typename K=__int32, bool ismap=true>
   class BSS_COMPILER_DLLEXPORT cKhash_Int : public cKhash<K, T, true, &KH_INT_HASHFUNC<K>, &KH_INT_EQUALFUNC<__int32>, &KH_INT_VALIDATEPTR<__int32>>
   {

@@ -78,6 +78,8 @@
     <ClInclude Include="..\include\cDynArray.h" />
     <ClInclude Include="..\include\cHighPrecisionTimer.h" />
     <ClInclude Include="..\include\cHolder.h" />
+    <ClInclude Include="..\include\cINIentry.h" />
+    <ClInclude Include="..\include\cINIsection.h" />
     <ClInclude Include="..\include\cINIstorage.h" />
     <ClInclude Include="..\include\cKhash.h" />
     <ClInclude Include="..\include\cLambdaStack.h" />
@@ -117,6 +119,8 @@
     <ClCompile Include="bss_util_c.c" />
     <ClCompile Include="cCmdLineArgs.cpp" />
     <ClCompile Include="cHighPrecisionTimer.cpp" />
+    <ClCompile Include="cINIentry.cpp" />
+    <ClCompile Include="cINIsection.cpp" />
     <ClCompile Include="cINIstorage.cpp" />
     <ClCompile Include="cMutex.cpp" />
     <ClCompile Include="INIParser.c" />

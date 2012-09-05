@@ -61,7 +61,7 @@ namespace bss_util {
     _RTL_CRITICAL_SECTION* _critsec;
   };
 
-  /* Defines a class that has a semaphore */
+  // Defines a class that has a semaphore
   class BSS_COMPILER_DLLEXPORT cLockable
   {
   public:
@@ -74,7 +74,7 @@ namespace bss_util {
     cCritSection _syncobj;
   };
 
-  /* Preforms a lock within a defined scope */
+  // Preforms a lock within a defined scope
   struct BSS_COMPILER_DLLEXPORT cScopeLock
   {
     inline cScopeLock(const cLockable& lockable) : _syncobj(lockable.GetSyncObj()) { _syncobj.Lock(); }

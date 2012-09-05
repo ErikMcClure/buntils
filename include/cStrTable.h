@@ -12,17 +12,17 @@
 #include <istream>
 
 namespace bss_util {
-  /* helper class for template-izing */
+  // helper class for template-izing
   template<typename T,typename ST> class BSS_COMPILER_DLLEXPORT STRTABLE_FUNC {};
   template<typename ST> class BSS_COMPILER_DLLEXPORT STRTABLE_FUNC<char,ST> { public: inline ST _lstr(const char* str) { return strlen(str); } };
   template<typename ST> class BSS_COMPILER_DLLEXPORT STRTABLE_FUNC<wchar_t,ST> { public: inline ST _lstr(const wchar_t* str) { return wcslen(str); } };
 
-  /* Given a large array of strings (or a memory dump), assembles a single chunk of memory into a series of strings that can be accessed by index instantly */
+  // Given a large array of strings (or a memory dump), assembles a single chunk of memory into a series of strings that can be accessed by index instantly
   template<typename T, typename ST = unsigned int>
   class BSS_COMPILER_DLLEXPORT cStrTable : protected STRTABLE_FUNC<T,ST>
   {
   public:
-    /* Default Copy Constructor */
+    // Default Copy Constructor
     inline cStrTable(const cStrTable& copy) : _sasize(copy._sasize), _numindices(copy._numindices)
     { 
       _strings=(T*)malloc(_sasize*sizeof(T));
@@ -37,7 +37,7 @@ namespace bss_util {
       mov._strings=0;
       mov._indexarray=0;
     }
-    /* Generic Copy Constructor (for conversions) */
+    // Generic Copy Constructor (for conversions)
     template<class U> inline cStrTable(const cStrTable<T,U>& copy) : _sasize((ST)copy.TotalWordSize()), _numindices((ST)copy.Length())
     {
       _strings=(T*)malloc(_sasize*sizeof(T));
@@ -45,7 +45,7 @@ namespace bss_util {
       _indexarray=(ST*)malloc(_numindices*sizeof(ST));
       for(ST i = 0; i < _numindices; ++i) _indexarray[i]=(ST)copy.GetIndices()[i];
     }
-    /* Constructor from a stream that's a series of null terminated strings. */
+    // Constructor from a stream that's a series of null terminated strings.
     inline cStrTable(std::istream* stream, ST size) : _sasize(size/sizeof(T)), _numindices(0)
     {
       if(!stream || !size) 
@@ -72,22 +72,22 @@ namespace bss_util {
       }
     }
     
-    /* Constructor for array with compile-time determined size */
+    // Constructor for array with compile-time determined size
     template<ST N>
     inline cStrTable(const T* (&strings)[N]) : _sasize(0), _numindices(N) { _construct(strings,N); }
-    /* Constructor with a null-terminated array of strings. */
+    // Constructor with a null-terminated array of strings.
     inline cStrTable(const T* const* strings, ST size) : _sasize(0), _numindices(size) { _construct(strings,size); }
-    /* Destructor */
+    // Destructor
     inline ~cStrTable() { if(_strings!=0) free(_strings); if(_indexarray!=0) free(_indexarray); }
-    /* Gets number of strings in table (index cannot be greater then this) */
+    // Gets number of strings in table (index cannot be greater then this)
     inline ST Length() const { return _numindices; }
-    /* Gets total length of all strings */
+    // Gets total length of all strings
     inline ST TotalWordSize() const { return _sasize; }
-    /* Returns string with the corresponding index. Strings are returned null-terminated, but the index bound is not checked. */
+    // Returns string with the corresponding index. Strings are returned null-terminated, but the index bound is not checked.
     inline const T* GetString(ST index) const { return _strings+_indexarray[index]; }
-    /* Returns index array */
+    // Returns index array
     inline const ST* GetIndices() const { return _indexarray; }
-    /* Dumps table to stream */
+    // Dumps table to stream
     inline void DumpToStream(std::ostream* stream) { stream->write((char*)_strings,_sasize*sizeof(T)); }
     inline const T* operator[](ST index) { return GetString(index); }
     inline cStrTable& operator=(const cStrTable& right)

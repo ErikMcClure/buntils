@@ -8,7 +8,7 @@
 #include "bss_util.h"
 
 namespace bss_util {
-  /* Simple circular array implementation */
+  // Simple circular array implementation
   template<class T, typename _SizeType=unsigned int, typename ArrayType=cArraySimple<T,_SizeType>>
   class BSS_COMPILER_DLLEXPORT cArrayCircular : protected ArrayType
   {

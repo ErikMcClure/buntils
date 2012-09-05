@@ -140,7 +140,7 @@ namespace bss_util {
     template <typename U, typename P, typename T2>
     inline Allocator(Allocator<U, P, T2> const& rhs) : AllocationPolicy(rhs) {}
 
-    /* These methods are called for classes that have constructors and destructors */
+    // These methods are called for classes that have constructors and destructors
     //void construct(pointer ptr, const_reference val) { new ((void *)ptr) T(val); }
     //void destroy(pointer ptr) { ptr->T::~T(); }
 	};
@@ -284,7 +284,7 @@ namespace bss_util {
 
 
 
- // /* This allows you to trick the default allocator into accepting a reference to an allocator object */
+ // // This allows you to trick the default allocator into accepting a reference to an allocator object
  // template<typename T, typename Policy, typename Traits = ObjectTraits<T>>
 	//class BSS_COMPILER_DLLEXPORT AllocatorPolicyRef : public Traits, public AllocPolicySize<T> {
 	//private:

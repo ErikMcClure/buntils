@@ -216,6 +216,12 @@
     <ClInclude Include="..\include\StreamSplitter.h">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="..\include\cINIentry.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="..\include\cINIsection.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="bss_DebugInfo.cpp">
@@ -259,6 +265,12 @@
     </ClCompile>
     <ClCompile Include="ShinyTools.cpp">
       <Filter>Shiny</Filter>
+    </ClCompile>
+    <ClCompile Include="cINIsection.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="cINIentry.cpp">
+      <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>
 </Project>

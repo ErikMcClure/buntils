@@ -8,7 +8,7 @@
 #include "bss_util.h"
 
 namespace bss_util {
-  /* Fast, tiny array-based stack. Pop and Top are only valid if there is an item in the stack; this check must be done by the user. */
+  // Fast, tiny array-based stack. Pop and Top are only valid if there is an item in the stack; this check must be done by the user.
   template<class T, typename SizeType=unsigned int, typename ArrayClass=cArraySimple<T,SizeType>>
   class BSS_COMPILER_DLLEXPORT cBSS_Stack : protected ArrayClass
   {

@@ -11,7 +11,7 @@
 #include "lockless.h"
 
 namespace bss_util {
-  /* This provides lockless queue functionality for two interacting threads using an expandable circular buffer */
+  // This provides lockless queue functionality for two interacting threads using an expandable circular buffer
   class BSS_COMPILER_DLLEXPORT cLocklessByteQueue
   {
   public:

@@ -7,7 +7,7 @@
 #include <vector>
 #include "bss_dlldef.h"
 
-/* Either stores the standard argc/argv command lines in an array, or (if they are null), parses the win32 command line into tokens */
+// Either stores the standard argc/argv command lines in an array, or (if they are null), parses the win32 command line into tokens
 template<typename C=char>
 class cCmdLineArgs
 {

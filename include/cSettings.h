@@ -11,7 +11,7 @@
 #include "cCmdLineArgs.h"
 
 namespace bss_util {
-  /* Function to convert any standard value type to a string */
+  // Function to convert any standard value type to a string
   template<typename C, typename T>
   static std::basic_string<C> tostring(const T& t)
   {
@@ -20,7 +20,7 @@ namespace bss_util {
     return s.str();
   }
   
-  /* Special constructor cKhash implementation, which cKhash is not really meant for so do not use this ever */
+  // Special constructor cKhash implementation, which cKhash is not really meant for so do not use this ever
   template<typename K=char, typename T=void*, bool ismap=true>
   class BSS_COMPILER_DLLEXPORT cKhash_StringTInsConstruct : public cKhash_StringTIns<K,T,ismap>
   {
@@ -48,7 +48,7 @@ namespace bss_util {
 		}
   };
 
-  /* Base template cSetting class containing the master cmdhash for processing command lines. */
+  // Base template cSetting class containing the master cmdhash for processing command lines.
   template<int I, int N>
   class cSetting
   { 
@@ -57,14 +57,14 @@ namespace bss_util {
   }; 
   cKhash_StringTInsConstruct<char,std::function<void (cCmdLineArgs<char>&,unsigned int&)>> cSetting<-1,-1>::cmdhash;
 
-  /* Class triggered when a setting is declared, adding it to the master command hash if necessary. */
+  // Class triggered when a setting is declared, adding it to the master command hash if necessary.
   template<typename C>
   struct AddToSettingHash { 
     AddToSettingHash(const C* cmdname, const std::function<void (cCmdLineArgs<C>&,unsigned int&)>& func)
     { if(cmdname!=0) cSetting<-1,-1>::cmdhash.Insert(cmdname,func); }
   };
 
-  /* Static template function shortcut for getting a specific setting */
+  // Static template function shortcut for getting a specific setting
   template<int I, int N>
   static typename cSetting<I,N>::TYPE& Setting() { return cSetting<I,N>::v; }
 
@@ -75,7 +75,7 @@ namespace bss_util {
 #define __INST_SET__(I,N,T,INIT,NAME,CMD) 
 #endif
 
-  /* Main #define for declaring a setting. NAME and CMD can both be set to 0 if INIs and command line parsing, respectively, are not needed. */
+  // Main #define for declaring a setting. NAME and CMD can both be set to 0 if INIs and command line parsing, respectively, are not needed.
 #define DECL_SETTING(I,N,T,INIT,NAME,CMD) template<> class bss_util::cSetting<I,N> { public: typedef T TYPE; static T v; \
   inline static const char* name() { return NAME; } inline static const char* cmd() { return CMD; } \
   static bss_util::AddToSettingHash<char> _shashinit; }; __INST_SET__(I,N,T,INIT,NAME,CMD)
@@ -84,7 +84,7 @@ namespace bss_util {
      name of the settings. MAX is the maximum number of settings in this group, but unless you are using LoadAllFromINI, it is optional. */
 #define DECL_SETGROUP(I,NAME,MAX) template<int N> class bss_util::cSetting<I,N> { public: inline static const char* secname() { return NAME; } static const unsigned int COUNT=(MAX-1); };
 
-  /* Struct class for defining the INILoad function. Can be overriden for custom types */
+  // Struct class for defining the INILoad function. Can be overriden for custom types
   template<typename T, typename C>
   struct cSetting_INILOAD {
     inline static void INILoad(cINIstorage& ini, T& v, const C* name, const C* section)
@@ -105,29 +105,29 @@ namespace bss_util {
     }
   };
 
-  /* Struct class for defining the INISave function. Can be overriden for custom types */
+  // Struct class for defining the INISave function. Can be overriden for custom types
   template<typename T, typename C>
   struct cSetting_INISAVE {
     inline static void INISave(cINIstorage& ini, T& v, const C* name, const C* section)
     { if(name!=0) { ini.EditAddEntry(section,name,tostring<C,T>(v).c_str()); } }
   };
   
-  /* Override for string types on INI loading */
+  // Override for string types on INI loading
   template<typename C>
   struct cSetting_INISAVE<const C*,C> {
     inline static void INISave(cINIstorage& ini, const C* v, const C* name, const C* section)
     { if(name!=0) { ini.EditAddEntry(section,name,v); } }
   };
-  /* Force char types to write as numbers */
+  // Force char types to write as numbers
   template<typename C>
   struct cSetting_INISAVE<unsigned char,C> {
     inline static void INISave(cINIstorage& ini, unsigned char v, const C* name, const C* section)
-    { char s[4]; ITOA((int)v,s,10); if(name!=0) { ini.EditAddEntry(section,name,s); } }
+    { char s[4]; ITOAx0((int)v,s,10); if(name!=0) { ini.EditAddEntry(section,name,s); } }
   };
   template<typename C>
   struct cSetting_INISAVE<char,C> {
     inline static void INISave(cINIstorage& ini, char v, const C* name, const C* section)
-    { char s[4]; ITOA((int)v,s,10); if(name!=0) { ini.EditAddEntry(section,name,s); } }
+    { char s[4]; ITOAx0((int)v,s,10); if(name!=0) { ini.EditAddEntry(section,name,s); } }
   };
   template<typename C>
   struct cSetting_INISAVE<std::vector<cStrT<C>>,C> {
@@ -135,7 +135,7 @@ namespace bss_util {
     { if(name!=0) { for(unsigned int i = 0; i < v.size(); ++i) ini.EditAddEntry(section,name,v[i],0,i); } }
   };
 
-  /* Struct class for defining the CmdLoad function. Can be overriden for custom types */
+  // Struct class for defining the CmdLoad function. Can be overriden for custom types
   template<typename T, typename C>
   struct cSetting_CMDLOAD {
     inline static void CmdLoad(cCmdLineArgs<C>& ini, T& v, unsigned int& index)
@@ -159,7 +159,7 @@ namespace bss_util {
     inline static void CmdLoad(cCmdLineArgs<C>& ini, std::vector<cStrT<C>>& v, unsigned int& index) {} //You cannot load this from the command line
   };
 
-  /* Main class for managing settings. Here you can load and save settings from INIs */
+  // Main class for managing settings. Here you can load and save settings from INIs
   template<int I,int N>
   class cSettingManage
   {
@@ -202,7 +202,7 @@ namespace bss_util {
     inline static void SaveAllToINI(cINIstorage& ini) {} // recursive template evaluation terminator
   };
 
-  /* Static template function for loading settings from a command line. */
+  // Static template function for loading settings from a command line.
   template<typename C>
   inline static void LoadFromCmd(cCmdLineArgs<C>& cmd) 
   {

@@ -9,7 +9,7 @@
 #include <memory>
 
 namespace bss_util {
-  /* This is a binary min-heap implemented using an array. Use CompTInverse to change it into a max-heap, or to make it use pairs. */
+  // This is a binary min-heap implemented using an array. Use CompTInverse to change it into a max-heap, or to make it use pairs.
   template<class T, typename __ST=unsigned int, char (*CFunc)(const T&, const T&)=CompT<T>, typename ArrayType=cArraySimple<T,__ST>>
   class BSS_COMPILER_DLLEXPORT cBinaryHeap : protected ArrayType
   {
@@ -30,13 +30,13 @@ namespace bss_util {
     inline T PopRoot() { T r=_array[0]; Remove(0); return r; }
     inline bool Empty() { return !_length; }
     inline __ST Length() { return _length; }
-    /* Inserts a value */
+    // Inserts a value
     inline void Insert(const T& val) { _insert(val); }
     inline void Insert(T&& val) { _insert(std::move(val)); }
-    /* Sets a key and percolates */
+    // Sets a key and percolates
     inline bool Set(__ST index, const T& val) { _set(index, val); }
     inline bool Set(__ST index, T&& val) { _set(index,std::move(val)); }
-    /* To remove a node, we replace it with the last item in the heap and then percolate down */
+    // To remove a node, we replace it with the last item in the heap and then percolate down
     inline bool Remove(__ST index)
     {
       if(index>=_length) return false;
@@ -46,7 +46,7 @@ namespace bss_util {
       return true;
     }
     
-    /* Percolate up through the heap */
+    // Percolate up through the heap
     template<typename U>
     inline static void PercolateUp(T* _array, __ST _length, __ST k, U && val)
     {
@@ -61,7 +61,7 @@ namespace bss_util {
       }
       _array[k]=std::forward<U>(val);
     }
-    /* Percolate down a heap */
+    // Percolate down a heap
     template<typename U>
     inline static void PercolateDown(T* _array, __ST _length, __ST k, U && val)
     {
@@ -123,7 +123,7 @@ namespace bss_util {
       PercolateUp(_array,_length,_length++,std::forward<U>(val));
     }
 
-    /* Sets a key and percolates */
+    // Sets a key and percolates
     template<typename U>
     inline bool _set(__ST index, U && val)
     {
@@ -138,7 +138,7 @@ namespace bss_util {
     __ST _length; //amount of used cells
   };
 
-    /* This will grab the value closest to K while that value is still greater then or equal to K */
+    // This will grab the value closest to K while that value is still greater then or equal to K
     //inline size_t GetNearest(const K& key) 
     //{
     //  BINHEAP_CELL& cur=_array[0];

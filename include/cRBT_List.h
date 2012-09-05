@@ -11,7 +11,7 @@
 #include "bss_alloc.h"
 
 namespace bss_util {
-  /* Node struct for cRBT_List */
+  // Node struct for cRBT_List
   template<class Key, class Data>
   struct BSS_COMPILER_DLLEXPORT cRBT_Node
   {
@@ -50,7 +50,7 @@ namespace bss_util {
     }
   };
 
-  /* Public node wrapper for cRBT_Node */
+  // Public node wrapper for cRBT_Node
   template<class Key, class Data>
   struct BSS_COMPILER_DLLEXPORT cRBT_PNode : public cRBT_Node<Key,Data>
   {
@@ -62,46 +62,46 @@ namespace bss_util {
     inline char GetColor() const { return _color; }
   };
 
-	/* This class is a combination of a red-black tree with a doubly linked list. */
+	// This class is a combination of a red-black tree with a doubly linked list.
 	template <class K, class D, char (*C)(const K& keyleft, const K& keyright)=CompT<K>, typename A=Allocator<cRBT_Node<K,D>>>
 	class BSS_COMPILER_DLLEXPORT cRBT_List : protected cAllocTracker<A>
 	{
 	public:
-		/* Constructor - takes an optional allocator */
+		// Constructor - takes an optional allocator
 		inline explicit cRBT_List(A* allocator=0);
     inline cRBT_List(cRBT_List&& mov);
-		/* Destructor */
+		// Destructor
 		inline ~cRBT_List();
-    /* Retrieves a given node by key if it exists */
+    // Retrieves a given node by key if it exists
     inline cRBT_PNode<K,D>* Get(const K& key) const;
-    /* Retrieves the node closest to the given key. */
+    // Retrieves the node closest to the given key.
     inline cRBT_PNode<K,D>* GetNear(const K& key, bool before=true) const;
-		/* Inserts a key (key must be supplied) with the associated data pointer (can be NULL since it is never accessed by the tree itself) */
+		// Inserts a key (key must be supplied) with the associated data pointer (can be NULL since it is never accessed by the tree itself)
 		inline cRBT_PNode<K,D>* Insert(const K& key, D data);
-    /* Searches for a node with the given key and removes it if found, otherwise returns false. */
+    // Searches for a node with the given key and removes it if found, otherwise returns false.
 		inline bool Remove(const K& key);
-    /* Removes the given node. Returns false if node is null */
+    // Removes the given node. Returns false if node is null
 		inline bool Remove(cRBT_Node<K,D>* node);
-    /* Replaces the given key with newkey */
+    // Replaces the given key with newkey
 		inline bool ReplaceKey(const K& key, const K& newkey);
-    /* Replaces the key of the given node to newkey */
+    // Replaces the key of the given node to newkey
 		inline bool ReplaceKey(cRBT_Node<K,D>* node, const K& newkey);
-    /* Clears the tree (called by destructor) */
+    // Clears the tree (called by destructor)
 		inline void Clear();
-    /* Returns first element */
+    // Returns first element
 		inline cRBT_PNode<K,D>* GetFirst() const { return (cRBT_PNode<K,D>*)_first; }
-    /* Returns last element */
+    // Returns last element
 		inline cRBT_PNode<K,D>* GetLast() const { return (cRBT_PNode<K,D>*)_last; }
     inline size_t Size() const { return _size; }
     
     inline cRBT_List& operator=(cRBT_List&& mov);
 
 	protected:
-    /* Insert node before target */
+    // Insert node before target
     inline void _llbinsert(cRBT_Node<K,D>* node, cRBT_Node<K,D>* target);
-    /* Insert node after target */
+    // Insert node after target
     inline void _llainsert(cRBT_Node<K,D>* node, cRBT_Node<K,D>* target);
-    /* Remove node from list */
+    // Remove node from list
     inline void _llremove(cRBT_Node<K,D>* node);
     inline void _leftrotate(cRBT_Node<K,D>* node);
     inline void _rightrotate(cRBT_Node<K,D>* node);

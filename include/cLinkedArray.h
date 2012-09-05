@@ -17,7 +17,7 @@ namespace bss_util {
     SizeType prev;
   };
 
-  /* Linked list implemented as an array. */
+  // Linked list implemented as an array.
   template<class T, typename SizeType=unsigned int>
   class BSS_COMPILER_DLLEXPORT cLinkedArray
   {
@@ -67,7 +67,7 @@ namespace bss_util {
     inline BSS_FORCEINLINE T& BSS_FASTCALL operator [](__ST index) { return _ref[index].val; }
     inline BSS_FORCEINLINE const T& BSS_FASTCALL operator [](__ST index) const { return _ref[index].val; }
 
-    /* Iterator for cLinkedArray */
+    // Iterator for cLinkedArray
     template<typename _PP, typename _REF, typename D=cLinkedArray<T,SizeType>>
     class BSS_COMPILER_DLLEXPORT cLAIter : public std::iterator<std::bidirectional_iterator_tag,typename D::value_type,ptrdiff_t,_PP,_REF>
 	  {
@@ -97,7 +97,7 @@ namespace bss_util {
     inline cLAIter<T*, T&, cLinkedArray<T,SizeType>> begin() { return cLAIter<T*, T&, cLinkedArray<T,SizeType>>(*this,_start); } // Use these to get an iterator you can use in standard containers
     inline cLAIter<T*, T&, cLinkedArray<T,SizeType>> end() { return cLAIter<T*, T&, cLinkedArray<T,SizeType>>(*this); }
     
-    /* Nonstandard Removal Iterator for cLinkedArray to make removing elements easier */
+    // Nonstandard Removal Iterator for cLinkedArray to make removing elements easier
     class BSS_COMPILER_DLLEXPORT cLAIterRM : protected cLAIter<T*,T&,cLinkedArray<T,SizeType>>
 	  {
       typedef cLAIter<T*,T&,cLinkedArray<T,SizeType>> __BASE;

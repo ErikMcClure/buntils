@@ -9,12 +9,12 @@
 #include <malloc.h>
 
 namespace bss_util {
-  /* Very simple "dynamic" array. Designed to be used when size must be maintained at an exact value. */
+  // Very simple "dynamic" array. Designed to be used when size must be maintained at an exact value.
   template<class T, typename SizeType=unsigned int>
   class BSS_COMPILER_DLLEXPORT cArraySimple
   {
   public:
-    inline cArraySimple<T,SizeType>(const cArraySimple<T,SizeType>& copy) : _array((T*)_minmalloc(copy._size*sizeof(T))), _size(copy._size)
+    inline cArraySimple<T,SizeType>(const cArraySimple<T,SizeType>& copy) : _array(!copy._size?(T*)0:(T*)malloc(copy._size*sizeof(T))), _size(copy._size)
     {
       memcpy(_array,copy._array,_size*sizeof(T));
     }
@@ -23,7 +23,7 @@ namespace bss_util {
       mov._array=0;
       mov._size=0;
     }
-    inline explicit cArraySimple<T,SizeType>(SizeType size) : _array((T*)_minmalloc(size*sizeof(T))), _size(size)
+    inline explicit cArraySimple<T,SizeType>(SizeType size) : _array(!size?(T*)0:(T*)malloc(size*sizeof(T))), _size(size)
     {
     }
     inline ~cArraySimple<T,SizeType>()
@@ -41,7 +41,7 @@ namespace bss_util {
       _array=narray;
       _size=nsize;
     }
-    inline void BSS_FASTCALL Remove(SizeType index)
+    inline void BSS_FASTCALL RemoveInternal(SizeType index)
     {
       memmove(_array+index,_array+index+1,sizeof(T)*(_size-index-1));
       //--_size;
@@ -119,7 +119,7 @@ namespace bss_util {
     typedef T __T;
   };
 
-  /* Very simple "dynamic" array that calls the constructor and destructor */
+  // Very simple "dynamic" array that calls the constructor and destructor
   template<class T, typename SizeType=unsigned int>
   class BSS_COMPILER_DLLEXPORT cArrayConstruct
   {
@@ -166,7 +166,7 @@ namespace bss_util {
       _array=narray;
       _size=nsize;
     }
-    inline void BSS_FASTCALL Remove(SizeType index)
+    inline void BSS_FASTCALL RemoveInternal(SizeType index)
     {
       _array[index].~T();
       memmove(_array+index,_array+index+1,sizeof(T)*(_size-index-1));
@@ -238,7 +238,7 @@ namespace bss_util {
     typedef T __T;
   };
 
-  /* Typesafe array that reconstructs everything properly, without any memory moving tricks */
+  // Typesafe array that reconstructs everything properly, without any memory moving tricks
   template<class T, typename SizeType=unsigned int>
   class BSS_COMPILER_DLLEXPORT cArraySafe
   {
@@ -283,7 +283,7 @@ namespace bss_util {
       _array=narray;
       _size=nsize;
     }
-    inline void BSS_FASTCALL Remove(SizeType index)
+    inline void BSS_FASTCALL RemoveInternal(SizeType index)
     {
       --_size; // Note that this _size decrease is reversed at the end of this function, so _size doesn't actually change, matching the behavior of cArraySimple/cArraySafe
       for(SizeType i=index; i<_size;++i)
@@ -358,7 +358,7 @@ namespace bss_util {
     typedef T __T;
   };
   
-  /* Wrapper for underlying arrays that expose the array, making them independently usable without blowing up everything that inherits them */
+  // Wrapper for underlying arrays that expose the array, making them independently usable without blowing up everything that inherits them
   template<class ARRAYTYPE>
   class BSS_COMPILER_DLLEXPORT cArrayWrap : public ARRAYTYPE
   {
@@ -373,7 +373,11 @@ namespace bss_util {
     inline explicit cArrayWrap(__ST size=1): __AT(size) {}
     
     //Implementation of Remove that adjusts the size of the array.
-    inline void RemoveShrink(__ST index) { __AT::Remove(index); __AT::SetSize(_size-1); }
+    inline void RemoveShrink(__ST index) { __AT::RemoveInternal(index); __AT::SetSize(_size-1); }
+    inline const __T& Front() const { assert(_size>0); return _array[0]; }
+    inline __T& Front() { assert(_size>0); return _array[0]; }
+    inline const __T& Back() const { assert(_size>0); return _array[_size-1]; }
+    inline __T& Back() { assert(_size>0); return _array[_size-1]; }
     inline operator __T*() { return _array; }
     inline operator const __T*() const { return _array; }
     //inline cArrayWrap& operator=(const __AT& copy) { __AT::operator=(copy); return *this; }
@@ -382,7 +386,7 @@ namespace bss_util {
     inline const cArrayWrap operator +(const __AT& add) { cArrayWrap r(*this); return (r+=add); }
   };
   
-  /* Templatized typedefs for making this easier to use */
+  // Templatized typedefs for making this easier to use
   template<class T, typename SizeType=unsigned int>
   struct BSS_COMPILER_DLLEXPORT DArray
   {

@@ -8,7 +8,7 @@
 
 namespace bss_util
 {
-  /* T is the class inheriting this item, P is the class holding the master list */
+  // T is the class inheriting this item, P is the class holding the master list
   template<class T, class P>
   class BSS_COMPILER_DLLEXPORT cAutoListItem
   {
@@ -35,7 +35,7 @@ namespace bss_util
 		bss_util::cLLNode<T*>* _listpos;
   };
 
-  /* T is the items that will be put into this list, P is the class that inherits this */
+  // T is the items that will be put into this list, P is the class that inherits this
   template<class T, class P>
   class BSS_COMPILER_DLLEXPORT cAutoList
   {

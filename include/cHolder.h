@@ -10,12 +10,12 @@
 #include "bss_compiler.h"
 
 namespace bss_util {
-  /* A class to provide the common functionality of storing a pointer to an object of a certain class */
+  // A class to provide the common functionality of storing a pointer to an object of a certain class
   template<class T>
   class BSS_COMPILER_DLLEXPORT cHolder
   {
   public:
-    /* Constructor - takes a pointer to the object */
+    // Constructor - takes a pointer to the object
     inline explicit cHolder<T>(T* object = 0) : _holdobject(object) { }
     inline ~cHolder<T>() {} //I think this is required because destructors can't be generated for a template class (which is why errors occur otherwise)
 

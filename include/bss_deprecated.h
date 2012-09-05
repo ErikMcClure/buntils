@@ -4,19 +4,19 @@
 #ifndef __BSS_DEPRECATED_H__
 #define __BSS_DEPRECATED_H__
 
+#include <bss_compiler.h>
 #include <time.h> //Done so we can use time_t, and as a way to get VC++ to include crtdefs.h without ruining compatability with other compilers
 
-#if defined(__STDC_WANT_SECURE_LIB__) && __STDC_WANT_SECURE_LIB__
-typedef __int64 TIMEVALUSED;
-#define FTIME(ptime) _time64(ptime)
-#define GMTIMEFUNC(raw, assign) if(_gmtime64_s(assign, raw)) return false
-#define VSNPRINTF(dest,length,format,list) _vsnprintf_s(dest,length,length,format,list)
-#define VSNWPRINTF(dest,length,format,list) _vsnwprintf_s(dest,length,length,format,list)
+#ifdef BSS_COMPILER_MSC
+#define TIME64(ptime) _time64(ptime)
+#define GMTIMEFUNC(time, tm) if(_gmtime64_s(tm, time)) return false
+#define VSNPRINTF(dst,size,format,list) _vsnprintf_s(dst,size,size,format,list)
+#define VSNWPRINTF(dst,size,format,list) _vsnwprintf_s(dst,size,size,format,list)
 #define VSCPRINTF(format,args) _vscprintf(format,args)
 #define VSCWPRINTF(format,args) _vscwprintf(format,args)
 #define FOPEN(f, path, mode) fopen_s(&f, path, mode)
 #define WFOPEN(f, path, mode) _wfopen_s(&f, path, mode)
-#define MEMCPY(dest,length,source,count) memcpy_s(dest,length,source,count)
+#define MEMCPY(dst,size,src,count) memcpy_s(dst,size,src,count)
 #define STRNCPY(dst,size,src,count) strncpy_s(dst,size,src,count)
 #define WCSNCPY(dst,size,src,count) wcsncpy_s(dst,size,src,count)
 #define STRCPY(dst,size,src) strcpy_s(dst,size,src)
@@ -28,39 +28,29 @@ typedef __int64 TIMEVALUSED;
 #define STRTOK(str,delim,context) strtok_s(str,delim,context)
 #define WCSTOK(str,delim,context) wcstok_s(str,delim,context)
 #define SSCANF sscanf_s
-#define ITOA(v,buf,r) _itoa_s(v,buf,r)
-#define ITOA_S(v,buf,bufsize,r) _itoa_s(v,buf,bufsize,r)
+#define ITOAx0(v,buf,r) _itoa_s(v,buf,r)
+#define ITOA(v,buf,bufsize,r) _itoa_s(v,buf,bufsize,r)
 #else
-typedef time_t TIMEVALUSED;
-#define FTIME(ptime) time(ptime)
-#define GMTIMEFUNC(raw, assign) assign = gmtime(raw); if(!assign) return false
-#define VSNPRINTF(dest,length,format,list) vsnprintf(dest,length,format,list)
-#define VSNWPRINTF(dest,length,format,list) vsnwprintf(dest,length,format,list)
+#define TIME64(ptime) time64(ptime)
+#define GMTIMEFUNC(time, tm) if(gmtime64_r(time, tm)) return false
+#define VSNPRINTF(dst,size,format,list) vsnprintf(dst,size,format,list)
+#define VSNWPRINTF(dst,size,format,list) vswprintf(dst,size,format,list) //vswprintf is exactly what vsnwprintf should be, for some reason.
+#define VSCPRINTF(format,args) vsnprintf(0,0,format,args)
+//#define VSCWPRINTF(format,args) _vscwprintf(format,args) //no way to implement this
 #define FOPEN(f, path, mode) f = fopen(path, mode)
 #define WFOPEN(f, path, mode) f = _wfopen(path, mode)
-#define MEMCPY(dest,length,source,count) memcpy(dest,source,count)
-#define STRNCPY(dst,size,src,count) strncpy(dst,src,count)
-#define WCSNCPY(dst,size,src,count) wcsncpy(dst,src,count)
-#define STRCPY(dst,size,src) strcpy(dst,src)
-#define WCSCPY(dst,size,src) wcscpy(dst,src)
+#define MEMCPY(dst,size,src,count) memcpy(dst,src,((size)<(count))?(size):(count))
+#define STRNCPY(dst,size,src,count) strncpy(dst,src,((size)<(count))?(size):(count))
+#define WCSNCPY(dst,size,src,count) wcsncpy(dst,src,((size)<(count))?(size):(count))
+#define STRCPY(dst,size,src) strncpy(dst,src,size-1)
+#define WCSCPY(dst,size,src) wcsncpy(dst,src,size-1)
 #define STRICMP(a,b) stricmp(a,b)
 #define WCSICMP(a,b) wcsicmp(a,b)
-#define SSCANF sscanf
-#define ITOA(v,buf,r) itoa(v,buf,r)
-#define ITOA_S(v,buf,bufsize,r) itoa(v,buf,r)
-
-#ifdef BSS_COMPILER_GCC
-#define VSCPRINTF(format,args) vsnprintf(format,args)
-#define VSCWPRINTF(format,args) vsnwprintf(format,args)
 #define STRTOK(str,delim,context) strtok_r(str,delim,context)
 #define WCSTOK(str,delim,context) wcstok_r(str,delim,context)
-#else
-#define VSCPRINTF(format,args) _vscprintf(format,args)
-#define VSCWPRINTF(format,args) _vscwprintf(format,args)
-#define STRTOK(str,delim,context) strtok(str,delim)
-#define WCSTOK(str,delim,context) wcstok(str,delim)
-#endif
-
+#define SSCANF sscanf
+#define ITOAx0(v,buf,r) _itoa_r(v,buf,r)
+#define ITOA(v,buf,bufsize,r) itoa_r(v,buf,bufsize,r)
 #endif
 
 #endif

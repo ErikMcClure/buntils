@@ -10,7 +10,7 @@
 #define DECL_FIXEDPOLICY(T) bss_util::Allocator<T,bss_util::FixedChunkPolicy<T>>
 
 namespace bss_util {
-  /* Fixed Chunk Alloc */
+  // Fixed Chunk Alloc
   struct FIXEDCHUNKLIST
   {
     void* mem;
@@ -128,7 +128,7 @@ namespace bss_util {
 
   BSSBUILD_STATIC_POLICY(StaticFixedChunk,FixedChunkPolicy);
 
-  /* Generic static allocator for a class. T is the type of the class implementing this allocator. Every single subclass has to implement this if its to be taken advantage of */
+  // Generic static allocator for a class. T is the type of the class implementing this allocator. Every single subclass has to implement this if its to be taken advantage of
   //template<typename T>
   //class BSS_COMPILER_DLLEXPORT cClassAllocator //: protected cSubClassAlloc<sizeof(T)>
   //{

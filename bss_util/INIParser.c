@@ -3,6 +3,7 @@
 
 #include "INIparse.h"
 #include "bss_util_c.h"
+#include "bss_defines.h"
 #include <malloc.h>
 #include <string.h>
 

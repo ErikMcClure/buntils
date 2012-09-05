@@ -8,7 +8,7 @@
 #include "bss_deprecated.h"
 
 namespace bss_util {
-  /* Implementation of the Alias method, based off Keith Schwarz's code, found here: http://www.keithschwarz.com/darts-dice-coins/ */
+  // Implementation of the Alias method, based off Keith Schwarz's code, found here: http://www.keithschwarz.com/darts-dice-coins/
   template<typename UINT=unsigned int, typename F=double>
   class BSS_COMPILER_DLLEXPORT cAliasTable
   {

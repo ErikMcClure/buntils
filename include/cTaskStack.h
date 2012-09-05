@@ -20,7 +20,7 @@ namespace bss_util {
     inline virtual FUNC_DEF_BASE* Clone() const=0;
   };
 
-  /* This is a thread-safe task stack that accumulates function calls for a class */
+  // This is a thread-safe task stack that accumulates function calls for a class
   template<class T>
   class BSS_COMPILER_DLLEXPORT cTaskStack : public cLockable
   {
@@ -56,7 +56,7 @@ namespace bss_util {
       _curindex=nextindex;
       return true;
     }
-    /* this allows you to pass in the arguments as a struct and is size-safe, but not necessarily typesafe */
+    // this allows you to pass in the arguments as a struct and is size-safe, but not necessarily typesafe
     template<class Args>
     bool BSS_FASTCALL AddTaskArg(unsigned int FuncID, const Args& funcarg)
     {
@@ -127,7 +127,7 @@ namespace bss_util {
       LOCKME();
       _curindex=0;
     }
-    /* If true, unlocks the mutex while it executes each function. Otherwise the mutex is locked for the duration of the stack evaluation */
+    // If true, unlocks the mutex while it executes each function. Otherwise the mutex is locked for the duration of the stack evaluation
     void SetUnlock(bool unlock)
     {
       LOCKME();

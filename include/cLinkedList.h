@@ -8,14 +8,14 @@
 #include "bss_alloc.h"
 
 namespace bss_util {
-  /* Default node for internal use */
+  // Default node for internal use
   template<typename T>
   struct cLLNode : LLBase<cLLNode<T>> 
   {
     T item;
   };
 
-  /* Public node prohibiting manipulation of pointers, has the same bit layout as the internal node */
+  // Public node prohibiting manipulation of pointers, has the same bit layout as the internal node
   template<typename T>
   struct cLLPNode : private LLBase<cLLPNode<T>> 
   {
@@ -25,14 +25,14 @@ namespace bss_util {
     inline BSS_FORCEINLINE cLLPNode<T>* GetPrev() { return prev; }
   };
   
-  /* Const node prohibiting manipulation of everything, has the same bit layout as the internal node */
+  // Const node prohibiting manipulation of everything, has the same bit layout as the internal node
   template<typename T>
   struct cLLCNode : LLBase<cLLCNode<const T>> 
   {
     T item;
   };
 
-  /* Generic Iterator for cLinkedList */
+  // Generic Iterator for cLinkedList
   template<typename T, typename _Nd=cLLNode<T>>
   class BSS_COMPILER_DLLEXPORT cLLIter : public LLIterator<T,_Nd>
   {
@@ -50,7 +50,7 @@ namespace bss_util {
     inline bool operator!() const { return !cur; }
   };
 
-  /* Adaptive class template for Size usage */
+  // Adaptive class template for Size usage
   template<bool size> struct cLinkedList_FuncSize {};
   template<> struct cLinkedList_FuncSize<true> { 
     inline unsigned int Length() const { return _size; }
@@ -64,16 +64,16 @@ namespace bss_util {
   };
   template<> struct cLinkedList_FuncSize<false> { inline void _incsize() { } inline void _decsize() { } inline void _zerosize() { } };
 
-  /* Doubly linked list implementation with _root, _last and an optional _size */
+  // Doubly linked list implementation with _root, _last and an optional _size
   template<typename T, typename Alloc=Allocator<cLLNode<T>>, bool useSize=false>
   class BSS_COMPILER_DLLEXPORT cLinkedList : protected cAllocTracker<Alloc>, public cLinkedList_FuncSize<useSize>
   {
   public:
-    /* Constructor, takes an optional allocator instance */
+    // Constructor, takes an optional allocator instance
     inline explicit cLinkedList(Alloc* allocator=0) : cAllocTracker<Alloc>(allocator), _last(0), _root(0)
     {
     }
-    /* Copy constructor */
+    // Copy constructor
     inline cLinkedList(const cLinkedList<T,Alloc>& copy) : cAllocTracker<Alloc>(copy), _last(0), _root(0)
     {
       operator =(copy);
@@ -85,12 +85,12 @@ namespace bss_util {
       cLinkedList_FuncSize<useSize>::operator=(mov);
       mov._zerosize();
     }
-    /* Destructor */
+    // Destructor
     inline ~cLinkedList()
     {
       Clear();
     }
-    /* Appends the item to the end of the list */
+    // Appends the item to the end of the list
     inline cLLNode<T>* BSS_FASTCALL Add(T item)
     {
       cLLNode<T>* node = _createnode(item,_last);
@@ -101,7 +101,7 @@ namespace bss_util {
       if(_root == 0) _root = node; //If root is 0 it means our list hasn't gotten anything assigned to it, so this node is both the root and the last
       return node;
     }
-    /* Inserts the item before the given node. If the given node is null, appends the item to the end of the list */
+    // Inserts the item before the given node. If the given node is null, appends the item to the end of the list
     inline cLLNode<T>* BSS_FASTCALL Insert(T item, cLLNode<T>* target)
     {
       if(!target) return Add(item);
@@ -199,7 +199,7 @@ namespace bss_util {
   };
 }
 
-/* Adaptive class templitization for _last usage */
+// Adaptive class templitization for _last usage
   /*template<typename T, typename Alloc, bool useSize, bool last> class cLinkedList_FuncLast {};
   template<typename T, typename Alloc, bool useSize> struct cLinkedList_FuncLast<T,Alloc,useSize,true>
   { 

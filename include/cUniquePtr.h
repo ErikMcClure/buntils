@@ -18,7 +18,7 @@ namespace bss_util
   template<class _Ty> // Trick that uses implicit conversion that allows cUniquePtr below to take _Ty* pointers without confusing itself for them.
   struct cUniquePtr_Ref { inline cUniquePtr_Ref(_Ty* p) : _p(p) {} _Ty* _p; };
 
-  /* Modification of the standard unique_ptr taking advantage of several tricks to make management of the pointer easier */
+  // Modification of the standard unique_ptr taking advantage of several tricks to make management of the pointer easier
   template<class _Ty>
   class cUniquePtr : public std::unique_ptr<_Ty>
   {
@@ -47,7 +47,7 @@ namespace bss_util
   template<class _Ty> // Trick that uses implicit conversion that allows cUniquePtr below to take _Ty* pointers without confusing itself for them.
   struct cOwnerPtr_Ref { inline cOwnerPtr_Ref(_Ty* p) : _p(p) {} _Ty* _p; };
 
-  /* A different kind of pointer handling class that allows copying, but keeps track of whether or not it is actually allowed to delete the given pointer */
+  // A different kind of pointer handling class that allows copying, but keeps track of whether or not it is actually allowed to delete the given pointer
   template<class _Ty, class _Dy = std::default_delete<_Ty>>
   class cOwnerPtr : private _Dy
   {
@@ -83,7 +83,7 @@ namespace bss_util
     _Ty* _p;
     bool _owner;
   };
-  /* Implementation of an automatic reference tracker for use in conjunction with cRefCounter. Mimics a pointer. */
+  // Implementation of an automatic reference tracker for use in conjunction with cRefCounter. Mimics a pointer.
   //template<class T>
   //class cAutoRef
   //{

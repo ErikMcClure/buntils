@@ -21,7 +21,7 @@ namespace bss_util {
   template<> struct OBJSWAPFUNC_INS<const char*> { BSS_FORCEINLINE static char Comp(const char* l, const char* r) { return !STRICMP(l,r); } };
   template<> struct OBJSWAPFUNC_INS<const wchar_t*> { BSS_FORCEINLINE static char Comp(const wchar_t* l, const wchar_t* r) { return !WCSICMP(l,r); } };
   
-  /* Generalized solution to allow dynamic switch statements */
+  // Generalized solution to allow dynamic switch statements
   template<class T, class SWAP=OBJSWAPFUNC_ALL<T>>
   class BSS_COMPILER_DLLEXPORT cObjSwap : protected SWAP
   {

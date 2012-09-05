@@ -46,7 +46,7 @@ namespace bss_util {
     }
   };
   
-  /* Adaptive template based class for doing fixed-point math */
+  // Adaptive template based class for doing fixed-point math
   template<unsigned char DBITS=12, typename T=__int32, bool SATURATE=true>
   class FixedPt
   {

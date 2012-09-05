@@ -13,7 +13,7 @@
 
 namespace bss_util { class StreamSplitter; }
 
-/* template defined error messages */
+// template defined error messages
 template<unsigned char ERRLEVEL> struct bss_LOGERRLVL {};
 template<> struct bss_LOGERRLVL<0> { inline static const char* ERRLVL() { return "INFO: "; } };
 template<> struct bss_LOGERRLVL<1> { inline static const char* ERRLVL() { return "WARNING: "; } };
@@ -21,32 +21,32 @@ template<> struct bss_LOGERRLVL<2> { inline static const char* ERRLVL() { return
 template<> struct bss_LOGERRLVL<3> { inline static const char* ERRLVL() { return "FATAL: "; } };
 template<> struct bss_LOGERRLVL<4> { inline static const char* ERRLVL() { return "DEBUG: "; } };
 
-/* Log class that can be converted into a stream and redirected to various different stream targets */
+// Log class that can be converted into a stream and redirected to various different stream targets
 class BSS_DLLEXPORT bss_Log
 {
 public:
-	/* Constructor - copies streams from another log */
+	// Constructor - copies streams from another log
 	bss_Log(const bss_Log& copy);
-	/* Constructor - takes a stream and adds it */
+	// Constructor - takes a stream and adds it
 	explicit bss_Log(std::ostream* log=0);
 	//explicit bss_Log(std::wostream* log);
-	/* Constructor - takes either a stream or a file (or both) and adds them */
+	// Constructor - takes either a stream or a file (or both) and adds them
 	explicit bss_Log(const char* logfile, std::ostream* log=0);
 	bss_Log(const wchar_t* logfile, std::ostream* log);
 	//bss_Log(const char* logfile, std::wostream* log);
 	//bss_Log(const wchar_t* logfile, std::wostream* log);
-  /* Destructor - destroys any file streams */
+  // Destructor - destroys any file streams
   ~bss_Log();
-  /* Redirects an existing stream to write to this log's buffer */
+  // Redirects an existing stream to write to this log's buffer
   void BSS_FASTCALL Assimilate(std::ostream& stream); //Resistance is futile
-  /* Adds a target stream to post logs to */
+  // Adds a target stream to post logs to
   void BSS_FASTCALL AddTarget(std::ostream& stream);
   //void BSS_FASTCALL AddTarget(std::wostream& stream);
   void BSS_FASTCALL AddTarget(const char* file);
   void BSS_FASTCALL AddTarget(const wchar_t* file);
-  /* Clears all targets and closes all files */
+  // Clears all targets and closes all files
   void ClearTargets();
-  /* Gets the stream for this log */
+  // Gets the stream for this log
   inline std::ostream& GetStream() { return _stream; }
 
   bss_Log& operator=(const bss_Log& right);

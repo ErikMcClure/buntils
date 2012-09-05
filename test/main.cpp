@@ -173,7 +173,7 @@ inline void BSS_FASTCALL TEST_ABITLIMIT(TEST::RETPAIR& __testret)
 template<typename T, size_t S> inline static size_t BSS_FASTCALL _ARRSIZE(const T (&a)[S]) { return S; }
 
 #if defined(BSS_CPU_x86) || defined(BSS_CPU_x64)
-  /* This is an SSE version of the fast sqrt that calculates x*invsqrt(x) as a speed hack. Sadly, it's still slower and actually LESS accurate than the classic FastSqrt with an added iteration, below, and it isn't even portable. Left here for reference, in case you don't believe me ;) */
+  // This is an SSE version of the fast sqrt that calculates x*invsqrt(x) as a speed hack. Sadly, it's still slower and actually LESS accurate than the classic FastSqrt with an added iteration, below, and it isn't even portable. Left here for reference, in case you don't believe me ;)
   inline BSS_FORCEINLINE float sseFastSqrt(float f)
   {
     float r;
@@ -192,6 +192,58 @@ template<typename T, size_t S> inline static size_t BSS_FASTCALL _ARRSIZE(const 
  }
 
 // --- Begin actual test procedure definitions ---
+
+TEST::RETPAIR test_bss_util_c()
+{
+  BEGINTEST;
+
+  TEST(!strhex("0"));
+  TEST(!strhex("z"));
+  TEST(strhex("a")==10);
+  TEST(strhex("8")==8);
+  TEST(strhex("abad1dea")==0xABAD1DEA);
+  TEST(strhex("ABAD1DEA")==0xABAD1DEA);
+  TEST(strhex("0xABAD1DEA")==0xABAD1DEA);
+  TEST(strhex("0xabad1dea")==0xABAD1DEA);
+  TEST(!wcshex(L"0"));
+  TEST(!wcshex(L"z"));
+  TEST(wcshex(L"a")==10);
+  TEST(wcshex(L"8")==8);
+  TEST(wcshex(L"abad1dea")==0xABAD1DEA);
+  TEST(wcshex(L"ABAD1DEA")==0xABAD1DEA);
+  TEST(wcshex(L"0xABAD1DEA")==0xABAD1DEA);
+  TEST(wcshex(L"0xabad1dea")==0xABAD1DEA);
+
+  char buf[6];
+  TEST(itoa_r(238907,0,0,10)==22);
+  TEST(itoa_r(238907,buf,0,10)==22);
+  TEST(itoa_r(238907,buf,-2,10)==22);
+  TEST(itoa_r(238907,buf,1,10)==22);
+  itoa_r(238907,buf,2,10);
+  TEST(!strcmp(buf,"7"));
+  itoa_r(-238907,buf,2,10);
+  TEST(!strcmp(buf,"-"));
+  itoa_r(238907,buf,5,10);
+  TEST(!strcmp(buf,"8907"));
+  itoa_r(238907,buf,6,10);
+  TEST(!strcmp(buf,"38907"));
+  _itoa_r(238907,buf,10);
+  TEST(!strcmp(buf,"38907"));
+  _itoa_r(907,buf,10);
+  TEST(!strcmp(buf,"907"));
+  _itoa_r(-238907,buf,10);
+  TEST(!strcmp(buf,"-8907"));
+  _itoa_r(-907,buf,10);
+  TEST(!strcmp(buf,"-907"));
+  _itoa_r(-0,buf,10);
+  TEST(!strcmp(buf,"0"));
+  _itoa_r(1,buf,10);
+  TEST(!strcmp(buf,"1"));
+  _itoa_r(-1,buf,10);
+  TEST(!strcmp(buf,"-1"));
+
+  ENDTEST;
+}
 
 TEST::RETPAIR test_bss_util()
 {
@@ -822,11 +874,9 @@ TEST::RETPAIR test_bss_deprecated()
   TEST(!STRICMP("fOObAr","Foobar"));
   TEST(!WCSICMP(L"Kæmi ný",L"kæmi ný"));
 
-#define STRTOK(str,delim,context) strtok_s(str,delim,context)
-#define WCSTOK(str,delim,context) wcstok_s(str,delim,context)
-#define SSCANF sscanf_s
-#define ITOA(v,buf,r) _itoa_s(v,buf,r)
-#define ITOA_S(v,buf,bufsize,r) _itoa_s(v,buf,bufsize,r)
+//#define STRTOK(str,delim,context) strtok_s(str,delim,context)
+//#define WCSTOK(str,delim,context) wcstok_s(str,delim,context)
+//#define SSCANF sscanf_s
   ENDTEST;
 }
 
@@ -1098,6 +1148,28 @@ TEST::RETPAIR test_ARRAYSIMPLE()
   TEST(a.Size()==10);
 
   {
+  DArray<int>::t e(0);
+  DArray<int>::t b(e);
+  b=e;
+  e.Insert(5,0);
+  e.Insert(4,0);
+  e.Insert(2,0);
+  e.Insert(3,1);
+  TEST(e.Size()==4);
+  int sol[] = { 2,3,4,5,2,3,4,5 };
+  TESTARRAY(e,return e[i]==sol[i];);
+  DArray<int>::t c(0);
+  c=e;
+  e=b;
+  e+=b;
+  e=c;
+  e+=b;
+  b+=c;
+  e+=c;
+  TESTARRAY(e,return e[i]==sol[i];);
+  }
+
+  {
     DEBUG_CDT_SAFE<true>::_testret=&__testret;
     DEBUG_CDT<true>::count=0;
     DArray<DEBUG_CDT<true>>::tSafe b(10);
@@ -1324,7 +1396,8 @@ TEST::RETPAIR test_INISTORAGE()
   cStrW wtester2str(L"%s%i",L"test",2);
   wtester2str+=tester2str;
 
-  const std::vector<std::pair<cStr,unsigned int>>& sections=ini.BuildSectionList();
+  std::vector<std::pair<cStr,unsigned int>> sections;
+  ini.BuildSectionList<0>(sections);
   ini.EndINIEdit();
 
   /*for(unsigned int i=0; i < sections.size(); ++i)
@@ -1968,6 +2041,7 @@ int main(int argc, char** argv)
   shuffle(testnums);
 
   TEST tests[] = {
+    { "bss_util_c.h", &test_bss_util_c },
     { "bss_util.h", &test_bss_util },
     { "bss_DebugInfo.h", &test_bss_DEBUGINFO },
     { "bss_algo.h", &test_bss_algo },

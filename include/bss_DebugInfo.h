@@ -11,7 +11,7 @@
 struct HINSTANCE__; //so we can avoid windows.h
 struct _PROCESS_MEMORY_COUNTERS; //Include <psapi.h> to read the information
 
-/* An inheritable debug class that exposes process information and provides profiling tools */
+// An inheritable debug class that exposes process information and provides profiling tools
 typedef class BSS_DLLEXPORT bss_DebugInfo : public bss_util::cHighPrecisionTimer, public bss_Log
 {
 public:
@@ -20,13 +20,13 @@ public:
   explicit bss_DebugInfo(const char* logfile, std::ostream* log=0);
   explicit bss_DebugInfo(const wchar_t* logfile, std::ostream* log=0);
   virtual ~bss_DebugInfo();
-  /* Gets the path of the given module - 0 returns path of calling executable */
+  // Gets the path of the given module - 0 returns path of calling executable
   const char* ModulePath(HINSTANCE__ *mod=0); //If this is GetModulePath windows' stupid #defines screw it up
-  /* Gets memory information about the process */
+  // Gets memory information about the process
   const _PROCESS_MEMORY_COUNTERS* GetProcMemInfo();
-  /* Gets total memory used by process */
+  // Gets total memory used by process
   size_t GetWorkingSet();
-  /* Starts a profiler and returns the ID. Returns -1 if you have used up all available profiler spaces */
+  // Starts a profiler and returns the ID. Returns -1 if you have used up all available profiler spaces
   inline char OpenProfiler()
   {
     if(_flstart==_flend) return -1; //this circular list implementation method leaves one empty cell
@@ -36,7 +36,7 @@ public:
     _querytime(&_profilers[ret]);
     return ret;
   }
-  /* Closes a profiler and returns the difference in time in milliseconds as a double */
+  // Closes a profiler and returns the difference in time in milliseconds as a double
   inline unsigned __int64 BSS_FASTCALL CloseProfiler(char ID)
   {
     unsigned __int64 compare;
@@ -49,7 +49,7 @@ public:
     _flprof[_flend]=ID; //add ID to freelist
     return compare;
   }
-  /* Clears all profilers */
+  // Clears all profilers
   void ClearProfilers();
 
   bss_DebugInfo& operator =(const bss_DebugInfo& right);

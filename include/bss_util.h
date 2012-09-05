@@ -19,6 +19,7 @@
 #define __BSS_UTIL_H__
 
 #include "bss_util_c.h"
+#include "bss_defines.h"
 #include <assert.h>
 #include <math.h>
 #include <memory.h>
@@ -51,7 +52,7 @@ namespace bss_util {
   const __int32 FLT_INTEPS = *(__int32*)(&FLT_EPS);
   const __int64 DBL_INTEPS = *(__int64*)(&DBL_EPS);
 
-  /* Given the size of a type, lets you return the signed or unsigned integral equivelent */
+  // Given the size of a type, lets you return the signed or unsigned integral equivelent
   template<int bytes> struct TSignPick {};
   template<> struct TSignPick<1> { typedef char SIGNED; typedef unsigned char UNSIGNED; };
   template<> struct TSignPick<2> { typedef __int16 SIGNED; typedef unsigned __int16 UNSIGNED; };
@@ -61,7 +62,7 @@ namespace bss_util {
 //  template<> struct TSignPick<16> { typedef __int128 SIGNED; typedef unsigned __int128 UNSIGNED; };
 //#endif 
 
-  /* Get max size of an arbitrary number of bits, either signed or unsigned (assuming one's or two's complement implementation) */
+  // Get max size of an arbitrary number of bits, either signed or unsigned (assuming one's or two's complement implementation)
   template<unsigned char BITS>
   struct ABitLimit
   {
@@ -77,13 +78,13 @@ namespace bss_util {
   template<typename T>
   struct TBitLimit : public ABitLimit<sizeof(T)<<3> {};
 
-  /* template inferred version of T_GETBIT and T_GETBITRANGE */
+  // template inferred version of T_GETBIT and T_GETBITRANGE
   template<class T>
   inline T BSS_FASTCALL GetBitMask(int bit) { return T_GETBIT(T,bit); }
   template<class T>
   inline T BSS_FASTCALL GetBitMask(int low, int high) { return T_GETBITRANGE(T,low,high); }
 
-  /* Replaces one character with another in a string */
+  // Replaces one character with another in a string
   template<typename T>
   inline T* BSS_FASTCALL strreplace(T* string, const T find, const T replace)
 	{
@@ -98,7 +99,7 @@ namespace bss_util {
 		return string;
 	}
 
-  /* Counts number of occurences of character c in string, up to the null terminator */
+  // Counts number of occurences of character c in string, up to the null terminator
   template<typename T>
   inline unsigned int BSS_FASTCALL strccount(T* string, T c)
   {
@@ -108,7 +109,7 @@ namespace bss_util {
     return ret;
   }
   
-  /* Counts number of occurences of character c in string, up to length characters */
+  // Counts number of occurences of character c in string, up to length characters
   template<typename T>
   inline unsigned int BSS_FASTCALL strccount(T* string, T c, unsigned int length)
   {
@@ -119,7 +120,7 @@ namespace bss_util {
     return ret;
   }
 
-  /* template swap function, h should be optimized out by the compiler */
+  // template swap function, h should be optimized out by the compiler
   template<typename T>
   inline BSS_FORCEINLINE void BSS_FASTCALL rswap(T& p, T& q)
   {
@@ -128,7 +129,7 @@ namespace bss_util {
     q=std::move(h);
   }
   
-  /* Uses rswap to reverse the order of an array */
+  // Uses rswap to reverse the order of an array
   template<typename T>
   inline void BSS_FASTCALL bssreverse(T* src, unsigned int length)
   {
@@ -149,7 +150,7 @@ namespace bss_util {
     return str;
   }
   
-  /* Trims space from right end of string by inserting a null terminator in the appropriate location */
+  // Trims space from right end of string by inserting a null terminator in the appropriate location
   template<typename T>
   inline T* BSS_FASTCALL strrtrim(T* str)
   {
@@ -161,7 +162,7 @@ namespace bss_util {
     return str;
   }
 
-  /* Performs a mathematically correct modulo, unlike the modulo operator, which doesn't actually perform modulo, it performs a remainder operation. THANKS GUYS! */
+  // Performs a mathematically correct modulo, unlike the modulo operator, which doesn't actually perform modulo, it performs a remainder operation. THANKS GUYS!
   template<typename T> //T must be integral
   inline BSS_FORCEINLINE T BSS_FASTCALL bssmod(T x, T m)
   {
@@ -170,14 +171,14 @@ namespace bss_util {
     return (x+((x<0)*m));
   }
 
-  /* Trims space from left and right ends of a string */
+  // Trims space from left and right ends of a string
   template<typename T>
   inline BSS_FORCEINLINE T* BSS_FASTCALL strtrim(T* str)
   {
     return strrtrim(strltrim(str));
   }
 
-  /* This is a bit-shift method of calculating the next number in the fibonacci sequence by approximating the golden ratio with 0.6171875 (1/2 + 1/8 - 1/128) */
+  // This is a bit-shift method of calculating the next number in the fibonacci sequence by approximating the golden ratio with 0.6171875 (1/2 + 1/8 - 1/128)
   template<typename T>
   inline BSS_FORCEINLINE T BSS_FASTCALL fbnext(T in)
   {
@@ -185,21 +186,21 @@ namespace bss_util {
     return in + 1 + (in>>1) + (in>>3) - (in>>7);
   }
 
-  /* Gets the sign of any number (0 is assumed to be positive) */
+  // Gets the sign of any number (0 is assumed to be positive)
   template<typename T>
   inline BSS_FORCEINLINE char BSS_FASTCALL tsign(T n)
   {
     return (n >= 0) - (n < 0);
   }
 
-  /* Gets the sign of any number, where a value of 0 returns 0 */
+  // Gets the sign of any number, where a value of 0 returns 0
   template<typename T>
   inline BSS_FORCEINLINE char BSS_FASTCALL tsignzero(T n)
   {
     return (n > 0) - (n < 0);
   }
   
-  /* Gets the shortest distance between two angles in radians */
+  // Gets the shortest distance between two angles in radians
   template<typename T>
   inline BSS_FORCEINLINE T BSS_FASTCALL angledist(T a, T b)
   {
@@ -207,7 +208,7 @@ namespace bss_util {
     return ((T)PI) - fabs(fmod(fabs(a - b), ((T)PI_DOUBLE)) - ((T)PI));
   }
   
-  /* Gets the SIGNED shortest distance between two angles starting with (a - b) in radians */
+  // Gets the SIGNED shortest distance between two angles starting with (a - b) in radians
   template<typename T>
   inline BSS_FORCEINLINE T BSS_FASTCALL angledistsgn(T a, T b)
   {
@@ -241,7 +242,7 @@ namespace bss_util {
 #endif
   }
 
-  /* Returns true if FPU is in single precision mode and false otherwise (false for both double and extended precision) */
+  // Returns true if FPU is in single precision mode and false otherwise (false for both double and extended precision)
   inline BSS_FORCEINLINE bool FPUsingle()
   { 
     unsigned int i;
@@ -257,7 +258,7 @@ namespace bss_util {
     return ((i&(0x0300))==0); //0x0300 is the mask for the precision bits, 0 indicates single precision
   }
 
-  /* Extremely fast rounding function that again will usually round to the nearest integer, but only works in double precision mode */
+  // Extremely fast rounding function that again will usually round to the nearest integer, but only works in double precision mode
   inline BSS_FORCEINLINE __int32 fFastDoubleRound(double val)
   {
     const double _double2fixmagic = 4503599627370496.0*1.5; //2^52 for 52 bits of mantissa
@@ -290,7 +291,7 @@ namespace bss_util {
 		return !dif?((0x007FFF80&left)==(0x007FFF80&right)):!(abs((0x007FFF80&left)-(0x007FFF80&right))-0x007FFF80); //If there is no difference in exponent we tear off the last 7 bits and compare the value, otherwise we tear off the last 7 bits, subtract, and then subtract the highest possible significand to compensate for the extra exponent.
 	}
 
-  /* Highly optimized traditional tolerance based approach to comparing floating point numbers, found here: http://www.randydillon.org/Papers/2007/everfast.htm */
+  // Highly optimized traditional tolerance based approach to comparing floating point numbers, found here: http://www.randydillon.org/Papers/2007/everfast.htm
   inline BSS_FORCEINLINE bool BSS_FASTCALL fcompare(float af, float bf, __int32 maxDiff=1)
   { 
     assert(af!=0.0f && bf!=0.0f); // Use fsmall for this
@@ -316,7 +317,7 @@ namespace bss_util {
     return (v1|v2) >= 0;
   }
 
-  /* This determines if a float is sufficiently close to 0 */
+  // This determines if a float is sufficiently close to 0
   inline BSS_FORCEINLINE bool BSS_FASTCALL fsmall(float f, float eps=FLT_EPS)
   {
     unsigned __int32 i=((*((unsigned __int32*)&f))&0x7FFFFFFF); //0x7FFFFFFF strips off the sign bit (which is always the highest bit)
@@ -324,7 +325,7 @@ namespace bss_util {
     return i<=e; 
   }
 
-  /* This determines if a double is sufficiently close to 0 */
+  // This determines if a double is sufficiently close to 0
   inline BSS_FORCEINLINE bool BSS_FASTCALL fsmall(double f, double eps=DBL_EPS)
   {
     unsigned __int64 i=((*((unsigned __int64*)&f))&0x7FFFFFFFFFFFFFFF); //0x7FFFFFFFFFFFFFFF strips off the sign bit (which is always the highest bit)
@@ -332,7 +333,7 @@ namespace bss_util {
     return i<=e; 
   }
 
-  /* This is a super fast length approximation for 2D coordinates; See http://www.azillionmonkeys.com/qed/sqroot.html for details (Algorithm by Paul Hsieh) */
+  // This is a super fast length approximation for 2D coordinates; See http://www.azillionmonkeys.com/qed/sqroot.html for details (Algorithm by Paul Hsieh)
   inline BSS_FORCEINLINE float BSS_FASTCALL flength(float x, float y)
   {
     x = fabs(x);
@@ -342,7 +343,7 @@ namespace bss_util {
     return 0.92677669529663688f * ((hold > mval)?hold:mval);
   }
   
-  /* The classic fast square root approximation, which is often mistakenly attributed to John Carmack. The algorithm is in fact over 15 years old and no one knows where it came from. */
+  // The classic fast square root approximation, which is often mistakenly attributed to John Carmack. The algorithm is in fact over 15 years old and no one knows where it came from.
   inline BSS_FORCEINLINE float BSS_FASTCALL fFastSqrt(float number)
   {
     const float f = 1.5F;
@@ -359,7 +360,7 @@ namespace bss_util {
     return number * y;
   }
 
-  /* Adaptation of the class fast square root approximation for double precision, based on http://www.azillionmonkeys.com/qed/sqroot.html */
+  // Adaptation of the class fast square root approximation for double precision, based on http://www.azillionmonkeys.com/qed/sqroot.html
   inline BSS_FORCEINLINE double BSS_FASTCALL dFastSqrt(double number)
   {
     const double f = 1.5;
@@ -369,7 +370,7 @@ namespace bss_util {
     x = number*0.5;
 	  y = number;
     i = ((unsigned __int32 *)&y) + 1;
-	  *i = (0xbfcdd90a - *i)>>1; /* estimate of 1/sqrt(number) */
+	  *i = (0xbfcdd90a - *i)>>1; // estimate of 1/sqrt(number)
 
     y = y * ( f - ( x * y * y ) );
     y = y * ( f - ( x * y * y ) );
@@ -378,7 +379,7 @@ namespace bss_util {
     return number * y;
   }
 
-  /* bit-twiddling based method of calculating an integral square root from Wilco Dijkstra - http://www.finesse.demon.co.uk/steven/sqrt.html */
+  // bit-twiddling based method of calculating an integral square root from Wilco Dijkstra - http://www.finesse.demon.co.uk/steven/sqrt.html
   template<typename T, unsigned int bits> // WARNING: bits should be HALF the actual number of bits in (T)!
   inline BSS_FORCEINLINE T BSS_FASTCALL IntFastSqrt(T n)
   {
@@ -408,21 +409,21 @@ namespace bss_util {
   template<> inline BSS_FORCEINLINE double BSS_FASTCALL FastSqrt(double n) { return dFastSqrt(n); }
   template<> inline BSS_FORCEINLINE long double BSS_FASTCALL FastSqrt(long double n) { return dFastSqrt((double)n); }
 
-  /* Distance calculation (squared) */
+  // Distance calculation (squared)
   template<typename T>
   inline BSS_FORCEINLINE T BSS_FASTCALL distsqr(T X, T Y, T x, T y)
   {
     T tx=X-x,ty=Y-y; return (tx*tx)+(ty*ty); //It doesn't matter if you use temporary values for floats, but it does if you use ints (for unknown reasons)
   }
 
-  /* Distance calculation */
+  // Distance calculation
   template<typename T>
   inline BSS_FORCEINLINE T BSS_FASTCALL dist(T X, T Y, T x, T y)
   {
     return FastSqrt<T>(distsqr<T>(X,Y,x,y));
   }
   
-  /* Average aggregation without requiring a total variable that can overflow. Nextnum should be the current avg count incremented by 1. */
+  // Average aggregation without requiring a total variable that can overflow. Nextnum should be the current avg count incremented by 1.
   template<typename T, typename __ST> // T must be float or double, __ST must be integral
   inline BSS_FORCEINLINE T BSS_FASTCALL bssavg(T curavg, T nvalue, __ST nextnum)
   {
@@ -431,7 +432,7 @@ namespace bss_util {
     return (curavg*(((T)(nextnum-1))/((T)nextnum))) + nvalue/((T)nextnum);
   }
 
-  /* Searches an arbitrary series of bytes for another arbitrary series of bytes */
+  // Searches an arbitrary series of bytes for another arbitrary series of bytes
   inline const void* bytesearch(const void* search, size_t length, const void* find, size_t flength)
   {
     if(!search || !length || !find || !flength || length < flength) return 0;
@@ -464,7 +465,7 @@ namespace bss_util {
   }
 
   //Unlike FastSqrt, these are useless unless you are on a CPU without SSE instructions, or have a terrible std implementation.
-  ///* Fast sin function with 0.078% error when extra precision is left in. See http://www.devmaster.net/forums/showthread.php?t=5784 */
+  //// Fast sin function with 0.078% error when extra precision is left in. See http://www.devmaster.net/forums/showthread.php?t=5784
   //inline float BSS_FASTCALL FastSin(float x)
   //{
   //  x-= (int)(x*(1/(float)PI_DOUBLE))*(float)PI_DOUBLE;
@@ -484,7 +485,7 @@ namespace bss_util {
   //  return FastSin(x+(float)PI_HALF);
   //}
 
-  /* Bit-twiddling hack for base 2 log by Sean Eron Anderson */
+  // Bit-twiddling hack for base 2 log by Sean Eron Anderson
   inline unsigned int BSS_FASTCALL log2(unsigned char v)
   {
     const unsigned int b[] = {0x2, 0xC, 0xF0};
@@ -553,7 +554,7 @@ namespace bss_util {
     return r;
   }
 
-  /* Basic lerp function with no bounds checking */
+  // Basic lerp function with no bounds checking
   template<class T>
   inline BSS_FORCEINLINE T lerp(T a, T b, double amt)
   {
@@ -563,7 +564,7 @@ namespace bss_util {
 
 #endif
 
-  /* Simple 128bit integer for x86 instruction set. Replaced with __int128 if possible */
+  // Simple 128bit integer for x86 instruction set. Replaced with __int128 if possible
 //#ifdef BSS32BIT
 //  struct int128
 //  {

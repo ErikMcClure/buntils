@@ -68,8 +68,8 @@ void bss_Log::ClearTargets()
 }
 bool BSS_FASTCALL bss_Log::_writedatetime(long timez, std::ostream& log, bool timeonly)
 {
-  TIMEVALUSED rawtime;
-  FTIME(&rawtime);
+  __int64 rawtime;
+  TIME64(&rawtime);
   tm stm;
   tm* ptm=&stm;
   GMTIMEFUNC(&rawtime, ptm);

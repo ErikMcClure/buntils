@@ -9,7 +9,7 @@
 #include <list>
 
 namespace bss_util {
-  /* A base node for a doubly-linked list. The given parameter T may be any class that publically inherits LLBase */
+  // A base node for a doubly-linked list. The given parameter T may be any class that publically inherits LLBase
   template<typename T>
   struct LLBase
   {
@@ -17,7 +17,7 @@ namespace bss_util {
     T* prev;
   };
 
-  /* Inserts the node before the target and re-assigns root if necessary. Does not assign values to node. */
+  // Inserts the node before the target and re-assigns root if necessary. Does not assign values to node.
   template<typename T>
   inline void BSS_FASTCALL LLInsert(T* node, T* target, T*& root)
   {
@@ -26,7 +26,7 @@ namespace bss_util {
 		target->prev = node;
   }
 
-  /* Inserts the node before the target. Does not assign values to node or re-assign root. */
+  // Inserts the node before the target. Does not assign values to node or re-assign root.
   template<typename T>
   inline void BSS_FASTCALL LLInsert(T* node, T* target)
   {
@@ -34,7 +34,7 @@ namespace bss_util {
 		target->prev = node;
   }
 
-  /* Assigns node's values for a before insertion (used before LLInsert) */
+  // Assigns node's values for a before insertion (used before LLInsert)
   template<typename T>
   inline void BSS_FASTCALL LLInsertAssign(T* node, T* target)
   {
@@ -42,7 +42,7 @@ namespace bss_util {
 		node->next = target;
   }
 
-  /* Inserts the node before the target and re-assigns last if necessary. Does not assign values to node. */
+  // Inserts the node before the target and re-assigns last if necessary. Does not assign values to node.
   template<typename T>
   inline void BSS_FASTCALL LLInsertAfter(T* node, T* target, T*& last)
   {
@@ -51,7 +51,7 @@ namespace bss_util {
 		target->next = node;
   }
 
-  /* Inserts the node before the target. Does not assign values to node. */
+  // Inserts the node before the target. Does not assign values to node.
   template<typename T>
   inline void BSS_FASTCALL LLInsertAfter(T* node, T* target)
   {
@@ -59,15 +59,23 @@ namespace bss_util {
 		target->next = node;
   }
 
-  /* Assigns node's values for an after insertion (used before LLInsertAfter) */
+  // Assigns node's values for an after insertion (used before LLInsertAfter)
   template<typename T>
   inline void BSS_FASTCALL LLInsertAfterAssign(T* node, T* target)
   {
 		node->next = target->next;
 		node->prev = target;
   }
+  // Used in the form last = LLAdd(node,last); where last must be the last element of a linked list, defined by last->next = 0.
+  template<typename T>
+  inline T* BSS_FASTCALL LLAdd(T* node, T* last)
+  {
+    LLInsertAfterAssign(node,last);
+    last->next = node;
+    return node;
+  }
 
-  /* Removes a node from a list, re-assigning root and last as necessary. Does not zero values on node */
+  // Removes a node from a list, re-assigning root and last as necessary. Does not zero values on node
   template<typename T>
   inline void BSS_FASTCALL LLRemove(T* node, T*& root, T*& last)
   {
@@ -77,7 +85,7 @@ namespace bss_util {
 		else last = node->prev;
   }
 
-  /* Removes a node from a list, re-assigning root as necessary. Does not zero values on node */
+  // Removes a node from a list, re-assigning root as necessary. Does not zero values on node
   template<typename T>
   inline void BSS_FASTCALL LLRemove(T* node, T*& root)
   {
@@ -86,7 +94,7 @@ namespace bss_util {
 		if(node->next != 0) node->next->prev = node->prev;
   }
 
-  /* Removes a node from a list. Does not zero values on node */
+  // Removes a node from a list. Does not zero values on node
   template<typename T>
   inline void BSS_FASTCALL LLRemove(T* node)
   {
@@ -94,7 +102,7 @@ namespace bss_util {
 		if(node->next != 0) node->next->prev = node->prev;
   }
 
-  /* Iterator for doubly linked list. Does not support remove; use postfix-- or the equivelent */
+  // Iterator for doubly linked list. Does not support remove; use postfix-- or the equivelent
   template<typename T, typename _Nd>
   class BSS_COMPILER_DLLEXPORT LLIterator : public std::iterator<std::bidirectional_iterator_tag,T>
 	{

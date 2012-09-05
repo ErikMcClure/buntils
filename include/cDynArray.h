@@ -7,7 +7,7 @@
 #include "cArraySimple.h"
 
 namespace bss_util {
-  /* Dynamic array implemented using ARRAYTYPE (should only be used in situations where std::vector has problems) */
+  // Dynamic array implemented using ARRAYTYPE (should only be used in situations where std::vector has problems)
   template<class ARRAYTYPE>
   class BSS_COMPILER_DLLEXPORT cDynArray : public ARRAYTYPE
   {

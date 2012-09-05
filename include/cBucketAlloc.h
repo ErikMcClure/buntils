@@ -15,7 +15,7 @@
 //  typedef Allocator<BUCKETMEM_NODETYPE, FixedSizeAllocPolicy<BUCKETMEM_NODETYPE>> BUCKETMEM_ALLOCATOR_TYPE;
 //  class cBucketAlloc;
 //
-//  /* All functions here are expanded since this is a required class and I don't want to force a .lib include unless absolutely necessary */
+//  // All functions here are expanded since this is a required class and I don't want to force a .lib include unless absolutely necessary
 //  struct BSS_COMPILER_DLLEXPORT BUCKET_MEMALLOC
 //  {
 //    inline BUCKET_MEMALLOC(unsigned short size, BUCKETMEM_ALLOCATOR_TYPE* alloc, cBucketAlloc* parent);

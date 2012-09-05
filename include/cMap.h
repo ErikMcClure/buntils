@@ -8,7 +8,7 @@
 #include <utility>
 
 namespace bss_util {
-  /* A map class implemented as an associative sorted array */
+  // A map class implemented as an associative sorted array
   template<class Key, class Data, char (*CFunc)(const Key&,const Key&)=CompT<Key>, typename _SizeType=unsigned int, typename ArrayType=cArraySimple<std::pair<Key,Data>,_SizeType>>
   class BSS_COMPILER_DLLEXPORT cMap : protected cArraySort<std::pair<Key,Data>, CompTFirst<std::pair<Key,Data>, CFunc>, _SizeType, ArrayType>
   {

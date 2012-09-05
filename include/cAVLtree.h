@@ -20,7 +20,7 @@ namespace bss_util {
     int _balance;
   };
 
-  /* AVL Tree implementation */
+  // AVL Tree implementation
   template<class Key, class Data, char (*CFunc)(const Key&, const Key&)=CompT<Key>, typename Alloc=Allocator<AVL_Node<Key,Data>>, Data INVALID = 0>
 	class BSS_COMPILER_DLLEXPORT cAVLtree : cAllocTracker<Alloc>
   {

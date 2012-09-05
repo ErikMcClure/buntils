@@ -23,7 +23,7 @@ namespace bss_util
     inline _BIT_REF& operator=(bool r) { *_p = r?((*_p)|_m):((*_p)&(~_m));  return *this; }
 	};
 
-  /* Extremely fast bit array for compressed storage of any number of bools. O(1) speed for access regardless of size. */
+  // Extremely fast bit array for compressed storage of any number of bools. O(1) speed for access regardless of size.
   template<typename StorageType=unsigned char, typename SizeType=unsigned int> //These should all be unsigned. If they aren't, things will explode and it will be YOUR FAULT
   class BSS_COMPILER_DLLEXPORT cBitArray
   {
@@ -72,7 +72,7 @@ namespace bss_util
       if(start==end)
         (smask&emask)
     }*/
-    /* Counts the bits in the given range */
+    // Counts the bits in the given range
     inline __ST BSS_FASTCALL GetBits(__ST bitindex, __ST length) const
     {
       length+=bitindex;

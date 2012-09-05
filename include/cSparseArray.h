@@ -7,7 +7,7 @@
 #include "cBitArray.h"
 
 namespace bss_util {
-  /* Sparse array implementation that allows you to specify how sparse it is */
+  // Sparse array implementation that allows you to specify how sparse it is
   template<typename T, int Sparsity=4, typename _ST=unsigned int>
   class BSS_COMPILER_DLLEXPORT cSparseArray : protected cBitArray<unsigned char, _ST>
   {
@@ -22,13 +22,13 @@ namespace bss_util {
     cSparseArray(const cSparseArray& copy) : _array(0), _size(0), cBitArray<unsigned char, _ST>(copy) { _resize(right._size); memcpy(_array, right._array, sizeof(SPARSE_ELEM)*_size); }
     cSparseArray(__ST init=1) : _array(0), _size(0), cBitArray<unsigned char, _ST>(init) { _resize(init); }
     ~cSparseArray() { delete [] _array; } //We always have array equal something, even if its a zero length array
-    /* appends something to the end of the array, pushing everything else back. This cannot fail (well, unless you run out of memory. But if you ran out of memory, boy are you fucked) */
+    // appends something to the end of the array, pushing everything else back. This cannot fail (well, unless you run out of memory. But if you ran out of memory, boy are you fucked)
     void Add(const T item)
     {
       if(_count==_size) _expand(_size*Sparsity);
       _insert(item,_size-1);
     }
-    /* Inserts the item at the given index and shifts everything around */
+    // Inserts the item at the given index and shifts everything around
     bool Insert(const T item, __ST index)
     {
       if(index<_size&&GetBit(index))
@@ -39,7 +39,7 @@ namespace bss_util {
       }
       return false;
     }
-    /* Removes the index if it exists */
+    // Removes the index if it exists
     bool Remove(__ST index)
     {
       __ST realindex=(index>>DIV_AMT), bitindex=(index&MOD_AMT);
@@ -75,17 +75,17 @@ namespace bss_util {
       
       return false;
     }
-    /* Tells you if a given index is valid */
+    // Tells you if a given index is valid
     inline bool BSS_FASTCALL IsValid(__ST index) { return (index<_size)?GetBit(index):false; }
-    /* Gets the total size of the array */
+    // Gets the total size of the array
     inline __ST Size() const { return _size; }
-    /* Gets the number of used spots in the array */
+    // Gets the number of used spots in the array
     inline __ST Length() const { return _count; }
-    /* Expands the array by the sparsity amount */
+    // Expands the array by the sparsity amount
     inline void Expand(__ST size) { float a = _size*Sparsity; size+=size%Sparsity; _expand((size<a)?a:size); }
-    /* Gets the next valid index */
+    // Gets the next valid index
     inline __ST BSS_FASTCALL GetNext(__ST index) const { ++index; return (index>=_size)?-1:(GetBit(index)?index:_array[index]._index); }
-    /* Gets the previous valid index */
+    // Gets the previous valid index
     inline __ST BSS_FASTCALL GetPrev(__ST index) const
     {
       if(index>_size) return -1; //Note that this is > instead of >= because index is about to have 1 subtracted from it, so giving this a value of _size is actually a valid thing to do

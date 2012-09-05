@@ -8,7 +8,7 @@
 #include "bss_util.h"
 
 namespace bss_util {
-  /* Begin Additive Fixed Allocator */
+  // Begin Additive Fixed Allocator
 
   struct AFLISTITEM
   {
@@ -123,11 +123,11 @@ namespace bss_util {
     inline void BSS_FASTCALL clear() { Clear(); } //done for functor reasons, BSS_COMPILER_FASTCALL has no effect here
 	};
 
-  /* End Additive Fixed Allocator */
+  // End Additive Fixed Allocator
 
   BSSBUILD_STATIC_POLICY(StaticAdditiveFixed,AdditiveFixedPolicy);
 
-  /* Dynamic additive allocator that can allocate any number of bytes */
+  // Dynamic additive allocator that can allocate any number of bytes
 	class BSS_COMPILER_DLLEXPORT cAdditiveVariableAllocator
   {
   public:
@@ -240,7 +240,7 @@ namespace bss_util {
 #endif
 
 
-  /* Begin AdditiveChunkPolicy */
+  // Begin AdditiveChunkPolicy
 /*  struct MEMBUCKET
 	{
 		MEMBUCKET(size_t _size) : size(_size), mem((char*)malloc(_size)), next(0) {}
@@ -379,7 +379,7 @@ namespace bss_util {
 	inline bool operator==(AdditiveChunkPolicy<T> const&, AdditiveChunkPolicy<T2> const&) { return true; }
 	template<typename T, typename OtherAllocator> inline bool operator==(AdditiveChunkPolicy<T> const&, OtherAllocator const&) { return false; }
 
-  /* End Additive Chunk Policy */
+  // End Additive Chunk Policy
 /*
 	template<typename T>
 	class BSS_COMPILER_DLLEXPORT AdditiveChunkAllocator : public AdditiveChunkPolicy<T>, public ObjectTraits<T> {

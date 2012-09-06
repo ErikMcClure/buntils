@@ -43,7 +43,7 @@
 #include "cStr.h"
 #include "cStrTable.h"
 //#include "cTAATree.h"
-#include "cTaskStack.h"c
+#include "cTaskStack.h"
 #include "cThread.h"
 #include "cUniquePtr.h"
 #include "functor.h"
@@ -835,9 +835,9 @@ TEST::RETPAIR test_bss_deprecated()
 {
   std::vector<bool> test;
   BEGINTEST;
-  __time64_t tmval=FTIME(NULL);
+  __time64_t tmval=TIME64(NULL);
   TEST(tmval!=0);
-  FTIME(&tmval);
+  TIME64(&tmval);
   TEST(tmval!=0);
   tm tms;
   TEST([&]()->bool { GMTIMEFUNC(&tmval,&tms); return true; }())
@@ -1136,12 +1136,13 @@ int DEBUG_CDT<false>::count=0;
 TEST::RETPAIR test_ARRAYSIMPLE()
 {
   BEGINTEST;
+
   DArray<int>::t a(5);
   TEST(a.Size()==5);
   a.Insert(5,2);
   TEST(a.Size()==6);
   TEST(a[2]==5);
-  a.Remove(1);
+  a.RemoveShrink(1);
   TEST(a[1]==5);
   a.SetSize(10);
   TEST(a[1]==5);
@@ -1156,17 +1157,25 @@ TEST::RETPAIR test_ARRAYSIMPLE()
   e.Insert(2,0);
   e.Insert(3,1);
   TEST(e.Size()==4);
-  int sol[] = { 2,3,4,5,2,3,4,5 };
-  TESTARRAY(e,return e[i]==sol[i];);
+  int sol[] = { 2,3,4,5 };
+  TESTARRAY(sol,return e[i]==sol[i];);
   DArray<int>::t c(0);
   c=e;
-  e=b;
-  e+=b;
+  TESTARRAY(sol,return c[i]==sol[i];);
+  DArray<int>::t d(0);
+  e=d;
+  TEST(!e.Size());
+  e+=d;
+  TEST(!e.Size());
   e=c;
-  e+=b;
-  b+=c;
+  TESTARRAY(sol,return e[i]==sol[i];);
+  e+=d;
+  TESTARRAY(sol,return e[i]==sol[i];);
+  d+=c;
+  TESTARRAY(sol,return d[i]==sol[i];);
   e+=c;
-  TESTARRAY(e,return e[i]==sol[i];);
+  int sol2[] = { 2,3,4,5,2,3,4,5 };
+  TESTARRAY(sol,return e[i]==sol[i];);
   }
 
   {
@@ -1206,6 +1215,9 @@ TEST::RETPAIR test_ARRAYSORT()
 {
   BEGINTEST;
   
+  DEBUG_CDT_SAFE<true>::_testret=&__testret; //If you don't do this it smashes the stack, but only sometimes, so it can create amazingly weird bugs.
+  DEBUG_CDT<true>::count=0;
+
   {
   cArraySort<DEBUG_CDT<true>,CompT<DEBUG_CDT<true>>,unsigned int,cArraySafe<DEBUG_CDT<true>,unsigned int>> arrtest;
   arrtest.Insert(DEBUG_CDT<true>(0));
@@ -1375,45 +1387,193 @@ TEST::RETPAIR test_INIPARSE()
   ENDTEST;
 }
 
+#define INI_E(s,k,v,nk,ns) TEST(!ini.EditEntry(MAKESTRING(s),MAKESTRING(k),MAKESTRING(v),nk,ns))
+#define INI_NE(s,k,v,nk,ns) TEST(ini.EditEntry(MAKESTRING(s),MAKESTRING(k),MAKESTRING(v),nk,ns)<0)
+#define INI_R(s,k,nk,ns) TEST(!ini.EditEntry(MAKESTRING(s),MAKESTRING(k),0,nk,ns))
+#define INI_G(s,k,nk,ns) TEST(!ini.EditEntry(MAKESTRING(s),MAKESTRING(k),MAKESTRING(v),nk,ns))
+
 TEST::RETPAIR test_INISTORAGE()
 {
   BEGINTEST;
 
-  cINIstorage ini("test.ini");
-  while(ini.RemoveSection("NEWSECTION"));
-  ini.AddSection("NEWSECTION");
-  ini.AddSection("NEWSECTION");
-  ini.EditEntry("NEWSECTION","newkey","fakevalue",0,-1);
-  ini.EditEntry("NEWSECTION","newkey","realvalue",0,0);
-  ini.EditEntry("NEWSECTION","newkey",0,0,0);
-  ini.EditEntry("NEWSECTION","newkey","value",-1,-1);
-  const char* test = ini["Video"]["baseheight"].GetString();
-  ini.EditEntry("Video","test","fail",-1,-1);
-  ini.EditEntry("Video","test","success");
+  cINIstorage ini("inistorage.ini");
 
-  cStrW testerstr("test");
-  cStr tester2str("%s%i","test",2);
-  cStrW wtester2str(L"%s%i",L"test",2);
-  wtester2str+=tester2str;
+  auto fn=[&](cINIentry* e, const char* s) -> bool { return (e!=0 && !strcmp(e->GetString(),s)); };
+  auto fn2=[&](const char* s) {
+    FILE* f;
+    FOPEN(f,"inistorage.ini","rb"); //this will create the file if it doesn't already exist
+    TEST(f!=0);
+    if(f!=0)
+    {
+      fseek(f,0,SEEK_END);
+      size_t size=(size_t)ftell(f);
+      fseek(f,0,SEEK_SET);
+      cStr ini(size+1);
+      size=fread(ini.UnsafeString(),sizeof(char),size,f); //reads in the entire file
+      ini.UnsafeString()[size]='\0';
+      fclose(f);
+      TEST(!strcmp(ini,s));
+    }  
+  };
+  auto fn3=[&]() {
+    ini.AddSection("1");
+    INI_E(1,a,1,-1,0);
+    INI_E(1,a,2,-1,0);
+    INI_E(1,a,3,-1,0);
+    INI_E(1,a,4,-1,0);
+    INI_E(1,b,1,-1,0);
+    ini.AddSection("2");
+    INI_E(2,a,1,-1,0);
+    INI_E(2,a,2,-1,0);
+    INI_E(2,b,1,-1,0);
+    ini.AddSection("2");
+    INI_E(2,a,1,-1,1);
+    INI_E(2,a,2,-1,1);
+    INI_E(2,b,1,-1,1);
+    INI_E(1,c,1,-1,0); // We do these over here to test adding things into the middle of the file
+    INI_E(1,c,2,-1,0);
+    INI_E(1,d,1,-1,0);
+    ini.AddSection("2");
+  };
+  auto fn4=[&](const char* s, unsigned int index) -> bool {
+    cINIsection* sec=ini.GetSection(s,index);
+    return sec!=0 && sec->GetIndex()==index;
+  };
 
-  std::vector<std::pair<cStr,unsigned int>> sections;
-  ini.BuildSectionList<0>(sections);
+  fn3();
+
+  TEST(fn(ini.GetEntryPtr("1","a",0,0),"1"));
+  TEST(fn(ini.GetEntryPtr("1","a",1,0),"2"));
+  TEST(fn(ini.GetEntryPtr("1","a",2,0),"3"));
+  TEST(fn(ini.GetEntryPtr("1","a",3,0),"4"));
+  TEST(!ini.GetEntryPtr("1","a",4,0));
+  TEST(fn(ini.GetEntryPtr("1","b",0,0),"1"));
+  TEST(!ini.GetEntryPtr("1","b",1,0));
+  TEST(fn(ini.GetEntryPtr("1","c",0,0),"1"));
+  TEST(fn(ini.GetEntryPtr("1","c",1,0),"2"));
+  TEST(!ini.GetEntryPtr("1","c",2,0));
+  TEST(fn(ini.GetEntryPtr("1","d",0,0),"1"));
+  TEST(!ini.GetEntryPtr("1","d",1,0));
+  TEST(fn(ini.GetEntryPtr("2","a",0,0),"1"));
+  TEST(fn(ini.GetEntryPtr("2","a",1,0),"2"));
+  TEST(!ini.GetEntryPtr("2","a",2,0));
+  TEST(fn(ini.GetEntryPtr("2","b",0,0),"1"));
+  TEST(!ini.GetEntryPtr("2","b",1,0));
+  TEST(fn(ini.GetEntryPtr("2","a",0,1),"1"));
+  TEST(fn(ini.GetEntryPtr("2","a",1,1),"2"));
+  TEST(!ini.GetEntryPtr("2","a",2,1));
+  TEST(fn(ini.GetEntryPtr("2","b",0,1),"1"));
+  TEST(!ini.GetEntryPtr("2","b",1,1));
+  TEST(!ini.GetEntryPtr("2","a",0,2));
+  TEST(!ini.GetEntryPtr("2","b",0,2));
+
   ini.EndINIEdit();
+  fn2("[1]\na=1\na=2\na=3\na=4\nb=1\nc=1\nc=2\nd=1\n\n[2]\na=1\na=2\nb=1\n\n[2]\na=1\na=2\nb=1\n\n[2]");
 
-  /*for(unsigned int i=0; i < sections.size(); ++i)
-  {
-    std::cout << '[' << sections[i].first << ':' << sections[i].second  << ']' << std::endl;
-    const std::vector<std::pair<std::pair<cStr,cStr>,unsigned int>>& entries=ini.GetSection(sections[i].first,sections[i].second)->BuildEntryList();
-    for(unsigned int j=0; j < entries.size(); ++j)
-      std::cout << entries[j].first.first << " - " << entries[j].first.second << " :" << entries[j].second << std::endl;
-    std::cout << std::endl;
-  }*/
+  INI_E(1,a,8,3,0); // Out of order to try and catch any bugs that might result from that
+  INI_E(1,a,6,1,0);
+  INI_E(1,a,7,2,0);
+  INI_E(1,a,5,0,0);
+  INI_NE(1,a,9,4,0);
+  INI_E(1,b,2,0,0);
+  INI_NE(1,b,9,1,0);
+  INI_E(1,c,3,0,0); // Normal in order attempt
+  INI_E(1,c,4,1,0);
+  INI_NE(1,c,9,2,0);
+  INI_E(1,d,2,0,0);
+  INI_NE(1,d,9,1,0);
+  INI_E(2,a,4,1,0); // out of order
+  INI_E(2,a,3,0,0); 
+  INI_NE(2,a,9,2,0);
+  INI_E(2,b,2,0,0);
+  INI_NE(2,b,9,1,0);
+  INI_E(2,a,3,0,1); // in order
+  INI_E(2,a,4,1,1); 
+  INI_NE(2,a,9,2,1);
+  INI_E(2,b,2,0,1);
+  INI_NE(2,b,9,1,1);
+  INI_NE(2,a,9,0,2);
+  INI_NE(2,b,9,0,2);
+  
+  TEST(fn(ini.GetEntryPtr("1","a",0,0),"5"));
+  TEST(fn(ini.GetEntryPtr("1","a",1,0),"6"));
+  TEST(fn(ini.GetEntryPtr("1","a",2,0),"7"));
+  TEST(fn(ini.GetEntryPtr("1","a",3,0),"8"));
+  TEST(!ini.GetEntryPtr("1","a",4,0));
+  TEST(fn(ini.GetEntryPtr("1","b",0,0),"2"));
+  TEST(!ini.GetEntryPtr("1","b",1,0));
+  TEST(fn(ini.GetEntryPtr("1","c",0,0),"3"));
+  TEST(fn(ini.GetEntryPtr("1","c",1,0),"4"));
+  TEST(!ini.GetEntryPtr("1","c",2,0));
+  TEST(fn(ini.GetEntryPtr("1","d",0,0),"2"));
+  TEST(!ini.GetEntryPtr("1","d",1,0));
+  TEST(fn(ini.GetEntryPtr("2","a",0,0),"3"));
+  TEST(fn(ini.GetEntryPtr("2","a",1,0),"4"));
+  TEST(!ini.GetEntryPtr("2","a",2,0));
+  TEST(fn(ini.GetEntryPtr("2","b",0,0),"2"));
+  TEST(!ini.GetEntryPtr("2","b",1,0));
+  TEST(fn(ini.GetEntryPtr("2","a",0,1),"3"));
+  TEST(fn(ini.GetEntryPtr("2","a",1,1),"4"));
+  TEST(!ini.GetEntryPtr("2","a",2,1));
+  TEST(fn(ini.GetEntryPtr("2","b",0,1),"2"));
+  TEST(!ini.GetEntryPtr("2","b",1,1));
+  TEST(!ini.GetEntryPtr("2","a",0,2));
+  TEST(!ini.GetEntryPtr("2","b",0,2));
 
-  cINIstorage store("test.ini");
-  //cINIstorage store;
-  store.AddSection("Hello");
+  ini.EndINIEdit();
+  fn2("[1]\na=5\na=6\na=7\na=8\nb=2\nc=3\nc=4\nd=2\n\n[2]\na=3\na=4\nb=2\n\n[2]\na=3\na=4\nb=2\n\n[2]");
 
-  int get = store.GetEntry("Asdkj", "");
+  INI_R(1,a,1,0);
+  TEST(fn(ini.GetEntryPtr("1","a",0,0),"5"));
+  TEST(fn(ini.GetEntryPtr("1","a",1,0),"7"));
+  TEST(fn(ini.GetEntryPtr("1","a",2,0),"8"));
+  TEST(!ini.GetEntryPtr("1","a",3,0));
+  TEST(fn(ini.GetEntryPtr("1","b",0,0),"2"));
+  INI_R(1,a,2,0);
+  TEST(fn(ini.GetEntryPtr("1","a",0,0),"5"));
+  TEST(fn(ini.GetEntryPtr("1","a",1,0),"7"));
+  TEST(!ini.GetEntryPtr("1","a",2,0));
+  TEST(fn(ini.GetEntryPtr("1","b",0,0),"2"));
+  INI_R(1,a,0,0);
+  TEST(fn(ini.GetEntryPtr("1","a",0,0),"7"));
+  TEST(!ini.GetEntryPtr("1","a",1,0));
+  TEST(fn(ini.GetEntryPtr("1","b",0,0),"2"));
+  INI_R(1,c,0,0);
+  TEST(fn(ini.GetEntryPtr("1","c",0,0),"4"));
+  INI_R(1,d,0,0);
+  TEST(!ini.GetEntryPtr("1","d",0,0));
+  INI_R(1,a,0,0);
+  TEST(!ini.GetEntryPtr("1","a",0,0));
+  TEST(fn(ini.GetEntryPtr("1","b",0,0),"2"));
+
+  INI_R(2,b,0,0);
+  TEST(fn(ini.GetEntryPtr("2","a",0,0),"3"));
+  TEST(fn(ini.GetEntryPtr("2","a",1,0),"4"));
+  TEST(!ini.GetEntryPtr("2","a",2,0));
+  TEST(!ini.GetEntryPtr("2","b",0,0));
+  INI_R(2,a,1,1);
+  TEST(fn(ini.GetEntryPtr("2","a",0,1),"3"));
+  TEST(!ini.GetEntryPtr("2","a",1,1));
+  TEST(!ini.GetEntryPtr("2","b",1,1));
+  INI_R(2,a,0,1);
+  TEST(!ini.GetEntryPtr("2","a",0,1));
+  TEST(!ini.GetEntryPtr("2","b",1,1));
+  INI_R(2,b,0,1);
+  TEST(!ini.GetEntryPtr("2","a",0,1));
+  TEST(!ini.GetEntryPtr("2","b",0,1));
+  ini.RemoveSection("2",0);
+  TEST(fn4("2",0)); // Catches index decrementing errors
+  TEST(fn4("2",1));
+  ini.RemoveSection("2",1);
+
+  ini.EndINIEdit();
+  fn2("[1]\nb=2\nc=4\n\n[2]\n\n");
+  
+  fn3();
+  ini.EndINIEdit();
+  fn2("[1]\nb=2\nc=4\na=1\na=2\na=3\na=4\nb=1\nc=1\nc=2\nd=1\n\n[2]\na=1\na=2\nb=1\n\n[1]\n\n[2]\na=1\na=2\nb=1\n\n[2]\n\n[2]");
+
+  TEST(!remove("inistorage.ini"));
   ENDTEST;
 }
 

@@ -47,7 +47,7 @@ namespace bss_util {
     inline bool BSS_FASTCALL Remove(__ST index)
     {
       if(index<0||index>=_length) return false;
-      ArrayType::Remove(index);
+      ArrayType::RemoveInternal(index);
       --_length;
       return true;
     }

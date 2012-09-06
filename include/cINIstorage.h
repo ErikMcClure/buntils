@@ -11,7 +11,6 @@ namespace bss_util {
   class BSS_DLLEXPORT cINIstorage
   {
     typedef _INInode<cINIsection> _NODE;
-    typedef DArray<cINIsection>::t __ARR;
 
   public:
     // Constructor - takes a filepath
@@ -24,14 +23,14 @@ namespace bss_util {
     // Gets a section based on name and instance
     cINIsection* GetSection(const char* section, unsigned int instance=0) const;
     // Gets a convertable INI entry
-    cINIentry* GetEntryPtr(const char *section, const char* key, unsigned int keyinstance=0, unsigned int instance=0) const;
+    cINIentry* GetEntryPtr(const char *section, const char* key, unsigned int keyinstance=0, unsigned int secinstance=0) const;
     // Gets the root node of the section linked list
     inline const _NODE* GetSectionList() const { return _root; }
     
     cINIsection& BSS_FASTCALL AddSection(const char* name);
     bool RemoveSection(const char* name, unsigned int instance=0);
-    char EditEntry(const char* section, const char* key, const char* nvalue=0, unsigned int secinstance=0, unsigned int keyinstance=0); //if nvalue is 0 the entry is deleted. if either instance is -1 it triggers an insert
-    inline char EditAddEntry(const char* section, const char* key, const char* nvalue=0, unsigned int secinstance=0, unsigned int keyinstance=0) { return EditEntry(section,key,nvalue,GetSection(section,secinstance)==0?-1:secinstance,GetEntryPtr(section,key,keyinstance,secinstance)==0?-1:keyinstance); }
+    char EditEntry(const char* section, const char* key, const char* nvalue=0, unsigned int keyinstance=0,unsigned int secinstance=0); //if nvalue is 0 the entry is deleted. if either instance is -1 it triggers an insert
+    inline char EditAddEntry(const char* section, const char* key, const char* nvalue=0, unsigned int keyinstance=0,unsigned int secinstance=0) { return EditEntry(section,key,nvalue,GetEntryPtr(section,key,keyinstance,secinstance)==0?-1:keyinstance,GetSection(section,secinstance)==0?-1:secinstance); }
     void EndINIEdit(const char* overridepath=0); //Saves changes to file (INI files are automatically opened when an edit operation is done)
     void DiscardINIEdit();
 
@@ -39,7 +38,7 @@ namespace bss_util {
     cINIstorage& operator=(const cINIstorage& right);
     cINIstorage& operator=(cINIstorage&& mov);
     inline const char* GetPath() const { return _path; } //gets path to folder this INI was in
-    inline cINIentry& BSS_FASTCALL GetEntry(const char *section, const char* key, unsigned int keyinstance=0, unsigned int instance=0) const { cINIentry* ret=GetEntryPtr(section,key,keyinstance,instance); return !ret?cINIsection::_entrysentinel:*ret; }
+    inline cINIentry& BSS_FASTCALL GetEntry(const char *section, const char* key, unsigned int keyinstance=0, unsigned int secinstance=0) const { cINIentry* ret=GetEntryPtr(section,key,keyinstance,secinstance); return !ret?cINIsection::_entrysentinel:*ret; }
     
   protected:
     friend class cINIsection;
@@ -48,14 +47,14 @@ namespace bss_util {
     void _openINI();
     void _setfilepath(const char* path);
     cINIsection* _addsection(const char* name);
-    void _copyhash(const cINIstorage& copy);
-    void _destroyhash();
+    void _copy(const cINIstorage& copy);
+    void _destroy();
     void _BuildSectionList(std::vector<std::pair<cStr,unsigned int>>& list) const;
 
     static cINIsection _sectionsentinel;
     static cFixedAlloc<_NODE,4> _alloc;
 
-    cKhash_StringTIns<char,__ARR*,true> _sections;
+    cKhash_StringTIns<char,_NODE*,true> _sections;
     cStr _path; //holds path to INI
     cStr _filename; //holds INI filename;
     cStr* _ini; //holds entire INI file. Made a pointer so we can distinguish between an empty INI file and an unopened file.

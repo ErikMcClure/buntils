@@ -50,7 +50,7 @@ cFixedAlloc<cINIstorage::_NODE,4> cINIstorage::_alloc;
 cINIstorage::cINIstorage(const cINIstorage& copy) : _path(copy._path), _filename(copy._filename),
   _ini(!copy._ini?0:new cStr(*copy._ini)), _logger(copy._logger), _root(0), _last(0)
 {
-  _copyhash(copy);
+  _copy(copy);
 }
 
 cINIstorage::cINIstorage(cINIstorage&& mov) : _path(std::move(mov._path)), _filename(std::move(mov._filename)), _ini(mov._ini),
@@ -80,21 +80,20 @@ cINIstorage::cINIstorage(FILE* file, std::ostream* logger) : _ini(0), _logger(lo
 cINIstorage::~cINIstorage()
 {
   if(_ini) delete _ini;
-  _destroyhash(); //_destroyhash checks for nullification
+  _destroy(); //_destroyhash checks for nullification
 }
 cINIsection* cINIstorage::GetSection(const char* section, unsigned int instance) const
 {
   khiter_t iter= _sections.GetIterator(section);
   if(iter==_sections.End()) return 0;
-  __ARR* arr=_sections[iter];
-  return instance<arr->Size()?(*arr)+instance:0;
+  _NODE* n=_sections[iter];
+  if(!instance) return &n->val;
+  return (instance>n->instances.Size())?0:(&n->instances[instance-1]->val);
 }
-cINIentry* cINIstorage::GetEntryPtr(const char *section, const char* key, unsigned int keyinstance, unsigned int instance) const
+cINIentry* cINIstorage::GetEntryPtr(const char *section, const char* key, unsigned int keyinstance, unsigned int secinstance) const
 {
-  khiter_t iter= _sections.GetIterator(section);
-  if(iter==_sections.End()) return 0;
-  __ARR* arr=_sections[iter];
-  return instance<arr->Size()?(*arr)[instance].GetEntryPtr(key,keyinstance):0;
+  cINIsection* s=GetSection(section,secinstance);
+  return !s?0:s->GetEntryPtr(key,keyinstance);
 }
 
 cINIsection& BSS_FASTCALL cINIstorage::AddSection(const char* name)
@@ -122,7 +121,31 @@ cINIsection& BSS_FASTCALL cINIstorage::AddSection(const char* name)
 
 cINIsection* cINIstorage::_addsection(const char* name)
 {
+  _NODE* p=_alloc.alloc(1);
+  memset(p,0,sizeof(_NODE));
   khiter_t iter=_sections.GetIterator(name);
+
+  if(iter==_sections.End())
+  {
+    new (&p->val) cINIsection(name,this,0);
+    _sections.Insert(p->val.GetName(),p);
+    if(!_root)
+      _root=_last=p;
+    else
+      _last=LLAdd(p,_last);
+  } else {
+    assert(_last!=0 && _root!=0);
+    _NODE* r=_sections[iter];
+    _NODE* t=!r->instances.Size()?r:r->instances.Back();
+    LLInsertAfterAssign(p,t);
+    LLInsertAfter(p,t,_last);
+    r->instances.Insert(p,r->instances.Size());
+    new (&p->val) cINIsection(name,this,r->instances.Size()); // done down here because the index is actually where it is in the array + 1.
+  }
+
+  return &p->val;
+
+  /*khiter_t iter=_sections.GetIterator(name);
   __ARR* arr;
   if(iter==_sections.End()) //need to add in an array for this
   {
@@ -137,19 +160,46 @@ cINIsection* cINIstorage::_addsection(const char* name)
     new ((*arr)+index) cINIsection(name,this,index);
     _sections.OverrideKeyPtr(iter,(*arr)[0].GetName()); //the key pointer gets corrupted when we resize the array
     return ((*arr)+index);
-  }
+  }*/
 }
 
 //3 cases: removing something other then the beginning, removing the beginning, or removing the last one
 bool cINIstorage::RemoveSection(const char* name, unsigned int instance)
 {
   if(!_ini) _openINI();
-  __ARR* arr;
   INICHUNK chunk = bss_findINIsection(*_ini,_ini->size(),name,instance);
   khiter_t iter = _sections.GetIterator(name);
+
   if(iter!=_sections.End() && chunk.start!=0)
   {
-    arr=_sections[iter];
+    _NODE* secnode=_sections[iter];
+    _NODE* secroot=secnode;
+    if(instance>secnode->instances.Size()) return false; //if keyinstance is not valid, fail
+    if(instance!=0)
+      secnode=secnode->instances[instance-1];
+
+    // If you are deleting a root node that has danglers, we just replace the root with one of the danglers and transform it into a dangler case.
+    if(!instance && secnode->instances.Size()>0)
+    {
+      instance=1;
+      secnode->val=std::move(secnode->next->val);
+      secnode->val._index=0;
+      secnode=secnode->next;
+    }
+
+    LLRemove(secnode,_root,_last);
+    if(!instance) // If this is true you are a root, but you don't have any danglers (see above check), so we just remove you from the hash.
+      _sections.RemoveIterator(iter);
+    else { // Otherwise you are a dangler, so all we have to do is remove you from the instances array
+      secroot->instances.RemoveShrink(--instance); // we decrement instance here so its valid in the below for loop
+      for(;instance<secroot->instances.Size();++instance) --secroot->instances[instance]->val._index; //moves all the indices down
+    }
+
+    secnode->~_NODE(); // Calling this destructor is important in case the node has an unused array that needs to be freed
+    _alloc.dealloc(secnode);
+    _ini->erase((const char*)chunk.start-_ini->c_str(),((const char*)chunk.end-(const char*)chunk.start)+1);
+
+    /*arr=_sections[iter];
     if(instance>=arr->Size()) return false;
     _ini->erase((const char*)chunk.start-_ini->c_str(),((const char*)chunk.end-(const char*)chunk.start)+1);
     ((*arr)+instance)->~cINIsection();
@@ -164,24 +214,28 @@ bool cINIstorage::RemoveSection(const char* name, unsigned int instance)
       if(!instance) _sections.OverrideKeyPtr(iter,(*arr)[0].GetName());
       unsigned int svar=arr->Size();
       for(;instance<svar;++instance) --(*arr)[instance]._index; //moves all the indices down
-    }
+    }*/
 
     return true;
   }
   return false;
 }
 
-char cINIstorage::EditEntry(const char* section, const char* key, const char* nvalue, unsigned int secinstance, unsigned int keyinstance)
+char cINIstorage::EditEntry(const char* section, const char* key, const char* nvalue, unsigned int keyinstance, unsigned int secinstance)
 {
   if(!_ini) _openINI();
-  if(secinstance==(unsigned int)-1) AddSection(section);
+  if(secinstance==(unsigned int)-1) 
+    secinstance=AddSection(section)._index;
 
   khiter_t iter = _sections.GetIterator(section);
   if(iter==_sections.End()) return -1; //if it doesn't exist at this point, fail
-  __ARR* arr=_sections[iter];
-  if(secinstance==(unsigned int)-1) secinstance=arr->Size()-1; //if we just added it, it will be the last entry
-  if(secinstance>=arr->Size()) return -2; //if secinstance is not valid, fail
-  cINIsection* psec = (*arr)+secinstance;
+  _NODE* secnode=_sections[iter];
+  //if(secinstance==(unsigned int)-1) secinstance=secnode->instances.Size()-1; //This is now done at the start of the function
+  if(secinstance>secnode->instances.Size()) return -2; //if secinstance is not valid, fail
+  if(secinstance>0)
+    secnode=secnode->instances[secinstance-1];
+
+  cINIsection* psec = &secnode->val;
   INICHUNK chunk = bss_findINIsection(_ini->c_str(),_ini->size(),section,secinstance);
   if(!chunk.start) return -3; //if we can't find it in the INI, fail
 
@@ -190,8 +244,8 @@ char cINIstorage::EditEntry(const char* section, const char* key, const char* nv
     psec->_addentry(key,nvalue);
     //_ini->reserve(_ini->size()+strlen(key)+strlen(nvalue)+2); // This is incredibly stupid. It invalidates all our pointers causing strange horrifying bugs.
     cStr construct(("\n%s=%s"),key,!nvalue?(""):nvalue); //build keyvalue string
-    const char* peek=(const char*)chunk.start;
-    const char* ins=strchr((const char*)chunk.start,'\n');
+    //const char* peek=(const char*)chunk.end-1; //DEBUG
+    const char* ins=strchr((const char*)chunk.end-1,'\n');
     if(!ins) //end of file
     {
       _ini->append(construct);
@@ -300,33 +354,47 @@ void cINIstorage::_setfilepath(const char* file)
   _path.UnsafeString()[length-1]='\0';
   _path.RecalcSize();
 }
-void cINIstorage::_destroyhash()
+void cINIstorage::_destroy()
 {
-  if(!_sections.Nullified())
+  _NODE* t;
+  while(_root)
   {
-    __ARR* arr;
-    for(auto iter=_sections.begin(); iter.IsValid(); ++iter)
-    {
-      arr=_sections[*iter];
-      unsigned int svar=arr->Size();
-      for(unsigned int i =0; i<svar; ++i) (*arr)[i].~cINIsection();
-      delete arr;
-    }
+    t=_root->next;
+    _root->~_NODE();
+    _alloc.dealloc(_root);
+    _root=t;
   }
+  _last=0;
 }
 
-void cINIstorage::_copyhash(const cINIstorage& copy)
+void cINIstorage::_copy(const cINIstorage& copy)
 {
-  __ARR* old;
-  __ARR* arr;
-  for(auto iter=copy._sections.begin(); iter.IsValid(); ++iter)
+  assert(!_root && !_last);
+  _NODE* t=copy._root;
+  _NODE* last=0;
+  unsigned int c=0;
+  while(t)
   {
-    old=copy._sections[*iter];
-    arr=new __ARR(*old);
-    unsigned int svar=arr->Size();
-    for(unsigned int i =0; i < svar; ++i)
-      new ((*arr)+i) cINIsection((*old)[i]);
-    _sections.Insert((*arr)[0].GetName(),arr);
+    _NODE* p=_alloc.alloc(1);
+    memset(p,0,sizeof(_NODE));
+    new (&p->val) cINIsection(t->val);
+    if(!_root)
+      _root=_last=p;
+    else
+      _last=LLAdd(p,_last);
+
+    if(t->instances.Size()!=0) {
+      _sections.Insert(p->val.GetName(),p);
+      p->instances.SetSize(c=t->instances.Size());
+      last=t;
+      --c;
+    } else if(c>0) {
+      assert(last!=0);
+      last->instances[last->instances.Size()-(c--)-1]=p; //This never goes negative because c>0 and is therefore at least 1
+    } else
+      _sections.Insert(p->val.GetName(),p);
+
+    t=t->next;
   }
 }
 
@@ -338,9 +406,9 @@ cINIstorage& cINIstorage::operator=(const cINIstorage& right)
    if(_ini!=0) delete _ini;
    _ini=!right._ini?0:new cStr(*right._ini);
    _logger=right._logger;
-   _destroyhash();
+   _destroy();
    _sections.Clear();
-   _copyhash(right);
+   _copy(right);
    return *this;
 }
 cINIstorage& cINIstorage::operator=(cINIstorage&& mov)
@@ -350,9 +418,13 @@ cINIstorage& cINIstorage::operator=(cINIstorage&& mov)
    _filename=mov._filename;
    if(_ini!=0) delete _ini;
    _ini=mov._ini;
+   _root=mov._root;
+   _last=mov._last;
    mov._ini=0;
+   mov._root=0;
+   mov._last=0;
    _logger=mov._logger;
-   _destroyhash();
+   _destroy();
    _sections=std::move(mov._sections);
    return *this;
 }

@@ -132,7 +132,7 @@ namespace bss_util {
   template<typename C>
   struct cSetting_INISAVE<std::vector<cStrT<C>>,C> {
     inline static void INISave(cINIstorage& ini, const std::vector<cStrT<C>>& v, const C* name, const C* section)
-    { if(name!=0) { for(unsigned int i = 0; i < v.size(); ++i) ini.EditAddEntry(section,name,v[i],0,i); } }
+    { if(name!=0) { for(unsigned int i = 0; i < v.size(); ++i) ini.EditAddEntry(section,name,v[i],i,0); } }
   };
 
   // Struct class for defining the CmdLoad function. Can be overriden for custom types

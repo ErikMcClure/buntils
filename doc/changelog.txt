@@ -34,6 +34,11 @@
 - Cleared out unnecessary CLR related tags
 - Renamed VSPRINTF to VSNPRINTF because vsprintf is actually an unrelated function, and updated cStr references
 - Added VSCPRINTF to deprecated function list in preperation for GCC compilation (currently nonfunctional)
+- cINIstorage split into cINIstorage.h, cINIsection.h, cINIentry.h, and accompanying *.cpp files
+- cINIstorage is now a linked list with significantly less overhead for handling unique section and entry IDs.
+- Added Front() and Back() to cArrayWrap
+- Adjusted cArraySimple to avoid allocating an array in a constructor if its given an initial size of 0, which can be very valuable when you need to avoid malloc() hits.
+-! Swapped keyinstance and secinstance in cINIstorage EditEntry to make it consistent with GetEntry.
 
 0.3.82
 ------

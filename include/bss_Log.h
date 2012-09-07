@@ -25,8 +25,8 @@ template<> struct bss_LOGERRLVL<4> { inline static const char* ERRLVL() { return
 class BSS_DLLEXPORT bss_Log
 {
 public:
-	// Constructor - copies streams from another log
-	bss_Log(const bss_Log& copy);
+	// Move semantics only
+	bss_Log(bss_Log&& mov);
 	// Constructor - takes a stream and adds it
 	explicit bss_Log(std::ostream* log=0);
 	//explicit bss_Log(std::wostream* log);
@@ -49,7 +49,7 @@ public:
   // Gets the stream for this log
   inline std::ostream& GetStream() { return _stream; }
 
-  bss_Log& operator=(const bss_Log& right);
+  bss_Log& operator=(bss_Log&& right);
   inline operator std::ostream&() { return _stream; }
   
   template<unsigned char errlevel>
@@ -63,6 +63,8 @@ public:
   }
 
 private:
+	bss_Log(const bss_Log& copy);
+  bss_Log& operator=(const bss_Log& right);
   static bool BSS_FASTCALL _writedatetime(long timezone, std::ostream& log, bool timeonly);
   static const char* BSS_FASTCALL _trimpath(const char* path);
   //static const wchar_t* BSS_FASTCALL _trimpath(const wchar_t* path);

@@ -39,6 +39,10 @@
 - Added Front() and Back() to cArrayWrap
 - Adjusted cArraySimple to avoid allocating an array in a constructor if its given an initial size of 0, which can be very valuable when you need to avoid malloc() hits.
 -! Swapped keyinstance and secinstance in cINIstorage EditEntry to make it consistent with GetEntry.
+- cStrT::SetSize has been removed and cStrT::StripChar actually does what it says it does
+- cStrT::RecalcSize is no longer capable of touching memory that was reserved and modified. If you were using this before with reserve(), you should switch to resize().
+- Removed using namespace std; from StreamSplitter and fixed broken namespace references
+- StreamSplitter, bss_Log, and bss_debuginfo now only have move semantics. For GCC, StreamSplitter has NO move or copy constructors (because stream_buf doesn't).
 
 0.3.82
 ------

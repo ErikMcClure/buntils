@@ -10,10 +10,10 @@ namespace bss_util {
   // Stores an INI file as a linked list of sections, also stored via hash for O(1) time operations.
   class BSS_DLLEXPORT cINIstorage
   {
+  public:
     typedef _INInode<cINIsection> _NODE;
 
-  public:
-    // Constructor - takes a filepath
+    // Constructors
     cINIstorage(const cINIstorage& copy);
     cINIstorage(cINIstorage&& mov);
     cINIstorage(const char* file=0, std::ostream* logger=0);
@@ -25,7 +25,9 @@ namespace bss_util {
     // Gets a convertable INI entry
     cINIentry* GetEntryPtr(const char *section, const char* key, unsigned int keyinstance=0, unsigned int secinstance=0) const;
     // Gets the root node of the section linked list
-    inline const _NODE* GetSectionList() const { return _root; }
+    inline const _NODE* Front() const { return _root; }
+    // Gets the last node of the section linked list
+    inline const _NODE* Back() const { return _last; }
     
     cINIsection& BSS_FASTCALL AddSection(const char* name);
     bool RemoveSection(const char* name, unsigned int instance=0);

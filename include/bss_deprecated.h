@@ -4,7 +4,7 @@
 #ifndef __BSS_DEPRECATED_H__
 #define __BSS_DEPRECATED_H__
 
-#include <bss_compiler.h>
+#include "bss_compiler.h"
 #include <time.h> //Done so we can use time_t, and as a way to get VC++ to include crtdefs.h without ruining compatability with other compilers
 
 #ifdef BSS_COMPILER_MSC

@@ -498,8 +498,8 @@ int BSS_FASTCALL r_delregnode(HKEY__* hKeyRoot, const wchar_t* lpSubKey)
       }
   }
   // Check for an ending slash and add one if it is missing.
-  if (lpEnd[lpEnd.length()-1] != '\\') 
-    lpEnd += '\\';
+  if (lpEnd[lpEnd.length()-1] != L'\\') 
+    lpEnd += L'\\';
 
   dwSize = MAX_PATH;
   lResult = RegEnumKeyExW(hKey, 0, szName, &dwSize, NULL, NULL, NULL, &ftWrite);
@@ -516,7 +516,6 @@ int BSS_FASTCALL r_delregnode(HKEY__* hKeyRoot, const wchar_t* lpSubKey)
       } while (lResult == ERROR_SUCCESS);
   }
 
-  lpEnd.SetSize(lpEnd.length());
   RegCloseKey (hKey);
 
   lResult = RegDeleteKeyW(hKeyRoot, lpEnd);

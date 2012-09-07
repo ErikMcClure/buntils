@@ -9,7 +9,9 @@
 #define _WIN32_WINNT 0x0501
 #define NTDDI_VERSION 0x05010000 //NTDDI_WINXP
 #define WIN32_LEAN_AND_MEAN
+#ifndef NOMINMAX // Some compilers enable this by default
 #define NOMINMAX
+#endif
 #include <windows.h>
 #pragma pack(pop)
 #endif

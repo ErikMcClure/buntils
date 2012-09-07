@@ -37,7 +37,8 @@ void cINIstorage::_openINI()
   fseek(f,0,SEEK_END);
   size_t size=(size_t)ftell(f);
   fseek(f,0,SEEK_SET);
-  _ini = new cStr(size+1);
+  _ini = new cStr();
+  _ini->resize(size);
   size=fread(_ini->UnsafeString(),sizeof(char),size,f); //reads in the entire file
   _ini->UnsafeString()[size]='\0';
   _ini->RecalcSize();
@@ -349,9 +350,9 @@ void cINIstorage::_setfilepath(const char* file)
   hold=!hold2?hold:hold2+1;
   _filename=hold;
   size_t length = hold-file;
-  _path.resize(++length);
+  _path.resize(length+1); // resize only accounts for null terminator if it feels like it
   memcpy(_path.UnsafeString(),file,length);
-  _path.UnsafeString()[length-1]='\0';
+  _path.UnsafeString()[length]='\0';
   _path.RecalcSize();
 }
 void cINIstorage::_destroy()
@@ -444,7 +445,8 @@ void cINIstorage<wchar_t>::_openINI()
   size=fread(buf.UnsafeString(),sizeof(char),size,f); //reads in the entire file
   buf.UnsafeString()[size]='\0';
   size=UTF8Decode2BytesUnicode(buf,0);
-  _ini = new cStrW(size+1);
+  _ini = new cStrW();
+  _ini->resize(size);
   UTF8Decode2BytesUnicode(buf,_ini->UnsafeString());
   _ini->UnsafeString()[size]='\0';
   _ini->RecalcSize();

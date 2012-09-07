@@ -21,7 +21,7 @@ namespace bss_util {
     inline explicit cDynArray(__ST size=1): __AT(size), _length(0) {}
     inline __ST Add(const __T& t) { return _add(t); }
     inline __ST Add(__T&& t) { return _add(std::move(t)); }
-    inline void Remove(__ST index) { __AT::Remove(index); --_length; }
+    inline void Remove(__ST index) { __AT::RemoveInternal(index); --_length; }
     inline void RemoveLast() { --_length; }
     inline __ST Insert(const __T& t, __ST index=0) { return _insert(t,index); }
     inline __ST Insert(__T&& t, __ST index=0) { return _insert(std::move(t),index); }

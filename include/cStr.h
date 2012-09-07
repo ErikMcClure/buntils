@@ -1,8 +1,8 @@
-// Copyright ©2012 Black Sphere Studios
+// Copyright Â©2012 Black Sphere Studios
 // For conditions of distribution and use, see copyright notice in "bss_util.h"
 
-#ifndef __CSTRING_H__BSS__
-#define __CSTRING_H__BSS__
+#ifndef __CSTR_H__BSS__
+#define __CSTR_H__BSS__
 
 #include <string>
 #include <stdarg.h>
@@ -10,8 +10,9 @@
 #include <assert.h>
 #include "bss_deprecated.h"
 #include "bss_util_c.h"
-//#include "cBucketAlloc.h"
-//#include "bss_alloc.h"
+#ifdef BSS_COMPILER_GCC
+#include <stdio.h>
+#endif
 
 /*
 namespace bss_util {
@@ -102,8 +103,10 @@ public:
   static inline BSS_FORCEINLINE size_t __cdecl SLEN(const CHAR* str) { return wcslen(str); }
   static inline BSS_FORCEINLINE CHAR* __cdecl STOK(CHAR* str,const CHAR* delim, CHAR** context) { return WCSTOK(str,delim,context); }
   //static inline errno_t __cdecl WTOMB(size_t* outsize, CHAR* dest, size_t destsize, const OTHER_C* src, size_t maxcount) { return mbstowcs_s(outsize,dest,destsize,src,maxcount); }
+#ifndef BSS_COMPILER_GCC
   static inline BSS_FORCEINLINE int __cdecl VPF(CHAR *dest, size_t size, const CHAR *format, va_list args) { return VSNWPRINTF(dest,size,format,args); }
   static inline BSS_FORCEINLINE int __cdecl VPCF(const CHAR* str, va_list args) { return VSCWPRINTF(str,args); }
+#endif
   static inline BSS_FORCEINLINE size_t __cdecl CONV(const OTHER_C* src, CHAR* dest, size_t len) { return UTF8toUTF16(src,dest,len); }
 
   static inline BSS_FORCEINLINE size_t __cdecl O_SLEN(const OTHER_C* str) { return strlen(str); }
@@ -120,7 +123,7 @@ class BSS_COMPILER_DLLEXPORT cStrT : public CSTRALLOC(T)//If dllimport is used o
   typedef typename CSTR_CT<T>::CHAR CHAR;
   typedef typename CSTR_CT<T>::OTHER_C OTHER_C;
 public:
-  explicit inline cStrT(size_t length = 1) : CSTRALLOC(CHAR)() { reserve(length); } //an implicit constructor here would be bad
+  explicit inline cStrT(size_t length = 1) : CSTRALLOC(CHAR)() { CSTRALLOC(T)::reserve(length); } //an implicit constructor here would be bad
   inline cStrT(const CSTRALLOC(CHAR)& copy) : CSTRALLOC(CHAR)(copy) {}
   inline cStrT(CSTRALLOC(CHAR)&& mov) : CSTRALLOC(CHAR)(std::move(mov)) {}
   inline cStrT(const cStrT& copy) : CSTRALLOC(CHAR)(copy) {}
@@ -140,7 +143,7 @@ public:
     if(!end) end = &text[CSTR_CT<T>::SLEN(text)];
     
     size_t _length = end-text;
-    reserve(++_length);
+    CSTRALLOC(T)::reserve(++_length);
     insert(0, text,_length-1);
   }
   inline cStrT(const CHAR* string, ...) : CSTRALLOC(CHAR)()
@@ -154,13 +157,13 @@ public:
       va_list vl;
       va_start(vl,string);
       size_t _length = (size_t)CSTR_CT<T>::VPCF(string,vl);
-      reserve(++_length);
-      CSTR_CT<T>::VPF(_Myptr(), _Myres, string, vl);
-      _Mysize = CSTR_CT<T>::SLEN(_Myptr());
+      CSTRALLOC(T)::resize(_length+1);
+      CSTR_CT<T>::VPF(_internal_ptr(), CSTRALLOC(T)::capacity(), string, vl);
+      CSTRALLOC(T)::resize(CSTR_CT<T>::SLEN(_internal_ptr()));
     }
   }
 
-  inline operator const CHAR*() const { return _Myptr(); }
+  inline operator const CHAR*() const { return _internal_ptr(); }
   
   inline const cStrT operator +(const cStrT& right) const { return cStrT(*this)+=right; }
   inline const cStrT operator +(cStrT&& right) const { right.insert(0, *this); return (std::move(right)); }
@@ -171,27 +174,27 @@ public:
 
   inline cStrT& operator =(const cStrT& right) { CSTRALLOC(CHAR)::operator =(right); return *this; }
   template<class U> inline cStrT& operator =(const cStrT<T,U>& right) { CSTRALLOC(CHAR)::operator =(right); return *this; }
-  template<class U> inline cStrT& operator =(const cStrT<OTHER_C,U>& right) { clear(); _convstr(right.c_str()); return *this; }
-  inline cStrT& operator =(const CHAR* right) { if(right != 0) CSTRALLOC(CHAR)::operator =(right); else clear(); return *this; }
-  inline cStrT& operator =(const OTHER_C* right) { clear(); if(right != 0) _convstr(right); return *this; }
+  template<class U> inline cStrT& operator =(const cStrT<OTHER_C,U>& right) { CSTRALLOC(CHAR)::clear(); _convstr(right.c_str()); return *this; }
+  inline cStrT& operator =(const CHAR* right) { if(right != 0) CSTRALLOC(CHAR)::operator =(right); else CSTRALLOC(CHAR)::clear(); return *this; }
+  inline cStrT& operator =(const OTHER_C* right) { CSTRALLOC(CHAR)::clear(); if(right != 0) _convstr(right); return *this; }
   //inline cStrT& operator =(const CHAR right) { CSTRALLOC(CHAR)::operator =(right); return *this; } //Removed because char is also a number, and therefore confuses the compiler whenever something could feasibly be a number of any kind. If you need it, cast to basic_string<>
   inline cStrT& operator =(cStrT&& right) { CSTRALLOC(CHAR)::operator =(std::move(right)); return *this; }
 
   inline cStrT& operator +=(const cStrT& right) { CSTRALLOC(CHAR)::operator +=(right); return *this; }
   template<class U> inline cStrT& operator +=(const cStrT<T,U>& right) { CSTRALLOC(CHAR)::operator +=(right); return *this; }
-  inline cStrT& operator +=(const CHAR* right) { if(right != 0 && right != _Myptr()) CSTRALLOC(CHAR)::operator +=(right); return *this; }
+  inline cStrT& operator +=(const CHAR* right) { if(right != 0 && right != _internal_ptr()) CSTRALLOC(CHAR)::operator +=(right); return *this; }
   inline cStrT& operator +=(const CHAR right) { CSTRALLOC(CHAR)::operator +=(right); return *this; }
   
-  inline CHAR* UnsafeString() { return _Myptr(); } //This is potentially dangerous if the string is modified
-  //inline const CHAR* String() const { return _Myptr(); }
+  inline CHAR* UnsafeString() { return _internal_ptr(); } //This is potentially dangerous if the string is modified
+  //inline const CHAR* String() const { return _internal_ptr(); }
   inline CHAR& GetChar(size_t index) { return CSTRALLOC(CHAR)::operator[](index); }
-  inline void RecalcSize() { _Mysize = CSTR_CT<T>::SLEN(_Myptr()); }
-  inline void SetSize(size_t nsize) { _Mysize=nsize; }
-  inline cStrT Trim() const { cStrT r(*this); r=_ltrim(_rtrim(r._Myptr(),r._Mysize)); return r; }
+  inline void RecalcSize() { CSTRALLOC(CHAR)::resize(CSTR_CT<T>::SLEN(_internal_ptr())); }
+  inline cStrT Trim() const { cStrT r(*this); r=_ltrim(_rtrim(r._internal_ptr(),r.size())); return r; }
   inline cStrT& ReplaceChar(CHAR search, CHAR replace)
   { 
-    CHAR* pmod=_Myptr();
-    for(size_t i = 0; i < _Mysize; ++i)
+    CHAR* pmod=_internal_ptr();
+    size_t sz = CSTRALLOC(CHAR)::size();
+    for(size_t i = 0; i < sz; ++i)
       if(pmod[i] == search)
         pmod[i] = replace;
     return *this;
@@ -213,10 +216,11 @@ public:
   static inline std::vector<cStrT> Explode(const CHAR delim, const CHAR* text) { std::vector<cStrT> r; Explode(r,delim,text); return r; }
   static inline cStrT StripChar(const CHAR* text, const CHAR c)
   { 
-    cStrT r(CSTR_CT<T>::SLEN(text)+1);
+    cStrT r;
+    r.resize(CSTR_CT<T>::SLEN(text)+1); // resize doesn't always account for null terminator
     size_t i;
     for(i=0;*text!=0;++text)
-      if(*text>32)
+      if(*text!=c)
         r.UnsafeString()[i++]=*text;
     r.UnsafeString()[i]=0;
     r.RecalcSize();
@@ -224,16 +228,24 @@ public:
   }
 
 private:
+#ifdef BSS_COMPILER_MSC
+  inline BSS_FORCEINLINE CHAR* _internal_ptr() { return _Myptr(); }
+  inline BSS_FORCEINLINE const CHAR* _internal_ptr() const { return _Myptr(); }
+#elif defined(BSS_COMPILER_GCC)
+  inline BSS_FORCEINLINE CHAR* _internal_ptr() { return const_cast<CHAR*>(CSTRALLOC(CHAR)::c_str()); }
+  inline BSS_FORCEINLINE const CHAR* _internal_ptr() const { return CSTRALLOC(CHAR)::c_str(); }
+#else
+#error "cStr is not supported for this compiler"
+#endif
   inline BSS_FORCEINLINE void BSS_FASTCALL _convstr(const OTHER_C* src)
   {
     size_t r = CSTR_CT<T>::CONV(src,0,0);
     if(r==(size_t)-1) return; // If invalid, bail
-    reserve(r);
-    r = CSTR_CT<T>::CONV(src,_Myptr(),capacity());
+    CSTRALLOC(T)::resize(r); // resize() only adds one for null terminator if it feels like it.
+    r = CSTR_CT<T>::CONV(src,_internal_ptr(),CSTRALLOC(T)::capacity());
     if(r==(size_t)-1) return; // If somehow still invalid, bail again
-    _Mysize=r-1; //Don't include null terminator in size
-    //r.RecalcSize();
-    //_Myptr()[r]=0; // Otherwise ensure we have a null terminator.
+    CSTRALLOC(T)::resize(r-1); // resize to actual number of characters instead of simply the maximum (disregard null terminator)
+    //_internal_ptr()[r]=0; // Otherwise ensure we have a null terminator.
   }
 
   inline static T* BSS_FASTCALL _ltrim(T* str) { for(;*str>0 && *str<33;++str); return str; }

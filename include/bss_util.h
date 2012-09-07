@@ -1,5 +1,5 @@
 /* Black Sphere Studios Utility Library
-   Copyright ©2012 Black Sphere Studios
+   Copyright Â©2012 Black Sphere Studios
 
    Licensed under the Apache License, Version 2.0 (the "License");
    you may not use this file except in compliance with the License.
@@ -23,6 +23,9 @@
 #include <assert.h>
 #include <math.h>
 #include <memory.h>
+#ifdef BSS_COMPILER_GCC
+#include <stdlib.h> // For abs(int) on GCC
+#endif
 #ifdef BSS_MSC_NOASM
 #include <intrin.h>
 #endif

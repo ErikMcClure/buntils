@@ -647,6 +647,7 @@ TEST::RETPAIR test_bss_DEBUGINFO()
   tf(a);
   tf(b);
   tf(c);
+  bss_DebugInfo d(std::move(a));
 
   bss_Log lg("logtest2.txt");
   lg.FORMATLOG<0>("main.cpp",-1) << std::endl;
@@ -675,8 +676,8 @@ TEST::RETPAIR test_bss_algo()
   int a[] = { -5,-1,0,1,1,1,1,6,8,8,9,26,26,26,35 };
   for(int i = -10; i < 40; ++i) 
   {
-    TEST((binsearch_before<int,uint,CompT<int>>(a,i)==(uint)((upper_bound(std::begin(a),std::end(a),i)-a)-1)));
-    TEST((binsearch_after<int,uint,CompT<int>>(a,i)==(lower_bound(std::begin(a),std::end(a),i)-a)));
+    TEST((binsearch_before<int,uint,CompT<int>>(a,i)==(uint)((std::upper_bound(std::begin(a),std::end(a),i)-a)-1)));
+    TEST((binsearch_after<int,uint,CompT<int>>(a,i)==(std::lower_bound(std::begin(a),std::end(a),i)-a)));
   }
 
   int b[2] = { 2,3 };
@@ -1573,6 +1574,17 @@ TEST::RETPAIR test_INISTORAGE()
   ini.EndINIEdit();
   fn2("[1]\nb=2\nc=4\na=1\na=2\na=3\na=4\nb=1\nc=1\nc=2\nd=1\n\n[2]\na=1\na=2\nb=1\n\n[1]\n\n[2]\na=1\na=2\nb=1\n\n[2]\n\n[2]");
 
+  cStr comp;
+  for(auto i = ini.Front(); i!=0; i=i->next)
+  {
+    comp=comp+"\n["+i->val.GetName()+']';
+    for(auto j = i->val.Front(); j!=0; j=j->next)
+      comp=comp+'\n'+j->val.GetKey()+'='+j->val.GetString();
+  }
+  
+  // Due to organizational optimizations these come out in a slightly different order than in the INI, depending on when they were added.
+  TEST(!strcmp(comp,"\n[1]\nb=2\nb=1\nc=4\nc=1\nc=2\na=1\na=2\na=3\na=4\nd=1\n[1]\n[2]\na=1\na=2\nb=1\n[2]\na=1\na=2\nb=1\n[2]\n[2]"));
+
   TEST(!remove("inistorage.ini"));
   ENDTEST;
 }
@@ -1804,7 +1816,7 @@ TEST::RETPAIR test_MAP()
   uint res[] = { 0,6,1,2,5 };
   uint count=0;
   TESTARRAY(ins,return test.Insert(ins[i],count++)!=-1;);
-  sort(std::begin(ins),std::end(ins));
+  std::sort(std::begin(ins),std::end(ins));
   for(unsigned int i = 0; i < test.Length(); ++i)
   { TEST(test.KeyIndex(i)==ins[i]); }
   for(int i = 0; i < sizeof(get)/sizeof(int); ++i)
@@ -2029,8 +2041,64 @@ TEST::RETPAIR test_SINGLETON()
 TEST::RETPAIR test_STR()
 {
   BEGINTEST;
-  cStr sdfhold("blah");
-  cStr sdfderp(sdfhold+cStr("temp")+cStr("temp")+cStr("temp")+cStr("temp"));
+  cStr s("blah");
+  TEST(!strcmp(s,"blah"));
+  cStr s2(std::move(s));
+  TEST(!strcmp(s.c_str(),""));
+  TEST(!strcmp(s2,"blah"));
+  cStr s3(s2);
+  TEST(!strcmp(s3,"blah"));
+  s3=std::move(s2);
+  cStr s4;
+  s4=s3;
+  TEST(!strcmp(s4,"blah"));
+  TEST(!strcmp(s4+' ',"blah "));
+  TEST(!strcmp(s4+" ","blah "));
+  TEST(!strcmp(s4+"","blah"));
+  TEST(!strcmp(s4+s3,"blahblah"));
+  s4+=' ';
+  TEST(!strcmp(s4,"blah "));
+  s4+=" a";
+  TEST(!strcmp(s4,"blah  a"));
+  s4+="";
+  TEST(!strcmp(s4,"blah  a"));
+  s4+=s3;
+  TEST(!strcmp(s4,"blah  ablah"));
+  TEST(!strcmp(cStr(0,"1 2",' '),"1"));
+  TEST(!strcmp(cStr(1,"1 2",' '),"2"));
+  TEST(!strcmp(cStr("%s2","place"),"place2"));
+  TEST(!strcmp(cStr("2","place"),"2"));
+  TEST(!strcmp(cStr(L"Törkylempijävongahdus"),"TÃ¶rkylempijÃ¤vongahdus"));
+
+  s4.GetChar(6)='b';
+  TEST(!strcmp(s4,"blah  bblah"));
+  s4.GetChar(0)='a';
+  TEST(!strcmp(s4,"alah  bblah"));
+  s4.resize(80);
+  s4.GetChar(60)='2';
+  s4.RecalcSize();
+  TEST(s4.size()==11);
+  s3="  \n  trim  \n";
+  TEST(!strcmp(s3.Trim(),"trim"));
+  s3=" \n \n  trim";
+  TEST(!strcmp(s3.Trim(),"trim"));
+  s3="trim \n ";
+  TEST(!strcmp(s3.Trim(),"trim"));
+  s3="trim";
+  TEST(!strcmp(s3.Trim(),"trim"));
+  TEST(!strcmp(s3.ReplaceChar('r','x'),"txim"));
+  TEST(!strcmp(cStr::StripChar(s3,'t'),"xim"));
+  TEST(!strcmp(cStr::StripChar(s3,'x'),"tim"));
+  TEST(!strcmp(cStr::StripChar(s3,'m'),"txi"));
+  
+  auto a = cStr::Explode(' ', "lots of words");
+  TEST(a.size()==3);
+  TEST(!strcmp(a[0],"lots"));
+  TEST(!strcmp(a[1],"of"));
+  TEST(!strcmp(a[2],"words"));
+
+  TEST(!strcmp(s2.c_str(),""));
+  cStr sdfderp(s+cStr("temp")+cStr("temp")+cStr("temp")+cStr("temp"));
   ENDTEST;
 }
 
@@ -2176,9 +2244,11 @@ TEST::RETPAIR test_OS()
   //TEST(FolderExists("IGNORE/symlink/"));
   //TEST(FolderExists(L"IGNORE/symlink/"));
 
-#if defined(WIN32) || defined(_WINDOWS)
-
-#endif
+//#ifdef BSS_PLATFORM_WIN32
+//  SetRegistryValue(HKEY_LOCAL_MACHINE,"SOFTWARE\\test","valcheck","data");
+//  SetRegistryValue(HKEY_LOCAL_MACHINE,"SOFTWARE\\test\\test","valcheck","data");
+//  DelRegistryNode(HKEY_LOCAL_MACHINE,"SOFTWARE\\test");
+//#endif
   ENDTEST;
 }
 
@@ -2284,7 +2354,7 @@ int main(int argc, char** argv)
   }
 
   std::cout << "\nPress Enter to exit the program." << std::endl;
-  cin.get();
+  std::cin.get();
 
 }
 

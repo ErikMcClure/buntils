@@ -220,11 +220,11 @@ namespace bss_util {
     // Gets the corresponding data attached to the given key
     inline KHVAL* GetKey(KHKEY key) const { if(!__validate_p(key)) return 0; khiter_t iterator= kh_get_template(_h, key); if(kh_end(_h) == iterator) return 0; return &kh_val(_h, iterator); }
     // This is a pointer-only version of the above that simplifies verification when the type pointed to is a pointer
-    inline KHVAL& GetKeyPtrOnly(KHKEY key) const { if(!__validate_p(key)) return 0; khiter_t iterator= kh_get_template(_h, key); if(kh_end(_h) == iterator) return 0; return kh_val(_h, iterator); }
+    inline KHVAL GetKeyPtrOnly(KHKEY key) const { if(!__validate_p(key)) return 0; khiter_t iterator= kh_get_template(_h, key); if(kh_end(_h) == iterator) return 0; return kh_val(_h, iterator); }
     // Gets the corresponding data attached to the given iterator
     inline KHVAL* Get(khiter_t iterator) const { if(iterator >= kh_end(_h) || !kh_exist(_h, iterator)) return 0; return &kh_val(_h, iterator); }
     // This is a pointer-only version of the above that simplifies verification when the type pointed to is a pointer
-    inline KHVAL& GetPtrOnly(khiter_t iterator) const { if(iterator >= kh_end(_h) || !kh_exist(_h, iterator)) return 0; return kh_val(_h, iterator); }
+    inline KHVAL GetPtrOnly(khiter_t iterator) const { if(iterator >= kh_end(_h) || !kh_exist(_h, iterator)) return 0; return kh_val(_h, iterator); }
     inline khiter_t GetIterator(KHKEY key) const { return !(__validate_p(key))?kh_end(_h):kh_get_template(_h, key); }
     inline void SetSize(unsigned int size) { if(_h->n_buckets < size) kh_resize_template(_h,size); }
 		inline bool Remove(KHKEY key) const

@@ -10,6 +10,7 @@
 - Version numbers are now #define'd in bss_defines.h and pasted into the version number struct
 - Removed DELETE_SAFE macros because you really should be using unique_ptr for that kind of stuff.
 - Removed CLONE_ME macros because its way too easy to just copy+paste that and you never have to modify it again.
+- Changed GetKeyPtrOnly to return KHVAL instead of KHVAL& so it actually works properly
 
 0.3.83
 ------

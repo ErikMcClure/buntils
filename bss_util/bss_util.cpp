@@ -14,12 +14,6 @@
 #include <sys/stat.h>   // stat().
 #include <dirent.h> //Linux
 #endif
-//#include "cAVLtree.h"
-//#include "cBinaryHeap.h"
-
-//#define BOOST_FILESYSTEM_VERSION 3
-//#define BOOST_ALL_NO_DEPRECATED
-//#include <boost/filesystem.hpp>
 
 //typedef DWORD (WINAPI *GETFINALNAMEBYHANDLE)(HANDLE,LPWSTR,DWORD,DWORD);
 //static const HMODULE bssdll_KERNAL = LoadLibraryA("Kernal32.dll");

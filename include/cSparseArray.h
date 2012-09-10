@@ -20,7 +20,7 @@ namespace bss_util {
 
   public:
     cSparseArray(const cSparseArray& copy) : _array(0), _size(0), cBitArray<unsigned char, _ST>(copy) { _resize(right._size); memcpy(_array, right._array, sizeof(SPARSE_ELEM)*_size); }
-    cSparseArray(__ST init=1) : _array(0), _size(0), cBitArray<unsigned char, _ST>(init) { _resize(init); }
+    cSparseArray(ST_ init=1) : _array(0), _size(0), cBitArray<unsigned char, _ST>(init) { _resize(init); }
     ~cSparseArray() { delete [] _array; } //We always have array equal something, even if its a zero length array
     // appends something to the end of the array, pushing everything else back. This cannot fail (well, unless you run out of memory. But if you ran out of memory, boy are you fucked)
     void Add(const T item)
@@ -29,7 +29,7 @@ namespace bss_util {
       _insert(item,_size-1);
     }
     // Inserts the item at the given index and shifts everything around
-    bool Insert(const T item, __ST index)
+    bool Insert(const T item, ST_ index)
     {
       if(index<_size&&GetBit(index))
       {
@@ -40,13 +40,13 @@ namespace bss_util {
       return false;
     }
     // Removes the index if it exists
-    bool Remove(__ST index)
+    bool Remove(ST_ index)
     {
-      __ST realindex=(index>>DIV_AMT), bitindex=(index&MOD_AMT);
+      ST_ realindex=(index>>DIV_AMT), bitindex=(index&MOD_AMT);
 
       if(index<_size&&!!(_bits[realindex]&(1<<bitindex)))
       {
-        __ST store=-1;
+        ST_ store=-1;
 
         _bits[realindex] = (_bits[realindex]&(~(1<<bitindex))); //sets the bit to false
         
@@ -76,47 +76,47 @@ namespace bss_util {
       return false;
     }
     // Tells you if a given index is valid
-    inline bool BSS_FASTCALL IsValid(__ST index) { return (index<_size)?GetBit(index):false; }
+    inline bool BSS_FASTCALL IsValid(ST_ index) { return (index<_size)?GetBit(index):false; }
     // Gets the total size of the array
-    inline __ST Size() const { return _size; }
+    inline ST_ Size() const { return _size; }
     // Gets the number of used spots in the array
-    inline __ST Length() const { return _count; }
+    inline ST_ Length() const { return _count; }
     // Expands the array by the sparsity amount
-    inline void Expand(__ST size) { float a = _size*Sparsity; size+=size%Sparsity; _expand((size<a)?a:size); }
+    inline void Expand(ST_ size) { float a = _size*Sparsity; size+=size%Sparsity; _expand((size<a)?a:size); }
     // Gets the next valid index
-    inline __ST BSS_FASTCALL GetNext(__ST index) const { ++index; return (index>=_size)?-1:(GetBit(index)?index:_array[index]._index); }
+    inline ST_ BSS_FASTCALL GetNext(ST_ index) const { ++index; return (index>=_size)?-1:(GetBit(index)?index:_array[index]._index); }
     // Gets the previous valid index
-    inline __ST BSS_FASTCALL GetPrev(__ST index) const
+    inline ST_ BSS_FASTCALL GetPrev(ST_ index) const
     {
       if(index>_size) return -1; //Note that this is > instead of >= because index is about to have 1 subtracted from it, so giving this a value of _size is actually a valid thing to do
-      __ST realindex, bitindex;
+      ST_ realindex, bitindex;
       while(--index>=0 && !(_bits[realindex=(index>>DIV_AMT)]&(1<<(bitindex=(index&MOD_AMT)))));
       return index;
     }
 
-    const T operator[](__ST index) const { return _array[index]._elem; }
+    const T operator[](ST_ index) const { return _array[index]._elem; }
     cSparseArray& operator=(const cSparseArray& right) { if(right._size>_size) _resize(right._size); memcpy(_array, right._array, sizeof(SPARSE_ELEM)*_size); cBitArray<char, _ST>::operator=(right); }
 
   protected:
-    void _expand(__ST size) //size must be at least _size*Sparsity
+    void _expand(ST_ size) //size must be at least _size*Sparsity
     {
       SPARSE_ELEM* oldarray=_array;
       _array = new SPARSE_ELEM[size];
-      for(__ST i = 0; i < _size; ++i)
+      for(ST_ i = 0; i < _size; ++i)
         _array[i*Sparsity]=oldarray[i];
     }
-    void _resize(__ST size)
+    void _resize(ST_ size)
     {
       if(_array) delete [] _array;
       _array = new SPARSE_ELEM[size];
     }
-    void _insert(const T item, __ST index)
+    void _insert(const T item, ST_ index)
     {
-      __ST realindex=(index>>DIV_AMT), bitindex=(index&MOD_AMT);
+      ST_ realindex=(index>>DIV_AMT), bitindex=(index&MOD_AMT);
 
-      __ST orig = index;
-      __ST rightindex;
-      __ST leftindex=-1; 
+      ST_ orig = index;
+      ST_ rightindex;
+      ST_ leftindex=-1; 
 
       while(--index >= 0)
         if(!(_bits[realindex=(index>>DIV_AMT)]&(1<<(bitindex=(index&MOD_AMT)))))
@@ -158,8 +158,8 @@ namespace bss_util {
     }
 
     SPARSE_ELEM* _array;
-    __ST _size;
-    __ST _count; //counts the used spaces
+    ST_ _size;
+    ST_ _count; //counts the used spaces
   };
 }
 

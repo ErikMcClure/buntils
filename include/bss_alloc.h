@@ -183,17 +183,17 @@ namespace bss_util {
 	}
 
 	template<typename T, typename _Ax>
-	class __AllocTracker
+	class i_AllocTracker
 	{
     typedef typename _Ax::pointer pointer;
 	public:
-		inline __AllocTracker(const __AllocTracker& copy) : _alloca(copy._alloc_extern?copy._alloca:new _Ax(*copy._alloca)) {}
-		inline __AllocTracker(_Ax* ptr=0) :	_alloca((!ptr)?(new _Ax()):(ptr)), _alloc_extern(ptr!=0) {}
-		inline ~__AllocTracker() { if(!_alloc_extern) delete _alloca; }
+		inline i_AllocTracker(const i_AllocTracker& copy) : _alloca(copy._alloc_extern?copy._alloca:new _Ax(*copy._alloca)) {}
+		inline i_AllocTracker(_Ax* ptr=0) :	_alloca((!ptr)?(new _Ax()):(ptr)), _alloc_extern(ptr!=0) {}
+		inline ~i_AllocTracker() { if(!_alloc_extern) delete _alloca; }
     inline pointer _allocate(std::size_t cnt, typename std::allocator<void>::const_pointer p = 0) { return _alloca->allocate(cnt,p); }
     inline void _deallocate(pointer p, std::size_t s = 0) { _alloca->deallocate(p,s); }
 
-		inline __AllocTracker& operator =(const __AllocTracker& copy) { if(!_alloc_extern) delete _alloca; _alloca = copy._alloc_extern?copy._alloca:new _Ax(*copy._alloca); return *this; }
+		inline i_AllocTracker& operator =(const i_AllocTracker& copy) { if(!_alloc_extern) delete _alloca; _alloca = copy._alloc_extern?copy._alloca:new _Ax(*copy._alloca); return *this; }
 
 	protected:
 		_Ax* _alloca;
@@ -201,20 +201,20 @@ namespace bss_util {
 	};
 
 	template<typename T>
-	class __AllocTracker<T, Allocator<T>>
+	class i_AllocTracker<T, Allocator<T>>
 	{
     typedef typename Allocator<T>::pointer pointer;
 	public:
-		inline __AllocTracker(Allocator<T>* ptr=0) {}
+		inline i_AllocTracker(Allocator<T>* ptr=0) {}
     inline pointer _allocate(std::size_t cnt, typename std::allocator<void>::const_pointer=0) { return reinterpret_cast<pointer>(::operator new(cnt * sizeof (T))); }
     inline void _deallocate(pointer p, std::size_t = 0) { ::operator delete(p); }
 	};
 
 	template<typename _Ax>
-	class cAllocTracker : public __AllocTracker<typename _Ax::value_type, _Ax>
+	class cAllocTracker : public i_AllocTracker<typename _Ax::value_type, _Ax>
   {
   public:
-		inline cAllocTracker(_Ax* ptr=0) : __AllocTracker(ptr) {}
+		inline cAllocTracker(_Ax* ptr=0) : i_AllocTracker(ptr) {}
   };
 }
 

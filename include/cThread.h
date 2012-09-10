@@ -30,7 +30,7 @@ namespace bss_util {
 
     cThread& operator =(const cThread& right);
 
-    typedef std::pair<Functor<unsigned int, void*>*,void*> __DOUBLEARG;
+    typedef std::pair<Functor<unsigned int, void*>*,void*> DOUBLEARG;
 
   protected:
     void _sleepsync();
@@ -47,7 +47,7 @@ namespace bss_util {
     };
     unsigned int _threadret;
     void (cThread::*_syncptr)();
-    __DOUBLEARG* _delegate_arg;
+    DOUBLEARG* _delegate_arg;
   };
 }
 

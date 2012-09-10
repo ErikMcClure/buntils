@@ -6,15 +6,10 @@
 
 #include "bss_compiler.h"
 
-// Classic "safe delete" #defines, made obsolete by unique_ptr but included anyway.
-#define DELETE_SAFE(p) if(p) { delete p; p = 0; }
-#define SAFE_DELETE DELETE_SAFE
-#define DELETE_SAFE_ARRAY(p) if(p) { delete [] p; p = 0; }
-#define DELETE_ARRAY_SAFE DELETE_SAFE_ARRAY
-#define SAFE_DELETE_ARRAY DELETE_SAFE_ARRAY
-#define CLONEME(c) inline virtual c* Clone() const { return new c(*this); }
-#define CLONEMEZERO(c) inline virtual c* Clone() const { return 0; }
-#define CLONEMEABSTRACT(c) inline virtual c* Clone() const=0
+// Version numbers
+#define BSS_VERSION_MAJOR 0
+#define BSS_VERSION_MINOR 3
+#define BSS_VERSION_REVISION 84
 
 //sometimes the std versions of these are a bit overboard, so this redefines the MS version, except it will no longer cause conflicts everywhere
 #define bssmax(a,b)            (((a) > (b)) ? (a) : (b))

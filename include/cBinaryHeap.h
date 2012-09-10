@@ -10,7 +10,7 @@
 
 namespace bss_util {
   // This is a binary min-heap implemented using an array. Use CompTInverse to change it into a max-heap, or to make it use pairs.
-  template<class T, typename __ST=unsigned int, char (*CFunc)(const T&, const T&)=CompT<T>, typename ArrayType=cArraySimple<T,__ST>>
+  template<class T, typename ST_=unsigned int, char (*CFunc)(const T&, const T&)=CompT<T>, typename ArrayType=cArraySimple<T,ST_>>
   class BSS_COMPILER_DLLEXPORT cBinaryHeap : protected ArrayType
   {
   protected:
@@ -22,22 +22,22 @@ namespace bss_util {
     inline cBinaryHeap(const cBinaryHeap& copy) : ArrayType(copy),_length(copy._length) {}
     inline cBinaryHeap(cBinaryHeap&& mov) : ArrayType(std::move(mov)),_length(mov._length) { mov._length=0; }
     inline cBinaryHeap() : ArrayType(0),_length(0) {}
-    inline cBinaryHeap(const T* src, __ST length) : ArrayType(length),_length(length) { memcpy(_array,src,sizeof(T)*_length); Heapify(_array,_length); }
-    template<__ST SIZE>
+    inline cBinaryHeap(const T* src, ST_ length) : ArrayType(length),_length(length) { memcpy(_array,src,sizeof(T)*_length); Heapify(_array,_length); }
+    template<ST_ SIZE>
     inline cBinaryHeap(const T (&src)[SIZE]) : ArrayType(SIZE),_length(SIZE) { memcpy(_array,src,sizeof(T)*_length); Heapify(_array,_length); }
     inline ~cBinaryHeap() {}
     inline const T& GetRoot() { return _array[0]; }
     inline T PopRoot() { T r=_array[0]; Remove(0); return r; }
     inline bool Empty() { return !_length; }
-    inline __ST Length() { return _length; }
+    inline ST_ Length() { return _length; }
     // Inserts a value
     inline void Insert(const T& val) { _insert(val); }
     inline void Insert(T&& val) { _insert(std::move(val)); }
     // Sets a key and percolates
-    inline bool Set(__ST index, const T& val) { _set(index, val); }
-    inline bool Set(__ST index, T&& val) { _set(index,std::move(val)); }
+    inline bool Set(ST_ index, const T& val) { _set(index, val); }
+    inline bool Set(ST_ index, T&& val) { _set(index,std::move(val)); }
     // To remove a node, we replace it with the last item in the heap and then percolate down
-    inline bool Remove(__ST index)
+    inline bool Remove(ST_ index)
     {
       if(index>=_length) return false;
       --_length; //We don't have to copy _array[--_length] because it stays valid during the percolation
@@ -48,7 +48,7 @@ namespace bss_util {
     
     // Percolate up through the heap
     template<typename U>
-    inline static void PercolateUp(T* _array, __ST _length, __ST k, U && val)
+    inline static void PercolateUp(T* _array, ST_ _length, ST_ k, U && val)
     {
       assert(k<_length);
       unsigned int parent;
@@ -63,10 +63,10 @@ namespace bss_util {
     }
     // Percolate down a heap
     template<typename U>
-    inline static void PercolateDown(T* _array, __ST _length, __ST k, U && val)
+    inline static void PercolateDown(T* _array, ST_ _length, ST_ k, U && val)
     {
       assert(k<_length);
-      __ST i;
+      ST_ i;
 
 	    for (i = CBH_RIGHT(k); i < _length; i = CBH_RIGHT(i))
       {
@@ -89,20 +89,20 @@ namespace bss_util {
     inline cBinaryHeap& operator=(const cBinaryHeap& copy) { _length=copy._length; ArrayType::operator=(copy); return *this; }
     inline cBinaryHeap& operator=(cBinaryHeap&& mov) { _length=mov._length; ArrayType::operator=(std::move(mov)); mov._length=0; return *this; }
 
-    template<__ST SIZE>
+    template<ST_ SIZE>
     inline static void Heapify(T (&src)[SIZE]) { Heapify(src,SIZE); }
-    inline static void Heapify(T* src, __ST length)
+    inline static void Heapify(T* src, ST_ length)
     {
       T store;
-      for(__ST i = length/2; i>0;)
+      for(ST_ i = length/2; i>0;)
       {
         store=src[--i];
         PercolateDown(src,length,i,store);
       }
     }
-    template<__ST SIZE>
+    template<ST_ SIZE>
     inline static void HeapSort(T (&src)[SIZE]) { HeapSort(src,SIZE); }
-    inline static void HeapSort(T* src, __ST length)
+    inline static void HeapSort(T* src, ST_ length)
     {
       Heapify(src,length);
       T store;
@@ -125,7 +125,7 @@ namespace bss_util {
 
     // Sets a key and percolates
     template<typename U>
-    inline bool _set(__ST index, U && val)
+    inline bool _set(ST_ index, U && val)
     {
       if(index>=_length) return false;
       if(CFunc(_array[index],std::forward<U>(val)) >= 0) //in this case we percolate up
@@ -135,7 +135,7 @@ namespace bss_util {
       return true;
     }
 
-    __ST _length; //amount of used cells
+    ST_ _length; //amount of used cells
   };
 
     // This will grab the value closest to K while that value is still greater then or equal to K

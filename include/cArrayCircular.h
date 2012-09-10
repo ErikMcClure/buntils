@@ -9,27 +9,27 @@
 
 namespace bss_util {
   // Simple circular array implementation
-  template<class T, typename _SizeType=unsigned int, typename ArrayType=cArraySimple<T,_SizeType>>
+  template<class T, typename SizeType=unsigned int, typename ArrayType=cArraySimple<T,SizeType>>
   class BSS_COMPILER_DLLEXPORT cArrayCircular : protected ArrayType
   {
-    typedef _SizeType __ST;
-    typedef typename TSignPick<sizeof(__ST)>::SIGNED __ST_SIGNED;
+    typedef SizeType ST_;
+    typedef typename TSignPick<sizeof(ST_)>::SIGNED __ST_SIGNED;
 
   public:
     inline cArrayCircular(const cArrayCircular& copy) : ArrayType(copy), _cur(copy._cur), _length(copy._length) {}
     inline cArrayCircular(cArrayCircular&& mov) : ArrayType(std::move(mov)), _cur(mov._cur), _length(mov._length) {}
-    inline explicit cArrayCircular(__ST size=1) : ArrayType(size), _cur((__ST)-1), _length(0) {}
+    inline explicit cArrayCircular(ST_ size=1) : ArrayType(size), _cur((ST_)-1), _length(0) {}
     inline ~cArrayCircular() {}
     inline BSS_FORCEINLINE void Push(const T& item) { _push<const T&>(item); }
     inline BSS_FORCEINLINE void Push(T&& item) { _push<T&&>(std::move(item)); }
-    inline T Pop() { assert(_length>0); --_length; __ST prev=_cur; _cur=bssmod<__ST_SIGNED>(_cur-1,_size); return _array[prev]; }
-    inline __ST Size() const { return _size; }
-    inline __ST Length() const { return _length; }
-    inline void SetSize(__ST nsize) //Wipes out the array
+    inline T Pop() { assert(_length>0); --_length; ST_ prev=_cur; _cur=bssmod<__ST_SIGNED>(_cur-1,_size); return _array[prev]; }
+    inline ST_ Size() const { return _size; }
+    inline ST_ Length() const { return _length; }
+    inline void SetSize(ST_ nsize) //Wipes out the array
     {
       ArrayType::SetSize(nsize);
       _length=0;
-      _cur=(__ST)-1;
+      _cur=(ST_)-1;
     }
 
     inline T& operator[](__ST_SIGNED index) { return _array[bssmod<__ST_SIGNED>(_cur-index,_size)]; } // an index of 0 is the most recent item pushed into the circular array.
@@ -41,8 +41,8 @@ namespace bss_util {
     template<typename U> // Note that ++_cur can never be negative so we don't need to use bssmod there
     inline void _push(U && item) { _array[_cur=((++_cur)%_size)]=std::forward<U>(item); if(_length<_size) ++_length; }
 
-    __ST _cur;
-    __ST _length;
+    ST_ _cur;
+    ST_ _length;
   };
 }
 

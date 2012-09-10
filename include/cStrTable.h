@@ -13,13 +13,13 @@
 
 namespace bss_util {
   // helper class for template-izing
-  template<typename T,typename ST> class BSS_COMPILER_DLLEXPORT STRTABLE_FUNC {};
-  template<typename ST> class BSS_COMPILER_DLLEXPORT STRTABLE_FUNC<char,ST> { public: inline ST _lstr(const char* str) { return strlen(str); } };
-  template<typename ST> class BSS_COMPILER_DLLEXPORT STRTABLE_FUNC<wchar_t,ST> { public: inline ST _lstr(const wchar_t* str) { return wcslen(str); } };
+  template<typename T,typename ST_> class BSS_COMPILER_DLLEXPORT STRTABLE_FUNC {};
+  template<typename ST_> class BSS_COMPILER_DLLEXPORT STRTABLE_FUNC<char,ST_> { public: inline ST_ _lstr(const char* str) { return strlen(str); } };
+  template<typename ST_> class BSS_COMPILER_DLLEXPORT STRTABLE_FUNC<wchar_t,ST_> { public: inline ST_ _lstr(const wchar_t* str) { return wcslen(str); } };
 
   // Given a large array of strings (or a memory dump), assembles a single chunk of memory into a series of strings that can be accessed by index instantly
-  template<typename T, typename ST = unsigned int>
-  class BSS_COMPILER_DLLEXPORT cStrTable : protected STRTABLE_FUNC<T,ST>
+  template<typename T, typename ST_ = unsigned int>
+  class BSS_COMPILER_DLLEXPORT cStrTable : protected STRTABLE_FUNC<T,ST_>
   {
   public:
     // Default Copy Constructor
@@ -27,8 +27,8 @@ namespace bss_util {
     { 
       _strings=(T*)malloc(_sasize*sizeof(T));
       memcpy(_strings,copy._strings,_sasize*sizeof(T));
-      _indexarray=(ST*)malloc(_numindices*sizeof(ST));
-      memcpy(_indexarray,copy._indexarray,_numindices*sizeof(ST));
+      _indexarray=(ST_*)malloc(_numindices*sizeof(ST_));
+      memcpy(_indexarray,copy._indexarray,_numindices*sizeof(ST_));
     }
     inline cStrTable(cStrTable&& mov) : _sasize(mov._sasize), _numindices(mov._numindices),_strings(mov._strings),_indexarray(mov._indexarray)
     {
@@ -38,19 +38,19 @@ namespace bss_util {
       mov._indexarray=0;
     }
     // Generic Copy Constructor (for conversions)
-    template<class U> inline cStrTable(const cStrTable<T,U>& copy) : _sasize((ST)copy.TotalWordSize()), _numindices((ST)copy.Length())
+    template<class U> inline cStrTable(const cStrTable<T,U>& copy) : _sasize((ST_)copy.TotalWordSize()), _numindices((ST_)copy.Length())
     {
       _strings=(T*)malloc(_sasize*sizeof(T));
       memcpy(_strings,copy.GetString(0),_sasize*sizeof(T));
-      _indexarray=(ST*)malloc(_numindices*sizeof(ST));
-      for(ST i = 0; i < _numindices; ++i) _indexarray[i]=(ST)copy.GetIndices()[i];
+      _indexarray=(ST_*)malloc(_numindices*sizeof(ST_));
+      for(ST_ i = 0; i < _numindices; ++i) _indexarray[i]=(ST_)copy.GetIndices()[i];
     }
     // Constructor from a stream that's a series of null terminated strings.
-    inline cStrTable(std::istream* stream, ST size) : _sasize(size/sizeof(T)), _numindices(0)
+    inline cStrTable(std::istream* stream, ST_ size) : _sasize(size/sizeof(T)), _numindices(0)
     {
       if(!stream || !size) 
       {
-        _indexarray=(ST*)malloc(sizeof(ST));
+        _indexarray=(ST_*)malloc(sizeof(ST_));
         _indexarray[0]=0;
         _strings=(T*)malloc(1); //malloc(0) is undefined
         return;
@@ -61,11 +61,11 @@ namespace bss_util {
       _strings[(stream->gcount()/sizeof(T))-1]='\0'; //make sure the end is a null terminator
 
       _numindices=strccount<T>(_strings,0,_sasize);
-      _indexarray=(ST*)malloc(_numindices*sizeof(ST));
-      memset(_indexarray,0,_numindices*sizeof(ST));
+      _indexarray=(ST_*)malloc(_numindices*sizeof(ST_));
+      memset(_indexarray,0,_numindices*sizeof(ST_));
 
-      ST j=1;
-      for(ST i=0; i<_sasize && j<_numindices; ++i)
+      ST_ j=1;
+      for(ST_ i=0; i<_sasize && j<_numindices; ++i)
       {
         ++_indexarray[j];
         if(!_strings[i]) { ++j; if(j<_numindices) _indexarray[j]=_indexarray[j-1]; }
@@ -73,23 +73,23 @@ namespace bss_util {
     }
     
     // Constructor for array with compile-time determined size
-    template<ST N>
+    template<ST_ N>
     inline cStrTable(const T* (&strings)[N]) : _sasize(0), _numindices(N) { _construct(strings,N); }
     // Constructor with a null-terminated array of strings.
-    inline cStrTable(const T* const* strings, ST size) : _sasize(0), _numindices(size) { _construct(strings,size); }
+    inline cStrTable(const T* const* strings, ST_ size) : _sasize(0), _numindices(size) { _construct(strings,size); }
     // Destructor
     inline ~cStrTable() { if(_strings!=0) free(_strings); if(_indexarray!=0) free(_indexarray); }
     // Gets number of strings in table (index cannot be greater then this)
-    inline ST Length() const { return _numindices; }
+    inline ST_ Length() const { return _numindices; }
     // Gets total length of all strings
-    inline ST TotalWordSize() const { return _sasize; }
+    inline ST_ TotalWordSize() const { return _sasize; }
     // Returns string with the corresponding index. Strings are returned null-terminated, but the index bound is not checked.
-    inline const T* GetString(ST index) const { return _strings+_indexarray[index]; }
+    inline const T* GetString(ST_ index) const { return _strings+_indexarray[index]; }
     // Returns index array
-    inline const ST* GetIndices() const { return _indexarray; }
+    inline const ST_* GetIndices() const { return _indexarray; }
     // Dumps table to stream
     inline void DumpToStream(std::ostream* stream) { stream->write((char*)_strings,_sasize*sizeof(T)); }
-    inline const T* operator[](ST index) { return GetString(index); }
+    inline const T* operator[](ST_ index) { return GetString(index); }
     inline cStrTable& operator=(const cStrTable& right)
     { 
       if(_strings!=0) free(_strings);
@@ -97,9 +97,9 @@ namespace bss_util {
       _sasize=right._sasize;
       _numindices=right._numindices;
       _strings=(T*)malloc(_sasize*sizeof(T)); 
-      _indexarray=(ST*)malloc(_numindices*sizeof(ST));
+      _indexarray=(ST_*)malloc(_numindices*sizeof(ST_));
       memcpy(_strings,right._strings,_sasize*sizeof(T));
-      memcpy(_indexarray,right._indexarray,_numindices*sizeof(ST));
+      memcpy(_indexarray,right._indexarray,_numindices*sizeof(ST_));
       return *this;
     }
     inline cStrTable& operator=(cStrTable&& right)
@@ -123,16 +123,16 @@ namespace bss_util {
       memcpy(nstrings,_strings,_sasize*sizeof(T));
       memcpy(nstrings+_sasize,right._strings,right._sasize*sizeof(T));
 
-      ST* nindices=(ST*)malloc((_numindices+right._numindices)*sizeof(ST));
-      memcpy(nindices,_indexarray,_numindices*sizeof(ST));
-      memcpy(nindices+_numindices,right._indexarray,right._numindices*sizeof(ST));
+      ST_* nindices=(ST_*)malloc((_numindices+right._numindices)*sizeof(ST_));
+      memcpy(nindices,_indexarray,_numindices*sizeof(ST_));
+      memcpy(nindices+_numindices,right._indexarray,right._numindices*sizeof(ST_));
 
       free(_strings);
       free(_indexarray);
       _strings=nstrings;
       _indexarray=nindices;
-      ST i = _numindices; //start at old value
-      ST byteadd = _sasize;
+      ST_ i = _numindices; //start at old value
+      ST_ byteadd = _sasize;
       _numindices+=right._numindices;
       _sasize+=right._sasize;
 
@@ -143,28 +143,28 @@ namespace bss_util {
     inline cStrTable operator+(const cStrTable& right) { return (cStrTable retval(*this))+=right; }
 
   protected:
-    inline void BSS_FASTCALL _construct(const T* const* strings, ST size)
+    inline void BSS_FASTCALL _construct(const T* const* strings, ST_ size)
     {
       if(!strings || !size) //special handling for empty case
       {
         _numindices=0;
-        _indexarray=(ST*)malloc(sizeof(ST));
+        _indexarray=(ST_*)malloc(sizeof(ST_));
         _indexarray[0]=0;
         _strings=(T*)malloc(1); //malloc(0) is undefined
         return;
       }
 
-      _indexarray=(ST*)malloc(_numindices*sizeof(ST));
-      for(ST i = 0; i < size; ++i) //this will cause an infinite loop if someone is dumb enough to set ST to an unsigned type and set size equal to -1. If you actually think you could make that mistake, stop using this class.
+      _indexarray=(ST_*)malloc(_numindices*sizeof(ST_));
+      for(ST_ i = 0; i < size; ++i) //this will cause an infinite loop if someone is dumb enough to set ST_ to an unsigned type and set size equal to -1. If you actually think you could make that mistake, stop using this class.
       {
-        _indexarray[i] = STRTABLE_FUNC<T,ST>::_lstr(strings[i])+1; //include null terminator in length count
+        _indexarray[i] = STRTABLE_FUNC<T,ST_>::_lstr(strings[i])+1; //include null terminator in length count
         _sasize+=_indexarray[i];
       }
       _strings=(T*)malloc(_sasize*sizeof(T));
 
-      ST curlength=0;
-      ST hold;
-      for(ST i = 0; i < size; ++i) //this loop does two things - it copies the strings over, and it sets the index values to the correct ones while discarding intermediate lengths
+      ST_ curlength=0;
+      ST_ hold;
+      for(ST_ i = 0; i < size; ++i) //this loop does two things - it copies the strings over, and it sets the index values to the correct ones while discarding intermediate lengths
       {
         hold=_indexarray[i];
         _indexarray[i]=curlength;
@@ -174,13 +174,13 @@ namespace bss_util {
     }
 
     T* _strings;
-    ST* _indexarray;
-    ST _sasize;
-    ST _numindices;
+    ST_* _indexarray;
+    ST_ _sasize;
+    ST_ _numindices;
   };
 
-  //template<typename ST>
-  //inline template<class U> cStrTable<char,ST>::cStrTable(const cStrTable<U>& copy)
+  //template<typename ST_>
+  //inline template<class U> cStrTable<char,ST_>::cStrTable(const cStrTable<U>& copy)
   //{
   //}
     

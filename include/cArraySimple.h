@@ -115,8 +115,8 @@ namespace bss_util {
     T* _array;
     SizeType _size;
 
-    typedef SizeType __ST;
-    typedef T __T;
+    typedef SizeType ST_;
+    typedef T T_;
   };
 
   // Very simple "dynamic" array that calls the constructor and destructor
@@ -234,8 +234,8 @@ namespace bss_util {
     T* _array;
     SizeType _size;
     
-    typedef SizeType __ST;
-    typedef T __T;
+    typedef SizeType ST_;
+    typedef T T_;
   };
 
   // Typesafe array that reconstructs everything properly, without any memory moving tricks
@@ -354,8 +354,8 @@ namespace bss_util {
     T* _array;
     SizeType _size;
     
-    typedef SizeType __ST;
-    typedef T __T;
+    typedef SizeType ST_;
+    typedef T T_;
   };
   
   // Wrapper for underlying arrays that expose the array, making them independently usable without blowing up everything that inherits them
@@ -363,27 +363,27 @@ namespace bss_util {
   class BSS_COMPILER_DLLEXPORT cArrayWrap : public ARRAYTYPE
   {
   protected:
-    typedef typename ARRAYTYPE::__ST __ST;
-    typedef typename ARRAYTYPE::__T __T;
-    typedef ARRAYTYPE __AT;
+    typedef typename ARRAYTYPE::ST_ ST_;
+    typedef typename ARRAYTYPE::T_ T_;
+    typedef ARRAYTYPE AT_;
 
   public:
-    //inline cArrayWrap(const cArrayWrap& copy) : __AT(copy) {}
-    inline cArrayWrap(cArrayWrap&& mov) : __AT(std::move(mov)) {}
-    inline explicit cArrayWrap(__ST size=1): __AT(size) {}
+    //inline cArrayWrap(const cArrayWrap& copy) : AT_(copy) {}
+    inline cArrayWrap(cArrayWrap&& mov) : AT_(std::move(mov)) {}
+    inline explicit cArrayWrap(ST_ size=1): AT_(size) {}
     
     //Implementation of Remove that adjusts the size of the array.
-    inline void RemoveShrink(__ST index) { __AT::RemoveInternal(index); __AT::SetSize(_size-1); }
-    inline const __T& Front() const { assert(_size>0); return _array[0]; }
-    inline __T& Front() { assert(_size>0); return _array[0]; }
-    inline const __T& Back() const { assert(_size>0); return _array[_size-1]; }
-    inline __T& Back() { assert(_size>0); return _array[_size-1]; }
-    inline operator __T*() { return _array; }
-    inline operator const __T*() const { return _array; }
-    //inline cArrayWrap& operator=(const __AT& copy) { __AT::operator=(copy); return *this; }
-    inline cArrayWrap& operator=(__AT&& mov) { __AT::operator=(std::move(mov)); return *this; }
-    inline cArrayWrap& operator +=(const __AT& add) { __AT::operator+=(add); return *this; }
-    inline const cArrayWrap operator +(const __AT& add) { cArrayWrap r(*this); return (r+=add); }
+    inline void RemoveShrink(ST_ index) { AT_::RemoveInternal(index); AT_::SetSize(_size-1); }
+    inline const T_& Front() const { assert(_size>0); return _array[0]; }
+    inline T_& Front() { assert(_size>0); return _array[0]; }
+    inline const T_& Back() const { assert(_size>0); return _array[_size-1]; }
+    inline T_& Back() { assert(_size>0); return _array[_size-1]; }
+    inline operator T_*() { return _array; }
+    inline operator const T_*() const { return _array; }
+    //inline cArrayWrap& operator=(const AT_& copy) { AT_::operator=(copy); return *this; }
+    inline cArrayWrap& operator=(AT_&& mov) { AT_::operator=(std::move(mov)); return *this; }
+    inline cArrayWrap& operator +=(const AT_& add) { AT_::operator+=(add); return *this; }
+    inline const cArrayWrap operator +(const AT_& add) { cArrayWrap r(*this); return (r+=add); }
   };
   
   // Templatized typedefs for making this easier to use

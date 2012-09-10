@@ -31,7 +31,7 @@
 #endif
 
 namespace bss_util { 
-  static const VersionType BSSUTIL_VERSION = { 0,3,83 };
+  static const VersionType BSSUTIL_VERSION = { BSS_VERSION_MAJOR,BSS_VERSION_MINOR,BSS_VERSION_REVISION };
   
   BSS_COMPILER_DLLEXPORT extern void BSS_FASTCALL SetWorkDirToCur(); //Sets the working directory to the actual goddamn location of the EXE instead of the freaking start menu, or possibly the desktop. The possibilities are endless! Fuck you, windows.
   BSS_COMPILER_DLLEXPORT extern void BSS_FASTCALL ForceWin64Crash(); // I can't believe this function exists (forces 64-bit windows to not silently ignore fatal errors)
@@ -427,10 +427,10 @@ namespace bss_util {
   }
   
   // Average aggregation without requiring a total variable that can overflow. Nextnum should be the current avg count incremented by 1.
-  template<typename T, typename __ST> // T must be float or double, __ST must be integral
-  inline BSS_FORCEINLINE T BSS_FASTCALL bssavg(T curavg, T nvalue, __ST nextnum)
+  template<typename T, typename ST_> // T must be float or double, ST_ must be integral
+  inline BSS_FORCEINLINE T BSS_FASTCALL bssavg(T curavg, T nvalue, ST_ nextnum)
   {
-    static_assert(std::is_integral<__ST>::value,"__ST must be integral");
+    static_assert(std::is_integral<ST_>::value,"ST_ must be integral");
     static_assert(std::is_floating_point<T>::value,"T must be float, double, or long double");
     return (curavg*(((T)(nextnum-1))/((T)nextnum))) + nvalue/((T)nextnum);
   }

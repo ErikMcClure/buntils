@@ -14,14 +14,14 @@
 using namespace bss_util;
 
 template<typename T>
-const T* BSS_FASTCALL _trimlstr(const T* str)
+const T* BSS_FASTCALL ltrimstr(const T* str)
 {
   for(;*str>0 && *str<33;++str);
   return str;
 }
 
 template<typename T>
-const T* BSS_FASTCALL _trimrstr(const T* end,const T* begin)
+const T* BSS_FASTCALL rtrimstr(const T* end,const T* begin)
 {
   for(;end>begin && *end<33;--end);
   return end;
@@ -83,18 +83,28 @@ cINIstorage::~cINIstorage()
   if(_ini) delete _ini;
   _destroy(); //_destroyhash checks for nullification
 }
-cINIsection* cINIstorage::GetSection(const char* section, unsigned int instance) const
+cINIstorage::_NODE* cINIstorage::GetSectionNode(const char* section, unsigned int instance) const
 {
   khiter_t iter= _sections.GetIterator(section);
   if(iter==_sections.End()) return 0;
   _NODE* n=_sections[iter];
-  if(!instance) return &n->val;
-  return (instance>n->instances.Size())?0:(&n->instances[instance-1]->val);
+  if(!instance) return n;
+  return (instance>n->instances.Size())?0:(n->instances[instance-1]);
+}
+cINIsection* cINIstorage::GetSection(const char* section, unsigned int instance) const
+{
+  _NODE* sec=GetSectionNode(section,instance);
+  return !sec?0:&sec->val;
 }
 cINIentry* cINIstorage::GetEntryPtr(const char *section, const char* key, unsigned int keyinstance, unsigned int secinstance) const
 {
   cINIsection* s=GetSection(section,secinstance);
   return !s?0:s->GetEntryPtr(key,keyinstance);
+}
+cINIsection::_NODE* cINIstorage::GetEntryNode(const char *section, const char* key, unsigned int keyinstance, unsigned int secinstance) const
+{
+  cINIsection* s=GetSection(section,secinstance);
+  return !s?0:s->GetEntryNode(key,keyinstance);
 }
 
 cINIsection& BSS_FASTCALL cINIstorage::AddSection(const char* name)
@@ -296,8 +306,8 @@ char cINIstorage::EditEntry(const char* section, const char* key, const char* nv
     entnode->val.SetData(nvalue);
     const char* start=strchr((const char*)chunk.start,'=');
     if(!start) return -6; //if this happens something is borked
-    start=_trimlstr(++start);
-    _ini->replace(start-_ini->c_str(),(_trimrstr(((const char*)chunk.end)-1,start)-start)+1,nvalue);
+    start=ltrimstr(++start);
+    _ini->replace(start-_ini->c_str(),(rtrimstr(((const char*)chunk.end)-1,start)-start)+1,nvalue);
   }
 
   return 0;

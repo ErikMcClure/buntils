@@ -8,8 +8,8 @@
 
 namespace bss_util {
   // PriorityQueue that can be implemented as either a maxheap or a minheap
-  template<class K, class D, char (*CFunc)(const K&, const K&)=CompT<K>, typename __ST=unsigned int>
-  class BSS_COMPILER_DLLEXPORT cPriorityQueue : private cBinaryHeap<std::pair<K,D>,__ST,CompTFirst<std::pair<K,D>,K,CFunc>>
+  template<class K, class D, char (*CFunc)(const K&, const K&)=CompT<K>, typename ST_=unsigned int>
+  class BSS_COMPILER_DLLEXPORT cPriorityQueue : private cBinaryHeap<std::pair<K,D>,ST_,CompTFirst<std::pair<K,D>,K,CFunc>>
   {
     typedef std::pair<K,D> PAIR;
 

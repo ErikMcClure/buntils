@@ -8,7 +8,7 @@
 #else
 #include <sys/time.h>
 #include <unistd.h>
-static timeval tp;
+//static timeval tp;
 #endif
 
 using namespace bss_util;

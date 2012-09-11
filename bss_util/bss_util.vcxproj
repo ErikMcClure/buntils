@@ -111,7 +111,6 @@
     <ClInclude Include="..\include\os.h" />
     <ClInclude Include="..\include\Shiny.h" />
     <ClInclude Include="..\include\StreamSplitter.h" />
-    <ClInclude Include="resource.h" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="bss_DebugInfo.cpp" />

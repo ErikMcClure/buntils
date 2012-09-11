@@ -14,26 +14,28 @@ namespace bss_util {
     //cINIentry(const cINIentry& copy);
     cINIentry(cINIentry&& mov);
     cINIentry();
-    cINIentry(const char* key, const char* svalue, long lvalue, double dvalue);
+    cINIentry(const char* key, const char* svalue, __int64 ivalue, double dvalue);
     cINIentry(const char* key, const char* data);
     ~cINIentry();
     void SetData(const char* data);
     inline BSS_FORCEINLINE const char* GetKey() const { return _key; }
     //inline BSS_FORCEINLINE unsigned int GetIndex() const { return _index; }
     inline BSS_FORCEINLINE const char* GetString() const { return _svalue; }
-    inline BSS_FORCEINLINE long GetLong() const { return _lvalue; }
+    inline BSS_FORCEINLINE __int64 GetInt() const { return _ivalue; }
     inline BSS_FORCEINLINE double GetDouble() const { return _dvalue; }
     inline BSS_FORCEINLINE bool IsValid() const { return !_key.empty(); }
 
-    inline BSS_FORCEINLINE operator bool() const { return _lvalue!=0; }
-    inline BSS_FORCEINLINE operator char() const { return (char)_lvalue; }
-    inline BSS_FORCEINLINE operator short() const { return (short)_lvalue; }
-    inline BSS_FORCEINLINE operator int() const { return (int)_lvalue; }
-    inline BSS_FORCEINLINE operator long() const { return (long)_lvalue; }
-    inline BSS_FORCEINLINE operator unsigned char() const { return (unsigned char)_lvalue; }
-    inline BSS_FORCEINLINE operator unsigned short() const { return (unsigned short)_lvalue; }
-    inline BSS_FORCEINLINE operator unsigned int() const { return (unsigned int)_lvalue; }
-    inline BSS_FORCEINLINE operator unsigned long() const { return (unsigned long)_lvalue; }
+    inline BSS_FORCEINLINE operator bool() const { return _ivalue!=0; }
+    inline BSS_FORCEINLINE operator char() const { return (char)_ivalue; }
+    inline BSS_FORCEINLINE operator short() const { return (short)_ivalue; }
+    inline BSS_FORCEINLINE operator int() const { return (int)_ivalue; }
+    inline BSS_FORCEINLINE operator long() const { return (long)_ivalue; }
+    inline BSS_FORCEINLINE operator __int64() const { return (__int64)_ivalue; }
+    inline BSS_FORCEINLINE operator unsigned char() const { return (unsigned char)_ivalue; }
+    inline BSS_FORCEINLINE operator unsigned short() const { return (unsigned short)_ivalue; }
+    inline BSS_FORCEINLINE operator unsigned int() const { return (unsigned int)_ivalue; }
+    inline BSS_FORCEINLINE operator unsigned long() const { return (unsigned long)_ivalue; }
+    inline BSS_FORCEINLINE operator unsigned __int64() const { return (unsigned __int64)_ivalue; }
     inline BSS_FORCEINLINE operator float() const { return (float)_dvalue; }
     inline BSS_FORCEINLINE operator double() const { return _dvalue; }
     inline BSS_FORCEINLINE operator const char*() const { return _svalue; }
@@ -45,7 +47,7 @@ namespace bss_util {
   private:
     cStr _key;
     cStr _svalue;
-    long _lvalue;
+    __int64 _ivalue;
     double _dvalue;
   };
 }

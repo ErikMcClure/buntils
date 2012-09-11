@@ -1143,7 +1143,7 @@ TEST::RETPAIR test_ARRAYSIMPLE()
   a.Insert(5,2);
   TEST(a.Size()==6);
   TEST(a[2]==5);
-  a.RemoveShrink(1);
+  a.Remove(1);
   TEST(a[1]==5);
   a.SetSize(10);
   TEST(a[1]==5);
@@ -1183,7 +1183,7 @@ TEST::RETPAIR test_ARRAYSIMPLE()
     DEBUG_CDT_SAFE<true>::_testret=&__testret;
     DEBUG_CDT<true>::count=0;
     DArray<DEBUG_CDT<true>>::tSafe b(10);
-    b.RemoveShrink(5);
+    b.Remove(5);
     TEST(b.Size()==9);
     TEST(DEBUG_CDT<true>::count == 9);
     b.SetSize(19);
@@ -1195,7 +1195,7 @@ TEST::RETPAIR test_ARRAYSIMPLE()
   {
     DEBUG_CDT<false>::count=0;
     DArray<DEBUG_CDT<false>>::tSafe b(10);
-    b.RemoveShrink(5);
+    b.Remove(5);
     TEST(b.Size()==9);
     TEST(DEBUG_CDT<false>::count == 9);
     b.SetSize(19);
@@ -1399,7 +1399,7 @@ TEST::RETPAIR test_INISTORAGE()
 
   cINIstorage ini("inistorage.ini");
 
-  auto fn=[&](cINIentry* e, const char* s) -> bool { return (e!=0 && !strcmp(e->GetString(),s)); };
+  auto fn=[&](cINIentry* e, const char* s, int i) -> bool { return (e!=0 && !strcmp(e->GetString(),s) && e->GetInt()==i); };
   auto fn2=[&](const char* s) {
     FILE* f;
     FOPEN(f,"inistorage.ini","rb"); //this will create the file if it doesn't already exist
@@ -1443,27 +1443,27 @@ TEST::RETPAIR test_INISTORAGE()
 
   fn3();
 
-  TEST(fn(ini.GetEntryPtr("1","a",0,0),"1"));
-  TEST(fn(ini.GetEntryPtr("1","a",1,0),"2"));
-  TEST(fn(ini.GetEntryPtr("1","a",2,0),"3"));
-  TEST(fn(ini.GetEntryPtr("1","a",3,0),"4"));
+  TEST(fn(ini.GetEntryPtr("1","a",0,0),"1",1));
+  TEST(fn(ini.GetEntryPtr("1","a",1,0),"2",2));
+  TEST(fn(ini.GetEntryPtr("1","a",2,0),"3",3));
+  TEST(fn(ini.GetEntryPtr("1","a",3,0),"4",4));
   TEST(!ini.GetEntryPtr("1","a",4,0));
-  TEST(fn(ini.GetEntryPtr("1","b",0,0),"1"));
+  TEST(fn(ini.GetEntryPtr("1","b",0,0),"1",1));
   TEST(!ini.GetEntryPtr("1","b",1,0));
-  TEST(fn(ini.GetEntryPtr("1","c",0,0),"1"));
-  TEST(fn(ini.GetEntryPtr("1","c",1,0),"2"));
+  TEST(fn(ini.GetEntryPtr("1","c",0,0),"1",1));
+  TEST(fn(ini.GetEntryPtr("1","c",1,0),"2",2));
   TEST(!ini.GetEntryPtr("1","c",2,0));
-  TEST(fn(ini.GetEntryPtr("1","d",0,0),"1"));
+  TEST(fn(ini.GetEntryPtr("1","d",0,0),"1",1));
   TEST(!ini.GetEntryPtr("1","d",1,0));
-  TEST(fn(ini.GetEntryPtr("2","a",0,0),"1"));
-  TEST(fn(ini.GetEntryPtr("2","a",1,0),"2"));
+  TEST(fn(ini.GetEntryPtr("2","a",0,0),"1",1));
+  TEST(fn(ini.GetEntryPtr("2","a",1,0),"2",2));
   TEST(!ini.GetEntryPtr("2","a",2,0));
-  TEST(fn(ini.GetEntryPtr("2","b",0,0),"1"));
+  TEST(fn(ini.GetEntryPtr("2","b",0,0),"1",1));
   TEST(!ini.GetEntryPtr("2","b",1,0));
-  TEST(fn(ini.GetEntryPtr("2","a",0,1),"1"));
-  TEST(fn(ini.GetEntryPtr("2","a",1,1),"2"));
+  TEST(fn(ini.GetEntryPtr("2","a",0,1),"1",1));
+  TEST(fn(ini.GetEntryPtr("2","a",1,1),"2",2));
   TEST(!ini.GetEntryPtr("2","a",2,1));
-  TEST(fn(ini.GetEntryPtr("2","b",0,1),"1"));
+  TEST(fn(ini.GetEntryPtr("2","b",0,1),"1",1));
   TEST(!ini.GetEntryPtr("2","b",1,1));
   TEST(!ini.GetEntryPtr("2","a",0,2));
   TEST(!ini.GetEntryPtr("2","b",0,2));
@@ -1496,27 +1496,27 @@ TEST::RETPAIR test_INISTORAGE()
   INI_NE(2,a,9,0,2);
   INI_NE(2,b,9,0,2);
   
-  TEST(fn(ini.GetEntryPtr("1","a",0,0),"5"));
-  TEST(fn(ini.GetEntryPtr("1","a",1,0),"6"));
-  TEST(fn(ini.GetEntryPtr("1","a",2,0),"7"));
-  TEST(fn(ini.GetEntryPtr("1","a",3,0),"8"));
+  TEST(fn(ini.GetEntryPtr("1","a",0,0),"5",5));
+  TEST(fn(ini.GetEntryPtr("1","a",1,0),"6",6));
+  TEST(fn(ini.GetEntryPtr("1","a",2,0),"7",7));
+  TEST(fn(ini.GetEntryPtr("1","a",3,0),"8",8));
   TEST(!ini.GetEntryPtr("1","a",4,0));
-  TEST(fn(ini.GetEntryPtr("1","b",0,0),"2"));
+  TEST(fn(ini.GetEntryPtr("1","b",0,0),"2",2));
   TEST(!ini.GetEntryPtr("1","b",1,0));
-  TEST(fn(ini.GetEntryPtr("1","c",0,0),"3"));
-  TEST(fn(ini.GetEntryPtr("1","c",1,0),"4"));
+  TEST(fn(ini.GetEntryPtr("1","c",0,0),"3",3));
+  TEST(fn(ini.GetEntryPtr("1","c",1,0),"4",4));
   TEST(!ini.GetEntryPtr("1","c",2,0));
-  TEST(fn(ini.GetEntryPtr("1","d",0,0),"2"));
+  TEST(fn(ini.GetEntryPtr("1","d",0,0),"2",2));
   TEST(!ini.GetEntryPtr("1","d",1,0));
-  TEST(fn(ini.GetEntryPtr("2","a",0,0),"3"));
-  TEST(fn(ini.GetEntryPtr("2","a",1,0),"4"));
+  TEST(fn(ini.GetEntryPtr("2","a",0,0),"3",3));
+  TEST(fn(ini.GetEntryPtr("2","a",1,0),"4",4));
   TEST(!ini.GetEntryPtr("2","a",2,0));
-  TEST(fn(ini.GetEntryPtr("2","b",0,0),"2"));
+  TEST(fn(ini.GetEntryPtr("2","b",0,0),"2",2));
   TEST(!ini.GetEntryPtr("2","b",1,0));
-  TEST(fn(ini.GetEntryPtr("2","a",0,1),"3"));
-  TEST(fn(ini.GetEntryPtr("2","a",1,1),"4"));
+  TEST(fn(ini.GetEntryPtr("2","a",0,1),"3",3));
+  TEST(fn(ini.GetEntryPtr("2","a",1,1),"4",4));
   TEST(!ini.GetEntryPtr("2","a",2,1));
-  TEST(fn(ini.GetEntryPtr("2","b",0,1),"2"));
+  TEST(fn(ini.GetEntryPtr("2","b",0,1),"2",2));
   TEST(!ini.GetEntryPtr("2","b",1,1));
   TEST(!ini.GetEntryPtr("2","a",0,2));
   TEST(!ini.GetEntryPtr("2","b",0,2));
@@ -1525,35 +1525,35 @@ TEST::RETPAIR test_INISTORAGE()
   fn2("[1]\na=5\na=6\na=7\na=8\nb=2\nc=3\nc=4\nd=2\n\n[2]\na=3\na=4\nb=2\n\n[2]\na=3\na=4\nb=2\n\n[2]");
 
   INI_R(1,a,1,0);
-  TEST(fn(ini.GetEntryPtr("1","a",0,0),"5"));
-  TEST(fn(ini.GetEntryPtr("1","a",1,0),"7"));
-  TEST(fn(ini.GetEntryPtr("1","a",2,0),"8"));
+  TEST(fn(ini.GetEntryPtr("1","a",0,0),"5",5));
+  TEST(fn(ini.GetEntryPtr("1","a",1,0),"7",7));
+  TEST(fn(ini.GetEntryPtr("1","a",2,0),"8",8));
   TEST(!ini.GetEntryPtr("1","a",3,0));
-  TEST(fn(ini.GetEntryPtr("1","b",0,0),"2"));
+  TEST(fn(ini.GetEntryPtr("1","b",0,0),"2",2));
   INI_R(1,a,2,0);
-  TEST(fn(ini.GetEntryPtr("1","a",0,0),"5"));
-  TEST(fn(ini.GetEntryPtr("1","a",1,0),"7"));
+  TEST(fn(ini.GetEntryPtr("1","a",0,0),"5",5));
+  TEST(fn(ini.GetEntryPtr("1","a",1,0),"7",7));
   TEST(!ini.GetEntryPtr("1","a",2,0));
-  TEST(fn(ini.GetEntryPtr("1","b",0,0),"2"));
+  TEST(fn(ini.GetEntryPtr("1","b",0,0),"2",2));
   INI_R(1,a,0,0);
-  TEST(fn(ini.GetEntryPtr("1","a",0,0),"7"));
+  TEST(fn(ini.GetEntryPtr("1","a",0,0),"7",7));
   TEST(!ini.GetEntryPtr("1","a",1,0));
-  TEST(fn(ini.GetEntryPtr("1","b",0,0),"2"));
+  TEST(fn(ini.GetEntryPtr("1","b",0,0),"2",2));
   INI_R(1,c,0,0);
-  TEST(fn(ini.GetEntryPtr("1","c",0,0),"4"));
+  TEST(fn(ini.GetEntryPtr("1","c",0,0),"4",4));
   INI_R(1,d,0,0);
   TEST(!ini.GetEntryPtr("1","d",0,0));
   INI_R(1,a,0,0);
   TEST(!ini.GetEntryPtr("1","a",0,0));
-  TEST(fn(ini.GetEntryPtr("1","b",0,0),"2"));
+  TEST(fn(ini.GetEntryPtr("1","b",0,0),"2",2));
 
   INI_R(2,b,0,0);
-  TEST(fn(ini.GetEntryPtr("2","a",0,0),"3"));
-  TEST(fn(ini.GetEntryPtr("2","a",1,0),"4"));
+  TEST(fn(ini.GetEntryPtr("2","a",0,0),"3",3));
+  TEST(fn(ini.GetEntryPtr("2","a",1,0),"4",4));
   TEST(!ini.GetEntryPtr("2","a",2,0));
   TEST(!ini.GetEntryPtr("2","b",0,0));
   INI_R(2,a,1,1);
-  TEST(fn(ini.GetEntryPtr("2","a",0,1),"3"));
+  TEST(fn(ini.GetEntryPtr("2","a",0,1),"3",3));
   TEST(!ini.GetEntryPtr("2","a",1,1));
   TEST(!ini.GetEntryPtr("2","b",1,1));
   INI_R(2,a,0,1);

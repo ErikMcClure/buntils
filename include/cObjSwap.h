@@ -73,9 +73,11 @@ namespace bss_util {
 
 	  int _result;
   };
-
+  
   typedef cObjSwap<const char*> STRSWAP;
+  typedef cObjSwap<const char*,OBJSWAPFUNC_INS<const char*>> STRISWAP;
   typedef cObjSwap<const wchar_t*> WCSSWAP;
+  typedef cObjSwap<const wchar_t*,OBJSWAPFUNC_INS<const wchar_t*>> WCSISWAP;
   typedef cObjSwap<const void*> PSWAP;
 }
 

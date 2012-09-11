@@ -11,6 +11,9 @@
 - Removed DELETE_SAFE macros because you really should be using unique_ptr for that kind of stuff.
 - Removed CLONE_ME macros because its way too easy to just copy+paste that and you never have to modify it again.
 - Changed GetKeyPtrOnly to return KHVAL instead of KHVAL& so it actually works properly
+- Added STRISWAP and WCSISWAP typedefs to cObjSwap.h
+- Changed RemoveShrink to Remove and added Add() to cArrayWrap
+- Changed cINIentry to always store a 64-bit integer, and changed GetLong to GetInt
 
 0.3.83
 ------

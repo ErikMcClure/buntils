@@ -202,7 +202,7 @@ bool cINIstorage::RemoveSection(const char* name, unsigned int instance)
     if(!instance) // If this is true you are a root, but you don't have any danglers (see above check), so we just remove you from the hash.
       _sections.RemoveIterator(iter);
     else { // Otherwise you are a dangler, so all we have to do is remove you from the instances array
-      secroot->instances.RemoveShrink(--instance); // we decrement instance here so its valid in the below for loop
+      secroot->instances.Remove(--instance); // we decrement instance here so its valid in the below for loop
       for(;instance<secroot->instances.Size();++instance) --secroot->instances[instance]->val._index; //moves all the indices down
     }
 
@@ -221,7 +221,7 @@ bool cINIstorage::RemoveSection(const char* name, unsigned int instance)
     }
     else
     {
-      arr->RemoveShrink(instance);
+      arr->Remove(instance);
       if(!instance) _sections.OverrideKeyPtr(iter,(*arr)[0].GetName());
       unsigned int svar=arr->Size();
       for(;instance<svar;++instance) --(*arr)[instance]._index; //moves all the indices down
@@ -293,7 +293,7 @@ char cINIstorage::EditEntry(const char* section, const char* key, const char* nv
     if(!keyinstance) // If this is true you are a root, but you don't have any danglers (see above check), so we just remove you from the hash.
       psec->_entries.RemoveIterator(iter);
     else // Otherwise you are a dangler, so all we have to do is remove you from the instances array
-      entroot->instances.RemoveShrink(keyinstance-1);
+      entroot->instances.Remove(keyinstance-1);
     
     entnode->~_SNODE(); // Calling this destructor is important in case the node has an unused array that needs to be freed
     cINIsection::_alloc.dealloc(entnode);

@@ -30,6 +30,8 @@
 #define SSCANF sscanf_s
 #define ITOAx0(v,buf,r) _itoa_s(v,buf,r)
 #define ITOA(v,buf,bufsize,r) _itoa_s(v,buf,bufsize,r)
+#define ATOLL(s) _atoi64(s)
+#define STRTOULL(s,e,r) _strtoui64(s,e,r)
 #else
 #define TIME64(ptime) time64(ptime)
 #define GMTIMEFUNC(time, tm) if(gmtime64_r(time, tm)) return false
@@ -51,6 +53,8 @@
 #define SSCANF sscanf
 #define ITOAx0(v,buf,r) _itoa_r(v,buf,r)
 #define ITOA(v,buf,bufsize,r) itoa_r(v,buf,bufsize,r)
+#define ATOLL(s) atoll(s)
+#define STRTOULL(s,e,r) strtoull(s,e,r)
 #endif
 
 #endif

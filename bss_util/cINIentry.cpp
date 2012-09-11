@@ -7,14 +7,14 @@
 
 using namespace bss_util;
 
-cINIentry::cINIentry(cINIentry&& mov) : _key(std::move(mov._key)),_svalue(std::move(mov._svalue)),_lvalue(mov._lvalue),_dvalue(mov._dvalue)
+cINIentry::cINIentry(cINIentry&& mov) : _key(std::move(mov._key)),_svalue(std::move(mov._svalue)),_ivalue(mov._ivalue),_dvalue(mov._dvalue)
 {
 }
-cINIentry::cINIentry() : _lvalue(0),_dvalue(0.0)//,_index(0)
+cINIentry::cINIentry() : _ivalue(0),_dvalue(0.0)//,_index(0)
 {
 }
-cINIentry::cINIentry(const char *key, const char *svalue, long lvalue, double dvalue) : _key(key),_svalue(svalue),
-  _lvalue(lvalue),_dvalue(dvalue)//,_index(index)
+cINIentry::cINIentry(const char *key, const char *svalue, __int64 ivalue, double dvalue) : _key(key),_svalue(svalue),
+  _ivalue(ivalue),_dvalue(dvalue)//,_index(index)
 {
 }
 cINIentry::cINIentry(const char* key, const char* data) : _key(key)//,_index(index)
@@ -30,7 +30,7 @@ cINIentry& cINIentry::operator=(cINIentry&& mov)
 {
   _key=std::move(mov._key);
   _svalue=std::move(mov._svalue);
-  _lvalue=mov._lvalue;
+  _ivalue=mov._ivalue;
   _dvalue=mov._dvalue;
   return *this;
 }
@@ -48,42 +48,21 @@ void cINIentry::SetData(const char* data)
 
   if(_svalue[0] == '0' && (_svalue[1] == 'x' || _svalue[1] == 'X')) //If this is true its a hex number
   {
-    std::string s(_svalue);
-    unsigned long v;
-    std::istringstream iss(s);
-    iss >> std::setbase(0) >> v;
-    std::setbase(10); //reset base to 10
-    _lvalue = (long)v;
+    unsigned __int64 v = STRTOULL(_svalue,0,16); //We store the unsigned here so it gets properly stored in the double even if it overflows on the signed __int64
+    _ivalue = (__int64)v;
     _dvalue = (double)v;
   }
-  else if(!strchr(_svalue, '.')) //If there isn't a period in the sequence, its either a string (in which case we don't care) or an integer, so set _dvalue to invalid.
+  else if(!strchr(_svalue, '.')) //If there isn't a period in the sequence, its either a string (in which case we don't care) or an integer, so round _dvalue to the integer.
   {
-    _lvalue = atol(_svalue);
-    _dvalue = (double)_lvalue;
+    _ivalue = ATOLL(_svalue);
+    _dvalue = (double)_ivalue;
   }
-  else //Ok its got a . in there so its either a double or a string, so we just round _lvalue
+  else //Ok its got a . in there so its either a double or a string, so we just round _ivalue
   {
     _dvalue = atof(_svalue);
-    _lvalue = (long)_dvalue;
+    _ivalue = (__int64)_dvalue;
   }
 }
-
-//
-//const char* cINIentry::GetKey() const { return _key; }
-//const char* cINIentry::GetString() const { return _svalue; }
-//long cINIentry::GetLong() const { return _lvalue; }
-//double cINIentry::GetDouble() const { return _dvalue; }
-//
-//cINIentry::operator bool() const { return _lvalue!=0; }
-//cINIentry::operator short() const { return (short)_lvalue; }
-//cINIentry::operator int() const { return (int)_lvalue; }
-//cINIentry::operator long() const { return (long)_lvalue; }
-//cINIentry::operator unsigned short() const { return (unsigned short)_lvalue; }
-//cINIentry::operator unsigned int() const { return (unsigned int)_lvalue; }
-//cINIentry::operator unsigned long() const { return (unsigned long)_lvalue; }
-//cINIentry::operator float() const { return (float)_dvalue; }
-//cINIentry::operator double() const { return _dvalue; }
-//cINIentry::operator const char*() const { return _svalue; }
 
 //#define STR_RT "rt"
 //#define STR_NONE ""

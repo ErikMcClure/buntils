@@ -372,8 +372,9 @@ namespace bss_util {
     inline cArrayWrap(cArrayWrap&& mov) : AT_(std::move(mov)) {}
     inline explicit cArrayWrap(ST_ size=1): AT_(size) {}
     
-    //Implementation of Remove that adjusts the size of the array.
-    inline void RemoveShrink(ST_ index) { AT_::RemoveInternal(index); AT_::SetSize(_size-1); }
+    //inline void Add(T item) { AT_::Insert(item,_size); } // Not all cArrays implement Insert
+    //Implementation of RemoveInternal that adjusts the size of the array.
+    inline void Remove(ST_ index) { AT_::RemoveInternal(index); AT_::SetSize(_size-1); }
     inline const T_& Front() const { assert(_size>0); return _array[0]; }
     inline T_& Front() { assert(_size>0); return _array[0]; }
     inline const T_& Back() const { assert(_size>0); return _array[_size-1]; }

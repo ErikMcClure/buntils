@@ -21,7 +21,7 @@ namespace bss_util {
   };
 
   /* Single-Threaded AA Tree (A variant of the RBT tree). */ //BROKEN
-  template<class TKey, class TVal, char (*CFunc)(const TKey& keyleft, const TKey& keyright)=CompT<TKey>, typename TLEVEL=unsigned short, typename TSIZE=unsigned int, class Alloc=bss_util::Allocator<TAATreeNode<TKey, TVal, TLEVEL>,bss_util::FixedChunkPolicy<TAATreeNode<TKey, TVal, TLEVEL>>>>
+  template<class TKey, class TVal, char (*CFunc)(const TKey& keyleft, const TKey& keyright)=CompT<TKey>, typename TLEVEL=unsigned short, typename TSIZE=unsigned int, class Alloc=bss_util::Allocator<TAATreeNode<TKey, TVal, TLEVEL>,bss_util::FixedPolicy<TAATreeNode<TKey, TVal, TLEVEL>>>>
   class BSS_COMPILER_DLLEXPORT cTAATree : cAllocTracker<Alloc>
   {
   public:

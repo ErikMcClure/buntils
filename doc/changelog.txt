@@ -14,6 +14,10 @@
 - Added STRISWAP and WCSISWAP typedefs to cObjSwap.h
 - Changed RemoveShrink to Remove and added Add() to cArrayWrap
 - Changed cINIentry to always store a 64-bit integer, and changed GetLong to GetInt
+- Added single-consumer, single-producer lockless queue and corresponding tests.
+- Fixed cAVLTree's handling of constructors, destructors and return values, so you can now use standard classes as items.
+- Removed vestigial cBucketAlloc.h
+- Replaced ::operator new and ::operator delete with malloc and free in bss_alloc.h to maintain consistency.
 
 0.3.83
 ------

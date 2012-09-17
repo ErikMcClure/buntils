@@ -47,9 +47,11 @@ namespace bss_util {
 
     inline pointer allocate(std::size_t cnt, 
       typename std::allocator<void>::const_pointer = 0) { 
-        return reinterpret_cast<pointer>(::operator new(cnt * sizeof (T))); 
+        //return reinterpret_cast<pointer>(::operator new(cnt * sizeof (T))); // note that while operator new does not call a constructor (it can't), it's much easier to override for leak tests.
+        return reinterpret_cast<pointer>(malloc(cnt*sizeof(T)));
     }
-    inline void deallocate(pointer p, std::size_t = 0) { ::operator delete(p); }
+    //inline void deallocate(pointer p, std::size_t = 0) { ::operator delete(p); }
+    inline void deallocate(pointer p, std::size_t = 0) { free(p); }
 	};
   
 	template<typename T, typename Alloc>
@@ -206,8 +208,10 @@ namespace bss_util {
     typedef typename Allocator<T>::pointer pointer;
 	public:
 		inline i_AllocTracker(Allocator<T>* ptr=0) {}
-    inline pointer _allocate(std::size_t cnt, typename std::allocator<void>::const_pointer=0) { return reinterpret_cast<pointer>(::operator new(cnt * sizeof (T))); }
-    inline void _deallocate(pointer p, std::size_t = 0) { ::operator delete(p); }
+    //inline pointer _allocate(std::size_t cnt, typename std::allocator<void>::const_pointer=0) { return reinterpret_cast<pointer>(::operator new(cnt * sizeof (T))); } // note that while operator new does not call a constructor (it can't), it's much easier to override for leak tests.
+    inline pointer _allocate(std::size_t cnt, typename std::allocator<void>::const_pointer=0) { return reinterpret_cast<pointer>(malloc(cnt*sizeof(T))); }
+    //inline void _deallocate(pointer p, std::size_t = 0) { ::operator delete(p); }
+    inline void _deallocate(pointer p, std::size_t = 0) { free(p); }
 	};
 
 	template<typename _Ax>

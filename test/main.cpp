@@ -29,7 +29,7 @@
 #include "cLinkedArray.h"
 #include "cLinkedList.h"
 #include "cLocklessByteQueue.h"
-//#include "cLocklessQueue.h"
+#include "cLocklessQueue.h"
 #include "cMap.h"
 #include "cMutex.h"
 #include "cObjSwap.h"
@@ -1251,8 +1251,8 @@ TEST::RETPAIR test_AVLTREE()
 {
   BEGINTEST;
 
-  Allocator<AVL_Node<int,int>,FixedChunkPolicy<AVL_Node<int,int>>> fixedavl;
-  cAVLtree<int, int,CompT<int>,Allocator<AVL_Node<int,int>,FixedChunkPolicy<AVL_Node<int,int>>>> avlblah(&fixedavl);
+  Allocator<AVL_Node<int,int>,FixedPolicy<AVL_Node<int,int>>> fixedavl;
+  cAVLtree<int, int,CompT<int>,Allocator<AVL_Node<int,int>,FixedPolicy<AVL_Node<int,int>>>> avlblah(&fixedavl);
 
   //char prof=_debug.OpenProfiler();
   for(int i = 0; i<TESTNUM; ++i)
@@ -1286,6 +1286,56 @@ TEST::RETPAIR test_AVLTREE()
   tree->ReplaceKey(5,2);
   tree->Remove(test.first);
   tree->Clear();
+  delete tree;
+
+  //DEBUG_CDT_SAFE<false>::_testret=&__testret; // Set things up so we can ensure cAVLTree handles constructors/destructors properly.
+  DEBUG_CDT<false>::count=0;
+
+  {
+    shuffle(testnums);
+    cFixedAlloc<DEBUG_CDT<false>,TESTNUM> dalloc;
+    typedef UqP_<DEBUG_CDT<false>,std::function<void(DEBUG_CDT<false>*)>> AVL_D;
+    cAVLtree<int,AVL_D,CompT<int>,Allocator<AVL_Node<int,AVL_D>,FixedPolicy<AVL_Node<int,AVL_D>>>> dtree;
+    for(int i = 0; i<TESTNUM; ++i)
+    {
+      auto dp = dalloc.alloc(1);
+      new(dp) DEBUG_CDT<false>(testnums[i]);
+      dtree.Insert(testnums[i],AVL_D(dp,[&](DEBUG_CDT<false>* p){p->~DEBUG_CDT<false>(); dalloc.dealloc(p);}));
+    }
+
+    shuffle(testnums);
+    c=0;
+    for(int i = 0; i<TESTNUM; ++i)
+      c+=(dtree.GetRef(testnums[i])!=0);
+    TEST(c==TESTNUM);
+    
+    shuffle(testnums);
+    c=0;
+    for(int i = 0; i<TESTNUM; ++i)
+      c+=dtree.ReplaceKey(testnums[i],testnums[i]);
+    TEST(c==TESTNUM);
+
+    shuffle(testnums);
+    c=0;
+    AVL_D* r;
+    for(int i = 0; i<TESTNUM; ++i)
+    {
+      if((r=dtree.GetRef(testnums[i]))!=0)
+        c+=((*r->get())==testnums[i]);
+    }
+    TEST(c==TESTNUM);
+
+    shuffle(testnums);
+    for(int i = 0; i<TESTNUM; ++i)
+      dtree.Remove(testnums[i]);
+
+    c=0;
+    for(int i = 0; i<TESTNUM; ++i)
+      c+=(dtree.GetRef(testnums[i])==0);
+    TEST(c==TESTNUM);
+    TEST(!DEBUG_CDT<false>::count)
+  }
+  TEST(!DEBUG_CDT<false>::count)
 
   ENDTEST;
 }
@@ -1716,7 +1766,8 @@ unsigned int __stdcall _locklessqueue_consume(void* p)
   uint c;
   while(lq_pos<TOTALNUM || q->Length()>0) {
     c=atomic_xadd(&lq_pos);
-    while(q->Length()>0 && !q->Consume(lq_end[c])); // Keep trying to consume something and put it into our given bucket until it works
+    while((lq_pos<=TOTALNUM || q->Length()>0) && !q->Consume(lq_end[c])); // Keep trying to consume something and put it into our given bucket until it works
+    assert(lq_end[c]!=0);
   }
   return 0;
 }
@@ -1734,7 +1785,7 @@ unsigned int __stdcall _locklessqueue_produce(void* p)
 TEST::RETPAIR test_LOCKLESSQUEUE()
 {
   BEGINTEST;
-  /*{
+  {
   cLocklessQueue<__int64> q; // Basic sanity test
   q.Produce(5);
   __int64 c;
@@ -1763,23 +1814,24 @@ TEST::RETPAIR test_LOCKLESSQUEUE()
   uintptr_t handles[NUMTHREADS] = {0};
   std::vector<size_t> values;
 
-  typedef cLocklessQueue<unsigned int,true,true,size_t,size_t> LLQUEUE_SCSP; 
+  //typedef cLocklessQueue<unsigned int,true,true,size_t,size_t> LLQUEUE_SCSP; 
+  typedef cLocklessQueue<unsigned int,size_t> LLQUEUE_SCSP; 
   {
   LLQUEUE_SCSP q; // single consumer single producer test
   char ppp=_debug.OpenProfiler();
+  lq_c=1;
 
   handles[1]=_beginthreadex(0,0, _locklessqueue_consume<LLQUEUE_SCSP>, &q, 0, tret+1);
   handles[0]=_beginthreadex(0,0, _locklessqueue_produce<LLQUEUE_SCSP>, &q, 0, tret+0);
   while(WaitForSingleObject((void*)handles[0], 1)==WAIT_TIMEOUT)
     values.push_back(q.Length());
   WaitForSingleObject((void*)handles[1], INFINITE);
-  std::cout << '\n' << _debug.CloseProfiler(ppp) << std::endl;
-  //std::sort(std::begin(lq_end),std::end(lq_end));
+  //std::cout << '\n' << _debug.CloseProfiler(ppp) << std::endl;
   bool check=true;
-  for(int i = 0; i < TOTALNUM; ++i)
-    check=check&&(lq_end[i]==i);
-  //TEST(check);
-  }*/
+  for(int i = 0; i < TOTALNUM;++i)
+    check=check&&(lq_end[i]==i+1);
+  TEST(check);
+  }
 
   /*lq_c=lq_pos=0;
   typedef cLocklessQueue<unsigned int,false,false,size_t,size_t> LLQUEUE_MCMP; 
@@ -1970,8 +2022,8 @@ TEST::RETPAIR test_RATIONAL()
 TEST::RETPAIR test_RBT_LIST()
 {
   BEGINTEST;
-  Allocator<cRBT_Node<int,int>,FixedChunkPolicy<cRBT_Node<int,int>>> fixedalloc;
-  cRBT_List<int, int,CompT<int>,Allocator<cRBT_Node<int,int>,FixedChunkPolicy<cRBT_Node<int,int>>>> blah(&fixedalloc);
+  Allocator<cRBT_Node<int,int>,FixedPolicy<cRBT_Node<int,int>>> fixedalloc;
+  cRBT_List<int, int,CompT<int>,Allocator<cRBT_Node<int,int>,FixedPolicy<cRBT_Node<int,int>>>> blah(&fixedalloc);
 
   //char prof=_debug.OpenProfiler();
   for(int i = 0; i<TESTNUM; ++i)
@@ -2305,7 +2357,7 @@ int main(int argc, char** argv)
     { "cLinkedArray.h", &test_LINKEDARRAY },
     { "cLinkedList.h", &test_LINKEDLIST },
     //{ "cLocklessByteQueue.h", &test_LOCKLESSBYTEQUEUE },
-    //{ "cLocklessQueue.h", &test_LOCKLESSQUEUE },
+    { "cLocklessQueue.h", &test_LOCKLESSQUEUE },
     { "cMap.h", &test_MAP },
     //{ "cMutex.h", &test_MUTEX },
     { "cObjSwap.h", &test_OBJSWAP },

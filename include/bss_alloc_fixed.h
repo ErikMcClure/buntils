@@ -7,15 +7,15 @@
 #include "bss_alloc.h"
 #include "bss_util.h"
 
-#define DECL_FIXEDPOLICY(T) bss_util::Allocator<T,bss_util::FixedChunkPolicy<T>>
+#define DECL_FIXEDPOLICY(T) bss_util::Allocator<T,bss_util::FixedPolicy<T>>
 
 namespace bss_util {
   // Fixed Chunk Alloc
-  struct FIXEDCHUNKLIST
+  struct FIXEDLIST_NODE
   {
     void* mem;
     size_t size;
-    FIXEDCHUNKLIST* next;
+    FIXEDLIST_NODE* next;
   };
 
   template<class T, size_t init=8>
@@ -29,7 +29,7 @@ namespace bss_util {
     }
     ~cFixedAlloc()
     {
-      FIXEDCHUNKLIST* hold=_root;
+      FIXEDLIST_NODE* hold=_root;
       while(_root=hold)
       {
         hold=_root->next;
@@ -68,7 +68,7 @@ namespace bss_util {
 #ifdef BSS_DEBUG
     inline bool _validpointer(const void* p) const
     {
-      const FIXEDCHUNKLIST* hold=_root;
+      const FIXEDLIST_NODE* hold=_root;
       while(hold)
       {
         if(p>=hold->mem && p<(((unsigned char*)hold->mem)+hold->size))
@@ -81,7 +81,7 @@ namespace bss_util {
 #endif
     inline void _allocchunk(size_t nsize)
     {
-      FIXEDCHUNKLIST* retval=(FIXEDCHUNKLIST*)malloc(sizeof(FIXEDCHUNKLIST));
+      FIXEDLIST_NODE* retval=(FIXEDLIST_NODE*)malloc(sizeof(FIXEDLIST_NODE));
       retval->next=_root;
       retval->size=nsize;
       retval->mem=malloc(retval->size);
@@ -91,7 +91,7 @@ namespace bss_util {
       _root=retval;
     }
 
-    inline void _initchunk(const FIXEDCHUNKLIST& chunk)
+    inline void _initchunk(const FIXEDLIST_NODE& chunk)
     {
       unsigned char* memend=((unsigned char*)chunk.mem)+chunk.size;
       for(unsigned char* memref=(unsigned char*)chunk.mem; memref<memend; memref+=sizeof(T))
@@ -101,21 +101,21 @@ namespace bss_util {
       }
     }
 
-    FIXEDCHUNKLIST* _root;
+    FIXEDLIST_NODE* _root;
     void* _freelist;
   };
   
 	template<typename T>
-  class BSS_COMPILER_DLLEXPORT FixedChunkPolicy : public AllocPolicySize<T>, protected cFixedAlloc<T> {
+  class BSS_COMPILER_DLLEXPORT FixedPolicy : public AllocPolicySize<T>, protected cFixedAlloc<T> {
 	public:
     template<typename U>
-    struct rebind { typedef FixedChunkPolicy<U> other; };
+    struct rebind { typedef FixedPolicy<U> other; };
 
-    inline explicit FixedChunkPolicy() {}
-    inline ~FixedChunkPolicy() {}
-    inline explicit FixedChunkPolicy(FixedChunkPolicy const&) {}
+    inline explicit FixedPolicy() {}
+    inline ~FixedPolicy() {}
+    inline explicit FixedPolicy(FixedPolicy const&) {}
     template <typename U>
-    inline explicit FixedChunkPolicy(FixedChunkPolicy<U> const&) {}
+    inline explicit FixedPolicy(FixedPolicy<U> const&) {}
 
     inline pointer allocate(std::size_t cnt, 
       typename std::allocator<void>::const_pointer = 0) {
@@ -126,7 +126,7 @@ namespace bss_util {
     }
 	};
 
-  BSSBUILD_STATIC_POLICY(StaticFixedChunk,FixedChunkPolicy);
+  BSSBUILD_STATIC_POLICY(StaticFixedChunk,FixedPolicy);
 
   // Generic static allocator for a class. T is the type of the class implementing this allocator. Every single subclass has to implement this if its to be taken advantage of
   //template<typename T>
@@ -143,11 +143,11 @@ namespace bss_util {
   //  //void operator delete[](void *p) { _alloc.deallocate((T*)p,2); }
 
   //protected:
-  //  static Allocator<T, FixedChunkPolicy<T>> _alloc;
+  //  static Allocator<T, FixedPolicy<T>> _alloc;
   //};
 
   //template<typename T>
-  //Allocator<T, FixedChunkPolicy<T>> cClassAllocator<T>::_alloc = Allocator<T, FixedChunkPolicy<T>>();
+  //Allocator<T, FixedPolicy<T>> cClassAllocator<T>::_alloc = Allocator<T, FixedPolicy<T>>();
 
   
   /*struct fsaBlock

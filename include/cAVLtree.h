@@ -21,9 +21,11 @@ namespace bss_util {
   };
 
   // AVL Tree implementation
-  template<class Key, class Data, char (*CFunc)(const Key&, const Key&)=CompT<Key>, typename Alloc=Allocator<AVL_Node<Key,Data>>, Data INVALID = 0>
-	class BSS_COMPILER_DLLEXPORT cAVLtree : cAllocTracker<Alloc>
+  template<class Key, class Data, char (*CFunc)(const Key&, const Key&)=CompT<Key>, typename Alloc=Allocator<AVL_Node<Key,Data>>>
+	class BSS_COMPILER_DLLEXPORT cAVLtree : protected cAllocTracker<Alloc>
   {
+    typedef AVL_Node<Key,Data> AVLNode;
+
   public:
     inline cAVLtree(const cAVLtree& copy) : cAllocTracker<Alloc>(copy), _root(0) {}
     inline cAVLtree(cAVLtree&& mov) : cAllocTracker<Alloc>(copy), _root(mov._root) { mov._root=0; }
@@ -35,66 +37,76 @@ namespace bss_util {
 
     inline cAVLtree& operator=(cAVLtree&& mov) { Clear(); _root=mov._root; mov._root=0; }
 
-    inline Data BSS_FASTCALL Insert(Key key, Data data)
+    inline bool BSS_FASTCALL Insert(Key key, Data data)
     {
       char change=0;
-      AVL_Node<Key,Data>* cur=_insert(key,&_root,change);
+      AVLNode* cur=_insert(key,&_root,change);
       if(cur)
       {
-        cur->_data=data;
-        return cur->_data;
+        cur->_data=std::move(data);
+        return true;
       }
-      return INVALID;
+      return false;
     }
-    inline Data BSS_FASTCALL Remove(const Key key)
+    inline bool BSS_FASTCALL Remove(const Key key)
     {
       char change=0;
-      return _remove(key,&_root,change);
+      AVLNode* node = _remove(key,&_root,change);
+      if(node!=0)
+      {
+        node->~AVLNode();
+        _deallocate(node,1);
+        return true;
+      }
+      return false;
     }
-    inline Data BSS_FASTCALL Get(const Key key) const
+    inline Data BSS_FASTCALL Get(const Key key, const Data& INVALID=0) const
     {
-      AVL_Node<Key,Data>* retval=_find(key);
+      AVLNode* retval=_find(key);
       return !retval?INVALID:retval->_data;
     }
     inline Data* BSS_FASTCALL GetRef(const Key key) const
     {
-      AVL_Node<Key,Data>* retval=_find(key);
+      AVLNode* retval=_find(key);
       return !retval?0:&retval->_data;
     }
-    inline Data BSS_FASTCALL ReplaceKey(const Key oldkey, const Key newkey)
+    inline bool BSS_FASTCALL ReplaceKey(const Key oldkey, const Key newkey)
     {
       char change=0;
-      Data retval = _remove(oldkey,&_root,change);
-      AVL_Node<Key,Data>* cur=_insert(newkey,&_root,change);
-      if(cur)
+      AVLNode* old = _remove(oldkey,&_root,change);
+      AVLNode* cur = _insert(newkey,&_root,change);
+      if(old!=0)
       {
-        cur->_data=retval;
-        return cur->_data;
+        if(cur!=0)
+          cur->_data=std::move(old->_data);
+        old->~AVLNode();
+			  _deallocate(old, 1);
       }
-      return INVALID;
+      return (cur!=0);
     }
 
   protected:
     template<typename F>
-    BSS_FORCEINLINE static void BSS_FASTCALL _traverse(F lambda, AVL_Node<Key,Data>* node)
+    BSS_FORCEINLINE static void BSS_FASTCALL _traverse(F lambda, AVLNode* node)
     {
       if(!node) return;
       _traverse<F>(lambda,node->_left);
       lambda(node->_data);
       _traverse<F>(lambda,node->_right);
     }
-    inline void BSS_FASTCALL _clear(AVL_Node<Key,Data>* node)
+    inline void BSS_FASTCALL _clear(AVLNode* node)
     {
       if(!node) return;
       _clear(node->_left);
       _clear(node->_right);
+      node->~AVLNode();
 			_deallocate(node, 1);
     }
 
-    inline static void BSS_FASTCALL _leftrotate(AVL_Node<Key,Data>** root)
+    inline static void BSS_FASTCALL _leftrotate(AVLNode** root)
     {
-      AVL_Node<Key,Data>* _root = *root;
-      AVL_Node<Key,Data>* _rotate;
+      AVLNode* _root = *root;
+      AVLNode* _rotate;
 
       _rotate = _root->_right;
       _root->_right = _rotate->_left;
@@ -105,10 +117,10 @@ namespace bss_util {
       _rotate->_balance -= (1 - bssmin(_rotate->_left->_balance, 0));
     }
 
-    inline static void BSS_FASTCALL _rightrotate(AVL_Node<Key,Data>** root)
+    inline static void BSS_FASTCALL _rightrotate(AVLNode** root)
     {
-      AVL_Node<Key,Data>* _root = *root;
-      AVL_Node<Key,Data>* _rotate;
+      AVLNode* _root = *root;
+      AVLNode* _rotate;
 
       _rotate = _root->_left;
       _root->_left = _rotate->_right;
@@ -118,20 +130,20 @@ namespace bss_util {
       _rotate->_right->_balance += (1 - bssmin(_rotate->_balance, 0));
       _rotate->_balance += (1 + bssmax(_rotate->_right->_balance, 0));
     }
-    inline AVL_Node<Key,Data>* BSS_FASTCALL _insert(Key key, AVL_Node<Key,Data>** proot, char& change) //recursive insertion function
+    inline AVLNode* BSS_FASTCALL _insert(Key key, AVLNode** proot, char& change) //recursive insertion function
     {
-      AVL_Node<Key,Data>* root=*proot;
+      AVLNode* root=*proot;
       if(!root)
       {
 				*proot=_allocate(1);
-        ObjectTraits<AVL_Node<Key,Data>>::construct(*proot, AVL_Node<Key,Data>());
+        new(*proot) AVLNode();
         (*proot)->_pkey=key;
         change=1;
         return *proot;
       }
 
       char result=CFunc(root->_pkey,key);
-      AVL_Node<Key,Data>* retval=0;
+      AVLNode* retval=0;
       if(result<0)
         retval= _insert(key,&root->_left,change);
       else if(result>0)
@@ -147,17 +159,17 @@ namespace bss_util {
       return retval;
     };
 
-    inline Data BSS_FASTCALL _remove(const Key& key, AVL_Node<Key,Data>** proot, char& change) //recursive removal function
+    inline AVLNode* BSS_FASTCALL _remove(const Key& key, AVLNode** proot, char& change) //recursive removal function
     {
-      AVL_Node<Key,Data>* root=*proot;
+      AVLNode* root=*proot;
       if(!root)
       {
         change=0;
-        return INVALID;
+        return 0;
       }
    
       char result=CFunc(root->_pkey,key);
-      Data retval=0;
+      AVLNode* retval=0;
       if(result<0) {
         retval= _remove(key,&root->_left,change);
         result *=change;
@@ -165,27 +177,29 @@ namespace bss_util {
         retval= _remove(key,&root->_right,change);
         result *=change;
       } else {
-        retval=root->_data;
         if(!root->_left&&!root->_right) //leaf node
         {
-          _deallocate(root,1);
           *proot=0;
           change=1;
-          return retval;
+          return root;
         } else if(!root->_left||!root->_right) { //one child
-          AVL_Node<Key,Data>* hold=root;
           *proot = !root->_left?root->_right:root->_left;
-          _deallocate(root,1);
           change=1;
-          return retval;
+          return root;
 				} else {
-					AVL_Node<Key,Data>* successor = root->_right;
+					AVLNode* successor = root->_right;
 					while(successor->_left)
 						successor = successor->_left;
 
-					retval=root->_data;
 					root->_pkey=successor->_pkey;
-          root->_data=_remove(successor->_pkey,&root->_right,result); //this works because we're always removing something from the right side, which means we should always subtract 1 or 0.
+          retval=_remove(successor->_pkey,&root->_right,result); //this works because we're always removing something from the right side, which means we should always subtract 1 or 0.
+          if(retval!=0) // We have to actually swap the data so that retval returns the correct data so it can be used in ReplaceKey
+          {
+            Data h(std::move(retval->_data));
+            retval->_data=std::move(root->_data);
+            root->_data=std::move(h);
+          }
+
 					change=1;
 				}
       }
@@ -195,9 +209,9 @@ namespace bss_util {
       return retval;
     }
 
-    inline AVL_Node<Key,Data>* BSS_FASTCALL _find(const Key& key) const
+    inline AVLNode* BSS_FASTCALL _find(const Key& key) const
     {
-      AVL_Node<Key,Data>* cur=_root;
+      AVLNode* cur=_root;
       char result=0;
       while(cur)
       {
@@ -217,9 +231,9 @@ namespace bss_util {
 
       return 0;
     }
-    inline static char BSS_FASTCALL _rebalance(AVL_Node<Key,Data>** root)
+    inline static char BSS_FASTCALL _rebalance(AVLNode** root)
     {   
-      AVL_Node<Key,Data>* _root=*root;
+      AVLNode* _root=*root;
       char retval=0;
       if(_root->_balance<-1)
       {
@@ -247,7 +261,7 @@ namespace bss_util {
       return retval;
     }
 
-    AVL_Node<Key,Data>* _root;
+    AVLNode* _root;
   };
 }
 

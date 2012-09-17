@@ -35,21 +35,21 @@ namespace bss_util {
     inline void BSS_FASTCALL SetSize(SizeType nsize)
     {
       if(nsize==_size) return;
-      T* narray = (T*)_minmalloc(sizeof(T)*nsize);
-      memcpy(narray,_array,sizeof(T)*((nsize<_size)?(nsize):(_size)));
+      T* narray = (T*)_minmalloc(nsize*sizeof(T));
+      memcpy(narray,_array,((nsize<_size)?(nsize):(_size))*sizeof(T));
       if(_array!=0) free(_array);
       _array=narray;
       _size=nsize;
     }
     inline void BSS_FASTCALL RemoveInternal(SizeType index)
     {
-      memmove(_array+index,_array+index+1,sizeof(T)*(_size-index-1));
+      memmove(_array+index,_array+index+1,(_size-index-1)*sizeof(T));
       //--_size;
     }
     inline void BSS_FASTCALL Insert(T item, SizeType location)
     {
       SizeType nsize=_size+1;
-      T* narray = (T*)_minmalloc(sizeof(T)*nsize);
+      T* narray = (T*)_minmalloc(nsize*sizeof(T));
       memcpy(narray,_array,location*sizeof(T));
       narray[location]=item;
       memcpy(narray+location+1,_array+location,(_size-location)*sizeof(T));
@@ -151,8 +151,8 @@ namespace bss_util {
     inline void BSS_FASTCALL SetSize(SizeType nsize)
     {
       if(nsize==_size) return;
-      T* narray = (T*)_minmalloc(sizeof(T)*nsize);
-      memcpy(narray,_array,sizeof(T)*((nsize<_size)?(nsize):(_size))); // We can do this because these aren't external sources.
+      T* narray = (T*)_minmalloc(nsize*sizeof(T));
+      memcpy(narray,_array,((nsize<_size)?(nsize):(_size))*sizeof(T)); // We can do this because these aren't external sources.
 
       if(nsize<_size) { //we removed some so we need to destroy them
         for(SizeType i = _size; i > nsize;)
@@ -169,7 +169,7 @@ namespace bss_util {
     inline void BSS_FASTCALL RemoveInternal(SizeType index)
     {
       _array[index].~T();
-      memmove(_array+index,_array+index+1,sizeof(T)*(_size-index-1));
+      memmove(_array+index,_array+index+1,(_size-index-1)*sizeof(T));
       new(_array+(_size-1)) T();
     }
     //inline operator T*() { return _array; }
@@ -202,7 +202,7 @@ namespace bss_util {
     inline cArrayConstruct<T,SizeType>& operator +=(const cArrayConstruct<T,SizeType>& add)
     {
       SizeType nsize=_size+add._size;
-      T* narray = (T*)_minmalloc(sizeof(T)*nsize);
+      T* narray = (T*)_minmalloc(nsize*sizeof(T));
       memcpy(narray,_array,_size*sizeof(T));
       //memcpy(narray+_size,add._array,add._size*sizeof(T));
       if(_array!=0) free(_array);
@@ -269,7 +269,7 @@ namespace bss_util {
     inline void BSS_FASTCALL SetSize(SizeType nsize)
     {
       if(nsize==_size) return;
-      T* narray = (T*)_minmalloc(sizeof(T)*nsize);
+      T* narray = (T*)_minmalloc(nsize*sizeof(T));
       
       SizeType smax = _size<nsize?_size:nsize;
       for(SizeType i = 0; i < smax; ++i) //copy over any we aren't discarding
@@ -320,7 +320,7 @@ namespace bss_util {
     inline cArraySafe<T,SizeType>& operator +=(const cArraySafe<T,SizeType>& add)
     {
       SizeType nsize=_size+add._size;
-      T* narray = (T*)_minmalloc(sizeof(T)*nsize);
+      T* narray = (T*)_minmalloc(nsize*sizeof(T));
       
       for(SizeType i = 0; i < _size; ++i) //copy over old ones
         new (narray+i) T(std::move(_array[i])); //We're going to delete the old ones so use move semantics if possible

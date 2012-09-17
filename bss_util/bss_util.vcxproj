@@ -71,7 +71,6 @@
     <ClInclude Include="..\include\cBitArray.h" />
     <ClInclude Include="..\include\cBitField.h" />
     <ClInclude Include="..\include\cBSS_Stack.h" />
-    <ClInclude Include="..\include\cBucketAlloc.h" />
     <ClInclude Include="..\include\cByteQueue.h" />
     <ClInclude Include="..\include\cCmdLineArgs.h" />
     <ClInclude Include="..\include\cDef.h" />
@@ -86,6 +85,7 @@
     <ClInclude Include="..\include\cLinkedArray.h" />
     <ClInclude Include="..\include\cLinkedList.h" />
     <ClInclude Include="..\include\cLocklessByteQueue.h" />
+    <ClInclude Include="..\include\cLocklessQueue.h" />
     <ClInclude Include="..\include\cMap.h" />
     <ClInclude Include="..\include\cMutex.h" />
     <ClInclude Include="..\include\cObjSwap.h" />

@@ -100,16 +100,25 @@
 // Platform detection
 #if defined(WIN32) || defined(_WIN32) || defined(_WIN64) || defined(__TOS_WIN__) || defined(__WINDOWS__)
 #define BSS_PLATFORM_WIN32
-#elif defined(_POSIX_VERSION) || defined(_XOPEN_VERSION)
+#elif defined(_POSIX_VERSION) || defined(_XOPEN_VERSION) || defined(unix) || defined(__unix__) || defined(__unix)
 #define BSS_PLATFORM_POSIX
 #endif
 
 #ifdef _WIN32_WCE
 #define BSS_PLATFORM_WIN32_CE // Implies WIN32
-#elif defined(__APPLE__) || defined(__MACH__)
+#elif defined(__APPLE__) || defined(__MACH__) || defined(macintosh) || defined(Macintosh)
 #define BSS_PLATFORM_APPLE // Should also define POSIX, use only for Apple OS specific features
 #elif defined(__CYGWIN__)
 #define BSS_PLATFORM_CYGWIN // Should also define POSIX, use only to deal with Cygwin weirdness
+#elif defined(__ANDROID__) || defined(__ANDROID_API__) 
+#define BSS_PLATFORM_ANDROID // Should also define POSIX, use for Android specific features.
+#elif defined(__FreeBSD__) || defined(__NetBSD__) || defined(__OpenBSD__) || defined(__bsdi__) || defined(__DragonFly__) || defined(BSD) // Also defines POSIX
+#define BSS_PLATFORM_BSD // Should also define POSIX
+#elif defined(sun) || defined(__sun) 
+# define BSS_PLATFORM_SOLARIS
+# if !defined(__SVR4) && !defined(__svr4__)
+#   define BSS_PLATFORM_SUNOS
+# endif
 #endif
 
 #if defined(__linux__) || defined(__linux)
@@ -120,6 +129,30 @@
 #error "Unknown Platform"
 #endif
 
+// Endianness detection
+#if defined(BSS_PLATFORM_WIN32) || defined(BSS_PLATFORM_WIN32_CE) || defined(BSS_CPU_x86_64) || defined(BSS_CPU_x86) || defined(BSS_CPU_IA_64) // Windows, x86, x86_64 and itanium all only run in little-endian (except on HP-UX but we don't support that)
+# define BSS_ENDIAN_LITTLE
+#elif defined(BSS_CPU_ARM)
+# ifdef BSS_PLATFORM_LINUX
+#   define BSS_ENDIAN_LITTLE
+# endif
+#elif defined(BSS_CPU_POWERPC)
+# ifdef BSS_PLATFORM_SOLARIS
+#   define BSS_ENDIAN_LITTLE
+# elif defined(BSS_PLATFORM_APPLE) || defined(BSS_PLATFORM_BSD) || defined(BSS_PLATFORM_LINUX)
+#   define BSS_ENDIAN_BIG
+# endif
+#elif defined(BSS_CPU_MIPS) // MIPS is a bitch to detect endianness on
+# ifdef BSS_PLATFORM_LINUX
+#   define BSS_ENDIAN_BIG
+# endif
+#endif
+
+#if !defined(BSS_ENDIAN_LITTLE) && !defined(BSS_ENDIAN_BIG)
+#error "Unknown Endianness"
+#endif
+
+// Debug detection
 #if defined(DEBUG) || defined(_DEBUG)
 #define BSS_DEBUG
 #endif

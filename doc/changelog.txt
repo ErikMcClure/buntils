@@ -18,6 +18,7 @@
 - Fixed cAVLTree's handling of constructors, destructors and return values, so you can now use standard classes as items.
 - Removed vestigial cBucketAlloc.h
 - Replaced ::operator new and ::operator delete with malloc and free in bss_alloc.h to maintain consistency.
+- Added more details to bss_compiler.h including an attempt to determine endianness.
 
 0.3.83
 ------

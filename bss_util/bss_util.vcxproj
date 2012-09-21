@@ -65,7 +65,6 @@
     <ClInclude Include="..\include\cArrayCircular.h" />
     <ClInclude Include="..\include\cArraySimple.h" />
     <ClInclude Include="..\include\cArraySort.h" />
-    <ClInclude Include="..\include\cAutoList.h" />
     <ClInclude Include="..\include\cAVLtree.h" />
     <ClInclude Include="..\include\cBinaryHeap.h" />
     <ClInclude Include="..\include\cBitArray.h" />
@@ -98,7 +97,6 @@
     <ClInclude Include="..\include\cSparseArray.h" />
     <ClInclude Include="..\include\cStr.h" />
     <ClInclude Include="..\include\cStrTable.h" />
-    <ClInclude Include="..\include\cTAATree.h" />
     <ClInclude Include="..\include\cTaskStack.h" />
     <ClInclude Include="..\include\cThread.h" />
     <ClInclude Include="..\include\cUniquePtr.h" />

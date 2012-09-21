@@ -11,6 +11,8 @@ namespace bss_util {
   template<typename T=int>
   class BSS_COMPILER_DLLEXPORT cRational
   {
+    static_assert(std::is_integral<T>::value, "T must be an integral type.");
+
   public:
     inline cRational(T n=0) : _n(n), _d(1) {}
     inline cRational(T n, T d) : _n(n), _d(d) { Simplify(); }
@@ -18,7 +20,20 @@ namespace bss_util {
     inline void SetFraction(T n, T d) { _n=n; _d=d; Simplify(); }
     inline T N() const { return _n; }
     inline T D() const { return _d; }
-    inline void Simplify() { if(!_n) { _d=1; return; } T gcd=GCD<T>(_n,_d); _n/=gcd; _d/=gcd; if(_d<0) { _d=-_d; _n=-_n; } }
+    inline void Simplify()
+    { 
+      if(!_n) { _d=1; return; } 
+
+      T gcd=GCD<T>(_n,_d);
+      _n/=gcd;
+      _d/=gcd;
+
+      if(_d<0)
+      { 
+        _d=-_d; 
+        _n=-_n; 
+      } 
+    }
     
     inline const cRational operator+ (const cRational& r) const { return cRational(*this)+=r; }
     inline const cRational operator- (const cRational& r) const { return cRational(*this)-=r; }

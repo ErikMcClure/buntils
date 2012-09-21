@@ -6,7 +6,7 @@
 
 //#include "bss_alloc.h"
 #include "bss_util.h"
-#include <malloc.h>
+#include "cArraySimple.h"
 #include <stdlib.h>
 #include <ostream>
 #include <istream>
@@ -23,169 +23,114 @@ namespace bss_util {
   {
   public:
     // Default Copy Constructor
-    inline cStrTable(const cStrTable& copy) : _sasize(copy._sasize), _numindices(copy._numindices)
-    { 
-      _strings=(T*)malloc(_sasize*sizeof(T));
-      memcpy(_strings,copy._strings,_sasize*sizeof(T));
-      _indexarray=(ST_*)malloc(_numindices*sizeof(ST_));
-      memcpy(_indexarray,copy._indexarray,_numindices*sizeof(ST_));
-    }
-    inline cStrTable(cStrTable&& mov) : _sasize(mov._sasize), _numindices(mov._numindices),_strings(mov._strings),_indexarray(mov._indexarray)
-    {
-      mov._sasize=0;
-      mov._numindices=0;
-      mov._strings=0;
-      mov._indexarray=0;
-    }
-    // Generic Copy Constructor (for conversions)
-    template<class U> inline cStrTable(const cStrTable<T,U>& copy) : _sasize((ST_)copy.TotalWordSize()), _numindices((ST_)copy.Length())
-    {
-      _strings=(T*)malloc(_sasize*sizeof(T));
-      memcpy(_strings,copy.GetString(0),_sasize*sizeof(T));
-      _indexarray=(ST_*)malloc(_numindices*sizeof(ST_));
-      for(ST_ i = 0; i < _numindices; ++i) _indexarray[i]=(ST_)copy.GetIndices()[i];
-    }
-    // Constructor from a stream that's a series of null terminated strings.
-    inline cStrTable(std::istream* stream, ST_ size) : _sasize(size/sizeof(T)), _numindices(0)
-    {
-      if(!stream || !size) 
-      {
-        _indexarray=(ST_*)malloc(sizeof(ST_));
-        _indexarray[0]=0;
-        _strings=(T*)malloc(1); //malloc(0) is undefined
-        return;
-      }
-
-      _strings=(T*)malloc(_sasize*sizeof(T));
-      stream->read((char*)_strings,_sasize*sizeof(T));
-      _strings[(stream->gcount()/sizeof(T))-1]='\0'; //make sure the end is a null terminator
-
-      _numindices=strccount<T>(_strings,0,_sasize);
-      _indexarray=(ST_*)malloc(_numindices*sizeof(ST_));
-      memset(_indexarray,0,_numindices*sizeof(ST_));
-
-      ST_ j=1;
-      for(ST_ i=0; i<_sasize && j<_numindices; ++i)
-      {
-        ++_indexarray[j];
-        if(!_strings[i]) { ++j; if(j<_numindices) _indexarray[j]=_indexarray[j-1]; }
-      }
-    }
-    
+    inline cStrTable(const cStrTable& copy) : _strings(copy._strings), _indices(copy._indices) {}
+    inline cStrTable(cStrTable&& mov) : _strings(std::move(mov._strings)), _indices(std::move(mov._indices)) {}
     // Constructor for array with compile-time determined size
     template<ST_ N>
-    inline cStrTable(const T* (&strings)[N]) : _sasize(0), _numindices(N) { _construct(strings,N); }
+    inline cStrTable(const T* (&strings)[N]) : _strings(0), _indices(0) { _construct(strings,N); }
     // Constructor with a null-terminated array of strings.
-    inline cStrTable(const T* const* strings, ST_ size) : _sasize(0), _numindices(size) { _construct(strings,size); }
+    inline cStrTable(const T* const* strings, ST_ size) : _strings(0), _indices(0) { _construct(strings,size); }
+    // Constructor from a stream that's a series of null terminated strings.
+    inline cStrTable(std::istream* stream, ST_ bytes) : _strings(0), _indices(0)
+    {
+      if(!stream || !bytes)
+        return;
+
+      _strings.SetSize(bytes/sizeof(T));
+      stream->read((char*)(T*)_strings,_strings.Size()*sizeof(T));
+      _strings[(stream->gcount()/sizeof(T))-1]='\0'; //make sure the end is a null terminator
+
+      _indices.SetSize(strccount<T>(_strings,0,_strings.Size()));
+      memset((ST_*)_indices,0,_indices.Size()*sizeof(ST_));
+
+      ST_ j=1;
+      for(ST_ i=0; i<_strings.Size() && j<_indices.Size(); ++i)
+      {
+        ++_indices[j];
+        if(!_strings[i]) { ++j; if(j<_indices.Size()) _indices[j]=_indices[j-1]; }
+      }
+    }
     // Destructor
-    inline ~cStrTable() { if(_strings!=0) free(_strings); if(_indexarray!=0) free(_indexarray); }
+    inline ~cStrTable() { }
     // Gets number of strings in table (index cannot be greater then this)
-    inline ST_ Length() const { return _numindices; }
+    inline ST_ Length() const { return _indices.Size(); }
     // Gets total length of all strings
-    inline ST_ TotalWordSize() const { return _sasize; }
+    inline ST_ TotalWordSize() const { return _strings.Size(); }
     // Returns string with the corresponding index. Strings are returned null-terminated, but the index bound is not checked.
-    inline const T* GetString(ST_ index) const { return _strings+_indexarray[index]; }
+    inline const T* GetString(ST_ index) const { assert(index<_indices.Size()); return _strings+_indices[index]; }
+    inline void AppendString(const char* s)
+    { 
+      ST_ last = STRTABLE_FUNC<T,ST_>::_lstr(_strings+_indices[_indices.Size()-1])+1+_indices[_indices.Size()-1];
+      ST_ sz = STRTABLE_FUNC<T,ST_>::_lstr(s)+1;
+      
+      _indices.SetSize(_indices.Size()+1);
+      _indices[_indices.Size()-1]=last; // Add another indice and set its value appropriately
+      last=_strings.Size();
+      _strings.SetSize(_strings.Size()+sz); // Allocate more space in string buffer
+      memcpy(_strings+last,s,sz); // Copy over new string (including null terminator)
+    };
     // Returns index array
-    inline const ST_* GetIndices() const { return _indexarray; }
+    inline const ST_* GetIndices() const { return _indices; }
     // Dumps table to stream
-    inline void DumpToStream(std::ostream* stream) { stream->write((char*)_strings,_sasize*sizeof(T)); }
+    inline void DumpToStream(std::ostream* stream) { stream->write((const char*)_strings,_strings.Size()*sizeof(T)); }
+
     inline const T* operator[](ST_ index) { return GetString(index); }
     inline cStrTable& operator=(const cStrTable& right)
-    { 
-      if(_strings!=0) free(_strings);
-      if(_indexarray!=0) free(_indexarray);
-      _sasize=right._sasize;
-      _numindices=right._numindices;
-      _strings=(T*)malloc(_sasize*sizeof(T)); 
-      _indexarray=(ST_*)malloc(_numindices*sizeof(ST_));
-      memcpy(_strings,right._strings,_sasize*sizeof(T));
-      memcpy(_indexarray,right._indexarray,_numindices*sizeof(ST_));
+    {
+      _strings=right._strings;
+      _indices=right._indices;
       return *this;
     }
     inline cStrTable& operator=(cStrTable&& right)
     {
-      if(_strings!=0) free(_strings);
-      if(_indexarray!=0) free(_indexarray);
-      _sasize=right._sasize;
-      _numindices=right._numindices;
-      _strings=right._strings;
-      _indexarray=right._indexarray;
-      right._sasize=0;
-      right._numindices=0;
-      right._strings=0;
-      right._indexarray=0;
+      _strings=std::move(right._strings);
+      _indices=std::move(right._indices);
       return *this;
     }
 
     inline cStrTable& operator+=(const cStrTable& right)
     {
-      T* nstrings=(T*)malloc((_sasize+right._sasize)*sizeof(T));
-      memcpy(nstrings,_strings,_sasize*sizeof(T));
-      memcpy(nstrings+_sasize,right._strings,right._sasize*sizeof(T));
+      ST_ byteadd = _strings.Size();
+      ST_ i = _indices.Size(); //start at old value
+      _strings+=right._strings;
+      _indices+=right._indices;
 
-      ST_* nindices=(ST_*)malloc((_numindices+right._numindices)*sizeof(ST_));
-      memcpy(nindices,_indexarray,_numindices*sizeof(ST_));
-      memcpy(nindices+_numindices,right._indexarray,right._numindices*sizeof(ST_));
-
-      free(_strings);
-      free(_indexarray);
-      _strings=nstrings;
-      _indexarray=nindices;
-      ST_ i = _numindices; //start at old value
-      ST_ byteadd = _sasize;
-      _numindices+=right._numindices;
-      _sasize+=right._sasize;
-
-      for(; i < _numindices; ++i) _indexarray[i]+=byteadd; //remaps indexes
+      for(; i < _indices.Size(); ++i) _indices[i]+=byteadd; //remaps indexes
 
       return *this;
     }
     inline cStrTable operator+(const cStrTable& right) { return (cStrTable retval(*this))+=right; }
+    inline cStrTable& operator+=(const char* right) { AppendString(right); return *this; }
 
   protected:
     inline void BSS_FASTCALL _construct(const T* const* strings, ST_ size)
     {
       if(!strings || !size) //special handling for empty case
-      {
-        _numindices=0;
-        _indexarray=(ST_*)malloc(sizeof(ST_));
-        _indexarray[0]=0;
-        _strings=(T*)malloc(1); //malloc(0) is undefined
         return;
-      }
 
-      _indexarray=(ST_*)malloc(_numindices*sizeof(ST_));
+      _indices.SetSize(size);
+      ST_ sz=0;
       for(ST_ i = 0; i < size; ++i) //this will cause an infinite loop if someone is dumb enough to set ST_ to an unsigned type and set size equal to -1. If you actually think you could make that mistake, stop using this class.
       {
-        _indexarray[i] = STRTABLE_FUNC<T,ST_>::_lstr(strings[i])+1; //include null terminator in length count
-        _sasize+=_indexarray[i];
+        _indices[i] = STRTABLE_FUNC<T,ST_>::_lstr(strings[i])+1; //include null terminator in length count
+        sz+=_indices[i];
       }
-      _strings=(T*)malloc(_sasize*sizeof(T));
+      _strings.SetSize(sz);
 
       ST_ curlength=0;
       ST_ hold;
       for(ST_ i = 0; i < size; ++i) //this loop does two things - it copies the strings over, and it sets the index values to the correct ones while discarding intermediate lengths
       {
-        hold=_indexarray[i];
-        _indexarray[i]=curlength;
+        hold=_indices[i];
+        _indices[i]=curlength;
         memcpy(_strings+curlength,strings[i],hold*sizeof(T)); //we could recalculate strlen here but that's dangerous because it might overwrite memory
         curlength+=hold;
       }
     }
 
-    T* _strings;
-    ST_* _indexarray;
-    ST_ _sasize;
-    ST_ _numindices;
-  };
-
-  //template<typename ST_>
-  //inline template<class U> cStrTable<char,ST_>::cStrTable(const cStrTable<U>& copy)
-  //{
-  //}
-    
-
-   
+    cArrayWrap<cArraySimple<T,ST_>> _strings;
+    cArrayWrap<cArraySimple<ST_,ST_>> _indices;
+  };   
 }
 
 #endif

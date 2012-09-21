@@ -50,6 +50,8 @@ namespace bss_util {
   template<unsigned char DBITS=12, typename T=__int32, bool SATURATE=true>
   class FixedPt
   {
+    static_assert(std::is_signed<T>::value, "T must be a signed integral type.");     
+
   public:
     template<bool S>
     inline FixedPt(const FixedPt<DBITS,T,S>& copy) : _bits(copy._bits) {}

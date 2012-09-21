@@ -1087,6 +1087,9 @@ TEST::RETPAIR test_ARRAYCIRCULAR()
     TEST(a[i]==(24-(i%25)));
   for(int i = 1; i < 50; ++i)
     TEST(a[-i]==((i-1)%25));
+  a.SetSize(26);
+  for(int i = 0; i < 25; ++i)
+    TEST(a[i]==(24-(i%25)));
   a.Push(25); //This should overwrite 0
   TEST(a[0]=25);  
   TEST(a[-1]=1);  
@@ -1982,6 +1985,41 @@ TEST::RETPAIR test_OBJSWAP()
 TEST::RETPAIR test_PRIORITYQUEUE()
 {
   BEGINTEST;
+  cPriorityQueue<int,cStr,CompT<int>,uint,cArraySafe<std::pair<int,cStr>,uint>> q;
+
+  q.Push(5,"5");
+  q.Push(3,"3");
+  q.Push(3,"3");
+  q.Push(6,"6");
+  q.Push(1,"1");
+  q.Push(1,"1");
+  q.Push(1,"1");
+  q.Push(2,"2");
+  
+  TEST(q.Get(1).first==2);
+  TEST(q.Get(2).first==1);
+  TEST(q.Peek().first==1);
+  TEST(q.Peek().second=="1");
+  TEST(q.Pop().first==1);
+  TEST(q.Pop().first==1);
+  TEST(q.Pop().first==1);
+  TEST(q.Pop().first==2);
+  TEST(q.Pop().first==3);
+  TEST(q.Pop().first==3);
+
+  q.Push(1,"1");
+  q.Push(2,"2");
+  q.Push(4,"4");
+
+  TEST(q.Get(0).first==q.Peek().first)
+  q.Discard();
+  TEST(!q.Empty());
+  TEST(q.Pop().first==2);
+  TEST(q.Pop().first==4);
+  TEST(q.Pop().first==5);
+  TEST(q.Pop().first==6);
+  TEST(q.Empty());
+
   ENDTEST;
 }
 
@@ -2158,23 +2196,47 @@ TEST::RETPAIR test_STRTABLE()
 {
   BEGINTEST;
 
-  cStrTable<wchar_t> mbstable(PANGRAMS,6);
-  cStrTable<wchar_t> wcstable(PANGRAMS,6);
-  cStrTable<wchar_t,char> mbstable2(PANGRAMS,6);
+  const int SZ = sizeof(PANGRAMS)/sizeof(const wchar_t*);
+  cStr pangrams[SZ];
+  const char* pstr[SZ];
+  for(uint i = 0; i < SZ; ++i)
+    pstr[i]=(pangrams[i]=PANGRAMS[i]).c_str();
 
-  const wchar_t* stv = mbstable.GetString(0);
-  stv = mbstable.GetString(4);
+  cStrTable<char> mbstable(pstr,SZ);
+  cStrTable<wchar_t> wcstable(PANGRAMS,SZ);
+  cStrTable<char> mbstable2(pstr,6);
+
+  for(int i = 0; i < mbstable.Length(); ++i)
+    TEST(!strcmp(mbstable[i],pstr[i]));
+
   mbstable+=mbstable2;
-  stv = mbstable.GetString(4);
-  stv = mbstable.GetString(8);
+  mbstable.AppendString("append");
+  mbstable+="append2";
+
+  for(int i = 0; i < SZ; ++i)
+    TEST(!strcmp(mbstable[i],pstr[i]));
+  for(int i = 0; i < 6; ++i)
+    TEST(!strcmp(mbstable[i+SZ],pstr[i]));
+  TEST(!strcmp(mbstable[SZ+6],"append"));
+  TEST(!strcmp(mbstable[SZ+7],"append2"));
+
   std::fstream fs;
   fs.open("dump.txt",std::ios_base::out | std::ios_base::trunc | std::ios_base::binary);
   mbstable.DumpToStream(&fs);
   fs.close();
   fs.open("dump.txt",std::ios_base::in | std::ios_base::binary);
-  cStrTable<wchar_t> ldtable(&fs,bssFileSize("dump.txt"));
-  stv = ldtable.GetString(4);
-  stv = ldtable.GetString(11);
+  cStrTable<char> ldtable(&fs,bssFileSize("dump.txt"));
+  for(int i = 0; i < SZ; ++i)
+    TEST(!strcmp(ldtable[i],pstr[i]));
+  for(int i = 0; i < 6; ++i)
+    TEST(!strcmp(ldtable[i+SZ],pstr[i]));
+
+  mbstable2=ldtable;
+  for(int i = 0; i < SZ; ++i)
+    TEST(!strcmp(mbstable2[i],pstr[i]));
+  for(int i = 0; i < 6; ++i)
+    TEST(!strcmp(mbstable2[i+SZ],pstr[i]));
+
   ENDTEST;
 }
 
@@ -2361,14 +2423,14 @@ int main(int argc, char** argv)
     { "cMap.h", &test_MAP },
     //{ "cMutex.h", &test_MUTEX },
     { "cObjSwap.h", &test_OBJSWAP },
-    //{ "cPriorityQueue.h", &test_PRIORITYQUEUE },
+    { "cPriorityQueue.h", &test_PRIORITYQUEUE },
     { "cRational.h", &test_RATIONAL },
     { "cRBT_List.h", &test_RBT_LIST },
     //{ "cRefCounter.h", &test_REFCOUNTER },
     { "cSettings.h", &test_SETTINGS },
     //{ "cSingleton.h", &test_SINGLETON },
     { "cStr.h", &test_STR },
-    //{ "cStrTable.h", &test_STRTABLE },
+    { "cStrTable.h", &test_STRTABLE },
     //{ "cTaskStack.h", &test_TASKSTACK },
     { "cUniquePtr.h", &test_UNIQUEPTR },
     //{ "functior.h", &test_FUNCTOR },

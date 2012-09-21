@@ -84,9 +84,6 @@
     <ClInclude Include="..\include\cArraySort.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="..\include\cAutoList.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
     <ClInclude Include="..\include\cAVLtree.h">
       <Filter>Header Files</Filter>
     </ClInclude>
@@ -172,9 +169,6 @@
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="..\include\cStrTable.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="..\include\cTAATree.h">
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="..\include\cTaskStack.h">

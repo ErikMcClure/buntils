@@ -91,18 +91,22 @@ namespace bss_util {
       retval+=add;
       return retval;
     }
+    inline void Scrub(int val)
+    {
+      memset(_array,val,_size*sizeof(T));
+    }
 
   protected:
     inline BSS_FORCEINLINE static void* _cdecl _minmalloc(size_t n) { return malloc((n<1)?1:n); } //Malloc can legally return NULL if it tries to allocate 0 bytes
     template<typename U>
     inline void _pushback(SizeType index, SizeType length, U && data) 
     {
-      memmove(_array+(index+1),_array+index,length*sizeof(T));
+      _mvarray(index+1,index,length);
       _array[index]=std::forward<U>(data);
     }
-    inline void _scrub(int val)
+    inline void _mvarray(SizeType begin, SizeType end, SizeType length)
     {
-      memset(_array,val,_size*sizeof(T));
+      memmove(_array+begin,_array+end,length*sizeof(T));
     }
     //inline void _setsize(SizeType nsize, int val)
     //{
@@ -230,6 +234,10 @@ namespace bss_util {
       memmove(_array+(index+1),_array+index,length*sizeof(T));
       new (_array+index) T(std::forward<U>(data));
     }
+    inline void _mvarray(SizeType begin, SizeType end, SizeType length)
+    {
+      memmove(_array+begin,_array+end,length*sizeof(T));
+    }
 
     T* _array;
     SizeType _size;
@@ -349,6 +357,19 @@ namespace bss_util {
       for(SizeType i=index+length; i>index; --i)
         _array[i]=_array[i-1];
       _array[index] = std::forward<U>(data);
+    }
+    inline void _mvarray(SizeType begin, SizeType end, SizeType length)
+    {
+      if(begin>end)
+      {
+        for(SizeType i=0; i<length;++i)
+          _array[end+i]=std::move(_array[begin+i]);
+      }
+      else
+      {
+        for(SizeType i=length; i-->0;)
+          _array[end+i]=std::move(_array[begin+i]);
+      }
     }
 
     T* _array;

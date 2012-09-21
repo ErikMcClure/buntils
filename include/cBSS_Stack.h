@@ -19,7 +19,7 @@ namespace bss_util {
     inline ~cBSS_Stack() {}
     inline BSS_FORCEINLINE void BSS_FASTCALL Push(const T& value) { _push(value); }
     inline BSS_FORCEINLINE void BSS_FASTCALL Push(T&& value) { _push(std::move(value)); }
-    inline T BSS_FASTCALL Pop() { assert(_length!=0); return T(std::move(_array[--_length])); }
+    inline T BSS_FASTCALL Pop() { assert(_length!=0); return std::move(_array[--_length]); }
     inline T& BSS_FASTCALL Top() { assert(_length!=0); return _array[_length-1]; }
     inline const T& BSS_FASTCALL Top() const { assert(_length!=0); return _array[_length-1]; }
     inline void Clear() { _length=0; }

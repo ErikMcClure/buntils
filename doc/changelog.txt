@@ -19,6 +19,11 @@
 - Removed vestigial cBucketAlloc.h
 - Replaced ::operator new and ::operator delete with malloc and free in bss_alloc.h to maintain consistency.
 - Added more details to bss_compiler.h including an attempt to determine endianness.
+- Added Front(), Back(), and PopLast() to cArrayCircular, which now preserves its state after SetSize()
+- Changed Insert() to Push(), PopRoot() to Pop(), RemoveRoot() to Discard(), and PeekRoot() to Peek() on cPriorityQueue and added Get(), Remove() and unit tests.
+- Added some static assertions
+- Removed cAutoList.h
+- Rewrote cStrTable using cArraySimple and added the ability to append a string, along with unit tests.
 
 0.3.83
 ------

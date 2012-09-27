@@ -66,11 +66,11 @@ namespace bss_util {
     inline operator double() const { return ((double)_bits)/((double)(1<<DBITS)); }
 
     template<bool S>
-    inline FixedPt& BSS_FASTCALL operator=(const FixedPt<DBITS,T,S>& right) { _bits=right._bits; }
+    inline FixedPt& BSS_FASTCALL operator=(const FixedPt<DBITS,T,S>& right) { _bits=right._bits; return *this; }
     template<unsigned char D, typename U, bool S>
-    inline FixedPt& BSS_FASTCALL operator=(const FixedPt<D,U,S>& right) { _bits=(T)SAFESHIFT(right._bits,DBITS-D); }
+    inline FixedPt& BSS_FASTCALL operator=(const FixedPt<D,U,S>& right) { _bits=(T)SAFESHIFT(right._bits,DBITS-D); return *this; }
 
-    inline FixedPt& operator -(void) const { FixedPt r(*this); r._bits=-r._bits; return r; }
+    inline const FixedPt operator -(void) const { FixedPt r(*this); r._bits=-r._bits; return r; }
 
     inline FixedPt& BSS_FASTCALL operator+=(const FixedPt& right) { _bits=i_FIXED_PT_FUNC<T,DBITS,SATURATE>::fixedpt_add(_bits,right._bits); return *this; }
     inline FixedPt& BSS_FASTCALL operator-=(const FixedPt& right) { _bits=i_FIXED_PT_FUNC<T,DBITS,SATURATE>::fixedpt_add(_bits,-right._bits); return *this; }

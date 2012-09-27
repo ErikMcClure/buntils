@@ -216,6 +216,9 @@
     <ClInclude Include="..\include\cLocklessQueue.h">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="..\include\bss_dual.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="bss_DebugInfo.cpp">

@@ -9,6 +9,7 @@
 #include "bss_alloc_fixed.h"
 //#include "bss_alloc_fixed_MT.h"
 #include "bss_deprecated.h"
+#include "bss_dual.h"
 #include "bss_fixedpt.h"
 #include "bss_sse.h"
 #include "bss_win32_includes.h"
@@ -902,6 +903,47 @@ TEST::RETPAIR test_bss_FIXEDPT()
   fp/=748.9272;
   res/=748.9272;
   TEST(fcompare(res,fp,6));
+  ENDTEST;
+}
+
+inline BSS_FORCEINLINE bool BSS_FASTCALL fsmallcomp(double af, double bf, __int64 maxDiff=1)
+{
+  if(af==0.0)
+    return fsmall(bf);
+  if(bf==0.0)
+    return fsmall(af);
+  return fcompare(af,bf,maxDiff);
+}
+
+TEST::RETPAIR test_bss_DUAL()
+{
+  BEGINTEST;
+  // d/dx( e^(x + x^2) + 2x/5 + cos(x*x) + sin(ln(x)+log(x)) ) = e^(x^2+x) (2 x+1)-2 x sin(x^2)+((1+log(10)) cos((1+1/(log(10))) log(x)))/(x log(10))+2/5
+
+  for(int i = -10; i < 10; ++i)
+  {
+    Dual<double,2> dx(i,1); //declare our variable
+    Dual<double,2> adx(abs(i),1);
+    //auto ax = (exp(dx + (dx^2)) + (2*dx)/5 + cos(abs(x)^abs(x)) + sin(log(dx)+log10(dx)));
+    double id=i;
+    auto ax = exp(dx + (dx^2)) + (2.0*dx)/5.0;
+    TEST(fsmallcomp(ax(0),exp((i*i)+id) + (2.0*i/5.0)));
+    TEST(fsmallcomp(ax(1),exp((i*i)+id)*(2*i+1) + 2.0/5.0));
+    TEST(fsmallcomp(ax(2),exp((i*i)+id)*(4*i*i + 4*i + 3)));
+
+    if(!i) continue; //the functions below can't handle zeros.
+    id=abs(i);
+    ax = cos(adx^adx);
+    TEST(fsmallcomp(ax(0),cos(std::pow(id,id))));
+    TEST(fsmallcomp(ax(1),sin(std::pow(id,id))*(-std::pow(id,id))*(log(id)+1)));
+    //TEST(ax(2)==(cos(std::pow(id,id))));
+    
+    ax = sin(log(adx) + log10(adx));
+    TEST(fsmallcomp(ax(0),sin(log(id)+log10(id))));
+    TEST(fsmallcomp(ax(1),((1+log(10.0))*cos((1+(1/(log(10.0))))*log(id)))/(id*log(10.0)),5));
+    //TEST(ax(2)==(-((1+log(10.0))*((1+log(10.0))*sin((1+1/(log(10.0))) log(id))+log(10.0)*cos((1+(1/(log(10.0))))*log(id))))/((id*id)*(log(10.0)*log(10.0)))));
+  }
+
   ENDTEST;
 }
 
@@ -2395,6 +2437,7 @@ int main(int argc, char** argv)
     { "bss_alloc_fixed.h", &test_bss_ALLOC_FIXED_CHUNK },
     //{ "bss_alloc_fixed_MT.h", &test_bss_ALLOC_FIXED_LOCKLESS },
     { "bss_depracated.h", &test_bss_deprecated },
+    { "bss_dual.h", &test_bss_DUAL },
     { "bss_fixedpt.h", &test_bss_FIXEDPT },
     { "bss_sse.h", &test_bss_SSE },
     { "cAliasTable.h", &test_ALIASTABLE },

@@ -25,6 +25,7 @@
 - Removed cAutoList.h
 - Rewrote cStrTable using cArraySimple and added the ability to append a string, along with unit tests.
 - Added bss_dual.h and unit tests for automatic differentiation
+- fixed a few operators in FixedPt
 
 0.3.83
 ------

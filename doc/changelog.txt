@@ -26,6 +26,12 @@
 - Rewrote cStrTable using cArraySimple and added the ability to append a string, along with unit tests.
 - Added bss_dual.h and unit tests for automatic differentiation
 - fixed a few operators in FixedPt
+- Added AlertBox() convenience function
+- Fixed VC++ intermediate directories for 64-bit compile
+- Added cBitWrap and sseVeci64
+- Refactored cRBT_List into cTRBtree and tweaked cAVLtree
+- Fixed move/copy constructors and assignment operators for cAllocTracker
+- Added LLInsertFull and LLInsertAfterFull convenience functions
 
 0.3.83
 ------

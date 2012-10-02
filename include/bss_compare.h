@@ -8,6 +8,7 @@
 #include "bss_deprecated.h"
 
 #define SGNCOMPARE(left,right) (((left)>(right))-((left)<(right)))
+#define PRICOMPARE(left,right,p) (SGNCOMPARE(left,right)<<p)
 
 namespace bss_util {
   template<typename T> // Returns -1,0,1

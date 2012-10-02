@@ -189,13 +189,15 @@ namespace bss_util {
 	{
     typedef typename _Ax::pointer pointer;
 	public:
-		inline i_AllocTracker(const i_AllocTracker& copy) : _alloca(copy._alloc_extern?copy._alloca:new _Ax(*copy._alloca)) {}
+		inline i_AllocTracker(const i_AllocTracker& copy) : _alloca(copy._alloc_extern?copy._alloca:new _Ax(*copy._alloca)), _alloc_extern(copy._alloc_extern) {}
+    inline i_AllocTracker(i_AllocTracker&& mov) : _alloca(mov._alloca), _alloc_extern(mov._alloc_extern) { mov._alloc_extern=true; }
 		inline i_AllocTracker(_Ax* ptr=0) :	_alloca((!ptr)?(new _Ax()):(ptr)), _alloc_extern(ptr!=0) {}
 		inline ~i_AllocTracker() { if(!_alloc_extern) delete _alloca; }
     inline pointer _allocate(std::size_t cnt, typename std::allocator<void>::const_pointer p = 0) { return _alloca->allocate(cnt,p); }
     inline void _deallocate(pointer p, std::size_t s = 0) { _alloca->deallocate(p,s); }
 
-		inline i_AllocTracker& operator =(const i_AllocTracker& copy) { if(!_alloc_extern) delete _alloca; _alloca = copy._alloc_extern?copy._alloca:new _Ax(*copy._alloca); return *this; }
+		inline i_AllocTracker& operator =(const i_AllocTracker& copy) { if(!_alloc_extern) delete _alloca; _alloca = copy._alloc_extern?copy._alloca:new _Ax(*copy._alloca); _alloc_extern=copy._alloc_extern; return *this; }
+		inline i_AllocTracker& operator =(i_AllocTracker&& mov) { if(!_alloc_extern) delete _alloca; _alloca = mov._alloca; _alloc_extern=mov._alloc_extern; mov._alloc_extern=true; return *this; }
 
 	protected:
 		_Ax* _alloca;
@@ -218,6 +220,8 @@ namespace bss_util {
 	class cAllocTracker : public i_AllocTracker<typename _Ax::value_type, _Ax>
   {
   public:
+    inline cAllocTracker(const cAllocTracker& copy) : i_AllocTracker(copy) {}
+    inline cAllocTracker(cAllocTracker&& mov) : i_AllocTracker(std::move(mov)) {}
 		inline cAllocTracker(_Ax* ptr=0) : i_AllocTracker(ptr) {}
   };
 }

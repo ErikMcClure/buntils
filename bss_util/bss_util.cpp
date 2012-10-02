@@ -200,15 +200,16 @@ extern long BSS_FASTCALL bss_util::GetTimeZoneMinutes()
   }
   return 0; //error
 }
-
-//bss_util::FREEPTRDLL::FREEPTRDLL(void* ptr) : _ptr(ptr)
-//{
-//}
-//
-//bss_util::FREEPTRDLL::~FREEPTRDLL()
-//{
-//  if(_ptr) free(_ptr);
-//}
+#ifdef BSS_PLATFORM_WIN32
+extern void BSS_FASTCALL bss_util::AlertBox(const char* text, const char* caption, int type)
+{
+  AlertBox(cStrW(text),cStrW(caption),type);
+}
+extern void BSS_FASTCALL bss_util::AlertBox(const wchar_t* text, const wchar_t* caption, int type)
+{
+  MessageBoxW(0,text,caption,type);
+}
+#endif
 
 
 //namespace bss_util {

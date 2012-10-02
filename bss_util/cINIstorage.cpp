@@ -148,8 +148,7 @@ cINIsection* cINIstorage::_addsection(const char* name)
     assert(_last!=0 && _root!=0);
     _NODE* r=_sections[iter];
     _NODE* t=!r->instances.Size()?r:r->instances.Back();
-    LLInsertAfterAssign(p,t);
-    LLInsertAfter(p,t,_last);
+    LLInsertAfterFull(p,t,_last);
     r->instances.Insert(p,r->instances.Size());
     new (&p->val) cINIsection(name,this,r->instances.Size()); // done down here because the index is actually where it is in the array + 1.
   }

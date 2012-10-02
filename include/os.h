@@ -4,9 +4,8 @@
 #ifndef __BSS_OS_H__
 #define __BSS_OS_H__
 
-#include <vector>
+//#include <vector>
 #include "bss_dlldef.h"
-#include "cStr.h"
 struct HWND__;
 struct HKEY__; //Include WinReg.h to get access to the root key handles (e.g. HKEY_LOCAL_MACHINE)
 
@@ -23,6 +22,8 @@ namespace bss_util {
   BSS_COMPILER_DLLEXPORT extern bool BSS_FASTCALL FileExists(const wchar_t* strpath);
   BSS_COMPILER_DLLEXPORT extern void BSS_FASTCALL FileDialog(wchar_t (&buf)[260], bool open, unsigned long flags, const char* file=0, const char* filter="All Files (*.*)\0*.*\0", HWND__* owner=0, const char* initdir=0, const char* defext=0);
   BSS_COMPILER_DLLEXPORT extern void BSS_FASTCALL FileDialog(wchar_t (&buf)[260], bool open, unsigned long flags, const wchar_t* file=0, const wchar_t* filter=L"All Files (*.*)\0*.*\0", HWND__* owner=0, const wchar_t* initdir=0, const wchar_t* defext=0);
+  BSS_COMPILER_DLLEXPORT extern void BSS_FASTCALL AlertBox(const char* text, const char* caption, int type=0);
+  BSS_COMPILER_DLLEXPORT extern void BSS_FASTCALL AlertBox(const wchar_t* text, const wchar_t* caption, int type=0);
   
 #if defined(WIN32) || defined(_WINDOWS)
   BSS_COMPILER_DLLEXPORT extern int BSS_FASTCALL SetRegistryValue(HKEY__*	hOpenKey, const char* szKey, const char* szValue, const char* szData);

@@ -90,8 +90,7 @@ void cINIsection::_addentry(const char* key, const char* data)
     assert(_last!=0 && _root!=0);
     _NODE* r=_entries[iter];
     _NODE* t=!r->instances.Size()?r:r->instances.Back();
-    LLInsertAfterAssign(p,t);
-    LLInsertAfter(p,t,_last);
+    LLInsertAfterFull(p,t,_last);
     r->instances.Insert(p,r->instances.Size());
   }
 }

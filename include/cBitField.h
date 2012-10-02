@@ -9,7 +9,7 @@
 namespace bss_util
 {
   // Generic implementation of using an integral type's component bits to store flags.
-  template<class T=int>
+  template<class T=unsigned int>
   class BSS_COMPILER_DLLEXPORT cBitField
   {
   public:
@@ -27,12 +27,29 @@ namespace bss_util
     // Gets one or more bit flags from the bitfield (WARNING: This will return true if ANY of the supplied flags are true)
     inline BSS_FORCEINLINE bool BSS_FASTCALL GetBit(T bits) const { return (_bitfield & bits)!=0; }
 
-    //inline BSS_FORCEINLINE bool operator[](T bit) const { return GetBit(bit); } //This is a great way to cause ambiguity problems :|
     inline bool operator==(const cBitField& right) const { return _bitfield==right.GetBits(); }
     inline bool operator!=(const cBitField& right) const { return _bitfield!=right.GetBits(); }
 
   protected:
     T _bitfield;
+  };
+
+  // Extension of the bit field to use operator[] for read-only access. Not implemented in cBitField because it causes ambiguity problems
+  template<class T=unsigned int>
+  class BSS_COMPILER_DLLEXPORT cBitWrap : public cBitField<T>
+  {
+  public:
+    inline cBitWrap(T init=0) : cBitField(init) {}
+    
+    inline BSS_FORCEINLINE bool operator[](T bit) const { return GetBit(bit); } 
+    inline bool operator==(const cBitField& right) const { return _bitfield==right.GetBits(); }
+    inline bool operator!=(const cBitField& right) const { return _bitfield!=right.GetBits(); }
+    inline T operator ~() const { return ~_bitfield; }
+    inline T operator &(T r) const { return _bitfield&r; }
+    inline T operator |(T r) const { return _bitfield|r; }
+    inline T operator ^(T r) const { return _bitfield^r; }
+    inline T operator <<(T r) const { return _bitfield<<r; }
+    inline T operator >>(T r) const { return _bitfield>>r; }
   };
 }
 

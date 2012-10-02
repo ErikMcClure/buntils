@@ -42,6 +42,22 @@ namespace bss_util {
 		node->next = target;
   }
 
+  // Does a full insert, calling LLInsertAssign and LLInsert
+  template<typename T>
+  BSS_FORCEINLINE void BSS_FASTCALL LLInsertFull(T* node, T* target, T*& root)
+  {
+    LLInsertAssign(node,target);
+    LLInsert(node,target,root);
+  }
+
+  // Does a full insert, calling LLInsertAssign and LLInsert, but doesn't re-assign root
+  template<typename T>
+  BSS_FORCEINLINE void BSS_FASTCALL LLInsertFull(T* node, T* target)
+  {
+    LLInsertAssign(node,target);
+    LLInsert(node,target);
+  }
+
   // Inserts the node before the target and re-assigns last if necessary. Does not assign values to node.
   template<typename T>
   inline void BSS_FASTCALL LLInsertAfter(T* node, T* target, T*& last)
@@ -66,6 +82,23 @@ namespace bss_util {
 		node->next = target->next;
 		node->prev = target;
   }
+
+  // Does a full insert, calling LLInsertAssign and LLInsert
+  template<typename T>
+  BSS_FORCEINLINE void BSS_FASTCALL LLInsertAfterFull(T* node, T* target, T*& last)
+  {
+    LLInsertAfterAssign(node,target);
+    LLInsertAfter(node,target,last);
+  }
+
+  // Does a full insert, calling LLInsertAssign and LLInsert, but doesn't re-assign last
+  template<typename T>
+  BSS_FORCEINLINE void BSS_FASTCALL LLInsertAfterFull(T* node, T* target)
+  {
+    LLInsertAfterAssign(node,target);
+    LLInsertAfter(node,target);
+  }
+
   // Used in the form last = LLAdd(node,last); where last must be the last element of a linked list, defined by last->next = 0.
   template<typename T>
   inline T* BSS_FASTCALL LLAdd(T* node, T* last)

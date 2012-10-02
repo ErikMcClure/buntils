@@ -36,7 +36,7 @@
 #include "cObjSwap.h"
 #include "cPriorityQueue.h"
 #include "cRational.h"
-#include "cRBT_List.h"
+#include "cTRBtree.h"
 #include "cRefCounter.h"
 //#include "cSettings.h"
 #include "cSingleton.h"
@@ -947,6 +947,30 @@ TEST::RETPAIR test_bss_DUAL()
   ENDTEST;
 }
 
+// This does not perform well at all
+/*template<int M1,int M2,int M3,int M4>
+inline int PriCompare(const int (&li)[4],const int (&ri)[4])
+{
+  sseVeci m(M1,M2,M3,M4); // positive mask
+  sseVeci n(-M1,-M2,-M3,-M4); // negative mask
+  //sseVeci l(l1,l2,l3,l4);
+  sseVeci l(li);
+  //sseVeci r(r1,r2,r3,r4);
+  sseVeci r(ri);
+  sseVeci t=((l>r)&m) + ((l<r)&n);
+  l=BSS_SSE_SHUFFLE_EPI32(t,0x1B); // Assign t to l, but reversed
+  l+=t;
+  t = _mm_castps_si128(_mm_movehl_ps(_mm_castsi128_ps(t),_mm_castsi128_ps(l))); // Move upper 2 ints to bottom 2 ints
+  return _mm_cvtsi128_si32(t+l); // return bottom 32bit result
+}
+
+BSS_FORCEINLINE int PriComp(int l1,int l2,int l3,int l4,int r1,int r2,int r3,int r4)
+{
+  int li[4]={l1,l2,l3,l4};
+  int ri[4]={r1,r2,r3,r4};
+  return PriCompare<1,2,4,8>(li,ri);
+}*/
+
 inline static unsigned int Interpolate(unsigned int l, unsigned int r, float c)
 {
   //float inv=1.0f-c;
@@ -1098,6 +1122,44 @@ TEST::RETPAIR test_bss_SSE()
   TESTFOUR(arr,3,2,1,0)
   (u/w + v - u) >> BSS_UNALIGNED<float>(uarr);
   TESTFOUR(uarr,3,2,1,0)
+
+  /*char prof;
+
+  shuffle(testnums);
+  int l=0;
+  prof=_debug.OpenProfiler();
+  CPU_Barrier();
+  for(int i = 0; i < 100000; i+=8)
+    l+=PriComp(testnums[0],testnums[1],testnums[2],testnums[3],testnums[4],testnums[5],testnums[6],testnums[7]);
+  CPU_Barrier();
+  std::cout << '\n' << _debug.CloseProfiler(prof) << std::endl;
+  //TEST(l==l2);
+
+  shuffle(testnums);
+  int l2=0;
+  prof=_debug.OpenProfiler();
+  CPU_Barrier();
+  for(int i = 0; i < 100000; ++i)
+  {
+    if(testnums[0]!=testnums[1]) {
+      l2+=SGNCOMPARE(testnums[0],testnums[1]);
+      continue;
+    }
+    if(testnums[2]!=testnums[3]) {
+      l2+=SGNCOMPARE(testnums[2],testnums[3]);
+      continue;
+    }
+    if(testnums[4]!=testnums[5]) {
+      l2+=SGNCOMPARE(testnums[4],testnums[5]);
+      continue;
+    }
+    if(testnums[6]!=testnums[7]) {
+      l2+=SGNCOMPARE(testnums[6],testnums[7]);
+      continue;
+    }
+  }
+  CPU_Barrier();
+  std::cout << '\n' << _debug.CloseProfiler(prof) << std::endl;*/
 
   ENDTEST;
 }
@@ -2099,32 +2161,45 @@ TEST::RETPAIR test_RATIONAL()
   ENDTEST;
 }
 
-TEST::RETPAIR test_RBT_LIST()
+TEST::RETPAIR test_TRB_TREE()
 {
   BEGINTEST;
-  Allocator<cRBT_Node<int,int>,FixedPolicy<cRBT_Node<int,int>>> fixedalloc;
-  cRBT_List<int, int,CompT<int>,Allocator<cRBT_Node<int,int>,FixedPolicy<cRBT_Node<int,int>>>> blah(&fixedalloc);
-
-  //char prof=_debug.OpenProfiler();
-  for(int i = 0; i<TESTNUM; ++i)
-    //blah.Insert(testnums[i],testnums[i]);
-    blah.Insert((i&0x01)?5:testnums[i],testnums[i]);
-  //std::cout << _debug.CloseProfiler(prof) << std::endl;
+  Allocator<TRB_Node<int,int>,FixedPolicy<TRB_Node<int,int>>> fixedalloc;
+  cTRBtree<int, int,CompT<int>,Allocator<TRB_Node<int,int>,FixedPolicy<TRB_Node<int,int>>>> blah(&fixedalloc);
 
   shuffle(testnums);
-  //prof=_debug.OpenProfiler();
-  int num=0;
+  for(int i = 0; i<TESTNUM; ++i)
+    blah.Insert(testnums[i],testnums[i]);
 
+  TEST(!blah.Get(-1))
+  TEST(!blah.Get(TESTNUM+1))
+
+  shuffle(testnums);
+  int num=0;
   for(int i = 0; i<TESTNUM; ++i)
   {
-  _ReadWriteBarrier();
-    //seed+=blah.Get(testnums[i])->_data;
-    num+=blah.Get(5)->_data;
-  _ReadWriteBarrier();
+    auto p=blah.Get(testnums[i]);
+    if(p!=0)
+      num+=(p->data==testnums[i]);
   }
+  TEST(num==TESTNUM);
+
+  shuffle(testnums);
+  num=0;
+  int n2=0;
+  int n3=0;
+  for(int i = 0; i<TESTNUM; ++i)
+  {
+    num+=(blah.Get(testnums[i])!=0);
+    n2+=blah.Remove(testnums[i]);
+    n3+=(!blah.Get(testnums[i]));
+  }
+  TEST(num==TESTNUM);
+  TEST(n2==TESTNUM);
+  TEST(n3==TESTNUM);
 
   //std::cout << _debug.CloseProfiler(prof) << std::endl;
-  /*cRBT_PNode<int,int>* pnode=blah.GetFirst();
+  /*TRB_Node<int,int>* pnode=blah.GetFirst();
   int last=-1;
   uint pass=0;
   while(pnode)
@@ -2405,6 +2480,7 @@ TEST::RETPAIR test_OS()
 //  SetRegistryValue(HKEY_LOCAL_MACHINE,"SOFTWARE\\test\\test","valcheck","data");
 //  DelRegistryNode(HKEY_LOCAL_MACHINE,"SOFTWARE\\test");
 //#endif
+  //AlertBox("test", "title", 0x00000010L);
   ENDTEST;
 }
 
@@ -2468,7 +2544,7 @@ int main(int argc, char** argv)
     { "cObjSwap.h", &test_OBJSWAP },
     { "cPriorityQueue.h", &test_PRIORITYQUEUE },
     { "cRational.h", &test_RATIONAL },
-    { "cRBT_List.h", &test_RBT_LIST },
+    { "cTRBtree.h", &test_TRB_TREE },
     //{ "cRefCounter.h", &test_REFCOUNTER },
     { "cSettings.h", &test_SETTINGS },
     //{ "cSingleton.h", &test_SINGLETON },

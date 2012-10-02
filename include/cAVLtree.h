@@ -12,9 +12,9 @@ namespace bss_util {
   template<class Key, class Data>
   struct BSS_COMPILER_DLLEXPORT AVL_Node
   {
-    inline AVL_Node() : _pkey(), _data(), _left(0), _right(0), _balance(0) {}
+    inline explicit AVL_Node(Key key) : _key(key), _data(), _left(0), _right(0), _balance(0) {}
     Data _data;
-    Key _pkey;
+    Key _key;
     AVL_Node<Key,Data>* _left;
     AVL_Node<Key,Data>* _right;
     int _balance;
@@ -28,7 +28,7 @@ namespace bss_util {
 
   public:
     inline cAVLtree(const cAVLtree& copy) : cAllocTracker<Alloc>(copy), _root(0) {}
-    inline cAVLtree(cAVLtree&& mov) : cAllocTracker<Alloc>(copy), _root(mov._root) { mov._root=0; }
+    inline cAVLtree(cAVLtree&& mov) : cAllocTracker<Alloc>(std::move(mov)), _root(mov._root) { mov._root=0; }
     inline cAVLtree(Alloc* allocator=0) : cAllocTracker<Alloc>(allocator), _root(0) {}
     inline ~cAVLtree() { Clear(); }
     inline void Clear() { _clear(_root); _root=0; }
@@ -103,32 +103,30 @@ namespace bss_util {
 			_deallocate(node, 1);
     }
 
-    inline static void BSS_FASTCALL _leftrotate(AVLNode** root)
+    inline static void BSS_FASTCALL _leftrotate(AVLNode** pnode)
     {
-      AVLNode* _root = *root;
-      AVLNode* _rotate;
+      AVLNode* node = *pnode;
+      AVLNode* r = node->_right;
 
-      _rotate = _root->_right;
-      _root->_right = _rotate->_left;
-      _rotate->_left = _root;
-      *root = _rotate;
+      node->_right = r->_left;
+      r->_left = node;
+      *pnode = r;
 
-      _rotate->_left->_balance -= (1 + bssmax(_rotate->_balance, 0));
-      _rotate->_balance -= (1 - bssmin(_rotate->_left->_balance, 0));
+      r->_left->_balance -= (1 + bssmax(r->_balance, 0));
+      r->_balance -= (1 - bssmin(r->_left->_balance, 0));
     }
 
-    inline static void BSS_FASTCALL _rightrotate(AVLNode** root)
+    inline static void BSS_FASTCALL _rightrotate(AVLNode** pnode)
     {
-      AVLNode* _root = *root;
-      AVLNode* _rotate;
+      AVLNode* node = *pnode;
+      AVLNode* r = node->_left;
 
-      _rotate = _root->_left;
-      _root->_left = _rotate->_right;
-      _rotate->_right = _root;
-      *root = _rotate;
+      node->_left = r->_right;
+      r->_right = node;
+      *pnode = r;
 
-      _rotate->_right->_balance += (1 - bssmin(_rotate->_balance, 0));
-      _rotate->_balance += (1 + bssmax(_rotate->_right->_balance, 0));
+      r->_right->_balance += (1 - bssmin(r->_balance, 0));
+      r->_balance += (1 + bssmax(r->_right->_balance, 0));
     }
     inline AVLNode* BSS_FASTCALL _insert(Key key, AVLNode** proot, char& change) //recursive insertion function
     {
@@ -136,13 +134,12 @@ namespace bss_util {
       if(!root)
       {
 				*proot=_allocate(1);
-        new(*proot) AVLNode();
-        (*proot)->_pkey=key;
+        new(*proot) AVLNode(key);
         change=1;
         return *proot;
       }
 
-      char result=CFunc(root->_pkey,key);
+      char result=CFunc(root->_key,key);
       AVLNode* retval=0;
       if(result<0)
         retval= _insert(key,&root->_left,change);
@@ -168,7 +165,7 @@ namespace bss_util {
         return 0;
       }
    
-      char result=CFunc(root->_pkey,key);
+      char result=CFunc(root->_key,key);
       AVLNode* retval=0;
       if(result<0) {
         retval= _remove(key,&root->_left,change);
@@ -191,8 +188,8 @@ namespace bss_util {
 					while(successor->_left)
 						successor = successor->_left;
 
-					root->_pkey=successor->_pkey;
-          retval=_remove(successor->_pkey,&root->_right,result); //this works because we're always removing something from the right side, which means we should always subtract 1 or 0.
+					root->_key=successor->_key;
+          retval=_remove(successor->_key,&root->_right,result); //this works because we're always removing something from the right side, which means we should always subtract 1 or 0.
           if(retval!=0) // We have to actually swap the data so that retval returns the correct data so it can be used in ReplaceKey
           {
             Data h(std::move(retval->_data));
@@ -212,20 +209,13 @@ namespace bss_util {
     inline AVLNode* BSS_FASTCALL _find(const Key& key) const
     {
       AVLNode* cur=_root;
-      char result=0;
       while(cur)
       {
-        switch(CFunc(cur->_pkey,key)) //This is faster then if/else statements because FUCK IF I KNOW!
+        switch(CFunc(cur->_key,key)) //This is faster then if/else statements because FUCK IF I KNOW!
         {
-        case -1:
-          cur=cur->_left;
-          break;
-        case 1:
-          cur=cur->_right;
-          break;
-        default:
-        //case 0:
-          return cur;
+        case -1: cur=cur->_left; break;
+        case 1: cur=cur->_right; break;
+        default: return cur;
         }
       }
 

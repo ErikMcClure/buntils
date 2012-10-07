@@ -1195,8 +1195,8 @@ TEST::RETPAIR test_ARRAYCIRCULAR()
   for(int i = 0; i < 25; ++i)
     TEST(a[i]==(24-(i%25)));
   a.Push(25); //This should overwrite 0
-  TEST(a[0]=25);  
-  TEST(a[-1]=1);  
+  TEST(a[0]==25);  
+  TEST(a[-1]==1);  
 
   //const cArrayCircular<int>& b=a;
   //b[0]=5; // Should cause error
@@ -2323,7 +2323,7 @@ TEST::RETPAIR test_STRTABLE()
   cStrTable<wchar_t> wcstable(PANGRAMS,SZ);
   cStrTable<char> mbstable2(pstr,6);
 
-  for(int i = 0; i < mbstable.Length(); ++i)
+  for(unsigned int i = 0; i < mbstable.Length(); ++i)
     TEST(!strcmp(mbstable[i],pstr[i]));
 
   mbstable+=mbstable2;
@@ -2821,14 +2821,14 @@ void printout(cLinkedArray<int>& list)
  
 int main2()
 {  
-  bss_DebugInfo _debug("log.txt");
+  /*bss_DebugInfo _debug("log.txt");
   unsigned int seed=time(NULL);
   void* val=(void*)&seed;
   rand();
 
   char p1=1;
   char p2=2;
-  /*volatile cLocklessFlipper<char> flipper(&p1,&p2);
+  volatile cLocklessFlipper<char> flipper(&p1,&p2);
 
   cThread flipthread(&flippertest);
   flipthread.Start((void*)&flipper);

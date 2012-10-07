@@ -112,6 +112,7 @@ extern void BSS_FASTCALL bss_util::ForceWin64Crash()
     DWORD dwFlags; 
 
     HMODULE kernel32 = LoadLibraryA("kernel32.dll"); 
+    assert(kernel32!=0);
     tGetPolicy pGetPolicy = (tGetPolicy)GetProcAddress(kernel32, "GetProcessUserModeExceptionPolicy"); 
     tSetPolicy pSetPolicy = (tSetPolicy)GetProcAddress(kernel32, "SetProcessUserModeExceptionPolicy"); 
     if (pGetPolicy && pSetPolicy && pGetPolicy(&dwFlags)) 

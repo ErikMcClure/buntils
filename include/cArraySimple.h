@@ -391,7 +391,7 @@ namespace bss_util {
   public:
     //inline cArrayWrap(const cArrayWrap& copy) : AT_(copy) {}
     inline cArrayWrap(cArrayWrap&& mov) : AT_(std::move(mov)) {}
-    inline explicit cArrayWrap(ST_ size=1): AT_(size) {}
+    inline explicit cArrayWrap(ST_ size=0): AT_(size) {}
     
     //inline void Add(T item) { AT_::Insert(item,_size); } // Not all cArrays implement Insert
     //Implementation of RemoveInternal that adjusts the size of the array.

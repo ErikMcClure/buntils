@@ -18,7 +18,7 @@ namespace bss_util {
   public:
     //inline cDynArray(const cDynArray& copy) : AT_(copy), _length(copy._length) {}
     inline cDynArray(cDynArray&& mov) : AT_(std::move(mov)), _length(mov._length) {}
-    inline explicit cDynArray(ST_ size=1): AT_(size), _length(0) {}
+    inline explicit cDynArray(ST_ size=0): AT_(size), _length(0) {}
     inline ST_ Add(const T_& t) { return _add(t); }
     inline ST_ Add(T_&& t) { return _add(std::move(t)); }
     inline void Remove(ST_ index) { AT_::RemoveInternal(index); --_length; }

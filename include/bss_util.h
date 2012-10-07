@@ -226,6 +226,7 @@ namespace bss_util {
   inline BSS_FORCEINLINE __int32 fFastRound(T f)
   {
     static_assert(std::is_floating_point<T>::value,"T must be float, double, or long double");
+#if defined(BSS_CPU_x86) || defined(BSS_CPU_x86_64) || defined(BSS_CPU_IA_64)
 #ifdef BSS_COMPILER_GCC
 	  __int32 retval;
     __asm__("fld %1\n\t"
@@ -239,26 +240,35 @@ namespace bss_util {
 	  __asm fld f
 	  __asm fistp retval
 	  return retval;
-#else
+#else // defined(BSS_CPU_x86_64) || defined(BSS_CPU_IA_64)
     return _mm_cvt_ss2si(_mm_load_ss(&f)); // HACK: Non-optimal workaround for MSC idiocy
 #endif
+#else
+    return (__int32)f;
+#endif
+#else
+    return (__int32)f;
 #endif
   }
 
   // Returns true if FPU is in single precision mode and false otherwise (false for both double and extended precision)
   inline BSS_FORCEINLINE bool FPUsingle()
   { 
+#if defined(BSS_CPU_x86) || defined(BSS_CPU_x86_64) || defined(BSS_CPU_IA_64)
     unsigned int i;
 #ifdef BSS_COMPILER_GCC
     __asm__ __volatile__ ("fnstcw %0" : "=m" (i));
 #elif defined(BSS_COMPILER_MSC)
 #ifdef BSS_CPU_x86
     __asm fnstcw i;
-#else
+#else // defined(BSS_CPU_x86_64) || defined(BSS_CPU_IA_64)
     i=_mm_getcsr();
 #endif
 #endif
     return ((i&(0x0300))==0); //0x0300 is the mask for the precision bits, 0 indicates single precision
+#else
+    return false;
+#endif
   }
 
   // Extremely fast rounding function that again will usually round to the nearest integer, but only works in double precision mode

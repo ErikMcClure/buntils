@@ -32,6 +32,8 @@
 - Refactored cRBT_List into cTRBtree and tweaked cAVLtree
 - Fixed move/copy constructors and assignment operators for cAllocTracker
 - Added LLInsertFull and LLInsertAfterFull convenience functions
+- Changed default initial sizes from 1 to 0 where appropriate to avoid needless memory allocations
+- Marked as LargeAddressAware
 
 0.3.83
 ------

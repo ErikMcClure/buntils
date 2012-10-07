@@ -19,7 +19,7 @@ namespace bss_util {
     // Constructors
     inline cArrayCircular(const cArrayCircular& copy) : ArrayType(copy), _cur(copy._cur), _length(copy._length) {}
     inline cArrayCircular(cArrayCircular&& mov) : ArrayType(std::move(mov)), _cur(mov._cur), _length(mov._length) {}
-    inline explicit cArrayCircular(ST_ size=1) : ArrayType(size), _cur((ST_)-1), _length(0) {}
+    inline explicit cArrayCircular(ST_ size=0) : ArrayType(size), _cur((ST_)-1), _length(0) {}
     
     inline ~cArrayCircular() {}
     inline BSS_FORCEINLINE void Push(const T& item) { _push<const T&>(item); }

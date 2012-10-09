@@ -1,53 +1,77 @@
 // Copyright ©2012 Black Sphere Studios
 // For conditions of distribution and use, see copyright notice in "bss_util.h"
 
-/*#ifndef __C_THREAD_H__BSS__
+#ifndef __C_THREAD_H__BSS__
 #define __C_THREAD_H__BSS__
 
-#include "cMutex.h"
-#include "cBitField.h"
-#include "functor.h"
-
-namespace std { template<class _Ty1, class _Ty2> struct pair; }
+#include "bss_dlldef.h"
+#ifdef BSS_PLATFORM_WIN32
+#include "bss_win32_includes.h"
+#include <process.h>
+#else // Assume BSS_PLATFORM_POSIX
+#endif
 
 namespace bss_util {
-  // This is thread class designed for maximum efficiency
-  class BSS_DLLEXPORT cThread : public cLockable, protected cBitField<unsigned int>
+  // This wraps the creation of a thread and stores a handle to it. Everything must be inlined so the thread is created in the correct dll
+  class BSS_COMPILER_DLLEXPORT cThread
   {
+#ifdef BSS_PLATFORM_WIN32
+    typedef unsigned int (__stdcall *FUNC)(void*);
+#else // Assume BSS_PLATFORM_POSIX
+    typedef void* (*FUNC)(void*);
+#endif
+
   public:
-    cThread(const cThread& copy);
-    cThread(unsigned int (BSS_COMPILER_STDCALL *funcptr)(void*), bool sync=false, bool sleep=false, unsigned short sleepms=1);
-    cThread(const Functor<unsigned int, void*>& funcptr, bool sync=false, bool sleep=false, unsigned short sleepms=1);
-    ~cThread();
-    bool Start(void* arg); //Starts the thread. Fails if the thread is already running
-    unsigned int Join(unsigned int waitms=0); //Blocks until this thread has exited for waitms milliseconds (if this is 0 then it waits forever) (returns the thread's return value)
-    unsigned int Stop(); //Tells the thread to stop (this only works if the thread is checking the stop value) - returns thread return value
-    //void Sync(); //Blocks until this thread hits the sync section (Only works if utilized by the thread)
-    bool ThreadStop(); //Call this from the thread to check if you need to stop
-    void ThreadSync(); //Call this from the thread to signal that you have reached a syncronization section. This behaves in a very specific way: it will never block the executing thread, only one that is waiting for a sync to be hit.
-    bool ThreadStopAndSync(); //Same as ThreadStop() except it acts as a sync point as well.
-    void ThreadExit(); //Call this from the thread right before you exit
+    // Move constructor only
+    inline cThread(cThread&& mov) : _id(mov._id) { mov._id=(size_t)-1; }
+    // Create thread
+    explicit inline cThread(FUNC f, void* arg=0) { _start(f,arg); }
+    inline cThread() : _id((size_t)-1) {}
+    inline ~cThread() { Join(); }
+    // Blocks until this thread has terminated, and returns the threads exit code
+    BSS_FORCEINLINE size_t Join()
+    {
+      size_t ret;
+      if(_id!=(size_t)-1)
+      {
+#ifdef BSS_PLATFORM_WIN32
+        WaitForSingleObject((HANDLE)_id,INFINITE);
+        GetExitCodeThread((HANDLE)_id,(DWORD*)&ret); // size_t is gaurenteed to be big enough to hold DWORD
+#else // BSS_PLATFORM_POSIX
+        pthread_join(_id,(void*)&ret) // size_t is gaurenteed to be big enough to hold a pointer
+#endif
+      }
 
-    cThread& operator =(const cThread& right);
-
-    typedef std::pair<Functor<unsigned int, void*>*,void*> DOUBLEARG;
+      return ret;
+    }
+    // If this thread object does not currently have a valid thread, attempts to start one. Returns 0 on success, -1 if thread creation
+    // failed, or -2 if an existing thread is still running.
+    inline char BSS_FASTCALL Start(FUNC f, void* arg=0)
+    {
+      if(_id!=(size_t)-1) return -2;
+      _start(f,arg);
+      return (_id==(size_t)-1)?-1:0;
+    }
+    // Gets the thread's id
+#ifdef BSS_PLATFORM_WIN32
+    inline HANDLE GetID() const { return (HANDLE)_id; }
+#else
+    inline pthread_t GetID() const { return _id; }
+#endif
 
   protected:
-    void _sleepsync();
-    void _blocksync();
-    void _trylock();
-
-    //cBitField<unsigned char> _bools; //Boolean values are compressed to a single integral value for memory efficiency (0 - stop, 1 - sync, 2 - stoppable, 3 - syncable, 4 - running, 5 - delegate used)
-    unsigned short _sleepms;
-    size_t _handle;
-    union
+    inline cThread(const cThread&) {} // No copying
+    BSS_FORCEINLINE void BSS_FASTCALL _start(FUNC f, void* arg=0)
     {
-      unsigned int (BSS_COMPILER_STDCALL *_funcptr)(void*);
-      Functor<unsigned int, void*>* _delegate;
-    };
-    unsigned int _threadret;
-    void (cThread::*_syncptr)();
-    DOUBLEARG* _delegate_arg;
+#ifdef BSS_PLATFORM_WIN32
+      _id=_beginthreadex(0,0,f,arg,0,0);
+#else // BSS_PLATFORM_POSIX
+      if(pthread_create(&_id,0,f,arg)!=0)
+        _id=(size_t)-1;
+#endif
+    }
+
+    size_t _id;
   };
 }
 

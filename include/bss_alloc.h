@@ -10,6 +10,7 @@
 #include <assert.h>
 
 namespace bss_util {
+  // typedefs required by the standard library
   template<class T>
   class BSS_COMPILER_DLLEXPORT AllocPolicySize
   {
@@ -33,6 +34,7 @@ namespace bss_util {
   #endif
   };
 
+  // An implementation of a standard allocation policy, conforming to standard library requirements.
 	template<typename T>
   class BSS_COMPILER_DLLEXPORT StandardAllocPolicy : public AllocPolicySize<T> {
 	public:
@@ -54,6 +56,7 @@ namespace bss_util {
     inline void deallocate(pointer p, std::size_t = 0) { free(p); }
 	};
   
+  // This takes an allocator and makes a static implementation that can be used in standard containers, but its heavily DLL-dependent.
 	template<typename T, typename Alloc>
   class BSS_COMPILER_DLLEXPORT StaticAllocPolicy : public AllocPolicySize<T> {
 	public:
@@ -89,6 +92,7 @@ namespace bss_util {
 	inline bool operator==(StandardAllocPolicy<T> const&, StandardAllocPolicy<T2> const&) { return true; }
 	template<typename T, typename OtherAllocator> inline bool operator==(StandardAllocPolicy<T> const&, OtherAllocator const&) { return false; }
 
+  // Object traits as required by the standard library (We ignore them because we do not construct or destroy any objects)
 	template<typename T>
 	class BSS_COMPILER_DLLEXPORT ObjectTraits {
 	public: 
@@ -107,12 +111,13 @@ namespace bss_util {
     inline static void destroy(T* p) { p->~T(); }
 	}; 
 
+  // Standard implementation of an allocator using a policy and object traits that is compatible with standard containers.
 	template<typename T, typename Policy = StandardAllocPolicy<T>, typename Traits = ObjectTraits<T>>
 #ifndef BSS_DISABLE_CUSTOM_ALLOCATORS
 	class BSS_COMPILER_DLLEXPORT Allocator : public Policy {
 	private:
     typedef Policy AllocationPolicy;
-#else
+#else // if BSS_DISABLE_CUSTOM_ALLOCATORS is defined, we disable all nonstandard policies for debugging.
 	class BSS_COMPILER_DLLEXPORT Allocator : public StandardAllocPolicy<T>, public ObjectTraits<T> {
 	private:
     typedef StandardAllocPolicy<T> AllocationPolicy;
@@ -184,6 +189,7 @@ namespace bss_util {
 			return !operator==(lhs, rhs); 
 	}
 
+  // Internal class used by cAllocTracker
 	template<typename T, typename _Ax>
 	class i_AllocTracker
 	{
@@ -204,6 +210,7 @@ namespace bss_util {
 		bool _alloc_extern;
 	};
 
+  // Explicit specialization of cAllocTracker that removes the memory usage for a standard allocation policy, as it isn't needed.
 	template<typename T>
 	class i_AllocTracker<T, Allocator<T>>
 	{
@@ -216,6 +223,7 @@ namespace bss_util {
     inline void _deallocate(pointer p, std::size_t = 0) { free(p); }
 	};
 
+  // This implements stateful allocators.
 	template<typename _Ax>
 	class cAllocTracker : public i_AllocTracker<typename _Ax::value_type, _Ax>
   {

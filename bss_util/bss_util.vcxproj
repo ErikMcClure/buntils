@@ -87,10 +87,10 @@
     <ClInclude Include="..\include\cLocklessByteQueue.h" />
     <ClInclude Include="..\include\cLocklessQueue.h" />
     <ClInclude Include="..\include\cMap.h" />
-    <ClInclude Include="..\include\cMutex.h" />
     <ClInclude Include="..\include\cObjSwap.h" />
     <ClInclude Include="..\include\cPriorityQueue.h" />
     <ClInclude Include="..\include\cRational.h" />
+    <ClInclude Include="..\include\cThreadPool.h" />
     <ClInclude Include="..\include\cTRBtree.h" />
     <ClInclude Include="..\include\cRefCounter.h" />
     <ClInclude Include="..\include\cSettings.h" />
@@ -98,7 +98,6 @@
     <ClInclude Include="..\include\cSparseArray.h" />
     <ClInclude Include="..\include\cStr.h" />
     <ClInclude Include="..\include\cStrTable.h" />
-    <ClInclude Include="..\include\cTaskStack.h" />
     <ClInclude Include="..\include\cThread.h" />
     <ClInclude Include="..\include\cUniquePtr.h" />
     <ClInclude Include="..\include\functor.h" />
@@ -121,7 +120,6 @@
     <ClCompile Include="cINIentry.cpp" />
     <ClCompile Include="cINIsection.cpp" />
     <ClCompile Include="cINIstorage.cpp" />
-    <ClCompile Include="cMutex.cpp" />
     <ClCompile Include="INIParser.c" />
     <ClCompile Include="ShinyManager.cpp" />
     <ClCompile Include="ShinyNode.cpp" />

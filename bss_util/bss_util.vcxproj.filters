@@ -138,9 +138,6 @@
     <ClInclude Include="..\include\cMap.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="..\include\cMutex.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
     <ClInclude Include="..\include\cObjSwap.h">
       <Filter>Header Files</Filter>
     </ClInclude>
@@ -166,9 +163,6 @@
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="..\include\cStrTable.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="..\include\cTaskStack.h">
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="..\include\cThread.h">
@@ -219,6 +213,9 @@
     <ClInclude Include="..\include\cTRBtree.h">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="..\include\cThreadPool.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="bss_DebugInfo.cpp">
@@ -240,9 +237,6 @@
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="cINIstorage.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="cMutex.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="INIParser.c">

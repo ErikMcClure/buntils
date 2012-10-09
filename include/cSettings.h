@@ -53,14 +53,13 @@ namespace bss_util {
   class cSetting
   { 
   public: 
-    static cKhash_StringTInsConstruct<char,std::function<void (cCmdLineArgs<char>&,unsigned int&)>> cmdhash;
+    static cKhash_StringTInsConstruct<char,std::function<void (cCmdLineArgs&,unsigned int&)>> cmdhash;
   }; 
-  cKhash_StringTInsConstruct<char,std::function<void (cCmdLineArgs<char>&,unsigned int&)>> cSetting<-1,-1>::cmdhash;
+  cKhash_StringTInsConstruct<char,std::function<void (cCmdLineArgs&,unsigned int&)>> cSetting<-1,-1>::cmdhash;
 
   // Class triggered when a setting is declared, adding it to the master command hash if necessary.
-  template<typename C>
   struct AddToSettingHash { 
-    AddToSettingHash(const C* cmdname, const std::function<void (cCmdLineArgs<C>&,unsigned int&)>& func)
+    AddToSettingHash(const char* cmdname, const std::function<void (cCmdLineArgs&,unsigned int&)>& func)
     { if(cmdname!=0) cSetting<-1,-1>::cmdhash.Insert(cmdname,func); }
   };
 
@@ -70,7 +69,7 @@ namespace bss_util {
 
 #ifdef INSTANTIATE_SETTINGS //Declare this in a CPP file that includes all DECL_SETTINGs used in your project to instantiate them
 #define i_INST_SET_(I,N,T,INIT,NAME,CMD) T bss_util::cSetting<I,N>::v=INIT; \
-  bss_util::AddToSettingHash<char> bss_util::cSetting<I,N>::_shashinit(CMD,[](cCmdLineArgs<char>& rcmd, unsigned int& ind) -> void { bss_util::cSetting_CMDLOAD<T,char>::CmdLoad(rcmd,bss_util::cSetting<I,N>::v,ind); })
+  bss_util::AddToSettingHash bss_util::cSetting<I,N>::_shashinit(CMD,[](cCmdLineArgs& rcmd, unsigned int& ind) -> void { bss_util::cSetting_CMDLOAD<T,char>::CmdLoad(rcmd,bss_util::cSetting<I,N>::v,ind); })
 #else
 #define i_INST_SET_(I,N,T,INIT,NAME,CMD) 
 #endif
@@ -78,7 +77,7 @@ namespace bss_util {
   // Main #define for declaring a setting. NAME and CMD can both be set to 0 if INIs and command line parsing, respectively, are not needed.
 #define DECL_SETTING(I,N,T,INIT,NAME,CMD) template<> class bss_util::cSetting<I,N> { public: typedef T TYPE; static T v; \
   inline static const char* name() { return NAME; } inline static const char* cmd() { return CMD; } \
-  static bss_util::AddToSettingHash<char> _shashinit; }; i_INST_SET_(I,N,T,INIT,NAME,CMD)
+  static bss_util::AddToSettingHash _shashinit; }; i_INST_SET_(I,N,T,INIT,NAME,CMD)
 
   /* Main #define for declaring a group of settings. Note that the optional NAME parameter is for INI loading and determines the section
      name of the settings. MAX is the maximum number of settings in this group, but unless you are using LoadAllFromINI, it is optional. */
@@ -138,25 +137,25 @@ namespace bss_util {
   // Struct class for defining the CmdLoad function. Can be overriden for custom types
   template<typename T, typename C>
   struct cSetting_CMDLOAD {
-    inline static void CmdLoad(cCmdLineArgs<C>& ini, T& v, unsigned int& index)
+    inline static void CmdLoad(cCmdLineArgs& ini, T& v, unsigned int& index)
     { std::basic_stringstream<C>(std::basic_string<C>(ini[index++]), std::stringstream::in) >> v; }
   };
 
   template<typename C>
   struct cSetting_CMDLOAD<const C*,C> {
-    inline static void CmdLoad(cCmdLineArgs<C>& ini, const C*& s, unsigned int& index)
+    inline static void CmdLoad(cCmdLineArgs& ini, const C*& s, unsigned int& index)
     { s=ini[index++]; }
   };
 
   template<typename C>
   struct cSetting_CMDLOAD<bool,C> {
-    inline static void CmdLoad(cCmdLineArgs<C>& ini, bool& v, unsigned int& index)
+    inline static void CmdLoad(cCmdLineArgs& ini, bool& v, unsigned int& index)
     { v=true; }
   };
 
   template<typename C>
   struct cSetting_CMDLOAD<std::vector<cStrT<C>>,C> {
-    inline static void CmdLoad(cCmdLineArgs<C>& ini, std::vector<cStrT<C>>& v, unsigned int& index) {} //You cannot load this from the command line
+    inline static void CmdLoad(cCmdLineArgs& ini, std::vector<cStrT<C>>& v, unsigned int& index) {} //You cannot load this from the command line
   };
 
   // Main class for managing settings. Here you can load and save settings from INIs
@@ -203,13 +202,12 @@ namespace bss_util {
   };
 
   // Static template function for loading settings from a command line.
-  template<typename C>
-  inline static void LoadFromCmd(cCmdLineArgs<C>& cmd) 
+  inline static void LoadFromCmd(cCmdLineArgs& cmd) 
   {
     unsigned int i=0; // Must be unsigned because of what pfunc accepts
     while(i<cmd.Size())
     {
-      std::function<void (cCmdLineArgs<char>&,unsigned int&)>* pfunc = cSetting<-1,-1>::cmdhash.GetKey(cmd[i]);
+      std::function<void (cCmdLineArgs&,unsigned int&)>* pfunc = cSetting<-1,-1>::cmdhash.GetKey(cmd[i]);
       ++i;
       if(pfunc!=0)
         (*pfunc)(cmd,i); //function must increment i

@@ -29,12 +29,9 @@ public:
 	bss_Log(bss_Log&& mov);
 	// Constructor - takes a stream and adds it
 	explicit bss_Log(std::ostream* log=0);
-	//explicit bss_Log(std::wostream* log);
 	// Constructor - takes either a stream or a file (or both) and adds them
 	explicit bss_Log(const char* logfile, std::ostream* log=0);
 	bss_Log(const wchar_t* logfile, std::ostream* log);
-	//bss_Log(const char* logfile, std::wostream* log);
-	//bss_Log(const wchar_t* logfile, std::wostream* log);
   // Destructor - destroys any file streams
   ~bss_Log();
   // Redirects an existing stream to write to this log's buffer

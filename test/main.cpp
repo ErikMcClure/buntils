@@ -32,7 +32,6 @@
 #include "cLocklessByteQueue.h"
 #include "cLocklessQueue.h"
 #include "cMap.h"
-#include "cMutex.h"
 #include "cObjSwap.h"
 #include "cPriorityQueue.h"
 #include "cRational.h"
@@ -44,7 +43,6 @@
 #include "cStr.h"
 #include "cStrTable.h"
 //#include "cTAATree.h"
-#include "cTaskStack.h"
 #include "cThread.h"
 #include "cUniquePtr.h"
 #include "functor.h"
@@ -1196,7 +1194,7 @@ TEST::RETPAIR test_ARRAYCIRCULAR()
     TEST(a[i]==(24-(i%25)));
   a.Push(25); //This should overwrite 0
   TEST(a[0]==25);  
-  TEST(a[-1]==1);  
+  TEST(a[-1]==0);  
 
   //const cArrayCircular<int>& b=a;
   //b[0]=5; // Should cause error
@@ -1992,12 +1990,6 @@ TEST::RETPAIR test_MAP()
   ENDTEST;
 }
 
-TEST::RETPAIR test_MUTEX()
-{
-  BEGINTEST;
-  ENDTEST;
-}
-
 struct OBJSWAP_TEST {
   unsigned int i;
   bool operator==(const OBJSWAP_TEST& j) const { return i==j.i; }
@@ -2357,6 +2349,46 @@ TEST::RETPAIR test_STRTABLE()
   ENDTEST;
 }
 
+unsigned int __stdcall sleepthread(void* arg)
+{
+  return 0;
+}
+
+unsigned int __stdcall APCthread(void* arg)
+{
+  cHighPrecisionTimer* p=(cHighPrecisionTimer*)arg;
+
+  while(true)
+  {
+    SleepEx(INFINITE,true);
+    p->Update();
+    std::cout << "\n" << p->GetDelta() << std::endl;
+  }
+  return 0;
+}
+inline static void __stdcall _APCactivate(unsigned long) {}
+
+TEST::RETPAIR test_THREAD()
+{
+  BEGINTEST;
+  //cHighPrecisionTimer timer;
+  //cHighPrecisionTimer useless;
+  //timer.Update();
+  //Sleep(2);
+  //timer.Update();
+  //  std::cout << "\n" << timer.GetDelta() << std::endl;
+
+  //cThread apc(APCthread,&timer);
+  //for(int i = 0; i < 10000; ++i)
+  //{
+  //  for(int j = RANDINTGEN(50000,100000); j > 0; --j) { SleepEx(0,false); useless.Update(); }
+  //  timer.Update();
+  //  QueueUserAPC(_APCactivate,apc.GetID(),0);
+  //}
+
+  ENDTEST;
+}
+
 struct foobar// : public cClassAllocator<foobar>
 {
   float test[3];
@@ -2368,30 +2400,6 @@ struct foobar// : public cClassAllocator<foobar>
   void nothing2() {}
   void nothing3() {}
 };
-
-TEST::RETPAIR test_TASKSTACK()
-{
-  BEGINTEST;
-  
-  //foobar* barfoothing= new foobar();
-  //cTaskStack<foobar> foostack;
-  //foostack.RegisterFunction(FUNC_DEF0<foobar>(&foobar::dumber),0);
-  //foostack.RegisterFunction(FUNC_DEF1<foobar,unsigned int>(&foobar::stupid),1);
-  //foostack.RegisterFunction(FUNC_DEF2<foobar,int,int>(&foobar::retarded),2);
-  //foostack.RegisterFunction(FUNC_DEF3<foobar,int,int,bool>(&foobar::idiotic),3);
-
-  //cThread nthread(&dorandomcrap);
-  //std::pair<cTaskStack<foobar>*,cThread*> argpair(&foostack,&nthread);
-  //nthread.Start(&argpair);
-  //while(true)
-  //{
-  //foostack.EvaluateStack(barfoothing);
-  //}
-
-  //nthread.Stop();
-  //delete barfoothing;
-  ENDTEST;
-}
 
 TEST::RETPAIR test_UNIQUEPTR()
 {
@@ -2540,7 +2548,6 @@ int main(int argc, char** argv)
     //{ "cLocklessByteQueue.h", &test_LOCKLESSBYTEQUEUE },
     { "cLocklessQueue.h", &test_LOCKLESSQUEUE },
     { "cMap.h", &test_MAP },
-    //{ "cMutex.h", &test_MUTEX },
     { "cObjSwap.h", &test_OBJSWAP },
     { "cPriorityQueue.h", &test_PRIORITYQUEUE },
     { "cRational.h", &test_RATIONAL },
@@ -2550,7 +2557,7 @@ int main(int argc, char** argv)
     //{ "cSingleton.h", &test_SINGLETON },
     { "cStr.h", &test_STR },
     { "cStrTable.h", &test_STRTABLE },
-    //{ "cTaskStack.h", &test_TASKSTACK },
+    { "cThread.h", &test_THREAD },
     { "cUniquePtr.h", &test_UNIQUEPTR },
     //{ "functior.h", &test_FUNCTOR },
     //{ "LLBase.h", &test_LLBASE },

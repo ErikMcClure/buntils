@@ -3,12 +3,11 @@
 // WINDOWS ONLY (right now)
 
 #include "cHighPrecisionTimer.h"
-#if defined(_WIN32)
+#ifdef BSS_PLATFORM_WIN32
 #include "bss_win32_includes.h"
-#else
+#else //BSS_PLATFORM_POSIX
 #include <sys/time.h>
 #include <unistd.h>
-//static timeval tp;
 #endif
 
 using namespace bss_util;
@@ -44,27 +43,6 @@ double cHighPrecisionTimer::Update(double timewarp)
   _curTime = newTime;
   _time += _delta;
   return _delta;
-}
-
-double cHighPrecisionTimer::GetDelta() const
-{
-  return _delta;
-}
-
-double cHighPrecisionTimer::GetTime() const
-{
-  return _time;
-}
-
-void cHighPrecisionTimer::ResetTime()
-{
-  _time = 0;
-}
-
-void cHighPrecisionTimer::ResetDelta()
-{
-  _querytime(&_curTime);
-  _delta = 0;
 }
 
 void cHighPrecisionTimer::_querytime(unsigned __int64* _pval)

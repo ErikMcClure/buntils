@@ -99,6 +99,7 @@ BSS_ALIGNED_STRUCT(16) sseVec
   BSS_SSE_M128 xmm;
 };
 
+// 32-bit signed integer operations
 BSS_ALIGNED_STRUCT(16) sseVeci
 {
   BSS_FORCEINLINE sseVeci(BSS_SSE_M128i v) : xmm(v) {} //__fastcall is obviously useless here since we're dealing with xmm registers
@@ -148,6 +149,7 @@ BSS_ALIGNED_STRUCT(16) sseVeci
   BSS_SSE_M128i xmm;
 };
 
+// 64-bit signed integer operations
 BSS_ALIGNED_STRUCT(16) sseVeci64
 {
   BSS_FORCEINLINE sseVeci64(BSS_SSE_M128i v) : xmm(v) {} //__fastcall is obviously useless here since we're dealing with xmm registers

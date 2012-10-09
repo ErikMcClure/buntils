@@ -2,9 +2,9 @@
 // For conditions of distribution and use, see copyright notice in "bss_util.h"
 
 #include "bss_util_c.h"
-#include "bss_win32_includes.h"
 #include <stdlib.h>
 #include <string.h>
+#include "bss_win32_includes.h"
 
 BSS_COMPILER_DLLEXPORT
 extern unsigned long BSS_FASTCALL strhex(const char* text)

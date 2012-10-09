@@ -6,7 +6,6 @@
 
 #include "bss_call.h"
 #include <intrin.h>
-#include "bss_win32_includes.h"
 
 #ifdef BSS_CPU_x86
 #define BSSASM_PREG ECX

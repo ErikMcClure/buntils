@@ -7,6 +7,7 @@
 #include "bss_util.h"
 
 namespace bss_util {
+  // Internal class specializations
   template<typename T, unsigned char D, bool SATURATE> struct i_FIXED_PT_FUNC {};
   template<typename T, unsigned char D> struct i_FIXED_PT_FUNC<T,D,false>
   {

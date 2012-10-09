@@ -76,7 +76,8 @@ namespace bss_util {
   template<typename T, typename ST_, char (*CFunc)(const T&, const T&), ST_ I>
   static inline BSS_FORCEINLINE ST_ BSS_FASTCALL binsearch_exact(const T (&arr)[I], const T& data) { return binsearch_exact<T,T,ST_,CFunc>(arr,data,0,I); }
   
-  // Shuffler using Fisher-Yates/Knuth Shuffle algorithm based on Durstenfeld's implementation. This is an in-place algorithm and works with any numeric type T.
+  // Shuffler using Fisher-Yates/Knuth Shuffle algorithm based on Durstenfeld's implementation. This is an in-place algorithm that works
+  // with any data type.
   template<typename T, typename ST, ST (*RandFunc)(ST min, ST max)>
   inline void BSS_FASTCALL shuffle(T* p, ST size)
   {

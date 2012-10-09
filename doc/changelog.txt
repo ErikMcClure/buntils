@@ -34,6 +34,9 @@
 - Added LLInsertFull and LLInsertAfterFull convenience functions
 - Changed default initial sizes from 1 to 0 where appropriate to avoid needless memory allocations
 - Marked as LargeAddressAware
+- Added cThread as a tiny wrapper over OS-specific thread creation and joining features.
+- Removed cTaskStack and cMutex
+- cCmdLineArgs now always parses unicode windows arguments and puts them into a UTF-8 encoded string.
 
 0.3.83
 ------

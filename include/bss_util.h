@@ -498,6 +498,50 @@ namespace bss_util {
   //  return FastSin(x+(float)PI_HALF);
   //}
 
+  // Round a number up to the next power of 2 (32 -> 32, 33 -> 64, etc.)
+  inline unsigned __int64 BSS_FASTCALL nextpow2(unsigned __int64 v)
+  {
+	  v -= 1;
+	  v |= (v >> 1);
+	  v |= (v >> 2);
+	  v |= (v >> 4);
+	  v |= (v >> 8);
+	  v |= (v >> 16);
+	  v |= (v >> 32);
+	
+	  return v + 1;
+  }
+  inline unsigned int BSS_FASTCALL nextpow2(unsigned int v)
+  {
+	  v -= 1;
+	  v |= (v >> 1);
+	  v |= (v >> 2);
+	  v |= (v >> 4);
+	  v |= (v >> 8);
+	  v |= (v >> 16);
+	
+	  return v + 1;
+  }
+  inline unsigned short BSS_FASTCALL nextpow2(unsigned short v)
+  {
+	  v -= 1;
+	  v |= (v >> 1);
+	  v |= (v >> 2);
+	  v |= (v >> 4);
+	  v |= (v >> 8);
+	
+	  return v + 1;
+  }
+  inline unsigned char BSS_FASTCALL nextpow2(unsigned char v)
+  {
+	  v -= 1;
+	  v |= (v >> 1);
+	  v |= (v >> 2);
+	  v |= (v >> 4);
+	
+	  return v + 1;
+  }
+
   // Bit-twiddling hack for base 2 log by Sean Eron Anderson
   inline unsigned int BSS_FASTCALL log2(unsigned char v)
   {

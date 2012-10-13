@@ -946,7 +946,7 @@ TEST::RETPAIR test_bss_DUAL()
 }
 
 // This does not perform well at all
-/*template<int M1,int M2,int M3,int M4>
+template<int M1,int M2,int M3,int M4>
 inline int PriCompare(const int (&li)[4],const int (&ri)[4])
 {
   sseVeci m(M1,M2,M3,M4); // positive mask
@@ -964,10 +964,10 @@ inline int PriCompare(const int (&li)[4],const int (&ri)[4])
 
 BSS_FORCEINLINE int PriComp(int l1,int l2,int l3,int l4,int r1,int r2,int r3,int r4)
 {
-  int li[4]={l1,l2,l3,l4};
-  int ri[4]={r1,r2,r3,r4};
+  BSS_ALIGN(16) int li[4]={l1,l2,l3,l4};
+  BSS_ALIGN(16) int ri[4]={r1,r2,r3,r4};
   return PriCompare<1,2,4,8>(li,ri);
-}*/
+}
 
 inline static unsigned int Interpolate(unsigned int l, unsigned int r, float c)
 {
@@ -1121,43 +1121,54 @@ TEST::RETPAIR test_bss_SSE()
   (u/w + v - u) >> BSS_UNALIGNED<float>(uarr);
   TESTFOUR(uarr,3,2,1,0)
 
-  /*char prof;
+  /*int megatest[TESTNUM*10];
+  for(uint i = 0; i<TESTNUM*10; ++i)
+    megatest[i]=log2(i);
 
-  shuffle(testnums);
+  for(int k=0; k < 30; ++k)
+  {
+  char prof;
+
+  shuffle(megatest);
   int l=0;
   prof=_debug.OpenProfiler();
   CPU_Barrier();
-  for(int i = 0; i < 100000; i+=8)
-    l+=PriComp(testnums[0],testnums[1],testnums[2],testnums[3],testnums[4],testnums[5],testnums[6],testnums[7]);
+  int v;
+  for(int i = 0; i < 1000000; i+=8) {
+    v=PriComp(megatest[i+0],megatest[i+1],megatest[i+2],megatest[i+3],megatest[i+4],megatest[i+5],megatest[i+6],megatest[i+7]);
+    l+=SGNCOMPARE(v,0);
+  }
   CPU_Barrier();
-  std::cout << '\n' << _debug.CloseProfiler(prof) << std::endl;
-  //TEST(l==l2);
+  std::cout << "SSE:" << _debug.CloseProfiler(prof) << std::endl;
 
-  shuffle(testnums);
+  shuffle(megatest);
   int l2=0;
   prof=_debug.OpenProfiler();
   CPU_Barrier();
-  for(int i = 0; i < 100000; ++i)
+  for(int i = 0; i < 1000000; i+=8)
   {
-    if(testnums[0]!=testnums[1]) {
-      l2+=SGNCOMPARE(testnums[0],testnums[1]);
+    if(megatest[i]!=megatest[i+1]) {
+      l2+=SGNCOMPARE(megatest[i],megatest[i+1]);
       continue;
     }
-    if(testnums[2]!=testnums[3]) {
-      l2+=SGNCOMPARE(testnums[2],testnums[3]);
+    if(megatest[i+2]!=megatest[i+3]) {
+      l2+=SGNCOMPARE(megatest[i+2],megatest[i+3]);
       continue;
     }
-    if(testnums[4]!=testnums[5]) {
-      l2+=SGNCOMPARE(testnums[4],testnums[5]);
+    if(megatest[i+4]!=megatest[i+5]) {
+      l2+=SGNCOMPARE(megatest[i+4],megatest[i+5]);
       continue;
     }
-    if(testnums[6]!=testnums[7]) {
-      l2+=SGNCOMPARE(testnums[6],testnums[7]);
+    if(megatest[i+6]!=megatest[i+7]) {
+      l2+=SGNCOMPARE(megatest[i+6],megatest[i+7]);
       continue;
     }
   }
   CPU_Barrier();
-  std::cout << '\n' << _debug.CloseProfiler(prof) << std::endl;*/
+  std::cout << "NORMAL:" << _debug.CloseProfiler(prof) << std::endl;
+  TEST(l==l2);
+  }
+  //*/
 
   ENDTEST;
 }

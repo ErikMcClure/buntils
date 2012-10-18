@@ -32,6 +32,13 @@ namespace bss_util {
         free(_array);
     }
     inline SizeType Size() const { return _size; }
+    inline void BSS_FASTCALL SetSizeDiscard(SizeType nsize)
+    {
+      if(nsize==_size) return;
+      if(_array!=0) free(_array);
+      _array = (T*)_minmalloc(nsize*sizeof(T));
+      _size=nsize;
+    }
     inline void BSS_FASTCALL SetSize(SizeType nsize)
     {
       if(nsize==_size) return;

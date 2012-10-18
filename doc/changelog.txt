@@ -2,6 +2,10 @@
 * Black Sphere Studios Utility Library Changelog *
 **************************************************
 
+0.3.85
+------
+- Added SetSizeDiscard() to cArraySimple
+
 0.3.84
 ------
 - Tweaked internal constant names to be less likely to collide with reserved identifiers

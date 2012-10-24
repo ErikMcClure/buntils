@@ -16,7 +16,7 @@
 #define BSS_32BIT
 #elif defined(__arm__) || defined(__thumb__) || defined(__TARGET_ARCH_ARM) || defined(__TARGET_ARCH_THUMB) || defined(_ARM)
 #define BSS_CPU_ARM //ARM architecture
-//#ifndef(???) //ARMv8 will support 64-bit so we'll have to detect that somehow
+//#ifndef(???) //ARMv8 will support 64-bit so we'll have to detect that somehow, and it's the first to make NEON standardized.
 #define BSS_32BIT
 //#else
 //#define BSS_64BIT

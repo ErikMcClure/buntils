@@ -607,6 +607,13 @@ TEST::RETPAIR test_bss_util()
   TEST(fsmall(lerp<float>(-3,3,0.5f)))
   TEST(fcompare(lerp<float>(-3,-4,0.5f),-3.5f))
 
+  TEST((intdiv<int,int>(-5,2)==-3));
+  TEST((intdiv<int,int>(5,2)==2));
+  TEST((intdiv<int,int>(0,2)==0));
+  TEST((intdiv<int,int>(-218937542,378)==-579200));
+  TEST((intdiv<int,int>(INT_MIN,3)==((INT_MIN/3)-1)));
+  TEST((intdiv<int,int>(INT_MAX,3)==(INT_MAX/3)));
+
   ENDTEST;
 }
 
@@ -2309,6 +2316,49 @@ TEST::RETPAIR test_STR()
 
   TEST(!strcmp(s2.c_str(),""));
   cStr sdfderp(s+cStr("temp")+cStr("temp")+cStr("temp")+cStr("temp"));
+  
+  std::vector<int> vec1;
+  cStr::ParseTokens<int>("",",",vec1,&atoi);
+  TEST(vec1.size()==0);
+  cStrW::ParseTokens<int>(L"",L",",vec1,&_wtoi);
+  TEST(vec1.size()==0);
+  cStr::ParseTokens<int>("1234",",",vec1,&atoi);
+  TEST(vec1.size()==1);
+  TEST(vec1[0]==1234);
+  vec1.clear();
+  cStr::ParseTokens<int>("1234,235,2,6,1,0,,39,ahjs",",",vec1,&atoi);
+  TEST(vec1.size()==8);
+  TEST(vec1[0]==1234);
+  TEST(vec1[1]==235);
+  TEST(vec1[2]==2);
+  TEST(vec1[3]==6);
+  TEST(vec1[4]==1);
+  TEST(vec1[5]==0);
+  TEST(vec1[6]==39);
+  TEST(vec1[7]==0);
+  vec1.clear();
+  cStrW::ParseTokens<int>(L"1234,235,2,6,1,0,,39,ahjs",L",",vec1,&_wtoi);
+  TEST(vec1.size()==8);
+  TEST(vec1[0]==1234);
+  TEST(vec1[1]==235);
+  TEST(vec1[2]==2);
+  TEST(vec1[3]==6);
+  TEST(vec1[4]==1);
+  TEST(vec1[5]==0);
+  TEST(vec1[6]==39);
+  TEST(vec1[7]==0);
+  vec1.clear();
+  cStr::ParseTokens<int>("1234,235,2,6,1,0,,39,ahjs",",",vec1,[](const char* s)->int{ return atoi(s)+1; });
+  TEST(vec1.size()==8);
+  TEST(vec1[0]==1235);
+  TEST(vec1[1]==236);
+  TEST(vec1[2]==3);
+  TEST(vec1[3]==7);
+  TEST(vec1[4]==2);
+  TEST(vec1[5]==1);
+  TEST(vec1[6]==40);
+  TEST(vec1[7]==1);
+
   ENDTEST;
 }
 

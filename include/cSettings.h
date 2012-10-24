@@ -34,7 +34,7 @@ namespace bss_util {
     }
     bool Insert(KHKEY key, const KHVAL& value)
 		{
-      if(!KH_STR_VALIDATEPTR<const K*>(key)) return false;
+      if(!key) return false;
 			if(kh_size(_h) >= _h->n_buckets) _resize();
 			int r;
 			khiter_t retval = kh_put_template(_h,key,&r);

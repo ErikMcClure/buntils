@@ -183,7 +183,7 @@ static inline void kh_del_template(kh_template_t<khkey_t,khval_t,kh_is_map,__has
 
 namespace bss_util {
   // Base template for cKhash. If you want a set instead of a map, set khval_t to 'char' and kh_is_map to 'false'.
-  template<typename khkey_t, typename khval_t, bool kh_is_map, khint_t (*__hash_func)(khkey_t), bool (*__hash_equal)(khkey_t, khkey_t), bool (*__validate_p)(khkey_t)>
+  template<typename khkey_t, typename khval_t, bool kh_is_map, khint_t (*__hash_func)(khkey_t), bool (*__hash_equal)(khkey_t, khkey_t)>
   class BSS_COMPILER_DLLEXPORT cKhash
   {
   protected:
@@ -216,37 +216,28 @@ namespace bss_util {
     inline bool SetValue(khiter_t iterator, const KHVAL& newvalue) { return _setvalue<const KHVAL&>(iterator,newvalue); } 
     inline bool SetValue(khiter_t iterator, KHVAL&& newvalue) { return _setvalue<KHVAL&&>(iterator,std::move(newvalue)); } 
     inline KHKEY GetIterKey(khiter_t iterator) { return kh_key(_h,iterator); }
-    inline bool OverrideKeyPtr(khiter_t iterator, KHKEY key) { if(!__validate_p(key)) return false; kh_key(_h,iterator)=key; return true; }
+    inline bool OverrideKeyPtr(khiter_t iterator, KHKEY key) { if(kh_end(_h) == iterator) return false; kh_key(_h,iterator)=key; return true; }
     // Gets the corresponding data attached to the given key
-    inline KHVAL* GetKey(KHKEY key) const { if(!__validate_p(key)) return 0; khiter_t iterator= kh_get_template(_h, key); if(kh_end(_h) == iterator) return 0; return &kh_val(_h, iterator); }
+    inline KHVAL* GetKey(KHKEY key) const { khiter_t iterator= kh_get_template(_h, key); if(kh_end(_h) == iterator) return 0; return &kh_val(_h, iterator); }
     // This is a pointer-only version of the above that simplifies verification when the type pointed to is a pointer
-    inline KHVAL GetKeyPtrOnly(KHKEY key) const { if(!__validate_p(key)) return 0; khiter_t iterator= kh_get_template(_h, key); if(kh_end(_h) == iterator) return 0; return kh_val(_h, iterator); }
+    inline KHVAL GetKeyPtrOnly(KHKEY key) const { khiter_t iterator= kh_get_template(_h, key); if(kh_end(_h) == iterator) return 0; return kh_val(_h, iterator); }
     // Gets the corresponding data attached to the given iterator
     inline KHVAL* Get(khiter_t iterator) const { if(iterator >= kh_end(_h) || !kh_exist(_h, iterator)) return 0; return &kh_val(_h, iterator); }
     // This is a pointer-only version of the above that simplifies verification when the type pointed to is a pointer
     inline KHVAL GetPtrOnly(khiter_t iterator) const { if(iterator >= kh_end(_h) || !kh_exist(_h, iterator)) return 0; return kh_val(_h, iterator); }
-    inline khiter_t GetIterator(KHKEY key) const { return !(__validate_p(key))?kh_end(_h):kh_get_template(_h, key); }
+    inline khiter_t GetIterator(KHKEY key) const { return kh_get_template(_h, key); }
     inline void SetSize(unsigned int size) { if(_h->n_buckets < size) kh_resize_template(_h,size); }
 		inline bool Remove(KHKEY key) const
     {
-      if(!__validate_p(key)) return false;
       khiter_t iterator = kh_get_template(_h, key);
-      if(kh_end(_h) == iterator) return false;
-			//KHVAL retval=kh_val(_h, iterator);
-			//if(retval!=0)
-			//{
-				kh_del_template(_h, iterator);
-			//}
+      if(kh_end(_h) == iterator) return false; // This isn't Exists because kh_get_template will return kh_end(_h) if key doesn't exist
+		  kh_del_template(_h, iterator);
 			return true;
     }
     inline bool RemoveIterator(khiter_t iterator) const
     {
       if(!Exists(iterator)) return false;
-			//KHVAL retval=kh_val(_h, iterator);
-			//if(retval!=0)
-			//{
-				kh_del_template(_h, iterator);
-			//}
+		  kh_del_template(_h, iterator);
 			return true;
     }
 		inline void Clear() { kh_clear_template(_h); }
@@ -318,7 +309,6 @@ namespace bss_util {
     template<typename U>
     inline bool _insert(KHKEY key, U && value)
 		{
-      if(!__validate_p(key)) return false;
 			if(kh_size(_h) >= _h->n_buckets) _resize();
 			int r;
 			khiter_t retval = kh_put_template(_h,key,&r);
@@ -358,71 +348,66 @@ namespace bss_util {
   template<class T>
   inline bool KH_INT_EQUALFUNC(T a,T b) { return a==b; }
 
-  template<class T>
-  inline bool KH_INT_VALIDATEPTR(T p) { return true; }
-  template<class T>
-  inline bool KH_STR_VALIDATEPTR(T p) { return p!=0; }
-
   // Catch-all templatization for integral types. Automatically handles 64-bit integers
   template<typename T=void*, typename K=__int32, bool ismap=true>
-  class BSS_COMPILER_DLLEXPORT cKhash_Int : public cKhash<K, T, true, &KH_INT_HASHFUNC<K>, &KH_INT_EQUALFUNC<__int32>, &KH_INT_VALIDATEPTR<__int32>>
+  class BSS_COMPILER_DLLEXPORT cKhash_Int : public cKhash<K, T, ismap, &KH_INT_HASHFUNC<K>, &KH_INT_EQUALFUNC<__int32>>
   {
   public:
-    cKhash_Int() : cKhash<__int32, T, true, &KH_INT_HASHFUNC, &KH_INT_EQUALFUNC<__int32>, &KH_INT_VALIDATEPTR<__int32>>() {}
+    cKhash_Int() : cKhash<__int32, T, ismap, &KH_INT_HASHFUNC, &KH_INT_EQUALFUNC<__int32>>() {}
     cKhash_Int(cKhash_Int&& mov) : cKhash(std::move(mov)) {}
     inline cKhash_Int& operator=(cKhash_Int&& right) { cKhash::operator=(std::move(right)); return *this; }
   };
 
   template<typename T, bool ismap>
-  class BSS_COMPILER_DLLEXPORT cKhash_Int<T,__int64,ismap> : public cKhash<__int64, T, true, &KH_INT64_HASHFUNC, &KH_INT_EQUALFUNC<__int64>, &KH_INT_VALIDATEPTR<__int64>>
+  class BSS_COMPILER_DLLEXPORT cKhash_Int<T,__int64,ismap> : public cKhash<__int64, T, ismap, &KH_INT64_HASHFUNC, &KH_INT_EQUALFUNC<__int64>>
   {
   public:
-    cKhash_Int() : cKhash<__int64, T, true, &KH_INT64_HASHFUNC, &KH_INT_EQUALFUNC<__int64>, &KH_INT_VALIDATEPTR<__int64>>() {}
+    cKhash_Int() : cKhash<__int64, T, ismap, &KH_INT64_HASHFUNC, &KH_INT_EQUALFUNC<__int64>>() {}
     cKhash_Int(cKhash_Int&& mov) : cKhash(std::move(mov)) {}
     inline cKhash_Int& operator=(cKhash_Int&& right) { cKhash::operator=(std::move(right)); return *this; }
   };
 
   template<typename T=void*, bool ismap=true>
-  class BSS_COMPILER_DLLEXPORT cKhash_String : public cKhash<const char*, T, true, &KH_STR_HASHFUNC, &KH_STR_EQUALFUNC, &KH_STR_VALIDATEPTR<const char*>>
+  class BSS_COMPILER_DLLEXPORT cKhash_String : public cKhash<const char*, T, ismap, &KH_STR_HASHFUNC, &KH_STR_EQUALFUNC>
   {
   public:
-    cKhash_String() : cKhash<const char*, T, true, &KH_STR_HASHFUNC, &KH_STR_EQUALFUNC, &KH_STR_VALIDATEPTR<const char*>>() {}
+    cKhash_String() : cKhash<const char*, T, ismap, &KH_STR_HASHFUNC, &KH_STR_EQUALFUNC>() {}
     cKhash_String(cKhash_String&& mov) : cKhash(std::move(mov)) {}
     inline cKhash_String& operator=(cKhash_String&& right) { cKhash::operator=(std::move(right)); return *this; }
   };
 
   template<typename T=void*, bool ismap=true>
-  class BSS_COMPILER_DLLEXPORT cKhash_StringIns : public cKhash<const char*, T, true, &KH_STRINS_HASHFUNC, &KH_STRINS_EQUALFUNC, &KH_STR_VALIDATEPTR<const char*>>
+  class BSS_COMPILER_DLLEXPORT cKhash_StringIns : public cKhash<const char*, T, ismap, &KH_STRINS_HASHFUNC, &KH_STRINS_EQUALFUNC>
   {
   public:
-    cKhash_StringIns() : cKhash<const char*, T, true, &KH_STRINS_HASHFUNC, &KH_STRINS_EQUALFUNC, &KH_STR_VALIDATEPTR<const char*>>() {}
+    cKhash_StringIns() : cKhash<const char*, T, ismap, &KH_STRINS_HASHFUNC, &KH_STRINS_EQUALFUNC>() {}
     cKhash_StringIns(cKhash_StringIns&& mov) : cKhash(std::move(mov)) {}
     inline cKhash_StringIns& operator=(cKhash_StringIns&& right) { cKhash::operator=(std::move(right)); return *this; }
   };
 
   template<typename T=void*, bool ismap=true>
-  class BSS_COMPILER_DLLEXPORT cKhash_StringW : public cKhash<const wchar_t*, T, true, &KH_STRW_HASHFUNC, &KH_STRW_EQUALFUNC, &KH_STR_VALIDATEPTR<const wchar_t*>>
+  class BSS_COMPILER_DLLEXPORT cKhash_StringW : public cKhash<const wchar_t*, T, ismap, &KH_STRW_HASHFUNC, &KH_STRW_EQUALFUNC>
   {
   public:
-    cKhash_StringW() : cKhash<const wchar_t*, T, true, &KH_STRW_HASHFUNC, &KH_STRW_EQUALFUNC, &KH_STR_VALIDATEPTR<const wchar_t*>>() {}
+    cKhash_StringW() : cKhash<const wchar_t*, T, ismap, &KH_STRW_HASHFUNC, &KH_STRW_EQUALFUNC>() {}
     cKhash_StringW(cKhash_StringW&& mov) : cKhash(std::move(mov)) {}
     inline cKhash_StringW& operator=(cKhash_StringW&& right) { cKhash::operator=(std::move(right)); return *this; }
   };
 
   template<typename T=void*, bool ismap=true>
-  class BSS_COMPILER_DLLEXPORT cKhash_StringWIns : public cKhash<const wchar_t*, T, true, &KH_STRWINS_HASHFUNC, &KH_STRWINS_EQUALFUNC, &KH_STR_VALIDATEPTR<const wchar_t*>>
+  class BSS_COMPILER_DLLEXPORT cKhash_StringWIns : public cKhash<const wchar_t*, T, ismap, &KH_STRWINS_HASHFUNC, &KH_STRWINS_EQUALFUNC>
   {
   public:
-    cKhash_StringWIns() : cKhash<const wchar_t*, T, true, &KH_STRWINS_HASHFUNC, &KH_STRWINS_EQUALFUNC, &KH_STR_VALIDATEPTR<const wchar_t*>>() {}
+    cKhash_StringWIns() : cKhash<const wchar_t*, T, ismap, &KH_STRWINS_HASHFUNC, &KH_STRWINS_EQUALFUNC>() {}
     cKhash_StringWIns(cKhash_StringWIns&& mov) : cKhash(std::move(mov)) {}
     inline cKhash_StringWIns& operator=(cKhash_StringWIns&& right) { cKhash::operator=(std::move(right)); return *this; }
   };
 
   template<typename T=void*, bool ismap=true>
-  class BSS_COMPILER_DLLEXPORT cKhash_Pointer : public cKhash<const void*, T, true, &KH_POINTER_HASHFUNC, &KH_INT_EQUALFUNC<const void*>, &KH_STR_VALIDATEPTR<const void*>>
+  class BSS_COMPILER_DLLEXPORT cKhash_Pointer : public cKhash<const void*, T, ismap, &KH_POINTER_HASHFUNC, &KH_INT_EQUALFUNC<const void*>>
   {
   public:
-    cKhash_Pointer() : cKhash<const void*, T, true, &KH_POINTER_HASHFUNC, &KH_INT_EQUALFUNC<const void*>, &KH_STR_VALIDATEPTR<const void*>>() {}
+    cKhash_Pointer() : cKhash<const void*, T, ismap, &KH_POINTER_HASHFUNC, &KH_INT_EQUALFUNC<const void*>>() {}
     cKhash_Pointer(cKhash_Pointer&& mov) : cKhash(std::move(mov)) {}
     inline cKhash_Pointer& operator=(cKhash_Pointer&& right) { cKhash::operator=(std::move(right)); return *this; }
   };
@@ -430,55 +415,55 @@ namespace bss_util {
   
   //These are partial explicitely initialized template versions of the string classes for use in template situations. I'd use typedef'd versions of these instead of the ones above, but because of C++ restrictions they'd be extremely messy.
   template<typename K=char, typename T=void*, bool ismap=true>
-  class BSS_COMPILER_DLLEXPORT cKhash_StringT : public cKhash<const K*, T, true, &KH_STR_HASHFUNC, &KH_STR_EQUALFUNC, &KH_STR_VALIDATEPTR<const K*>>
+  class BSS_COMPILER_DLLEXPORT cKhash_StringT : public cKhash<const K*, T, ismap, &KH_STR_HASHFUNC, &KH_STR_EQUALFUNC>
   {
   public:
-    cKhash_StringT() : cKhash<const K*, T, true, &KH_STR_HASHFUNC, &KH_STR_EQUALFUNC, &KH_STR_VALIDATEPTR<const K*>>() {}
+    cKhash_StringT() : cKhash<const K*, T, ismap, &KH_STR_HASHFUNC, &KH_STR_EQUALFUNC>() {}
     cKhash_StringT(cKhash_StringT&& mov) : cKhash(std::move(mov)) {}
     inline cKhash_StringT& operator=(cKhash_StringT&& right) { cKhash::operator=(std::move(right)); return *this; }
   };
   
   template<typename T, bool ismap>
-  class BSS_COMPILER_DLLEXPORT cKhash_StringT<char,T,ismap> : public cKhash<const char*, T, true, &KH_STR_HASHFUNC, &KH_STR_EQUALFUNC, &KH_STR_VALIDATEPTR<const char*>>
+  class BSS_COMPILER_DLLEXPORT cKhash_StringT<char,T,ismap> : public cKhash<const char*, T, ismap, &KH_STR_HASHFUNC, &KH_STR_EQUALFUNC>
   {
   public:
-    cKhash_StringT() : cKhash<const char*, T, true, &KH_STR_HASHFUNC, &KH_STR_EQUALFUNC, &KH_STR_VALIDATEPTR<const char*>>() {}
+    cKhash_StringT() : cKhash<const char*, T, ismap, &KH_STR_HASHFUNC, &KH_STR_EQUALFUNC>() {}
     cKhash_StringT(cKhash_StringT&& mov) : cKhash(std::move(mov)) {}
     inline cKhash_StringT& operator=(cKhash_StringT&& right) { cKhash::operator=(std::move(right)); return *this; }
   };
   
   template<typename T, bool ismap>
-  class BSS_COMPILER_DLLEXPORT cKhash_StringT<wchar_t,T,ismap> : public cKhash<const wchar_t*, T, true, &KH_STRW_HASHFUNC, &KH_STRW_EQUALFUNC, &KH_STR_VALIDATEPTR<const wchar_t*>>
+  class BSS_COMPILER_DLLEXPORT cKhash_StringT<wchar_t,T,ismap> : public cKhash<const wchar_t*, T, ismap, &KH_STRW_HASHFUNC, &KH_STRW_EQUALFUNC>
   {
   public:
-    cKhash_StringT() : cKhash<const wchar_t*, T, true, &KH_STRW_HASHFUNC, &KH_STRW_EQUALFUNC, &KH_STR_VALIDATEPTR<const wchar_t*>>() {}
+    cKhash_StringT() : cKhash<const wchar_t*, T, ismap, &KH_STRW_HASHFUNC, &KH_STRW_EQUALFUNC>() {}
     cKhash_StringT(cKhash_StringT&& mov) : cKhash(std::move(mov)) {}
     inline cKhash_StringT& operator=(cKhash_StringT&& right) { cKhash::operator=(std::move(right)); return *this; }
   };
 
   template<typename K=char, typename T=void*, bool ismap=true>
-  class BSS_COMPILER_DLLEXPORT cKhash_StringTIns : public cKhash<const K*, T, true, &KH_STRINS_HASHFUNC, &KH_STRINS_EQUALFUNC, &KH_STR_VALIDATEPTR<const K*>>
+  class BSS_COMPILER_DLLEXPORT cKhash_StringTIns : public cKhash<const K*, T, ismap, &KH_STRINS_HASHFUNC, &KH_STRINS_EQUALFUNC>
   {
   public:
-    cKhash_StringTIns() : cKhash<const K*, T, true, &KH_STRINS_HASHFUNC, &KH_STRINS_EQUALFUNC, &KH_STR_VALIDATEPTR<const K*>>() {}
+    cKhash_StringTIns() : cKhash<const K*, T, ismap, &KH_STRINS_HASHFUNC, &KH_STRINS_EQUALFUNC>() {}
     cKhash_StringTIns(cKhash_StringTIns&& mov) : cKhash(std::move(mov)) {}
     inline cKhash_StringTIns& operator=(cKhash_StringTIns&& right) { cKhash::operator=(std::move(right)); return *this; }
   };
 
   template<typename T, bool ismap>
-  class BSS_COMPILER_DLLEXPORT cKhash_StringTIns<char,T,ismap> : public cKhash<const char*, T, true, &KH_STRINS_HASHFUNC, &KH_STRINS_EQUALFUNC, &KH_STR_VALIDATEPTR<const char*>>
+  class BSS_COMPILER_DLLEXPORT cKhash_StringTIns<char,T,ismap> : public cKhash<const char*, T, ismap, &KH_STRINS_HASHFUNC, &KH_STRINS_EQUALFUNC>
   {
   public:
-    cKhash_StringTIns() : cKhash<const char*, T, true, &KH_STRINS_HASHFUNC, &KH_STRINS_EQUALFUNC, &KH_STR_VALIDATEPTR<const char*>>() {}
+    cKhash_StringTIns() : cKhash<const char*, T, ismap, &KH_STRINS_HASHFUNC, &KH_STRINS_EQUALFUNC>() {}
     cKhash_StringTIns(cKhash_StringTIns&& mov) : cKhash(std::move(mov)) {}
     inline cKhash_StringTIns& operator=(cKhash_StringTIns&& right) { cKhash::operator=(std::move(right)); return *this; }
   };
 
   template<typename T, bool ismap>
-  class BSS_COMPILER_DLLEXPORT cKhash_StringTIns<wchar_t,T,ismap> : public cKhash<const wchar_t*, T, true, &KH_STRWINS_HASHFUNC, &KH_STRWINS_EQUALFUNC, &KH_STR_VALIDATEPTR<const wchar_t*>>
+  class BSS_COMPILER_DLLEXPORT cKhash_StringTIns<wchar_t,T,ismap> : public cKhash<const wchar_t*, T, ismap, &KH_STRWINS_HASHFUNC, &KH_STRWINS_EQUALFUNC>
   {
   public:
-    cKhash_StringTIns() : cKhash<const wchar_t*, T, true, &KH_STRWINS_HASHFUNC, &KH_STRWINS_EQUALFUNC, &KH_STR_VALIDATEPTR<const wchar_t*>>() {}
+    cKhash_StringTIns() : cKhash<const wchar_t*, T, ismap, &KH_STRWINS_HASHFUNC, &KH_STRWINS_EQUALFUNC>() {}
     cKhash_StringTIns(cKhash_StringTIns&& mov) : cKhash(std::move(mov)) {}
     inline cKhash_StringTIns& operator=(cKhash_StringTIns&& right) { cKhash::operator=(std::move(right)); return *this; }
   };

@@ -14,56 +14,6 @@
 #include <stdio.h>
 #endif
 
-/*
-namespace bss_util {
-  static cBucketAlloc cstrpool_alloc[8];
-
-	template<typename T, unsigned char index=0>
-  class BSS_COMPILER_DLLEXPORT StringPoolPolicy : public AllocPolicySize<T> {
-	public:
-    template<typename U>
-    struct rebind { typedef StringPoolPolicy<U,index> other; };
-
-    inline explicit StringPoolPolicy(cBucketAlloc& ref) : _ref(ref) {}
-    inline explicit StringPoolPolicy() : _ref(cstrpool_alloc[index]) {}
-    inline ~StringPoolPolicy() {}
-    inline explicit StringPoolPolicy(StringPoolPolicy const&) : _ref(cstrpool_alloc[index]) {}
-    template <typename U>
-    inline explicit StringPoolPolicy(StringPoolPolicy<U> const&) : _ref(cstrpool_alloc[index]) {}
-
-    inline pointer allocate(std::size_t cnt, 
-      typename std::allocator<void>::const_pointer = 0) {
-        void* retval=_ref.alloc(cnt * sizeof (T));
-        if(!retval)
-          retval=malloc(cnt*sizeof(T));
-        return reinterpret_cast<pointer>(retval); 
-
-    }
-    inline void deallocate(pointer p, std::size_t = 0) { 
-      if(!_ref.dealloc(p))
-        free(p);
-    }
-
-  protected:
-    cBucketAlloc& _ref;
-	};
-
-	
-#define DEFPOOLCOMPARE(num) template<typename T, typename T2> inline bool operator==(StringPoolPolicy<T,num> const&, StringPoolPolicy<T2,num> const&) { return true; }
-	DEFPOOLCOMPARE(0)
-	DEFPOOLCOMPARE(1)
-	DEFPOOLCOMPARE(2)
-	DEFPOOLCOMPARE(3)
-	DEFPOOLCOMPARE(4)
-	DEFPOOLCOMPARE(5)
-	DEFPOOLCOMPARE(6)
-	DEFPOOLCOMPARE(7)
-	DEFPOOLCOMPARE(8)
-
-  template<typename T, typename OtherAllocator> inline bool operator==(StringPoolPolicy<T> const&, OtherAllocator const&) { return false; }
-
-}
-*/
 //#define CSTRALLOC(T) std::basic_string<T, std::char_traits<T>, bss_util::RefAllocator<Alloc,bss_util::RefHackAllocPolicy<T>, bss_util::ObjectTraits<T>>>
 #define CSTRALLOC(T) std::basic_string<T, std::char_traits<T>, Alloc>
 
@@ -213,6 +163,25 @@ public:
       res = CSTR_CT<T>::STOK(NULL,delimhold,&hold);
     }
   }
+  template<typename I, typename F> // F = I(const T* s)
+  static inline size_t BSS_FASTCALL ParseTokens(const T* str, const T* delim, std::vector<I>& vec, F parser)
+  {
+    cStrT<T> buf(str);
+    return ParseTokens<I,F>(buf.UnsafeString(),delim,vec,parser);
+  }
+  template<typename I, typename F> // F = I(const T* s)
+  static inline size_t BSS_FASTCALL ParseTokens(T* str, const T* delim, std::vector<I>& vec, F parser)
+  {
+    T* ct;
+    T* cur=CSTR_CT<T>::STOK(str,delim,&ct);
+    while(cur!=0)
+    {
+      vec.push_back(parser(cur));
+      cur=CSTR_CT<T>::STOK(0,delim,&ct);
+    }
+    return vec.size();
+  }
+
   static inline std::vector<cStrT> Explode(const CHAR delim, const CHAR* text) { std::vector<cStrT> r; Explode(r,delim,text); return r; }
   static inline cStrT StripChar(const CHAR* text, const CHAR c)
   { 

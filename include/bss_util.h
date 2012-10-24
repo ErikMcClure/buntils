@@ -132,6 +132,17 @@ namespace bss_util {
     q=std::move(h);
   }
   
+  // This yields mathematically correct integer division (i/div) towards negative infinity, but only if div is a positive integer. This
+  // implementation obviously must have integral types for T and D, but can be explicitely specialized to handle vectors or other structs.
+  template<typename T, typename D>
+  inline T BSS_FASTCALL intdiv(T i, D div) 
+  { 
+    static_assert(std::is_integral<T>::value,"T must be integral");
+    static_assert(std::is_integral<D>::value,"D must be integral");
+    assert(div>0); 
+    return (i/div) - ((i<0)&((i%div)!=0)); // If i is negative and has a nonzero remainder, subtract one to correct the truncation.
+  }
+
   // Uses rswap to reverse the order of an array
   template<typename T>
   inline void BSS_FASTCALL bssreverse(T* src, unsigned int length)
@@ -435,7 +446,7 @@ namespace bss_util {
   {
     return FastSqrt<T>(distsqr<T>(X,Y,x,y));
   }
-  
+
   // Average aggregation without requiring a total variable that can overflow. Nextnum should be the current avg count incremented by 1.
   template<typename T, typename ST_> // T must be float or double, ST_ must be integral
   inline BSS_FORCEINLINE T BSS_FASTCALL bssavg(T curavg, T nvalue, ST_ nextnum)

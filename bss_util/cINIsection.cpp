@@ -136,6 +136,13 @@ cINIentry* cINIsection::GetEntryPtr(const char* key, unsigned int instance) cons
   return !entry?0:&entry->val;
 }
 
+unsigned int cINIsection::GetNumEntries(const char* key) const
+{
+  khiter_t iter= _entries.GetIterator(key);
+  if(iter==_entries.End()) return 0;
+  return _entries[iter]->instances.Size()+1;
+}
+
 cINIentry& cINIsection::GetEntry(const char* key, unsigned int instance) const
 { 
   _NODE* entry=GetEntryNode(key,instance);

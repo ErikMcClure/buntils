@@ -38,6 +38,8 @@ namespace bss_util {
     cINIentry& GetEntry(const char* key, unsigned int instance=0) const;
     // Gets the specified key with the given index. Returns null on failure.
     cINIentry* GetEntryPtr(const char* key, unsigned int instance=0) const;
+    // Gets number of sections with the given name
+    unsigned int GetNumEntries(const char* section) const;
     // Gets the specified key node for iteration with the given index. Returns null on failure.
     _NODE* GetEntryNode(const char* key, unsigned int instance=0) const;
     // Changes the specified entry data with the given index, if data is NULL the entry is deleted. if instance is -1 the entry is inserted.

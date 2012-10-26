@@ -9,6 +9,7 @@
 - Removed check for null pointers on cKhash. If this is really required it should be absorbed into the hash and equality functions.
 - Added intdiv for enforcing mathematically correct integer division towards negative infinity.
 - Added ParseToken to cStrT
+- Added GetNumEntries() and GetNumSections() to cINIsection and cINIstorage
 
 0.3.84
 ------

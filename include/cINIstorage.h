@@ -22,6 +22,8 @@ namespace bss_util {
     ~cINIstorage();
     // Gets a section based on name and instance
     cINIsection* GetSection(const char* section, unsigned int instance=0) const;
+    // Gets number of sections with the given name
+    unsigned int GetNumSections(const char* section) const;
     // Gets a section node based on name and instance
     _NODE* GetSectionNode(const char* section, unsigned int instance=0) const;
     // Gets a convertable INI entry

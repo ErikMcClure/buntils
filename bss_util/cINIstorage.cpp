@@ -96,6 +96,12 @@ cINIsection* cINIstorage::GetSection(const char* section, unsigned int instance)
   _NODE* sec=GetSectionNode(section,instance);
   return !sec?0:&sec->val;
 }
+unsigned int cINIstorage::GetNumSections(const char* section) const
+{
+  khiter_t iter= _sections.GetIterator(section);
+  if(iter==_sections.End()) return 0;
+  return _sections[iter]->instances.Size()+1;
+}
 cINIentry* cINIstorage::GetEntryPtr(const char *section, const char* key, unsigned int keyinstance, unsigned int secinstance) const
 {
   cINIsection* s=GetSection(section,secinstance);

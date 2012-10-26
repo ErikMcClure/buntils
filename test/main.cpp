@@ -1640,6 +1640,14 @@ TEST::RETPAIR test_INISTORAGE()
   TEST(!ini.GetEntryPtr("2","b",1,1));
   TEST(!ini.GetEntryPtr("2","a",0,2));
   TEST(!ini.GetEntryPtr("2","b",0,2));
+  TEST(ini.GetNumSections("1")==1);
+  TEST(ini.GetNumSections("2")==3);
+  TEST(ini.GetNumSections("3")==0);
+  TEST(ini.GetNumSections("")==0);
+  TEST(ini["1"].GetNumEntries("a")==4);
+  TEST(ini["1"].GetNumEntries("b")==1);
+  TEST(ini["1"].GetNumEntries("asdf")==0);
+  TEST(ini["1"].GetNumEntries("")==0);
 
   ini.EndINIEdit();
   fn2("[1]\na=1\na=2\na=3\na=4\nb=1\nc=1\nc=2\nd=1\n\n[2]\na=1\na=2\nb=1\n\n[2]\na=1\na=2\nb=1\n\n[2]");

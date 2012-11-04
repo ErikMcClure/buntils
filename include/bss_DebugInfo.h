@@ -62,6 +62,7 @@ protected:
   char _flprof[NUMPROFILERS]; //profiler free list (circular buffer)
   unsigned char _flstart; //profiler free list location
   unsigned char _flend;
+  //void* _curprocess; // We only need this if HighPrecisionTimer doesn't have it
 
 private:
   bss_DebugInfo(const bss_DebugInfo& copy);

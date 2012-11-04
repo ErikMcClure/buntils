@@ -103,7 +103,7 @@ namespace bss_util {
     inline cRational& operator+= (T i) { _n += i * _d; return *this; } // This is derived by going through the operator += formula above and simplifying for the case when r_d=1
     inline cRational& operator-= (T i) { _n -= i * _d; return *this; } // See above, for operator -=
     inline cRational& operator*= (T i) { T g = GCD<T>(i, _d); _n *= (i/g); _d /= g; return *this; } // See above, for operator *=
-    inline cRational& operator/= (T i) { if(!_n) return *this; T g = GCD<T>(_n, i); _n /=g; _d *= (i/g); if (_d < 0) { _n=-_n; _d=-_d; } return *this; }  // See above, for operator /= (if you try to divide by zero, its going to throw an error)
+    inline cRational& operator/= (T i) { if(!_n) return *this; T g = GCD<T>(_n, i); _n /=g; _d *= (i/g); if (_d < 0) { _n=-_n; _d=-_d; } return *this; }  // See above, for operator /= (if you try to divide by zero, its going to crash with a divide by zero)
     inline const cRational& operator++() { _n+=_d; }
     inline const cRational& operator--() { _n-=_d; }
     inline cRational& operator=(T n) { _n=n; _d=1; }

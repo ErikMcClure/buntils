@@ -16,11 +16,12 @@ cHighPrecisionTimer::cHighPrecisionTimer()
 {
   _curprocess = GetCurrentProcess();
   _curthread = GetCurrentThread();
-
-  _getaffinity();
+  
+  _getaffinity();  
+  _curthread = GetCurrentThread();
   SetThreadAffinityMask(_curthread, 1);
-  QueryPerformanceFrequency((LARGE_INTEGER*)&_freq);
-  SetThreadAffinityMask(_curthread, _procmask); //we have to do this here before ResetDelta() otherwise ResetDelta will read in the wrong values with _getaffinity()
+  QueryPerformanceFrequency((LARGE_INTEGER*)&_freq);//we have to do this here before ResetDelta() otherwise ResetDelta will read in the wrong values with _getaffinity()
+  SetThreadAffinityMask(_curthread, _procmask);
   ResetDelta();
   _time = 0;
 }

@@ -18,6 +18,7 @@ bss_DebugInfo::bss_DebugInfo(const bss_DebugInfo& copy) { assert(false); }
 bss_DebugInfo::bss_DebugInfo(bss_DebugInfo&& mov) : cHighPrecisionTimer(std::move(mov)), bss_Log(std::move(mov)), _flstart(mov._flstart),
   _flend(mov._flend), _modpath(std::move(mov._modpath)), _counter(new PROCESS_MEMORY_COUNTERS())
 {
+  //_curprocess = GetCurrentProcess();
   memcpy(_profilers,mov._profilers, sizeof(unsigned __int64)*NUMPROFILERS);
   memcpy(_flprof,mov._flprof, sizeof(unsigned char)*NUMPROFILERS);
   *_counter=*mov._counter;
@@ -25,17 +26,20 @@ bss_DebugInfo::bss_DebugInfo(bss_DebugInfo&& mov) : cHighPrecisionTimer(std::mov
 
 bss_DebugInfo::bss_DebugInfo(std::ostream* log) : cHighPrecisionTimer(), bss_Log(log), _counter(new PROCESS_MEMORY_COUNTERS())
 {
+  //_curprocess = GetCurrentProcess();
   ClearProfilers();
 }
 
 bss_DebugInfo::bss_DebugInfo(const char* logfile, std::ostream* log) : cHighPrecisionTimer(), bss_Log(logfile,log),
   _counter(new PROCESS_MEMORY_COUNTERS())
 {
+  //_curprocess = GetCurrentProcess();
   ClearProfilers();
 }
 bss_DebugInfo::bss_DebugInfo(const wchar_t* logfile, std::ostream* log) : cHighPrecisionTimer(), bss_Log(logfile,log),
   _counter(new PROCESS_MEMORY_COUNTERS())
 {
+  //_curprocess = GetCurrentProcess();
   ClearProfilers();
 }
 

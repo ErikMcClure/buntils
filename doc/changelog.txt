@@ -10,6 +10,7 @@
 - Added intdiv for enforcing mathematically correct integer division towards negative infinity.
 - Added ParseToken to cStrT
 - Added GetNumEntries() and GetNumSections() to cINIsection and cINIstorage
+- Added Front(), Back(), begin(), and end() to cArrayWrap, cArraySort, cDynArray and cBinaryHeap
 
 0.3.84
 ------

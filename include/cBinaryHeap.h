@@ -87,6 +87,10 @@ namespace bss_util {
     }
     operator T*() { return _array; }
     operator const T*() const { return _array; }
+    inline const T* begin() const { return _array; }
+    inline const T* end() const { return _array+_length; }
+    inline T* begin() { return _array; }
+    inline T* end() { return _array+_length; }
     inline cBinaryHeap& operator=(const cBinaryHeap& copy) { _length=copy._length; ArrayType::operator=(copy); return *this; }
     inline cBinaryHeap& operator=(cBinaryHeap&& mov) { _length=mov._length; ArrayType::operator=(std::move(mov)); mov._length=0; return *this; }
 

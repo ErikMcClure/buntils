@@ -1360,6 +1360,12 @@ TEST::RETPAIR test_ARRAYSORT()
   TEST(arrtest[2]==4);
   TEST(arrtest[3]==6);
 
+  std::for_each(arrtest.begin(),arrtest.end(),[](DEBUG_CDT<true>& d) { d._index+=1; });
+  TEST(arrtest[0]==2);
+  TEST(arrtest[1]==4);
+  TEST(arrtest[2]==5);
+  TEST(arrtest[3]==7);
+
   cArraySort<DEBUG_CDT<true>,CompT<DEBUG_CDT<true>>,unsigned int,cArraySafe<DEBUG_CDT<true>,unsigned int>> arrtest2;
   arrtest2.Insert(DEBUG_CDT<true>(7));
   arrtest2.Insert(DEBUG_CDT<true>(8));
@@ -1493,6 +1499,11 @@ TEST::RETPAIR test_BINARYHEAP()
     c.Insert(a[i]);
     arrtest(&b[0],c,c.Length());
   }
+
+  std::for_each(b.begin(),b.end(),[](int& a){ a+=1; });
+  std::for_each(c.begin(),c.end(),[](int& a){ a+=1; });
+  arrtest(&b[0],c,c.Length());
+
   for(uint i = 0; i < a2_SZ; ++i)
   {
     std::pop_heap(b.begin(),b.end()-i,[](const int& l, const int& r)->bool { return l>r; });

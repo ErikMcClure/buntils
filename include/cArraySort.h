@@ -26,6 +26,14 @@ namespace bss_util {
     inline BSS_FORCEINLINE ST_ BSS_FASTCALL Insert(moveref data) { return _insert(std::move(data)); }
     inline void Clear() { _length=0; }
     inline void BSS_FASTCALL Discard(unsigned int num) { _length-=((num>_length)?_length:num); }
+    inline const T& Front() const { assert(_length>0); return _array[0]; }
+    inline T& Front() { assert(_length>0); return _array[0]; }
+    inline const T& Back() const { assert(_length>0); return _array[_length-1]; }
+    inline T& Back() { assert(_length>0); return _array[_length-1]; }
+    inline const T* begin() const { return _array; }
+    inline const T* end() const { return _array+_length; }
+    inline T* begin() { return _array; }
+    inline T* end() { return _array+_length; }
     inline ST_ BSS_FASTCALL ReplaceData(ST_ index, constref data)
     {
       T swap;

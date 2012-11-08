@@ -7,7 +7,7 @@
 #include "cArraySimple.h"
 
 namespace bss_util {
-  // Dynamic array implemented using ARRAYTYPE (should only be used in situations where std::vector has problems)
+  // Dynamic array implemented using ARRAYTYPE (should only be used when std::vector won't work, for example, if constructors aren't needed)
   template<class ARRAYTYPE>
   class BSS_COMPILER_DLLEXPORT cDynArray : public ARRAYTYPE
   {
@@ -33,6 +33,10 @@ namespace bss_util {
     inline T_& Front() { assert(_length>0); return _array[0]; }
     inline const T_& Back() const { assert(_length>0); return _array[_length-1]; }
     inline T_& Back() { assert(_length>0); return _array[_length-1]; }
+    inline const T_* begin() const { return _array; }
+    inline const T_* end() const { return _array+_length; }
+    inline T_* begin() { return _array; }
+    inline T_* end() { return _array+_length; }
 
     inline operator T_*() { return _array; }
     inline operator const T_*() const { return _array; }

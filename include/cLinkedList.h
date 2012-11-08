@@ -158,8 +158,10 @@ namespace bss_util {
 
     inline cLLNode<T>* GetRoot() const { return _root; }
     inline cLLNode<T>* GetLast() const { return _last; }
-    inline cLLIter<T> begin() const { return cLLIter<T>(_root); } // Use these to get an iterator you can use in standard containers
-    inline cLLIter<T> end() const { return cLLIter<T>(0); }
+    inline cLLIter<const T> begin() const { return cLLIter<const T>(_root); } // Use these to get an iterator you can use in standard containers
+    inline cLLIter<const T> end() const { return cLLIter<const T>(0); }
+    inline cLLIter<T> begin() { return cLLIter<T>(_root); }
+    inline cLLIter<T> end() { return cLLIter<T>(0); }
 
     template<typename U, bool V>
     inline cLinkedList<T,Alloc,useSize>& operator =(const cLinkedList<T,U,V>& right) { if(&right==this) return *this; Clear(); return operator +=(right); }

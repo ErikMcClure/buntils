@@ -94,6 +94,10 @@
 #endif
 #endif
 
+#if defined(__MINGW32__) || defined(__MINGW64__)
+#define BSS_PLATFORM_MINGW // Should also define WIN32, use only for minGW specific bugs
+#endif
+
 #define BSS_ALIGNED_STRUCT(n) BSS_ALIGNED(struct,n)
 #define BSS_ALIGNED_CLASS(n) BSS_ALIGNED(class,n)
 

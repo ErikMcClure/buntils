@@ -1,4 +1,4 @@
-// Copyright ©2012 Black Sphere Studios
+// Copyright Â©2012 Black Sphere Studios
 // For conditions of distribution and use, see copyright notice in "bss_util.h"
 
 #ifndef __C_CMDLINEARGS_H__BSS__
@@ -13,7 +13,7 @@ class BSS_DLLEXPORT cCmdLineArgs
 public:
   cCmdLineArgs(int argc, char** argv);
   ~cCmdLineArgs();
-  inline size_t Size() const { return _lines.size(); }
+  inline std::size_t Size() const { return _lines.size(); }
   inline const char* Get(unsigned int index) const { return _lines[index]; }
 
   inline const char* operator [](unsigned int index) const { return _lines[index]; } 

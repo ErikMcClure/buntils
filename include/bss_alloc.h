@@ -1,4 +1,4 @@
-// Copyright ©2012 Black Sphere Studios
+// Copyright Â©2012 Black Sphere Studios
 // For conditions of distribution and use, see copyright notice in "bss_util.h"
 
 #ifndef __BSS_ALLOC_H__
@@ -6,7 +6,7 @@
 
 #include "bss_call.h"
 #include <limits>
-#include <xmemory>
+#include <memory>
 #include <assert.h>
 
 namespace bss_util {
@@ -38,6 +38,7 @@ namespace bss_util {
 	template<typename T>
   class BSS_COMPILER_DLLEXPORT StandardAllocPolicy : public AllocPolicySize<T> {
 	public:
+    typedef typename AllocPolicySize<T>::pointer pointer;
     template<typename U>
     struct rebind { typedef StandardAllocPolicy<U> other; };
 
@@ -60,6 +61,7 @@ namespace bss_util {
 	template<typename T, typename Alloc>
   class BSS_COMPILER_DLLEXPORT StaticAllocPolicy : public AllocPolicySize<T> {
 	public:
+    typedef typename AllocPolicySize<T>::pointer pointer;
     template<typename U>
     struct rebind { typedef StaticAllocPolicy<U,Alloc> other; };
 
@@ -117,12 +119,13 @@ namespace bss_util {
 	class BSS_COMPILER_DLLEXPORT Allocator : public Policy {
 	private:
     typedef Policy AllocationPolicy;
+    typedef Traits TTraits;
 #else // if BSS_DISABLE_CUSTOM_ALLOCATORS is defined, we disable all nonstandard policies for debugging.
-	class BSS_COMPILER_DLLEXPORT Allocator : public StandardAllocPolicy<T>, public ObjectTraits<T> {
+	class BSS_COMPILER_DLLEXPORT Allocator : public StandardAllocPolicy<T> {
 	private:
     typedef StandardAllocPolicy<T> AllocationPolicy;
+    typedef ObjectTraits<T> TTraits;
 #endif
-    typedef Traits TTraits;
 
 	public: 
     typedef typename AllocationPolicy::size_type size_type;
@@ -195,18 +198,18 @@ namespace bss_util {
 	{
     typedef typename _Ax::pointer pointer;
 	public:
-		inline i_AllocTracker(const i_AllocTracker& copy) : _alloca(copy._alloc_extern?copy._alloca:new _Ax(*copy._alloca)), _alloc_extern(copy._alloc_extern) {}
-    inline i_AllocTracker(i_AllocTracker&& mov) : _alloca(mov._alloca), _alloc_extern(mov._alloc_extern) { mov._alloc_extern=true; }
-		inline i_AllocTracker(_Ax* ptr=0) :	_alloca((!ptr)?(new _Ax()):(ptr)), _alloc_extern(ptr!=0) {}
-		inline ~i_AllocTracker() { if(!_alloc_extern) delete _alloca; }
-    inline pointer _allocate(std::size_t cnt, typename std::allocator<void>::const_pointer p = 0) { return _alloca->allocate(cnt,p); }
-    inline void _deallocate(pointer p, std::size_t s = 0) { _alloca->deallocate(p,s); }
+		inline i_AllocTracker(const i_AllocTracker& copy) : _allocator(copy._alloc_extern?copy._allocator:new _Ax(*copy._allocator)), _alloc_extern(copy._alloc_extern) {}
+    inline i_AllocTracker(i_AllocTracker&& mov) : _allocator(mov._allocator), _alloc_extern(mov._alloc_extern) { mov._alloc_extern=true; }
+		inline i_AllocTracker(_Ax* ptr=0) :	_allocator((!ptr)?(new _Ax()):(ptr)), _alloc_extern(ptr!=0) {}
+		inline ~i_AllocTracker() { if(!_alloc_extern) delete _allocator; }
+    inline pointer _allocate(std::size_t cnt, typename std::allocator<void>::const_pointer p = 0) { return _allocator->allocate(cnt,p); }
+    inline void _deallocate(pointer p, std::size_t s = 0) { _allocator->deallocate(p,s); }
 
-		inline i_AllocTracker& operator =(const i_AllocTracker& copy) { if(!_alloc_extern) delete _alloca; _alloca = copy._alloc_extern?copy._alloca:new _Ax(*copy._alloca); _alloc_extern=copy._alloc_extern; return *this; }
-		inline i_AllocTracker& operator =(i_AllocTracker&& mov) { if(!_alloc_extern) delete _alloca; _alloca = mov._alloca; _alloc_extern=mov._alloc_extern; mov._alloc_extern=true; return *this; }
+		inline i_AllocTracker& operator =(const i_AllocTracker& copy) { if(!_alloc_extern) delete _allocator; _allocator = copy._alloc_extern?copy._allocator:new _Ax(*copy._allocator); _alloc_extern=copy._alloc_extern; return *this; }
+		inline i_AllocTracker& operator =(i_AllocTracker&& mov) { if(!_alloc_extern) delete _allocator; _allocator = mov._allocator; _alloc_extern=mov._alloc_extern; mov._alloc_extern=true; return *this; }
 
 	protected:
-		_Ax* _alloca;
+		_Ax* _allocator;
 		bool _alloc_extern;
 	};
 
@@ -227,10 +230,11 @@ namespace bss_util {
 	template<typename _Ax>
 	class cAllocTracker : public i_AllocTracker<typename _Ax::value_type, _Ax>
   {
+    typedef i_AllocTracker<typename _Ax::value_type, _Ax> BASE;
   public:
-    inline cAllocTracker(const cAllocTracker& copy) : i_AllocTracker(copy) {}
-    inline cAllocTracker(cAllocTracker&& mov) : i_AllocTracker(std::move(mov)) {}
-		inline cAllocTracker(_Ax* ptr=0) : i_AllocTracker(ptr) {}
+    inline cAllocTracker(const cAllocTracker& copy) : BASE(copy) {}
+    inline cAllocTracker(cAllocTracker&& mov) : BASE(std::move(mov)) {}
+		inline cAllocTracker(_Ax* ptr=0) : BASE(ptr) {}
   };
 }
 

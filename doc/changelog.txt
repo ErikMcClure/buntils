@@ -11,6 +11,8 @@
 - Added ParseToken to cStrT
 - Added GetNumEntries() and GetNumSections() to cINIsection and cINIstorage
 - Added Front(), Back(), begin(), and end() to cArrayWrap, cArraySort, cDynArray and cBinaryHeap
+- Changed cStrT constructor so that it no longer directly accepts format strings due to serious potential performance penalties and the fact that it messes everything up. cStrF and cStrWF now return cStr/cStrW with the proper formatting.
+- Fixed a bunch of windows specific header includes
 
 0.3.84
 ------

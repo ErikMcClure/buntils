@@ -1,4 +1,4 @@
-// Copyright ©2012 Black Sphere Studios
+// Copyright Â©2012 Black Sphere Studios
 // For conditions of distribution and use, see copyright notice in "bss_util.h"
 
 #ifndef __C_INIENTRY_H__BSS__
@@ -11,7 +11,7 @@ namespace bss_util {
   // Stores an INI entry and allows it to be accessed via multiple type translations
   struct BSS_DLLEXPORT cINIentry
   {
-    //cINIentry(const cINIentry& copy);
+    cINIentry(const cINIentry& copy);
     cINIentry(cINIentry&& mov);
     cINIentry();
     cINIentry(const char* key, const char* svalue, __int64 ivalue, double dvalue);

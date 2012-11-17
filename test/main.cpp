@@ -2302,8 +2302,8 @@ TEST::RETPAIR test_STR()
   TEST(!strcmp(s4,"blah  ablah"));
   TEST(!strcmp(cStr(0,"1 2",' '),"1"));
   TEST(!strcmp(cStr(1,"1 2",' '),"2"));
-  TEST(!strcmp(cStr("%s2","place"),"place2"));
-  TEST(!strcmp(cStr("2","place"),"2"));
+  TEST(!strcmp(cStrF("%s2","place"),"place2"));
+  TEST(!strcmp(cStrF("2","place"),"2"));
   TEST(!strcmp(cStr(L"Törkylempijävongahdus"),"TÃ¶rkylempijÃ¤vongahdus"));
 
   s4.GetChar(6)='b';
@@ -2660,7 +2660,7 @@ int main(int argc, char** argv)
     numpassed=tests[i].FUNC(); //First is total, second is succeeded
     if(numpassed.first!=numpassed.second) failures.push_back(i);
 
-    printf("%-*s %*s %-*s\n",COLUMNS[0],tests[i].NAME, COLUMNS[1],cStr("%u/%u",numpassed.second,numpassed.first).c_str(), COLUMNS[2],(numpassed.first==numpassed.second)?"PASS":"FAIL");
+    printf("%-*s %*s %-*s\n",COLUMNS[0],tests[i].NAME, COLUMNS[1],cStrF("%u/%u",numpassed.second,numpassed.first).c_str(), COLUMNS[2],(numpassed.first==numpassed.second)?"PASS":"FAIL");
   }
 
   if(failures.empty())

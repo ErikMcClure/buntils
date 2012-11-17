@@ -1,11 +1,11 @@
-// Copyright ©2012 Black Sphere Studios
+// Copyright Â©2012 Black Sphere Studios
 // For conditions of distribution and use, see copyright notice in "bss_util.h"
 
 #ifndef __LL_BASE_H__BSS__
 #define __LL_BASE_H__BSS__
 
 #include "bss_call.h"
-#include <xutility>
+#include <iterator>
 #include <list>
 
 namespace bss_util {

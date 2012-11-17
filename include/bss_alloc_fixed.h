@@ -1,4 +1,4 @@
-// Copyright ©2012 Black Sphere Studios
+// Copyright Â©2012 Black Sphere Studios
 // For conditions of distribution and use, see copyright notice in "bss_util.h"
 
 #ifndef __BSS_ALLOC_FIXED_H__
@@ -56,8 +56,8 @@ namespace bss_util {
 #ifdef BSS_DISABLE_CUSTOM_ALLOCATORS
       delete p; return;
 #endif
-      assert(_validpointer(p));
 #ifdef BSS_DEBUG
+      assert(_validpointer(p));
       memset(p,0xDEADBEEF,sizeof(T));
 #endif
       *((void**)p)=_freelist;
@@ -108,6 +108,7 @@ namespace bss_util {
 	template<typename T>
   class BSS_COMPILER_DLLEXPORT FixedPolicy : public AllocPolicySize<T>, protected cFixedAlloc<T> {
 	public:
+    typedef typename AllocPolicySize<T>::pointer pointer;
     template<typename U>
     struct rebind { typedef FixedPolicy<U> other; };
 

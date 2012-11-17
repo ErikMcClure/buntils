@@ -12,6 +12,7 @@
 #include "bss_util_c.h"
 #ifdef BSS_COMPILER_GCC
 #include <stdio.h>
+#include <string.h>
 #endif
 
 //#define CSTRALLOC(T) std::basic_string<T, std::char_traits<T>, bss_util::RefAllocator<Alloc,bss_util::RefHackAllocPolicy<T>, bss_util::ObjectTraits<T>>>
@@ -35,11 +36,16 @@ public:
   static inline BSS_FORCEINLINE size_t __cdecl SLEN(const CHAR* str) { return strlen(str); }
   static inline BSS_FORCEINLINE CHAR* __cdecl STOK(CHAR* str,const CHAR* delim, CHAR** context) { return STRTOK(str,delim,context); }
   //static inline errno_t __cdecl WTOMB(size_t* outsize, CHAR* dest, size_t destsize, const OTHER_C* src, size_t maxcount) { return wcstombs_s(outsize,dest,destsize,src,maxcount); }
+#ifdef BSS_COMPILER_GCC
+  template<class S> static inline BSS_FORCEINLINE int __cdecl VPF(S* str,const CHAR *format, va_list args) { return VSNPRINTF(str->UnsafeString(),str->capacity(),format,args); }
+#else
   static inline BSS_FORCEINLINE int __cdecl VPF(CHAR *dest, size_t size, const CHAR *format, va_list args) { return VSNPRINTF(dest,size,format,args); }
+#endif
   static inline BSS_FORCEINLINE int __cdecl VPCF(const CHAR* str, va_list args) { return VSCPRINTF(str,args); }
   static inline BSS_FORCEINLINE size_t __cdecl CONV(const OTHER_C* src, CHAR* dest, size_t len) { return UTF16toUTF8(src,dest,len); }
 
   static inline BSS_FORCEINLINE size_t __cdecl O_SLEN(const OTHER_C* str) { return wcslen(str); }
+  static inline BSS_FORCEINLINE const CHAR* __cdecl STREMPTY() { return ""; }
 };
 
 template<>
@@ -53,13 +59,21 @@ public:
   static inline BSS_FORCEINLINE size_t __cdecl SLEN(const CHAR* str) { return wcslen(str); }
   static inline BSS_FORCEINLINE CHAR* __cdecl STOK(CHAR* str,const CHAR* delim, CHAR** context) { return WCSTOK(str,delim,context); }
   //static inline errno_t __cdecl WTOMB(size_t* outsize, CHAR* dest, size_t destsize, const OTHER_C* src, size_t maxcount) { return mbstowcs_s(outsize,dest,destsize,src,maxcount); }
-#ifndef BSS_COMPILER_GCC
+#ifdef BSS_COMPILER_GCC
+  template<class S> static inline BSS_FORCEINLINE int __cdecl VPF(S* str,const CHAR *format, va_list args)
+  {
+    str->resize(SLEN(format));
+    while(VSNWPRINTF(str->UnsafeString(),str->capacity(),format,args)==str->capacity()) //double size until it fits.
+      str->resize(str->capacity()*2);
+  }
+#else
   static inline BSS_FORCEINLINE int __cdecl VPF(CHAR *dest, size_t size, const CHAR *format, va_list args) { return VSNWPRINTF(dest,size,format,args); }
   static inline BSS_FORCEINLINE int __cdecl VPCF(const CHAR* str, va_list args) { return VSCWPRINTF(str,args); }
 #endif
   static inline BSS_FORCEINLINE size_t __cdecl CONV(const OTHER_C* src, CHAR* dest, size_t len) { return UTF8toUTF16(src,dest,len); }
 
   static inline BSS_FORCEINLINE size_t __cdecl O_SLEN(const OTHER_C* str) { return strlen(str); }
+  static inline BSS_FORCEINLINE const CHAR* __cdecl STREMPTY() { return L""; }
 };
 
 #pragma warning(push)
@@ -80,6 +94,7 @@ public:
   inline cStrT(cStrT&& mov) : CSTRALLOC(CHAR)(std::move(mov)) {}
   template<class U> inline cStrT(const cStrT<T,U>& copy) : CSTRALLOC(CHAR)(copy) {}
   template<class U> inline cStrT(const cStrT<OTHER_C,U>& copy) : CSTRALLOC(CHAR)() { _convstr(copy.c_str()); }
+  inline cStrT(const CHAR* string) : CSTRALLOC(CHAR)(!string?CSTR_CT<T>::STREMPTY():string) { }
   inline cStrT(const OTHER_C* text) : CSTRALLOC(CHAR)() { if(text!=0) _convstr(text); }
   inline cStrT(unsigned short index, const CHAR* text, const CHAR delim) : CSTRALLOC(CHAR)() //Creates a new string from the specified chunk
   {
@@ -95,22 +110,6 @@ public:
     size_t _length = end-text;
     CSTRALLOC(T)::reserve(++_length);
     insert(0, text,_length-1);
-  }
-  inline cStrT(const CHAR* string, ...) : CSTRALLOC(CHAR)()
-  {
-    if(!string)
-      assert(false); //If this happens, the compiler almost surely got confused with the above constructor
-    else if(CSTR_CT<T>::SCHR(string, '%')==0) //Do we even need to check our va_list?
-      CSTRALLOC(CHAR)::operator =(string);
-    else
-    {
-      va_list vl;
-      va_start(vl,string);
-      size_t _length = (size_t)CSTR_CT<T>::VPCF(string,vl);
-      CSTRALLOC(T)::resize(_length+1);
-      CSTR_CT<T>::VPF(_internal_ptr(), CSTRALLOC(T)::capacity(), string, vl);
-      CSTRALLOC(T)::resize(CSTR_CT<T>::SLEN(_internal_ptr()));
-    }
   }
 
   inline operator const CHAR*() const { return _internal_ptr(); }
@@ -196,6 +195,24 @@ public:
     return r;
   }
 
+  BSS_FORCEINLINE static cStrT<T,Alloc> cStrTF(const T* string, va_list vl)
+  {
+    if(!string)
+      return cStrT<T,Alloc>();
+    if(CSTR_CT<T>::SCHR(string, '%')==0) //Do we even need to check our va_list?
+      return cStrT<T,Alloc>(string);
+    cStrT<T,Alloc> r;
+#ifdef BSS_COMPILER_GCC
+    CSTR_CT<T>::VPF(&r, string, vl);
+#else
+    size_t _length = (size_t)CSTR_CT<T>::VPCF(string,vl);
+    r.resize(_length+1);
+    CSTR_CT<T>::VPF(r.UnsafeString(), r.capacity(), string, vl);
+#endif
+    r.resize(CSTR_CT<T>::SLEN(r.c_str()));
+    return r;
+  }
+
 private:
 #ifdef BSS_COMPILER_MSC
   inline BSS_FORCEINLINE CHAR* _internal_ptr() { return _Myptr(); }
@@ -228,6 +245,9 @@ private:
 typedef cStrT<wchar_t,std::allocator<wchar_t>> cStrW;
 typedef cStrT<char,std::allocator<char>> cStr;
 
+inline static cStrW cStrWF(const wchar_t* string, ...) { va_list vl; va_start(vl,string); return cStrW::cStrTF(string, vl); va_end(vl); }
+inline static cStr cStrF(const char* string, ...) { va_list vl; va_start(vl,string); return cStr::cStrTF(string, vl); va_end(vl); }
+  
 #ifdef _UNICODE
 typedef cStrW TStr;
 #else

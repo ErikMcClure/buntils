@@ -1,4 +1,4 @@
-// Copyright ©2012 Black Sphere Studios
+// Copyright Â©2012 Black Sphere Studios
 // For conditions of distribution and use, see copyright notice in "bss_util.h"
 
 #ifndef __C_ARRAY_SIMPLE_H__BSS__
@@ -402,17 +402,17 @@ namespace bss_util {
     
     //inline void Add(T item) { AT_::Insert(item,_size); } // Not all cArrays implement Insert
     //Implementation of RemoveInternal that adjusts the size of the array.
-    inline void Remove(ST_ index) { AT_::RemoveInternal(index); AT_::SetSize(_size-1); }
-    inline const T_& Front() const { assert(_size>0); return _array[0]; }
-    inline T_& Front() { assert(_size>0); return _array[0]; }
-    inline const T_& Back() const { assert(_size>0); return _array[_size-1]; }
-    inline T_& Back() { assert(_size>0); return _array[_size-1]; }
-    inline operator T_*() { return _array; }
-    inline operator const T_*() const { return _array; }
-    inline const T_* begin() const { return _array; }
-    inline const T_* end() const { return _array+_size; }
-    inline T_* begin() { return _array; }
-    inline T_* end() { return _array+_size; }
+    inline void Remove(ST_ index) { AT_::RemoveInternal(index); AT_::SetSize(AT_::_size-1); }
+    inline const T_& Front() const { assert(AT_::_size>0); return AT_::_array[0]; }
+    inline T_& Front() { assert(AT_::_size>0); return AT_::_array[0]; }
+    inline const T_& Back() const { assert(AT_::_size>0); return AT_::_array[AT_::_size-1]; }
+    inline T_& Back() { assert(AT_::_size>0); return AT_::_array[AT_::_size-1]; }
+    inline operator T_*() { return AT_::_array; }
+    inline operator const T_*() const { return AT_::_array; }
+    inline const T_* begin() const { return AT_::_array; }
+    inline const T_* end() const { return AT_::_array+AT_::_size; }
+    inline T_* begin() { return AT_::_array; }
+    inline T_* end() { return AT_::_array+AT_::_size; }
 
     //inline cArrayWrap& operator=(const AT_& copy) { AT_::operator=(copy); return *this; }
     inline cArrayWrap& operator=(AT_&& mov) { AT_::operator=(std::move(mov)); return *this; }

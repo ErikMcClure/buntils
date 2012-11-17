@@ -1,12 +1,16 @@
-// Copyright ©2012 Black Sphere Studios
+// Copyright Â©2012 Black Sphere Studios
 // For conditions of distribution and use, see copyright notice in "bss_util.h"
 
 #include "cINIentry.h"
 #include <sstream>
 #include <iomanip>
+#include <stdlib.h>
 
 using namespace bss_util;
 
+cINIentry::cINIentry(const cINIentry& mov) : _key(mov._key),_svalue(mov._svalue),_ivalue(mov._ivalue),_dvalue(mov._dvalue)
+{
+}
 cINIentry::cINIentry(cINIentry&& mov) : _key(std::move(mov._key)),_svalue(std::move(mov._svalue)),_ivalue(mov._ivalue),_dvalue(mov._dvalue)
 {
 }

@@ -259,7 +259,7 @@ char cINIstorage::EditEntry(const char* section, const char* key, const char* nv
   {
     psec->_addentry(key,nvalue);
     //_ini->reserve(_ini->size()+strlen(key)+strlen(nvalue)+2); // This is incredibly stupid. It invalidates all our pointers causing strange horrifying bugs.
-    cStr construct(("\n%s=%s"),key,!nvalue?(""):nvalue); //build keyvalue string
+    cStr construct = cStrF("\n%s=%s",key,!nvalue?(""):nvalue); //build keyvalue string
     //const char* peek=(const char*)chunk.end-1; //DEBUG
     const char* ins=strchr((const char*)chunk.end-1,'\n');
     if(!ins) //end of file

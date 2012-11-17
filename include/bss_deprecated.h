@@ -1,4 +1,4 @@
-// Copyright ©2012 Black Sphere Studios
+// Copyright Â©2012 Black Sphere Studios
 // For conditions of distribution and use, see copyright notice in "bss_util.h"
 
 #ifndef __BSS_DEPRECATED_H__
@@ -33,10 +33,17 @@
 #define ATOLL(s) _atoi64(s)
 #define STRTOULL(s,e,r) _strtoui64(s,e,r)
 #else
+#ifdef BSS_PLATFORM_MINGW
+#define TIME64(ptime) _time64(ptime)
+#define GMTIMEFUNC(time, tm) if(_gmtime64_s(tm, time)) return false
+#define VSNWPRINTF(dst,size,format,list) vsnwprintf(dst,size,format,list)
+#else
 #define TIME64(ptime) time64(ptime)
 #define GMTIMEFUNC(time, tm) if(gmtime64_r(time, tm)) return false
-#define VSNPRINTF(dst,size,format,list) vsnprintf(dst,size,format,list)
 #define VSNWPRINTF(dst,size,format,list) vswprintf(dst,size,format,list) //vswprintf is exactly what vsnwprintf should be, for some reason.
+#endif
+
+#define VSNPRINTF(dst,size,format,list) vsnprintf(dst,size,format,list)
 #define VSCPRINTF(format,args) vsnprintf(0,0,format,args)
 //#define VSCWPRINTF(format,args) _vscwprintf(format,args) //no way to implement this
 #define FOPEN(f, path, mode) f = fopen(path, mode)

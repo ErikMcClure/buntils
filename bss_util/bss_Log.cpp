@@ -11,15 +11,28 @@
 using namespace bss_util;
 using namespace std;
 
+#if defined(BSS_PLATFORM_POSIX) || defined(BSS_PLATFORM_MINGW)
+#define POSIX_WCHAR(s) s
+#define POSIX_CHAR(s) cStr(s).c_str()
+#elif defined(BSS_PLATFORM_WIN32)
+#define POSIX_WCHAR(s) cStrW(s).c_str()
+#define POSIX_CHAR(s) s
+#endif
+
 bss_Log::bss_Log(const bss_Log& copy) : _split(new StreamSplitter()), _stream(_split), _tz(GetTimeZoneMinutes()) { assert(false); }
 //bss_Log::bss_Log(const bss_Log& copy) : _split(new StreamSplitter(*copy._split)), _stream(_split), _tz(GetTimeZoneMinutes())
 //{
 //}
-bss_Log::bss_Log(bss_Log&& mov) : _split(mov._split), _stream(std::move(mov._stream)), _tz(GetTimeZoneMinutes()), _files(std::move(mov._files)),
-  _backup(std::move(mov._backup))
+bss_Log::bss_Log(bss_Log&& mov) : _split(mov._split), _backup(std::move(mov._backup)), _tz(GetTimeZoneMinutes()), _files(std::move(mov._files)),
+#ifdef BSS_PLATFORM_MINGW
+  _stream(mov._split)
+#else
+  _stream(std::move(mov._stream))
+#endif
 {
   mov._split=0;
 }
+
 bss_Log::bss_Log(std::ostream* log) : _split(new StreamSplitter()), _stream(_split), _tz(GetTimeZoneMinutes())
 {
   if(log!=0)
@@ -56,13 +69,13 @@ void BSS_FASTCALL bss_Log::AddTarget(std::ostream& stream)
 void BSS_FASTCALL bss_Log::AddTarget(const char* file)
 {
   if(!file) return;
-  _files.push_back(ofstream(cStrW(file).c_str(),ios_base::out|ios_base::trunc));
+  _files.push_back(ofstream(POSIX_WCHAR(file),ios_base::out|ios_base::trunc));
   AddTarget(_files.back());
 }
 void BSS_FASTCALL bss_Log::AddTarget(const wchar_t* file)
 {
   if(!file) return;
-  _files.push_back(ofstream(file,ios_base::out|ios_base::trunc));
+  _files.push_back(ofstream(POSIX_CHAR(file),ios_base::out|ios_base::trunc));
   AddTarget(_files.back());
 }
 void bss_Log::ClearTargets()
@@ -78,7 +91,7 @@ bool BSS_FASTCALL bss_Log::_writedatetime(long timez, std::ostream& log, bool ti
   TIME64(&rawtime);
   tm stm;
   tm* ptm=&stm;
-  GMTIMEFUNC(&rawtime, ptm);
+  //GMTIMEFUNC(&rawtime, ptm);
 
   long m=ptm->tm_hour*60 + ptm->tm_min + 1440 + timez; //+1440 ensures this is never negative because % does not properly respond to negative numbers.
   long h=((m/60)%24);
@@ -107,12 +120,17 @@ bss_Log& bss_Log::operator=(const bss_Log& right)
 }
 bss_Log& bss_Log::operator=(bss_Log&& right)
 {
-  _stream=std::move(right._stream);
   _tz=GetTimeZoneMinutes();
   _files=std::move(right._files);
   _backup=std::move(right._backup);
   _split=right._split;
   right._split=0;
+#ifdef BSS_PLATFORM_MINGW
+  _stream.~basic_ostream();
+  new(&_stream) ostream(_split); // Boy do I wish MinGW wasn't such a piece of shit, then I wouldn't have to do this insanity.
+#else
+  _stream=std::move(right._stream);
+#endif
   return *this;
 }
 const char* BSS_FASTCALL bss_Log::_trimpath(const char* path)
@@ -122,7 +140,7 @@ const char* BSS_FASTCALL bss_Log::_trimpath(const char* path)
   r=bssmax(r,r2);
   return (!r)?path:(r+1);
 }
-
+//*/
 //const wchar_t* BSS_FASTCALL bss_Log::_trimpath(const wchar_t* path)
 //{
 //	const wchar_t* retval=wcsrchr(path,'/');

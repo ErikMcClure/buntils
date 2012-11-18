@@ -9,7 +9,7 @@
 
 #ifdef BSS_COMPILER_MSC
 #define TIME64(ptime) _time64(ptime)
-#define GMTIMEFUNC(time, tm) if(_gmtime64_s(tm, time)) return false
+#define GMTIMEFUNC(time, tm) _gmtime64_s(tm, time)
 #define VSNPRINTF(dst,size,format,list) _vsnprintf_s(dst,size,size,format,list)
 #define VSNWPRINTF(dst,size,format,list) _vsnwprintf_s(dst,size,size,format,list)
 #define VSCPRINTF(format,args) _vscprintf(format,args)
@@ -35,11 +35,11 @@
 #else
 #ifdef BSS_PLATFORM_MINGW
 #define TIME64(ptime) _time64(ptime)
-#define GMTIMEFUNC(time, tm) if(_gmtime64_s(tm, time)) return false
+#define GMTIMEFUNC(time, tm) _gmtime64_s(tm, time)
 #define VSNWPRINTF(dst,size,format,list) vsnwprintf(dst,size,format,list)
 #else
 #define TIME64(ptime) time64(ptime)
-#define GMTIMEFUNC(time, tm) if(gmtime64_r(time, tm)) return false
+#define GMTIMEFUNC(time, tm) (gmtime64_r(time, tm)==0) // This makes it so it will return 1 on error and 0 otherwise, matching _gmtime64_s
 #define VSNWPRINTF(dst,size,format,list) vswprintf(dst,size,format,list) //vswprintf is exactly what vsnwprintf should be, for some reason.
 #endif
 

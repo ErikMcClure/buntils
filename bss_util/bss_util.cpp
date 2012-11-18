@@ -198,11 +198,11 @@ extern std::unique_ptr<char[],bss_util::bssdll_delete<char[]>> BSS_FASTCALL bss_
     *out= dialog.get_filename();*/
 #endif
 }
+#ifdef BSS_PLATFORM_WIN32 //Windows function
 BSS_COMPILER_DLLEXPORT 
 extern std::unique_ptr<char[],bss_util::bssdll_delete<char[]>> BSS_FASTCALL bss_util::FileDialog(bool open, unsigned long flags,
   const wchar_t* file, const wchar_t* filter, const wchar_t* initdir, const wchar_t* defext, HWND__* owner)
 {
-#ifdef BSS_PLATFORM_WIN32 //Windows function
   wchar_t buf[MAX_PATH];
   GetCurrentDirectoryW(MAX_PATH,buf);
   cStrW curdirsave(buf);
@@ -230,11 +230,12 @@ extern std::unique_ptr<char[],bss_util::bssdll_delete<char[]>> BSS_FASTCALL bss_
   std::unique_ptr<char[],bssdll_delete<char[]>> r(new char[len]);
   WideCharToMultiByte(CP_UTF8, 0, buf, -1, r.get(), len, 0, 0);
   return r;
-#endif
 }
+#endif
 
 extern long BSS_FASTCALL bss_util::GetTimeZoneMinutes()
 {
+#ifdef BSS_PLATFORM_WIN32
   TIME_ZONE_INFORMATION dtime;
   DWORD r=GetTimeZoneInformation(&dtime);
   switch(r)
@@ -246,6 +247,15 @@ extern long BSS_FASTCALL bss_util::GetTimeZoneMinutes()
     return -(dtime.Bias+dtime.DaylightBias);
   }
   return 0; //error
+
+#elif defined(BSS_PLATFORM_POSIX)
+  __int64 rawtime;
+  TIME64(&rawtime);
+  tm stm;
+  if(GMTIMEFUNC(&rawtime, &stm)!=0)
+    return 0;
+  return stm.tm_gmtoff;
+#endif
 }
 #ifdef BSS_PLATFORM_WIN32
 extern void BSS_FASTCALL bss_util::AlertBox(const char* text, const char* caption, int type)

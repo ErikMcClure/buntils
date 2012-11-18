@@ -450,6 +450,7 @@ extern void BSS_FASTCALL bss_util::AlertBox(const wchar_t* text, const wchar_t* 
 //  return 0;
 //}
 
+#ifdef BSS_PLATFORM_WIN32
 template<class _Fn>
 inline int BSS_FASTCALL r_setregvalue(HKEY__*	hOpenKey, const wchar_t* szKey, _Fn fn)
 {

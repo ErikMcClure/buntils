@@ -2562,6 +2562,9 @@ TEST::RETPAIR test_OS()
   //TEST(FileExists(L"testlink"));
   //TEST(FolderExists("IGNORE/symlink/"));
   //TEST(FolderExists(L"IGNORE/symlink/"));
+  //{
+  //std::unique_ptr<char[],bssdll_delete<char[]>> p = FileDialog(true,0,L"test");
+  //}
 
 //#ifdef BSS_PLATFORM_WIN32
 //  SetRegistryValue(HKEY_LOCAL_MACHINE,"SOFTWARE\\test","valcheck","data");

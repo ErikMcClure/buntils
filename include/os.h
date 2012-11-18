@@ -23,12 +23,12 @@ namespace bss_util {
   BSS_COMPILER_DLLEXPORT extern bool BSS_FASTCALL FolderExists(const wchar_t* strpath); 
   BSS_COMPILER_DLLEXPORT extern bool BSS_FASTCALL FileExists(const char* strpath);
   BSS_COMPILER_DLLEXPORT extern bool BSS_FASTCALL FileExists(const wchar_t* strpath);
-  BSS_COMPILER_DLLEXPORT extern std::unique_ptr<char[],bssdll_delete<char[]>> BSS_FASTCALL FileDialog(bool open, unsigned long flags, const char* file=0, const char* filter="All Files (*.*)\0*.*\0", HWND__* owner=0, const char* initdir=0, const char* defext=0);
-  BSS_COMPILER_DLLEXPORT extern std::unique_ptr<char[],bssdll_delete<char[]>> BSS_FASTCALL FileDialog(bool open, unsigned long flags, const wchar_t* file=0, const wchar_t* filter=L"All Files (*.*)\0*.*\0", HWND__* owner=0, const wchar_t* initdir=0, const wchar_t* defext=0);
   BSS_COMPILER_DLLEXPORT extern void BSS_FASTCALL AlertBox(const char* text, const char* caption, int type=0);
   BSS_COMPILER_DLLEXPORT extern void BSS_FASTCALL AlertBox(const wchar_t* text, const wchar_t* caption, int type=0);
+  BSS_COMPILER_DLLEXPORT extern std::unique_ptr<char[],bssdll_delete<char[]>> BSS_FASTCALL FileDialog(bool open, unsigned long flags, const char* file, const char* filter="All Files (*.*)\0*.*\0", const char* initdir=0, const char* defext=0);
   
 #ifdef BSS_PLATFORM_WIN32
+  BSS_COMPILER_DLLEXPORT extern std::unique_ptr<char[],bssdll_delete<char[]>> BSS_FASTCALL FileDialog(bool open, unsigned long flags, const wchar_t* file, const wchar_t* filter=L"All Files (*.*)\0*.*\0", const wchar_t* initdir=0, const wchar_t* defext=0, HWND__* owner=0);
   BSS_COMPILER_DLLEXPORT extern int BSS_FASTCALL SetRegistryValue(HKEY__*	hOpenKey, const char* szKey, const char* szValue, const char* szData);
   BSS_COMPILER_DLLEXPORT extern int BSS_FASTCALL SetRegistryValue(HKEY__*	hOpenKey, const wchar_t* szKey, const wchar_t* szValue, const char* szData);
   BSS_COMPILER_DLLEXPORT extern int BSS_FASTCALL SetRegistryValue(HKEY__*	hOpenKey, const char* szKey, const char* szValue, __int32 szData);

@@ -38,8 +38,8 @@
 #define GMTIMEFUNC(time, tm) _gmtime64_s(tm, time)
 #define VSNWPRINTF(dst,size,format,list) vsnwprintf(dst,size,format,list)
 #else
-#define TIME64(ptime) time64(ptime)
-#define GMTIMEFUNC(time, tm) (gmtime64_r(time, tm)==0) // This makes it so it will return 1 on error and 0 otherwise, matching _gmtime64_s
+#define TIME64(ptime) time(ptime) // Linux does not have explicit 64-bit time functions, time_t will simply be 64-bit if the OS is 64-bit.
+#define GMTIMEFUNC(time, tm) (gmtime_r(time, tm)==0) // This makes it so it will return 1 on error and 0 otherwise, matching _gmtime64_s
 #define VSNWPRINTF(dst,size,format,list) vswprintf(dst,size,format,list) //vswprintf is exactly what vsnwprintf should be, for some reason.
 #endif
 

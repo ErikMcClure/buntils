@@ -247,9 +247,9 @@ extern long BSS_FASTCALL bss_util::GetTimeZoneMinutes()
     return -(dtime.Bias+dtime.DaylightBias);
   }
   return 0; //error
-
+  
 #elif defined(BSS_PLATFORM_POSIX)
-  __int64 rawtime;
+  time_t rawtime;
   TIME64(&rawtime);
   tm stm;
   if(GMTIMEFUNC(&rawtime, &stm)!=0)

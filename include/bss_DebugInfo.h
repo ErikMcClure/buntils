@@ -33,14 +33,22 @@ public:
     char ret=_flprof[_flstart];
     (++_flstart)%=NUMPROFILERS;
 
+#ifdef BSS_PLATFORM_WIN32
     _querytime(&_profilers[ret]);
+#else
+    _querytime(&_profilers[ret],CLOCK_PROCESS_CPUTIME_ID);
+#endif
     return ret;
   }
   // Closes a profiler and returns the difference in time in milliseconds as a double
   inline unsigned __int64 BSS_FASTCALL CloseProfiler(char ID)
   {
     unsigned __int64 compare;
+#ifdef BSS_PLATFORM_WIN32
     _querytime(&compare); //done up here to minimize timing inaccuracies
+#else
+    _querytime(&compare,CLOCK_PROCESS_CPUTIME_ID);
+#endif
     if(ID>=NUMPROFILERS || !_profilers[ID]) return 0;
 
     compare -= _profilers[ID];
@@ -58,7 +66,7 @@ public:
 protected:
   _PROCESS_MEMORY_COUNTERS* _counter;
   cStr _modpath;
-  unsigned __int64 _profilers[NUMPROFILERS]; //You can have up to NUMPROFILERS profilers going at once
+  unsigned __int64 _profilers[NUMPROFILERS]; //You can have up to NUMPROFILERS-1 profilers going at once
   char _flprof[NUMPROFILERS]; //profiler free list (circular buffer)
   unsigned char _flstart; //profiler free list location
   unsigned char _flend;

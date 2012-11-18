@@ -5,15 +5,13 @@
 #include "cHighPrecisionTimer.h"
 #ifdef BSS_PLATFORM_WIN32
 #include "bss_win32_includes.h"
-#else //BSS_PLATFORM_POSIX
-#include <sys/time.h>
-#include <unistd.h>
 #endif
 
 using namespace bss_util;
 
 cHighPrecisionTimer::cHighPrecisionTimer()
 {
+#ifdef BSS_PLATFORM_WIN32
   _curprocess = GetCurrentProcess();
   _curthread = GetCurrentThread();
   
@@ -22,6 +20,7 @@ cHighPrecisionTimer::cHighPrecisionTimer()
   SetThreadAffinityMask(_curthread, 1);
   QueryPerformanceFrequency((LARGE_INTEGER*)&_freq);//we have to do this here before ResetDelta() otherwise ResetDelta will read in the wrong values with _getaffinity()
   SetThreadAffinityMask(_curthread, _procmask);
+#endif
   ResetDelta();
   _time = 0;
 }
@@ -46,6 +45,7 @@ double cHighPrecisionTimer::Update(double timewarp)
   return _delta;
 }
 
+#ifdef BSS_PLATFORM_WIN32
 void cHighPrecisionTimer::_querytime(unsigned __int64* _pval)
 {
   _getaffinity();  
@@ -56,7 +56,16 @@ void cHighPrecisionTimer::_querytime(unsigned __int64* _pval)
   
   SetThreadAffinityMask(_curthread, _procmask);
 }
+#else
+void cHighPrecisionTimer::_querytime(unsigned __int64* _pval, clockid_t clock)
+{
+	timespec tspec;
+	clock_gettime(clock, &tspec);
+  *_pval = (((unsigned __int64)tspec.tv_sec)*1000000000) + (unsigned __int64)tspec.tv_nsec;
+}
+#endif
 
+#ifdef BSS_PLATFORM_WIN32
 void cHighPrecisionTimer::_getaffinity()
 {
 #if _MSC_VER >= 1400 && defined(BSS_CPU_x86_64)
@@ -65,3 +74,4 @@ void cHighPrecisionTimer::_getaffinity()
   GetProcessAffinityMask(_curprocess, &_procmask, &_sysmask);
 #endif
 }
+#endif

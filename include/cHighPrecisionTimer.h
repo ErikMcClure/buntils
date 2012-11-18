@@ -5,6 +5,9 @@
 #define __C_HIGHPRECISIONTIMER_H__BSS__
 
 #include "bss_dlldef.h"
+#ifndef BSS_PLATFORM_WIN32
+#include <time.h>
+#endif
 
 namespace bss_util
 {
@@ -28,20 +31,24 @@ namespace bss_util
     inline void BSS_FASTCALL ResetDelta() { _querytime(&_curTime); _delta = 0; }
 
   protected:
-    void BSS_FASTCALL _querytime(unsigned __int64* _pval);
-    void BSS_FASTCALL _getaffinity();
-    void BSS_FASTCALL _assigntime();
-
-    unsigned __int64 _curTime;
-    unsigned __int64 _freq;
     double _delta; // milliseconds
     double _time; // milliseconds
+    unsigned __int64 _curTime;
+
+#ifdef BSS_PLATFORM_WIN32
+    void BSS_FASTCALL _querytime(unsigned __int64* _pval);
+    void BSS_FASTCALL _getaffinity();
+    
+    unsigned __int64 _freq;
     void* _curprocess;
 
   private:
     unsigned long _procmask; //DWORD
     unsigned long _sysmask;
     void* _curthread; //this is private because it only reflects the thread that happened to call Update()
+#else
+    void BSS_FASTCALL _querytime(unsigned __int64* _pval, clockid_t clock=CLOCK_MONOTONIC_RAW);
+#endif
   };
 }
 

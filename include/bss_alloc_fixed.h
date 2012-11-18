@@ -120,10 +120,10 @@ namespace bss_util {
 
     inline pointer allocate(std::size_t cnt, 
       typename std::allocator<void>::const_pointer = 0) {
-        return alloc(cnt);
+        return cFixedAlloc<T>::alloc(cnt);
     }
     inline void deallocate(pointer p, std::size_t num = 0) { 
-      return dealloc(p);
+      return cFixedAlloc<T>::dealloc(p);
     }
 	};
 

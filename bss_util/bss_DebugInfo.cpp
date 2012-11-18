@@ -3,8 +3,12 @@
 // WINDOWS ONLY (right now)
 
 #include "bss_DebugInfo.h"
+#ifdef BSS_PLATFORM_WIN32
 #include "bss_win32_includes.h"
 #include <psapi.h>
+#else
+
+#endif
 
 bss_DebugInfo::bss_DebugInfo(const bss_DebugInfo& copy) { assert(false); }
 //bss_DebugInfo::bss_DebugInfo(const bss_DebugInfo& copy) : cHighPrecisionTimer(copy), bss_Log(copy),_flstart(copy._flstart),
@@ -16,36 +20,48 @@ bss_DebugInfo::bss_DebugInfo(const bss_DebugInfo& copy) { assert(false); }
 //  *_counter=*copy._counter;
 //}
 bss_DebugInfo::bss_DebugInfo(bss_DebugInfo&& mov) : cHighPrecisionTimer(std::move(mov)), bss_Log(std::move(mov)), _flstart(mov._flstart),
-  _flend(mov._flend), _modpath(std::move(mov._modpath)), _counter(new PROCESS_MEMORY_COUNTERS())
+  _flend(mov._flend), _modpath(std::move(mov._modpath))
 {
+#ifdef BSS_PLATFORM_WIN32
+  _counter = new PROCESS_MEMORY_COUNTERS();
+#endif
   //_curprocess = GetCurrentProcess();
   memcpy(_profilers,mov._profilers, sizeof(unsigned __int64)*NUMPROFILERS);
   memcpy(_flprof,mov._flprof, sizeof(unsigned char)*NUMPROFILERS);
   *_counter=*mov._counter;
 }
 
-bss_DebugInfo::bss_DebugInfo(std::ostream* log) : cHighPrecisionTimer(), bss_Log(log), _counter(new PROCESS_MEMORY_COUNTERS())
+bss_DebugInfo::bss_DebugInfo(std::ostream* log) : cHighPrecisionTimer(), bss_Log(log)
 {
+#ifdef BSS_PLATFORM_WIN32
+  _counter = new PROCESS_MEMORY_COUNTERS();
+#endif
   //_curprocess = GetCurrentProcess();
   ClearProfilers();
 }
 
-bss_DebugInfo::bss_DebugInfo(const char* logfile, std::ostream* log) : cHighPrecisionTimer(), bss_Log(logfile,log),
-  _counter(new PROCESS_MEMORY_COUNTERS())
+bss_DebugInfo::bss_DebugInfo(const char* logfile, std::ostream* log) : cHighPrecisionTimer(), bss_Log(logfile,log)
 {
+#ifdef BSS_PLATFORM_WIN32
+  _counter = new PROCESS_MEMORY_COUNTERS();
+#endif
   //_curprocess = GetCurrentProcess();
   ClearProfilers();
 }
-bss_DebugInfo::bss_DebugInfo(const wchar_t* logfile, std::ostream* log) : cHighPrecisionTimer(), bss_Log(logfile,log),
-  _counter(new PROCESS_MEMORY_COUNTERS())
+bss_DebugInfo::bss_DebugInfo(const wchar_t* logfile, std::ostream* log) : cHighPrecisionTimer(), bss_Log(logfile,log)
 {
+#ifdef BSS_PLATFORM_WIN32
+  _counter = new PROCESS_MEMORY_COUNTERS();
+#endif
   //_curprocess = GetCurrentProcess();
   ClearProfilers();
 }
 
 bss_DebugInfo::~bss_DebugInfo()
 {
+#ifdef BSS_PLATFORM_WIN32
   delete _counter;
+#endif
   //ClearProfiles();
 }
 
@@ -56,6 +72,8 @@ void bss_DebugInfo::ClearProfilers()
   _flstart=0;
   _flend=NUMPROFILERS-1;
 }
+
+#ifdef BSS_PLATFORM_WIN32
 const char* bss_DebugInfo::ModulePath(HMODULE mod)
 {
   wchar_t buf[MAX_PATH];
@@ -63,12 +81,6 @@ const char* bss_DebugInfo::ModulePath(HMODULE mod)
   _modpath=buf;
   return _modpath;
 }
-
-//const wchar_t* bss_DebugInfo::GetModulePathW(HMODULE mod)
-//{
-//  GetModuleFileNameExW(_curprocess,mod,(wchar_t*)_modpath,PATHBUF);
-//  return (wchar_t*)_modpath;
-//}
 
 size_t bss_DebugInfo::GetWorkingSet()
 {
@@ -80,6 +92,7 @@ const PROCESS_MEMORY_COUNTERS* bss_DebugInfo::GetProcMemInfo()
   GetProcessMemoryInfo(_curprocess, _counter, sizeof(PROCESS_MEMORY_COUNTERS));
   return _counter;
 }
+#endif
 
 bss_DebugInfo& bss_DebugInfo::operator =(bss_DebugInfo&& right)
 {

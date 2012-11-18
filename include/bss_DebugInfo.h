@@ -8,8 +8,10 @@
 #include "bss_Log.h"
 #include "cStr.h"
 
+#ifdef BSS_PLATFORM_WIN32
 struct HINSTANCE__; //so we can avoid windows.h
 struct _PROCESS_MEMORY_COUNTERS; //Include <psapi.h> to read the information
+#endif
 
 // An inheritable debug class that exposes process information and provides profiling tools
 typedef class BSS_DLLEXPORT bss_DebugInfo : public bss_util::cHighPrecisionTimer, public bss_Log
@@ -20,12 +22,14 @@ public:
   explicit bss_DebugInfo(const char* logfile, std::ostream* log=0);
   explicit bss_DebugInfo(const wchar_t* logfile, std::ostream* log=0);
   virtual ~bss_DebugInfo();
+#ifdef BSS_PLATFORM_WIN32
   // Gets the path of the given module - 0 returns path of calling executable
   const char* ModulePath(HINSTANCE__ *mod=0); //If this is GetModulePath windows' stupid #defines screw it up
   // Gets memory information about the process
   const _PROCESS_MEMORY_COUNTERS* GetProcMemInfo();
   // Gets total memory used by process
   size_t GetWorkingSet();
+#endif
   // Starts a profiler and returns the ID. Returns -1 if you have used up all available profiler spaces
   inline char OpenProfiler()
   {
@@ -64,7 +68,9 @@ public:
   static const char NUMPROFILERS = 64;
 
 protected:
+#ifdef BSS_PLATFORM_WIN32
   _PROCESS_MEMORY_COUNTERS* _counter;
+#endif
   cStr _modpath;
   unsigned __int64 _profilers[NUMPROFILERS]; //You can have up to NUMPROFILERS-1 profilers going at once
   char _flprof[NUMPROFILERS]; //profiler free list (circular buffer)

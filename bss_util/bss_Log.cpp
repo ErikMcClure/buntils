@@ -15,7 +15,7 @@ bss_Log::bss_Log(const bss_Log& copy) : _split(new StreamSplitter()), _stream(_s
 //{
 //}
 bss_Log::bss_Log(bss_Log&& mov) : _split(mov._split), _backup(std::move(mov._backup)), _tz(GetTimeZoneMinutes()), _files(std::move(mov._files)),
-#ifdef BSS_PLATFORM_MINGW
+#ifdef BSS_COMPILER_GCC // GCC has a bug where they haven't implemented move constructors for streams yet, which is not standards-compliant.
   _stream(mov._split)
 #else
   _stream(std::move(mov._stream))
@@ -60,20 +60,34 @@ void BSS_FASTCALL bss_Log::AddTarget(std::ostream& stream)
 void BSS_FASTCALL bss_Log::AddTarget(const char* file)
 {
   if(!file) return;
+#ifdef BSS_COMPILER_GCC 
+  _files.push_back(std::unique_ptr<std::ofstream>(new ofstream(BSSPOSIX_WCHAR(file),ios_base::out|ios_base::trunc)));
+  AddTarget(*_files.back());
+#else
   _files.push_back(ofstream(BSSPOSIX_WCHAR(file),ios_base::out|ios_base::trunc));
   AddTarget(_files.back());
+#endif
 }
 void BSS_FASTCALL bss_Log::AddTarget(const wchar_t* file)
 {
   if(!file) return;
+#ifdef BSS_COMPILER_GCC 
+  _files.push_back(std::unique_ptr<std::ofstream>(new ofstream(BSSPOSIX_CHAR(file),ios_base::out|ios_base::trunc)));
+  AddTarget(*_files.back());
+#else
   _files.push_back(ofstream(BSSPOSIX_CHAR(file),ios_base::out|ios_base::trunc));
   AddTarget(_files.back());
+#endif
 }
 void bss_Log::ClearTargets()
 {
   if(_split!=0) _split->ClearTargets();
   for(size_t i = 0; i < _files.size(); ++i)
+#ifdef BSS_COMPILER_GCC 
+    _files[i]->close();
+#else
     _files[i].close();
+#endif
   _files.clear();
 }
 bool BSS_FASTCALL bss_Log::_writedatetime(long timez, std::ostream& log, bool timeonly)
@@ -117,9 +131,9 @@ bss_Log& bss_Log::operator=(bss_Log&& right)
   _backup=std::move(right._backup);
   _split=right._split;
   right._split=0;
-#ifdef BSS_PLATFORM_MINGW
-  _stream.~basic_ostream();
-  new(&_stream) ostream(_split); // Boy do I wish MinGW wasn't such a piece of shit, then I wouldn't have to do this insanity.
+#ifdef BSS_COMPILER_GCC
+  _stream.~basic_ostream(); // This stupid craziness is required due to GCC not implementing move constructors for streams like its supposed to >C
+  new(&_stream) ostream(_split);
 #else
   _stream=std::move(right._stream);
 #endif

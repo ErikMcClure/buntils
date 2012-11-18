@@ -154,7 +154,8 @@ BSS_COMPILER_DLLEXPORT extern unsigned long long BSS_FASTCALL bss_util::bssFileS
 }
 
 BSS_COMPILER_DLLEXPORT 
-extern std::unique_ptr<char[],bss_util::bssdll_delete<char[]>> BSS_FASTCALL bss_util::FileDialog(bool open, unsigned long flags, const char* file, const char* filter, HWND__* owner, const char* initdir, const char* defext)
+extern std::unique_ptr<char[],bss_util::bssdll_delete<char[]>> BSS_FASTCALL bss_util::FileDialog(bool open, unsigned long flags,
+  const char* file, const char* filter, const char* initdir, const char* defext)
 {
 #ifdef BSS_PLATFORM_WIN32 //Windows function
   cStrW wfilter;
@@ -164,7 +165,7 @@ extern std::unique_ptr<char[],bss_util::bssdll_delete<char[]>> BSS_FASTCALL bss_
   c=i-filter+1; //+1 to include null terminator
   wfilter.reserve(MultiByteToWideChar(CP_UTF8, 0, filter, c, 0, 0));
   MultiByteToWideChar(CP_UTF8, 0, filter, c, wfilter.UnsafeString(), wfilter.capacity());
-  return FileDialog(open,flags,cStrW(file),wfilter,owner,cStrW(initdir),cStrW(defext));
+  return FileDialog(open,flags,cStrW(file),wfilter,cStrW(initdir),cStrW(defext),0);
 #elif defined(BSS_PLATFORM_POSIX)
   /*Gtk::FileChooserDialog dialog("Choose File", Gtk::FILE_CHOOSER_ACTION_OPEN);
   dialog.set_transient_for(*this);
@@ -198,7 +199,8 @@ extern std::unique_ptr<char[],bss_util::bssdll_delete<char[]>> BSS_FASTCALL bss_
 #endif
 }
 BSS_COMPILER_DLLEXPORT 
-extern std::unique_ptr<char[],bss_util::bssdll_delete<char[]>> BSS_FASTCALL bss_util::FileDialog(bool open, unsigned long flags, const wchar_t* file, const wchar_t* filter, HWND__* owner, const wchar_t* initdir, const wchar_t* defext)
+extern std::unique_ptr<char[],bss_util::bssdll_delete<char[]>> BSS_FASTCALL bss_util::FileDialog(bool open, unsigned long flags,
+  const wchar_t* file, const wchar_t* filter, const wchar_t* initdir, const wchar_t* defext, HWND__* owner)
 {
 #ifdef BSS_PLATFORM_WIN32 //Windows function
   wchar_t buf[MAX_PATH];

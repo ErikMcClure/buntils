@@ -17,12 +17,12 @@
 
 #ifdef BSS_COMPILER_INTEL // Intel C++ compiler
 
-#elif defined BSS_COMPILER_GCC // GCC
+#elif defined(BSS_COMPILER_GCC) // GCC
 #define BSS_ATOMIC_XADD8(p,v) __sync_fetch_and_add(p,v)
 #define BSS_ATOMIC_XADD16(p,v) __sync_fetch_and_add(p,v)
 #define BSS_ATOMIC_XADD32(p,v) __sync_fetch_and_add(p,v)
 #define BSS_ATOMIC_XADD64(p,v) __sync_fetch_and_add(p,v)
-#elif defined BSS_COMPILER_MSC // VC++
+#elif defined(BSS_COMPILER_MSC) // VC++
 #define BSS_ATOMIC_XADD8(p,v) _InterlockedExchangeAdd8((volatile char*)p,v)
 #define BSS_ATOMIC_XADD16(p,v) _InterlockedExchangeAdd16((volatile short*)p,v)
 #define BSS_ATOMIC_XADD32(p,v) _InterlockedExchangeAdd((volatile long*)p,v)
@@ -51,7 +51,7 @@ namespace bss_util {
     __mf();
 #endif
 	}
-#elif BSS_COMPILER_GCC
+#elif defined(BSS_COMPILER_GCC)
 
 #endif
 #pragma warning(pop)
@@ -77,7 +77,7 @@ namespace bss_util {
 #ifdef BSS_CPU_x86_64
   ATOMIC_XADDPICK_MACRO(xaddd,8);
 #endif
-#elif defined BSS_COMPILER_MSC
+#elif defined(BSS_COMPILER_MSC)
   template<typename T> struct ATOMIC_XADDPICK<T,1> { BSS_FORCEINLINE static T BSS_FASTCALL atomic_xadd(volatile T* p, T v) { return (T)_InterlockedExchangeAdd8((volatile char*)p,v); } };
   template<typename T> struct ATOMIC_XADDPICK<T,2> { BSS_FORCEINLINE static T BSS_FASTCALL atomic_xadd(volatile T* p, T v) { return (T)_InterlockedExchangeAdd16((volatile short*)p,v); } };
   template<typename T> struct ATOMIC_XADDPICK<T,4> { BSS_FORCEINLINE static T BSS_FASTCALL atomic_xadd(volatile T* p, T v) { return (T)_InterlockedExchangeAdd((volatile long*)p,v); } };
@@ -111,7 +111,7 @@ namespace bss_util {
 #ifdef BSS_CPU_x86_64
   ATOMIC_XCHGPICK_MACRO(xchgd,8);
 #endif
-#elif defined BSS_COMPILER_MSC
+#elif defined(BSS_COMPILER_MSC)
   template<typename T> struct ATOMIC_XCHGPICK<T,1> { static inline BSS_FORCEINLINE T BSS_FASTCALL atomic_xchg(volatile T* p, T val) { return (T)_InterlockedExchange8((volatile char*)p,(char)val); } };
   template<typename T> struct ATOMIC_XCHGPICK<T,2> { static inline BSS_FORCEINLINE T BSS_FASTCALL atomic_xchg(volatile T* p, T val) { return (T)_InterlockedExchange16((volatile short*)p,(short)val); } };
   template<typename T> struct ATOMIC_XCHGPICK<T,4> { static inline BSS_FORCEINLINE T BSS_FASTCALL atomic_xchg(volatile T* p, T val) { return (T)_InterlockedExchange((volatile long*)p,(long)val); } };

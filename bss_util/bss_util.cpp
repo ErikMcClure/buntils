@@ -13,7 +13,7 @@
 #include <sys/types.h>  // stat().
 #include <sys/stat.h>   // stat().
 #include <dirent.h> //Linux
-#include <gtkmm.h> // file dialog
+//#include <gtkmm.h> // file dialog
 #endif
 
 //typedef DWORD (WINAPI *GETFINALNAMEBYHANDLE)(HANDLE,LPWSTR,DWORD,DWORD);
@@ -62,7 +62,7 @@ inline bool BSS_FASTCALL r_fexists(const wchar_t* path)
 
   return ((attr&FILE_ATTRIBUTE_DIRECTORY)^T_FLAG) !=0;
 }
-#elif BSS_PLATFORM_POSIX
+#elif defined(BSS_PLATFORM_POSIX)
 template<int T_FLAG>
 inline bool BSS_FASTCALL r_fexists(const char* path)
 {
@@ -105,7 +105,7 @@ extern void BSS_FASTCALL bss_util::SetWorkDirToCur()
   GetModuleFileNameW(0, commands.UnsafeString(), MAX_PATH);
   commands.UnsafeString()[wcsrchr(commands, '\\')-commands+1] = '\0';
   SetCurrentDirectoryW(commands);
-#elif BSS_PLATFORM_POSIX
+#elif defined(BSS_PLATFORM_POSIX)
   return;
 #endif
 }
@@ -127,7 +127,7 @@ extern void BSS_FASTCALL bss_util::ForceWin64Crash()
     if (pGetPolicy && pSetPolicy && pGetPolicy(&dwFlags)) 
       pSetPolicy(dwFlags & ~EXCEPTION_SWALLOWING); // Turn off the filter 
 }
-#elif BSS_PLATFORM_POSIX
+#elif defined(BSS_PLATFORM_POSIX)
 BSS_COMPILER_DLLEXPORT
 extern void BSS_FASTCALL bss_util::ForceWin32Crash() 
 { // Obviously in linux this function does nothing becuase linux isn't a BROKEN PIECE OF SHIT
@@ -138,7 +138,7 @@ BSS_COMPILER_DLLEXPORT extern unsigned long long BSS_FASTCALL bss_util::bssFileS
 {
 #ifdef BSS_PLATFORM_WIN32
   return bssFileSize(cStrW(path).c_str());
-#elif BSS_PLATFORM_POSIX
+#elif defined(BSS_PLATFORM_POSIX)
   struct stat path_stat;
   if(::stat(path, &path_stat)!=0 || !S_ISREG(path_stat.st_mode))
     return (unsigned long long)-1;
@@ -172,7 +172,7 @@ extern void BSS_FASTCALL bss_util::FileDialog(wchar_t (&buf)[MAX_PATH], bool ope
   wfilter.reserve(MultiByteToWideChar(CP_UTF8, 0, filter, c, 0, 0));
   MultiByteToWideChar(CP_UTF8, 0, filter, c, wfilter.UnsafeString(), wfilter.capacity());
   FileDialog(buf,open,flags,cStrW(file),wfilter,owner,cStrW(initdir),cStrW(defext));
-#elif BSS_PLATFORM_POSIX
+#elif defined(BSS_PLATFORM_POSIX)
   /*Gtk::FileChooserDialog dialog("Choose File", Gtk::FILE_CHOOSER_ACTION_OPEN);
   dialog.set_transient_for(*this);
 

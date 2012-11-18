@@ -4,7 +4,11 @@
 #include "bss_util_c.h"
 #include <stdlib.h>
 #include <string.h>
+#ifdef BSS_PLATFORM_WIN32
 #include "bss_win32_includes.h"
+#else
+
+#endif
 
 BSS_COMPILER_DLLEXPORT
 extern unsigned long BSS_FASTCALL strhex(const char* text)

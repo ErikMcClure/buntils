@@ -136,8 +136,8 @@ namespace bss_util {
 
     template<typename U>
     struct rebind {
-        typedef Allocator<U, typename AllocationPolicy::rebind<U>::other, 
-            typename TTraits::rebind<U>::other > other;
+        typedef Allocator<U, typename AllocationPolicy::template rebind<U>::other, 
+            typename TTraits::template rebind<U>::other > other;
     };
     template<typename U>
     Allocator& operator=(const Allocator<U>&) { return *this; }

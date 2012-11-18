@@ -11,14 +11,6 @@
 using namespace bss_util;
 using namespace std;
 
-#if defined(BSS_PLATFORM_POSIX) || defined(BSS_PLATFORM_MINGW)
-#define POSIX_WCHAR(s) s
-#define POSIX_CHAR(s) cStr(s).c_str()
-#elif defined(BSS_PLATFORM_WIN32)
-#define POSIX_WCHAR(s) cStrW(s).c_str()
-#define POSIX_CHAR(s) s
-#endif
-
 bss_Log::bss_Log(const bss_Log& copy) : _split(new StreamSplitter()), _stream(_split), _tz(GetTimeZoneMinutes()) { assert(false); }
 //bss_Log::bss_Log(const bss_Log& copy) : _split(new StreamSplitter(*copy._split)), _stream(_split), _tz(GetTimeZoneMinutes())
 //{
@@ -69,13 +61,13 @@ void BSS_FASTCALL bss_Log::AddTarget(std::ostream& stream)
 void BSS_FASTCALL bss_Log::AddTarget(const char* file)
 {
   if(!file) return;
-  _files.push_back(ofstream(POSIX_WCHAR(file),ios_base::out|ios_base::trunc));
+  _files.push_back(ofstream(BSSPOSIX_WCHAR(file),ios_base::out|ios_base::trunc));
   AddTarget(_files.back());
 }
 void BSS_FASTCALL bss_Log::AddTarget(const wchar_t* file)
 {
   if(!file) return;
-  _files.push_back(ofstream(POSIX_CHAR(file),ios_base::out|ios_base::trunc));
+  _files.push_back(ofstream(BSSPOSIX_CHAR(file),ios_base::out|ios_base::trunc));
   AddTarget(_files.back());
 }
 void bss_Log::ClearTargets()

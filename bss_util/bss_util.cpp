@@ -13,17 +13,18 @@
 #include <sys/types.h>  // stat().
 #include <sys/stat.h>   // stat().
 #include <dirent.h> //Linux
+#include <gtkmm.h> // file dialog
 #endif
 
 //typedef DWORD (WINAPI *GETFINALNAMEBYHANDLE)(HANDLE,LPWSTR,DWORD,DWORD);
 //static const HMODULE bssdll_KERNAL = LoadLibraryA("Kernal32.dll");
 //static const GETFINALNAMEBYHANDLE bssdll_GetFinalNameByHandle = (GETFINALNAMEBYHANDLE)GetProcAddress(bssdll_KERNAL,"GetFinalPathNameByHandleW");
 
+#ifdef BSS_PLATFORM_WIN32
 template<DWORD T_FLAG>
 inline bool BSS_FASTCALL r_fexists(const wchar_t* path)
 {
   assert(path!=0);
-#ifdef BSS_PLATFORM_WIN32
   cStrW s(L"\\\\?\\"); //You must append \\?\ to the beginning of the string to allow paths up to 32767 characters long
   if(!PathIsRelativeW(path)) // But only if its an absolute path
   {
@@ -60,47 +61,55 @@ inline bool BSS_FASTCALL r_fexists(const wchar_t* path)
   }*/
 
   return ((attr&FILE_ATTRIBUTE_DIRECTORY)^T_FLAG) !=0;
-#elif BSS_PLATFORM_POSIX
-
-#endif
 }
+#elif BSS_PLATFORM_POSIX
+template<int T_FLAG>
+inline bool BSS_FASTCALL r_fexists(const char* path)
+{
+  struct stat st;
+  if(stat(path,&st)!=0)
+    return false;
+  return ((S_ISDIR(st.st_mode)!=0)^T_FLAG)!=0;
+}
+#endif
 
 BSS_COMPILER_DLLEXPORT
 extern bool BSS_FASTCALL bss_util::FolderExists(const char* strpath)
 {
-  return r_fexists<0>(cStrW(strpath).c_str());
+  return r_fexists<0>(BSSPOSIX_WCHAR(strpath));
 }
 
 BSS_COMPILER_DLLEXPORT
 extern bool BSS_FASTCALL bss_util::FolderExists(const wchar_t* strpath)
 {
-  return r_fexists<0>(strpath);
+  return r_fexists<0>(BSSPOSIX_CHAR(strpath));
 }
 
 BSS_COMPILER_DLLEXPORT
 extern bool BSS_FASTCALL bss_util::FileExists(const char* strpath)
 {
-  return r_fexists<1>(cStrW(strpath).c_str());
+  return r_fexists<1>(BSSPOSIX_WCHAR(strpath));
 }
 
 BSS_COMPILER_DLLEXPORT
 extern bool BSS_FASTCALL bss_util::FileExists(const wchar_t* strpath)
 {
-  return r_fexists<1>(strpath);
+  return r_fexists<1>(BSSPOSIX_CHAR(strpath));
 }
 
-#ifdef BSS_PLATFORM_WIN32
 BSS_COMPILER_DLLEXPORT
 extern void BSS_FASTCALL bss_util::SetWorkDirToCur()
 {
+#ifdef BSS_PLATFORM_WIN32
   cStrW commands(MAX_PATH);
   GetModuleFileNameW(0, commands.UnsafeString(), MAX_PATH);
   commands.UnsafeString()[wcsrchr(commands, '\\')-commands+1] = '\0';
   SetCurrentDirectoryW(commands);
-}
 #elif BSS_PLATFORM_POSIX
-
+  return;
 #endif
+}
+
 
 #ifdef BSS_PLATFORM_WIN32
 BSS_COMPILER_DLLEXPORT
@@ -118,7 +127,8 @@ extern void BSS_FASTCALL bss_util::ForceWin64Crash()
     if (pGetPolicy && pSetPolicy && pGetPolicy(&dwFlags)) 
       pSetPolicy(dwFlags & ~EXCEPTION_SWALLOWING); // Turn off the filter 
 }
-#else
+#elif BSS_PLATFORM_POSIX
+BSS_COMPILER_DLLEXPORT
 extern void BSS_FASTCALL bss_util::ForceWin32Crash() 
 { // Obviously in linux this function does nothing becuase linux isn't a BROKEN PIECE OF SHIT
 }
@@ -126,7 +136,15 @@ extern void BSS_FASTCALL bss_util::ForceWin32Crash()
 
 BSS_COMPILER_DLLEXPORT extern unsigned long long BSS_FASTCALL bss_util::bssFileSize(const char* path)
 {
+#ifdef BSS_PLATFORM_WIN32
   return bssFileSize(cStrW(path).c_str());
+#elif BSS_PLATFORM_POSIX
+  struct stat path_stat;
+  if(::stat(path, &path_stat)!=0 || !S_ISREG(path_stat.st_mode))
+    return (unsigned long long)-1;
+
+  return (unsigned long long)path_stat.st_size;
+#endif
 }
 BSS_COMPILER_DLLEXPORT extern unsigned long long BSS_FASTCALL bss_util::bssFileSize(const wchar_t* path)
 {
@@ -138,18 +156,14 @@ BSS_COMPILER_DLLEXPORT extern unsigned long long BSS_FASTCALL bss_util::bssFileS
 
   return (static_cast<unsigned long long>(fad.nFileSizeHigh) << (sizeof(fad.nFileSizeLow)*8)) + fad.nFileSizeLow;
 #elif BSS_PLATFORM_POSIX
-    struct stat path_stat;
-    if(::stat(p.c_str(), &path_stat)!=0 || !S_ISREG(path_stat.st_mode))
-    return (unsigned long long)-1;
-
-    return (unsigned long long)path_stat.st_size;
+  return bssFileSize(cStr(path).c_str());
 #endif
 }
 
-BSS_COMPILER_DLLEXPORT
-#ifdef BSS_PLATFORM_WIN32 //Windows function
+BSS_COMPILER_DLLEXPORT 
 extern void BSS_FASTCALL bss_util::FileDialog(wchar_t (&buf)[MAX_PATH], bool open, unsigned long flags, const char* file, const char* filter, HWND__* owner, const char* initdir, const char* defext)
 {
+#ifdef BSS_PLATFORM_WIN32 //Windows function
   cStrW wfilter;
   size_t c;
   const char* i;
@@ -158,9 +172,42 @@ extern void BSS_FASTCALL bss_util::FileDialog(wchar_t (&buf)[MAX_PATH], bool ope
   wfilter.reserve(MultiByteToWideChar(CP_UTF8, 0, filter, c, 0, 0));
   MultiByteToWideChar(CP_UTF8, 0, filter, c, wfilter.UnsafeString(), wfilter.capacity());
   FileDialog(buf,open,flags,cStrW(file),wfilter,owner,cStrW(initdir),cStrW(defext));
+#elif BSS_PLATFORM_POSIX
+  /*Gtk::FileChooserDialog dialog("Choose File", Gtk::FILE_CHOOSER_ACTION_OPEN);
+  dialog.set_transient_for(*this);
+
+  //Add response buttons the the dialog:
+  dialog.add_button(Gtk::Stock::CANCEL, Gtk::RESPONSE_CANCEL);
+  dialog.add_button(Gtk::Stock::OPEN, Gtk::RESPONSE_OK);
+
+  //Add filters, so that only certain file types can be selected:
+
+  Glib::RefPtr<Gtk::FileFilter> filter_text = Gtk::FileFilter::create();
+  filter_text->set_name("Text files");
+  filter_text->add_mime_type("text/plain");
+  dialog.add_filter(filter_text);
+
+  Glib::RefPtr<Gtk::FileFilter> filter_cpp = Gtk::FileFilter::create();
+  filter_cpp->set_name("C/C++ files");
+  filter_cpp->add_mime_type("text/x-c");
+  filter_cpp->add_mime_type("text/x-c++");
+  filter_cpp->add_mime_type("text/x-c-header");
+  dialog.add_filter(filter_cpp);
+
+  Glib::RefPtr<Gtk::FileFilter> filter_any = Gtk::FileFilter::create();
+  filter_any->set_name("Any files");
+  filter_any->add_pattern("*");
+  dialog.add_filter(filter_any);
+
+  //Handle the response:
+  if(dialog.run() == Gtk::RESPONSE_OK)
+    STRCPY(buf,MAX_PATH,dialog.get_filename());*/
+#endif
 }
+BSS_COMPILER_DLLEXPORT 
 extern void BSS_FASTCALL bss_util::FileDialog(wchar_t (&buf)[MAX_PATH], bool open, unsigned long flags, const wchar_t* file, const wchar_t* filter, HWND__* owner, const wchar_t* initdir, const wchar_t* defext)
 {
+#ifdef BSS_PLATFORM_WIN32 //Windows function
   //char* buf = (char*)calloc(MAX_PATH,1);
   GetCurrentDirectoryW(MAX_PATH,buf);
   cStrW curdirsave(buf);
@@ -185,6 +232,7 @@ extern void BSS_FASTCALL bss_util::FileDialog(wchar_t (&buf)[MAX_PATH], bool ope
   SetCurrentDirectoryW(curdirsave); //There is actually a flag that's supposed to do this for us but it doesn't work on XP for file open, so we have to do it manually just to be sure
   if(!res) buf[0]='\0';
   //return (void*)buf;
+#endif
 }
 
 extern long BSS_FASTCALL bss_util::GetTimeZoneMinutes()

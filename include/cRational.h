@@ -5,6 +5,7 @@
 #define __C_RATIONAL_H__BSS__
 
 #include "bss_compiler.h"
+#include <type_traits>
 
 namespace bss_util {  
   // This class represents a rational number in the form of an integral fraction, and includes conversion routines and simplification.

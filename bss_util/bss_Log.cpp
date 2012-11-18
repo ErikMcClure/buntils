@@ -2,7 +2,6 @@
 // For conditions of distribution and use, see copyright notice in "bss_util.h"
 
 #include "bss_Log.h"
-#include "bss_deprecated.h"
 #include "StreamSplitter.h"
 #include "bss_util.h"
 #include <fstream>

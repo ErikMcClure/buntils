@@ -105,16 +105,14 @@ extern void BSS_FASTCALL bss_util::SetWorkDirToCur()
   GetModuleFileNameW(0, commands.UnsafeString(), MAX_PATH);
   commands.UnsafeString()[wcsrchr(commands, '\\')-commands+1] = '\0';
   SetCurrentDirectoryW(commands);
-#elif defined(BSS_PLATFORM_POSIX)
-  return;
 #endif
 }
 
 
-#ifdef BSS_PLATFORM_WIN32
 BSS_COMPILER_DLLEXPORT
 extern void BSS_FASTCALL bss_util::ForceWin64Crash() 
 { 
+#ifdef BSS_PLATFORM_WIN32
     typedef BOOL (WINAPI *tGetPolicy)(LPDWORD lpFlags); 
     typedef BOOL (WINAPI *tSetPolicy)(DWORD dwFlags); 
     const DWORD EXCEPTION_SWALLOWING = 0x1;
@@ -126,13 +124,8 @@ extern void BSS_FASTCALL bss_util::ForceWin64Crash()
     tSetPolicy pSetPolicy = (tSetPolicy)GetProcAddress(kernel32, "SetProcessUserModeExceptionPolicy"); 
     if (pGetPolicy && pSetPolicy && pGetPolicy(&dwFlags)) 
       pSetPolicy(dwFlags & ~EXCEPTION_SWALLOWING); // Turn off the filter 
+#endif // Obviously in linux this function does nothing becuase linux isn't a BROKEN PIECE OF SHIT
 }
-#elif defined(BSS_PLATFORM_POSIX)
-BSS_COMPILER_DLLEXPORT
-extern void BSS_FASTCALL bss_util::ForceWin32Crash() 
-{ // Obviously in linux this function does nothing becuase linux isn't a BROKEN PIECE OF SHIT
-}
-#endif
 
 BSS_COMPILER_DLLEXPORT extern unsigned long long BSS_FASTCALL bss_util::bssFileSize(const char* path)
 {
@@ -155,13 +148,13 @@ BSS_COMPILER_DLLEXPORT extern unsigned long long BSS_FASTCALL bss_util::bssFileS
     return (unsigned long long)-1;
 
   return (static_cast<unsigned long long>(fad.nFileSizeHigh) << (sizeof(fad.nFileSizeLow)*8)) + fad.nFileSizeLow;
-#elif BSS_PLATFORM_POSIX
+#elif defined(BSS_PLATFORM_POSIX)
   return bssFileSize(cStr(path).c_str());
 #endif
 }
 
 BSS_COMPILER_DLLEXPORT 
-extern void BSS_FASTCALL bss_util::FileDialog(wchar_t (&buf)[MAX_PATH], bool open, unsigned long flags, const char* file, const char* filter, HWND__* owner, const char* initdir, const char* defext)
+extern std::unique_ptr<char[],bss_util::bssdll_delete<char[]>> BSS_FASTCALL bss_util::FileDialog(bool open, unsigned long flags, const char* file, const char* filter, HWND__* owner, const char* initdir, const char* defext)
 {
 #ifdef BSS_PLATFORM_WIN32 //Windows function
   cStrW wfilter;
@@ -171,7 +164,7 @@ extern void BSS_FASTCALL bss_util::FileDialog(wchar_t (&buf)[MAX_PATH], bool ope
   c=i-filter+1; //+1 to include null terminator
   wfilter.reserve(MultiByteToWideChar(CP_UTF8, 0, filter, c, 0, 0));
   MultiByteToWideChar(CP_UTF8, 0, filter, c, wfilter.UnsafeString(), wfilter.capacity());
-  FileDialog(buf,open,flags,cStrW(file),wfilter,owner,cStrW(initdir),cStrW(defext));
+  return FileDialog(open,flags,cStrW(file),wfilter,owner,cStrW(initdir),cStrW(defext));
 #elif defined(BSS_PLATFORM_POSIX)
   /*Gtk::FileChooserDialog dialog("Choose File", Gtk::FILE_CHOOSER_ACTION_OPEN);
   dialog.set_transient_for(*this);
@@ -201,14 +194,14 @@ extern void BSS_FASTCALL bss_util::FileDialog(wchar_t (&buf)[MAX_PATH], bool ope
 
   //Handle the response:
   if(dialog.run() == Gtk::RESPONSE_OK)
-    STRCPY(buf,MAX_PATH,dialog.get_filename());*/
+    *out= dialog.get_filename();*/
 #endif
 }
 BSS_COMPILER_DLLEXPORT 
-extern void BSS_FASTCALL bss_util::FileDialog(wchar_t (&buf)[MAX_PATH], bool open, unsigned long flags, const wchar_t* file, const wchar_t* filter, HWND__* owner, const wchar_t* initdir, const wchar_t* defext)
+extern std::unique_ptr<char[],bss_util::bssdll_delete<char[]>> BSS_FASTCALL bss_util::FileDialog(bool open, unsigned long flags, const wchar_t* file, const wchar_t* filter, HWND__* owner, const wchar_t* initdir, const wchar_t* defext)
 {
 #ifdef BSS_PLATFORM_WIN32 //Windows function
-  //char* buf = (char*)calloc(MAX_PATH,1);
+  wchar_t buf[MAX_PATH];
   GetCurrentDirectoryW(MAX_PATH,buf);
   cStrW curdirsave(buf);
   ZeroMemory(buf, MAX_PATH);
@@ -231,7 +224,10 @@ extern void BSS_FASTCALL bss_util::FileDialog(wchar_t (&buf)[MAX_PATH], bool ope
 
   SetCurrentDirectoryW(curdirsave); //There is actually a flag that's supposed to do this for us but it doesn't work on XP for file open, so we have to do it manually just to be sure
   if(!res) buf[0]='\0';
-  //return (void*)buf;
+  size_t len = WideCharToMultiByte(CP_UTF8, 0, buf, -1, 0, 0, 0, 0);
+  std::unique_ptr<char[],bssdll_delete<char[]>> r(new char[len]);
+  WideCharToMultiByte(CP_UTF8, 0, buf, -1, r.get(), len, 0, 0);
+  return r;
 #endif
 }
 
@@ -260,6 +256,8 @@ extern void BSS_FASTCALL bss_util::AlertBox(const wchar_t* text, const wchar_t* 
 }
 #endif
 
+void bss_util::bssdll_delete_delfunc(void* p) { delete p; }
+void bss_util::bssdll_delete_delfuncarray(void* p) { delete [] p; }
 
 //namespace bss_util {
 //  bool BSS_FASTCALL _exists(const char* path, bool isdir)

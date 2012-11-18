@@ -56,7 +56,7 @@
 #define STRICMP(a,b) stricmp(a,b)
 #define WCSICMP(a,b) wcsicmp(a,b)
 #define STRTOK(str,delim,context) strtok_r(str,delim,context)
-#define WCSTOK(str,delim,context) wcstok_r(str,delim,context)
+#define WCSTOK(str,delim,context) wcstok(str,delim,context) // For some reason, in linux, wcstok *IS* the threadsafe version
 #define SSCANF sscanf
 #define ITOAx0(v,buf,r) _itoa_r(v,buf,r)
 #define ITOA(v,buf,bufsize,r) itoa_r(v,buf,bufsize,r)

@@ -630,6 +630,36 @@ namespace bss_util {
   {
 	  return a+((T)((b-a)*amt));
   }
+  
+  //unique_ptr deleter class that forces the deletion to occur in this DLL
+  template<class _Ty>
+	struct bssdll_delete
+	{	// default deleter for unique_ptr
+	  typedef bssdll_delete<_Ty> _Myt;
+
+	  void operator()(_Ty *_Ptr) const {
+		  if (0 < sizeof (_Ty))	{ // won't compile for incomplete type
+        _Ptr->~_Ty(); // call destructor because delete won't
+			  bssdll_delete_delfunc(_Ptr);
+		  }
+    }
+	};
+  
+  template<class _Ty>
+	struct bssdll_delete<_Ty[]>
+	{	// default deleter for unique_ptr to array of unknown size
+	  typedef bssdll_delete<_Ty> _Myt;
+
+	  void operator()(_Ty *_Ptr) const {
+		  if (0 < sizeof (_Ty))	{ // won't compile for incomplete type
+        _Ptr->~_Ty(); // call destructor because delete won't
+			  bssdll_delete_delfuncarray(_Ptr);
+      }
+		}
+	};
+
+  BSS_COMPILER_DLLEXPORT extern void bssdll_delete_delfunc(void* p);
+  BSS_COMPILER_DLLEXPORT extern void bssdll_delete_delfuncarray(void* p);
 } 
 
 #endif

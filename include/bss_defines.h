@@ -58,6 +58,14 @@
 // i |= i >> 1; i |= i >> 2; i |= i >> 4; i -= i >> 1; so that it happens during compile time.
 #define T_CHARGETMSB(i) ((((i | (i>>1)) | ((i | (i>>1))>>2)) | (((i | (i>>1)) | ((i | (i>>1))>>2))>>4)) - ((((i | (i>>1)) | ((i | (i>>1))>>2)) | (((i | (i>>1)) | ((i | (i>>1))>>2))>>4))>>1)) // I CAN'T BELIEVE THIS WORKS（ ﾟДﾟ）
 
+#if defined(BSS_PLATFORM_POSIX) || defined(BSS_PLATFORM_MINGW)
+#define BSSPOSIX_WCHAR(s) s
+#define BSSPOSIX_CHAR(s) cStr(s).c_str()
+#elif defined(BSS_PLATFORM_WIN32)
+#define BSSPOSIX_WCHAR(s) cStrW(s).c_str()
+#define BSSPOSIX_CHAR(s) s
+#endif
+
 //unsigned shortcuts
 #ifndef BSS_NOSHORTTYPES
 #ifdef  __cplusplus

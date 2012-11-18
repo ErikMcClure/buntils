@@ -4,6 +4,7 @@
 #ifndef __C_UNIQUEPTR_H__BSS__
 #define __C_UNIQUEPTR_H__BSS__
 
+#include "bss_compiler.h"
 #include <memory>
 
 #ifndef __NO_UNIQUE_MODIFY__

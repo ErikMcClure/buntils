@@ -7,6 +7,7 @@
 #include "bss_compiler.h"
 #include "bss_deprecated.h"
 #include <emmintrin.h>
+#include <assert.h>
 
 // Define compiler-specific intrinsics for working with SSE.
 #ifdef BSS_COMPILER_INTEL

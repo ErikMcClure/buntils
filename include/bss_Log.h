@@ -70,7 +70,11 @@ private:
   long _tz;
 #pragma warning(push)
 #pragma warning(disable:4251)
+#ifdef BSS_COMPILER_GCC // Until GCC fixes its fucking broken standard implementation, we're going to have to do this the hard way.
+  std::vector<std::unique_ptr<std::ofstream>> _files;
+#else
   std::vector<std::ofstream> _files;
+#endif
   std::vector<std::pair<std::ostream&,std::streambuf*>> _backup;
   std::ostream _stream;
 #pragma warning(pop)

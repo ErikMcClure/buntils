@@ -104,7 +104,7 @@ namespace bss_util {
     }
 
   protected:
-    inline BSS_FORCEINLINE static void* _cdecl _minmalloc(size_t n) { return malloc((n<1)?1:n); } //Malloc can legally return NULL if it tries to allocate 0 bytes
+    inline BSS_FORCEINLINE static void* _minmalloc(size_t n) { return malloc((n<1)?1:n); } //Malloc can legally return NULL if it tries to allocate 0 bytes
     template<typename U>
     inline void _pushback(SizeType index, SizeType length, U && data) 
     {
@@ -233,7 +233,7 @@ namespace bss_util {
     }
 
   protected:
-    inline BSS_FORCEINLINE static void* _cdecl _minmalloc(size_t n) { return malloc((n<1)?1:n); } //Malloc can legally return NULL if it tries to allocate 0 bytes
+    inline BSS_FORCEINLINE static void* _minmalloc(size_t n) { return malloc((n<1)?1:n); } //Malloc can legally return NULL if it tries to allocate 0 bytes
     template<typename U>
     inline void _pushback(SizeType index, SizeType length, U && data) 
     {
@@ -357,7 +357,7 @@ namespace bss_util {
     }
 
   protected:
-    inline BSS_FORCEINLINE static void* _cdecl _minmalloc(size_t n) { return malloc((n<1)?1:n); }  //Malloc can legally return NULL if it tries to allocate 0 bytes
+    inline BSS_FORCEINLINE static void* _minmalloc(size_t n) { return malloc((n<1)?1:n); }  //Malloc can legally return NULL if it tries to allocate 0 bytes
     template<typename U>
     inline void _pushback(SizeType index, SizeType length, U && data) 
     {

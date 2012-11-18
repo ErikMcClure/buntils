@@ -82,7 +82,8 @@ bool BSS_FASTCALL bss_Log::_writedatetime(long timez, std::ostream& log, bool ti
   TIME64(&rawtime);
   tm stm;
   tm* ptm=&stm;
-  //GMTIMEFUNC(&rawtime, ptm);
+  if(GMTIMEFUNC(&rawtime, ptm)!=0)
+    return false;
 
   long m=ptm->tm_hour*60 + ptm->tm_min + 1440 + timez; //+1440 ensures this is never negative because % does not properly respond to negative numbers.
   long h=((m/60)%24);

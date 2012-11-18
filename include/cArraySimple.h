@@ -4,7 +4,7 @@
 #ifndef __C_ARRAY_SIMPLE_H__BSS__
 #define __C_ARRAY_SIMPLE_H__BSS__
 
-#include "bss_compiler.h"
+#include "bss_call.h"
 #include <memory.h>
 #include <malloc.h>
 

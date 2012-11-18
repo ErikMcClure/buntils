@@ -5,9 +5,12 @@
 #define __BSS_OS_H__
 
 //#include <vector>
-#include "bss_dlldef.h"
+#include "bss_util.h" // bssdll_delete
+
+#ifdef BSS_PLATFORM_WIN32
 struct HWND__;
 struct HKEY__; //Include WinReg.h to get access to the root key handles (e.g. HKEY_LOCAL_MACHINE)
+#endif
 
 namespace bss_util {
   //BSS_COMPILER_DLLEXPORT extern int BSS_FASTCALL GetDirFiles(const char* cdir, std::vector<cStr>* files);
@@ -25,7 +28,7 @@ namespace bss_util {
   BSS_COMPILER_DLLEXPORT extern void BSS_FASTCALL AlertBox(const char* text, const char* caption, int type=0);
   BSS_COMPILER_DLLEXPORT extern void BSS_FASTCALL AlertBox(const wchar_t* text, const wchar_t* caption, int type=0);
   
-#if defined(WIN32) || defined(_WINDOWS)
+#ifdef BSS_PLATFORM_WIN32
   BSS_COMPILER_DLLEXPORT extern int BSS_FASTCALL SetRegistryValue(HKEY__*	hOpenKey, const char* szKey, const char* szValue, const char* szData);
   BSS_COMPILER_DLLEXPORT extern int BSS_FASTCALL SetRegistryValue(HKEY__*	hOpenKey, const wchar_t* szKey, const wchar_t* szValue, const char* szData);
   BSS_COMPILER_DLLEXPORT extern int BSS_FASTCALL SetRegistryValue(HKEY__*	hOpenKey, const char* szKey, const char* szValue, __int32 szData);

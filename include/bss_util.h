@@ -22,7 +22,7 @@
 #include "bss_defines.h"
 #include <assert.h>
 #include <math.h>
-#include <memory.h>
+#include <memory>
 #include <type_traits>
 #include <utility>
 #ifdef BSS_COMPILER_GCC

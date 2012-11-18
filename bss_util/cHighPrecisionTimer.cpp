@@ -29,7 +29,11 @@ double cHighPrecisionTimer::Update()
 {
   unsigned __int64 newTime;
   _querytime(&newTime);
+#ifdef BSS_PLATFORM_WIN32
   _delta = ((newTime - _curTime)*1000) / (double)_freq; //We multiply by 1000 BEFORE dividing into a double to maintain precision (since its unlikely the difference between newtime and oldtime is going to be bigger then 9223372036854775
+#else
+  _delta = (newTime - _curTime) / ((double)1000000);
+#endif
   _curTime = newTime;
   _time += _delta;
   return _delta;
@@ -39,7 +43,11 @@ double cHighPrecisionTimer::Update(double timewarp)
 {
   unsigned __int64 newTime;
   _querytime(&newTime);
+#ifdef BSS_PLATFORM_WIN32
   _delta = ((newTime - _curTime)*1000) / (_freq*timewarp);
+#else
+  _delta = (newTime - _curTime) / (1000000*timewarp);
+#endif
   _curTime = newTime;
   _time += _delta;
   return _delta;

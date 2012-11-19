@@ -24,11 +24,11 @@ bss_DebugInfo::bss_DebugInfo(bss_DebugInfo&& mov) : cHighPrecisionTimer(std::mov
 {
 #ifdef BSS_PLATFORM_WIN32
   _counter = new PROCESS_MEMORY_COUNTERS();
+  *_counter=*mov._counter;
 #endif
   //_curprocess = GetCurrentProcess();
   memcpy(_profilers,mov._profilers, sizeof(unsigned __int64)*NUMPROFILERS);
   memcpy(_flprof,mov._flprof, sizeof(unsigned char)*NUMPROFILERS);
-  *_counter=*mov._counter;
 }
 
 bss_DebugInfo::bss_DebugInfo(std::ostream* log) : cHighPrecisionTimer(), bss_Log(log)
@@ -101,7 +101,9 @@ bss_DebugInfo& bss_DebugInfo::operator =(bss_DebugInfo&& right)
   _modpath=std::move(right._modpath);
   _flstart=right._flstart;
   _flend=right._flend;
+#ifdef BSS_PLATFORM_WIN32
   *_counter=*right._counter; // Just copying this is a lot simpler than trying to move it.
+#endif
   bss_Log::operator=(std::move(right));
   cHighPrecisionTimer::operator=(std::move(right));
   return *this;

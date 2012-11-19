@@ -202,25 +202,25 @@ namespace bss_util {
 }
 
 // Adaptive class templitization for _last usage
-  /*template<typename T, typename Alloc, bool useSize, bool last> class cLinkedList_FuncLast {};
-  template<typename T, typename Alloc, bool useSize> struct cLinkedList_FuncLast<T,Alloc,useSize,true>
-  { 
-    inline cLLNode<T>* GetLast() const { return _last; }
-  protected:
-    cLLNode<T>* _last;
-    template<cLLNode<T>* (BSS_FASTCALL cLinkedList<T,Alloc,useSize,true>::* Insert)(T, cLLNode<T>*),cLLNode<T>* (BSS_FASTCALL cLinkedList<T,Alloc,useSize,true>::* _add)(T,cLLNode<T>*&)>
-    static inline cLLNode<T>* BSS_FASTCALL _addfunc(cLinkedList<T,Alloc,useSize,true>* p, T item) { return (p->*_add)(item, p->_last); }
-    inline void BSS_FASTCALL _removefunc(cLLNode<T>* node, cLLNode<T>* _root) { LLRemove<cLLNode<T>>(node,_root,_last); }
-    inline void _zerolast() { _last=0; } 
-    cLinkedList_FuncLast() : _last(0) {}
-  };
-  template<typename T, typename Alloc, bool useSize> struct cLinkedList_FuncLast<T,Alloc,useSize,false>
-  {
-  protected:
-    template<cLLNode<T>* (BSS_FASTCALL cLinkedList<T,Alloc,useSize,false>::* Insert)(T, cLLNode<T>*),cLLNode<T>* (BSS_FASTCALL cLinkedList<T,Alloc,useSize,false>::* _add)(T,cLLNode<T>*&)>
-    static inline cLLNode<T>* BSS_FASTCALL _addfunc(cLinkedList<T,Alloc,useSize,false>* p, T item) { if(_root==0) return _root=_createnode(item,0,0); return (p->*Insert)(p,item,p->_root); }
-    inline void BSS_FASTCALL _removefunc(cLLNode<T>* node, cLLNode<T>* _root) { LLRemove<cLLNode<T>>(node,_root); }
-    inline void _zerolast() { } 
-  };*/
+//  template<typename T, typename Alloc, bool useSize, bool last> class cLinkedList_FuncLast {};
+//  template<typename T, typename Alloc, bool useSize> struct cLinkedList_FuncLast<T,Alloc,useSize,true>
+//  { 
+//    inline cLLNode<T>* GetLast() const { return _last; }
+//  protected:
+//    cLLNode<T>* _last;
+//    template<cLLNode<T>* (BSS_FASTCALL cLinkedList<T,Alloc,useSize,true>::* Insert)(T, cLLNode<T>*),cLLNode<T>* (BSS_FASTCALL cLinkedList<T,Alloc,useSize,true>::* _add)(T,cLLNode<T>*&)>
+//    static inline cLLNode<T>* BSS_FASTCALL _addfunc(cLinkedList<T,Alloc,useSize,true>* p, T item) { return (p->*_add)(item, p->_last); }
+//    inline void BSS_FASTCALL _removefunc(cLLNode<T>* node, cLLNode<T>* _root) { LLRemove<cLLNode<T>>(node,_root,_last); }
+//    inline void _zerolast() { _last=0; } 
+//    cLinkedList_FuncLast() : _last(0) {}
+//  };
+//  template<typename T, typename Alloc, bool useSize> struct cLinkedList_FuncLast<T,Alloc,useSize,false>
+//  {
+//  protected:
+//    template<cLLNode<T>* (BSS_FASTCALL cLinkedList<T,Alloc,useSize,false>::* Insert)(T, cLLNode<T>*),cLLNode<T>* (BSS_FASTCALL cLinkedList<T,Alloc,useSize,false>::* _add)(T,cLLNode<T>*&)>
+//    static inline cLLNode<T>* BSS_FASTCALL _addfunc(cLinkedList<T,Alloc,useSize,false>* p, T item) { if(_root==0) return _root=_createnode(item,0,0); return (p->*Insert)(p,item,p->_root); }
+//    inline void BSS_FASTCALL _removefunc(cLLNode<T>* node, cLLNode<T>* _root) { LLRemove<cLLNode<T>>(node,_root); }
+//    inline void _zerolast() { } 
+//  };
 
 #endif

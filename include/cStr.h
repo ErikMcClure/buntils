@@ -245,8 +245,8 @@ private:
 typedef cStrT<wchar_t,std::allocator<wchar_t>> cStrW;
 typedef cStrT<char,std::allocator<char>> cStr;
 
-inline static cStrW cStrWF(const wchar_t* string, ...) { va_list vl; va_start(vl,string); return cStrW::cStrTF(string, vl); va_end(vl); }
-inline static cStr cStrF(const char* string, ...) { va_list vl; va_start(vl,string); return cStr::cStrTF(string, vl); va_end(vl); }
+inline cStrW cStrWF(const wchar_t* string, ...) { va_list vl; va_start(vl,string); return cStrW::cStrTF(string, vl); va_end(vl); }
+inline cStr cStrF(const char* string, ...) { va_list vl; va_start(vl,string); return cStr::cStrTF(string, vl); va_end(vl); }
   
 #ifdef _UNICODE
 typedef cStrW TStr;

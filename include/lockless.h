@@ -235,7 +235,7 @@ namespace bss_util {
   // inline template specialization so that the proper assembly is generated for the type given. If a type is provided
   // that isn't exactly 1,2,4,or 8 bytes,the compiler will explode.
   template<typename T>
-  static inline unsigned char BSS_FASTCALL asmcas(volatile T *pval, T newval, T oldval)
+  inline unsigned char BSS_FASTCALL asmcas(volatile T *pval, T newval, T oldval)
   {
     return ASMCAS_REGPICK_WRITE<T,sizeof(T)>::asmcas(pval,newval,oldval);
   }
@@ -330,7 +330,7 @@ namespace bss_util {
 
   // Provides assembly level Compare and Exchange operation. Always returns the old value.
   template<typename T>
-  static inline T BSS_FASTCALL rasmcas(volatile T *pval, T newval, T oldval)
+  inline T BSS_FASTCALL rasmcas(volatile T *pval, T newval, T oldval)
   {
     return ASMCAS_REGPICK_READ<T,sizeof(T)>::asmcas(pval,newval,oldval);
   }

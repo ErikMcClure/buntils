@@ -13,7 +13,7 @@
 namespace bss_util {
   // Function to convert any standard value type to a string
   template<typename C, typename T>
-  static std::basic_string<C> tostring(const T& t)
+  inline static std::basic_string<C> tostring(const T& t)
   {
     std::basic_stringstream<C> s;
     s << t;
@@ -65,7 +65,7 @@ namespace bss_util {
 
   // Static template function shortcut for getting a specific setting
   template<int I, int N>
-  static typename cSetting<I,N>::TYPE& Setting() { return cSetting<I,N>::v; }
+  inline static typename cSetting<I,N>::TYPE& Setting() { return cSetting<I,N>::v; }
 
 #ifdef INSTANTIATE_SETTINGS //Declare this in a CPP file that includes all DECL_SETTINGs used in your project to instantiate them
 #define i_INST_SET_(I,N,T,INIT,NAME,CMD) T bss_util::cSetting<I,N>::v=INIT; \
@@ -202,7 +202,7 @@ namespace bss_util {
   };
 
   // Static template function for loading settings from a command line.
-  inline static void LoadFromCmd(cCmdLineArgs& cmd) 
+  inline void LoadFromCmd(cCmdLineArgs& cmd) 
   {
     unsigned int i=0; // Must be unsigned because of what pfunc accepts
     while(i<cmd.Size())

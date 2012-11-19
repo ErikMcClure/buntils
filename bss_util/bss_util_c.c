@@ -8,26 +8,6 @@
 #include "bss_win32_includes.h"
 #else
 #include <iconv.h>
-
-//Create iconv allocations statically
-struct ICONV_CONVERSIONS
-{
-  ICONV_CONVERSIONS()
-  {
-    utf16to8=iconv_open("UTF-16", "UTF-8");
-    utf8to16=iconv_open("UTF-8", "UTF-16");
-  }
-  ~ICONV_CONVERSIONS()
-  {
-    iconv_close(utf16to8);
-    iconv_close(utf8to16);
-  }
-
-  iconv_t utf16to8;
-  iconv_t utf8to16;
-};
-
-ICONV_CONVERSIONS iconv_static_alloc;
 #endif
 
 BSS_COMPILER_DLLEXPORT
@@ -118,7 +98,8 @@ extern size_t BSS_FASTCALL UTF8toUTF16(const char*BSS_RESTRICT input,wchar_t*BSS
   char* out = (char*)output;
   if(!output) return (len*4) + 1;
   len+=1; // include null terminator
-  iconv(iconv_static_alloc.utf8to16, &input, &len, &out, &buflen);
+  static iconv_t utf8to16=iconv_open("UTF-8", "UTF-16");
+  iconv(utf8to16, &input, &len, &out, &buflen);
 #endif
   /*const unsigned char* s = src;
   wchar_t* d = dst;
@@ -157,7 +138,8 @@ extern size_t BSS_FASTCALL UTF16toUTF8(const wchar_t*BSS_RESTRICT input, char*BS
   char* in = (char*)input;
   if(!output) return (len*2) + 1;
   len+=2; // include null terminator (which is 2 bytes wide here)
-  iconv(iconv_static_alloc.utf16to8, &in, &len, &output, &buflen);
+  static iconv_t utf16to8=iconv_open("UTF-16", "UTF-8");
+  iconv(utf16to8, &in, &len, &output, &buflen);
 #endif
 }
 

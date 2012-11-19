@@ -62,7 +62,7 @@ inline bool BSS_FASTCALL r_fexists(const wchar_t* path)
 
   return ((attr&FILE_ATTRIBUTE_DIRECTORY)^T_FLAG) !=0;
 }
-#elif defined(BSS_PLATFORM_POSIX)
+#else // BSS_PLATFORM_POSIX
 template<int T_FLAG>
 inline bool BSS_FASTCALL r_fexists(const char* path)
 {
@@ -131,7 +131,7 @@ BSS_COMPILER_DLLEXPORT extern unsigned long long BSS_FASTCALL bss_util::bssFileS
 {
 #ifdef BSS_PLATFORM_WIN32
   return bssFileSize(cStrW(path).c_str());
-#elif defined(BSS_PLATFORM_POSIX)
+#else // BSS_PLATFORM_POSIX
   struct stat path_stat;
   if(::stat(path, &path_stat)!=0 || !S_ISREG(path_stat.st_mode))
     return (unsigned long long)-1;
@@ -148,7 +148,7 @@ BSS_COMPILER_DLLEXPORT extern unsigned long long BSS_FASTCALL bss_util::bssFileS
     return (unsigned long long)-1;
 
   return (static_cast<unsigned long long>(fad.nFileSizeHigh) << (sizeof(fad.nFileSizeLow)*8)) + fad.nFileSizeLow;
-#elif defined(BSS_PLATFORM_POSIX)
+#else // BSS_PLATFORM_POSIX
   return bssFileSize(cStr(path).c_str());
 #endif
 }
@@ -166,7 +166,7 @@ extern std::unique_ptr<char[],bss_util::bssdll_delete<char[]>> BSS_FASTCALL bss_
   wfilter.reserve(MultiByteToWideChar(CP_UTF8, 0, filter, c, 0, 0));
   MultiByteToWideChar(CP_UTF8, 0, filter, c, wfilter.UnsafeString(), wfilter.capacity());
   return FileDialog(open,flags,cStrW(file),wfilter,cStrW(initdir),cStrW(defext),0);
-#elif defined(BSS_PLATFORM_POSIX)
+#else // BSS_PLATFORM_POSIX
   /*Gtk::FileChooserDialog dialog("Choose File", Gtk::FILE_CHOOSER_ACTION_OPEN);
   dialog.set_transient_for(*this);
 
@@ -248,7 +248,7 @@ extern long BSS_FASTCALL bss_util::GetTimeZoneMinutes()
   }
   return 0; //error
   
-#elif defined(BSS_PLATFORM_POSIX)
+#else // BSS_PLATFORM_POSIX
   time_t rawtime;
   TIME64(&rawtime);
   tm stm;

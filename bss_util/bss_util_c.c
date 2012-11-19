@@ -7,7 +7,27 @@
 #ifdef BSS_PLATFORM_WIN32
 #include "bss_win32_includes.h"
 #else
+#include <iconv.h>
 
+//Create iconv allocations statically
+struct ICONV_CONVERSIONS
+{
+  ICONV_CONVERSIONS()
+  {
+    utf16to8=iconv_open("UTF-16", "UTF-8");
+    utf8to16=iconv_open("UTF-8", "UTF-16");
+  }
+  ~ICONV_CONVERSIONS()
+  {
+    iconv_close(utf16to8);
+    iconv_close(utf8to16);
+  }
+
+  iconv_t utf16to8;
+  iconv_t utf8to16;
+};
+
+ICONV_CONVERSIONS iconv_static_alloc;
 #endif
 
 BSS_COMPILER_DLLEXPORT
@@ -91,7 +111,15 @@ size_t countutf16(const unsigned char* s)
 BSS_COMPILER_DLLEXPORT
 extern size_t BSS_FASTCALL UTF8toUTF16(const char*BSS_RESTRICT input,wchar_t*BSS_RESTRICT output, size_t buflen)
 {
+#ifdef BSS_PLATFORM_WIN32
   return (size_t)MultiByteToWideChar(CP_UTF8, 0, input, -1, output, !output?0:buflen);
+#else
+  size_t len = strlen(input);
+  char* out = (char*)output;
+  if(!output) return (len*4) + 1;
+  len+=1; // include null terminator
+  iconv(iconv_static_alloc.utf8to16, &input, &len, &out, &buflen);
+#endif
   /*const unsigned char* s = src;
   wchar_t* d = dst;
   unsigned __int32 codepoint;
@@ -122,7 +150,15 @@ extern size_t BSS_FASTCALL UTF8toUTF16(const char*BSS_RESTRICT input,wchar_t*BSS
 BSS_COMPILER_DLLEXPORT
 extern size_t BSS_FASTCALL UTF16toUTF8(const wchar_t*BSS_RESTRICT input, char*BSS_RESTRICT output, size_t buflen)
 {
+#ifdef BSS_PLATFORM_WIN32
   return (size_t)WideCharToMultiByte(CP_UTF8, 0, input, -1, output, !output?0:buflen, NULL, NULL);
+#else
+  size_t len = wcslen(input)*2;
+  char* in = (char*)input;
+  if(!output) return (len*2) + 1;
+  len+=2; // include null terminator (which is 2 bytes wide here)
+  iconv(iconv_static_alloc.utf16to8, &in, &len, &output, &buflen);
+#endif
 }
 
 BSS_COMPILER_DLLEXPORT
@@ -165,6 +201,8 @@ extern int itoa_r(int val, char* buf, int size, unsigned int radix)
 
   return 0;
 }
+
+#ifdef BSS_PLATFORM_MINGW
 
 /*
  * Copyright (c) 1988 Regents of the University of California.
@@ -277,3 +315,5 @@ cont: /* Skip (span) leading delimiters (s += strspn(s, delim), sort of). */
 		} while (sc != 0);
 	}
 }
+
+#endif

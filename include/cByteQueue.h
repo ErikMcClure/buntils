@@ -4,7 +4,7 @@
 #ifndef __C_BYTE_QUEUE_H__BSS__ 
 #define __C_BYTE_QUEUE_H__BSS__
 
-#include "bss_call.h"
+#include "bss_defines.h"
 #include "cArraySimple.h"
 #include "lockless.h"
 

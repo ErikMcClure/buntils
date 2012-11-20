@@ -5,7 +5,7 @@
 #define __C_KHASH_H__BSS__
 
 #include "khash.h"
-#include "bss_call.h"
+#include "bss_defines.h"
 #include "bss_defines.h"
 #include "bss_deprecated.h"
 #include <wchar.h>

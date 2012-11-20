@@ -81,4 +81,10 @@ typedef unsigned long long ulonglong;
 #endif
 #endif
 
+#ifndef BSS_NO_FASTCALL
+#define BSS_FASTCALL BSS_COMPILER_FASTCALL
+#else
+#define BSS_FASTCALL BSS_COMPILER_STDCALL
+#endif
+
 #endif

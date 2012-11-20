@@ -626,9 +626,11 @@ TEST::RETPAIR test_bss_DEBUGINFO()
   fs.open(L"黑色球体工作室.log");
   auto tf = [&](bss_DebugInfo& di) {
     TEST(di.CloseProfiler(di.OpenProfiler()) < 500000);
-    //TEST(cStrW(di.ModulePath(0)).compare(di.ModulePathW(0))==0);
+    TEST(di.ModulePath()!=0);
+#ifdef BSS_PLATFORM_WIN32
     TEST(di.GetProcMemInfo()!=0);
     TEST(di.GetWorkingSet()!=0);
+#endif
     TESTNOERROR(di.ClearProfilers());
     di.OpenProfiler();
     TESTNOERROR(di.ClearProfilers());
@@ -700,6 +702,11 @@ TEST::RETPAIR test_bss_algo()
   TEST((binsearch_exact<int,int,uint,CompT<int>>(d,1,1,1)==-1));
   TEST((binsearch_exact<int,uint,CompT<int>>(d,2)==-1));
 
+  srand(90);
+  rand();
+  shuffle(a);
+  TEST(a[0]!=-5);
+  TEST(a[14]!=35);
   ENDTEST;
 }
 
@@ -1557,6 +1564,25 @@ TEST::RETPAIR test_DYNARRAY()
 TEST::RETPAIR test_HIGHPRECISIONTIMER()
 {
   BEGINTEST;
+  cHighPrecisionTimer timer;
+  timer.Update();
+  double ldelta=timer.GetDelta();
+  double ltime=timer.GetTime();
+  TEST(ldelta>0.0);
+  TEST(ltime>0.0);
+  TEST(ldelta<1000.0); //If that took longer than a second, either your CPU choked, or something went terribly wrong.
+  TEST(ltime<1000.0);
+  timer.Update(std::numeric_limits<double>::max());
+  TEST(timer.GetDelta()==0.0);
+  TEST(timer.GetTime()==ltime);
+  timer.Update(0.5);
+  timer.ResetDelta();
+  TEST(timer.GetDelta()==0.0);
+  TEST(timer.GetTime()>0.0);
+  timer.Update();
+  timer.ResetTime();
+  TEST(timer.GetDelta()>0.0);
+  TEST(timer.GetTime()==0.0);
   ENDTEST;
 }
 
@@ -2619,7 +2645,7 @@ int main(int argc, char** argv)
     //{ "cByteQueue.h", &test_BYTEQUEUE },
     //{ "cCmdLineArgs.h", &test_CMDLINEARGS },
     //{ "cDynArray.h", &test_DYNARRAY },
-    //{ "cHighPrecisionTimer.h", &test_HIGHPRECISIONTIMER },
+    { "cHighPrecisionTimer.h", &test_HIGHPRECISIONTIMER },
     //{ "cHolder.h", &test_HOLDER },
     //{ "INIparse.h", &test_INIPARSE },
     { "cINIstorage.h", &test_INISTORAGE },

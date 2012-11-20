@@ -4,7 +4,7 @@
 #ifndef __BSS_ALLOC_H__
 #define __BSS_ALLOC_H__
 
-#include "bss_call.h"
+#include "bss_defines.h"
 #include <limits>
 #include <memory>
 #include <assert.h>

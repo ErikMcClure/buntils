@@ -47,7 +47,6 @@
     <ClInclude Include="..\include\bss_alloc.h" />
     <ClInclude Include="..\include\bss_alloc_additive.h" />
     <ClInclude Include="..\include\bss_alloc_fixed.h" />
-    <ClInclude Include="..\include\bss_call.h" />
     <ClInclude Include="..\include\bss_compare.h" />
     <ClInclude Include="..\include\bss_compiler.h" />
     <ClInclude Include="..\include\bss_DebugInfo.h" />
@@ -271,15 +270,14 @@
       <Optimization>Disabled</Optimization>
       <AdditionalIncludeDirectories>../include;../include/shiny;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <PreprocessorDefinitions>WIN32;_DEBUG;_WINDOWS;_USRDLL;BSS_UTIL_EXPORTS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
-      <MinimalRebuild>true</MinimalRebuild>
       <BasicRuntimeChecks>EnableFastChecks</BasicRuntimeChecks>
       <RuntimeLibrary>MultiThreadedDebug</RuntimeLibrary>
       <PrecompiledHeader>
       </PrecompiledHeader>
       <WarningLevel>Level3</WarningLevel>
       <DebugInformationFormat>EditAndContinue</DebugInformationFormat>
-      <ExceptionHandling>Sync</ExceptionHandling>
       <RuntimeTypeInfo>false</RuntimeTypeInfo>
+      <MinimalRebuild>true</MinimalRebuild>
     </ClCompile>
     <Link>
       <AdditionalDependencies>psapi.lib;shlwapi.lib;%(AdditionalDependencies)</AdditionalDependencies>
@@ -298,14 +296,14 @@
       <Optimization>Disabled</Optimization>
       <AdditionalIncludeDirectories>../include;../include/shiny;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <PreprocessorDefinitions>WIN32;_DEBUG;_WINDOWS;_USRDLL;BSS_UTIL_EXPORTS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
-      <BasicRuntimeChecks>EnableFastChecks</BasicRuntimeChecks>
       <RuntimeLibrary>MultiThreadedDebug</RuntimeLibrary>
       <PrecompiledHeader>
       </PrecompiledHeader>
       <WarningLevel>Level3</WarningLevel>
       <DebugInformationFormat>ProgramDatabase</DebugInformationFormat>
-      <ExceptionHandling>Sync</ExceptionHandling>
       <RuntimeTypeInfo>false</RuntimeTypeInfo>
+      <BasicRuntimeChecks>EnableFastChecks</BasicRuntimeChecks>
+      <MinimalRebuild>true</MinimalRebuild>
     </ClCompile>
     <Link>
       <AdditionalDependencies>psapi.lib;shlwapi.lib;%(AdditionalDependencies)</AdditionalDependencies>

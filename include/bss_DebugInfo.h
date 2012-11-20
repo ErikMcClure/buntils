@@ -29,6 +29,8 @@ public:
   const _PROCESS_MEMORY_COUNTERS* GetProcMemInfo();
   // Gets total memory used by process
   size_t GetWorkingSet();
+#else
+  const char* ModulePath();
 #endif
   // Starts a profiler and returns the ID. Returns -1 if you have used up all available profiler spaces
   inline char OpenProfiler()

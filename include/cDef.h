@@ -4,7 +4,7 @@
 #ifndef __C_DEF_H__BSS__ //These are used in case this header file is used by two different projects dependent on each other, resulting in duplicates which cannot be differentiated by #pragma once
 #define __C_DEF_H__BSS__
 
-#include "bss_call.h"
+#include "bss_defines.h"
 
 #define SPAWNME(c) inline virtual c* BSS_FASTCALL Spawn() const { return new c(*this); };
 #define SPAWNMEABSTRACT(c) inline virtual c* BSS_FASTCALL Spawn() const=0;

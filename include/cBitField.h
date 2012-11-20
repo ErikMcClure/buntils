@@ -4,7 +4,7 @@
 #ifndef __C_BITFIELD_H__BSS__ //These are used in case this header file is used by two different projects dependent on each other, resulting in duplicates which cannot be differentiated by #pragma once
 #define __C_BITFIELD_H__BSS__
 
-#include "bss_call.h"
+#include "bss_defines.h"
 
 namespace bss_util
 {

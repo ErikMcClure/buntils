@@ -4,7 +4,7 @@
 #ifndef __BSS_UTIL_C_H__
 #define __BSS_UTIL_C_H__
 
-#include "bss_call.h"
+#include "bss_defines.h"
 #include <wchar.h>
 
 #ifdef  __cplusplus

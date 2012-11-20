@@ -76,20 +76,16 @@ namespace bss_util {
   template<typename T, typename ST_, char (*CFunc)(const T&, const T&), ST_ I>
   inline BSS_FORCEINLINE ST_ BSS_FASTCALL binsearch_exact(const T (&arr)[I], const T& data) { return binsearch_exact<T,T,ST_,CFunc>(arr,data,0,I); }
   
-  // Shuffler using Fisher-Yates/Knuth Shuffle algorithm based on Durstenfeld's implementation. This is an in-place algorithm that works
-  // with any data type.
+  // Shuffler using Fisher-Yates/Knuth Shuffle algorithm based on Durstenfeld's implementation.
+  // This is an in-place algorithm that works with any data type. Randfunc should be [min,max)
   template<typename T, typename ST, ST (*RandFunc)(ST min, ST max)>
   inline void BSS_FASTCALL shuffle(T* p, ST size)
   {
-    for(ST i=size-1; i!=(ST)-1; --i)
-      rswap<T>(p[i],p[RandFunc(0,i)]);
+    for(ST i=size; i>0; --i)
+      rswap<T>(p[i-1],p[RandFunc(0,i)]);
   }
   template<typename T, typename ST, ST size, ST (*RandFunc)(ST min, ST max)>
-  inline void BSS_FASTCALL shuffle(T (&p)[size])
-  {
-    for(ST i=size-1; i!=(ST)-1; --i)
-      rswap<T>(p[i],p[RandFunc(0,i)]);
-  }
+  inline void BSS_FASTCALL shuffle(T (&p)[size]) { shuffle<T,ST,RandFunc>(p,size); }
 
 #ifdef _INC_STDLIB //These shortcuts are only available if you have access to rand() in the first place
   // inline function wrapper to the #define RANDINTGEN

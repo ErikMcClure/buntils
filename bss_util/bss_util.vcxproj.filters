@@ -30,9 +30,6 @@
     <ClInclude Include="..\include\bss_alloc_fixed.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="..\include\bss_call.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
     <ClInclude Include="..\include\bss_compare.h">
       <Filter>Header Files</Filter>
     </ClInclude>

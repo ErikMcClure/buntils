@@ -4,7 +4,7 @@
 #ifndef __BSS_COMPARE_H__
 #define __BSS_COMPARE_H__
 
-#include "bss_call.h"
+#include "bss_defines.h"
 #include "bss_deprecated.h"
 
 #define SGNCOMPARE(left,right) (((left)>(right))-((left)<(right)))

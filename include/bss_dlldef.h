@@ -4,7 +4,7 @@
 #ifndef __BSS_DLLDEF_H__
 #define __BSS_DLLDEF_H__
 
-#include "bss_call.h"
+#include "bss_defines.h"
 
 #ifndef BSS_STATIC_LIB
 #ifdef BSS_UTIL_EXPORTS

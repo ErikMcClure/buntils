@@ -14,11 +14,17 @@
 #include <sys/stat.h>   // stat().
 #include <dirent.h> //Linux
 //#include <gtkmm.h> // file dialog
+#include <iconv.h>
+
+static iconv_t iconv_utf8to16=iconv_open("UTF-8", "UTF-16"); // We have to open these in C++ because C sucks.
+static iconv_t iconv_utf16to8=iconv_open("UTF-16", "UTF-8");
 #endif
 
 //typedef DWORD (WINAPI *GETFINALNAMEBYHANDLE)(HANDLE,LPWSTR,DWORD,DWORD);
 //static const HMODULE bssdll_KERNAL = LoadLibraryA("Kernal32.dll");
 //static const GETFINALNAMEBYHANDLE bssdll_GetFinalNameByHandle = (GETFINALNAMEBYHANDLE)GetProcAddress(bssdll_KERNAL,"GetFinalPathNameByHandleW");
+
+
 
 #ifdef BSS_PLATFORM_WIN32
 template<DWORD T_FLAG>

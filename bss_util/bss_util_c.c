@@ -8,6 +8,9 @@
 #include "bss_win32_includes.h"
 #else
 #include <iconv.h>
+
+extern iconv_t iconv_utf8to16;
+extern iconv_t iconv_utf16to8;
 #endif
 
 BSS_COMPILER_DLLEXPORT
@@ -98,8 +101,7 @@ extern size_t BSS_FASTCALL UTF8toUTF16(const char*BSS_RESTRICT input,wchar_t*BSS
   char* out = (char*)output;
   if(!output) return (len*4) + 1;
   len+=1; // include null terminator
-  static iconv_t utf8to16=iconv_open("UTF-8", "UTF-16");
-  iconv(utf8to16, &input, &len, &out, &buflen);
+  iconv(iconv_utf8to16, &input, &len, &out, &buflen);
 #endif
   /*const unsigned char* s = src;
   wchar_t* d = dst;
@@ -138,8 +140,7 @@ extern size_t BSS_FASTCALL UTF16toUTF8(const wchar_t*BSS_RESTRICT input, char*BS
   char* in = (char*)input;
   if(!output) return (len*2) + 1;
   len+=2; // include null terminator (which is 2 bytes wide here)
-  static iconv_t utf16to8=iconv_open("UTF-16", "UTF-8");
-  iconv(utf16to8, &in, &len, &output, &buflen);
+  iconv(iconv_utf16to8, &in, &len, &output, &buflen);
 #endif
 }
 

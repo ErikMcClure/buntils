@@ -4,7 +4,7 @@
 #ifndef __LOCKLESS_H__BSS__
 #define __LOCKLESS_H__BSS__
 
-#include "bss_call.h"
+#include "bss_defines.h"
 #include <intrin.h>
 
 #ifdef BSS_CPU_x86

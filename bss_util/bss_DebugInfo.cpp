@@ -7,7 +7,9 @@
 #include "bss_win32_includes.h"
 #include <psapi.h>
 #else
-
+#include <sys/types.h>  // stat()
+#include <sys/stat.h>   // stat()
+#include <unistd.h>     // readlink()
 #endif
 
 bss_DebugInfo::bss_DebugInfo(const bss_DebugInfo& copy) { assert(false); }

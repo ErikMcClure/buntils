@@ -9,6 +9,7 @@
 #include "bss_win32_includes.h"
 #include <process.h>
 #else // Assume BSS_PLATFORM_POSIX
+#include <pthread.h>
 #endif
 
 namespace bss_util {
@@ -31,19 +32,50 @@ namespace bss_util {
     // Blocks until this thread has terminated, and returns the threads exit code
     BSS_FORCEINLINE size_t Join()
     {
-      size_t ret;
+      size_t ret=(size_t)-1;
       if(_id!=(size_t)-1)
       {
 #ifdef BSS_PLATFORM_WIN32
-        WaitForSingleObject((HANDLE)_id,INFINITE);
+        if(WaitForSingleObject((HANDLE)_id,INFINITE)!=0)
+          return (size_t)-1;
         GetExitCodeThread((HANDLE)_id,(DWORD*)&ret); // size_t is gaurenteed to be big enough to hold DWORD
 #else // BSS_PLATFORM_POSIX
-        pthread_join(_id,(void*)&ret) // size_t is gaurenteed to be big enough to hold a pointer
+        if(pthread_join(_id,(void*)&ret)!=0) // size_t is gaurenteed to be big enough to hold a pointer
+          return (size_t)-1;
 #endif
       }
 
+      _id=(size_t)-1;
       return ret;
     }
+    // Blocks until either the thread has terminated, or 'timeout' milliseconds have elapsed. If a timeout occurs, returns -1.
+    BSS_FORCEINLINE size_t Join(size_t mstimeout)
+    {
+      size_t ret=(size_t)-1;
+      if(_id!=(size_t)-1)
+      {
+#ifdef BSS_PLATFORM_WIN32
+        if(WaitForSingleObject((HANDLE)_id,mstimeout)!=0)
+          return (size_t)-1;
+        GetExitCodeThread((HANDLE)_id,(DWORD*)&ret); // size_t is gaurenteed to be big enough to hold DWORD
+#else // BSS_PLATFORM_POSIX
+        struct timespec ts;
+        if(!mstimeout || clock_gettime(CLOCK_REALTIME, &ts) == -1) {
+          if(pthread_tryjoin_np(_id,(void*)&ret)!=0) // If failed, thread is either still busy or something blew up, so return -1
+            return (size_t)-1;
+        } else {
+          ts.tv_sec += mstimeout/1000;
+          ts.tv_nsec += (mstimeout%1000)*1000000;
+          if(pthread_timedjoin_np(_id,(void*)&ret, &ts)!=0) // size_t is gaurenteed to be big enough to hold a pointer
+            return (size_t)-1;
+        }
+#endif
+      }
+
+      _id=(size_t)-1;
+      return ret;
+    }
+
     // If this thread object does not currently have a valid thread, attempts to start one. Returns 0 on success, -1 if thread creation
     // failed, or -2 if an existing thread is still running.
     inline char BSS_FASTCALL Start(FUNC f, void* arg=0)
@@ -59,8 +91,11 @@ namespace bss_util {
     inline pthread_t GetID() const { return _id; }
 #endif
 
+    inline cThread& operator=(cThread&& mov) { _id=mov._id; mov._id=(size_t)-1; return *this; }
+
   protected:
     inline cThread(const cThread&) {} // No copying
+    inline cThread& operator=(const cThread&) { return *this; } // No copy assignment either
     BSS_FORCEINLINE void BSS_FASTCALL _start(FUNC f, void* arg=0)
     {
 #ifdef BSS_PLATFORM_WIN32
@@ -75,4 +110,4 @@ namespace bss_util {
   };
 }
 
-#endif*/
+#endif

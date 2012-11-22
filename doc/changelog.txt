@@ -21,6 +21,7 @@
 - Implemented POSIX unicode conversions
 - Fixed minor bug in Fisher-Yates shuffle algorithm (the last element was not being shuffled)
 - Threw out useless bss_call.h header and incorporated it into bss_defines.
+- cThread now has move assignment, join-with-timeout, and responds to errors.
 
 0.3.84
 ------

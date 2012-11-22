@@ -12,7 +12,6 @@
 #include "bss_dual.h"
 #include "bss_fixedpt.h"
 #include "bss_sse.h"
-#include "bss_win32_includes.h"
 #include "cArrayCircular.h"
 #include "cAVLtree.h"
 #include "cBinaryHeap.h"
@@ -53,18 +52,12 @@
 
 #include <fstream>
 #include <algorithm>
-#include <time.h>
-#include <process.h> // for _beginthreadex
 
-//#define BOOST_FILESYSTEM_VERSION 3
-//#define BOOST_ALL_NO_LIB
-//#define BOOST_ALL_DYN_LINK
-//#define BOOST_ALL_NO_DEPRECATED
-//#include <boost/filesystem.hpp>
+#ifdef BSS_PLATFORM_WIN32
+#include "bss_win32_includes.h"
+#endif
 
-#pragma warning(disable:4566)
-using namespace bss_util;
-
+#ifdef BSS_COMPILER_MSC
 #if defined(BSS_DEBUG) && defined(BSS_CPU_x86_64)
 #pragma comment(lib, "../bin/bss_util64_d.lib")
 #elif defined(BSS_CPU_x86_64)
@@ -74,6 +67,10 @@ using namespace bss_util;
 #else
 #pragma comment(lib, "../bin/bss_util.lib")
 #endif
+#endif
+
+#pragma warning(disable:4566)
+using namespace bss_util;
 
 // --- Define testing utilities ---
 
@@ -1572,7 +1569,7 @@ TEST::RETPAIR test_HIGHPRECISIONTIMER()
   TEST(ltime>0.0);
   TEST(ldelta<1000.0); //If that took longer than a second, either your CPU choked, or something went terribly wrong.
   TEST(ltime<1000.0);
-  timer.Update(std::numeric_limits<double>::max());
+  timer.Update(std::numeric_limits<double>::infinity());
   TEST(timer.GetDelta()==0.0);
   TEST(timer.GetTime()==ltime);
   timer.Update(0.5);
@@ -1978,8 +1975,7 @@ TEST::RETPAIR test_LOCKLESSQUEUE()
   }
 
   const int NUMTHREADS=24;
-  unsigned int tret[NUMTHREADS] = {0};
-  uintptr_t handles[NUMTHREADS] = {0};
+  cThread threads[NUMTHREADS];
   std::vector<size_t> values;
 
   //typedef cLocklessQueue<unsigned int,true,true,size_t,size_t> LLQUEUE_SCSP; 
@@ -1989,11 +1985,11 @@ TEST::RETPAIR test_LOCKLESSQUEUE()
   char ppp=_debug.OpenProfiler();
   lq_c=1;
 
-  handles[1]=_beginthreadex(0,0, _locklessqueue_consume<LLQUEUE_SCSP>, &q, 0, tret+1);
-  handles[0]=_beginthreadex(0,0, _locklessqueue_produce<LLQUEUE_SCSP>, &q, 0, tret+0);
-  while(WaitForSingleObject((void*)handles[0], 1)==WAIT_TIMEOUT)
+  threads[1]=cThread(_locklessqueue_consume<LLQUEUE_SCSP>, &q);
+  threads[0]=cThread(_locklessqueue_produce<LLQUEUE_SCSP>, &q);
+  while(threads[0].Join(1)==-1)
     values.push_back(q.Length());
-  WaitForSingleObject((void*)handles[1], INFINITE);
+  threads[1].Join();
   //std::cout << '\n' << _debug.CloseProfiler(ppp) << std::endl;
   bool check=true;
   for(int i = 0; i < TOTALNUM;++i)

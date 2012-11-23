@@ -130,7 +130,8 @@ extern void BSS_FASTCALL bss_util::ForceWin64Crash()
     tSetPolicy pSetPolicy = (tSetPolicy)GetProcAddress(kernel32, "SetProcessUserModeExceptionPolicy"); 
     if (pGetPolicy && pSetPolicy && pGetPolicy(&dwFlags)) 
       pSetPolicy(dwFlags & ~EXCEPTION_SWALLOWING); // Turn off the filter 
-#endif // Obviously in linux this function does nothing becuase linux isn't a BROKEN PIECE OF SHIT
+#endif
+ // Obviously in linux this function does nothing becuase linux isn't a BROKEN PIECE OF SHIT
 }
 
 BSS_COMPILER_DLLEXPORT extern unsigned long long BSS_FASTCALL bss_util::bssFileSize(const char* path)

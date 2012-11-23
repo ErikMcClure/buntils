@@ -50,12 +50,12 @@ public:
   inline operator std::ostream&() { return _stream; }
   
   template<unsigned char errlevel>
-  inline std::ostream& BSS_FASTCALL FORMATLOG(const char* FILE, unsigned int LINE) { return FORMATLOGLEVEL(bss_LOGERRLVL<errlevel>::ERRLVL(),FILE,LINE); }
-  inline std::ostream& BSS_FASTCALL FORMATLOGLEVEL(const char* LEVEL, const char* FILE, unsigned int LINE)
+  inline std::ostream& BSS_FASTCALL FORMATLOG(const char* file, unsigned int line) { return FORMATLOGLEVEL(bss_LOGERRLVL<errlevel>::ERRLVL(),file,line); }
+  inline std::ostream& BSS_FASTCALL FORMATLOGLEVEL(const char* level, const char* file, unsigned int line)
   {
 		_stream << '[';
     _writedatetime(_tz,_stream,true);
-    _stream << "] (" << _trimpath(FILE) << ':' << LINE << ") " << LEVEL;
+    _stream << "] (" << _trimpath(file) << ':' << line << ") " << level;
     return _stream;
   }
 

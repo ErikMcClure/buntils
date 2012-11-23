@@ -10,6 +10,7 @@
 using namespace bss_util;
 using namespace std;
 
+
 bss_Log::bss_Log(const bss_Log& copy) : _split(new StreamSplitter()), _stream(_split), _tz(GetTimeZoneMinutes()) { assert(false); }
 //bss_Log::bss_Log(const bss_Log& copy) : _split(new StreamSplitter(*copy._split)), _stream(_split), _tz(GetTimeZoneMinutes())
 //{

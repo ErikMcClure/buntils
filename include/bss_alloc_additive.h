@@ -118,10 +118,10 @@ namespace bss_util {
 
     inline pointer allocate(std::size_t cnt, 
       typename std::allocator<void>::const_pointer = 0) {
-        return alloc(cnt);
+        return cAdditiveFixedAllocator<T>::alloc(cnt);
     }
     inline void deallocate(pointer p, std::size_t num = 0) { }
-    inline void BSS_FASTCALL clear() { Clear(); } //done for functor reasons, BSS_COMPILER_FASTCALL has no effect here
+    inline void BSS_FASTCALL clear() { cAdditiveFixedAllocator<T>::Clear(); } //done for functor reasons, BSS_COMPILER_FASTCALL has no effect here
 	};
 
   // End Additive Fixed Allocator

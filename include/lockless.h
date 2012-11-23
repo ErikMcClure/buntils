@@ -5,7 +5,9 @@
 #define __LOCKLESS_H__BSS__
 
 #include "bss_defines.h"
+#ifdef BSS_COMPILER_MSC
 #include <intrin.h>
+#endif
 
 #ifdef BSS_CPU_x86
 #define BSSASM_PREG ECX
@@ -52,7 +54,10 @@ namespace bss_util {
 #endif
 	}
 #elif defined(BSS_COMPILER_GCC)
+	BSS_FORCEINLINE void CPU_Barrier()
+	{
 
+	}
 #endif
 #pragma warning(pop)
 

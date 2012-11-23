@@ -386,4 +386,5 @@ namespace Shiny {
 
 } // namespace Shiny
 
-#endif // if SHINY_PROFILER == TRUE
+#endif
+ // if SHINY_PROFILER == TRUE

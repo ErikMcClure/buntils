@@ -66,7 +66,8 @@ namespace bss_util {
   template<> struct TSignPick<8> { typedef __int64 SIGNED; typedef unsigned __int64 UNSIGNED; };
 //#ifdef BSS_64BIT
 //  template<> struct TSignPick<16> { typedef __int128 SIGNED; typedef unsigned __int128 UNSIGNED; };
-//#endif 
+//#endif
+ 
 
   // Get max size of an arbitrary number of bits, either signed or unsigned (assuming one's or two's complement implementation)
   template<unsigned char BITS>

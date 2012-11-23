@@ -8,6 +8,7 @@
 #include "bss_win32_includes.h"
 #endif
 
+
 cCmdLineArgs::cCmdLineArgs(int argc, char** argv) : _cmdline(0)
 {
   if(!argv || !argc)
@@ -23,6 +24,7 @@ cCmdLineArgs::cCmdLineArgs(int argc, char** argv) : _cmdline(0)
       ParseCmdLine(); 
     }
 #endif
+
   }
   else
   {

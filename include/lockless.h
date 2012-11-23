@@ -87,7 +87,8 @@ namespace bss_util {
   template<typename T> struct ATOMIC_XADDPICK<T,2> { BSS_FORCEINLINE static T BSS_FASTCALL atomic_xadd(volatile T* p, T v) { return (T)_InterlockedExchangeAdd16((volatile short*)p,v); } };
   template<typename T> struct ATOMIC_XADDPICK<T,4> { BSS_FORCEINLINE static T BSS_FASTCALL atomic_xadd(volatile T* p, T v) { return (T)_InterlockedExchangeAdd((volatile long*)p,v); } };
   template<typename T> struct ATOMIC_XADDPICK<T,8> { BSS_FORCEINLINE static T BSS_FASTCALL atomic_xadd(volatile T* p, T v) { return (T)_InterlockedExchangeAdd64((volatile __int64*)p,v); } };
-#endif //#ifdef BSS_COMPILER_GCC
+#endif
+ //#ifdef BSS_COMPILER_GCC
   
   template<typename T> // This performs an atomic addition, and returns the value of the variable BEFORE the addition. This is faster if p is 32-bit aligned.
   BSS_FORCEINLINE T BSS_FASTCALL atomic_xadd(volatile T* p, T val=1)
@@ -121,7 +122,8 @@ namespace bss_util {
   template<typename T> struct ATOMIC_XCHGPICK<T,2> { static inline BSS_FORCEINLINE T BSS_FASTCALL atomic_xchg(volatile T* p, T val) { return (T)_InterlockedExchange16((volatile short*)p,(short)val); } };
   template<typename T> struct ATOMIC_XCHGPICK<T,4> { static inline BSS_FORCEINLINE T BSS_FASTCALL atomic_xchg(volatile T* p, T val) { return (T)_InterlockedExchange((volatile long*)p,(long)val); } };
   template<typename T> struct ATOMIC_XCHGPICK<T,8> { static inline BSS_FORCEINLINE T BSS_FASTCALL atomic_xchg(volatile T* p, T val) { return (T)_InterlockedExchange64((volatile __int64*)p,(__int64)val); } };
-#endif //#ifdef BSS_COMPILER_GCC
+#endif
+ //#ifdef BSS_COMPILER_GCC
 
   template<typename T> // This performs an atomic exchange, and returns the old value of *p. This is faster if p is 32-bit aligned.
   inline BSS_FORCEINLINE T BSS_FASTCALL atomic_xchg(volatile T* p, T val)
@@ -331,7 +333,8 @@ namespace bss_util {
   template<typename T> struct ASMCAS_REGPICK_READ<T,8> { 
     inline static BSS_FORCEINLINE T BSS_FASTCALL asmcas(volatile T *dest, T newval, T oldval) { return _InterlockedCompareExchange64((volatile long long*)dest,(__int64)newval, (__int64)oldval); } 
   };
-#endif // #ifndef BSS_MSC_NOASM
+#endif
+ // #ifndef BSS_MSC_NOASM
 
   // Provides assembly level Compare and Exchange operation. Always returns the old value.
   template<typename T>
@@ -360,7 +363,8 @@ namespace bss_util {
   //    lock CMPXCHG8B [esi]; 
   //  } 
   //}
-#endif //defined(BSS_CPU_x86_64) || defined(BSS_CPU_x86)
+#endif
+ //defined(BSS_CPU_x86_64) || defined(BSS_CPU_x86)
 
   /* This is a flip-flop that allows lockless two thread communication using the exchange property of CAS */
   /*template<typename T>

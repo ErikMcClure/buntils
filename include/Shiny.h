@@ -30,7 +30,8 @@ restrictions:
 #include "shiny/ShinyMacros.h"
 #include "shiny/ShinyManager.h"
 
-#endif // ifndef SHINY_*_H
+#endif
+ // ifndef SHINY_*_H
 
 
 

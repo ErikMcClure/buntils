@@ -139,7 +139,10 @@ namespace bss_util {
   template<typename T, typename _Nd>
   class BSS_COMPILER_DLLEXPORT LLIterator : public std::iterator<std::bidirectional_iterator_tag,T>
 	{
-public:
+  protected:
+    typedef typename std::iterator<std::bidirectional_iterator_tag,T>::pointer pointer;
+    typedef typename std::iterator<std::bidirectional_iterator_tag,T>::reference reference;
+  public:
     inline LLIterator() : cur(0) {}
     inline explicit LLIterator(_Nd* node) : cur(node) { }
     //inline reference operator*() const { } //Inherited iterators must define this based on where they store T

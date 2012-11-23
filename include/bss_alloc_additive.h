@@ -106,6 +106,7 @@ namespace bss_util {
 	template<typename T>
   class BSS_COMPILER_DLLEXPORT AdditiveFixedPolicy : public AllocPolicySize<T>, protected cAdditiveFixedAllocator<T> {
 	public:
+    typedef typename AllocPolicySize<T>::pointer pointer;
     template<typename U>
     struct rebind { typedef AdditiveFixedPolicy<U> other; };
 

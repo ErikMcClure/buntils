@@ -13,7 +13,7 @@ namespace bss_util {
   template<typename T, typename D, typename ST_, char (*CFunc)(const D&, const T&), char (*CEQ)(const char&, const char&), char CVAL>
   inline ST_ BSS_FASTCALL binsearch_near(const T* arr, const D& data, ST_ first, ST_ last)
   {
-    TSignPick<sizeof(ST_)>::SIGNED c = last-first; // Must be a signed version of whatever ST_ is
+    typename TSignPick<sizeof(ST_)>::SIGNED c = last-first; // Must be a signed version of whatever ST_ is
     ST_ c2; //No possible operation can make this negative so we leave it as possibly unsigned.
     ST_ m;
 	  while(c>0)

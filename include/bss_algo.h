@@ -5,6 +5,7 @@
 #define __BSS_ALGO_H__
 
 #include "bss_util.h"
+#include "bss_compare.h"
 #include <algorithm>
 #include <random>
 
@@ -87,7 +88,6 @@ namespace bss_util {
   template<typename T, typename ST, ST size, ST (*RandFunc)(ST min, ST max)>
   inline void BSS_FASTCALL shuffle(T (&p)[size]) { shuffle<T,ST,RandFunc>(p,size); }
 
-#ifdef _INC_STDLIB //These shortcuts are only available if you have access to rand() in the first place
   // inline function wrapper to the #define RANDINTGEN
   inline BSS_FORCEINLINE int bss_randfunc(int min, int max)
   {
@@ -105,7 +105,6 @@ namespace bss_util {
   {
     shuffle<T,int,size,&bss_randfunc>(p);
   }
-#endif
 
   template<class F, typename T, size_t SIZE>
   inline BSS_FORCEINLINE void transform(T (&t)[SIZE],T (&result)[SIZE], F func) { std::transform(std::begin(t),std::end(t),result,func); }

@@ -6,15 +6,64 @@
 
 #include "bss_compiler.h"
 #include "bss_deprecated.h"
-#include <emmintrin.h>
 #include <assert.h>
+#include <emmintrin.h>
 
 // Define compiler-specific intrinsics for working with SSE.
-#ifdef BSS_COMPILER_INTEL
+/*#ifdef BSS_COMPILER_GCC
+#define BSS_SSE_LOAD_APS __builtin_ia32_loadaps
+#define BSS_SSE_LOAD_UPS __builtin_ia32_loadups
+#define BSS_SSE_SET_PS 
+#define BSS_SSE_SET1_PS 
+#define BSS_SSE_STORE_APS __builtin_ia32_storeaps
+#define BSS_SSE_STORE_UPS __builtin_ia32_storeups
+#define BSS_SSE_ADD_PS __builtin_ia32_addps
+#define BSS_SSE_SUB_PS __builtin_ia32_subps 
+#define BSS_SSE_MUL_PS __builtin_ia32_mulps
+#define BSS_SSE_DIV_PS __builtin_ia32_divps
 
-#elif defined BSS_COMPILER_GCC // GCC
+#define BSS_SSE_LOAD_ASI128 
+#define BSS_SSE_LOAD_USI128 
+#define BSS_SSE_SET_EPI32 
+#define BSS_SSE_SET1_EPI32 
+#define BSS_SSE_STORE_ASI128 
+#define BSS_SSE_STORE_USI128 
+#define BSS_SSE_ADD_EPI32 __builtin_ia32_paddd128
+#define BSS_SSE_SUB_EPI32 __builtin_ia32_psubd128
+#define BSS_SSE_AND __builtin_ia32_pand
+#define BSS_SSE_OR __builtin_ia32_por
+#define BSS_SSE_XOR __builtin_ia32_pxor
+#define BSS_SSE_SL_EPI32 __builtin_ia32_pslld128
+#define BSS_SSE_SLI_EPI32 __builtin_ia32_pslldi128
+#define BSS_SSE_SR_EPI32 __builtin_ia32_psrld128
+#define BSS_SSE_SRI_EPI32 __builtin_ia32_psrldi128
+#define BSS_SSE_SAR_EPI32 __builtin_ia32_psrad128 //Arithmetic right shift
+#define BSS_SSE_SARI_EPI32 __builtin_ia32_psradi128
+#define BSS_SSE_CMPEQ_EPI32 __builtin_ia32_pcmpeqd128
+#define BSS_SSE_CMPLT_EPI32 
+#define BSS_SSE_CMPGT_EPI32 __builtin_ia32_pcmpgtd128
+#define BSS_SSE_SHUFFLE_EPI32 __builtin_ia32_pshufd
 
-#elif defined BSS_COMPILER_MSC // VC++
+#define BSS_SSE_SET_EPI64 
+#define BSS_SSE_SET1_EPI64 
+#define BSS_SSE_ADD_EPI64 __builtin_ia32_paddq128
+#define BSS_SSE_SUB_EPI64 __builtin_ia32_psubq128
+#define BSS_SSE_SL_EPI64 __builtin_ia32_psllq128
+#define BSS_SSE_SLI_EPI64 __builtin_ia32_psllqi128
+#define BSS_SSE_SR_EPI32 __builtin_ia32_psrlq128
+#define BSS_SSE_SRI_EPI32 __builtin_ia32_psrlqi128
+
+#define BSS_SSE_SHUFFLEHI_EPI16 __builtin_ia32_pshufhw
+#define BSS_SSE_SHUFFLELO_EPI16 __builtin_ia32_pshuflw
+
+#define BSS_SSE_TPS_EPI32 __builtin_ia32_cvttps2dq //converts using truncation
+#define BSS_SSE_PS_EPI32 __builtin_ia32_cvtps2dq
+#define BSS_SSE_EPI32_PS __builtin_ia32_cvtdq2ps
+#define BSS_SSE_M128 v4sf
+#define BSS_SSE_M128i v4si
+#define BSS_SSE_M128i64 v2di
+*/
+//#elif defined(BSS_COMPILER_MSC) || defined(BSS_COMPILER_INTEL) // VC++ or intel
 #define BSS_SSE_LOAD_APS _mm_load_ps
 #define BSS_SSE_LOAD_UPS _mm_loadu_ps
 #define BSS_SSE_SET_PS _mm_set_ps
@@ -65,7 +114,8 @@
 #define BSS_SSE_EPI32_PS _mm_cvtepi32_ps
 #define BSS_SSE_M128 __m128
 #define BSS_SSE_M128i __m128i
-#endif
+#define BSS_SSE_M128i64 __m128i
+//#endif
 
 // Struct that wraps around a pointer to signify that it is not aligned
 template<typename T>
@@ -153,12 +203,12 @@ BSS_ALIGNED_STRUCT(16) sseVeci
 // 64-bit signed integer operations
 BSS_ALIGNED_STRUCT(16) sseVeci64
 {
-  BSS_FORCEINLINE sseVeci64(BSS_SSE_M128i v) : xmm(v) {} //__fastcall is obviously useless here since we're dealing with xmm registers
-  BSS_FORCEINLINE sseVeci64(__int64 v) { BSS_ALIGN(16) __int64 vv[2]={v,v}; xmm=BSS_SSE_LOAD_ASI128((BSS_SSE_M128i*)vv); }
+  BSS_FORCEINLINE sseVeci64(BSS_SSE_M128i64 v) : xmm(v) {} //__fastcall is obviously useless here since we're dealing with xmm registers
+  BSS_FORCEINLINE sseVeci64(__int64 v) { BSS_ALIGN(16) __int64 vv[2]={v,v}; xmm=BSS_SSE_LOAD_ASI128((BSS_SSE_M128i64*)vv); }
   //BSS_FORCEINLINE sseVeci64(const int*BSS_RESTRICT v) : xmm(BSS_SSE_LOAD_ASI128(v)) { assert(!(((size_t)v)%16)); }
-  BSS_FORCEINLINE explicit sseVeci64(const __int64 (&v)[2]) : xmm(BSS_SSE_LOAD_ASI128((BSS_SSE_M128i*)v)) { assert(!(((size_t)v)%16)); }
-  BSS_FORCEINLINE explicit sseVeci64(BSS_UNALIGNED<const __int64> v) : xmm(BSS_SSE_LOAD_USI128((BSS_SSE_M128i*)v._p)) {}
-  BSS_FORCEINLINE sseVeci64(__int64 x,__int64 y) { BSS_ALIGN(16) __int64 xy[2]={x,y}; xmm=BSS_SSE_LOAD_ASI128((BSS_SSE_M128i*)xy); }
+  BSS_FORCEINLINE explicit sseVeci64(const __int64 (&v)[2]) : xmm(BSS_SSE_LOAD_ASI128((BSS_SSE_M128i64*)v)) { assert(!(((size_t)v)%16)); }
+  BSS_FORCEINLINE explicit sseVeci64(BSS_UNALIGNED<const __int64> v) : xmm(BSS_SSE_LOAD_USI128((BSS_SSE_M128i64*)v._p)) {}
+  BSS_FORCEINLINE sseVeci64(__int64 x,__int64 y) { BSS_ALIGN(16) __int64 xy[2]={x,y}; xmm=BSS_SSE_LOAD_ASI128((BSS_SSE_M128i64*)xy); }
   BSS_FORCEINLINE const sseVeci64 operator+(const sseVeci64& r) const { return sseVeci64(BSS_SSE_ADD_EPI64(xmm, r.xmm)); } // These don't return const sseVeci64 because it makes things messy.
   BSS_FORCEINLINE const sseVeci64 operator-(const sseVeci64& r) const { return sseVeci64(BSS_SSE_SUB_EPI64(xmm, r.xmm)); }
   BSS_FORCEINLINE const sseVeci64 operator&(const sseVeci64& r) const { return sseVeci64(BSS_SSE_AND(xmm, r.xmm)); }
@@ -178,14 +228,14 @@ BSS_ALIGNED_STRUCT(16) sseVeci64
   BSS_FORCEINLINE sseVeci64& operator<<=(const sseVeci64& r) { xmm=BSS_SSE_SL_EPI64(xmm, r.xmm); return *this; }
   BSS_FORCEINLINE sseVeci64& operator<<=(int r) { xmm=BSS_SSE_SLI_EPI64(xmm, r); return *this; }
 
-  BSS_FORCEINLINE operator BSS_SSE_M128i() const { return xmm; }
+  BSS_FORCEINLINE operator BSS_SSE_M128i64() const { return xmm; }
   BSS_FORCEINLINE const sseVeci64 operator~() const { return sseVeci64(BSS_SSE_XOR(xmm, sseVeci64(-1))); }
-  BSS_FORCEINLINE sseVeci64& operator=(BSS_SSE_M128i r) { xmm=r; return *this; }
-  BSS_FORCEINLINE void operator>>(__int64 (&v)[2]) const { assert(!(((size_t)v)%16)); BSS_SSE_STORE_ASI128((BSS_SSE_M128i*)v, xmm); }
-  BSS_FORCEINLINE void operator>>(BSS_UNALIGNED<__int64> v) const { BSS_SSE_STORE_USI128((BSS_SSE_M128i*)v._p, xmm); }
+  BSS_FORCEINLINE sseVeci64& operator=(BSS_SSE_M128i64 r) { xmm=r; return *this; }
+  BSS_FORCEINLINE void operator>>(__int64 (&v)[2]) const { assert(!(((size_t)v)%16)); BSS_SSE_STORE_ASI128((BSS_SSE_M128i64*)v, xmm); }
+  BSS_FORCEINLINE void operator>>(BSS_UNALIGNED<__int64> v) const { BSS_SSE_STORE_USI128((BSS_SSE_M128i64*)v._p, xmm); }
   static sseVeci64 ZeroVector() { return sseVeci64(_mm_setzero_si128()); }
 
-  BSS_SSE_M128i xmm;
+  BSS_SSE_M128i64 xmm;
 };
 
 #endif

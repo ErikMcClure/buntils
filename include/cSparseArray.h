@@ -8,19 +8,19 @@
 
 namespace bss_util {
   // Sparse array implementation that allows you to specify how sparse it is
-  template<typename T, int Sparsity=4, typename _ST=unsigned int>
-  class BSS_COMPILER_DLLEXPORT cSparseArray : protected cBitArray<unsigned char, _ST>
+  template<typename T, int Sparsity=4, typename ST_=unsigned int>
+  class BSS_COMPILER_DLLEXPORT cSparseArray : protected cBitArray<unsigned char, ST_>
   {
   protected:
     union SPARSE_ELEM
     {
       T _elem;
-      _ST _index;
+      ST_ _index;
     };
 
   public:
-    cSparseArray(const cSparseArray& copy) : _array(0), _size(0), cBitArray<unsigned char, _ST>(copy) { _resize(right._size); memcpy(_array, right._array, sizeof(SPARSE_ELEM)*_size); }
-    cSparseArray(ST_ init=1) : _array(0), _size(0), cBitArray<unsigned char, _ST>(init) { _resize(init); }
+    cSparseArray(const cSparseArray& copy) : _array(0), _size(0), cBitArray<unsigned char, ST_>(copy) { _resize(right._size); memcpy(_array, right._array, sizeof(SPARSE_ELEM)*_size); }
+    cSparseArray(ST_ init=1) : _array(0), _size(0), cBitArray<unsigned char, ST_>(init) { _resize(init); }
     ~cSparseArray() { delete [] _array; } //We always have array equal something, even if its a zero length array
     // appends something to the end of the array, pushing everything else back. This cannot fail (well, unless you run out of memory. But if you ran out of memory, boy are you fucked)
     void Add(const T item)
@@ -95,7 +95,7 @@ namespace bss_util {
     }
 
     const T operator[](ST_ index) const { return _array[index]._elem; }
-    cSparseArray& operator=(const cSparseArray& right) { if(right._size>_size) _resize(right._size); memcpy(_array, right._array, sizeof(SPARSE_ELEM)*_size); cBitArray<char, _ST>::operator=(right); }
+    cSparseArray& operator=(const cSparseArray& right) { if(right._size>_size) _resize(right._size); memcpy(_array, right._array, sizeof(SPARSE_ELEM)*_size); cBitArray<char, ST_>::operator=(right); }
 
   protected:
     void _expand(ST_ size) //size must be at least _size*Sparsity

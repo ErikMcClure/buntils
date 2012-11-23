@@ -36,6 +36,9 @@ namespace bss_util {
   template<typename T, typename _Nd=cLLNode<T>>
   class BSS_COMPILER_DLLEXPORT cLLIter : public LLIterator<T,_Nd>
   {
+  protected:
+    typedef typename LLIterator<T,_Nd>::pointer pointer;
+    typedef typename LLIterator<T,_Nd>::reference reference;
   public:
     inline cLLIter() {}
     inline explicit cLLIter(_Nd* node) : LLIterator<T,_Nd>(node) { }

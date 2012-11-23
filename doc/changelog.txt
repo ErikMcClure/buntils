@@ -15,7 +15,7 @@
 - Fixed a bunch of windows specific header includes and some missing header dependencies
 - Added a deleter class for unique_ptr that forces a pointer to be deallocated inside the bss_util dll.
 - Changed FileDialog to utilize the above deleter, so that it now returns a dynamically allocated string that is automatically cleaned up.
-- Cleaned up static usage, certain template shortcuts GCC didn't like, and implemented a GCC workaround for missing stream move semantics in bss_Log
+- Cleaned up static usage, template shortcuts GCC didn't like, and implemented a GCC workaround for missing stream move semantics in bss_Log
 - Implemented POSIX version of cHighPrecisionTimer and added test for it
 - Adjusts bss_DebugInfo to take advantage of POSIX specific profiler timers exposed in cHighPrecisionTimer on POSIX systems
 - Implemented POSIX unicode conversions

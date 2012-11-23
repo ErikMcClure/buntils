@@ -6,7 +6,6 @@
 
 #include "bss_util.h"
 #include "cArraySimple.h"
-#include <xutility>
 
 namespace bss_util {
   template<class T,typename SizeType>

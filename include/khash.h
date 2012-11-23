@@ -516,4 +516,5 @@ typedef const char *kh_cstr_t;
 #define KHASH_MAP_INIT_STRINS(name, khval_t)								\
 	KHASH_INIT(name, kh_cstr_t, khval_t, 1, kh_str_hash_funcins, kh_str_hash_insequal)
 
-#endif /* __AC_KHASH_H */
+#endif
+ /* __AC_KHASH_H */

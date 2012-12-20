@@ -52,9 +52,12 @@
 
 #include <fstream>
 #include <algorithm>
+#include <limits.h> // for INT_MIN, INT_MAX etc. on GCC
+#include <float.h> // FLT_EPSILON, etc. on GCC
+#include <iostream>
 
 #ifdef BSS_PLATFORM_WIN32
-#include "bss_win32_includes.h"
+//#include "bss_win32_includes.h"
 #endif
 
 #ifdef BSS_COMPILER_MSC
@@ -71,6 +74,13 @@
 
 #pragma warning(disable:4566)
 using namespace bss_util;
+
+// --- Define global variables ---
+
+const int TESTNUM=100000;
+int testnums[TESTNUM];
+BSSDEBUG _debug;
+bss_Log _failedtests("../bin/failedtests.txt"); //This is spawned too early for us to save it with SetWorkDirToCur();
 
 // --- Define testing utilities ---
 
@@ -149,11 +159,6 @@ const wchar_t* PANGRAMS[] = {
   L"เป็นมนุษย์สุดประเสริฐเลิศคุณค่า กว่าบรรดาฝูงสัตว์เดรัจฉาน จงฝ่าฟันพัฒนาวิชาการ อย่าล้างผลาญฤๅเข่นฆ่าบีฑาใคร ไม่ถือโทษโกรธแช่งซัดฮึดฮัดด่า หัดอภัยเหมือนกีฬาอัชฌาสัย ปฏิบัติประพฤติกฎกำหนดใจ พูดจาให้จ๊ะๆ จ๋าๆ น่าฟังเอยฯ", //Thai
   L"ژالہ باری میں ر‌ضائی کو غلط اوڑھے بیٹھی قرۃ العین اور عظمٰی کے پاس گھر کے ذخیرے سے آناً فاناً ڈش میں ثابت جو، صراحی میں چائے اور پلیٹ میں زردہ آیا۔" //Urdu
 };
-
-const int TESTNUM=100000;
-int testnums[TESTNUM];
-BSSDEBUG _debug;
-bss_Log _failedtests("../bin/failedtests.txt"); //This is spawned too early for us to save it with SetWorkDirToCur();
 
 template<unsigned char B, __int64 SMIN, __int64 SMAX, unsigned __int64 UMIN, unsigned __int64 UMAX>
 inline void BSS_FASTCALL TEST_ABITLIMIT(TEST::RETPAIR& __testret)
@@ -245,9 +250,7 @@ TEST::RETPAIR test_bss_util()
 {
   BEGINTEST;
   TESTNOERROR(SetWorkDirToCur());
-  char fbuf[MAX_PATH];
-  GetModuleFileNameA(0,fbuf,MAX_PATH);
-  TEST(bssFileSize(fbuf)!=0);
+  TEST(bssFileSize(_debug.ModulePath())!=0);
   //TEST(bssFileSize(cStrW(fbuf))!=0);
   TESTNOERROR(GetTimeZoneMinutes());
   
@@ -534,7 +537,7 @@ TEST::RETPAIR test_bss_util()
   TEST(fabs(FastSqrt(2.0) - sqrt(2.0))<=(DBL_EPSILON*100)); // Take note of the 100 epsilon error here on the fastsqrt for doubles.
   uint nmatch;
   for(nmatch = 1; nmatch < 200000; ++nmatch)
-    if(FastSqrt(nmatch)!=(uint)std::sqrtl(nmatch))
+    if(FastSqrt(nmatch)!=(uint)sqrtl(nmatch))
       break;
   TEST(nmatch==200000);
 

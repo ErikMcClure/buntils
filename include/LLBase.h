@@ -57,6 +57,16 @@ namespace bss_util {
     LLInsertAssign(node,target);
     LLInsert(node,target);
   }
+  
+  // Does a full insert before the root
+  template<typename T>
+  BSS_FORCEINLINE void BSS_FASTCALL LLInsertRoot(T* node, T*& root)
+  {
+    node->prev=0;
+    node->next=root;
+    if(root) root->prev=node;
+    root=node;
+  }
 
   // Inserts the node before the target and re-assigns last if necessary. Does not assign values to node.
   template<typename T>

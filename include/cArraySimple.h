@@ -36,28 +36,40 @@ namespace bss_util {
     {
       if(nsize==_size) return;
       if(_array!=0) free(_array);
-      _array = (T*)_minmalloc(nsize*sizeof(T));
-      _size=nsize;
+      _array = (T*)malloc(nsize*sizeof(T));
+      _size=!_array?0:nsize;
     }
     inline void BSS_FASTCALL SetSize(SizeType nsize)
     {
       if(nsize==_size) return;
-      T* narray = (T*)_minmalloc(nsize*sizeof(T));
-      memcpy(narray,_array,((nsize<_size)?(nsize):(_size))*sizeof(T));
-      if(_array!=0) free(_array);
-      _array=narray;
-      _size=nsize;
+      //T* narray = (T*)_minmalloc(nsize*sizeof(T));
+      //memcpy(narray,_array,((nsize<_size)?(nsize):(_size))*sizeof(T));
+      //if(_array!=0) free(_array);
+      T* narray = (T*)realloc(_array,nsize*sizeof(T));
+      if(!narray && nsize>0) free(_array); // realloc won't free _array if it fails
+      _array=!nsize?0:narray; // If nsize is 0 realloc will just deallocate _array.
+      _size=!_array?0:nsize;
     }
     inline void BSS_FASTCALL RemoveInternal(SizeType index)
     {
+      assert(_size>0);
       memmove(_array+index,_array+index+1,(_size-index-1)*sizeof(T));
       //--_size;
     }
     inline void BSS_FASTCALL Insert(T item, SizeType location)
     {
       SizeType nsize=_size+1;
-      T* narray = (T*)_minmalloc(nsize*sizeof(T));
+      if(location==_size)
+      {
+        SetSize(nsize);
+        assert(_array!=0);
+        _array[location]=item;
+        return;
+      }
+
+      T* narray = (T*)malloc(nsize*sizeof(T)); // Don't need _minmalloc here because nsize can't be 0
       memcpy(narray,_array,location*sizeof(T));
+      assert(narray!=0);
       narray[location]=item;
       memcpy(narray+location+1,_array+location,(_size-location)*sizeof(T));
       if(_array!=0) free(_array);
@@ -71,8 +83,9 @@ namespace bss_util {
       if(this == &copy) return *this;
       if(_array!=0) free(_array);
       _size=copy._size;
-      _array=(T*)_minmalloc(_size*sizeof(T));
-      memcpy(_array,copy._array,_size*sizeof(T));
+      _array=!_size?0:(T*)malloc(_size*sizeof(T));
+      if(_array)
+        memcpy(_array,copy._array,_size*sizeof(T));
       return *this;
     }
     inline cArraySimple<T,SizeType>& operator=(cArraySimple<T,SizeType>&& mov)
@@ -89,7 +102,8 @@ namespace bss_util {
     {
       SizeType oldsize=_size;
       SetSize(_size+add._size);
-      memcpy(_array+oldsize,add._array,add._size*sizeof(T));
+      if(add._size>0) 
+        memcpy(_array+oldsize,add._array,add._size*sizeof(T));
       return *this;
     }
     inline const cArraySimple<T,SizeType> operator +(const cArraySimple<T,SizeType>& add)
@@ -100,11 +114,12 @@ namespace bss_util {
     }
     inline void Scrub(int val)
     {
-      memset(_array,val,_size*sizeof(T));
+      if(_array!=0)
+        memset(_array,val,_size*sizeof(T));
     }
 
   protected:
-    inline BSS_FORCEINLINE static void* _minmalloc(size_t n) { return malloc((n<1)?1:n); } //Malloc can legally return NULL if it tries to allocate 0 bytes
+    //inline BSS_FORCEINLINE static void* _minmalloc(size_t n) { return malloc((n<1)?1:n); } //Malloc can legally return NULL if it tries to allocate 0 bytes
     template<typename U>
     inline void _pushback(SizeType index, SizeType length, U && data) 
     {

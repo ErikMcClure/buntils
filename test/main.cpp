@@ -1534,6 +1534,42 @@ TEST::RETPAIR test_BITARRAY()
 TEST::RETPAIR test_BITFIELD()
 {
   BEGINTEST;
+  cBitField<uint> t;
+  TEST(t==0);
+  t[1]=true;
+  TEST(t==1);
+  t[2]=false;
+  TEST(t==1);
+  t[3]=t[1];
+  TEST(t==3);
+  t[2]=false;
+  TEST(t==1);
+  t[4]=true;
+  TEST(t==5);
+  t[8]=true;
+  TEST(t==13);
+  t=7;
+  TEST(t==7);
+  t(1,false);
+  TEST(t==6);
+  t(2,false);
+  TEST(t==4);
+  t(1,true);
+  TEST(t==5);
+  t+=3;
+  TEST(t==7);
+  t-=1;
+  TEST(t==6);
+  t-=3;
+  TEST(t==4);
+  t+=7;
+  TEST(t==7);
+  t-=4;
+  TEST(t==3);
+  t.Set(3,3);
+  TEST(t==3);
+  t.Set(5,-1);
+  TEST(t==5);
   ENDTEST;
 }
 
@@ -2639,7 +2675,7 @@ int main(int argc, char** argv)
     { "cAVLtree.h", &test_AVLTREE },
     { "cBinaryHeap.h", &test_BINARYHEAP },
     //{ "cBitArray.h", &test_BITARRAY },
-    //{ "cBitField.h", &test_BITFIELD },
+    { "cBitField.h", &test_BITFIELD },
     //{ "cBSS_Stack.h", &test_BSS_STACK },
     //{ "cByteQueue.h", &test_BYTEQUEUE },
     //{ "cCmdLineArgs.h", &test_CMDLINEARGS },

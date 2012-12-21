@@ -23,6 +23,7 @@
 - Threw out useless bss_call.h header and incorporated it into bss_defines.
 - cThread now has move assignment, join-with-timeout, and responds to errors.
 - cArraySimple uses realloc and avoids memory allocation when set to size 0
+- Rebuilt cBitField into a non-inheritable class with more powerful management simplified via operators.
 
 0.3.84
 ------

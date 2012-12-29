@@ -62,6 +62,9 @@
     <ClInclude Include="..\include\bss_util_c.h" />
     <ClInclude Include="..\include\bss_win32_includes.h" />
     <ClInclude Include="..\include\cAliasTable.h" />
+    <ClInclude Include="..\include\AniAttribute.h" />
+    <ClInclude Include="..\include\AniTypeID.h" />
+    <ClInclude Include="..\include\cAnimation.h" />
     <ClInclude Include="..\include\cArrayCircular.h" />
     <ClInclude Include="..\include\cArraySimple.h" />
     <ClInclude Include="..\include\cArraySort.h" />
@@ -99,7 +102,7 @@
     <ClInclude Include="..\include\cStrTable.h" />
     <ClInclude Include="..\include\cThread.h" />
     <ClInclude Include="..\include\cUniquePtr.h" />
-    <ClInclude Include="..\include\functor.h" />
+    <ClInclude Include="..\include\delegate.h" />
     <ClInclude Include="..\include\INIparse.h" />
     <ClInclude Include="..\include\khash.h" />
     <ClInclude Include="..\include\leaktest.h" />
@@ -114,6 +117,7 @@
     <ClCompile Include="bss_Log.cpp" />
     <ClCompile Include="bss_util.cpp" />
     <ClCompile Include="bss_util_c.c" />
+    <ClCompile Include="cAnimation.cpp" />
     <ClCompile Include="cCmdLineArgs.cpp" />
     <ClCompile Include="cHighPrecisionTimer.cpp" />
     <ClCompile Include="cINIentry.cpp" />

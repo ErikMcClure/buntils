@@ -6,7 +6,6 @@
 
 #include "bss_compare.h"
 #include "bss_alloc.h"
-#include "functor.h"
 
 namespace bss_util {
   template<class Key, class Data>

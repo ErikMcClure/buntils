@@ -24,6 +24,9 @@
 - cThread now has move assignment, join-with-timeout, and responds to errors.
 - cArraySimple uses realloc and avoids memory allocation when set to size 0
 - Rebuilt cBitField into a non-inheritable class with more powerful management simplified via operators.
+- Renamed TEST to TESTDEF so as not to confuse it with the TEST() macro
+- Removed functor.h and replaced with delegate.h, which is a more elegant and efficient implementation.
+- Introduced cAnimation.h, which defines a fully generic animation system that can be used for anything.
 
 0.3.84
 ------

@@ -215,26 +215,6 @@ namespace bss_util {
     AFLISTITEM* _root;
     size_t _curpos;
   };
-  
-	//template<typename T>
- // class BSS_COMPILER_DLLEXPORT AdditiveVariablePolicy : public AllocPolicySize<T>, protected cAdditiveVariableAllocator<64> {
-	//public:
- //   template<typename U>
- //   struct rebind { typedef AdditiveVariablePolicy<U> other; };
-
- //   inline explicit AdditiveVariablePolicy() {}
- //   inline ~AdditiveVariablePolicy() {}
- //   inline explicit AdditiveVariablePolicy(AdditiveVariablePolicy const&) {}
- //   template <typename U>
- //   inline explicit AdditiveVariablePolicy(AdditiveVariablePolicy<U> const&) {}
-
- //   inline pointer allocate(std::size_t cnt, 
- //     typename std::allocator<void>::const_pointer = 0) {
- //       return alloc(cnt);
- //   }
- //   inline void deallocate(pointer p, std::size_t num = 0) { }
- //   inline void BSS_FASTCALL clear() { Clear(); } //done for functor reasons, BSS_COMPILER_FASTCALL has no effect here
-	//};
 }
 
 

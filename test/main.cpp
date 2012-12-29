@@ -37,6 +37,7 @@
 #include "cTRBtree.h"
 #include "cRefCounter.h"
 //#include "cSettings.h"
+#include "cAnimation.h"
 #include "cSingleton.h"
 #include "cSparseArray.h"
 #include "cStr.h"
@@ -44,7 +45,7 @@
 //#include "cTAATree.h"
 #include "cThread.h"
 #include "cUniquePtr.h"
-#include "functor.h"
+#include "delegate.h"
 //#include "leaktest.h"
 #include "lockless.h"
 #include "os.h"
@@ -84,14 +85,14 @@ bss_Log _failedtests("../bin/failedtests.txt"); //This is spawned too early for 
 
 // --- Define testing utilities ---
 
-struct TEST
+struct TESTDEF
 {
   typedef std::pair<size_t,size_t> RETPAIR;
   const char* NAME;
   RETPAIR (*FUNC)();
 };
 
-#define BEGINTEST TEST::RETPAIR __testret(0,0);
+#define BEGINTEST TESTDEF::RETPAIR __testret(0,0)
 #define ENDTEST return __testret
 #define FAILEDTEST(t) BSSLOG(_failedtests,1) << "Test #" << __testret.first << " Failed  < " << MAKESTRING(t) << " >" << std::endl
 #define TEST(t) { ++__testret.first; try { if(t) ++__testret.second; else FAILEDTEST(t); } catch(...) { FAILEDTEST(t); } }
@@ -104,9 +105,9 @@ struct TEST
 #define TESTCOUNTALL(c,t) { bool __val=true; for(uint i = 0; i < c; ++i) __val=__val&&(t); TEST(__val); }
 
 template<class T, size_t SIZE, class F>
-void _ITERFUNC(TEST::RETPAIR& __testret, T (&t)[SIZE], F f) { for(uint i = 0; i < SIZE; ++i) TEST(f(i)) }
+void _ITERFUNC(TESTDEF::RETPAIR& __testret, T (&t)[SIZE], F f) { for(uint i = 0; i < SIZE; ++i) TEST(f(i)) }
 template<class T, size_t SIZE, class F>
-void _ITERALL(TEST::RETPAIR& __testret, T (&t)[SIZE], F f) { bool __val=true; for(uint i = 0; i < SIZE; ++i) __val=__val&&(f(i)); TEST(__val); }
+void _ITERALL(TESTDEF::RETPAIR& __testret, T (&t)[SIZE], F f) { bool __val=true; for(uint i = 0; i < SIZE; ++i) __val=__val&&(f(i)); TEST(__val); }
 
 template<class T>
 T naivebitcount(T v)
@@ -118,7 +119,7 @@ T naivebitcount(T v)
 }
 
 template<class T>
-void testbitcount(TEST::RETPAIR& __testret)
+void testbitcount(TESTDEF::RETPAIR& __testret)
 { //Use fibonacci numbers to test this
   for(T i = 0; i < (((T)1)<<(sizeof(T)<<2)); i=fbnext(i)) {
     TEST(naivebitcount<T>(i)==bitcount<T>(i));
@@ -161,7 +162,7 @@ const wchar_t* PANGRAMS[] = {
 };
 
 template<unsigned char B, __int64 SMIN, __int64 SMAX, unsigned __int64 UMIN, unsigned __int64 UMAX>
-inline void BSS_FASTCALL TEST_ABITLIMIT(TEST::RETPAIR& __testret)
+inline void BSS_FASTCALL TEST_ABITLIMIT(TESTDEF::RETPAIR& __testret)
 {
   VERIFYTYPE<char>(ABitLimit<1>::SIGNED(0));
   VERIFYTYPE<unsigned char>(ABitLimit<1>::UNSIGNED(0));
@@ -194,7 +195,7 @@ template<typename T, size_t S> inline static size_t BSS_FASTCALL _ARRSIZE(const 
 
 // --- Begin actual test procedure definitions ---
 
-TEST::RETPAIR test_bss_util_c()
+TESTDEF::RETPAIR test_bss_util_c()
 {
   BEGINTEST;
 
@@ -246,7 +247,7 @@ TEST::RETPAIR test_bss_util_c()
   ENDTEST;
 }
 
-TEST::RETPAIR test_bss_util()
+TESTDEF::RETPAIR test_bss_util()
 {
   BEGINTEST;
   TESTNOERROR(SetWorkDirToCur());
@@ -617,7 +618,7 @@ TEST::RETPAIR test_bss_util()
   ENDTEST;
 }
 
-TEST::RETPAIR test_bss_DEBUGINFO()
+TESTDEF::RETPAIR test_bss_DEBUGINFO()
 {
   BEGINTEST;
   std::stringstream ss;
@@ -678,7 +679,7 @@ TEST::RETPAIR test_bss_DEBUGINFO()
   ENDTEST;
 }
 
-TEST::RETPAIR test_bss_algo()
+TESTDEF::RETPAIR test_bss_algo()
 {
   BEGINTEST;
   int a[] = { -5,-1,0,1,1,1,1,6,8,8,9,26,26,26,35 };
@@ -711,7 +712,7 @@ TEST::RETPAIR test_bss_algo()
 }
 
 template<class T, typename P, int MAXSIZE>
-void TEST_ALLOC_FUZZER(TEST::RETPAIR& __testret)
+void TEST_ALLOC_FUZZER(TESTDEF::RETPAIR& __testret)
 {
   cDynArray<cArraySimple<std::pair<P*,size_t>>> plist;
   for(int k=0; k<10; ++k)
@@ -747,7 +748,7 @@ void TEST_ALLOC_FUZZER(TEST::RETPAIR& __testret)
   }
 }
 
-TEST::RETPAIR test_bss_ALLOC_ADDITIVE_FIXED()
+TESTDEF::RETPAIR test_bss_ALLOC_ADDITIVE_FIXED()
 {
   BEGINTEST;
   TEST_ALLOC_FUZZER<cAdditiveFixedAllocator<int>,int,1>(__testret);
@@ -757,13 +758,13 @@ TEST::RETPAIR test_bss_ALLOC_ADDITIVE_FIXED()
 template<class T>
 struct ADDITIVEVARIABLEALLOCATORWRAP : cAdditiveVariableAllocator { inline T* BSS_FASTCALL alloc(size_t num) { return cAdditiveVariableAllocator::alloc<T>(num); } };
 
-TEST::RETPAIR test_bss_ALLOC_ADDITIVE_VARIABLE()
+TESTDEF::RETPAIR test_bss_ALLOC_ADDITIVE_VARIABLE()
 {
   BEGINTEST;
   TEST_ALLOC_FUZZER<ADDITIVEVARIABLEALLOCATORWRAP<char>,char,4000>(__testret);
   ENDTEST;
 }
-TEST::RETPAIR test_bss_ALLOC_FIXED_SIZE()
+TESTDEF::RETPAIR test_bss_ALLOC_FIXED_SIZE()
 {
   BEGINTEST;
   //TEST_ALLOC_FUZZER<cFixedSizeAllocator<__int64>,__int64,1>(__testret);
@@ -773,7 +774,7 @@ TEST::RETPAIR test_bss_ALLOC_FIXED_SIZE()
 template<class T>
 struct FIXEDCHUNKALLOCWRAP : cFixedAlloc<T> { void Clear() { } };
 
-TEST::RETPAIR test_bss_ALLOC_FIXED_CHUNK()
+TESTDEF::RETPAIR test_bss_ALLOC_FIXED_CHUNK()
 {
   BEGINTEST;
   TEST_ALLOC_FUZZER<FIXEDCHUNKALLOCWRAP<size_t>,size_t,1>(__testret);
@@ -781,7 +782,7 @@ TEST::RETPAIR test_bss_ALLOC_FIXED_CHUNK()
 }
 
 template<class T, typename P, int NUM>
-void MULTITHREADED_ALLOC_FUZZER(TEST::RETPAIR& __testret)
+void MULTITHREADED_ALLOC_FUZZER(TESTDEF::RETPAIR& __testret)
 {
   cDynArray<cArraySimple<P*>> plist;
   T alloc;
@@ -816,11 +817,11 @@ void MULTITHREADED_ALLOC_FUZZER(TEST::RETPAIR& __testret)
 template<class T, typename P, int NUM>
 unsigned int __stdcall _mt_alloc_fuzzer(void* p)
 {
-  MULTITHREADED_ALLOC_FUZZER<T,P,NUM>(*((TEST::RETPAIR*)p));
+  MULTITHREADED_ALLOC_FUZZER<T,P,NUM>(*((TESTDEF::RETPAIR*)p));
   return 1;
 }
 
-TEST::RETPAIR test_bss_ALLOC_FIXED_LOCKLESS()
+TESTDEF::RETPAIR test_bss_ALLOC_FIXED_LOCKLESS()
 {
   BEGINTEST;
 
@@ -845,7 +846,7 @@ TEST::RETPAIR test_bss_ALLOC_FIXED_LOCKLESS()
   ENDTEST;
 }
 
-TEST::RETPAIR test_bss_deprecated()
+TESTDEF::RETPAIR test_bss_deprecated()
 {
   std::vector<bool> test;
   BEGINTEST;
@@ -894,7 +895,7 @@ TEST::RETPAIR test_bss_deprecated()
   ENDTEST;
 }
 
-TEST::RETPAIR test_bss_FIXEDPT()
+TESTDEF::RETPAIR test_bss_FIXEDPT()
 {
   BEGINTEST;
 
@@ -927,7 +928,7 @@ inline BSS_FORCEINLINE bool BSS_FASTCALL fsmallcomp(double af, double bf, __int6
   return fcompare(af,bf,maxDiff);
 }
 
-TEST::RETPAIR test_bss_DUAL()
+TESTDEF::RETPAIR test_bss_DUAL()
 {
   BEGINTEST;
   // d/dx( e^(x + x^2) + 2x/5 + cos(x*x) + sin(ln(x)+log(x)) ) = e^(x^2+x) (2 x+1)-2 x sin(x^2)+((1+log(10)) cos((1+1/(log(10))) log(x)))/(x log(10))+2/5
@@ -1050,7 +1051,7 @@ static void inttoflt(unsigned int from, float (&ch)[4])
   (c/sseVec(255.0f,65280.0f,255.0f,65280.0f)) >> ch; 
 }
 
-TEST::RETPAIR test_bss_SSE()
+TESTDEF::RETPAIR test_bss_SSE()
 {
   BEGINTEST;
 
@@ -1187,13 +1188,13 @@ TEST::RETPAIR test_bss_SSE()
   ENDTEST;
 }
 
-TEST::RETPAIR test_ALIASTABLE()
+TESTDEF::RETPAIR test_ALIASTABLE()
 {
   BEGINTEST;
   ENDTEST;
 }
 
-TEST::RETPAIR test_ARRAYCIRCULAR()
+TESTDEF::RETPAIR test_ARRAYCIRCULAR()
 {
   BEGINTEST;
   cArrayCircular<int> a;
@@ -1237,11 +1238,11 @@ template<> struct DEBUG_CDT_SAFE<true>
 
   inline DEBUG_CDT_SAFE& operator=(const DEBUG_CDT_SAFE& right) { return *this; }
   
-  static TEST::RETPAIR* _testret;
-  TEST::RETPAIR& __testret;
+  static TESTDEF::RETPAIR* _testret;
+  TESTDEF::RETPAIR& __testret;
   DEBUG_CDT_SAFE* isdead;
 };
-TEST::RETPAIR* DEBUG_CDT_SAFE<true>::_testret=0;
+TESTDEF::RETPAIR* DEBUG_CDT_SAFE<true>::_testret=0;
 
 template<bool SAFE=true>
 struct DEBUG_CDT : DEBUG_CDT_SAFE<SAFE> {
@@ -1264,7 +1265,7 @@ struct DEBUG_CDT : DEBUG_CDT_SAFE<SAFE> {
 int DEBUG_CDT<true>::count=0;
 int DEBUG_CDT<false>::count=0;
 
-TEST::RETPAIR test_ARRAYSIMPLE()
+TESTDEF::RETPAIR test_ARRAYSIMPLE()
 {
   BEGINTEST;
 
@@ -1342,7 +1343,7 @@ struct FWDTEST {
   FWDTEST& operator=(FWDTEST&& right) { return *this; }
 };
 
-TEST::RETPAIR test_ARRAYSORT()
+TESTDEF::RETPAIR test_ARRAYSORT()
 {
   BEGINTEST;
   
@@ -1383,7 +1384,7 @@ TEST::RETPAIR test_ARRAYSORT()
   ENDTEST;
 }
 
-TEST::RETPAIR test_AVLTREE()
+TESTDEF::RETPAIR test_AVLTREE()
 {
   BEGINTEST;
 
@@ -1476,7 +1477,7 @@ TEST::RETPAIR test_AVLTREE()
   ENDTEST;
 }
 
-TEST::RETPAIR test_BINARYHEAP()
+TESTDEF::RETPAIR test_BINARYHEAP()
 {
   BEGINTEST;
   int a[] = { 7,33,55,7,45,1,43,4,3243,25,3,6,9,14,5,16,17,22,90,95,99,32 };
@@ -1525,13 +1526,13 @@ TEST::RETPAIR test_BINARYHEAP()
   ENDTEST;
 }
 
-TEST::RETPAIR test_BITARRAY()
+TESTDEF::RETPAIR test_BITARRAY()
 {
   BEGINTEST;
   ENDTEST;
 }
 
-TEST::RETPAIR test_BITFIELD()
+TESTDEF::RETPAIR test_BITFIELD()
 {
   BEGINTEST;
   cBitField<uint> t;
@@ -1573,31 +1574,31 @@ TEST::RETPAIR test_BITFIELD()
   ENDTEST;
 }
 
-TEST::RETPAIR test_BSS_STACK()
+TESTDEF::RETPAIR test_BSS_STACK()
 {
   BEGINTEST;
   ENDTEST;
 }
 
-TEST::RETPAIR test_BYTEQUEUE()
+TESTDEF::RETPAIR test_BYTEQUEUE()
 {
   BEGINTEST;
   ENDTEST;
 }
 
-TEST::RETPAIR test_CMDLINEARGS()
+TESTDEF::RETPAIR test_CMDLINEARGS()
 {
   BEGINTEST;
   ENDTEST;
 }
 
-TEST::RETPAIR test_DYNARRAY()
+TESTDEF::RETPAIR test_DYNARRAY()
 {
   BEGINTEST;
   ENDTEST;
 }
 
-TEST::RETPAIR test_HIGHPRECISIONTIMER()
+TESTDEF::RETPAIR test_HIGHPRECISIONTIMER()
 {
   BEGINTEST;
   cHighPrecisionTimer timer;
@@ -1622,13 +1623,13 @@ TEST::RETPAIR test_HIGHPRECISIONTIMER()
   ENDTEST;
 }
 
-TEST::RETPAIR test_HOLDER()
+TESTDEF::RETPAIR test_HOLDER()
 {
   BEGINTEST;
   ENDTEST;
 }
 
-TEST::RETPAIR test_INIPARSE()
+TESTDEF::RETPAIR test_INIPARSE()
 {
   BEGINTEST;
   ENDTEST;
@@ -1639,7 +1640,7 @@ TEST::RETPAIR test_INIPARSE()
 #define INI_R(s,k,nk,ns) TEST(!ini.EditEntry(MAKESTRING(s),MAKESTRING(k),0,nk,ns))
 #define INI_G(s,k,nk,ns) TEST(!ini.EditEntry(MAKESTRING(s),MAKESTRING(k),MAKESTRING(v),nk,ns))
 
-TEST::RETPAIR test_INISTORAGE()
+TESTDEF::RETPAIR test_INISTORAGE()
 {
   BEGINTEST;
 
@@ -1843,13 +1844,13 @@ TEST::RETPAIR test_INISTORAGE()
   ENDTEST;
 }
 
-TEST::RETPAIR test_INTERVALTREE()
+TESTDEF::RETPAIR test_INTERVALTREE()
 {
   BEGINTEST;
   ENDTEST;
 }
 
-TEST::RETPAIR test_KHASH()
+TESTDEF::RETPAIR test_KHASH()
 {
   BEGINTEST;
   //cKhash<int, char,false,KH_INT_HASHFUNC,KH_INT_EQUALFUNC<int>,KH_INT_VALIDATEPTR<int>> hashtest;
@@ -1874,7 +1875,7 @@ TEST::RETPAIR test_KHASH()
   ENDTEST;
 }
 
-TEST::RETPAIR test_LAMBDASTACK()
+TESTDEF::RETPAIR test_LAMBDASTACK()
 {
   BEGINTEST;
   cLambdaStack<void(void)> ls;
@@ -1889,7 +1890,7 @@ TEST::RETPAIR test_LAMBDASTACK()
   ENDTEST;
 }
 
-TEST::RETPAIR test_LINKEDARRAY()
+TESTDEF::RETPAIR test_LINKEDARRAY()
 {
   BEGINTEST;
   cLinkedArray<int> _arr;
@@ -1924,7 +1925,7 @@ bool cmplist(cLinkedList<int,Allocator<cLLNode<int>>,true>& list, const char* nu
   return r;
 }
 
-TEST::RETPAIR test_LINKEDLIST()
+TESTDEF::RETPAIR test_LINKEDLIST()
 {
   BEGINTEST;
   cLinkedList<int,Allocator<cLLNode<int>>,true> test;
@@ -1952,7 +1953,7 @@ TEST::RETPAIR test_LINKEDLIST()
   ENDTEST;
 }
 
-TEST::RETPAIR test_LOCKLESSBYTEQUEUE()
+TESTDEF::RETPAIR test_LOCKLESSBYTEQUEUE()
 {
   BEGINTEST;
   ENDTEST;
@@ -1986,7 +1987,7 @@ unsigned int __stdcall _locklessqueue_produce(void* p)
   return 0;
 }
 
-TEST::RETPAIR test_LOCKLESSQUEUE()
+TESTDEF::RETPAIR test_LOCKLESSQUEUE()
 {
   BEGINTEST;
   {
@@ -2061,7 +2062,7 @@ TEST::RETPAIR test_LOCKLESSQUEUE()
 }
 
 
-TEST::RETPAIR test_MAP()
+TESTDEF::RETPAIR test_MAP()
 {
   BEGINTEST;
   cMap<int,uint> test;
@@ -2094,7 +2095,7 @@ struct OBJSWAP_TEST {
   bool operator!=(const OBJSWAP_TEST& j) const { return i!=j.i; }
 };
 
-TEST::RETPAIR test_OBJSWAP()
+TESTDEF::RETPAIR test_OBJSWAP()
 {
   BEGINTEST;
   
@@ -2176,7 +2177,7 @@ TEST::RETPAIR test_OBJSWAP()
   ENDTEST;
 }
 
-TEST::RETPAIR test_PRIORITYQUEUE()
+TESTDEF::RETPAIR test_PRIORITYQUEUE()
 {
   BEGINTEST;
   cPriorityQueue<int,cStr,CompT<int>,uint,cArraySafe<std::pair<int,cStr>,uint>> q;
@@ -2217,7 +2218,7 @@ TEST::RETPAIR test_PRIORITYQUEUE()
   ENDTEST;
 }
 
-TEST::RETPAIR test_RATIONAL()
+TESTDEF::RETPAIR test_RATIONAL()
 {
   BEGINTEST;
   cRational<int> tr(1,10);
@@ -2251,7 +2252,7 @@ TEST::RETPAIR test_RATIONAL()
   ENDTEST;
 }
 
-TEST::RETPAIR test_TRB_TREE()
+TESTDEF::RETPAIR test_TRB_TREE()
 {
   BEGINTEST;
   Allocator<TRB_Node<int,int>,FixedPolicy<TRB_Node<int,int>>> fixedalloc;
@@ -2303,7 +2304,7 @@ TEST::RETPAIR test_TRB_TREE()
   ENDTEST;
 }
 
-TEST::RETPAIR test_REFCOUNTER()
+TESTDEF::RETPAIR test_REFCOUNTER()
 {
   BEGINTEST;
   ENDTEST;
@@ -2321,7 +2322,7 @@ DECL_SETTING(1,0,float,15.0f,"zip",0);
 DECL_SETTING(1,1,int,5,"poofers",0);
 DECL_SETTING(1,2,std::vector<cStr>,std::vector<cStr>(),"lots",0);
 
-TEST::RETPAIR test_SETTINGS()
+TESTDEF::RETPAIR test_SETTINGS()
 {
   BEGINTEST;
   cSettingManage<1,0>::LoadAllFromINI(cINIstorage("test.ini"));
@@ -2329,13 +2330,13 @@ TEST::RETPAIR test_SETTINGS()
   ENDTEST;
 }
 
-TEST::RETPAIR test_SINGLETON()
+TESTDEF::RETPAIR test_SINGLETON()
 {
   BEGINTEST;
   ENDTEST;
 }
 
-TEST::RETPAIR test_STR()
+TESTDEF::RETPAIR test_STR()
 {
   BEGINTEST;
   cStr s("blah");
@@ -2442,7 +2443,7 @@ TEST::RETPAIR test_STR()
   ENDTEST;
 }
 
-TEST::RETPAIR test_STRTABLE()
+TESTDEF::RETPAIR test_STRTABLE()
 {
   BEGINTEST;
 
@@ -2509,7 +2510,7 @@ unsigned int __stdcall APCthread(void* arg)
 }
 inline static void __stdcall _APCactivate(unsigned long) {}
 
-TEST::RETPAIR test_THREAD()
+TESTDEF::RETPAIR test_THREAD()
 {
   BEGINTEST;
   //cHighPrecisionTimer timer;
@@ -2532,17 +2533,18 @@ TEST::RETPAIR test_THREAD()
 
 struct foobar// : public cClassAllocator<foobar>
 {
-  float test[3];
-  void stupid(unsigned int dumbthing) { std::cout << "Stupid(): " << dumbthing << std::endl; }
-  void retarded(int dumbthing, int stuff) { std::cout << "retarded(): " << dumbthing << " " << stuff << std::endl; }
-  void idiotic(int dumbthing, int stuff, bool garbage) { std::cout << "idiotic(): " << dumbthing << " " << stuff << " " << garbage << std::endl; }
-  void dumber() { std::cout << "dumber(): NULL" << std::endl; }
+  void BSS_FASTCALL nyan(unsigned int cat) { TEST(cat==5); }
+  void BSS_FASTCALL nyannyan(int cat, int kitty) { TEST(cat==2); TEST(kitty==-3); }
+  void BSS_FASTCALL nyannyannyan(int cat, int kitty, bool fluffy) { TEST(cat==-6); TEST(kitty==0); TEST(fluffy); }
+  void BSS_FASTCALL zoidberg() { TEST(true); }
   void nothing() {}
   void nothing2() {}
   void nothing3() {}
+
+  TESTDEF::RETPAIR& __testret;
 };
 
-TEST::RETPAIR test_UNIQUEPTR()
+TESTDEF::RETPAIR test_UNIQUEPTR()
 {
   BEGINTEST;
 
@@ -2554,19 +2556,35 @@ TEST::RETPAIR test_UNIQUEPTR()
   ENDTEST;
 }
 
-TEST::RETPAIR test_FUNCTOR()
+TESTDEF::RETPAIR test_DELEGATE()
+{
+  BEGINTEST;
+  foobar foo = { __testret };
+  auto first = delegate<void>::From<foobar,&foobar::zoidberg>(&foo);
+  auto second = delegate<void,unsigned int>::From<foobar,&foobar::nyan>(&foo);
+  auto three = delegate<void,int,int>::From<foobar,&foobar::nyannyan>(&foo);
+  auto four = delegate<void,int,int,bool>::From<foobar,&foobar::nyannyannyan>(&foo);
+  
+  delegate<void> copy = first;
+  CPU_Barrier();
+  copy();
+  CPU_Barrier();
+  delegate<void,unsigned int> copy2 = second;
+  CPU_Barrier();
+  copy2(5);
+  CPU_Barrier();
+  three(2,-3);
+  four(-6,0,true);
+  ENDTEST;
+}
+
+TESTDEF::RETPAIR test_LLBASE()
 {
   BEGINTEST;
   ENDTEST;
 }
 
-TEST::RETPAIR test_LLBASE()
-{
-  BEGINTEST;
-  ENDTEST;
-}
-
-TEST::RETPAIR test_LOCKLESS()
+TESTDEF::RETPAIR test_LOCKLESS()
 {
   BEGINTEST;
   CPU_Barrier();
@@ -2606,7 +2624,7 @@ TEST::RETPAIR test_LOCKLESS()
   ENDTEST;
 }
 
-TEST::RETPAIR test_OS()
+TESTDEF::RETPAIR test_OS()
 {
   BEGINTEST;
   TEST(FolderExists("../bin"));
@@ -2636,7 +2654,7 @@ TEST::RETPAIR test_OS()
   ENDTEST;
 }
 
-TEST::RETPAIR test_STREAMSPLITTER()
+TESTDEF::RETPAIR test_STREAMSPLITTER()
 {
   BEGINTEST;
   ENDTEST;
@@ -2654,7 +2672,7 @@ int main(int argc, char** argv)
     testnums[i]=i;
   shuffle(testnums);
 
-  TEST tests[] = {
+  TESTDEF tests[] = {
     { "bss_util_c.h", &test_bss_util_c },
     { "bss_util.h", &test_bss_util },
     { "bss_DebugInfo.h", &test_bss_DEBUGINFO },
@@ -2669,6 +2687,7 @@ int main(int argc, char** argv)
     { "bss_fixedpt.h", &test_bss_FIXEDPT },
     { "bss_sse.h", &test_bss_SSE },
     { "cAliasTable.h", &test_ALIASTABLE },
+    { "cAnimation.h", &test_ANIMATION },
     { "cArrayCircular.h", &test_ARRAYCIRCULAR },
     { "cArraySimple.h", &test_ARRAYSIMPLE },
     { "cArraySort.h", &test_ARRAYSORT },
@@ -2703,21 +2722,21 @@ int main(int argc, char** argv)
     { "cStrTable.h", &test_STRTABLE },
     { "cThread.h", &test_THREAD },
     { "cUniquePtr.h", &test_UNIQUEPTR },
-    //{ "functior.h", &test_FUNCTOR },
+    { "delegate.h", &test_DELEGATE },
     //{ "LLBase.h", &test_LLBASE },
     { "lockless.h", &test_LOCKLESS },
     { "os.h", &test_OS },
     //{ "cStreamSplitter.h", &test_STREAMSPLITTER },
   };
 
-  const size_t NUMTESTS=sizeof(tests)/sizeof(TEST);
+  const size_t NUMTESTS=sizeof(tests)/sizeof(TESTDEF);
 
   std::cout << "Black Sphere Studios - Utility Library v" << (uint)BSSUTIL_VERSION.Major << '.' << (uint)BSSUTIL_VERSION.Minor << '.' <<
     (uint)BSSUTIL_VERSION.Revision << ": Unit Tests\nCopyright (c)2012 Black Sphere Studios\n" << std::endl;
   const int COLUMNS[3] = { 24, 11, 8 };
   printf("%-*s %-*s %-*s\n",COLUMNS[0],"Test Name", COLUMNS[1],"Subtests", COLUMNS[2],"Pass/Fail");
 
-  TEST::RETPAIR numpassed;
+  TESTDEF::RETPAIR numpassed;
   std::vector<uint> failures;
   for(uint i = 0; i < NUMTESTS; ++i)
   {

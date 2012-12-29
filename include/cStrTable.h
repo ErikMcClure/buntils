@@ -12,14 +12,9 @@
 #include <istream>
 
 namespace bss_util {
-  // helper class for template-izing
-  template<typename T,typename ST_> class BSS_COMPILER_DLLEXPORT STRTABLE_FUNC {};
-  template<typename ST_> class BSS_COMPILER_DLLEXPORT STRTABLE_FUNC<char,ST_> { public: inline ST_ _lstr(const char* str) { return strlen(str); } };
-  template<typename ST_> class BSS_COMPILER_DLLEXPORT STRTABLE_FUNC<wchar_t,ST_> { public: inline ST_ _lstr(const wchar_t* str) { return wcslen(str); } };
-
   // Given a large array of strings (or a memory dump), assembles a single chunk of memory into a series of strings that can be accessed by index instantly
   template<typename T, typename ST_ = unsigned int>
-  class BSS_COMPILER_DLLEXPORT cStrTable : protected STRTABLE_FUNC<T,ST_>
+  class BSS_COMPILER_DLLEXPORT cStrTable
   {
   public:
     // Default Copy Constructor
@@ -60,8 +55,8 @@ namespace bss_util {
     inline const T* GetString(ST_ index) const { assert(index<_indices.Size()); return _strings+_indices[index]; }
     inline void AppendString(const char* s)
     { 
-      ST_ last = STRTABLE_FUNC<T,ST_>::_lstr(_strings+_indices[_indices.Size()-1])+1+_indices[_indices.Size()-1];
-      ST_ sz = STRTABLE_FUNC<T,ST_>::_lstr(s)+1;
+      ST_ last = _lstr<T>(_strings+_indices[_indices.Size()-1])+1+_indices[_indices.Size()-1];
+      ST_ sz = _lstr<T>(s)+1;
       
       _indices.SetSize(_indices.Size()+1);
       _indices[_indices.Size()-1]=last; // Add another indice and set its value appropriately
@@ -103,6 +98,9 @@ namespace bss_util {
     inline cStrTable& operator+=(const char* right) { AppendString(right); return *this; }
 
   protected:
+    template<typename D> static inline size_t _lstr(const D* str) { return strlen(str); }
+    template<> static inline size_t _lstr<wchar_t>(const wchar_t* str) { return wcslen(str); }
+
     inline void BSS_FASTCALL _construct(const T* const* strings, ST_ size)
     {
       if(!strings || !size) //special handling for empty case
@@ -112,7 +110,7 @@ namespace bss_util {
       ST_ sz=0;
       for(ST_ i = 0; i < size; ++i) //this will cause an infinite loop if someone is dumb enough to set ST_ to an unsigned type and set size equal to -1. If you actually think you could make that mistake, stop using this class.
       {
-        _indices[i] = STRTABLE_FUNC<T,ST_>::_lstr(strings[i])+1; //include null terminator in length count
+        _indices[i] = _lstr<T>(strings[i])+1; //include null terminator in length count
         sz+=_indices[i];
       }
       _strings.SetSize(sz);

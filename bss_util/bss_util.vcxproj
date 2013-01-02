@@ -117,7 +117,6 @@
     <ClCompile Include="bss_Log.cpp" />
     <ClCompile Include="bss_util.cpp" />
     <ClCompile Include="bss_util_c.c" />
-    <ClCompile Include="cAnimation.cpp" />
     <ClCompile Include="cCmdLineArgs.cpp" />
     <ClCompile Include="cHighPrecisionTimer.cpp" />
     <ClCompile Include="cINIentry.cpp" />

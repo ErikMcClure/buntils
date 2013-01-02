@@ -1265,6 +1265,16 @@ struct DEBUG_CDT : DEBUG_CDT_SAFE<SAFE> {
 int DEBUG_CDT<true>::count=0;
 int DEBUG_CDT<false>::count=0;
 
+AniAttribute* BSS_FASTCALL cAbstractAnim::SpawnBase(const cDef<AniAttribute>& p) { return p.Spawn(); }
+void* BSS_FASTCALL cAbstractAnim::AnimAlloc(size_t n, void* p) { return realloc(p,n); }
+void BSS_FASTCALL cAbstractAnim::AnimFree(void* p) { free(p); }
+
+TESTDEF::RETPAIR test_ANIMATION()
+{
+  BEGINTEST;
+  cAnimation a(0);
+  ENDTEST;
+}
 TESTDEF::RETPAIR test_ARRAYSIMPLE()
 {
   BEGINTEST;

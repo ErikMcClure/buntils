@@ -4,55 +4,55 @@
 #ifndef __C_ARRAY_SIMPLE_H__BSS__
 #define __C_ARRAY_SIMPLE_H__BSS__
 
-#include "bss_defines.h"
-#include <memory.h>
+#include "bss_alloc.h"
 #include <malloc.h>
 
 namespace bss_util {
   // Very simple "dynamic" array. Designed to be used when size must be maintained at an exact value.
-  template<class T, typename SizeType=unsigned int>
+  template<class T, typename SizeType=unsigned int, typename Alloc=StaticAllocPolicy<T>>
   class BSS_COMPILER_DLLEXPORT cArraySimple
   {
   public:
-    inline cArraySimple<T,SizeType>(const cArraySimple<T,SizeType>& copy) : _array(!copy._size?(T*)0:(T*)malloc(copy._size*sizeof(T))), _size(copy._size)
+    //inline cArraySimple<T,SizeType,Alloc>(const cArraySimple<T,SizeType,Alloc>& copy) : _array(!copy._size?(T*)0:(T*)malloc(copy._size*sizeof(T))), _size(copy._size)
+    inline cArraySimple<T,SizeType,Alloc>(const cArraySimple<T,SizeType,Alloc>& copy) : _array(!copy._size?(T*)0:(T*)Alloc::allocate(copy._size)), _size(copy._size)
     {
       memcpy(_array,copy._array,_size*sizeof(T));
     }
-    inline cArraySimple<T,SizeType>(cArraySimple<T,SizeType>&& mov) : _array(mov._array), _size(mov._size)
+    inline cArraySimple<T,SizeType,Alloc>(cArraySimple<T,SizeType,Alloc>&& mov) : _array(mov._array), _size(mov._size)
     {
       mov._array=0;
       mov._size=0;
     }
-    inline explicit cArraySimple<T,SizeType>(SizeType size) : _array(!size?(T*)0:(T*)malloc(size*sizeof(T))), _size(size)
+    //inline explicit cArraySimple<T,SizeType,Alloc>(SizeType size) : _array(!size?(T*)0:(T*)malloc(size*sizeof(T))), _size(size)
+    inline explicit cArraySimple<T,SizeType,Alloc>(SizeType size) : _array(!size?(T*)0:(T*)Alloc::allocate(size)), _size(size)
     {
     }
-    inline ~cArraySimple<T,SizeType>()
+    inline ~cArraySimple<T,SizeType,Alloc>()
     {
       if(_array!=0)
-        free(_array);
+        Alloc::deallocate(_array);
     }
     inline SizeType Size() const { return _size; }
     inline void BSS_FASTCALL SetSizeDiscard(SizeType nsize)
     {
       if(nsize==_size) return;
-      if(_array!=0) free(_array);
-      _array = (T*)malloc(nsize*sizeof(T));
+      if(_array!=0) Alloc::deallocate(_array);
+      //_array = (T*)malloc(nsize*sizeof(T));
+      _array = (T*)Alloc::allocate(nsize);
       _size=!_array?0:nsize;
     }
     inline void BSS_FASTCALL SetSize(SizeType nsize)
     {
       if(nsize==_size) return;
-      //T* narray = (T*)_minmalloc(nsize*sizeof(T));
-      //memcpy(narray,_array,((nsize<_size)?(nsize):(_size))*sizeof(T));
-      //if(_array!=0) free(_array);
-      T* narray = (T*)realloc(_array,nsize*sizeof(T));
-      if(!narray && nsize>0) free(_array); // realloc won't free _array if it fails
+      //T* narray = (T*)realloc(_array,nsize*sizeof(T));
+      T* narray = (T*)Alloc::reallocate(_array,nsize);
+      if(!narray && nsize>0) Alloc::deallocate(_array); // realloc won't free _array if it fails
       _array=!nsize?0:narray; // If nsize is 0 realloc will just deallocate _array.
       _size=!_array?0:nsize;
     }
     inline void BSS_FASTCALL RemoveInternal(SizeType index)
     {
-      assert(_size>0);
+      assert(_size>0 && index<_size);
       memmove(_array+index,_array+index+1,(_size-index-1)*sizeof(T));
       //--_size;
     }
@@ -66,39 +66,42 @@ namespace bss_util {
         _array[location]=item;
         return;
       }
+      assert(location<_size);
 
-      T* narray = (T*)malloc(nsize*sizeof(T)); // Don't need _minmalloc here because nsize can't be 0
-      memcpy(narray,_array,location*sizeof(T));
+      //T* narray = (T*)malloc(nsize*sizeof(T)); // nsize can't be 0
+      T* narray = (T*)Alloc::allocate(nsize); 
+      memcpy(narray,_array,location*sizeof(T)); // array will never be zero here, because if _size was 0, the only valid location is also 0, which triggers an add.
       assert(narray!=0);
       narray[location]=item;
       memcpy(narray+location+1,_array+location,(_size-location)*sizeof(T));
-      if(_array!=0) free(_array);
+      if(_array!=0) Alloc::deallocate(_array);
       _array=narray;
       _size=nsize;
     }
     //inline operator T*() { return _array; }
     //inline operator const T*() const { return _array; }
-    inline cArraySimple<T,SizeType>& operator=(const cArraySimple<T,SizeType>& copy)
+    inline cArraySimple<T,SizeType,Alloc>& operator=(const cArraySimple<T,SizeType,Alloc>& copy)
     {
       if(this == &copy) return *this;
-      if(_array!=0) free(_array);
+      if(_array!=0) Alloc::deallocate(_array);
       _size=copy._size;
-      _array=!_size?0:(T*)malloc(_size*sizeof(T));
+      //_array=!_size?0:(T*)malloc(_size*sizeof(T));
+      _array=!_size?0:(T*)Alloc::allocate(_size*sizeof(T));      
       if(_array)
         memcpy(_array,copy._array,_size*sizeof(T));
       return *this;
     }
-    inline cArraySimple<T,SizeType>& operator=(cArraySimple<T,SizeType>&& mov)
+    inline cArraySimple<T,SizeType,Alloc>& operator=(cArraySimple<T,SizeType,Alloc>&& mov)
     {
       if(this == &mov) return *this;
-      if(_array!=0) free(_array);
+      if(_array!=0) Alloc::deallocate(_array);
       _array=mov._array;
       _size=mov._size;
       mov._array=0;
       mov._size=0;
       return *this;
     }
-    inline cArraySimple<T,SizeType>& operator +=(const cArraySimple<T,SizeType>& add)
+    inline cArraySimple<T,SizeType,Alloc>& operator +=(const cArraySimple<T,SizeType,Alloc>& add)
     {
       SizeType oldsize=_size;
       SetSize(_size+add._size);
@@ -106,9 +109,9 @@ namespace bss_util {
         memcpy(_array+oldsize,add._array,add._size*sizeof(T));
       return *this;
     }
-    inline const cArraySimple<T,SizeType> operator +(const cArraySimple<T,SizeType>& add)
+    inline const cArraySimple<T,SizeType,Alloc> operator +(const cArraySimple<T,SizeType,Alloc>& add)
     {
-      cArraySimple<T,SizeType> retval(*this);
+      cArraySimple<T,SizeType,Alloc> retval(*this);
       retval+=add;
       return retval;
     }
@@ -146,11 +149,11 @@ namespace bss_util {
   };
 
   // Very simple "dynamic" array that calls the constructor and destructor
-  template<class T, typename SizeType=unsigned int>
+  template<class T, typename SizeType=unsigned int, typename Alloc=StaticAllocPolicy<T>>
   class BSS_COMPILER_DLLEXPORT cArrayConstruct
   {
   public:
-    inline cArrayConstruct(const cArrayConstruct& copy) : _array((T*)_minmalloc(copy._size*sizeof(T))), _size(copy._size)
+    inline cArrayConstruct(const cArrayConstruct& copy) : _array(!copy._size?0:Alloc::allocate(copy._size)), _size(copy._size)
     {
       //memcpy(_array,copy._array,_size*sizeof(T)); // Can't use memcpy on an external source because you could end up copying a pointer that would later be destroyed
       for(SizeType i = 0; i < _size; ++i)
@@ -161,7 +164,7 @@ namespace bss_util {
       mov._array=0;
       mov._size=0;
     }
-    inline explicit cArrayConstruct(SizeType size) : _array((T*)_minmalloc(size*sizeof(T))), _size(size)
+    inline explicit cArrayConstruct(SizeType size) : _array(!size?0:Alloc::allocate(size)), _size(size)
     {
       for(SizeType i = 0; i < _size; ++i)
         new (_array+i) T();
@@ -171,14 +174,14 @@ namespace bss_util {
       for(SizeType i = 0; i < _size; ++i)
         (_array+i)->~T();
       if(_array!=0)
-        free(_array);
+        Alloc::deallocate(_array);
     }
     inline SizeType Size() const { return _size; }
     inline void BSS_FASTCALL SetSize(SizeType nsize)
     {
       if(nsize==_size) return;
-      T* narray = (T*)_minmalloc(nsize*sizeof(T));
-      memcpy(narray,_array,((nsize<_size)?(nsize):(_size))*sizeof(T)); // We can do this because these aren't external sources.
+      T* narray = !nsize?0:Alloc::allocate(nsize);
+      memcpy(narray,_array,bssmin(nsize,_size)*sizeof(T)); // We can do this because these aren't external sources.
 
       if(nsize<_size) { //we removed some so we need to destroy them
         for(SizeType i = _size; i > nsize;)
@@ -188,50 +191,51 @@ namespace bss_util {
           new(narray+i) T();
       }
 
-      if(_array!=0) free(_array);
+      if(_array!=0) Alloc::deallocate(_array);
       _array=narray;
       _size=nsize;
     }
     inline void BSS_FASTCALL RemoveInternal(SizeType index)
     {
+      assert(_size>0 && index<_size);
       _array[index].~T();
       memmove(_array+index,_array+index+1,(_size-index-1)*sizeof(T));
       new(_array+(_size-1)) T();
     }
     //inline operator T*() { return _array; }
     //inline operator const T*() const { return _array; }
-    inline cArrayConstruct<T,SizeType>& operator=(const cArrayConstruct<T,SizeType>& copy)
+    inline cArrayConstruct<T,SizeType,Alloc>& operator=(const cArrayConstruct<T,SizeType,Alloc>& copy)
     {
       if(this == &copy) return *this;
       for(SizeType i = 0; i < _size; ++i)
         (_array+i)->~T();
-      if(_array!=0) free(_array);
+      if(_array!=0) Alloc::deallocate(_array);
       _size=copy._size;
-      _array=(T*)_minmalloc(_size*sizeof(T));
+      _array=Alloc::allocate(_size);
       //memcpy(_array,copy._array,_size*sizeof(T));
       for(SizeType i = 0; i < _size; ++i)
         new (_array+i) T(copy._array[i]);
       return *this;
     }
-    inline cArrayConstruct<T,SizeType>& operator=(cArrayConstruct<T,SizeType>&& mov)
+    inline cArrayConstruct<T,SizeType,Alloc>& operator=(cArrayConstruct<T,SizeType,Alloc>&& mov)
     {
       if(this == &mov) return *this;
       for(SizeType i = 0; i < _size; ++i)
         (_array+i)->~T();
-      if(_array!=0) free(_array);
+      if(_array!=0) Alloc::deallocate(_array);
       _array=mov._array;
       _size=mov._size;
       mov._array=0;
       mov._size=0;
       return *this;
     }
-    inline cArrayConstruct<T,SizeType>& operator +=(const cArrayConstruct<T,SizeType>& add)
+    inline cArrayConstruct<T,SizeType,Alloc>& operator +=(const cArrayConstruct<T,SizeType,Alloc>& add)
     {
       SizeType nsize=_size+add._size;
-      T* narray = (T*)_minmalloc(nsize*sizeof(T));
+      T* narray = Alloc::allocate(nsize);
       memcpy(narray,_array,_size*sizeof(T));
       //memcpy(narray+_size,add._array,add._size*sizeof(T));
-      if(_array!=0) free(_array);
+      if(_array!=0) Alloc::deallocate(_array);
       _array=narray;
       
       for(SizeType i = _size; i < nsize; ++i)
@@ -240,15 +244,14 @@ namespace bss_util {
       _size=nsize;
       return *this;
     }
-    inline const cArrayConstruct<T,SizeType> operator +(const cArrayConstruct<T,SizeType>& add)
+    inline const cArrayConstruct<T,SizeType,Alloc> operator +(const cArrayConstruct<T,SizeType,Alloc>& add)
     {
-      cArrayConstruct<T,SizeType> retval(*this);
+      cArrayConstruct<T,SizeType,Alloc> retval(*this);
       retval+=add;
       return retval;
     }
 
   protected:
-    inline BSS_FORCEINLINE static void* _minmalloc(size_t n) { return malloc((n<1)?1:n); } //Malloc can legally return NULL if it tries to allocate 0 bytes
     template<typename U>
     inline void _pushback(SizeType index, SizeType length, U && data) 
     {
@@ -269,11 +272,11 @@ namespace bss_util {
   };
 
   // Typesafe array that reconstructs everything properly, without any memory moving tricks
-  template<class T, typename SizeType=unsigned int>
+  template<class T, typename SizeType=unsigned int, typename Alloc=StaticAllocPolicy<T>>
   class BSS_COMPILER_DLLEXPORT cArraySafe
   {
   public:
-    inline cArraySafe(const cArraySafe& copy) : _array((T*)_minmalloc(copy._size*sizeof(T))), _size(copy._size)
+    inline cArraySafe(const cArraySafe& copy) : _array(Alloc::allocate(copy._size)), _size(copy._size)
     {
       for(SizeType i = 0; i < _size; ++i)
         new (_array+i) T(copy._array[i]);
@@ -283,7 +286,7 @@ namespace bss_util {
       mov._array=0;
       mov._size=0;
     }
-    inline explicit cArraySafe(SizeType size) : _array((T*)_minmalloc(size*sizeof(T))), _size(size)
+    inline explicit cArraySafe(SizeType size) : _array(Alloc::allocate(size)), _size(size)
     {
       for(SizeType i = 0; i < _size; ++i)
         new (_array+i) T();
@@ -293,13 +296,13 @@ namespace bss_util {
       for(SizeType i = 0; i < _size; ++i)
         (_array+i)->~T();
       if(_array!=0)
-        free(_array);
+        Alloc::deallocate(_array);
     }
     inline SizeType Size() const { return _size; }
     inline void BSS_FASTCALL SetSize(SizeType nsize)
     {
       if(nsize==_size) return;
-      T* narray = (T*)_minmalloc(nsize*sizeof(T));
+      T* narray = Alloc::allocate(nsize);
       
       SizeType smax = _size<nsize?_size:nsize;
       for(SizeType i = 0; i < smax; ++i) //copy over any we aren't discarding
@@ -309,7 +312,7 @@ namespace bss_util {
       for(SizeType i = 0; i < _size; ++i) //Demolish the old ones
         (_array+i)->~T();
 
-      if(_array!=0) free(_array);
+      if(_array!=0) Alloc::deallocate(_array);
       _array=narray;
       _size=nsize;
     }
@@ -323,34 +326,34 @@ namespace bss_util {
     }
     //inline operator T*() { return _array; }
     //inline operator const T*() const { return _array; }
-    inline cArraySafe<T,SizeType>& operator=(const cArraySafe<T,SizeType>& copy)
+    inline cArraySafe<T,SizeType,Alloc>& operator=(const cArraySafe<T,SizeType,Alloc>& copy)
     {
       if(this == &copy) return *this;
       for(SizeType i = 0; i < _size; ++i)
         (_array+i)->~T();
-      if(_array!=0) free(_array);
+      if(_array!=0) Alloc::deallocate(_array);
       _size=copy._size;
-      _array=(T*)_minmalloc(_size*sizeof(T));
+      _array=Alloc::allocate(_size);
       for(SizeType i = 0; i < _size; ++i)
         new (_array+i) T(copy._array[i]);
       return *this;
     }
-    inline cArraySafe<T,SizeType>& operator=(cArraySafe<T,SizeType>&& mov)
+    inline cArraySafe<T,SizeType,Alloc>& operator=(cArraySafe<T,SizeType,Alloc>&& mov)
     {
       if(this == &mov) return *this;
       for(SizeType i = 0; i < _size; ++i)
         (_array+i)->~T();
-      if(_array!=0) free(_array);
+      if(_array!=0) Alloc::deallocate(_array);
       _array=mov._array;
       _size=mov._size;
       mov._array=0;
       mov._size=0;
       return *this;
     }
-    inline cArraySafe<T,SizeType>& operator +=(const cArraySafe<T,SizeType>& add)
+    inline cArraySafe<T,SizeType,Alloc>& operator +=(const cArraySafe<T,SizeType,Alloc>& add)
     {
       SizeType nsize=_size+add._size;
-      T* narray = (T*)_minmalloc(nsize*sizeof(T));
+      T* narray = Alloc::allocate(nsize);
       
       for(SizeType i = 0; i < _size; ++i) //copy over old ones
         new (narray+i) T(std::move(_array[i])); //We're going to delete the old ones so use move semantics if possible
@@ -359,20 +362,19 @@ namespace bss_util {
       for(SizeType i = 0; i < _size; ++i) //Demolish the old ones
         (_array+i)->~T();
 
-      if(_array!=0) free(_array);
+      if(_array!=0) Alloc::deallocate(_array);
       _array=narray;
       _size=nsize;
       return *this;
     }
-    inline const cArraySafe<T,SizeType> operator +(const cArraySafe<T,SizeType>& add)
+    inline const cArraySafe<T,SizeType,Alloc> operator +(const cArraySafe<T,SizeType,Alloc>& add)
     {
-      cArrayConstruct<T,SizeType> retval(*this);
+      cArrayConstruct<T,SizeType,Alloc> retval(*this);
       retval+=add;
       return retval;
     }
 
   protected:
-    inline BSS_FORCEINLINE static void* _minmalloc(size_t n) { return malloc((n<1)?1:n); }  //Malloc can legally return NULL if it tries to allocate 0 bytes
     template<typename U>
     inline void _pushback(SizeType index, SizeType length, U && data) 
     {
@@ -436,12 +438,12 @@ namespace bss_util {
   };
   
   // Templatized typedefs for making this easier to use
-  template<class T, typename SizeType=unsigned int>
+  template<class T, typename SizeType=unsigned int, typename Alloc=StaticAllocPolicy<T>>
   struct BSS_COMPILER_DLLEXPORT DArray
   {
-    typedef cArrayWrap<cArraySimple<T,SizeType>> t;
-    typedef cArrayWrap<cArrayConstruct<T,SizeType>> tConstruct;
-    typedef cArrayWrap<cArraySafe<T,SizeType>> tSafe;
+    typedef cArrayWrap<cArraySimple<T,SizeType,Alloc>> t;
+    typedef cArrayWrap<cArrayConstruct<T,SizeType,Alloc>> tConstruct;
+    typedef cArrayWrap<cArraySafe<T,SizeType,Alloc>> tSafe;
   };
 }
 

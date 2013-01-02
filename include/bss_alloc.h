@@ -55,10 +55,11 @@ namespace bss_util {
     }
     //inline void deallocate(pointer p, std::size_t = 0) { ::operator delete(p); }
     inline void deallocate(pointer p, std::size_t = 0) { free(p); }
+    inline pointer reallocate(pointer p, std::size_t cnt) { return reinterpret_cast<pointer>(realloc(p,cnt*sizeof(T))); }
 	};
   
   // This takes an allocator and makes a static implementation that can be used in standard containers, but its heavily DLL-dependent.
-	template<typename T, typename Alloc>
+	template<typename T, typename Alloc=void>
   class BSS_COMPILER_DLLEXPORT StaticAllocPolicy : public AllocPolicySize<T> {
 	public:
     typedef typename AllocPolicySize<T>::pointer pointer;
@@ -71,11 +72,34 @@ namespace bss_util {
     template <typename U>
     inline explicit StaticAllocPolicy(StaticAllocPolicy<U,Alloc> const&) {}
 
-    inline pointer allocate(std::size_t cnt, typename std::allocator<void>::const_pointer = 0) { return _alloc.allocate(cnt); }
-    inline void deallocate(pointer p, std::size_t = 0) { _alloc.deallocate(p); }
+    inline static pointer allocate(std::size_t cnt, typename std::allocator<void>::const_pointer = 0) { return _alloc.allocate(cnt); }
+    inline static void deallocate(pointer p, std::size_t = 0) { _alloc.deallocate(p); }
 
     static Alloc _alloc;
 	};
+
+ template<typename T>
+  class BSS_COMPILER_DLLEXPORT StaticAllocPolicy<T,void> : public AllocPolicySize<T> {
+  public:
+    typedef typename AllocPolicySize<T>::pointer pointer;
+    template<typename U>
+    struct rebind { typedef StaticAllocPolicy<U,void> other; };
+
+    inline explicit StaticAllocPolicy() {}
+    inline ~StaticAllocPolicy() {}
+    inline explicit StaticAllocPolicy(StaticAllocPolicy const&) {}
+    template <typename U>
+    inline explicit StaticAllocPolicy(StaticAllocPolicy<U,void> const&) {}
+
+    inline static pointer allocate(std::size_t cnt, 
+      typename std::allocator<void>::const_pointer = 0) { 
+        //return reinterpret_cast<pointer>(::operator new(cnt * sizeof (T))); // note that while operator new does not call a constructor (it can't), it's much easier to override for leak tests.
+        return reinterpret_cast<pointer>(malloc(cnt*sizeof(T)));
+    }
+    //inline static void deallocate(pointer p, std::size_t = 0) { ::operator delete(p); }
+    inline static void deallocate(pointer p, std::size_t = 0) { free(p); }
+    inline static pointer reallocate(pointer p, std::size_t cnt) { return reinterpret_cast<pointer>(realloc(p,cnt*sizeof(T))); }
+  };
 
 #define BSSBUILD_STATIC_POLICY(name,alloc) template<class T> \
   class BSS_COMPILER_DLLEXPORT name : public StaticAllocPolicy<T,alloc<T>> \

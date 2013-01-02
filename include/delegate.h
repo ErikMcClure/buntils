@@ -29,7 +29,7 @@ namespace bss_util {
   template<typename R=void, typename T1=void, typename T2=void, typename T3=void, typename T4=void, typename T5=void>
   class BSS_COMPILER_DLLEXPORT delegate {};
 
-  // delagate class done via macros because Microsoft is full of shit.
+  // delegate class done via macros because Microsoft is full of shit.
   template<typename R>
   class BSS_COMPILER_DLLEXPORT delegate<R,void,void,void,void>
   {

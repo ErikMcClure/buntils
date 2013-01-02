@@ -1,8 +1,8 @@
 // Copyright ©2012 Black Sphere Studios
 // For conditions of distribution and use, see copyright notice in "bss_util.h"
 
-#ifndef __C_ANIMATION_H__PS__
-#define __C_ANIMATION_H__PS__
+#ifndef __C_ANIMATION_H__BSS__
+#define __C_ANIMATION_H__BSS__
 
 #include "AniAttribute.h"
 #include "cMap.h"
@@ -11,29 +11,41 @@
 #include "bss_dlldef.h"
 
 namespace bss_util {
-  class cAnimated;
-  class Attribute_Def_base;
   struct DEF_ANIMATION;
 
   // A class representing a single animation comprised of various attributes (position, rotation, etc.) 
-	class BSS_DLLEXPORT cAnimation
+  class BSS_COMPILER_DLLEXPORT cAnimation
 	{
+  protected:
     enum ANIBOOLS : unsigned char { ANI_PLAYING=1,ANI_LOOPING=2,ANI_ACTIVE=4,ANI_PAUSED=8 };
 
 	public:
 		inline cAnimation(const cAnimation& copy) : _parent(copy._parent) { operator=(copy); }
 		inline cAnimation(const cAnimation& copy, cAbstractAnim* ptr) : _parent(ptr) { operator=(copy); }
     inline cAnimation(cAbstractAnim* ptr) : _parent(ptr), _aniwarp(1.0), _anilength(0), _timepassed(0), _anicalc(0), _looppoint(0) { }
-		cAnimation(const DEF_ANIMATION& def, cAbstractAnim* ptr);
-		~cAnimation();
+		inline cAnimation(const DEF_ANIMATION& def, cAbstractAnim* ptr);
+		inline ~cAnimation()
+    {
+      for(unsigned char i = 0; i < _attributes.Length(); ++i)
+        _delattr(_attributes[i]);
+      _attributes.Clear();
+    }
     // Allows you to skip forward by setting _timepassed to the specified value.
-		virtual void Start(double timepassed=0.0); 
+		inline virtual void Start(double timepassed=0.0)
+    {
+	    _timepassed=timepassed;
+      _anibool+=(ANI_PLAYING|ANI_ACTIVE);
+  
+      unsigned char svar=_attributes.Length();
+      for(unsigned char i = 0; i < svar; ++i)
+        _attributes[i]->Start();
+    }
     // Stop animation
-    inline void Stop() { _anibool-=(ANI_ACTIVE|ANI_PAUSED); _timepassed=0.0; }
+    inline void Stop() { _anibool-=(ANI_LOOPING|ANI_PLAYING); _timepassed=0.0; }
     // Temporarily pauses or unpauses the animation
     inline void Pause(bool pause) { _anibool(ANI_PAUSED,pause); }
     // Starts looping the animation (if it hasn't started yet, it is started.) Looping ends when Stop() is called
-    inline void Loop(double timepassed=0.0, double looppoint=0.0) { _looppoint=looppoint; if(!_anibool[ANI_PLAYING]) Start(timepassed); _anibool(ANI_LOOPING,true); }
+    inline void Loop(double timepassed=0.0, double looppoint=0.0) { _looppoint=looppoint; if((_anibool&ANI_PLAYING)==0) Start(timepassed); _anibool(ANI_LOOPING,true); }
     // Interpolates the animation by moving it forward *delta* milliseconds
     inline bool Interpolate(double delta)
     {
@@ -116,27 +128,48 @@ namespace bss_util {
 		inline void SetTimeWarp(double aniwarp) { _aniwarp=aniwarp; }
 		inline double GetTimeWarp() const { return _aniwarp; }
     inline double GetTimePassed() const { return _timepassed; }
-		inline unsigned short GetID() const { return _id; }
 		template<unsigned char TypeID>
     inline bool SetRelative(bool rel) { AniAttribute* hold = GetTypeID(TypeID); if(!hold) return; hold->_rel=rel; }
     inline bool IsPlaying() const { return (_anibool&ANI_PLAYING)!=0; }
     inline bool IsLooping() const { return (_anibool&ANI_LOOPING)!=0; }
     inline bool IsPaused() const { return (_anibool&ANI_PAUSED)!=0; }
 
-		cAnimation& operator=(const cAnimation& right);
+		cAnimation& operator=(const cAnimation& right)
+    {
+      for(unsigned char i = 0; i < _attributes.Length(); ++i)
+        _delattr(_attributes[i]);
+      _attributes.Clear();
+
+	    _aniwarp=right._aniwarp;
+      _anibool=right._anibool;
+	    _timepassed=right._timepassed;
+	    _anicalc=right._anicalc;
+	    _anilength=right._anilength;
+      _looppoint=right._looppoint;
+
+      AniAttribute* cln;
+      unsigned char svar=right._attributes.Length(); 
+      for(unsigned char i = 0; i < svar; ++i)
+      {
+        cln = _parent->TypeIDRegFunc(right._attributes[i]->typeID);
+        if(!cln) continue; // This will happen if we copied from a different object, or in the copy constructor
+        cln->CopyAnimation(right._attributes[i]);
+        _attributes.Insert(cln->typeID,cln);
+      }
+
+	    return *this;
+    }
+
+    static inline void _delattr(AniAttribute* p) { p->~AniAttribute(); cAbstractAnim::AnimFree(p); }
 
 	protected:
-		void AddAttribute(Attribute_Def_base* def);
-		void RemoveAttribute(Attribute_Def_base* def);
-
-    bss_util::cMap<unsigned char,AniAttribute*,bss_util::CompT<unsigned char>,unsigned char> _attributes;
+    bss_util::cMap<unsigned char,AniAttribute*,bss_util::CompT<unsigned char>,unsigned char,cArraySimple<std::pair<unsigned char,AniAttribute*>,unsigned char,AniStaticAlloc<std::pair<unsigned char,AniAttribute*>>>> _attributes;
 		double _timepassed; //in milliseconds
 		double _anicalc; //Calculated effective length
 		double _anilength; //if zero, we automatically stop when all animations are exhausted
 		double _aniwarp; //Time warp factor
     cAbstractAnim* _parent;
     cBitField<unsigned char> _anibool;
-		unsigned short _id;
     double _looppoint;
 	};
   
@@ -214,6 +247,14 @@ namespace bss_util {
 	private:
     bss_util::cMap<unsigned char,DEF_ANIMATION_ARRAY*,bss_util::CompT<unsigned char>,unsigned char> _frames;
 	};
+
+  cAnimation::cAnimation(const DEF_ANIMATION& def, cAbstractAnim* ptr) : _parent(ptr), _aniwarp(def.aniwarp), _looppoint(0), _anicalc(0),
+      _anilength(def.anilength), _timepassed(0)
+    {
+      auto& p = def.GetFrames();
+      for(unsigned int i = 0; i < p.Length(); ++i)
+        p[i]->Load(this);
+    }
 }
 
 #endif

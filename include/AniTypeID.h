@@ -7,11 +7,11 @@
 #include "delegate.h"
 #include "cDef.h"
 
-#define ANI_TID(tdef) typename ANI_IDTYPE_EXPAND<ANI_IDTYPE<TypeID>>::##tdef
+#define ANI_TID(tdef) typename bss_util::ANI_IDTYPE_EXPAND<bss_util::ANI_IDTYPE<TypeID>>::##tdef
 
 namespace bss_util {
   template<unsigned char T>
-  struct ANI_IDTYPE {}; //if you need your own type, just insert another explicit specialization in your code before including cAnimated.h
+  struct ANI_IDTYPE {}; //if you need your own type, just insert another explicit specialization in your code
 
   template<typename T, typename D>
   struct ANI_IDTYPE_EXPAND__
@@ -25,7 +25,7 @@ namespace bss_util {
   struct ANI_IDTYPE_EXPAND__<T,void>
   {
     typedef typename T::VALUE VALUE;
-    typedef VALUE const VALUECONST;
+    typedef VALUE VALUECONST;
     typedef VALUE VALUEREF;
   };
 
@@ -46,17 +46,15 @@ namespace bss_util {
     typedef typename ANI_IDTYPE_EXPAND__DEL__<VALUECONST,typename T::DEL>::DELEGATE DELEGATE;
   };
 
-  class cAnimation;
   struct AniAttribute;
 
   // Abstract class designed to be inherited using virtual inheritance so you can call the TypeIDRegFunc from any class 
-	class BSS_COMPILER_DLLEXPORT cAbstractAnim
+	struct BSS_COMPILER_DLLEXPORT cAbstractAnim
   {
-    friend class cAnimation;
-  protected:
     virtual AniAttribute* BSS_FASTCALL TypeIDRegFunc(unsigned char TypeID)=0;
-    virtual void BSS_FASTCALL _addactive(cAnimation* p) {}
     static AniAttribute* BSS_FASTCALL SpawnBase(const cDef<AniAttribute>& p);
+    static void* BSS_FASTCALL AnimAlloc(size_t n, void* p=0); // Behaves like Realloc, send in a null pointer for p to behave like malloc
+    static void BSS_FASTCALL AnimFree(void* p);
   };
 }
   

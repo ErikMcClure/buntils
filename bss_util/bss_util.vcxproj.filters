@@ -269,9 +269,6 @@
     <ClCompile Include="cINIentry.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="cAnimation.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ResourceCompile Include="bss_util.rc">

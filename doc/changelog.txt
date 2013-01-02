@@ -22,11 +22,13 @@
 - Fixed minor bug in Fisher-Yates shuffle algorithm (the last element was not being shuffled)
 - Threw out useless bss_call.h header and incorporated it into bss_defines.
 - cThread now has move assignment, join-with-timeout, and responds to errors.
-- cArraySimple uses realloc and avoids memory allocation when set to size 0
+- cArraySimple/Construct uses realloc and avoids memory allocation when set to size 0
 - Rebuilt cBitField into a non-inheritable class with more powerful management simplified via operators.
 - Renamed TEST to TESTDEF so as not to confuse it with the TEST() macro
 - Removed functor.h and replaced with delegate.h, which is a more elegant and efficient implementation.
 - Introduced cAnimation.h, which defines a fully generic animation system that can be used for anything.
+- reallocate() is now defined as an optional allocation operation
+- cArraySimple/Construct/Safe now support custom allocators with reallocate() defined
 
 0.3.84
 ------

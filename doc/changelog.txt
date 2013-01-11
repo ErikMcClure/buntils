@@ -29,7 +29,8 @@
 - Introduced cAnimation.h, which defines a fully generic animation system that can be used for anything.
 - reallocate() is now defined as an optional allocation operation
 - cArraySimple/Construct/Safe now support custom allocators with reallocate() defined
-
+- Added cDisjointSet and used it to implement Kruskal's algorithm for generating a minimum spanning tree given a sorted set of edges.
+- Templatized KH_POINTER_HASHFUNC
 0.3.84
 ------
 - Tweaked internal constant names to be less likely to collide with reserved identifiers

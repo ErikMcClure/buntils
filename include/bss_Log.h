@@ -35,7 +35,7 @@ public:
   // Destructor - destroys any file streams
   ~bss_Log();
   // Redirects an existing stream to write to this log's buffer
-  void BSS_FASTCALL Assimilate(std::ostream& stream); //Resistance is futile
+  void BSS_FASTCALL Assimilate(std::ostream& stream); // Resistance is futile
   // Adds a target stream to post logs to
   void BSS_FASTCALL AddTarget(std::ostream& stream);
   //void BSS_FASTCALL AddTarget(std::wostream& stream);

@@ -22,6 +22,7 @@
 #include "cCmdLineArgs.h"
 #include "cDef.h"
 #include "cDynArray.h"
+#include "cDisjointSet.h"
 #include "cHolder.h"
 #include "cINIstorage.h"
 #include "cKhash.h"
@@ -1602,6 +1603,35 @@ TESTDEF::RETPAIR test_CMDLINEARGS()
   ENDTEST;
 }
 
+TESTDEF::RETPAIR test_DISJOINTSET()
+{
+  BEGINTEST;
+
+  std::pair<uint,uint> E[10]; // Initialize a complete tree with an arbitrary order.
+  memset(E,0,sizeof(std::pair<uint,uint>)*10);
+  E[0].first=1;
+  E[1].first=2;
+  E[2].first=3;
+  E[3].first=4;
+  E[4].first=2;
+  E[5].first=3;
+  E[6].first=4;
+  E[7].first=3;
+  E[8].first=4;
+  E[9].first=4;
+  E[4].second=1;
+  E[5].second=1;
+  E[6].second=1;
+  E[7].second=2;
+  E[8].second=2;
+  E[9].second=3;
+  shuffle(E); // shuffle our edges
+  auto tree = cDisjointSet<uint>::MinSpanningTree(5,std::begin(E),std::end(E));
+  TEST(tree.Size()==4);
+
+  ENDTEST;
+}
+
 TESTDEF::RETPAIR test_DYNARRAY()
 {
   BEGINTEST;
@@ -1882,6 +1912,9 @@ TESTDEF::RETPAIR test_KHASH()
   check = *hasher.GetKey("Video");
   //unsigned __int64 diff = _debug.CloseProfiler(ID);
 
+  cKhash_Pointer<char,false> set;
+  set.Insert(0,1);
+  TEST(set.Exists(set.GetIterator(0)));
   ENDTEST;
 }
 
@@ -2709,6 +2742,7 @@ int main(int argc, char** argv)
     //{ "cByteQueue.h", &test_BYTEQUEUE },
     //{ "cCmdLineArgs.h", &test_CMDLINEARGS },
     //{ "cDynArray.h", &test_DYNARRAY },
+    { "cDisjointSet.h", &test_DISJOINTSET },
     { "cHighPrecisionTimer.h", &test_HIGHPRECISIONTIMER },
     //{ "cHolder.h", &test_HOLDER },
     //{ "INIparse.h", &test_INIPARSE },

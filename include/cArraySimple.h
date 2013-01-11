@@ -35,7 +35,7 @@ namespace bss_util {
     inline SizeType Size() const { return _size; }
     inline void BSS_FASTCALL SetSizeDiscard(SizeType nsize)
     {
-      if(nsize==_size) return;
+      if(nsize<=_size) { _size=nsize; return; }
       if(_array!=0) Alloc::deallocate(_array);
       //_array = (T*)malloc(nsize*sizeof(T));
       _array = (T*)Alloc::allocate(nsize);
@@ -43,7 +43,7 @@ namespace bss_util {
     }
     inline void BSS_FASTCALL SetSize(SizeType nsize)
     {
-      if(nsize==_size) return;
+      if(nsize<=_size) { _size=nsize; return; }
       //T* narray = (T*)realloc(_array,nsize*sizeof(T));
       T* narray = (T*)Alloc::reallocate(_array,nsize);
       if(!narray && nsize>0) Alloc::deallocate(_array); // realloc won't free _array if it fails

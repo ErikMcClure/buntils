@@ -14,10 +14,6 @@
 #include <sys/stat.h>   // stat().
 #include <dirent.h> //Linux
 //#include <gtkmm.h> // file dialog
-#include <iconv.h>
-
-static iconv_t iconv_utf8to16=iconv_open("UTF-8", "UTF-16"); // We have to open these in C++ because C sucks.
-static iconv_t iconv_utf16to8=iconv_open("UTF-16", "UTF-8");
 #endif
 
 //typedef DWORD (WINAPI *GETFINALNAMEBYHANDLE)(HANDLE,LPWSTR,DWORD,DWORD);

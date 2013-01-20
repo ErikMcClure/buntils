@@ -101,7 +101,7 @@ extern size_t BSS_FASTCALL UTF8toUTF16(const char*BSS_RESTRICT input,wchar_t*BSS
   char* out = (char*)output;
   if(!output) return (len*4) + 1;
   len+=1; // include null terminator
-  iconv(iconv_utf8to16, &input, &len, &out, &buflen);
+  return iconv(iconv_utf8to16, &input, &len, &out, &buflen);
 #endif
 
   /*const unsigned char* s = src;

@@ -25,6 +25,8 @@
 #define WCSCPYx0(dst,src) wcscpy_s(dst,src)
 #define STRICMP(a,b) _stricmp(a,b)
 #define WCSICMP(a,b) _wcsicmp(a,b)
+#define STRNICMP(a,b,n) _strnicmp(a,b,n)
+#define WCSNICMP(a,b,n) _wcsnicmp(a,b,n)
 #define STRTOK(str,delim,context) strtok_s(str,delim,context)
 #define WCSTOK(str,delim,context) wcstok_s(str,delim,context)
 #define SSCANF sscanf_s
@@ -55,6 +57,8 @@
 #define WCSCPY(dst,size,src) wcsncpy(dst,src,size-1)
 #define STRICMP(a,b) strcasecmp(a,b)
 #define WCSICMP(a,b) wcscasecmp(a,b)
+#define STRNICMP(a,b,n) strnicmp(a,b,n)
+#define WCSNICMP(a,b,n) wcsnicmp(a,b,n)
 #define STRTOK(str,delim,context) strtok_r(str,delim,context)
 #define WCSTOK(str,delim,context) wcstok(str,delim,context) // For some reason, in linux, wcstok *IS* the threadsafe version
 #define SSCANF sscanf

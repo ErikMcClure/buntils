@@ -3135,6 +3135,24 @@ inline bool isprime(int number)
 //  int retval=numarray[start]==prev?1:0;
 //}
 
+
+  //double x=0; // initial position
+  //double t=0;
+  //unsigned int steps=100;
+  //double step=5.0/steps;
+  //for(unsigned int i = 0; i < steps; ++i)
+  //{
+  //  double fx = 1 - x*x;
+  //  //x = x + fx*step;
+  //  double xt = x + fx*step;
+  //  double fxt = 1 - xt*xt;
+  //  x = x + 0.5*(fx + fxt)*step;
+  //  if(i%10==9) 
+  //    std::cout << x << std::endl;
+  //}
+  //std::cin.get();
+  //return 0;
+
 extern void kdtestmain();
 
 char* inttoroman(int in)

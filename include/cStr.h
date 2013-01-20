@@ -65,6 +65,7 @@ public:
     str->resize(SLEN(format));
     while(VSNWPRINTF(str->UnsafeString(),str->capacity(),format,args)==str->capacity()) //double size until it fits.
       str->resize(str->capacity()*2);
+    return str->capacity();
   }
 #else
   static inline BSS_FORCEINLINE int VPF(CHAR *dest, size_t size, const CHAR *format, va_list args) { return VSNWPRINTF(dest,size,format,args); }

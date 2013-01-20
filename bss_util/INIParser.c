@@ -4,6 +4,7 @@
 #include "INIparse.h"
 #include "bss_util_c.h"
 #include "bss_defines.h"
+#include "bss_deprecated.h"
 #include <malloc.h>
 #include <string.h>
 
@@ -236,7 +237,7 @@ int BSS_FASTCALL comparevalues(const char* start, const char* end, const char* c
   end=_trimrstralt(end-1,start);
   a = (end-start)+1;
   b = strlen(comp);
-  return _strnicmp(start,comp,bssmin(a,b));
+  return STRNICMP(start,comp,bssmin(a,b));
 }
 INICHUNK BSS_FASTCALL bss_findINIsection(const void* data, size_t length, const char* section, unsigned int instance)
 {

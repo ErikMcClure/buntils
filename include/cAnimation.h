@@ -17,7 +17,7 @@ namespace bss_util {
   class BSS_COMPILER_DLLEXPORT cAnimation
 	{
   protected:
-    enum ANIBOOLS : unsigned char { ANI_PLAYING=1,ANI_LOOPING=2,ANI_ACTIVE=4,ANI_PAUSED=8 };
+    enum ANIBOOLS : unsigned char { ANI_PLAYING=1,ANI_LOOPING=2,ANI_PAUSED=4 };
 
 	public:
 		inline cAnimation(const cAnimation& copy) : _parent(copy._parent) { operator=(copy); }
@@ -34,7 +34,7 @@ namespace bss_util {
 		inline virtual void Start(double timepassed=0.0)
     {
 	    _timepassed=timepassed;
-      _anibool+=(ANI_PLAYING|ANI_ACTIVE);
+      _anibool+=ANI_PLAYING;
   
       unsigned char svar=_attributes.Length();
       for(unsigned char i = 0; i < svar; ++i)
@@ -45,20 +45,17 @@ namespace bss_util {
     // Temporarily pauses or unpauses the animation
     inline void Pause(bool pause) { _anibool(ANI_PAUSED,pause); }
     // Starts looping the animation (if it hasn't started yet, it is started.) Looping ends when Stop() is called
-    inline void Loop(double timepassed=0.0, double looppoint=0.0) { _looppoint=looppoint; if((_anibool&ANI_PLAYING)==0) Start(timepassed); _anibool(ANI_LOOPING,true); }
+    inline void Loop(double timepassed=0.0, double looppoint=0.0) { _looppoint=looppoint; _anibool+=ANI_LOOPING; if((_anibool&ANI_PLAYING)==0) Start(timepassed); }
     // Interpolates the animation by moving it forward *delta* milliseconds
     inline bool Interpolate(double delta)
     {
       if((_anibool&ANI_PAUSED)!=0) return true;
-      if((_anibool&ANI_PLAYING)==0) { _anibool-=ANI_ACTIVE; return false; }
+      if((_anibool&ANI_PLAYING)==0) return false;
 	    _timepassed += delta*_aniwarp;
+		  double length = _anilength==0.0?_anicalc:_anilength;
 
-	    if((_anibool&ANI_LOOPING)!=0)
-	    {
-		    double length = _anilength==0.0?_anicalc:_anilength;
-		    if(length>0.0 && _timepassed > length)
-          Start((floor(_timepassed/length)*length)+_looppoint);
-	    }
+		  if(((_anibool&ANI_LOOPING)!=0) && length>0.0 && _timepassed > length)
+        Start(fmod(_timepassed-length,length-_looppoint)+_looppoint);
 
 	    bool notfinished=_timepassed<_anilength;
 
@@ -69,8 +66,8 @@ namespace bss_util {
 
 	    if(!notfinished) //in this case we're done, so reset
       {
-		    if((_anibool&ANI_LOOPING)!=0) Start(_looppoint);
-		    else { Stop(); _anibool-=ANI_ACTIVE; }
+		    if((_anibool&ANI_LOOPING)!=0) Start(fmod(_timepassed-length,length-_looppoint)+_looppoint);
+		    else Stop();
       }
 
       return (_anibool&ANI_PLAYING)!=0;
@@ -197,10 +194,10 @@ namespace bss_util {
     inline DEF_ANIMATION(DEF_ANIMATION&& mov) : anilength(mov.anilength), aniwarp(mov.aniwarp), _frames(mov._frames) { mov._frames.Clear(); }
     inline DEF_ANIMATION(const DEF_ANIMATION& copy) : anilength(copy.anilength), aniwarp(copy.aniwarp), _frames(copy._frames)
     {
-      for(size_t i = 0; i < _frames.Length(); ++i) 
+      for(unsigned char i = 0; i < _frames.Length(); ++i) 
         _frames[i]=_frames[i]->Clone();
     }
-		inline ~DEF_ANIMATION() { for(size_t i = 0; i < _frames.Length(); ++i) delete _frames[i]; }
+		inline ~DEF_ANIMATION() { for(unsigned char i = 0; i < _frames.Length(); ++i) delete _frames[i]; }
 		inline virtual cAnimation* BSS_FASTCALL Spawn() const { return 0; } // You can't spawn an animation because it can't attach to anything
 		inline virtual DEF_ANIMATION* BSS_FASTCALL Clone() const { return new DEF_ANIMATION(*this); }
     template<unsigned char TypeID>
@@ -228,14 +225,14 @@ namespace bss_util {
       return _frames;
     }
     inline DEF_ANIMATION& operator=(const DEF_ANIMATION& copy) {
-      for(size_t i = 0; i < _frames.Length(); ++i) 
+      for(unsigned char i = 0; i < _frames.Length(); ++i) 
         delete _frames[i]; 
       _frames=copy._frames;
-      for(size_t i = 0; i < _frames.Length(); ++i) 
+      for(unsigned char i = 0; i < _frames.Length(); ++i) 
         _frames[i]=_frames[i]->Clone();
     }
     inline DEF_ANIMATION& operator=(DEF_ANIMATION&& mov) {
-      for(size_t i = 0; i < _frames.Length(); ++i) 
+      for(unsigned char i = 0; i < _frames.Length(); ++i) 
         delete _frames[i]; 
       _frames=mov._frames;
       mov._frames.Clear();

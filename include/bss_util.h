@@ -79,7 +79,11 @@ namespace bss_util {
     static const UNSIGNED UNSIGNED_MIN=0;
     static const UNSIGNED UNSIGNED_MAX=(((UNSIGNED)2)<<(BITS-1))-((UNSIGNED)1); //these are all done carefully to ensure no overflow is ever utilized unless appropriate and it respects an arbitrary bit limit. We use 2<<(BITS-1) here to avoid shifting more bits than there are bits in the type.
     static const SIGNED SIGNED_MIN_RAW=(((SIGNED)1)<<(BITS-1)); // When we have normal bit lengths (8,16, etc) this will correctly result in a negative value in two's complement.
-    static const SIGNED SIGNED_MIN=-SIGNED_MIN_RAW; // However if we have unusual bit lengths (3,19, etc) the raw bit representation will be technically correct in the context of that sized integer, but since we have to round to a real integer size to represent the number, the literal interpretation will be wrong. This yields the proper minimum value.
+#ifdef BSS_COMPILER_GCC
+    static const SIGNED SIGNED_MIN=-((__int128)SIGNED_MIN_RAW); // GCC is a pendantic fuckwad that refuses to let any constant overflow even if I want it to overflow, so we work around it.
+#else
+    static const SIGNED SIGNED_MIN=(-SIGNED_MIN_RAW); // However if we have unusual bit lengths (3,19, etc) the raw bit representation will be technically correct in the context of that sized integer, but since we have to round to a real integer size to represent the number, the literal interpretation will be wrong. This yields the proper minimum value.
+#endif
     static const SIGNED SIGNED_MAX=((~SIGNED_MIN_RAW)&UNSIGNED_MAX);
   };
   template<typename T>

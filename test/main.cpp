@@ -1958,9 +1958,9 @@ TESTDEF::RETPAIR test_LINKEDARRAY()
 
 }
 
-bool cmplist(cLinkedList<int,Allocator<cLLNode<int>>,true>& list, const char* nums)
+template<bool L>
+bool cmplist(cLinkedList<int,Allocator<cLLNode<int>>,L,true>& list, const char* nums)
 {
- // cLLIter<int> cur(list.GetRoot());
   auto cur = list.begin();
   bool r=true;
   while(cur.IsValid() && *nums!=0 && r)
@@ -1971,7 +1971,7 @@ bool cmplist(cLinkedList<int,Allocator<cLLNode<int>>,true>& list, const char* nu
 TESTDEF::RETPAIR test_LINKEDLIST()
 {
   BEGINTEST;
-  cLinkedList<int,Allocator<cLLNode<int>>,true> test;
+  cLinkedList<int,Allocator<cLLNode<int>>,true,true> test;
   cLLNode<int>* llp[5];
 
   llp[0] = test.Add(1);
@@ -1993,6 +1993,29 @@ TESTDEF::RETPAIR test_LINKEDLIST()
   test.Insert(0,0);
   TEST(cmplist(test,"230"));
   TEST(test.Length()==3);
+  
+  cLinkedList<int,Allocator<cLLNode<int>>,false,true> test2;
+
+  llp[0] = test2.Add(1);
+  TEST(cmplist(test2,"1"));
+  llp[1] = test2.Add(2);
+  TEST(cmplist(test2,"21"));
+  llp[3] = test2.Add(4);
+  TEST(cmplist(test2,"421"));
+  llp[4] = test2.Add(5);
+  TEST(cmplist(test2,"5421"));
+  llp[2] = test2.Insert(3,llp[1]);
+  TEST(cmplist(test2,"54321"));
+  test2.Remove(llp[3]);
+  TEST(cmplist(test2,"5321"));
+  test2.Remove(llp[0]);
+  TEST(cmplist(test2,"532"));
+  test2.Remove(llp[4]);
+  TEST(cmplist(test2,"32"));
+  test2.Insert(0,0);
+  TEST(cmplist(test2,"032"));
+  TEST(test2.Length()==3);
+
   ENDTEST;
 }
 

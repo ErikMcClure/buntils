@@ -31,6 +31,9 @@
 - cArraySimple/Construct/Safe now support custom allocators with reallocate() defined
 - Added cDisjointSet and used it to implement Kruskal's algorithm for generating a minimum spanning tree given a sorted set of edges.
 - Templatized KH_POINTER_HASHFUNC
+- Removed cLAIterRM
+- Renamed GetRoot to Front and GetLast to Back on cLinkedList, and made the use of _last optional.
+
 0.3.84
 ------
 - Tweaked internal constant names to be less likely to collide with reserved identifiers

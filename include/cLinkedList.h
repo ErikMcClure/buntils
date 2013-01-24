@@ -10,38 +10,17 @@
 namespace bss_util {
   // Default node for internal use
   template<typename T>
-  struct cLLNode : LLBase<cLLNode<T>> 
-  {
-    T item;
-  };
-
-  // Public node prohibiting manipulation of pointers, has the same bit layout as the internal node
-  template<typename T>
-  struct cLLPNode : private LLBase<cLLPNode<T>> 
-  {
-    cLLPNode(const cLLNode<T>& copy) : item(copy.item) { next=(cLLPNode<T>*)copy.next; prev=(cLLPNode<T>*)copy.prev; }
-    T item;
-    inline BSS_FORCEINLINE cLLPNode<T>* GetNext() { return next; }
-    inline BSS_FORCEINLINE cLLPNode<T>* GetPrev() { return prev; }
-  };
-  
-  // Const node prohibiting manipulation of everything, has the same bit layout as the internal node
-  template<typename T>
-  struct cLLCNode : LLBase<cLLCNode<const T>> 
-  {
-    T item;
-  };
+  struct cLLNode : LLBase<cLLNode<T>> { T item; };
 
   // Generic Iterator for cLinkedList
-  template<typename T, typename _Nd=cLLNode<T>>
-  class BSS_COMPILER_DLLEXPORT cLLIter : public LLIterator<T,_Nd>
+  template<typename T>
+  class BSS_COMPILER_DLLEXPORT cLLIter : public LLIterator<T,cLLNode<T>>
   {
-  protected:
-    typedef typename LLIterator<T,_Nd>::pointer pointer;
-    typedef typename LLIterator<T,_Nd>::reference reference;
+    typedef typename LLIterator<T,cLLNode<T>>::pointer pointer;
+    typedef typename LLIterator<T,cLLNode<T>>::reference reference;
   public:
     inline cLLIter() {}
-    inline explicit cLLIter(_Nd* node) : LLIterator<T,_Nd>(node) { }
+    inline explicit cLLIter(cLLNode<T>* node) : LLIterator<T,cLLNode<T>>(node) { }
     inline reference operator*() const { return cur->item; }
     inline pointer operator->() const { return &cur->item; }
     inline cLLIter& operator++() { cur=cur->next; return *this; } //prefix
@@ -51,11 +30,11 @@ namespace bss_util {
     inline bool operator==(const cLLIter& _Right) const { return (cur == _Right.cur); }
 	  inline bool operator!=(const cLLIter& _Right) const { return (cur != _Right.cur); }
     inline bool operator!() const { return !cur; }
-  };
+  }; // Remove a node by doing LinkedList.Remove(iter++);
 
   // Adaptive class template for Size usage
-  template<bool size> struct cLinkedList_FuncSize {};
-  template<> struct cLinkedList_FuncSize<true> { 
+  template<bool size> struct cLList_SIZE {};
+  template<> struct cLList_SIZE<true> { 
     inline unsigned int Length() const { return _size; }
 
   protected:    
@@ -63,47 +42,92 @@ namespace bss_util {
     inline void _incsize() { ++_size; }
     inline void _decsize() { --_size; }
     inline void _zerosize() { _size=0; } 
-    cLinkedList_FuncSize() : _size(0) {}
+    cLList_SIZE() : _size(0) {}
   };
-  template<> struct cLinkedList_FuncSize<false> { inline void _incsize() { } inline void _decsize() { } inline void _zerosize() { } };
+  template<> struct cLList_SIZE<false> { inline void _incsize() { } inline void _decsize() { } inline void _zerosize() { } };
+  
+// Adaptive class template for _last usage
+  template<typename T, bool L> 
+  struct cLList_LAST
+  { 
+    inline cLLNode<T>* Back() const { return _last; }
+    inline cLLNode<T>* GetLast() const { return _last; }
+    inline cLLNode<T>* BSS_FASTCALL Item(T item, cLLNode<T>* from=0, bool backwards=false) const 
+    { //if target is 0 we start from the root
+      if(!from) from=_root;
+      cLLNode<T>* cur=from;
+      cLLNode<T>* rootflip=backwards?_last:_root;
+      while(cur->item!=item)
+      {
+        cur=backwards?cur->prev:cur->next; //This method of finding an object is such bad practice we just let the CPU optimize this out.
+        if(!cur) cur=rootflip; //return to the flipside value
+        if(cur==from) return 0; //if we have returned to the starting node, the item doesn't exist
+      }
+      return cur;
+    } 
 
-  // Doubly linked list implementation with _root, _last and an optional _size
-  template<typename T, typename Alloc=Allocator<cLLNode<T>>, bool useSize=false>
-  class BSS_COMPILER_DLLEXPORT cLinkedList : protected cAllocTracker<Alloc>, public cLinkedList_FuncSize<useSize>
+  protected:
+    inline cLList_LAST() : _last(0), _root(0) {}
+    inline cLList_LAST(cLList_LAST<T,L>&& mov) : _last(mov._last), _root(mov._root) { mov._root=0; mov._last=0; }
+    inline void _add(cLLNode<T>* node) { if(!_root) { node->next=node->prev=0; _last=_root=node; } else _last=LLAdd<cLLNode<T>>(node,_last); }
+    inline void _remove(cLLNode<T>* node) { LLRemove<cLLNode<T>>(node,_root,_last); }
+    inline cLList_LAST<T,L>& operator =(cLList_LAST<T,L>&& mov) { _last=mov._last; mov._last=0; _root=mov._root; mov._root=0; return *this; }
+
+    cLLNode<T>* _root;
+    cLLNode<T>* _last;
+  };
+  template<typename T>
+  struct cLList_LAST<T,false>
+  {
+    inline cLLNode<T>* BSS_FASTCALL Item(T item, cLLNode<T>* from=0) const 
+    { //if target is 0 we start from the root
+      if(!from) from=_root;
+      cLLNode<T>* cur=from;
+      while(cur->item!=item)
+      {
+        cur=cur->next; //This method of finding an object is such bad practice we just let the CPU optimize this out.
+        if(!cur) cur=_root; //return to the flipside value
+        if(cur==from) return 0; //if we have returned to the starting node, the item doesn't exist
+      }
+      return cur;
+    } 
+  protected:
+    inline cLList_LAST() : _root(0) {}
+    inline cLList_LAST(cLList_LAST<T,false>&& mov) : _root(mov._root) { mov._root=0; }
+    inline void _remove(cLLNode<T>* node) { LLRemove<cLLNode<T>>(node,_root); }
+    inline void _add(cLLNode<T>* node) { LLInsertRoot<cLLNode<T>>(node,_root); }
+    inline cLList_LAST<T,false>& operator =(cLList_LAST<T,false>&& mov) { _root=mov._root; mov._root=0; return *this; }
+
+    cLLNode<T>* _root;
+  };
+
+  // Doubly linked list implementation with _root, optional _last and an optional _size
+  template<typename T, typename Alloc=Allocator<cLLNode<T>>, bool useLast=false, bool useSize=false>
+  class BSS_COMPILER_DLLEXPORT cLinkedList : protected cAllocTracker<Alloc>, public cLList_SIZE<useSize>, public cLList_LAST<T,useLast>
   {
   public:
     // Constructor, takes an optional allocator instance
-    inline explicit cLinkedList(Alloc* allocator=0) : cAllocTracker<Alloc>(allocator), _last(0), _root(0)
-    {
-    }
+    inline explicit cLinkedList(Alloc* allocator=0) : cAllocTracker<Alloc>(allocator) { }
     // Copy constructor
-    inline cLinkedList(const cLinkedList<T,Alloc>& copy) : cAllocTracker<Alloc>(copy), _last(0), _root(0)
+    inline cLinkedList(const cLinkedList<T,Alloc>& copy) : cAllocTracker<Alloc>(copy) { operator =(copy); }
+    inline cLinkedList(cLinkedList<T,Alloc>&& mov) : cAllocTracker<Alloc>(std::move(mov)), cLList_LAST(std::move(mov))
     {
-      operator =(copy);
-    }
-    inline cLinkedList(cLinkedList<T,Alloc>&& mov) : cAllocTracker<Alloc>(std::move(mov)), _last(mov._last), _root(mov._root)
-    {
-      mov._root=0;
-      mov._last=0;
-      cLinkedList_FuncSize<useSize>::operator=(mov);
+      cLList_SIZE<useSize>::operator=(mov);
       mov._zerosize();
     }
     // Destructor
-    inline ~cLinkedList()
-    {
-      Clear();
-    }
+    inline ~cLinkedList() { Clear(); }
     // Appends the item to the end of the list
     inline cLLNode<T>* BSS_FASTCALL Add(T item)
     {
-      cLLNode<T>* node = _createnode(item,_last);
-      if(_last!=0) _last->next=node;
-      _last = node;
-
+      cLLNode<T>* node = _allocate(1);
+      node->item=item;
+      _add(node);
       _incsize(); //increment size by one
-      if(_root == 0) _root = node; //If root is 0 it means our list hasn't gotten anything assigned to it, so this node is both the root and the last
       return node;
     }
+    // Inserts the item in the front of the list
+    inline cLLNode<T>* BSS_FASTCALL Insert(T item) { return Insert(item,_root); }
     // Inserts the item before the given node. If the given node is null, appends the item to the end of the list
     inline cLLNode<T>* BSS_FASTCALL Insert(T item, cLLNode<T>* target)
     {
@@ -115,35 +139,23 @@ namespace bss_util {
       _incsize(); //increment size by one
       return hold;
     }
+    inline void BSS_FASTCALL Remove(cLLIter<T>& iter) { Remove(iter.cur); }
     inline void BSS_FASTCALL Remove(cLLNode<T>* node)
     {
-      LLRemove<cLLNode<T>>(node,_root,_last);
+      _remove(node);
 
       _delnode(node); //We don't need our linkedlist wrapper struct anymore so we destroy it
       _decsize(); //our size is now down one
     }
     inline cLLNode<T>* BSS_FASTCALL Remove(cLLNode<T>* node, bool backwards)
     {
-      if(node == 0) return 0;
+      if(!node) return 0;
 
       cLLNode<T>* retval=backwards?node->prev:node->next;
       Remove(node);
 
       return retval;
     }
-    inline cLLNode<T>* BSS_FASTCALL Item(T item, cLLNode<T>* from=0, bool backwards=false) const 
-    { //if target is 0 we start from the root
-      if(from == 0) from=_root;
-      cLLNode<T>* cur=from;
-      cLLNode<T>* rootflip=backwards?_last:_root;
-      while(cur->item!=item)
-      {
-        cur=backwards?cur->prev:cur->next; //This method of finding an object is such bad practice we just let the CPU optimize this out.
-        if(!cur) cur=rootflip; //return to the flipside value
-        if(cur==from) return 0; //if we have returned to the starting node, the item doesn't exist
-      }
-      return cur;
-    } 
     inline void Clear()
     {
       cLLNode<T>* hold = _root;
@@ -154,33 +166,32 @@ namespace bss_util {
         _delnode(hold);
         hold = nexthold;
       }
-      _root = 0;
-      _last=0;
-      _zerosize();
+      memset(this,0,sizeof(cLinkedList<T,Alloc,useLast,useSize>));
     }
 
-    inline cLLNode<T>* GetRoot() const { return _root; }
-    inline cLLNode<T>* GetLast() const { return _last; }
+    inline cLLNode<T>* Front() const { return _root; }
     inline cLLIter<const T> begin() const { return cLLIter<const T>(_root); } // Use these to get an iterator you can use in standard containers
     inline cLLIter<const T> end() const { return cLLIter<const T>(0); }
     inline cLLIter<T> begin() { return cLLIter<T>(_root); }
     inline cLLIter<T> end() { return cLLIter<T>(0); }
 
     template<typename U, bool V>
-    inline cLinkedList<T,Alloc,useSize>& operator =(const cLinkedList<T,U,V>& right) { if(&right==this) return *this; Clear(); return operator +=(right); }
+    inline cLinkedList& operator =(const cLinkedList<T,U,useLast,V>& right) { if(&right==this) return *this; Clear(); return operator +=(right); }
     template<typename U, bool V>
-    inline cLinkedList<T,Alloc,useSize>& operator =(cLinkedList<T,U,V>&& mov) { if(&mov==this) return *this; Clear(); _root=mov._root;
-    _last=mov._last; mov._root=0; mov._last=0; cLinkedList_FuncSize<useSize>::operator=(mov); mov._zerosize(); return *this;
-    }
-    template<typename U, bool V>
-    inline cLinkedList<T,Alloc,useSize>& operator +=(const cLinkedList<T,U,V>& right) 
+    inline cLinkedList& operator =(cLinkedList<T,U,useLast,V>&& mov) 
     { 
-      cLLNode<T>* cur=right._root;
-      while(cur!=0)
-      {
+      if(&mov==this) return *this; 
+      Clear(); 
+      cLList_LAST<useLast>::operator=(std::move(mov)); 
+      cLList_SIZE<useSize>::operator=(mov); 
+      mov._zerosize(); 
+      return *this;
+    }
+    template<typename U, bool L, bool V>
+    inline cLinkedList& operator +=(const cLinkedList<T,U,L,V>& right) 
+    { 
+      for(cLLNode<T>* cur=right._root; cur!=0; cur=cur->next)
         Add(cur->item);
-        cur=cur->next;
-      }
       return *this;
     }
 
@@ -194,36 +205,8 @@ namespace bss_util {
 			return retval;
     }
 
-    inline void BSS_FASTCALL _delnode(cLLNode<T>* target)
-    {
-			_deallocate(target, 1);
-    }
-
-    cLLNode<T>* _root;
-    cLLNode<T>* _last;
+    inline void BSS_FASTCALL _delnode(cLLNode<T>* target) { _deallocate(target, 1); }
   };
 }
-
-// Adaptive class templitization for _last usage
-//  template<typename T, typename Alloc, bool useSize, bool last> class cLinkedList_FuncLast {};
-//  template<typename T, typename Alloc, bool useSize> struct cLinkedList_FuncLast<T,Alloc,useSize,true>
-//  { 
-//    inline cLLNode<T>* GetLast() const { return _last; }
-//  protected:
-//    cLLNode<T>* _last;
-//    template<cLLNode<T>* (BSS_FASTCALL cLinkedList<T,Alloc,useSize,true>::* Insert)(T, cLLNode<T>*),cLLNode<T>* (BSS_FASTCALL cLinkedList<T,Alloc,useSize,true>::* _add)(T,cLLNode<T>*&)>
-//    static inline cLLNode<T>* BSS_FASTCALL _addfunc(cLinkedList<T,Alloc,useSize,true>* p, T item) { return (p->*_add)(item, p->_last); }
-//    inline void BSS_FASTCALL _removefunc(cLLNode<T>* node, cLLNode<T>* _root) { LLRemove<cLLNode<T>>(node,_root,_last); }
-//    inline void _zerolast() { _last=0; } 
-//    cLinkedList_FuncLast() : _last(0) {}
-//  };
-//  template<typename T, typename Alloc, bool useSize> struct cLinkedList_FuncLast<T,Alloc,useSize,false>
-//  {
-//  protected:
-//    template<cLLNode<T>* (BSS_FASTCALL cLinkedList<T,Alloc,useSize,false>::* Insert)(T, cLLNode<T>*),cLLNode<T>* (BSS_FASTCALL cLinkedList<T,Alloc,useSize,false>::* _add)(T,cLLNode<T>*&)>
-//    static inline cLLNode<T>* BSS_FASTCALL _addfunc(cLinkedList<T,Alloc,useSize,false>* p, T item) { if(_root==0) return _root=_createnode(item,0,0); return (p->*Insert)(p,item,p->_root); }
-//    inline void BSS_FASTCALL _removefunc(cLLNode<T>* node, cLLNode<T>* _root) { LLRemove<cLLNode<T>>(node,_root); }
-//    inline void _zerolast() { } 
-//  };
 
 #endif

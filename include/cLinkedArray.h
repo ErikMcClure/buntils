@@ -40,9 +40,9 @@ namespace bss_util {
     {
       assert(index<_ref.Size());
       TLNODE& pcur=_ref[index];
-      if(pcur.next==(ST_)-1) _end=pcur.prev; //your the end, reassign
+      if(pcur.next==(ST_)-1) _end=pcur.prev; //you're the end, reassign
       else _ref[pcur.next].prev=pcur.prev;
-      if(pcur.prev==(ST_)-1) _start=pcur.next; //your the root, reassign
+      if(pcur.prev==(ST_)-1) _start=pcur.next; //you're the root, reassign
       else _ref[pcur.prev].next=pcur.next;
 
       _addfreelist(index);
@@ -54,8 +54,8 @@ namespace bss_util {
     inline void Clear() { _freelist=_start=_end=-1; _length=0; _setupchunk(0); }
     inline BSS_FORCEINLINE void Next(ST_& ref) const { ref=_ref[ref].next; }
     inline BSS_FORCEINLINE void Prev(ST_& ref) const { ref=_ref[ref].prev; }
-    inline BSS_FORCEINLINE ST_ Start() const { return _start; }
-    inline BSS_FORCEINLINE ST_ End() const { return _end; }
+    inline BSS_FORCEINLINE ST_ Front() const { return _start; }
+    inline BSS_FORCEINLINE ST_ Back() const { return _end; }
     //inline cLinkedArray& BSS_FASTCALL operator +=(const cLinkedArray& right);
     //inline cLinkedArray BSS_FASTCALL operator +(const cLinkedArray& right) const { cLinkedArray retval(*this); retval+=right; return retval; }
     inline cLinkedArray& BSS_FASTCALL operator =(const cLinkedArray& right) { _ref=right._ref; _length=right._length;_start=right._start;_end=right._end;_freelist=right._freelist; return *this; }
@@ -84,6 +84,7 @@ namespace bss_util {
 	    inline BSS_FORCEINLINE bool operator!=(const cLAIter& _Right) const { return (cur != _Right.cur); }
       inline BSS_FORCEINLINE bool operator!() const { return cur==(ST_)-1; }
       inline BSS_FORCEINLINE bool IsValid() { return cur!=(ST_)-1; }
+      inline BSS_FORCEINLINE void Remove() { _src.Remove(cur); } // Only use this in the form (i++).Remove(), so you don't blow up the iterator.
 
       ST_ cur;
 
@@ -95,25 +96,6 @@ namespace bss_util {
     inline cLAIter<const T*, const T&, const cLinkedArray<T,SizeType>> end() const { return cLAIter<const T, const cLinkedArray<T,SizeType>>(*this); }
     inline cLAIter<T*, T&, cLinkedArray<T,SizeType>> begin() { return cLAIter<T*, T&, cLinkedArray<T,SizeType>>(*this,_start); } // Use these to get an iterator you can use in standard containers
     inline cLAIter<T*, T&, cLinkedArray<T,SizeType>> end() { return cLAIter<T*, T&, cLinkedArray<T,SizeType>>(*this); }
-    
-    // Nonstandard Removal Iterator for cLinkedArray to make removing elements easier
-    class BSS_COMPILER_DLLEXPORT cLAIterRM : protected cLAIter<T*,T&,cLinkedArray<T,SizeType>>
-	  {
-      typedef cLAIter<T*,T&,cLinkedArray<T,SizeType>> BASE_;
-
-    public:
-      inline cLAIterRM(const cLAIterRM& copy) : BASE_(copy), next(copy.next) { }
-      inline explicit cLAIterRM(const BASE_& from) : BASE_(from,(ST_)-1), next(from.cur) { }
-      inline BSS_FORCEINLINE T& operator*() const { return _src[cur]; }
-      inline BSS_FORCEINLINE cLAIterRM& operator++() { cur=next; _src.Next(next); return *this; } //prefix
-      inline BSS_FORCEINLINE cLAIterRM& operator--() { next=cur; _src.Prev(cur); return *this; } //prefix
-      //inline bool operator==(const cLAIterRM& _Right) const { return (next == _Right.next); }
-	    //inline bool operator!=(const cLAIterRM& _Right) const { return (next != _Right.next); }
-      inline BSS_FORCEINLINE bool HasNext() { return next!=(ST_)-1; }
-      inline BSS_FORCEINLINE void Remove() { _src.Remove(cur); }
-
-      ST_ next;
-	  };
 
   protected:
     template<typename U>

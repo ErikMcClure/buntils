@@ -14,13 +14,14 @@ namespace bss_util {
 
   // Generic Iterator for cLinkedList
   template<typename T>
-  class BSS_COMPILER_DLLEXPORT cLLIter : public LLIterator<T,cLLNode<T>>
+  class BSS_COMPILER_DLLEXPORT cLLIter : public std::iterator<std::bidirectional_iterator_tag,T>
   {
-    typedef typename LLIterator<T,cLLNode<T>>::pointer pointer;
-    typedef typename LLIterator<T,cLLNode<T>>::reference reference;
+    typedef typename std::iterator<std::bidirectional_iterator_tag,T>::pointer pointer;
+    typedef typename std::iterator<std::bidirectional_iterator_tag,T>::reference reference;
+
   public:
-    inline cLLIter() {}
-    inline explicit cLLIter(cLLNode<T>* node) : LLIterator<T,cLLNode<T>>(node) { }
+    inline cLLIter() : cur(0) {}
+    inline explicit cLLIter(cLLNode<T>* node) : cur(node) { }
     inline reference operator*() const { return cur->item; }
     inline pointer operator->() const { return &cur->item; }
     inline cLLIter& operator++() { cur=cur->next; return *this; } //prefix
@@ -30,6 +31,9 @@ namespace bss_util {
     inline bool operator==(const cLLIter& _Right) const { return (cur == _Right.cur); }
 	  inline bool operator!=(const cLLIter& _Right) const { return (cur != _Right.cur); }
     inline bool operator!() const { return !cur; }
+    inline bool IsValid() { return cur!=0; }
+
+    cLLNode<T>* cur;
   }; // Remove a node by doing LinkedList.Remove(iter++);
 
   // Adaptive class template for Size usage

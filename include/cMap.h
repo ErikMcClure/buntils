@@ -39,7 +39,7 @@ namespace bss_util {
     inline BSS_FORCEINLINE ST_ BSS_FASTCALL Replace(ST_ index, CKEYREF key, moveref data) { return cArraySort_t::ReplaceData(index, pair_t(key,std::move(data))); }
     inline ST_ BSS_FASTCALL ReplaceKey(ST_ index, CKEYREF key) { if(index<0 || index >= _length) return (ST_)(-1); return cArraySort_t::ReplaceData(index, pair_t(key,_array[index].second)); }
     inline BSS_FORCEINLINE CKEYREF BSS_FASTCALL KeyIndex(ST_ index) const { return cArraySort_t::operator [](index).first; }
-    inline BSS_FORCEINLINE Data& BSS_FASTCALL DataIndex(ST_ index) const { return cArraySort_t::operator [](index).second; }
+    inline BSS_FORCEINLINE const Data& BSS_FASTCALL DataIndex(ST_ index) const { return cArraySort_t::operator [](index).second; }
     inline ST_ BSS_FASTCALL Length() const { return _length; }
     inline BSS_FORCEINLINE void BSS_FASTCALL Expand(ST_ size) { cArraySort_t::Expand(size); }
     inline ST_ BSS_FASTCALL Set(CKEYREF key, constref data)
@@ -54,6 +54,10 @@ namespace bss_util {
       ST_ retval=before?(binsearch_near<pair_t,Key,ST_,mapComp,CompT_NEQ<char>,-1>(_array,key,0,_length)-1):binsearch_near<pair_t,Key,ST_,mapComp,CompT_EQ<char>,1>(_array,key,0,_length);
       return (retval<_length)?retval:(ST_)(-1); // This is only needed for before=false in case it returns a value outside the range.
     }
+    inline const std::pair<Key,Data>* begin() const { return _array; }
+    inline const std::pair<Key,Data>* end() const { return _array+_length; }
+    inline std::pair<Key,Data>* begin() { return _array; }
+    inline std::pair<Key,Data>* end() { return _array+_length; }
 
     inline cMap& operator =(const cMap& right) { cArraySort_t::operator =(right); /*_lastindex=right._lastindex;*/ return *this; }
     inline cMap& operator =(cMap&& right) { cArraySort_t::operator =(std::move(right)); /*_lastindex=right._lastindex;*/ return *this; }

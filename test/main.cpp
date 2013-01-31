@@ -748,34 +748,34 @@ void TEST_ALLOC_FUZZER(TESTDEF::RETPAIR& __testret)
     }
   }
 }
-
-TESTDEF::RETPAIR test_bss_ALLOC_ADDITIVE_FIXED()
-{
-  BEGINTEST;
-  TEST_ALLOC_FUZZER<cAdditiveFixedAllocator<int>,int,1>(__testret);
-  ENDTEST;
-}
+//
+//TESTDEF::RETPAIR test_bss_ALLOC_ADDITIVE_FIXED()
+//{
+//  BEGINTEST;
+//  TEST_ALLOC_FUZZER<cAdditiveFixedAllocator<int>,int,1>(__testret);
+//  ENDTEST;
+//}
+//TESTDEF::RETPAIR test_bss_ALLOC_FIXED_SIZE()
+//{
+//  BEGINTEST;
+//  TEST_ALLOC_FUZZER<cFixedSizeAllocator<__int64>,__int64,1>(__testret);
+//  ENDTEST;
+//}
 
 template<class T>
-struct ADDITIVEVARIABLEALLOCATORWRAP : cAdditiveVariableAllocator { inline T* BSS_FASTCALL alloc(size_t num) { return cAdditiveVariableAllocator::alloc<T>(num); } };
+struct ADDITIVEALLOCWRAP : cAdditiveAlloc { inline T* BSS_FASTCALL alloc(size_t num) { return cAdditiveAlloc::alloc<T>(num); } };
 
-TESTDEF::RETPAIR test_bss_ALLOC_ADDITIVE_VARIABLE()
+TESTDEF::RETPAIR test_bss_ALLOC_ADDITIVE()
 {
   BEGINTEST;
-  TEST_ALLOC_FUZZER<ADDITIVEVARIABLEALLOCATORWRAP<char>,char,4000>(__testret);
-  ENDTEST;
-}
-TESTDEF::RETPAIR test_bss_ALLOC_FIXED_SIZE()
-{
-  BEGINTEST;
-  //TEST_ALLOC_FUZZER<cFixedSizeAllocator<__int64>,__int64,1>(__testret);
+  TEST_ALLOC_FUZZER<ADDITIVEALLOCWRAP<char>,char,4000>(__testret);
   ENDTEST;
 }
 
 template<class T>
 struct FIXEDCHUNKALLOCWRAP : cFixedAlloc<T> { void Clear() { } };
 
-TESTDEF::RETPAIR test_bss_ALLOC_FIXED_CHUNK()
+TESTDEF::RETPAIR test_bss_ALLOC_FIXED()
 {
   BEGINTEST;
   TEST_ALLOC_FUZZER<FIXEDCHUNKALLOCWRAP<size_t>,size_t,1>(__testret);
@@ -1018,14 +1018,14 @@ inline static unsigned int Interpolate(unsigned int l, unsigned int r, float c)
   */ 
   sseVeci xl(l); // duplicate l 4 times in the 128-bit register (l,l,l,l)
   sseVeci xm(0x000000FF,0x0000FF00,0x00FF0000,0xFF000000); // Channel masks (alpha,red,green,blue), these are loaded in reverse order.
-  xl=BSS_SSE_SHUFFLEHI_EPI16(xl&xm,0xB1); // Now we have to shuffle (l&m) down because there is no way to convert an unsigned int xmm register to a float. In any instruction set. Ever.
+  xl=sseVeci::ShuffleHi<0xB1>(xl&xm); // Now we have to shuffle (l&m) down because there is no way to convert an unsigned int xmm register to a float. In any instruction set. Ever.
   sseVec xc(c); // (c,c,c,c)
   sseVeci xr(r); // duplicate r 4 times across the 128-bit register (r,r,r,r)
-  xr=BSS_SSE_SHUFFLEHI_EPI16(xr&xm,0xB1); // Shuffle r down just like l
+  xr=sseVeci::ShuffleHi<0xB1>(xr&xm); // Shuffle r down just like l
   xl=((sseVec(xr)*xc)+(sseVec(xl)*(sseVec(1.0f)-xc))); //do the operation (r*c) + (l*(1.0-c)) across all 4 integers, converting to and from floating point in the process.
-  xl=BSS_SSE_SHUFFLEHI_EPI16(xl,0xB1); // reverse our shuffling from before (this is actually the same shuffle, since before we just swapped locations, so we swap locations again, and then we're back where we started).
+  xl=sseVeci::ShuffleHi<0xB1>(xl); // reverse our shuffling from before (this is actually the same shuffle, since before we just swapped locations, so we swap locations again, and then we're back where we started).
   xl&=xm; // mask l with m again.
-  xr = BSS_SSE_SHUFFLE_EPI32(xl,0x1B); // assign the values of xl to xr, but reversed, so we have (d,c,b,a)
+  xr = sseVeci::Shuffle<0x1B>(xl); // assign the values of xl to xr, but reversed, so we have (d,c,b,a)
   xl|=xr; // OR xl and xr so we get (d|a,c|b,b|c,a|d) in xl
   xr = _mm_castps_si128(_mm_movehl_ps(_mm_castsi128_ps(xr),_mm_castsi128_ps(xl))); // Move upper 2 ints to bottom 2 ints in xr so xr = (d,c,d|a,c|b)
   return (unsigned int)_mm_cvtsi128_si32(xl|xr); // Now OR them again so we get (d|a,c|b,b|c | d|a,a|d | c|b), then store the bottom 32-bit integer. What kind of fucked up name is _mm_cvtsi128_si32 anyway?
@@ -1185,7 +1185,28 @@ TESTDEF::RETPAIR test_bss_SSE()
   TEST(l==l2);
   }
   //*/
+  //float rotation,left,right,top,bottom,x,y;
 
+  //float testfloats[7*10000];
+  //for(int i = 0; i < 7*10000; ++i)
+  //  testfloats[i]=0.1*i;
+
+  //float res[4];
+  //char prof=_debug.OpenProfiler();
+  //CPU_Barrier();
+  //for(int cur=0; cur<70000; cur+=7)
+  //{
+  //  rotation=testfloats[cur];
+  //  left=testfloats[cur+1];
+  //  right=testfloats[cur+2];
+  //  top=testfloats[cur+3];
+  //  bottom=testfloats[cur+4];
+  //  x=testfloats[cur+5];
+  //  y=testfloats[cur+6];
+  //}
+  //CPU_Barrier();
+  //std::cout << "NORMAL:" << _debug.CloseProfiler(prof) << std::endl;
+  //std::cout << left << right << top << bottom << std::endl;
   ENDTEST;
 }
 
@@ -1484,6 +1505,29 @@ TESTDEF::RETPAIR test_AVLTREE()
     TEST(!DEBUG_CDT<false>::count)
   }
   TEST(!DEBUG_CDT<false>::count)
+
+  cAVLtree<int,void,CompT<int>,Allocator<AVL_Node<int,void>,FixedPolicy<AVL_Node<int,void>>>> avlblah2;
+
+  //char prof=_debug.OpenProfiler();
+  for(int i = 0; i<TESTNUM; ++i)
+    avlblah2.Insert(testnums[i]);
+  //std::cout << _debug.CloseProfiler(prof) << std::endl;
+
+  shuffle(testnums);
+  //prof=_debug.OpenProfiler();
+  c=0;
+  for(int i = 0; i<TESTNUM; ++i)
+    c+=((avlblah2.GetRef(testnums[i])!=0)&(avlblah2.Get(testnums[i],-1)==testnums[i]));
+  TEST(c==TESTNUM);
+  //std::cout << _debug.CloseProfiler(prof) << std::endl;
+  
+  shuffle(testnums);
+  //prof=_debug.OpenProfiler();
+  for(int i = 0; i<TESTNUM; ++i)
+    avlblah2.Remove(testnums[i]);
+  //std::cout << _debug.CloseProfiler(prof) << std::endl;
+  avlblah2.Clear();
+
 
   ENDTEST;
 }
@@ -2321,12 +2365,12 @@ TESTDEF::RETPAIR test_RATIONAL()
 TESTDEF::RETPAIR test_TRB_TREE()
 {
   BEGINTEST;
-  Allocator<TRB_Node<int,int>,FixedPolicy<TRB_Node<int,int>>> fixedalloc;
-  cTRBtree<int, int,CompT<int>,Allocator<TRB_Node<int,int>,FixedPolicy<TRB_Node<int,int>>>> blah(&fixedalloc);
+  Allocator<TRB_Node<int>,FixedPolicy<TRB_Node<int>>> fixedalloc;
+  cTRBtree<int,CompT<int>,Allocator<TRB_Node<int>,FixedPolicy<TRB_Node<int>>>> blah(&fixedalloc);
 
   shuffle(testnums);
   for(int i = 0; i<TESTNUM; ++i)
-    blah.Insert(testnums[i],testnums[i]);
+    blah.Insert(testnums[i]);
 
   TEST(!blah.Get(-1))
   TEST(!blah.Get(TESTNUM+1))
@@ -2337,9 +2381,30 @@ TESTDEF::RETPAIR test_TRB_TREE()
   {
     auto p=blah.Get(testnums[i]);
     if(p!=0)
-      num+=(p->data==testnums[i]);
+      num+=(p->value==testnums[i]);
   }
   TEST(num==TESTNUM);
+  
+  blah.Insert(1);
+  blah.Insert(1);
+  blah.Insert(2);
+  int last=-1;
+  uint pass=0;
+  uint same=0;
+  for(TRB_Node<int>* pnode=blah.Front(); pnode!=0; pnode=pnode->next)
+  {
+    if(pnode->value==last)
+      same+=1;
+    if(pnode->value<last)
+      pass+=1;
+    last=pnode->value;
+  }
+  TEST(!pass);
+  TEST(same==3);
+  
+  blah.Remove(1);
+  blah.Remove(1);
+  blah.Remove(2);
 
   shuffle(testnums);
   num=0;
@@ -2356,17 +2421,6 @@ TESTDEF::RETPAIR test_TRB_TREE()
   TEST(n3==TESTNUM);
 
   //std::cout << _debug.CloseProfiler(prof) << std::endl;
-  /*TRB_Node<int,int>* pnode=blah.GetFirst();
-  int last=-1;
-  uint pass=0;
-  while(pnode)
-  {
-    if(pnode->GetData()<=last)
-      pass+=1;
-    last=pnode->GetData();
-    pnode=pnode->GetNext();
-  }
-  TEST(!pass);*/
   ENDTEST;
 }
 
@@ -2743,10 +2797,8 @@ int main(int argc, char** argv)
     { "bss_util.h", &test_bss_util },
     { "bss_DebugInfo.h", &test_bss_DEBUGINFO },
     { "bss_algo.h", &test_bss_algo },
-    { "bss_alloc_additive.h:Fix", &test_bss_ALLOC_ADDITIVE_FIXED },
-    { "bss_alloc_additive.h:Var", &test_bss_ALLOC_ADDITIVE_VARIABLE },
-    //{ "bss_alloc_fixed.h:Size", &test_bss_ALLOC_FIXED_SIZE }, //Removed
-    { "bss_alloc_fixed.h", &test_bss_ALLOC_FIXED_CHUNK },
+    { "bss_alloc_additive.h", &test_bss_ALLOC_ADDITIVE },
+    { "bss_alloc_fixed.h", &test_bss_ALLOC_FIXED },
     //{ "bss_alloc_fixed_MT.h", &test_bss_ALLOC_FIXED_LOCKLESS },
     { "bss_depracated.h", &test_bss_deprecated },
     { "bss_dual.h", &test_bss_DUAL },

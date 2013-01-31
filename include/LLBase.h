@@ -145,18 +145,18 @@ namespace bss_util {
 		if(node->next != 0) node->next->prev = node->prev;
   }
 
-  // Iterator for doubly linked list. Does not support remove; use postfix-- or the equivelent
-  template<typename T, typename _Nd>
-  class BSS_COMPILER_DLLEXPORT LLIterator : public std::iterator<std::bidirectional_iterator_tag,T>
+  // Iterator for doubly linked list where the item is itself. Does not support remove; use postfix-- or the equivelent
+  template<typename T>
+  class BSS_COMPILER_DLLEXPORT LLIterator : public std::iterator<std::bidirectional_iterator_tag,T,ptrdiff_t,T*,T*>
 	{
   protected:
-    typedef typename std::iterator<std::bidirectional_iterator_tag,T>::pointer pointer;
-    typedef typename std::iterator<std::bidirectional_iterator_tag,T>::reference reference;
+    typedef typename std::iterator<std::bidirectional_iterator_tag,T,ptrdiff_t,T*,T*>::pointer pointer;
+    typedef typename std::iterator<std::bidirectional_iterator_tag,T,ptrdiff_t,T*,T*>::reference reference;
   public:
     inline LLIterator() : cur(0) {}
-    inline explicit LLIterator(_Nd* node) : cur(node) { }
-    //inline reference operator*() const { } //Inherited iterators must define this based on where they store T
-    //inline pointer operator->() const { }
+    inline explicit LLIterator(T* node) : cur(node) { }
+    inline reference operator*() const { return cur; }
+    inline pointer operator->() const { return cur; }
     inline LLIterator& operator++() { cur=cur->next; return *this; } //prefix
     inline LLIterator operator++(int) { LLIterator r=*this; ++*this; return r; } //postfix
     inline LLIterator& operator--() { cur=cur->prev; return *this; } //prefix
@@ -166,7 +166,7 @@ namespace bss_util {
     inline bool operator!() const { return !cur; }
     inline bool IsValid() { return cur!=0; }
 
-    _Nd* cur;
+    T* cur;
 	};
 }
 

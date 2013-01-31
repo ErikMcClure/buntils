@@ -33,6 +33,9 @@
 - Templatized KH_POINTER_HASHFUNC
 - Removed cLAIterRM
 - Renamed GetRoot to Front and GetLast to Back on cLinkedList, and made the use of _last optional.
+- AVL tree can now have "void" as data and it will change its layout accordingly. TRB tree now only has a single value instead of Key/Data
+- cAdditiveFixedAllocator removed because who on earth would use that? cAdditiveVariableAllocator is now just cAdditiveAlloc
+- Expanded and templatized SSE classes
 
 0.3.84
 ------

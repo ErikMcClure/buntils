@@ -98,8 +98,8 @@
 #define BSS_PLATFORM_MINGW // Should also define WIN32, use only for minGW specific bugs
 #endif
 
-#define BSS_ALIGNED_STRUCT(n) BSS_ALIGNED(struct,n)
-#define BSS_ALIGNED_CLASS(n) BSS_ALIGNED(class,n)
+#define BSS_ALIGNED_STRUCT(n) struct BSS_ALIGN(n)
+#define BSS_ALIGNED_CLASS(n) class BSS_ALIGN(n)
 
 // Platform detection
 #if defined(WIN32) || defined(_WIN32) || defined(_WIN64) || defined(__TOS_WIN__) || defined(__WINDOWS__)

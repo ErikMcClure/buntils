@@ -109,9 +109,9 @@ typedef unsigned long khint64_t;
 typedef unsigned long long khint64_t;
 #endif
 
-#ifdef _MSC_VER
-#define inline __inline
-#endif
+//#ifdef _MSC_VER
+//#define inline __inline
+//#endif
 
 typedef khint32_t khint_t;
 typedef khint_t khiter_t;

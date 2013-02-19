@@ -108,16 +108,12 @@ char BSS_FASTCALL _validatekey(const char* start, const char* end)
   return 0;
 }
 
+// Finds the end of a value line (before a comment starts) but doesn't care about whether the value has valid characters or not.
 char* BSS_FASTCALL _validatevalue(char* str)
 {
-  char valid=0; //checks to make sure there's at least one valid character in the string
-
   for(;*str;++str)
-  {
-    if(*str==';') break; //a comment started
-    if(valid==0 && *str>=VALIDASCII) valid=1;
-  }
-  return valid==0?0:str;
+    if(*str==';') break;
+  return str;
 }
 
 char* BSS_FASTCALL _savestr(char* orig, const char* str)
@@ -127,11 +123,8 @@ char* BSS_FASTCALL _savestr(char* orig, const char* str)
   str=_trimlstr(str);
   nlength=strlen(str);
   if(olength<nlength)
-  {
-    free(orig);
-    orig=(char*)malloc((nlength+1)*sizeof(char));
-    if(!orig) return 0;
-  }
+    orig=(char*)realloc(orig,(nlength+1)*sizeof(char));
+  if(!orig) return 0;
   memcpy(orig,str,nlength*sizeof(char));
   orig[nlength]='\0';
   _trimrstr(orig);
@@ -165,8 +158,9 @@ char BSS_FASTCALL bss_parseLine(INIParser* parse)
     //case -1: //Garbage line
     //  break;
     case 0: //key value pair
-      if(_validatekey(parse->buf,tc)!=0 && (sec=_validatevalue(tc+1))!=0)
+      if(_validatekey(parse->buf,tc)!=0)
       {
+        sec=_validatevalue(tc+1); // We used to check if this returned nonzero, but now it ALWAYS returns nonzero.
         *sec='\0';
         _newkeyvaluepair(parse,parse->buf,tc);
         return 1;
@@ -214,14 +208,9 @@ const char* BSS_FASTCALL _svalidatesection(const char* start, const char* end)
 }
 const char* BSS_FASTCALL _svalidatevalue(const char* start, const char* end)
 {
-  char valid=0; //checks to make sure there's at least one valid character in the string
-
   for(;start<end;++start)
-  {
     if(*start==';') break; //a comment started
-    if(valid==0 && *start>=VALIDASCII) valid=1;
-  }
-  return valid==0?0:start;
+  return start;
 }
 
 const char* BSS_FASTCALL _trimrstralt(const char* end,const char* begin)
@@ -290,8 +279,9 @@ INICHUNK BSS_FASTCALL bss_findINIentry(INICHUNK section, const char* key, unsign
     if(!line) line=end; //if that returned nothing we're on the last line
     if(_snextkeychar(&tc,cur,line)==0)
     {
-      if(_validatekey(cur,tc)!=0 && (sec=_svalidatevalue(tc+1,line))!=0 && comparevalues(cur,tc,key)==0 && (++curinstance)==instance)
+      if(_validatekey(cur,tc)!=0 && comparevalues(cur,tc,key)==0 && (++curinstance)==instance)
       {
+        sec=_svalidatevalue(tc+1,line);
         retval.start=_trimlstr(cur); //this is safe because we already verified that there is at least one valid character in this string. Ok, it still isn't safe, but it won't explode.
         retval.end=sec;
         break;

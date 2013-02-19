@@ -311,7 +311,8 @@ char cINIstorage::EditEntry(const char* section, const char* key, const char* nv
     entnode->val.SetData(nvalue);
     const char* start=strchr((const char*)chunk.start,'=');
     if(!start) return -6; //if this happens something is borked
-    start=ltrimstr(++start);
+    //start=ltrimstr(++start);
+    ++start;
     _ini->replace(start-_ini->c_str(),(rtrimstr(((const char*)chunk.end)-1,start)-start)+1,nvalue);
   }
 

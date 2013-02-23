@@ -1284,8 +1284,8 @@ struct DEBUG_CDT : DEBUG_CDT_SAFE<SAFE> {
   DEBUG_CDT* isdead;
   int _index;
 };
-int DEBUG_CDT<true>::count=0;
-int DEBUG_CDT<false>::count=0;
+template<> int DEBUG_CDT<true>::count=0;
+template<> int DEBUG_CDT<false>::count=0;
 
 AniAttribute* BSS_FASTCALL cAbstractAnim::SpawnBase(const cDef<AniAttribute>& p) { return p.Spawn(); }
 void* BSS_FASTCALL cAbstractAnim::AnimAlloc(size_t n, void* p) { return realloc(p,n); }

@@ -7,7 +7,7 @@
 #include "delegate.h"
 #include "cDef.h"
 
-#define ANI_TID(tdef) typename bss_util::ANI_IDTYPE_EXPAND<bss_util::ANI_IDTYPE<TypeID>>::##tdef
+#define ANI_TID(tdef) typename bss_util::ANI_IDTYPE_EXPAND<bss_util::ANI_IDTYPE<TypeID>>::tdef
 
 namespace bss_util {
   template<unsigned char T>

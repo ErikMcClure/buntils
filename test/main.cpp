@@ -58,6 +58,7 @@
 #include <limits.h> // for INT_MIN, INT_MAX etc. on GCC
 #include <float.h> // FLT_EPSILON, etc. on GCC
 #include <iostream>
+#include <sstream>
 
 #ifdef BSS_PLATFORM_WIN32
 //#include "bss_win32_includes.h"
@@ -131,36 +132,36 @@ template<class T> void VERIFYTYPE(const T& type) { }
 
 // This defines an enormous list of pangrams for a ton of languages, used for text processing in an attempt to expose possible unicode errors.
 const char* PANGRAM = "The wizard quickly jinxed the gnomes before they vapourized.";
-const wchar_t* PANGRAMS[] = { 
-  L"The wizard quickly jinxed the gnomes before they vapourized.",
-  L"صِف خَلقَ خَودِ كَمِثلِ الشَمسِ إِذ بَزَغَت — يَحظى الضَجيعُ بِها نَجلاءَ مِعطارِ", //Arabic
-  L"Zəfər, jaketini də papağını da götür, bu axşam hava çox soyuq olacaq.", //Azeri
-  L"Ах чудна българска земьо, полюшквай цъфтящи жита.", //Bulgarian
-  L"Jove xef, porti whisky amb quinze glaçons d'hidrogen, coi!", //Catalan
-  L"Příliš žluťoučký kůň úpěl ďábelské ódy.", //Czech
-  L"Høj bly gom vandt fræk sexquiz på wc", //Danish
-  L"Filmquiz bracht knappe ex-yogi van de wijs", //Dutch
-  L"ཨ་ཡིག་དཀར་མཛེས་ལས་འཁྲུངས་ཤེས་བློའི་གཏེར༎ ཕས་རྒོལ་ཝ་སྐྱེས་ཟིལ་གནོན་གདོང་ལྔ་བཞིན༎ ཆགས་ཐོགས་ཀུན་བྲལ་མཚུངས་མེད་འཇམ་དབྱངསམཐུས༎ མཧཱ་མཁས་པའི་གཙོ་བོ་ཉིད་འགྱུར་ཅིག།", //Dzongkha
-  L"Eble ĉiu kvazaŭ-deca fuŝĥoraĵo ĝojigos homtipon.", //Esperanto
-  L"Põdur Zagrebi tšellomängija-följetonist Ciqo külmetas kehvas garaažis", //Estonian
-  L"Törkylempijävongahdus", //Finnish
-  L"Falsches Üben von Xylophonmusik quält jeden größeren Zwerg", //German
-  L"Τάχιστη αλώπηξ βαφής ψημένη γη, δρασκελίζει υπέρ νωθρού κυνός", //Greek
-  L"כך התרסק נפץ על גוזל קטן, שדחף את צבי למים", //Hebrew
-  L"दीवारबंद जयपुर ऐसी दुनिया है जहां लगभग हर दुकान का नाम हिन्दी में लिखा गया है। नामकरण की ऐसी तरतीब हिन्दुस्तान में कम दिखती है। दिल्ली में कॉमनवेल्थ गेम्स के दौरान कनॉट प्लेस और पहाड़गंज की नामपट्टिकाओं को एक समान करने का अभियान चला। पत्रकार लिख", //Hindi
-  L"Kæmi ný öxi hér, ykist þjófum nú bæði víl og ádrepa.", //Icelandic
-  L"いろはにほへと ちりぬるを わかよたれそ つねならむ うゐのおくやま けふこえて あさきゆめみし ゑひもせす（ん）", //Japanese
-  L"꧋ ꦲꦤꦕꦫꦏ꧈ ꦢꦠꦱꦮꦭ꧈ ꦥꦝꦗꦪꦚ꧈ ꦩꦒꦧꦛꦔ꧉", //Javanese
-  L"    ", //Klingon
-  L"키스의 고유조건은 입술끼리 만나야 하고 특별한 기술은 필요치 않다.", //Korean
-  L"သီဟိုဠ်မှ ဉာဏ်ကြီးရှင်သည် အာယုဝဍ္ဎနဆေးညွှန်းစာကို ဇလွန်ဈေးဘေးဗာဒံပင်ထက် အဓိဋ္ဌာန်လျက် ဂဃနဏဖတ်ခဲ့သည်။", //Myanmar
-  L"بر اثر چنین تلقین و شستشوی مغزی جامعی، سطح و پایه‌ی ذهن و فهم و نظر بعضی اشخاص واژگونه و معکوس می‌شود.‏", //Persian
-  L"À noite, vovô Kowalsky vê o ímã cair no pé do pingüim queixoso e vovó põe açúcar no chá de tâmaras do jabuti feliz.", //Portuguese
-  L"Эх, чужак! Общий съём цен шляп (юфть) – вдрызг!", //Russian
-  L"Fin džip, gluh jež i čvrst konjić dođoše bez moljca.", //Serbian
-  L"Kŕdeľ ďatľov učí koňa žrať kôru.", //Slovak
-  L"เป็นมนุษย์สุดประเสริฐเลิศคุณค่า กว่าบรรดาฝูงสัตว์เดรัจฉาน จงฝ่าฟันพัฒนาวิชาการ อย่าล้างผลาญฤๅเข่นฆ่าบีฑาใคร ไม่ถือโทษโกรธแช่งซัดฮึดฮัดด่า หัดอภัยเหมือนกีฬาอัชฌาสัย ปฏิบัติประพฤติกฎกำหนดใจ พูดจาให้จ๊ะๆ จ๋าๆ น่าฟังเอยฯ", //Thai
-  L"ژالہ باری میں ر‌ضائی کو غلط اوڑھے بیٹھی قرۃ العین اور عظمٰی کے پاس گھر کے ذخیرے سے آناً فاناً ڈش میں ثابت جو، صراحی میں چائے اور پلیٹ میں زردہ آیا۔" //Urdu
+const bsschar* PANGRAMS[] = { 
+  BSS__L("The wizard quickly jinxed the gnomes before they vapourized."),
+  BSS__L("صِف خَلقَ خَودِ كَمِثلِ الشَمسِ إِذ بَزَغَت — يَحظى الضَجيعُ بِها نَجلاءَ مِعطارِ"), //Arabic
+  BSS__L("Zəfər, jaketini də papağını da götür, bu axşam hava çox soyuq olacaq."), //Azeri
+  BSS__L("Ах чудна българска земьо, полюшквай цъфтящи жита."), //Bulgarian
+  BSS__L("Jove xef, porti whisky amb quinze glaçons d'hidrogen, coi!"), //Catalan
+  BSS__L("Příliš žluťoučký kůň úpěl ďábelské ódy."), //Czech
+  BSS__L("Høj bly gom vandt fræk sexquiz på wc"), //Danish
+  BSS__L("Filmquiz bracht knappe ex-yogi van de wijs"), //Dutch
+  BSS__L("ཨ་ཡིག་དཀར་མཛེས་ལས་འཁྲུངས་ཤེས་བློའི་གཏེར༎ ཕས་རྒོལ་ཝ་སྐྱེས་ཟིལ་གནོན་གདོང་ལྔ་བཞིན༎ ཆགས་ཐོགས་ཀུན་བྲལ་མཚུངས་མེད་འཇམ་དབྱངསམཐུས༎ མཧཱ་མཁས་པའི་གཙོ་བོ་ཉིད་འགྱུར་ཅིག།"), //Dzongkha
+  BSS__L("Eble ĉiu kvazaŭ-deca fuŝĥoraĵo ĝojigos homtipon."), //Esperanto
+  BSS__L("Põdur Zagrebi tšellomängija-följetonist Ciqo külmetas kehvas garaažis"), //Estonian
+  BSS__L("Törkylempijävongahdus"), //Finnish
+  BSS__L("Falsches Üben von Xylophonmusik quält jeden größeren Zwerg"), //German
+  BSS__L("Τάχιστη αλώπηξ βαφής ψημένη γη, δρασκελίζει υπέρ νωθρού κυνός"), //Greek
+  BSS__L("כך התרסק נפץ על גוזל קטן, שדחף את צבי למים"), //Hebrew
+  BSS__L("दीवारबंद जयपुर ऐसी दुनिया है जहां लगभग हर दुकान का नाम हिन्दी में लिखा गया है। नामकरण की ऐसी तरतीब हिन्दुस्तान में कम दिखती है। दिल्ली में कॉमनवेल्थ गेम्स के दौरान कनॉट प्लेस और पहाड़गंज की नामपट्टिकाओं को एक समान करने का अभियान चला। पत्रकार लिख"), //Hindi
+  BSS__L("Kæmi ný öxi hér, ykist þjófum nú bæði víl og ádrepa."), //Icelandic
+  BSS__L("いろはにほへと ちりぬるを わかよたれそ つねならむ うゐのおくやま けふこえて あさきゆめみし ゑひもせす（ん）"), //Japanese
+  BSS__L("꧋ ꦲꦤꦕꦫꦏ꧈ ꦢꦠꦱꦮꦭ꧈ ꦥꦝꦗꦪꦚ꧈ ꦩꦒꦧꦛꦔ꧉"), //Javanese
+  BSS__L("    "), //Klingon
+  BSS__L("키스의 고유조건은 입술끼리 만나야 하고 특별한 기술은 필요치 않다."), //Korean
+  BSS__L("သီဟိုဠ်မှ ဉာဏ်ကြီးရှင်သည် အာယုဝဍ္ဎနဆေးညွှန်းစာကို ဇလွန်ဈေးဘေးဗာဒံပင်ထက် အဓိဋ္ဌာန်လျက် ဂဃနဏဖတ်ခဲ့သည်။"), //Myanmar
+  BSS__L("بر اثر چنین تلقین و شستشوی مغزی جامعی، سطح و پایه‌ی ذهن و فهم و نظر بعضی اشخاص واژگونه و معکوس می‌شود.‏"), //Persian
+  BSS__L("À noite, vovô Kowalsky vê o ímã cair no pé do pingüim queixoso e vovó põe açúcar no chá de tâmaras do jabuti feliz."), //Portuguese
+  BSS__L("Эх, чужак! Общий съём цен шляп (юфть) – вдрызг!"), //Russian
+  BSS__L("Fin džip, gluh jež i čvrst konjić dođoše bez moljca."), //Serbian
+  BSS__L("Kŕdeľ ďatľov učí koňa žrať kôru."), //Slovak
+  BSS__L("เป็นมนุษย์สุดประเสริฐเลิศคุณค่า กว่าบรรดาฝูงสัตว์เดรัจฉาน จงฝ่าฟันพัฒนาวิชาการ อย่าล้างผลาญฤๅเข่นฆ่าบีฑาใคร ไม่ถือโทษโกรธแช่งซัดฮึดฮัดด่า หัดอภัยเหมือนกีฬาอัชฌาสัย ปฏิบัติประพฤติกฎกำหนดใจ พูดจาให้จ๊ะๆ จ๋าๆ น่าฟังเอยฯ"), //Thai
+  BSS__L("ژالہ باری میں ر‌ضائی کو غلط اوڑھے بیٹھی قرۃ العین اور عظمٰی کے پاس گھر کے ذخیرے سے آناً فاناً ڈش میں ثابت جو، صراحی میں چائے اور پلیٹ میں زردہ آیا۔") //Urdu
 };
 
 template<unsigned char B, __int64 SMIN, __int64 SMAX, unsigned __int64 UMIN, unsigned __int64 UMAX>
@@ -209,6 +210,7 @@ TESTDEF::RETPAIR test_bss_util_c()
   TEST(strhex("ABAD1DEA")==0xABAD1DEA);
   TEST(strhex("0xABAD1DEA")==0xABAD1DEA);
   TEST(strhex("0xabad1dea")==0xABAD1DEA);
+#ifdef BSS_PLATFORM_WIN32
   TEST(!wcshex(L"0"));
   TEST(!wcshex(L"z"));
   TEST(wcshex(L"a")==10);
@@ -217,6 +219,7 @@ TESTDEF::RETPAIR test_bss_util_c()
   TEST(wcshex(L"ABAD1DEA")==0xABAD1DEA);
   TEST(wcshex(L"0xABAD1DEA")==0xABAD1DEA);
   TEST(wcshex(L"0xabad1dea")==0xABAD1DEA);
+#endif
 
   char buf[6];
   TEST(itoa_r(238907,0,0,10)==22);
@@ -361,7 +364,7 @@ TESTDEF::RETPAIR test_bss_util()
   }
   TEST(strccount<char>("10010010101110001",'1')==8);
   TEST(strccount<char>("0100100101011100010",'1')==8);
-  TEST(strccount<wchar_t>(L"الرِضَءَجيعُ بِهءَرِا نَجلاءَرِ رِمِعطارِ",L'رِ')==5);
+  TEST(strccount<bsschar>(BSS__L("الرِضَءَجيعُ بِهءَرِا نَجلاءَرِ رِمِعطارِ"),BSS__L('رِ'))==5);
 
   int ia=0;
   int ib=1;
@@ -626,7 +629,7 @@ TESTDEF::RETPAIR test_bss_DEBUGINFO()
   std::stringstream ss;
   std::fstream fs;
   std::wstringstream wss;
-  fs.open(L"黑色球体工作室.log");
+  fs.open(BSS__L("黑色球体工作室.log"));
   auto tf = [&](bss_DebugInfo& di) {
     TEST(di.CloseProfiler(di.OpenProfiler()) < 500000);
     TEST(di.ModulePath()!=0);
@@ -645,13 +648,13 @@ TESTDEF::RETPAIR test_bss_DEBUGINFO()
     wss.clear();
     //di.AddTarget(wss);
 
-    di.GetStream() << L"黑色球体工作室";
+    di.GetStream() << BSS__L("黑色球体工作室");
     di.GetStream() << "Black Sphere Studios";
     di.ClearTargets();
-    di.GetStream() << L"黑色球体工作室";
+    di.GetStream() << BSS__L("黑色球体工作室");
   };
 
-  bss_DebugInfo a(L"黑色球体工作室.txt",&ss); //Supposedly 黑色球体工作室 is Black Sphere Studios in Chinese, but the literal translation appears to be Black Ball Studio. Oh well.
+  bss_DebugInfo a(BSS__L("黑色球体工作室.txt"),&ss); //Supposedly 黑色球体工作室 is Black Sphere Studios in Chinese, but the literal translation appears to be Black Ball Studio. Oh well.
   bss_DebugInfo b("logtest.txt");
   b.AddTarget(fs);
   bss_DebugInfo c;
@@ -866,7 +869,7 @@ TESTDEF::RETPAIR test_bss_deprecated()
   FOPEN(f,"__valtest.tmp","wb");
   TEST(f!=0);
   f=0;
-  WFOPEN(f,L"石石石石shi.tmp",L"wb");
+  WFOPEN(f,BSS__L("石石石石shi.tmp"),BSS__L("wb"));
   TEST(f!=0);
   size_t a = 0;
   size_t b = -1;
@@ -889,7 +892,9 @@ TESTDEF::RETPAIR test_bss_deprecated()
   WCSCPYx0(wbuf,PANGRAMS[4]);
 
   TEST(!STRICMP("fOObAr","Foobar"));
+#ifdef BSS_PLATFORM_WIN32
   TEST(!WCSICMP(L"Kæmi ný",L"kæmi ný"));
+#endif
 
 //#define STRTOK(str,delim,context) strtok_s(str,delim,context)
 //#define WCSTOK(str,delim,context) wcstok_s(str,delim,context)
@@ -2487,7 +2492,7 @@ TESTDEF::RETPAIR test_STR()
   TEST(!strcmp(cStr(1,"1 2",' '),"2"));
   TEST(!strcmp(cStrF("%s2","place"),"place2"));
   TEST(!strcmp(cStrF("2","place"),"2"));
-  TEST(!strcmp(cStr(L"Törkylempijävongahdus"),"TÃ¶rkylempijÃ¤vongahdus"));
+  TEST(!strcmp(cStr(BSS__L("Törkylempijävongahdus")),"TÃ¶rkylempijÃ¤vongahdus"));
 
   s4.GetChar(6)='b';
   TEST(!strcmp(s4,"blah  bblah"));
@@ -2522,8 +2527,6 @@ TESTDEF::RETPAIR test_STR()
   std::vector<int> vec1;
   cStr::ParseTokens<int>("",",",vec1,&atoi);
   TEST(vec1.size()==0);
-  cStrW::ParseTokens<int>(L"",L",",vec1,&_wtoi);
-  TEST(vec1.size()==0);
   cStr::ParseTokens<int>("1234",",",vec1,&atoi);
   TEST(vec1.size()==1);
   TEST(vec1[0]==1234);
@@ -2539,6 +2542,9 @@ TESTDEF::RETPAIR test_STR()
   TEST(vec1[6]==39);
   TEST(vec1[7]==0);
   vec1.clear();
+#ifdef BSS_PLATFORM_WIN32
+  cStrW::ParseTokens<int>(L"",L",",vec1,&_wtoi);
+  TEST(vec1.size()==0);
   cStrW::ParseTokens<int>(L"1234,235,2,6,1,0,,39,ahjs",L",",vec1,&_wtoi);
   TEST(vec1.size()==8);
   TEST(vec1[0]==1234);
@@ -2550,6 +2556,7 @@ TESTDEF::RETPAIR test_STR()
   TEST(vec1[6]==39);
   TEST(vec1[7]==0);
   vec1.clear();
+#endif
   cStr::ParseTokens<int>("1234,235,2,6,1,0,,39,ahjs",",",vec1,[](const char* s)->int{ return atoi(s)+1; });
   TEST(vec1.size()==8);
   TEST(vec1[0]==1235);
@@ -2749,21 +2756,19 @@ TESTDEF::RETPAIR test_OS()
 {
   BEGINTEST;
   TEST(FolderExists("../bin"));
-#ifdef BSS_PLATFORM_WIN32
-  TEST(FolderExists(L"C:/windows/"));
-#endif
+  TEST(FolderExists(BSS__L("C:/windows/")));
   TEST(!FolderExists("abasdfwefs"));
-  TEST(!FolderExists(L"abasdfwefs/alkjsdfs/sdfjkd/alkjsdfs/sdfjkd/alkjsdfs/sdfjkd/"));
+  TEST(!FolderExists(BSS__L("abasdfwefs/alkjsdfs/sdfjkd/alkjsdfs/sdfjkd/alkjsdfs/sdfjkd/")));
   TEST(FileExists("blank.txt"));
-  TEST(FileExists(L"blank.txt"));
+  TEST(FileExists(BSS__L("blank.txt")));
   TEST(!FileExists("testaskdjlhfs.sdkj"));
-  TEST(!FileExists(L"testaskdjlhfs.sdkj"));
+  TEST(!FileExists(BSS__L("testaskdjlhfs.sdkj")));
   //TEST(FileExists("testlink"));
-  //TEST(FileExists(L"testlink"));
+  //TEST(FileExists(BSS__L("testlink")));
   //TEST(FolderExists("IGNORE/symlink/"));
-  //TEST(FolderExists(L"IGNORE/symlink/"));
+  //TEST(FolderExists(BSS__L("IGNORE/symlink/")));
   //{
-  //std::unique_ptr<char[],bssdll_delete<char[]>> p = FileDialog(true,0,L"test");
+  //std::unique_ptr<char[],bssdll_delete<char[]>> p = FileDialog(true,0,BSS__L("test"));
   //}
 
 //#ifdef BSS_PLATFORM_WIN32
@@ -2863,11 +2868,11 @@ int main(int argc, char** argv)
     numpassed=tests[i].FUNC(); //First is total, second is succeeded
     if(numpassed.first!=numpassed.second) failures.push_back(i);
 
-    printf("%-*s %*s %-*s\n",COLUMNS[0],tests[i].NAME, COLUMNS[1],cStrF("%u/%u",numpassed.second,numpassed.first).c_str(), COLUMNS[2],(numpassed.first==numpassed.second)?"PASS":"FAIL");
+    printf("%-*s %*s %-*s\n",COLUMNS[0],tests[i].NAME, COLUMNS[1],cStrF("%u/%u",numpassed.second,numpassed.first).c_str(), COLUMNS[2],(numpassed.first==numpassed.second)?"PASS":"FAIBSS__L(");
   }
 
   if(failures.empty())
-    std::cout << "\nAll tests passed successfully!" << std::endl;
+    std::cout << ")\nAll tests passed successfully!" << std::endl;
   else
   {
     std::cout << "\nThe following tests failed: " << std::endl;
@@ -2961,7 +2966,7 @@ int PI_ITERATIONS=500;
 double pi=((PI_ITERATIONS<<1)-1)+(PI_ITERATIONS*PI_ITERATIONS);
 
 const char* MBSTESTSTRINGS[] = { "test","test2","test3","test4","test5","test6" };
-const wchar_t* WCSTESTSTRINGS[] = { L"test",L"test2",L"test3",L"test4",L"test5",L"test6" };
+const wchar_t* WCSTESTSTRINGS[] = { BSS__L("test"),BSS__L("test2"),BSS__L("test3"),BSS__L("test4"),BSS__L("test5"),BSS__L("test6") };
 
 struct weird
 {

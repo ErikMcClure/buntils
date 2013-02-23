@@ -31,7 +31,9 @@ public:
 	explicit bss_Log(std::ostream* log=0);
 	// Constructor - takes either a stream or a file (or both) and adds them
 	explicit bss_Log(const char* logfile, std::ostream* log=0);
+#ifdef BSS_PLATFORM_WIN32
 	bss_Log(const wchar_t* logfile, std::ostream* log);
+#endif
   // Destructor - destroys any file streams
   ~bss_Log();
   // Redirects an existing stream to write to this log's buffer
@@ -40,7 +42,9 @@ public:
   void BSS_FASTCALL AddTarget(std::ostream& stream);
   //void BSS_FASTCALL AddTarget(std::wostream& stream);
   void BSS_FASTCALL AddTarget(const char* file);
+#ifdef BSS_PLATFORM_WIN32
   void BSS_FASTCALL AddTarget(const wchar_t* file);
+#endif
   // Clears all targets and closes all files
   void ClearTargets();
   // Gets the stream for this log

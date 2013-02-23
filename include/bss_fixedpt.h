@@ -14,7 +14,7 @@ namespace bss_util {
     static inline BSS_FORCEINLINE T BSS_FASTCALL fixedpt_add(T x, T y) { return x+y; }
     static inline BSS_FORCEINLINE T BSS_FASTCALL fixedpt_mul(T x, T y) { 
       return (T)((((typename TSignPick<(sizeof(T)<<1)>::SIGNED)x)*((typename TSignPick<(sizeof(T)<<1)>::SIGNED)y))>>(D)); }
-    static inline BSS_FORCEINLINE T BSS_FASTCALL fixedpt_div(T x, T y) { return (T)((((TSignPick<(sizeof(T)<<1)>::SIGNED)x)<<D)/y); }
+    static inline BSS_FORCEINLINE T BSS_FASTCALL fixedpt_div(T x, T y) { return (T)((((typename TSignPick<(sizeof(T)<<1)>::SIGNED)x)<<D)/y); }
   };
   template<typename T, unsigned char D> struct i_FIXED_PT_FUNC<T,D,true>
   {
@@ -31,7 +31,7 @@ namespace bss_util {
     }
     static inline BSS_FORCEINLINE T BSS_FASTCALL fixedpt_mul(T x, T y)
     { 
-      typename TSignPick<(sizeof(T)<<1)>::SIGNED r=((((typename TSignPick<(sizeof(T)<<1)>::SIGNED)x)*((TSignPick<(sizeof(T)<<1)>::SIGNED)y))>>(D));
+      typename TSignPick<(sizeof(T)<<1)>::SIGNED r=((((typename TSignPick<(sizeof(T)<<1)>::SIGNED)x)*((typename TSignPick<(sizeof(T)<<1)>::SIGNED)y))>>(D));
       T u=(r<SMIN); //same technique for saturating with no branching
       T v=(r>SMAX);
       T w=(1&(~(u|v))); 

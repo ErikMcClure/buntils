@@ -51,6 +51,7 @@
 #include "lockless.h"
 #include "os.h"
 #include "StreamSplitter.h"
+#include "Shiny.h"
 
 #include <fstream>
 #include <algorithm>

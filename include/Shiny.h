@@ -30,41 +30,4 @@ restrictions:
 #include "shiny/ShinyMacros.h"
 #include "shiny/ShinyManager.h"
 
-#endif
- // ifndef SHINY_*_H
-
-
-
-
-//namespace Shiny {
-//	struct BSS_COMPILER_DLLEXPORT ProfileManager {
-//		//NOTE: data-members are intentionally public because the
-//		//		class needs to fulfil the definition of an aggregate
-//
-//		SHINY_INLINE void _endCurNode(void) {
-//			_appendTicksToCurNode();
-//			_curNode = _curNode->parent;
-//		}
-//
-//    
-//
-//		SHINY_INLINE void _appendTicksToCurNode(void) {
-//			register tick_t curTick;
-//			GetTicks(&curTick);
-//
-//			_curNode->appendTicks(curTick - _lastTick);
-//			_lastTick = curTick;
-//		}
-//
-//		static ProfileManager instance;
-//  };
-//
-//  class ProfileAutoEndNode {
-//	public:
-//
-//		__forceinline ~ProfileAutoEndNode() {
-//			ProfileManager::instance._endCurNode();
-//		}
-//	};
-//
-//}
+#endif // ifndef SHINY_*_H

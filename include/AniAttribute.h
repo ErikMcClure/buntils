@@ -40,6 +40,7 @@ namespace bss_util {
   template<typename T>
   struct AniStaticAlloc : StaticAllocPolicy<T,void>
   {
+    typedef typename StaticAllocPolicy<T,void>::pointer pointer;
     inline static pointer allocate(std::size_t cnt, typename std::allocator<void>::const_pointer = 0) { return reinterpret_cast<pointer>(cAbstractAnim::AnimAlloc(cnt)); }
     inline static void deallocate(pointer p, std::size_t = 0) { cAbstractAnim::AnimFree(p); }
     inline static pointer reallocate(pointer p, std::size_t cnt) { return reinterpret_cast<pointer>(cAbstractAnim::AnimAlloc(cnt,p)); }
@@ -118,6 +119,8 @@ namespace bss_util {
   class BSS_COMPILER_DLLEXPORT AniAttributeGeneric : public AniAttributeT<TypeID>
   {
   public:
+    typedef typename AniAttributeT<TypeID>::IDTYPE IDTYPE;
+
     AniAttributeGeneric(const AniAttributeGeneric& copy) : AniAttributeT<TypeID>(copy) {}
     AniAttributeGeneric() {}
     inline virtual bool Interpolate(double timepassed)
@@ -150,6 +153,7 @@ namespace bss_util {
   class BSS_COMPILER_DLLEXPORT AniAttributeDiscrete : public AniAttributeT<TypeID>
   {
   public:
+    typedef typename AniAttributeT<TypeID>::IDTYPE IDTYPE;
     typedef ANI_TID(DELEGATE) DELEGATE;
     
     AniAttributeDiscrete(const AniAttributeDiscrete& copy) : AniAttributeT<TypeID>(copy), _del(copy._del) {}
@@ -177,6 +181,7 @@ namespace bss_util {
   class BSS_COMPILER_DLLEXPORT AniAttributeSmooth : public AniAttributeDiscrete<TypeID>
   {
   public:
+    typedef typename AniAttributeDiscrete<TypeID>::IDTYPE IDTYPE;
     typedef ANI_TID(VALUE) (BSS_FASTCALL *FUNC)(const TVT_ARRAY_T&,IDTYPE, double);
 
     AniAttributeSmooth(const AniAttributeSmooth& copy) : AniAttributeDiscrete<TypeID>(copy), _del(copy._del), _rel(false) {}

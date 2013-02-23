@@ -40,6 +40,7 @@ namespace bss_util {
       }
     
       --_numsets;
+      return true;
     }
 
     // Returns the set name that x belongs to.

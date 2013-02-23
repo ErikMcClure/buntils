@@ -57,7 +57,7 @@ namespace Shiny {
 #endif
 
 	inline uint32_t ptr32(const void *a_Ptr) {
-		return reinterpret_cast<uint32_t>(a_Ptr);
+    return reinterpret_cast<uint32_t>(a_Ptr);
 	}
 
 #if SHINY_COMPILER == SHINY_COMPILER_MSVC

@@ -42,7 +42,7 @@
 #define BSS_COMPILER_FASTCALL
 #define BSS_COMPILER_STDCALL
 #define BSS_COMPILER_NAKED
-#define BSS_FORCEINLINE
+#define BSS_FORCEINLINE inline
 #define BSS_RESTRICT __restrict__
 #define BSS_ALIGNED(sn, n) sn
 

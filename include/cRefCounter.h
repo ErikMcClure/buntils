@@ -19,9 +19,9 @@ namespace bss_util {
     // Destructor - Does nothing, but because it is virtual, ensures that all superclasses get destroyed as well
     virtual ~cRefCounter() { }
     // Increments and returns the reference counter
-    inline BSS_FORCEINLINE unsigned int Grab() { return ++_refs; } const
+    BSS_FORCEINLINE unsigned int Grab() { return ++_refs; } const
     // Decrements the reference counter and calls delete this; if it is equal to or less then 0
-    inline BSS_FORCEINLINE void Drop() { if(--_refs <= 0) DestroyThis(); }
+    BSS_FORCEINLINE void Drop() { if(--_refs <= 0) DestroyThis(); }
     // Destroys this object - made a seperate virtual function so it is overridable to ensure it is deleted in the proper DLL
     virtual void DestroyThis() { delete this; }
 

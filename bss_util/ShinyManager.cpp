@@ -100,7 +100,8 @@ namespace Shiny {
 
 	// primary hash function
 	SHINY_INLINE uint32_t hash_value(ProfileNode* a_pParent, ProfileZone* a_pZone) {
-		uint32_t a = ptr32(a_pParent) + ptr32(a_pZone);
+    uint64_t a64 = reinterpret_cast<size_t>(a_pParent) + reinterpret_cast<size_t>(a_pZone);
+    uint32_t a = (uint32_t)((a64)>>33^(a64)^(a64)<<11);
 
 		a = (a+0x7ed55d16) + (a<<12);
 		a = (a^0xc761c23c) ^ (a>>19);

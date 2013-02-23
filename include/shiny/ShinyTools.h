@@ -52,18 +52,18 @@ namespace Shiny {
 
 //-----------------------------------------------------------------------------
 
-#if SHINY_COMPILER == SHINY_COMPILER_MSVC
-#	pragma warning(disable: 4311)
-#endif
-
-	inline uint32_t ptr32(const void *a_Ptr) {
-    return reinterpret_cast<uint32_t>(a_Ptr);
-	}
-
-#if SHINY_COMPILER == SHINY_COMPILER_MSVC
-#	pragma warning(default: 4311)
-#endif
-
+//#if SHINY_COMPILER == SHINY_COMPILER_MSVC
+//#	pragma warning(disable: 4311)
+//#endif
+//
+//	inline uint32_t ptr32(const void *a_Ptr) {
+//    return reinterpret_cast<uint32_t>(a_Ptr);
+//	}
+//
+//#if SHINY_COMPILER == SHINY_COMPILER_MSVC
+//#	pragma warning(default: 4311)
+//#endif
+//
 
 } // namespace Shiny
 

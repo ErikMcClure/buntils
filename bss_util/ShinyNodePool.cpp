@@ -49,10 +49,7 @@ namespace Shiny {
 //-----------------------------------------------------------------------------
 
 	uint32_t ProfileNodePool::memoryUsageChain(void) {
-		uint32_t bytes = ptr32(
-			reinterpret_cast<void*>(
-				  reinterpret_cast<char*>(endOfItems)
-				- reinterpret_cast<char*>(this)));
+		uint32_t bytes = (uint32_t)(reinterpret_cast<char*>(endOfItems) - reinterpret_cast<char*>(this));
 
 		if (nextPool) bytes += nextPool->memoryUsageChain();
 		return bytes;

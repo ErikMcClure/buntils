@@ -39,7 +39,7 @@ namespace Shiny {
 
 //-----------------------------------------------------------------------------
 
-	struct BSS_DLLEXPORT ProfileManager {
+	struct ProfileManager {
 		//NOTE: data-members are intentionally public because the
 		//		class needs to fulfil the definition of an aggregate
 
@@ -80,6 +80,8 @@ namespace Shiny {
 
 		static ProfileManager instance;
 
+		//
+
 		SHINY_INLINE void _appendTicksToCurNode(void) {
 			register tick_t curTick;
 			GetTicks(&curTick);
@@ -98,8 +100,6 @@ namespace Shiny {
 
 		ProfileNode* _createNode(ProfileNodeCache* a_cache, ProfileZone* a_pZone);
 		void _insertNode(ProfileNode* a_pNode);
-
-	  void GetTicks(tick_t *p);
 
 		void _init(void) {
 			_initialized = true;

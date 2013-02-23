@@ -988,34 +988,34 @@ BSS_FORCEINLINE int PriComp(int l1,int l2,int l3,int l4,int r1,int r2,int r3,int
 inline static unsigned int Interpolate(unsigned int l, unsigned int r, float c)
 {
   //float inv=1.0f-c;
-  /*return ((unsigned int)(((l&0xFF000000)*inv)+((r&0xFF000000)*c))&0xFF000000)|
-          ((unsigned int)(((l&0x00FF0000)*inv)+((r&0x00FF0000)*c))&0x00FF0000)|
-	        ((unsigned int)(((l&0x0000FF00)*inv)+((r&0x0000FF00)*c))&0x0000FF00)|
-			    ((unsigned int)(((l&0x000000FF)*inv)+((r&0x000000FF)*c))&0x000000FF);*/
-  /*BSS_SSE_M128i xl = _mm_set1_epi32(l); // duplicate l 4 times in the 128-bit register (l,l,l,l)
-  BSS_SSE_M128i xm = _mm_set_epi32(0xFF000000,0x00FF0000,0x0000FF00,0x000000FF); // Channel masks (alpha,red,green,blue)
-  xl=_mm_and_si128(xl,xm); // l&mask
-  xl=_mm_shufflehi_epi16(xl,0xB1); // Now we have to shuffle these values down because there is no way to convert an unsigned int to a float. In any instruction set. Ever.
-  BSS_SSE_M128 xfl = _mm_cvtepi32_ps(xl); // Convert to float
-  BSS_SSE_M128 xc = _mm_set_ps1(c); // (c,c,c,c)
-  BSS_SSE_M128 xinv = _mm_set_ps1(1.0f);  // (1.0,1.0,1.0,1.0)
-  xinv = _mm_sub_ps(xinv,xc); // (1.0-c,1.0-c,1.0-c,1.0-c)
-  xfl = _mm_mul_ps(xfl,xinv); // Multiply l by 1.0-c (inverted factor)
-  BSS_SSE_M128i xr = _mm_set1_epi32(r); // duplicate r 4 times across the 128-bit register (r,r,r,r)
-  xr=_mm_and_si128(xr,xm); // r & mask
-  xr=_mm_shufflehi_epi16(xr,0xB1); // Do the same shift we did on xl earlier so they match up
-  BSS_SSE_M128 xrl = _mm_cvtepi32_ps(xr); // convert to float
-  xrl = _mm_mul_ps(xrl,xc); // Multiply r by c
-  xfl = _mm_add_ps(xfl,xrl); // Add l and r
-  xl = _mm_cvttps_epi32(xfl); // Convert back to integer
-  xl=_mm_shufflehi_epi16(xl,0xB1); // Shuffle the last two back up (this is actually the same shuffle, since before we just swapped locations, so we swap locations again and then we're back where we started).
-  xl = _mm_and_si128(xl,xm); // l&mask
-  xr = xl;
-  xr = _mm_shuffle_epi32(xr,0x1B); // Reverses the order of xr so we now have (d,c,b,a)
-  xl = _mm_or_si128(xl,xr); // Or xl and xr so we get (d|a,c|b,b|c,a|d) in xl
-  xr = _mm_castps_si128(_mm_movehl_ps(_mm_castsi128_ps(xr),_mm_castsi128_ps(xl))); // Move upper 2 ints to bottom 2 ints in xr so xr = (d,c,d|a,c|b)
-  xl = _mm_or_si128(xl,xr); // Now or them again so we get (d|a,c|b,b|c | d|a,a|d | c|b) which lets us take out the bottom integer as our result
-  */ 
+  //return ((unsigned int)(((l&0xFF000000)*inv)+((r&0xFF000000)*c))&0xFF000000)|
+  //        ((unsigned int)(((l&0x00FF0000)*inv)+((r&0x00FF0000)*c))&0x00FF0000)|
+	 //       ((unsigned int)(((l&0x0000FF00)*inv)+((r&0x0000FF00)*c))&0x0000FF00)|
+		//	    ((unsigned int)(((l&0x000000FF)*inv)+((r&0x000000FF)*c))&0x000000FF);
+  //BSS_SSE_M128i xl = _mm_set1_epi32(l); // duplicate l 4 times in the 128-bit register (l,l,l,l)
+  //BSS_SSE_M128i xm = _mm_set_epi32(0xFF000000,0x00FF0000,0x0000FF00,0x000000FF); // Channel masks (alpha,red,green,blue)
+  //xl=_mm_and_si128(xl,xm); // l&mask
+  //xl=_mm_shufflehi_epi16(xl,0xB1); // Now we have to shuffle these values down because there is no way to convert an unsigned int to a float. In any instruction set. Ever.
+  //BSS_SSE_M128 xfl = _mm_cvtepi32_ps(xl); // Convert to float
+  //BSS_SSE_M128 xc = _mm_set_ps1(c); // (c,c,c,c)
+  //BSS_SSE_M128 xinv = _mm_set_ps1(1.0f);  // (1.0,1.0,1.0,1.0)
+  //xinv = _mm_sub_ps(xinv,xc); // (1.0-c,1.0-c,1.0-c,1.0-c)
+  //xfl = _mm_mul_ps(xfl,xinv); // Multiply l by 1.0-c (inverted factor)
+  //BSS_SSE_M128i xr = _mm_set1_epi32(r); // duplicate r 4 times across the 128-bit register (r,r,r,r)
+  //xr=_mm_and_si128(xr,xm); // r & mask
+  //xr=_mm_shufflehi_epi16(xr,0xB1); // Do the same shift we did on xl earlier so they match up
+  //BSS_SSE_M128 xrl = _mm_cvtepi32_ps(xr); // convert to float
+  //xrl = _mm_mul_ps(xrl,xc); // Multiply r by c
+  //xfl = _mm_add_ps(xfl,xrl); // Add l and r
+  //xl = _mm_cvttps_epi32(xfl); // Convert back to integer
+  //xl=_mm_shufflehi_epi16(xl,0xB1); // Shuffle the last two back up (this is actually the same shuffle, since before we just swapped locations, so we swap locations again and then we're back where we started).
+  //xl = _mm_and_si128(xl,xm); // l&mask
+  //xr = xl;
+  //xr = _mm_shuffle_epi32(xr,0x1B); // Reverses the order of xr so we now have (d,c,b,a)
+  //xl = _mm_or_si128(xl,xr); // Or xl and xr so we get (d|a,c|b,b|c,a|d) in xl
+  //xr = _mm_castps_si128(_mm_movehl_ps(_mm_castsi128_ps(xr),_mm_castsi128_ps(xl))); // Move upper 2 ints to bottom 2 ints in xr so xr = (d,c,d|a,c|b)
+  //xl = _mm_or_si128(xl,xr); // Now or them again so we get (d|a,c|b,b|c | d|a,a|d | c|b) which lets us take out the bottom integer as our result
+  
   sseVeci xl(l); // duplicate l 4 times in the 128-bit register (l,l,l,l)
   sseVeci xm(0x000000FF,0x0000FF00,0x00FF0000,0xFF000000); // Channel masks (alpha,red,green,blue), these are loaded in reverse order.
   xl=sseVeci::ShuffleHi<0xB1>(xl&xm); // Now we have to shuffle (l&m) down because there is no way to convert an unsigned int xmm register to a float. In any instruction set. Ever.
@@ -1136,55 +1136,55 @@ TESTDEF::RETPAIR test_bss_SSE()
   TESTFOUR(arr,3,2,1,0)
   (u/w + v - u) >> BSS_UNALIGNED<float>(uarr);
   TESTFOUR(uarr,3,2,1,0)
+  
+  //int megatest[TESTNUM*10];
+  //for(uint i = 0; i<TESTNUM*10; ++i)
+  //  megatest[i]=log2(i);
 
-  /*int megatest[TESTNUM*10];
-  for(uint i = 0; i<TESTNUM*10; ++i)
-    megatest[i]=log2(i);
+  //for(int k=0; k < 30; ++k)
+  //{
+  //char prof;
 
-  for(int k=0; k < 30; ++k)
-  {
-  char prof;
+  //shuffle(megatest);
+  //int l=0;
+  //prof=_debug.OpenProfiler();
+  //CPU_Barrier();
+  //int v;
+  //for(int i = 0; i < 1000000; i+=8) {
+  //  v=PriComp(megatest[i+0],megatest[i+1],megatest[i+2],megatest[i+3],megatest[i+4],megatest[i+5],megatest[i+6],megatest[i+7]);
+  //  l+=SGNCOMPARE(v,0);
+  //}
+  //CPU_Barrier();
+  //std::cout << "SSE:" << _debug.CloseProfiler(prof) << std::endl;
 
-  shuffle(megatest);
-  int l=0;
-  prof=_debug.OpenProfiler();
-  CPU_Barrier();
-  int v;
-  for(int i = 0; i < 1000000; i+=8) {
-    v=PriComp(megatest[i+0],megatest[i+1],megatest[i+2],megatest[i+3],megatest[i+4],megatest[i+5],megatest[i+6],megatest[i+7]);
-    l+=SGNCOMPARE(v,0);
-  }
-  CPU_Barrier();
-  std::cout << "SSE:" << _debug.CloseProfiler(prof) << std::endl;
-
-  shuffle(megatest);
-  int l2=0;
-  prof=_debug.OpenProfiler();
-  CPU_Barrier();
-  for(int i = 0; i < 1000000; i+=8)
-  {
-    if(megatest[i]!=megatest[i+1]) {
-      l2+=SGNCOMPARE(megatest[i],megatest[i+1]);
-      continue;
-    }
-    if(megatest[i+2]!=megatest[i+3]) {
-      l2+=SGNCOMPARE(megatest[i+2],megatest[i+3]);
-      continue;
-    }
-    if(megatest[i+4]!=megatest[i+5]) {
-      l2+=SGNCOMPARE(megatest[i+4],megatest[i+5]);
-      continue;
-    }
-    if(megatest[i+6]!=megatest[i+7]) {
-      l2+=SGNCOMPARE(megatest[i+6],megatest[i+7]);
-      continue;
-    }
-  }
-  CPU_Barrier();
-  std::cout << "NORMAL:" << _debug.CloseProfiler(prof) << std::endl;
-  TEST(l==l2);
-  }
-  //*/
+  //shuffle(megatest);
+  //int l2=0;
+  //prof=_debug.OpenProfiler();
+  //CPU_Barrier();
+  //for(int i = 0; i < 1000000; i+=8)
+  //{
+  //  if(megatest[i]!=megatest[i+1]) {
+  //    l2+=SGNCOMPARE(megatest[i],megatest[i+1]);
+  //    continue;
+  //  }
+  //  if(megatest[i+2]!=megatest[i+3]) {
+  //    l2+=SGNCOMPARE(megatest[i+2],megatest[i+3]);
+  //    continue;
+  //  }
+  //  if(megatest[i+4]!=megatest[i+5]) {
+  //    l2+=SGNCOMPARE(megatest[i+4],megatest[i+5]);
+  //    continue;
+  //  }
+  //  if(megatest[i+6]!=megatest[i+7]) {
+  //    l2+=SGNCOMPARE(megatest[i+6],megatest[i+7]);
+  //    continue;
+  //  }
+  //}
+  //CPU_Barrier();
+  //std::cout << "NORMAL:" << _debug.CloseProfiler(prof) << std::endl;
+  //TEST(l==l2);
+  //}
+  
   //float rotation,left,right,top,bottom,x,y;
 
   //float testfloats[7*10000];
@@ -2147,26 +2147,26 @@ TESTDEF::RETPAIR test_LOCKLESSQUEUE()
   TEST(check);
   }
 
-  /*lq_c=lq_pos=0;
-  typedef cLocklessQueue<unsigned int,false,false,size_t,size_t> LLQUEUE_MCMP; 
-  {
-  for(int j=1; j<=NUMTHREADS; ++j) {
-  LLQUEUE_MCMP q;   // multi consumer multi producer test
-    _locklessqueue_produce<LLQUEUE_MCMP>(&q);
-    for(int i=0; i<j; ++i)
-      handles[i]=_beginthreadex(0,0, _locklessqueue_consume<LLQUEUE_MCMP>, &q, 0, tret+1);
-    for(int i=0; i<j; ++i)
-      WaitForSingleObject((void*)handles[i], INFINITE);
-    
-    std::sort(std::begin(lq_end),std::end(lq_end));
-    bool check=true;
-    for(int i = 0; i < TOTALNUM; ++i)
-      check=check&&(lq_end[i]==i);
-    TEST(check);
-      
-    std::cout << '\n' << j << " threads: " << q.GetContentions() << std::endl;
-  }
-  }*/
+  //lq_c=lq_pos=0;
+  //typedef cLocklessQueue<unsigned int,false,false,size_t,size_t> LLQUEUE_MCMP; 
+  //{
+  //for(int j=1; j<=NUMTHREADS; ++j) {
+  //LLQUEUE_MCMP q;   // multi consumer multi producer test
+  //  _locklessqueue_produce<LLQUEUE_MCMP>(&q);
+  //  for(int i=0; i<j; ++i)
+  //    handles[i]=_beginthreadex(0,0, _locklessqueue_consume<LLQUEUE_MCMP>, &q, 0, tret+1);
+  //  for(int i=0; i<j; ++i)
+  //    WaitForSingleObject((void*)handles[i], INFINITE);
+  //  
+  //  std::sort(std::begin(lq_end),std::end(lq_end));
+  //  bool check=true;
+  //  for(int i = 0; i < TOTALNUM; ++i)
+  //    check=check&&(lq_end[i]==i);
+  //  TEST(check);
+  //    
+  //  std::cout << '\n' << j << " threads: " << q.GetContentions() << std::endl;
+  //}
+  //}
 
   ENDTEST;
 }

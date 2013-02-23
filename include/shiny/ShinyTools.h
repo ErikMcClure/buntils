@@ -43,11 +43,11 @@ namespace Shiny {
 
 //-----------------------------------------------------------------------------
 
-	//__declspec(dllexport) void GetTicks(tick_t *p);
+	void GetTicks(tick_t *p);
 
-	__declspec(dllexport) tick_t GetTickFreq(void);
+	tick_t GetTickFreq(void);
 
-	__declspec(dllexport) float GetTickInvFreq(void);
+	float GetTickInvFreq(void);
 
 
 //-----------------------------------------------------------------------------

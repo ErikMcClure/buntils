@@ -21,40 +21,13 @@ restrictions:
     3. This notice may not be removed or altered from any source distribution.
 */
 
-#ifndef SHINY_NODE_POOL_H
-#define SHINY_NODE_POOL_H
-
-#include "ShinyNode.h"
-
-#if SHINY_PROFILER == TRUE
-namespace Shiny {
-
+#ifndef SHINY_H
+#define SHINY_H
 
 //-----------------------------------------------------------------------------
 
-	struct ProfileNodePool {
-
-		typedef ProfileNode T;
-
-		ProfileNodePool* nextPool;
-
-		T *_nextItem;
-		T *endOfItems;
-
-		T _items[1];
-
-
-		T* firstItem(void) { return &_items[0]; }
-		T* newItem(void) { return _nextItem++; }
-		const T* unusedItem(void) const { return _nextItem; }
-
-		static ProfileNodePool* createNodePool(uint32_t a_items);
-
-		uint32_t memoryUsageChain(void);
-		void destroy(void);
-	};
-
-} // namespace Shiny
-#endif // if SHINY_PROFILER == TRUE
+#include "ShinyConfig.h"
+#include "ShinyMacros.h"
+#include "ShinyManager.h"
 
 #endif // ifndef SHINY_*_H

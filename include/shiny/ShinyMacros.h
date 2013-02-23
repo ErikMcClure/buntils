@@ -216,8 +216,8 @@ namespace Shiny {
 	
 }
 
-#define PROFILER_UPDATE					Shiny::DummyUpdate
-#define PROFILER_OUTPUT					Shiny::DummyOutput
+#define PROFILER_UPDATE					DummyUpdate
+#define PROFILER_OUTPUT					DummyOutput
 #define PROFILER_OUTPUT_TREE_STRING()	std::string()
 #define PROFILER_OUTPUT_FLAT_STRING()	std::string()
 #define PROFILER_DESTROY()

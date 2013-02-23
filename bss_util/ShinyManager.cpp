@@ -37,7 +37,7 @@ namespace Shiny {
 		/* _lastTick = */ 0,
 		/* _curNode = */ &instance.rootNode,
 		/* _tableMask = */ 0,
-    /* _nodeTable = */ ProfileManager::_dummyNodeTable,
+		/* _nodeTable = */ ProfileManager::_dummyNodeTable,
 #if SHINY_PROFILER_LOOKUPRATE == TRUE
 		/* _lookupCount = */ 0,
 		/* _lookupSuccessCount = */ 0,
@@ -70,7 +70,7 @@ namespace Shiny {
 		/* _firstUpdate = */ true
 	};
 
-	ProfileNode* ProfileManager::_dummyNodeTable[] = { 0 };
+	ProfileNode* ProfileManager::_dummyNodeTable[] = { NULL };
 
 
 //-----------------------------------------------------------------------------
@@ -386,5 +386,4 @@ namespace Shiny {
 
 } // namespace Shiny
 
-#endif
- // if SHINY_PROFILER == TRUE
+#endif // if SHINY_PROFILER == TRUE

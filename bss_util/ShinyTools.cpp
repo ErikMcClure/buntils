@@ -22,7 +22,6 @@ restrictions:
 */
 
 #include "ShinyTools.h"
-#include "ShinyManager.h"
 
 #if SHINY_PLATFORM == SHINY_PLATFORM_WIN32
 #define WIN32_LEAN_AND_MEAN
@@ -63,7 +62,7 @@ namespace Shiny {
 		return freq;
 	}
 
-  void ProfileManager::GetTicks(tick_t *p) {
+	void GetTicks(tick_t *p) {
 		QueryPerformanceCounter(reinterpret_cast<LARGE_INTEGER*>(p));
 	}
 
@@ -82,7 +81,7 @@ namespace Shiny {
 
 #elif SHINY_PLATFORM == SHINY_PLATFORM_POSIX
 
-	void ProfileManager::GetTicks(tick_t *p) {
+	void GetTicks(tick_t *p) {
 		timeval time;
 		gettimeofday(&time, NULL);
 

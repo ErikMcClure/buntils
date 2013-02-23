@@ -58,7 +58,7 @@
 #define BSS_COMPILER_NAKED __attribute__((naked)) // Will only work on ARM, AVR, MCORE, RX and SPU. 
 #define BSS_FORCEINLINE __attribute__((always_inline))
 #define BSS_RESTRICT __restrict__
-#define BSS_ALIGN(n) __attribute__((aligned(n)));
+#define BSS_ALIGN(n) __attribute__((aligned(n)))
 #define BSS_ALIGNED(sn, n) sn BSS_ALIGN(n)
 #ifndef __int8
 #define __int8 char

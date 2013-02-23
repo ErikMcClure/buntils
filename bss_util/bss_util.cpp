@@ -64,6 +64,19 @@ inline bool BSS_FASTCALL r_fexists(const wchar_t* path)
 
   return ((attr&FILE_ATTRIBUTE_DIRECTORY)^T_FLAG) !=0;
 }
+
+BSS_COMPILER_DLLEXPORT
+extern bool BSS_FASTCALL bss_util::FileExists(const wchar_t* strpath)
+{
+  return r_fexists<1>(strpath);
+}
+
+BSS_COMPILER_DLLEXPORT
+extern bool BSS_FASTCALL bss_util::FolderExists(const wchar_t* strpath)
+{
+  return r_fexists<0>(strpath);
+}
+
 #else // BSS_PLATFORM_POSIX
 template<int T_FLAG>
 inline bool BSS_FASTCALL r_fexists(const char* path)
@@ -82,21 +95,9 @@ extern bool BSS_FASTCALL bss_util::FolderExists(const char* strpath)
 }
 
 BSS_COMPILER_DLLEXPORT
-extern bool BSS_FASTCALL bss_util::FolderExists(const wchar_t* strpath)
-{
-  return r_fexists<0>(BSSPOSIX_CHAR(strpath));
-}
-
-BSS_COMPILER_DLLEXPORT
 extern bool BSS_FASTCALL bss_util::FileExists(const char* strpath)
 {
   return r_fexists<1>(BSSPOSIX_WCHAR(strpath));
-}
-
-BSS_COMPILER_DLLEXPORT
-extern bool BSS_FASTCALL bss_util::FileExists(const wchar_t* strpath)
-{
-  return r_fexists<1>(BSSPOSIX_CHAR(strpath));
 }
 
 BSS_COMPILER_DLLEXPORT
@@ -109,7 +110,6 @@ extern void BSS_FASTCALL bss_util::SetWorkDirToCur()
   SetCurrentDirectoryW(commands);
 #endif
 }
-
 
 BSS_COMPILER_DLLEXPORT
 extern void BSS_FASTCALL bss_util::ForceWin64Crash() 

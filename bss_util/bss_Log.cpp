@@ -36,12 +36,14 @@ bss_Log::bss_Log(const char* logfile, std::ostream* log) : _split(new StreamSpli
   if(log!=0)
     AddTarget(*log);
 }
+#ifdef BSS_PLATFORM_WIN32
 bss_Log::bss_Log(const wchar_t* logfile, std::ostream* log) : _split(new StreamSplitter()), _stream(_split), _tz(GetTimeZoneMinutes())
 {
   AddTarget(logfile);
   if(log!=0)
     AddTarget(*log);
 }
+#endif
 bss_Log::~bss_Log()
 {
   ClearTargets();
@@ -69,17 +71,15 @@ void BSS_FASTCALL bss_Log::AddTarget(const char* file)
   AddTarget(_files.back());
 #endif
 }
+#ifdef BSS_PLATFORM_WIN32
 void BSS_FASTCALL bss_Log::AddTarget(const wchar_t* file)
 {
   if(!file) return;
-#ifdef BSS_COMPILER_GCC 
-  _files.push_back(std::unique_ptr<std::ofstream>(new ofstream(BSSPOSIX_CHAR(file),ios_base::out|ios_base::trunc)));
-  AddTarget(*_files.back());
-#else
-  _files.push_back(ofstream(BSSPOSIX_CHAR(file),ios_base::out|ios_base::trunc));
+  _files.push_back(ofstream(file,ios_base::out|ios_base::trunc));
   AddTarget(_files.back());
-#endif
 }
+#endif
+
 void bss_Log::ClearTargets()
 {
   if(_split!=0) _split->ClearTargets();

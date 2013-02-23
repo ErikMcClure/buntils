@@ -243,12 +243,16 @@ private:
 };
 #pragma warning(pop)
 
+#ifdef BSS_PLATFORM_WIN32
 typedef cStrT<wchar_t,std::allocator<wchar_t>> cStrW;
-typedef cStrT<char,std::allocator<char>> cStr;
-
 inline cStrW cStrWF(const wchar_t* string, ...) { va_list vl; va_start(vl,string); return cStrW::cStrTF(string, vl); va_end(vl); }
+typedef wchar_t bsschar;
+#else
+typedef char bsschar;
+#endif
+typedef cStrT<char,std::allocator<char>> cStr;
 inline cStr cStrF(const char* string, ...) { va_list vl; va_start(vl,string); return cStr::cStrTF(string, vl); va_end(vl); }
-  
+
 #ifdef _UNICODE
 typedef cStrW TStr;
 #else

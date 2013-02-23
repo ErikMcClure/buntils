@@ -63,10 +63,10 @@
 
 #if defined(BSS_PLATFORM_POSIX) || defined(BSS_PLATFORM_MINGW)
 #define BSSPOSIX_WCHAR(s) s
-#define BSSPOSIX_CHAR(s) cStr(s).c_str()
+#define BSS__L(x)      x
 #elif defined(BSS_PLATFORM_WIN32)
 #define BSSPOSIX_WCHAR(s) cStrW(s).c_str()
-#define BSSPOSIX_CHAR(s) s
+#define BSS__L(x)      L ## x
 #endif
 
 //unsigned shortcuts

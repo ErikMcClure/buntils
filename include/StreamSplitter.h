@@ -28,7 +28,7 @@ namespace bss_util {
 #ifndef BSS_COMPILER_GCC
     inline StreamSplitter(StreamSplitter&& mov) : std::basic_stringbuf<char>(std::move(mov)), _targets(std::move(mov._targets)) {}//, _wtargets(move(copy._wtargets)) {}
 #endif
-    inline explicit StreamSplitter(std::ios_base::openmode _Mode = std::ios_base::out) : std::basic_stringbuf<char>(_Mode) {}
+    inline explicit StreamSplitter(std::ios_base::openmode _Mode = std::ios_base::out) : std::basic_stringbuf<char>(_Mode) { }
     inline void BSS_FASTCALL AddTarget(std::ostream* stream) { _targets.push_back(stream); }
     //inline void BSS_FASTCALL AddTarget(wostream* stream) { _wtargets.push_back(stream); }
     inline void ClearTargets() { sync(); _targets.clear(); } //_wtargets.clear(); }
@@ -41,9 +41,9 @@ namespace bss_util {
   protected:
 	  inline virtual int sync()
     {
-      size_t length = std::basic_stringbuf<char>::pptr() - std::basic_stringbuf<char>::eback();
+      size_t length = std::basic_stringbuf<char>::pptr() - std::basic_stringbuf<char>::pbase();
       std::unique_ptr<char[]> hold(new char[++length]); //+1 for null terminator
-      MEMCPY(hold.get(), length*sizeof(char), basic_stringbuf<char>::eback(), (length-1)*sizeof(char));
+      MEMCPY(hold.get(), length*sizeof(char), basic_stringbuf<char>::pbase(), (length-1)*sizeof(char));
       hold.get()[length-1] = 0;
 
       _evaltargets(hold.get());

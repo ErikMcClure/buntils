@@ -493,7 +493,7 @@ TESTDEF::RETPAIR test_bss_util()
   unsigned __int64 total=0;
   uint nc;
   double avg=0;
-  double diff;
+  double diff=0.0;
   for(nc = 1; nc < 10000;++nc)
   {
     total += nc*nc;

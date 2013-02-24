@@ -126,7 +126,7 @@ namespace bss_util {
 		inline double GetTimeWarp() const { return _aniwarp; }
     inline double GetTimePassed() const { return _timepassed; }
 		template<unsigned char TypeID>
-    inline bool SetRelative(bool rel) { AniAttribute* hold = GetTypeID(TypeID); if(!hold) return; hold->_rel=rel; }
+    inline bool SetRelative(bool rel) { AniAttribute* hold = GetTypeID(TypeID); if(!hold) return false; return hold->SetRelative(rel); }
     inline bool IsPlaying() const { return (_anibool&ANI_PLAYING)!=0; }
     inline bool IsLooping() const { return (_anibool&ANI_LOOPING)!=0; }
     inline bool IsPaused() const { return (_anibool&ANI_PAUSED)!=0; }
@@ -179,12 +179,13 @@ namespace bss_util {
   template<unsigned char TypeID>
   struct DEF_ANIMATION_ARRAY_T : DEF_ANIMATION_ARRAY, bss_util::cDynArray<bss_util::cArraySimple<KeyFrame<TypeID>>>
   {
+    typedef bss_util::cDynArray<bss_util::cArraySimple<KeyFrame<TypeID>>> BASE;
     virtual ~DEF_ANIMATION_ARRAY_T() {}
     inline virtual DEF_ANIMATION_ARRAY_T* BSS_FASTCALL Clone() const { return new DEF_ANIMATION_ARRAY_T(*this); }
     inline virtual void BSS_FASTCALL Load(cAnimation* ani) const 
     { 
-      for(unsigned int i = 0; i < _length; ++i) 
-        ani->AddKeyFrame<TypeID>(_array[i]); 
+      for(unsigned int i = 0; i < BASE::_length; ++i) 
+        ani->AddKeyFrame<TypeID>(BASE::_array[i]); 
     }
   };
 

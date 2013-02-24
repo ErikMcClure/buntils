@@ -56,7 +56,7 @@ namespace bss_util {
 #elif defined(BSS_COMPILER_GCC)
 	BSS_FORCEINLINE void CPU_Barrier()
 	{
-    LONG Barrier = 0;
+    __int32 Barrier = 0;
     __asm__ __volatile__("xchgl %%eax,%0 ":"=r" (Barrier));
 	}
 #endif
@@ -140,13 +140,11 @@ namespace bss_util {
   template<typename T> struct ASMCAS_REGPICK_WRITE<T,SIZE> { \
     inline static unsigned char BSS_FORCEINLINE BSS_FASTCALL asmcas(volatile T *pval, T newval, T oldval) \
     { \
-      unsigned char result;
-      __asm__ __volatile__("lock; INSTR %3, %2\n\t"
-        "sete %1"
-        : "+a"(oldval), "=q"(result), "+m"(*pval)
-        : "r"(newval)
-        : "memory"
-        );
+      unsigned char result; \
+      __asm__ __volatile__("lock; INSTR %3, %2\n\t" \
+        "sete %1" \
+        : "+a"(oldval), "=q"(result), "+m"(*pval) : "r"(newval) : "memory"); \
+    } \
   }
 
   ASMCAS_REGPICK_MACRO(1,cmpxchgb);

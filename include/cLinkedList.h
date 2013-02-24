@@ -110,13 +110,15 @@ namespace bss_util {
   class BSS_COMPILER_DLLEXPORT cLinkedList : protected cAllocTracker<Alloc>, public cLList_SIZE<useSize>, public cLList_LAST<T,useLast>
   {
     using cLList_LAST<T,useLast>::_root;
+    using cLList_LAST<T,useLast>::_add;
+    using cLList_SIZE<useSize>::_incsize;
 
   public:
     // Constructor, takes an optional allocator instance
     inline explicit cLinkedList(Alloc* allocator=0) : cAllocTracker<Alloc>(allocator) { }
     // Copy constructor
     inline cLinkedList(const cLinkedList<T,Alloc>& copy) : cAllocTracker<Alloc>(copy) { operator =(copy); }
-    inline cLinkedList(cLinkedList<T,Alloc>&& mov) : cAllocTracker<Alloc>(std::move(mov)), cLList_LAST(std::move(mov))
+    inline cLinkedList(cLinkedList<T,Alloc>&& mov) : cAllocTracker<Alloc>(std::move(mov)), cLList_LAST<T,useLast>(std::move(mov))
     {
       cLList_SIZE<useSize>::operator=(mov);
       mov._zerosize();
@@ -126,7 +128,7 @@ namespace bss_util {
     // Appends the item to the end of the list
     inline cLLNode<T>* BSS_FASTCALL Add(T item)
     {
-      cLLNode<T>* node = _allocate(1);
+      cLLNode<T>* node = cAllocTracker<Alloc>::_allocate(1);
       node->item=item;
       _add(node);
       _incsize(); //increment size by one
@@ -151,7 +153,7 @@ namespace bss_util {
       _remove(node);
 
       _delnode(node); //We don't need our linkedlist wrapper struct anymore so we destroy it
-      _decsize(); //our size is now down one
+      cLList_SIZE<useSize>::_decsize(); //our size is now down one
     }
     inline cLLNode<T>* BSS_FASTCALL Remove(cLLNode<T>* node, bool backwards)
     {
@@ -188,7 +190,7 @@ namespace bss_util {
     { 
       if(&mov==this) return *this; 
       Clear(); 
-      cLList_LAST<useLast>::operator=(std::move(mov)); 
+      cLList_LAST<T,useLast>::operator=(std::move(mov)); 
       cLList_SIZE<useSize>::operator=(mov); 
       mov._zerosize(); 
       return *this;
@@ -204,14 +206,14 @@ namespace bss_util {
   protected:
     inline cLLNode<T>* BSS_FASTCALL _createnode(T _item, cLLNode<T>* _prev=0, cLLNode<T>* _next=0)
     {
-			cLLNode<T>* retval = _allocate(1);
+			cLLNode<T>* retval = cAllocTracker<Alloc>::_allocate(1);
 			retval->item=_item;
 			retval->prev=_prev;
 			retval->next=_next;
 			return retval;
     }
 
-    inline void BSS_FASTCALL _delnode(cLLNode<T>* target) { _deallocate(target, 1); }
+    inline void BSS_FASTCALL _delnode(cLLNode<T>* target) { cAllocTracker<Alloc>::_deallocate(target, 1); }
   };
 }
 

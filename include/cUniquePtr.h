@@ -23,6 +23,8 @@ namespace bss_util
   template<class _Ty>
   class cUniquePtr : public std::unique_ptr<_Ty>
   {
+    using std::unique_ptr<_Ty>::get;
+
   public:
     inline cUniquePtr(cUniquePtr&& mov) : std::unique_ptr<_Ty>(std::move(mov)) {}
     explicit inline cUniquePtr(const cUniquePtr_Ref<_Ty>& pref) : std::unique_ptr<_Ty>(pref._p) {}
@@ -62,7 +64,7 @@ namespace bss_util
     inline cOwnerPtr() : _p(0), _owner(false) { }
     inline ~cOwnerPtr() { _disown(); }
 
-    inline BSS_FORCEINLINE bool operator !() { return !get(); }
+    inline BSS_FORCEINLINE bool operator !() { return !_p; }
     inline BSS_FORCEINLINE bool operator ==(const _Ty* right) { return _p==right; }
     inline BSS_FORCEINLINE bool operator !=(const _Ty* right) { return _p!=right; }
     inline BSS_FORCEINLINE bool operator ==(const cOwnerPtr& right) { return _p==right._p; }

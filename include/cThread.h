@@ -40,7 +40,7 @@ namespace bss_util {
           return (size_t)-1;
         GetExitCodeThread((HANDLE)_id,(DWORD*)&ret); // size_t is gaurenteed to be big enough to hold DWORD
 #else // BSS_PLATFORM_POSIX
-        if(pthread_join(_id,(void*)&ret)!=0) // size_t is gaurenteed to be big enough to hold a pointer
+        if(pthread_join(_id,(void**)&ret)!=0) // size_t is gaurenteed to be big enough to hold a pointer
           return (size_t)-1;
 #endif
       }
@@ -61,12 +61,12 @@ namespace bss_util {
 #else // BSS_PLATFORM_POSIX
         struct timespec ts;
         if(!mstimeout || clock_gettime(CLOCK_REALTIME, &ts) == -1) {
-          if(pthread_tryjoin_np(_id,(void*)&ret)!=0) // If failed, thread is either still busy or something blew up, so return -1
+          if(pthread_tryjoin_np(_id,(void**)&ret)!=0) // If failed, thread is either still busy or something blew up, so return -1
             return (size_t)-1;
         } else {
           ts.tv_sec += mstimeout/1000;
           ts.tv_nsec += (mstimeout%1000)*1000000;
-          if(pthread_timedjoin_np(_id,(void*)&ret, &ts)!=0) // size_t is gaurenteed to be big enough to hold a pointer
+          if(pthread_timedjoin_np(_id,(void**)&ret, &ts)!=0) // size_t is gaurenteed to be big enough to hold a pointer
             return (size_t)-1;
         }
 #endif

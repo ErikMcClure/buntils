@@ -82,7 +82,7 @@ namespace bss_util {
     // Resets the disjoint set
     inline void Reset()
     {
-      Scrub(-1); // Initialize all sets to be root nodes of trees of size 1
+      ARRAY::Scrub(-1); // Initialize all sets to be root nodes of trees of size 1
       _numsets=_size;
     }
 
@@ -108,7 +108,7 @@ namespace bss_util {
     template<class ITER>
     static typename DArray<std::pair<T,T>,T>::t BSS_FASTCALL MinSpanningTree(T numverts, ITER edges, ITER edgeslast)
     {
-      DArray<std::pair<T,T>,T>::t ret(numverts-1); // A nice result in combinatorics tells us that all trees have exactly n-1 edges.
+      typename DArray<std::pair<T,T>,T>::t ret(numverts-1); // A nice result in combinatorics tells us that all trees have exactly n-1 edges.
       ret.SetSize(MinSpanningTree(numverts,edges,edgeslast,ret)); // This will always be <= n-1 so the SetSize is basically free.
       return ret;
     }

@@ -37,9 +37,9 @@ namespace bss_util {
   template<typename T> // Expands the typedefs VALUE and DATA to more useful references from ANI_IDTYPE
   struct ANI_IDTYPE_EXPAND : ANI_IDTYPE_EXPAND__<T,typename T::TRAIT> 
   {
-    typedef typename ANI_IDTYPE_EXPAND__::VALUE VALUE;
-    typedef typename ANI_IDTYPE_EXPAND__::VALUECONST VALUECONST;
-    typedef typename ANI_IDTYPE_EXPAND__::VALUEREF VALUEREF;
+    typedef typename ANI_IDTYPE_EXPAND__<T,typename T::TRAIT>::VALUE VALUE;
+    typedef typename ANI_IDTYPE_EXPAND__<T,typename T::TRAIT>::VALUECONST VALUECONST;
+    typedef typename ANI_IDTYPE_EXPAND__<T,typename T::TRAIT>::VALUEREF VALUEREF;
     typedef typename T::DATA DATA;
     typedef DATA const& DATACONST;
     typedef DATA& DATAREF;

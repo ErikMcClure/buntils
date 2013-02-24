@@ -21,8 +21,7 @@ namespace bss_util {
     typedef const Key& CKEYREF;
     using cArraySort_t::_array;
     using cArraySort_t::_size;
-
-    inline static char mapComp(const Key& a, const pair_t& b) { return CFunc(a,b.first); }
+    using cArraySort_t::_length;
 
   public:
     explicit cMap(ST_ init=1) : cArraySort_t(init) {}
@@ -52,6 +51,7 @@ namespace bss_util {
       _array[retval].second=data;
       return retval;
     }
+    inline static char mapComp(const Key& a, const pair_t& b) { return CFunc(a,b.first); }
     inline ST_ BSS_FASTCALL GetNear(CKEYREF key, bool before) const {
       ST_ retval=before?(binsearch_near<pair_t,Key,ST_,mapComp,CompT_NEQ<char>,-1>(_array,key,0,_length)-1):binsearch_near<pair_t,Key,ST_,mapComp,CompT_EQ<char>,1>(_array,key,0,_length);
       return (retval<_length)?retval:(ST_)(-1); // This is only needed for before=false in case it returns a value outside the range.

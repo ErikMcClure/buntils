@@ -120,6 +120,9 @@ namespace bss_util {
   {
   public:
     typedef typename AniAttributeT<TypeID>::IDTYPE IDTYPE;
+    using AniAttributeT<TypeID>::_timevalues;
+    using AniAttributeT<TypeID>::_curpair;
+    using AniAttributeT<TypeID>::_initzero;
 
     AniAttributeGeneric(const AniAttributeGeneric& copy) : AniAttributeT<TypeID>(copy) {}
     AniAttributeGeneric() {}
@@ -153,8 +156,12 @@ namespace bss_util {
   class BSS_COMPILER_DLLEXPORT AniAttributeDiscrete : public AniAttributeT<TypeID>
   {
   public:
+    typedef typename AniAttributeT<TypeID>::TVT_ARRAY_T TVT_ARRAY_T;
     typedef typename AniAttributeT<TypeID>::IDTYPE IDTYPE;
     typedef ANI_TID(DELEGATE) DELEGATE;
+    using AniAttributeT<TypeID>::_timevalues;
+    using AniAttributeT<TypeID>::_curpair;
+    using AniAttributeT<TypeID>::_initzero;
     
     AniAttributeDiscrete(const AniAttributeDiscrete& copy) : AniAttributeT<TypeID>(copy), _del(copy._del) {}
     AniAttributeDiscrete(DELEGATE del) : AniAttributeT<TypeID>(), _del(del) {}
@@ -181,10 +188,15 @@ namespace bss_util {
   class BSS_COMPILER_DLLEXPORT AniAttributeSmooth : public AniAttributeDiscrete<TypeID>
   {
   public:
+    typedef typename AniAttributeDiscrete<TypeID>::TVT_ARRAY_T TVT_ARRAY_T;
     typedef typename AniAttributeDiscrete<TypeID>::IDTYPE IDTYPE;
+    typedef typename AniAttributeDiscrete<TypeID>::DELEGATE DELEGATE;
     typedef ANI_TID(VALUE) (BSS_FASTCALL *FUNC)(const TVT_ARRAY_T&,IDTYPE, double);
+    using AniAttributeDiscrete<TypeID>::_timevalues;
+    using AniAttributeDiscrete<TypeID>::_curpair;
+    using AniAttributeDiscrete<TypeID>::_initzero;
 
-    AniAttributeSmooth(const AniAttributeSmooth& copy) : AniAttributeDiscrete<TypeID>(copy), _del(copy._del), _rel(false) {}
+    AniAttributeSmooth(const AniAttributeSmooth& copy) : AniAttributeDiscrete<TypeID>(copy), _rel(false) {}
     AniAttributeSmooth(const ANI_TID(VALUE)* pval, FUNC func, DELEGATE del) : AniAttributeDiscrete<TypeID>(del), _func(func), _pval(pval), _rel(false) {}
     inline virtual bool Interpolate(double timepassed)
     {
@@ -195,8 +207,8 @@ namespace bss_util {
 			return true;
     }
     inline virtual void Start() { _curpair=1; _initval=*_pval; if(_initzero) _setval(_func(_timevalues,_curpair,0.0)); }
-    inline virtual void Finish() { IDTYPE svar=_timevalues.Size(); if(svar>1 || _initzero) _setval(_func(_timevalues,svar,Length())); }
-		inline virtual AniAttribute* BSS_FASTCALL Clone() const { return new AniAttributeDiscrete(*this); }
+    inline virtual void Finish() { IDTYPE svar=_timevalues.Size(); if(svar>1 || _initzero) _setval(_func(_timevalues,svar,AniAttributeDiscrete<TypeID>::Length())); }
+		inline virtual AniAttribute* BSS_FASTCALL Clone() const { return new AniAttributeDiscrete<TypeID>(*this); }
     inline virtual void BSS_FASTCALL CopyAnimation(AniAttribute* ptr) { operator=(*static_cast<AniAttributeSmooth*>(ptr)); }
     inline virtual bool SetRelative(bool relative) { _rel=relative; return true; }
     inline virtual bool SetInterpolation(FUNC func) { _func=func; return true; }
@@ -209,7 +221,7 @@ namespace bss_util {
     }
 
   protected:
-    BSS_FORCEINLINE void _setval(ANI_TID(VALUECONST) val) const { _del(_rel?val+_initval:val); } 
+    BSS_FORCEINLINE void _setval(ANI_TID(VALUECONST) val) const {  AniAttributeDiscrete<TypeID>::_del(_rel?val+_initval:val); } 
 
     ANI_TID(VALUE) _initval;
     const ANI_TID(VALUE)* _pval;
@@ -239,8 +251,8 @@ namespace bss_util {
   template<unsigned char TypeID, typename AniAttributeSmooth<TypeID>::FUNC Func>
   struct BSS_COMPILER_DLLEXPORT AttrDefSmooth : AttrDefDiscrete<TypeID>
   { 
-    inline AttrDefSmooth(const ANI_TID(VALUE)* src, ANI_TID(DELEGATE) del) : AttrDefDiscrete(del), _src(src) {}
-    inline virtual AniAttribute* BSS_FASTCALL Spawn() const { return new AniAttributeSmooth<TypeID>(_src,Func,_del); }
+    inline AttrDefSmooth(const ANI_TID(VALUE)* src, ANI_TID(DELEGATE) del) : AttrDefDiscrete<TypeID>(del), _src(src) {}
+    inline virtual AniAttribute* BSS_FASTCALL Spawn() const { return new AniAttributeSmooth<TypeID>(_src,Func,AttrDefDiscrete<TypeID>::_del); }
     inline virtual AttrDefSmooth* BSS_FASTCALL Clone() const { return new AttrDefSmooth(*this); } 
     const ANI_TID(VALUE)* _src;
   };

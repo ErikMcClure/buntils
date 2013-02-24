@@ -36,11 +36,7 @@ public:
   static inline BSS_FORCEINLINE size_t SLEN(const CHAR* str) { return strlen(str); }
   static inline BSS_FORCEINLINE CHAR* STOK(CHAR* str,const CHAR* delim, CHAR** context) { return STRTOK(str,delim,context); }
   //static inline errno_t WTOMB(size_t* outsize, CHAR* dest, size_t destsize, const OTHER_C* src, size_t maxcount) { return wcstombs_s(outsize,dest,destsize,src,maxcount); }
-#ifdef BSS_COMPILER_GCC
-  template<class S> static inline BSS_FORCEINLINE int VPF(S* str,const CHAR *format, va_list args) { return VSNPRINTF(str->UnsafeString(),str->capacity(),format,args); }
-#else
   static inline BSS_FORCEINLINE int VPF(CHAR *dest, size_t size, const CHAR *format, va_list args) { return VSNPRINTF(dest,size,format,args); }
-#endif
   static inline BSS_FORCEINLINE int VPCF(const CHAR* str, va_list args) { return VSCPRINTF(str,args); }
   static inline BSS_FORCEINLINE size_t CONV(const OTHER_C* src, CHAR* dest, size_t len) { return UTF16toUTF8(src,dest,len); }
 
@@ -60,13 +56,13 @@ public:
   static inline BSS_FORCEINLINE CHAR* STOK(CHAR* str,const CHAR* delim, CHAR** context) { return WCSTOK(str,delim,context); }
   //static inline errno_t WTOMB(size_t* outsize, CHAR* dest, size_t destsize, const OTHER_C* src, size_t maxcount) { return mbstowcs_s(outsize,dest,destsize,src,maxcount); }
 #ifdef BSS_COMPILER_GCC
-  template<class S> static inline BSS_FORCEINLINE int VPF(S* str,const CHAR *format, va_list args)
-  {
-    str->resize(SLEN(format));
-    while(VSNWPRINTF(str->UnsafeString(),str->capacity(),format,args)==str->capacity()) //double size until it fits.
-      str->resize(str->capacity()*2);
-    return str->capacity();
-  }
+  //template<class S> static inline BSS_FORCEINLINE int VPF(S* str,const CHAR *format, va_list args)
+  //{
+  //  str->resize(SLEN(format));
+  //  while(VSNWPRINTF(str->UnsafeString(),str->capacity(),format,args)==str->capacity()) //double size until it fits.
+  //    str->resize(str->capacity()*2);
+  //  return str->capacity();
+  //}
 #else
   static inline BSS_FORCEINLINE int VPF(CHAR *dest, size_t size, const CHAR *format, va_list args) { return VSNWPRINTF(dest,size,format,args); }
   static inline BSS_FORCEINLINE int VPCF(const CHAR* str, va_list args) { return VSCWPRINTF(str,args); }
@@ -203,13 +199,13 @@ public:
     if(CSTR_CT<T>::SCHR(string, '%')==0) //Do we even need to check our va_list?
       return cStrT<T,Alloc>(string);
     cStrT<T,Alloc> r;
-#ifdef BSS_COMPILER_GCC
-    CSTR_CT<T>::VPF(&r, string, vl);
-#else
+//#ifdef BSS_COMPILER_GCC
+//    CSTR_CT<T>::VPF(&r, string, vl);
+//#else
     size_t _length = (size_t)CSTR_CT<T>::VPCF(string,vl);
     r.resize(_length+1);
     CSTR_CT<T>::VPF(r.UnsafeString(), r.capacity(), string, vl);
-#endif
+//#endif
     r.resize(CSTR_CT<T>::SLEN(r.c_str()));
     return r;
   }

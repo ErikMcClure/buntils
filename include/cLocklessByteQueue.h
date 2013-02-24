@@ -194,7 +194,7 @@ namespace bss_util {
   inline void cLocklessByteQueue::DEBUGDUMP(const char* file) const
   {
     FILE* f;
-    fopen_s(&f,file,"w");
+    FOPEN(f,file,"w");
 
     char* start=_curmemread;
     char* end;

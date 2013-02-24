@@ -7,6 +7,7 @@
 //#include "bss_alloc.h"
 #include "bss_util.h"
 #include "cArraySimple.h"
+#include "cStr.h"
 #include <stdlib.h>
 #include <ostream>
 #include <istream>
@@ -55,8 +56,8 @@ namespace bss_util {
     inline const T* GetString(ST_ index) const { assert(index<_indices.Size()); return _strings+_indices[index]; }
     inline void AppendString(const char* s)
     { 
-      ST_ last = _lstr<T>(_strings+_indices[_indices.Size()-1])+1+_indices[_indices.Size()-1];
-      ST_ sz = _lstr<T>(s)+1;
+      ST_ last = CSTR_CT<T>::SLEN(_strings+_indices[_indices.Size()-1])+1+_indices[_indices.Size()-1];
+      ST_ sz = CSTR_CT<T>::SLEN(s)+1;
       
       _indices.SetSize(_indices.Size()+1);
       _indices[_indices.Size()-1]=last; // Add another indice and set its value appropriately
@@ -94,13 +95,10 @@ namespace bss_util {
 
       return *this;
     }
-    inline cStrTable operator+(const cStrTable& right) { return (cStrTable retval(*this))+=right; }
+    inline cStrTable operator+(const cStrTable& right) { cStrTable retval(*this); return retval+=right; }
     inline cStrTable& operator+=(const char* right) { AppendString(right); return *this; }
 
   protected:
-    template<typename D> static inline size_t _lstr(const D* str) { return strlen(str); }
-    template<> static inline size_t _lstr<wchar_t>(const wchar_t* str) { return wcslen(str); }
-
     inline void BSS_FASTCALL _construct(const T* const* strings, ST_ size)
     {
       if(!strings || !size) //special handling for empty case
@@ -110,7 +108,7 @@ namespace bss_util {
       ST_ sz=0;
       for(ST_ i = 0; i < size; ++i) //this will cause an infinite loop if someone is dumb enough to set ST_ to an unsigned type and set size equal to -1. If you actually think you could make that mistake, stop using this class.
       {
-        _indices[i] = _lstr<T>(strings[i])+1; //include null terminator in length count
+        _indices[i] = CSTR_CT<T>::SLEN(strings[i])+1; //include null terminator in length count
         sz+=_indices[i];
       }
       _strings.SetSize(sz);

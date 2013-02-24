@@ -15,8 +15,8 @@ namespace bss_util {
     typedef cBinaryHeap<std::pair<K,D>,ST_,CompTFirst<std::pair<K,D>,CFunc>,ARRAYTYPE> BASE;
 
   public:
-    inline cPriorityQueue(const cPriorityQueue& copy) : cBinaryHeap(copy) {}
-    inline cPriorityQueue(cPriorityQueue&& mov) : cBinaryHeap(std::move(mov)) {}
+    inline cPriorityQueue(const cPriorityQueue& copy) : BASE(copy) {}
+    inline cPriorityQueue(cPriorityQueue&& mov) : BASE(std::move(mov)) {}
     inline cPriorityQueue() {}
     inline ~cPriorityQueue() {}
     inline BSS_FORCEINLINE void Push(const K& key, D value) { BASE::Insert(PAIR(key,value)); }
@@ -27,7 +27,7 @@ namespace bss_util {
     inline BSS_FORCEINLINE bool Empty() { return BASE::Empty(); }
     inline BSS_FORCEINLINE const PAIR& Get(ST_ index) { return BASE::Get(index); }
     inline BSS_FORCEINLINE bool Remove(ST_ index) { return BASE::Remove(index); }
-    inline ST_ Length() { return _length; }
+    inline ST_ Length() { return BASE::_length; }
 
     inline cPriorityQueue& operator=(const cPriorityQueue& copy) { BASE::operator=(copy); return *this; }
     inline cPriorityQueue& operator=(cPriorityQueue&& mov) { BASE::operator=(std::move(mov)); return *this; }

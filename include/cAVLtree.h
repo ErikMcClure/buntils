@@ -79,7 +79,7 @@ namespace bss_util {
       AVLNode* root=*proot;
       if(!root)
       {
-				*proot=_allocate(1);
+				*proot=cAllocTracker<Alloc>::_allocate(1);
         new(*proot) AVLNode(key);
         change=1;
         return *proot;
@@ -154,9 +154,10 @@ namespace bss_util {
   template<class Key, class Data, char (*CFunc)(const Key&, const Key&), typename Alloc>
   class BSS_COMPILER_DLLEXPORT _AVL_TREE_DATAFIELD : public _AVL_TREE_INTERNAL<Key,Data,CFunc,Alloc>
   {
-    typedef AVL_Node<Key,Data> AVLNode;
-
   public:
+    typedef AVL_Node<Key,Data> AVLNode;
+    using _AVL_TREE_INTERNAL<Key,Data,CFunc,Alloc>::_root;
+
     inline bool BSS_FASTCALL Insert(Key key, Data data)
     {
       char change=0;
@@ -206,9 +207,10 @@ namespace bss_util {
   template<class Key, char (*CFunc)(const Key&, const Key&), typename Alloc>
   class BSS_COMPILER_DLLEXPORT _AVL_TREE_DATAFIELD<Key,void,CFunc,Alloc> : public _AVL_TREE_INTERNAL<Key,void,CFunc,Alloc>
   {
-    typedef AVL_Node<Key,void> AVLNode;
-
   public:
+    typedef AVL_Node<Key,void> AVLNode;
+    using _AVL_TREE_INTERNAL<Key,void,CFunc,Alloc>::_root;
+
     inline bool BSS_FASTCALL Insert(Key key)
     {
       char change=0;
@@ -247,6 +249,7 @@ namespace bss_util {
 	class BSS_COMPILER_DLLEXPORT cAVLtree : public _AVL_TREE_DATAFIELD<Key,Data,CFunc,Alloc>
   {
     typedef AVL_Node<Key,Data> AVLNode;
+    using _AVL_TREE_DATAFIELD<Key,Data,CFunc,Alloc>::_root;
 
   public:
     inline cAVLtree(const cAVLtree& copy) : _AVL_TREE_DATAFIELD<Key,Data,CFunc,Alloc>(copy) {}
@@ -254,8 +257,8 @@ namespace bss_util {
     inline cAVLtree(Alloc* allocator=0) : _AVL_TREE_DATAFIELD<Key,Data,CFunc,Alloc>(allocator) {}
     inline ~cAVLtree() { Clear(); }
     inline void Clear() { _clear(_root); _root=0; }
-    template<typename F> // std::function<void(Data)>
-    inline BSS_FORCEINLINE void Traverse(F lambda) { _traverse<F>(lambda, _root); }
+    template<typename F> // std::function<void(Data)> (we infer _traverse's template argument here because GCC explodes otherwise)
+    inline BSS_FORCEINLINE void Traverse(F lambda) { _AVL_TREE_DATAFIELD<Key,Data,CFunc,Alloc>::_traverse(lambda, _root); }
 
     inline cAVLtree& operator=(cAVLtree&& mov) { Clear(); _root=mov._root; mov._root=0; }
     inline bool BSS_FASTCALL Remove(const Key key)

@@ -17,6 +17,8 @@ namespace bss_util {
     typedef SizeType ST_;
     typedef const T& constref;
     typedef T&& moveref;
+    using ArrayType::_array;
+    using ArrayType::_size;
 
     inline cArraySort(const cArraySort& copy) : _length(copy._length), ArrayType(copy) {} 
     inline cArraySort(cArraySort&& mov) : _length(mov._length), ArrayType(std::move(mov)) {} 

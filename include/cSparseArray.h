@@ -12,6 +12,10 @@ namespace bss_util {
   class BSS_COMPILER_DLLEXPORT cSparseArray : protected cBitArray<unsigned char, ST_>
   {
   protected:
+    using cBitArray<unsigned char, ST_>::_bits;
+    using cBitArray<unsigned char, ST_>::_numbits;
+    using cBitArray<unsigned char, ST_>::DIV_AMT;
+    using cBitArray<unsigned char, ST_>::MOD_AMT;
     union SPARSE_ELEM
     {
       T _elem;
@@ -19,7 +23,7 @@ namespace bss_util {
     };
 
   public:
-    cSparseArray(const cSparseArray& copy) : _array(0), _size(0), cBitArray<unsigned char, ST_>(copy) { _resize(right._size); memcpy(_array, right._array, sizeof(SPARSE_ELEM)*_size); }
+    cSparseArray(const cSparseArray& copy) : _array(0), _size(0), cBitArray<unsigned char, ST_>(copy) { _resize(copy._size); memcpy(_array, copy._array, sizeof(SPARSE_ELEM)*_size); }
     cSparseArray(ST_ init=1) : _array(0), _size(0), cBitArray<unsigned char, ST_>(init) { _resize(init); }
     ~cSparseArray() { delete [] _array; } //We always have array equal something, even if its a zero length array
     // appends something to the end of the array, pushing everything else back. This cannot fail (well, unless you run out of memory. But if you ran out of memory, boy are you fucked)
@@ -58,7 +62,7 @@ namespace bss_util {
           bitindex=(index&MOD_AMT);
 
           if(!(_bits[realindex]&(1<<bitindex))) //if this is true then we just take the index pointer from the next one
-            _array[index-1]._index = _array[index]._index
+            _array[index-1]._index = _array[index]._index;
           else //otherwise we set our index to the next one
             _array[index-1]._index=index;
 

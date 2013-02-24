@@ -49,7 +49,7 @@ namespace bss_util {
       {
         result = std::move(_div->next->item); 	// try to use move semantics if possible
         atomic_xchg<volatile QNode*>(&_div,_div->next);		// publish it
-        _declength(); // Decrement length if we're tracking it
+        i_LocklessQueue_Length<LENGTH>::_declength(); // Decrement length if we're tracking it
         return true;
       }
       return false;
@@ -62,7 +62,7 @@ namespace bss_util {
       _last->next=_alloc.alloc(1);
       new((QNode*)_last->next) QNode(std::forward<U>(t));
       atomic_xchg<volatile QNode*>(&_last,_last->next);		// publish it
-      _inclength(); // If we are tracking length, atomically increment it
+      i_LocklessQueue_Length<LENGTH>::_inclength(); // If we are tracking length, atomically increment it
       
       QNode* tmp; // collect garbage
       while( _first != _div ) {	

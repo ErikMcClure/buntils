@@ -15,6 +15,9 @@ namespace bss_util {
   template<class T>
   struct BSS_COMPILER_DLLEXPORT TRB_Node : LLBase<TRB_Node<T>>
   {
+    using LLBase<TRB_Node<T>>::next;
+    using LLBase<TRB_Node<T>>::prev;
+
     inline explicit TRB_Node(TRB_Node<T>* pNIL) : left(pNIL), right(pNIL), color(0), parent(0) { next=0; prev=0; }
     inline TRB_Node(T v, TRB_Node<T>* pNIL) : value(v), left(pNIL), right(pNIL), color(1), parent(0) { next=0; prev=0; }
     T value;
@@ -47,7 +50,7 @@ namespace bss_util {
 		inline void Clear()
 	  {
       for(auto& i = begin(); i.IsValid();) // Walk through the tree using the linked list and deallocate everything
-        _deallocate(*(i++),1);
+        cAllocTracker<Alloc>::_deallocate(*(i++),1);
 
 		  _first = 0;
 		  _last = 0;
@@ -60,7 +63,7 @@ namespace bss_util {
 		// Inserts a key with the associated data
 		inline TRB_Node<T>* BSS_FASTCALL Insert(const T& value)
     {
-      TRB_Node<T>* node= _allocate(1);
+      TRB_Node<T>* node= cAllocTracker<Alloc>::_allocate(1);
       new(node) TRB_Node<T>(value,pNIL);
       _insert(node);
       return node;
@@ -72,7 +75,7 @@ namespace bss_util {
     {
       if(!node) return false;
       _remove(node);
-      _deallocate(node,1);
+      cAllocTracker<Alloc>::_deallocate(node,1);
       return true;
     }
     // Returns first element

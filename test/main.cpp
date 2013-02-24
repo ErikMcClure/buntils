@@ -2872,11 +2872,11 @@ int main(int argc, char** argv)
     numpassed=tests[i].FUNC(); //First is total, second is succeeded
     if(numpassed.first!=numpassed.second) failures.push_back(i);
 
-    printf("%-*s %*s %-*s\n",COLUMNS[0],tests[i].NAME, COLUMNS[1],cStrF("%u/%u",numpassed.second,numpassed.first).c_str(), COLUMNS[2],(numpassed.first==numpassed.second)?"PASS":"FAIBSS__L(");
+    printf("%-*s %*s %-*s\n",COLUMNS[0],tests[i].NAME, COLUMNS[1],cStrF("%u/%u",numpassed.second,numpassed.first).c_str(), COLUMNS[2],(numpassed.first==numpassed.second)?"PASS":"FAIL");
   }
 
   if(failures.empty())
-    std::cout << ")\nAll tests passed successfully!" << std::endl;
+    std::cout << "\nAll tests passed successfully!" << std::endl;
   else
   {
     std::cout << "\nThe following tests failed: " << std::endl;

@@ -20,9 +20,9 @@ public:
   bss_DebugInfo(bss_DebugInfo&& mov);
   explicit bss_DebugInfo(std::ostream* log=0);
   explicit bss_DebugInfo(const char* logfile, std::ostream* log=0);
-  explicit bss_DebugInfo(const wchar_t* logfile, std::ostream* log=0);
   virtual ~bss_DebugInfo();
 #ifdef BSS_PLATFORM_WIN32
+  explicit bss_DebugInfo(const wchar_t* logfile, std::ostream* log=0);
   // Gets the path of the given module - 0 returns path of calling executable
   const char* ModulePath(HINSTANCE__ *mod=0); //If this is GetModulePath windows' stupid #defines screw it up
   // Gets memory information about the process

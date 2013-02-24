@@ -352,15 +352,19 @@ TESTDEF::RETPAIR test_bss_util()
 
   strreplace(const_cast<char*>(cpan.c_str()),'m','?');
   TEST(!strchr(cpan.c_str(),'m') && strchr(cpan.c_str(),'?')!=0);
-  std::wstring pan;
+  std::basic_string<bsschar,std::char_traits<bsschar>,std::allocator<bsschar>> pan;
   for(uint i = 0; i < _ARRSIZE(PANGRAMS); ++i)
   {
     pan=PANGRAMS[i];
-    wchar_t f=pan[((i+7)<<3)%pan.length()];
-    wchar_t r=pan[((((i*13)>>3)+13)<<3)%pan.length()];
+    bsschar f=pan[((i+7)<<3)%pan.length()];
+    bsschar r=pan[((((i*13)>>3)+13)<<3)%pan.length()];
     if(f==r) r=pan[pan.length()-1];
-    strreplace(const_cast<wchar_t*>(pan.c_str()),f,r);
+    strreplace<bsschar>(const_cast<bsschar*>(pan.c_str()),f,r);
+#ifdef BSS_PLATFORM_WIN32
     TEST(!wcschr(pan.c_str(),f) && wcschr(pan.c_str(),r)!=0);
+#else
+    TEST(!strchr(pan.c_str(),f) && strchr(pan.c_str(),r)!=0);
+#endif
   }
   TEST(strccount<char>("10010010101110001",'1')==8);
   TEST(strccount<char>("0100100101011100010",'1')==8);

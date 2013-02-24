@@ -37,6 +37,7 @@
 - cAdditiveFixedAllocator removed because who on earth would use that? cAdditiveVariableAllocator is now just cAdditiveAlloc
 - Expanded and templatized SSE classes
 - Fixed error that prevented the INI parser from reading blank ini values
+- Fixed horrifying pointer bug in StreamSplitter that should never have worked in the first place
 
 0.3.84
 ------

@@ -50,14 +50,14 @@ bss_DebugInfo::bss_DebugInfo(const char* logfile, std::ostream* log) : cHighPrec
   //_curprocess = GetCurrentProcess();
   ClearProfilers();
 }
+#ifdef BSS_PLATFORM_WIN32
 bss_DebugInfo::bss_DebugInfo(const wchar_t* logfile, std::ostream* log) : cHighPrecisionTimer(), bss_Log(logfile,log)
 {
-#ifdef BSS_PLATFORM_WIN32
   _counter = new PROCESS_MEMORY_COUNTERS();
-#endif
   //_curprocess = GetCurrentProcess();
   ClearProfilers();
 }
+#endif
 
 bss_DebugInfo::~bss_DebugInfo()
 {

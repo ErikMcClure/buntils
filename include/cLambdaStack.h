@@ -12,6 +12,8 @@ namespace bss_util {
   template<class Fx, typename SizeType=unsigned int>
   class cLambdaStack : protected cBSS_Stack<std::function<Fx>,SizeType, cArraySafe<std::function<Fx>,SizeType>>
   {
+    using cBSS_Stack<std::function<Fx>,SizeType, cArraySafe<std::function<Fx>,SizeType>>::_length;
+
   public:
     // Copy constructor
     inline cLambdaStack(const cBSS_Stack& copy) : cBSS_Stack(copy) {}

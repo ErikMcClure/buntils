@@ -19,6 +19,8 @@ namespace bss_util {
     typedef const Data& constref;
     typedef Data&& moveref;
     typedef const Key& CKEYREF;
+    using cArraySort_t::_array;
+    using cArraySort_t::_size;
 
     inline static char mapComp(const Key& a, const pair_t& b) { return CFunc(a,b.first); }
 

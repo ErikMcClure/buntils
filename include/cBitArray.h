@@ -102,10 +102,10 @@ namespace bss_util
     inline cBitArray& operator=(const cBitArray& right) { _bits=right._bits; _numbits=right._numbits; }
     inline cBitArray& operator=(cBitArray&& mov) { _bits=std::move(mov._bits); _numbits=mov._numbits; mov._numbits=0; }
     inline bool operator[](ST_ index) const { return GetBit(index); }
-    inline _BIT_REF<ST_> operator[](ST_ index) { return _BIT_REF<ST_>(_bits+(bitindex/DIV_AMT),(bitindex&MOD_AMT)); }
+    inline _BIT_REF<ST_> operator[](ST_ index) { return _BIT_REF<ST_>(_bits+(index/DIV_AMT),(index&MOD_AMT)); }
 
   protected:
-    inline ST_ _maxchunks(ST_ numbits) { return (numbits/DIV_AMT) + ((numbits&MOD_AMT)!=0) }
+    inline ST_ _maxchunks(ST_ numbits) { return (numbits/DIV_AMT) + ((numbits&MOD_AMT)!=0); }
 
     cArraySimple<STORE_,ST_> _bits;
     ST_ _numbits;

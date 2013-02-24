@@ -14,6 +14,8 @@ namespace bss_util {
   {
     typedef SizeType ST_;
     typedef typename TSignPick<sizeof(ST_)>::SIGNED __ST_SIGNED;
+	  using ArrayType::_size;
+	  using ArrayType::_array;
 
   public:
     // Constructors

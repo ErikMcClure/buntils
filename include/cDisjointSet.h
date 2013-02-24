@@ -15,6 +15,8 @@ namespace bss_util {
   {
     typedef cArraySimple<typename TSignPick<sizeof(T)>::SIGNED,T> ARRAY;
     typedef typename ARRAY::T_ T_;
+    using ARRAY::_array;
+    using ARRAY::_size;
 
   public:
     // Construct a disjoint set with num initial sets

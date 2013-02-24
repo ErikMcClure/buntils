@@ -14,6 +14,8 @@ namespace bss_util {
   class BSS_COMPILER_DLLEXPORT cBinaryHeap : protected ArrayType
   {
   protected:
+    using ArrayType::_array;
+    using ArrayType::_size;
 #define CBH_PARENT(i) ((i-1)/2)
 #define CBH_LEFT(i) ((i<<1)+1)
 #define CBH_RIGHT(i) ((i<<1)+2)

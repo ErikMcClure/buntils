@@ -109,6 +109,8 @@ namespace bss_util {
   template<typename T, typename Alloc=Allocator<cLLNode<T>>, bool useLast=false, bool useSize=false>
   class BSS_COMPILER_DLLEXPORT cLinkedList : protected cAllocTracker<Alloc>, public cLList_SIZE<useSize>, public cLList_LAST<T,useLast>
   {
+    using cLList_LAST<T,useLast>::_root;
+
   public:
     // Constructor, takes an optional allocator instance
     inline explicit cLinkedList(Alloc* allocator=0) : cAllocTracker<Alloc>(allocator) { }

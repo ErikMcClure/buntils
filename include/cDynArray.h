@@ -7,13 +7,15 @@
 #include "cArraySimple.h"
 
 namespace bss_util {
-  // Dynamic array implemented using ARRAYTYPE (should only be used when std::vector won't work, for example, if constructors aren't needed)
-  template<class ARRAYTYPE>
-  class BSS_COMPILER_DLLEXPORT cDynArray : public ARRAYTYPE
+  // Dynamic array implemented using ArrayType (should only be used when std::vector won't work, for example, if constructors aren't needed)
+  template<class ArrayType>
+  class BSS_COMPILER_DLLEXPORT cDynArray : public ArrayType
   {
-    typedef typename ARRAYTYPE::ST_ ST_;
-    typedef typename ARRAYTYPE::T_ T_;
-    typedef ARRAYTYPE AT_;
+    typedef typename ArrayType::ST_ ST_;
+    typedef typename ArrayType::T_ T_;
+    typedef ArrayType AT_;
+    using ArrayType::_array;
+    using ArrayType::_size;
 
   public:
     //inline cDynArray(const cDynArray& copy) : AT_(copy), _length(copy._length) {}

@@ -4,7 +4,7 @@
 #ifndef __CSTR_H__BSS__
 #define __CSTR_H__BSS__
 
-#include <string>
+#include <string.h>
 #include <stdarg.h>
 #include <vector>
 #include <assert.h>
@@ -12,7 +12,6 @@
 #include "bss_util_c.h"
 #ifdef BSS_COMPILER_GCC
 #include <stdio.h>
-#include <string.h>
 #endif
 
 //#define CSTRALLOC(T) std::basic_string<T, std::char_traits<T>, bss_util::RefAllocator<Alloc,bss_util::RefHackAllocPolicy<T>, bss_util::ObjectTraits<T>>>
@@ -196,16 +195,18 @@ public:
   {
     if(!string)
       return cStrT<T,Alloc>();
-    if(CSTR_CT<T>::SCHR(string, '%')==0) //Do we even need to check our va_list?
-      return cStrT<T,Alloc>(string);
+    //if(CSTR_CT<T>::SCHR(string, '%')==0) //Do we even need to check our va_list?
+    //  return cStrT<T,Alloc>(string);
     cStrT<T,Alloc> r;
-//#ifdef BSS_COMPILER_GCC
-//    CSTR_CT<T>::VPF(&r, string, vl);
-//#else
-    size_t _length = (size_t)CSTR_CT<T>::VPCF(string,vl);
+#ifdef BSS_COMPILER_GCC // GCC implements va_list in such a way that we actually have to copy it before using it anywhere
+    va_list vltemp;
+    va_copy(vltemp,vl);
+    size_t _length = (size_t)CSTR_CT<T>::VPCF(string,vltemp); // If we didn't copy vl here, it would get modified by vsnprintf and blow up.
+#else
+    size_t _length = (size_t)CSTR_CT<T>::VPCF(string,vl); // This ensures VPCF doesn't modify our original va_list
+#endif
     r.resize(_length+1);
     CSTR_CT<T>::VPF(r.UnsafeString(), r.capacity(), string, vl);
-//#endif
     r.resize(CSTR_CT<T>::SLEN(r.c_str()));
     return r;
   }

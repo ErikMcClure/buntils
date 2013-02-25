@@ -43,7 +43,7 @@ namespace bss_util {
     // Stop animation
     inline void Stop() { _anibool-=(ANI_LOOPING|ANI_PLAYING); _timepassed=0.0; }
     // Temporarily pauses or unpauses the animation
-    inline void Pause(bool pause) { _anibool(ANI_PAUSED,pause); }
+    inline void Pause(bool pause) { _anibool[ANI_PAUSED]=pause; }
     // Starts looping the animation (if it hasn't started yet, it is started.) Looping ends when Stop() is called
     inline void Loop(double timepassed=0.0, double looppoint=0.0) { _looppoint=looppoint; _anibool+=ANI_LOOPING; if((_anibool&ANI_PLAYING)==0) Start(timepassed); }
     // Interpolates the animation by moving it forward *delta* milliseconds

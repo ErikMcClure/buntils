@@ -11,7 +11,7 @@
 
 #define BSSLOG(logger,level) ((logger).FORMATLOG<level>(__FILE__,__LINE__))
 
-namespace bss_util { class StreamSplitter; }
+namespace bss_util { class StreamSplitter; } // We can only get rid of this after GCC stops being amazingly stupid with its move constructors
 
 // template defined error messages
 template<unsigned char ERRLEVEL> struct bss_LOGERRLVL {};

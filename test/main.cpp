@@ -657,7 +657,6 @@ TESTDEF::RETPAIR test_bss_DEBUGINFO()
     di.ClearTargets();
     di.GetStream() << BSS__L("黑色球体工作室");
   };
-
   bss_DebugInfo a(BSS__L("黑色球体工作室.txt"),&ss); //Supposedly 黑色球体工作室 is Black Sphere Studios in Chinese, but the literal translation appears to be Black Ball Studio. Oh well.
   bss_DebugInfo b("logtest.txt");
   b.AddTarget(fs);
@@ -1305,6 +1304,7 @@ TESTDEF::RETPAIR test_ANIMATION()
 {
   BEGINTEST;
   cAnimation a(0);
+  a.Pause(true);
   ENDTEST;
 }
 TESTDEF::RETPAIR test_ARRAYSIMPLE()
@@ -1615,12 +1615,6 @@ TESTDEF::RETPAIR test_BITFIELD()
   t[8]=true;
   TEST(t==13);
   t=7;
-  TEST(t==7);
-  t(1,false);
-  TEST(t==6);
-  t(2,false);
-  TEST(t==4);
-  t(1,true);
   TEST(t==5);
   t+=3;
   TEST(t==7);

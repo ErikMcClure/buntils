@@ -46,7 +46,7 @@ namespace bss_util {
       _clear(node->_left);
       _clear(node->_right);
       node->~AVLNode();
-			_deallocate(node, 1);
+			cAllocTracker<Alloc>::_deallocate(node, 1);
     }
 
     inline static void BSS_FASTCALL _leftrotate(AVLNode** pnode)
@@ -161,7 +161,7 @@ namespace bss_util {
     inline bool BSS_FASTCALL Insert(Key key, Data data)
     {
       char change=0;
-      AVLNode* cur=_insert(key,&_root,change);
+      AVLNode* cur=this->_insert(key,&_root,change);
       if(cur)
       {
         cur->_data=std::move(data);
@@ -171,12 +171,12 @@ namespace bss_util {
     }
     inline Data BSS_FASTCALL Get(const Key key, const Data& INVALID=0) const
     {
-      AVLNode* retval=_find(key);
+      AVLNode* retval=this->_find(key);
       return !retval?INVALID:retval->_data;
     }
     inline Data* BSS_FASTCALL GetRef(const Key key) const
     {
-      AVLNode* retval=_find(key);
+      AVLNode* retval=this->_find(key);
       return !retval?0:&retval->_data;
     }
     
@@ -214,17 +214,17 @@ namespace bss_util {
     inline bool BSS_FASTCALL Insert(Key key)
     {
       char change=0;
-      AVLNode* cur=_insert(key,&_root,change);
+      AVLNode* cur=this->_insert(key,&_root,change);
       return cur!=0;
     }
     inline Key BSS_FASTCALL Get(const Key key, const Key& INVALID=0) const
     {
-      AVLNode* retval=_find(key);
+      AVLNode* retval=this->_find(key);
       return !retval?INVALID:retval->_key;
     }
     inline Key* BSS_FASTCALL GetRef(const Key key) const
     {
-      AVLNode* retval=_find(key);
+      AVLNode* retval=this->_find(key);
       return !retval?0:&retval->_key;
     }
     
@@ -256,7 +256,7 @@ namespace bss_util {
     inline cAVLtree(cAVLtree&& mov) : _AVL_TREE_DATAFIELD<Key,Data,CFunc,Alloc>(std::move(mov)) { }
     inline cAVLtree(Alloc* allocator=0) : _AVL_TREE_DATAFIELD<Key,Data,CFunc,Alloc>(allocator) {}
     inline ~cAVLtree() { Clear(); }
-    inline void Clear() { _clear(_root); _root=0; }
+    inline void Clear() { this->_clear(_root); _root=0; } // We have to use this-> to satisfy GCC's lookups
     template<typename F> // std::function<void(Data)> (we infer _traverse's template argument here because GCC explodes otherwise)
     inline BSS_FORCEINLINE void Traverse(F lambda) { _AVL_TREE_DATAFIELD<Key,Data,CFunc,Alloc>::_traverse(lambda, _root); }
 
@@ -268,7 +268,7 @@ namespace bss_util {
       if(node!=0)
       {
         node->~AVLNode();
-        _deallocate(node,1);
+        cAllocTracker<Alloc>::_deallocate(node,1);
         return true;
       }
       return false;
@@ -277,12 +277,12 @@ namespace bss_util {
     {
       char change=0;
       AVLNode* old = _remove(oldkey,&_root,change);
-      AVLNode* cur = _insert(newkey,&_root,change);
+      AVLNode* cur = this->_insert(newkey,&_root,change);
       if(old!=0)
       {
-        _setdata(old,cur);
+        this->_setdata(old,cur);
         old->~AVLNode();
-			  _deallocate(old, 1);
+			  cAllocTracker<Alloc>::_deallocate(old, 1);
       }
       return (cur!=0);
     }
@@ -322,14 +322,14 @@ namespace bss_util {
 
 					root->_key=successor->_key;
           retval=_remove(successor->_key,&root->_right,result); //this works because we're always removing something from the right side, which means we should always subtract 1 or 0.
-          _swapdata(retval,root);
+          this->_swapdata(retval,root);
 
 					change=1;
 				}
       }
       root->_balance -= result;
 
-      change=(result)?((root->_balance)?_rebalance(proot):1):0;
+      change=(result)?((root->_balance)?this->_rebalance(proot):1):0;
       return retval;
     }
   };

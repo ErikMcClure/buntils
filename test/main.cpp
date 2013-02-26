@@ -825,8 +825,14 @@ void MULTITHREADED_ALLOC_FUZZER(TESTDEF::RETPAIR& __testret)
   }
 }
 
+#ifdef BSS_PLATFORM_WIN32
+#define BSS_PFUNC_PRE unsigned int BSS_COMPILER_STDCALL
+#else
+#define BSS_PFUNC_PRE void*
+#endif
+
 template<class T, typename P, int NUM>
-unsigned int BSS_COMPILER_STDCALL _mt_alloc_fuzzer(void* p)
+BSS_PFUNC_PRE _mt_alloc_fuzzer(void* p)
 {
   MULTITHREADED_ALLOC_FUZZER<T,P,NUM>(*((TESTDEF::RETPAIR*)p));
   return 1;
@@ -2082,7 +2088,7 @@ unsigned int lq_end[TOTALNUM];
 unsigned int lq_pos;
 
 template<class T>
-unsigned int BSS_COMPILER_STDCALL _locklessqueue_consume(void* p)
+BSS_PFUNC_PRE _locklessqueue_consume(void* p)
 {
   T* q = (T*)p;
   uint c;
@@ -2095,7 +2101,7 @@ unsigned int BSS_COMPILER_STDCALL _locklessqueue_consume(void* p)
 }
 
 template<class T>
-unsigned int BSS_COMPILER_STDCALL _locklessqueue_produce(void* p)
+BSS_PFUNC_PRE _locklessqueue_produce(void* p)
 {
   T* q = (T*)p;
   while(lq_c<=TOTALNUM)
@@ -2199,10 +2205,12 @@ TESTDEF::RETPAIR test_MAP()
   TEST(test.Get(0)==-1);
   TEST(test.Length()==((sizeof(ins)/sizeof(int))-1));
   
+#ifndef BSS_COMPILER_GCC // Once again, GCC demonstrates its amazing ability to NOT DEFINE ANY FUCKING CONSTRUCTORS
   cMap<int,FWDTEST> tst;
   tst.Insert(0,FWDTEST());
   FWDTEST lval;
   tst.Insert(1,lval);
+#endif
   ENDTEST;
 }
 
@@ -2242,7 +2250,7 @@ TESTDEF::RETPAIR test_OBJSWAP()
       TEST(false);
     }
 
-    switch(WCSSWAP(PANGRAMS[i],5,PANGRAMS[4],PANGRAMS[3],PANGRAMS[2],PANGRAMS[1],PANGRAMS[0]))
+    switch(cObjSwap<const bsschar*>(PANGRAMS[i],5,PANGRAMS[4],PANGRAMS[3],PANGRAMS[2],PANGRAMS[1],PANGRAMS[0]))
     {
     case 0:
       TEST(i==4); break;
@@ -2583,7 +2591,7 @@ TESTDEF::RETPAIR test_STRTABLE()
     pstr[i]=(pangrams[i]=PANGRAMS[i]).c_str();
 
   cStrTable<char> mbstable(pstr,SZ);
-  cStrTable<wchar_t> wcstable(PANGRAMS,SZ);
+  cStrTable<bsschar> wcstable(PANGRAMS,SZ);
   cStrTable<char> mbstable2(pstr,6);
 
   for(unsigned int i = 0; i < mbstable.Length(); ++i)
@@ -2620,24 +2628,19 @@ TESTDEF::RETPAIR test_STRTABLE()
   ENDTEST;
 }
 
-unsigned int BSS_COMPILER_STDCALL sleepthread(void* arg)
+BSS_PFUNC_PRE APCthread(void* arg)
 {
-  return 0;
-}
+  size_t i=reinterpret_cast<size_t>(arg);
+  //cHighPrecisionTimer* p=(cHighPrecisionTimer*)arg;
 
-unsigned int BSS_COMPILER_STDCALL APCthread(void* arg)
-{
-  cHighPrecisionTimer* p=(cHighPrecisionTimer*)arg;
-
-  while(true)
+  while(--i)
   {
-    SleepEx(INFINITE,true);
-    p->Update();
-    std::cout << "\n" << p->GetDelta() << std::endl;
+    cThread::SignalWait();
+    //p->Update();
+    //std::cout << "\n" << p->GetDelta() << std::endl;
   }
   return 0;
 }
-inline static void BSS_COMPILER_STDCALL _APCactivate(unsigned long) {}
 
 TESTDEF::RETPAIR test_THREAD()
 {
@@ -2647,15 +2650,17 @@ TESTDEF::RETPAIR test_THREAD()
   //timer.Update();
   //Sleep(2);
   //timer.Update();
-  //  std::cout << "\n" << timer.GetDelta() << std::endl;
+  //std::cout << "\n" << timer.GetDelta() << std::endl;
 
   //cThread apc(APCthread,&timer);
-  //for(int i = 0; i < 10000; ++i)
-  //{
-  //  for(int j = RANDINTGEN(50000,100000); j > 0; --j) { SleepEx(0,false); useless.Update(); }
-  //  timer.Update();
-  //  QueueUserAPC(_APCactivate,apc.GetID(),0);
-  //}
+  cThread apc(APCthread,(void*)2);
+  _sleep(1);
+  for(int i = 0; i < 2; ++i)
+  {
+    //for(int j = RANDINTGEN(50000,100000); j > 0; --j) { _sleep(0); useless.Update(); }
+    //timer.Update();
+    apc.SendSignal();
+  }
 
   ENDTEST;
 }
@@ -2902,7 +2907,7 @@ int main(int argc, char** argv)
 //char numarray[] = {3,4,9,14,15,19,28,37,47,50,54,56,59,61,70,73,78,81,92,95,97,99 };
 //char numarray[] = { 1, 2, 3, 4, 6 };
 
-//unsigned int BSS_COMPILER_STDCALL dorandomcrap(void* arg)
+//BSS_PFUNC_PRE dorandomcrap(void* arg)
 //{
 //  cLocklessQueue* args = (cLocklessQueue*)arg;
 //
@@ -2923,7 +2928,7 @@ int main(int argc, char** argv)
 /*
 static const int NUM_RUNS=1;
 static const int MAX_ALLOC=50;
-unsigned int BSS_COMPILER_STDCALL dorandomcrap(void* arg)
+BSS_PFUNC_PRE dorandomcrap(void* arg)
 {
   Sleep(1); //lets the other thread catch up
   cLocklessQueue* args = (cLocklessQueue*)arg;
@@ -2940,7 +2945,7 @@ unsigned int BSS_COMPILER_STDCALL dorandomcrap(void* arg)
   return 0;
 }
 
-unsigned int BSS_COMPILER_STDCALL threadtest(void* arg)
+BSS_PFUNC_PRE threadtest(void* arg)
 {
   cThread* ptr=(cThread*)arg;
   while(!ptr->ThreadStop());
@@ -2949,7 +2954,7 @@ unsigned int BSS_COMPILER_STDCALL threadtest(void* arg)
 
 char* fliphold;
 
-unsigned int BSS_COMPILER_STDCALL flippertest(void* arg)
+BSS_PFUNC_PRE flippertest(void* arg)
 {
   volatile cLocklessFlipper<char>* ptr = (cLocklessFlipper<char>*)arg;
 

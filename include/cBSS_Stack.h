@@ -32,7 +32,7 @@ namespace bss_util {
 
   protected:
     template<typename U>
-    inline void BSS_FASTCALL _push(U && value) { if(++_length>_size) SetSize(fbnext(_size)); assert(_length-1<_size); _array[_length-1]=std::forward<U>(value); }
+    inline void BSS_FASTCALL _push(U && value) { if(++_length>_size) ArrayType::SetSize(fbnext(_size)); assert(_length-1<_size); _array[_length-1]=std::forward<U>(value); }
     
     SizeType _length;
   };

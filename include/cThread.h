@@ -10,6 +10,7 @@
 #include <process.h>
 #else // Assume BSS_PLATFORM_POSIX
 #include <pthread.h>
+#include <signal.h>
 #endif
 
 namespace bss_util {
@@ -87,11 +88,26 @@ namespace bss_util {
     // Gets the thread's id
 #ifdef BSS_PLATFORM_WIN32
     inline HANDLE GetID() const { return (HANDLE)_id; }
+    BSS_FORCEINLINE void SendSignal() const { DWORD r=QueueUserAPC(&cThread::_APCactivate,GetID(),0); assert(r); }
 #else
     inline pthread_t GetID() const { return _id; }
+    BSS_FORCEINLINE void SendSignal() const { raise(SIGUSR2); }
 #endif
 
     inline cThread& operator=(cThread&& mov) { _id=mov._id; mov._id=(size_t)-1; return *this; }
+#ifdef BSS_PLATFORM_WIN32
+    inline static void BSS_COMPILER_STDCALL _APCactivate(unsigned long) {}
+    BSS_FORCEINLINE static void SignalWait() { SleepEx(INFINITE,true); }
+#else
+    inline static int SignalWait() {
+      int sig;
+      sigset_t set;
+      sigemptyset(&set);
+      sigaddset(&set, SIGUSR2);
+      sigwait(&set,&sig);
+      return sig;
+    }
+#endif
 
   protected:
     inline cThread(const cThread&) {} // No copying

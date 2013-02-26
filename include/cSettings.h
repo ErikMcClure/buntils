@@ -24,6 +24,9 @@ namespace bss_util {
   template<typename K=char, typename T=void*, bool ismap=true>
   class BSS_COMPILER_DLLEXPORT cKhash_StringTInsConstruct : public cKhash_StringTIns<K,T,ismap>
   {
+    typedef typename cKhash_StringTIns<K,T,ismap>::KHKEY KHKEY;
+    typedef typename cKhash_StringTIns<K,T,ismap>::KHVAL KHVAL;
+    using cKhash_StringTIns<K,T,ismap>::_h;
   public:
     cKhash_StringTInsConstruct() : cKhash_StringTIns<K,T,ismap>() {}
     ~cKhash_StringTInsConstruct()
@@ -35,7 +38,7 @@ namespace bss_util {
     bool Insert(KHKEY key, const KHVAL& value)
 		{
       if(!key) return false;
-			if(kh_size(_h) >= _h->n_buckets) _resize();
+			if(kh_size(_h) >= _h->n_buckets) cKhash_StringTIns<K,T,ismap>::_resize();
 			int r;
 			khiter_t retval = kh_put_template(_h,key,&r);
 			if(r>0) //Only insert the value if the key didn't exist
@@ -50,17 +53,13 @@ namespace bss_util {
 
   // Base template cSetting class containing the master cmdhash for processing command lines.
   template<int I, int N>
-  class cSetting
-  { 
-  public: 
-    static cKhash_StringTInsConstruct<char,std::function<void (cCmdLineArgs&,unsigned int&)>> cmdhash;
-  }; 
-  cKhash_StringTInsConstruct<char,std::function<void (cCmdLineArgs&,unsigned int&)>> cSetting<-1,-1>::cmdhash;
+  class cSetting { };
+  static cKhash_StringTInsConstruct<char,std::function<void (cCmdLineArgs&,unsigned int&)>> csetting_cmdhash;
 
   // Class triggered when a setting is declared, adding it to the master command hash if necessary.
   struct AddToSettingHash { 
     AddToSettingHash(const char* cmdname, const std::function<void (cCmdLineArgs&,unsigned int&)>& func)
-    { if(cmdname!=0) cSetting<-1,-1>::cmdhash.Insert(cmdname,func); }
+    { if(cmdname!=0) csetting_cmdhash.Insert(cmdname,func); }
   };
 
   // Static template function shortcut for getting a specific setting
@@ -68,20 +67,20 @@ namespace bss_util {
   inline static typename cSetting<I,N>::TYPE& Setting() { return cSetting<I,N>::v; }
 
 #ifdef INSTANTIATE_SETTINGS //Declare this in a CPP file that includes all DECL_SETTINGs used in your project to instantiate them
-#define i_INST_SET_(I,N,T,INIT,NAME,CMD) T bss_util::cSetting<I,N>::v=INIT; \
-  bss_util::AddToSettingHash bss_util::cSetting<I,N>::_shashinit(CMD,[](cCmdLineArgs& rcmd, unsigned int& ind) -> void { bss_util::cSetting_CMDLOAD<T,char>::CmdLoad(rcmd,bss_util::cSetting<I,N>::v,ind); })
+#define i_INST_SET_(I,N,T,INIT,NAME,CMD) T cSetting<I,N>::v=INIT; \
+  AddToSettingHash cSetting<I,N>::_shashinit(CMD,[](cCmdLineArgs& rcmd, unsigned int& ind) -> void { cSetting_CMDLOAD<T,char>::CmdLoad(rcmd,cSetting<I,N>::v,ind); })
 #else
 #define i_INST_SET_(I,N,T,INIT,NAME,CMD) 
 #endif
 
   // Main #define for declaring a setting. NAME and CMD can both be set to 0 if INIs and command line parsing, respectively, are not needed.
-#define DECL_SETTING(I,N,T,INIT,NAME,CMD) template<> class bss_util::cSetting<I,N> { public: typedef T TYPE; static T v; \
+#define DECL_SETTING(I,N,T,INIT,NAME,CMD) namespace bss_util { template<> class cSetting<I,N> { public: typedef T TYPE; static T v; \
   inline static const char* name() { return NAME; } inline static const char* cmd() { return CMD; } \
-  static bss_util::AddToSettingHash _shashinit; }; i_INST_SET_(I,N,T,INIT,NAME,CMD)
+  static AddToSettingHash _shashinit; }; i_INST_SET_(I,N,T,INIT,NAME,CMD); }
 
   /* Main #define for declaring a group of settings. Note that the optional NAME parameter is for INI loading and determines the section
      name of the settings. MAX is the maximum number of settings in this group, but unless you are using LoadAllFromINI, it is optional. */
-#define DECL_SETGROUP(I,NAME,MAX) template<int N> class bss_util::cSetting<I,N> { public: inline static const char* secname() { return NAME; } static const unsigned int COUNT=(MAX-1); };
+#define DECL_SETGROUP(I,NAME,MAX) namespace bss_util { template<int N> class cSetting<I,N> { public: inline static const char* secname() { return NAME; } static const unsigned int COUNT=(MAX-1); }; }
 
   // Struct class for defining the INILoad function. Can be overriden for custom types
   template<typename T, typename C>
@@ -163,6 +162,10 @@ namespace bss_util {
   class cSettingManage
   {
   public:
+    inline static void LoadFromINI(cINIstorage&& ini) { LoadFromINI(ini); } // GCC actually needs these defined for some godawful reason.
+    inline static void LoadAllFromINI(cINIstorage&& ini) { LoadAllFromINI(ini); }
+    inline static void SaveToINI(cINIstorage&& ini) { SaveToINI(ini); }
+    inline static void SaveAllToINI(cINIstorage&& ini) { SaveAllToINI(ini); }
     inline static void LoadFromINI(cINIstorage& ini)
     {
       cSetting_INILOAD<typename cSetting<I,N>::TYPE,char>::INILoad(ini, cSetting<I,N>::v, cSetting<I,N>::name(), cSetting<I,-1>::secname());
@@ -207,7 +210,7 @@ namespace bss_util {
     unsigned int i=0; // Must be unsigned because of what pfunc accepts
     while(i<cmd.Size())
     {
-      std::function<void (cCmdLineArgs&,unsigned int&)>* pfunc = cSetting<-1,-1>::cmdhash.GetKey(cmd[i]);
+      std::function<void (cCmdLineArgs&,unsigned int&)>* pfunc = csetting_cmdhash.GetKey(cmd[i]);
       ++i;
       if(pfunc!=0)
         (*pfunc)(cmd,i); //function must increment i

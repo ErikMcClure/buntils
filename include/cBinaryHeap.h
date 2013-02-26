@@ -126,7 +126,7 @@ namespace bss_util {
     inline void _insert(U && val)
     {
       int k = _length;
-      if(_length >= _size) SetSize(fbnext(_size));
+      if(_length >= _size) ArrayType::SetSize(fbnext(_size));
       PercolateUp(_array,_length,_length++,std::forward<U>(val));
     }
 

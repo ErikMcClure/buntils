@@ -45,9 +45,6 @@
 #define VSNWPRINTF(dst,size,format,list) vswprintf(dst,size,format,list) //vswprintf is exactly what vsnwprintf should be, for some reason.
 #endif
 
-template<int SZ>
-BSS_FORCEINLINE char* BSS_FASTCALL strcpyx0(char (&dst)[SZ], const char* src) { return strncpy(dst,src,SZ-1); }
-
 #define VSNPRINTF(dst,size,format,list) vsnprintf(dst,size,format,list)
 #define VSCPRINTF(format,args) vsnprintf(0,0,format,args)
 //#define VSCWPRINTF(format,args) _vscwprintf(format,args) //no way to implement this

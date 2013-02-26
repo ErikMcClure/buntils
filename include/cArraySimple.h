@@ -432,7 +432,8 @@ namespace bss_util {
     inline const T_* end() const { return _array+_size; }
     inline T_* begin() { return _array; }
     inline T_* end() { return _array+_size; }
-
+    
+    inline cArrayWrap& operator=(const cArrayWrap& copy) { AT_::operator=(copy); return *this; }
     inline cArrayWrap& operator=(const AT_& copy) { AT_::operator=(copy); return *this; }
     inline cArrayWrap& operator=(AT_&& mov) { AT_::operator=(std::move(mov)); return *this; }
     inline cArrayWrap& operator +=(const AT_& add) { AT_::operator+=(add); return *this; }

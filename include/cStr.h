@@ -106,7 +106,7 @@ public:
     
     size_t _length = end-text;
     CSTRALLOC(T)::reserve(++_length);
-    insert(0, text,_length-1);
+    CSTRALLOC(T)::insert(0, text,_length-1);
   }
 
   inline operator const CHAR*() const { return _internal_ptr(); }

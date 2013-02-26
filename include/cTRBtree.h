@@ -49,7 +49,7 @@ namespace bss_util {
     // Clears the tree
 		inline void Clear()
 	  {
-      for(auto& i = begin(); i.IsValid();) // Walk through the tree using the linked list and deallocate everything
+      for(auto i = begin(); i.IsValid();) // Walk through the tree using the linked list and deallocate everything
         cAllocTracker<Alloc>::_deallocate(*(i++),1);
 
 		  _first = 0;

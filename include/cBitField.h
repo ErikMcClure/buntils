@@ -13,7 +13,8 @@ namespace bss_util
   {
     inline _cBIT_REF(T bit, T& bits) : _bit(bit), _bits(bits) {}
     inline _cBIT_REF& operator=(bool right) { _bits^=((_bits&_bit)^((-((char)right))&_bit)); return *this; }
-    inline operator bool() { return (_bits&_bit)!=0; }
+    inline _cBIT_REF& operator=(const _cBIT_REF& right) { return operator=((bool)right); }
+    inline operator bool() const { return (_bits&_bit)!=0; }
 
   protected:
     T& _bits;

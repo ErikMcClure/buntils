@@ -109,6 +109,11 @@ namespace bss_util {
 		return string;
 	}
 
+#ifndef BSS_COMPILER_MSC
+  template<int SZ>
+  BSS_FORCEINLINE char* BSS_FASTCALL strcpyx0(char (&dst)[SZ], const char* src) { return strncpy(dst,src,SZ-1); }
+#endif
+
   // Counts number of occurences of character c in string, up to the null terminator
   template<typename T>
   inline unsigned int BSS_FASTCALL strccount(const T* string, T c)

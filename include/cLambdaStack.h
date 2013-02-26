@@ -25,7 +25,7 @@ namespace bss_util {
     inline ~cLambdaStack() {}
     // Deferres a function for later execution
     template<typename F>
-    inline void DeferLambda(F lambda) { Push(lambda); }
+    inline void DeferLambda(F lambda) { BASE_STACK::Push(lambda); }
     inline void Clear() { _length=0; }
     inline SizeType Length() const { return _length; }
 

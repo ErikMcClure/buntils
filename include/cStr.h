@@ -4,6 +4,7 @@
 #ifndef __CSTR_H__BSS__
 #define __CSTR_H__BSS__
 
+#include <string>
 #include <string.h>
 #include <stdarg.h>
 #include <vector>

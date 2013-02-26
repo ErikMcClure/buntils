@@ -27,4 +27,8 @@ clean:
 	@- $(RM) $(BUILDDIR)/$(TARGET)
 	@- $(RM) $(OBJS)
 
+debug:
+	CPPFLAGS += -g
+debug: all
+
 distclean: clean

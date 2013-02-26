@@ -101,7 +101,7 @@ namespace bss_util {
 #else
     inline static int SignalWait() {
       struct timespec ts;
-      sigset_t mask;
+      sigset_t set;
 		  ts.tv_sec=1;
 		  ts.tv_nsec=0;
 		  sigemptyset(&set);

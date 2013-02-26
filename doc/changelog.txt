@@ -39,6 +39,8 @@
 - Fixed error that prevented the INI parser from reading blank ini values
 - Fixed horrifying pointer bug in StreamSplitter that should never have worked in the first place
 - Eliminated unnecessary memory allocation and copying in StreamSplitter
+- Changed how namespaces were dealt with in cSettings and switched out cmdhash for a global variable because GCC hates it less
+- Compiling via makefile using GCC on linux systems is now fully supported!
 
 0.3.84
 ------

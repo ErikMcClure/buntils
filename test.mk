@@ -1,4 +1,4 @@
-TARGET := test.exe
+TARGET := test
 SRCDIR := test
 BUILDDIR := bin
 OBJDIR := bin/obj

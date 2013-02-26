@@ -96,7 +96,7 @@ namespace bss_util {
 
     inline cThread& operator=(cThread&& mov) { _id=mov._id; mov._id=(size_t)-1; return *this; }
 #ifdef BSS_PLATFORM_WIN32
-    inline static void BSS_COMPILER_STDCALL _APCactivate(unsigned long) {}
+    inline static void BSS_COMPILER_STDCALL _APCactivate(ULONG_PTR) {}
     BSS_FORCEINLINE static void SignalWait() { SleepEx(INFINITE,true); }
 #else
     inline static int SignalWait() {

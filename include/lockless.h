@@ -1,4 +1,4 @@
-// Copyright ©2012 Black Sphere Studios
+// Copyright ©2013 Black Sphere Studios
 // For conditions of distribution and use, see copyright notice in "bss_util.h"
 
 #ifndef __LOCKLESS_H__BSS__
@@ -15,20 +15,6 @@
 #elif defined(BSS_CPU_x86_64)
 #define BSSASM_PREG RCX
 #define BSSASM_PREGA RAX
-#endif
-
-#ifdef BSS_COMPILER_INTEL // Intel C++ compiler
-
-#elif defined(BSS_COMPILER_GCC) // GCC
-#define BSS_ATOMIC_XADD8(p,v) __sync_fetch_and_add(p,v)
-#define BSS_ATOMIC_XADD16(p,v) __sync_fetch_and_add(p,v)
-#define BSS_ATOMIC_XADD32(p,v) __sync_fetch_and_add(p,v)
-#define BSS_ATOMIC_XADD64(p,v) __sync_fetch_and_add(p,v)
-#elif defined(BSS_COMPILER_MSC) // VC++
-#define BSS_ATOMIC_XADD8(p,v) _InterlockedExchangeAdd8((volatile char*)p,v)
-#define BSS_ATOMIC_XADD16(p,v) _InterlockedExchangeAdd16((volatile short*)p,v)
-#define BSS_ATOMIC_XADD32(p,v) _InterlockedExchangeAdd((volatile long*)p,v)
-#define BSS_ATOMIC_XADD64(p,v) _InterlockedExchangeAdd64((volatile __int64*)p,v)
 #endif
 
 // These are all implemented using compiler intrinsics on MS compilers because the inline assembly does not behave well when inlined. GCC 
@@ -71,17 +57,16 @@ namespace bss_util {
   { \
     static inline BSS_FORCEINLINE T BSS_FASTCALL atomic_xadd(volatile T* p, T val) \
     { \
-      T retval = val; \
-      __asm__("lock;##INST %[retval], %[p]" : [retval] "+r" (retval) : [p] "m" (*p) : "memory"); \
-      return retval; \
+        __asm__ __volatile__("lock " INST " %0,%1" :"+r" (val),"+m" (*p): : "memory"); \
+        return val; \
     } \
   }
 
-  ATOMIC_XADDPICK_MACRO(xaddb,1);
-  ATOMIC_XADDPICK_MACRO(xaddw,2);
-  ATOMIC_XADDPICK_MACRO(xaddl,4);
+  ATOMIC_XADDPICK_MACRO("xaddb",1);
+  ATOMIC_XADDPICK_MACRO("xaddw",2);
+  ATOMIC_XADDPICK_MACRO("xaddl",4);
 #ifdef BSS_CPU_x86_64
-  ATOMIC_XADDPICK_MACRO(xaddd,8);
+  ATOMIC_XADDPICK_MACRO("xaddq",8);
 #endif
 #elif defined(BSS_COMPILER_MSC)
   template<typename T> struct ATOMIC_XADDPICK<T,1> { BSS_FORCEINLINE static T BSS_FASTCALL atomic_xadd(volatile T* p, T v) { return (T)_InterlockedExchangeAdd8((volatile char*)p,v); } };
@@ -101,22 +86,21 @@ namespace bss_util {
   struct ATOMIC_XCHGPICK { };
   
 #ifdef BSS_COMPILER_GCC
-#define ATOMIC_XCHGPICK_MACRO(INST,SIZE)  template<typename T> \
+#define ATOMIC_XCHGPICK_MACRO(INST,SIZE,TYPE)  template<typename T> \
   struct ATOMIC_XCHGPICK<T,SIZE> \
   { \
-    static inline BSS_FORCEINLINE T BSS_FASTCALL atomic_xchg(volatile T* p, T val) \
+    static inline BSS_FORCEINLINE T BSS_FASTCALL atomic_xchg(volatile T* ptr, T x) \
     { \
-      T retval = val; \
-      __asm__("##INST %[retval], %[p]" : [retval] "+r" (retval) : [p] "m" (*p) : "memory"); \
-      return retval; \
+		__asm__ __volatile__(INST " %0,%1" :"=r" ((TYPE)x) :"m" (*(volatile TYPE*)ptr), "0" ((TYPE)x) :"memory"); \
+		return x; \
     } \
   }
 
-  ATOMIC_XCHGPICK_MACRO(xchgb,1);
-  ATOMIC_XCHGPICK_MACRO(xchgw,2);
-  ATOMIC_XCHGPICK_MACRO(xchgl,4);
+  ATOMIC_XCHGPICK_MACRO("xchgb",1,unsigned char);
+  ATOMIC_XCHGPICK_MACRO("xchgw",2,unsigned short);
+  ATOMIC_XCHGPICK_MACRO("xchgl",4,unsigned int);
 #ifdef BSS_CPU_x86_64
-  ATOMIC_XCHGPICK_MACRO(xchgd,8);
+  ATOMIC_XCHGPICK_MACRO("xchgq",8,unsigned long long);
 #endif
 #elif defined(BSS_COMPILER_MSC)
   template<typename T> struct ATOMIC_XCHGPICK<T,1> { static inline BSS_FORCEINLINE T BSS_FASTCALL atomic_xchg(volatile T* p, T val) { return (T)_InterlockedExchange8((volatile char*)p,(char)val); } };

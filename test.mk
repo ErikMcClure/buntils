@@ -6,7 +6,7 @@ C_SRCS :=
 CXX_SRCS := main.cpp
 INCLUDE_DIRS := include
 LIBRARY_DIRS := 
-LIBRARIES := bss_util
+LIBRARIES := bss_util rt pthread
 
 CPPFLAGS += -w -std=gnu++0x
 LDFLAGS += -L./bin/

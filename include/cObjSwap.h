@@ -1,4 +1,4 @@
-// Copyright ©2012 Black Sphere Studios
+// Copyright ©2013 Black Sphere Studios
 // For conditions of distribution and use, see copyright notice in "bss_util.h"
 
 #ifndef __C_OBJSWAP_H__BSS__
@@ -7,8 +7,10 @@
 #include "bss_deprecated.h"
 #include "bss_dlldef.h"
 #include "bss_compare.h"
-#include <stdarg.h>
 #include <string.h>
+#ifdef BSS_COMPILER_MSC
+#include <stdarg.h>
+#endif
 
 namespace bss_util {
   template<class T> // Specializes to case-sensitive string matching
@@ -26,6 +28,10 @@ namespace bss_util {
   class BSS_COMPILER_DLLEXPORT cObjSwap : protected SWAP
   {
   public:
+    inline explicit cObjSwap(const T& src, T* tarray, int num) : _result(CompareObjectsArray(src,num,tarray)) {}
+    template<int N>
+    inline explicit cObjSwap(const T& src, const T (&tarray)[N]) : _result(CompareObjectsArray<N>(src,tarray)) {}
+#ifdef BSS_COMPILER_MSC
 	  inline explicit cObjSwap(const T& src, int num, ...)
 	  {
 		  va_list vl;
@@ -33,12 +39,6 @@ namespace bss_util {
 		  _result = _compobj(src, num, vl);
 		  va_end(vl);
 	  }
-    inline explicit cObjSwap(const T& src, T* tarray, int num) : _result(CompareObjectsArray(src,num,tarray)) {}
-    template<int N>
-    inline explicit cObjSwap(const T& src, const T (&tarray)[N]) : _result(CompareObjectsArray<N>(src,tarray)) {}
-
-    inline BSS_FORCEINLINE operator int() const { return _result; }
-
 	  inline static int CompareObjects(const T& src, int num, ...)
 	  {
 		  va_list vl;
@@ -47,6 +47,16 @@ namespace bss_util {
 		  va_end(vl);
 		  return retval;
 	  }
+#else
+    template<typename... Args> // Defined so this is compatible with the above version
+	  inline explicit cObjSwap(const T& src, int num, Args... args) { _result = _compobj(0, src, args...); }
+    template<typename... Args>
+	  inline explicit cObjSwap(const T& src, Args... args) { _result = _compobj(0, src, args...); }
+    template<typename... Args>
+	  inline static int CompareObjects(const T& src, int num, Args... args) { return _compobj(0, src, args...); }
+    template<typename... Args>
+	  inline static int CompareObjects(const T& src, Args... args) { return _compobj(0, src, args...); }
+#endif
 
     template<int N>
     inline static BSS_FORCEINLINE int CompareObjectsArray(const T& src, const T (&tarray)[N])
@@ -62,7 +72,10 @@ namespace bss_util {
 		  return -1;
     }
 
+    inline BSS_FORCEINLINE operator int() const { return _result; }
+
   private:
+#ifdef BSS_COMPILER_MSC
 	  inline static int _compobj(const T& src, int num, va_list args)
 	  {
 		  for(int i = 0; i < num; ++i)
@@ -70,6 +83,19 @@ namespace bss_util {
 				  return i;
 		  return -1;
 	  }
+#else
+    template<typename D, typename... Args>
+	  inline static int _compobj(int i, const T& src, D value, Args... args)
+    {
+			if(SWAP::Comp(value, src))
+        return i;
+      return _compobj(i+1,src,args...);
+    }
+    inline static int _compobj(int i, const T& src)
+    {
+      return -1;
+    }
+#endif
 
 	  int _result;
   };

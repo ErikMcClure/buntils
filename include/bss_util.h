@@ -111,7 +111,7 @@ namespace bss_util {
 
   // Counts number of occurences of character c in string, up to the null terminator
   template<typename T>
-  inline unsigned int BSS_FASTCALL strccount(T* string, T c)
+  inline unsigned int BSS_FASTCALL strccount(const T* string, T c)
   {
     static_assert(std::is_integral<T>::value,"T must be integral");
     unsigned int ret=0;
@@ -121,7 +121,7 @@ namespace bss_util {
   
   // Counts number of occurences of character c in string, up to length characters
   template<typename T>
-  inline unsigned int BSS_FASTCALL strccount(T* string, T c, unsigned int length)
+  inline unsigned int BSS_FASTCALL strccount(const T* string, T c, unsigned int length)
   {
     static_assert(std::is_integral<T>::value,"T must be integral");
     unsigned int ret=0;

@@ -45,16 +45,21 @@
 #define VSNWPRINTF(dst,size,format,list) vswprintf(dst,size,format,list) //vswprintf is exactly what vsnwprintf should be, for some reason.
 #endif
 
+template<int SZ>
+BSS_FORCEINLINE char* BSS_FASTCALL strcpyx0(char (&dst)[SZ], const char* src) { return strncpy(dst,src,SZ-1); }
+
 #define VSNPRINTF(dst,size,format,list) vsnprintf(dst,size,format,list)
 #define VSCPRINTF(format,args) vsnprintf(0,0,format,args)
 //#define VSCWPRINTF(format,args) _vscwprintf(format,args) //no way to implement this
 #define FOPEN(f, path, mode) f = fopen(path, mode)
-#define WFOPEN(f, path, mode) f = _wfopen(path, mode)
+#define WFOPEN(f, path, mode) f = fopen(path, mode)
 #define MEMCPY(dst,size,src,count) memcpy(dst,src,((size)<(count))?(size):(count))
 #define STRNCPY(dst,size,src,count) strncpy(dst,src,((size)<(count))?(size):(count))
 #define WCSNCPY(dst,size,src,count) wcsncpy(dst,src,((size)<(count))?(size):(count))
 #define STRCPY(dst,size,src) strncpy(dst,src,size-1)
 #define WCSCPY(dst,size,src) wcsncpy(dst,src,size-1)
+#define STRCPYx0(dst,src) strcpyx0(dst,src)
+//#define WCSCPYx0(dst,src) wcscpyx0(dst,src)
 #define STRICMP(a,b) strcasecmp(a,b)
 #define WCSICMP(a,b) wcscasecmp(a,b)
 #define STRNICMP(a,b,n) strncasecmp(a,b,n)

@@ -415,7 +415,7 @@ namespace bss_util {
     using AT_::_size;
 
   public:
-    //inline cArrayWrap(const cArrayWrap& copy) : AT_(copy) {}
+    inline cArrayWrap(const cArrayWrap& copy) : AT_(copy) {} // We have to declare this because otherwise its interpreted as deleted
     inline cArrayWrap(cArrayWrap&& mov) : AT_(std::move(mov)) {}
     inline explicit cArrayWrap(ST_ size=0): AT_(size) {}
     
@@ -433,7 +433,7 @@ namespace bss_util {
     inline T_* begin() { return _array; }
     inline T_* end() { return _array+_size; }
 
-    //inline cArrayWrap& operator=(const AT_& copy) { AT_::operator=(copy); return *this; }
+    inline cArrayWrap& operator=(const AT_& copy) { AT_::operator=(copy); return *this; }
     inline cArrayWrap& operator=(AT_&& mov) { AT_::operator=(std::move(mov)); return *this; }
     inline cArrayWrap& operator +=(const AT_& add) { AT_::operator+=(add); return *this; }
     inline const cArrayWrap operator +(const AT_& add) { cArrayWrap r(*this); return (r+=add); }

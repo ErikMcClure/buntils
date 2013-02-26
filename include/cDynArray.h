@@ -30,7 +30,7 @@ namespace bss_util {
     inline ST_ Length() const { return _length; }
     inline bool IsEmpty() const { return !_length; }
     inline void Clear() { _length=0; }
-    inline void SetLength(ST_ length) { if(length>_size) SetSize(length); _length=length; }
+    inline void SetLength(ST_ length) { if(length>_size) AT_::SetSize(length); _length=length; }
     inline const T_& Front() const { assert(_length>0); return _array[0]; }
     inline T_& Front() { assert(_length>0); return _array[0]; }
     inline const T_& Back() const { assert(_length>0); return _array[_length-1]; }
@@ -56,7 +56,7 @@ namespace bss_util {
     inline ST_ _insert(U && t, ST_ index=0) { _checksize();AT_::_pushback(index,(_length++)-index,std::forward<U>(t)); assert(_length<_size); }
     inline void _checksize()
     {
-      if(_length>=_size) SetSize(fbnext(_size));
+      if(_length>=_size) AT_::SetSize(fbnext(_size));
       assert(_length<_size);
     }
 

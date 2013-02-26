@@ -97,15 +97,10 @@ const PROCESS_MEMORY_COUNTERS* bss_DebugInfo::GetProcMemInfo()
 #else
 const char* bss_DebugInfo::ModulePath()
 {
-  struct stat sb;
-  ssize_t r;
-
-  if(lstat("/proc/self/exe", &sb) == -1) return 0;
-  _modpath.resize(sb.st_size + 1);
-  r = readlink("/proc/self/exe", _modpath.UnsafeString(), _modpath.capacity());
-
-  if(r < 0 || r > sb.st_size) return 0;
-  _modpath.UnsafeString()[sb.st_size] = '\0';
+  _modpath.resize(2048); // lstat does not work in /proc/, so we just say screw it and hope this buffer is large enough. If it isn't, fuck you.
+  int r = readlink("/proc/self/exe", _modpath.UnsafeString(), _modpath.capacity()-1);
+  if(r < 0) return 0;
+  _modpath.UnsafeString()[r] = '\0';
   return _modpath;
 }
 #endif

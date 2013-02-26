@@ -111,6 +111,7 @@ namespace bss_util {
   {
     using cLList_LAST<T,useLast>::_root;
     using cLList_LAST<T,useLast>::_add;
+    using cLList_LAST<T,useLast>::_remove;
     using cLList_SIZE<useSize>::_incsize;
 
   public:

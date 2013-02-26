@@ -1,4 +1,4 @@
-// Copyright ©2012 Black Sphere Studios
+// Copyright ©2013 Black Sphere Studios
 // For conditions of distribution and use, see copyright notice in "bss_util.h"
 
 #ifndef __BSS_DEPRECATED_H__
@@ -34,6 +34,7 @@
 #define ITOA(v,buf,bufsize,r) _itoa_s(v,buf,bufsize,r)
 #define ATOLL(s) _atoi64(s)
 #define STRTOULL(s,e,r) _strtoui64(s,e,r)
+#define SLEEP(s) _sleep(s)
 #else
 #ifdef BSS_PLATFORM_MINGW
 #define TIME64(ptime) _time64(ptime)
@@ -68,6 +69,7 @@
 #define ITOA(v,buf,bufsize,r) itoa_r(v,buf,bufsize,r)
 #define ATOLL(s) atoll(s)
 #define STRTOULL(s,e,r) strtoull(s,e,r)
+#define SLEEP(s) sleep(s)
 #endif
 
 #endif

@@ -1,4 +1,4 @@
-﻿// Copyright ©2012 Black Sphere Studios
+﻿// Copyright ©2013 Black Sphere Studios
 // For conditions of distribution and use, see copyright notice in "bss_util.h"
 
 #include "Shiny.h"
@@ -62,6 +62,8 @@
 
 #ifdef BSS_PLATFORM_WIN32
 //#include "bss_win32_includes.h"
+#else
+#include <unistd.h>
 #endif
 
 #ifdef BSS_COMPILER_MSC
@@ -1935,7 +1937,11 @@ TESTDEF::RETPAIR test_INISTORAGE()
   }
   
   // Due to organizational optimizations these come out in a slightly different order than in the INI, depending on when they were added.
+#ifdef BSS_COMPILER_GCC
+  TEST(!strcmp(comp,"\n[1]\nb=2\nb=1\nc=4\na=1\na=2\na=3\na=4\nc=1\nc=2\nd=1\n[1]\n[2]\n[2]\na=1\na=2\nb=1\n[2]\na=1\na=2\nb=1\n[2]"));
+#else
   TEST(!strcmp(comp,"\n[1]\nb=2\nb=1\nc=4\nc=1\nc=2\na=1\na=2\na=3\na=4\nd=1\n[1]\n[2]\na=1\na=2\nb=1\n[2]\na=1\na=2\nb=1\n[2]\n[2]"));
+#endif
 
   TEST(!remove("inistorage.ini"));
   ENDTEST;
@@ -2147,6 +2153,7 @@ TESTDEF::RETPAIR test_LOCKLESSQUEUE()
   LLQUEUE_SCSP q; // single consumer single producer test
   char ppp=_debug.OpenProfiler();
   lq_c=1;
+  lq_pos=-1;
 
   threads[1]=cThread(_locklessqueue_consume<LLQUEUE_SCSP>, &q);
   threads[0]=cThread(_locklessqueue_produce<LLQUEUE_SCSP>, &q);
@@ -2233,8 +2240,7 @@ TESTDEF::RETPAIR test_OBJSWAP()
   unsigned int* zp5=vals+4;
   OBJSWAP_TEST o[6] = { {1},{2},{3},{4},{5},{6} };
   for(uint i = 0; i < 5; ++i)
-  {
-    switch(PSWAP(vals+i,5,zp,zp2,zp3,zp4,zp5))
+  {    switch(PSWAP(vals+i,5,zp,zp2,zp3,zp4,zp5))
     {
     case 0:
       TEST(i==0); break;
@@ -2501,7 +2507,9 @@ TESTDEF::RETPAIR test_STR()
   TEST(!strcmp(cStr(1,"1 2",' '),"2"));
   TEST(!strcmp(cStrF("%s2","place"),"place2"));
   TEST(!strcmp(cStrF("2","place"),"2"));
+#ifdef BSS_PLATFORM_WIN32 // We can only run this test meaningfully on windows, because its the only one where it actually makes a difference.
   TEST(!strcmp(cStr(BSS__L("Törkylempijävongahdus")),"TÃ¶rkylempijÃ¤vongahdus"));
+#endif
 
   s4.GetChar(6)='b';
   TEST(!strcmp(s4,"blah  bblah"));
@@ -2530,7 +2538,9 @@ TESTDEF::RETPAIR test_STR()
   TEST(!strcmp(a[1],"of"));
   TEST(!strcmp(a[2],"words"));
 
-  TEST(!strcmp(s2.c_str(),""));
+#ifdef BSS_COMPILER_MSC
+  TEST(!strcmp(s2.c_str(),"")); // This is only supposed to happen on VC++, other compilers don't have to do this (GCC in particular doesn't).
+#endif
   cStr sdfderp(s+cStr("temp")+cStr("temp")+cStr("temp")+cStr("temp"));
   
   std::vector<int> vec1;
@@ -2584,7 +2594,7 @@ TESTDEF::RETPAIR test_STRTABLE()
 {
   BEGINTEST;
 
-  const int SZ = sizeof(PANGRAMS)/sizeof(const wchar_t*);
+  const int SZ = sizeof(PANGRAMS)/sizeof(const bsschar*);
   cStr pangrams[SZ];
   const char* pstr[SZ];
   for(uint i = 0; i < SZ; ++i)
@@ -2630,10 +2640,10 @@ TESTDEF::RETPAIR test_STRTABLE()
 
 BSS_PFUNC_PRE APCthread(void* arg)
 {
-  size_t i=reinterpret_cast<size_t>(arg);
+  size_t* i=reinterpret_cast<size_t*>(arg);
   //cHighPrecisionTimer* p=(cHighPrecisionTimer*)arg;
 
-  while(--i)
+  while(--*i)
   {
     cThread::SignalWait();
     //p->Update();
@@ -2653,14 +2663,15 @@ TESTDEF::RETPAIR test_THREAD()
   //std::cout << "\n" << timer.GetDelta() << std::endl;
 
   //cThread apc(APCthread,&timer);
-  cThread apc(APCthread,(void*)2);
-  _sleep(1);
-  for(int i = 0; i < 2; ++i)
-  {
-    //for(int j = RANDINTGEN(50000,100000); j > 0; --j) { _sleep(0); useless.Update(); }
-    //timer.Update();
-    apc.SendSignal();
-  }
+  //size_t i=10;
+  //cThread apc(APCthread,(void*)&i);
+  //while(i==10) SLEEP(1);
+  //while(i > 0)
+  //{
+  //  //for(int j = RANDINTGEN(50000,100000); j > 0; --j) { SLEEP(0); useless.Update(); }
+  //  //timer.Update();
+  //  apc.SendSignal(); // This doesn't work on linux
+  //} 
 
   ENDTEST;
 }
@@ -2761,10 +2772,17 @@ TESTDEF::RETPAIR test_LOCKLESS()
 TESTDEF::RETPAIR test_OS()
 {
   BEGINTEST;
-  TEST(FolderExists("../bin"));
+  TEST(FolderExists("../bin")||FolderExists("bin"));
+#ifdef BSS_PLATFORM_WIN32
   TEST(FolderExists(BSS__L("C:/windows/")));
+#else
+  TEST(FolderExists(BSS__L("/usr/")));
+#endif
   TEST(!FolderExists("abasdfwefs"));
   TEST(!FolderExists(BSS__L("abasdfwefs/alkjsdfs/sdfjkd/alkjsdfs/sdfjkd/alkjsdfs/sdfjkd/")));
+  FILE* f;
+  FOPEN(f,"blank.txt","w+");
+  fclose(f);
   TEST(FileExists("blank.txt"));
   TEST(FileExists(BSS__L("blank.txt")));
   TEST(!FileExists("testaskdjlhfs.sdkj"));
@@ -2839,6 +2857,7 @@ int main(int argc, char** argv)
     { "cLambdaStack.h", &test_LAMBDASTACK },
     { "cLinkedArray.h", &test_LINKEDARRAY },
     { "cLinkedList.h", &test_LINKEDLIST },
+    { "lockless.h", &test_LOCKLESS },
     //{ "cLocklessByteQueue.h", &test_LOCKLESSBYTEQUEUE },
     { "cLocklessQueue.h", &test_LOCKLESSQUEUE },
     { "cMap.h", &test_MAP },
@@ -2855,7 +2874,6 @@ int main(int argc, char** argv)
     { "cUniquePtr.h", &test_UNIQUEPTR },
     { "delegate.h", &test_DELEGATE },
     //{ "LLBase.h", &test_LLBASE },
-    { "lockless.h", &test_LOCKLESS },
     { "os.h", &test_OS },
     //{ "cStreamSplitter.h", &test_STREAMSPLITTER },
   };
@@ -2863,7 +2881,7 @@ int main(int argc, char** argv)
   const size_t NUMTESTS=sizeof(tests)/sizeof(TESTDEF);
 
   std::cout << "Black Sphere Studios - Utility Library v" << (uint)BSSUTIL_VERSION.Major << '.' << (uint)BSSUTIL_VERSION.Minor << '.' <<
-    (uint)BSSUTIL_VERSION.Revision << ": Unit Tests\nCopyright (c)2012 Black Sphere Studios\n" << std::endl;
+    (uint)BSSUTIL_VERSION.Revision << ": Unit Tests\nCopyright (c)2013 Black Sphere Studios\n" << std::endl;
   const int COLUMNS[3] = { 24, 11, 8 };
   printf("%-*s %-*s %-*s\n",COLUMNS[0],"Test Name", COLUMNS[1],"Subtests", COLUMNS[2],"Pass/Fail");
 

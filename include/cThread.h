@@ -1,4 +1,4 @@
-// Copyright ©2012 Black Sphere Studios
+// Copyright ©2013 Black Sphere Studios
 // For conditions of distribution and use, see copyright notice in "bss_util.h"
 
 #ifndef __C_THREAD_H__BSS__
@@ -100,12 +100,12 @@ namespace bss_util {
     BSS_FORCEINLINE static void SignalWait() { SleepEx(INFINITE,true); }
 #else
     inline static int SignalWait() {
-      int sig;
-      sigset_t set;
-      sigemptyset(&set);
-      sigaddset(&set, SIGUSR2);
-      sigwait(&set,&sig);
-      return sig;
+      struct timespec ts;
+      sigset_t mask;
+		  ts.tv_sec=1;
+		  ts.tv_nsec=0;
+		  sigemptyset(&set);
+		  return pselect(0,NULL,NULL,NULL,&ts,&set);
     }
 #endif
 

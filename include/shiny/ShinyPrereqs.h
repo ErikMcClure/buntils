@@ -72,6 +72,12 @@ namespace Shiny {
 #elif defined(__CYGWIN__)
 	typedef u_int32_t			uint32_t;
 	typedef u_int64_t			uint64_t;
+#else
+	typedef int					int32_t;
+	typedef unsigned int		uint32_t;
+
+	typedef long long				int64_t;
+	typedef unsigned long long	uint64_t;
 #endif
 
 	typedef uint64_t			tick_t;

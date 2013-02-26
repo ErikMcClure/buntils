@@ -2153,7 +2153,7 @@ TESTDEF::RETPAIR test_LOCKLESSQUEUE()
   LLQUEUE_SCSP q; // single consumer single producer test
   char ppp=_debug.OpenProfiler();
   lq_c=1;
-  lq_pos=-1;
+  lq_pos=0;
 
   threads[1]=cThread(_locklessqueue_consume<LLQUEUE_SCSP>, &q);
   threads[0]=cThread(_locklessqueue_produce<LLQUEUE_SCSP>, &q);

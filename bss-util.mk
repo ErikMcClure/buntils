@@ -10,7 +10,7 @@ INCLUDE_DIRS := include
 LIBRARY_DIRS := 
 LIBRARIES := rt
 
-CPPFLAGS += -fPIC -w -Wno-attributes -Wno-unknown-pragmas -Wno-reorder -std=gnu++0x
+CPPFLAGS += -fPIC -Wall -Wno-attributes -Wno-unknown-pragmas -Wno-reorder -Wno-missing-braces -std=gnu++0x
 LDFLAGS += -shared
 
 include base.mk

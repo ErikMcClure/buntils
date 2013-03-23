@@ -2,6 +2,12 @@
 * Black Sphere Studios Utility Library Changelog *
 **************************************************
 
+0.4.1
+------
+- cDynArray now supports + and += operations and derives its array as a protected member
+- cDynArray no longer tries to return something from its Insert function. An assertion in the _insert function was also fixed.
+- Added unit test for cDynArray
+
 0.4
 ------
 - Added SetSizeDiscard() to cArraySimple

@@ -33,10 +33,10 @@ public:
   const char* ModulePath();
 #endif
   // Starts a profiler and returns the ID. Returns -1 if you have used up all available profiler spaces
-  inline char OpenProfiler()
+  inline unsigned char OpenProfiler()
   {
     if(_flstart==_flend) return -1; //this circular list implementation method leaves one empty cell
-    char ret=_flprof[_flstart];
+    unsigned char ret=_flprof[_flstart];
     (++_flstart)%=NUMPROFILERS;
 
 #ifdef BSS_PLATFORM_WIN32
@@ -47,7 +47,7 @@ public:
     return ret;
   }
   // Closes a profiler and returns the difference in time in milliseconds as a double
-  inline unsigned __int64 BSS_FASTCALL CloseProfiler(char ID)
+  inline unsigned __int64 BSS_FASTCALL CloseProfiler(unsigned char ID)
   {
     unsigned __int64 compare;
 #ifdef BSS_PLATFORM_WIN32
@@ -67,7 +67,7 @@ public:
   void ClearProfilers();
 
   bss_DebugInfo& operator =(bss_DebugInfo&& right);
-  static const char NUMPROFILERS = 64;
+  static const unsigned char NUMPROFILERS = 64;
 
 protected:
 #ifdef BSS_PLATFORM_WIN32
@@ -75,7 +75,7 @@ protected:
 #endif
   cStr _modpath;
   unsigned __int64 _profilers[NUMPROFILERS]; //You can have up to NUMPROFILERS-1 profilers going at once
-  char _flprof[NUMPROFILERS]; //profiler free list (circular buffer)
+  unsigned char _flprof[NUMPROFILERS]; //profiler free list (circular buffer)
   unsigned char _flstart; //profiler free list location
   unsigned char _flend;
   //void* _curprocess; // We only need this if HighPrecisionTimer doesn't have it

@@ -145,7 +145,7 @@ extern size_t BSS_FASTCALL UTF16toUTF8(const wchar_t*BSS_RESTRICT input, char*BS
   if(!output) return (len*2) + 1;
   len+=2; // include null terminator (which is 2 bytes wide here)
   if(!iconv_utf16to8) iconv_utf16to8=iconv_open("UTF-16", "UTF-8");
-  iconv(iconv_utf16to8, &in, &len, &output, &buflen);
+  return iconv(iconv_utf16to8, &in, &len, &output, &buflen);
 #endif
 }
 

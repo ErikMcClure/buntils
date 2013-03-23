@@ -1694,6 +1694,43 @@ TESTDEF::RETPAIR test_DISJOINTSET()
 TESTDEF::RETPAIR test_DYNARRAY()
 {
   BEGINTEST;
+  cDynArray<cArraySimple<int>> x(0);
+  TEST(!(int*)x);
+  x.SetLength(5);
+  x[0]=1;
+  x[1]=2;
+  x[2]=3;
+  x[3]=4;
+  x[4]=5;
+  x.Add(6);
+  TEST(x[5]==6);
+  x.Add(7);
+  TEST(x[5]==6);
+  TEST(x[6]==7);
+  x.Add(8);
+  TEST(x[7]==8);
+  x.Remove(5);
+  TEST(x[5]==7);
+  TEST(x[6]==8);
+  x.Insert(6,5);
+  TEST(x[5]==6);
+  TEST(x[6]==7);
+  cDynArray<cArraySimple<int>> y(3);
+  y.Add(9);
+  y.Add(10);
+  y.Add(11);
+  auto z = x+y;
+  TEST(z.Length()==11);
+  TEST(z[3]==4);
+  TEST(z[8]==9);
+  TEST(z[9]==10);
+  TEST(z[10]==11);
+  z+=y;
+  TEST(z.Length()==14);
+  TEST(z[3]==4);
+  TEST(z[11]==9);
+  TEST(z[12]==10);
+  TEST(z[13]==11);
   ENDTEST;
 }
 
@@ -2846,7 +2883,7 @@ int main(int argc, char** argv)
     //{ "cBSS_Stack.h", &test_BSS_STACK },
     //{ "cByteQueue.h", &test_BYTEQUEUE },
     //{ "cCmdLineArgs.h", &test_CMDLINEARGS },
-    //{ "cDynArray.h", &test_DYNARRAY },
+    { "cDynArray.h", &test_DYNARRAY },
     { "cDisjointSet.h", &test_DISJOINTSET },
     { "cHighPrecisionTimer.h", &test_HIGHPRECISIONTIMER },
     //{ "cHolder.h", &test_HOLDER },

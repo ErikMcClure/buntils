@@ -9,7 +9,7 @@
 namespace bss_util {
   // Dynamic array implemented using ArrayType (should only be used when std::vector won't work, for example, if constructors aren't needed)
   template<class ArrayType>
-  class BSS_COMPILER_DLLEXPORT cDynArray : public ArrayType
+  class BSS_COMPILER_DLLEXPORT cDynArray : protected ArrayType
   {
     typedef typename ArrayType::ST_ ST_;
     typedef typename ArrayType::T_ T_;
@@ -25,15 +25,15 @@ namespace bss_util {
     inline ST_ Add(T_&& t) { return _add(std::move(t)); }
     inline void Remove(ST_ index) { AT_::RemoveInternal(index); --_length; }
     inline void RemoveLast() { --_length; }
-    inline ST_ Insert(const T_& t, ST_ index=0) { return _insert(t,index); }
-    inline ST_ Insert(T_&& t, ST_ index=0) { return _insert(std::move(t),index); }
+    inline void Insert(const T_& t, ST_ index=0) { return _insert(t,index); }
+    inline void Insert(T_&& t, ST_ index=0) { return _insert(std::move(t),index); }
     inline ST_ Length() const { return _length; }
     inline bool IsEmpty() const { return !_length; }
     inline void Clear() { _length=0; }
     inline void SetLength(ST_ length) { if(length>_size) AT_::SetSize(length); _length=length; }
     inline const T_& Front() const { assert(_length>0); return _array[0]; }
-    inline T_& Front() { assert(_length>0); return _array[0]; }
     inline const T_& Back() const { assert(_length>0); return _array[_length-1]; }
+    inline T_& Front() { assert(_length>0); return _array[0]; }
     inline T_& Back() { assert(_length>0); return _array[_length-1]; }
     inline const T_* begin() const { return _array; }
     inline const T_* end() const { return _array+_length; }
@@ -46,14 +46,14 @@ namespace bss_util {
     inline cDynArray& operator=(AT_&& mov) { AT_::operator=(std::move(mov)); _length=_size; return *this; }
     inline cDynArray& operator=(const cDynArray& copy) { AT_::operator=(copy); _length=copy._length; return *this; }
     inline cDynArray& operator=(cDynArray&& mov) { AT_::operator=(std::move(mov)); _length=mov._length; return *this; }
-    //inline cDynArray& operator +=(const cDynArray& add) { AT_::operator+=(add); return *this; }
-    //inline const cDynArray operator +(const cDynArray& add) { cArrayWrap r(*this); return (r+=add); }
+    inline cDynArray& operator +=(const cDynArray& add) { SetSize(_length); AT_::operator+=(add); _length+=add._length; return *this; }
+    inline const cDynArray operator +(const cDynArray& add) const { cDynArray r(*this); return (r+=add); }
 
   protected:
     template<typename U>
     inline ST_ _add(U && t) { _checksize(); _array[_length]=std::forward<U>(t); return _length++; }
     template<typename U>
-    inline ST_ _insert(U && t, ST_ index=0) { _checksize();AT_::_pushback(index,(_length++)-index,std::forward<U>(t)); assert(_length<_size); }
+    inline void _insert(U && t, ST_ index=0) { _checksize(); AT_::_pushback(index,(_length++)-index,std::forward<U>(t)); assert(_length<=_size); }
     inline void _checksize()
     {
       if(_length>=_size) AT_::SetSize(fbnext(_size));

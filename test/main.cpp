@@ -792,7 +792,7 @@ BSS_PFUNC_PRE TEST_ALLOC_MT(void* arg)
 {
   std::pair<TESTDEF::RETPAIR*,T*> p = *((std::pair<TESTDEF::RETPAIR*,T*>*)arg);
   cDynArray<cArraySimple<std::pair<P*,size_t>>> plist;
-  TEST_ALLOC_FUZZER_THREAD<T,P,1,100000>(*p.first,*p.second,plist);
+  TEST_ALLOC_FUZZER_THREAD<T,P,1,10000>(*p.first,*p.second,plist);
   return 0;
 }
 
@@ -805,7 +805,7 @@ TESTDEF::RETPAIR test_bss_ALLOC_FIXED_LOCKLESS()
   MTALLOCWRAP<size_t> _alloc(10000);
   std::pair<TESTDEF::RETPAIR*,MTALLOCWRAP<size_t>*> args(&__testret,&_alloc);
 
-  const int NUM=40;
+  const int NUM=100;
   cThread threads[NUM];
   for(int i = 0; i < NUM; ++i)
     threads[i].Start(&TEST_ALLOC_MT<MTALLOCWRAP<size_t>,size_t>,&args);
@@ -822,6 +822,8 @@ TESTDEF::RETPAIR test_bss_ALLOC_FIXED_LOCKLESS()
   for(int i = 0; i < NUM; ++i)
     threads[i].Join();
 
+  //std::cout << _alloc2.contention << std::endl;
+  //std::cout << _alloc2.grow_contention << std::endl;
   ENDTEST;
 }
 

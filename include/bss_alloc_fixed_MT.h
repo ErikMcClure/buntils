@@ -15,6 +15,7 @@ namespace bss_util {
   public:
     explicit cLocklessFixedAlloc(size_t init=8) : _root(0), _spin(0)
     {
+      //contention=0;
       _freelist.p=0;
       _freelist.tag=0;
 		  static_assert((sizeof(T)>=sizeof(void*)),"T cannot be less than the size of a pointer");
@@ -38,7 +39,7 @@ namespace bss_util {
 #endif
       bss_PTag<void> ret;
       bss_PTag<void> nval;
-      do
+      for(;;)
       {
         ret.p=_freelist.p;
         ret.tag=_freelist.tag;
@@ -47,17 +48,18 @@ namespace bss_util {
           while(atomic_xadd<unsigned int>(&_spin,1)!=0) { // Attempt to acquire lock.
             atomic_xadd<unsigned int>(&_spin,-1); // Remove our attempt at hitting the lock.
             while(_spin!=0); // Wait until spin is 0 again.
+            //atomic_xadd<size_t>(&contention); //DEBUG
           }
           if(!_freelist.p)
             _allocchunk(fbnext(_root->size/sizeof(T))*sizeof(T));
-          ret.p=_freelist.p;
-          ret.tag=_freelist.tag;
           atomic_xadd<unsigned int>(&_spin,-1);
+          continue; // _freelist.p can be NULL here due to a race condition where _freelist becomes non-null, and then another thread uses the entire freelist, followed by this thread executing
         }
         assert(ret.p!=0);
         nval.p = *((void**)ret.p);
         nval.tag= ret.tag+1;
-      } while(!asmcas<bss_PTag<void>>(&_freelist,nval,ret));
+        if(asmcas<bss_PTag<void>>(&_freelist,nval,ret)) break; // Have to do this here so continue; works the way we want it to.
+      }
 
       //assert(_validpointer(ret));
       return (T*)ret.p;
@@ -74,16 +76,24 @@ namespace bss_util {
       bss_PTag<void> prev={_freelist.p,_freelist.tag};
       *((void**)p)=(void*)prev.p;
       bss_PTag<void> nval = { p,prev.tag+1 };
+      //size_t count=0;
       while(!asmcas<bss_PTag<void>>(&_freelist,nval,prev)) {
         prev.p=_freelist.p;
         prev.tag=_freelist.tag;
         *((void**)p)=(void*)prev.p;
         nval.tag=prev.tag+1;
+        //atomic_xadd<size_t>(&contention); //DEBUG
+        //++count;
       }
+      //if(count>contention)
+      //  while(atomic_xchg(&contention,count)>contention);
+
       //*((void**)p)=(void*)_freelist;
       //while(!asmcas<volatile void*>(&_freelist,p,*((void**)p))) //ABA problem
       //  *((void**)p)=(void*)_freelist;
     }
+    
+    //size_t contention;
 
   protected:
 #ifdef BSS_DEBUG
@@ -126,6 +136,7 @@ namespace bss_util {
         prev.tag=_freelist.tag;
         *((void**)(chunk+1))=(void*)prev.p;
         nval.tag=prev.tag+1;
+        //atomic_xadd<size_t>(&contention); //DEBUG
       }
       //*((void**)(chunk+1))=(void*)_freelist; //We have to make sure we don't lose any existing values.
       //while(!asmcas<volatile bss_PTag<void>>(&_freelist,hold,*((void**)(chunk+1))))

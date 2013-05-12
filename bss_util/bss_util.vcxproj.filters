@@ -228,6 +228,9 @@
     <ClInclude Include="..\include\trajectory.h">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="..\include\bss_alloc_fixed_MT.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="bss_DebugInfo.cpp">

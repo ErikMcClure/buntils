@@ -11,6 +11,7 @@ namespace bss_util {
   template<class ArrayType>
   class BSS_COMPILER_DLLEXPORT cDynArray : protected ArrayType
   {
+  protected:
     typedef typename ArrayType::ST_ ST_;
     typedef typename ArrayType::T_ T_;
     typedef ArrayType AT_;

@@ -7,6 +7,17 @@
 - cDynArray now supports + and += operations and derives its array as a protected member
 - cDynArray no longer tries to return something from its Insert function. An assertion in the _insert function was also fixed.
 - Added unit test for cDynArray
+- Added UTF8toUTF32() and basic support for cStrT<int>
+- Added min()/max() functions to sseVec
+- Fixed a bunch of using keywords to use protected: instead of private:
+- A minor tweak to AniAttributeSmooth that makes pval optional
+- cAllocTracker now checks for self-assignment
+- Removed completely stupid "INIT" template argument from cFixedAlloc and moved to constructor
+- renamed _allocbytes alloc() and alloc() allocT() in cAdditiveAlloc to make it consistent with cFixedAlloc
+- Added Clear() function in cFixedAlloc
+- All allocaters now use single malloc memory allocations.
+- Adjusted asmcas() to properly deal with non-integral arguments
+- Added multi-producer multi-consumer lockless fixed allocator in bss_alloc_fixed_MT.h
 
 0.4
 ------

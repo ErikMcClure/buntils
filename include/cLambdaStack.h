@@ -12,6 +12,7 @@ namespace bss_util {
   template<class Fx, typename SizeType=unsigned int>
   class cLambdaStack : protected cBSS_Stack<std::function<Fx>,SizeType, cArraySafe<std::function<Fx>,SizeType>>
   {
+  protected:
     typedef cBSS_Stack<std::function<Fx>,SizeType, cArraySafe<std::function<Fx>,SizeType>> BASE_STACK;
     using BASE_STACK::_length;
 

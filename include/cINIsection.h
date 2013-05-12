@@ -65,7 +65,7 @@ namespace bss_util {
     void _copy(const cINIsection& copy);
 
     static cINIentry _entrysentinel;
-    static cFixedAlloc<_NODE,4> _alloc;
+    static cFixedAlloc<_NODE> _alloc;
 
     cStr _name;
     unsigned int _index;

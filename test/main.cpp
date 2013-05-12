@@ -7,7 +7,7 @@
 #include "bss_algo.h"
 #include "bss_alloc_additive.h"
 #include "bss_alloc_fixed.h"
-//#include "bss_alloc_fixed_MT.h"
+#include "bss_alloc_fixed_MT.h"
 #include "bss_deprecated.h"
 #include "bss_dual.h"
 #include "bss_fixedpt.h"
@@ -724,6 +724,38 @@ TESTDEF::RETPAIR test_bss_algo()
   ENDTEST;
 }
 
+template<class T, typename P, int MAXSIZE, int TRIALS>
+void TEST_ALLOC_FUZZER_THREAD(TESTDEF::RETPAIR& __testret,T& _alloc, cDynArray<cArraySimple<std::pair<P*,size_t>>>& plist)
+{
+  for(int j=0; j<5; ++j)
+  {
+    bool pass=true;
+    for(int i = 0; i < TRIALS; ++i)
+    {
+      if(RANDINTGEN(0,10)<5 || plist.Length()<3)
+      {
+        size_t sz = RANDINTGEN(0,MAXSIZE);
+        sz=bssmax(sz,1); //Weird trick to avoid division by zero but still restrict it to [1,1]
+        P* test=(P*)_alloc.alloc(sz);
+        *((unsigned char*)test)=0xFB;
+        plist.Add(std::pair<P*,size_t>(test,sz));
+      }
+      else
+      {
+        int index=RANDINTGEN(0,plist.Length());
+        if(*((unsigned char*)plist[index].first)!=0xFB)
+          pass=false;
+        _alloc.dealloc(plist[index].first);
+        rswap(plist.Back(),plist[index]);
+        plist.RemoveLast(); // This little technique lets us randomly remove items from the array without having to move large chunks of data by swapping the invalid element with the last one and then removing the last element (which is cheap)
+      }
+    }
+    TEST(pass);
+    plist.Clear(); // BOY I SHOULD PROBABLY CLEAR THIS BEFORE I PANIC ABOUT INVALID MEMORY ALLOCATIONS, HUH?
+    _alloc.Clear();
+  }
+}
+
 template<class T, typename P, int MAXSIZE>
 void TEST_ALLOC_FUZZER(TESTDEF::RETPAIR& __testret)
 {
@@ -731,100 +763,22 @@ void TEST_ALLOC_FUZZER(TESTDEF::RETPAIR& __testret)
   for(int k=0; k<10; ++k)
   {
     T _alloc;
-    for(int j=0; j<10; ++j)
-    {
-      bool pass=true;
-      for(int i = 0; i < 10000; ++i)
-      {
-        if(RANDINTGEN(0,10)<5 || plist.Length()<3)
-        {
-          size_t sz = RANDINTGEN(0,MAXSIZE);
-          sz=bssmax(sz,1); //Weird trick to avoid division by zero but still restrict it to [1,1]
-          P* test=_alloc.alloc(sz);
-          *((unsigned char*)test)=0xFB;
-          plist.Add(std::pair<P*,size_t>(test,sz));
-        }
-        else
-        {
-          int index=RANDINTGEN(0,plist.Length());
-          if(*((unsigned char*)plist[index].first)!=0xFB)
-            pass=false;
-          _alloc.dealloc(plist[index].first);
-          rswap(plist.Back(),plist[index]);
-          plist.RemoveLast(); // This little technique lets us randomly remove items from the array without having to move large chunks of data by swapping the invalid element with the last one and then removing the last element (which is cheap)
-        }
-      }
-      TEST(pass);
-      plist.Clear(); // BOY I SHOULD PROBABLY CLEAR THIS BEFORE I PANIC ABOUT INVALID MEMORY ALLOCATIONS, HUH?
-      _alloc.Clear();
-    }
+    TEST_ALLOC_FUZZER_THREAD<T,P,MAXSIZE,10000>(__testret,_alloc,plist);
   }
 }
-//
-//TESTDEF::RETPAIR test_bss_ALLOC_ADDITIVE_FIXED()
-//{
-//  BEGINTEST;
-//  TEST_ALLOC_FUZZER<cAdditiveFixedAllocator<int>,int,1>(__testret);
-//  ENDTEST;
-//}
-//TESTDEF::RETPAIR test_bss_ALLOC_FIXED_SIZE()
-//{
-//  BEGINTEST;
-//  TEST_ALLOC_FUZZER<cFixedSizeAllocator<__int64>,__int64,1>(__testret);
-//  ENDTEST;
-//}
-
-template<class T>
-struct ADDITIVEALLOCWRAP : cAdditiveAlloc { inline T* BSS_FASTCALL alloc(size_t num) { return cAdditiveAlloc::alloc<T>(num); } };
 
 TESTDEF::RETPAIR test_bss_ALLOC_ADDITIVE()
 {
   BEGINTEST;
-  TEST_ALLOC_FUZZER<ADDITIVEALLOCWRAP<char>,char,4000>(__testret);
+  TEST_ALLOC_FUZZER<cAdditiveAlloc,char,4000>(__testret);
   ENDTEST;
 }
-
-template<class T>
-struct FIXEDCHUNKALLOCWRAP : cFixedAlloc<T> { void Clear() { } };
 
 TESTDEF::RETPAIR test_bss_ALLOC_FIXED()
 {
   BEGINTEST;
-  TEST_ALLOC_FUZZER<FIXEDCHUNKALLOCWRAP<size_t>,size_t,1>(__testret);
+  TEST_ALLOC_FUZZER<cFixedAlloc<size_t>,size_t,1>(__testret);
   ENDTEST;
-}
-
-template<class T, typename P, int NUM>
-void MULTITHREADED_ALLOC_FUZZER(TESTDEF::RETPAIR& __testret)
-{
-  cDynArray<cArraySimple<P*>> plist;
-  T alloc;
-	static_assert((sizeof(P)>=sizeof(void*)),"P cannot be less than the size of a pointer");
-  for(int j=0; j<100; ++j)
-  {
-    bool pass=true;
-    for(int i=0; i<NUM; ++i)
-    {
-      if(RANDINTGEN(0,10)<5 || plist.Length()<3)
-      {
-        P* test=alloc.alloc(1);
-        *((size_t*)test)=(size_t)test;
-        plist.Add(test);
-      }
-      else
-      {
-        int index=RANDINTGEN(0,plist.Length());
-        if(((size_t)plist[index])!=*((size_t*)plist[index])) {
-          assert(false);
-          pass=false;
-        }
-        alloc.dealloc(plist[index]);
-        rswap(plist.Back(),plist[index]);
-        plist.RemoveLast();
-      }
-    }
-    TEST(pass);
-  }
 }
 
 #ifdef BSS_PLATFORM_WIN32
@@ -833,34 +787,40 @@ void MULTITHREADED_ALLOC_FUZZER(TESTDEF::RETPAIR& __testret)
 #define BSS_PFUNC_PRE void*
 #endif
 
-template<class T, typename P, int NUM>
-BSS_PFUNC_PRE _mt_alloc_fuzzer(void* p)
+template<class T, typename P>
+BSS_PFUNC_PRE TEST_ALLOC_MT(void* arg)
 {
-  MULTITHREADED_ALLOC_FUZZER<T,P,NUM>(*((TESTDEF::RETPAIR*)p));
-  return 1;
+  std::pair<TESTDEF::RETPAIR*,T*> p = *((std::pair<TESTDEF::RETPAIR*,T*>*)arg);
+  cDynArray<cArraySimple<std::pair<P*,size_t>>> plist;
+  TEST_ALLOC_FUZZER_THREAD<T,P,1,100000>(*p.first,*p.second,plist);
+  return 0;
 }
+
+template<class T>
+struct MTALLOCWRAP : cLocklessFixedAlloc<T> { inline MTALLOCWRAP(size_t init=8) : cLocklessFixedAlloc<T>(init) {} inline void Clear() {} };
 
 TESTDEF::RETPAIR test_bss_ALLOC_FIXED_LOCKLESS()
 {
   BEGINTEST;
+  MTALLOCWRAP<size_t> _alloc(10000);
+  std::pair<TESTDEF::RETPAIR*,MTALLOCWRAP<size_t>*> args(&__testret,&_alloc);
 
-  const int NUMTHREADS=10;
-  unsigned int tret[NUMTHREADS] = {0};
-  uintptr_t handles[NUMTHREADS] = {0};
+  const int NUM=40;
+  cThread threads[NUM];
+  for(int i = 0; i < NUM; ++i)
+    threads[i].Start(&TEST_ALLOC_MT<MTALLOCWRAP<size_t>,size_t>,&args);
+  
+  for(int i = 0; i < NUM; ++i)
+    threads[i].Join();
 
-  //handles[0]=_beginthreadex(0,0, &_mt_alloc_fuzzer<cLocklessFixedAlloc<__int64>,__int64,100000>, &__testret, 0, tret+0);
-  //WaitForSingleObject((void*)handles[0], INFINITE);
+  MTALLOCWRAP<size_t> _alloc2;
+  std::pair<TESTDEF::RETPAIR*,MTALLOCWRAP<size_t>*> args2(&__testret,&_alloc2);
 
-  //handles[0]=_beginthreadex(0,0, &_mt_alloc_fuzzer<cLocklessFixedAlloc<__int64>,__int64,50000>, &__testret, 0, tret+0);
-  //handles[1]=_beginthreadex(0,0, &_mt_alloc_fuzzer<cLocklessFixedAlloc<__int64>,__int64,50000>, &__testret, 0, tret+1);
-  //WaitForSingleObject((void*)handles[0], INFINITE);
-  //WaitForSingleObject((void*)handles[1], INFINITE);
-
-  //for(int i=0; i<NUMTHREADS; ++i)
-  //  handles[i]=_beginthreadex(0,0, &_mt_alloc_fuzzer<cLocklessFixedAlloc<__int64>,__int64,10000>, &__testret, 0, tret+i);
-
-  //for(int i=0; i<NUMTHREADS; ++i)
-  //  WaitForSingleObject((void*)handles[i], INFINITE);
+  for(int i = 0; i < NUM; ++i)
+    threads[i].Start(&TEST_ALLOC_MT<MTALLOCWRAP<size_t>,size_t>,&args2);
+  
+  for(int i = 0; i < NUM; ++i)
+    threads[i].Join();
 
   ENDTEST;
 }
@@ -1290,7 +1250,7 @@ template<bool SAFE=true>
 struct DEBUG_CDT : DEBUG_CDT_SAFE<SAFE> {
   inline DEBUG_CDT(const DEBUG_CDT& copy) : _index(copy._index) { ++count; isdead=this; }
   inline DEBUG_CDT(int index=0) : _index(index) { ++count; isdead=this; }
-  inline ~DEBUG_CDT() { if(isdead!=this) count/=0; --count; isdead=0; }
+  inline ~DEBUG_CDT() { if(isdead!=this) throw "fail"; --count; isdead=0; }
 
   inline DEBUG_CDT& operator=(const DEBUG_CDT& right) { _index=right._index; return *this; }
   inline bool operator<(const DEBUG_CDT& other) const { return _index<other._index; }
@@ -1483,7 +1443,7 @@ TESTDEF::RETPAIR test_AVLTREE()
 
   {
     shuffle(testnums);
-    cFixedAlloc<DEBUG_CDT<false>,TESTNUM> dalloc;
+    cFixedAlloc<DEBUG_CDT<false>> dalloc(TESTNUM);
     typedef UqP_<DEBUG_CDT<false>,std::function<void(DEBUG_CDT<false>*)>> AVL_D;
     cAVLtree<int,AVL_D,CompT<int>,Allocator<AVL_Node<int,AVL_D>,FixedPolicy<AVL_Node<int,AVL_D>>>> dtree;
     for(int i = 0; i<TESTNUM; ++i)
@@ -2624,6 +2584,10 @@ TESTDEF::RETPAIR test_STR()
   TEST(vec1[6]==40);
   TEST(vec1[7]==1);
 
+  cStrT<int> u32("jkl");
+  TEST(u32[0]=='j');
+  TEST(u32[1]=='k');
+  TEST(u32[2]=='l');
   ENDTEST;
 }
 
@@ -2806,6 +2770,12 @@ TESTDEF::RETPAIR test_LOCKLESS()
   ENDTEST;
 }
 
+//void tttest(float a[4][4], float** b)
+//{
+//  if(a!=0)
+//    a[0][0]=1.0f;
+//}
+
 TESTDEF::RETPAIR test_OS()
 {
   BEGINTEST;
@@ -2838,6 +2808,12 @@ TESTDEF::RETPAIR test_OS()
 //  DelRegistryNode(HKEY_LOCAL_MACHINE,"SOFTWARE\\test");
 //#endif
   //AlertBox("test", "title", 0x00000010L);
+  
+  //float at[4][4];
+  //at[0][0]=(float)(size_t)f;
+  //CPU_Barrier();
+  //tttest(0,&at);
+  //CPU_Barrier();
   ENDTEST;
 }
 
@@ -2866,7 +2842,7 @@ int main(int argc, char** argv)
     { "bss_algo.h", &test_bss_algo },
     { "bss_alloc_additive.h", &test_bss_ALLOC_ADDITIVE },
     { "bss_alloc_fixed.h", &test_bss_ALLOC_FIXED },
-    //{ "bss_alloc_fixed_MT.h", &test_bss_ALLOC_FIXED_LOCKLESS },
+    { "bss_alloc_fixed_MT.h", &test_bss_ALLOC_FIXED_LOCKLESS },
     { "bss_depracated.h", &test_bss_deprecated },
     { "bss_dual.h", &test_bss_DUAL },
     { "bss_fixedpt.h", &test_bss_FIXEDPT },

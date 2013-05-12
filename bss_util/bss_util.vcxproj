@@ -112,6 +112,7 @@
     <ClInclude Include="..\include\os.h" />
     <ClInclude Include="..\include\Shiny.h" />
     <ClInclude Include="..\include\StreamSplitter.h" />
+    <ClInclude Include="..\include\trajectory.h" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="bss_DebugInfo.cpp" />
@@ -129,6 +130,7 @@
     <ClCompile Include="ShinyNodePool.cpp" />
     <ClCompile Include="ShinyOutput.cpp" />
     <ClCompile Include="ShinyTools.cpp" />
+    <ClCompile Include="test.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ResourceCompile Include="bss_util.rc" />

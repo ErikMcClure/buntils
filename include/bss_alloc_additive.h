@@ -12,7 +12,6 @@ namespace bss_util {
   {
     AFLISTITEM* next;
     size_t size;
-    char* mem;
   };
 
   // Dynamic additive allocator that can allocate any number of bytes
@@ -29,23 +28,22 @@ namespace bss_util {
       while(_root=hold)
       {
         hold=_root->next;
-        free(_root->mem);
         free(_root);
       }
     }
     template<typename T>
-	  inline T* BSS_FASTCALL alloc(size_t num)
+	  inline T* BSS_FASTCALL allocT(size_t num)
     {
-      return (T*)_allocbytes(num*sizeof(T));
+      return (T*)alloc(num*sizeof(T));
     }
-	  inline void* BSS_FASTCALL _allocbytes(size_t _sz) //allows you to skip the automatic template resolution - important for allocating over DLL bounderies
+	  inline void* BSS_FASTCALL alloc(size_t _sz)
     {
 #ifdef BSS_DISABLE_CUSTOM_ALLOCATORS
       return malloc(_sz);
 #endif
       if((_curpos+_sz)>=_root->size) { _allocchunk(fbnext(bssmax(_root->size,_sz))); _curpos=0; }
 
-      void* retval= _root->mem+_curpos;
+      void* retval= ((char*)(_root+1))+_curpos;
       _curpos+=_sz;
       return retval;
     }
@@ -59,7 +57,7 @@ namespace bss_util {
       bool found=false;
       while(cur)
       {
-        if(p>=cur->mem && p<(cur->mem+cur->size)) { found=true; break; }
+        if(p>=(cur+1) && p<(((char*)(cur+1))+cur->size)) { found=true; break; }
         cur=cur->next;
       }
       assert(found);
@@ -76,7 +74,6 @@ namespace bss_util {
       {
         hold=_root->next;
         nsize+=_root->size;
-        free(_root->mem);
         free(_root);
         _root=hold;
       }
@@ -85,17 +82,16 @@ namespace bss_util {
   protected:
     inline BSS_FORCEINLINE void _allocchunk(size_t nsize)
     {
-      AFLISTITEM* retval=(AFLISTITEM*)malloc(sizeof(AFLISTITEM));
+      AFLISTITEM* retval=(AFLISTITEM*)malloc(sizeof(AFLISTITEM)+nsize);
       retval->next=_root;
       retval->size=nsize;
-      retval->mem=(char*)malloc(retval->size);
       _root=retval;
       assert(_prepDEBUG());
     }
     inline bool _prepDEBUG()
     {
-      if(!_root || !_root->mem) return false;
-      memset(_root->mem,0xcdcdcdcd,_root->size);
+      if(!_root) return false;
+      memset(_root+1,0xcdcdcdcd,_root->size);
       return true;
     }
 
@@ -118,7 +114,7 @@ namespace bss_util {
 
     inline pointer allocate(std::size_t cnt, 
       typename std::allocator<void>::const_pointer = 0) {
-        return cAdditiveAlloc::alloc<T>(cnt);
+        return cAdditiveAlloc::allocT<T>(cnt);
     }
     inline void deallocate(pointer p, std::size_t num = 0) { }
     inline void BSS_FASTCALL clear() { cAdditiveAlloc::Clear(); } //done for functor reasons, BSS_FASTCALL has no effect here

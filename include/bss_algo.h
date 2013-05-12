@@ -89,7 +89,7 @@ namespace bss_util {
   inline void BSS_FASTCALL shuffle(T (&p)[size]) { shuffle<T,ST,RandFunc>(p,size); }
 
   // inline function wrapper to the #define RANDINTGEN
-  inline BSS_FORCEINLINE int bss_randfunc(int min, int max)
+  inline BSS_FORCEINLINE int bss_randint(int min, int max)
   {
     return !(max-min)?min:RANDINTGEN(min,max);
   }
@@ -98,12 +98,12 @@ namespace bss_util {
   template<typename T>
   inline BSS_FORCEINLINE void BSS_FASTCALL shuffle(T* p, int size)
   {
-    shuffle<T,int,&bss_randfunc>(p,size);
+    shuffle<T,int,&bss_randint>(p,size);
   }
   template<typename T, int size>
   inline BSS_FORCEINLINE void BSS_FASTCALL shuffle(T (&p)[size])
   {
-    shuffle<T,int,size,&bss_randfunc>(p);
+    shuffle<T,int,size,&bss_randint>(p);
   }
 
   template<class F, typename T, size_t SIZE>

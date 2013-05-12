@@ -23,9 +23,9 @@ namespace bss_util
   template<class _Ty>
   class cUniquePtr : public std::unique_ptr<_Ty>
   {
+  public:
     using std::unique_ptr<_Ty>::get;
 
-  public:
     inline cUniquePtr(cUniquePtr&& mov) : std::unique_ptr<_Ty>(std::move(mov)) {}
     explicit inline cUniquePtr(const cUniquePtr_Ref<_Ty>& pref) : std::unique_ptr<_Ty>(pref._p) {}
     inline cUniquePtr() {}

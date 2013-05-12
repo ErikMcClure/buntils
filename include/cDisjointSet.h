@@ -13,6 +13,7 @@ namespace bss_util {
   template<typename T=unsigned int>
   class BSS_COMPILER_DLLEXPORT cDisjointSet : protected cArraySimple<typename TSignPick<sizeof(T)>::SIGNED,T>
   {
+  protected:
     typedef cArraySimple<typename TSignPick<sizeof(T)>::SIGNED,T> ARRAY;
     typedef typename ARRAY::T_ T_;
     using ARRAY::_array;

@@ -74,6 +74,8 @@
 #define BSS_SSE_SUB_PS _mm_sub_ps
 #define BSS_SSE_MUL_PS _mm_mul_ps
 #define BSS_SSE_DIV_PS _mm_div_ps
+#define BSS_SSE_MIN_PS _mm_min_ps
+#define BSS_SSE_MAX_PS _mm_max_ps
 #define BSS_SSE_LOAD_APD _mm_load_pd
 #define BSS_SSE_LOAD_UPD _mm_loadu_pd
 #define BSS_SSE_SET_PD _mm_set_pd
@@ -84,6 +86,8 @@
 #define BSS_SSE_SUB_PD _mm_sub_pd
 #define BSS_SSE_MUL_PD _mm_mul_pd
 #define BSS_SSE_DIV_PD _mm_div_pd
+#define BSS_SSE_MIN_PD _mm_min_pd
+#define BSS_SSE_MAX_PD _mm_max_pd
 
 #define BSS_SSE_LOAD_ASI128 _mm_load_si128
 #define BSS_SSE_LOAD_USI128 _mm_loadu_si128 
@@ -93,6 +97,8 @@
 #define BSS_SSE_STORE_USI128 _mm_storeu_si128 
 #define BSS_SSE_ADD_EPI32 _mm_add_epi32
 #define BSS_SSE_SUB_EPI32 _mm_sub_epi32
+#define BSS_SSE_MIN_EPI32 _mm_min_epi32
+#define BSS_SSE_MAX_EPI32 _mm_max_epi32
 #define BSS_SSE_AND _mm_and_si128 
 #define BSS_SSE_OR _mm_or_si128 
 #define BSS_SSE_XOR _mm_xor_si128
@@ -182,7 +188,9 @@ BSS_ALIGNED_STRUCT(16) sseVecT<float>
   //BSS_FORCEINLINE void operator>>(float*BSS_RESTRICT v) { assert(!(((size_t)v)%16)); BSS_SSE_STORE_APS(v, xmm); }
   BSS_FORCEINLINE void operator>>(float (&v)[4]) const { assert(!(((size_t)v)%16)); BSS_SSE_STORE_APS(v, xmm); }
   BSS_FORCEINLINE void operator>>(BSS_UNALIGNED<float> v) const { BSS_SSE_STORE_UPS(v._p, xmm); }
-
+  
+  BSS_FORCEINLINE const sseVecT<float> min(const sseVecT<float>& r) const { return sseVecT<float>(BSS_SSE_MIN_PS(xmm,r.xmm)); }
+  BSS_FORCEINLINE const sseVecT<float> max(const sseVecT<float>& r) const { return sseVecT<float>(BSS_SSE_MAX_PS(xmm,r.xmm)); }
   BSS_FORCEINLINE const sseVecT<float> operator==(const sseVecT<float>& r) const { return sseVecT<float>(BSS_SSE_CMPEQ_PS(xmm,r.xmm)); }
   BSS_FORCEINLINE const sseVecT<float> operator!=(const sseVecT<float>& r) const { return sseVecT<float>(BSS_SSE_CMPNEQ_PS(xmm,r.xmm)); }
   BSS_FORCEINLINE const sseVecT<float> operator<(const sseVecT<float>& r) const { return sseVecT<float>(BSS_SSE_CMPLT_PS(xmm,r.xmm)); }
@@ -218,7 +226,9 @@ BSS_ALIGNED_STRUCT(16) sseVecT<double>
   //BSS_FORCEINLINE void operator>>(double*BSS_RESTRICT v) { assert(!(((size_t)v)%16)); BSS_SSE_STORE_APD(v, xmm); }
   BSS_FORCEINLINE void operator>>(double (&v)[2]) const { assert(!(((size_t)v)%16)); BSS_SSE_STORE_APD(v, xmm); }
   BSS_FORCEINLINE void operator>>(BSS_UNALIGNED<double> v) const { BSS_SSE_STORE_UPD(v._p, xmm); }
-
+  
+  BSS_FORCEINLINE const sseVecT<double> min(const sseVecT<double>& r) const { return sseVecT<double>(BSS_SSE_MIN_PD(xmm,r.xmm)); }
+  BSS_FORCEINLINE const sseVecT<double> max(const sseVecT<double>& r) const { return sseVecT<double>(BSS_SSE_MAX_PD(xmm,r.xmm)); }
   BSS_FORCEINLINE const sseVecT<double> operator==(const sseVecT<double>& r) const { return sseVecT<double>(BSS_SSE_CMPEQ_PD(xmm,r.xmm)); }
   BSS_FORCEINLINE const sseVecT<double> operator!=(const sseVecT<double>& r) const { return sseVecT<double>(BSS_SSE_CMPNEQ_PD(xmm,r.xmm)); }
   BSS_FORCEINLINE const sseVecT<double> operator<(const sseVecT<double>& r) const { return sseVecT<double>(BSS_SSE_CMPLT_PD(xmm,r.xmm)); }
@@ -264,6 +274,8 @@ BSS_ALIGNED_STRUCT(16) sseVecT<__int32>
   BSS_FORCEINLINE sseVecT<int>& operator<<=(const sseVecT<int>& r) { xmm=BSS_SSE_SL_EPI32(xmm, r.xmm); return *this; }
   BSS_FORCEINLINE sseVecT<int>& operator<<=(int r) { xmm=BSS_SSE_SLI_EPI32(xmm, r); return *this; }
 
+  BSS_FORCEINLINE const sseVecT<int> min(const sseVecT<int>& r) const { return sseVecT<int>(BSS_SSE_MIN_EPI32(xmm,r.xmm)); }
+  BSS_FORCEINLINE const sseVecT<int> max(const sseVecT<int>& r) const { return sseVecT<int>(BSS_SSE_MAX_EPI32(xmm,r.xmm)); }
   BSS_FORCEINLINE const sseVecT<int> operator==(const sseVecT<int>& r) const { return sseVecT<int>(BSS_SSE_CMPEQ_EPI32(xmm,r.xmm)); }
   BSS_FORCEINLINE const sseVecT<int> operator!=(const sseVecT<int>& r) const { return !operator==(r); }
   BSS_FORCEINLINE const sseVecT<int> operator<(const sseVecT<int>& r) const { return sseVecT<int>(BSS_SSE_CMPLT_EPI32(xmm,r.xmm)); }

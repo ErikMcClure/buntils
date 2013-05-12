@@ -14,6 +14,7 @@ namespace bss_util
   template<typename SizeType=unsigned int>
   class BSS_COMPILER_DLLEXPORT cByteQueue : protected cArraySimple<unsigned char,SizeType> //cArraySimple does not have a virtual destructor. Because its inherited via protected, no one can delete it from there anyway.
   {
+  protected:
     using cArraySimple<unsigned char,SizeType>::_array;
     using cArraySimple<unsigned char,SizeType>::_size;
 

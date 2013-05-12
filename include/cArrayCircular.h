@@ -12,6 +12,7 @@ namespace bss_util {
   template<class T, typename SizeType=unsigned int, typename ArrayType=cArraySimple<T,SizeType>>
   class BSS_COMPILER_DLLEXPORT cArrayCircular : protected ArrayType
   {
+  protected:
     typedef SizeType ST_;
     typedef typename TSignPick<sizeof(ST_)>::SIGNED __ST_SIGNED;
 	  using ArrayType::_size;

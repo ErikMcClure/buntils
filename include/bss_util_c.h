@@ -31,6 +31,7 @@ BSS_COMPILER_DLLEXPORT extern unsigned long BSS_FASTCALL wcshex(const wchar_t* t
 #endif
 BSS_COMPILER_DLLEXPORT extern size_t BSS_FASTCALL UTF8toUTF16(const char*BSS_RESTRICT input,wchar_t*BSS_RESTRICT output, size_t buflen);
 BSS_COMPILER_DLLEXPORT extern size_t BSS_FASTCALL UTF16toUTF8(const wchar_t*BSS_RESTRICT input, char*BSS_RESTRICT output, size_t buflen);
+BSS_COMPILER_DLLEXPORT extern size_t BSS_FASTCALL UTF8toUTF32(const char*BSS_RESTRICT input, int*BSS_RESTRICT output, size_t buflen);
 BSS_COMPILER_DLLEXPORT extern int itoa_r(int value, char* buffer, int size, unsigned int radix); // For various stupid reasons we must reimplement multiple threadsafe versions of various functions because MinGW doesn't have them.
 //BSS_COMPILER_DLLEXPORT extern struct tm* gmtime64_r(const long long*BSS_RESTRICT clock, struct tm*BSS_RESTRICT result);
 #ifdef BSS_PLATFORM_MINGW

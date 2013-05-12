@@ -35,7 +35,6 @@ public:
   static inline BSS_FORCEINLINE const CHAR* SCHR(const CHAR* str, int val) { return strchr(str,val); }
   static inline BSS_FORCEINLINE size_t SLEN(const CHAR* str) { return strlen(str); }
   static inline BSS_FORCEINLINE CHAR* STOK(CHAR* str,const CHAR* delim, CHAR** context) { return STRTOK(str,delim,context); }
-  //static inline errno_t WTOMB(size_t* outsize, CHAR* dest, size_t destsize, const OTHER_C* src, size_t maxcount) { return wcstombs_s(outsize,dest,destsize,src,maxcount); }
   static inline BSS_FORCEINLINE int VPF(CHAR *dest, size_t size, const CHAR *format, va_list args) { return VSNPRINTF(dest,size,format,args); }
   static inline BSS_FORCEINLINE int VPCF(const CHAR* str, va_list args) { return VSCPRINTF(str,args); }
   static inline BSS_FORCEINLINE size_t CONV(const OTHER_C* src, CHAR* dest, size_t len) { return UTF16toUTF8(src,dest,len); }
@@ -54,7 +53,6 @@ public:
   static inline BSS_FORCEINLINE const CHAR* SCHR(const CHAR* str, wchar_t val) { return wcschr(str,val); }
   static inline BSS_FORCEINLINE size_t SLEN(const CHAR* str) { return wcslen(str); }
   static inline BSS_FORCEINLINE CHAR* STOK(CHAR* str,const CHAR* delim, CHAR** context) { return WCSTOK(str,delim,context); }
-  //static inline errno_t WTOMB(size_t* outsize, CHAR* dest, size_t destsize, const OTHER_C* src, size_t maxcount) { return mbstowcs_s(outsize,dest,destsize,src,maxcount); }
 #ifdef BSS_COMPILER_GCC
   //template<class S> static inline BSS_FORCEINLINE int VPF(S* str,const CHAR *format, va_list args)
   //{
@@ -71,6 +69,33 @@ public:
 
   static inline BSS_FORCEINLINE size_t O_SLEN(const OTHER_C* str) { return strlen(str); }
   static inline BSS_FORCEINLINE const CHAR* STREMPTY() { return L""; }
+};
+
+template<>
+class CSTR_CT<int>
+{
+public:
+  typedef int CHAR;
+  typedef char OTHER_C;
+
+  static inline BSS_FORCEINLINE const CHAR* SCHR(const CHAR* str, int val) { while(*str && *str!=val) ++str; return str; }
+  static inline BSS_FORCEINLINE size_t SLEN(const CHAR* str) { const CHAR* i=str; while(*i) ++i; return (size_t)(i-str); }
+  static inline BSS_FORCEINLINE CHAR* STOK(CHAR* str,const CHAR* delim, CHAR** context) 
+  { 
+    if(str)
+      *context=str;
+    else
+      **context=*delim;
+    CHAR* r=str=*context;
+    while(*str && *str!=*delim) ++str;
+    *str=0;
+    *context=str;
+    return r;
+  }
+  static inline BSS_FORCEINLINE size_t CONV(const OTHER_C* src, CHAR* dest, size_t len) { return UTF8toUTF32(src,dest,len); }
+
+  static inline BSS_FORCEINLINE size_t O_SLEN(const OTHER_C* str) { return strlen(str); }
+  static inline BSS_FORCEINLINE const CHAR* STREMPTY() { return (const CHAR*)"\0\0\0"; }
 };
 
 #pragma warning(push)

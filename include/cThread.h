@@ -85,20 +85,17 @@ namespace bss_util {
       _start(f,arg);
       return (_id==(size_t)-1)?-1:0;
     }
+    inline cThread& operator=(cThread&& mov) { _id=mov._id; mov._id=(size_t)-1; return *this; }
+
     // Gets the thread's id
 #ifdef BSS_PLATFORM_WIN32
     inline HANDLE GetID() const { return (HANDLE)_id; }
     BSS_FORCEINLINE void SendSignal() const { DWORD r=QueueUserAPC(&cThread::_APCactivate,GetID(),0); assert(r); }
-#else
-    inline pthread_t GetID() const { return _id; }
-    BSS_FORCEINLINE void SendSignal() const { raise(SIGUSR2); }
-#endif
-
-    inline cThread& operator=(cThread&& mov) { _id=mov._id; mov._id=(size_t)-1; return *this; }
-#ifdef BSS_PLATFORM_WIN32
     inline static void BSS_COMPILER_STDCALL _APCactivate(ULONG_PTR) {}
     BSS_FORCEINLINE static void SignalWait() { SleepEx(INFINITE,true); }
 #else
+    inline pthread_t GetID() const { return _id; }
+    BSS_FORCEINLINE void SendSignal() const { raise(SIGUSR2); }
     inline static int SignalWait() {
       struct timespec ts;
       sigset_t set;

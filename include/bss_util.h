@@ -23,9 +23,9 @@
 #include <assert.h>
 #include <math.h>
 #include <memory>
-#include <type_traits>
-#include <utility>
-#include <cstring> // for memcmp
+//#include <type_traits>
+//#include <utility>
+//#include <cstring> // for memcmp
 #ifdef BSS_COMPILER_GCC
 #include <stdlib.h> // For abs(int) on GCC
 #endif

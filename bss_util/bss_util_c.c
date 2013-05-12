@@ -134,6 +134,140 @@ extern size_t BSS_FASTCALL UTF8toUTF16(const char*BSS_RESTRICT input,wchar_t*BSS
   return (size_t)(d - dst);*/
 }
 
+/*
+* Copyright 2001-2004 Unicode, Inc.
+* 
+* Disclaimer
+* 
+* This source code is provided as is by Unicode, Inc. No claims are
+* made as to fitness for any particular purpose. No warranties of any
+* kind are expressed or implied. The recipient agrees to determine
+* applicability of information provided. If this file has been
+* purchased on magnetic or optical media from Unicode, Inc., the
+* sole remedy for any claim will be exchange of defective media
+* within 90 days of receipt.
+* 
+* Limitations on Rights to Redistribute This Code
+* 
+* Unicode, Inc. hereby grants the right to freely use the information
+* supplied in this file in the creation of products supporting the
+* Unicode Standard, and to make copies of this file in any form
+* for internal or external distribution as long as this notice
+* remains attached.
+*/
+
+#define UNI_REPLACEMENT_CHAR (unsigned int)0x0000FFFD
+#define UNI_MAX_BMP (unsigned int)0x0000FFFF
+#define UNI_MAX_UTF16 (unsigned int)0x0010FFFF
+#define UNI_MAX_UTF32 (unsigned int)0x7FFFFFFF
+#define UNI_MAX_LEGAL_UTF32 (unsigned int)0x0010FFFF
+#define UNI_SUR_HIGH_START  (unsigned int)0xD800
+#define UNI_SUR_HIGH_END    (unsigned int)0xDBFF
+#define UNI_SUR_LOW_START   (unsigned int)0xDC00
+#define UNI_SUR_LOW_END     (unsigned int)0xDFFF
+
+static const char trailingBytesForUTF8[256] = {
+  0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0, 0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
+  0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0, 0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
+  0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0, 0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
+  0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0, 0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
+  0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0, 0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
+  0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0, 0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
+  1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1, 1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,
+  2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2, 3,3,3,3,3,3,3,3,4,4,4,4,5,5,5,5
+};
+
+static const unsigned int offsetsFromUTF8[6] = { 0x00000000UL, 0x00003080UL, 0x000E2080UL, 0x03C82080UL, 0xFA082080UL, 0x82082080UL };
+
+static char isLegalUTF8(const unsigned char *source, int length) {
+  unsigned char a;
+  const unsigned char *srcptr = source+length;
+  switch (length) {
+  default: return 0;
+      /* Everything else falls through when "true"... */
+  case 4: if ((a = (*--srcptr)) < 0x80 || a > 0xBF) return 0;
+  case 3: if ((a = (*--srcptr)) < 0x80 || a > 0xBF) return 0;
+  case 2: if ((a = (*--srcptr)) < 0x80 || a > 0xBF) return 0;
+
+      switch (*source) {
+          /* no fall-through in this inner switch */
+          case 0xE0: if (a < 0xA0) return 0; break;
+          case 0xED: if (a > 0x9F) return 0; break;
+          case 0xF0: if (a < 0x90) return 0; break;
+          case 0xF4: if (a > 0x8F) return 0; break;
+          default:   if (a < 0x80) return 0;
+      }
+
+  case 1: if (*source >= 0x80 && *source < 0xC2) return 0;
+  }
+  if (*source > 0xF4) return 0;
+  return 1;
+}
+
+BSS_COMPILER_DLLEXPORT
+extern size_t BSS_FASTCALL UTF8toUTF32(const char*BSS_RESTRICT input, int*BSS_RESTRICT output, size_t buflen) 
+{
+  char result = 0;
+  const unsigned char* source = input;
+  const unsigned char* sourceEnd = input;
+  unsigned int* target = output;
+  unsigned int* targetEnd = output+buflen;
+  size_t srclen=strlen(input)+1;
+  if(!output) return srclen;
+  sourceEnd+=srclen;
+
+  while(source < sourceEnd) {
+      unsigned int ch = 0;
+      unsigned short extraBytesToRead = trailingBytesForUTF8[*source];
+      if (extraBytesToRead >= sourceEnd - source) {
+          result = -2; break;
+      }
+      /* Do this check whether lenient or strict */
+      if (!isLegalUTF8(source, extraBytesToRead+1)) {
+          result = -1;
+          break;
+      }
+      /*
+        * The cases all fall through. See "Note A" below.
+        */
+      switch (extraBytesToRead) {
+          case 5: ch += *source++; ch <<= 6;
+          case 4: ch += *source++; ch <<= 6;
+          case 3: ch += *source++; ch <<= 6;
+          case 2: ch += *source++; ch <<= 6;
+          case 1: ch += *source++; ch <<= 6;
+          case 0: ch += *source++;
+      }
+      ch -= offsetsFromUTF8[extraBytesToRead];
+
+      if (target >= targetEnd) {
+          source -= (extraBytesToRead+1); /* Back up the source pointer! */
+          result = -3; break;
+      }
+      if (ch <= UNI_MAX_LEGAL_UTF32) {
+          /*
+            * UTF-16 surrogate values are illegal in UTF-32, and anything
+            * over Plane 17 (> 0x10FFFF) is illegal.
+            */
+          if (ch >= UNI_SUR_HIGH_START && ch <= UNI_SUR_LOW_END) {
+              //if (flags == strictConversion) {
+              //    source -= (extraBytesToRead+1); /* return to the illegal value itself */
+              //    result = sourceIllegal;
+              //    break;
+              //} else {
+                  *target++ = UNI_REPLACEMENT_CHAR;
+              //}
+          } else {
+              *target++ = ch;
+          }
+      } else { /* i.e., ch > UNI_MAX_LEGAL_UTF32 */
+          result = -1;
+          *target++ = UNI_REPLACEMENT_CHAR;
+      }
+  }
+  return (size_t)(target-output);
+}
+
 BSS_COMPILER_DLLEXPORT
 extern size_t BSS_FASTCALL UTF16toUTF8(const wchar_t*BSS_RESTRICT input, char*BSS_RESTRICT output, size_t buflen)
 {

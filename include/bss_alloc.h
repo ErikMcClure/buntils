@@ -229,8 +229,8 @@ namespace bss_util {
     inline pointer _allocate(std::size_t cnt, typename std::allocator<void>::const_pointer p = 0) { return _allocator->allocate(cnt,p); }
     inline void _deallocate(pointer p, std::size_t s = 0) { _allocator->deallocate(p,s); }
 
-		inline i_AllocTracker& operator =(const i_AllocTracker& copy) { if(!_alloc_extern) delete _allocator; _allocator = copy._alloc_extern?copy._allocator:new _Ax(*copy._allocator); _alloc_extern=copy._alloc_extern; return *this; }
-		inline i_AllocTracker& operator =(i_AllocTracker&& mov) { if(!_alloc_extern) delete _allocator; _allocator = mov._allocator; _alloc_extern=mov._alloc_extern; mov._alloc_extern=true; return *this; }
+		inline i_AllocTracker& operator =(const i_AllocTracker& copy) { if(&copy==this) return *this; if(!_alloc_extern) delete _allocator; _allocator = copy._alloc_extern?copy._allocator:new _Ax(*copy._allocator); _alloc_extern=copy._alloc_extern; return *this; }
+		inline i_AllocTracker& operator =(i_AllocTracker&& mov) { if(&mov==this) return *this; if(!_alloc_extern) delete _allocator; _allocator = mov._allocator; _alloc_extern=mov._alloc_extern; mov._alloc_extern=true; return *this; }
 
 	protected:
 		_Ax* _allocator;

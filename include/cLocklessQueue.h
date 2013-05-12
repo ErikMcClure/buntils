@@ -73,7 +73,7 @@ namespace bss_util {
       }
     }
 
-    cFixedAlloc<QNode,8> _alloc;
+    cFixedAlloc<QNode> _alloc;
     QNode* _first; 
     BSS_ALIGN(64) volatile QNode* _div; // Align to try and get them on different cache lines
     BSS_ALIGN(64) volatile QNode* _last;

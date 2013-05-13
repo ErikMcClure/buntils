@@ -126,9 +126,6 @@
     <ClInclude Include="..\include\cLinkedArray.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="..\include\cLocklessByteQueue.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
     <ClInclude Include="..\include\cMap.h">
       <Filter>Header Files</Filter>
     </ClInclude>

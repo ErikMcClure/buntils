@@ -88,7 +88,6 @@
     <ClInclude Include="..\include\cLambdaStack.h" />
     <ClInclude Include="..\include\cLinkedArray.h" />
     <ClInclude Include="..\include\cLinkedList.h" />
-    <ClInclude Include="..\include\cLocklessByteQueue.h" />
     <ClInclude Include="..\include\cLocklessQueue.h" />
     <ClInclude Include="..\include\cMap.h" />
     <ClInclude Include="..\include\cObjSwap.h" />

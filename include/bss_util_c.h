@@ -23,12 +23,22 @@ struct VersionType
   };
 };
 
+union bssCPUInfo {
+  struct {
+    unsigned short cores; // Number of logical cores (not physical cores). If you need more than 65535 cores, you're apparently using code written in 2013 in the year 2080, so stop being a douchebag and upgrade already.
+    unsigned char SSE; // 1: Supports MMX, 2: Supports SSE+MMX, 3: up to SSE2, 4: SSE3, 5: SSSE3, 6: SSE4.1, 7: SSE4.2, 8: AVX, 9: AVX2
+    unsigned int flags; // 1 - supports cmpxchg16b, 2 - supports AMD SSE4a
+  };
+  unsigned __int64 _raw;
+};
+
 struct tm;
 
 BSS_COMPILER_DLLEXPORT extern unsigned long BSS_FASTCALL strhex(const char* text);
 #ifdef BSS_PLATFORM_WIN32
 BSS_COMPILER_DLLEXPORT extern unsigned long BSS_FASTCALL wcshex(const wchar_t* text);
 #endif
+BSS_COMPILER_DLLEXPORT extern union bssCPUInfo BSS_FASTCALL bssGetCPUInfo();
 BSS_COMPILER_DLLEXPORT extern size_t BSS_FASTCALL UTF8toUTF16(const char*BSS_RESTRICT input,wchar_t*BSS_RESTRICT output, size_t buflen);
 BSS_COMPILER_DLLEXPORT extern size_t BSS_FASTCALL UTF16toUTF8(const wchar_t*BSS_RESTRICT input, char*BSS_RESTRICT output, size_t buflen);
 BSS_COMPILER_DLLEXPORT extern size_t BSS_FASTCALL UTF8toUTF32(const char*BSS_RESTRICT input, int*BSS_RESTRICT output, size_t buflen);

@@ -1,4 +1,4 @@
-// Copyright ©2012 Black Sphere Studios
+// Copyright ©2013 Black Sphere Studios
 // For conditions of distribution and use, see copyright notice in "bss_util.h"
 
 #ifndef __BSS_ALLOC_FIXED_LOCKLESS_H__
@@ -145,7 +145,6 @@ namespace bss_util {
 
     FIXEDLIST_NODE* _root;
     BSS_ALIGN(16) volatile bss_PTag<void> _freelist;
-    //volatile void* _freelist;
     BSS_ALIGN(4) volatile unsigned int _spin;
   };
 }

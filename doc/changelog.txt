@@ -18,6 +18,9 @@
 - All allocaters now use single malloc memory allocations.
 - Adjusted asmcas() to properly deal with non-integral arguments
 - Added multi-producer multi-consumer lockless fixed allocator in bss_alloc_fixed_MT.h
+- Removed cLocklessByteQueue
+- Added bssGetCPUInfo()
+- Took QNode out of cLocklessQueue and renamed cLQ_QNode
 
 0.4
 ------

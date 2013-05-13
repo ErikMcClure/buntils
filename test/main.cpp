@@ -29,7 +29,6 @@
 #include "cLambdaStack.h"
 #include "cLinkedArray.h"
 #include "cLinkedList.h"
-#include "cLocklessByteQueue.h"
 #include "cLocklessQueue.h"
 #include "cMap.h"
 #include "cObjSwap.h"
@@ -203,6 +202,14 @@ template<typename T, size_t S> inline static size_t BSS_FASTCALL _ARRSIZE(const 
 TESTDEF::RETPAIR test_bss_util_c()
 {
   BEGINTEST;
+
+  std::function<void()> b([](){ int i=0; i+=1; return; });
+  b = std::move(std::function<void()>([](){ return; }));
+
+  bssCPUInfo info = bssGetCPUInfo();
+  TEST(info.cores>0);
+  TEST(info.SSE>2); // You'd better support at least SSE
+  TEST(info.flags&1); // You also have to support cmpxchg16b or lockless.h will explode
 
   TEST(!strhex("0"));
   TEST(!strhex("z"));
@@ -2081,12 +2088,6 @@ TESTDEF::RETPAIR test_LINKEDLIST()
   ENDTEST;
 }
 
-TESTDEF::RETPAIR test_LOCKLESSBYTEQUEUE()
-{
-  BEGINTEST;
-  ENDTEST;
-}
-
 unsigned int lq_c;
 static const int TOTALNUM=1000000;
 unsigned int lq_end[TOTALNUM];
@@ -2873,7 +2874,6 @@ int main(int argc, char** argv)
     { "cLinkedArray.h", &test_LINKEDARRAY },
     { "cLinkedList.h", &test_LINKEDLIST },
     { "lockless.h", &test_LOCKLESS },
-    //{ "cLocklessByteQueue.h", &test_LOCKLESSBYTEQUEUE },
     { "cLocklessQueue.h", &test_LOCKLESSQUEUE },
     { "cMap.h", &test_MAP },
     { "cObjSwap.h", &test_OBJSWAP },

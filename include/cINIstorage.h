@@ -60,7 +60,7 @@ namespace bss_util {
     void _BuildSectionList(std::vector<std::pair<cStr,unsigned int>>& list) const;
 
     static cINIsection _sectionsentinel;
-    static cFixedAlloc<_NODE> _alloc;
+    static cLocklessFixedAlloc<_NODE> _alloc;
 
     cKhash_StringTIns<char,_NODE*,true> _sections;
     cStr _path; //holds path to INI

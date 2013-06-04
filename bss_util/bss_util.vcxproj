@@ -85,7 +85,6 @@
     <ClInclude Include="..\include\cINIsection.h" />
     <ClInclude Include="..\include\cINIstorage.h" />
     <ClInclude Include="..\include\cKhash.h" />
-    <ClInclude Include="..\include\cLambdaStack.h" />
     <ClInclude Include="..\include\cLinkedArray.h" />
     <ClInclude Include="..\include\cLinkedList.h" />
     <ClInclude Include="..\include\cLocklessQueue.h" />
@@ -130,7 +129,6 @@
     <ClCompile Include="ShinyNodePool.cpp" />
     <ClCompile Include="ShinyOutput.cpp" />
     <ClCompile Include="ShinyTools.cpp" />
-    <ClCompile Include="test.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ResourceCompile Include="bss_util.rc" />

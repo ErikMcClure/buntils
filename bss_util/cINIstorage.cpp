@@ -13,6 +13,9 @@
 
 using namespace bss_util;
 
+cINIsection cINIstorage::_sectionsentinel;
+cLocklessFixedAlloc<cINIstorage::_NODE> cINIstorage::_alloc;
+
 template<typename T>
 const T* BSS_FASTCALL ltrimstr(const T* str)
 {
@@ -44,9 +47,6 @@ void cINIstorage::_openINI()
   _ini->RecalcSize();
   fclose(f);
 }
-
-cINIsection cINIstorage::_sectionsentinel;
-cFixedAlloc<cINIstorage::_NODE> cINIstorage::_alloc;
 
 cINIstorage::cINIstorage(const cINIstorage& copy) : _path(copy._path), _filename(copy._filename),
   _ini(!copy._ini?0:new cStr(*copy._ini)), _logger(copy._logger), _root(0), _last(0)

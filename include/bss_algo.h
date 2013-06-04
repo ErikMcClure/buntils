@@ -6,6 +6,7 @@
 
 #include "bss_util.h"
 #include "bss_compare.h"
+#include "bss_sse.h"
 #include <algorithm>
 #include <random>
 
@@ -112,86 +113,119 @@ namespace bss_util {
   inline BSS_FORCEINLINE void transform(T (&t)[SIZE], F func) { std::transform(std::begin(t),std::end(t),t,func); }
   template<class F, typename T, size_t SIZE>
   inline BSS_FORCEINLINE void for_each(T (&t)[SIZE], F func) { std::for_each(std::begin(t),std::end(t),func); }
-
-  //template<class F, typename T>
-  //inline void for_all(const F& f, size_t size, T* t) { for(size_t i = 0; i<size; ++i) f(t[i]); }
-
-  //template<class F, typename T, size_t SIZE>
-  //inline void for_all(F&& f, T (&t)[SIZE]) { for_all<F,T>(f,SIZE,t); }
-  //
-  //template<class F, typename T, typename T2>
-  //inline void for_all(const F& f, size_t size, T* t1,  T2* t2) { for(size_t i = 0; i<size; ++i) f(t1[i],t2[i]); }
-
-  //template<class F, typename T, typename T2, size_t SIZE>
-  //inline void for_all(F&& f, T (&t1)[SIZE], T2 (&t2)[SIZE]) { for_all<F,T,T2>(f,SIZE,t1,t2); }
-
-  //template<class F, typename R, typename T>
-  //inline void for_all(R* r, const F& f, size_t size, T* t) { for(size_t i = 0; i<size; ++i) r[i]=f(t[i]); }
-
-  //template<class F, typename R, typename T, size_t SIZE>
-  //inline void for_all(R (&r)[SIZE], const F& f, T (&t)[SIZE]) { for_all<F,R,T>(r,f,SIZE,t); }
-  //
-  //template<class F, typename R, typename T, typename T2>
-  //inline void for_all(R* r, const F& f, size_t size, T* t1,  T2* t2) { for(size_t i = 0; i<size; ++i) r[i]=f(t1[i],t2[i]); }
-
-  //template<class F, typename R, typename T, typename T2, size_t SIZE>
-  //inline void for_all(R (&r)[SIZE], const F& f, T (&t1)[SIZE], T2 (&t2)[SIZE]) { for_all<F,R,T,T2>(r,f,SIZE,t1,t2); }
-
-  //template<class F, typename T>
-  //inline void for_all(const F& f, T& t) { auto it_end=std::end(t); for(auto it=std::begin(t); it != it_end; ++it) f(*it); }
   
-  //template<class F, typename T, typename T2>
-  //inline void for_all(const F& f, T& t1, T2& t2) { 
-  //  auto it1 = std::begin(t1); auto it2 = std::begin(t2); auto it1_end = std::end(t1); auto it2_end = std::end(t2);
-  //  while(it1 != it1_end && it2 != it2_end)
-  //    f(*(it1++),*(it2)++);
+  // Gets the squared distance between two n-dimensional points
+  template<typename T, int N>
+  inline T NVectDistSq(const T (&t1)[N], const T (&t2)[N])
+  {
+    T tp = t2[0]-t1[0];
+    T r = tp*tp;
+    for(int i = 1; i < N; ++i)
+    {
+      tp = t2[i]-t1[i];
+      r += tp*tp;
+    }
+    return r;
+  }
+
+  // Gets the distance between two n-dimensional points
+  template<typename T, int N>
+  inline T NVectDist(const T (&t1)[N], const T (&t2)[N])
+  {
+    return FastSqrt<T>(NVectDistSq<T,N>(t1,t2));
+  }
+
+  // Find the area of an n-dimensional triangle using Heron's formula
+  template<typename T, int N>
+  inline T NTriangleArea(const T (&x1)[N], const T (&x2)[N], const T (&x3)[N])
+  {
+    T a = NVectDist(x1,x2);
+    T b = NVectDist(x1,x3);
+    T c = NVectDist(x2,x3);
+    T s = (a+b+c)/((T)2);
+    return FastSqrt<T>(s*(s-a)*(s-b)*(s-c));
+  }
+
+  // n-dimensional dot product
+  template<typename T, int N>
+  inline T BSS_FASTCALL NDot(const T (&x1)[N], const T (&x2)[N])
+  {
+    T r=0.0f;
+    for(int i=0; i<N; ++i)
+      r+=(x1[i]*x2[i]);
+    return r;
+  }  
+  
+  // Applies an operator to two vectors
+  template<typename T, int N, T (*F)(T,T), sseVecT<T> (*sseF)(const sseVecT<T>&,const sseVecT<T>&)>
+  BSS_FORCEINLINE void BSS_FASTCALL NVectOp(const T (&x1)[N], const T (&x2)[N], T (&out)[N])
+  {
+    assert(((size_t)x1)%16==0);
+    assert(((size_t)x2)%16==0);
+    assert(((size_t)out)%16==0);
+    int low=(N/4)*4; // Gets number of SSE iterations we can do
+    int i;
+    for(i=0; i < low; i+=4)
+      BSS_SSE_STORE_APS(out+i,sseF(sseVecT<T>(BSS_SSE_LOAD_APS(x1+i)),sseVecT<T>(BSS_SSE_LOAD_APS(x2+i))));
+    for(;i<N;++i)
+      out[i]=F(x1[i],x2[i]);
+  }
+
+  // Applies an operator to a vector and a scalar
+  template<typename T, int N, T (*F)(T,T), sseVecT<T> (*sseF)(const sseVecT<T>&,const sseVecT<T>&)>
+  BSS_FORCEINLINE void BSS_FASTCALL NVectOp(const T (&x1)[N], T x2, T (&out)[N])
+  {
+    assert(((size_t)x1)%16==0);
+    assert(((size_t)out)%16==0);
+    int low=(N/4)*4; // Gets number of SSE iterations we can do
+    int i;
+    for(i=0; i < low; i+=4)
+      BSS_SSE_STORE_APS(out+i,sseF(sseVecT<T>(BSS_SSE_LOAD_APS(x1+i)),sseVecT<T>(x2)));
+    for(;i<N;++i)
+      out[i]=F(x1[i],x2);
+  }
+
+  template<typename T, typename R> BSS_FORCEINLINE R BSS_FASTCALL NVectFAdd(T a, T b) { return a+b; }
+  template<typename T, typename R> BSS_FORCEINLINE R BSS_FASTCALL NVectFSub(T a, T b) { return a-b; }
+  template<typename T, typename R> BSS_FORCEINLINE R BSS_FASTCALL NVectFMul(T a, T b) { return a*b; }
+  template<typename T, typename R> BSS_FORCEINLINE R BSS_FASTCALL NVectFDiv(T a, T b) { return a/b; }
+  template<typename T, int N> BSS_FORCEINLINE void BSS_FASTCALL NVectAdd(const T (&x1)[N], const T (&x2)[N], T (&out)[N]) 
+  { return NVectOp<T,N,NVectFAdd<T,T>,NVectFAdd<const sseVecT<T>&,sseVecT<T>>>(x1,x2,out); }
+  template<typename T, int N> BSS_FORCEINLINE void BSS_FASTCALL NVectAdd(const T (&x1)[N], T x2, T (&out)[N]) 
+  { return NVectOp<T,N,NVectFAdd<T,T>,NVectFAdd<const sseVecT<T>&,sseVecT<T>>>(x1,x2,out); }
+  template<typename T, int N> BSS_FORCEINLINE void BSS_FASTCALL NVectSub(const T (&x1)[N], const T (&x2)[N], T (&out)[N]) 
+  { return NVectOp<T,N,NVectFSub<T,T>,NVectFSub<const sseVecT<T>&,sseVecT<T>>>(x1,x2,out); }
+  template<typename T, int N> BSS_FORCEINLINE void BSS_FASTCALL NVectSub(const T (&x1)[N], T x2, T (&out)[N]) 
+  { return NVectOp<T,N,NVectFSub<T,T>,NVectFSub<const sseVecT<T>&,sseVecT<T>>>(x1,x2,out); }
+  template<typename T, int N> BSS_FORCEINLINE void BSS_FASTCALL NVectMul(const T (&x1)[N], const T (&x2)[N], T (&out)[N]) 
+  { return NVectOp<T,N,NVectFMul<T,T>,NVectFMul<const sseVecT<T>&,sseVecT<T>>>(x1,x2,out); }
+  template<typename T, int N> BSS_FORCEINLINE void BSS_FASTCALL NVectMul(const T (&x1)[N], T x2, T (&out)[N]) 
+  { return NVectOp<T,N,NVectFMul<T,T>,NVectFMul<const sseVecT<T>&,sseVecT<T>>>(x1,x2,out); }
+  template<typename T, int N> BSS_FORCEINLINE void BSS_FASTCALL NVectDiv(const T (&x1)[N], const T (&x2)[N], T (&out)[N]) 
+  { return NVectOp<T,N,NVectFDiv<T,T>,NVectFDiv<const sseVecT<T>&,sseVecT<T>>>(x1,x2,out); }
+  template<typename T, int N> BSS_FORCEINLINE void BSS_FASTCALL NVectDiv(const T (&x1)[N], T x2, T (&out)[N]) 
+  { return NVectOp<T,N,NVectFDiv<T,T>,NVectFDiv<const sseVecT<T>&,sseVecT<T>>>(x1,x2,out); }
+
+  // n-dimensional cross product
+  //template<typename T, int N=2>
+  //inline void BSS_FASTCALL NCross(const T (&x1)[N], const T (&x2)[N], T (&out)[N])
+  //{
+  //  for(int i=0; i < N; ++i)
+  //    for(int j=0; j < N; ++j)
+  //      out[j]+=
   //}
 
-  /*
-#ifdef __GNUC__
-  template<typename T> // Helper function in case args[i]... isn't valid.
-  inline T& i_forall_at(size_t i, T* arr) { return arr[i]; }
-
-  template<class F, typename ...Args>
-  inline void for_all(const F& f, size_t size, Args*... args) { for(size_t i = 0; i<size; ++i) std::bind<F,...Args>(f,i_forall_at(i,args)...)(); }
-
-  template<class F, size_t SIZE, typename ...Args>
-  inline void for_all(const F& f, Args (&args)[SIZE]...) { for_all(f,SIZE,args...); }
-
-  template<class F, typename R, typename ...Args>
-  inline void for_all(R* r, const F& f, size_t size, Args*... args) { for(size_t i = 0; i<size; ++i) r[i]=std::bind<F,...Args>(f,i_forall_at(i,args)...)(); }
-
-  template<class F, typename R, size_t SIZE, typename ...Args>
-  inline void for_all(R (&r)[SIZE], const F& f, Args (&args)[SIZE]...) { for_all(r,f,SIZE,args...); }
-#endif
-  */
-   /* if(!_length) return (ST_)(-1);
-    ST_ last=_length;
-    ST_ first=0;
-    ST_ retval=last>>1;
-    char compres;
-    for(;;) //we do not preform an equality check here because an equality will only occur once.
-    {
-      if((compres=CFunc(data,_array[retval]))<0)
-      {
-        last=retval;
-        retval=first+((last-first)>>1); //R = F+((L-F)/2)
-        if(last==retval)
-          return before?--retval:retval; //interestingly, if retval is 0, we end up with -1 which is exactly what we'd want anyway
-      }
-      else if(compres>0)
-      {
-        first=retval;
-        //retval=first+((last-first)>>1); //R = F+((L-F)/2)
-        retval+=(last-first)>>1;
-        if(first==retval)
-          return before?retval:++retval;
-      }
-      else //otherwise they are equal
-        return retval;
-    }
-    return retval;*/
-
+  // Finds the area between two n-dimensional discrete trajectories represented by a series of points
+  //template<typename T, int N>
+  //inline T CompareTrajectories(T (*t1)[N], int K1, T (*t2)[N], int K2)
+  //{
+  //  // Check first vertices of both trajectories to find the one that doesn't fall on the other.
+  //}
+  //template<typename T, int N, int K1, int K2>
+  //inline BSS_FORCEINLINE T CompareTrajectories(T t1[K1][N], T t2[K2][N])
+  //{
+  //  return CompareTrajectories<T,N>(t1,K1,t2,K2);
+  //}
 }
 
 #endif

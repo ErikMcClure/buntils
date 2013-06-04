@@ -7,7 +7,7 @@
 using namespace bss_util;
 
 cINIentry cINIsection::_entrysentinel;
-cFixedAlloc<cINIsection::_NODE> cINIsection::_alloc;
+cLocklessFixedAlloc<cINIsection::_NODE> cINIsection::_alloc;
 
 cINIsection::cINIsection(const cINIsection& copy) : _name(copy._name),_parent(copy._parent),_index(copy._index),_root(0),_last(0)
 {

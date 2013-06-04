@@ -8,7 +8,7 @@
 #include "cKhash.h"
 #include "cArraySimple.h"
 #include "LLBase.h"
-#include "bss_alloc_fixed.h"
+#include "bss_alloc_fixed_MT.h"
 
 namespace bss_util {
   class cINIstorage;
@@ -65,7 +65,7 @@ namespace bss_util {
     void _copy(const cINIsection& copy);
 
     static cINIentry _entrysentinel;
-    static cFixedAlloc<_NODE> _alloc;
+    static cLocklessFixedAlloc<_NODE> _alloc;
 
     cStr _name;
     unsigned int _index;

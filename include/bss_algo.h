@@ -157,7 +157,7 @@ namespace bss_util {
   }  
   
   // Applies an operator to two vectors
-  template<typename T, int N, T (*F)(T,T), sseVecT<T> (*sseF)(const sseVecT<T>&,const sseVecT<T>&)>
+  template<typename T, int N, T (BSS_FASTCALL *F)(T,T), sseVecT<T> (BSS_FASTCALL *sseF)(const sseVecT<T>&,const sseVecT<T>&)>
   BSS_FORCEINLINE void BSS_FASTCALL NVectOp(const T (&x1)[N], const T (&x2)[N], T (&out)[N])
   {
     assert(((size_t)x1)%16==0);
@@ -172,7 +172,7 @@ namespace bss_util {
   }
 
   // Applies an operator to a vector and a scalar
-  template<typename T, int N, T (*F)(T,T), sseVecT<T> (*sseF)(const sseVecT<T>&,const sseVecT<T>&)>
+  template<typename T, int N, T (BSS_FASTCALL *F)(T,T), sseVecT<T> (BSS_FASTCALL *sseF)(const sseVecT<T>&,const sseVecT<T>&)>
   BSS_FORCEINLINE void BSS_FASTCALL NVectOp(const T (&x1)[N], T x2, T (&out)[N])
   {
     assert(((size_t)x1)%16==0);

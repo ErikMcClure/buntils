@@ -26,7 +26,7 @@
 #include "cHolder.h"
 #include "cINIstorage.h"
 #include "cKhash.h"
-#include "cLambdaStack.h"
+#include "trajectory.h"
 #include "cLinkedArray.h"
 #include "cLinkedList.h"
 #include "cLocklessQueue.h"
@@ -58,6 +58,7 @@
 #include <float.h> // FLT_EPSILON, etc. on GCC
 #include <iostream>
 #include <sstream>
+#include <functional>
 
 #ifdef BSS_PLATFORM_WIN32
 //#include "bss_win32_includes.h"
@@ -107,6 +108,9 @@ struct TESTDEF
 #define TESTALL(t,f) _ITERALL(__testret,t,[&](uint i) -> bool { f });
 #define TESTCOUNT(c,t) { for(uint i = 0; i < c; ++i) TEST(t) }
 #define TESTCOUNTALL(c,t) { bool __val=true; for(uint i = 0; i < c; ++i) __val=__val&&(t); TEST(__val); }
+#define TESTFOUR(s,a,b,c,d) TEST(((s)[0]==(a)) && ((s)[1]==(b)) && ((s)[2]==(c)) && ((s)[3]==(d)))
+#define TESTALLFOUR(s,a) TEST(((s)[0]==(a)) && ((s)[1]==(a)) && ((s)[2]==(a)) && ((s)[3]==(a)))
+#define TESTRELFOUR(s,a,b,c,d) TEST(fcompare((s)[0],(a)) && fcompare((s)[1],(b)) && fcompare((s)[2],(c)) && fcompare((s)[3],(d)))
 
 template<class T, size_t SIZE, class F>
 void _ITERFUNC(TESTDEF::RETPAIR& __testret, T (&t)[SIZE], F f) { for(uint i = 0; i < SIZE; ++i) TEST(f(i)) }
@@ -728,6 +732,36 @@ TESTDEF::RETPAIR test_bss_algo()
   shuffle(a);
   TEST(a[0]!=-5);
   TEST(a[14]!=35);
+
+  BSS_ALIGN(16) float v[4]={2,-3,4,-5};
+  BSS_ALIGN(16) float u[4]={1,-2,-1,2};
+  BSS_ALIGN(16) float w[4]={0,0,0,0};
+  TEST(fcompare(NVectDistSq(v,w),54.0f));
+  TEST(fcompare(NVectDist(v,w),7.34846922835f));
+  TEST(fcompare(NVectDist(u,v),NVectDist(v,u)));
+  TEST(fcompare(NVectDist(u,v),8.717797887f));
+  TEST(fcompare(NTriangleArea(v,u,w),11.22497216f,100));
+  TEST(fcompare(NTriangleArea(u,v,w),11.22497216f,100));
+  TEST(fsmall(NDot(u,w)));
+  TEST(fcompare(NDot(u,v),-6.0f));
+  NVectAdd(v,w,w);
+  TESTFOUR(w,v[0],v[1],v[2],v[3]);
+  NVectAdd(v,3.0f,w);
+  TESTFOUR(w,5,0,7,-2);
+  NVectAdd(v,u,w);
+  TESTRELFOUR(w,3,-5,3,-3);
+  NVectSub(v,3.0f,w);
+  TESTRELFOUR(w,-1,-6,1,-8);
+  NVectSub(v,u,w);
+  TESTRELFOUR(w,1,-1,5,-7);
+  NVectMul(v,2.5f,w);
+  TESTRELFOUR(w,5,-7.5f,10,-12.5f);
+  NVectMul(v,u,w);
+  TESTRELFOUR(w,2,6,-4,-10);
+  NVectDiv(v,2.5f,w);
+  TESTRELFOUR(w,0.8f,-1.2f,1.6f,-2);
+  NVectDiv(v,u,w);
+  TESTRELFOUR(w,2,1.5f,-4,-2.5f);
   ENDTEST;
 }
 
@@ -1019,10 +1053,6 @@ inline static unsigned int Interpolate(unsigned int l, unsigned int r, float c)
   xr = _mm_castps_si128(_mm_movehl_ps(_mm_castsi128_ps(xr),_mm_castsi128_ps(xl))); // Move upper 2 ints to bottom 2 ints in xr so xr = (d,c,d|a,c|b)
   return (unsigned int)_mm_cvtsi128_si32(xl|xr); // Now OR them again so we get (d|a,c|b,b|c | d|a,a|d | c|b), then store the bottom 32-bit integer. What kind of fucked up name is _mm_cvtsi128_si32 anyway?
 }
-
-#define TESTFOUR(s,a,b,c,d) TEST(((s)[0]==(a)) && ((s)[1]==(b)) && ((s)[2]==(c)) && ((s)[3]==(d)))
-#define TESTALLFOUR(s,a) TEST(((s)[0]==(a)) && ((s)[1]==(a)) && ((s)[2]==(a)) && ((s)[3]==(a)))
-#define TESTRELFOUR(s,a,b,c,d) TEST(fcompare((s)[0],(a)) && fcompare((s)[1],(b)) && fcompare((s)[2],(c)) && fcompare((s)[3],(d)))
 
 static unsigned int flttoint(const float (&ch)[4])
 {
@@ -1987,21 +2017,6 @@ TESTDEF::RETPAIR test_KHASH()
   ENDTEST;
 }
 
-TESTDEF::RETPAIR test_LAMBDASTACK()
-{
-  BEGINTEST;
-  cLambdaStack<void(void)> ls;
-  auto l = [&](){ ls.Clear(); };
-  std::function<void(void)> lf(l);
-  ls.DeferLambda([&](){ ls.Clear(); });
-  ls.DeferLambda(l);
-  ls.DeferLambda(lf);
-  ls.DeferLambda(std::function<void(void)>(l));
-  ls.DeferLambda(&SetWorkDirToCur);
-
-  ENDTEST;
-}
-
 TESTDEF::RETPAIR test_LINKEDARRAY()
 {
   BEGINTEST;
@@ -2870,7 +2885,6 @@ int main(int argc, char** argv)
     { "cINIstorage.h", &test_INISTORAGE },
     //{ "cIntervalTree.h", &test_INTERVALTREE },
     { "cKhash.h", &test_KHASH },
-    { "cLambdaStack.h", &test_LAMBDASTACK },
     { "cLinkedArray.h", &test_LINKEDARRAY },
     { "cLinkedList.h", &test_LINKEDLIST },
     { "lockless.h", &test_LOCKLESS },

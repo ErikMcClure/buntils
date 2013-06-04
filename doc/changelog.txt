@@ -22,6 +22,7 @@
 - Added bssGetCPUInfo()
 - Took QNode out of cLocklessQueue and renamed cLQ_QNode
 - Made the cINIstorage static fixed allocators threadsafe
+- Added n-dimensional vector operations to bss_algo.h
 
 0.4
 ------

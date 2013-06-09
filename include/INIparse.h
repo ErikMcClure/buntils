@@ -4,7 +4,7 @@
 #ifndef __INIPARSE_H__BSS__
 #define __INIPARSE_H__BSS__
 
-#include "bss_dlldef.h"
+#include "bss_defines.h"
 #include <wchar.h>
 #include <stdio.h>
 

@@ -8,7 +8,6 @@
 #include "cMap.h"
 #include "cDynArray.h"
 #include "cBitField.h"
-#include "bss_dlldef.h"
 
 namespace bss_util {
   struct DEF_ANIMATION;

@@ -4,7 +4,7 @@
 #ifndef __C_HIGHPRECISIONTIMER_H__BSS__
 #define __C_HIGHPRECISIONTIMER_H__BSS__
 
-#include "bss_dlldef.h"
+#include "bss_defines.h"
 #ifndef BSS_PLATFORM_WIN32
 #include <time.h>
 #endif

@@ -5,7 +5,6 @@
 #define __C_INIENTRY_H__BSS__
 
 #include "cStr.h"
-#include "bss_dlldef.h"
 
 namespace bss_util {
   // Stores an INI entry and allows it to be accessed via multiple type translations

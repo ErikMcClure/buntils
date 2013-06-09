@@ -5,7 +5,6 @@
 #define __C_OBJSWAP_H__BSS__
 
 #include "bss_deprecated.h"
-#include "bss_dlldef.h"
 #include "bss_compare.h"
 #include <string.h>
 #ifdef BSS_COMPILER_MSC

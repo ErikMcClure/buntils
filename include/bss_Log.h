@@ -6,7 +6,6 @@
 
 #include <ostream>
 #include <vector>
-#include "bss_dlldef.h"
 #include "bss_util.h"
 
 #define BSSLOG(logger,level) ((logger).FORMATLOG<level>(__FILE__,__LINE__))

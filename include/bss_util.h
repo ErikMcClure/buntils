@@ -14,12 +14,10 @@
    limitations under the License.
 */
 
-
 #ifndef __BSS_UTIL_H__
 #define __BSS_UTIL_H__
 
 #include "bss_util_c.h"
-#include "bss_defines.h"
 #include <assert.h>
 #include <math.h>
 #include <memory>

@@ -4,7 +4,7 @@
 #ifndef __C_THREAD_H__BSS__
 #define __C_THREAD_H__BSS__
 
-#include "bss_dlldef.h"
+#include "bss_defines.h"
 #ifdef BSS_PLATFORM_WIN32
 #include "bss_win32_includes.h"
 #include <process.h>
@@ -113,6 +113,7 @@ namespace bss_util {
     {
 #ifdef BSS_PLATFORM_WIN32
       _id=_beginthreadex(0,0,f,arg,0,0);
+      if(!_id) _id=(size_t)-1; // WHAT FUCKING MANIAC LET _beginthreadex RETURN 0 ON HALF ITS ERRORS?! 0 ISN'T EVEN THE INVALID HANDLE VALUE!
 #else // BSS_PLATFORM_POSIX
       if(pthread_create(&_id,0,f,arg)!=0)
         _id=(size_t)-1;

@@ -53,7 +53,6 @@
     <ClInclude Include="..\include\bss_DebugInfo.h" />
     <ClInclude Include="..\include\bss_defines.h" />
     <ClInclude Include="..\include\bss_deprecated.h" />
-    <ClInclude Include="..\include\bss_dlldef.h" />
     <ClInclude Include="..\include\bss_dual.h" />
     <ClInclude Include="..\include\bss_fixedpt.h" />
     <ClInclude Include="..\include\bss_literals.h" />

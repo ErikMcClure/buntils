@@ -5,7 +5,7 @@
 #define __C_CMDLINEARGS_H__BSS__
 
 #include <vector>
-#include "bss_dlldef.h"
+#include "bss_defines.h"
 
 // Either stores the standard argc/argv command lines in an array, or (if they are null), parses the win32 command line into tokens
 class BSS_DLLEXPORT cCmdLineArgs

@@ -23,6 +23,7 @@
 - Took QNode out of cLocklessQueue and renamed cLQ_QNode
 - Made the cINIstorage static fixed allocators threadsafe
 - Added n-dimensional vector operations to bss_algo.h
+- cThread now deals with the face that _beginthreadex can return either 0 or -1 on failure because someone at microsoft needs to be fired.
 
 0.4
 ------

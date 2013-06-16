@@ -27,7 +27,6 @@ namespace bss_util {
 		virtual ~AniAttribute() {}
 		inline virtual bool Interpolate(double timepassed)=0;
 		inline virtual void Start()=0;
-    inline virtual void Finish()=0; //Ensures the source is set to the final value
 		inline virtual double Length()=0;
 		inline virtual AniAttribute* BSS_FASTCALL Clone() const { return 0; }
     inline virtual void BSS_FASTCALL CopyAnimation(AniAttribute* ptr)=0;
@@ -38,12 +37,12 @@ namespace bss_util {
   
   // This is a static allocator that redirects all dynamic array allocations to the static functions in cAbstractAnim
   template<typename T>
-  struct AniStaticAlloc : StaticAllocPolicy<T,void>
+  struct AniStaticAlloc : AllocPolicySize<T>
   {
-    typedef typename StaticAllocPolicy<T,void>::pointer pointer;
-    inline static pointer allocate(std::size_t cnt, typename std::allocator<void>::const_pointer = 0) { return reinterpret_cast<pointer>(cAbstractAnim::AnimAlloc(cnt)); }
+    typedef typename AllocPolicySize<T>::pointer pointer;
+    inline static pointer allocate(std::size_t cnt, typename std::allocator<void>::const_pointer = 0) { return reinterpret_cast<pointer>(cAbstractAnim::AnimAlloc(cnt*sizeof(T))); }
     inline static void deallocate(pointer p, std::size_t = 0) { cAbstractAnim::AnimFree(p); }
-    inline static pointer reallocate(pointer p, std::size_t cnt) { return reinterpret_cast<pointer>(cAbstractAnim::AnimAlloc(cnt,p)); }
+    inline static pointer reallocate(pointer p, std::size_t cnt) { return reinterpret_cast<pointer>(cAbstractAnim::AnimAlloc(cnt*sizeof(T),p)); }
   };
 
   template<unsigned char TypeID, typename T> struct ANI_ATTR__SAFE__ { typedef cArrayWrap<cArraySafe<KeyFrame<TypeID>,AniAttribute::IDTYPE,AniStaticAlloc<KeyFrame<TypeID>>>> TVT_ARRAY; };
@@ -112,7 +111,6 @@ namespace bss_util {
     IDTYPE _curpair;
     bool _initzero;
   };
-
   
   // Fully generic attribute accepting any value that can be called as a function (seperated out to prevent it from calling floats as functions)
   template<unsigned char TypeID>
@@ -133,16 +131,16 @@ namespace bss_util {
         //if(timehold>0.0) //Time 0.0 was already applied, but _curpair starts at 1.
           _timevalues[_curpair++].value(); //You have to call ALL events even if you missed some because you don't know which ones do what
       
-      if(_curpair>=svar) { Finish(); return false; } //Resolve the animation
+      if(_curpair>=svar) 
+      { //Resolve the animation
+        IDTYPE svar=_timevalues.Size();
+        while(_curpair<svar)
+          _timevalues[_curpair++].value();
+        return false;
+      }
 			return true;
     }
     inline virtual void Start() { _curpair=1; if(_initzero) _timevalues[0].value(); }
-    inline virtual void Finish()
-    { 
-      IDTYPE svar=_timevalues.Size();
-      while(_curpair<svar)
-        _timevalues[_curpair++].value();
-    }
 		inline virtual AniAttribute* BSS_FASTCALL Clone() const { return new AniAttributeGeneric(*this); }
 		inline AniAttributeGeneric& operator=(const AniAttributeGeneric& right)
 		{
@@ -169,12 +167,11 @@ namespace bss_util {
     {
       IDTYPE svar=_timevalues.Size();
       while(_curpair<svar && _timevalues[_curpair].time < timepassed) ++_curpair;
-      if(_curpair>=svar) { Finish(); return false; } //Resolve the animation
+      if(_curpair>=svar) { if(_timevalues.Size()>1 || _initzero) _del(_timevalues.Back().value); return false; } //Resolve the animation
       _del(_timevalues[_curpair].value);
 			return true;
     }
     inline virtual void Start() { _curpair=1; if(_initzero) _del(_timevalues[0].value); }
-    inline virtual void Finish() { if(_timevalues.Size()>1 || _initzero) _del(_timevalues.Back().value); }
 		inline virtual AniAttribute* BSS_FASTCALL Clone() const { return new AniAttributeDiscrete(*this); }
     inline virtual void BSS_FASTCALL CopyAnimation(AniAttribute* ptr) { operator=(*static_cast<AniAttributeDiscrete*>(ptr)); }
     inline AniAttributeDiscrete& operator=(const AniAttributeDiscrete& right) { AniAttributeT<TypeID>::operator=(right); return *this; }
@@ -202,12 +199,17 @@ namespace bss_util {
     {
       IDTYPE svar=_timevalues.Size();
       while(_curpair<svar && _timevalues[_curpair].time<timepassed) ++_curpair;
-      if(_curpair>=svar) { Finish(); return false; } //Resolve the animation
+      if(_curpair>=svar) 
+      { //Resolve the animation
+        IDTYPE svar=_timevalues.Size();
+        if(svar>1 || _initzero)
+          _setval(_func(_timevalues,svar,AniAttributeDiscrete<TypeID>::Length()));
+        return false; 
+      } 
       _setval(_func(_timevalues,_curpair,timepassed));
 			return true;
     }
     inline virtual void Start() { _curpair=1; if(_pval) _initval=*_pval; if(_initzero) _setval(_func(_timevalues,_curpair,0.0)); }
-    inline virtual void Finish() { IDTYPE svar=_timevalues.Size(); if(svar>1 || _initzero) _setval(_func(_timevalues,svar,AniAttributeDiscrete<TypeID>::Length())); }
 		inline virtual AniAttribute* BSS_FASTCALL Clone() const { return new AniAttributeDiscrete<TypeID>(*this); }
     inline virtual void BSS_FASTCALL CopyAnimation(AniAttribute* ptr) { operator=(*static_cast<AniAttributeSmooth*>(ptr)); }
     inline virtual bool SetRelative(bool relative) { _rel=relative; return true; }

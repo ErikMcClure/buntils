@@ -1730,6 +1730,29 @@ TESTDEF::RETPAIR test_DYNARRAY()
   TEST(z[11]==9);
   TEST(z[12]==10);
   TEST(z[13]==11);
+
+  cArbitraryArray<unsigned int> u(0);
+  int ua[5] = { 1,2,3,4,5 };
+  u.SetElement(ua);
+  u.Get<int>(0)=1;
+  u.Get<int>(1)=2;
+  u.Get<int>(2)=3;
+  u.Get<int>(3)=4;
+  u.Get<int>(4)=5;
+  u.Add(6);
+  TEST(u.Get<int>(5)==6);
+  u.Add(7);
+  TEST(u.Get<int>(5)==6);
+  TEST(u.Get<int>(6)==7);
+  u.Add(8);
+  TEST(u.Get<int>(7)==8);
+  u.Remove(5);
+  TEST(u.Get<int>(5)==7);
+  TEST(u.Get<int>(6)==8);
+  u.SetElement(7);
+  TEST(u.Get<int>(5)==7);
+  TEST(u.Get<int>(6)==8);
+
   ENDTEST;
 }
 

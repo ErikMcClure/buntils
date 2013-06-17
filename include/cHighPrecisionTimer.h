@@ -21,6 +21,8 @@ namespace bss_util
     double BSS_FASTCALL Update();
     // Resamples the timer, but warps the resulting increment by the timewarp argument
     double BSS_FASTCALL Update(double timewarp);
+    // Updates the timer to prime it for the next update, but overrides the delta for this tick with a custom value.
+    void BSS_FASTCALL Override(double delta);
     // Gets the difference between the last call to Update() and the one before it. Does NOT resample the timer.
     inline double BSS_FASTCALL GetDelta() const { return _delta; }
     // Gets the current time that has elapsed since the creation of the timer, or a call to ResetTime.

@@ -23,7 +23,6 @@
 #include "cDef.h"
 #include "cDynArray.h"
 #include "cDisjointSet.h"
-#include "cHolder.h"
 #include "cINIstorage.h"
 #include "cKhash.h"
 #include "trajectory.h"
@@ -38,6 +37,7 @@
 #include "cRefCounter.h"
 //#include "cSettings.h"
 #include "cAnimation.h"
+#include "cScheduler.h"
 #include "cSingleton.h"
 #include "cSparseArray.h"
 #include "cStr.h"
@@ -1781,9 +1781,20 @@ TESTDEF::RETPAIR test_HIGHPRECISIONTIMER()
   ENDTEST;
 }
 
-TESTDEF::RETPAIR test_HOLDER()
+TESTDEF::RETPAIR test_SCHEDULER()
 {
   BEGINTEST;
+  bool ret[3]={false,false,true};
+  cScheduler<std::function<double()>> s;
+  s.Add(0.0,[&]()->double { ret[0]=true; return 0.0; });
+  s.Add(0.0,[&]()->double { ret[1]=true; return 10000000.0; });
+  s.Add(10000000.0,[&]()->double { ret[2]=false; return 0.0; });
+  TEST(s.Length()==3);
+  s.Update();
+  TEST(ret[0]);
+  TEST(ret[1]);
+  TEST(ret[2]);
+  TEST(s.Length()==2);
   ENDTEST;
 }
 
@@ -2903,7 +2914,7 @@ int main(int argc, char** argv)
     { "cDynArray.h", &test_DYNARRAY },
     { "cDisjointSet.h", &test_DISJOINTSET },
     { "cHighPrecisionTimer.h", &test_HIGHPRECISIONTIMER },
-    //{ "cHolder.h", &test_HOLDER },
+    { "cScheduler.h", &test_SCHEDULER },
     //{ "INIparse.h", &test_INIPARSE },
     { "cINIstorage.h", &test_INISTORAGE },
     //{ "cIntervalTree.h", &test_INTERVALTREE },

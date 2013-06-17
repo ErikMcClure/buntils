@@ -37,8 +37,8 @@ namespace bss_util {
     inline void Insert(const T& val) { _insert(val); }
     inline void Insert(T&& val) { _insert(std::move(val)); }
     // Sets a key and percolates
-    inline bool Set(ST_ index, const T& val) { _set(index, val); }
-    inline bool Set(ST_ index, T&& val) { _set(index,std::move(val)); }
+    inline bool Set(ST_ index, const T& val) { return _set(index, val); }
+    inline bool Set(ST_ index, T&& val) { return _set(index,std::move(val)); }
     // To remove a node, we replace it with the last item in the heap and then percolate down
     inline bool Remove(ST_ index)
     {

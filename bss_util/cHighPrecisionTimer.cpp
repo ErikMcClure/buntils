@@ -52,6 +52,12 @@ double cHighPrecisionTimer::Update(double timewarp)
   _time += _delta;
   return _delta;
 }
+void cHighPrecisionTimer::Override(double delta)
+{
+  _querytime(&_curTime);
+  _delta=delta;
+  _time += _delta;
+}
 
 #ifdef BSS_PLATFORM_WIN32
 void cHighPrecisionTimer::_querytime(unsigned __int64* _pval)

@@ -108,9 +108,6 @@
     <ClInclude Include="..\include\cHighPrecisionTimer.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="..\include\cHolder.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
     <ClInclude Include="..\include\cINIstorage.h">
       <Filter>Header Files</Filter>
     </ClInclude>
@@ -220,6 +217,9 @@
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="..\include\bss_alloc_fixed_MT.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="..\include\cScheduler.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>

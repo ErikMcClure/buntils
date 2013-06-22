@@ -248,6 +248,7 @@ namespace bss_util {
   template<class Key, class Data, char (*CFunc)(const Key&, const Key&)=CompT<Key>, typename Alloc=Allocator<AVL_Node<Key,Data>>>
 	class BSS_COMPILER_DLLEXPORT cAVLtree : public _AVL_TREE_DATAFIELD<Key,Data,CFunc,Alloc>
   {
+  protected:
     typedef AVL_Node<Key,Data> AVLNode;
     using _AVL_TREE_DATAFIELD<Key,Data,CFunc,Alloc>::_root;
 

@@ -24,6 +24,7 @@ namespace bss_util {
   template<typename K=char, typename T=void*, bool ismap=true>
   class BSS_COMPILER_DLLEXPORT cKhash_StringTInsConstruct : public cKhash_StringTIns<K,T,ismap>
   {
+  protected:
     typedef typename cKhash_StringTIns<K,T,ismap>::KHKEY KHKEY;
     typedef typename cKhash_StringTIns<K,T,ismap>::KHVAL KHVAL;
     using cKhash_StringTIns<K,T,ismap>::_h;
@@ -67,16 +68,16 @@ namespace bss_util {
   inline static typename cSetting<I,N>::TYPE& Setting() { return cSetting<I,N>::v; }
 
 #ifdef INSTANTIATE_SETTINGS //Declare this in a CPP file that includes all DECL_SETTINGs used in your project to instantiate them
-#define i_INST_SET_(I,N,T,INIT,NAME,CMD) T cSetting<I,N>::v=INIT; \
-  AddToSettingHash cSetting<I,N>::_shashinit(CMD,[](cCmdLineArgs& rcmd, unsigned int& ind) -> void { cSetting_CMDLOAD<T,char>::CmdLoad(rcmd,cSetting<I,N>::v,ind); })
+#define i_INST_SET_(I,N,T,INIT,NAME,CMD) T bss_util::cSetting<I,N>::v=INIT; \
+  bss_util::AddToSettingHash bss_util::cSetting<I,N>::_shashinit(CMD,[](cCmdLineArgs& rcmd, unsigned int& ind) -> void { bss_util::cSetting_CMDLOAD<T,char>::CmdLoad(rcmd,bss_util::cSetting<I,N>::v,ind); })
 #else
 #define i_INST_SET_(I,N,T,INIT,NAME,CMD) 
 #endif
 
   // Main #define for declaring a setting. NAME and CMD can both be set to 0 if INIs and command line parsing, respectively, are not needed.
-#define DECL_SETTING(I,N,T,INIT,NAME,CMD) namespace bss_util { template<> class cSetting<I,N> { public: typedef T TYPE; static T v; \
+#define DECL_SETTING(I,N,T,INIT,NAME,CMD) template<> class bss_util::cSetting<I,N> { public: typedef T TYPE; static T v; \
   inline static const char* name() { return NAME; } inline static const char* cmd() { return CMD; } \
-  static AddToSettingHash _shashinit; }; i_INST_SET_(I,N,T,INIT,NAME,CMD); }
+  static bss_util::AddToSettingHash _shashinit; }; i_INST_SET_(I,N,T,INIT,NAME,CMD);
 
   /* Main #define for declaring a group of settings. Note that the optional NAME parameter is for INI loading and determines the section
      name of the settings. MAX is the maximum number of settings in this group, but unless you are using LoadAllFromINI, it is optional. */

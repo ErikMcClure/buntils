@@ -109,6 +109,7 @@ namespace bss_util {
   template<typename T, typename Alloc=Allocator<cLLNode<T>>, bool useLast=false, bool useSize=false>
   class BSS_COMPILER_DLLEXPORT cLinkedList : protected cAllocTracker<Alloc>, public cLList_SIZE<useSize>, public cLList_LAST<T,useLast>
   {
+  protected:
     using cLList_LAST<T,useLast>::_root;
     using cLList_LAST<T,useLast>::_add;
     using cLList_LAST<T,useLast>::_remove;
@@ -203,7 +204,13 @@ namespace bss_util {
         Add(cur->item);
       return *this;
     }
-
+    inline const cLinkedList operator +(const cLinkedList& add) const
+    {
+      cLinkedList r(*this);
+      r+=add;
+      return r;
+    }
+    
   protected:
     inline cLLNode<T>* BSS_FASTCALL _createnode(T _item, cLLNode<T>* _prev=0, cLLNode<T>* _next=0)
     {

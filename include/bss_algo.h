@@ -226,6 +226,237 @@ namespace bss_util {
   //{
   //  return CompareTrajectories<T,N>(t1,K1,t2,K2);
   //}
+
+  static const double ZIGNOR_R = 3.442619855899;
+
+  // Instance for generating random samples from a normal distribution.
+  template<int ZIGNOR_C=128,typename T=double>
+  struct NormalZig
+  {
+    T s_adZigX[ZIGNOR_C + 1], s_adZigR[ZIGNOR_C];
+
+    NormalZig(int iC=ZIGNOR_C, T dV=9.91256303526217e-3, T dR=ZIGNOR_R) // (R * phi(R) + Pr(X>=R)) * sqrt(2\pi)
+    {
+      int i; T f;
+      f = exp(T(-0.5) * (dR * dR));
+      s_adZigX[0] = dV / f; /* [0] is bottom block: V / f(R) */
+      s_adZigX[1] = dR;
+      s_adZigX[iC] = 0;
+      for (i = 2; i < iC; ++i)
+      {
+        s_adZigX[i] = sqrt(-2 * log(dV / s_adZigX[i - 1] + f));
+        f = exp(T(-0.5) * (s_adZigX[i] * s_adZigX[i]));
+      }
+      for (i = 0; i < iC; ++i)
+        s_adZigR[i] = s_adZigX[i + 1] / s_adZigX[i];
+    }
+
+    static T DRanNormalTail(T dMin, int iNegative)
+    {
+      T x, y;
+      do
+      { 
+        x = log(RANDFLOATGEN(0,1.0)) / dMin;
+        y = log(RANDFLOATGEN(0,1.0));
+      } while (-2 * y < x * x);
+      return iNegative ? x - dMin : dMin - x;
+    }
+
+    // Returns a random normally distributed number using the ziggurat method
+    T Get() const
+    {
+      unsigned int i;
+      T x, u, f0, f1;
+      for (;;)
+      {
+        u = 2 * RANDFLOATGEN(0,1.0) - 1;
+        i = ((unsigned int)rand()) & 0x7F;
+        /* first try the rectangular boxes */
+        if (fabs(u) < s_adZigR[i])
+          return u * s_adZigX[i];
+        /* bottom box: sample from the tail */
+        if (i == 0)
+          return DRanNormalTail(ZIGNOR_R, u < 0);
+        /* is this a sample from the wedges? */
+        x = u * s_adZigX[i];
+        f0 = exp(T(-0.5) * (s_adZigX[i] * s_adZigX[i] - x * x) );
+        f1 = exp(T(-0.5) * (s_adZigX[i+1] * s_adZigX[i+1] - x * x) );
+        if (f1 + RANDFLOATGEN(0,1.0) * (f0 - f1) < 1.0)
+          return x;
+      }
+    }
+
+    T operator()() const { return Get(); }
+  };
+
+  // Randomly subdivides a rectangular area into smaller rects of varying size. F1 takes (depth,rect) and returns how likely it is that a branch will terminate.
+  template<typename T, typename F1, typename F2, typename F3> // F2 takes (const float (&rect)[4]) and is called when a branch terminates on a rect.
+  void StochasticSubdivider(const T (&rect)[4], const F1& f1, const F2& f2, const F3& f3, unsigned int depth=0) // F3 returns a random number from [0,1]
+  {
+    if(RANDFLOATGEN(0,1.0)<f1(depth,rect))
+    {
+      f2(rect);
+      return;
+    }
+    unsigned char axis=depth%2;
+    T div=lerp(rect[axis],rect[2+axis],f3(depth,rect));
+    T r1[4] = { rect[0],rect[1],rect[2],rect[3] };
+    T r2[4] = { rect[0],rect[1],rect[2],rect[3] };
+    r1[axis]=div;
+    r2[2+axis]=div;
+    StochasticSubdivider(r1,f1,f2,f3,++depth);
+    StochasticSubdivider(r2,f1,f2,f3,depth);
+  }
+
+  /*
+  // Implementation of Fast Poisson Disk Sampling by Robert Bridson
+  template<typename T>
+  std::unique_ptr<T[]> PoissonDiskSample(T (&rect)[4], T mindist, int pointsPerIteration=30)
+  {
+    //Create the grid
+    cellSize = min_dist/sqrt(2);
+    T w = rect[2]-rect[0];
+    T h = rect[3]-rect[1];
+    grid = Grid2D(Point(
+      (ceil(w/cell_size),         //grid width
+      ceil(h/cell_size))));      //grid height
+
+    //RandomQueue works like a queue, except that it
+    //pops a random element from the queue instead of
+    //the element at the head of the queue
+    processList = RandomQueue();
+    int len = (1+(int)(w/mindist)) * (1+(int)(h/mindist));
+    std::unique_ptr<float[]> ret(new float[len]);
+    int count=0;
+
+    float pt[2] = { RANDFLOATGEN(rect[0],rect[2]), RANDFLOATGEN(rect[1],rect[3]) };
+
+    //update containers
+    processList.push(firstPoint);
+    ret[count]=pt[0];
+    ret[++count]=pt[1];
+    grid[imageToGrid(firstPoint, cellSize)] = firstPoint;
+
+    //generate other points from points in queue.
+    while (not processList.empty())
+    {
+      point = processList.pop();
+      for (i = 0; i < new_points_count; i++)
+      {
+        newPoint = generateRandomPointAround(point, min_dist);
+        //check that the point is in the image region
+        //and no points exists in the point's neighbourhood
+        if (inRectangle(newPoint) and
+          not inNeighbourhood(grid, newPoint, min_dist,
+            cellSize))
+        {
+          //update containers
+          processList.push(newPoint);
+          samplePoints.push(newPoint);
+          grid[imageToGrid(newPoint, cellSize)] =  newPoint;
+        }
+      }
+    }
+    return ret;
+  }
+    static void BSS_FASTCALL Sample(float (&rect)[4], float mindist, int pointsPerIteration=30)
+	  {
+      Settings settings =  { rect, { rect[2]-rect[0],rect[3]-rect[1] }, { (rect[2]-rect[0])*0.5f,(rect[3]-rect[1])*0.5f },
+        mindist, mindist/SQRT_TWO, 0, 0, 0 };
+      settings.gwidth = (int) (settings.dim[0] / settings.cellsz) + 1;
+      settings.gheight = (int) (settings.dim[1] / settings.cellsz) + 1;
+      settings.grid = new float[settings.gwidth*settings.gheight][2];
+      
+		  AddFirstPoint(settings);
+
+      while (state.ActivePoints.Count != 0)
+		  {
+        var listIndex = RandomHelper.Random.Next(state.ActivePoints.Count);
+
+        var point = state.ActivePoints[listIndex];
+        var found = false;
+
+        for (var k = 0; k < pointsPerIteration; k++)
+          found |= AddNextPoint(point, ref settings, ref state);
+
+        if (!found)
+          state.ActivePoints.RemoveAt(listIndex);
+		  }
+
+		  return state.Points;
+	  }
+
+    inline static void BSS_FASTCALL AddFirstPoint(Settings& settings)
+    {
+        var added = false;
+        while (!added)
+        {
+            var d = RandomHelper.Random.NextDouble();
+            var xr = settings.TopLeft.X + settings.Dimensions.X * d;
+
+            d = RandomHelper.Random.NextDouble();
+            var yr = settings.TopLeft.Y + settings.Dimensions.Y * d;
+
+            var p = new Vector2((float) xr, (float) yr);
+                continue;
+            added = true;
+
+            var index = Denormalize(p, settings.TopLeft, settings.CellSize);
+
+            state.Grid[(int) index.X, (int) index.Y] = p;
+
+            state.ActivePoints.Add(p);
+            state.Points.Add(p);
+        } 
+    }
+
+    inline static bool BSS_FASTCALL AddNextPoint(Vector2 point, ref Settings settings, ref State state)
+	  {
+		  var found = false;
+          var q = GenerateRandomAround(point, settings.MinimumDistance);
+
+          if (q.X >= settings.TopLeft.X && q.X < settings.LowerRight.X && 
+              q.Y > settings.TopLeft.Y && q.Y < settings.LowerRight.Y &&
+		  {
+              var qIndex = Denormalize(q, settings.TopLeft, settings.CellSize);
+			  var tooClose = false;
+
+              for (var i = (int)Math.Max(0, qIndex.X - 2); i < Math.Min(settings.GridWidth, qIndex.X + 3) && !tooClose; i++)
+                  for (var j = (int)Math.Max(0, qIndex.Y - 2); j < Math.Min(settings.GridHeight, qIndex.Y + 3) && !tooClose; j++)
+					  if (state.Grid[i, j].HasValue && Vector2.Distance(state.Grid[i, j].Value, q) < settings.MinimumDistance)
+						tooClose = true;
+
+			  if (!tooClose)
+			  {
+				  found = true;
+				  state.ActivePoints.Add(q);
+				  state.Points.Add(q);
+                  state.Grid[(int)qIndex.X, (int)qIndex.Y] = q;
+			  }
+		  }
+		  return found;
+	  }
+
+    static Vector2 GenerateRandomAround(Vector2 center, float minimumDistance)
+    {
+        var d = RandomHelper.Random.NextDouble();
+        var radius = minimumDistance + minimumDistance * d;
+
+        d = RandomHelper.Random.NextDouble();
+        var angle = MathHelper.TwoPi * d;
+
+        var newX = radius * Math.Sin(angle);
+        var newY = radius * Math.Cos(angle);
+
+        return new Vector2((float) (center.X + newX), (float) (center.Y + newY));
+    }
+
+    static Vector2 Denormalize(Vector2 point, Vector2 origin, double cellSize)
+    {
+        return new Vector2((int) ((point.X - origin.X) / cellSize), (int) ((point.Y - origin.Y) / cellSize));
+    }
+  };*/
 }
+
 
 #endif

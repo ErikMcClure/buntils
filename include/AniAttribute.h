@@ -30,6 +30,7 @@ namespace bss_util {
 		inline virtual double Length()=0;
 		inline virtual AniAttribute* BSS_FASTCALL Clone() const { return 0; }
     inline virtual void BSS_FASTCALL CopyAnimation(AniAttribute* ptr)=0;
+    inline virtual void BSS_FASTCALL AddAnimation(AniAttribute* ptr)=0;
     inline virtual bool SetRelative(bool relative) { return false; }
 
 		unsigned char typeID;
@@ -68,6 +69,7 @@ namespace bss_util {
     inline virtual double Length() { return _timevalues.Back().time; }
 		inline virtual AniAttribute* BSS_FASTCALL Clone() const { return 0; }
     inline virtual void BSS_FASTCALL CopyAnimation(AniAttribute* ptr) { operator=(*static_cast<AniAttributeT*>(ptr)); }
+    inline virtual void BSS_FASTCALL AddAnimation(AniAttribute* ptr) { operator+=(*static_cast<AniAttributeT*>(ptr)); }
     inline virtual bool SetInterpolation(ANI_TID(VALUE) (BSS_FASTCALL *func)(const TVT_ARRAY_T&,IDTYPE, double)) { return false; }
     inline IDTYPE GetNumFrames() const { return _timevalues.Size(); }
     inline const KeyFrame<TypeID>& GetKeyFrame(IDTYPE index) const { return _timevalues[index]; }
@@ -105,6 +107,12 @@ namespace bss_util {
       _curpair=right._curpair;
       return *this;
 		}
+		inline AniAttributeT& operator+=(const AniAttributeT& right)
+    {
+      for(unsigned int i = 0; i < right._timevalues.Size(); ++i)
+        AddKeyFrame(right._timevalues[i]);
+      return *this;
+    }
 
   protected:
     TVT_ARRAY_T _timevalues;

@@ -12,6 +12,7 @@ namespace bss_util {
   template<class T, typename SizeType=unsigned int, typename ArrayType=cArraySimple<T,SizeType>>
   class BSS_COMPILER_DLLEXPORT cBSS_Stack : protected ArrayType
   {
+  protected:
     using ArrayType::_array;
     using ArrayType::_size;
 

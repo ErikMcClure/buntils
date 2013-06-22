@@ -762,6 +762,14 @@ TESTDEF::RETPAIR test_bss_algo()
   TESTRELFOUR(w,0.8f,-1.2f,1.6f,-2);
   NVectDiv(v,u,w);
   TESTRELFOUR(w,2,1.5f,-4,-2.5f);
+
+  NormalZig<128> zig; // TAKE OFF EVERY ZIG!
+  float rect[4] = { 0,100,1000,2000 };
+  StochasticSubdivider<float>(rect,
+    [](unsigned int d, const float (&r)[4]) -> double { return 1.0 - 10.0/(d+10.0) + 0.5/(((r[2]-r[0])*(r[3]-r[1]))+0.5); },
+    [](const float(&r)[4]) { },
+    [&](unsigned int d, const float (&r)[4]) -> double { return zig(); });
+
   ENDTEST;
 }
 
@@ -956,26 +964,26 @@ TESTDEF::RETPAIR test_bss_DUAL()
 {
   BEGINTEST;
   // d/dx( e^(x + x^2) + 2x/5 + cos(x*x) + sin(ln(x)+log(x)) ) = e^(x^2+x) (2 x+1)-2 x sin(x^2)+((1+log(10)) cos((1+1/(log(10))) log(x)))/(x log(10))+2/5
-
+  
   for(int i = -10; i < 10; ++i)
   {
     Dual<double,2> dx(i,1); //declare our variable
     Dual<double,2> adx(abs(i),1);
     //auto ax = (exp(dx + (dx^2)) + (2*dx)/5 + cos(abs(x)^abs(x)) + sin(log(dx)+log10(dx)));
     double id=i;
-    auto ax = exp(dx + (dx^2)) + (2.0*dx)/5.0;
+    auto ax = (dx + (dx^2)).exp() + (2.0*dx)/5.0;
     TEST(fsmallcomp(ax(0),exp((i*i)+id) + (2.0*i/5.0)));
     TEST(fsmallcomp(ax(1),exp((i*i)+id)*(2*i+1) + 2.0/5.0));
     TEST(fsmallcomp(ax(2),exp((i*i)+id)*(4*i*i + 4*i + 3)));
 
     if(!i) continue; //the functions below can't handle zeros.
     id=abs(i);
-    ax = cos(adx^adx);
+    ax = (adx^adx).cos();
     TEST(fsmallcomp(ax(0),cos(std::pow(id,id))));
     TEST(fsmallcomp(ax(1),sin(std::pow(id,id))*(-std::pow(id,id))*(log(id)+1)));
     //TEST(ax(2)==(cos(std::pow(id,id))));
     
-    ax = sin(log(adx) + log10(adx));
+    ax = (adx.log() + adx.log10()).sin();
     TEST(fsmallcomp(ax(0),sin(log(id)+log10(id))));
     TEST(fsmallcomp(ax(1),((1+log(10.0))*cos((1+(1/(log(10.0))))*log(id)))/(id*log(10.0)),5));
     //TEST(ax(2)==(-((1+log(10.0))*((1+log(10.0))*sin((1+1/(log(10.0))) log(id))+log(10.0)*cos((1+(1/(log(10.0))))*log(id))))/((id*id)*(log(10.0)*log(10.0)))));

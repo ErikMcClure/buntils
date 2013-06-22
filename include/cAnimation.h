@@ -129,8 +129,38 @@ namespace bss_util {
     inline bool IsPlaying() const { return (_anibool&ANI_PLAYING)!=0; }
     inline bool IsLooping() const { return (_anibool&ANI_LOOPING)!=0; }
     inline bool IsPaused() const { return (_anibool&ANI_PAUSED)!=0; }
-
-		cAnimation& operator=(const cAnimation& right)
+    
+    inline cAnimation& operator +=(const cAnimation& add)
+    {
+      unsigned char svar=_attributes.Length(); 
+      unsigned char rvar=add._attributes.Length();
+      unsigned char j=0;
+      for(unsigned char i = 0; i < rvar;)
+      {
+        if(j>=svar) //We've run off the end of our existing IDs so simply append the rest
+          _appendattribute(add._attributes[i++]);
+        else
+          switch(SGNCOMPARE(_attributes[j]->typeID,add._attributes[i]->typeID))
+          {
+          case -1:
+            ++j;
+            break;
+          case 0: // They are the same, so add them together
+            _attributes[j]->AddAnimation(add._attributes[i]);
+            break;
+          case 1: // If this happens, we skipped over one of the IDs in the right, so just append it.
+            _appendattribute(add._attributes[i++]);
+          }
+      }
+      return *this;
+    }
+    inline const cAnimation operator +(const cAnimation& add) const
+    {
+      cAnimation retval(*this);
+      retval+=add;
+      return retval;
+    }
+		inline cAnimation& operator=(const cAnimation& right)
     {
       for(unsigned char i = 0; i < _attributes.Length(); ++i)
         _delattr(_attributes[i]);
@@ -143,15 +173,9 @@ namespace bss_util {
 	    _anilength=right._anilength;
       _looppoint=right._looppoint;
 
-      AniAttribute* cln;
       unsigned char svar=right._attributes.Length(); 
       for(unsigned char i = 0; i < svar; ++i)
-      {
-        cln = _parent->TypeIDRegFunc(right._attributes[i]->typeID);
-        if(!cln) continue; // This will happen if we copied from a different object, or in the copy constructor
-        cln->CopyAnimation(right._attributes[i]);
-        _attributes.Insert(cln->typeID,cln);
-      }
+        _appendattribute(right._attributes[i]);
 
 	    return *this;
     }
@@ -167,6 +191,14 @@ namespace bss_util {
     cAbstractAnim* _parent;
     cBitField<unsigned char> _anibool;
     double _looppoint;
+
+    BSS_FORCEINLINE void _appendattribute(AniAttribute* attr)
+    {
+      AniAttribute* cln = _parent->TypeIDRegFunc(attr->typeID);
+      if(!cln) return; // This will happen if we copied from a different object, or in the copy constructor
+      cln->CopyAnimation(attr);
+      _attributes.Insert(cln->typeID,cln);
+    }
 	};
   
   struct DEF_ANIMATION_ARRAY

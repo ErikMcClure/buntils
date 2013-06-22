@@ -40,6 +40,11 @@ namespace bss_util {
     inline static const Dual exp(const Dual& d) { return Dual(std::exp(d._x),d._dx*(Dual<T,O-1>::exp(d._low()))); }
     inline static const Dual log(const Dual& d) { return Dual(std::log(d._x),d._dx/d._low()); }
     inline static const Dual log10(const Dual& d) { return Dual(std::log10(d._x),d._dx/(Dual<T,O-1>(std::log((T)10))*d._low())); }
+    inline const Dual sin() const { return sin(*this); }
+    inline const Dual cos() const { return cos(*this); }
+    inline const Dual exp() const { return exp(*this); }
+    inline const Dual log() const { return log(*this); }
+    inline const Dual log10() const { return log10(*this); }
 
     T _x;
     Dual<T,O-1> _dx;
@@ -71,17 +76,17 @@ namespace bss_util {
     T _x;
   };
 
-  // overloads for common math operators translated into static template functions
-  template<typename T, int O>
-  const Dual<T,O> sin(const Dual<T,O>& d) { return Dual<T,O>::sin(d); }
-  template<typename T, int O>
-  const Dual<T,O> cos(const Dual<T,O>& d) { return Dual<T,O>::cos(d); }
-  template<typename T, int O>
-  const Dual<T,O> exp(const Dual<T,O>& d) { return Dual<T,O>::exp(d); }
-  template<typename T, int O>
-  const Dual<T,O> log(const Dual<T,O>& d) { return Dual<T,O>::log(d); }
-  template<typename T, int O>
-  const Dual<T,O> log10(const Dual<T,O>& d) { return Dual<T,O>::log10(d); }
+  // overloads for common math operators translated into static template functions (disabled because this blows stuff up)
+  //template<typename T, int O>
+  //const Dual<T,O> sin(const Dual<T,O>& d) { return Dual<T,O>::sin(d); }
+  //template<typename T, int O>
+  //const Dual<T,O> cos(const Dual<T,O>& d) { return Dual<T,O>::cos(d); }
+  //template<typename T, int O>
+  //const Dual<T,O> exp(const Dual<T,O>& d) { return Dual<T,O>::exp(d); }
+  //template<typename T, int O>
+  //const Dual<T,O> log(const Dual<T,O>& d) { return Dual<T,O>::log(d); }
+  //template<typename T, int O>
+  //const Dual<T,O> log10(const Dual<T,O>& d) { return Dual<T,O>::log10(d); }
 }
 
 // Global operator overloads

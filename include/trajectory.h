@@ -7,6 +7,14 @@
 #include "bss_algo.h"
 #include "cDynArray.h"
 
+// NOTES: Keep track of potential trajectories by using pointers. Each function contains a pointer to the vector in it's parent, which contains
+// a pointer to it's parent, etc. When a trajectory reaches the destination AND it beats the current best path, use this linked list to copy
+// over the new trajectory. Build the no-destination version first, since it's actually simpler. It terminates when a trajectory reaches a
+// point in the constraint field below some given value (0 by default). To guard against a spiral of death, implement a cycle detection
+// check that goes back N vertices and adds up the angle differences. If the angle goes over 360 degrees, AND the offending vertex INTERSECTS
+// the part of the path that made the angle count go over 360 degrees (this will always be the part it intersects), then it's a cycle. You
+// might even be able to reduce it to an intersection problem by simply going back segment by segment and seeing if any of them intersect.
+
 namespace bss_util {
   // Given a scalar field f(x,y,...) and it's gradient fd(x,y,...,&out), returns a vector pointing in the direction of the
   // optimal trajectory as estimated by the function.

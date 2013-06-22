@@ -109,7 +109,7 @@ namespace bss_util {
         memcpy(_array+oldsize,add._array,add._size*sizeof(T));
       return *this;
     }
-    inline const cArraySimple<T,SizeType,Alloc> operator +(const cArraySimple<T,SizeType,Alloc>& add)
+    inline const cArraySimple<T,SizeType,Alloc> operator +(const cArraySimple<T,SizeType,Alloc>& add) const
     {
       cArraySimple<T,SizeType,Alloc> retval(*this);
       retval+=add;
@@ -244,12 +244,34 @@ namespace bss_util {
       _size=nsize;
       return *this;
     }
-    inline const cArrayConstruct<T,SizeType,Alloc> operator +(const cArrayConstruct<T,SizeType,Alloc>& add)
+    inline const cArrayConstruct<T,SizeType,Alloc> operator +(const cArrayConstruct<T,SizeType,Alloc>& add) const
     {
       cArrayConstruct<T,SizeType,Alloc> retval(*this);
       retval+=add;
       return retval;
     }
+    /*inline void BSS_FASTCALL Insert(T item, SizeType location)
+    {
+      SizeType nsize=_size+1;
+      if(location==_size)
+      {
+        SetSize(nsize);
+        assert(_array!=0);
+        new (_array+location) T(item);
+        return;
+      }
+      assert(location<_size);
+      
+      //T* narray = (T*)malloc(nsize*sizeof(T)); // nsize can't be 0
+      T* narray = (T*)Alloc::allocate(nsize); 
+      memcpy(narray,_array,location*sizeof(T)); // array will never be zero here, because if _size was 0, the only valid location is also 0, which triggers an add.
+      assert(narray!=0);
+      new (_array+location) T(item);
+      memcpy(narray+location+1,_array+location,(_size-location)*sizeof(T));
+      if(_array!=0) Alloc::deallocate(_array);
+      _array=narray;
+      _size=nsize;
+    }*/
 
   protected:
     template<typename U>
@@ -367,11 +389,16 @@ namespace bss_util {
       _size=nsize;
       return *this;
     }
-    inline const cArraySafe<T,SizeType,Alloc> operator +(const cArraySafe<T,SizeType,Alloc>& add)
+    inline const cArraySafe<T,SizeType,Alloc> operator +(const cArraySafe<T,SizeType,Alloc>& add) const
     {
       cArrayConstruct<T,SizeType,Alloc> retval(*this);
       retval+=add;
       return retval;
+    }
+    inline void BSS_FASTCALL Insert(T item, SizeType location)
+    {
+      SetSize(_size+1);
+      _pushback(location,_size-location-1,item);
     }
 
   protected:
@@ -379,7 +406,7 @@ namespace bss_util {
     inline void _pushback(SizeType index, SizeType length, U && data) 
     {
       for(SizeType i=index+length; i>index; --i)
-        _array[i]=_array[i-1];
+        _array[i]=std::move(_array[i-1]);
       _array[index] = std::forward<U>(data);
     }
     inline void _mvarray(SizeType begin, SizeType end, SizeType length)
@@ -437,7 +464,7 @@ namespace bss_util {
     inline cArrayWrap& operator=(const AT_& copy) { AT_::operator=(copy); return *this; }
     inline cArrayWrap& operator=(AT_&& mov) { AT_::operator=(std::move(mov)); return *this; }
     inline cArrayWrap& operator +=(const AT_& add) { AT_::operator+=(add); return *this; }
-    inline const cArrayWrap operator +(const AT_& add) { cArrayWrap r(*this); return (r+=add); }
+    inline const cArrayWrap operator +(const AT_& add) const { cArrayWrap r(*this); return (r+=add); }
   };
   
   // Templatized typedefs for making this easier to use

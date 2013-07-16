@@ -82,16 +82,15 @@
     <ClInclude Include="..\include\cINIentry.h" />
     <ClInclude Include="..\include\cINIsection.h" />
     <ClInclude Include="..\include\cINIstorage.h" />
+    <ClInclude Include="..\include\cKDTree.h" />
     <ClInclude Include="..\include\cKhash.h" />
     <ClInclude Include="..\include\cLinkedArray.h" />
     <ClInclude Include="..\include\cLinkedList.h" />
     <ClInclude Include="..\include\cLocklessQueue.h" />
     <ClInclude Include="..\include\cMap.h" />
-    <ClInclude Include="..\include\cObjSwap.h" />
     <ClInclude Include="..\include\cPriorityQueue.h" />
     <ClInclude Include="..\include\cRational.h" />
     <ClInclude Include="..\include\cScheduler.h" />
-    <ClInclude Include="..\include\cThreadPool.h" />
     <ClInclude Include="..\include\cTRBtree.h" />
     <ClInclude Include="..\include\cRefCounter.h" />
     <ClInclude Include="..\include\cSettings.h" />
@@ -100,6 +99,7 @@
     <ClInclude Include="..\include\cStr.h" />
     <ClInclude Include="..\include\cStrTable.h" />
     <ClInclude Include="..\include\cThread.h" />
+    <ClInclude Include="..\include\cTrie.h" />
     <ClInclude Include="..\include\cUniquePtr.h" />
     <ClInclude Include="..\include\delegate.h" />
     <ClInclude Include="..\include\INIparse.h" />

@@ -120,9 +120,6 @@
     <ClInclude Include="..\include\cMap.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="..\include\cObjSwap.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
     <ClInclude Include="..\include\cPriorityQueue.h">
       <Filter>Header Files</Filter>
     </ClInclude>
@@ -192,9 +189,6 @@
     <ClInclude Include="..\include\cTRBtree.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="..\include\cThreadPool.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
     <ClInclude Include="..\include\AniTypeID.h">
       <Filter>Header Files</Filter>
     </ClInclude>
@@ -220,6 +214,12 @@
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="..\include\cScheduler.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="..\include\cKDTree.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="..\include\cTrie.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>

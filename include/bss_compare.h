@@ -32,7 +32,7 @@ namespace bss_util {
   template<typename T, char (*CFunc)(const typename T::first_type&, const typename T::first_type&)>
   inline BSS_FORCEINLINE char CompTFirst(const T& left, const T& right) { return CFunc(left.first, right.first); }
 
-  template<typename T, char (*CFunc)(const typename T::first_type&, const typename T::first_type&)>
+  template<typename T, char (*CFunc)(const typename T::second_type&, const typename T::second_type&)>
   inline BSS_FORCEINLINE char CompTSecond(const T& left, const T& right) { return CFunc(left.second, right.second); }
 
   template<typename T>
@@ -47,6 +47,10 @@ namespace bss_util {
     int result = STRICMP(left, right);
     return SGNCOMPARE(result,0);
   }
+  template<typename T>
+  inline BSS_FORCEINLINE bool CompStrLT(const T& left, const T& right) { return strcmp(left, right)<0; }
+  template<typename T>
+  inline BSS_FORCEINLINE bool CompIStrLT(const T& left, const T& right) { return stricmp(left, right)<0; }
   template<typename T>
   inline BSS_FORCEINLINE char CompStrW(const T& left, const T& right)
   {

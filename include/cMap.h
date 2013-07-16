@@ -17,10 +17,8 @@ namespace bss_util {
     typedef std::pair<Key,Data> pair_t;
     typedef cArraySort<pair_t, CompTFirst<pair_t, CFunc>, ST_, ArrayType> cArraySort_t;
     typedef const Data& constref;
-    typedef Data&& moveref;
     typedef const Key& CKEYREF;
     using cArraySort_t::_array;
-    using cArraySort_t::_size;
     using cArraySort_t::_length;
 
   public:
@@ -31,13 +29,13 @@ namespace bss_util {
     inline void BSS_FASTCALL Clear() { cArraySort_t::Clear(); }
     inline BSS_FORCEINLINE void BSS_FASTCALL Discard(unsigned int num) { cArraySort_t::Discard(num); }
     inline BSS_FORCEINLINE ST_ BSS_FASTCALL Insert(CKEYREF key, constref data) { return cArraySort_t::Insert(pair_t(key,data)); }
-    inline BSS_FORCEINLINE ST_ BSS_FASTCALL Insert(CKEYREF key, moveref data) { return cArraySort_t::Insert(pair_t(key,std::move(data))); }
+    inline BSS_FORCEINLINE ST_ BSS_FASTCALL Insert(CKEYREF key, Data&& data) { return cArraySort_t::Insert(pair_t(key,std::move(data))); }
     inline ST_ BSS_FASTCALL Get(CKEYREF key) const {  ST_ retval=GetNear(key,true); return (retval!=(ST_)(-1)&&!CompT(_array[retval].first,key))?retval:(ST_)(-1); }
     inline BSS_FORCEINLINE constref BSS_FASTCALL GetData(CKEYREF key) const { return cArraySort_t::operator [](GetNear(key,true)).second; } //this has no checking
     inline ST_ BSS_FASTCALL Remove(CKEYREF key) {  ST_ retval=Get(key); cArraySort_t::Remove(retval); return retval; }
     inline BSS_FORCEINLINE ST_ BSS_FASTCALL RemoveIndex(ST_ index) { return cArraySort_t::Remove(index); }
     inline BSS_FORCEINLINE ST_ BSS_FASTCALL Replace(ST_ index, CKEYREF key, constref data) { return cArraySort_t::ReplaceData(index, pair_t(key,data)); }
-    inline BSS_FORCEINLINE ST_ BSS_FASTCALL Replace(ST_ index, CKEYREF key, moveref data) { return cArraySort_t::ReplaceData(index, pair_t(key,std::move(data))); }
+    inline BSS_FORCEINLINE ST_ BSS_FASTCALL Replace(ST_ index, CKEYREF key, Data&& data) { return cArraySort_t::ReplaceData(index, pair_t(key,std::move(data))); }
     inline ST_ BSS_FASTCALL ReplaceKey(ST_ index, CKEYREF key) { if(index<0 || index >= _length) return (ST_)(-1); return cArraySort_t::ReplaceData(index, pair_t(key,_array[index].second)); }
     inline BSS_FORCEINLINE CKEYREF BSS_FASTCALL KeyIndex(ST_ index) const { return cArraySort_t::operator [](index).first; }
     inline BSS_FORCEINLINE const Data& BSS_FASTCALL DataIndex(ST_ index) const { return cArraySort_t::operator [](index).second; }

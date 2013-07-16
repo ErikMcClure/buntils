@@ -9,7 +9,7 @@
 #include <memory>
 
 namespace bss_util {
-  // This is a binary min-heap implemented using an array. Use CompTInverse to change it into a max-heap, or to make it use pairs.
+  // This is a binary max-heap implemented using an array. Use CompTInv to change it into a min-heap, or to make it use pairs.
   template<class T, typename ST_=unsigned int, char (*CFunc)(const T&, const T&)=CompT<T>, typename ArrayType=cArraySimple<T,ST_>>
   class BSS_COMPILER_DLLEXPORT cBinaryHeap : protected ArrayType
   {
@@ -58,7 +58,7 @@ namespace bss_util {
 
       while (k > 0) {
         parent = CBH_PARENT(k);
-        if(CFunc(_array[parent],std::forward<U>(val)) < 0) break;
+        if(CFunc(_array[parent],std::forward<U>(val)) > 0) break;
         _array[k] = _array[parent];
         k = parent;
       }
@@ -73,14 +73,14 @@ namespace bss_util {
 
 	    for (i = CBH_RIGHT(k); i < _length; i = CBH_RIGHT(i))
       {
-        if(CFunc(_array[i-1],_array[i]) < 0) // CFunc (left,right) and return true if left < right
-          --i; //left is smaller than right so pick that one
-        if(CFunc(std::forward<U>(val),_array[i]) < 0)
+        if(CFunc(_array[i-1],_array[i]) > 0) // CFunc (left,right) and return true if left > right
+          --i; //left is greater than right so pick that one
+        if(CFunc(std::forward<U>(val),_array[i]) > 0)
           break;
         _array[k]=std::move(_array[i]);
         k=i;
       }
-      if(i >= _length && --i < _length && CFunc(std::forward<U>(val),_array[i])>=0) //Check if left child is also invalid (can only happen at the very end of the array)
+      if(i >= _length && --i < _length && CFunc(std::forward<U>(val),_array[i])<=0) //Check if left child is also invalid (can only happen at the very end of the array)
       {
         _array[k]=std::move(_array[i]);
         k=i;
@@ -135,7 +135,7 @@ namespace bss_util {
     inline bool _set(ST_ index, U && val)
     {
       if(index>=_length) return false;
-      if(CFunc(_array[index],std::forward<U>(val)) >= 0) //in this case we percolate up
+      if(CFunc(_array[index],std::forward<U>(val)) <= 0) //in this case we percolate up
         PercolateUp(_array,_length,index,std::forward<U>(val));
       else
         PercolateDown(_array,_length,index,std::forward<U>(val));

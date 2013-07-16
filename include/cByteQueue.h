@@ -26,38 +26,30 @@ namespace bss_util
     // Destructor
     inline ~cByteQueue() {}
     // Writes a class reference
-    template<class T>
+    template<typename T>
     inline void Write(const T& ref)
     { 
       if((_cur+sizeof(T))>_size) 
-        _expand();
+        SetSize(sizeof(T)+(_size<<1));
       memcpy(_array+_cur,&ref,sizeof(T)); 
       atomic_xadd<SizeType>(&_cur,sizeof(T)); 
     }
-    template<class T, class T2>
-    inline void Write(const T& ref, const T2& ref2) 
-    { 
-      if((_cur+sizeof(T)+sizeof(T2))>_size) 
-        _expand(); 
-      memcpy(_array+_cur,&ref,sizeof(T)); 
-      memcpy(_array+_cur+sizeof(T),&ref2,sizeof(T2)); 
-      atomic_xadd<SizeType>(&_cur,sizeof(T)+sizeof(T2)); 
+/*#ifdef BSS_COMPILER_GCC
+    template<typename... Args>
+    inline void Write(Args... args)
+    {
+      SizeType cnt = _count<Args...>();
+      if((_cur+cnt)>_size) 
+        SetSize(cnt+(_size<<1));
+      _write<Args...>(_cur, args...);
+      atomic_xadd<SizeType>(&_cur,cnt); 
     }
-    template<class T, class T2, class T3>
-    inline void Write(const T& ref, const T2& ref2, const T3& ref3) 
-    { 
-      if((_cur+sizeof(T)+sizeof(T2)+sizeof(T3))>_size) 
-        _expand(); 
-      memcpy(_array+_cur,&ref,sizeof(T)); 
-      memcpy(_array+_cur+sizeof(T),&ref2,sizeof(T2)); 
-      memcpy(_array+_cur+sizeof(T)+sizeof(T2),&ref3,sizeof(T3)); 
-      atomic_xadd<SizeType>(&_cur,sizeof(T)+sizeof(T2)+sizeof(T3)); 
-    }
+#endif*/
     // Writes an arbitrary memory location
     inline void Write(void* src, SizeType length) 
     { 
       if(_cur+length>_size) 
-        _expand(); 
+        SetSize(length+(_size<<1));
       memcpy(_array+_cur,src,length); 
       atomic_xadd<SizeType>(&_cur,length); 
     }
@@ -79,16 +71,6 @@ namespace bss_util
     inline cByteQueue& operator=(cByteQueue&& mov) { cArraySimple<unsigned char,SizeType>::operator=(std::move(mov)); _cur=mov._cur; return *this; }
     
   protected:
-    void _expand()
-    { 
-      SizeType nsize=_size<<1;
-      unsigned char* narray = (unsigned char*)malloc(nsize);
-      memcpy(narray,_array,_size);
-      free(_array);
-      _array=narray;
-      _size=nsize;
-    }
-
     SizeType _cur;
   };
 }

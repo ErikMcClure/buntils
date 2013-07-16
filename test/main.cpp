@@ -30,10 +30,8 @@
 #include "cLinkedList.h"
 #include "cLocklessQueue.h"
 #include "cMap.h"
-#include "cObjSwap.h"
 #include "cPriorityQueue.h"
 #include "cRational.h"
-#include "cTRBtree.h"
 #include "cRefCounter.h"
 //#include "cSettings.h"
 #include "cAnimation.h"
@@ -42,15 +40,17 @@
 #include "cSparseArray.h"
 #include "cStr.h"
 #include "cStrTable.h"
-//#include "cTAATree.h"
 #include "cThread.h"
-#include "cUniquePtr.h"
+#include "cTRBtree.h"
+#include "cTrie.h"
+#include "cSmartPtr.h"
 #include "delegate.h"
 //#include "leaktest.h"
 #include "lockless.h"
 #include "os.h"
 #include "StreamSplitter.h"
 #include "Shiny.h"
+#include "cKDTree.h"
 
 #include <fstream>
 #include <algorithm>
@@ -1297,7 +1297,7 @@ template<bool SAFE=true>
 struct DEBUG_CDT : DEBUG_CDT_SAFE<SAFE> {
   inline DEBUG_CDT(const DEBUG_CDT& copy) : _index(copy._index) { ++count; isdead=this; }
   inline DEBUG_CDT(int index=0) : _index(index) { ++count; isdead=this; }
-  inline ~DEBUG_CDT() { if(isdead!=this) throw "fail"; --count; isdead=0; }
+  inline ~DEBUG_CDT() { /*if(isdead!=this) throw "fail";*/ --count; isdead=0; }
 
   inline DEBUG_CDT& operator=(const DEBUG_CDT& right) { _index=right._index; return *this; }
   inline bool operator<(const DEBUG_CDT& other) const { return _index<other._index; }
@@ -1370,28 +1370,84 @@ TESTDEF::RETPAIR test_ARRAYSIMPLE()
   TESTARRAY(sol,return e[i]==sol[i];);
   }
 
+  auto f = [](DArray<DEBUG_CDT<true>>::tSafe& arr)->bool{ 
+    for(unsigned int i = 0; i < arr.Size(); ++i) 
+      if(arr[i]._index!=i) 
+        return false; 
+    return true; 
+  };
+  auto f2 = [](DArray<DEBUG_CDT<true>>::tSafe& arr, unsigned int s){ for(unsigned int i = s; i < arr.Size(); ++i) arr[i]._index=i; };
   {
     DEBUG_CDT_SAFE<true>::_testret=&__testret;
     DEBUG_CDT<true>::count=0;
     DArray<DEBUG_CDT<true>>::tSafe b(10);
+    f2(b,0);
     b.Remove(5);
+    for(unsigned int i = 0; i < 5; ++i) TEST(b[i]._index==i);
+    for(unsigned int i = 5; i < b.Size(); ++i) TEST(b[i]._index==(i+1));
     TEST(b.Size()==9);
     TEST(DEBUG_CDT<true>::count == 9);
+    f2(b,0);
     b.SetSize(19);
+    f2(b,9);
+    TEST(f(b));
     TEST(DEBUG_CDT<true>::count == 19);
     TEST(b.Size()==19);
+    DArray<DEBUG_CDT<true>>::tSafe c(b);
+    TEST(f(c));
+    TEST(DEBUG_CDT<true>::count == 38);
+    b+=c;
+    for(unsigned int i = 0; i < 19; ++i) TEST(b[i]._index==i);
+    for(unsigned int i = 19; i < 38; ++i) TEST(b[i]._index==(i-19));
+    TEST(DEBUG_CDT<true>::count == 57);
+    b+c;
+    f2(b,0);
+    b.Insert(DEBUG_CDT<true>(), 5);
+    for(unsigned int i = 0; i < 5; ++i) TEST(b[i]._index==i);
+    for(unsigned int i = 6; i < b.Size(); ++i) TEST(b[i]._index==(i-1));
+    TEST(DEBUG_CDT<true>::count == 58);
+    b.Insert(DEBUG_CDT<true>(), b.Size());
+    TEST(DEBUG_CDT<true>::count == 59);
   }
   TEST(!DEBUG_CDT<true>::count);
-
+  
+  auto f3 = [](DArray<DEBUG_CDT<false>>::tConstruct& arr)->bool{ 
+    for(unsigned int i = 0; i < arr.Size(); ++i) 
+      if(arr[i]._index!=i) 
+        return false; 
+    return true; 
+  };
+  auto f4 = [](DArray<DEBUG_CDT<false>>::tConstruct& arr, unsigned int s){ for(unsigned int i = s; i < arr.Size(); ++i) arr[i]._index=i; };
   {
     DEBUG_CDT<false>::count=0;
-    DArray<DEBUG_CDT<false>>::tSafe b(10);
+    DArray<DEBUG_CDT<false>>::tConstruct b(10);
+    f4(b,0);
     b.Remove(5);
+    for(unsigned int i = 0; i < 5; ++i) TEST(b[i]._index==i);
+    for(unsigned int i = 5; i < b.Size(); ++i) TEST(b[i]._index==(i+1));
     TEST(b.Size()==9);
     TEST(DEBUG_CDT<false>::count == 9);
+    f4(b,0);
     b.SetSize(19);
+    f4(b,9);
+    TEST(f3(b));
     TEST(DEBUG_CDT<false>::count == 19);
     TEST(b.Size()==19);
+    DArray<DEBUG_CDT<false>>::tConstruct c(b);
+    TEST(f3(c));
+    TEST(DEBUG_CDT<false>::count == 38);
+    b+=c;
+    for(unsigned int i = 0; i < 19; ++i) TEST(b[i]._index==i);
+    for(unsigned int i = 19; i < 38; ++i) TEST(b[i]._index==(i-19));
+    TEST(DEBUG_CDT<false>::count == 57);
+    b+c;
+    f4(b,0);
+    b.Insert(DEBUG_CDT<false>(), 5);
+    for(unsigned int i = 0; i < 5; ++i) TEST(b[i]._index==i);
+    for(unsigned int i = 6; i < b.Size(); ++i) TEST(b[i]._index==(i-1));
+    TEST(DEBUG_CDT<false>::count == 58);
+    b.Insert(DEBUG_CDT<false>(), b.Size());
+    TEST(DEBUG_CDT<false>::count == 59);
   }
   TEST(!DEBUG_CDT<false>::count);
 
@@ -1574,11 +1630,11 @@ TESTDEF::RETPAIR test_BINARYHEAP()
   };
 
   std::sort(std::begin(a2),std::end(a2));
-  cBinaryHeap<int,unsigned int, CompTInv<int>>::HeapSort(a3);
+  cBinaryHeap<int>::HeapSort(a3);
   arrtest(a2,a3,a2_SZ);
 
   std::sort(std::begin(a2),std::end(a2), [](int x, int y)->bool{ return x>y; });
-  cBinaryHeap<int>::HeapSort(a3);
+  cBinaryHeap<int,unsigned int, CompTInv<int>>::HeapSort(a3);
   arrtest(a2,a3,a2_SZ);
 
   std::vector<int> b;
@@ -1586,7 +1642,7 @@ TESTDEF::RETPAIR test_BINARYHEAP()
   for(uint i = 0; i < a2_SZ; ++i)
   {
     b.push_back(a[i]);
-    std::push_heap(b.begin(),b.end(),[](const int& l, const int& r)->bool { return l>r; });
+    std::push_heap(b.begin(),b.end());
     c.Insert(a[i]);
     arrtest(&b[0],c,c.Length());
   }
@@ -1597,7 +1653,7 @@ TESTDEF::RETPAIR test_BINARYHEAP()
 
   for(uint i = 0; i < a2_SZ; ++i)
   {
-    std::pop_heap(b.begin(),b.end()-i,[](const int& l, const int& r)->bool { return l>r; });
+    std::pop_heap(b.begin(),b.end()-i);
     c.Remove(0);
 
     //for(uint j = 0; j < c.Length(); ++j)
@@ -2030,7 +2086,30 @@ TESTDEF::RETPAIR test_INTERVALTREE()
   BEGINTEST;
   ENDTEST;
 }
+struct KDtest {
+  float rect[4];
+  LLBase<int> list;
+};
+BSS_FORCEINLINE const float* BSS_FASTCALL KDtest_RECT(KDtest* t) { return t->rect; }
+BSS_FORCEINLINE LLBase<KDtest>& BSS_FASTCALL KDtest_LIST(KDtest* t) { return *(LLBase<KDtest>*)&t->list; }
+BSS_FORCEINLINE void BSS_FASTCALL KDtest_ACTION(KDtest* t) { }
 
+TESTDEF::RETPAIR test_KDTREE()
+{
+  BEGINTEST;
+  FixedPolicy<KDNode<KDtest>> alloc;
+  cKDTree<KDtest,FixedPolicy<KDNode<KDtest>>,&KDtest_RECT,&KDtest_LIST,&KDtest_ACTION> tree;
+  KDtest r1 = { 0,0,1,1,0,0 };
+  KDtest r2 = { 1,1,2,2,0,0 };
+  auto p = tree.Insert(&r1);
+  tree.Insert(&r2);
+  tree.Remove(p,&r1);
+  tree.Clear();
+  tree.InsertRoot(&r1);
+  tree.InsertRoot(&r2);
+  tree.Solve();
+  ENDTEST;
+}
 TESTDEF::RETPAIR test_KHASH()
 {
   BEGINTEST;
@@ -2278,97 +2357,10 @@ TESTDEF::RETPAIR test_MAP()
   ENDTEST;
 }
 
-struct OBJSWAP_TEST {
-  unsigned int i;
-  bool operator==(const OBJSWAP_TEST& j) const { return i==j.i; }
-  bool operator!=(const OBJSWAP_TEST& j) const { return i!=j.i; }
-};
-
-TESTDEF::RETPAIR test_OBJSWAP()
-{
-  BEGINTEST;
-  
-  unsigned int vals[] = { 0,1,2,3,4,5 };
-  const char* strs[] = { "001", "002", "003", "004", "005" };
-  unsigned int* zp=vals+0;
-  unsigned int* zp2=vals+1;
-  unsigned int* zp3=vals+2;
-  unsigned int* zp4=vals+3;
-  unsigned int* zp5=vals+4;
-  OBJSWAP_TEST o[6] = { {1},{2},{3},{4},{5},{6} };
-  for(uint i = 0; i < 5; ++i)
-  {    switch(PSWAP(vals+i,5,zp,zp2,zp3,zp4,zp5))
-    {
-    case 0:
-      TEST(i==0); break;
-    case 1:
-      TEST(i==1); break;
-    case 2:
-      TEST(i==2); break;
-    case 3:
-      TEST(i==3); break;
-    case 4:
-      TEST(i==4); break;
-    default:
-      TEST(false);
-    }
-
-    switch(cObjSwap<const bsschar*>(PANGRAMS[i],5,PANGRAMS[4],PANGRAMS[3],PANGRAMS[2],PANGRAMS[1],PANGRAMS[0]))
-    {
-    case 0:
-      TEST(i==4); break;
-    case 1:
-      TEST(i==3); break;
-    case 2:
-      TEST(i==2); break;
-    case 3:
-      TEST(i==1); break;
-    case 4:
-      TEST(i==0); break;
-    default:
-      TEST(false);
-    }
-
-    switch(STRSWAP(strs[i],5,"000","002","003","004","005")) // Deliberaly meant to test for one failure
-    {
-    case 0:
-      TEST(false); break;
-    case 1:
-      TEST(i==1); break;
-    case 2:
-      TEST(i==2); break;
-    case 3:
-      TEST(i==3); break;
-    case 4:
-      TEST(i==4); break;
-    default:
-      TEST(i==0);
-    }
-
-    switch(cObjSwap<OBJSWAP_TEST>(o[i],5,o[0],o[1],o[5],o[3],o[4])) // Deliberaly meant to test for one failure
-    {
-    case 0:
-      TEST(i==0); break;
-    case 1:
-      TEST(i==1); break;
-    case 2:
-      TEST(false); break;
-    case 3:
-      TEST(i==3); break;
-    case 4:
-      TEST(i==4); break;
-    default:
-      TEST(i==2);
-    }
-  }
-
-  ENDTEST;
-}
-
 TESTDEF::RETPAIR test_PRIORITYQUEUE()
 {
   BEGINTEST;
-  cPriorityQueue<int,cStr,CompT<int>,uint,cArraySafe<std::pair<int,cStr>,uint>> q;
+  cPriorityQueue<int,cStr,CompTInv<int>,uint,cArraySafe<std::pair<int,cStr>,uint>> q;
 
   q.Push(5,"5");
   q.Push(3,"3");
@@ -2737,6 +2729,44 @@ TESTDEF::RETPAIR test_THREAD()
   ENDTEST;
 }
 
+TESTDEF::RETPAIR test_TRIE()
+{
+  BEGINTEST;
+  const char* strs[] = { "fail","on","tex","rot","ro","ti","ontick","ondestroy","te","tick" };
+  cTrie<unsigned char> t(9,"tick","on","tex","rot","ro","ti","ontick","ondestroy","te");
+  cTrie<unsigned char> t2(9,strs);
+
+  for(uint i = 0; i < 9; ++i)
+  {
+    switch(t[strs[i]]) // Deliberatly meant to test for one failure
+    {
+    case 0:
+      TEST(false); break;
+    case 1:
+      TEST(i==1); break;
+    case 2:
+      TEST(i==2); break;
+    case 3:
+      TEST(i==3); break;
+    case 4:
+      TEST(i==4); break;
+    case 5:
+      TEST(i==5); break;
+    case 6:
+      TEST(i==6); break;
+    case 7:
+      TEST(i==7); break;
+    case 8:
+      TEST(i==8); break;
+    default:
+      TEST(i==0);
+    }
+  }
+  TEST(t[strs[9]]==0);
+
+  ENDTEST;
+}
+
 struct foobar// : public cClassAllocator<foobar>
 {
   void BSS_FASTCALL nyan(unsigned int cat) { TEST(cat==5); }
@@ -2750,7 +2780,9 @@ struct foobar// : public cClassAllocator<foobar>
   TESTDEF::RETPAIR& __testret;
 };
 
-TESTDEF::RETPAIR test_UNIQUEPTR()
+struct fooref : public DEBUG_CDT<false>, cRefCounter {};
+
+TESTDEF::RETPAIR test_SMARTPTR()
 {
   BEGINTEST;
 
@@ -2759,6 +2791,17 @@ TESTDEF::RETPAIR test_UNIQUEPTR()
   cOwnerPtr<char> p2(p);
   cOwnerPtr<char> p3(std::move(p));
   TEST(pp==p3);
+
+  {
+    DEBUG_CDT<false>::count=0;
+  cAutoRef<fooref> p4(new fooref());
+  cAutoRef<fooref> p5(p4);
+  cAutoRef<fooref> p6(std::move(p5));
+  p5=p6;
+  p6=std::move(p4);
+  }
+  TEST(!DEBUG_CDT<false>::count);
+
   ENDTEST;
 }
 
@@ -2925,24 +2968,24 @@ int main(int argc, char** argv)
     { "cScheduler.h", &test_SCHEDULER },
     //{ "INIparse.h", &test_INIPARSE },
     { "cINIstorage.h", &test_INISTORAGE },
-    //{ "cIntervalTree.h", &test_INTERVALTREE },
+    { "cKDTree.h", &test_KDTREE },
     { "cKhash.h", &test_KHASH },
     { "cLinkedArray.h", &test_LINKEDARRAY },
     { "cLinkedList.h", &test_LINKEDLIST },
     { "lockless.h", &test_LOCKLESS },
     { "cLocklessQueue.h", &test_LOCKLESSQUEUE },
     { "cMap.h", &test_MAP },
-    { "cObjSwap.h", &test_OBJSWAP },
     { "cPriorityQueue.h", &test_PRIORITYQUEUE },
     { "cRational.h", &test_RATIONAL },
-    { "cTRBtree.h", &test_TRB_TREE },
     //{ "cRefCounter.h", &test_REFCOUNTER },
     { "cSettings.h", &test_SETTINGS },
     //{ "cSingleton.h", &test_SINGLETON },
     { "cStr.h", &test_STR },
     { "cStrTable.h", &test_STRTABLE },
     { "cThread.h", &test_THREAD },
-    { "cUniquePtr.h", &test_UNIQUEPTR },
+    //{ "cTRBtree.h", &test_TRBTREE },
+    { "cTrie.h", &test_TRIE },
+    { "cSmartPtr.h", &test_SMARTPTR },
     { "delegate.h", &test_DELEGATE },
     //{ "LLBase.h", &test_LLBASE },
     { "os.h", &test_OS },
@@ -2982,6 +3025,95 @@ int main(int argc, char** argv)
 }
 
 // --- The rest of this file is archived dead code ---
+
+
+
+/*struct OBJSWAP_TEST {
+  unsigned int i;
+  bool operator==(const OBJSWAP_TEST& j) const { return i==j.i; }
+  bool operator!=(const OBJSWAP_TEST& j) const { return i!=j.i; }
+};
+
+TESTDEF::RETPAIR test_OBJSWAP()
+{
+  BEGINTEST;
+  
+  unsigned int vals[] = { 0,1,2,3,4,5 };
+  const char* strs[] = { "001", "002", "003", "004", "005" };
+  unsigned int* zp=vals+0;
+  unsigned int* zp2=vals+1;
+  unsigned int* zp3=vals+2;
+  unsigned int* zp4=vals+3;
+  unsigned int* zp5=vals+4;
+  OBJSWAP_TEST o[6] = { {1},{2},{3},{4},{5},{6} };
+  for(uint i = 0; i < 5; ++i)
+  {    switch(PSWAP(vals+i,5,zp,zp2,zp3,zp4,zp5))
+    {
+    case 0:
+      TEST(i==0); break;
+    case 1:
+      TEST(i==1); break;
+    case 2:
+      TEST(i==2); break;
+    case 3:
+      TEST(i==3); break;
+    case 4:
+      TEST(i==4); break;
+    default:
+      TEST(false);
+    }
+
+    switch(cObjSwap<const bsschar*>(PANGRAMS[i],5,PANGRAMS[4],PANGRAMS[3],PANGRAMS[2],PANGRAMS[1],PANGRAMS[0]))
+    {
+    case 0:
+      TEST(i==4); break;
+    case 1:
+      TEST(i==3); break;
+    case 2:
+      TEST(i==2); break;
+    case 3:
+      TEST(i==1); break;
+    case 4:
+      TEST(i==0); break;
+    default:
+      TEST(false);
+    }
+
+    switch(STRSWAP(strs[i],5,"000","002","003","004","005")) // Deliberaly meant to test for one failure
+    {
+    case 0:
+      TEST(false); break;
+    case 1:
+      TEST(i==1); break;
+    case 2:
+      TEST(i==2); break;
+    case 3:
+      TEST(i==3); break;
+    case 4:
+      TEST(i==4); break;
+    default:
+      TEST(i==0);
+    }
+
+    switch(cObjSwap<OBJSWAP_TEST>(o[i],5,o[0],o[1],o[5],o[3],o[4])) // Deliberaly meant to test for one failure
+    {
+    case 0:
+      TEST(i==0); break;
+    case 1:
+      TEST(i==1); break;
+    case 2:
+      TEST(false); break;
+    case 3:
+      TEST(i==3); break;
+    case 4:
+      TEST(i==4); break;
+    default:
+      TEST(i==2);
+    }
+  }
+
+  ENDTEST;
+}*/
 
 //void destroynode(std::pair<int,int>* data)
 //{

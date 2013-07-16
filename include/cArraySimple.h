@@ -70,8 +70,8 @@ namespace bss_util {
 
       //T* narray = (T*)malloc(nsize*sizeof(T)); // nsize can't be 0
       T* narray = (T*)Alloc::allocate(nsize); 
-      memcpy(narray,_array,location*sizeof(T)); // array will never be zero here, because if _size was 0, the only valid location is also 0, which triggers an add.
       assert(narray!=0);
+      memcpy(narray,_array,location*sizeof(T)); // array will never be zero here, because if _size was 0, the only valid location is also 0, which triggers an add.
       narray[location]=item;
       memcpy(narray+location+1,_array+location,(_size-location)*sizeof(T));
       if(_array!=0) Alloc::deallocate(_array);
@@ -103,6 +103,7 @@ namespace bss_util {
     }
     inline cArraySimple<T,SizeType,Alloc>& operator +=(const cArraySimple<T,SizeType,Alloc>& add)
     {
+      assert(this!=&add);
       SizeType oldsize=_size;
       SetSize(_size+add._size);
       if(add._size>0) 
@@ -180,7 +181,7 @@ namespace bss_util {
     inline void BSS_FASTCALL SetSize(SizeType nsize)
     {
       if(nsize==_size) return;
-      T* narray = !nsize?0:Alloc::allocate(nsize);
+      T* narray = !nsize?0:Alloc::allocate(nsize); // can't use realloc because we have to destruct ones first.
       memcpy(narray,_array,bssmin(nsize,_size)*sizeof(T)); // We can do this because these aren't external sources.
 
       if(nsize<_size) { //we removed some so we need to destroy them
@@ -202,8 +203,6 @@ namespace bss_util {
       memmove(_array+index,_array+index+1,(_size-index-1)*sizeof(T));
       new(_array+(_size-1)) T();
     }
-    //inline operator T*() { return _array; }
-    //inline operator const T*() const { return _array; }
     inline cArrayConstruct<T,SizeType,Alloc>& operator=(const cArrayConstruct<T,SizeType,Alloc>& copy)
     {
       if(this == &copy) return *this;
@@ -235,12 +234,12 @@ namespace bss_util {
       T* narray = Alloc::allocate(nsize);
       memcpy(narray,_array,_size*sizeof(T));
       //memcpy(narray+_size,add._array,add._size*sizeof(T));
-      if(_array!=0) Alloc::deallocate(_array);
-      _array=narray;
       
       for(SizeType i = _size; i < nsize; ++i)
-        new (_array+i) T(add._array[i-_size]);
-
+        new (narray+i) T(add._array[i-_size]);
+      
+      if(_array!=0) Alloc::deallocate(_array); // we do this down here so doing += with yourself doesn't break.
+      _array=narray;
       _size=nsize;
       return *this;
     }
@@ -250,28 +249,27 @@ namespace bss_util {
       retval+=add;
       return retval;
     }
-    /*inline void BSS_FASTCALL Insert(T item, SizeType location)
+    inline void BSS_FASTCALL Insert(T item, SizeType location)
     {
       SizeType nsize=_size+1;
       if(location==_size)
       {
-        SetSize(nsize);
-        assert(_array!=0);
+        _array = (T*)Alloc::reallocate(_array,_size=nsize);
+        assert(_array!=0); // Don't bother checking for null case becuase we'd have to explode anyway.
         new (_array+location) T(item);
         return;
       }
       assert(location<_size);
       
-      //T* narray = (T*)malloc(nsize*sizeof(T)); // nsize can't be 0
       T* narray = (T*)Alloc::allocate(nsize); 
-      memcpy(narray,_array,location*sizeof(T)); // array will never be zero here, because if _size was 0, the only valid location is also 0, which triggers an add.
       assert(narray!=0);
-      new (_array+location) T(item);
+      memcpy(narray,_array,location*sizeof(T)); // array will never be zero here, because if _size was 0, the only valid location is also 0, which triggers an add.
+      new (narray+location) T(item);
       memcpy(narray+location+1,_array+location,(_size-location)*sizeof(T));
       if(_array!=0) Alloc::deallocate(_array);
       _array=narray;
       _size=nsize;
-    }*/
+    }
 
   protected:
     template<typename U>
@@ -376,11 +374,12 @@ namespace bss_util {
     {
       SizeType nsize=_size+add._size;
       T* narray = Alloc::allocate(nsize);
-      
+      assert(narray!=0);
+
       for(SizeType i = 0; i < _size; ++i) //copy over old ones
         new (narray+i) T(std::move(_array[i])); //We're going to delete the old ones so use move semantics if possible
       for(SizeType i = _size; i < nsize; ++i) //Copy over newcomers
-        new (_array+i) T(add._array[i-_size]);
+        new (narray+i) T(add._array[i-_size]);
       for(SizeType i = 0; i < _size; ++i) //Demolish the old ones
         (_array+i)->~T();
 
@@ -391,7 +390,7 @@ namespace bss_util {
     }
     inline const cArraySafe<T,SizeType,Alloc> operator +(const cArraySafe<T,SizeType,Alloc>& add) const
     {
-      cArrayConstruct<T,SizeType,Alloc> retval(*this);
+      cArraySafe<T,SizeType,Alloc> retval(*this);
       retval+=add;
       return retval;
     }

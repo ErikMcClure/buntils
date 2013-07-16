@@ -5,7 +5,7 @@
 #define __C_DISJOINT_SET_H__BSS__
 
 #include "cArraySimple.h"
-#include "cUniquePtr.h"
+#include "cSmartPtr.h"
 #include "bss_util.h"
 
 namespace bss_util {

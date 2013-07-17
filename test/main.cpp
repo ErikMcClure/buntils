@@ -2089,25 +2089,56 @@ TESTDEF::RETPAIR test_INTERVALTREE()
 struct KDtest {
   float rect[4];
   LLBase<int> list;
+  KDNode<KDtest>* node;
+  static int hits;
 };
+int KDtest::hits=0;
 BSS_FORCEINLINE const float* BSS_FASTCALL KDtest_RECT(KDtest* t) { return t->rect; }
 BSS_FORCEINLINE LLBase<KDtest>& BSS_FASTCALL KDtest_LIST(KDtest* t) { return *(LLBase<KDtest>*)&t->list; }
-BSS_FORCEINLINE void BSS_FASTCALL KDtest_ACTION(KDtest* t) { }
+BSS_FORCEINLINE void BSS_FASTCALL KDtest_ACTION(KDtest* t) { ++KDtest::hits; }
+BSS_FORCEINLINE KDNode<KDtest>*& BSS_FASTCALL KDtest_NODE(KDtest* t) { return t->node; }
+
+unsigned int cKDTree<KDtest,FixedPolicy<KDNode<KDtest>>,&KDtest_RECT,&KDtest_LIST,&KDtest_ACTION,&KDtest_NODE>::RBTHRESHOLD=20;
 
 TESTDEF::RETPAIR test_KDTREE()
 {
   BEGINTEST;
   FixedPolicy<KDNode<KDtest>> alloc;
-  cKDTree<KDtest,FixedPolicy<KDNode<KDtest>>,&KDtest_RECT,&KDtest_LIST,&KDtest_ACTION> tree;
+  cKDTree<KDtest,FixedPolicy<KDNode<KDtest>>,&KDtest_RECT,&KDtest_LIST,&KDtest_ACTION,&KDtest_NODE> tree;
   KDtest r1 = { 0,0,1,1,0,0 };
   KDtest r2 = { 1,1,2,2,0,0 };
-  auto p = tree.Insert(&r1);
+  KDtest r3 = { 0,0,2,2,0,0 };
+  KDtest r4 = { 0.5,0.5,1.5,1.5,0,0 };
+  KDtest r5 = { 0.5,0.5,0.75,0.75,0,0 };
+  tree.Insert(&r1);
   tree.Insert(&r2);
-  tree.Remove(p,&r1);
+  tree.Remove(&r1);
+  tree.Insert(&r1);
+  tree.Insert(&r3);
+  tree.Insert(&r4);
+  tree.Remove(&r4);
+  tree.Insert(&r5);
+  tree.Insert(&r4);
   tree.Clear();
   tree.InsertRoot(&r1);
   tree.InsertRoot(&r2);
+  tree.InsertRoot(&r3);
+  tree.InsertRoot(&r4);
+  tree.InsertRoot(&r5);
   tree.Solve();
+  float c1[4] = {-1,-1,-0.5,-0.5};
+  tree.Traverse(c1);
+  TEST(KDtest::hits==0);
+  float c2[4] = {-1,-1,0,0};
+  tree.Traverse(c2);
+  TEST(KDtest::hits==2);
+  tree.Remove(&r1);
+  tree.Remove(&r2);
+  tree.Remove(&r3);
+  tree.Remove(&r4);
+  tree.Remove(&r5);
+  tree.Traverse(c1);
+  TEST(tree.GetRoot()->num==0);
   ENDTEST;
 }
 TESTDEF::RETPAIR test_KHASH()

@@ -29,7 +29,7 @@ namespace bss_util {
   };
 
   // KD-tree storing arbitrary rectangles. Requires a function turning T into a float[4] reference, LLBASE<T> list, and an action.
-  template<typename T, typename Alloc, const float* (BSS_FASTCALL *FRECT)(T*), LLBase<T>& (BSS_FASTCALL *FLIST)(T*), void (BSS_FASTCALL *FACTION)(T*)>
+  template<typename T, typename Alloc, const float* (BSS_FASTCALL *FRECT)(T*), LLBase<T>& (BSS_FASTCALL *FLIST)(T*), void (BSS_FASTCALL *FACTION)(T*), KDNode<T>*& (BSS_FASTCALL *FNODE)(T*)>
   class cKDTree : protected cAllocTracker<Alloc>
   {
   public:
@@ -39,8 +39,8 @@ namespace bss_util {
     inline void Clear() { if(_root) _destroynode(_root); _root=0; }
     void BSS_FASTCALL Traverse(float (&rect)[4]) const { if(_root) _traverse<0,1>(_root,rect); }
     template<typename F>
-    void BSS_FASTCALL TraverseAll(F && f) const { _traverseall(_root,std::forward(f)); }
-    inline KDNode<T>* BSS_FASTCALL Insert(T* item)
+    void BSS_FASTCALL TraverseAll(F && f) { _traverseall(_root,std::forward<F>(f)); }
+    inline void BSS_FASTCALL Insert(T* item)
     { 
       KDNode<T>** p=&_root;
       KDNode<T>* h;
@@ -53,10 +53,10 @@ namespace bss_util {
         h->total[0]+=r[0]+r[2];
         h->total[1]+=r[1]+r[3];
         h->num++;
-        if(r[axis+2]>h->div) { // Drop into left
+        if(r[axis+2]<h->div) { // Drop into left
           h->balance-=1;
           p=&h->left;
-        } else if(r[axis]<h->div) { // Drop into right
+        } else if(r[axis]>h->div) { // Drop into right
           h->balance+=1;
           p=&h->right;
         } else //insert here
@@ -76,10 +76,10 @@ namespace bss_util {
       }
       _insertitem(h,item);
       if(rb) Rebalance(rb);
-      return h;
     }
-    inline void BSS_FASTCALL Remove(KDNode<T>* node, T* item)
+    inline void BSS_FASTCALL Remove(T* item)
     { // run up tree, adjust balance and check for rebalancing
+      KDNode<T>* node=FNODE(item);
       KDNode<T>* rb=0;
       KDNode<T>* prev=node;
       const float* r = FRECT(item);
@@ -121,9 +121,12 @@ namespace bss_util {
       _root->total[0]+=r[0]+r[2];
       _root->total[1]+=r[1]+r[3];
       ++_root->num;
+      _insertitem(_root,item);
     }
     inline void Solve() { if(_root) _solve(&_root); }
-    static const int RBTHRESHOLD=20;
+    inline KDNode<T>* GetRoot() { return _root; }
+
+    static unsigned int RBTHRESHOLD; //Default is 20
 
   protected:
     inline void BSS_FASTCALL _solve(KDNode<T>** pnode)
@@ -135,13 +138,15 @@ namespace bss_util {
       KDNode<T>** p;
       KDNode<T>* h;
       const float* r;
-      T* item=node->items;
-      while(item)
+      T* item;
+      T* next=node->items;
+      while(item=next)
       { 
+        next=FLIST(item).next;
         r=FRECT(item);
-        if(r[node->axis+2]>node->div) p=&node->left; // Drop into left
-        else if(r[node->axis]<node->div) p=&node->right; // Drop into right
-        else { item=FLIST(item).next; continue; }
+        if(r[node->axis+2]<node->div) p=&node->left; // Drop into left
+        else if(r[node->axis]>node->div) p=&node->right; // Drop into right
+        else continue;
         if(!(*p)) // If null create the node
           *p=_allocnode(node,((node->axis+1)&1));
         _removeitem(node,item);
@@ -149,7 +154,6 @@ namespace bss_util {
         h->total[0]+=r[0]+r[2];
         h->total[1]+=r[1]+r[3];
         ++h->num;
-        item=FLIST(item).next;
       }
 
       if(node->left) _solve(&node->left);
@@ -172,7 +176,7 @@ namespace bss_util {
         rect[axis+2]=node->div;
         parents[axis+2]=node;
         _rebalance(node->left,rect,parents,node->total);
-        node->left->num;
+        node->num+=node->left->num;
         _checkdestroy(node->left);
         rect[axis+2]=r[axis+2]; // Reset so we don't mess up node below
       }
@@ -186,18 +190,20 @@ namespace bss_util {
         _checkdestroy(node->right);
       }
       
-      T* item=node->items;
+      T* item;
+      T* next=node->items;
       const float* itemr;
       KDNode<T>* par;
       char i;
-      while(item)
+      while(item=next)
       { 
+        next=FLIST(item).next;
         itemr=FRECT(item);
         if(itemr[0] < r[0]) i=0; // Check for a violation. We don't bother checking to see if there are multiple violations, because 
         if(itemr[1] < r[1]) i=1; // if that happens, we'll catch it on our way back up the stack.
         if(itemr[2] > r[2]) i=2;
         if(itemr[3] > r[3]) i=3;
-        else { item=FLIST(item).next; continue; }
+        else continue;
         node->total[0]-=itemr[0]+itemr[2]; // Remove image from us
         node->total[1]-=itemr[1]+itemr[3];
         --node->num;
@@ -207,7 +213,6 @@ namespace bss_util {
         par->total[1]+=itemr[1]+itemr[3]; // fix all the intermediate totals and nums for us.
         ++par->num;
         _insertitem(par,item);
-        item=FLIST(item).next;
       }
       
       total[0]+=node->total[0]; // Now add our new total back to the parent
@@ -229,12 +234,12 @@ namespace bss_util {
       cAllocTracker<Alloc>::_deallocate(node); //Deallocate node
     }
     template<typename F>
-    static void BSS_FASTCALL _traverseall(const KDNode<T>* node, F && f)
+    static void BSS_FASTCALL _traverseall(KDNode<T>* node, F && f)
     {
       if(!node) return;
       f(node->items);
-      _traverseall(node->left,std::forward(f));
-      _traverseall(node->right,std::forward(f));
+      _traverseall(node->left,std::forward<F>(f));
+      _traverseall(node->right,std::forward<F>(f));
     }
     template<char cur, char next>
     inline static void BSS_FASTCALL _traverse(const KDNode<T>* node, const float (&rect)[4])
@@ -269,9 +274,11 @@ namespace bss_util {
       l.prev=0;
       if(node->items) FLIST(node->items).prev=item;
       node->items=item;
+      FNODE(item)=node;
     }
     inline void BSS_FASTCALL _removeitem(KDNode<T>* node, T* item)
     {
+      FNODE(item)=0;
       LLBase<T>& l=FLIST(item);
       if(l.prev) FLIST(l.prev).next=l.next;
       else node->items=l.next;

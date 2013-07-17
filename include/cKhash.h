@@ -6,7 +6,6 @@
 
 #include "khash.h"
 #include "bss_defines.h"
-#include "bss_defines.h"
 #include "bss_deprecated.h"
 #include <wchar.h>
 #include <iterator>

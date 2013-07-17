@@ -14,7 +14,7 @@
 
 namespace bss_util {
   // Given a large array of strings (or a memory dump), assembles a single chunk of memory into a series of strings that can be accessed by index instantly
-  template<typename T, typename ST_ = unsigned int>
+  template<typename T, typename ST_ = size_t>
   class BSS_COMPILER_DLLEXPORT cStrTable
   {
   public:

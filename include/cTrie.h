@@ -40,18 +40,13 @@ namespace bss_util {
       _init(num,s,0,0); // Put into our recursive initializer
       delete [] s;
     }
-    inline cTrie(T num, const char* const* initstr) : cArraySimple<TNODE,T>(num)
-    {
-      _fill(0,num);
-      std::pair<T,const char*>* s = new std::pair<T,const char*>[num];
-      for(T i = 0; i < num; ++i) { s[i].first=i; s[i].second=initstr[i]; }
-      cBinaryHeap<std::pair<T,const char*>,T,CompTSecond<std::pair<T,const char*>,CompStr<const char*>>>::HeapSort(s,num); // sort into alphabetical order
-      _init(num,s,0,0); // Put into our recursive initializer
-      delete [] s;
-    }
+    inline cTrie(T num, const char* const* initstr) : cArraySimple<TNODE,T>(num) { _construct(num,initstr); }
+    template<int SZ>
+    inline cTrie(const char* const (&initstr)[SZ]) : cArraySimple<TNODE,T>(SZ) { _construct(SZ,initstr); }
     inline ~cTrie() {}
     inline T BSS_FASTCALL Get(const char* word) const
     {
+      assert(word!=0);
       TNODE* cur=_array; // root is always 0
       T r=0;
       char c;
@@ -78,6 +73,15 @@ namespace bss_util {
     inline cTrie& operator=(cTrie&& mov) { cArraySimple<TNODE,T>::operator=(std::move(mov)); return *this; }
 
   protected:
+    inline void BSS_FASTCALL _construct(T num, const char* const* initstr)
+    {
+      _fill(0,num);
+      std::pair<T,const char*>* s = new std::pair<T,const char*>[num];
+      for(T i = 0; i < num; ++i) { s[i].first=i; s[i].second=initstr[i]; }
+      cBinaryHeap<std::pair<T,const char*>,T,CompTSecond<std::pair<T,const char*>,CompStr<const char*>>>::HeapSort(s,num); // sort into alphabetical order
+      _init(num,s,0,0); // Put into our recursive initializer
+      delete [] s;
+    }
     BSS_FORCEINLINE void BSS_FASTCALL _fill(T s, T e)
     { 
       for(T i = s; i < e; ++i)

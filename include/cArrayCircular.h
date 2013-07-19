@@ -33,7 +33,7 @@ namespace bss_util {
     inline T& Front() { assert(_length>0); return _array[_cur]; }
     inline const T& Back() const { assert(_length>0); return _array[bssmod<__ST_SIGNED>(_length-1)]; }
     inline T& Back() { assert(_length>0); return _array[bssmod<__ST_SIGNED>(_length-1)]; }
-    inline ST_ Size() const { return _size; }
+    inline ST_ Capacity() const { return _size; }
     inline ST_ Length() const { return _length; }
     inline void SetSize(ST_ nsize) // Will preserve the array but only if it got larger
     {

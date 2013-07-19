@@ -15,15 +15,8 @@
 #include <stdio.h>
 #endif
 
-//#define CSTRALLOC(T) std::basic_string<T, std::char_traits<T>, bss_util::RefAllocator<Alloc,bss_util::RefHackAllocPolicy<T>, bss_util::ObjectTraits<T>>>
-#define CSTRALLOC(T) std::basic_string<T, std::char_traits<T>, Alloc>
-
-/* This uses a trick stolen from numeric_limits, where you can explicitely initialize entire classes. Thus, we create a blank slate
-and then explicitely initialize it for char and wchar_t, thus allowing our cStrT class template to be pretty and easy to use */
-template<class _Ty>
-class CSTR_CT
-{
-};
+/* This is a static class that holds specializations for char and wchar_t string operations */
+template<class _Ty> class CSTR_CT {};
 
 template<>
 class CSTR_CT<char>
@@ -101,24 +94,24 @@ public:
 #pragma warning(push)
 #pragma warning(disable: 4275)
 #pragma warning(disable: 4251)
-//template<typename Alloc = bss_util::AllocatorPolicyRef<char, bss_util::StringPoolAllocPolicy<char>, bss_util::ObjectTraits<char>>>
-//template<typename Alloc = bss_util::Allocator<CHAR,bss_util::StringPoolPolicy<CHAR>>>
 template<typename T=char, typename Alloc=std::allocator<T>>
-class BSS_COMPILER_DLLEXPORT cStrT : public CSTRALLOC(T)//If dllimport is used on this linker errors crop up. I have no idea why. Also, if the constructors aren't inlined, it causes heap corruption errors because the basic_string constructors are inlined
+class BSS_COMPILER_DLLEXPORT cStrT : public std::basic_string<T, std::char_traits<T>, Alloc> //If the constructors aren't inlined, it causes heap corruption errors because the basic_string constructors are inlined
 { //Note that you can take off BSS_COMPILER_DLLEXPORT but you'll pay for it with even more unnecessary 4251 warnings.
   typedef typename CSTR_CT<T>::CHAR CHAR;
   typedef typename CSTR_CT<T>::OTHER_C OTHER_C;
+  typedef std::basic_string<T, std::char_traits<T>, Alloc> BASE;
+
 public:
-  explicit inline cStrT(size_t length = 1) : CSTRALLOC(CHAR)() { CSTRALLOC(T)::reserve(length); } //an implicit constructor here would be bad
-  inline cStrT(const CSTRALLOC(CHAR)& copy) : CSTRALLOC(CHAR)(copy) {}
-  inline cStrT(CSTRALLOC(CHAR)&& mov) : CSTRALLOC(CHAR)(std::move(mov)) {}
-  inline cStrT(const cStrT& copy) : CSTRALLOC(CHAR)(copy) {}
-  inline cStrT(cStrT&& mov) : CSTRALLOC(CHAR)(std::move(mov)) {}
-  template<class U> inline cStrT(const cStrT<T,U>& copy) : CSTRALLOC(CHAR)(copy) {}
-  template<class U> inline cStrT(const cStrT<OTHER_C,U>& copy) : CSTRALLOC(CHAR)() { _convstr(copy.c_str()); }
-  inline cStrT(const CHAR* string) : CSTRALLOC(CHAR)(!string?CSTR_CT<T>::STREMPTY():string) { }
-  inline cStrT(const OTHER_C* text) : CSTRALLOC(CHAR)() { if(text!=0) _convstr(text); }
-  inline cStrT(unsigned short index, const CHAR* text, const CHAR delim) : CSTRALLOC(CHAR)() //Creates a new string from the specified chunk
+  explicit inline cStrT(size_t length = 1) : BASE() { BASE::reserve(length); } //an implicit constructor here would be bad
+  inline cStrT(const BASE& copy) : BASE(copy) {}
+  inline cStrT(BASE&& mov) : BASE(std::move(mov)) {}
+  inline cStrT(const cStrT& copy) : BASE(copy) {}
+  inline cStrT(cStrT&& mov) : BASE(std::move(mov)) {}
+  template<class U> inline cStrT(const cStrT<T,U>& copy) : BASE(copy) {}
+  template<class U> inline cStrT(const cStrT<OTHER_C,U>& copy) : BASE() { _convstr(copy.c_str()); }
+  inline cStrT(const CHAR* string) : BASE(!string?CSTR_CT<T>::STREMPTY():string) { }
+  inline cStrT(const OTHER_C* text) : BASE() { if(text!=0) _convstr(text); }
+  inline cStrT(unsigned short index, const CHAR* text, const CHAR delim) : BASE() //Creates a new string from the specified chunk
   {
     for(unsigned short i = 0; i < index; ++i)
     {
@@ -130,8 +123,8 @@ public:
     if(!end) end = &text[CSTR_CT<T>::SLEN(text)];
     
     size_t _length = end-text;
-    CSTRALLOC(T)::reserve(++_length);
-    CSTRALLOC(T)::insert(0, text,_length-1);
+    BASE::reserve(++_length);
+    BASE::insert(0, text,_length-1);
   }
 
   inline operator const CHAR*() const { return _internal_ptr(); }
@@ -143,28 +136,28 @@ public:
   inline const cStrT operator +(const CHAR* right) const { return cStrT(*this)+=right; }
   inline const cStrT operator +(const CHAR right) const { return cStrT(*this)+=right; }
 
-  inline cStrT& operator =(const cStrT& right) { CSTRALLOC(CHAR)::operator =(right); return *this; }
-  template<class U> inline cStrT& operator =(const cStrT<T,U>& right) { CSTRALLOC(CHAR)::operator =(right); return *this; }
-  template<class U> inline cStrT& operator =(const cStrT<OTHER_C,U>& right) { CSTRALLOC(CHAR)::clear(); _convstr(right.c_str()); return *this; }
-  inline cStrT& operator =(const CHAR* right) { if(right != 0) CSTRALLOC(CHAR)::operator =(right); else CSTRALLOC(CHAR)::clear(); return *this; }
-  inline cStrT& operator =(const OTHER_C* right) { CSTRALLOC(CHAR)::clear(); if(right != 0) _convstr(right); return *this; }
-  //inline cStrT& operator =(const CHAR right) { CSTRALLOC(CHAR)::operator =(right); return *this; } //Removed because char is also a number, and therefore confuses the compiler whenever something could feasibly be a number of any kind. If you need it, cast to basic_string<>
-  inline cStrT& operator =(cStrT&& right) { CSTRALLOC(CHAR)::operator =(std::move(right)); return *this; }
+  inline cStrT& operator =(const cStrT& right) { BASE::operator =(right); return *this; }
+  template<class U> inline cStrT& operator =(const cStrT<T,U>& right) { BASE::operator =(right); return *this; }
+  template<class U> inline cStrT& operator =(const cStrT<OTHER_C,U>& right) { BASE::clear(); _convstr(right.c_str()); return *this; }
+  inline cStrT& operator =(const CHAR* right) { if(right != 0) BASE::operator =(right); else BASE::clear(); return *this; }
+  inline cStrT& operator =(const OTHER_C* right) { BASE::clear(); if(right != 0) _convstr(right); return *this; }
+  //inline cStrT& operator =(const CHAR right) { BASE::operator =(right); return *this; } //Removed because char is also a number, and therefore confuses the compiler whenever something could feasibly be a number of any kind. If you need it, cast to basic_string<>
+  inline cStrT& operator =(cStrT&& right) { BASE::operator =(std::move(right)); return *this; }
 
-  inline cStrT& operator +=(const cStrT& right) { CSTRALLOC(CHAR)::operator +=(right); return *this; }
-  template<class U> inline cStrT& operator +=(const cStrT<T,U>& right) { CSTRALLOC(CHAR)::operator +=(right); return *this; }
-  inline cStrT& operator +=(const CHAR* right) { if(right != 0 && right != _internal_ptr()) CSTRALLOC(CHAR)::operator +=(right); return *this; }
-  inline cStrT& operator +=(const CHAR right) { CSTRALLOC(CHAR)::operator +=(right); return *this; }
+  inline cStrT& operator +=(const cStrT& right) { BASE::operator +=(right); return *this; }
+  template<class U> inline cStrT& operator +=(const cStrT<T,U>& right) { BASE::operator +=(right); return *this; }
+  inline cStrT& operator +=(const CHAR* right) { if(right != 0 && right != _internal_ptr()) BASE::operator +=(right); return *this; }
+  inline cStrT& operator +=(const CHAR right) { BASE::operator +=(right); return *this; }
   
   inline CHAR* UnsafeString() { return _internal_ptr(); } //This is potentially dangerous if the string is modified
   //inline const CHAR* String() const { return _internal_ptr(); }
-  inline CHAR& GetChar(size_t index) { return CSTRALLOC(CHAR)::operator[](index); }
-  inline void RecalcSize() { CSTRALLOC(CHAR)::resize(CSTR_CT<T>::SLEN(_internal_ptr())); }
+  inline CHAR& GetChar(size_t index) { return BASE::operator[](index); }
+  inline void RecalcSize() { BASE::resize(CSTR_CT<T>::SLEN(_internal_ptr())); }
   inline cStrT Trim() const { cStrT r(*this); r=_ltrim(_rtrim(r._internal_ptr(),r.size())); return r; }
   inline cStrT& ReplaceChar(CHAR search, CHAR replace)
   { 
     CHAR* pmod=_internal_ptr();
-    size_t sz = CSTRALLOC(CHAR)::size();
+    size_t sz = BASE::size();
     for(size_t i = 0; i < sz; ++i)
       if(pmod[i] == search)
         pmod[i] = replace;
@@ -242,8 +235,8 @@ private:
   inline BSS_FORCEINLINE CHAR* _internal_ptr() { return _Myptr(); }
   inline BSS_FORCEINLINE const CHAR* _internal_ptr() const { return _Myptr(); }
 #elif defined(BSS_COMPILER_GCC)
-  inline BSS_FORCEINLINE CHAR* _internal_ptr() { return const_cast<CHAR*>(CSTRALLOC(CHAR)::c_str()); }
-  inline BSS_FORCEINLINE const CHAR* _internal_ptr() const { return CSTRALLOC(CHAR)::c_str(); }
+  inline BSS_FORCEINLINE CHAR* _internal_ptr() { return const_cast<CHAR*>(BASE::c_str()); }
+  inline BSS_FORCEINLINE const CHAR* _internal_ptr() const { return BASE::c_str(); }
 #else
 #error "cStr is not supported for this compiler"
 #endif
@@ -251,17 +244,17 @@ private:
   {
     size_t r = CSTR_CT<T>::CONV(src,0,0);
     if(r==(size_t)-1) return; // If invalid, bail
-    CSTRALLOC(T)::resize(r); // resize() only adds one for null terminator if it feels like it.
-    r = CSTR_CT<T>::CONV(src,_internal_ptr(),CSTRALLOC(T)::capacity());
+    BASE::resize(r); // resize() only adds one for null terminator if it feels like it.
+    r = CSTR_CT<T>::CONV(src,_internal_ptr(),BASE::capacity());
     if(r==(size_t)-1) return; // If somehow still invalid, bail again
-    CSTRALLOC(T)::resize(r-1); // resize to actual number of characters instead of simply the maximum (disregard null terminator)
+    BASE::resize(r-1); // resize to actual number of characters instead of simply the maximum (disregard null terminator)
     //_internal_ptr()[r]=0; // Otherwise ensure we have a null terminator.
   }
 
   inline static T* BSS_FASTCALL _ltrim(T* str) { for(;*str>0 && *str<33;++str); return str; }
   inline static T* BSS_FASTCALL _rtrim(T* str, size_t size) { T* inter=str+size; for(;inter>str && *inter<33;--inter); *(++inter)=0; return str; }
   //The following line of code is in such a twisted state because it must overload the operator[] inherent in the basic_string class and render it totally unusable so as to force the compiler to disregard it as a possibility, otherwise it gets confused with the CHAR* type conversion
-  void operator[](std::allocator<CHAR>& f) { }//return CSTRALLOC(CHAR)::operator [](_Off); }
+  void operator[](std::allocator<CHAR>& f) { }//return BASE::operator [](_Off); }
 
 };
 #pragma warning(pop)

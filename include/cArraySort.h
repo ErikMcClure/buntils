@@ -77,7 +77,7 @@ namespace bss_util {
       ST_ retval=before?binsearch_before<T,ST_,CFunc>(_array,_length,data):binsearch_after<T,ST_,CFunc>(_array,_length,data);
       return (retval<_length)?retval:(ST_)(-1); // This is only needed for before=false in case it returns a value outside the range.
     }
-    inline bool IsEmpty() const { return !_length; }
+    inline bool Empty() const { return !_length; }
     inline ST_ Length() const { return _length; }
     inline constref operator [](ST_ index) const { return _array[index]; }
     inline T& operator [](ST_ index) { return _array[index]; }

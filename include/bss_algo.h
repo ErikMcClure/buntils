@@ -7,8 +7,10 @@
 #include "bss_util.h"
 #include "bss_compare.h"
 #include "bss_sse.h"
+#include "cDynArray.h"
 #include <algorithm>
 #include <random>
+#include <array>
 
 namespace bss_util {
   // Performs a binary search on "arr" between first and last. if CEQ=NEQ and char CVAL=-1, uses an upper bound, otherwise uses lower bound.
@@ -90,21 +92,23 @@ namespace bss_util {
   inline void BSS_FASTCALL shuffle(T (&p)[size]) { shuffle<T,ST,RandFunc>(p,size); }
 
   // inline function wrapper to the #define RANDINTGEN
-  inline BSS_FORCEINLINE int bss_randint(int min, int max)
+  template<class T>
+  inline BSS_FORCEINLINE T bss_randint(T min, T max)
   {
-    return !(max-min)?min:RANDINTGEN(min,max);
+    static_assert(std::is_integral<T>::value,"T must be integral");
+    return !(max-min)?min:((min)+(rand()%((T)((max)-(min)))));
   }
 
   /* Shuffler using default random number generator.*/
   template<typename T>
   inline BSS_FORCEINLINE void BSS_FASTCALL shuffle(T* p, int size)
   {
-    shuffle<T,int,&bss_randint>(p,size);
+    shuffle<T,int,&bss_randint<int>>(p,size);
   }
   template<typename T, int size>
   inline BSS_FORCEINLINE void BSS_FASTCALL shuffle(T (&p)[size])
   {
-    shuffle<T,int,size,&bss_randint>(p);
+    shuffle<T,int,size,&bss_randint<int>>(p);
   }
 
   template<class F, typename T, size_t SIZE>
@@ -227,6 +231,41 @@ namespace bss_util {
   //  return CompareTrajectories<T,N>(t1,K1,t2,K2);
   //}
 
+  // Random queue 
+  template<class ArrayType, typename ArrayType::ST_ (*RandFunc)(typename ArrayType::ST_ min, typename ArrayType::ST_ max)=&bss_randint>
+  class BSS_COMPILER_DLLEXPORT cRandomQueue : protected cDynArray<ArrayType>
+  {
+  protected:
+    typedef typename ArrayType::ST_ ST_;
+    typedef typename ArrayType::T_ T_;
+    using ArrayType::_array;
+    using cDynArray<ArrayType>::_length;
+
+  public:
+    inline cRandomQueue(const cRandomQueue& copy) : cDynArray<ArrayType>(copy) {}
+    inline cRandomQueue(cRandomQueue&& mov) : cDynArray<ArrayType>(std::move(mov)) {}
+    inline explicit cRandomQueue(ST_ size=0): cDynArray<ArrayType>(size) {}
+    inline void Push(const T_& t) { Add(t); }
+    inline void Push(T_&& t) { Add(std::move(t)); }
+    inline T_ Pop() { ST_ i=RandFunc(0,_length); T_ r = std::move(_array[i]); Remove(i); return r; }
+    inline void Remove(ST_ index) { _array[index]=std::move(_array[--_length]); }
+    inline bool Empty() const { return !_length; }
+    inline void Clear() { _length=0; }
+    inline void SetLength(ST_ length) { cDynArray<ArrayType>::SetLength(length); }
+    inline ST_ Length() const { return _length; }
+    inline const T_* begin() const { return _array; }
+    inline const T_* end() const { return _array+_length; }
+    inline T_* begin() { return _array; }
+    inline T_* end() { return _array+_length; }
+
+    inline operator T_*() { return _array; }
+    inline operator const T_*() const { return _array; }
+    inline cRandomQueue& operator=(const cRandomQueue& copy) { cDynArray<ArrayType>::operator=(copy); return *this; }
+    inline cRandomQueue& operator=(cRandomQueue&& mov) { cDynArray<ArrayType>::operator=(std::move(mov)); return *this; }
+    inline cRandomQueue& operator +=(const cRandomQueue& add) { cDynArray<ArrayType>::operator+=(add); return *this; }
+    inline const cRandomQueue operator +(const cRandomQueue& add) const { cRandomQueue r(*this); return (r+=add); }
+  };
+
   static const double ZIGNOR_R = 3.442619855899;
 
   // Instance for generating random samples from a normal distribution.
@@ -308,154 +347,79 @@ namespace bss_util {
     StochasticSubdivider(r2,f1,f2,f3,depth);
   }
 
-  /*
-  // Implementation of Fast Poisson Disk Sampling by Robert Bridson
   template<typename T>
-  std::unique_ptr<T[]> PoissonDiskSample(T (&rect)[4], T mindist, int pointsPerIteration=30)
+  inline size_t BSS_FASTCALL _PDS_imageToGrid(T* pt, T cell, size_t gw)
+  {
+    return (size_t)(pt[0] / cell) + gw*(size_t)(pt[1] / cell) + 2 + gw + gw;
+  }
+  // Implementation of Fast Poisson Disk Sampling by Robert Bridson
+  template<typename T, typename F>
+  void PoissonDiskSample(T (&rect)[4], T mindist, F && f, uint pointsPerIteration=30)
   {
     //Create the grid
-    cellSize = min_dist/sqrt(2);
+    T cell = mindist/(T)SQRT_TWO;
     T w = rect[2]-rect[0];
     T h = rect[3]-rect[1];
-    grid = Grid2D(Point(
-      (ceil(w/cell_size),         //grid width
-      ceil(h/cell_size))));      //grid height
+    size_t gw = ceil(w/cell)+4; //gives us buffer room so we don't have to worry about going outside the grid
+    size_t gh = ceil(h/cell)+4;
+    std::array<T,2>* grid = new std::array<T,2>[gw*gh];      //grid height
+    uint64* ig = (uint64*)grid;
+    memset(grid,0xFFFFFFFF,gw*gh*sizeof(std::array<T,2>));
+    assert(!(~ig[0]));
 
-    //RandomQueue works like a queue, except that it
-    //pops a random element from the queue instead of
-    //the element at the head of the queue
-    processList = RandomQueue();
-    int len = (1+(int)(w/mindist)) * (1+(int)(h/mindist));
-    std::unique_ptr<float[]> ret(new float[len]);
-    int count=0;
+    cRandomQueue<cArraySimple<std::array<T,2>>> list;
+    std::array<T,2> pt = { (T)RANDFLOATGEN(rect[0],rect[2]), (T)RANDFLOATGEN(rect[1],rect[3]) };
 
-    float pt[2] = { RANDFLOATGEN(rect[0],rect[2]), RANDFLOATGEN(rect[1],rect[3]) };
+    //update containers 
+    list.Push(pt);
+    f(pt.data());
+    grid[_PDS_imageToGrid<T>(pt.data(), cell, gw)] = pt;
 
-    //update containers
-    processList.push(firstPoint);
-    ret[count]=pt[0];
-    ret[++count]=pt[1];
-    grid[imageToGrid(firstPoint, cellSize)] = firstPoint;
-
+    T mindistsq = mindist*mindist;
+    T radius,angle;
+    size_t center,edge;
     //generate other points from points in queue.
-    while (not processList.empty())
+    while(!list.Empty())
     {
-      point = processList.pop();
-      for (i = 0; i < new_points_count; i++)
+      auto point = list.Pop();
+      for(uint i = 0; i < pointsPerIteration; i++)
       {
-        newPoint = generateRandomPointAround(point, min_dist);
-        //check that the point is in the image region
-        //and no points exists in the point's neighbourhood
-        if (inRectangle(newPoint) and
-          not inNeighbourhood(grid, newPoint, min_dist,
-            cellSize))
+        radius = mindist*RANDFLOATGEN(1,2); //random point between mindist and 2*mindist
+        angle = RANDFLOATGEN(0,PI_DOUBLE);
+        pt[0] = point[0] + radius * cos(angle); //the new point is generated around the point (x, y)
+        pt[1] = point[1] + radius * sin(angle);
+        
+        if(pt[0]>rect[0] && pt[0]<rect[2] && pt[1]>rect[1] && pt[1]<rect[3]) //Ensure point is inside recT
         {
-          //update containers
-          processList.push(newPoint);
-          samplePoints.push(newPoint);
-          grid[imageToGrid(newPoint, cellSize)] =  newPoint;
+          center = _PDS_imageToGrid<T>(pt.data(), cell, gw); // If another point is in the neighborhood, abort this point.
+          edge=center-gw-gw;
+#define POISSONSAMPLE_CHECK(edge) if((~ig[edge])!=0 && distsqr(grid[edge][0],grid[edge][1],pt[0],pt[1])<mindistsq) continue
+          POISSONSAMPLE_CHECK(edge-1);
+          POISSONSAMPLE_CHECK(edge);
+          POISSONSAMPLE_CHECK(edge+1);
+          edge+=gw;
+          if(~(ig[edge-1]&ig[edge]&ig[edge+1])) continue;
+          POISSONSAMPLE_CHECK(edge-2);
+          POISSONSAMPLE_CHECK(edge+2);
+          edge+=gw;
+          POISSONSAMPLE_CHECK(edge-2);
+          if(~(ig[edge-1]&ig[edge]&ig[edge+1])) continue;
+          POISSONSAMPLE_CHECK(edge+2);
+          edge+=gw;
+          if(~(ig[edge-1]&ig[edge]&ig[edge+1])) continue;
+          POISSONSAMPLE_CHECK(edge-2);
+          POISSONSAMPLE_CHECK(edge+2);
+          edge+=gw;
+          POISSONSAMPLE_CHECK(edge-1);
+          POISSONSAMPLE_CHECK(edge);
+          POISSONSAMPLE_CHECK(edge+1);
+          list.Push(pt);
+          f(pt.data());
+          grid[_PDS_imageToGrid<T>(pt.data(), cell, gw)] = pt;
         }
       }
     }
-    return ret;
   }
-    static void BSS_FASTCALL Sample(float (&rect)[4], float mindist, int pointsPerIteration=30)
-	  {
-      Settings settings =  { rect, { rect[2]-rect[0],rect[3]-rect[1] }, { (rect[2]-rect[0])*0.5f,(rect[3]-rect[1])*0.5f },
-        mindist, mindist/SQRT_TWO, 0, 0, 0 };
-      settings.gwidth = (int) (settings.dim[0] / settings.cellsz) + 1;
-      settings.gheight = (int) (settings.dim[1] / settings.cellsz) + 1;
-      settings.grid = new float[settings.gwidth*settings.gheight][2];
-      
-		  AddFirstPoint(settings);
-
-      while (state.ActivePoints.Count != 0)
-		  {
-        var listIndex = RandomHelper.Random.Next(state.ActivePoints.Count);
-
-        var point = state.ActivePoints[listIndex];
-        var found = false;
-
-        for (var k = 0; k < pointsPerIteration; k++)
-          found |= AddNextPoint(point, ref settings, ref state);
-
-        if (!found)
-          state.ActivePoints.RemoveAt(listIndex);
-		  }
-
-		  return state.Points;
-	  }
-
-    inline static void BSS_FASTCALL AddFirstPoint(Settings& settings)
-    {
-        var added = false;
-        while (!added)
-        {
-            var d = RandomHelper.Random.NextDouble();
-            var xr = settings.TopLeft.X + settings.Dimensions.X * d;
-
-            d = RandomHelper.Random.NextDouble();
-            var yr = settings.TopLeft.Y + settings.Dimensions.Y * d;
-
-            var p = new Vector2((float) xr, (float) yr);
-                continue;
-            added = true;
-
-            var index = Denormalize(p, settings.TopLeft, settings.CellSize);
-
-            state.Grid[(int) index.X, (int) index.Y] = p;
-
-            state.ActivePoints.Add(p);
-            state.Points.Add(p);
-        } 
-    }
-
-    inline static bool BSS_FASTCALL AddNextPoint(Vector2 point, ref Settings settings, ref State state)
-	  {
-		  var found = false;
-          var q = GenerateRandomAround(point, settings.MinimumDistance);
-
-          if (q.X >= settings.TopLeft.X && q.X < settings.LowerRight.X && 
-              q.Y > settings.TopLeft.Y && q.Y < settings.LowerRight.Y &&
-		  {
-              var qIndex = Denormalize(q, settings.TopLeft, settings.CellSize);
-			  var tooClose = false;
-
-              for (var i = (int)Math.Max(0, qIndex.X - 2); i < Math.Min(settings.GridWidth, qIndex.X + 3) && !tooClose; i++)
-                  for (var j = (int)Math.Max(0, qIndex.Y - 2); j < Math.Min(settings.GridHeight, qIndex.Y + 3) && !tooClose; j++)
-					  if (state.Grid[i, j].HasValue && Vector2.Distance(state.Grid[i, j].Value, q) < settings.MinimumDistance)
-						tooClose = true;
-
-			  if (!tooClose)
-			  {
-				  found = true;
-				  state.ActivePoints.Add(q);
-				  state.Points.Add(q);
-                  state.Grid[(int)qIndex.X, (int)qIndex.Y] = q;
-			  }
-		  }
-		  return found;
-	  }
-
-    static Vector2 GenerateRandomAround(Vector2 center, float minimumDistance)
-    {
-        var d = RandomHelper.Random.NextDouble();
-        var radius = minimumDistance + minimumDistance * d;
-
-        d = RandomHelper.Random.NextDouble();
-        var angle = MathHelper.TwoPi * d;
-
-        var newX = radius * Math.Sin(angle);
-        var newY = radius * Math.Cos(angle);
-
-        return new Vector2((float) (center.X + newX), (float) (center.Y + newY));
-    }
-
-    static Vector2 Denormalize(Vector2 point, Vector2 origin, double cellSize)
-    {
-        return new Vector2((int) ((point.X - origin.X) / cellSize), (int) ((point.Y - origin.Y) / cellSize));
-    }
-  };*/
 }
 
 

@@ -28,10 +28,11 @@ namespace bss_util {
     inline void RemoveLast() { --_length; }
     inline void Insert(const T_& t, ST_ index=0) { return _insert(t,index); }
     inline void Insert(T_&& t, ST_ index=0) { return _insert(std::move(t),index); }
-    inline bool IsEmpty() const { return !_length; }
+    inline bool Empty() const { return !_length; }
     inline void Clear() { _length=0; }
     inline void SetLength(ST_ length) { if(length>_size) AT_::SetSize(length); _length=length; }
     inline ST_ Length() const { return _length; }
+    inline ST_ Capacity() const { return _size; }
     inline const T_& Front() const { assert(_length>0); return _array[0]; }
     inline const T_& Back() const { assert(_length>0); return _array[_length-1]; }
     inline T_& Front() { assert(_length>0); return _array[0]; }
@@ -122,7 +123,7 @@ namespace bss_util {
       assert(element>0);
     }
     inline ST_ Element() const { return _element; }
-    inline bool IsEmpty() const { return !_length; }
+    inline bool Empty() const { return !_length; }
     inline void Clear() { _length=0; }
     inline void SetLength(ST_ length) { _length=length; length*=_element; if(length>_size) AT_::SetSize(length);  }
     inline ST_ Length() const { return _length; }

@@ -95,7 +95,6 @@
     <ClInclude Include="..\include\cRefCounter.h" />
     <ClInclude Include="..\include\cSettings.h" />
     <ClInclude Include="..\include\cSingleton.h" />
-    <ClInclude Include="..\include\cSparseArray.h" />
     <ClInclude Include="..\include\cStr.h" />
     <ClInclude Include="..\include\cStrTable.h" />
     <ClInclude Include="..\include\cThread.h" />

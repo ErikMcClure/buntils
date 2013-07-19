@@ -135,9 +135,6 @@
     <ClInclude Include="..\include\cSingleton.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="..\include\cSparseArray.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
     <ClInclude Include="..\include\cStr.h">
       <Filter>Header Files</Filter>
     </ClInclude>

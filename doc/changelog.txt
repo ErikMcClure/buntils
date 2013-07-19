@@ -35,6 +35,9 @@
 - Added cTrie
 - Changed cBinaryHeap to default to a maxheap using CompT rather than a minheap so HeapSort sorts things in ascending order by default (and so this behavior is consistent with the std heap implementation). cScheduler was modified to account for this, but cPriorityQueue now has inverted default behavior.
 - Renamed cUniquePtr.h to cSmartPtr.h, removed cUniquePtr and added cAutoRef
+- Removed cSparseArray.h
+- Changed several Size() calls to Capacity to prevent accidents
+- bss_algo.h now contains an implementation of Robert Bridson's Fast Poisson Disk Sampling algorithm
 
 0.4
 ------

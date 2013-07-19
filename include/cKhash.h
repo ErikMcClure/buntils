@@ -241,7 +241,7 @@ namespace bss_util {
     }
 		inline void Clear() { kh_clear_template(_h); }
 		inline unsigned int Length() const { return kh_size(_h); }
-		inline unsigned int Size() const { return _h->n_buckets; }
+		inline unsigned int Capacity() const { return _h->n_buckets; }
 		inline khiter_t Start() const { return kh_begin(_h); }
 		inline khiter_t End() const { return kh_end(_h); }
     inline bool Exists(khiter_t iterator) const { if(iterator<_h->n_buckets) return kh_exist(_h, iterator)!=0; return false; }

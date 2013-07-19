@@ -37,7 +37,6 @@
 #include "cAnimation.h"
 #include "cScheduler.h"
 #include "cSingleton.h"
-#include "cSparseArray.h"
 #include "cStr.h"
 #include "cStrTable.h"
 #include "cThread.h"
@@ -770,6 +769,7 @@ TESTDEF::RETPAIR test_bss_algo()
     [](const float(&r)[4]) { },
     [&](unsigned int d, const float (&r)[4]) -> double { return zig(); });
 
+  PoissonDiskSample<float>(rect,2.0f,[](float* f)->float{ return f[0]+f[1];});
   ENDTEST;
 }
 
@@ -1248,7 +1248,7 @@ TESTDEF::RETPAIR test_ARRAYCIRCULAR()
   BEGINTEST;
   cArrayCircular<int> a;
   a.SetSize(25);
-  TEST(a.Size()==25);
+  TEST(a.Capacity()==25);
   for(int i = 0; i < 25; ++i)
     a.Push(i);
   TEST(a.Length()==25);
@@ -2766,6 +2766,9 @@ TESTDEF::RETPAIR test_TRIE()
   const char* strs[] = { "fail","on","tex","rot","ro","ti","ontick","ondestroy","te","tick" };
   cTrie<unsigned char> t(9,"tick","on","tex","rot","ro","ti","ontick","ondestroy","te");
   cTrie<unsigned char> t2(9,strs);
+  cTrie<unsigned char> t3(strs);
+  TEST(t3["fail"]==0);
+  TEST(t3["tick"]==9);
 
   for(uint i = 0; i < 9; ++i)
   {

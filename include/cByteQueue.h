@@ -64,7 +64,7 @@ namespace bss_util
     // Gets the length of the used array
     inline SizeType Length() const { return _cur; }
     // Gets the total size of the buffer
-    inline SizeType Size() const { return _size; }
+    inline SizeType Capacity() const { return _size; }
 
     inline void* operator[](SizeType index) { return (index<_cur)?_array[index]:0; }
     inline cByteQueue& operator=(const cByteQueue& copy) { cArraySimple<unsigned char,SizeType>::operator=(copy); _cur=copy._cur; return *this; }

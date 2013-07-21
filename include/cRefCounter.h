@@ -4,8 +4,6 @@
 #ifndef __C_REFCOUNTER_H__BSS__ //These are used in case this header file is used by two different projects dependent on each other, resulting in duplicates which cannot be differentiated by #pragma once
 #define __C_REFCOUNTER_H__BSS__
 
-#define DELETE_REF(p) if(p) { p->Drop(); p = 0; }
-
 #include "bss_compiler.h"
 
 namespace bss_util {  
@@ -25,32 +23,9 @@ namespace bss_util {
     // Destroys this object - made a seperate virtual function so it is overridable to ensure it is deleted in the proper DLL
     virtual void DestroyThis() { delete this; }
 
-  private:
+  protected:
     int _refs; //holds the number of references held for this object
   };
-
-  // This is an autoptr with copy semantics for a reference counter
-  /*template<class T>
-  class BSS_COMPILER_DLLEXPORT cRefPointer
-  {
-  public:
-    inline cRefPointer(const cRefPointer& ptr) { _assign(ptr); }
-    inline cRefPointer(T* ptr) { _assign(ptr); }
-    inline ~cRefPointer() { _drop(); }
-    inline void ReleasePtr() { _drop(); }
-
-    inline cRefPointer& operator=(T* right) { _drop(); _assign(right) }
-    inline cRefPointer& operator=(const cRefPointer& right) { _drop(); _assign(right); }
-    inline T& operator*() const { return *_ptr; }
-    inline T* operator->() const { return _ptr; }
-    //operator T*() const { return _ptr; }
-
-  protected:
-    inline void _assign(T* ptr) { _ptr = ptr; if(_ptr) ((cRefCounter*)_ptr)->Grab(); }
-    inline void _drop() { if(_ptr) ((cRefCounter*)_ptr)->Drop(); _ptr=0; }
-
-    T* _ptr;
-  };*/
 }
 
 #endif

@@ -37,7 +37,7 @@
 - Renamed cUniquePtr.h to cSmartPtr.h, removed cUniquePtr and added cAutoRef
 - Removed cSparseArray.h
 - Changed several Size() calls to Capacity to prevent accidents
-- bss_algo.h now contains an implementation of Robert Bridson's Fast Poisson Disk Sampling algorithm
+- bss_algo.h now contains an implementation of Robert Bridson's Fast Poisson Disk Sampling algorithm and an SSE2 optimized 4x4 matrix multiplier.
 
 0.4
 ------

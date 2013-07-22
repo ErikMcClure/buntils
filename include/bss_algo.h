@@ -189,6 +189,20 @@ namespace bss_util {
       out[i]=F(x1[i],x2);
   }
 
+  // standard 4x4 matrix multiplication using SSE2
+  inline void BSS_FASTCALL Mult4x4(float (&out)[4][4], const float (&l)[4][4], const float (&r)[4][4])
+  {
+    sseVec a(r[0]);
+    sseVec b(r[1]);
+    sseVec c(r[2]);
+    sseVec d(r[3]);
+
+    (a*sseVec(l[0][0]))+(b*sseVec(l[0][1]))+(c*sseVec(l[0][2]))+(d*sseVec(l[0][3])) >> out[0];
+    (a*sseVec(l[1][0]))+(b*sseVec(l[1][1]))+(c*sseVec(l[1][2]))+(d*sseVec(l[1][3])) >> out[1];
+    (a*sseVec(l[2][0]))+(b*sseVec(l[2][1]))+(c*sseVec(l[2][2]))+(d*sseVec(l[2][3])) >> out[2];
+    (a*sseVec(l[3][0]))+(b*sseVec(l[3][1]))+(c*sseVec(l[3][2]))+(d*sseVec(l[3][3])) >> out[3];
+  }
+
   template<typename T, typename R> BSS_FORCEINLINE R BSS_FASTCALL NVectFAdd(T a, T b) { return a+b; }
   template<typename T, typename R> BSS_FORCEINLINE R BSS_FASTCALL NVectFSub(T a, T b) { return a-b; }
   template<typename T, typename R> BSS_FORCEINLINE R BSS_FASTCALL NVectFMul(T a, T b) { return a*b; }
@@ -348,9 +362,9 @@ namespace bss_util {
   }
 
   template<typename T>
-  inline size_t BSS_FASTCALL _PDS_imageToGrid(T* pt, T cell, size_t gw)
+  BSS_FORCEINLINE size_t BSS_FASTCALL _PDS_imageToGrid(const std::array<T,2>& pt, T cell, size_t gw, T (&rect)[4])
   {
-    return (size_t)(pt[0] / cell) + gw*(size_t)(pt[1] / cell) + 2 + gw + gw;
+    return (size_t)((pt[0]-rect[0]) / cell) + gw*(size_t)((pt[1]-rect[1]) / cell) + 2 + gw + gw;
   }
   // Implementation of Fast Poisson Disk Sampling by Robert Bridson
   template<typename T, typename F>
@@ -373,7 +387,7 @@ namespace bss_util {
     //update containers 
     list.Push(pt);
     f(pt.data());
-    grid[_PDS_imageToGrid<T>(pt.data(), cell, gw)] = pt;
+    grid[_PDS_imageToGrid<T>(pt, cell, gw, rect)] = pt;
 
     T mindistsq = mindist*mindist;
     T radius,angle;
@@ -391,8 +405,9 @@ namespace bss_util {
         
         if(pt[0]>rect[0] && pt[0]<rect[2] && pt[1]>rect[1] && pt[1]<rect[3]) //Ensure point is inside recT
         {
-          center = _PDS_imageToGrid<T>(pt.data(), cell, gw); // If another point is in the neighborhood, abort this point.
+          center = _PDS_imageToGrid<T>(pt, cell, gw, rect); // If another point is in the neighborhood, abort this point.
           edge=center-gw-gw;
+          assert(edge>0);
 #define POISSONSAMPLE_CHECK(edge) if((~ig[edge])!=0 && distsqr(grid[edge][0],grid[edge][1],pt[0],pt[1])<mindistsq) continue
           POISSONSAMPLE_CHECK(edge-1);
           POISSONSAMPLE_CHECK(edge);
@@ -415,7 +430,7 @@ namespace bss_util {
           POISSONSAMPLE_CHECK(edge+1);
           list.Push(pt);
           f(pt.data());
-          grid[_PDS_imageToGrid<T>(pt.data(), cell, gw)] = pt;
+          grid[center] = pt;
         }
       }
     }

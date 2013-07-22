@@ -14,11 +14,11 @@
 namespace bss_util
 {  
   template<class _Ty> // Trick that uses implicit conversion that allows cUniquePtr below to take _Ty* pointers without confusing itself for them.
-  struct cOwnerPtr_Ref { inline cOwnerPtr_Ref(_Ty* p) : _p(p) {} _Ty* _p; };
+  struct BSS_COMPILER_DLLEXPORT cOwnerPtr_Ref { inline cOwnerPtr_Ref(_Ty* p) : _p(p) {} _Ty* _p; };
 
   // A different kind of pointer handling class that allows copying, but keeps track of whether or not it is actually allowed to delete the given pointer
   template<class _Ty, class _Dy = std::default_delete<_Ty>>
-  class cOwnerPtr : private _Dy
+  class BSS_COMPILER_DLLEXPORT cOwnerPtr : private _Dy
   {
   public:
     inline cOwnerPtr(const cOwnerPtr& copy) : _p(copy._p), _owner(false) { }
@@ -55,7 +55,7 @@ namespace bss_util
 
   // Implementation of an automatic reference tracker for use in conjunction with cRefCounter. Mimics a pointer.
   template<class T>
-  class cAutoRef
+  class BSS_COMPILER_DLLEXPORT cAutoRef
   {
   public:
     inline cAutoRef(const cAutoRef& copy) : _p(copy._p) { if(_p!=0) _p->Grab(); }

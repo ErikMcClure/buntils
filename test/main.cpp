@@ -769,7 +769,18 @@ TESTDEF::RETPAIR test_bss_algo()
     [](const float(&r)[4]) { },
     [&](unsigned int d, const float (&r)[4]) -> double { return zig(); });
 
-  PoissonDiskSample<float>(rect,2.0f,[](float* f)->float{ return f[0]+f[1];});
+  PoissonDiskSample<float>(rect,4.0f,[](float* f)->float{ return f[0]+f[1];});
+
+  BSS_ALIGN(16) float m1[4][4]={ {1,2,4,8}, {16,32,64,128}, {-1,-2,-4,-8 }, { -16,-32,-64,-128 } };
+  BSS_ALIGN(16) float m2[4][4]={ {8,4,2,1}, {16,32,64,128}, {-1,-32,-4,-16 }, { -8,-2,-64,-128 } };
+  BSS_ALIGN(16) float m3[4][4]={0};
+  BSS_ALIGN(16) float m4[4][4]={0};
+  BSS_ALIGN(16) float m5[4][4]={{-28, -76, -398, -831}, {-448, -1216, -6368, -13296}, {28, 76, 398, 831}, {448, 1216, 6368, 13296}};
+  BSS_ALIGN(16) float m6[4][4]={{54, 108, 216, 432}, {-1584, -3168, -6336, -12672}, {-253, -506, -1012, -2024}, {2072, 4144, 8288, 16576}};
+  Mult4x4(m3,m1,m2);
+  Mult4x4(m4,m2,m1);
+  TEST(!memcmp(m3,m5,sizeof(float)*4*4));
+  TEST(!memcmp(m4,m6,sizeof(float)*4*4));
   ENDTEST;
 }
 

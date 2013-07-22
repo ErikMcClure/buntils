@@ -27,7 +27,7 @@ namespace bss_util
   {
   public:
     // Initializes the bitfield with the given flag values, if any
-    inline cBitField(T init=0) : _bits(init) {}
+    inline explicit cBitField(T init=0) : _bits(init) {}
     // Sets the entire bitfield to the given value
     inline BSS_FORCEINLINE void BSS_FASTCALL Set(T bits) { _bits=bits; }
     inline BSS_FORCEINLINE void BSS_FASTCALL Set(T bits, T mask) { _bits^=(bits^(_bits&mask)); }

@@ -38,6 +38,10 @@
 - Removed cSparseArray.h
 - Changed several Size() calls to Capacity to prevent accidents
 - bss_algo.h now contains an implementation of Robert Bridson's Fast Poisson Disk Sampling algorithm and an SSE2 optimized 4x4 matrix multiplier.
+- DArray is now WArray because why the hell was it named DArray anyway?
+- cINIstorage and cINIsection now have proper iterators
+- Added Quadratic and Cubic B-spline interpolations to bss_algo.h
+- Tweaked aspects of the animation system, added generic interpolators to cAniAttributeSmooth.
 
 0.4
 ------

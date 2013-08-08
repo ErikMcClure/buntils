@@ -468,7 +468,7 @@ namespace bss_util {
   
   // Templatized typedefs for making this easier to use
   template<class T, typename SizeType=unsigned int, typename Alloc=StaticAllocPolicy<T>>
-  struct BSS_COMPILER_DLLEXPORT DArray
+  struct BSS_COMPILER_DLLEXPORT WArray
   {
     typedef cArrayWrap<cArraySimple<T,SizeType,Alloc>> t;
     typedef cArrayWrap<cArrayConstruct<T,SizeType,Alloc>> tConstruct;

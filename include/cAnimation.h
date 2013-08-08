@@ -83,9 +83,15 @@ namespace bss_util {
 		inline bool SetInterpolation(typename AniAttributeSmooth<TypeID>::FUNC interpolation)
 		{
 			AniAttribute* hold = GetTypeID(TypeID);
-			if(hold) static_cast<AniAttributeT<TypeID>*>(hold)->SetInterpolation(interpolation);
-      else return false;
-			return true;
+			if(hold) return static_cast<AniAttributeT<TypeID>*>(hold)->SetInterpolation(interpolation);
+      return false;
+		}
+		template<unsigned char TypeID>
+		inline bool SetRelative(bool rel)
+		{
+			AniAttribute* hold = GetTypeID(TypeID);
+			if(hold) return static_cast<AniAttributeT<TypeID>*>(hold)->SetRelative(rel);
+      return false;
 		}
     template<unsigned char TypeID>
 		inline AniAttribute::IDTYPE AddKeyFrame(const KeyFrame<TypeID>& frame)
@@ -124,8 +130,6 @@ namespace bss_util {
 		inline void SetTimeWarp(double aniwarp) { _aniwarp=aniwarp; }
 		inline double GetTimeWarp() const { return _aniwarp; }
     inline double GetTimePassed() const { return _timepassed; }
-		template<unsigned char TypeID>
-    inline bool SetRelative(bool rel) { AniAttribute* hold = GetTypeID(TypeID); if(!hold) return false; return hold->SetRelative(rel); }
     inline bool IsPlaying() const { return (_anibool&ANI_PLAYING)!=0; }
     inline bool IsLooping() const { return (_anibool&ANI_LOOPING)!=0; }
     inline bool IsPaused() const { return (_anibool&ANI_PAUSED)!=0; }
@@ -201,83 +205,68 @@ namespace bss_util {
     }
 	};
   
-  struct DEF_ANIMATION_ARRAY
+  struct DEF_ANIATTRIBUTE
   {
-    virtual ~DEF_ANIMATION_ARRAY() {}
-		inline virtual DEF_ANIMATION_ARRAY* BSS_FASTCALL Clone() const=0;
+    virtual ~DEF_ANIATTRIBUTE() {}
+		inline virtual DEF_ANIATTRIBUTE* BSS_FASTCALL Clone() const=0;
 		inline virtual void BSS_FASTCALL Load(cAnimation* ani) const=0;
   };
   template<unsigned char TypeID>
-  struct DEF_ANIMATION_ARRAY_T : DEF_ANIMATION_ARRAY, bss_util::cDynArray<bss_util::cArraySimple<KeyFrame<TypeID>>>
+  struct DEF_ANIATTRIBUTE_T : DEF_ANIATTRIBUTE, bss_util::cDynArray<bss_util::cArraySimple<KeyFrame<TypeID>>>
   {
+    DEF_ANIATTRIBUTE_T() : rel(false),func(0) {}
     typedef bss_util::cDynArray<bss_util::cArraySimple<KeyFrame<TypeID>>> BASE;
-    virtual ~DEF_ANIMATION_ARRAY_T() {}
-    inline virtual DEF_ANIMATION_ARRAY_T* BSS_FASTCALL Clone() const { return new DEF_ANIMATION_ARRAY_T(*this); }
+    inline virtual DEF_ANIATTRIBUTE_T* BSS_FASTCALL Clone() const { return new DEF_ANIATTRIBUTE_T(*this); }
     inline virtual void BSS_FASTCALL Load(cAnimation* ani) const 
     { 
+      ani->SetInterpolation<TypeID>(func);
+      ani->SetRelative<TypeID>(rel);
       for(unsigned int i = 0; i < BASE::_length; ++i) 
         ani->AddKeyFrame<TypeID>(BASE::_array[i]); 
     }
+    bool rel;
+    typename AniAttributeSmooth<TypeID>::FUNC func;
   };
 
 	struct DEF_ANIMATION : cDef<cAnimation>
 	{
+    typedef unsigned char ST_;
 		inline DEF_ANIMATION() : anilength(0.0), aniwarp(1.0) {}
-    inline DEF_ANIMATION(DEF_ANIMATION&& mov) : anilength(mov.anilength), aniwarp(mov.aniwarp), _frames(mov._frames) { mov._frames.Clear(); }
+    inline DEF_ANIMATION(DEF_ANIMATION&& mov) : anilength(mov.anilength), aniwarp(mov.aniwarp), _frames(std::move(mov._frames)) { }
     inline DEF_ANIMATION(const DEF_ANIMATION& copy) : anilength(copy.anilength), aniwarp(copy.aniwarp), _frames(copy._frames)
     {
-      for(unsigned char i = 0; i < _frames.Length(); ++i) 
+      for(ST_ i = 0; i < _frames.Length(); ++i) 
         _frames[i]=_frames[i]->Clone();
     }
-		inline ~DEF_ANIMATION() { for(unsigned char i = 0; i < _frames.Length(); ++i) delete _frames[i]; }
+		inline ~DEF_ANIMATION() { for(ST_ i = 0; i < _frames.Length(); ++i) delete _frames[i]; }
 		inline virtual cAnimation* BSS_FASTCALL Spawn() const { return 0; } // You can't spawn an animation because it can't attach to anything
 		inline virtual DEF_ANIMATION* BSS_FASTCALL Clone() const { return new DEF_ANIMATION(*this); }
-    template<unsigned char TypeID>
-    inline unsigned int AddFrame(const KeyFrame<TypeID>& frame)
+    template<ST_ TypeID>
+    inline DEF_ANIATTRIBUTE_T<TypeID>* BSS_FASTCALL GetAttribute()
     { 
-      unsigned char ind = _frames.Get(TypeID);
+      ST_ ind = _frames.Get(TypeID);
       if(ind>=_frames.Length()) 
       {
-        _frames.Insert(TypeID,new DEF_ANIMATION_ARRAY_T<TypeID>());
+        _frames.Insert(TypeID,new DEF_ANIATTRIBUTE_T<TypeID>());
         ind = _frames.Get(TypeID);
         assert(ind<_frames.Length());
       }
-      return static_cast<DEF_ANIMATION_ARRAY_T<TypeID>*>(_frames[ind])->Add(frame);
+      return static_cast<DEF_ANIATTRIBUTE_T<TypeID>*>(_frames[ind]);
     }
-    template<unsigned char TypeID>
-    inline bool RemoveFrame(unsigned int index)
-    {
-      unsigned char ind = _frames.Get(TypeID);
-      if(ind>=_frames.Length()) return false;
-      static_cast<DEF_ANIMATION_ARRAY_T<TypeID>*>(_frames[ind])->Remove(index);
-      return true;
-    }
-    inline const bss_util::cMap<unsigned char,DEF_ANIMATION_ARRAY*,bss_util::CompT<unsigned char>,unsigned char>& GetFrames() const
-    { 
-      return _frames;
-    }
-    inline DEF_ANIMATION& operator=(const DEF_ANIMATION& copy) {
-      for(unsigned char i = 0; i < _frames.Length(); ++i) 
-        delete _frames[i]; 
-      _frames=copy._frames;
-      for(unsigned char i = 0; i < _frames.Length(); ++i) 
-        _frames[i]=_frames[i]->Clone();
-    }
-    inline DEF_ANIMATION& operator=(DEF_ANIMATION&& mov) {
-      for(unsigned char i = 0; i < _frames.Length(); ++i) 
-        delete _frames[i]; 
-      _frames=mov._frames;
-      mov._frames.Clear();
-    }
+    template<ST_ TypeID>
+    inline unsigned int AddFrame(const KeyFrame<TypeID>& frame) { return GetAttribute<TypeID>()->Add(frame); }
+    template<ST_ TypeID>
+    inline bool RemoveFrame(unsigned int i) { auto p = GetAttribute<TypeID>(); if(i>=p->Length()) return false; p->Remove(i); return true; }
+    inline const bss_util::cMap<ST_,DEF_ANIATTRIBUTE*,bss_util::CompT<ST_>,ST_>& GetFrames() const { return _frames; }
 
 		double anilength; //if zero, we automatically stop when all animations are exhausted
 		double aniwarp; //Time warp factor
 
 	private:
-    bss_util::cMap<unsigned char,DEF_ANIMATION_ARRAY*,bss_util::CompT<unsigned char>,unsigned char> _frames;
+    bss_util::cMap<ST_,DEF_ANIATTRIBUTE*,bss_util::CompT<ST_>,ST_> _frames;
 	};
-
-  cAnimation::cAnimation(const DEF_ANIMATION& def, cAbstractAnim* ptr) : _parent(ptr), _aniwarp(def.aniwarp), _looppoint(0), _anicalc(0),
+  
+  inline cAnimation::cAnimation(const DEF_ANIMATION& def, cAbstractAnim* ptr) : _parent(ptr), _aniwarp(def.aniwarp), _looppoint(0), _anicalc(0),
       _anilength(def.anilength), _timepassed(0)
     {
       auto& p = def.GetFrames();

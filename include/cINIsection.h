@@ -17,7 +17,7 @@ namespace bss_util {
   template<class T>
   struct BSS_COMPILER_DLLEXPORT _INInode : public LLBase<_INInode<T>>
   {
-    typename DArray<_INInode<T>*>::t instances; // If this is not the only instance, points to an array of all the other instances
+    typename WArray<_INInode<T>*>::t instances; // If this is not the only instance, points to an array of all the other instances
     T val;
   };
 
@@ -26,6 +26,10 @@ namespace bss_util {
   {
   public:
     typedef _INInode<cINIentry> _NODE;
+    template<class T>
+    struct INIiterator : LLIterator<_INInode<T>> { inline explicit INIiterator(_INInode<T>* node) : LLIterator<_INInode<T>>(node) { }
+      inline T& operator*() const { return cur->val; }
+      inline T* operator->() const { return &cur->val; } };
 
     // Constructors
     cINIsection(const cINIsection& copy);
@@ -38,7 +42,7 @@ namespace bss_util {
     cINIentry& GetEntry(const char* key, unsigned int instance=0) const;
     // Gets the specified key with the given index. Returns null on failure.
     cINIentry* GetEntryPtr(const char* key, unsigned int instance=0) const;
-    // Gets number of sections with the given name
+    // Gets number of entries with the given name
     unsigned int GetNumEntries(const char* section) const;
     // Gets the specified key node for iteration with the given index. Returns null on failure.
     _NODE* GetEntryNode(const char* key, unsigned int instance=0) const;
@@ -48,6 +52,9 @@ namespace bss_util {
     inline const _NODE* Front() const { return _root; }
     // Gets the last node of the section linked list
     inline const _NODE* Back() const { return _last; }
+    // Iterators for standard containers
+    inline INIiterator<cINIentry> begin() { return INIiterator<cINIentry>(_root); }
+    inline INIiterator<cINIentry> end() { return INIiterator<cINIentry>(0); }
 
     inline cINIstorage* GetParent() const { return _parent; }
     inline const char* GetName() const { return _name; }

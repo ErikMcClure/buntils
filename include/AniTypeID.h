@@ -13,10 +13,13 @@ namespace bss_util {
   template<unsigned char T>
   struct ANI_IDTYPE {}; //if you need your own type, just insert another explicit specialization in your code
 
+  template<typename V, typename T=void, typename D=V, typename S=void>
+  struct ANI_IDTYPE_TYPES { typedef V VALUE; typedef D DATA; typedef T TRAIT; typedef S SAFE; };
+
   template<typename T, typename D>
   struct ANI_IDTYPE_EXPAND__
   {
-    typedef typename T::VALUE VALUE;
+    typedef typename T VALUE;
     typedef VALUE const& VALUECONST;
     typedef VALUE& VALUEREF;
   };
@@ -24,26 +27,22 @@ namespace bss_util {
   template<typename T>
   struct ANI_IDTYPE_EXPAND__<T,void>
   {
-    typedef typename T::VALUE VALUE;
+    typedef typename T VALUE;
     typedef VALUE VALUECONST;
     typedef VALUE VALUEREF;
   };
 
-  template<typename T, typename D>
-  struct ANI_IDTYPE_EXPAND__DEL__ { typedef D DELEGATE; };
-  template<typename T>
-  struct ANI_IDTYPE_EXPAND__DEL__<T,void> { typedef delegate<void,T> DELEGATE; };
-
   template<typename T> // Expands the typedefs VALUE and DATA to more useful references from ANI_IDTYPE
-  struct ANI_IDTYPE_EXPAND : ANI_IDTYPE_EXPAND__<T,typename T::TRAIT> 
+  struct ANI_IDTYPE_EXPAND
   {
-    typedef typename ANI_IDTYPE_EXPAND__<T,typename T::TRAIT>::VALUE VALUE;
-    typedef typename ANI_IDTYPE_EXPAND__<T,typename T::TRAIT>::VALUECONST VALUECONST;
-    typedef typename ANI_IDTYPE_EXPAND__<T,typename T::TRAIT>::VALUEREF VALUEREF;
-    typedef typename T::DATA DATA;
+    typedef typename ANI_IDTYPE_EXPAND__<typename T::TYPES::VALUE,typename T::TYPES::TRAIT>::VALUE VALUE;
+    typedef typename ANI_IDTYPE_EXPAND__<typename T::TYPES::VALUE,typename T::TYPES::TRAIT>::VALUECONST VALUECONST;
+    typedef typename ANI_IDTYPE_EXPAND__<typename T::TYPES::VALUE,typename T::TYPES::TRAIT>::VALUEREF VALUEREF;
+    typedef typename T::TYPES::DATA DATA;
+    typedef typename T::TYPES::SAFE SAFE;
     typedef DATA const& DATACONST;
     typedef DATA& DATAREF;
-    typedef typename ANI_IDTYPE_EXPAND__DEL__<VALUECONST,typename T::DEL>::DELEGATE DELEGATE;
+    typedef delegate<void,VALUECONST> DELEGATE;
   };
 
   struct AniAttribute;

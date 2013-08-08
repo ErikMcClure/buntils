@@ -189,20 +189,6 @@ namespace bss_util {
       out[i]=F(x1[i],x2);
   }
 
-  // standard 4x4 matrix multiplication using SSE2
-  inline void BSS_FASTCALL Mult4x4(float (&out)[4][4], const float (&l)[4][4], const float (&r)[4][4])
-  {
-    sseVec a(r[0]);
-    sseVec b(r[1]);
-    sseVec c(r[2]);
-    sseVec d(r[3]);
-
-    (a*sseVec(l[0][0]))+(b*sseVec(l[0][1]))+(c*sseVec(l[0][2]))+(d*sseVec(l[0][3])) >> out[0];
-    (a*sseVec(l[1][0]))+(b*sseVec(l[1][1]))+(c*sseVec(l[1][2]))+(d*sseVec(l[1][3])) >> out[1];
-    (a*sseVec(l[2][0]))+(b*sseVec(l[2][1]))+(c*sseVec(l[2][2]))+(d*sseVec(l[2][3])) >> out[2];
-    (a*sseVec(l[3][0]))+(b*sseVec(l[3][1]))+(c*sseVec(l[3][2]))+(d*sseVec(l[3][3])) >> out[3];
-  }
-
   template<typename T, typename R> BSS_FORCEINLINE R BSS_FASTCALL NVectFAdd(T a, T b) { return a+b; }
   template<typename T, typename R> BSS_FORCEINLINE R BSS_FASTCALL NVectFSub(T a, T b) { return a-b; }
   template<typename T, typename R> BSS_FORCEINLINE R BSS_FASTCALL NVectFMul(T a, T b) { return a*b; }
@@ -244,6 +230,20 @@ namespace bss_util {
   //{
   //  return CompareTrajectories<T,N>(t1,K1,t2,K2);
   //}
+
+  // standard 4x4 matrix multiplication using SSE2
+  inline void BSS_FASTCALL Mult4x4(float (&out)[4][4], const float (&l)[4][4], const float (&r)[4][4])
+  {
+    sseVec a(r[0]);
+    sseVec b(r[1]);
+    sseVec c(r[2]);
+    sseVec d(r[3]);
+
+    (a*sseVec(l[0][0]))+(b*sseVec(l[0][1]))+(c*sseVec(l[0][2]))+(d*sseVec(l[0][3])) >> out[0];
+    (a*sseVec(l[1][0]))+(b*sseVec(l[1][1]))+(c*sseVec(l[1][2]))+(d*sseVec(l[1][3])) >> out[1];
+    (a*sseVec(l[2][0]))+(b*sseVec(l[2][1]))+(c*sseVec(l[2][2]))+(d*sseVec(l[2][3])) >> out[2];
+    (a*sseVec(l[3][0]))+(b*sseVec(l[3][1]))+(c*sseVec(l[3][2]))+(d*sseVec(l[3][3])) >> out[3];
+  }
 
   // Random queue 
   template<class ArrayType, typename ArrayType::ST_ (*RandFunc)(typename ArrayType::ST_ min, typename ArrayType::ST_ max)=&bss_randint>
@@ -366,6 +366,7 @@ namespace bss_util {
   {
     return (size_t)((pt[0]-rect[0]) / cell) + gw*(size_t)((pt[1]-rect[1]) / cell) + 2 + gw + gw;
   }
+
   // Implementation of Fast Poisson Disk Sampling by Robert Bridson
   template<typename T, typename F>
   void PoissonDiskSample(T (&rect)[4], T mindist, F && f, uint pointsPerIteration=30)
@@ -417,8 +418,8 @@ namespace bss_util {
           POISSONSAMPLE_CHECK(edge-2);
           POISSONSAMPLE_CHECK(edge+2);
           edge+=gw;
-          POISSONSAMPLE_CHECK(edge-2);
           if(~(ig[edge-1]&ig[edge]&ig[edge+1])) continue;
+          POISSONSAMPLE_CHECK(edge-2);
           POISSONSAMPLE_CHECK(edge+2);
           edge+=gw;
           if(~(ig[edge-1]&ig[edge]&ig[edge+1])) continue;
@@ -434,6 +435,40 @@ namespace bss_util {
         }
       }
     }
+  }
+
+  // Implementation of a uniform quadratic B-spline interpolation
+  template<typename T, typename D>
+  static inline T BSS_FASTCALL UniformQuadraticBSpline(D t, const T& prev, const T& cur, const T& next)
+  {
+    D t2=t*t;
+    return (prev*(1 - 2*t + t2) + cur*(1 + 2*t - 2*t2) + next*t2)*((D)0.5);
+  }
+
+  // Implementation of a uniform cubic B-spline interpolation. A uniform cubic B-spline matrix is:
+  //                / -1  3 -3  1 \       / p1 \
+  // [t^3,t²,t,1] * |  3 -6  3  0 | * ½ * | p2 |
+  //                | -3  0  3  0 |       | p3 |
+  //                \  1  4  1  0 /       \ p4 /
+  template<typename T, typename D>
+  static inline T BSS_FASTCALL UniformCubicBSpline(D t, const T& p1, const T& p2, const T& p3, const T& p4)
+  {
+    D t2=t*t;
+    D t3=t2*t;
+    return (p1*(1-3*t+3*t2-t3) + p2*(4-6*t2+3*t3)+p3*(1+3*t+3*t2-3*t3)+(p4*t3))/((D)6.0);
+  }
+
+  // Implementation of a basic cubic interpolation. The B-spline matrix for this is
+  //                / -1  3 -3  1 \       / p1 \
+  // [t^3,t²,t,1] * |  2 -5  4 -1 | * ½ * | p2 |
+  //                | -1  0  1  0 |       | p3 |
+  //                \  0  2  0  0 /       \ p4 /
+  template<typename T, typename D>
+  static inline T BSS_FASTCALL CubicBSpline(D t, const T& p1, const T& p2, const T& p3, const T& p4)
+  {
+    D t2=t*t;
+    D t3=t2*t;
+    return (p1*(-t3+2*t2-t)+p2*(3*t3-5*t2+2)+p3*(-3*t3+4*t2+t)+p4*(t3-t2))/((D)2.0);
   }
 }
 

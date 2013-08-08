@@ -781,6 +781,11 @@ TESTDEF::RETPAIR test_bss_algo()
   Mult4x4(m4,m2,m1);
   TEST(!memcmp(m3,m5,sizeof(float)*4*4));
   TEST(!memcmp(m4,m6,sizeof(float)*4*4));
+  //TEST(QuadraticBSpline<double,double>(1.0,2.0,4.0,8.0)==4.0);
+  double res=CubicBSpline<double,double>(0.0,2.0,4.0,8.0,16.0);
+  TEST(res==4.0);
+  res=CubicBSpline<double,double>(1.0,2.0,4.0,8.0,16.0);
+  TEST(res==8.0);
   ENDTEST;
 }
 
@@ -1340,7 +1345,7 @@ TESTDEF::RETPAIR test_ARRAYSIMPLE()
 {
   BEGINTEST;
 
-  DArray<int>::t a(5);
+  WArray<int>::t a(5);
   TEST(a.Size()==5);
   a.Insert(5,2);
   TEST(a.Size()==6);
@@ -1352,8 +1357,8 @@ TESTDEF::RETPAIR test_ARRAYSIMPLE()
   TEST(a.Size()==10);
 
   {
-  DArray<int>::t e(0);
-  DArray<int>::t b(e);
+  WArray<int>::t e(0);
+  WArray<int>::t b(e);
   b=e;
   e.Insert(5,0);
   e.Insert(4,0);
@@ -1362,10 +1367,10 @@ TESTDEF::RETPAIR test_ARRAYSIMPLE()
   TEST(e.Size()==4);
   int sol[] = { 2,3,4,5 };
   TESTARRAY(sol,return e[i]==sol[i];);
-  DArray<int>::t c(0);
+  WArray<int>::t c(0);
   c=e;
   TESTARRAY(sol,return c[i]==sol[i];);
-  DArray<int>::t d(0);
+  WArray<int>::t d(0);
   e=d;
   TEST(!e.Size());
   e+=d;
@@ -1381,17 +1386,17 @@ TESTDEF::RETPAIR test_ARRAYSIMPLE()
   TESTARRAY(sol,return e[i]==sol[i];);
   }
 
-  auto f = [](DArray<DEBUG_CDT<true>>::tSafe& arr)->bool{ 
+  auto f = [](WArray<DEBUG_CDT<true>>::tSafe& arr)->bool{ 
     for(unsigned int i = 0; i < arr.Size(); ++i) 
       if(arr[i]._index!=i) 
         return false; 
     return true; 
   };
-  auto f2 = [](DArray<DEBUG_CDT<true>>::tSafe& arr, unsigned int s){ for(unsigned int i = s; i < arr.Size(); ++i) arr[i]._index=i; };
+  auto f2 = [](WArray<DEBUG_CDT<true>>::tSafe& arr, unsigned int s){ for(unsigned int i = s; i < arr.Size(); ++i) arr[i]._index=i; };
   {
     DEBUG_CDT_SAFE<true>::_testret=&__testret;
     DEBUG_CDT<true>::count=0;
-    DArray<DEBUG_CDT<true>>::tSafe b(10);
+    WArray<DEBUG_CDT<true>>::tSafe b(10);
     f2(b,0);
     b.Remove(5);
     for(unsigned int i = 0; i < 5; ++i) TEST(b[i]._index==i);
@@ -1404,7 +1409,7 @@ TESTDEF::RETPAIR test_ARRAYSIMPLE()
     TEST(f(b));
     TEST(DEBUG_CDT<true>::count == 19);
     TEST(b.Size()==19);
-    DArray<DEBUG_CDT<true>>::tSafe c(b);
+    WArray<DEBUG_CDT<true>>::tSafe c(b);
     TEST(f(c));
     TEST(DEBUG_CDT<true>::count == 38);
     b+=c;
@@ -1422,16 +1427,16 @@ TESTDEF::RETPAIR test_ARRAYSIMPLE()
   }
   TEST(!DEBUG_CDT<true>::count);
   
-  auto f3 = [](DArray<DEBUG_CDT<false>>::tConstruct& arr)->bool{ 
+  auto f3 = [](WArray<DEBUG_CDT<false>>::tConstruct& arr)->bool{ 
     for(unsigned int i = 0; i < arr.Size(); ++i) 
       if(arr[i]._index!=i) 
         return false; 
     return true; 
   };
-  auto f4 = [](DArray<DEBUG_CDT<false>>::tConstruct& arr, unsigned int s){ for(unsigned int i = s; i < arr.Size(); ++i) arr[i]._index=i; };
+  auto f4 = [](WArray<DEBUG_CDT<false>>::tConstruct& arr, unsigned int s){ for(unsigned int i = s; i < arr.Size(); ++i) arr[i]._index=i; };
   {
     DEBUG_CDT<false>::count=0;
-    DArray<DEBUG_CDT<false>>::tConstruct b(10);
+    WArray<DEBUG_CDT<false>>::tConstruct b(10);
     f4(b,0);
     b.Remove(5);
     for(unsigned int i = 0; i < 5; ++i) TEST(b[i]._index==i);
@@ -1444,7 +1449,7 @@ TESTDEF::RETPAIR test_ARRAYSIMPLE()
     TEST(f3(b));
     TEST(DEBUG_CDT<false>::count == 19);
     TEST(b.Size()==19);
-    DArray<DEBUG_CDT<false>>::tConstruct c(b);
+    WArray<DEBUG_CDT<false>>::tConstruct c(b);
     TEST(f3(c));
     TEST(DEBUG_CDT<false>::count == 38);
     b+=c;
@@ -1969,6 +1974,13 @@ TESTDEF::RETPAIR test_INISTORAGE()
 
   ini.EndINIEdit();
   fn2("[1]\na=1\na=2\na=3\na=4\nb=1\nc=1\nc=2\nd=1\n\n[2]\na=1\na=2\nb=1\n\n[2]\na=1\na=2\nb=1\n\n[2]");
+
+  int valid=0;
+  for(auto i = ini.begin(); i != ini.end(); ++i)
+    for(auto j = i->begin(); j != i->end(); ++j)
+      valid+=j->IsValid();
+  
+  TEST(valid==14);
 
   INI_E(1,a,8,3,0); // Out of order to try and catch any bugs that might result from that
   INI_E(1,a,6,1,0);
@@ -2971,6 +2983,20 @@ TESTDEF::RETPAIR test_STREAMSPLITTER()
   ENDTEST;
 }
 
+// wat
+typedef std::pair<const char*,size_t> Fragment;
+void BSS_FASTCALL MakeFragments(const char* str, cDynArray<cArraySimple<Fragment>>& r)
+{
+  cStr hold(str);
+  char* context;
+  char* p = strtok_s(hold.UnsafeString(),",.-?!;:~",&context);
+  while(p)
+  {
+    r.Add(Fragment(str+(p-hold),strlen(p)+1));
+    p = strtok_s(NULL,",.-",&context);
+  }
+}
+
 // --- Begin main testing function ---
 
 int main(int argc, char** argv)
@@ -2982,6 +3008,29 @@ int main(int argc, char** argv)
   for(int i = 0; i<TESTNUM; ++i)
     testnums[i]=i;
   shuffle(testnums);
+
+  /*FILE* f;
+  fopen_s(&f,"story.txt","rb");
+  fseek(f, 0L, SEEK_END);
+  size_t sz = ftell(f);
+  fseek(f, 0L, SEEK_SET);
+  cStr story(sz+1);
+  fread(story.UnsafeString(), 1, sz, f);
+  fclose(f);
+  story.UnsafeString()[sz]=0;
+
+  cDynArray<cArraySimple<Fragment>> sr(10);
+  MakeFragments(story,sr);
+  shuffle<Fragment>(sr,sr.Length());
+
+  fopen_s(&f,"story.out.txt","wb");
+  for(uint i = 0; i < sr.Length(); ++i)
+    fwrite(sr[i].first,1,sr[i].second,f);
+  fclose(f);
+
+  std::cout << "\nPress Enter to exit the program." << std::endl;
+  std::cin.get();
+  return 0;*/
 
   TESTDEF tests[] = {
     { "bss_util_c.h", &test_bss_util_c },
@@ -3067,6 +3116,7 @@ int main(int argc, char** argv)
   std::cout << "\nPress Enter to exit the program." << std::endl;
   std::cin.get();
 
+  return 0;
 }
 
 // --- The rest of this file is archived dead code ---

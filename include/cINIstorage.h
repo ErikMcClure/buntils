@@ -34,7 +34,10 @@ namespace bss_util {
     inline const _NODE* Front() const { return _root; }
     // Gets the last node of the section linked list
     inline const _NODE* Back() const { return _last; }
-    
+    // iterators for standard containers
+    inline cINIsection::INIiterator<cINIsection> begin() { return cINIsection::INIiterator<cINIsection>(_root); }
+    inline cINIsection::INIiterator<cINIsection> end() { return cINIsection::INIiterator<cINIsection>(0); }
+
     cINIsection& BSS_FASTCALL AddSection(const char* name);
     bool RemoveSection(const char* name, unsigned int instance=0);
     char EditEntry(const char* section, const char* key, const char* nvalue=0, unsigned int keyinstance=0,unsigned int secinstance=0); //if nvalue is 0 the entry is deleted. if either instance is -1 it triggers an insert

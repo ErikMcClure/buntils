@@ -30,13 +30,13 @@ namespace bss_util {
     inline cLinkedArray(cLinkedArray&& mov) : _ref(std::move(mov._ref)),_length(mov._length),_start(mov._start),_end(mov._end),_freelist(mov._freelist) { }
     inline explicit cLinkedArray(ST_ size) : _ref(size),_length(0),_start(-1),_end(-1),_freelist(-1) { _setupchunk(0); }
     inline ~cLinkedArray() {}
-    inline BSS_FORCEINLINE ST_ BSS_FASTCALL Add(const T& item) { return InsertAfter(item,_end); }
-    inline BSS_FORCEINLINE ST_ BSS_FASTCALL Add(T&& item) { return InsertAfter(std::move(item),_end); }
-    inline BSS_FORCEINLINE ST_ BSS_FASTCALL InsertBefore(const T& item, ST_ index) { return _insertbefore<const T&>(item,index); }
-    inline BSS_FORCEINLINE ST_ BSS_FASTCALL InsertBefore(T&& item, ST_ index) { return _insertbefore<T&&>(std::move(item),index); }
-    inline BSS_FORCEINLINE ST_ BSS_FASTCALL InsertAfter(const T& item, ST_ index) { return _insertafter<const T&>(item,index); }
-    inline BSS_FORCEINLINE ST_ BSS_FASTCALL InsertAfter(T&& item, ST_ index) { return _insertafter<T&&>(std::move(item),index); }
-    inline T BSS_FASTCALL Remove(ST_ index)
+    BSS_FORCEINLINE ST_ BSS_FASTCALL Add(const T& item) { return InsertAfter(item,_end); }
+    BSS_FORCEINLINE ST_ BSS_FASTCALL Add(T&& item) { return InsertAfter(std::move(item),_end); }
+    BSS_FORCEINLINE ST_ BSS_FASTCALL InsertBefore(const T& item, ST_ index) { return _insertbefore<const T&>(item,index); }
+    BSS_FORCEINLINE ST_ BSS_FASTCALL InsertBefore(T&& item, ST_ index) { return _insertbefore<T&&>(std::move(item),index); }
+    BSS_FORCEINLINE ST_ BSS_FASTCALL InsertAfter(const T& item, ST_ index) { return _insertafter<const T&>(item,index); }
+    BSS_FORCEINLINE ST_ BSS_FASTCALL InsertAfter(T&& item, ST_ index) { return _insertafter<T&&>(std::move(item),index); }
+    T BSS_FASTCALL Remove(ST_ index)
     {
       assert(index<_ref.Size());
       TLNODE& pcur=_ref[index];
@@ -52,19 +52,19 @@ namespace bss_util {
     inline ST_ Length() const { return _length; }
     inline void BSS_FASTCALL Reserve(ST_ size) { if(size<_ref.Size()) return; ST_ hold=_ref.Size(); _ref.SetSize(size); _setupchunk(hold); }
     inline void Clear() { _freelist=_start=_end=-1; _length=0; _setupchunk(0); }
-    inline BSS_FORCEINLINE void Next(ST_& ref) const { ref=_ref[ref].next; }
-    inline BSS_FORCEINLINE void Prev(ST_& ref) const { ref=_ref[ref].prev; }
-    inline BSS_FORCEINLINE ST_ Front() const { return _start; }
-    inline BSS_FORCEINLINE ST_ Back() const { return _end; }
+    BSS_FORCEINLINE void Next(ST_& ref) const { ref=_ref[ref].next; }
+    BSS_FORCEINLINE void Prev(ST_& ref) const { ref=_ref[ref].prev; }
+    BSS_FORCEINLINE ST_ Front() const { return _start; }
+    BSS_FORCEINLINE ST_ Back() const { return _end; }
     //inline cLinkedArray& BSS_FASTCALL operator +=(const cLinkedArray& right);
     //inline cLinkedArray BSS_FASTCALL operator +(const cLinkedArray& right) const { cLinkedArray retval(*this); retval+=right; return retval; }
     inline cLinkedArray& BSS_FASTCALL operator =(const cLinkedArray& right) { _ref=right._ref; _length=right._length;_start=right._start;_end=right._end;_freelist=right._freelist; return *this; }
     inline cLinkedArray& BSS_FASTCALL operator =(cLinkedArray&& mov) { _ref=std::move(mov._ref); _length=mov._length;_start=mov._start;_end=mov._end;_freelist=mov._freelist; return *this; }
-    inline BSS_FORCEINLINE T& BSS_FASTCALL GetItem(ST_ index) { return _ref[index].val; }
-    inline BSS_FORCEINLINE const T& BSS_FASTCALL GetItem(ST_ index) const { return _ref[index].val; }
-    inline BSS_FORCEINLINE T* BSS_FASTCALL GetItemPtr(ST_ index) { return &_ref[index].val; }
-    inline BSS_FORCEINLINE T& BSS_FASTCALL operator [](ST_ index) { return _ref[index].val; }
-    inline BSS_FORCEINLINE const T& BSS_FASTCALL operator [](ST_ index) const { return _ref[index].val; }
+    BSS_FORCEINLINE T& BSS_FASTCALL GetItem(ST_ index) { return _ref[index].val; }
+    BSS_FORCEINLINE const T& BSS_FASTCALL GetItem(ST_ index) const { return _ref[index].val; }
+    BSS_FORCEINLINE T* BSS_FASTCALL GetItemPtr(ST_ index) { return &_ref[index].val; }
+    BSS_FORCEINLINE T& BSS_FASTCALL operator [](ST_ index) { return _ref[index].val; }
+    BSS_FORCEINLINE const T& BSS_FASTCALL operator [](ST_ index) const { return _ref[index].val; }
 
     // Iterator for cLinkedArray
     template<typename _PP, typename _REF, typename D=cLinkedArray<T,SizeType>>
@@ -74,17 +74,17 @@ namespace bss_util {
       inline explicit cLAIter(D& src) : _src(src), cur((ST_)-1) {}
       inline cLAIter(D& src, ST_ start) : _src(src), cur(start) {}
       inline cLAIter(const cLAIter& copy, ST_ start) : _src(copy._src), cur(start) {}
-      inline BSS_FORCEINLINE _REF operator*() const { return _src[cur]; }
-      inline BSS_FORCEINLINE _PP operator->() const { return &_src[cur]; }
-      inline BSS_FORCEINLINE cLAIter& operator++() { _src.Next(cur); return *this; } //prefix
-      inline BSS_FORCEINLINE cLAIter operator++(int) { cLAIter r=*this; ++*this; return r; } //postfix
-      inline BSS_FORCEINLINE cLAIter& operator--() { _src.Prev(cur); return *this; } //prefix
-      inline BSS_FORCEINLINE cLAIter operator--(int) { cLAIter r=*this; --*this; return r; } //postfix
-      inline BSS_FORCEINLINE bool operator==(const cLAIter& _Right) const { return (cur == _Right.cur); }
-	    inline BSS_FORCEINLINE bool operator!=(const cLAIter& _Right) const { return (cur != _Right.cur); }
-      inline BSS_FORCEINLINE bool operator!() const { return cur==(ST_)-1; }
-      inline BSS_FORCEINLINE bool IsValid() { return cur!=(ST_)-1; }
-      inline BSS_FORCEINLINE void Remove() { _src.Remove(cur); } // Only use this in the form (i++).Remove(), so you don't blow up the iterator.
+      BSS_FORCEINLINE _REF operator*() const { return _src[cur]; }
+      BSS_FORCEINLINE _PP operator->() const { return &_src[cur]; }
+      BSS_FORCEINLINE cLAIter& operator++() { _src.Next(cur); return *this; } //prefix
+      BSS_FORCEINLINE cLAIter operator++(int) { cLAIter r=*this; ++*this; return r; } //postfix
+      BSS_FORCEINLINE cLAIter& operator--() { _src.Prev(cur); return *this; } //prefix
+      BSS_FORCEINLINE cLAIter operator--(int) { cLAIter r=*this; --*this; return r; } //postfix
+      BSS_FORCEINLINE bool operator==(const cLAIter& _Right) const { return (cur == _Right.cur); }
+	    BSS_FORCEINLINE bool operator!=(const cLAIter& _Right) const { return (cur != _Right.cur); }
+      BSS_FORCEINLINE bool operator!() const { return cur==(ST_)-1; }
+      BSS_FORCEINLINE bool IsValid() { return cur!=(ST_)-1; }
+      BSS_FORCEINLINE void Remove() { _src.Remove(cur); } // Only use this in the form (i++).Remove(), so you don't blow up the iterator.
 
       ST_ cur;
 
@@ -99,7 +99,7 @@ namespace bss_util {
 
   protected:
     template<typename U>
-    inline BSS_FORCEINLINE ST_ BSS_FASTCALL _insertafter(U && item, ST_ index)
+    ST_ BSS_FASTCALL _insertafter(U && item, ST_ index)
     {
       ST_ cur=_insprep();
 
@@ -117,7 +117,7 @@ namespace bss_util {
       return cur;
     }
     template<typename U>
-    inline BSS_FORCEINLINE ST_ BSS_FASTCALL _insertbefore(U && item, ST_ index)
+    ST_ BSS_FASTCALL _insertbefore(U && item, ST_ index)
     {
       ST_ cur=_insprep();
 

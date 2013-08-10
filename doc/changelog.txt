@@ -42,6 +42,7 @@
 - cINIstorage and cINIsection now have proper iterators
 - Added Quadratic and Cubic B-spline interpolations to bss_algo.h
 - Tweaked aspects of the animation system, added generic interpolators to cAniAttributeSmooth.
+- Renamed LLAdd to LLAddAfter, LLInsertRoot to LLAdd, LLInsertFull to LLInsert and LLInsertAfterFull to LLInsertAfter
 
 0.4
 ------

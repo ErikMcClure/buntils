@@ -21,12 +21,12 @@ namespace bss_util {
   class BSS_COMPILER_DLLEXPORT cFixedAlloc
   {
   public:
-    explicit cFixedAlloc(size_t init=8) : _freelist(0), _root(0)
+    inline explicit cFixedAlloc(size_t init=8) : _freelist(0), _root(0)
     {
 		  static_assert((sizeof(T)>=sizeof(void*)),"T cannot be less than the size of a pointer");
       _allocchunk(init*sizeof(T));
     }
-    ~cFixedAlloc()
+    inline ~cFixedAlloc()
     {
       FIXEDLIST_NODE* hold=_root;
       while(_root=hold)
@@ -61,7 +61,7 @@ namespace bss_util {
       *((void**)p)=_freelist;
       _freelist=p;
     }
-    inline void Clear()
+    void Clear()
     {
       size_t nsize=0;
       FIXEDLIST_NODE* hold=_root;
@@ -77,7 +77,7 @@ namespace bss_util {
 
   protected:
 #ifdef BSS_DEBUG
-    inline bool _validpointer(const void* p) const
+    bool _validpointer(const void* p) const
     {
       const FIXEDLIST_NODE* hold=_root;
       while(hold)
@@ -90,7 +90,7 @@ namespace bss_util {
       return false;
     }
 #endif
-    inline void _allocchunk(size_t nsize)
+    inline void BSS_FASTCALL _allocchunk(size_t nsize)
     {
       FIXEDLIST_NODE* retval=(FIXEDLIST_NODE*)malloc(sizeof(FIXEDLIST_NODE)+nsize);
       retval->next=_root;
@@ -101,7 +101,7 @@ namespace bss_util {
       _root=retval;
     }
 
-    inline void _initchunk(const FIXEDLIST_NODE* chunk)
+    BSS_FORCEINLINE void BSS_FASTCALL _initchunk(const FIXEDLIST_NODE* chunk)
     {
       unsigned char* memend=((unsigned char*)(chunk+1))+chunk->size;
       for(unsigned char* memref=(((unsigned char*)(chunk+1))); memref<memend; memref+=sizeof(T))

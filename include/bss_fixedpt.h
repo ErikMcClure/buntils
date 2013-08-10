@@ -11,17 +11,17 @@ namespace bss_util {
   template<typename T, unsigned char D, bool SATURATE> struct i_FIXED_PT_FUNC {};
   template<typename T, unsigned char D> struct i_FIXED_PT_FUNC<T,D,false>
   {
-    static inline BSS_FORCEINLINE T BSS_FASTCALL fixedpt_add(T x, T y) { return x+y; }
-    static inline BSS_FORCEINLINE T BSS_FASTCALL fixedpt_mul(T x, T y) { 
+    static BSS_FORCEINLINE T BSS_FASTCALL fixedpt_add(T x, T y) { return x+y; }
+    static BSS_FORCEINLINE T BSS_FASTCALL fixedpt_mul(T x, T y) { 
       return (T)((((typename TSignPick<(sizeof(T)<<1)>::SIGNED)x)*((typename TSignPick<(sizeof(T)<<1)>::SIGNED)y))>>(D)); }
-    static inline BSS_FORCEINLINE T BSS_FASTCALL fixedpt_div(T x, T y) { return (T)((((typename TSignPick<(sizeof(T)<<1)>::SIGNED)x)<<D)/y); }
+    static BSS_FORCEINLINE T BSS_FASTCALL fixedpt_div(T x, T y) { return (T)((((typename TSignPick<(sizeof(T)<<1)>::SIGNED)x)<<D)/y); }
   };
   template<typename T, unsigned char D> struct i_FIXED_PT_FUNC<T,D,true>
   {
     static const T SMIN=((ABitLimit<((sizeof(T)<<3)-D)>::SIGNED_MIN_RAW)<<D);
     static const T SMAX=((ABitLimit<((sizeof(T)<<3)-D)>::SIGNED_MAX)<<D);
 
-    static inline BSS_FORCEINLINE T BSS_FASTCALL fixedpt_add(T x, T y)
+    static T BSS_FASTCALL fixedpt_add(T x, T y)
     { 
       T r=x+y;
       T u=(r>0)&(x<0)&(y<0);
@@ -29,7 +29,7 @@ namespace bss_util {
       T w=(1&(~(u|v))); //w becomes 0 if either u or v evaluate to 1
       return (r*w)|(u*SMIN)|(v*SMAX);
     }
-    static inline BSS_FORCEINLINE T BSS_FASTCALL fixedpt_mul(T x, T y)
+    static T BSS_FASTCALL fixedpt_mul(T x, T y)
     { 
       typename TSignPick<(sizeof(T)<<1)>::SIGNED r=((((typename TSignPick<(sizeof(T)<<1)>::SIGNED)x)*((typename TSignPick<(sizeof(T)<<1)>::SIGNED)y))>>(D));
       T u=(r<SMIN); //same technique for saturating with no branching
@@ -37,7 +37,7 @@ namespace bss_util {
       T w=(1&(~(u|v))); 
       return (((T)r)*w)|(u*SMIN)|(v*SMAX);
     }
-    static inline BSS_FORCEINLINE T BSS_FASTCALL fixedpt_div(T x, T y)
+    static T BSS_FASTCALL fixedpt_div(T x, T y)
     { 
       typename TSignPick<(sizeof(T)<<1)>::SIGNED r=((((typename TSignPick<(sizeof(T)<<1)>::SIGNED)x)<<D)/y);
       T u=(r<SMIN); //same technique for saturating with no branching
@@ -73,22 +73,22 @@ namespace bss_util {
 
     inline const FixedPt operator -(void) const { FixedPt r(*this); r._bits=-r._bits; return r; }
 
-    inline FixedPt& BSS_FASTCALL operator+=(const FixedPt& right) { _bits=i_FIXED_PT_FUNC<T,DBITS,SATURATE>::fixedpt_add(_bits,right._bits); return *this; }
-    inline FixedPt& BSS_FASTCALL operator-=(const FixedPt& right) { _bits=i_FIXED_PT_FUNC<T,DBITS,SATURATE>::fixedpt_add(_bits,-right._bits); return *this; }
-    inline FixedPt& BSS_FASTCALL operator*=(const FixedPt& right) { _bits=i_FIXED_PT_FUNC<T,DBITS,SATURATE>::fixedpt_mul(_bits,right._bits); return *this; }
-    inline FixedPt& BSS_FASTCALL operator/=(const FixedPt& right) { _bits=i_FIXED_PT_FUNC<T,DBITS,SATURATE>::fixedpt_div(_bits,right._bits); return *this; }
+    BSS_FORCEINLINE FixedPt& BSS_FASTCALL operator+=(const FixedPt& right) { _bits=i_FIXED_PT_FUNC<T,DBITS,SATURATE>::fixedpt_add(_bits,right._bits); return *this; }
+    BSS_FORCEINLINE FixedPt& BSS_FASTCALL operator-=(const FixedPt& right) { _bits=i_FIXED_PT_FUNC<T,DBITS,SATURATE>::fixedpt_add(_bits,-right._bits); return *this; }
+    BSS_FORCEINLINE FixedPt& BSS_FASTCALL operator*=(const FixedPt& right) { _bits=i_FIXED_PT_FUNC<T,DBITS,SATURATE>::fixedpt_mul(_bits,right._bits); return *this; }
+    BSS_FORCEINLINE FixedPt& BSS_FASTCALL operator/=(const FixedPt& right) { _bits=i_FIXED_PT_FUNC<T,DBITS,SATURATE>::fixedpt_div(_bits,right._bits); return *this; }
     
     inline const FixedPt BSS_FASTCALL operator+(const FixedPt& right) const { return FixedPt(*this)+=right; }
     inline const FixedPt BSS_FASTCALL operator-(const FixedPt& right) const { return FixedPt(*this)-=right; }
     inline const FixedPt BSS_FASTCALL operator*(const FixedPt& right) const { return FixedPt(*this)*=right; }
     inline const FixedPt BSS_FASTCALL operator/(const FixedPt& right) const { return FixedPt(*this)/=right; }
     
-    inline bool BSS_FASTCALL operator !=(const FixedPt& right) const { return _bits!=right._bits; }
-    inline bool BSS_FASTCALL operator ==(const FixedPt& right) const { return _bits==right._bits; }
-    inline bool BSS_FASTCALL operator >=(const FixedPt& right) const { return _bits>=right._bits; }
-    inline bool BSS_FASTCALL operator <=(const FixedPt& right) const { return _bits<=right._bits; }
-    inline bool BSS_FASTCALL operator >(const FixedPt& right) const { return _bits>right._bits; }
-    inline bool BSS_FASTCALL operator <(const FixedPt& right) const { return _bits<right._bits; }
+    BSS_FORCEINLINE bool BSS_FASTCALL operator !=(const FixedPt& right) const { return _bits!=right._bits; }
+    BSS_FORCEINLINE bool BSS_FASTCALL operator ==(const FixedPt& right) const { return _bits==right._bits; }
+    BSS_FORCEINLINE bool BSS_FASTCALL operator >=(const FixedPt& right) const { return _bits>=right._bits; }
+    BSS_FORCEINLINE bool BSS_FASTCALL operator <=(const FixedPt& right) const { return _bits<=right._bits; }
+    BSS_FORCEINLINE bool BSS_FASTCALL operator >(const FixedPt& right) const { return _bits>right._bits; }
+    BSS_FORCEINLINE bool BSS_FASTCALL operator <(const FixedPt& right) const { return _bits<right._bits; }
 
   protected:
     T _bits;

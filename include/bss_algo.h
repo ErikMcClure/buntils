@@ -15,7 +15,7 @@
 namespace bss_util {
   // Performs a binary search on "arr" between first and last. if CEQ=NEQ and char CVAL=-1, uses an upper bound, otherwise uses lower bound.
   template<typename T, typename D, typename ST_, char (*CFunc)(const D&, const T&), char (*CEQ)(const char&, const char&), char CVAL>
-  inline ST_ BSS_FASTCALL binsearch_near(const T* arr, const D& data, ST_ first, ST_ last)
+  static inline ST_ BSS_FASTCALL binsearch_near(const T* arr, const D& data, ST_ first, ST_ last)
   {
     typename TSignPick<sizeof(ST_)>::SIGNED c = last-first; // Must be a signed version of whatever ST_ is
     ST_ c2; //No possible operation can make this negative so we leave it as possibly unsigned.
@@ -38,27 +38,27 @@ namespace bss_util {
   }
   // Either gets the element that matches the value in question or one immediately before the closest match. Could return an invalid -1 value.
   template<typename T, typename ST_, char (*CFunc)(const T&, const T&)>
-  inline BSS_FORCEINLINE ST_ BSS_FASTCALL binsearch_before(const T* arr, const T& data, ST_ first, ST_ last) { return binsearch_near<T,T,ST_,CFunc,CompT_NEQ<char>,-1>(arr,data,first,last)-1; }
+  BSS_FORCEINLINE ST_ BSS_FASTCALL binsearch_before(const T* arr, const T& data, ST_ first, ST_ last) { return binsearch_near<T,T,ST_,CFunc,CompT_NEQ<char>,-1>(arr,data,first,last)-1; }
 
   template<typename T, typename ST_, char (*CFunc)(const T&, const T&)>
-  inline BSS_FORCEINLINE ST_ BSS_FASTCALL binsearch_before(const T* arr, ST_ length, const T& data) { return binsearch_near<T,T,ST_,CFunc,CompT_NEQ<char>,-1>(arr,data,0,length)-1; }
+  BSS_FORCEINLINE ST_ BSS_FASTCALL binsearch_before(const T* arr, ST_ length, const T& data) { return binsearch_near<T,T,ST_,CFunc,CompT_NEQ<char>,-1>(arr,data,0,length)-1; }
 
   template<typename T, typename ST_, char (*CFunc)(const T&, const T&), ST_ I>
-  inline BSS_FORCEINLINE ST_ BSS_FASTCALL binsearch_before(const T (&arr)[I], const T& data) { return binsearch_before<T,ST_,CFunc>(arr,I,data); }
+  BSS_FORCEINLINE ST_ BSS_FASTCALL binsearch_before(const T (&arr)[I], const T& data) { return binsearch_before<T,ST_,CFunc>(arr,I,data); }
 
   // Either gets the element that matches the value in question or one immediately after the closest match.
   template<typename T, typename ST_, char (*CFunc)(const T&, const T&)>
-  inline BSS_FORCEINLINE ST_ BSS_FASTCALL binsearch_after(const T* arr, const T& data, ST_ first, ST_ last) { return binsearch_near<T,T,ST_,CFunc,CompT_EQ<char>,1>(arr,data,first,last); }
+  BSS_FORCEINLINE ST_ BSS_FASTCALL binsearch_after(const T* arr, const T& data, ST_ first, ST_ last) { return binsearch_near<T,T,ST_,CFunc,CompT_EQ<char>,1>(arr,data,first,last); }
 
   template<typename T, typename ST_, char (*CFunc)(const T&, const T&)>
-  inline BSS_FORCEINLINE ST_ BSS_FASTCALL binsearch_after(const T* arr, ST_ length, const T& data) { return binsearch_near<T,T,ST_,CFunc,CompT_EQ<char>,1>(arr,data,0,length); }
+  BSS_FORCEINLINE ST_ BSS_FASTCALL binsearch_after(const T* arr, ST_ length, const T& data) { return binsearch_near<T,T,ST_,CFunc,CompT_EQ<char>,1>(arr,data,0,length); }
 
   template<typename T, typename ST_, char (*CFunc)(const T&, const T&), ST_ I>
-  inline BSS_FORCEINLINE ST_ BSS_FASTCALL binsearch_after(const T (&arr)[I], const T& data) { return binsearch_after<T,ST_,CFunc>(arr,I,data); }
+  BSS_FORCEINLINE ST_ BSS_FASTCALL binsearch_after(const T (&arr)[I], const T& data) { return binsearch_after<T,ST_,CFunc>(arr,I,data); }
   
   // Returns index of the item, if it exists, or -1
   template<typename T, typename D, typename ST_, char (*CFunc)(const T&, const D&)>
-  inline ST_ BSS_FASTCALL binsearch_exact(const T* arr, const D& data, typename TSignPick<sizeof(ST_)>::SIGNED f, typename TSignPick<sizeof(ST_)>::SIGNED l)
+  static inline ST_ BSS_FASTCALL binsearch_exact(const T* arr, const D& data, typename TSignPick<sizeof(ST_)>::SIGNED f, typename TSignPick<sizeof(ST_)>::SIGNED l)
   {
     --l; // Done so l can be an exclusive size parameter even though the algorithm is inclusive.
     ST_ m; // While f and l must be signed ints or the algorithm breaks, m does not.
@@ -78,7 +78,7 @@ namespace bss_util {
   }
   
   template<typename T, typename ST_, char (*CFunc)(const T&, const T&), ST_ I>
-  inline BSS_FORCEINLINE ST_ BSS_FASTCALL binsearch_exact(const T (&arr)[I], const T& data) { return binsearch_exact<T,T,ST_,CFunc>(arr,data,0,I); }
+  BSS_FORCEINLINE ST_ BSS_FASTCALL binsearch_exact(const T (&arr)[I], const T& data) { return binsearch_exact<T,T,ST_,CFunc>(arr,data,0,I); }
   
   // Shuffler using Fisher-Yates/Knuth Shuffle algorithm based on Durstenfeld's implementation.
   // This is an in-place algorithm that works with any data type. Randfunc should be [min,max)
@@ -93,7 +93,7 @@ namespace bss_util {
 
   // inline function wrapper to the #define RANDINTGEN
   template<class T>
-  inline BSS_FORCEINLINE T bss_randint(T min, T max)
+  BSS_FORCEINLINE T bss_randint(T min, T max)
   {
     static_assert(std::is_integral<T>::value,"T must be integral");
     return !(max-min)?min:((min)+(rand()%((T)((max)-(min)))));
@@ -101,22 +101,22 @@ namespace bss_util {
 
   /* Shuffler using default random number generator.*/
   template<typename T>
-  inline BSS_FORCEINLINE void BSS_FASTCALL shuffle(T* p, int size)
+  BSS_FORCEINLINE void BSS_FASTCALL shuffle(T* p, int size)
   {
     shuffle<T,int,&bss_randint<int>>(p,size);
   }
   template<typename T, int size>
-  inline BSS_FORCEINLINE void BSS_FASTCALL shuffle(T (&p)[size])
+  BSS_FORCEINLINE void BSS_FASTCALL shuffle(T (&p)[size])
   {
     shuffle<T,int,size,&bss_randint<int>>(p);
   }
 
   template<class F, typename T, size_t SIZE>
-  inline BSS_FORCEINLINE void transform(T (&t)[SIZE],T (&result)[SIZE], F func) { std::transform(std::begin(t),std::end(t),result,func); }
+  BSS_FORCEINLINE void transform(T (&t)[SIZE],T (&result)[SIZE], F func) { std::transform(std::begin(t),std::end(t),result,func); }
   template<class F, typename T, size_t SIZE>
-  inline BSS_FORCEINLINE void transform(T (&t)[SIZE], F func) { std::transform(std::begin(t),std::end(t),t,func); }
+  BSS_FORCEINLINE void transform(T (&t)[SIZE], F func) { std::transform(std::begin(t),std::end(t),t,func); }
   template<class F, typename T, size_t SIZE>
-  inline BSS_FORCEINLINE void for_each(T (&t)[SIZE], F func) { std::for_each(std::begin(t),std::end(t),func); }
+  BSS_FORCEINLINE void for_each(T (&t)[SIZE], F func) { std::for_each(std::begin(t),std::end(t),func); }
   
   // Gets the squared distance between two n-dimensional points
   template<typename T, int N>
@@ -226,13 +226,13 @@ namespace bss_util {
   //  // Check first vertices of both trajectories to find the one that doesn't fall on the other.
   //}
   //template<typename T, int N, int K1, int K2>
-  //inline BSS_FORCEINLINE T CompareTrajectories(T t1[K1][N], T t2[K2][N])
+  //BSS_FORCEINLINE T CompareTrajectories(T t1[K1][N], T t2[K2][N])
   //{
   //  return CompareTrajectories<T,N>(t1,K1,t2,K2);
   //}
 
   // standard 4x4 matrix multiplication using SSE2
-  inline void BSS_FASTCALL Mult4x4(float (&out)[4][4], const float (&l)[4][4], const float (&r)[4][4])
+  BSS_FORCEINLINE void BSS_FASTCALL Mult4x4(float (&out)[4][4], const float (&l)[4][4], const float (&r)[4][4])
   {
     sseVec a(r[0]);
     sseVec b(r[1]);
@@ -256,9 +256,9 @@ namespace bss_util {
     using cDynArray<ArrayType>::_length;
 
   public:
-    inline cRandomQueue(const cRandomQueue& copy) : cDynArray<ArrayType>(copy) {}
-    inline cRandomQueue(cRandomQueue&& mov) : cDynArray<ArrayType>(std::move(mov)) {}
-    inline explicit cRandomQueue(ST_ size=0): cDynArray<ArrayType>(size) {}
+    cRandomQueue(const cRandomQueue& copy) : cDynArray<ArrayType>(copy) {}
+    cRandomQueue(cRandomQueue&& mov) : cDynArray<ArrayType>(std::move(mov)) {}
+    explicit cRandomQueue(ST_ size=0): cDynArray<ArrayType>(size) {}
     inline void Push(const T_& t) { Add(t); }
     inline void Push(T_&& t) { Add(std::move(t)); }
     inline T_ Pop() { ST_ i=RandFunc(0,_length); T_ r = std::move(_array[i]); Remove(i); return r; }

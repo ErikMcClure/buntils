@@ -22,17 +22,17 @@ namespace bss_util {
     inline cDynArray(const cDynArray& copy) : AT_(copy), _length(copy._length) {}
     inline cDynArray(cDynArray&& mov) : AT_(std::move(mov)), _length(mov._length) {}
     inline explicit cDynArray(ST_ size=0): AT_(size), _length(0) {}
-    inline ST_ Add(const T_& t) { return _add(t); }
-    inline ST_ Add(T_&& t) { return _add(std::move(t)); }
-    inline void Remove(ST_ index) { AT_::RemoveInternal(index); --_length; }
-    inline void RemoveLast() { --_length; }
-    inline void Insert(const T_& t, ST_ index=0) { return _insert(t,index); }
-    inline void Insert(T_&& t, ST_ index=0) { return _insert(std::move(t),index); }
-    inline bool Empty() const { return !_length; }
-    inline void Clear() { _length=0; }
-    inline void SetLength(ST_ length) { if(length>_size) AT_::SetSize(length); _length=length; }
-    inline ST_ Length() const { return _length; }
-    inline ST_ Capacity() const { return _size; }
+    BSS_FORCEINLINE ST_ Add(const T_& t) { return _add(t); }
+    BSS_FORCEINLINE ST_ Add(T_&& t) { return _add(std::move(t)); }
+    BSS_FORCEINLINE void Remove(ST_ index) { AT_::RemoveInternal(index); --_length; }
+    BSS_FORCEINLINE void RemoveLast() { --_length; }
+    BSS_FORCEINLINE void Insert(const T_& t, ST_ index=0) { return _insert(t,index); }
+    BSS_FORCEINLINE void Insert(T_&& t, ST_ index=0) { return _insert(std::move(t),index); }
+    BSS_FORCEINLINE bool Empty() const { return !_length; }
+    BSS_FORCEINLINE void Clear() { _length=0; }
+    BSS_FORCEINLINE void SetLength(ST_ length) { if(length>_size) AT_::SetSize(length); _length=length; }
+    BSS_FORCEINLINE ST_ Length() const { return _length; }
+    BSS_FORCEINLINE ST_ Capacity() const { return _size; }
     inline const T_& Front() const { assert(_length>0); return _array[0]; }
     inline const T_& Back() const { assert(_length>0); return _array[_length-1]; }
     inline T_& Front() { assert(_length>0); return _array[0]; }
@@ -53,10 +53,10 @@ namespace bss_util {
 
   protected:
     template<typename U>
-    inline ST_ _add(U && t) { _checksize(); _array[_length]=std::forward<U>(t); return _length++; }
+    ST_ _add(U && t) { _checksize(); _array[_length]=std::forward<U>(t); return _length++; }
     template<typename U>
-    inline void _insert(U && t, ST_ index=0) { _checksize(); AT_::_pushback(index,(_length++)-index,std::forward<U>(t)); assert(_length<=_size); }
-    inline void _checksize()
+    void _insert(U && t, ST_ index=0) { _checksize(); AT_::_pushback(index,(_length++)-index,std::forward<U>(t)); assert(_length<=_size); }
+    BSS_FORCEINLINE void _checksize()
     {
       if(_length>=_size) AT_::SetSize(fbnext(_size));
       assert(_length<_size);
@@ -104,10 +104,10 @@ namespace bss_util {
         memcpy(_array,newarray,element*num);
     }
     template<typename T> // num is a count of how many elements are in the array
-    inline void SetElement(const T* newarray, ST_ num) { SetElement(newarray,sizeof(T),num); }
+    BSS_FORCEINLINE void SetElement(const T* newarray, ST_ num) { SetElement(newarray,sizeof(T),num); }
     template<typename T, unsigned int NUM>
-    inline void SetElement(const T (&newarray)[NUM]) { SetElement(newarray,sizeof(T),NUM); }
-    inline void SetElement(ST_ element)
+    BSS_FORCEINLINE void SetElement(const T (&newarray)[NUM]) { SetElement(newarray,sizeof(T),NUM); }
+    void SetElement(ST_ element)
     {
       if(element==_element) return;
       _size=element*_length;

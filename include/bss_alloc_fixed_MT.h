@@ -13,7 +13,7 @@ namespace bss_util {
   class BSS_COMPILER_DLLEXPORT cLocklessFixedAlloc
   {
   public:
-    explicit cLocklessFixedAlloc(size_t init=8) : _root(0), _spin(0)
+    inline explicit cLocklessFixedAlloc(size_t init=8) : _root(0), _spin(0)
     {
       //contention=0;
       _freelist.p=0;
@@ -22,7 +22,7 @@ namespace bss_util {
 		  static_assert((sizeof(bss_PTag<void>)==(sizeof(void*)*2)),"ABAPointer isn't twice the size of a pointer!");
       _allocchunk(init*sizeof(T));
     }
-    ~cLocklessFixedAlloc()
+    inline ~cLocklessFixedAlloc()
     {
       FIXEDLIST_NODE* hold=_root;
       while(_root=hold)

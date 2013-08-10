@@ -20,10 +20,10 @@ namespace bss_util
     inline cScheduler(double t, F&& f) { Add(t,std::move(f)); }
     inline ~cScheduler() {}
     // Gets number of events
-    inline ST Length() const { return _length; }
+    BSS_FORCEINLINE ST Length() const { return _length; }
     // Adds an event that will happen t milliseconds in the future, starting from the current time
-    inline void Add(double t, const F& f) { Insert(std::pair<double,F>(t+_time,f)); }
-    inline void Add(double t, F&& f) { Insert(std::pair<double,F>(t+_time,std::move(f))); }
+    BSS_FORCEINLINE void Add(double t, const F& f) { Insert(std::pair<double,F>(t+_time,f)); }
+    BSS_FORCEINLINE void Add(double t, F&& f) { Insert(std::pair<double,F>(t+_time,std::move(f))); }
     // Updates the scheduler, setting off any events that need to be set off
     inline void Update()
     {

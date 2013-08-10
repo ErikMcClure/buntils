@@ -13,8 +13,8 @@ namespace bss_util
   {
     inline _cBIT_REF(T bit, T& bits) : _bit(bit), _bits(bits) {}
     inline _cBIT_REF& operator=(bool right) { _bits^=((_bits&_bit)^((-((char)right))&_bit)); return *this; }
-    inline _cBIT_REF& operator=(const _cBIT_REF& right) { return operator=((bool)right); }
-    inline operator bool() const { return (_bits&_bit)!=0; }
+    BSS_FORCEINLINE _cBIT_REF& operator=(const _cBIT_REF& right) { return operator=((bool)right); }
+    BSS_FORCEINLINE operator bool() const { return (_bits&_bit)!=0; }
 
   protected:
     T& _bits;
@@ -29,15 +29,15 @@ namespace bss_util
     // Initializes the bitfield with the given flag values, if any
     inline explicit cBitField(T init=0) : _bits(init) {}
     // Sets the entire bitfield to the given value
-    inline BSS_FORCEINLINE void BSS_FASTCALL Set(T bits) { _bits=bits; }
-    inline BSS_FORCEINLINE void BSS_FASTCALL Set(T bits, T mask) { _bits^=(bits^(_bits&mask)); }
+    BSS_FORCEINLINE void BSS_FASTCALL Set(T bits) { _bits=bits; }
+    BSS_FORCEINLINE void BSS_FASTCALL Set(T bits, T mask) { _bits^=(bits^(_bits&mask)); }
     // Gets the entire bitfield
-    inline BSS_FORCEINLINE T Get() const { return _bits; }
-    inline BSS_FORCEINLINE bool Get(T bit) const { return (_bits&bit)!=0; }
+    BSS_FORCEINLINE T Get() const { return _bits; }
+    BSS_FORCEINLINE bool Get(T bit) const { return (_bits&bit)!=0; }
 
     inline cBitField& operator=(T right) { _bits=right; return *this; }
-    inline BSS_FORCEINLINE bool operator[](T bit) const { return GetBit(bit); }
-    inline _cBIT_REF<T> operator[](T bit) { return _cBIT_REF<T>(bit,_bits); }
+    BSS_FORCEINLINE bool operator[](T bit) const { return GetBit(bit); }
+    BSS_FORCEINLINE _cBIT_REF<T> operator[](T bit) { return _cBIT_REF<T>(bit,_bits); }
     inline operator T() const { return _bits; }
     inline cBitField& operator+=(T bit) { _bits|=bit; return *this; }
     inline cBitField& operator-=(T bit) { _bits&=(~bit); return *this; }

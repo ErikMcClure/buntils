@@ -13,8 +13,8 @@ namespace bss_util {
   struct Dual
   {
     template<typename U>
-    Dual(const Dual<U,O>& copy) : _x((T)copy._x), _dx(copy._dx) {}
-    Dual(T x=0, const Dual<T,O-1>& dx=0) : _x(x), _dx(dx) {}
+    inline Dual(const Dual<U,O>& copy) : _x((T)copy._x), _dx(copy._dx) {}
+    inline Dual(T x=0, const Dual<T,O-1>& dx=0) : _x(x), _dx(dx) {}
     
     inline const Dual BSS_FASTCALL operator+(T r) const { return operator+(Dual(r)); }
     inline const Dual BSS_FASTCALL operator-(T r) const { return operator-(Dual(r)); }
@@ -33,7 +33,7 @@ namespace bss_util {
     inline T operator()(int derivative) const { if(!derivative) return _x; return _dx(derivative-1); }
     //inline operator T() const { return _x; }
     template<typename U>
-    Dual& operator=(const Dual<U,O>& r) { _x=(T)r._x; _dx=r._dx; return *this; }
+    inline Dual& operator=(const Dual<U,O>& r) { _x=(T)r._x; _dx=r._dx; return *this; }
 
     inline static const Dual sin(const Dual& d) { return Dual(std::sin(d._x),d._dx*Dual<T,O-1>::cos(d._low())); }
     inline static const Dual cos(const Dual& d) { return Dual(std::cos(d._x),d._dx*(-Dual<T,O-1>::sin(d._low()))); }
@@ -54,8 +54,8 @@ namespace bss_util {
   template<typename T>
   struct Dual<T,0>
   {
-    Dual(T x, T dx) : _x(x) {}
-    Dual(T x=0) : _x(x) {}
+    inline Dual(T x, T dx) : _x(x) {}
+    inline Dual(T x=0) : _x(x) {}
     inline const Dual BSS_FASTCALL operator+(const Dual& r) const { return Dual(_x+r._x); }
     inline const Dual BSS_FASTCALL operator-(const Dual& r) const { return Dual(_x-r._x); }
     inline const Dual BSS_FASTCALL operator*(const Dual& r) const { return Dual(_x*r._x); }

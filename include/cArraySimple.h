@@ -33,7 +33,7 @@ namespace bss_util {
         Alloc::deallocate(_array);
     }
     inline SizeType Size() const { return _size; }
-    inline void BSS_FASTCALL SetSizeDiscard(SizeType nsize)
+    void BSS_FASTCALL SetSizeDiscard(SizeType nsize)
     {
       if(nsize<=_size) { _size=nsize; return; }
       if(_array!=0) Alloc::deallocate(_array);
@@ -41,7 +41,7 @@ namespace bss_util {
       _array = (T*)Alloc::allocate(nsize);
       _size=!_array?0:nsize;
     }
-    inline void BSS_FASTCALL SetSize(SizeType nsize)
+    void BSS_FASTCALL SetSize(SizeType nsize)
     {
       if(nsize<=_size) { _size=nsize; return; }
       //T* narray = (T*)realloc(_array,nsize*sizeof(T));
@@ -56,7 +56,7 @@ namespace bss_util {
       memmove(_array+index,_array+index+1,(_size-index-1)*sizeof(T));
       //--_size;
     }
-    inline void BSS_FASTCALL Insert(T item, SizeType location)
+    void BSS_FASTCALL Insert(T item, SizeType location)
     {
       SizeType nsize=_size+1;
       if(location==_size)
@@ -80,7 +80,7 @@ namespace bss_util {
     }
     //inline operator T*() { return _array; }
     //inline operator const T*() const { return _array; }
-    inline cArraySimple<T,SizeType,Alloc>& operator=(const cArraySimple<T,SizeType,Alloc>& copy)
+    cArraySimple<T,SizeType,Alloc>& operator=(const cArraySimple<T,SizeType,Alloc>& copy)
     {
       if(this == &copy) return *this;
       if(_array!=0) Alloc::deallocate(_array);
@@ -91,7 +91,7 @@ namespace bss_util {
         memcpy(_array,copy._array,_size*sizeof(T));
       return *this;
     }
-    inline cArraySimple<T,SizeType,Alloc>& operator=(cArraySimple<T,SizeType,Alloc>&& mov)
+    cArraySimple<T,SizeType,Alloc>& operator=(cArraySimple<T,SizeType,Alloc>&& mov)
     {
       if(this == &mov) return *this;
       if(_array!=0) Alloc::deallocate(_array);
@@ -101,7 +101,7 @@ namespace bss_util {
       mov._size=0;
       return *this;
     }
-    inline cArraySimple<T,SizeType,Alloc>& operator +=(const cArraySimple<T,SizeType,Alloc>& add)
+    cArraySimple<T,SizeType,Alloc>& operator +=(const cArraySimple<T,SizeType,Alloc>& add)
     {
       assert(this!=&add);
       SizeType oldsize=_size;
@@ -110,7 +110,7 @@ namespace bss_util {
         memcpy(_array+oldsize,add._array,add._size*sizeof(T));
       return *this;
     }
-    inline const cArraySimple<T,SizeType,Alloc> operator +(const cArraySimple<T,SizeType,Alloc>& add) const
+    BSS_FORCEINLINE const cArraySimple<T,SizeType,Alloc> operator +(const cArraySimple<T,SizeType,Alloc>& add) const
     {
       cArraySimple<T,SizeType,Alloc> retval(*this);
       retval+=add;
@@ -123,14 +123,14 @@ namespace bss_util {
     }
 
   protected:
-    //inline BSS_FORCEINLINE static void* _minmalloc(size_t n) { return malloc((n<1)?1:n); } //Malloc can legally return NULL if it tries to allocate 0 bytes
+    //BSS_FORCEINLINE static void* _minmalloc(size_t n) { return malloc((n<1)?1:n); } //Malloc can legally return NULL if it tries to allocate 0 bytes
     template<typename U>
     inline void _pushback(SizeType index, SizeType length, U && data) 
     {
       _mvarray(index+1,index,length);
       _array[index]=std::forward<U>(data);
     }
-    inline void _mvarray(SizeType begin, SizeType end, SizeType length)
+    BSS_FORCEINLINE void _mvarray(SizeType begin, SizeType end, SizeType length)
     {
       memmove(_array+begin,_array+end,length*sizeof(T));
     }
@@ -178,7 +178,7 @@ namespace bss_util {
         Alloc::deallocate(_array);
     }
     inline SizeType Size() const { return _size; }
-    inline void BSS_FASTCALL SetSize(SizeType nsize)
+    void BSS_FASTCALL SetSize(SizeType nsize)
     {
       if(nsize==_size) return;
       T* narray = !nsize?0:Alloc::allocate(nsize); // can't use realloc because we have to destruct ones first.
@@ -196,14 +196,14 @@ namespace bss_util {
       _array=narray;
       _size=nsize;
     }
-    inline void BSS_FASTCALL RemoveInternal(SizeType index)
+    void BSS_FASTCALL RemoveInternal(SizeType index)
     {
       assert(_size>0 && index<_size);
       _array[index].~T();
       memmove(_array+index,_array+index+1,(_size-index-1)*sizeof(T));
       new(_array+(_size-1)) T();
     }
-    inline cArrayConstruct<T,SizeType,Alloc>& operator=(const cArrayConstruct<T,SizeType,Alloc>& copy)
+    cArrayConstruct<T,SizeType,Alloc>& operator=(const cArrayConstruct<T,SizeType,Alloc>& copy)
     {
       if(this == &copy) return *this;
       for(SizeType i = 0; i < _size; ++i)
@@ -216,7 +216,7 @@ namespace bss_util {
         new (_array+i) T(copy._array[i]);
       return *this;
     }
-    inline cArrayConstruct<T,SizeType,Alloc>& operator=(cArrayConstruct<T,SizeType,Alloc>&& mov)
+    cArrayConstruct<T,SizeType,Alloc>& operator=(cArrayConstruct<T,SizeType,Alloc>&& mov)
     {
       if(this == &mov) return *this;
       for(SizeType i = 0; i < _size; ++i)
@@ -228,7 +228,7 @@ namespace bss_util {
       mov._size=0;
       return *this;
     }
-    inline cArrayConstruct<T,SizeType,Alloc>& operator +=(const cArrayConstruct<T,SizeType,Alloc>& add)
+    cArrayConstruct<T,SizeType,Alloc>& operator +=(const cArrayConstruct<T,SizeType,Alloc>& add)
     {
       SizeType nsize=_size+add._size;
       T* narray = Alloc::allocate(nsize);
@@ -243,13 +243,13 @@ namespace bss_util {
       _size=nsize;
       return *this;
     }
-    inline const cArrayConstruct<T,SizeType,Alloc> operator +(const cArrayConstruct<T,SizeType,Alloc>& add) const
+    BSS_FORCEINLINE const cArrayConstruct<T,SizeType,Alloc> operator +(const cArrayConstruct<T,SizeType,Alloc>& add) const
     {
       cArrayConstruct<T,SizeType,Alloc> retval(*this);
       retval+=add;
       return retval;
     }
-    inline void BSS_FASTCALL Insert(T item, SizeType location)
+    void BSS_FASTCALL Insert(T item, SizeType location)
     {
       SizeType nsize=_size+1;
       if(location==_size)
@@ -279,7 +279,7 @@ namespace bss_util {
       memmove(_array+(index+1),_array+index,length*sizeof(T));
       new (_array+index) T(std::forward<U>(data));
     }
-    inline void _mvarray(SizeType begin, SizeType end, SizeType length)
+    BSS_FORCEINLINE void _mvarray(SizeType begin, SizeType end, SizeType length)
     {
       memmove(_array+begin,_array+end,length*sizeof(T));
     }
@@ -319,7 +319,7 @@ namespace bss_util {
         Alloc::deallocate(_array);
     }
     inline SizeType Size() const { return _size; }
-    inline void BSS_FASTCALL SetSize(SizeType nsize)
+    void BSS_FASTCALL SetSize(SizeType nsize)
     {
       if(nsize==_size) return;
       T* narray = Alloc::allocate(nsize);
@@ -336,7 +336,7 @@ namespace bss_util {
       _array=narray;
       _size=nsize;
     }
-    inline void BSS_FASTCALL RemoveInternal(SizeType index)
+    void BSS_FASTCALL RemoveInternal(SizeType index)
     {
       --_size; // Note that this _size decrease is reversed at the end of this function, so _size doesn't actually change, matching the behavior of cArraySimple/cArraySafe
       for(SizeType i=index; i<_size;++i)
@@ -346,7 +346,7 @@ namespace bss_util {
     }
     //inline operator T*() { return _array; }
     //inline operator const T*() const { return _array; }
-    inline cArraySafe<T,SizeType,Alloc>& operator=(const cArraySafe<T,SizeType,Alloc>& copy)
+    cArraySafe<T,SizeType,Alloc>& operator=(const cArraySafe<T,SizeType,Alloc>& copy)
     {
       if(this == &copy) return *this;
       for(SizeType i = 0; i < _size; ++i)
@@ -358,7 +358,7 @@ namespace bss_util {
         new (_array+i) T(copy._array[i]);
       return *this;
     }
-    inline cArraySafe<T,SizeType,Alloc>& operator=(cArraySafe<T,SizeType,Alloc>&& mov)
+    cArraySafe<T,SizeType,Alloc>& operator=(cArraySafe<T,SizeType,Alloc>&& mov)
     {
       if(this == &mov) return *this;
       for(SizeType i = 0; i < _size; ++i)
@@ -370,7 +370,7 @@ namespace bss_util {
       mov._size=0;
       return *this;
     }
-    inline cArraySafe<T,SizeType,Alloc>& operator +=(const cArraySafe<T,SizeType,Alloc>& add)
+    cArraySafe<T,SizeType,Alloc>& operator +=(const cArraySafe<T,SizeType,Alloc>& add)
     {
       SizeType nsize=_size+add._size;
       T* narray = Alloc::allocate(nsize);
@@ -388,7 +388,7 @@ namespace bss_util {
       _size=nsize;
       return *this;
     }
-    inline const cArraySafe<T,SizeType,Alloc> operator +(const cArraySafe<T,SizeType,Alloc>& add) const
+    BSS_FORCEINLINE const cArraySafe<T,SizeType,Alloc> operator +(const cArraySafe<T,SizeType,Alloc>& add) const
     {
       cArraySafe<T,SizeType,Alloc> retval(*this);
       retval+=add;
@@ -447,23 +447,23 @@ namespace bss_util {
     
     //inline void Add(T item) { AT_::Insert(item,_size); } // Not all cArrays implement Insert
     //Implementation of RemoveInternal that adjusts the size of the array.
-    inline void Remove(ST_ index) { AT_::RemoveInternal(index); AT_::SetSize(_size-1); }
+    BSS_FORCEINLINE void Remove(ST_ index) { AT_::RemoveInternal(index); AT_::SetSize(_size-1); }
     inline const T_& Front() const { assert(_size>0); return _array[0]; }
     inline T_& Front() { assert(_size>0); return _array[0]; }
     inline const T_& Back() const { assert(_size>0); return _array[_size-1]; }
     inline T_& Back() { assert(_size>0); return _array[_size-1]; }
-    inline operator T_*() { return _array; }
-    inline operator const T_*() const { return _array; }
+    BSS_FORCEINLINE operator T_*() { return _array; }
+    BSS_FORCEINLINE operator const T_*() const { return _array; }
     inline const T_* begin() const { return _array; }
     inline const T_* end() const { return _array+_size; }
     inline T_* begin() { return _array; }
     inline T_* end() { return _array+_size; }
     
-    inline cArrayWrap& operator=(const cArrayWrap& copy) { AT_::operator=(copy); return *this; }
-    inline cArrayWrap& operator=(const AT_& copy) { AT_::operator=(copy); return *this; }
-    inline cArrayWrap& operator=(AT_&& mov) { AT_::operator=(std::move(mov)); return *this; }
-    inline cArrayWrap& operator +=(const AT_& add) { AT_::operator+=(add); return *this; }
-    inline const cArrayWrap operator +(const AT_& add) const { cArrayWrap r(*this); return (r+=add); }
+    BSS_FORCEINLINE cArrayWrap& operator=(const cArrayWrap& copy) { AT_::operator=(copy); return *this; }
+    BSS_FORCEINLINE cArrayWrap& operator=(const AT_& copy) { AT_::operator=(copy); return *this; }
+    BSS_FORCEINLINE cArrayWrap& operator=(AT_&& mov) { AT_::operator=(std::move(mov)); return *this; }
+    BSS_FORCEINLINE cArrayWrap& operator +=(const AT_& add) { AT_::operator+=(add); return *this; }
+    BSS_FORCEINLINE const cArrayWrap operator +(const AT_& add) const { cArrayWrap r(*this); return (r+=add); }
   };
   
   // Templatized typedefs for making this easier to use

@@ -40,7 +40,7 @@ namespace bss_util {
     void BSS_FASTCALL Traverse(float (&rect)[4]) const { if(_root) _traverse<0,1>(_root,rect); }
     template<typename F>
     void BSS_FASTCALL TraverseAll(F && f) { _traverseall(_root,std::forward<F>(f)); }
-    inline void BSS_FASTCALL Insert(T* item)
+    void BSS_FASTCALL Insert(T* item)
     { 
       KDNode<T>** p=&_root;
       KDNode<T>* h;
@@ -77,7 +77,7 @@ namespace bss_util {
       _insertitem(h,item);
       if(rb) Rebalance(rb);
     }
-    inline void BSS_FASTCALL Remove(T* item)
+    void BSS_FASTCALL Remove(T* item)
     { // run up tree, adjust balance and check for rebalancing
       KDNode<T>* node=FNODE(item);
       KDNode<T>* rb=0;
@@ -106,7 +106,7 @@ namespace bss_util {
       mov._root=0;
       return *this;
     }
-    inline void Rebalance(KDNode<T>* node)
+    BSS_FORCEINLINE void Rebalance(KDNode<T>* node)
     {
       float rect[4]={-FLT_MAX,-FLT_MAX,FLT_MAX,FLT_MAX};
       KDNode<T>* parents[4] = {0};
@@ -129,7 +129,7 @@ namespace bss_util {
     static unsigned int RBTHRESHOLD; //Default is 20
 
   protected:
-    inline void BSS_FASTCALL _solve(KDNode<T>** pnode)
+    void BSS_FASTCALL _solve(KDNode<T>** pnode)
     {
       KDNode<T>* node=*pnode;
       if(!node->num) { _destroynode(node); *pnode=0; return; }
@@ -160,7 +160,7 @@ namespace bss_util {
       if(node->right) _solve(&node->right);
     }
 
-    inline void BSS_FASTCALL _rebalance(KDNode<T>* node, const float (&r)[4], KDNode<T>* const* p, float (&total)[2])
+    void BSS_FASTCALL _rebalance(KDNode<T>* node, const float (&r)[4], KDNode<T>* const* p, float (&total)[2])
     {
       node->div=node->total[node->axis]/(node->num*2);
       node->balance=0;
@@ -242,7 +242,7 @@ namespace bss_util {
       _traverseall(node->right,std::forward<F>(f));
     }
     template<char cur, char next>
-    inline static void BSS_FASTCALL _traverse(const KDNode<T>* node, const float (&rect)[4])
+    static void BSS_FASTCALL _traverse(const KDNode<T>* node, const float (&rect)[4])
     {
       T* item=node->items;
       const float* r;

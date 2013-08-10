@@ -55,7 +55,7 @@ void cINIsection::_copy(const cINIsection& copy)
     if(!_root)
       _root=_last=p;
     else
-      _last=LLAdd(p,_last);
+      _last=LLAddAfter(p,_last);
 
     if(t->instances.Size()!=0) {
       _entries.Insert(p->val.GetKey(),p);
@@ -85,12 +85,12 @@ void cINIsection::_addentry(const char* key, const char* data)
     if(!_root)
       _root=_last=p;
     else
-      _last=LLAdd(p,_last);
+      _last=LLAddAfter(p,_last);
   } else {
     assert(_last!=0 && _root!=0);
     _NODE* r=_entries[iter];
     _NODE* t=!r->instances.Size()?r:r->instances.Back();
-    LLInsertAfterFull(p,t,_last);
+    LLInsertAfter(p,t,_last);
     r->instances.Insert(p,r->instances.Size());
   }
 }

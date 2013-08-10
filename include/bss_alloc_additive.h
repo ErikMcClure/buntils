@@ -18,11 +18,11 @@ namespace bss_util {
 	class BSS_COMPILER_DLLEXPORT cAdditiveAlloc
   {
   public:
-    explicit cAdditiveAlloc(size_t init=64) : _curpos(0), _root(0)
+    inline explicit cAdditiveAlloc(size_t init=64) : _curpos(0), _root(0)
     {
       _allocchunk(init);
     }
-    ~cAdditiveAlloc()
+    inline ~cAdditiveAlloc()
     {
       AFLISTITEM* hold=_root;
       while(_root=hold)
@@ -47,7 +47,7 @@ namespace bss_util {
       _curpos+=_sz;
       return retval;
     }
-    inline void BSS_FASTCALL dealloc(void* p)
+    void BSS_FASTCALL dealloc(void* p)
     {
 #ifdef BSS_DISABLE_CUSTOM_ALLOCATORS
       delete p; return;
@@ -64,7 +64,7 @@ namespace bss_util {
       //memset(p,0xFEEEFEEE,sizeof(T)); //No way to know how big this is
 #endif
     }
-    inline void Clear()
+    void Clear()
     {
       _curpos=0;
       if(!_root->next) return;
@@ -80,7 +80,7 @@ namespace bss_util {
       _allocchunk(nsize); //consolidates all memory into one chunk to try and take advantage of data locality
     }
   protected:
-    inline BSS_FORCEINLINE void _allocchunk(size_t nsize)
+    BSS_FORCEINLINE void _allocchunk(size_t nsize)
     {
       AFLISTITEM* retval=(AFLISTITEM*)malloc(sizeof(AFLISTITEM)+nsize);
       retval->next=_root;
@@ -88,7 +88,7 @@ namespace bss_util {
       _root=retval;
       assert(_prepDEBUG());
     }
-    inline bool _prepDEBUG()
+    BSS_FORCEINLINE bool _prepDEBUG()
     {
       if(!_root) return false;
       memset(_root+1,0xcdcdcdcd,_root->size);

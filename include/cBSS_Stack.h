@@ -21,19 +21,19 @@ namespace bss_util {
     inline cBSS_Stack(cBSS_Stack&& mov) : ArrayType(std::move(mov)), _length(mov._length) {}
     inline explicit cBSS_Stack(int init=8) : ArrayType(8), _length(0) {}
     inline ~cBSS_Stack() {}
-    inline BSS_FORCEINLINE void BSS_FASTCALL Push(const T& value) { _push(value); }
-    inline BSS_FORCEINLINE void BSS_FASTCALL Push(T&& value) { _push(std::move(value)); }
-    inline T BSS_FASTCALL Pop() { assert(_length!=0); return std::move(_array[--_length]); }
-    inline T& BSS_FASTCALL Top() { assert(_length!=0); return _array[_length-1]; }
-    inline const T& BSS_FASTCALL Top() const { assert(_length!=0); return _array[_length-1]; }
-    inline void Clear() { _length=0; }
-    inline SizeType Length() const { return _length; }
+    BSS_FORCEINLINE void BSS_FASTCALL Push(const T& value) { _push(value); }
+    BSS_FORCEINLINE void BSS_FASTCALL Push(T&& value) { _push(std::move(value)); }
+    BSS_FORCEINLINE T BSS_FASTCALL Pop() { assert(_length!=0); return std::move(_array[--_length]); }
+    BSS_FORCEINLINE T& BSS_FASTCALL Top() { assert(_length!=0); return _array[_length-1]; }
+    BSS_FORCEINLINE const T& BSS_FASTCALL Top() const { assert(_length!=0); return _array[_length-1]; }
+    BSS_FORCEINLINE void Clear() { _length=0; }
+    BSS_FORCEINLINE SizeType Length() const { return _length; }
     inline cBSS_Stack& operator=(const cBSS_Stack& copy) { ArrayType::operator=(copy); _length=copy._length; return *this; }
     inline cBSS_Stack& operator=(cBSS_Stack&& mov) { ArrayType::operator=(std::move(mov)); _length=mov._length; return *this; }
 
   protected:
     template<typename U>
-    inline void BSS_FASTCALL _push(U && value) { if(++_length>_size) ArrayType::SetSize(fbnext(_size)); assert(_length-1<_size); _array[_length-1]=std::forward<U>(value); }
+    void BSS_FASTCALL _push(U && value) { if(++_length>_size) ArrayType::SetSize(fbnext(_size)); assert(_length-1<_size); _array[_length-1]=std::forward<U>(value); }
     
     SizeType _length;
   };

@@ -13,8 +13,8 @@ namespace bss_util {
   template<unsigned char TypeID>
   struct BSS_COMPILER_DLLEXPORT KeyFrame
   {
-    KeyFrame(double time, ANI_TID(DATACONST) value) : time(time), value(value) {}
-    KeyFrame() : time(0.0) {}
+    inline KeyFrame(double time, ANI_TID(DATACONST) value) : time(time), value(value) {}
+    inline KeyFrame() : time(0.0) {}
     double time;
     ANI_TID(DATA) value;
   };
@@ -24,14 +24,14 @@ namespace bss_util {
   {
     typedef unsigned short IDTYPE;
 
-		AniAttribute(unsigned char _typeID) : typeID(_typeID) {}
+		inline AniAttribute(unsigned char _typeID) : typeID(_typeID) {}
 		virtual ~AniAttribute() {}
-		inline virtual bool Interpolate(double timepassed)=0;
-		inline virtual void Start()=0;
-		inline virtual double Length()=0;
-		inline virtual AniAttribute* BSS_FASTCALL Clone() const { return 0; }
-    inline virtual void BSS_FASTCALL CopyAnimation(AniAttribute* ptr)=0;
-    inline virtual void BSS_FASTCALL AddAnimation(AniAttribute* ptr)=0;
+	  virtual bool Interpolate(double timepassed)=0;
+	  virtual void Start()=0;
+	  virtual double Length()=0;
+	  virtual AniAttribute* BSS_FASTCALL Clone() const { return 0; }
+    virtual void BSS_FASTCALL CopyAnimation(AniAttribute* ptr)=0;
+    virtual void BSS_FASTCALL AddAnimation(AniAttribute* ptr)=0;
 
 		unsigned char typeID;
   };
@@ -57,12 +57,12 @@ namespace bss_util {
     typedef typename AniAttribute::IDTYPE IDTYPE;
     typedef typename ANI_ATTR__SAFE__<TypeID,ANI_TID(SAFE)>::TVT_ARRAY TVT_ARRAY_T;
     
-    AniAttributeT(const AniAttributeT& copy) : AniAttribute(copy), _timevalues(copy._timevalues), _curpair(copy._curpair),
+    inline AniAttributeT(const AniAttributeT& copy) : AniAttribute(copy), _timevalues(copy._timevalues), _curpair(copy._curpair),
       _initzero(copy._initzero)
 		{
       assert(_timevalues.Size()>0);
 		}
-    AniAttributeT() : AniAttribute(TypeID), _curpair(1), _timevalues(0), _initzero(false) { Clear(); }
+    inline AniAttributeT() : AniAttribute(TypeID), _curpair(1), _timevalues(0), _initzero(false) { Clear(); }
     inline virtual double Length() { return _timevalues.Back().time; }
 		inline virtual AniAttribute* BSS_FASTCALL Clone() const { return 0; }
     inline virtual void BSS_FASTCALL CopyAnimation(AniAttribute* ptr) { operator=(*static_cast<AniAttributeT*>(ptr)); }
@@ -72,7 +72,7 @@ namespace bss_util {
     inline IDTYPE GetNumFrames() const { return _timevalues.Size(); }
     inline const KeyFrame<TypeID>& GetKeyFrame(IDTYPE index) const { return _timevalues[index]; }
     inline void Clear() { _timevalues.SetSize(1); _timevalues[0].time=0; _initzero=false; }
-		inline IDTYPE AddKeyFrame(const KeyFrame<TypeID>& frame) //time is given in milliseconds
+		IDTYPE AddKeyFrame(const KeyFrame<TypeID>& frame) //time is given in milliseconds
 		{
       if(frame.time==0.0)
       {
@@ -92,21 +92,21 @@ namespace bss_util {
         _timevalues.Insert(frame,i);
       return i;
 		}
-    inline bool RemoveKeyFrame(IDTYPE ID)
+    bool RemoveKeyFrame(IDTYPE ID)
     {
       if(ID>=_timevalues.Size()) return false;
       if(_timevalues.Size()<=1) _initzero=false;
       else _timevalues.Remove(ID);
       return true;
     }
-		inline AniAttributeT& operator=(const AniAttributeT& right)
+		AniAttributeT& operator=(const AniAttributeT& right)
 		{
       _initzero=right._initzero;
       _timevalues=right._timevalues;
       _curpair=right._curpair;
       return *this;
 		}
-		inline AniAttributeT& operator+=(const AniAttributeT& right)
+		AniAttributeT& operator+=(const AniAttributeT& right)
     {
       for(unsigned int i = 0; i < right._timevalues.Size(); ++i)
         AddKeyFrame(right._timevalues[i]); // We can't directly append the array because it might need to be interlaced with ours.
@@ -128,9 +128,9 @@ namespace bss_util {
     using AniAttributeT<TypeID>::_timevalues;
     using AniAttributeT<TypeID>::_curpair;
 
-    AniAttributeGeneric(const AniAttributeGeneric& copy) : AniAttributeT<TypeID>(copy) {}
-    AniAttributeGeneric() {}
-    inline virtual bool Interpolate(double timepassed)
+    inline AniAttributeGeneric(const AniAttributeGeneric& copy) : AniAttributeT<TypeID>(copy) {}
+    inline AniAttributeGeneric() {}
+    virtual bool Interpolate(double timepassed)
     {
       IDTYPE svar=_timevalues.Size();
       while(_curpair<svar && _timevalues[_curpair].time < timepassed);
@@ -151,9 +151,9 @@ namespace bss_util {
     using AniAttributeT<TypeID>::_timevalues;
     using AniAttributeT<TypeID>::_curpair;
     
-    AniAttributeDiscrete(const AniAttributeDiscrete& copy) : AniAttributeT<TypeID>(copy), _del(copy._del) {}
-    AniAttributeDiscrete(ANI_TID(DELEGATE) del) : AniAttributeT<TypeID>(), _del(del) {}
-    inline virtual bool Interpolate(double timepassed)
+    inline AniAttributeDiscrete(const AniAttributeDiscrete& copy) : AniAttributeT<TypeID>(copy), _del(copy._del) {}
+    inline AniAttributeDiscrete(ANI_TID(DELEGATE) del) : AniAttributeT<TypeID>(), _del(del) {}
+    virtual bool Interpolate(double timepassed)
     {
       IDTYPE svar=_timevalues.Size();
       while(_curpair<svar && _timevalues[_curpair].time < timepassed);
@@ -186,10 +186,10 @@ namespace bss_util {
     using AniAttributeT<TypeID>::_timevalues;
     using AniAttributeT<TypeID>::_curpair;
 
-    AniAttributeSmooth(const AniAttributeSmooth& copy) : AniAttributeDiscrete<TypeID>(copy), _pval(0), _func(copy._func), _rel(false) {}
-    AniAttributeSmooth(ANI_TID(DELEGATE) del, FUNC func=&NoInterpolate, const ANI_TID(VALUE)* pval=0, bool rel=false) :
+    inline AniAttributeSmooth(const AniAttributeSmooth& copy) : AniAttributeDiscrete<TypeID>(copy), _pval(0), _func(copy._func), _rel(false) {}
+    inline AniAttributeSmooth(ANI_TID(DELEGATE) del, FUNC func=&NoInterpolate, const ANI_TID(VALUE)* pval=0, bool rel=false) :
       AniAttributeDiscrete<TypeID>(del), _func(func), _pval(pval), _rel(rel&&(_pval!=0)) {}
-    inline virtual bool Interpolate(double timepassed)
+    virtual bool Interpolate(double timepassed)
     {
       IDTYPE svar=_timevalues.Size();
       while(_curpair<svar && _timevalues[_curpair].time<timepassed) ++_curpair;
@@ -202,7 +202,7 @@ namespace bss_util {
       _setval(_func(_timevalues,_curpair,(timepassed-hold)/(_timevalues[_curpair].time-hold)));
 			return true;
     }
-    inline virtual void Start()
+    virtual void Start()
     { 
       _curpair=1; 
       if(_pval) _initval=*_pval; 

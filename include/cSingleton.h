@@ -11,11 +11,11 @@ namespace bss_util {
   class BSS_COMPILER_DLLEXPORT cSingleton //exported to make VC++ shut up
   {
   public:
-    cSingleton(T* ptr) { _ptr = ptr; _instance = _ptr; }
-    ~cSingleton() { if(_instance == _ptr) _instance = 0; }
+    inline cSingleton(T* ptr) { _ptr = ptr; _instance = _ptr; }
+    inline ~cSingleton() { if(_instance == _ptr) _instance = 0; }
     
-    static T* Instance() { return _instance; }
-    static T& InstRef() { return *_instance; }
+    inline static T* Instance() { return _instance; }
+    inline static T& InstRef() { return *_instance; }
 
   protected:
     static T* _instance;

@@ -73,7 +73,7 @@ namespace bss_util {
   protected:
     inline cLList_LAST() : _last(0), _root(0) {}
     inline cLList_LAST(cLList_LAST<T,L>&& mov) : _last(mov._last), _root(mov._root) { mov._root=0; mov._last=0; }
-    inline void _add(cLLNode<T>* node) { if(!_root) { node->next=node->prev=0; _last=_root=node; } else _last=LLAdd<cLLNode<T>>(node,_last); }
+    inline void _add(cLLNode<T>* node) { if(!_root) { node->next=node->prev=0; _last=_root=node; } else _last=LLAddAfter<cLLNode<T>>(node,_last); }
     inline void _remove(cLLNode<T>* node) { LLRemove<cLLNode<T>>(node,_root,_last); }
     inline cLList_LAST<T,L>& operator =(cLList_LAST<T,L>&& mov) { _last=mov._last; mov._last=0; _root=mov._root; mov._root=0; return *this; }
 
@@ -99,7 +99,7 @@ namespace bss_util {
     inline cLList_LAST() : _root(0) {}
     inline cLList_LAST(cLList_LAST<T,false>&& mov) : _root(mov._root) { mov._root=0; }
     inline void _remove(cLLNode<T>* node) { LLRemove<cLLNode<T>>(node,_root); }
-    inline void _add(cLLNode<T>* node) { LLInsertRoot<cLLNode<T>>(node,_root); }
+    inline void _add(cLLNode<T>* node) { LLAdd<cLLNode<T>>(node,_root); }
     inline cLList_LAST<T,false>& operator =(cLList_LAST<T,false>&& mov) { _root=mov._root; mov._root=0; return *this; }
 
     cLLNode<T>* _root;
@@ -144,7 +144,9 @@ namespace bss_util {
       if(!target) return Add(item);
 
       cLLNode<T>* hold = _createnode(item, target->prev, target);
-      LLInsert<cLLNode<T>>(hold,target,_root);
+		  if(target->prev != 0) target->prev->next = hold;
+		  else _root = hold;
+		  target->prev = hold;
 
       _incsize(); //increment size by one
       return hold;

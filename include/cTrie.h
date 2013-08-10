@@ -73,7 +73,7 @@ namespace bss_util {
     inline cTrie& operator=(cTrie&& mov) { cArraySimple<TNODE,T>::operator=(std::move(mov)); return *this; }
 
   protected:
-    inline void BSS_FASTCALL _construct(T num, const char* const* initstr)
+    void BSS_FASTCALL _construct(T num, const char* const* initstr)
     {
       _fill(0,num);
       std::pair<T,const char*>* s = new std::pair<T,const char*>[num];

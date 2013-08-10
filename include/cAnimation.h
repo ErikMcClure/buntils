@@ -46,7 +46,7 @@ namespace bss_util {
     // Starts looping the animation (if it hasn't started yet, it is started.) Looping ends when Stop() is called
     inline void Loop(double timepassed=0.0, double looppoint=0.0) { _looppoint=looppoint; _anibool+=ANI_LOOPING; if((_anibool&ANI_PLAYING)==0) Start(timepassed); }
     // Interpolates the animation by moving it forward *delta* milliseconds
-    inline bool Interpolate(double delta)
+    bool Interpolate(double delta)
     {
       if((_anibool&ANI_PAUSED)!=0) return true;
       if((_anibool&ANI_PLAYING)==0) return false;
@@ -94,7 +94,7 @@ namespace bss_util {
       return false;
 		}
     template<unsigned char TypeID>
-		inline AniAttribute::IDTYPE AddKeyFrame(const KeyFrame<TypeID>& frame)
+		AniAttribute::IDTYPE AddKeyFrame(const KeyFrame<TypeID>& frame)
 		{
 			AniAttributeT<TypeID>* hold = static_cast<AniAttributeT<TypeID>*>(GetTypeID(TypeID));
       if(hold)
@@ -107,9 +107,9 @@ namespace bss_util {
       return (AniAttribute::IDTYPE)-1;
 		}
 		template<unsigned char TypeID>
-    inline AniAttribute::IDTYPE AddKeyFrame(double time, ANI_TID(DATACONST) value) { return AddKeyFrame<TypeID>(KeyFrame<TypeID>(time,value)); };
+    BSS_FORCEINLINE AniAttribute::IDTYPE AddKeyFrame(double time, ANI_TID(DATACONST) value) { return AddKeyFrame<TypeID>(KeyFrame<TypeID>(time,value)); };
 		template<unsigned char TypeID>
-    inline bool RemoveKeyFrame(AniAttribute::IDTYPE ID)
+    bool RemoveKeyFrame(AniAttribute::IDTYPE ID)
 		{ //This is inline because the adding function is inline, and we must preserve the DLL we're adding/deleting things from
       bool retval=false;
       unsigned char index = _attributes.Get(TypeID);
@@ -134,7 +134,7 @@ namespace bss_util {
     inline bool IsLooping() const { return (_anibool&ANI_LOOPING)!=0; }
     inline bool IsPaused() const { return (_anibool&ANI_PAUSED)!=0; }
     
-    inline cAnimation& operator +=(const cAnimation& add)
+    cAnimation& operator +=(const cAnimation& add)
     {
       unsigned char svar=_attributes.Length(); 
       unsigned char rvar=add._attributes.Length();
@@ -164,7 +164,7 @@ namespace bss_util {
       retval+=add;
       return retval;
     }
-		inline cAnimation& operator=(const cAnimation& right)
+		cAnimation& operator=(const cAnimation& right)
     {
       for(unsigned char i = 0; i < _attributes.Length(); ++i)
         _delattr(_attributes[i]);
@@ -242,7 +242,7 @@ namespace bss_util {
 		inline virtual cAnimation* BSS_FASTCALL Spawn() const { return 0; } // You can't spawn an animation because it can't attach to anything
 		inline virtual DEF_ANIMATION* BSS_FASTCALL Clone() const { return new DEF_ANIMATION(*this); }
     template<ST_ TypeID>
-    inline DEF_ANIATTRIBUTE_T<TypeID>* BSS_FASTCALL GetAttribute()
+    DEF_ANIATTRIBUTE_T<TypeID>* BSS_FASTCALL GetAttribute()
     { 
       ST_ ind = _frames.Get(TypeID);
       if(ind>=_frames.Length()) 

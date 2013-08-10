@@ -19,8 +19,8 @@ namespace bss_util {
     inline cRational(T n, T d) : _n(n), _d(d) { Simplify(); }
     //inline cRational(float f) : _n(n), _d(d) {}
     inline void SetFraction(T n, T d) { _n=n; _d=d; Simplify(); }
-    inline T N() const { return _n; }
-    inline T D() const { return _d; }
+    BSS_FORCEINLINE T N() const { return _n; }
+    BSS_FORCEINLINE T D() const { return _d; }
     inline void Simplify()
     { 
       if(!_n) { _d=1; return; } 
@@ -122,7 +122,7 @@ namespace bss_util {
     inline operator double() const { return ((double)_n)/((double)_d); }
 
     template<typename T2>
-    static inline T2 GCD(T2 a, T2 b)
+    static T2 GCD(T2 a, T2 b)
     {
       a=abs(a);
       b=abs(b);

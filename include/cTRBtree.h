@@ -57,11 +57,11 @@ namespace bss_util {
 		  _root = pNIL;
 	  }
     // Retrieves a given node by key if it exists
-    inline TRB_Node<T>* BSS_FASTCALL Get(const T& value) const { return _get(value); }
+    BSS_FORCEINLINE TRB_Node<T>* BSS_FASTCALL Get(const T& value) const { return _get(value); }
     // Retrieves the node closest to the given key.
-    inline TRB_Node<T>* BSS_FASTCALL GetNear(const T& value, bool before=true) const { return _getnear(value,before); }
+    BSS_FORCEINLINE TRB_Node<T>* BSS_FASTCALL GetNear(const T& value, bool before=true) const { return _getnear(value,before); }
 		// Inserts a key with the associated data
-		inline TRB_Node<T>* BSS_FASTCALL Insert(const T& value)
+		BSS_FORCEINLINE TRB_Node<T>* BSS_FASTCALL Insert(const T& value)
     {
       TRB_Node<T>* node= cAllocTracker<Alloc>::_allocate(1);
       new(node) TRB_Node<T>(value,pNIL);
@@ -69,9 +69,9 @@ namespace bss_util {
       return node;
     }
     // Searches for a node with the given key and removes it if found, otherwise returns false.
-    inline bool BSS_FASTCALL Remove(const T& value) { return Remove(_get(value)); }
+    BSS_FORCEINLINE bool BSS_FASTCALL Remove(const T& value) { return Remove(_get(value)); }
     // Removes the given node. Returns false if node is null
-		inline bool BSS_FASTCALL Remove(TRB_Node<T>* node)
+		BSS_FORCEINLINE bool BSS_FASTCALL Remove(TRB_Node<T>* node)
     {
       if(!node) return false;
       _remove(node);
@@ -79,9 +79,9 @@ namespace bss_util {
       return true;
     }
     // Returns first element
-		inline TRB_Node<T>* Front() const { return _first; }
+		BSS_FORCEINLINE TRB_Node<T>* Front() const { return _first; }
     // Returns last element
-		inline TRB_Node<T>* Back() const { return _last; }
+		BSS_FORCEINLINE TRB_Node<T>* Back() const { return _last; }
     // Iteration functions
     inline LLIterator<const TRB_Node<T>> begin() const { return LLIterator<const TRB_Node<T>>(_first); }
     inline LLIterator<const TRB_Node<T>> end() const { return LLIterator<const TRB_Node<T>>(0); }
@@ -102,7 +102,7 @@ namespace bss_util {
     }
 
   protected:
-	  inline TRB_Node<T>* BSS_FASTCALL _get(const T& x) const
+	  TRB_Node<T>* BSS_FASTCALL _get(const T& x) const
 	  {
       TRB_Node<T>* cur=_root;
 
@@ -118,7 +118,7 @@ namespace bss_util {
 
       return 0;
 	  }
-	  inline TRB_Node<T>* BSS_FASTCALL _getnear(const T& x, bool before) const
+	  TRB_Node<T>* BSS_FASTCALL _getnear(const T& x, bool before) const
 	  {
       TRB_Node<T>* cur=_root;
       TRB_Node<T>* parent;
@@ -140,7 +140,7 @@ namespace bss_util {
       else
         return (res>0 || parent->prev)?parent:parent->prev;
     }
-    inline void BSS_FASTCALL _leftrotate(TRB_Node<T>* node)
+    void BSS_FASTCALL _leftrotate(TRB_Node<T>* node)
     {
       TRB_Node<T>* r=node->right;
 
@@ -156,7 +156,7 @@ namespace bss_util {
 		  r->left = node;
 		  if (node != pNIL) node->parent = r;
     }
-    inline void BSS_FASTCALL _rightrotate(TRB_Node<T>* node)
+    void BSS_FASTCALL _rightrotate(TRB_Node<T>* node)
     {
       TRB_Node<T>* r = node->left;
 
@@ -172,7 +172,7 @@ namespace bss_util {
       r->right = node;
 		  if(node != pNIL) node->parent = r;
     }
-	  inline void BSS_FASTCALL _insert(TRB_Node<T>* node)
+	  void BSS_FASTCALL _insert(TRB_Node<T>* node)
 	  {
 		  TRB_Node<T>* cur=_root;
 		  TRB_Node<T>* parent=0;
@@ -186,7 +186,7 @@ namespace bss_util {
         case -1: cur=cur->left; break;
         case 1: cur=cur->right; break;
         default: // duplicate
-          LLInsertAfterFull(node,cur,_last);
+          LLInsertAfter(node,cur,_last);
           node->color=-1; //set color to duplicate
           return; //terminate, we have nothing else to do since this node isn't actually in the tree
         }
@@ -199,12 +199,12 @@ namespace bss_util {
         if(c<0) //depending on if its less than or greater than the parent, set the appropriate child variable
         {
           parent->left = node;
-          LLInsertFull(node,parent,_first); //Then insert into the appropriate side of the list
+          LLInsert(node,parent,_first); //Then insert into the appropriate side of the list
         }
         else
         {
           parent->right = node;
-          LLInsertAfterFull(node, parent, _last);
+          LLInsertAfter(node, parent, _last);
         }
 			  _fixinsert(node);
       }
@@ -267,7 +267,7 @@ namespace bss_util {
 
 		  _root->color = 0;
 	  }
-	  inline void BSS_FASTCALL _remove(TRB_Node<T>* node)
+	  void BSS_FASTCALL _remove(TRB_Node<T>* node)
 	  {
 		  if(node->color == -1) { LLRemove(node,_first,_last); return; }
 		  if(node->next && node->next->color == -1) { _replacenode(node, node->next); LLRemove(node,_first,_last); return; }
@@ -377,7 +377,7 @@ namespace bss_util {
       y->left->parent = y;
       y->right->parent = y;
 	  }
-    inline static TRB_Node<T>* BSS_FASTCALL _findmin(TRB_Node<T>* node)
+    BSS_FORCEINLINE static TRB_Node<T>* BSS_FASTCALL _findmin(TRB_Node<T>* node)
 	  {
 		  while (node->left != pNIL) node = node->left;
 		  return node;
@@ -588,11 +588,11 @@ namespace bss_util {
         default: // duplicate
           if(cur->next!=0 && cur->next->color==-1)
           {
-            if((cur=_treenext(cur))!=0) LLInsertFull(node,cur,_first);
-            else _last=LLAdd(node,_last);
+            if((cur=_treenext(cur))!=0) LLInsert(node,cur,_first);
+            else _last=LLAddAfter(node,_last);
           }
           else
-            LLInsertAfterFull(node,cur,_last);
+            LLInsertAfter(node,cur,_last);
 
           node->color=-1; //set color to duplicate
           return; //terminate, we have nothing else to do since this node isn't actually in the tree
@@ -606,18 +606,18 @@ namespace bss_util {
         if(c<0) //depending on if its less than or greater than the parent, set the appropriate child variable
         {
           parent->left = node;
-          LLInsertFull(node,parent,_first); //Then insert into the appropriate side of the list
+          LLInsert(node,parent,_first); //Then insert into the appropriate side of the list
         }
         else
         {
           parent->right = node;
           if(parent->next!=0 && parent->next->color==-1)
           {
-            if((parent=_treenextsub(parent))==0) _last=LLAdd(node,_last);
-            else LLInsertFull(node, parent, _first);
+            if((parent=_treenextsub(parent))==0) _last=LLAddAfter(node,_last);
+            else LLInsert(node, parent, _first);
           }
           else
-            LLInsertAfterFull(node, parent, _last);
+            LLInsertAfter(node, parent, _last);
         }
 			  _fixinsert(node);
       }

@@ -27,7 +27,7 @@ namespace bss_util {
     // Constructor with a null-terminated array of strings.
     inline cStrTable(const T* const* strings, ST_ size) : _strings(0), _indices(0) { _construct(strings,size); }
     // Constructor from a stream that's a series of null terminated strings.
-    inline cStrTable(std::istream* stream, ST_ bytes) : _strings(0), _indices(0)
+    cStrTable(std::istream* stream, ST_ bytes) : _strings(0), _indices(0)
     {
       if(!stream || !bytes)
         return;
@@ -99,7 +99,7 @@ namespace bss_util {
     inline cStrTable& operator+=(const char* right) { AppendString(right); return *this; }
 
   protected:
-    inline void BSS_FASTCALL _construct(const T* const* strings, ST_ size)
+    void BSS_FASTCALL _construct(const T* const* strings, ST_ size)
     {
       if(!strings || !size) //special handling for empty case
         return;

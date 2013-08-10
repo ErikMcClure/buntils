@@ -56,11 +56,11 @@ namespace bss_util {
     inline INIiterator<cINIentry> begin() { return INIiterator<cINIentry>(_root); }
     inline INIiterator<cINIentry> end() { return INIiterator<cINIentry>(0); }
 
-    inline cINIstorage* GetParent() const { return _parent; }
-    inline const char* GetName() const { return _name; }
-    inline unsigned int GetIndex() const { return _index; }
+    BSS_FORCEINLINE cINIstorage* GetParent() const { return _parent; }
+    BSS_FORCEINLINE const char* GetName() const { return _name; }
+    BSS_FORCEINLINE unsigned int GetIndex() const { return _index; }
 
-    inline BSS_FORCEINLINE cINIentry& operator[](const char* key) const { return GetEntry(key,0); }
+    BSS_FORCEINLINE cINIentry& operator[](const char* key) const { return GetEntry(key,0); }
     cINIsection& operator=(const cINIsection& right);
     cINIsection& operator=(cINIsection&& mov);
 

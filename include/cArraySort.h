@@ -24,8 +24,8 @@ namespace bss_util {
     inline cArraySort(cArraySort&& mov) : _length(mov._length), ArrayType(std::move(mov)) {} 
     inline explicit cArraySort(ST_ size=0) : _length(0), ArrayType(size) {}
     inline ~cArraySort() { }
-    inline BSS_FORCEINLINE ST_ BSS_FASTCALL Insert(constref data) { return _insert(data); }
-    inline BSS_FORCEINLINE ST_ BSS_FASTCALL Insert(moveref data) { return _insert(std::move(data)); }
+    BSS_FORCEINLINE ST_ BSS_FASTCALL Insert(constref data) { return _insert(data); }
+    BSS_FORCEINLINE ST_ BSS_FASTCALL Insert(moveref data) { return _insert(std::move(data)); }
     inline void Clear() { _length=0; }
     inline void BSS_FASTCALL Discard(unsigned int num) { _length-=((num>_length)?_length:num); }
     inline const T& Front() const { assert(_length>0); return _array[0]; }
@@ -36,7 +36,7 @@ namespace bss_util {
     inline const T* end() const { return _array+_length; }
     inline T* begin() { return _array; }
     inline T* end() { return _array+_length; }
-    inline ST_ BSS_FASTCALL ReplaceData(ST_ index, constref data)
+    ST_ BSS_FASTCALL ReplaceData(ST_ index, constref data)
     {
       T swap;
       _array[index]=data;
@@ -61,11 +61,11 @@ namespace bss_util {
       --_length;
       return true;
     }
-    inline BSS_FORCEINLINE void BSS_FASTCALL Expand(ST_ newsize)
+    BSS_FORCEINLINE void BSS_FASTCALL Expand(ST_ newsize)
     {
       ArrayType::SetSize(newsize);
     }
-    inline ST_ BSS_FASTCALL Find(constref data) const
+    BSS_FORCEINLINE ST_ BSS_FASTCALL Find(constref data) const
     {
       return binsearch_exact<T,T,ST_,CFunc>(_array,data,0,_length);
       //ST_ retval=_findnear(data,true);
@@ -77,10 +77,10 @@ namespace bss_util {
       ST_ retval=before?binsearch_before<T,ST_,CFunc>(_array,_length,data):binsearch_after<T,ST_,CFunc>(_array,_length,data);
       return (retval<_length)?retval:(ST_)(-1); // This is only needed for before=false in case it returns a value outside the range.
     }
-    inline bool Empty() const { return !_length; }
-    inline ST_ Length() const { return _length; }
-    inline constref operator [](ST_ index) const { return _array[index]; }
-    inline T& operator [](ST_ index) { return _array[index]; }
+    BSS_FORCEINLINE bool Empty() const { return !_length; }
+    BSS_FORCEINLINE ST_ Length() const { return _length; }
+    BSS_FORCEINLINE constref operator [](ST_ index) const { return _array[index]; }
+    BSS_FORCEINLINE T& operator [](ST_ index) { return _array[index]; }
     inline cArraySort& operator=(const cArraySort& right)
     { 
       ArrayType::operator=(right);
@@ -95,7 +95,7 @@ namespace bss_util {
     }
   protected:
     template<typename U>
-    inline ST_ BSS_FASTCALL _insert(U && data)
+    ST_ BSS_FASTCALL _insert(U && data)
     {
       if(_length>=_size) Expand(fbnext(_size));
       if(!_length) _array[_length++]=std::forward<U>(data);

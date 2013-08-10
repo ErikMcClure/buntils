@@ -149,12 +149,12 @@ cINIsection* cINIstorage::_addsection(const char* name)
     if(!_root)
       _root=_last=p;
     else
-      _last=LLAdd(p,_last);
+      _last=LLAddAfter(p,_last);
   } else {
     assert(_last!=0 && _root!=0);
     _NODE* r=_sections[iter];
     _NODE* t=!r->instances.Size()?r:r->instances.Back();
-    LLInsertAfterFull(p,t,_last);
+    LLInsertAfter(p,t,_last);
     r->instances.Insert(p,r->instances.Size());
     new (&p->val) cINIsection(name,this,r->instances.Size()); // done down here because the index is actually where it is in the array + 1.
   }
@@ -398,7 +398,7 @@ void cINIstorage::_copy(const cINIstorage& copy)
     if(!_root)
       _root=_last=p;
     else
-      _last=LLAdd(p,_last);
+      _last=LLAddAfter(p,_last);
 
     if(t->instances.Size()!=0) {
       _sections.Insert(p->val.GetName(),p);

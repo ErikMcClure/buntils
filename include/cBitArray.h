@@ -14,13 +14,13 @@ namespace bss_util
 	struct _BIT_REF // reference to a bit within a base word
 	{	
     inline _BIT_REF(ST_* p, ST_ off) : _p(p), _m(1<<off) {}
-    inline void flip() { *_p ^= _m; }
+    BSS_FORCEINLINE void flip() { *_p ^= _m; }
 
-    inline bool operator~() const { return operator!(); }
-    inline bool operator!() const { return !((*_p)&_m); }
-	  inline operator bool() const {	return ((*_p)&_m) != 0; }
-    inline _BIT_REF& operator=(const _BIT_REF& r) { return operator=((bool)r); }
-    inline _BIT_REF& operator=(bool r) { *_p = r?((*_p)|_m):((*_p)&(~_m));  return *this; }
+    BSS_FORCEINLINE bool operator~() const { return operator!(); }
+    BSS_FORCEINLINE bool operator!() const { return !((*_p)&_m); }
+	  BSS_FORCEINLINE operator bool() const {	return ((*_p)&_m) != 0; }
+    BSS_FORCEINLINE _BIT_REF& operator=(const _BIT_REF& r) { return operator=((bool)r); }
+    BSS_FORCEINLINE _BIT_REF& operator=(bool r) { *_p = r?((*_p)|_m):((*_p)&(~_m));  return *this; }
 
   protected:
     ST_* _p;
@@ -79,7 +79,7 @@ namespace bss_util
         (smask&emask)
     }*/
     // Counts the bits in the given range
-    inline ST_ BSS_FASTCALL GetBits(ST_ bitindex, ST_ length) const
+    ST_ BSS_FASTCALL GetBits(ST_ bitindex, ST_ length) const
     {
       length+=bitindex;
       ST_ start=bitindex/DIV_AMT;
@@ -101,8 +101,8 @@ namespace bss_util
     inline void Flip() { for(ST_ i = 0; i < _bits.Size(); ++i) _bits[i]=~_bits[i]; }
     inline cBitArray& operator=(const cBitArray& right) { _bits=right._bits; _numbits=right._numbits; }
     inline cBitArray& operator=(cBitArray&& mov) { _bits=std::move(mov._bits); _numbits=mov._numbits; mov._numbits=0; }
-    inline bool operator[](ST_ index) const { return GetBit(index); }
-    inline _BIT_REF<ST_> operator[](ST_ index) { return _BIT_REF<ST_>(_bits+(index/DIV_AMT),(index&MOD_AMT)); }
+    BSS_FORCEINLINE bool operator[](ST_ index) const { return GetBit(index); }
+    BSS_FORCEINLINE _BIT_REF<ST_> operator[](ST_ index) { return _BIT_REF<ST_>(_bits+(index/DIV_AMT),(index&MOD_AMT)); }
 
   protected:
     inline ST_ _maxchunks(ST_ numbits) { return (numbits/DIV_AMT) + ((numbits&MOD_AMT)!=0); }

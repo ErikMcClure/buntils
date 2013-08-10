@@ -50,7 +50,7 @@ static inline void kh_clear_template(kh_template_t<khkey_t,khval_t,kh_is_map,__h
 }								
 
 template<typename khkey_t, typename khval_t, bool kh_is_map, khint_t (*__hash_func)(khkey_t), bool (*__hash_equal)(khkey_t, khkey_t)>
-static inline khint_t kh_get_template(const kh_template_t<khkey_t,khval_t,kh_is_map,__hash_func,__hash_equal> *h, khkey_t key)
+static khint_t kh_get_template(const kh_template_t<khkey_t,khval_t,kh_is_map,__hash_func,__hash_equal> *h, khkey_t key)
 {																	
 	if (h->n_buckets) {												
 		khint_t inc, k, i, last;									
@@ -66,7 +66,7 @@ static inline khint_t kh_get_template(const kh_template_t<khkey_t,khval_t,kh_is_
 }
 
 template<typename khkey_t, typename khval_t, bool kh_is_map, khint_t (*__hash_func)(khkey_t), bool (*__hash_equal)(khkey_t, khkey_t)>
-static inline void kh_resize_template(kh_template_t<khkey_t,khval_t,kh_is_map,__hash_func,__hash_equal> *h, khint_t new_n_buckets)
+static void kh_resize_template(kh_template_t<khkey_t,khval_t,kh_is_map,__hash_func,__hash_equal> *h, khint_t new_n_buckets)
 {																	
   khint32_t *new_flags = 0;										
   khint_t j = 1;													
@@ -128,7 +128,7 @@ static inline void kh_resize_template(kh_template_t<khkey_t,khval_t,kh_is_map,__
 }
 
 template<typename khkey_t, typename khval_t, bool kh_is_map, khint_t (*__hash_func)(khkey_t), bool (*__hash_equal)(khkey_t, khkey_t)>
-static inline khint_t kh_put_template(kh_template_t<khkey_t,khval_t,kh_is_map,__hash_func,__hash_equal> *h, khkey_t key, int *ret) 
+static khint_t kh_put_template(kh_template_t<khkey_t,khval_t,kh_is_map,__hash_func,__hash_equal> *h, khkey_t key, int *ret) 
 {											
 	khint_t x;														
 	if (h->n_occupied >= h->upper_bound) {							

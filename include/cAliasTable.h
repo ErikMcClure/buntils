@@ -13,28 +13,28 @@ namespace bss_util {
   class BSS_COMPILER_DLLEXPORT cAliasTable
   {
   public:
-    inline cAliasTable(const cAliasTable& copy) : _alias(new UINT[copy._count]), _prob(new F[copy._count]), _count(copy._count)
+    cAliasTable(const cAliasTable& copy) : _alias(new UINT[copy._count]), _prob(new F[copy._count]), _count(copy._count)
     {
       memcpy(_alias,copy._alias,sizeof(UINT)*copy._count);
       memcpy(_prob,copy._prob,sizeof(UINT)*copy._count);
     }
-    inline cAliasTable(cAliasTable&& mov) : _alias(mov._alias), _prob(mov._prob), _count(mov._count) { mov._alias=0; mov._prob=0; mov._count=0; }
-    inline cAliasTable(const F* problist, UINT count) : _alias(0), _prob(0), _count(0) { _gentable(problist, count); }
+    cAliasTable(cAliasTable&& mov) : _alias(mov._alias), _prob(mov._prob), _count(mov._count) { mov._alias=0; mov._prob=0; mov._count=0; }
+    cAliasTable(const F* problist, UINT count) : _alias(0), _prob(0), _count(0) { _gentable(problist, count); }
     template<UINT I>
-    inline explicit cAliasTable(const F (&problist)[I]) : _alias(0), _prob(0), _count(0) { _gentable(problist, I);  }
-    inline ~cAliasTable()
+    explicit cAliasTable(const F (&problist)[I]) : _alias(0), _prob(0), _count(0) { _gentable(problist, I);  }
+    ~cAliasTable()
     { 
       if(_alias!=0) delete [] _alias;
       if(_prob!=0) delete [] _prob;
     }
-    inline BSS_FORCEINLINE UINT Get() const
+    BSS_FORCEINLINE UINT Get() const
     {
       UINT c = (UINT)(rand()%_count);
       return (((F)rand()/(F)RAND_MAX) < _prob[c])?c:_alias[c];
     }
 
   protected:
-    inline void _gentable(const F* problist, UINT count)
+    void _gentable(const F* problist, UINT count)
     {
       if(!problist || !count)
         return;

@@ -25,8 +25,8 @@ namespace bss_util {
     inline explicit cArrayCircular(ST_ size=0) : ArrayType(size), _cur((ST_)-1), _length(0) {}
     
     inline ~cArrayCircular() {}
-    inline BSS_FORCEINLINE void Push(const T& item) { _push<const T&>(item); }
-    inline BSS_FORCEINLINE void Push(T&& item) { _push<T&&>(std::move(item)); }
+    BSS_FORCEINLINE void Push(const T& item) { _push<const T&>(item); }
+    BSS_FORCEINLINE void Push(T&& item) { _push<T&&>(std::move(item)); }
     inline T Pop() { assert(_length>0); --_length; ST_ prev=_cur; _cur=bssmod<__ST_SIGNED>(_cur-1,_size); return std::move(_array[prev]); }
     inline T PopBack() { assert(_length>0); --_length; return std::move(_array[_modindex(_length)]); }
     inline const T& Front() const { assert(_length>0); return _array[_cur]; }
@@ -43,8 +43,8 @@ namespace bss_util {
       if(sz<nsize)
         ArrayType::_mvarray(c,c+_size-sz,sz-c);
     }
-    inline T& operator[](__ST_SIGNED index) { return _array[_modindex(index)]; } // an index of 0 is the most recent item pushed into the circular array.
-    inline const T& operator[](__ST_SIGNED index) const { return _array[_modindex(index)]; }
+    BSS_FORCEINLINE T& operator[](__ST_SIGNED index) { return _array[_modindex(index)]; } // an index of 0 is the most recent item pushed into the circular array.
+    BSS_FORCEINLINE const T& operator[](__ST_SIGNED index) const { return _array[_modindex(index)]; }
     inline cArrayCircular& operator=(const cArrayCircular& right) { ArrayType::operator=(right); _cur=right._cur; _length=right._length; return *this; }
     inline cArrayCircular& operator=(cArrayCircular&& right) { ArrayType::operator=(std::move(right)); _cur=right._cur; _length=right._length; right._length=0; right._cur=0; return *this; }
   

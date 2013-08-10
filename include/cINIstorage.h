@@ -45,7 +45,7 @@ namespace bss_util {
     void EndINIEdit(const char* overridepath=0); //Saves changes to file (INI files are automatically opened when an edit operation is done)
     void DiscardINIEdit();
 
-    inline BSS_FORCEINLINE cINIsection& operator [](const char *section) const { cINIsection* ret=GetSection(section,0); return !ret?_sectionsentinel:*ret; }
+    BSS_FORCEINLINE cINIsection& operator [](const char *section) const { cINIsection* ret=GetSection(section,0); return !ret?_sectionsentinel:*ret; }
     cINIstorage& operator=(const cINIstorage& right);
     cINIstorage& operator=(cINIstorage&& mov);
     inline const char* GetPath() const { return _path; } //gets path to folder this INI was in

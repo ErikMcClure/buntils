@@ -107,7 +107,7 @@ namespace bss_util {
   
     // Constructs a minimum spanning tree using Kruskal's algorithm, given a sorted list of edges (smallest first).
     template<class ITER>
-    static typename WArray<std::pair<T,T>,T>::t BSS_FASTCALL MinSpanningTree(T numverts, ITER edges, ITER edgeslast)
+    inline static typename WArray<std::pair<T,T>,T>::t BSS_FASTCALL MinSpanningTree(T numverts, ITER edges, ITER edgeslast)
     {
       typename WArray<std::pair<T,T>,T>::t ret(numverts-1); // A nice result in combinatorics tells us that all trees have exactly n-1 edges.
       ret.SetSize(MinSpanningTree(numverts,edges,edgeslast,ret)); // This will always be <= n-1 so the SetSize is basically free.
@@ -136,7 +136,7 @@ namespace bss_util {
     }
 
   protected:
-    inline bool _invalidindex(T s) const { return s >= _size || _array[s] >= 0; }
+    BSS_FORCEINLINE bool _invalidindex(T s) const { return s >= _size || _array[s] >= 0; }
 
     T _numsets;
   };

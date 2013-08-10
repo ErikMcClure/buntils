@@ -34,7 +34,7 @@ namespace bss_util {
 #endif
 
   protected:
-	  inline virtual int sync()
+	  virtual int sync()
     {
       size_t length = std::basic_stringbuf<char>::pptr() - std::basic_stringbuf<char>::pbase();
 

@@ -51,7 +51,7 @@ namespace bss_util {
     
     // Percolate up through the heap
     template<typename U>
-    inline static void PercolateUp(T* _array, ST_ _length, ST_ k, U && val)
+    static void PercolateUp(T* _array, ST_ _length, ST_ k, U && val)
     {
       assert(k<_length);
       unsigned int parent;
@@ -66,7 +66,7 @@ namespace bss_util {
     }
     // Percolate down a heap
     template<typename U>
-    inline static void PercolateDown(T* _array, ST_ _length, ST_ k, U && val)
+    static void PercolateDown(T* _array, ST_ _length, ST_ k, U && val)
     {
       assert(k<_length);
       ST_ i;

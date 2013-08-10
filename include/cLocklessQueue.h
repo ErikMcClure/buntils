@@ -42,8 +42,8 @@ namespace bss_util {
   public:
     inline cLocklessQueue() { _div=_last=_first=_alloc.alloc(1); new((cLQ_QNode<T>*)_first) cLQ_QNode<T>(); }
     inline ~cLocklessQueue() { } // Don't need to clean up because the allocator will destroy everything by itself
-    inline void Produce(const T& t) { _produce<const T&>(t); }
-    inline void Produce(T&& t) { _produce<T&&>(std::move(t)); }
+    BSS_FORCEINLINE void Produce(const T& t) { _produce<const T&>(t); }
+    BSS_FORCEINLINE void Produce(T&& t) { _produce<T&&>(std::move(t)); }
     inline bool Consume(T& result)
     { 
       if( _div != _last )
@@ -58,7 +58,7 @@ namespace bss_util {
 
   protected:
     template<typename U>
-    inline void _produce(U && t)
+    void _produce(U && t)
     {
       _last->next=_alloc.alloc(1);
       new((cLQ_QNode<T>*)_last->next) cLQ_QNode<T>(std::forward<U>(t));

@@ -49,7 +49,7 @@ namespace bss_util {
 			cAllocTracker<Alloc>::_deallocate(node, 1);
     }
 
-    inline static void BSS_FASTCALL _leftrotate(AVLNode** pnode)
+    static void BSS_FASTCALL _leftrotate(AVLNode** pnode)
     {
       AVLNode* node = *pnode;
       AVLNode* r = node->_right;
@@ -62,7 +62,7 @@ namespace bss_util {
       r->_balance -= (1 - bssmin(r->_left->_balance, 0));
     }
 
-    inline static void BSS_FASTCALL _rightrotate(AVLNode** pnode)
+    static void BSS_FASTCALL _rightrotate(AVLNode** pnode)
     {
       AVLNode* node = *pnode;
       AVLNode* r = node->_left;
@@ -74,7 +74,7 @@ namespace bss_util {
       r->_right->_balance += (1 - bssmin(r->_balance, 0));
       r->_balance += (1 + bssmax(r->_right->_balance, 0));
     }
-    inline AVLNode* BSS_FASTCALL _insert(Key key, AVLNode** proot, char& change) //recursive insertion function
+    AVLNode* BSS_FASTCALL _insert(Key key, AVLNode** proot, char& change) //recursive insertion function
     {
       AVLNode* root=*proot;
       if(!root)
@@ -158,7 +158,7 @@ namespace bss_util {
     typedef AVL_Node<Key,Data> AVLNode;
     using _AVL_TREE_INTERNAL<Key,Data,CFunc,Alloc>::_root;
 
-    inline bool BSS_FASTCALL Insert(Key key, Data data)
+    BSS_FORCEINLINE bool BSS_FASTCALL Insert(Key key, Data data)
     {
       char change=0;
       AVLNode* cur=this->_insert(key,&_root,change);
@@ -169,12 +169,12 @@ namespace bss_util {
       }
       return false;
     }
-    inline Data BSS_FASTCALL Get(const Key key, const Data& INVALID=0) const
+    BSS_FORCEINLINE Data BSS_FASTCALL Get(const Key key, const Data& INVALID=0) const
     {
       AVLNode* retval=this->_find(key);
       return !retval?INVALID:retval->_data;
     }
-    inline Data* BSS_FASTCALL GetRef(const Key key) const
+    BSS_FORCEINLINE Data* BSS_FASTCALL GetRef(const Key key) const
     {
       AVLNode* retval=this->_find(key);
       return !retval?0:&retval->_data;
@@ -211,18 +211,18 @@ namespace bss_util {
     typedef AVL_Node<Key,void> AVLNode;
     using _AVL_TREE_INTERNAL<Key,void,CFunc,Alloc>::_root;
 
-    inline bool BSS_FASTCALL Insert(Key key)
+    BSS_FORCEINLINE bool BSS_FASTCALL Insert(Key key)
     {
       char change=0;
       AVLNode* cur=this->_insert(key,&_root,change);
       return cur!=0;
     }
-    inline Key BSS_FASTCALL Get(const Key key, const Key& INVALID=0) const
+    BSS_FORCEINLINE Key BSS_FASTCALL Get(const Key key, const Key& INVALID=0) const
     {
       AVLNode* retval=this->_find(key);
       return !retval?INVALID:retval->_key;
     }
-    inline Key* BSS_FASTCALL GetRef(const Key key) const
+    BSS_FORCEINLINE Key* BSS_FASTCALL GetRef(const Key key) const
     {
       AVLNode* retval=this->_find(key);
       return !retval?0:&retval->_key;
@@ -259,7 +259,7 @@ namespace bss_util {
     inline ~cAVLtree() { Clear(); }
     inline void Clear() { this->_clear(_root); _root=0; } // We have to use this-> to satisfy GCC's lookups
     template<typename F> // std::function<void(Data)> (we infer _traverse's template argument here because GCC explodes otherwise)
-    inline BSS_FORCEINLINE void Traverse(F lambda) { _AVL_TREE_DATAFIELD<Key,Data,CFunc,Alloc>::_traverse(lambda, _root); }
+    BSS_FORCEINLINE void Traverse(F lambda) { _AVL_TREE_DATAFIELD<Key,Data,CFunc,Alloc>::_traverse(lambda, _root); }
 
     inline cAVLtree& operator=(cAVLtree&& mov) { Clear(); _root=mov._root; mov._root=0; }
     inline bool BSS_FASTCALL Remove(const Key key)
@@ -289,7 +289,7 @@ namespace bss_util {
     }
 
   protected:
-    inline AVLNode* BSS_FASTCALL _remove(const Key& key, AVLNode** proot, char& change) //recursive removal function
+    AVLNode* BSS_FASTCALL _remove(const Key& key, AVLNode** proot, char& change) //recursive removal function
     {
       AVLNode* root=*proot;
       if(!root)

@@ -135,7 +135,7 @@ namespace bss_util {
 
   // template swap function, h should be optimized out by the compiler
   template<typename T>
-  inline BSS_FORCEINLINE void BSS_FASTCALL rswap(T& p, T& q)
+  BSS_FORCEINLINE void BSS_FASTCALL rswap(T& p, T& q)
   {
     T h(std::move(p));
     p=std::move(q);
@@ -162,7 +162,7 @@ namespace bss_util {
       rswap(src[i],src[j]);
   }
   template<typename T, unsigned int size>
-  inline BSS_FORCEINLINE void BSS_FASTCALL bssreverse(T (&p)[size]) { bssreverse(p,size); }
+  BSS_FORCEINLINE void BSS_FASTCALL bssreverse(T (&p)[size]) { bssreverse(p,size); }
 
   /* Trims space from left end of string by returning a different pointer. It is possible to use const char or const wchar_t as a type
      here because the string itself is not modified. */
@@ -188,7 +188,7 @@ namespace bss_util {
 
   // Performs a mathematically correct modulo, unlike the modulo operator, which doesn't actually perform modulo, it performs a remainder operation. THANKS GUYS!
   template<typename T> //T must be integral
-  inline BSS_FORCEINLINE T BSS_FASTCALL bssmod(T x, T m)
+  BSS_FORCEINLINE T BSS_FASTCALL bssmod(T x, T m)
   {
 		static_assert(std::is_signed<T>::value && std::is_integral<T>::value,"T must be a signed integral type or this function is pointless");
     x%=m;
@@ -197,14 +197,14 @@ namespace bss_util {
 
   // Trims space from left and right ends of a string
   template<typename T>
-  inline BSS_FORCEINLINE T* BSS_FASTCALL strtrim(T* str)
+  BSS_FORCEINLINE T* BSS_FASTCALL strtrim(T* str)
   {
     return strrtrim(strltrim(str));
   }
 
   // This is a bit-shift method of calculating the next number in the fibonacci sequence by approximating the golden ratio with 0.6171875 (1/2 + 1/8 - 1/128)
   template<typename T>
-  inline BSS_FORCEINLINE T BSS_FASTCALL fbnext(T in)
+  BSS_FORCEINLINE T BSS_FASTCALL fbnext(T in)
   {
     static_assert(std::is_integral<T>::value,"T must be integral");
     return in + 1 + (in>>1) + (in>>3) - (in>>7);
@@ -212,21 +212,21 @@ namespace bss_util {
 
   // Gets the sign of any number (0 is assumed to be positive)
   template<typename T>
-  inline BSS_FORCEINLINE char BSS_FASTCALL tsign(T n)
+  BSS_FORCEINLINE char BSS_FASTCALL tsign(T n)
   {
     return (n >= 0) - (n < 0);
   }
 
   // Gets the sign of any number, where a value of 0 returns 0
   template<typename T>
-  inline BSS_FORCEINLINE char BSS_FASTCALL tsignzero(T n)
+  BSS_FORCEINLINE char BSS_FASTCALL tsignzero(T n)
   {
     return (n > 0) - (n < 0);
   }
   
   // Gets the shortest distance between two angles in radians
   template<typename T>
-  inline BSS_FORCEINLINE T BSS_FASTCALL angledist(T a, T b)
+  BSS_FORCEINLINE T BSS_FASTCALL angledist(T a, T b)
   {
     static_assert(std::is_floating_point<T>::value,"T must be float, double, or long double");
     return ((T)PI) - fabs(fmod(fabs(a - b), ((T)PI_DOUBLE)) - ((T)PI));
@@ -234,7 +234,7 @@ namespace bss_util {
   
   // Gets the SIGNED shortest distance between two angles starting with (a - b) in radians
   template<typename T>
-  inline BSS_FORCEINLINE T BSS_FASTCALL angledistsgn(T a, T b)
+  BSS_FORCEINLINE T BSS_FASTCALL angledistsgn(T a, T b)
   {
     static_assert(std::is_floating_point<T>::value,"T must be float, double, or long double");
     return fmod(a - b - ((T)PI), (T)PI_DOUBLE) + ((T)PI);
@@ -244,7 +244,7 @@ namespace bss_util {
      will usually round the float to the nearest integer instead of simply chopping off the decimal. This usually takes 6 cycles, compared
      to the 80 or so cycles caused by a normal float to int cast, and works in any precision. */
   template<typename T> //T must be either float or double or you need to stop programming when you're high
-  inline BSS_FORCEINLINE __int32 fFastRound(T f)
+  BSS_FORCEINLINE __int32 fFastRound(T f)
   {
     static_assert(std::is_floating_point<T>::value,"T must be float, double, or long double");
 #if defined(BSS_CPU_x86) || defined(BSS_CPU_x86_64) || defined(BSS_CPU_IA_64)
@@ -273,7 +273,7 @@ namespace bss_util {
   }
 
   // Returns true if FPU is in single precision mode and false otherwise (false for both double and extended precision)
-  inline BSS_FORCEINLINE bool FPUsingle()
+  BSS_FORCEINLINE bool FPUsingle()
   { 
 #if defined(BSS_CPU_x86) || defined(BSS_CPU_x86_64) || defined(BSS_CPU_IA_64)
     unsigned int i;
@@ -293,29 +293,29 @@ namespace bss_util {
   }
 
   // Extremely fast rounding function that again will usually round to the nearest integer, but only works in double precision mode
-  inline BSS_FORCEINLINE __int32 fFastDoubleRound(double val)
+  BSS_FORCEINLINE __int32 fFastDoubleRound(double val)
   {
     const double _double2fixmagic = 4503599627370496.0*1.5; //2^52 for 52 bits of mantissa
     assert(!FPUsingle());
 	  val		= val + _double2fixmagic;
 	  return ((__int32*)&val)[0]; 
   }
-  inline BSS_FORCEINLINE __int32 fFastDoubleRound(float val) { return fFastDoubleRound((double)val); }
+  BSS_FORCEINLINE __int32 fFastDoubleRound(float val) { return fFastDoubleRound((double)val); }
 
   /* Single precision version of the above function. While precision problems are mostly masked in the above function by limiting it to
     __int32, in this function they are far more profound due to there only being 24 bits of mantissa to work with. Use with caution. */
-  inline BSS_FORCEINLINE __int32 fFastSingleRound(double val)
+  BSS_FORCEINLINE __int32 fFastSingleRound(double val)
   {
     const double _single2fixmagic = 16777216.0*1.5; //2^24 for 24 bits of mantissa
     assert(FPUsingle());
 	  val		= val + _single2fixmagic;
 	  return (__int32)(((((unsigned __int64*)&val)[0])&0xFFFFF0000000)>>28);
   }
-  inline BSS_FORCEINLINE __int32 fFastSingleRound(float val) { return fFastSingleRound((double)val); }
+  BSS_FORCEINLINE __int32 fFastSingleRound(float val) { return fFastSingleRound((double)val); }
 
 	/* This is a super fast floating point comparison function with a significantly higher tolerance and no
 		 regard towards the size of the floats. */
-	inline BSS_FORCEINLINE bool BSS_FASTCALL fwidecompare(float fleft, float fright)
+	inline bool BSS_FASTCALL fwidecompare(float fleft, float fright)
 	{
 		__int32 left = *(__int32*)(&fleft); //This maps our float to an int so we can do bitshifting operations on it
 		__int32 right = *(__int32*)(&fright); //see above
@@ -326,7 +326,7 @@ namespace bss_util {
 	}
 
   // Highly optimized traditional tolerance based approach to comparing floating point numbers, found here: http://www.randydillon.org/Papers/2007/everfast.htm
-  inline BSS_FORCEINLINE bool BSS_FASTCALL fcompare(float af, float bf, __int32 maxDiff=1)
+  inline bool BSS_FASTCALL fcompare(float af, float bf, __int32 maxDiff=1)
   { 
     assert(af!=0.0f && bf!=0.0f); // Use fsmall for this
     __int32 ai = *reinterpret_cast<__int32*>(&af);
@@ -338,7 +338,7 @@ namespace bss_util {
     __int32 v2 = maxDiff - diff;
     return (v1|v2) >= 0;
   }
-  inline BSS_FORCEINLINE bool BSS_FASTCALL fcompare(double af, double bf, __int64 maxDiff=1)
+  inline bool BSS_FASTCALL fcompare(double af, double bf, __int64 maxDiff=1)
   { 
     assert(af!=0.0 && bf!=0.0); // Use fsmall for this
     __int64 ai = *reinterpret_cast<__int64*>(&af);
@@ -352,7 +352,7 @@ namespace bss_util {
   }
 
   // This determines if a float is sufficiently close to 0
-  inline BSS_FORCEINLINE bool BSS_FASTCALL fsmall(float f, float eps=FLT_EPS)
+  BSS_FORCEINLINE bool BSS_FASTCALL fsmall(float f, float eps=FLT_EPS)
   {
     unsigned __int32 i=((*((unsigned __int32*)&f))&0x7FFFFFFF); //0x7FFFFFFF strips off the sign bit (which is always the highest bit)
     unsigned __int32 e=((*((unsigned __int32*)&eps)));
@@ -360,7 +360,7 @@ namespace bss_util {
   }
 
   // This determines if a double is sufficiently close to 0
-  inline BSS_FORCEINLINE bool BSS_FASTCALL fsmall(double f, double eps=DBL_EPS)
+  BSS_FORCEINLINE bool BSS_FASTCALL fsmall(double f, double eps=DBL_EPS)
   {
     unsigned __int64 i=((*((unsigned __int64*)&f))&0x7FFFFFFFFFFFFFFF); //0x7FFFFFFFFFFFFFFF strips off the sign bit (which is always the highest bit)
     unsigned __int64 e=((*((unsigned __int64*)&eps)));
@@ -368,7 +368,7 @@ namespace bss_util {
   }
 
   // This is a super fast length approximation for 2D coordinates; See http://www.azillionmonkeys.com/qed/sqroot.html for details (Algorithm by Paul Hsieh)
-  inline BSS_FORCEINLINE float BSS_FASTCALL flength(float x, float y)
+  inline float BSS_FASTCALL flength(float x, float y)
   {
     x = fabs(x);
     y = fabs(y);
@@ -378,7 +378,7 @@ namespace bss_util {
   }
   
   // The classic fast square root approximation, which is often mistakenly attributed to John Carmack. The algorithm is in fact over 15 years old and no one knows where it came from.
-  inline BSS_FORCEINLINE float BSS_FASTCALL fFastSqrt(float number)
+  static float BSS_FASTCALL fFastSqrt(float number)
   {
     const float f = 1.5F;
     __int32 i;
@@ -395,7 +395,7 @@ namespace bss_util {
   }
 
   // Adaptation of the class fast square root approximation for double precision, based on http://www.azillionmonkeys.com/qed/sqroot.html
-  inline BSS_FORCEINLINE double BSS_FASTCALL dFastSqrt(double number)
+  static double BSS_FASTCALL dFastSqrt(double number)
   {
     const double f = 1.5;
     unsigned __int32* i;
@@ -415,7 +415,7 @@ namespace bss_util {
 
   // bit-twiddling based method of calculating an integral square root from Wilco Dijkstra - http://www.finesse.demon.co.uk/steven/sqrt.html
   template<typename T, unsigned int bits> // WARNING: bits should be HALF the actual number of bits in (T)!
-  inline BSS_FORCEINLINE T BSS_FASTCALL IntFastSqrt(T n)
+  static T BSS_FASTCALL IntFastSqrt(T n)
   {
     static_assert(std::is_integral<T>::value,"T must be integral");
     T root = 0, t;
@@ -432,34 +432,34 @@ namespace bss_util {
     return root >> 1;
   }
   template<typename T>
-  inline BSS_FORCEINLINE T BSS_FASTCALL IntFastSqrt(T n)
+  BSS_FORCEINLINE T BSS_FASTCALL IntFastSqrt(T n)
   {
     return IntFastSqrt<T,sizeof(T)<<2>(n); //done to ensure loop gets unwound (the bit conversion here is <<2 because the function wants HALF the bits in T, so <<3 >>1 -> <<2)
   }
   
   template<typename T> //assumes integer type if not one of the floating point types
-  inline BSS_FORCEINLINE T BSS_FASTCALL FastSqrt(T n) { return IntFastSqrt(n); } //Picks correct method for calculating any square root quickly
-  template<> inline BSS_FORCEINLINE float BSS_FASTCALL FastSqrt(float n) { return fFastSqrt(n); }
-  template<> inline BSS_FORCEINLINE double BSS_FASTCALL FastSqrt(double n) { return dFastSqrt(n); }
-  template<> inline BSS_FORCEINLINE long double BSS_FASTCALL FastSqrt(long double n) { return dFastSqrt((double)n); }
+  BSS_FORCEINLINE T BSS_FASTCALL FastSqrt(T n) { return IntFastSqrt(n); } //Picks correct method for calculating any square root quickly
+  template<> BSS_FORCEINLINE float BSS_FASTCALL FastSqrt(float n) { return fFastSqrt(n); }
+  template<> BSS_FORCEINLINE double BSS_FASTCALL FastSqrt(double n) { return dFastSqrt(n); }
+  template<> BSS_FORCEINLINE long double BSS_FASTCALL FastSqrt(long double n) { return dFastSqrt((double)n); }
 
   // Distance calculation (squared)
   template<typename T>
-  inline BSS_FORCEINLINE T BSS_FASTCALL distsqr(T X, T Y, T x, T y)
+  BSS_FORCEINLINE T BSS_FASTCALL distsqr(T X, T Y, T x, T y)
   {
     T tx=X-x,ty=Y-y; return (tx*tx)+(ty*ty); //It doesn't matter if you use temporary values for floats, but it does if you use ints (for unknown reasons)
   }
 
   // Distance calculation
   template<typename T>
-  inline BSS_FORCEINLINE T BSS_FASTCALL dist(T X, T Y, T x, T y)
+  BSS_FORCEINLINE T BSS_FASTCALL dist(T X, T Y, T x, T y)
   {
     return FastSqrt<T>(distsqr<T>(X,Y,x,y));
   }
 
   // Average aggregation without requiring a total variable that can overflow. Nextnum should be the current avg count incremented by 1.
   template<typename T, typename ST_> // T must be float or double, ST_ must be integral
-  inline BSS_FORCEINLINE T BSS_FASTCALL bssavg(T curavg, T nvalue, ST_ nextnum)
+  BSS_FORCEINLINE T BSS_FASTCALL bssavg(T curavg, T nvalue, ST_ nextnum)
   {
     static_assert(std::is_integral<ST_>::value,"ST_ must be integral");
     static_assert(std::is_floating_point<T>::value,"T must be float, double, or long double");
@@ -467,7 +467,7 @@ namespace bss_util {
   }
 
   // Searches an arbitrary series of bytes for another arbitrary series of bytes
-  inline const void* bytesearch(const void* search, size_t length, const void* find, size_t flength)
+  static const void* bytesearch(const void* search, size_t length, const void* find, size_t flength)
   {
     if(!search || !length || !find || !flength || length < flength) return 0;
 
@@ -482,7 +482,7 @@ namespace bss_util {
     return 0;
   }
 
-  inline BSS_FORCEINLINE void* bytesearch(void* search, size_t length, void* find, size_t flength)
+  BSS_FORCEINLINE void* bytesearch(void* search, size_t length, void* find, size_t flength)
   {
     return const_cast<void*>(bytesearch((const void*)search,length,(const void*)find,flength));
   }
@@ -634,7 +634,7 @@ namespace bss_util {
 
   // Basic lerp function with no bounds checking
   template<class T>
-  inline BSS_FORCEINLINE T BSS_FASTCALL lerp(T a, T b, double amt)
+  BSS_FORCEINLINE T BSS_FASTCALL lerp(T a, T b, double amt)
   {
 	  return a+((T)((b-a)*amt));
   }

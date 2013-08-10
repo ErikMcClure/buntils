@@ -17,50 +17,30 @@ namespace bss_util {
     T* prev;
   };
 
-  // Inserts the node before the target and re-assigns root if necessary. Does not assign values to node.
+  // Does a full insert, calling LLInsertAssign and LLInsert
   template<typename T>
   inline void BSS_FASTCALL LLInsert(T* node, T* target, T*& root)
   {
+		node->prev = target->prev;
+		node->next = target;
 		if(target->prev != 0) target->prev->next = node;
 		else root = node;
 		target->prev = node;
   }
 
-  // Inserts the node before the target. Does not assign values to node or re-assign root.
+  // Does a full insert, calling LLInsertAssign and LLInsert, but doesn't re-assign root
   template<typename T>
   inline void BSS_FASTCALL LLInsert(T* node, T* target)
   {
-		if(target->prev != 0) target->prev->next = node;
-		target->prev = node;
-  }
-
-  // Assigns node's values for a before insertion (used before LLInsert)
-  template<typename T>
-  inline void BSS_FASTCALL LLInsertAssign(T* node, T* target)
-  {
 		node->prev = target->prev;
 		node->next = target;
-  }
-
-  // Does a full insert, calling LLInsertAssign and LLInsert
-  template<typename T>
-  BSS_FORCEINLINE void BSS_FASTCALL LLInsertFull(T* node, T* target, T*& root)
-  {
-    LLInsertAssign(node,target);
-    LLInsert(node,target,root);
-  }
-
-  // Does a full insert, calling LLInsertAssign and LLInsert, but doesn't re-assign root
-  template<typename T>
-  BSS_FORCEINLINE void BSS_FASTCALL LLInsertFull(T* node, T* target)
-  {
-    LLInsertAssign(node,target);
-    LLInsert(node,target);
+		if(target->prev != 0) target->prev->next = node;
+		target->prev = node;
   }
   
   // Does a full insert before the root
   template<typename T>
-  BSS_FORCEINLINE void BSS_FASTCALL LLInsertRoot(T* node, T*& root)
+  inline void BSS_FASTCALL LLAdd(T* node, T*& root)
   {
     node->prev=0;
     node->next=root;
@@ -68,52 +48,33 @@ namespace bss_util {
     root=node;
   }
 
-  // Inserts the node before the target and re-assigns last if necessary. Does not assign values to node.
+  // Does a full insert, calling LLInsertAssign and LLInsert
   template<typename T>
   inline void BSS_FASTCALL LLInsertAfter(T* node, T* target, T*& last)
   {
+		node->next = target->next;
+		node->prev = target;
 		if (target->next != 0) target->next->prev = node;
 		else last = node;
 		target->next = node;
   }
 
-  // Inserts the node before the target. Does not assign values to node.
+  // Does a full insert, calling LLInsertAssign and LLInsert, but doesn't re-assign last
   template<typename T>
   inline void BSS_FASTCALL LLInsertAfter(T* node, T* target)
   {
+		node->next = target->next;
+		node->prev = target;
 		if (target->next != 0) target->next->prev = node;
 		target->next = node;
   }
 
-  // Assigns node's values for an after insertion (used before LLInsertAfter)
+  // Used in the form last = LLAddAfter(node,last); where last must be the last element of a linked list, defined by last->next = 0.
   template<typename T>
-  inline void BSS_FASTCALL LLInsertAfterAssign(T* node, T* target)
+  inline T* BSS_FASTCALL LLAddAfter(T* node, T* last)
   {
-		node->next = target->next;
-		node->prev = target;
-  }
-
-  // Does a full insert, calling LLInsertAssign and LLInsert
-  template<typename T>
-  BSS_FORCEINLINE void BSS_FASTCALL LLInsertAfterFull(T* node, T* target, T*& last)
-  {
-    LLInsertAfterAssign(node,target);
-    LLInsertAfter(node,target,last);
-  }
-
-  // Does a full insert, calling LLInsertAssign and LLInsert, but doesn't re-assign last
-  template<typename T>
-  BSS_FORCEINLINE void BSS_FASTCALL LLInsertAfterFull(T* node, T* target)
-  {
-    LLInsertAfterAssign(node,target);
-    LLInsertAfter(node,target);
-  }
-
-  // Used in the form last = LLAdd(node,last); where last must be the last element of a linked list, defined by last->next = 0.
-  template<typename T>
-  inline T* BSS_FASTCALL LLAdd(T* node, T* last)
-  {
-    LLInsertAfterAssign(node,last);
+		node->next = 0;
+		node->prev = last;
     last->next = node;
     return node;
   }

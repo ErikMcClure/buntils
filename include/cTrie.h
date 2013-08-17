@@ -23,7 +23,7 @@ namespace bss_util {
   class BSS_COMPILER_DLLEXPORT cTrie : protected cArraySimple<TRIE_NODE__<T>,T>
   {
     typedef TRIE_NODE__<T> TNODE;
-    static char _CompTNode(const TNODE& t, const char& c) { return SGNCOMPARE(t.chr,c); }
+    static inline char _CompTNode(const TNODE& t, const char& c) { return SGNCOMPARE(t.chr,c); }
 
   public:
     inline cTrie(cTrie&& mov) : cArraySimple<TNODE,T>(std::move(mov)) {}
@@ -44,7 +44,7 @@ namespace bss_util {
     template<int SZ>
     inline cTrie(const char* const (&initstr)[SZ]) : cArraySimple<TNODE,T>(SZ) { _construct(SZ,initstr); }
     inline ~cTrie() {}
-    inline T BSS_FASTCALL Get(const char* word) const
+    T BSS_FASTCALL Get(const char* word) const
     {
       assert(word!=0);
       TNODE* cur=_array; // root is always 0
@@ -52,16 +52,12 @@ namespace bss_util {
       char c;
       while(c=*(word++))
       {
-        switch(cur->clen)
-        {
-        case 0: //We ran out of nodes before we finished our word so it's not in the trie
-          return (T)-1;
-        case 1: // Keep going down the list (this can use strcmp once you reach the end of the trie, but only if you include null terminators in the trie structure)
-          r=(T)-(cur->chr!=c);
-          break;
-        default:
+        if(cur->clen>1) // This is faster than a switch statement
           r=binsearch_exact<TNODE,char,T,&_CompTNode>(cur,c,0,cur->clen);
-        }
+        else if(cur->clen==1)
+          r=(T)-(cur->chr!=c);
+        else
+          return (T)-1;
         if(r==(T)-1) return (T)-1;
         cur=_array+cur[r].child;
       }
@@ -92,7 +88,7 @@ namespace bss_util {
         _array[i].chr=0; 
       } 
     }    
-    BSS_FORCEINLINE void BSS_FASTCALL _checksize(T r) { if(r>=_size) { T s=_size; SetSize(_size<<1); _fill(s,_size); } }
+    BSS_FORCEINLINE void BSS_FASTCALL _checksize(T r) { assert(r<(std::numeric_limits<T>::max()-2)); if(r>=_size) { T s=_size; SetSize(_size<<1); _fill(s,_size); } }
     T BSS_FASTCALL _init(T len, std::pair<T,const char*> const* str, T cnt, T level)
     {
       T r=cnt-1;
@@ -104,6 +100,7 @@ namespace bss_util {
       {
         c=str[i].second[level];
         if(l!=c) { _checksize(++r); _array[r].chr=(l=c); }
+        assert(_array[r].clen<(std::numeric_limits<T>::max()-2));
         ++_array[r].clen;
       }
       len=(++r)-cnt;

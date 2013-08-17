@@ -23,15 +23,7 @@ namespace bss_util {
     typedef const T& const_reference;
     typedef T value_type;
 
-  #ifdef max
-  #define REDEFMAX
-  #undef max
-  #endif
-      inline std::size_t max_size() const { return std::numeric_limits<std::size_t>::max(); }
-
-  #ifdef REDEFMAX
-  #define max(a,b)            (((a) > (b)) ? (a) : (b))
-  #endif
+    inline std::size_t max_size() const { return ((size_t)(-1)/sizeof(T)); }
   };
 
   // An implementation of a standard allocation policy, conforming to standard library requirements.
@@ -200,9 +192,7 @@ namespace bss_util {
     typedef typename Allocator<T>::pointer pointer;
 	public:
 		inline i_AllocTracker(Allocator<T>* ptr=0) {}
-    //inline pointer _allocate(std::size_t cnt, typename std::allocator<void>::const_pointer=0) { return reinterpret_cast<pointer>(::operator new(cnt * sizeof (T))); } // note that while operator new does not call a constructor (it can't), it's much easier to override for leak tests.
     inline pointer _allocate(std::size_t cnt, typename std::allocator<void>::const_pointer=0) { return reinterpret_cast<pointer>(malloc(cnt*sizeof(T))); }
-    //inline void _deallocate(pointer p, std::size_t = 0) { ::operator delete(p); }
     inline void _deallocate(pointer p, std::size_t = 0) { free(p); }
 	};
 

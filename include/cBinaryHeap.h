@@ -69,6 +69,7 @@ namespace bss_util {
     static void PercolateDown(T* _array, ST_ _length, ST_ k, U && val)
     {
       assert(k<_length);
+      assert(k<(std::numeric_limits<ST_>::max()>>1));
       ST_ i;
 
 	    for (i = CBH_RIGHT(k); i < _length; i = CBH_RIGHT(i))
@@ -79,6 +80,7 @@ namespace bss_util {
           break;
         _array[k]=std::move(_array[i]);
         k=i;
+        assert(k<(std::numeric_limits<ST_>::max()>>1));
       }
       if(i >= _length && --i < _length && CFunc(std::forward<U>(val),_array[i])<=0) //Check if left child is also invalid (can only happen at the very end of the array)
       {

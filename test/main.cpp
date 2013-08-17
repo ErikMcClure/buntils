@@ -1334,11 +1334,85 @@ AniAttribute* BSS_FASTCALL cAbstractAnim::SpawnBase(const cDef<AniAttribute>& p)
 void* BSS_FASTCALL cAbstractAnim::AnimAlloc(size_t n, void* p) { return realloc(p,n); }
 void BSS_FASTCALL cAbstractAnim::AnimFree(void* p) { free(p); }
 
+template<> struct bss_util::ANI_IDTYPE<0> { typedef bss_util::ANI_IDTYPE_TYPES<cRefCounter*,void,bss_util::cAutoRef<cRefCounter>,char> TYPES; };
+
+#include <memory>
+
+struct cAnimObj : cAbstractAnim
+{
+  cAnimObj() : test(0) {}
+  int test;
+  void BSS_FASTCALL donothing(cRefCounter*) { ++test; }
+  virtual AniAttribute* BSS_FASTCALL TypeIDRegFunc(unsigned char TypeID)
+  {
+    if(!TypeID)
+      return SpawnBase(AttrDefDiscrete<0>(delegate<void,cRefCounter*>::From<cAnimObj,&cAnimObj::donothing>(this)));
+  }
+};
+
 TESTDEF::RETPAIR test_ANIMATION()
 {
   BEGINTEST;
-  cAnimation a(0);
+  cRefCounter c;
+  c.Grab();
+  cAnimObj obj;
+  cAnimation a(&obj);
   a.Pause(true);
+  a.SetTimeWarp(1.0);
+  TEST(a.IsPaused());
+  a.AddKeyFrame<0>(KeyFrame<0>(0.0,&c));
+  a.AddKeyFrame<0>(KeyFrame<0>(1.0,&c));
+  a.AddKeyFrame<0>(KeyFrame<0>(2.0,&c));
+  a.Pause(false);
+  TEST(!a.IsPaused());
+  TEST(!a.HasTypeID(1));
+  TEST(a.HasTypeID(0));
+  TEST(a.GetTypeID(0)!=0);
+  TEST(a.GetAnimationLength()==2.0);
+  
+  TEST(obj.test==0);
+  a.Start(0);
+  TEST(a.IsPlaying());
+  TEST(obj.test==1);
+  a.Interpolate(0.5);
+  TEST(obj.test==1);
+  a.Interpolate(0.5);
+  TEST(obj.test==2);
+  a.Interpolate(0.5);
+  TEST(obj.test==2);
+  TEST(a.GetTimePassed()==1.5);
+  a.Interpolate(0.5);
+  TEST(a.GetTimePassed()==0.0);
+  TEST(obj.test==3);
+  a.Interpolate(0.5);
+  TEST(obj.test==3);
+  TEST(a.GetTimeWarp()==1.0);
+  obj.test=0;
+  a.Stop();
+  TEST(!a.IsPlaying());
+  a.Start(0);
+  TEST(obj.test==1);
+  obj.test=0;
+  a.Stop();
+  TEST(!a.IsLooping());
+  a.Loop(1.5,1.0);
+  a.Interpolate(0.0);
+  TEST(a.IsLooping());
+  TEST(obj.test==2);
+  a.Stop();
+
+  DEF_ANIMATION anidef;
+  anidef.AddFrame<0>(KeyFrame<0>(0.0,&c));
+  anidef.AddFrame<0>(KeyFrame<0>(1.0,&c));
+  anidef.AddFrame<0>(KeyFrame<0>(2.0,&c));
+  cAnimation b(anidef,&obj);
+  obj.test=0;
+  TEST(obj.test==0);
+  a.Start(0);
+  TEST(obj.test==1);
+  a.Interpolate(1.0);
+  TEST(obj.test==2);
+
   ENDTEST;
 }
 TESTDEF::RETPAIR test_ARRAYSIMPLE()
@@ -1564,7 +1638,7 @@ TESTDEF::RETPAIR test_AVLTREE()
     shuffle(testnums);
     cFixedAlloc<DEBUG_CDT<false>> dalloc(TESTNUM);
     typedef UqP_<DEBUG_CDT<false>,std::function<void(DEBUG_CDT<false>*)>> AVL_D;
-    cAVLtree<int,AVL_D,CompT<int>,Allocator<AVL_Node<int,AVL_D>,FixedPolicy<AVL_Node<int,AVL_D>>>> dtree;
+    cAVLtree<int,AVL_D,CompT<int>,FixedPolicy<AVL_Node<int,AVL_D>>> dtree;
     for(int i = 0; i<TESTNUM; ++i)
     {
       auto dp = dalloc.alloc(1);
@@ -2787,12 +2861,36 @@ TESTDEF::RETPAIR test_TRIE()
 {
   BEGINTEST;
   const char* strs[] = { "fail","on","tex","rot","ro","ti","ontick","ondestroy","te","tick" };
-  cTrie<unsigned char> t(9,"tick","on","tex","rot","ro","ti","ontick","ondestroy","te");
+  cTrie<unsigned char> t(9,"tick","on","tex","rot","ro","ti","ontick","ondestroy","te","tick");
   cTrie<unsigned char> t2(9,strs);
   cTrie<unsigned char> t3(strs);
   TEST(t3["fail"]==0);
   TEST(t3["tick"]==9);
-
+  
+  /*cStr randcstr[200];
+  const char* randstr[200];
+  for(uint i = 0; i < 200; ++i)
+  {
+    for(uint j = RANDINTGEN(2,20); j>0; --j)
+      randcstr[i]+=(char)RANDINTGEN('a','z');
+    randstr[i]=randcstr[i];
+  }
+  cTrie<unsigned int> t(50,randstr);
+  cKhash_String<unsigned char> hashtest;
+  for(uint i = 0; i < 50; ++i)
+    hashtest.Insert(randstr[i],i);
+  unsigned int dm;
+  shuffle(testnums);
+  auto prof = _debug.OpenProfiler();
+  CPU_Barrier();
+  for(uint i = 0; i < TESTNUM; ++i)
+    //dm=hashtest.GetKeyPtrOnly(randstr[testnums[i]%200]);
+    dm=t[randstr[testnums[i]%200]];
+    //dm=t[strs[testnums[i]%10]];
+  CPU_Barrier();
+  auto res = _debug.CloseProfiler(prof);
+  std::cout << dm << "\nTIME:" << res << std::endl;*/
+  
   for(uint i = 0; i < 9; ++i)
   {
     switch(t[strs[i]]) // Deliberatly meant to test for one failure
@@ -3008,6 +3106,7 @@ int main(int argc, char** argv)
   for(int i = 0; i<TESTNUM; ++i)
     testnums[i]=i;
   shuffle(testnums);
+
 
   /*FILE* f;
   fopen_s(&f,"story.txt","rb");

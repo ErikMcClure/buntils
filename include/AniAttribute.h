@@ -46,8 +46,8 @@ namespace bss_util {
     inline static pointer reallocate(pointer p, std::size_t cnt) { return reinterpret_cast<pointer>(cAbstractAnim::AnimAlloc(cnt*sizeof(T),p)); }
   };
 
-  template<unsigned char TypeID, typename T> struct ANI_ATTR__SAFE__ { typedef cArrayWrap<cArraySafe<KeyFrame<TypeID>,AniAttribute::IDTYPE,AniStaticAlloc<KeyFrame<TypeID>>>> TVT_ARRAY; };
-  template<unsigned char TypeID> struct ANI_ATTR__SAFE__<TypeID,void> { typedef cArrayWrap<cArraySimple<KeyFrame<TypeID>,AniAttribute::IDTYPE,AniStaticAlloc<KeyFrame<TypeID>>>> TVT_ARRAY; };
+  template<unsigned char TypeID, typename T> struct ANI_ATTR__SAFE__ { typedef cArraySafe<KeyFrame<TypeID>,AniAttribute::IDTYPE,AniStaticAlloc<KeyFrame<TypeID>>> INNER_ARRAY; };
+  template<unsigned char TypeID> struct ANI_ATTR__SAFE__<TypeID,void> { typedef cArraySimple<KeyFrame<TypeID>,AniAttribute::IDTYPE,AniStaticAlloc<KeyFrame<TypeID>>> INNER_ARRAY; };
 
   // Abstract base implementation of an AniAttribute
   template<unsigned char TypeID>
@@ -55,7 +55,8 @@ namespace bss_util {
   {
   public:
     typedef typename AniAttribute::IDTYPE IDTYPE;
-    typedef typename ANI_ATTR__SAFE__<TypeID,ANI_TID(SAFE)>::TVT_ARRAY TVT_ARRAY_T;
+    typedef cArrayWrap<typename ANI_ATTR__SAFE__<TypeID,ANI_TID(SAFE)>::INNER_ARRAY> TVT_ARRAY_T;
+    typedef ANI_TID(VALUE) (BSS_FASTCALL *FUNC)(const TVT_ARRAY_T&,IDTYPE, double);
     
     inline AniAttributeT(const AniAttributeT& copy) : AniAttribute(copy), _timevalues(copy._timevalues), _curpair(copy._curpair),
       _initzero(copy._initzero)
@@ -67,7 +68,7 @@ namespace bss_util {
 		inline virtual AniAttribute* BSS_FASTCALL Clone() const { return 0; }
     inline virtual void BSS_FASTCALL CopyAnimation(AniAttribute* ptr) { operator=(*static_cast<AniAttributeT*>(ptr)); }
     inline virtual void BSS_FASTCALL AddAnimation(AniAttribute* ptr) { operator+=(*static_cast<AniAttributeT*>(ptr)); }
-    inline virtual bool SetInterpolation(ANI_TID(VALUE) (BSS_FASTCALL *func)(const TVT_ARRAY_T&,IDTYPE, double)) { return false; }
+    inline virtual bool SetInterpolation(FUNC f) { return false; }
     inline virtual bool SetRelative(bool rel) { return false; } // If set to non-zero, this will be relative.
     inline IDTYPE GetNumFrames() const { return _timevalues.Size(); }
     inline const KeyFrame<TypeID>& GetKeyFrame(IDTYPE index) const { return _timevalues[index]; }
@@ -133,7 +134,7 @@ namespace bss_util {
     virtual bool Interpolate(double timepassed)
     {
       IDTYPE svar=_timevalues.Size();
-      while(_curpair<svar && _timevalues[_curpair].time < timepassed);
+      while(_curpair<svar && _timevalues[_curpair].time <= timepassed)
         _timevalues[_curpair++].value(); //You have to call ALL events even if you missed some because you don't know which ones do what
       return _curpair<svar;
     }
@@ -156,7 +157,7 @@ namespace bss_util {
     virtual bool Interpolate(double timepassed)
     {
       IDTYPE svar=_timevalues.Size();
-      while(_curpair<svar && _timevalues[_curpair].time < timepassed);
+      while(_curpair<svar && _timevalues[_curpair].time <= timepassed)
         _del(_timevalues[_curpair++].value); // We call all the discrete values because many discrete values are interdependent on each other.
       return _curpair<svar;
    //   IDTYPE svar=_timevalues.Size();
@@ -182,7 +183,7 @@ namespace bss_util {
   public:
     typedef typename AniAttributeT<TypeID>::TVT_ARRAY_T TVT_ARRAY_T;
     typedef typename AniAttributeT<TypeID>::IDTYPE IDTYPE;
-    typedef ANI_TID(VALUE) (BSS_FASTCALL *FUNC)(const TVT_ARRAY_T&,IDTYPE, double);
+    typedef typename AniAttributeT<TypeID>::FUNC FUNC;
     using AniAttributeT<TypeID>::_timevalues;
     using AniAttributeT<TypeID>::_curpair;
 
@@ -192,7 +193,7 @@ namespace bss_util {
     virtual bool Interpolate(double timepassed)
     {
       IDTYPE svar=_timevalues.Size();
-      while(_curpair<svar && _timevalues[_curpair].time<timepassed) ++_curpair;
+      while(_curpair<svar && _timevalues[_curpair].time<=timepassed) ++_curpair;
       if(_curpair>=svar) 
       { //Resolve the animation
         _setval(_func(_timevalues,svar-1,1.0));
@@ -256,7 +257,7 @@ namespace bss_util {
   };
 
   // Smooth attribute definition
-  template<unsigned char TypeID, typename AniAttributeSmooth<TypeID>::FUNC Func>
+  template<unsigned char TypeID, typename AniAttributeT<TypeID>::FUNC Func>
   struct BSS_COMPILER_DLLEXPORT AttrDefSmooth : AttrDefDiscrete<TypeID>
   { 
     inline AttrDefSmooth(ANI_TID(DELEGATE) del, const ANI_TID(VALUE)* src=0) : AttrDefDiscrete<TypeID>(del), _src(src) {}

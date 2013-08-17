@@ -80,7 +80,7 @@ namespace bss_util {
       return retval;
     }
 		template<unsigned char TypeID>
-		inline bool SetInterpolation(typename AniAttributeSmooth<TypeID>::FUNC interpolation)
+		inline bool SetInterpolation(typename AniAttributeT<TypeID>::FUNC interpolation)
 		{
 			AniAttribute* hold = GetTypeID(TypeID);
 			if(hold) return static_cast<AniAttributeT<TypeID>*>(hold)->SetInterpolation(interpolation);
@@ -212,20 +212,20 @@ namespace bss_util {
 		inline virtual void BSS_FASTCALL Load(cAnimation* ani) const=0;
   };
   template<unsigned char TypeID>
-  struct DEF_ANIATTRIBUTE_T : DEF_ANIATTRIBUTE, bss_util::cDynArray<bss_util::cArraySimple<KeyFrame<TypeID>>>
+  struct DEF_ANIATTRIBUTE_T : DEF_ANIATTRIBUTE
   {
     DEF_ANIATTRIBUTE_T() : rel(false),func(0) {}
-    typedef bss_util::cDynArray<bss_util::cArraySimple<KeyFrame<TypeID>>> BASE;
     inline virtual DEF_ANIATTRIBUTE_T* BSS_FASTCALL Clone() const { return new DEF_ANIATTRIBUTE_T(*this); }
     inline virtual void BSS_FASTCALL Load(cAnimation* ani) const 
     { 
       ani->SetInterpolation<TypeID>(func);
       ani->SetRelative<TypeID>(rel);
-      for(unsigned int i = 0; i < BASE::_length; ++i) 
-        ani->AddKeyFrame<TypeID>(BASE::_array[i]); 
+      for(unsigned int i = 0; i < arr.Length(); ++i) 
+        ani->AddKeyFrame<TypeID>(arr[i]); 
     }
     bool rel;
-    typename AniAttributeSmooth<TypeID>::FUNC func;
+    typename AniAttributeT<TypeID>::FUNC func;
+    cDynArray<typename ANI_ATTR__SAFE__<TypeID,ANI_TID(SAFE)>::INNER_ARRAY> arr;
   };
 
 	struct DEF_ANIMATION : cDef<cAnimation>
@@ -254,9 +254,9 @@ namespace bss_util {
       return static_cast<DEF_ANIATTRIBUTE_T<TypeID>*>(_frames[ind]);
     }
     template<ST_ TypeID>
-    inline unsigned int AddFrame(const KeyFrame<TypeID>& frame) { return GetAttribute<TypeID>()->Add(frame); }
+    inline unsigned int AddFrame(const KeyFrame<TypeID>& frame) { return GetAttribute<TypeID>()->arr.Add(frame); }
     template<ST_ TypeID>
-    inline bool RemoveFrame(unsigned int i) { auto p = GetAttribute<TypeID>(); if(i>=p->Length()) return false; p->Remove(i); return true; }
+    inline bool RemoveFrame(unsigned int i) { auto p = GetAttribute<TypeID>(); if(i>=p->Length()) return false; p->arr.Remove(i); return true; }
     inline const bss_util::cMap<ST_,DEF_ANIATTRIBUTE*,bss_util::CompT<ST_>,ST_>& GetFrames() const { return _frames; }
 
 		double anilength; //if zero, we automatically stop when all animations are exhausted

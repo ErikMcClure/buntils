@@ -67,7 +67,7 @@ namespace bss_util {
     {
       m=f+((l-f)>>1);
 
-      if((r=(*CFunc)(arr[m],data))<0)
+      if((r=(*CFunc)(arr[m],data))<0) // This is faster than a switch statement
         f=m+1;
       else if(r>0)
         l=m-1;

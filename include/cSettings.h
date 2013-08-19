@@ -12,25 +12,26 @@
 
 namespace bss_util {
   // Function to convert any standard value type to a string
-  template<typename C, typename T>
-  inline static std::basic_string<C> tostring(const T& t)
+  template<typename T>
+  inline static std::string tostring(const T& t)
   {
-    std::basic_stringstream<C> s;
+    std::stringstream s;
     s << t;
     return s.str();
   }
   
   // Special constructor cKhash implementation, which cKhash is not really meant for so do not use this ever
-  template<typename K=char, typename T=void*, bool ismap=true>
-  class BSS_COMPILER_DLLEXPORT cKhash_StringTInsConstruct : public cKhash_StringTIns<K,T,ismap>
+  template<typename T=void*, bool ismap=true>
+  class BSS_COMPILER_DLLEXPORT cKhash_StringInsConstruct : public cKhash_StringIns<T,ismap>
   {
   protected:
-    typedef typename cKhash_StringTIns<K,T,ismap>::KHKEY KHKEY;
-    typedef typename cKhash_StringTIns<K,T,ismap>::KHVAL KHVAL;
-    using cKhash_StringTIns<K,T,ismap>::_h;
+    typedef typename cKhash_StringIns<T,ismap>::KHKEY KHKEY;
+    typedef typename cKhash_StringIns<T,ismap>::KHVAL KHVAL;
+    using cKhash_StringIns<T,ismap>::_h;
+
   public:
-    cKhash_StringTInsConstruct() : cKhash_StringTIns<K,T,ismap>() {}
-    ~cKhash_StringTInsConstruct()
+    cKhash_StringInsConstruct() : cKhash_StringIns<T,ismap>() {}
+    ~cKhash_StringInsConstruct()
     {
       for(khiter_t iter=kh_begin(_h); iter<kh_end(_h); ++iter)
         if(kh_exist(_h,iter))
@@ -39,7 +40,7 @@ namespace bss_util {
     bool Insert(KHKEY key, const KHVAL& value)
 		{
       if(!key) return false;
-			if(kh_size(_h) >= _h->n_buckets) cKhash_StringTIns<K,T,ismap>::_resize();
+			if(kh_size(_h) >= _h->n_buckets) cKhash_StringIns<T,ismap>::_resize();
 			int r;
 			khiter_t retval = kh_put_template(_h,key,&r);
 			if(r>0) //Only insert the value if the key didn't exist
@@ -55,7 +56,7 @@ namespace bss_util {
   // Base template cSetting class containing the master cmdhash for processing command lines.
   template<int I, int N>
   class cSetting { };
-  static cKhash_StringTInsConstruct<char,std::function<void (cCmdLineArgs&,unsigned int&)>> csetting_cmdhash;
+  static cKhash_StringInsConstruct<std::function<void (cCmdLineArgs&,unsigned int&)>> csetting_cmdhash;
 
   // Class triggered when a setting is declared, adding it to the master command hash if necessary.
   struct AddToSettingHash { 
@@ -69,7 +70,7 @@ namespace bss_util {
 
 #ifdef INSTANTIATE_SETTINGS //Declare this in a CPP file that includes all DECL_SETTINGs used in your project to instantiate them
 #define i_INST_SET_(I,N,T,INIT,NAME,CMD) T bss_util::cSetting<I,N>::v=INIT; \
-  bss_util::AddToSettingHash bss_util::cSetting<I,N>::_shashinit(CMD,[](cCmdLineArgs& rcmd, unsigned int& ind) -> void { bss_util::cSetting_CMDLOAD<T,char>::CmdLoad(rcmd,bss_util::cSetting<I,N>::v,ind); })
+  bss_util::AddToSettingHash bss_util::cSetting<I,N>::_shashinit(CMD,[](cCmdLineArgs& rcmd, unsigned int& ind) -> void { bss_util::cSetting_CMDLOAD<T>::CmdLoad(rcmd,bss_util::cSetting<I,N>::v,ind); })
 #else
 #define i_INST_SET_(I,N,T,INIT,NAME,CMD) 
 #endif
@@ -84,18 +85,18 @@ namespace bss_util {
 #define DECL_SETGROUP(I,NAME,MAX) namespace bss_util { template<int N> class cSetting<I,N> { public: inline static const char* secname() { return NAME; } static const unsigned int COUNT=(MAX-1); }; }
 
   // Struct class for defining the INILoad function. Can be overriden for custom types
-  template<typename T, typename C>
+  template<typename T>
   struct cSetting_INILOAD {
-    inline static void INILoad(cINIstorage& ini, T& v, const C* name, const C* section)
+    inline static void INILoad(cINIstorage& ini, T& v, const char* name, const char* section)
     { 
       cINIentry* p;
       if(name!=0 && (p=ini.GetEntryPtr(section,name))!=0) { v=*p; }
     }
   };
   
-  template<typename C>
-  struct cSetting_INILOAD<std::vector<cStrT<C>>,C> {
-    inline static void INILoad(cINIstorage& ini, std::vector<cStrT<C>>& v, const C* name, const C* section) { 
+  template<>
+  struct cSetting_INILOAD<std::vector<cStr>> {
+    inline static void INILoad(cINIstorage& ini, std::vector<cStrT<char>>& v, const char* name, const char* section) { 
       cINIentry* p;
       v.clear();
       if(name!=0) {
@@ -105,57 +106,57 @@ namespace bss_util {
   };
 
   // Struct class for defining the INISave function. Can be overriden for custom types
-  template<typename T, typename C>
+  template<typename T>
   struct cSetting_INISAVE {
-    inline static void INISave(cINIstorage& ini, T& v, const C* name, const C* section)
-    { if(name!=0) { ini.EditAddEntry(section,name,tostring<C,T>(v).c_str()); } }
+    inline static void INISave(cINIstorage& ini, T& v, const char* name, const char* section)
+    { if(name!=0) { ini.EditAddEntry(section,name,tostring<T>(v).c_str()); } }
   };
   
   // Override for string types on INI loading
-  template<typename C>
-  struct cSetting_INISAVE<const C*,C> {
-    inline static void INISave(cINIstorage& ini, const C* v, const C* name, const C* section)
+  template<>
+  struct cSetting_INISAVE<const char*> {
+    inline static void INISave(cINIstorage& ini, const char* v, const char* name, const char* section)
     { if(name!=0) { ini.EditAddEntry(section,name,v); } }
   };
   // Force char types to write as numbers
-  template<typename C>
-  struct cSetting_INISAVE<unsigned char,C> {
-    inline static void INISave(cINIstorage& ini, unsigned char v, const C* name, const C* section)
+  template<>
+  struct cSetting_INISAVE<unsigned char> {
+    inline static void INISave(cINIstorage& ini, unsigned char v, const char* name, const char* section)
     { char s[4]; ITOAx0((int)v,s,10); if(name!=0) { ini.EditAddEntry(section,name,s); } }
   };
-  template<typename C>
-  struct cSetting_INISAVE<char,C> {
-    inline static void INISave(cINIstorage& ini, char v, const C* name, const C* section)
+  template<>
+  struct cSetting_INISAVE<char> {
+    inline static void INISave(cINIstorage& ini, char v, const char* name, const char* section)
     { char s[4]; ITOAx0((int)v,s,10); if(name!=0) { ini.EditAddEntry(section,name,s); } }
   };
-  template<typename C>
-  struct cSetting_INISAVE<std::vector<cStrT<C>>,C> {
-    inline static void INISave(cINIstorage& ini, const std::vector<cStrT<C>>& v, const C* name, const C* section)
+  template<>
+  struct cSetting_INISAVE<std::vector<cStr>> {
+    inline static void INISave(cINIstorage& ini, const std::vector<cStr>& v, const char* name, const char* section)
     { if(name!=0) { for(unsigned int i = 0; i < v.size(); ++i) ini.EditAddEntry(section,name,v[i],i,0); } }
   };
 
   // Struct class for defining the CmdLoad function. Can be overriden for custom types
-  template<typename T, typename C>
+  template<typename T>
   struct cSetting_CMDLOAD {
     inline static void CmdLoad(cCmdLineArgs& ini, T& v, unsigned int& index)
-    { std::basic_stringstream<C>(std::basic_string<C>(ini[index++]), std::stringstream::in) >> v; }
+    { std::stringstream(std::string(ini[index++]), std::stringstream::in) >> v; }
   };
 
-  template<typename C>
-  struct cSetting_CMDLOAD<const C*,C> {
-    inline static void CmdLoad(cCmdLineArgs& ini, const C*& s, unsigned int& index)
+  template<>
+  struct cSetting_CMDLOAD<const char*> {
+    inline static void CmdLoad(cCmdLineArgs& ini, const char*& s, unsigned int& index)
     { s=ini[index++]; }
   };
 
-  template<typename C>
-  struct cSetting_CMDLOAD<bool,C> {
+  template<>
+  struct cSetting_CMDLOAD<bool> {
     inline static void CmdLoad(cCmdLineArgs& ini, bool& v, unsigned int& index)
     { v=true; }
   };
 
-  template<typename C>
-  struct cSetting_CMDLOAD<std::vector<cStrT<C>>,C> {
-    inline static void CmdLoad(cCmdLineArgs& ini, std::vector<cStrT<C>>& v, unsigned int& index) {} //You cannot load this from the command line
+  template<>
+  struct cSetting_CMDLOAD<std::vector<cStr>> {
+    inline static void CmdLoad(cCmdLineArgs& ini, std::vector<cStr>& v, unsigned int& index) {} //You cannot load this from the command line
   };
 
   // Main class for managing settings. Here you can load and save settings from INIs
@@ -169,7 +170,7 @@ namespace bss_util {
     inline static void SaveAllToINI(cINIstorage&& ini) { SaveAllToINI(ini); }
     inline static void LoadFromINI(cINIstorage& ini)
     {
-      cSetting_INILOAD<typename cSetting<I,N>::TYPE,char>::INILoad(ini, cSetting<I,N>::v, cSetting<I,N>::name(), cSetting<I,-1>::secname());
+      cSetting_INILOAD<typename cSetting<I,N>::TYPE>::INILoad(ini, cSetting<I,N>::v, cSetting<I,N>::name(), cSetting<I,-1>::secname());
       cSettingManage<I,N-1>::LoadFromINI(ini);
     };
     inline static void LoadAllFromINI(cINIstorage& ini)
@@ -179,7 +180,7 @@ namespace bss_util {
     };
     inline static void SaveToINI(cINIstorage& ini)
     {
-      cSetting_INISAVE<typename cSetting<I,N>::TYPE,char>::INISave(ini, cSetting<I,N>::v, cSetting<I,N>::name(), cSetting<I,-1>::secname());
+      cSetting_INISAVE<typename cSetting<I,N>::TYPE>::INISave(ini, cSetting<I,N>::v, cSetting<I,N>::name(), cSetting<I,-1>::secname());
       cSettingManage<I,N-1>::SaveToINI(ini);
     };
     inline static void SaveAllToINI(cINIstorage& ini)
@@ -211,7 +212,7 @@ namespace bss_util {
     unsigned int i=0; // Must be unsigned because of what pfunc accepts
     while(i<cmd.Size())
     {
-      std::function<void (cCmdLineArgs&,unsigned int&)>* pfunc = csetting_cmdhash.GetKey(cmd[i]);
+      std::function<void (cCmdLineArgs&,unsigned int&)>* pfunc = csetting_cmdhash[cmd[i]];
       ++i;
       if(pfunc!=0)
         (*pfunc)(cmd,i); //function must increment i

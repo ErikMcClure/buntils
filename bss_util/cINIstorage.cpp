@@ -85,9 +85,8 @@ cINIstorage::~cINIstorage()
 }
 cINIstorage::_NODE* cINIstorage::GetSectionNode(const char* section, unsigned int instance) const
 {
-  khiter_t iter= _sections.GetIterator(section);
-  if(iter==_sections.End()) return 0;
-  _NODE* n=_sections[iter];
+  _NODE* n = _sections[section];
+  if(!n) return 0;
   if(!instance) return n;
   return (instance>n->instances.Size())?0:(n->instances[instance-1]);
 }
@@ -98,9 +97,9 @@ cINIsection* cINIstorage::GetSection(const char* section, unsigned int instance)
 }
 unsigned int cINIstorage::GetNumSections(const char* section) const
 {
-  khiter_t iter= _sections.GetIterator(section);
-  if(iter==_sections.End()) return 0;
-  return _sections[iter]->instances.Size()+1;
+  _NODE* n = _sections[section];
+  if(!n) return 0;
+  return n->instances.Size()+1;
 }
 cINIentry* cINIstorage::GetEntryPtr(const char *section, const char* key, unsigned int keyinstance, unsigned int secinstance) const
 {
@@ -140,7 +139,7 @@ cINIsection* cINIstorage::_addsection(const char* name)
 {
   _NODE* p=_alloc.alloc(1);
   memset(p,0,sizeof(_NODE));
-  khiter_t iter=_sections.GetIterator(name);
+  khiter_t iter=_sections.Iterator(name);
 
   if(iter==_sections.End())
   {
@@ -152,7 +151,7 @@ cINIsection* cINIstorage::_addsection(const char* name)
       _last=LLAddAfter(p,_last);
   } else {
     assert(_last!=0 && _root!=0);
-    _NODE* r=_sections[iter];
+    _NODE* r=_sections.UnsafeValue(iter);
     _NODE* t=!r->instances.Size()?r:r->instances.Back();
     LLInsertAfter(p,t,_last);
     r->instances.Insert(p,r->instances.Size());
@@ -174,7 +173,7 @@ cINIsection* cINIstorage::_addsection(const char* name)
     unsigned int index=arr->Size();
     arr->SetSize(index+1);
     new ((*arr)+index) cINIsection(name,this,index);
-    _sections.OverrideKeyPtr(iter,(*arr)[0].GetName()); //the key pointer gets corrupted when we resize the array
+    _sections.SetKey(iter,(*arr)[0].GetName()); //the key pointer gets corrupted when we resize the array
     return ((*arr)+index);
   }*/
 }
@@ -184,11 +183,11 @@ bool cINIstorage::RemoveSection(const char* name, unsigned int instance)
 {
   if(!_ini) _openINI();
   INICHUNK chunk = bss_findINIsection(*_ini,_ini->size(),name,instance);
-  khiter_t iter = _sections.GetIterator(name);
+  khiter_t iter = _sections.Iterator(name);
 
   if(iter!=_sections.End() && chunk.start!=0)
   {
-    _NODE* secnode=_sections[iter];
+    _NODE* secnode=_sections.UnsafeValue(iter);
     _NODE* secroot=secnode;
     if(instance>secnode->instances.Size()) return false; //if keyinstance is not valid, fail
     if(instance!=0)
@@ -205,7 +204,7 @@ bool cINIstorage::RemoveSection(const char* name, unsigned int instance)
 
     LLRemove(secnode,_root,_last);
     if(!instance) // If this is true you are a root, but you don't have any danglers (see above check), so we just remove you from the hash.
-      _sections.RemoveIterator(iter);
+      _sections.RemoveIter(iter);
     else { // Otherwise you are a dangler, so all we have to do is remove you from the instances array
       secroot->instances.Remove(--instance); // we decrement instance here so its valid in the below for loop
       for(;instance<secroot->instances.Size();++instance) --secroot->instances[instance]->val._index; //moves all the indices down
@@ -227,7 +226,7 @@ bool cINIstorage::RemoveSection(const char* name, unsigned int instance)
     else
     {
       arr->Remove(instance);
-      if(!instance) _sections.OverrideKeyPtr(iter,(*arr)[0].GetName());
+      if(!instance) _sections.SetKey(iter,(*arr)[0].GetName());
       unsigned int svar=arr->Size();
       for(;instance<svar;++instance) --(*arr)[instance]._index; //moves all the indices down
     }*/
@@ -243,9 +242,9 @@ char cINIstorage::EditEntry(const char* section, const char* key, const char* nv
   if(secinstance==(unsigned int)-1) 
     secinstance=AddSection(section)._index;
 
-  khiter_t iter = _sections.GetIterator(section);
+  khiter_t iter = _sections.Iterator(section);
   if(iter==_sections.End()) return -1; //if it doesn't exist at this point, fail
-  _NODE* secnode=_sections[iter];
+  _NODE* secnode=_sections.UnsafeValue(iter);
   //if(secinstance==(unsigned int)-1) secinstance=secnode->instances.Size()-1; //This is now done at the start of the function
   if(secinstance>secnode->instances.Size()) return -2; //if secinstance is not valid, fail
   if(secinstance>0)
@@ -274,9 +273,9 @@ char cINIstorage::EditEntry(const char* section, const char* key, const char* nv
 
   typedef cINIsection::_NODE _SNODE; //This makes things a bit easier
 
-  iter=psec->_entries.GetIterator(key);
+  iter=psec->_entries.Iterator(key);
   if(iter==psec->_entries.End()) return -4; //if key doesn't exist at this point, fail
-  _SNODE* entnode=psec->_entries[iter];
+  _SNODE* entnode=psec->_entries.UnsafeValue(iter);
   _SNODE* entroot=entnode;
   if(keyinstance>entnode->instances.Size()) return -5; //if keyinstance is not valid, fail
   if(keyinstance!=0)
@@ -296,7 +295,7 @@ char cINIstorage::EditEntry(const char* section, const char* key, const char* nv
 
     LLRemove(entnode,psec->_root,psec->_last);
     if(!keyinstance) // If this is true you are a root, but you don't have any danglers (see above check), so we just remove you from the hash.
-      psec->_entries.RemoveIterator(iter);
+      psec->_entries.RemoveIter(iter);
     else // Otherwise you are a dangler, so all we have to do is remove you from the instances array
       entroot->instances.Remove(keyinstance-1);
     

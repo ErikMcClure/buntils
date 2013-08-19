@@ -1347,6 +1347,7 @@ struct cAnimObj : cAbstractAnim
   {
     if(!TypeID)
       return SpawnBase(AttrDefDiscrete<0>(delegate<void,cRefCounter*>::From<cAnimObj,&cAnimObj::donothing>(this)));
+    return 0;
   }
 };
 
@@ -1354,6 +1355,7 @@ TESTDEF::RETPAIR test_ANIMATION()
 {
   BEGINTEST;
   cRefCounter c;
+  {
   c.Grab();
   cAnimObj obj;
   cAnimation a(&obj);
@@ -1400,6 +1402,8 @@ TESTDEF::RETPAIR test_ANIMATION()
   TEST(a.IsLooping());
   TEST(obj.test==2);
   a.Stop();
+  TEST(c.Grab()==5);
+  c.Drop();
 
   DEF_ANIMATION anidef;
   anidef.AddFrame<0>(KeyFrame<0>(0.0,&c));
@@ -1412,7 +1416,10 @@ TESTDEF::RETPAIR test_ANIMATION()
   TEST(obj.test==1);
   a.Interpolate(1.0);
   TEST(obj.test==2);
-
+  TEST(c.Grab()==11);
+  c.Drop();
+  }
+  TEST(c.Grab()==2);
   ENDTEST;
 }
 TESTDEF::RETPAIR test_ARRAYSIMPLE()
@@ -2249,20 +2256,21 @@ TESTDEF::RETPAIR test_KHASH()
   //int r=hashtest.GetIterKey(hashtest.GetIterator(1));
   cKhash_Int<bss_DebugInfo*> hasherint;
   hasherint.Insert(25, &_debug);
-  hasherint.GetKey(25);
+  hasherint.Get(25);
   hasherint.Remove(25);
   cKhash_StringIns<bss_DebugInfo*> hasher;
   int iter = hasher.Insert("",&_debug);
   iter = hasher.Insert("Video",(bss_DebugInfo*)5);
   hasher.SetSize(100);
   iter = hasher.Insert("Physics",0);
-  bss_DebugInfo* check = *hasher.GetKey("Video");
-  check = *hasher.GetKey("Video");
+  bss_DebugInfo* check = hasher.Get("Video");
+  check = hasher.Get("Video");
   //unsigned __int64 diff = _debug.CloseProfiler(ID);
 
-  cKhash_Pointer<char,false> set;
+  cKhash_Pointer<short,const void*,false> set;
   set.Insert(0,1);
-  TEST(set.Exists(set.GetIterator(0)));
+  set.GetKey(0);
+  TEST(set.Exists(set.Iterator(0)));
   ENDTEST;
 }
 
@@ -2884,7 +2892,7 @@ TESTDEF::RETPAIR test_TRIE()
   auto prof = _debug.OpenProfiler();
   CPU_Barrier();
   for(uint i = 0; i < TESTNUM; ++i)
-    //dm=hashtest.GetKeyPtrOnly(randstr[testnums[i]%200]);
+    //dm=hashtest[randstr[testnums[i]%200]];
     dm=t[randstr[testnums[i]%200]];
     //dm=t[strs[testnums[i]%10]];
   CPU_Barrier();
@@ -2969,11 +2977,12 @@ TESTDEF::RETPAIR test_DELEGATE()
   auto three = delegate<void,int,int>::From<foobar,&foobar::nyannyan>(&foo);
   auto four = delegate<void,int,int,bool>::From<foobar,&foobar::nyannyannyan>(&foo);
   
-  delegate<void> copy = first;
+  delegate<void> copy(first);
+  copy=first;
   CPU_Barrier();
   copy();
   CPU_Barrier();
-  delegate<void,unsigned int> copy2 = second;
+  delegate<void,unsigned int> copy2(second);
   CPU_Barrier();
   copy2(5);
   CPU_Barrier();

@@ -7,6 +7,7 @@
 #include "bss_compare.h"
 #include "cArraySimple.h"
 #include <memory>
+#include <limits>
 
 namespace bss_util {
   // This is a binary max-heap implemented using an array. Use CompTInv to change it into a min-heap, or to make it use pairs.

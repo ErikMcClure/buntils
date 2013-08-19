@@ -13,8 +13,10 @@ namespace bss_util {
   class BSS_COMPILER_DLLEXPORT delegate
   {
   public:
+    inline delegate(const delegate& copy) : _src(copy._src), _stub(copy._stub) {}
     inline delegate(void* src, R (*BSS_FASTCALL stub)(void*,Args...)) : _src(src), _stub(stub) {}
-    R operator()(Args... args) const { return (*_stub)(_src,args...); }
+    inline R operator()(Args... args) const { return (*_stub)(_src,args...); }
+    inline delegate& operator=(const delegate& right) { _src=right._src; _stub=right._stub; return *this; }
 
     template<class T, R (T::*BSS_FASTCALL F)(Args...)>
     inline delegate static From(T* src) { return delegate(src, &stub<T,F>); }
@@ -35,8 +37,10 @@ namespace bss_util {
   class BSS_COMPILER_DLLEXPORT delegate<R,void,void,void,void>
   {
   public:
+    inline delegate(const delegate& copy) : _src(copy._src), _stub(copy._stub) {}
     inline delegate(void* src, R (BSS_FASTCALL *stub)(void*)) : _src(src), _stub(stub) {}
-    R operator()(void) const { return (*_stub)(_src); }
+    inline R operator()(void) const { return (*_stub)(_src); }
+    inline delegate& operator=(const delegate& right) { _src=right._src; _stub=right._stub; return *this; }
 
     template<class T, R (BSS_FASTCALL T::*F)(void)>
     inline delegate static From(T* src) { return delegate(src, &stub<T,F>); }

@@ -78,7 +78,7 @@ namespace bss_util {
     unsigned int _index;
     _NODE* _root;
     _NODE* _last;
-    cKhash_StringTIns<char,_NODE*,true> _entries;
+    cKhash_StringIns<_NODE*,true> _entries;
     cINIstorage* _parent;
   };
 }

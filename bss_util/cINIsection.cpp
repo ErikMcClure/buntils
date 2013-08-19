@@ -77,7 +77,7 @@ void cINIsection::_addentry(const char* key, const char* data)
   _NODE* p=_alloc.alloc(1);
   memset(p,0,sizeof(_NODE));
   new (&p->val) cINIentry(key,data);
-  khiter_t iter=_entries.GetIterator(key);
+  khiter_t iter=_entries.Iterator(key);
 
   if(iter==_entries.End())
   {
@@ -88,7 +88,7 @@ void cINIsection::_addentry(const char* key, const char* data)
       _last=LLAddAfter(p,_last);
   } else {
     assert(_last!=0 && _root!=0);
-    _NODE* r=_entries[iter];
+    _NODE* r=_entries.UnsafeValue(iter);
     _NODE* t=!r->instances.Size()?r:r->instances.Back();
     LLInsertAfter(p,t,_last);
     r->instances.Insert(p,r->instances.Size());
@@ -123,9 +123,8 @@ cINIsection& cINIsection::operator=(cINIsection&& mov)
 
 cINIsection::_NODE* cINIsection::GetEntryNode(const char* key, unsigned int instance) const
 {
-  khiter_t iter= _entries.GetIterator(key);
-  if(iter==_entries.End()) return 0;
-  _NODE* n=_entries[iter];
+  _NODE* n = _entries[key];
+  if(!n) return 0;
   if(!instance) return n;
   return (instance>n->instances.Size())?0:(n->instances[instance-1]);
 }
@@ -138,9 +137,9 @@ cINIentry* cINIsection::GetEntryPtr(const char* key, unsigned int instance) cons
 
 unsigned int cINIsection::GetNumEntries(const char* key) const
 {
-  khiter_t iter= _entries.GetIterator(key);
-  if(iter==_entries.End()) return 0;
-  return _entries[iter]->instances.Size()+1;
+  _NODE* n = _entries[key];
+  if(!n) return 0;
+  return n->instances.Size()+1;
 }
 
 cINIentry& cINIsection::GetEntry(const char* key, unsigned int instance) const

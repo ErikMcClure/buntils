@@ -196,13 +196,7 @@ namespace bss_util {
   public:
     inline cKhash(const cKhash& copy) : _h(kh_init_template<KHKEY,KHVAL,kh_is_map,__hash_func,__hash_equal>()) { operator =(copy); }
     inline cKhash(cKhash&& mov) : _h(mov._h) { mov._h=0; }
-    inline cKhash(unsigned int size=0) : _h(kh_init_template<KHKEY,KHVAL,kh_is_map,__hash_func,__hash_equal>())
-    {
-      if(size<5)
-        kh_resize_template(_h, 5);
-      else
-        kh_resize_template(_h, size);
-    };
+    inline cKhash(unsigned int size=0) : _h(kh_init_template<KHKEY,KHVAL,kh_is_map,__hash_func,__hash_equal>()) { kh_resize_template(_h, size); };
     inline ~cKhash() { kh_destroy_template(_h); }
     inline khiter_t Iterator(KHKEY key) const { return kh_get_template(_h, key); }
     inline bool Insert(KHKEY key, const KHVAL& value) { return _insert<const KHVAL&>(key,value); }
@@ -210,36 +204,37 @@ namespace bss_util {
     //inline KHKEY GetIterKey(khiter_t iterator) { return kh_key(_h,iterator); }
     inline KHKEY GetKey(khiter_t iterator) { return kh_key(_h,iterator); }
     inline bool SetKey(khiter_t iterator, KHKEY key) { if(kh_end(_h) == iterator) return false; kh_key(_h,iterator)=key; return true; }
-    inline KHGET Get(KHKEY key) const { return GetValue(kh_get_template(_h, key)); }
-    inline KHGET GetValue(khiter_t iterator) const { if(iterator >= kh_end(_h) || !kh_exist(_h, iterator)) return INVALID; return _getval<std::is_same<KHGET,khval_t*>::value>(_h,iterator); }
+    inline KHGET Get(KHKEY key) const { return GetValue(Iterator(key)); }
+    inline KHGET GetValue(khiter_t iter) const { if(!ExistsIter(iter)) return INVALID; return _getval<std::is_same<KHGET,khval_t*>::value>(_h,iter); }
     inline const KHVAL& UnsafeValue(khiter_t iterator) const { return kh_val(_h,iterator); }
     inline bool SetValue(khiter_t iterator, const KHVAL& newvalue) { return _setvalue<const KHVAL&>(iterator,newvalue); } 
     inline bool SetValue(khiter_t iterator, KHVAL&& newvalue) { return _setvalue<KHVAL&&>(iterator,std::move(newvalue)); } 
-    inline void SetSize(unsigned int size) { if(_h->n_buckets < size) kh_resize_template(_h,size); }
+    inline void SetSize(unsigned int size) { if(kh_end(_h) < size) kh_resize_template(_h,size); }
 		inline bool Remove(KHKEY key) const
     {
-      khiter_t iterator = kh_get_template(_h, key);
-      if(kh_end(_h) == iterator) return false; // This isn't Exists because kh_get_template will return kh_end(_h) if key doesn't exist
+      khiter_t iterator = Iterator(key);
+      if(kh_end(_h) == iterator) return false; // This isn't ExistsIter because kh_get_template will return kh_end(_h) if key doesn't exist
 		  kh_del_template(_h, iterator);
 			return true;
     }
     inline bool RemoveIter(khiter_t iterator) const
     {
-      if(!Exists(iterator)) return false;
+      if(!ExistsIter(iterator)) return false;
 		  kh_del_template(_h, iterator);
 			return true;
     }
 		inline void Clear() { kh_clear_template(_h); }
 		inline unsigned int Length() const { return kh_size(_h); }
-		inline unsigned int Capacity() const { return _h->n_buckets; }
+		inline unsigned int Capacity() const { return kh_end(_h); }
 		inline khiter_t Start() const { return kh_begin(_h); }
 		inline khiter_t End() const { return kh_end(_h); }
-    inline bool Exists(khiter_t iterator) const { if(iterator<_h->n_buckets) return kh_exist(_h, iterator)!=0; return false; }
+    inline bool ExistsIter(khiter_t iterator) const { return iterator<kh_end(_h) && kh_exist(_h, iterator)!=0; }
+    inline bool Exists(KHKEY key) const { return ExistsIter(Iterator(key)); }
 		inline cKhash& operator =(const cKhash& right)
 		{
       if(&right == this) return *this;
 			kh_clear_template(_h);
-			kh_resize_template(_h, right._h->n_buckets);
+			kh_resize_template(_h, kh_end(right._h));
 			int r;
 			khiter_t cur=(khiter_t)-1;
       if(kh_is_map) {
@@ -273,7 +268,7 @@ namespace bss_util {
       inline khiter_t operator*() const { return cur; }
       inline cKhash_Iter& operator++() { ++cur; _chknext(); return *this; } //prefix
       inline cKhash_Iter operator++(int) { cKhash_Iter r(*this); ++*this; return r; } //postfix
-      inline cKhash_Iter& operator--() {  while((--cur)<_src->End() && !_src->Exists(cur)); return *this; } //prefix
+      inline cKhash_Iter& operator--() {  while((--cur)<_src->End() && !_src->ExistsIter(cur)); return *this; } //prefix
       inline cKhash_Iter operator--(int) { cKhash_Iter r(*this); --*this; return r; } //postfix
       inline bool operator==(const cKhash_Iter& _Right) const { return (cur == _Right.cur); }
 	    inline bool operator!=(const cKhash_Iter& _Right) const { return (cur != _Right.cur); }
@@ -283,7 +278,7 @@ namespace bss_util {
       khiter_t cur; //khiter_t is unsigned (this is why operator--() works)
 
     protected:
-      inline void _chknext() { while(cur<_src->End() && !_src->Exists(cur)) ++cur; }
+      inline void _chknext() { while(cur<_src->End() && !_src->ExistsIter(cur)) ++cur; }
 
       const cKhash* _src;
 	  };
@@ -295,19 +290,16 @@ namespace bss_util {
     template<typename U>
     inline bool _insert(KHKEY key, U && value)
 		{
-			if(kh_size(_h) >= _h->n_buckets) _resize();
+			//if(kh_size(_h) >= kh_end(_h)) _resize(); // Not needed, kh_put_template resizes as necessary
 			int r;
 			khiter_t retval = kh_put_template(_h,key,&r);
-			if(r>0 && kh_is_map) //Only insert the value if the key didn't exist and this is a map, not a set
-			{
+      if(!kh_is_map) return true; // if this is a set, not a map, bail out
+			if(r>0) //Only insert the value if the key didn't exist
         kh_val(_h,retval)=std::forward<U>(value);
-        return true;
-			}
-			return false;
+			return r>0;
 		}
     template<typename U>
-    inline bool _setvalue(khiter_t iterator, U && newvalue) { if(iterator >= kh_end(_h) || !kh_exist(_h, iterator)) return false; kh_val(_h, iterator)=std::forward<U>(newvalue); return true; }
-		void _resize() { kh_resize_template(_h,kh_size(_h)*2); }
+    inline bool _setvalue(khiter_t i, U && newvalue) { if(i>=kh_end(_h)) return false; kh_val(_h, i)=std::forward<U>(newvalue); return true; }
 
 		KHTYPE* _h;
   };

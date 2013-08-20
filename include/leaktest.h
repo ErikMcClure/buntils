@@ -45,7 +45,7 @@ public:
     file=strrchr(file,'/');
     file=(file>hold)?file : hold;
 
-    if(_leakinfo.Exists(_leakinfo.GetIterator(ptr))) //ensure there is no conflict, because if there is somethign else terribly wrong is going on.
+    if(_leakinfo.Exists(ptr)) //ensure there is no conflict, because if there is somethign else terribly wrong is going on.
       throw "DUPLICATE ASSIGNMENT ERROR";
 
     size_t length=strlen(file);

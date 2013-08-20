@@ -40,7 +40,6 @@ namespace bss_util {
     bool Insert(KHKEY key, const KHVAL& value)
 		{
       if(!key) return false;
-			if(kh_size(_h) >= _h->n_buckets) cKhash_StringIns<T,ismap>::_resize();
 			int r;
 			khiter_t retval = kh_put_template(_h,key,&r);
 			if(r>0) //Only insert the value if the key didn't exist

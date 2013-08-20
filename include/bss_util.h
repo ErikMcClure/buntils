@@ -208,6 +208,7 @@ namespace bss_util {
   {
     static_assert(std::is_integral<T>::value,"T must be integral");
     return in + 1 + (in>>1) + (in>>3) - (in>>7);
+    //return in + 1 + (in>>1) + (in>>3) - (in>>7) + (in>>10) - (in>>13) - (in>>17) - (in>>21) + (in>>24); // 0.61803394 (but kind of pointless)
   }
 
   // Gets the sign of any number (0 is assumed to be positive)

@@ -2269,8 +2269,12 @@ TESTDEF::RETPAIR test_KHASH()
 
   cKhash_Pointer<short,const void*,false> set;
   set.Insert(0,1);
+  set.Insert(&check,1);
+  set.Insert(&iter,1);
+  set.Insert(&hasherint,1);
+  set.Insert(&set,1);
   set.GetKey(0);
-  TEST(set.Exists(set.Iterator(0)));
+  TEST(set.Exists(0));
   ENDTEST;
 }
 

@@ -2259,10 +2259,10 @@ TESTDEF::RETPAIR test_KHASH()
   hasherint.Get(25);
   hasherint.Remove(25);
   cKhash_StringIns<bss_DebugInfo*> hasher;
-  int iter = hasher.Insert("",&_debug);
-  iter = hasher.Insert("Video",(bss_DebugInfo*)5);
+  hasher.Insert("",&_debug);
+  hasher.Insert("Video",(bss_DebugInfo*)5);
   hasher.SetSize(100);
-  iter = hasher.Insert("Physics",0);
+  hasher.Insert("Physics",0);
   bss_DebugInfo* check = hasher.Get("Video");
   check = hasher.Get("Video");
   //unsigned __int64 diff = _debug.CloseProfiler(ID);
@@ -2270,7 +2270,7 @@ TESTDEF::RETPAIR test_KHASH()
   cKhash_Pointer<short,const void*,false> set;
   set.Insert(0,1);
   set.Insert(&check,1);
-  set.Insert(&iter,1);
+  set.Insert(&hasher,1);
   set.Insert(&hasherint,1);
   set.Insert(&set,1);
   set.GetKey(0);
@@ -2643,14 +2643,14 @@ TESTDEF::RETPAIR test_REFCOUNTER()
 #define INSTANTIATE_SETTINGS
 #include "cSettings.h"
 
-DECL_SETGROUP(0,"main",3);
-DECL_SETTING(0,0,float,0.0f,"ANIME",0);
-DECL_SETTING(0,1,int,0,"MANGA","-manga");
-DECL_SETTING(0,2,double,0.0,"pow",0);
-DECL_SETGROUP(1,"submain",2);
-DECL_SETTING(1,0,float,15.0f,"zip",0);
-DECL_SETTING(1,1,int,5,"poofers",0);
-DECL_SETTING(1,2,std::vector<cStr>,std::vector<cStr>(),"lots",0);
+DECL_SETGROUP(0,"main");
+DECL_SETTING(0,0,float,0.0f,"ANIME");
+DECL_SETTING(0,1,int,0,"MANGA");
+DECL_SETTING(0,2,double,0.0,"pow");
+DECL_SETGROUP(1,"submain");
+DECL_SETTING(1,0,float,15.0f,"zip");
+DECL_SETTING(1,1,int,5,"poofers");
+DECL_SETTING(1,2,std::vector<cStr>,std::vector<cStr>(),"lots");
 
 TESTDEF::RETPAIR test_SETTINGS()
 {

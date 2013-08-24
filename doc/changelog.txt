@@ -44,6 +44,7 @@
 - Tweaked aspects of the animation system, added generic interpolators to cAniAttributeSmooth.
 - Renamed LLAdd to LLAddAfter, LLInsertRoot to LLAdd, LLInsertFull to LLInsert and LLInsertAfterFull to LLInsertAfter
 - Changed cKhash to have a single Get and GetValue function that returns the value type for integral and pointer types (with a configurable INVALID value), or pointers for anything else.
+- Dropped support for command line arguments in cSetting and massively simplified the implementation
 
 0.4
 ------

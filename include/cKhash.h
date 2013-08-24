@@ -199,8 +199,8 @@ namespace bss_util {
     inline cKhash(unsigned int size=0) : _h(kh_init_template<KHKEY,KHVAL,kh_is_map,__hash_func,__hash_equal>()) { kh_resize_template(_h, size); };
     inline ~cKhash() { kh_destroy_template(_h); }
     inline khiter_t Iterator(KHKEY key) const { return kh_get_template(_h, key); }
-    inline bool Insert(KHKEY key, const KHVAL& value) { return _insert<const KHVAL&>(key,value); }
-    inline bool Insert(KHKEY key, KHVAL&& value) { return _insert<KHVAL&&>(key,std::move(value)); }
+    inline void Insert(KHKEY key, const KHVAL& value) { _insert<const KHVAL&>(key,value); }
+    inline void Insert(KHKEY key, KHVAL&& value) { _insert<KHVAL&&>(key,std::move(value)); }
     //inline KHKEY GetIterKey(khiter_t iterator) { return kh_key(_h,iterator); }
     inline KHKEY GetKey(khiter_t iterator) { return kh_key(_h,iterator); }
     inline bool SetKey(khiter_t iterator, KHKEY key) { if(kh_end(_h) == iterator) return false; kh_key(_h,iterator)=key; return true; }
@@ -288,15 +288,13 @@ namespace bss_util {
 
 	protected:
     template<typename U>
-    inline bool _insert(KHKEY key, U && value)
+    inline void _insert(KHKEY key, U && value)
 		{
 			//if(kh_size(_h) >= kh_end(_h)) _resize(); // Not needed, kh_put_template resizes as necessary
 			int r;
 			khiter_t retval = kh_put_template(_h,key,&r);
-      if(!kh_is_map) return true; // if this is a set, not a map, bail out
-			if(r>0) //Only insert the value if the key didn't exist
+      if(kh_is_map) // only set value if this is actually a map
         kh_val(_h,retval)=std::forward<U>(value);
-			return r>0;
 		}
     template<typename U>
     inline bool _setvalue(khiter_t i, U && newvalue) { if(i>=kh_end(_h)) return false; kh_val(_h, i)=std::forward<U>(newvalue); return true; }

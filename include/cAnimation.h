@@ -16,12 +16,12 @@ namespace bss_util {
   class BSS_COMPILER_DLLEXPORT cAnimation
 	{
   protected:
-    enum ANIBOOLS : unsigned char { ANI_PLAYING=1,ANI_LOOPING=2,ANI_PAUSED=4 };
+    enum ANIBOOLS : unsigned char { ANI_PLAYING=1,ANI_PAUSED=2 };
 
 	public:
 		inline cAnimation(const cAnimation& copy) : _parent(copy._parent) { operator=(copy); }
 		inline cAnimation(const cAnimation& copy, cAbstractAnim* ptr) : _parent(ptr) { operator=(copy); }
-    inline cAnimation(cAbstractAnim* ptr) : _parent(ptr), _aniwarp(1.0), _anilength(0), _timepassed(0), _anicalc(0), _looppoint(0) { }
+    inline cAnimation(cAbstractAnim* ptr) : _parent(ptr), _aniwarp(1.0), _anilength(0), _timepassed(0), _anicalc(0), _looppoint(-1.0) { }
 		inline cAnimation(const DEF_ANIMATION& def, cAbstractAnim* ptr);
 		inline ~cAnimation()
     {
@@ -40,11 +40,13 @@ namespace bss_util {
         _attributes[i]->Start();
     }
     // Stop animation
-    inline void Stop() { _anibool-=(ANI_LOOPING|ANI_PLAYING); _timepassed=0.0; }
+    inline void Stop() { _anibool-=ANI_PLAYING; _timepassed=0.0; }
     // Temporarily pauses or unpauses the animation
     inline void Pause(bool pause) { _anibool[ANI_PAUSED]=pause; }
-    // Starts looping the animation (if it hasn't started yet, it is started.) Looping ends when Stop() is called
-    inline void Loop(double timepassed=0.0, double looppoint=0.0) { _looppoint=looppoint; _anibool+=ANI_LOOPING; if((_anibool&ANI_PLAYING)==0) Start(timepassed); }
+    // Sets the loop point for the animation. If its negative, looping is disable. This change affects the animation even if its already started.
+    inline void SetLoopPoint(double looppoint=-1.0) { _looppoint=looppoint; }
+    // Starts the animation and sets the looppoint at the same time
+    inline void Loop(double timepassed=0.0, double looppoint=0.0) { SetLoopPoint(looppoint); Start(timepassed); }
     // Interpolates the animation by moving it forward *delta* milliseconds
     bool Interpolate(double delta)
     {
@@ -53,7 +55,7 @@ namespace bss_util {
 	    _timepassed += delta*_aniwarp;
 		  double length = _anilength==0.0?_anicalc:_anilength;
 
-		  if(((_anibool&ANI_LOOPING)!=0) && length>0.0 && _timepassed > length)
+		  if(IsLooping() && length>0.0 && _timepassed > length)
         Start(fmod(_timepassed-length,length-_looppoint)+_looppoint);
 
 	    bool notfinished=_timepassed<_anilength;
@@ -65,7 +67,7 @@ namespace bss_util {
 
 	    if(!notfinished) //in this case we're done, so reset
       {
-		    if((_anibool&ANI_LOOPING)!=0) Start(fmod(_timepassed-length,length-_looppoint)+_looppoint);
+		    if(IsLooping()) Start(fmod(_timepassed-length,length-_looppoint)+_looppoint);
 		    else Stop();
       }
 
@@ -131,7 +133,7 @@ namespace bss_util {
 		inline double GetTimeWarp() const { return _aniwarp; }
     inline double GetTimePassed() const { return _timepassed; }
     inline bool IsPlaying() const { return (_anibool&ANI_PLAYING)!=0; }
-    inline bool IsLooping() const { return (_anibool&ANI_LOOPING)!=0; }
+    inline bool IsLooping() const { return _looppoint>=0.0; }
     inline bool IsPaused() const { return (_anibool&ANI_PAUSED)!=0; }
     
     cAnimation& operator +=(const cAnimation& add)
@@ -231,9 +233,9 @@ namespace bss_util {
 	struct DEF_ANIMATION : cDef<cAnimation>
 	{
     typedef unsigned char ST_;
-		inline DEF_ANIMATION() : anilength(0.0), aniwarp(1.0) {}
-    inline DEF_ANIMATION(DEF_ANIMATION&& mov) : anilength(mov.anilength), aniwarp(mov.aniwarp), _frames(std::move(mov._frames)) { }
-    inline DEF_ANIMATION(const DEF_ANIMATION& copy) : anilength(copy.anilength), aniwarp(copy.aniwarp), _frames(copy._frames)
+		inline DEF_ANIMATION() : anilength(0.0), aniwarp(1.0), aniloop(-1.0) {}
+    inline DEF_ANIMATION(DEF_ANIMATION&& mov) : anilength(mov.anilength), aniwarp(mov.aniwarp), _frames(std::move(mov._frames)), aniloop(mov.aniloop) { }
+    inline DEF_ANIMATION(const DEF_ANIMATION& copy) : anilength(copy.anilength), aniwarp(copy.aniwarp), _frames(copy._frames), aniloop(copy.aniloop)
     {
       for(ST_ i = 0; i < _frames.Length(); ++i) 
         _frames[i]=_frames[i]->Clone();
@@ -256,18 +258,19 @@ namespace bss_util {
     template<ST_ TypeID>
     inline unsigned int AddFrame(const KeyFrame<TypeID>& frame) { return GetAttribute<TypeID>()->arr.Add(frame); }
     template<ST_ TypeID>
-    inline bool RemoveFrame(unsigned int i) { auto p = GetAttribute<TypeID>(); if(i>=p->Length()) return false; p->arr.Remove(i); return true; }
+    inline bool RemoveFrame(unsigned int i) { auto p = GetAttribute<TypeID>(); if(i>=p->arr.Length()) return false; p->arr.Remove(i); return true; }
     inline const bss_util::cMap<ST_,DEF_ANIATTRIBUTE*,bss_util::CompT<ST_>,ST_>& GetFrames() const { return _frames; }
 
 		double anilength; //if zero, we automatically stop when all animations are exhausted
 		double aniwarp; //Time warp factor
+    double aniloop; //loop point (by default, it's negative, which turns off looping)
 
 	private:
     bss_util::cMap<ST_,DEF_ANIATTRIBUTE*,bss_util::CompT<ST_>,ST_> _frames;
 	};
   
-  inline cAnimation::cAnimation(const DEF_ANIMATION& def, cAbstractAnim* ptr) : _parent(ptr), _aniwarp(def.aniwarp), _looppoint(0), _anicalc(0),
-      _anilength(def.anilength), _timepassed(0)
+  inline cAnimation::cAnimation(const DEF_ANIMATION& def, cAbstractAnim* ptr) : _parent(ptr), _aniwarp(def.aniwarp), _looppoint(def.aniloop),
+    _anicalc(0), _anilength(def.anilength), _timepassed(0)
     {
       auto& p = def.GetFrames();
       for(unsigned int i = 0; i < p.Length(); ++i)

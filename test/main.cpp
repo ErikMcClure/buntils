@@ -2651,6 +2651,7 @@ DECL_SETGROUP(1,"submain");
 DECL_SETTING(1,0,float,15.0f,"zip");
 DECL_SETTING(1,1,int,5,"poofers");
 DECL_SETTING(1,2,std::vector<cStr>,std::vector<cStr>(),"lots");
+DECL_SETTING(1,3,std::vector<__int64>,std::vector<__int64>(),"intlots");
 
 TESTDEF::RETPAIR test_SETTINGS()
 {

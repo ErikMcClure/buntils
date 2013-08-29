@@ -195,8 +195,8 @@ namespace bss_util {
       IDTYPE svar=_timevalues.Size();
       while(_curpair<svar && _timevalues[_curpair].time<=timepassed) ++_curpair;
       if(_curpair>=svar) 
-      { //Resolve the animation
-        _setval(_func(_timevalues,svar-1,1.0));
+      { //Resolve the animation, but only if there was more than 1 keyframe, otherwise we'll break it.
+        if(svar>1) _setval(_func(_timevalues,svar-1,1.0));
         return false; 
       } 
       double hold = _timevalues[_curpair-1].time;

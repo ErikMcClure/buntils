@@ -50,18 +50,39 @@ namespace bss_util {
       for(int i = 0; (p=ini.GetEntryPtr(section,name,i))!=0; ++i) { v.push_back(p->GetString()); }
     }
   }
+  
+  template<>
+  inline static void cSetting_INILOAD<std::vector<__int64>>(cINIstorage& ini, std::vector<__int64>& v, const char* name, const char* section)
+  { 
+    cINIentry* p;
+    v.clear();
+    if(name!=0) {
+      for(int i = 0; (p=ini.GetEntryPtr(section,name,i))!=0; ++i) { v.push_back(p->GetInt()); }
+    }
+  }
+  
+  template<>
+  inline static void cSetting_INILOAD<std::vector<int>>(cINIstorage& ini, std::vector<int>& v, const char* name, const char* section)
+  { 
+    cINIentry* p;
+    v.clear();
+    if(name!=0) {
+      for(int i = 0; (p=ini.GetEntryPtr(section,name,i))!=0; ++i) { v.push_back(*p); }
+    }
+  }
+
+  template<typename T>
+  BSS_FORCEINLINE static std::string cSetting_tostring(T& v)
+  {
+    std::stringstream s;
+    s << v; 
+    return s.str();
+  }
 
   // Struct class for defining the INISave function. Can be overriden for custom types
   template<typename T>
   inline static void cSetting_INISAVE(cINIstorage& ini, T& v, const char* name, const char* section)
-  { 
-    if(name!=0) 
-    { 
-      std::stringstream s;
-      s << v; 
-      ini.EditAddEntry(section,name,s.str().c_str()); 
-    } 
-  }
+  { if(name!=0) ini.EditAddEntry(section,name,cSetting_tostring<T>(v).c_str()); }
   
   // Override for string types on INI loading
   template<>
@@ -77,6 +98,12 @@ namespace bss_util {
   template<>
   inline static void cSetting_INISAVE<std::vector<cStr>>(cINIstorage& ini, std::vector<cStr>& v, const char* name, const char* section)
   { if(name!=0) { for(unsigned int i = 0; i < v.size(); ++i) ini.EditAddEntry(section,name,v[i],i,0); } }
+  template<>
+  inline static void cSetting_INISAVE<std::vector<__int64>>(cINIstorage& ini, std::vector<__int64>& v, const char* name, const char* section)
+  { if(name!=0) { for(unsigned int i = 0; i < v.size(); ++i) ini.EditAddEntry(section,name,cSetting_tostring<__int64>(v[i]).c_str(),i,0); } }
+  template<>
+  inline static void cSetting_INISAVE<std::vector<int>>(cINIstorage& ini, std::vector<int>& v, const char* name, const char* section)
+  { if(name!=0) { for(unsigned int i = 0; i < v.size(); ++i) ini.EditAddEntry(section,name,cSetting_tostring<int>(v[i]).c_str(),i,0); } }
 
   // Main class for managing settings. Here you can load and save settings from INIs
   template<int I,int N>

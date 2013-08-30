@@ -30,8 +30,13 @@ namespace bss_util {
     BSS_FORCEINLINE UINT Get() const
     {
       UINT c = (UINT)(rand()%_count);
-      return (((F)rand()/(F)RAND_MAX) < _prob[c])?c:_alias[c];
+      UINT r = (((F)rand()/(F)RAND_MAX)<=_prob[c])?c:_alias[c]; // must be <= to ensure it's ALWAYS true if _prob[c]==1.0
+      assert(r<_count);
+      return r;
     }
+    BSS_FORCEINLINE UINT operator()(void) const { return Get(); }
+    inline F* GetProb() const { return _prob; }
+    inline UINT* GetAlias() const { return _alias; }
 
   protected:
     void _gentable(const F* problist, UINT count)
@@ -43,15 +48,18 @@ namespace bss_util {
       _alias=new UINT[_count];
       F average = ((F)1.0)/_count;
 
-      _probcopy = new F[_count]; //Temporary copy of probabilities (seperate from our stored ones)
-      memcpy(_probcopy,problist,sizeof(F)*count);
-
-      UINT* small=new UINT[_count]; //Small and large stacks as simple arrays
+      std::unique_ptr<F[]> _probcopy(new F[_count]); //Temporary copy of probabilities (seperate from our stored ones)
+      memcpy(_probcopy.get(),problist,sizeof(F)*count);
+      
+#ifdef BSS_DEBUG
+      memset(_alias,-1,sizeof(UINT)*_count);
+#endif
+      std::unique_ptr<UINT[]> small(new UINT[_count]); //Small and large stacks as simple arrays
       UINT n_small=0;
-      UINT* large=new UINT[_count];
+      std::unique_ptr<UINT[]> large(new UINT[_count]);
       UINT n_large=0;
 
-      for (int i = 0; i < count; ++i)
+      for(UINT i = 0; i < count; ++i)
       {
         if(_probcopy[i] >= average)
           large[n_large++]=i;
@@ -59,28 +67,34 @@ namespace bss_util {
           small[n_small++]=i;
       }
 
-      int less;
-      int more;
+      int l;
+      int g;
       while (n_small!=0 && n_large!=0) //In a perfect world, small always empties before large, but our world isn't, so we check both
       { 
-        less=small[--n_small];
-        more=large[--n_large];
+        l=small[--n_small];
+        g=large[--n_large];
 
-        _prob[less] = _probcopy[less] * _count; //scale probabilities so 1/n is given weight 1.0
-        alias[less] = more;
-        _probcopy[more]=(_probcopy[more] + _probcopy[less]) - average; //Set new probability    
+        _prob[l] = _probcopy[l] * _count; //scale probabilities so 1/n is given weight 1.0
+        _alias[l] = g;
+        _probcopy.get()[g]=(_probcopy[g] + _probcopy[l]) - average; //Set new probability    
 
-        if(_probcopy[more] >= average) //Move new probability to correct list
-          large[n_large++]=more;
+        if(_probcopy[g] >= average) //Move new probability to correct list
+          large[n_large++]=g;
         else
-          small[n_small++]=more;
+          small[n_small++]=g;
       }
 
       //Set everything to 1.0 (both lists are set due to numerical uncertainty)
-      while (n_small!=0)
-        _prob[--n_small] = 1.0;
       while (n_large!=0)
-        _prob[--n_large] = 1.0;
+        _prob[large[--n_large]] = 1.0;
+      while (n_small!=0)
+        _prob[small[--n_small]] = 1.0;
+#ifdef BSS_DEBUG
+      for(UINT i = 0; i < _count; ++i)
+        assert(_alias[i]<_count || (_prob[i]==1.0));
+      for(UINT i = 0; i < _count; ++i)
+        assert(_prob[i]<=1.0);
+#endif
     }
 
     UINT* _alias;

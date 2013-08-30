@@ -12,6 +12,8 @@
 #include "bss_dual.h"
 #include "bss_fixedpt.h"
 #include "bss_sse.h"
+#include "cAliasTable.h"
+#include "cAnimation.h"
 #include "cArrayCircular.h"
 #include "cAVLtree.h"
 #include "cBinaryHeap.h"
@@ -24,8 +26,8 @@
 #include "cDynArray.h"
 #include "cDisjointSet.h"
 #include "cINIstorage.h"
+#include "cKDTree.h"
 #include "cKhash.h"
-#include "trajectory.h"
 #include "cLinkedArray.h"
 #include "cLinkedList.h"
 #include "cLocklessQueue.h"
@@ -33,23 +35,21 @@
 #include "cPriorityQueue.h"
 #include "cRational.h"
 #include "cRefCounter.h"
-//#include "cSettings.h"
-#include "cAnimation.h"
 #include "cScheduler.h"
+//#include "cSettings.h"
 #include "cSingleton.h"
+#include "cSmartPtr.h"
 #include "cStr.h"
 #include "cStrTable.h"
 #include "cThread.h"
 #include "cTRBtree.h"
 #include "cTrie.h"
-#include "cSmartPtr.h"
 #include "delegate.h"
 //#include "leaktest.h"
 #include "lockless.h"
 #include "os.h"
 #include "StreamSplitter.h"
 #include "Shiny.h"
-#include "cKDTree.h"
 
 #include <fstream>
 #include <algorithm>
@@ -84,7 +84,7 @@ using namespace bss_util;
 
 const int TESTNUM=100000;
 int testnums[TESTNUM];
-BSSDEBUG _debug;
+bss_DebugInfo _debug;
 bss_Log _failedtests("../bin/failedtests.txt"); //This is spawned too early for us to save it with SetWorkDirToCur();
 
 // --- Define testing utilities ---
@@ -1256,6 +1256,17 @@ TESTDEF::RETPAIR test_bss_SSE()
 TESTDEF::RETPAIR test_ALIASTABLE()
 {
   BEGINTEST;
+  double p[7] = { 0.1,0.2,0.3,0.05,0.05,0.15,0.15 };
+  cAliasTable<unsigned int,double> a(p);
+  uint counts[7] = {0};
+  for(uint i = 0; i < 10000000; ++i)
+    ++counts[a()];
+  double real[7] = { 0.0 };
+  for(uint i = 0; i < 7; ++i)
+    real[i]=counts[i]/10000000.0;
+  for(uint i = 0; i < 7; ++i)
+    TEST(fcompare(p[i],real[i],(1LL<<43)));
+
   ENDTEST;
 }
 
@@ -1765,6 +1776,50 @@ TESTDEF::RETPAIR test_BINARYHEAP()
 TESTDEF::RETPAIR test_BITARRAY()
 {
   BEGINTEST;
+  cBitArray<unsigned char> bits;
+  bits.Clear();
+  bits.SetSize(7);
+  bits.SetBit(5,true);
+  TEST(bits.GetRaw()[0]==32);
+  TEST(bits.GetBits(0,6)==1);
+  TEST(bits.GetBits(0,5)==0);
+  bits+=5;
+  TEST(bits.GetBits(0,6)==1);
+  TEST(bits.GetBit(5));
+  bits.SetBit(5,false);
+  TEST(bits.GetRaw()[0]==0);
+  TEST(bits.GetBits(0,6)==0);
+  bits.SetBit(2,true);
+  TEST(bits.GetRaw()[0]==4);
+  TEST(bits.GetBit(2));
+  bits+=0;
+  TEST(bits.GetRaw()[0]==5);
+  TEST(bits.GetBit(0));
+  bits.SetBit(3,true);
+  TEST(bits.GetRaw()[0]==13);
+  TEST(bits.GetBits(0,6)==3);
+  bits-=2;
+  TEST(bits.GetRaw()[0]==9);
+  TEST(bits.GetBits(0,6)==2);
+  bits.SetSize(31);
+  TEST(bits.GetRaw()[0]==9);
+  bits.SetBit(20,true);
+  TEST(bits.GetRaw()[0]==9);
+  TEST(bits.GetRaw()[2]==16);
+  TEST(bits.SetBit(30,true));
+  TEST(bits.GetRaw()[0]==9);
+  TEST(bits.GetRaw()[2]==16);
+  TEST(bits.GetRaw()[3]==64);
+  TEST(!bits.SetBit(32,true));
+  TEST(bits.GetBits(0,32)==4);
+  bits.SetBit(21,false);
+  TEST(bits.GetBits(0,32)==4);
+  bits.SetBit(20,false);
+  TEST(bits.GetRaw()[0]==9);
+  TEST(bits.GetRaw()[2]==0);
+  TEST(bits.GetRaw()[3]==64);
+  TEST(bits.GetBits(0,32)==3);
+
   ENDTEST;
 }
 
@@ -1807,6 +1862,27 @@ TESTDEF::RETPAIR test_BITFIELD()
 TESTDEF::RETPAIR test_BSS_STACK()
 {
   BEGINTEST;
+  cBSS_Stack<int> s(0);
+  s.Clear();
+  s.Push(1);
+  TEST(s.Pop()==1);
+  s.Push(2);
+  s.Push(3);
+  s.Push(4);
+  TEST(s.Length()==3);
+  TEST(s.Pop()==4);
+  TEST(s.Length()==2);
+  TEST(s.Pop()==3);
+  TEST(s.Length()==1);
+  s.Clear();
+  s.Push(5);
+  TEST(s.Top()==5);
+  TEST(s.Length()==1);
+  cBSS_Stack<int> s2(3);
+  s2.Push(6);
+  TEST(s2.Top()==6);
+  s2=s;
+  TEST(s2.Top()==5);
   ENDTEST;
 }
 
@@ -1819,6 +1895,28 @@ TESTDEF::RETPAIR test_BYTEQUEUE()
 TESTDEF::RETPAIR test_CMDLINEARGS()
 {
   BEGINTEST;
+  cCmdLineArgs args("C:/fake/file/path.txt -r 2738 283.5 -aa 3 -noindice");
+  args.Process([&__testret](const char* const* p, size_t n)
+  {
+    static cTrie<unsigned char> t(3,"-r","-aa","-noindice");
+    switch(t[p[0]])
+    {
+    case 0:
+      TEST(n==3);
+      TEST(atof(p[1])==2738.0);
+      TEST(atof(p[2])==283.5);
+      break;
+    case 1:
+      TEST(n==2);
+      TEST(atoi(p[1])==3);
+      break;
+    case 2:
+      TEST(n==1);
+      break;
+    default:
+      TEST(!strcmp(p[0],"C:/fake/file/path.txt"));
+    }
+  });
   ENDTEST;
 }
 
@@ -2185,11 +2283,6 @@ TESTDEF::RETPAIR test_INISTORAGE()
   ENDTEST;
 }
 
-TESTDEF::RETPAIR test_INTERVALTREE()
-{
-  BEGINTEST;
-  ENDTEST;
-}
 struct KDtest {
   float rect[4];
   LLBase<int> list;
@@ -2283,6 +2376,7 @@ TESTDEF::RETPAIR test_LINKEDARRAY()
   BEGINTEST;
   cLinkedArray<int> _arr;
   uint a = _arr.Add(4);
+  _arr.Reserve(2);
   uint b=_arr.InsertAfter(6,a);
   _arr.InsertBefore(5,b);
   TEST(_arr.Length()==3);
@@ -2292,7 +2386,7 @@ TESTDEF::RETPAIR test_LINKEDARRAY()
     TEST(*i==v[c++]);
   _arr.Remove(b);
   TEST(_arr.Length()==2);
-  TEST(_arr.GetItem(a)==4);
+  TEST(_arr[a]==4);
   TEST(*_arr.GetItemPtr(a)==4);
   c=0;
   for(auto i=_arr.begin(); i!=_arr.end(); ++i)
@@ -2303,8 +2397,8 @@ TESTDEF::RETPAIR test_LINKEDARRAY()
 
 }
 
-template<bool L>
-bool cmplist(cLinkedList<int,Allocator<cLLNode<int>>,L,true>& list, const char* nums)
+template<bool L, bool S>
+bool cmplist(cLinkedList<int,Allocator<cLLNode<int>>,L,S>& list, const char* nums)
 {
   auto cur = list.begin();
   bool r=true;
@@ -2360,6 +2454,27 @@ TESTDEF::RETPAIR test_LINKEDLIST()
   test2.Insert(0,0);
   TEST(cmplist(test2,"032"));
   TEST(test2.Length()==3);
+
+  cLinkedList<int,Allocator<cLLNode<int>>> test3;
+
+  llp[0] = test3.Add(1);
+  TEST(cmplist(test3,"1"));
+  llp[1] = test3.Add(2);
+  TEST(cmplist(test3,"21"));
+  llp[3] = test3.Add(4);
+  TEST(cmplist(test3,"421"));
+  llp[4] = test3.Add(5);
+  TEST(cmplist(test3,"5421"));
+  llp[2] = test3.Insert(3,llp[1]);
+  TEST(cmplist(test3,"54321"));
+  test3.Remove(llp[3]);
+  TEST(cmplist(test3,"5321"));
+  test3.Remove(llp[0]);
+  TEST(cmplist(test3,"532"));
+  test3.Remove(llp[4]);
+  TEST(cmplist(test3,"32"));
+  test3.Insert(0,0);
+  TEST(cmplist(test3,"032"));
 
   ENDTEST;
 }
@@ -2419,7 +2534,7 @@ TESTDEF::RETPAIR test_LOCKLESSQUEUE()
   TEST(c==1);
   }
 
-  const int NUMTHREADS=24;
+  const int NUMTHREADS=17;
   cThread threads[NUMTHREADS];
   std::vector<size_t> values;
 
@@ -2572,7 +2687,7 @@ TESTDEF::RETPAIR test_RATIONAL()
   ENDTEST;
 }
 
-TESTDEF::RETPAIR test_TRB_TREE()
+TESTDEF::RETPAIR test_TRBTREE()
 {
   BEGINTEST;
   Allocator<TRB_Node<int>,FixedPolicy<TRB_Node<int>>> fixedalloc;
@@ -2634,9 +2749,25 @@ TESTDEF::RETPAIR test_TRB_TREE()
   ENDTEST;
 }
 
+struct REF_TEST : cRefCounter
+{
+  REF_TEST(TESTDEF::RETPAIR& t) : __testret(t) {}
+  ~REF_TEST() { TEST(true); }
+  virtual void DestroyThis() { TEST(true); cRefCounter::DestroyThis(); }
+
+  TESTDEF::RETPAIR& __testret;
+};
+
 TESTDEF::RETPAIR test_REFCOUNTER()
 {
   BEGINTEST;
+  cRefCounter a;
+  TEST(a.Grab()==1);
+  cRefCounter b(a);
+  TEST(b.Grab()==1);
+  REF_TEST* c = new REF_TEST(__testret);
+  c->Grab();
+  c->Drop();
   ENDTEST;
 }
 
@@ -2661,9 +2792,30 @@ TESTDEF::RETPAIR test_SETTINGS()
   ENDTEST;
 }
 
+struct SINGLETEST : cSingleton<SINGLETEST>
+{
+  SINGLETEST() : cSingleton<SINGLETEST>(this) {}
+};
+
 TESTDEF::RETPAIR test_SINGLETON()
 {
   BEGINTEST;
+  TEST(SINGLETEST::Instance()==0);
+  {
+  SINGLETEST test;
+  TEST(SINGLETEST::Instance()==&test);
+  }
+  TEST(SINGLETEST::Instance()==0);
+  SINGLETEST* test2;
+  {
+  SINGLETEST test;
+  TEST(SINGLETEST::Instance()==&test);
+  test2 = new SINGLETEST();
+  TEST(SINGLETEST::Instance()==test2);
+  }
+  TEST(SINGLETEST::Instance()==test2);
+  delete test2;
+  TEST(SINGLETEST::Instance()==0);
   ENDTEST;
 }
 
@@ -3092,6 +3244,29 @@ TESTDEF::RETPAIR test_OS()
 TESTDEF::RETPAIR test_STREAMSPLITTER()
 {
   BEGINTEST;
+  std::stringstream ss1;
+  std::stringstream ss2;
+  std::stringstream ss3;
+  ss1 << "1 ";
+  ss2 << "2 ";
+  ss3 << "3 ";
+
+  StreamSplitter splitter;
+  std::ostream split(&splitter);
+  splitter.AddTarget(&ss1);
+  split << "a ";
+  splitter.AddTarget(&ss2);
+  split << "b ";
+  splitter.AddTarget(&ss3);
+  split << "c " << std::flush;
+  splitter.ClearTargets();
+  split << "d " << std::flush;
+  splitter.AddTarget(&ss1);
+  split << "e " << std::flush;
+
+  TEST(ss1.str()=="1 a b c e ");
+  TEST(ss2.str()=="2 b c ");
+  TEST(ss3.str()=="3 c ");
   ENDTEST;
 }
 
@@ -3164,11 +3339,11 @@ int main(int argc, char** argv)
     { "cArraySort.h", &test_ARRAYSORT },
     { "cAVLtree.h", &test_AVLTREE },
     { "cBinaryHeap.h", &test_BINARYHEAP },
-    //{ "cBitArray.h", &test_BITARRAY },
+    { "cBitArray.h", &test_BITARRAY },
     { "cBitField.h", &test_BITFIELD },
-    //{ "cBSS_Stack.h", &test_BSS_STACK },
+    { "cBSS_Stack.h", &test_BSS_STACK },
     //{ "cByteQueue.h", &test_BYTEQUEUE },
-    //{ "cCmdLineArgs.h", &test_CMDLINEARGS },
+    { "cCmdLineArgs.h", &test_CMDLINEARGS },
     { "cDynArray.h", &test_DYNARRAY },
     { "cDisjointSet.h", &test_DISJOINTSET },
     { "cHighPrecisionTimer.h", &test_HIGHPRECISIONTIMER },
@@ -3184,19 +3359,19 @@ int main(int argc, char** argv)
     { "cMap.h", &test_MAP },
     { "cPriorityQueue.h", &test_PRIORITYQUEUE },
     { "cRational.h", &test_RATIONAL },
-    //{ "cRefCounter.h", &test_REFCOUNTER },
+    { "cRefCounter.h", &test_REFCOUNTER },
     { "cSettings.h", &test_SETTINGS },
-    //{ "cSingleton.h", &test_SINGLETON },
+    { "cSingleton.h", &test_SINGLETON },
     { "cStr.h", &test_STR },
     { "cStrTable.h", &test_STRTABLE },
     { "cThread.h", &test_THREAD },
-    //{ "cTRBtree.h", &test_TRBTREE },
+    { "cTRBtree.h", &test_TRBTREE },
     { "cTrie.h", &test_TRIE },
     { "cSmartPtr.h", &test_SMARTPTR },
     { "delegate.h", &test_DELEGATE },
     //{ "LLBase.h", &test_LLBASE },
     { "os.h", &test_OS },
-    //{ "cStreamSplitter.h", &test_STREAMSPLITTER },
+    { "cStreamSplitter.h", &test_STREAMSPLITTER },
   };
 
   const size_t NUMTESTS=sizeof(tests)/sizeof(TESTDEF);

@@ -63,19 +63,19 @@ namespace bss_util {
     BSS_FORCEINLINE T& BSS_FASTCALL GetItem(ST_ index) { return _ref[index].val; }
     BSS_FORCEINLINE const T& BSS_FASTCALL GetItem(ST_ index) const { return _ref[index].val; }
     BSS_FORCEINLINE T* BSS_FASTCALL GetItemPtr(ST_ index) { return &_ref[index].val; }
-    BSS_FORCEINLINE T& BSS_FASTCALL operator [](ST_ index) { return _ref[index].val; }
-    BSS_FORCEINLINE const T& BSS_FASTCALL operator [](ST_ index) const { return _ref[index].val; }
+    BSS_FORCEINLINE T& BSS_FASTCALL operator [](ST_ index) { return GetItem(index); }
+    BSS_FORCEINLINE const T& BSS_FASTCALL operator [](ST_ index) const { return GetItem(index); }
 
     // Iterator for cLinkedArray
-    template<typename _PP, typename _REF, typename D=cLinkedArray<T,SizeType>>
-    class BSS_COMPILER_DLLEXPORT cLAIter : public std::iterator<std::bidirectional_iterator_tag,typename D::value_type,ptrdiff_t,_PP,_REF>
+    template<typename U, typename D=cLinkedArray<T,SizeType>>
+    class BSS_COMPILER_DLLEXPORT cLAIter : public std::iterator<std::bidirectional_iterator_tag,typename D::value_type,ptrdiff_t,U*,U&>
 	  {
     public:
       inline explicit cLAIter(D& src) : _src(src), cur((ST_)-1) {}
       inline cLAIter(D& src, ST_ start) : _src(src), cur(start) {}
       inline cLAIter(const cLAIter& copy, ST_ start) : _src(copy._src), cur(start) {}
-      BSS_FORCEINLINE _REF operator*() const { return _src[cur]; }
-      BSS_FORCEINLINE _PP operator->() const { return &_src[cur]; }
+      BSS_FORCEINLINE U& operator*() const { return _src[cur]; }
+      BSS_FORCEINLINE U* operator->() const { return &_src[cur]; }
       BSS_FORCEINLINE cLAIter& operator++() { _src.Next(cur); return *this; } //prefix
       BSS_FORCEINLINE cLAIter operator++(int) { cLAIter r=*this; ++*this; return r; } //postfix
       BSS_FORCEINLINE cLAIter& operator--() { _src.Prev(cur); return *this; } //prefix
@@ -92,10 +92,10 @@ namespace bss_util {
       D& _src;
 	  };
     
-    inline cLAIter<const T*, const T&, const cLinkedArray<T,SizeType>> begin() const { return cLAIter<const T*, const T&, const cLinkedArray<T,SizeType>>(*this,_start); } // Use these to get an iterator you can use in standard containers
-    inline cLAIter<const T*, const T&, const cLinkedArray<T,SizeType>> end() const { return cLAIter<const T, const cLinkedArray<T,SizeType>>(*this); }
-    inline cLAIter<T*, T&, cLinkedArray<T,SizeType>> begin() { return cLAIter<T*, T&, cLinkedArray<T,SizeType>>(*this,_start); } // Use these to get an iterator you can use in standard containers
-    inline cLAIter<T*, T&, cLinkedArray<T,SizeType>> end() { return cLAIter<T*, T&, cLinkedArray<T,SizeType>>(*this); }
+    inline cLAIter<const T, const cLinkedArray<T,SizeType>> begin() const { return cLAIter<const T, const cLinkedArray<T,SizeType>>(*this,_start); } // Use these to get an iterator you can use in standard containers
+    inline cLAIter<const T, const cLinkedArray<T,SizeType>> end() const { return cLAIter<const T, const cLinkedArray<T,SizeType>>(*this); }
+    inline cLAIter<T, cLinkedArray<T,SizeType>> begin() { return cLAIter<T, cLinkedArray<T,SizeType>>(*this,_start); } // Use these to get an iterator you can use in standard containers
+    inline cLAIter<T, cLinkedArray<T,SizeType>> end() { return cLAIter<T, cLinkedArray<T,SizeType>>(*this); }
 
   protected:
     template<typename U>

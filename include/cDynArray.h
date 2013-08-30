@@ -5,6 +5,7 @@
 #define __C_DYN_ARRAY_H__BSS__
 
 #include "cArraySimple.h"
+#include "bss_util.h"
 
 namespace bss_util {
   // Dynamic array implemented using ArrayType (should only be used when std::vector won't work, for example, if constructors aren't needed)

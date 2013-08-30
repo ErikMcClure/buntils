@@ -91,6 +91,7 @@
     <ClInclude Include="..\include\cPriorityQueue.h" />
     <ClInclude Include="..\include\cRational.h" />
     <ClInclude Include="..\include\cScheduler.h" />
+    <ClInclude Include="..\include\cSmartPtr.h" />
     <ClInclude Include="..\include\cTRBtree.h" />
     <ClInclude Include="..\include\cRefCounter.h" />
     <ClInclude Include="..\include\cSettings.h" />
@@ -108,7 +109,6 @@
     <ClInclude Include="..\include\os.h" />
     <ClInclude Include="..\include\Shiny.h" />
     <ClInclude Include="..\include\StreamSplitter.h" />
-    <ClInclude Include="..\include\trajectory.h" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="bss_DebugInfo.cpp" />

@@ -375,8 +375,8 @@ namespace bss_util {
     T cell = mindist/(T)SQRT_TWO;
     T w = rect[2]-rect[0];
     T h = rect[3]-rect[1];
-    size_t gw = ceil(w/cell)+4; //gives us buffer room so we don't have to worry about going outside the grid
-    size_t gh = ceil(h/cell)+4;
+    size_t gw = ((size_t)ceil(w/cell))+4; //gives us buffer room so we don't have to worry about going outside the grid
+    size_t gh = ((size_t)ceil(h/cell))+4;
     std::array<T,2>* grid = new std::array<T,2>[gw*gh];      //grid height
     uint64* ig = (uint64*)grid;
     memset(grid,0xFFFFFFFF,gw*gh*sizeof(std::array<T,2>));
@@ -399,8 +399,8 @@ namespace bss_util {
       auto point = list.Pop();
       for(uint i = 0; i < pointsPerIteration; i++)
       {
-        radius = mindist*RANDFLOATGEN(1,2); //random point between mindist and 2*mindist
-        angle = RANDFLOATGEN(0,PI_DOUBLE);
+        radius = mindist*((T)RANDFLOATGEN(1,2)); //random point between mindist and 2*mindist
+        angle = (T)RANDFLOATGEN(0,PI_DOUBLE);
         pt[0] = point[0] + radius * cos(angle); //the new point is generated around the point (x, y)
         pt[1] = point[1] + radius * sin(angle);
         

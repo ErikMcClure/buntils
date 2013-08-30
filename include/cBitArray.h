@@ -43,7 +43,6 @@ namespace bss_util
     inline cBitArray(const cBitArray& copy) : _bits(copy), _numbits(copy._numbits){ } 
     inline cBitArray(cBitArray&& mov) : _bits(std::move(mov)), _numbits(mov._numbits) { mov._numbits=0; } 
     inline cBitArray(ST_ numbits=0) : _bits(_maxchunks(numbits)), _numbits(numbits) { Clear(); }
-    inline ~cBitArray() { if(_bits) delete [] _bits; }
     inline void BSS_FASTCALL SetSize(ST_ numbits)
     { 
       ST_ last=_bits.Size();
@@ -85,7 +84,10 @@ namespace bss_util
       ST_ start=bitindex/DIV_AMT;
       ST_ end=length/DIV_AMT;
       STORE_ smask = ~((((STORE_)1)<<(bitindex - (start*DIV_AMT)))-1);
-      STORE_ emask = (~(STORE_)0)>>(length - (end*DIV_AMT));
+      //STORE_ emask = (~(STORE_)0)>>(length - (end*DIV_AMT));
+      char len = length - (end*DIV_AMT) - 1;
+      STORE_ emask = T_GETBITRANGE(STORE_,0,len);
+      
       if(start==end)
         return bitcount<STORE_>((_bits[start]&smask)&emask);
       
@@ -103,11 +105,13 @@ namespace bss_util
     inline cBitArray& operator=(cBitArray&& mov) { _bits=std::move(mov._bits); _numbits=mov._numbits; mov._numbits=0; }
     BSS_FORCEINLINE bool operator[](ST_ index) const { return GetBit(index); }
     BSS_FORCEINLINE _BIT_REF<ST_> operator[](ST_ index) { return _BIT_REF<ST_>(_bits+(index/DIV_AMT),(index&MOD_AMT)); }
+    BSS_FORCEINLINE cBitArray& operator+=(ST_ bitindex) { SetBit(bitindex,true); return *this; }
+    BSS_FORCEINLINE cBitArray& operator-=(ST_ bitindex) { SetBit(bitindex,false); return *this; }
 
   protected:
-    inline ST_ _maxchunks(ST_ numbits) { return (numbits/DIV_AMT) + ((numbits&MOD_AMT)!=0); }
+    BSS_FORCEINLINE static ST_ _maxchunks(ST_ numbits) { return T_NEXTMULTIPLE(numbits,MOD_AMT); }
 
-    cArraySimple<STORE_,ST_> _bits;
+    typename WArray<STORE_,ST_>::t _bits;
     ST_ _numbits;
   };
 }

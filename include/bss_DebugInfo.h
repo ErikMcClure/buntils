@@ -14,7 +14,7 @@ struct _PROCESS_MEMORY_COUNTERS; //Include <psapi.h> to read the information
 #endif
 
 // An inheritable debug class that exposes process information and provides profiling tools
-typedef class BSS_DLLEXPORT bss_DebugInfo : public bss_util::cHighPrecisionTimer, public bss_Log
+class BSS_DLLEXPORT bss_DebugInfo : public bss_util::cHighPrecisionTimer, public bss_Log
 {
 public:
   bss_DebugInfo(bss_DebugInfo&& mov);
@@ -84,6 +84,6 @@ private:
   bss_DebugInfo(const bss_DebugInfo& copy);
   bss_DebugInfo& operator =(const bss_DebugInfo& right);
 
-} BSSDEBUG;
+};
 
 #endif

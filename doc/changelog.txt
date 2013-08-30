@@ -46,6 +46,8 @@
 - Changed cKhash to have a single Get and GetValue function that returns the value type for integral and pointer types (with a configurable INVALID value), or pointers for anything else.
 - Dropped support for command line arguments in cSetting and massively simplified the implementation
 - Added ZOrder animation
+- Fixed cBitArray and added tests
+- Added functional command line processing to cCmdLineArgs, along with the option of overloading the default command line parsing with a string.
 
 0.4
 ------

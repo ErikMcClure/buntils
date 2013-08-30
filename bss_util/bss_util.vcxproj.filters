@@ -201,9 +201,6 @@
     <ClInclude Include="..\include\cLinkedList.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="..\include\trajectory.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
     <ClInclude Include="..\include\bss_alloc_fixed_MT.h">
       <Filter>Header Files</Filter>
     </ClInclude>
@@ -214,6 +211,9 @@
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="..\include\cTrie.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="..\include\cSmartPtr.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>

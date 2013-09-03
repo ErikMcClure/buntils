@@ -19,7 +19,7 @@ namespace bss_util {
   template<typename T, typename D>
   struct ANI_IDTYPE_EXPAND__
   {
-    typedef typename T VALUE;
+    typedef T VALUE;
     typedef VALUE const& VALUECONST;
     typedef VALUE& VALUEREF;
   };
@@ -27,7 +27,7 @@ namespace bss_util {
   template<typename T>
   struct ANI_IDTYPE_EXPAND__<T,void>
   {
-    typedef typename T VALUE;
+    typedef T VALUE;
     typedef VALUE VALUECONST;
     typedef VALUE VALUEREF;
   };

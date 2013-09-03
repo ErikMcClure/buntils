@@ -13,6 +13,7 @@ namespace bss_util
   template<typename F, typename ST=unsigned int> //std::function<double(void)>
   class BSS_COMPILER_DLLEXPORT cScheduler : protected cHighPrecisionTimer, protected cBinaryHeap<std::pair<double,F>,ST,CompTFirst<std::pair<double,F>,CompTInv<double>>,cArraySafe<std::pair<double,F>,ST>>
   {
+    typedef cBinaryHeap<std::pair<double,F>,ST,CompTFirst<std::pair<double,F>,CompTInv<double>>,cArraySafe<std::pair<double,F>,ST>> BASE;
   public:
     // Constructor
     inline cScheduler() {}
@@ -20,21 +21,21 @@ namespace bss_util
     inline cScheduler(double t, F&& f) { Add(t,std::move(f)); }
     inline ~cScheduler() {}
     // Gets number of events
-    BSS_FORCEINLINE ST Length() const { return _length; }
+    BSS_FORCEINLINE ST Length() const { return BASE::_length; }
     // Adds an event that will happen t milliseconds in the future, starting from the current time
-    BSS_FORCEINLINE void Add(double t, const F& f) { Insert(std::pair<double,F>(t+_time,f)); }
-    BSS_FORCEINLINE void Add(double t, F&& f) { Insert(std::pair<double,F>(t+_time,std::move(f))); }
+    BSS_FORCEINLINE void Add(double t, const F& f) { BASE::Insert(std::pair<double,F>(t+_time,f)); }
+    BSS_FORCEINLINE void Add(double t, F&& f) { BASE::Insert(std::pair<double,F>(t+_time,std::move(f))); }
     // Updates the scheduler, setting off any events that need to be set off
     inline void Update()
     {
       cHighPrecisionTimer::Update();
-      while(GetRoot().first<=_time)
+      while(BASE::GetRoot().first<=_time)
       {
-        double r=GetRoot().second();
+        double r=BASE::GetRoot().second();
         if(r==0.0)
-          Remove(0);
+          BASE::Remove(0);
         else
-          Set(0,std::pair<double,F>(r+_time,GetRoot().second));
+          BASE::Set(0,std::pair<double,F>(r+_time,BASE::GetRoot().second));
       }
     }
   };

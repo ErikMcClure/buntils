@@ -271,8 +271,7 @@ extern void BSS_FASTCALL bss_util::AlertBox(const wchar_t* text, const wchar_t* 
 }
 #endif
 
-void bss_util::bssdll_delete_delfunc(void* p) { delete p; }
-void bss_util::bssdll_delete_delfuncarray(void* p) { delete [] p; }
+void bss_util::bssdll_delete_delfunc(void* p) { ::operator delete(p); } // operator delete[] simply calls operator delete when its void*
 
 //namespace bss_util {
 //  bool BSS_FASTCALL _exists(const char* path, bool isdir)

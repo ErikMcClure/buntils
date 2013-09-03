@@ -122,6 +122,9 @@ namespace bss_util {
         memset(_array,val,_size*sizeof(T));
     }
 
+    typedef SizeType ST_; // There are cases when you need access to these types even if you don't inherit (see cRandomQueue in bss_algo.h)
+    typedef T T_;
+
   protected:
     //BSS_FORCEINLINE static void* _minmalloc(size_t n) { return malloc((n<1)?1:n); } //Malloc can legally return NULL if it tries to allocate 0 bytes
     template<typename U>
@@ -144,9 +147,6 @@ namespace bss_util {
 
     T* _array;
     SizeType _size;
-
-    typedef SizeType ST_;
-    typedef T T_;
   };
 
   // Very simple "dynamic" array that calls the constructor and destructor

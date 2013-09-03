@@ -27,7 +27,8 @@ namespace bss_util {
   public:
     typedef _INInode<cINIentry> _NODE;
     template<class T>
-    struct INIiterator : LLIterator<_INInode<T>> { inline explicit INIiterator(_INInode<T>* node) : LLIterator<_INInode<T>>(node) { }
+    struct INIiterator : LLIterator<_INInode<T>> { using LLIterator<_INInode<T>>::cur;
+	  inline explicit INIiterator(_INInode<T>* node) : LLIterator<_INInode<T>>(node) { }
       inline T& operator*() const { return cur->val; }
       inline T* operator->() const { return &cur->val; } };
 

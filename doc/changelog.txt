@@ -8,7 +8,7 @@
 - cDynArray no longer tries to return something from its Insert function. An assertion in the _insert function was also fixed.
 - Added unit test for cDynArray
 - Added UTF8toUTF32() and basic support for cStrT<int>
-- Added min()/max() functions to sseVec
+- Added min()/max() functions to sseVec by implementing them manually with SSE2 operations instead of relying on the SSE4.1 instruction
 - Fixed a bunch of using keywords to use protected: instead of private:
 - A minor tweak to AniAttributeSmooth that makes pval optional
 - cAllocTracker now checks for self-assignment

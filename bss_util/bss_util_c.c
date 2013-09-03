@@ -10,6 +10,7 @@
 #include <intrin.h>
 #else
 #include <iconv.h>
+#include <unistd.h> // for sysconf
 
 iconv_t iconv_utf8to16=0;
 iconv_t iconv_utf16to8=0;
@@ -149,7 +150,8 @@ extern size_t BSS_FASTCALL UTF8toUTF16(const char*BSS_RESTRICT input,wchar_t*BSS
   if(!output) return (len*4) + 1;
   len+=1; // include null terminator
   if(!iconv_utf8to16) iconv_utf8to16=iconv_open("UTF-8", "UTF-16");
-  return iconv(iconv_utf8to16, &input, &len, &out, &buflen);
+  char* in = (char*)input; // Linux is stupid
+  return iconv(iconv_utf8to16, &in, &len, &out, &buflen);
 #endif
 
   /*const unsigned char* s = src;
@@ -253,10 +255,10 @@ BSS_COMPILER_DLLEXPORT
 extern size_t BSS_FASTCALL UTF8toUTF32(const char*BSS_RESTRICT input, int*BSS_RESTRICT output, size_t buflen) 
 {
   char result = 0;
-  const unsigned char* source = input;
-  const unsigned char* sourceEnd = input;
-  unsigned int* target = output;
-  unsigned int* targetEnd = output+buflen;
+  const unsigned char* source = (unsigned char*)input;
+  const unsigned char* sourceEnd = source;
+  unsigned int* target = (unsigned int*)output;
+  unsigned int* targetEnd = target+buflen;
   size_t srclen=strlen(input)+1;
   if(!output) return srclen;
   sourceEnd+=srclen;
@@ -310,7 +312,7 @@ extern size_t BSS_FASTCALL UTF8toUTF32(const char*BSS_RESTRICT input, int*BSS_RE
           *target++ = UNI_REPLACEMENT_CHAR;
       }
   }
-  return (size_t)(target-output);
+  return (size_t)(((int*)target)-output);
 }
 
 BSS_COMPILER_DLLEXPORT

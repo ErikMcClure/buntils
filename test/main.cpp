@@ -183,7 +183,7 @@ template<typename T, size_t S> inline static size_t BSS_FASTCALL _ARRSIZE(const 
 
 #if defined(BSS_CPU_x86) || defined(BSS_CPU_x64)
   // This is an SSE version of the fast sqrt that calculates x*invsqrt(x) as a speed hack. Sadly, it's still slower and actually LESS accurate than the classic FastSqrt with an added iteration, below, and it isn't even portable. Left here for reference, in case you don't believe me ;)
-  inline BSS_FORCEINLINE float sseFastSqrt(float f)
+  BSS_FORCEINLINE float sseFastSqrt(float f)
   {
     float r;
     __m128 in = _mm_load_ss(&f);
@@ -967,7 +967,7 @@ TESTDEF::RETPAIR test_bss_FIXEDPT()
   ENDTEST;
 }
 
-inline BSS_FORCEINLINE bool BSS_FASTCALL fsmallcomp(double af, double bf, __int64 maxDiff=1)
+BSS_FORCEINLINE bool BSS_FASTCALL fsmallcomp(double af, double bf, __int64 maxDiff=1)
 {
   if(af==0.0)
     return fsmall(bf);
@@ -1179,7 +1179,15 @@ TESTDEF::RETPAIR test_bss_SSE()
   TESTFOUR(arr,3,2,1,0)
   (u/w + v - u) >> BSS_UNALIGNED<float>(uarr);
   TESTFOUR(uarr,3,2,1,0)
-  
+  sseVec m3(1,3,-1,-2);
+  sseVec m4(0,4,-2,-1);
+  sseVec ab = m3.max(m4);
+  ab >> arr;
+  TESTFOUR(arr,1,4,-1,-1)
+  ab = m3.min(m4);
+  ab >> arr;
+  TESTFOUR(arr,0,3,-2,-2)
+
   //int megatest[TESTNUM*10];
   //for(uint i = 0; i<TESTNUM*10; ++i)
   //  megatest[i]=log2(i);
@@ -2295,8 +2303,6 @@ BSS_FORCEINLINE LLBase<KDtest>& BSS_FASTCALL KDtest_LIST(KDtest* t) { return *(L
 BSS_FORCEINLINE void BSS_FASTCALL KDtest_ACTION(KDtest* t) { ++KDtest::hits; }
 BSS_FORCEINLINE KDNode<KDtest>*& BSS_FASTCALL KDtest_NODE(KDtest* t) { return t->node; }
 
-unsigned int cKDTree<KDtest,FixedPolicy<KDNode<KDtest>>,&KDtest_RECT,&KDtest_LIST,&KDtest_ACTION,&KDtest_NODE>::RBTHRESHOLD=20;
-
 TESTDEF::RETPAIR test_KDTREE()
 {
   BEGINTEST;
@@ -3276,11 +3282,11 @@ void BSS_FASTCALL MakeFragments(const char* str, cDynArray<cArraySimple<Fragment
 {
   cStr hold(str);
   char* context;
-  char* p = strtok_s(hold.UnsafeString(),",.-?!;:~",&context);
+  char* p = STRTOK(hold.UnsafeString(),",.-?!;:~",&context);
   while(p)
   {
     r.Add(Fragment(str+(p-hold),strlen(p)+1));
-    p = strtok_s(NULL,",.-",&context);
+    p = STRTOK(NULL,",.-",&context);
   }
 }
 

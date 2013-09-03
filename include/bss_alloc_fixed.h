@@ -54,8 +54,8 @@ namespace bss_util {
 #ifdef BSS_DISABLE_CUSTOM_ALLOCATORS
       delete p; return;
 #endif
-#ifdef BSS_DEBUG
       assert(_validpointer(p));
+#ifdef BSS_DEBUG
       memset(p,0xDEADBEEF,sizeof(T));
 #endif
       *((void**)p)=_freelist;

@@ -21,9 +21,9 @@
 #include <assert.h>
 #include <math.h>
 #include <memory>
+#include <cstring> // for memcmp
 //#include <type_traits>
 //#include <utility>
-//#include <cstring> // for memcmp
 #ifdef BSS_COMPILER_GCC
 #include <stdlib.h> // For abs(int) on GCC
 #endif
@@ -379,7 +379,7 @@ namespace bss_util {
   }
   
   // The classic fast square root approximation, which is often mistakenly attributed to John Carmack. The algorithm is in fact over 15 years old and no one knows where it came from.
-  static float BSS_FASTCALL fFastSqrt(float number)
+  inline float BSS_FASTCALL fFastSqrt(float number)
   {
     const float f = 1.5F;
     __int32 i;
@@ -396,7 +396,7 @@ namespace bss_util {
   }
 
   // Adaptation of the class fast square root approximation for double precision, based on http://www.azillionmonkeys.com/qed/sqroot.html
-  static double BSS_FASTCALL dFastSqrt(double number)
+  inline double BSS_FASTCALL dFastSqrt(double number)
   {
     const double f = 1.5;
     unsigned __int32* i;
@@ -416,7 +416,7 @@ namespace bss_util {
 
   // bit-twiddling based method of calculating an integral square root from Wilco Dijkstra - http://www.finesse.demon.co.uk/steven/sqrt.html
   template<typename T, unsigned int bits> // WARNING: bits should be HALF the actual number of bits in (T)!
-  static T BSS_FASTCALL IntFastSqrt(T n)
+  inline T BSS_FASTCALL IntFastSqrt(T n)
   {
     static_assert(std::is_integral<T>::value,"T must be integral");
     T root = 0, t;
@@ -468,7 +468,7 @@ namespace bss_util {
   }
 
   // Searches an arbitrary series of bytes for another arbitrary series of bytes
-  static const void* bytesearch(const void* search, size_t length, const void* find, size_t flength)
+  inline const void* bytesearch(const void* search, size_t length, const void* find, size_t flength)
   {
     if(!search || !length || !find || !flength || length < flength) return 0;
 
@@ -662,13 +662,12 @@ namespace bss_util {
 	  void operator()(_Ty *_Ptr) const {
 		  if (0 < sizeof (_Ty))	{ // won't compile for incomplete type
         _Ptr->~_Ty(); // call destructor because delete won't
-			  bssdll_delete_delfuncarray(_Ptr);
+			  bssdll_delete_delfunc(_Ptr);
       }
 		}
 	};
 
   BSS_COMPILER_DLLEXPORT extern void bssdll_delete_delfunc(void* p);
-  BSS_COMPILER_DLLEXPORT extern void bssdll_delete_delfuncarray(void* p);
 } 
 
 #endif

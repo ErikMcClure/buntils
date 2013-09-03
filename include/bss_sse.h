@@ -21,15 +21,31 @@
 #define BSS_SSE_SUB_PS __builtin_ia32_subps 
 #define BSS_SSE_MUL_PS __builtin_ia32_mulps
 #define BSS_SSE_DIV_PS __builtin_ia32_divps
+#define BSS_SSE_MIN_PS 
+#define BSS_SSE_MAX_PS 
+#define BSS_SSE_LOAD_APD 
+#define BSS_SSE_LOAD_UPD 
+#define BSS_SSE_SET_PD 
+#define BSS_SSE_SET1_PD 
+#define BSS_SSE_STORE_APD 
+#define BSS_SSE_STORE_UPD 
+#define BSS_SSE_ADD_PD 
+#define BSS_SSE_SUB_PD 
+#define BSS_SSE_MUL_PD 
+#define BSS_SSE_DIV_PD 
+#define BSS_SSE_MIN_PD 
+#define BSS_SSE_MAX_PD 
 
 #define BSS_SSE_LOAD_ASI128 
-#define BSS_SSE_LOAD_USI128 
+#define BSS_SSE_LOAD_USI128  
 #define BSS_SSE_SET_EPI32 
 #define BSS_SSE_SET1_EPI32 
-#define BSS_SSE_STORE_ASI128 
-#define BSS_SSE_STORE_USI128 
+#define BSS_SSE_STORE_ASI128  
+#define BSS_SSE_STORE_USI128  
 #define BSS_SSE_ADD_EPI32 __builtin_ia32_paddd128
 #define BSS_SSE_SUB_EPI32 __builtin_ia32_psubd128
+#define BSS_SSE_MIN_EPI32 
+#define BSS_SSE_MAX_EPI32 
 #define BSS_SSE_AND __builtin_ia32_pand
 #define BSS_SSE_OR __builtin_ia32_por
 #define BSS_SSE_XOR __builtin_ia32_pxor
@@ -42,7 +58,18 @@
 #define BSS_SSE_CMPEQ_EPI32 __builtin_ia32_pcmpeqd128
 #define BSS_SSE_CMPLT_EPI32 
 #define BSS_SSE_CMPGT_EPI32 __builtin_ia32_pcmpgtd128
-#define BSS_SSE_SHUFFLE_EPI32 __builtin_ia32_pshufd
+#define BSS_SSE_CMPEQ_PS _mm_cmpeq_ps
+#define BSS_SSE_CMPNEQ_PS _mm_cmpneq_ps
+#define BSS_SSE_CMPLT_PS _mm_cmplt_ps
+#define BSS_SSE_CMPLTE_PS _mm_cmple_ps
+#define BSS_SSE_CMPGT_PS _mm_cmpgt_ps
+#define BSS_SSE_CMPGTE_PS _mm_cmpge_ps
+#define BSS_SSE_CMPEQ_PD _mm_cmpeq_pd
+#define BSS_SSE_CMPNEQ_PD _mm_cmpneq_pd
+#define BSS_SSE_CMPLT_PD _mm_cmplt_pd
+#define BSS_SSE_CMPLTE_PD _mm_cmple_pd
+#define BSS_SSE_CMPGT_PD _mm_cmpgt_pd
+#define BSS_SSE_CMPGTE_PD _mm_cmpge_pd
 
 #define BSS_SSE_SET_EPI64 
 #define BSS_SSE_SET1_EPI64 
@@ -50,19 +77,29 @@
 #define BSS_SSE_SUB_EPI64 __builtin_ia32_psubq128
 #define BSS_SSE_SL_EPI64 __builtin_ia32_psllq128
 #define BSS_SSE_SLI_EPI64 __builtin_ia32_psllqi128
-#define BSS_SSE_SR_EPI32 __builtin_ia32_psrlq128
-#define BSS_SSE_SRI_EPI32 __builtin_ia32_psrlqi128
+#define BSS_SSE_SR_EPI64 
+#define BSS_SSE_SRI_EPI64 
 
+#define BSS_SSE_SHUFFLE_EPI32 
 #define BSS_SSE_SHUFFLEHI_EPI16 __builtin_ia32_pshufhw
 #define BSS_SSE_SHUFFLELO_EPI16 __builtin_ia32_pshuflw
+#define BSS_SSE_SHUFFLE_PD 
+#define BSS_SSE_SHUFFLE_PS 
+#define BSS_SSE_SETZERO_PD 
+#define BSS_SSE_SETZERO_PS 
+#define BSS_SSE_SETZERO_SI128 
 
 #define BSS_SSE_TPS_EPI32 __builtin_ia32_cvttps2dq //converts using truncation
+#define BSS_SSE_TPD_EPI32 _mm_cvttpd_epi32 //converts using truncation
 #define BSS_SSE_PS_EPI32 __builtin_ia32_cvtps2dq
+#define BSS_SSE_PD_EPI32 _mm_cvtpd_epi32
 #define BSS_SSE_EPI32_PS __builtin_ia32_cvtdq2ps
+#define BSS_SSE_PD_PS _mm_cvtpd_ps 
 #define BSS_SSE_M128 v4sf
 #define BSS_SSE_M128i v4si
 #define BSS_SSE_M128i64 v2di
-*/
+#define BSS_SSE_M128d v2df*/
+
 //#elif defined(BSS_COMPILER_MSC) || defined(BSS_COMPILER_INTEL) // VC++ or intel
 #define BSS_SSE_LOAD_APS _mm_load_ps
 #define BSS_SSE_LOAD_UPS _mm_loadu_ps
@@ -74,8 +111,8 @@
 #define BSS_SSE_SUB_PS _mm_sub_ps
 #define BSS_SSE_MUL_PS _mm_mul_ps
 #define BSS_SSE_DIV_PS _mm_div_ps
-#define BSS_SSE_MIN_PS _mm_min_ps
-#define BSS_SSE_MAX_PS _mm_max_ps
+#define BSS_SSE_MIN_PS bss_mm_min_ps
+#define BSS_SSE_MAX_PS bss_mm_max_ps
 #define BSS_SSE_LOAD_APD _mm_load_pd
 #define BSS_SSE_LOAD_UPD _mm_loadu_pd
 #define BSS_SSE_SET_PD _mm_set_pd
@@ -86,8 +123,10 @@
 #define BSS_SSE_SUB_PD _mm_sub_pd
 #define BSS_SSE_MUL_PD _mm_mul_pd
 #define BSS_SSE_DIV_PD _mm_div_pd
-#define BSS_SSE_MIN_PD _mm_min_pd
-#define BSS_SSE_MAX_PD _mm_max_pd
+//#define BSS_SSE_MIN_PD _mm_min_pd // These are apparently SSE4.1
+//#define BSS_SSE_MAX_PD _mm_max_pd
+#define BSS_SSE_MIN_PD bss_mm_min_pd
+#define BSS_SSE_MAX_PD bss_mm_max_pd
 
 #define BSS_SSE_LOAD_ASI128 _mm_load_si128
 #define BSS_SSE_LOAD_USI128 _mm_loadu_si128 
@@ -97,9 +136,10 @@
 #define BSS_SSE_STORE_USI128 _mm_storeu_si128 
 #define BSS_SSE_ADD_EPI32 _mm_add_epi32
 #define BSS_SSE_SUB_EPI32 _mm_sub_epi32
-#define BSS_SSE_MIN_EPI32 _mm_min_epi32
-#define BSS_SSE_MAX_EPI32 _mm_max_epi32
+#define BSS_SSE_MIN_EPI32 bss_mm_min_epi32
+#define BSS_SSE_MAX_EPI32 bss_mm_max_epi32
 #define BSS_SSE_AND _mm_and_si128 
+#define BSS_SSE_ANDNOT _mm_andnot_si128 
 #define BSS_SSE_OR _mm_or_si128 
 #define BSS_SSE_XOR _mm_xor_si128
 #define BSS_SSE_SL_EPI32 _mm_sll_epi32
@@ -153,6 +193,55 @@
 #define BSS_SSE_M128i64 __m128i
 #define BSS_SSE_M128d __m128d 
 //#endif
+
+// SSE2 does not have min or max, so we use this manual implementation of the instruction
+BSS_FORCEINLINE BSS_SSE_M128i BSS_FASTCALL bss_mm_min_epi32(BSS_SSE_M128i a, BSS_SSE_M128i b)
+{
+  BSS_SSE_M128i mask = BSS_SSE_CMPLT_EPI32(a, b);
+  a = BSS_SSE_AND(a, mask);
+  b = BSS_SSE_ANDNOT(mask, b);
+  return BSS_SSE_OR(a, b);
+}
+ 
+BSS_FORCEINLINE BSS_SSE_M128i BSS_FASTCALL bss_mm_max_epi32(BSS_SSE_M128i a, BSS_SSE_M128i b)
+{
+  BSS_SSE_M128i mask = BSS_SSE_CMPGT_EPI32(a, b);
+  a = BSS_SSE_AND(a, mask);
+  b = BSS_SSE_ANDNOT(mask, b);
+  return BSS_SSE_OR(a, b);
+}
+
+BSS_FORCEINLINE BSS_SSE_M128 BSS_FASTCALL bss_mm_min_ps(BSS_SSE_M128 a, BSS_SSE_M128 b)
+{
+  BSS_SSE_M128i mask = _mm_castps_si128(BSS_SSE_CMPLT_PS(a, b));
+  BSS_SSE_M128i c = BSS_SSE_AND(_mm_castps_si128(a), mask);
+  BSS_SSE_M128i d = BSS_SSE_ANDNOT(mask, _mm_castps_si128(b));
+  return _mm_castsi128_ps(BSS_SSE_OR(c, d));
+}
+ 
+BSS_FORCEINLINE BSS_SSE_M128 BSS_FASTCALL bss_mm_max_ps(BSS_SSE_M128 a, BSS_SSE_M128 b)
+{
+  BSS_SSE_M128i mask = _mm_castps_si128(BSS_SSE_CMPGT_PS(a, b));
+  BSS_SSE_M128i c = BSS_SSE_AND(_mm_castps_si128(a), mask);
+  BSS_SSE_M128i d = BSS_SSE_ANDNOT(mask, _mm_castps_si128(b));
+  return _mm_castsi128_ps(BSS_SSE_OR(c, d));
+}
+
+BSS_FORCEINLINE BSS_SSE_M128d BSS_FASTCALL bss_mm_min_pd(BSS_SSE_M128d a, BSS_SSE_M128d b)
+{
+  BSS_SSE_M128i mask = _mm_castpd_si128(BSS_SSE_CMPLT_PD(a, b));
+  BSS_SSE_M128i c = BSS_SSE_AND(_mm_castpd_si128(a), mask);
+  BSS_SSE_M128i d = BSS_SSE_ANDNOT(mask, _mm_castpd_si128(b));
+  return _mm_castsi128_pd(BSS_SSE_OR(c, d));
+}
+ 
+BSS_FORCEINLINE BSS_SSE_M128d BSS_FASTCALL bss_mm_max_pd(BSS_SSE_M128d a, BSS_SSE_M128d b)
+{
+  BSS_SSE_M128i mask = _mm_castpd_si128(BSS_SSE_CMPGT_PD(a, b));
+  BSS_SSE_M128i c = BSS_SSE_AND(_mm_castpd_si128(a), mask);
+  BSS_SSE_M128i d = BSS_SSE_ANDNOT(mask, _mm_castpd_si128(b));
+  return _mm_castsi128_pd(BSS_SSE_OR(c, d));
+}
 
 // Struct that wraps around a pointer to signify that it is not aligned
 template<typename T>

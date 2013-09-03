@@ -7,6 +7,7 @@
 #include "bss_compare.h"
 #include "bss_alloc.h"
 #include "LLBase.h"
+#include <float.h> // for FLT_MAX on linux
 
 namespace bss_util {
   // Node for the KD-tree 
@@ -33,8 +34,8 @@ namespace bss_util {
   class cKDTree : protected cAllocTracker<Alloc>
   {
   public:
-    inline explicit cKDTree(Alloc* alloc=0) : cAllocTracker<Alloc>(alloc), _root(0) {}
-    inline cKDTree(cKDTree&& mov) : cAllocTracker<Alloc>(std::move(mov)), _root(mov._root) { mov._root=0; }
+    inline explicit cKDTree(Alloc* alloc=0) : cAllocTracker<Alloc>(alloc), _root(0),_rbthreshold(RBTHRESHOLD) {}
+    inline cKDTree(cKDTree&& mov) : cAllocTracker<Alloc>(std::move(mov)), _root(mov._root),_rbthreshold(mov._rbthreshold) { mov._root=0; }
     inline ~cKDTree() { Clear(); }
     inline void Clear() { if(_root) _destroynode(_root); _root=0; }
     void BSS_FASTCALL Traverse(float (&rect)[4]) const { if(_root) _traverse<0,1>(_root,rect); }
@@ -63,7 +64,7 @@ namespace bss_util {
           break;
         axis=((axis+1)&1);
         parent=h;
-        if(!rb && (abs(h->balance*100)/h->num)>RBTHRESHOLD) rb=h;
+        if(!rb && (abs(h->balance*100)/h->num)>_rbthreshold) rb=h;
       }
       if(!h)
       {
@@ -92,7 +93,7 @@ namespace bss_util {
         node->total[0]-=r[0]+r[2];
         node->total[1]-=r[1]+r[3];
         node->balance += ((node->left==prev)?1:-1); // This is the inverse balance value
-        if(node->num>0 && (abs(node->balance*100)/node->num)>RBTHRESHOLD) rb=node; // It's possible for --node->num to leave it at 0
+        if(node->num>0 && (abs(node->balance*100)/node->num)>_rbthreshold) rb=node; // It's possible for --node->num to leave it at 0
         node=node->parent;
       }
 
@@ -125,8 +126,10 @@ namespace bss_util {
     }
     inline void Solve() { if(_root) _solve(&_root); }
     inline KDNode<T>* GetRoot() { return _root; }
+    inline unsigned int GetRBThreshold() const { return _rbthreshold; }
+    inline void SetRBThreshold(unsigned int rbthreshold) { _rbthreshold=rbthreshold; }
 
-    static unsigned int RBTHRESHOLD; //Default is 20
+    const static unsigned int RBTHRESHOLD=20; //default threshold
 
   protected:
     void BSS_FASTCALL _solve(KDNode<T>** pnode)
@@ -286,6 +289,7 @@ namespace bss_util {
     }
 
     KDNode<T>* _root;
+    unsigned int _rbthreshold;
   };
 }
 

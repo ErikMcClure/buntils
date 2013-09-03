@@ -22,7 +22,10 @@ namespace bss_util {
   template<typename T=unsigned char>
   class BSS_COMPILER_DLLEXPORT cTrie : protected cArraySimple<TRIE_NODE__<T>,T>
   {
+    typedef cArraySimple<TRIE_NODE__<T>,T> BASE;
     typedef TRIE_NODE__<T> TNODE;
+    using BASE::_array;
+    using BASE::_size;
     static inline char _CompTNode(const TNODE& t, const char& c) { return SGNCOMPARE(t.chr,c); }
 
   public:
@@ -88,7 +91,7 @@ namespace bss_util {
         _array[i].chr=0; 
       } 
     }    
-    BSS_FORCEINLINE void BSS_FASTCALL _checksize(T r) { assert(r<(std::numeric_limits<T>::max()-2)); if(r>=_size) { T s=_size; SetSize(_size<<1); _fill(s,_size); } }
+    BSS_FORCEINLINE void BSS_FASTCALL _checksize(T r) { assert(r<(std::numeric_limits<T>::max()-2)); if(r>=_size) { T s=_size; BASE::SetSize(_size<<1); _fill(s,_size); } }
     T BSS_FASTCALL _init(T len, std::pair<T,const char*> const* str, T cnt, T level)
     {
       T r=cnt-1;

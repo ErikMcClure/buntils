@@ -6,6 +6,7 @@
 
 #include "bss_defines.h"
 #include <memory>
+#include <malloc.h> // Must be included because GCC is weird
 #include <assert.h>
 
 namespace bss_util {
@@ -51,7 +52,8 @@ namespace bss_util {
 
   // Static implementation of the standard allocation policy, used for cArraySimple
 	template<typename T>
-  class BSS_COMPILER_DLLEXPORT StaticAllocPolicy : public AllocPolicySize<T> {
+    class BSS_COMPILER_DLLEXPORT StaticAllocPolicy : public AllocPolicySize<T> {
+    typedef typename bss_util::AllocPolicySize<T>::pointer pointer; 
 	public:
     inline static pointer allocate(size_t cnt, 
       typename std::allocator<void>::const_pointer = 0) { 

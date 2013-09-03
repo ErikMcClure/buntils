@@ -26,12 +26,12 @@ namespace bss_util {
 #endif
 
   // Main #define for declaring a setting. NAME and CMD can both be set to 0 if INIs and command line parsing, respectively, are not needed.
-#define DECL_SETTING(I,N,T,INIT,NAME) template<> class bss_util::cSetting<I,N> { public: typedef T TYPE; static T v; \
-  inline static const char* name() { return NAME; } }; i_INST_SET_(I,N,T,INIT,NAME);
+#define DECL_SETTING(I,N,T,INIT,NAME) namespace bss_util { template<> class cSetting<I,N> { public: typedef T TYPE; static T v; \
+  inline static const char* name() { return NAME; } }; i_INST_SET_(I,N,T,INIT,NAME); }
 
   /* Main #define for declaring a group of settings. Note that the optional NAME parameter is for INI loading and determines the section
      name of the settings. MAX is the maximum number of settings in this group, but unless you are using LoadAllFromINI, it is optional. */
-#define DECL_SETGROUP(I,NAME) template<int N> class bss_util::cSetting<I,N> { public: inline static const char* secname() { return NAME; } typedef void TYPE; };
+#define DECL_SETGROUP(I,NAME) namespace bss_util { template<int N> class cSetting<I,N> { public: inline static const char* secname() { return NAME; } typedef void TYPE; }; }
 
   // Struct class for defining the INILoad function. Can be overriden for custom types
   template<typename T>

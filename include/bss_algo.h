@@ -15,7 +15,7 @@
 namespace bss_util {
   // Performs a binary search on "arr" between first and last. if CEQ=NEQ and char CVAL=-1, uses an upper bound, otherwise uses lower bound.
   template<typename T, typename D, typename ST_, char (*CFunc)(const D&, const T&), char (*CEQ)(const char&, const char&), char CVAL>
-  static inline ST_ BSS_FASTCALL binsearch_near(const T* arr, const D& data, ST_ first, ST_ last)
+  inline static ST_ BSS_FASTCALL binsearch_near(const T* arr, const D& data, ST_ first, ST_ last)
   {
     typename TSignPick<sizeof(ST_)>::SIGNED c = last-first; // Must be a signed version of whatever ST_ is
     ST_ c2; //No possible operation can make this negative so we leave it as possibly unsigned.
@@ -38,27 +38,27 @@ namespace bss_util {
   }
   // Either gets the element that matches the value in question or one immediately before the closest match. Could return an invalid -1 value.
   template<typename T, typename ST_, char (*CFunc)(const T&, const T&)>
-  BSS_FORCEINLINE ST_ BSS_FASTCALL binsearch_before(const T* arr, const T& data, ST_ first, ST_ last) { return binsearch_near<T,T,ST_,CFunc,CompT_NEQ<char>,-1>(arr,data,first,last)-1; }
+  BSS_FORCEINLINE static ST_ BSS_FASTCALL binsearch_before(const T* arr, const T& data, ST_ first, ST_ last) { return binsearch_near<T,T,ST_,CFunc,CompT_NEQ<char>,-1>(arr,data,first,last)-1; }
 
   template<typename T, typename ST_, char (*CFunc)(const T&, const T&)>
-  BSS_FORCEINLINE ST_ BSS_FASTCALL binsearch_before(const T* arr, ST_ length, const T& data) { return binsearch_near<T,T,ST_,CFunc,CompT_NEQ<char>,-1>(arr,data,0,length)-1; }
+  BSS_FORCEINLINE static ST_ BSS_FASTCALL binsearch_before(const T* arr, ST_ length, const T& data) { return binsearch_near<T,T,ST_,CFunc,CompT_NEQ<char>,-1>(arr,data,0,length)-1; }
 
   template<typename T, typename ST_, char (*CFunc)(const T&, const T&), ST_ I>
-  BSS_FORCEINLINE ST_ BSS_FASTCALL binsearch_before(const T (&arr)[I], const T& data) { return binsearch_before<T,ST_,CFunc>(arr,I,data); }
+  BSS_FORCEINLINE static ST_ BSS_FASTCALL binsearch_before(const T (&arr)[I], const T& data) { return binsearch_before<T,ST_,CFunc>(arr,I,data); }
 
   // Either gets the element that matches the value in question or one immediately after the closest match.
   template<typename T, typename ST_, char (*CFunc)(const T&, const T&)>
-  BSS_FORCEINLINE ST_ BSS_FASTCALL binsearch_after(const T* arr, const T& data, ST_ first, ST_ last) { return binsearch_near<T,T,ST_,CFunc,CompT_EQ<char>,1>(arr,data,first,last); }
+  BSS_FORCEINLINE static ST_ BSS_FASTCALL binsearch_after(const T* arr, const T& data, ST_ first, ST_ last) { return binsearch_near<T,T,ST_,CFunc,CompT_EQ<char>,1>(arr,data,first,last); }
 
   template<typename T, typename ST_, char (*CFunc)(const T&, const T&)>
-  BSS_FORCEINLINE ST_ BSS_FASTCALL binsearch_after(const T* arr, ST_ length, const T& data) { return binsearch_near<T,T,ST_,CFunc,CompT_EQ<char>,1>(arr,data,0,length); }
+  BSS_FORCEINLINE static ST_ BSS_FASTCALL binsearch_after(const T* arr, ST_ length, const T& data) { return binsearch_near<T,T,ST_,CFunc,CompT_EQ<char>,1>(arr,data,0,length); }
 
   template<typename T, typename ST_, char (*CFunc)(const T&, const T&), ST_ I>
-  BSS_FORCEINLINE ST_ BSS_FASTCALL binsearch_after(const T (&arr)[I], const T& data) { return binsearch_after<T,ST_,CFunc>(arr,I,data); }
+  BSS_FORCEINLINE static ST_ BSS_FASTCALL binsearch_after(const T (&arr)[I], const T& data) { return binsearch_after<T,ST_,CFunc>(arr,I,data); }
   
   // Returns index of the item, if it exists, or -1
   template<typename T, typename D, typename ST_, char (*CFunc)(const T&, const D&)>
-  static inline ST_ BSS_FASTCALL binsearch_exact(const T* arr, const D& data, typename TSignPick<sizeof(ST_)>::SIGNED f, typename TSignPick<sizeof(ST_)>::SIGNED l)
+  inline static ST_ BSS_FASTCALL binsearch_exact(const T* arr, const D& data, typename TSignPick<sizeof(ST_)>::SIGNED f, typename TSignPick<sizeof(ST_)>::SIGNED l)
   {
     --l; // Done so l can be an exclusive size parameter even though the algorithm is inclusive.
     ST_ m; // While f and l must be signed ints or the algorithm breaks, m does not.
@@ -78,18 +78,18 @@ namespace bss_util {
   }
   
   template<typename T, typename ST_, char (*CFunc)(const T&, const T&), ST_ I>
-  BSS_FORCEINLINE ST_ BSS_FASTCALL binsearch_exact(const T (&arr)[I], const T& data) { return binsearch_exact<T,T,ST_,CFunc>(arr,data,0,I); }
+  BSS_FORCEINLINE static ST_ BSS_FASTCALL binsearch_exact(const T (&arr)[I], const T& data) { return binsearch_exact<T,T,ST_,CFunc>(arr,data,0,I); }
   
   // Shuffler using Fisher-Yates/Knuth Shuffle algorithm based on Durstenfeld's implementation.
   // This is an in-place algorithm that works with any data type. Randfunc should be [min,max)
   template<typename T, typename ST, ST (*RandFunc)(ST min, ST max)>
-  inline void BSS_FASTCALL shuffle(T* p, ST size)
+  inline static void BSS_FASTCALL shuffle(T* p, ST size)
   {
     for(ST i=size; i>0; --i)
       rswap<T>(p[i-1],p[RandFunc(0,i)]);
   }
   template<typename T, typename ST, ST size, ST (*RandFunc)(ST min, ST max)>
-  inline void BSS_FASTCALL shuffle(T (&p)[size]) { shuffle<T,ST,RandFunc>(p,size); }
+  inline static void BSS_FASTCALL shuffle(T (&p)[size]) { shuffle<T,ST,RandFunc>(p,size); }
 
   // inline function wrapper to the #define RANDINTGEN
   template<class T>
@@ -101,26 +101,26 @@ namespace bss_util {
 
   /* Shuffler using default random number generator.*/
   template<typename T>
-  BSS_FORCEINLINE void BSS_FASTCALL shuffle(T* p, int size)
+  BSS_FORCEINLINE static void BSS_FASTCALL shuffle(T* p, int size)
   {
     shuffle<T,int,&bss_randint<int>>(p,size);
   }
   template<typename T, int size>
-  BSS_FORCEINLINE void BSS_FASTCALL shuffle(T (&p)[size])
+  BSS_FORCEINLINE static void BSS_FASTCALL shuffle(T (&p)[size])
   {
     shuffle<T,int,size,&bss_randint<int>>(p);
   }
 
   template<class F, typename T, size_t SIZE>
-  BSS_FORCEINLINE void transform(T (&t)[SIZE],T (&result)[SIZE], F func) { std::transform(std::begin(t),std::end(t),result,func); }
+  BSS_FORCEINLINE static void transform(T (&t)[SIZE],T (&result)[SIZE], F func) { std::transform(std::begin(t),std::end(t),result,func); }
   template<class F, typename T, size_t SIZE>
-  BSS_FORCEINLINE void transform(T (&t)[SIZE], F func) { std::transform(std::begin(t),std::end(t),t,func); }
+  BSS_FORCEINLINE static void transform(T (&t)[SIZE], F func) { std::transform(std::begin(t),std::end(t),t,func); }
   template<class F, typename T, size_t SIZE>
-  BSS_FORCEINLINE void for_each(T (&t)[SIZE], F func) { std::for_each(std::begin(t),std::end(t),func); }
+  BSS_FORCEINLINE static void for_each(T (&t)[SIZE], F func) { std::for_each(std::begin(t),std::end(t),func); }
   
   // Gets the squared distance between two n-dimensional points
   template<typename T, int N>
-  inline T NVectDistSq(const T (&t1)[N], const T (&t2)[N])
+  inline static T NVectDistSq(const T (&t1)[N], const T (&t2)[N])
   {
     T tp = t2[0]-t1[0];
     T r = tp*tp;
@@ -134,14 +134,14 @@ namespace bss_util {
 
   // Gets the distance between two n-dimensional points
   template<typename T, int N>
-  inline T NVectDist(const T (&t1)[N], const T (&t2)[N])
+  inline static T NVectDist(const T (&t1)[N], const T (&t2)[N])
   {
     return FastSqrt<T>(NVectDistSq<T,N>(t1,t2));
   }
 
   // Find the area of an n-dimensional triangle using Heron's formula
   template<typename T, int N>
-  inline T NTriangleArea(const T (&x1)[N], const T (&x2)[N], const T (&x3)[N])
+  inline static T NTriangleArea(const T (&x1)[N], const T (&x2)[N], const T (&x3)[N])
   {
     T a = NVectDist(x1,x2);
     T b = NVectDist(x1,x3);
@@ -152,7 +152,7 @@ namespace bss_util {
 
   // n-dimensional dot product
   template<typename T, int N>
-  inline T BSS_FASTCALL NDot(const T (&x1)[N], const T (&x2)[N])
+  inline static T BSS_FASTCALL NDot(const T (&x1)[N], const T (&x2)[N])
   {
     T r=0.0f;
     for(int i=0; i<N; ++i)
@@ -162,7 +162,7 @@ namespace bss_util {
   
   // Applies an operator to two vectors
   template<typename T, int N, T (BSS_FASTCALL *F)(T,T), sseVecT<T> (BSS_FASTCALL *sseF)(const sseVecT<T>&,const sseVecT<T>&)>
-  BSS_FORCEINLINE void BSS_FASTCALL NVectOp(const T (&x1)[N], const T (&x2)[N], T (&out)[N])
+  BSS_FORCEINLINE static void BSS_FASTCALL NVectOp(const T (&x1)[N], const T (&x2)[N], T (&out)[N])
   {
     assert(((size_t)x1)%16==0);
     assert(((size_t)x2)%16==0);
@@ -177,7 +177,7 @@ namespace bss_util {
 
   // Applies an operator to a vector and a scalar
   template<typename T, int N, T (BSS_FASTCALL *F)(T,T), sseVecT<T> (BSS_FASTCALL *sseF)(const sseVecT<T>&,const sseVecT<T>&)>
-  BSS_FORCEINLINE void BSS_FASTCALL NVectOp(const T (&x1)[N], T x2, T (&out)[N])
+  BSS_FORCEINLINE static void BSS_FASTCALL NVectOp(const T (&x1)[N], T x2, T (&out)[N])
   {
     assert(((size_t)x1)%16==0);
     assert(((size_t)out)%16==0);
@@ -189,25 +189,25 @@ namespace bss_util {
       out[i]=F(x1[i],x2);
   }
 
-  template<typename T, typename R> BSS_FORCEINLINE R BSS_FASTCALL NVectFAdd(T a, T b) { return a+b; }
-  template<typename T, typename R> BSS_FORCEINLINE R BSS_FASTCALL NVectFSub(T a, T b) { return a-b; }
-  template<typename T, typename R> BSS_FORCEINLINE R BSS_FASTCALL NVectFMul(T a, T b) { return a*b; }
-  template<typename T, typename R> BSS_FORCEINLINE R BSS_FASTCALL NVectFDiv(T a, T b) { return a/b; }
-  template<typename T, int N> BSS_FORCEINLINE void BSS_FASTCALL NVectAdd(const T (&x1)[N], const T (&x2)[N], T (&out)[N]) 
+  template<typename T, typename R> BSS_FORCEINLINE static R BSS_FASTCALL NVectFAdd(T a, T b) { return a+b; }
+  template<typename T, typename R> BSS_FORCEINLINE static R BSS_FASTCALL NVectFSub(T a, T b) { return a-b; }
+  template<typename T, typename R> BSS_FORCEINLINE static R BSS_FASTCALL NVectFMul(T a, T b) { return a*b; }
+  template<typename T, typename R> BSS_FORCEINLINE static R BSS_FASTCALL NVectFDiv(T a, T b) { return a/b; }
+  template<typename T, int N> BSS_FORCEINLINE static void BSS_FASTCALL NVectAdd(const T (&x1)[N], const T (&x2)[N], T (&out)[N]) 
   { return NVectOp<T,N,NVectFAdd<T,T>,NVectFAdd<const sseVecT<T>&,sseVecT<T>>>(x1,x2,out); }
-  template<typename T, int N> BSS_FORCEINLINE void BSS_FASTCALL NVectAdd(const T (&x1)[N], T x2, T (&out)[N]) 
+  template<typename T, int N> BSS_FORCEINLINE static void BSS_FASTCALL NVectAdd(const T (&x1)[N], T x2, T (&out)[N]) 
   { return NVectOp<T,N,NVectFAdd<T,T>,NVectFAdd<const sseVecT<T>&,sseVecT<T>>>(x1,x2,out); }
-  template<typename T, int N> BSS_FORCEINLINE void BSS_FASTCALL NVectSub(const T (&x1)[N], const T (&x2)[N], T (&out)[N]) 
+  template<typename T, int N> BSS_FORCEINLINE static void BSS_FASTCALL NVectSub(const T (&x1)[N], const T (&x2)[N], T (&out)[N]) 
   { return NVectOp<T,N,NVectFSub<T,T>,NVectFSub<const sseVecT<T>&,sseVecT<T>>>(x1,x2,out); }
-  template<typename T, int N> BSS_FORCEINLINE void BSS_FASTCALL NVectSub(const T (&x1)[N], T x2, T (&out)[N]) 
+  template<typename T, int N> BSS_FORCEINLINE static void BSS_FASTCALL NVectSub(const T (&x1)[N], T x2, T (&out)[N]) 
   { return NVectOp<T,N,NVectFSub<T,T>,NVectFSub<const sseVecT<T>&,sseVecT<T>>>(x1,x2,out); }
-  template<typename T, int N> BSS_FORCEINLINE void BSS_FASTCALL NVectMul(const T (&x1)[N], const T (&x2)[N], T (&out)[N]) 
+  template<typename T, int N> BSS_FORCEINLINE static void BSS_FASTCALL NVectMul(const T (&x1)[N], const T (&x2)[N], T (&out)[N]) 
   { return NVectOp<T,N,NVectFMul<T,T>,NVectFMul<const sseVecT<T>&,sseVecT<T>>>(x1,x2,out); }
-  template<typename T, int N> BSS_FORCEINLINE void BSS_FASTCALL NVectMul(const T (&x1)[N], T x2, T (&out)[N]) 
+  template<typename T, int N> BSS_FORCEINLINE static void BSS_FASTCALL NVectMul(const T (&x1)[N], T x2, T (&out)[N]) 
   { return NVectOp<T,N,NVectFMul<T,T>,NVectFMul<const sseVecT<T>&,sseVecT<T>>>(x1,x2,out); }
-  template<typename T, int N> BSS_FORCEINLINE void BSS_FASTCALL NVectDiv(const T (&x1)[N], const T (&x2)[N], T (&out)[N]) 
+  template<typename T, int N> BSS_FORCEINLINE static void BSS_FASTCALL NVectDiv(const T (&x1)[N], const T (&x2)[N], T (&out)[N]) 
   { return NVectOp<T,N,NVectFDiv<T,T>,NVectFDiv<const sseVecT<T>&,sseVecT<T>>>(x1,x2,out); }
-  template<typename T, int N> BSS_FORCEINLINE void BSS_FASTCALL NVectDiv(const T (&x1)[N], T x2, T (&out)[N]) 
+  template<typename T, int N> BSS_FORCEINLINE static void BSS_FASTCALL NVectDiv(const T (&x1)[N], T x2, T (&out)[N]) 
   { return NVectOp<T,N,NVectFDiv<T,T>,NVectFDiv<const sseVecT<T>&,sseVecT<T>>>(x1,x2,out); }
 
   // n-dimensional cross product
@@ -259,8 +259,8 @@ namespace bss_util {
     cRandomQueue(const cRandomQueue& copy) : cDynArray<ArrayType>(copy) {}
     cRandomQueue(cRandomQueue&& mov) : cDynArray<ArrayType>(std::move(mov)) {}
     explicit cRandomQueue(ST_ size=0): cDynArray<ArrayType>(size) {}
-    inline void Push(const T_& t) { Add(t); }
-    inline void Push(T_&& t) { Add(std::move(t)); }
+    inline void Push(const T_& t) { cDynArray<ArrayType>::Add(t); }
+    inline void Push(T_&& t) { cDynArray<ArrayType>::Add(std::move(t)); }
     inline T_ Pop() { ST_ i=RandFunc(0,_length); T_ r = std::move(_array[i]); Remove(i); return r; }
     inline void Remove(ST_ index) { _array[index]=std::move(_array[--_length]); }
     inline bool Empty() const { return !_length; }
@@ -344,7 +344,7 @@ namespace bss_util {
 
   // Randomly subdivides a rectangular area into smaller rects of varying size. F1 takes (depth,rect) and returns how likely it is that a branch will terminate.
   template<typename T, typename F1, typename F2, typename F3> // F2 takes (const float (&rect)[4]) and is called when a branch terminates on a rect.
-  void StochasticSubdivider(const T (&rect)[4], const F1& f1, const F2& f2, const F3& f3, unsigned int depth=0) // F3 returns a random number from [0,1]
+  static void StochasticSubdivider(const T (&rect)[4], const F1& f1, const F2& f2, const F3& f3, unsigned int depth=0) // F3 returns a random number from [0,1]
   {
     if(RANDFLOATGEN(0,1.0)<f1(depth,rect))
     {
@@ -362,14 +362,14 @@ namespace bss_util {
   }
 
   template<typename T>
-  BSS_FORCEINLINE size_t BSS_FASTCALL _PDS_imageToGrid(const std::array<T,2>& pt, T cell, size_t gw, T (&rect)[4])
+  BSS_FORCEINLINE static size_t BSS_FASTCALL _PDS_imageToGrid(const std::array<T,2>& pt, T cell, size_t gw, T (&rect)[4])
   {
     return (size_t)((pt[0]-rect[0]) / cell) + gw*(size_t)((pt[1]-rect[1]) / cell) + 2 + gw + gw;
   }
 
   // Implementation of Fast Poisson Disk Sampling by Robert Bridson
   template<typename T, typename F>
-  void PoissonDiskSample(T (&rect)[4], T mindist, F && f, uint pointsPerIteration=30)
+  static void PoissonDiskSample(T (&rect)[4], T mindist, F && f, uint pointsPerIteration=30)
   {
     //Create the grid
     T cell = mindist/(T)SQRT_TWO;
@@ -439,7 +439,7 @@ namespace bss_util {
 
   // Implementation of a uniform quadratic B-spline interpolation
   template<typename T, typename D>
-  static inline T BSS_FASTCALL UniformQuadraticBSpline(D t, const T& prev, const T& cur, const T& next)
+  inline static T BSS_FASTCALL UniformQuadraticBSpline(D t, const T& prev, const T& cur, const T& next)
   {
     D t2=t*t;
     return (prev*(1 - 2*t + t2) + cur*(1 + 2*t - 2*t2) + next*t2)*((D)0.5);
@@ -451,7 +451,7 @@ namespace bss_util {
   //                | -3  0  3  0 |       | p3 |
   //                \  1  4  1  0 /       \ p4 /
   template<typename T, typename D>
-  static inline T BSS_FASTCALL UniformCubicBSpline(D t, const T& p1, const T& p2, const T& p3, const T& p4)
+  inline static T BSS_FASTCALL UniformCubicBSpline(D t, const T& p1, const T& p2, const T& p3, const T& p4)
   {
     D t2=t*t;
     D t3=t2*t;
@@ -464,7 +464,7 @@ namespace bss_util {
   //                | -1  0  1  0 |       | p3 |
   //                \  0  2  0  0 /       \ p4 /
   template<typename T, typename D>
-  static inline T BSS_FASTCALL CubicBSpline(D t, const T& p1, const T& p2, const T& p3, const T& p4)
+  inline static T BSS_FASTCALL CubicBSpline(D t, const T& p1, const T& p2, const T& p3, const T& p4)
   {
     D t2=t*t;
     D t3=t2*t;

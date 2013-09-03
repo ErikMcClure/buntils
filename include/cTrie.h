@@ -26,7 +26,6 @@ namespace bss_util {
     typedef TRIE_NODE__<T> TNODE;
     using BASE::_array;
     using BASE::_size;
-    static inline char _CompTNode(const TNODE& t, const char& c) { return SGNCOMPARE(t.chr,c); }
 
   public:
     inline cTrie(cTrie&& mov) : cArraySimple<TNODE,T>(std::move(mov)) {}
@@ -56,7 +55,7 @@ namespace bss_util {
       while(c=*(word++))
       {
         if(cur->clen>1) // This is faster than a switch statement
-          r=binsearch_exact<TNODE,char,T,&_CompTNode>(cur,c,0,cur->clen);
+          r=binsearch_exact<TNODE,char,T,&cTrie::_CompTNode>(cur,c,0,cur->clen);
         else if(cur->clen==1)
           r=(T)-(cur->chr!=c);
         else
@@ -70,6 +69,7 @@ namespace bss_util {
     inline T operator[](const char* word) const { return Get(word); }
     inline cTrie& operator=(const cTrie& copy) { cArraySimple<TNODE,T>::operator=(copy); return *this; }
     inline cTrie& operator=(cTrie&& mov) { cArraySimple<TNODE,T>::operator=(std::move(mov)); return *this; }
+    static inline char _CompTNode(const TNODE& t, const char& c) { return SGNCOMPARE(t.chr,c); }
 
   protected:
     void BSS_FASTCALL _construct(T num, const char* const* initstr)

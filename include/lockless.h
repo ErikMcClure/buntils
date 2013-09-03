@@ -26,10 +26,10 @@ namespace bss_util {
 #pragma warning(push)
 #pragma warning(disable : 4793)
 
-#ifdef BSS_COMPILER_MSC
   // Enforces a CPU barrier to prevent any reordering attempts
-	BSS_FORCEINLINE void CPU_Barrier()
+	BSS_FORCEINLINE static void CPU_Barrier()
 	{
+#ifdef BSS_COMPILER_MSC
 #ifdef BSS_CPU_x86
 		__int32 Barrier;
 		__asm { /*lock*/ xchg Barrier, eax } //xchg locks itself if both operands are registers and blows up if you lock it anyway in a multiprocessor environment.
@@ -38,14 +38,11 @@ namespace bss_util {
 #elif defined(BSS_CPU_IA_64)
     __mf();
 #endif
-	}
 #elif defined(BSS_COMPILER_GCC)
-	BSS_FORCEINLINE void CPU_Barrier()
-	{
     __int32 Barrier = 0;
     __asm__ __volatile__("xchgl %%eax,%0 ":"=r" (Barrier));
-	}
 #endif
+	}
 #pragma warning(pop)
 
   template<typename T, int size>

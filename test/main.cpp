@@ -1353,7 +1353,7 @@ AniAttribute* BSS_FASTCALL cAbstractAnim::SpawnBase(const cDef<AniAttribute>& p)
 void* BSS_FASTCALL cAbstractAnim::AnimAlloc(size_t n, void* p) { return realloc(p,n); }
 void BSS_FASTCALL cAbstractAnim::AnimFree(void* p) { free(p); }
 
-template<> struct bss_util::ANI_IDTYPE<0> { typedef bss_util::ANI_IDTYPE_TYPES<cRefCounter*,void,bss_util::cAutoRef<cRefCounter>,char> TYPES; };
+namespace bss_util { template<> struct ANI_IDTYPE<0> { typedef ANI_IDTYPE_TYPES<cRefCounter*,void,cAutoRef<cRefCounter>,char> TYPES; }; }
 
 #include <memory>
 

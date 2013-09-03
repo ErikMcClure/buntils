@@ -158,9 +158,14 @@
 #endif
 
 // Debug detection
+#ifdef BSS_COMPILER_GCC
+#ifndef NDEBUG
+#define BSS_DEBUG
+#endif
+#else
 #if defined(DEBUG) || defined(_DEBUG)
 #define BSS_DEBUG
 #endif
-
+#endif
 
 #endif

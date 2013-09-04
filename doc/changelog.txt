@@ -47,6 +47,7 @@
 - Dropped support for command line arguments in cSetting (use updated cCmdLineArgs instead) and massively simplified the implementation
 - Fixed cBitArray and added tests
 - Added functional command line processing to cCmdLineArgs, along with the option of overloading the default command line parsing with a string.
+- Removed fFastDoubleRound and it's siblings, changed fFastRound to always use SSE2 instructions because they're faster, added fFastTruncate using SSE2 instructions (but if your compiler isn't stupid, it should use SSE automatically)
 
 0.4
 ------

@@ -11,9 +11,7 @@
 #else
 #include <iconv.h>
 #include <unistd.h> // for sysconf
-
-iconv_t iconv_utf8to16=0;
-iconv_t iconv_utf16to8=0;
+#include <cpuid.h>
 #endif
 
 BSS_COMPILER_DLLEXPORT 
@@ -28,8 +26,8 @@ extern union bssCPUInfo BSS_FASTCALL bssGetCPUInfo()
   __cpuid(info, 1);
 #elif defined(BSS_COMPILER_GCC)
   r.cores=sysconf(_SC_NPROCESSORS_ONLN);
-    asm volatile
-      ("cpuid" : "=a" (info[0]), "=b" (info[1]), "=c" (info[2]), "=d" (info[3]) : "a" (1), "c" (0));
+  __get_cpuid(1,info+0,info+1,info+2,info+3);
+    //asm volatile ("cpuid" : "=a" (info[0]), [ebx] "=r" (info[1]), "=c" (info[2]), "=d" (info[3]) : "a" (1), "c" (0));
 #endif
     
   if(info[3]&T_GETBIT(int,23)) // MMX
@@ -56,8 +54,12 @@ extern union bssCPUInfo BSS_FASTCALL bssGetCPUInfo()
     assert(r.SSE==7);
     r.SSE=8;
   }
-  r.flags|=(((info[2]&T_GETBIT(int,13))!=0)<<0); // cmpxchg16b support
-  r.flags|=(((info[2]&T_GETBIT(int,6))!=0)<<1); // SSE4a support
+  r.flags|=(((info[3]&T_GETBIT(int,8))!=0)<<0); // cmpxchg8b support
+  r.flags|=(((info[2]&T_GETBIT(int,13))!=0)<<1); // cmpxchg16b support
+  r.flags|=(((info[2]&T_GETBIT(int,6))!=0)<<2); // SSE4a support
+  r.flags|=(((info[3]&T_GETBIT(int,15))!=0)<<3); // cmov support
+  r.flags|=(((info[3]&T_GETBIT(int,19))!=0)<<4); // CFLUSH support
+  r.flags|=(((info[2]&T_GETBIT(int,23))!=0)<<5); // POPCNT support
   return r;
 }
 
@@ -145,6 +147,7 @@ extern size_t BSS_FASTCALL UTF8toUTF16(const char*BSS_RESTRICT input,wchar_t*BSS
 #ifdef BSS_PLATFORM_WIN32
   return (size_t)MultiByteToWideChar(CP_UTF8, 0, input, -1, output, !output?0:buflen);
 #else
+  static iconv_t iconv_utf8to16=0;
   size_t len = strlen(input);
   char* out = (char*)output;
   if(!output) return (len*4) + 1;
@@ -321,6 +324,7 @@ extern size_t BSS_FASTCALL UTF16toUTF8(const wchar_t*BSS_RESTRICT input, char*BS
 #ifdef BSS_PLATFORM_WIN32
   return (size_t)WideCharToMultiByte(CP_UTF8, 0, input, -1, output, !output?0:buflen, NULL, NULL);
 #else
+  static iconv_t iconv_utf16to8=0;
   size_t len = wcslen(input)*2;
   char* in = (char*)input;
   if(!output) return (len*2) + 1;

@@ -27,7 +27,7 @@ union bssCPUInfo {
   struct {
     unsigned short cores; // Number of logical cores (not physical cores). If you need more than 65535 cores, you're apparently using code written in 2013 in the year 2080, so stop being a douchebag and upgrade already.
     unsigned char SSE; // 1: Supports MMX, 2: Supports SSE+MMX, 3: up to SSE2, 4: SSE3, 5: SSSE3, 6: SSE4.1, 7: SSE4.2, 8: AVX, 9: AVX2
-    unsigned int flags; // 1 - supports cmpxchg16b, 2 - supports AMD SSE4a
+    unsigned int flags; // 1 - supports CMPXCHG8b, 2 - supports CMPXCHG16b, 4 - supports AMD SSE4a, 8 - supports CMOV, 16 - supports CFLUSH, 32 - supports POPCNT
   };
   unsigned __int64 _raw;
 };

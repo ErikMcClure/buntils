@@ -241,36 +241,26 @@ namespace bss_util {
     return fmod(a - b - ((T)PI), (T)PI_DOUBLE) + ((T)PI);
   }
 
-  /* Directly calls the fistp function for float to int rounding. Because the FPU tends to be a rounding mode that doesn't clamp to 0, this
-     will usually round the float to the nearest integer instead of simply chopping off the decimal. This usually takes 6 cycles, compared
-     to the 80 or so cycles caused by a normal float to int cast, and works in any precision. */
-  template<typename T> //T must be either float or double or you need to stop programming when you're high
-  BSS_FORCEINLINE static __int32 fFastRound(T f)
+  // Smart compilers will use SSE2 instructions to eliminate the massive overhead of int -> float conversions. This uses SSE2 instructions
+  // to round a float to an integer using whatever the rounding mode currently is (usually it will be round-to-nearest)
+  BSS_FORCEINLINE static __int32 fFastRound(float f)
   {
-    static_assert(std::is_floating_point<T>::value,"T must be float, double, or long double");
-#if defined(BSS_CPU_x86) || defined(BSS_CPU_x86_64) || defined(BSS_CPU_IA_64)
-#ifdef BSS_COMPILER_GCC
-	  __int32 retval;
-    __asm__("fld %1\n\t"
-            "fistp %0\n\t"
-            : "=m" (retval) //outputs
-            : "f" (f)); //inputs
-	  return retval;
-#elif defined(BSS_COMPILER_MSC)
-#ifdef BSS_CPU_x86
-	  __int32 retval;
-	  __asm fld f
-	  __asm fistp retval
-	  return retval;
-#else // defined(BSS_CPU_x86_64) || defined(BSS_CPU_IA_64)
-    return _mm_cvt_ss2si(_mm_load_ss(&f)); // HACK: Non-optimal workaround for MSC idiocy
-#endif
-#else
-    return (__int32)f;
-#endif
-#else
-    return (__int32)f;
-#endif
+    return _mm_cvt_ss2si(_mm_load_ss(&f));
+  }
+
+  BSS_FORCEINLINE static __int32 fFastRound(double f)
+  {
+    return _mm_cvtsd_si32(_mm_load_sd(&f));
+  }
+
+  BSS_FORCEINLINE static __int32 fFastTruncate(float f)
+  {
+    return _mm_cvtt_ss2si(_mm_load_ss(&f));
+  }
+
+  BSS_FORCEINLINE static __int32 fFastTruncate(double f)
+  {
+    return _mm_cvttsd_si32(_mm_load_sd(&f));
   }
 
   // Returns true if FPU is in single precision mode and false otherwise (false for both double and extended precision)
@@ -281,11 +271,7 @@ namespace bss_util {
 #ifdef BSS_COMPILER_GCC
     __asm__ __volatile__ ("fnstcw %0" : "=m" (i));
 #elif defined(BSS_COMPILER_MSC)
-#ifdef BSS_CPU_x86
-    __asm fnstcw i;
-#else // defined(BSS_CPU_x86_64) || defined(BSS_CPU_IA_64)
     i=_mm_getcsr();
-#endif
 #endif
     return ((i&(0x0300))==0); //0x0300 is the mask for the precision bits, 0 indicates single precision
 #else
@@ -293,8 +279,8 @@ namespace bss_util {
 #endif
   }
 
-  // Extremely fast rounding function that again will usually round to the nearest integer, but only works in double precision mode
-  BSS_FORCEINLINE static __int32 fFastDoubleRound(double val)
+  // Extremely fast rounding function that truncates properly, but only works in double precision mode; see http://stereopsis.com/FPU.html
+  /*BSS_FORCEINLINE static __int32 fFastDoubleRound(double val)
   {
     const double _double2fixmagic = 4503599627370496.0*1.5; //2^52 for 52 bits of mantissa
     assert(!FPUsingle());
@@ -303,8 +289,8 @@ namespace bss_util {
   }
   BSS_FORCEINLINE static __int32 fFastDoubleRound(float val) { return fFastDoubleRound((double)val); }
 
-  /* Single precision version of the above function. While precision problems are mostly masked in the above function by limiting it to
-    __int32, in this function they are far more profound due to there only being 24 bits of mantissa to work with. Use with caution. */
+  // Single precision version of the above function. While precision problems are mostly masked in the above function by limiting it to
+  // __int32, in this function they are far more profound due to there only being 24 bits of mantissa to work with. Use with caution. 
   BSS_FORCEINLINE static __int32 fFastSingleRound(double val)
   {
     const double _single2fixmagic = 16777216.0*1.5; //2^24 for 24 bits of mantissa
@@ -312,10 +298,10 @@ namespace bss_util {
 	  val		= val + _single2fixmagic;
 	  return (__int32)(((((unsigned __int64*)&val)[0])&0xFFFFF0000000)>>28);
   }
-  BSS_FORCEINLINE static __int32 fFastSingleRound(float val) { return fFastSingleRound((double)val); }
+  BSS_FORCEINLINE static __int32 fFastSingleRound(float val) { return fFastSingleRound((double)val); } */
 
-	/* This is a super fast floating point comparison function with a significantly higher tolerance and no
-		 regard towards the size of the floats. */
+	// This is a super fast floating point comparison function with a significantly higher tolerance and no
+	// regard towards the size of the floats.
 	inline static bool BSS_FASTCALL fwidecompare(float fleft, float fright)
 	{
 		__int32 left = *(__int32*)(&fleft); //This maps our float to an int so we can do bitshifting operations on it

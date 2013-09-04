@@ -117,39 +117,21 @@ namespace bss_util {
   struct ASMCAS_REGPICK_WRITE { };
   
 #ifdef BSS_COMPILER_GCC
-/*#define ASMCAS_REGPICK_MACRO(SIZE,INSTR) \
-  template<typename T> struct ASMCAS_REGPICK_WRITE<T,SIZE> { \
-    inline static unsigned char BSS_FORCEINLINE BSS_FASTCALL asmcas(volatile T *pval, T newval, T oldval) \
-    { \
-      unsigned char result; \
-      __asm__ __volatile__("lock; INSTR %3, %2\n\t" \
-        "sete %1" \
-        : "+a"(oldval), "=q"(result), "+m"(*pval) : "r"(newval) : "memory"); \
-      return result; \
-    } \
-  }
-
-  ASMCAS_REGPICK_MACRO(1,cmpxchgb);
-  ASMCAS_REGPICK_MACRO(2,cmpxchgw);
-  ASMCAS_REGPICK_MACRO(4,cmpxchgl);
-#ifdef BSS_CPU_x86_64
-  ASMCAS_REGPICK_MACRO(8,cmpxchgq);
-#endif*/
   template<typename T> struct ASMCAS_REGPICK_WRITE<T,1> { 
-    BSS_FORCEINLINE static  unsigned char BSS_FASTCALL asmcas(volatile T *dest, T newval, T oldval) { return __sync_val_compare_and_swap((volatile char*)dest,*(__int8*)&oldval, *(__int8*)&newval)==*(__int8*)&oldval; } 
+    BSS_FORCEINLINE static  unsigned char BSS_FASTCALL asmcas(volatile T *dest, T newval, T oldval) { return __sync_bool_compare_and_swap((volatile char*)dest,*(__int8*)&oldval, *(__int8*)&newval)!=0; } 
   };
   template<typename T> struct ASMCAS_REGPICK_WRITE<T,2> { 
-    BSS_FORCEINLINE static unsigned char BSS_FASTCALL asmcas(volatile T *dest, T newval, T oldval) { return __sync_val_compare_and_swap((volatile short*)dest,*(__int16*)&oldval, *(__int16*)&newval)==*(__int16*)&oldval; } 
+    BSS_FORCEINLINE static unsigned char BSS_FASTCALL asmcas(volatile T *dest, T newval, T oldval) { return __sync_bool_compare_and_swap((volatile short*)dest,*(__int16*)&oldval, *(__int16*)&newval)!=0; } 
   };
   template<typename T> struct ASMCAS_REGPICK_WRITE<T,4> { 
-    BSS_FORCEINLINE static unsigned char BSS_FASTCALL asmcas(volatile T *dest, T newval, T oldval) { return __sync_val_compare_and_swap((volatile long*)dest,*(__int32*)&oldval, *(__int32*)&newval)==*(__int32*)&oldval; } 
+    BSS_FORCEINLINE static unsigned char BSS_FASTCALL asmcas(volatile T *dest, T newval, T oldval) { return __sync_bool_compare_and_swap((volatile long*)dest,*(__int32*)&oldval, *(__int32*)&newval)!=0; } 
   };
   template<typename T> struct ASMCAS_REGPICK_WRITE<T,8> { 
-    BSS_FORCEINLINE static unsigned char BSS_FASTCALL asmcas(volatile T *dest, T newval, T oldval) { return __sync_val_compare_and_swap((volatile long long*)dest,*(__int64*)&oldval, *(__int64*)&newval)==*(__int64*)&oldval; } 
+    BSS_FORCEINLINE static unsigned char BSS_FASTCALL asmcas(volatile T *dest, T newval, T oldval) { return __sync_bool_compare_and_swap((volatile long long*)dest,*(__int64*)&oldval, *(__int64*)&newval)!=0; } 
   };
 #ifdef BSS_64BIT
   template<typename T> struct ASMCAS_REGPICK_WRITE<T,16> { 
-    BSS_FORCEINLINE static unsigned char BSS_FASTCALL asmcas(volatile T *dest, T newval, T oldval) { return __sync_val_compare_and_swap((volatile __int128*)dest,*(__int128*)&oldval, *(__int128*)&newval)==*(__int128*)&oldval; } 
+    BSS_FORCEINLINE static unsigned char BSS_FASTCALL asmcas(volatile T *dest, T newval, T oldval) { return __sync_bool_compare_and_swap((volatile __int128*)dest,*(__int128*)&oldval, *(__int128*)&newval)!=0; } 
   };
 #endif
 #else

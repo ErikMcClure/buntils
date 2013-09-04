@@ -211,9 +211,12 @@ TESTDEF::RETPAIR test_bss_util_c()
 
   bssCPUInfo info = bssGetCPUInfo();
   TEST(info.cores>0);
-  TEST(info.SSE>2); // You'd better support at least SSE
-  TEST(info.flags&1); // You also have to support cmpxchg16b or lockless.h will explode
-
+  TEST(info.SSE>2); // You'd better support at least SSE2
+#ifdef BSS_64BIT
+  TEST(info.flags&2); // You also have to support cmpxchg16b or lockless.h will explode
+#else
+  TEST(info.flags&1); // You also have to support cmpxchg8b or lockless.h will explode
+#endif
   TEST(!strhex("0"));
   TEST(!strhex("z"));
   TEST(strhex("a")==10);
@@ -565,18 +568,55 @@ TESTDEF::RETPAIR test_bss_util()
     if(FastSqrt(nmatch)!=(uint)sqrtl(nmatch))
       break;
   TEST(nmatch==200000);
+  
+  /*static const int NUM=100000;
+  float _numrand[NUM];
+  for(uint i = 0; i < NUM; ++i)
+    _numrand[i]=RANDFLOATGEN(0,100.0f);
+
+  int add=0;
+  unsigned char prof = _debug.OpenProfiler();
+  CPU_Barrier();
+  for(uint i = 0; i < NUM; ++i)
+    //add+=(int)_numrand[i];
+    add+=fFastTruncate(_numrand[i]);
+  CPU_Barrier();
+  auto res = _debug.CloseProfiler(prof);
+  double avg = res/(double)NUM;
+  TEST(add>-1);
+  std::cout << "\n" << avg << std::endl;*/
 
   TEST(fFastRound(5.0f)==5);
-  TEST(fFastRound(5.0000000001f)==5);
-  TEST(fFastRound(4.999999999f)==5);
+  TEST(fFastRound(5.000001f)==5);
+  TEST(fFastRound(4.999999f)==5);
+  TEST(fFastRound(4.500001f)==5);
   TEST(fFastRound(4.5f)==4);
   TEST(fFastRound(5.5f)==6);
   TEST(fFastRound(5.9f)==6);
+  TEST(fFastRound(5.0)==5);
+  TEST(fFastRound(5.000000000)==5);
+  TEST(fFastRound(4.999999999)==5);
+  TEST(fFastRound(4.500001)==5);
+  TEST(fFastRound(4.5)==4);
+  TEST(fFastRound(5.5)==6);
+  TEST(fFastRound(5.9)==6);
+  TEST(fFastTruncate(5.0f)==5);
+  TEST(fFastTruncate(5.000001f)==5);
+  TEST(fFastTruncate(4.999999f)==4);
+  TEST(fFastTruncate(4.5f)==4);
+  TEST(fFastTruncate(5.5f)==5);
+  TEST(fFastTruncate(5.9f)==5);
+  TEST(fFastTruncate(5.0)==5);
+  TEST(fFastTruncate(5.000000000)==5);
+  TEST(fFastTruncate(4.999999999)==4);
+  TEST(fFastTruncate(4.5)==4);
+  TEST(fFastTruncate(5.5)==5);
+  TEST(fFastTruncate(5.9)==5);
 
-  TEST(fFastDoubleRound(5.0)==(int)5.0);
-  TEST(fFastDoubleRound(5.0000000001f)==(int)5.0000000001f);
-  TEST(fFastDoubleRound(4.999999999f)==(int)4.999999999f);
-  TEST(fFastDoubleRound(4.5f)==(int)4.5f);
+  //TEST(fFastDoubleRound(5.0)==(int)5.0);
+  //TEST(fFastDoubleRound(5.0000000001f)==(int)5.0000000001f);
+  //TEST(fFastDoubleRound(4.999999999f)==(int)4.999999999f);
+  //TEST(fFastDoubleRound(4.5f)==(int)4.5f);
   //TEST(fFastDoubleRound(5.9f)==(int)5.9f); //This test fails, so don't use fFastDoubleRound for precision-critical anything.
 
   TEST(fcompare(distsqr(2.0f,2.0f,5.0f,6.0f),25.0f));
@@ -1273,7 +1313,7 @@ TESTDEF::RETPAIR test_ALIASTABLE()
   for(uint i = 0; i < 7; ++i)
     real[i]=counts[i]/10000000.0;
   for(uint i = 0; i < 7; ++i)
-    TEST(fcompare(p[i],real[i],(1LL<<43)));
+    TEST(fcompare(p[i],real[i],(1LL<<44)));
 
   ENDTEST;
 }

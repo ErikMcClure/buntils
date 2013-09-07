@@ -22,12 +22,16 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 THE SOFTWARE.
 */
 
-#ifndef SHINY_H
-#define SHINY_H
+#ifndef SHINY_VERSION_H
+#define SHINY_VERSION_H
+
 
 /*---------------------------------------------------------------------------*/
 
-#include "Shiny/ShinyMacros.h"
-#include "Shiny/ShinyManager.h"
+#define SHINY_VERSION			"2.6 RC1"
+#define SHINY_SHORTNAME			"Shiny"
+#define SHINY_FULLNAME			"Shiny Profiler"
+#define SHINY_COPYRIGHT			"Copyright (C) 2007-2010 Aidin Abedi"
+#define SHINY_DESCRIPTION		"Shiny is a state of the art profiler designed to help finding bottlenecks in your project."
 
 #endif /* end of include guard */

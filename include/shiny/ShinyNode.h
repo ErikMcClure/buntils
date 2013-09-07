@@ -1,24 +1,25 @@
 /*
-The zlib/libpng License
+The MIT License
 
-Copyright (c) 2007 Aidin Abedi (www.*)
+Copyright (c) 2007-2010 Aidin Abedi http://code.google.com/p/shinyprofiler/
 
-This software is provided 'as-is', without any express or implied warranty. In no event will
-the authors be held liable for any damages arising from the use of this software.
+Permission is hereby granted, free of charge, to any person obtaining a copy
+of this software and associated documentation files (the "Software"), to deal
+in the Software without restriction, including without limitation the rights
+to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+copies of the Software, and to permit persons to whom the Software is
+furnished to do so, subject to the following conditions:
 
-Permission is granted to anyone to use this software for any purpose, including commercial 
-applications, and to alter it and redistribute it freely, subject to the following
-restrictions:
+The above copyright notice and this permission notice shall be included in
+all copies or substantial portions of the Software.
 
-    1. The origin of this software must not be misrepresented; you must not claim that 
-       you wrote the original software. If you use this software in a product, 
-       an acknowledgment in the product documentation would be appreciated but is 
-       not required.
-
-    2. Altered source versions must be plainly marked as such, and must not be 
-       misrepresented as being the original software.
-
-    3. This notice may not be removed or altered from any source distribution.
+THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
+THE SOFTWARE.
 */
 
 #ifndef SHINY_NODE_H
@@ -27,81 +28,117 @@ restrictions:
 #include "ShinyData.h"
 #include "ShinyTools.h"
 
-#if SHINY_PROFILER == TRUE
-namespace Shiny {
+
+#if SHINY_IS_COMPILED == TRUE
+
+#ifdef __cplusplus
+extern "C" {
+#endif
 
 
-//-----------------------------------------------------------------------------
+/*---------------------------------------------------------------------------*/
 
-	struct ProfileNode {
+typedef struct _ShinyNode {
 
-		//NOTE: data-members are intentionally public because the
-		//		class needs to fulfil the definition of an aggregate
+	ShinyLastData _last;
+
+	struct _ShinyZone* zone;
+	struct _ShinyNode* parent;
+	struct _ShinyNode* nextSibling;
+
+	struct _ShinyNode* firstChild;
+	struct _ShinyNode* lastChild;
+
+	uint32_t childCount;
+	uint32_t entryLevel;
+
+	ShinyNodeCache* _cache;
+
+	ShinyData data;
+
+} ShinyNode;
 
 
-		ProfileLastData _last;
+/*---------------------------------------------------------------------------*/
 
-		ProfileZone* zone;
-		ProfileNode* parent;
-		ProfileNode* nextSibling;
+SHINY_API ShinyNode _ShinyNode_dummy;
 
-		ProfileNode* firstChild;
-		ProfileNode* lastChild;
 
-		uint32_t childCount;
-		uint32_t entryLevel;
+/*---------------------------------------------------------------------------*/
 
-		ProfileNodeCache* _cache;
 
-		ProfileData data;
+SHINY_INLINE void ShinyNode_addChild(ShinyNode* self,  ShinyNode* a_child) {
+	if (self->childCount++) {
+		self->lastChild->nextSibling = a_child;
+		self->lastChild = a_child;
 
-		static ProfileNode _dummy;
+	} else {
+		self->lastChild = a_child;
+		self->firstChild = a_child;
+	}
+}
 
-		//
+SHINY_INLINE void ShinyNode_init(ShinyNode* self, ShinyNode* a_parent, struct _ShinyZone* a_zone, ShinyNodeCache* a_cache) {
+	/* NOTE: all member variables are assumed to be zero when allocated */
 
-		void init(ProfileNode* a_parent, ProfileZone* a_zone, ProfileNodeCache* a_cache) {
-			// NOTE: all member variables are assumed to be zero when allocated
+	self->zone = a_zone;
+	self->parent = a_parent;
 
-			zone = a_zone;
-			parent = a_parent;
+	self->entryLevel = a_parent->entryLevel + 1;
+	ShinyNode_addChild(a_parent, self);
 
-			entryLevel = a_parent->entryLevel + 1;
-			a_parent->addChild(this);
+	self->_cache = a_cache;
+}
 
-			_cache = a_cache;
-		}
+SHINY_API void ShinyNode_updateTree(ShinyNode* self, float a_damping);
+SHINY_API void ShinyNode_updateTreeClean(ShinyNode* self);
 
-		void addChild(ProfileNode* a_child) {
-			if (childCount++) {
-				lastChild->nextSibling = a_child;
-				lastChild = a_child;
+SHINY_INLINE void ShinyNode_destroy(ShinyNode* self) {
+	*(self->_cache) = &_ShinyNode_dummy;
+}
 
-			} else {
-				lastChild = a_child;
-				firstChild = a_child;
-			}
-		}
+SHINY_INLINE void ShinyNode_appendTicks(ShinyNode* self, shinytick_t a_elapsedTicks) {
+	self->_last.selfTicks += a_elapsedTicks;
+}
 
-		void updateTree(float a_damping);
+SHINY_INLINE void ShinyNode_beginEntry(ShinyNode* self) {
+	self->_last.entryCount++;
+}
 
-		void destroy(void) { *_cache = &_dummy; }
+SHINY_INLINE int ShinyNode_isRoot(ShinyNode* self) {
+	return (self->entryLevel == 0);
+}
 
-		SHINY_INLINE void appendTicks(tick_t a_elapsedTicks) { _last.selfTicks += a_elapsedTicks; }
-		SHINY_INLINE void beginEntry(void) { _last.entryCount++; }
+SHINY_INLINE int ShinyNode_isDummy(ShinyNode* self) {
+	return (self == &_ShinyNode_dummy);
+}
 
-		bool isRoot(void) const { return (entryLevel == 0); }
-		bool isDummy(void) const { return (this == &_dummy); }
+SHINY_INLINE int ShinyNode_isEqual(ShinyNode* self, const ShinyNode* a_parent, const struct _ShinyZone* a_zone) {
+	return (self->parent == a_parent && self->zone == a_zone);
+}
 
-		bool isEqual(const ProfileNode* a_parent, const ProfileZone* a_zone) const {
-			return (parent == a_parent && zone == a_zone);
-		}
+SHINY_API const ShinyNode* ShinyNode_findNextInTree(const ShinyNode* self);
 
-		const ProfileNode* findNextInTree(void) const;
+SHINY_API void ShinyNode_clear(ShinyNode* self);
 
-		void clear(void);
-	};
+SHINY_API void ShinyNode_enumerateNodes(const ShinyNode* a_node, void (*a_func)(const ShinyNode*));
 
-} // namespace Shiny
-#endif // if SHINY_PROFILER == TRUE
 
-#endif // ifndef SHINY_*_H
+#ifdef __cplusplus
+} /* end of extern "C" */
+
+
+template <class T>
+void ShinyNode_enumerateNodes(const ShinyNode* a_node, T* a_this, void (T::*a_func)(const ShinyNode*)) {
+	(a_this->*a_func)(a_node);
+
+	if (a_node->firstChild) ShinyNode_enumerateNodes(a_node->firstChild, a_this, a_func);
+	if (a_node->nextSibling) ShinyNode_enumerateNodes(a_node->nextSibling, a_this, a_func);
+}
+
+
+#endif /* end of c++ */
+
+#endif /* if SHINY_IS_COMPILED == TRUE */
+
+#endif /* end of include guard */

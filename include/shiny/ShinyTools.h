@@ -1,24 +1,25 @@
 /*
-The zlib/libpng License
+The MIT License
 
-Copyright (c) 2007 Aidin Abedi (www.*)
+Copyright (c) 2007-2010 Aidin Abedi http://code.google.com/p/shinyprofiler/
 
-This software is provided 'as-is', without any express or implied warranty. In no event will
-the authors be held liable for any damages arising from the use of this software.
+Permission is hereby granted, free of charge, to any person obtaining a copy
+of this software and associated documentation files (the "Software"), to deal
+in the Software without restriction, including without limitation the rights
+to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+copies of the Software, and to permit persons to whom the Software is
+furnished to do so, subject to the following conditions:
 
-Permission is granted to anyone to use this software for any purpose, including commercial 
-applications, and to alter it and redistribute it freely, subject to the following
-restrictions:
+The above copyright notice and this permission notice shall be included in
+all copies or substantial portions of the Software.
 
-    1. The origin of this software must not be misrepresented; you must not claim that 
-       you wrote the original software. If you use this software in a product, 
-       an acknowledgment in the product documentation would be appreciated but is 
-       not required.
-
-    2. Altered source versions must be plainly marked as such, and must not be 
-       misrepresented as being the original software.
-
-    3. This notice may not be removed or altered from any source distribution.
+THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
+THE SOFTWARE.
 */
 
 #ifndef SHINY_TOOLS_H
@@ -27,44 +28,34 @@ restrictions:
 #include "ShinyPrereqs.h"
 
 
-namespace Shiny {
+#ifdef __cplusplus
+extern "C" {
+#endif
 
 
-//-----------------------------------------------------------------------------
+/*---------------------------------------------------------------------------*/
 
-	struct TimeUnit {
-		float tickFreq;
-		float invTickFreq;
-		const char* suffix;
-	};
-
-	const TimeUnit* GetTimeUnit(float ticks);
+typedef struct {
+	float tickFreq;
+	float invTickFreq;
+	const char* suffix;
+} ShinyTimeUnit;
 
 
-//-----------------------------------------------------------------------------
-
-	void GetTicks(tick_t *p);
-
-	tick_t GetTickFreq(void);
-
-	float GetTickInvFreq(void);
+/*---------------------------------------------------------------------------*/
 
 
-//-----------------------------------------------------------------------------
+SHINY_API const ShinyTimeUnit* ShinyGetTimeUnit(float ticks);
 
-//#if SHINY_COMPILER == SHINY_COMPILER_MSVC
-//#	pragma warning(disable: 4311)
-//#endif
-//
-//	inline uint32_t ptr32(const void *a_Ptr) {
-//    return reinterpret_cast<uint32_t>(a_Ptr);
-//	}
-//
-//#if SHINY_COMPILER == SHINY_COMPILER_MSVC
-//#	pragma warning(default: 4311)
-//#endif
-//
+SHINY_API void ShinyGetTicks(shinytick_t *p);
 
-} // namespace Shiny
+SHINY_API shinytick_t ShinyGetTickFreq(void);
 
-#endif // ifndef SHINY_*_H
+SHINY_API float ShinyGetTickInvFreq(void);
+
+
+#ifdef __cplusplus
+} /* end of extern "C" */
+#endif
+
+#endif /* end of include guard */

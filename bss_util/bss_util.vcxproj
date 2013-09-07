@@ -108,6 +108,18 @@
     <ClInclude Include="..\include\lockless.h" />
     <ClInclude Include="..\include\os.h" />
     <ClInclude Include="..\include\Shiny.h" />
+    <ClInclude Include="..\include\shiny\ShinyConfig.h" />
+    <ClInclude Include="..\include\shiny\ShinyData.h" />
+    <ClInclude Include="..\include\shiny\ShinyMacros.h" />
+    <ClInclude Include="..\include\shiny\ShinyManager.h" />
+    <ClInclude Include="..\include\shiny\ShinyNode.h" />
+    <ClInclude Include="..\include\shiny\ShinyNodePool.h" />
+    <ClInclude Include="..\include\shiny\ShinyNodeState.h" />
+    <ClInclude Include="..\include\shiny\ShinyOutput.h" />
+    <ClInclude Include="..\include\shiny\ShinyPrereqs.h" />
+    <ClInclude Include="..\include\shiny\ShinyTools.h" />
+    <ClInclude Include="..\include\shiny\ShinyVersion.h" />
+    <ClInclude Include="..\include\shiny\ShinyZone.h" />
     <ClInclude Include="..\include\StreamSplitter.h" />
   </ItemGroup>
   <ItemGroup>
@@ -121,11 +133,13 @@
     <ClCompile Include="cINIsection.cpp" />
     <ClCompile Include="cINIstorage.cpp" />
     <ClCompile Include="INIParser.c" />
-    <ClCompile Include="ShinyManager.cpp" />
-    <ClCompile Include="ShinyNode.cpp" />
-    <ClCompile Include="ShinyNodePool.cpp" />
-    <ClCompile Include="ShinyOutput.cpp" />
-    <ClCompile Include="ShinyTools.cpp" />
+    <ClCompile Include="ShinyManager.c" />
+    <ClCompile Include="ShinyNode.c" />
+    <ClCompile Include="ShinyNodePool.c" />
+    <ClCompile Include="ShinyNodeState.c" />
+    <ClCompile Include="ShinyOutput.c" />
+    <ClCompile Include="ShinyTools.c" />
+    <ClCompile Include="ShinyZone.c" />
   </ItemGroup>
   <ItemGroup>
     <ResourceCompile Include="bss_util.rc" />
@@ -390,7 +404,7 @@
       <OmitFramePointers>true</OmitFramePointers>
       <EnableFiberSafeOptimizations>true</EnableFiberSafeOptimizations>
       <AdditionalIncludeDirectories>../include;../include/shiny;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
-      <PreprocessorDefinitions>WIN32;NDEBUG;_WINDOWS;_USRDLL;BSS_STATIC_LIB;BSS_UTIL_EXPORTS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <PreprocessorDefinitions>WIN32;NDEBUG;_WINDOWS;BSS_STATIC_LIB;BSS_UTIL_EXPORTS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <RuntimeLibrary>MultiThreaded</RuntimeLibrary>
       <FunctionLevelLinking>true</FunctionLevelLinking>
       <PrecompiledHeader>
@@ -413,7 +427,7 @@
       <OmitFramePointers>true</OmitFramePointers>
       <EnableFiberSafeOptimizations>true</EnableFiberSafeOptimizations>
       <AdditionalIncludeDirectories>../include;../include/shiny;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
-      <PreprocessorDefinitions>WIN32;NDEBUG;_WINDOWS;_USRDLL;BSS_STATIC_LIB;BSS_UTIL_EXPORTS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <PreprocessorDefinitions>WIN32;NDEBUG;_WINDOWS;BSS_STATIC_LIB;BSS_UTIL_EXPORTS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <RuntimeLibrary>MultiThreaded</RuntimeLibrary>
       <FunctionLevelLinking>true</FunctionLevelLinking>
       <PrecompiledHeader>
@@ -432,7 +446,7 @@
       <Optimization>Disabled</Optimization>
       <FavorSizeOrSpeed>Neither</FavorSizeOrSpeed>
       <AdditionalIncludeDirectories>../include;../include/shiny;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
-      <PreprocessorDefinitions>WIN32;_DEBUG;_WINDOWS;_USRDLL;BSS_UTIL_EXPORTS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <PreprocessorDefinitions>WIN32;_DEBUG;_WINDOWS;BSS_STATIC_LIB;BSS_UTIL_EXPORTS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <RuntimeLibrary>MultiThreadedDebug</RuntimeLibrary>
       <FunctionLevelLinking>true</FunctionLevelLinking>
       <PrecompiledHeader>
@@ -451,7 +465,7 @@
       <Optimization>Disabled</Optimization>
       <FavorSizeOrSpeed>Neither</FavorSizeOrSpeed>
       <AdditionalIncludeDirectories>../include;../include/shiny;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
-      <PreprocessorDefinitions>WIN32;_DEBUG;_WINDOWS;_USRDLL;BSS_UTIL_EXPORTS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <PreprocessorDefinitions>WIN32;_DEBUG;_WINDOWS;BSS_STATIC_LIB;BSS_UTIL_EXPORTS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <RuntimeLibrary>MultiThreadedDebug</RuntimeLibrary>
       <FunctionLevelLinking>true</FunctionLevelLinking>
       <PrecompiledHeader>

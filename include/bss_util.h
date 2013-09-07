@@ -22,13 +22,11 @@
 #include <math.h>
 #include <memory>
 #include <cstring> // for memcmp
+#include <emmintrin.h> // for SSE intrinsics
 //#include <type_traits>
 //#include <utility>
 #ifdef BSS_COMPILER_GCC
 #include <stdlib.h> // For abs(int) on GCC
-#endif
-#ifdef BSS_MSC_NOASM
-#include <intrin.h>
 #endif
 
 namespace bss_util { 
@@ -91,6 +89,8 @@ namespace bss_util {
   inline static T BSS_FASTCALL GetBitMask(int bit) { return T_GETBIT(T,bit); }
   template<class T>
   inline static T BSS_FASTCALL GetBitMask(int low, int high) { return T_GETBITRANGE(T,low,high); }
+  template<class T>
+  inline static T BSS_FASTCALL bssSetBit(T word, T bit, bool value) { return T_SETBIT(word,bit,value); }
 
   // Replaces one character with another in a string
   template<typename T>

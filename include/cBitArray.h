@@ -5,28 +5,11 @@
 #define __C_BITARRAY_H__BSS__
 
 #include "cArraySimple.h"
-#include "bss_deprecated.h"
 #include "bss_util.h"
+#include "cBitField.h"
 
 namespace bss_util
 {
-  template<class ST_>
-	struct _BIT_REF // reference to a bit within a base word
-	{	
-    inline _BIT_REF(ST_* p, ST_ off) : _p(p), _m(1<<off) {}
-    BSS_FORCEINLINE void flip() { *_p ^= _m; }
-
-    BSS_FORCEINLINE bool operator~() const { return operator!(); }
-    BSS_FORCEINLINE bool operator!() const { return !((*_p)&_m); }
-	  BSS_FORCEINLINE operator bool() const {	return ((*_p)&_m) != 0; }
-    BSS_FORCEINLINE _BIT_REF& operator=(const _BIT_REF& r) { return operator=((bool)r); }
-    BSS_FORCEINLINE _BIT_REF& operator=(bool r) { *_p = r?((*_p)|_m):((*_p)&(~_m));  return *this; }
-
-  protected:
-    ST_* _p;
-    ST_ _m;
-	};
-
   // Extremely fast bit array for compressed storage of any number of bools. O(1) speed for access regardless of size.
   template<typename StorageType=unsigned char, typename SizeType=unsigned int> //These should all be unsigned. If they aren't, things will explode and it will be YOUR FAULT
   class BSS_COMPILER_DLLEXPORT cBitArray
@@ -58,7 +41,7 @@ namespace bss_util
       if(bitindex>=_numbits) return false;
       ST_ realindex=(bitindex/DIV_AMT); //divide bitindex by 8
       STORE_ mask=(1<<(bitindex&MOD_AMT)); //assign bitindex the remainder
-      _bits[realindex] = value?(_bits[realindex]|mask):(_bits[realindex]&(~mask));
+      _bits[realindex] = T_SETBIT(_bits[realindex],mask,value);
       return true;
     }    
     inline bool BSS_FASTCALL GetBit(ST_ bitindex) const 
@@ -104,7 +87,7 @@ namespace bss_util
     inline cBitArray& operator=(const cBitArray& right) { _bits=right._bits; _numbits=right._numbits; }
     inline cBitArray& operator=(cBitArray&& mov) { _bits=std::move(mov._bits); _numbits=mov._numbits; mov._numbits=0; }
     BSS_FORCEINLINE bool operator[](ST_ index) const { return GetBit(index); }
-    BSS_FORCEINLINE _BIT_REF<ST_> operator[](ST_ index) { return _BIT_REF<ST_>(_bits+(index/DIV_AMT),(index&MOD_AMT)); }
+    BSS_FORCEINLINE _cBIT_REF<STORE_> operator[](ST_ index) { return _cBIT_REF<STORE_>(((STORE_)1)<<(index&MOD_AMT),*(_bits+(index/DIV_AMT))); }
     BSS_FORCEINLINE cBitArray& operator+=(ST_ bitindex) { SetBit(bitindex,true); return *this; }
     BSS_FORCEINLINE cBitArray& operator-=(ST_ bitindex) { SetBit(bitindex,false); return *this; }
 

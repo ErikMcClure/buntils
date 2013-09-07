@@ -34,7 +34,7 @@ namespace bss_util {
   class cKDTree : protected cAllocTracker<Alloc>
   {
   public:
-    inline explicit cKDTree(Alloc* alloc=0) : cAllocTracker<Alloc>(alloc), _root(0),_rbthreshold(RBTHRESHOLD) {}
+    inline explicit cKDTree(unsigned int rb=RBTHRESHOLD,Alloc* alloc=0) : cAllocTracker<Alloc>(alloc), _root(0),_rbthreshold(rb) {}
     inline cKDTree(cKDTree&& mov) : cAllocTracker<Alloc>(std::move(mov)), _root(mov._root),_rbthreshold(mov._rbthreshold) { mov._root=0; }
     inline ~cKDTree() { Clear(); }
     inline void Clear() { if(_root) _destroynode(_root); _root=0; }

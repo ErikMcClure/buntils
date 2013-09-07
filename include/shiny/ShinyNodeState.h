@@ -22,12 +22,43 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 THE SOFTWARE.
 */
 
-#ifndef SHINY_H
-#define SHINY_H
+#ifndef SHINY_NODE_STATE_H
+#define SHINY_NODE_STATE_H
+
+#include "ShinyNode.h"
+
+
+#if SHINY_IS_COMPILED == TRUE
+
+#ifdef __cplusplus
+extern "C" {
+#endif
+
 
 /*---------------------------------------------------------------------------*/
 
-#include "Shiny/ShinyMacros.h"
-#include "Shiny/ShinyManager.h"
+typedef struct _ShinyNodeState {
+	ShinyNode *node;
+	int zoneUpdating;
+
+	struct _ShinyNodeState *_prev;
+} ShinyNodeState;
+
+
+/*---------------------------------------------------------------------------*/
+
+
+ShinyNodeState* ShinyNodeState_push(ShinyNodeState *a_top, ShinyNode *a_node);
+ShinyNodeState* ShinyNodeState_pop(ShinyNodeState *a_top);
+
+ShinyNode* ShinyNodeState_finishAndGetNext(ShinyNodeState *self, float a_damping);
+ShinyNode* ShinyNodeState_finishAndGetNextClean(ShinyNodeState *self);
+
+
+#ifdef __cplusplus
+} /* end of extern "C" */
+#endif
+
+#endif /* if SHINY_IS_COMPILED == TRUE */
 
 #endif /* end of include guard */

@@ -233,10 +233,6 @@ TESTDEF::RETPAIR test_bss_util_c()
 {
   BEGINTEST;
 
-  srand(148374);
-  for(int i = 0; i < 1000; ++i)
-    std::cout << getuniformint() << std::flush;
-
   std::function<void()> b([](){ int i=0; i+=1; return; });
   b = std::move(std::function<void()>([](){ return; }));
 

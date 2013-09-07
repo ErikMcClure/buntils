@@ -83,9 +83,9 @@ typedef struct {
 
 /*---------------------------------------------------------------------------*/
 
-SHINY_API ShinyNode* _ShinyManager_dummyNodeTable[];
+extern SHINY_API ShinyNode* _ShinyManager_dummyNodeTable[1];
 
-SHINY_API ShinyManager Shiny_instance;
+extern SHINY_API ShinyManager Shiny_instance; // If not extern GCC won't import properly
 
 
 /*---------------------------------------------------------------------------*/
@@ -268,7 +268,7 @@ extern "C" { /* end of c++ */
 class ShinyEndNodeOnDestruction {
 public:
 
-	SHINY_INLINE ~ShinyEndNodeOnDestruction() {
+	inline ~ShinyEndNodeOnDestruction() {
 		ShinyManager_endCurNode(&Shiny_instance);
 	}
 };

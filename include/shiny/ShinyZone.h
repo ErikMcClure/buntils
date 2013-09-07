@@ -1,87 +1,102 @@
 /*
-The zlib/libpng License
+The MIT License
 
-Copyright (c) 2007 Aidin Abedi (www.*)
+Copyright (c) 2007-2010 Aidin Abedi http://code.google.com/p/shinyprofiler/
 
-This software is provided 'as-is', without any express or implied warranty. In no event will
-the authors be held liable for any damages arising from the use of this software.
+Permission is hereby granted, free of charge, to any person obtaining a copy
+of this software and associated documentation files (the "Software"), to deal
+in the Software without restriction, including without limitation the rights
+to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+copies of the Software, and to permit persons to whom the Software is
+furnished to do so, subject to the following conditions:
 
-Permission is granted to anyone to use this software for any purpose, including commercial 
-applications, and to alter it and redistribute it freely, subject to the following
-restrictions:
+The above copyright notice and this permission notice shall be included in
+all copies or substantial portions of the Software.
 
-    1. The origin of this software must not be misrepresented; you must not claim that 
-       you wrote the original software. If you use this software in a product, 
-       an acknowledgment in the product documentation would be appreciated but is 
-       not required.
-
-    2. Altered source versions must be plainly marked as such, and must not be 
-       misrepresented as being the original software.
-
-    3. This notice may not be removed or altered from any source distribution.
+THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
+THE SOFTWARE.
 */
 
 #ifndef SHINY_ZONE_H
 #define SHINY_ZONE_H
 
 #include "ShinyData.h"
-
-#if SHINY_PROFILER == TRUE
-namespace Shiny {
+#include <memory.h>
 
 
-//-----------------------------------------------------------------------------
+#if SHINY_IS_COMPILED == TRUE
 
-	struct ProfileZone {
+#ifdef __cplusplus
+extern "C" {
+#endif
 
-		enum STATE {
-			STATE_HIDDEN = 0,
-			STATE_INITIALIZED,
-			STATE_UPDATING
-		};
 
-		//NOTE: data-members are intentionally public because the
-		//		class needs to fulfil the definition of an aggregate
+/*---------------------------------------------------------------------------*/
 
-		ProfileZone* next;
+#define SHINY_ZONE_STATE_HIDDEN			0
+#define SHINY_ZONE_STATE_INITIALIZED		1
+#define SHINY_ZONE_STATE_UPDATING		2
 
-		STATE _state;
 
-		mutable const char* name;
+/*---------------------------------------------------------------------------*/
 
-		ProfileData data;
+typedef struct _ShinyZone {
+	struct _ShinyZone* next;
+	int _state;
+	const char* name;
+	ShinyData data;
+} ShinyZone;
 
-		//
 
-		bool isInited(void) const { return _state != 0; }
+/*---------------------------------------------------------------------------*/
 
-		void init(ProfileZone* a_prev) {
-			_state = STATE_INITIALIZED;
 
-			a_prev->next = this;
-		}
+SHINY_INLINE void ShinyZone_init(ShinyZone *self, ShinyZone* a_prev) {
+	self->_state = SHINY_ZONE_STATE_INITIALIZED;
+	a_prev->next = self;
+}
 
-		void uninit(void) {
-			_state = STATE_HIDDEN;
-		}
+SHINY_INLINE void ShinyZone_uninit(ShinyZone *self) {
+	self->_state = SHINY_ZONE_STATE_HIDDEN;
+	self->next = NULL;
+}
 
-		void preUpdateChain(void) {
-			data.clearCurrent();
-			if (next) next->preUpdateChain();
-		}
+SHINY_API void ShinyZone_preUpdateChain(ShinyZone *first);
+SHINY_API void ShinyZone_updateChain(ShinyZone *first, float a_damping);
+SHINY_API void ShinyZone_updateChainClean(ShinyZone *first);
 
-		void updateChain(float a_damping) {
-			data.computeAverage(a_damping);
-			if (next) next->updateChain(a_damping);
-		}
+SHINY_API void ShinyZone_resetChain(ShinyZone *first);
 
-		bool isUpdating(void) const { return _state == STATE_UPDATING; }
+SHINY_API ShinyZone* ShinyZone_sortChain(ShinyZone **first);
 
-		void enableUpdating(void) { _state = STATE_UPDATING; }
-		void disableUpdating(void) { _state = STATE_INITIALIZED; }
-	};
+SHINY_INLINE float ShinyZone_compare(ShinyZone *a, ShinyZone *b) {
+	return a->data.selfTicks.avg - b->data.selfTicks.avg;
+}
 
-} // namespace Shiny
-#endif // if SHINY_PROFILER == TRUE
+SHINY_API void ShinyZone_clear(ShinyZone* self);
 
-#endif // ifndef SHINY_*_H
+SHINY_API void ShinyZone_enumerateZones(const ShinyZone* a_zone, void (*a_func)(const ShinyZone*));
+
+
+#ifdef __cplusplus
+} /* end of extern "C" */
+
+
+template <class T>
+void ShinyZone_enumerateZones(const ShinyZone* a_zone, T* a_this, void (T::*a_func)(const ShinyZone*)) {
+	(a_this->*a_func)(a_zone);
+
+	if (a_zone->next) ShinyZone_enumerateZones(a_zone->next, a_this, a_func);
+}
+
+
+#endif /* end of c++ */
+
+#endif /* if SHINY_IS_COMPILED == TRUE */
+
+#endif /* end of include guard */

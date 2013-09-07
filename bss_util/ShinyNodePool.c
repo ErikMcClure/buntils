@@ -22,54 +22,57 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 THE SOFTWARE.
 */
 
-#ifndef SHINY_NODE_POOL_H
-#define SHINY_NODE_POOL_H
+#include "ShinyNodePool.h"
+#include "ShinyTools.h"
 
-#include "ShinyNode.h"
-
+#include <memory.h>
+#include <malloc.h>
 
 #if SHINY_IS_COMPILED == TRUE
 
-#ifdef __cplusplus
-extern "C" {
-#endif
+
+/*---------------------------------------------------------------------------*/
+
+ShinyNodePool* ShinyNodePool_create(uint32_t a_items) {
+	ShinyNodePool* pPool = (ShinyNodePool*)
+		malloc(sizeof(ShinyNodePool) + sizeof(ShinyNode) * (a_items - 1));
+
+	pPool->nextPool = NULL;
+	pPool->_nextItem = &pPool->_items[0];
+	pPool->endOfItems = &pPool->_items[a_items];
+
+	memset(&pPool->_items[0], 0, a_items * sizeof(ShinyNode));
+	return pPool;
+}
 
 
 /*---------------------------------------------------------------------------*/
 
-typedef struct _ShinyNodePool {
+uint32_t ShinyNodePool_memoryUsageChain(ShinyNodePool *first) {
+	uint32_t bytes = (uint32_t) ((char*) first->endOfItems - (char*) first);
+	ShinyNodePool *pool = first->nextPool;
 
-	struct _ShinyNodePool* nextPool;
+	while (pool) {
+		bytes += (uint32_t) ((char*) pool->endOfItems - (char*) pool);
+		pool = pool->nextPool;
+	}
 
-	ShinyNode *_nextItem;
-	ShinyNode *endOfItems;
-
-	ShinyNode _items[1];
-
-} ShinyNodePool;
+	return bytes;
+}
 
 
 /*---------------------------------------------------------------------------*/
 
+void ShinyNodePool_destroy(ShinyNodePool *self) {
+	ShinyNode* firstNode = ShinyNodePool_firstItem(self);
+	ShinyNode* lastNode = self->_nextItem;
 
-SHINY_INLINE ShinyNode* ShinyNodePool_firstItem(ShinyNodePool *self) {
-	return &(self->_items[0]);
+	while (firstNode != lastNode)
+		ShinyNode_destroy(firstNode++);
+
+	/* TODO: make this into a loop or a tail recursion */
+	if (self->nextPool) ShinyNodePool_destroy(self->nextPool);
+	free(self);
 }
 
-SHINY_INLINE ShinyNode* ShinyNodePool_newItem(ShinyNodePool *self) {
-	return self->_nextItem++;
-}
-
-ShinyNodePool* ShinyNodePool_create(uint32_t a_items);
-void ShinyNodePool_destroy(ShinyNodePool *self);
-
-uint32_t ShinyNodePool_memoryUsageChain(ShinyNodePool *first);
-
-
-#ifdef __cplusplus
-} /* end of extern "C" */
 #endif
-
-#endif /* if SHINY_IS_COMPILED == TRUE */
-
-#endif /* end of include guard */

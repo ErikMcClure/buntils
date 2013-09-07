@@ -14,3 +14,7 @@ CPPFLAGS += -fPIC -Wall -Wno-attributes -Wno-unknown-pragmas -Wno-reorder -Wno-m
 LDFLAGS += -shared
 
 include base.mk
+
+distclean:
+	@- $(RM) $(OBJS)
+	@- $(RM) -r $(OBJDIR)

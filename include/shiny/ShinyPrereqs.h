@@ -1,87 +1,158 @@
 /*
-The zlib/libpng License
+The MIT License
 
-Copyright (c) 2007 Aidin Abedi (www.*)
+Copyright (c) 2007-2010 Aidin Abedi http://code.google.com/p/shinyprofiler/
 
-This software is provided 'as-is', without any express or implied warranty. In no event will
-the authors be held liable for any damages arising from the use of this software.
+Permission is hereby granted, free of charge, to any person obtaining a copy
+of this software and associated documentation files (the "Software"), to deal
+in the Software without restriction, including without limitation the rights
+to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+copies of the Software, and to permit persons to whom the Software is
+furnished to do so, subject to the following conditions:
 
-Permission is granted to anyone to use this software for any purpose, including commercial 
-applications, and to alter it and redistribute it freely, subject to the following
-restrictions:
+The above copyright notice and this permission notice shall be included in
+all copies or substantial portions of the Software.
 
-    1. The origin of this software must not be misrepresented; you must not claim that 
-       you wrote the original software. If you use this software in a product, 
-       an acknowledgment in the product documentation would be appreciated but is 
-       not required.
-
-    2. Altered source versions must be plainly marked as such, and must not be 
-       misrepresented as being the original software.
-
-    3. This notice may not be removed or altered from any source distribution.
+THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
+THE SOFTWARE.
 */
 
 #ifndef SHINY_PREREQS_H
 #define SHINY_PREREQS_H
 
 #include "ShinyConfig.h"
+#include "ShinyVersion.h"
 
-#if SHINY_PLATFORM == SHINY_PLATFORM_POSIX
+
+#ifdef __cplusplus
+extern "C" {
+#endif
+
+
+/*---------------------------------------------------------------------------*/
+
+#define SHINY_PLATFORM_WIN32	0x1
+#define SHINY_PLATFORM_POSIX	0x2
+
+#if defined (_WIN32)
+#   define SHINY_PLATFORM	SHINY_PLATFORM_WIN32
+
+#else /* ASSUME: POSIX-compliant OS */
+#   define SHINY_PLATFORM	SHINY_PLATFORM_POSIX
+#endif
+
+
+/*---------------------------------------------------------------------------*/
+
+#define SHINY_COMPILER_MSVC		0x1
+#define SHINY_COMPILER_GNUC		0x2
+#define SHINY_COMPILER_OTHER		0x3
+
+#if defined (_MSC_VER)
+#   define SHINY_COMPILER	SHINY_COMPILER_MSVC
+
+#elif defined (__GNUC__)
+#   define SHINY_COMPILER	SHINY_COMPILER_GNUC
+
+#else
+#   define SHINY_COMPILER	SHINY_COMPILER_OTHER
+#endif
+
+
+/*---------------------------------------------------------------------------*/
+
+#ifndef FALSE
+#define FALSE	0x0
+#endif
+
+#ifndef TRUE
+#define TRUE	0x1
+#endif
+
+#ifndef NULL
+#define NULL	0
+#endif
+
+
+/*---------------------------------------------------------------------------*/
+
+#if SHINY_COMPILER == SHINY_COMPILER_GNUC
 #include <sys/types.h>
-#endif
-
-namespace Shiny {
-
-
-//-----------------------------------------------------------------------------
-	
-#if SHINY_PROFILER == TRUE
-	struct ProfileNode;
-	struct ProfileZone;
-
-	typedef ProfileNode* ProfileNodeCache;
-	typedef ProfileNode* ProfileNodeTable;
+#include <stdint.h>
 #endif
 
 
-//-----------------------------------------------------------------------------
+/*---------------------------------------------------------------------------*/
 
+#if SHINY_IS_COMPILED == TRUE
+	struct _ShinyNode;
+	struct _ShinyZone;
+
+	typedef struct _ShinyNode* ShinyNodeCache;
+	typedef struct _ShinyNode* ShinyNodeTable;
+#endif
+
+
+/*---------------------------------------------------------------------------*/
+
+#if SHINY_STATIC_LINK == TRUE
+#	define SHINY_API
+#else
+#ifndef BSS_UTIL_EXPORTS
+#	define SHINY_API	SHINY_IMPORT
+#else
+#	define SHINY_API	SHINY_EXPORT
+#endif
+#endif
+
+/*---------------------------------------------------------------------------*/
 
 #if SHINY_COMPILER == SHINY_COMPILER_MSVC
-#	define SHINY_INLINE		__forceinline
-#	define SHINY_UNUSED		
-
-#elif SHINY_PLATFORM == SHINY_COMPILER_GNUC
 #	define SHINY_INLINE		__inline
-#	define SHINY_UNUSED		__attribute__ ((unused))
+#	define SHINY_UNUSED
+#	define SHINY_EXPORT		__declspec(dllexport)
+#	define SHINY_IMPORT		__declspec(dllimport)
 
-#elif SHINY_PLATFORM == SHINY_COMPILER_OTHER
+#elif SHINY_COMPILER == SHINY_COMPILER_GNUC
 #	define SHINY_INLINE		inline
-#	define SHINY_UNUSED		
+#	define SHINY_UNUSED		__attribute__((unused))
+#	define SHINY_EXPORT		__attribute__((dllexport))
+#	define SHINY_IMPORT		__attribute__((dllimport))
+
+#elif SHINY_COMPILER == SHINY_COMPILER_OTHER
+#	define SHINY_INLINE		inline
+#	define SHINY_UNUSED
+#	define SHINY_EXPORT		extern
+#	define SHINY_IMPORT		extern
 #endif
 
-//-----------------------------------------------------------------------------
+
+/*---------------------------------------------------------------------------*/
 
 #if SHINY_COMPILER == SHINY_COMPILER_MSVC
-	typedef int					int32_t;
+	typedef int			int32_t;
 	typedef unsigned int		uint32_t;
 
-	typedef __int64				int64_t;
+	typedef __int64			int64_t;
 	typedef unsigned __int64	uint64_t;
 
+/*
 #elif defined(__CYGWIN__)
-	typedef u_int32_t			uint32_t;
-	typedef u_int64_t			uint64_t;
-#else
-	typedef int					int32_t;
-	typedef unsigned int		uint32_t;
-
-	typedef long long				int64_t;
-	typedef unsigned long long	uint64_t;
+	typedef u_int32_t		uint32_t;
+	typedef u_int64_t		uint64_t;
+*/
 #endif
 
-	typedef uint64_t			tick_t;
+	typedef uint64_t		shinytick_t;
 
-} // namespace Shiny
 
-#endif // ifndef SHINY_*_H
+#ifdef __cplusplus
+} /* end of extern "C" */
+#endif
+
+#endif /* end of include guard */

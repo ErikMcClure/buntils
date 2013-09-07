@@ -200,11 +200,42 @@ template<typename T, size_t S> inline static size_t BSS_FASTCALL _ARRSIZE(const 
     return e;
  }
 
+ 
+int getuniformint()
+{
+  static const int NUM=8;
+  static int cur=NUM;
+  static int samples[NUM]={0};
+  if(cur>=NUM)
+  {
+    int last=samples[NUM-1];
+    samples[0] = 0;
+    for(int i=1; i<NUM; ++i)
+    {
+      int j = rand()%(i+1);
+      samples[i]=samples[j];
+      samples[j]=i;
+    }
+    if(last==samples[0])
+    {
+      int j = 1+(rand()%(NUM-1));
+      samples[0]=samples[j];
+      samples[j]=last;
+    }
+    cur=0;
+  }
+  return samples[cur++];
+}
+
 // --- Begin actual test procedure definitions ---
 
 TESTDEF::RETPAIR test_bss_util_c()
 {
   BEGINTEST;
+
+  srand(148374);
+  for(int i = 0; i < 1000; ++i)
+    std::cout << getuniformint() << std::flush;
 
   std::function<void()> b([](){ int i=0; i+=1; return; });
   b = std::move(std::function<void()>([](){ return; }));
@@ -362,6 +393,12 @@ TESTDEF::RETPAIR test_bss_util()
     TEST(GetBitMask<unsigned int>(i)==(1<<i));
   for(uint i = 0; i < 64; ++i)
     TEST(GetBitMask<unsigned long long>(i)==(((unsigned __int64)1)<<i));
+
+  int bits=9;
+  bits=bssSetBit(bits,4,true);
+  TEST(bits==13);
+  bits=bssSetBit(bits,8,false);
+  TEST(bits==5);
 
   std::string cpan(PANGRAM);
 
@@ -947,10 +984,10 @@ TESTDEF::RETPAIR test_bss_deprecated()
 //#define VSPRINTF(dest,length,format,list) _vsnprintf_s(dest,length,length,format,list)
 //#define VSWPRINTF(dest,length,format,list) _vsnwprintf_s(dest,length,length,format,list)
   FILE* f=0;
-  FOPEN(f,"__valtest.tmp","wb");
+  FOPEN(f,"__valtest.txt","wb");
   TEST(f!=0);
   f=0;
-  WFOPEN(f,BSS__L("石石石石shi.tmp"),BSS__L("wb"));
+  WFOPEN(f,BSS__L("石石石石shi.txt"),BSS__L("wb"));
   TEST(f!=0);
   size_t a = 0;
   size_t b = -1;
@@ -1842,7 +1879,7 @@ TESTDEF::RETPAIR test_BITARRAY()
   TEST(bits.GetBit(2));
   bits+=0;
   TEST(bits.GetRaw()[0]==5);
-  TEST(bits.GetBit(0));
+  TEST(bits[0]);
   bits.SetBit(3,true);
   TEST(bits.GetRaw()[0]==13);
   TEST(bits.GetBits(0,6)==3);
@@ -1851,16 +1888,18 @@ TESTDEF::RETPAIR test_BITARRAY()
   TEST(bits.GetBits(0,6)==2);
   bits.SetSize(31);
   TEST(bits.GetRaw()[0]==9);
-  bits.SetBit(20,true);
+  bits[20]=true;
   TEST(bits.GetRaw()[0]==9);
   TEST(bits.GetRaw()[2]==16);
   TEST(bits.SetBit(30,true));
+  TEST(bits[30]);
+  TEST(!bits[31]);
   TEST(bits.GetRaw()[0]==9);
   TEST(bits.GetRaw()[2]==16);
   TEST(bits.GetRaw()[3]==64);
   TEST(!bits.SetBit(32,true));
   TEST(bits.GetBits(0,32)==4);
-  bits.SetBit(21,false);
+  bits[21]=false;
   TEST(bits.GetBits(0,32)==4);
   bits.SetBit(20,false);
   TEST(bits.GetRaw()[0]==9);
@@ -3334,6 +3373,10 @@ void BSS_FASTCALL MakeFragments(const char* str, cDynArray<cArraySimple<Fragment
 
 int main(int argc, char** argv)
 {
+  PROFILE_FUNC();
+  PROFILE_UPDATE();
+  PROFILE_OUTPUT("./memtest.txt");
+
   ForceWin64Crash();
   SetWorkDirToCur();
   srand(time(NULL));

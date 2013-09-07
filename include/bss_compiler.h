@@ -89,10 +89,6 @@
 #define BSS_ALIGN(n) __declspec(align(n))
 #define BSS_ALIGNED(sn, n) BSS_ALIGN(n) sn
 #define BSS_VERIFY_HEAP _ASSERTE(_CrtCheckMemory());
-
-#ifndef BSS_CPU_x86 // The only platform VC++ supports inline assembly on is x86, because its a piece of shit.
-#define BSS_MSC_NOASM
-#endif
 #endif
 
 #if defined(__MINGW32__) || defined(__MINGW64__)

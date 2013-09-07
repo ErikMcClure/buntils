@@ -27,7 +27,7 @@ THE SOFTWARE.
 
 /*---------------------------------------------------------------------------*/
 
-#include "Shiny/ShinyMacros.h"
-#include "Shiny/ShinyManager.h"
+#include "shiny/ShinyMacros.h"
+#include "shiny/ShinyManager.h"
 
 #endif /* end of include guard */

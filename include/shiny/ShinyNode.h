@@ -61,7 +61,7 @@ typedef struct _ShinyNode {
 
 /*---------------------------------------------------------------------------*/
 
-SHINY_API ShinyNode _ShinyNode_dummy;
+extern SHINY_API ShinyNode _ShinyNode_dummy;
 
 
 /*---------------------------------------------------------------------------*/

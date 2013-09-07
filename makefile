@@ -14,3 +14,7 @@ dist: all distclean
 distclean:
 	make distclean -f bss-util.mk
 	make distclean -f test.mk
+
+debug:
+	make debug -f bss-util.mk
+	make debug -f test.mk

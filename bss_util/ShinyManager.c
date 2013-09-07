@@ -79,7 +79,7 @@ ShinyManager Shiny_instance = {
 	/* _firstUpdate = */ TRUE
 };
 
-ShinyNode* _ShinyManager_dummyNodeTable[] = { NULL };
+ShinyNode* _ShinyManager_dummyNodeTable[1] = { NULL };
 
 
 /*---------------------------------------------------------------------------*/

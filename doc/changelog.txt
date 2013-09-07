@@ -48,7 +48,7 @@
 - Fixed cBitArray and added tests, standardizing the bit reference object and introducing T_SETBIT or bssSetBit() as a standard way to flip a bit.
 - Added functional command line processing to cCmdLineArgs, along with the option of overloading the default command line parsing with a string.
 - Removed fFastDoubleRound and it's siblings, changed fFastRound to always use SSE2 instructions because they're faster, added fFastTruncate using SSE2 instructions (but if your compiler isn't stupid, it should use SSE automatically)
-- Updated shinyprofiler to a new version, adjusting it's headers so it uses bss_util's static lib export and import options
+- Updated shinyprofiler to a new version, adjusting it's headers so it compiles in GCC and uses bss_util's static lib export and import options
 
 0.4
 ------

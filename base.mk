@@ -8,15 +8,17 @@ LDFLAGS += $(foreach library,$(LIBRARIES),-l$(library))
 .PHONY: all clean distclean
 
 all: $(BUILDDIR)/$(TARGET)
-
-$(OBJDIR)/c/%.o : $(SRCDIR)/%.c
+	
+$(OBJDIR)/c/%.o : %.c
 	+@[ -d $(OBJDIR) ] || mkdir -p $(OBJDIR)
 	+@[ -d $(OBJDIR)/c ] || mkdir -p $(OBJDIR)/c
+	+@[ -d $(OBJDIR)/c/$(SRCDIR) ] || mkdir -p $(OBJDIR)/c/$(SRCDIR)
 	$(COMPILE.c) $< -o $@
           
-$(OBJDIR)/cxx/%.o : $(SRCDIR)/%.cpp
+$(OBJDIR)/cxx/%.o : %.cpp
 	+@[ -d $(OBJDIR) ] || mkdir -p $(OBJDIR)
 	+@[ -d $(OBJDIR)/cxx ] || mkdir -p $(OBJDIR)/cxx
+	+@[ -d $(OBJDIR)/cxx/$(SRCDIR) ] || mkdir -p $(OBJDIR)/cxx/$(SRCDIR)
 	$(COMPILE.cpp) $< -o $@
 	
 $(BUILDDIR)/$(TARGET): $(OBJS)
@@ -26,6 +28,5 @@ $(BUILDDIR)/$(TARGET): $(OBJS)
 clean: distclean
 	@- $(RM) $(BUILDDIR)/$(TARGET)
 
-debug:
-	CPPFLAGS += -g
+debug: CPPFLAGS += -g
 debug: all

@@ -119,7 +119,7 @@ extern "C" {
 #	define SHINY_IMPORT		__declspec(dllimport)
 
 #elif SHINY_COMPILER == SHINY_COMPILER_GNUC
-#	define SHINY_INLINE		inline
+#	define SHINY_INLINE		inline static
 #	define SHINY_UNUSED		__attribute__((unused))
 #	define SHINY_EXPORT		__attribute__((dllexport))
 #	define SHINY_IMPORT		__attribute__((dllimport))

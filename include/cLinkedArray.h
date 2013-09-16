@@ -17,7 +17,7 @@ namespace bss_util {
   };
 
   // Linked list implemented as an array.
-  template<class T, typename SizeType=unsigned int>
+  template<class T, typename SizeType=unsigned int, typename ARRAYTYPE=cArraySimple<LINKEDNODE<T,SizeType>,SizeType>>
   class BSS_COMPILER_DLLEXPORT cLinkedArray
   {
   public:
@@ -159,7 +159,7 @@ namespace bss_util {
     ST_ _freelist;
 
   private:
-    cArrayWrap<cArraySimple<LINKEDNODE<T,ST_>,ST_>> _ref;
+    cArrayWrap<ARRAYTYPE> _ref;
   };
     
 }

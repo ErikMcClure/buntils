@@ -34,6 +34,7 @@ namespace bss_util {
     inline T PopRoot() { T r=std::move(_array[0]); Remove(0); return std::move(r); }
     inline bool Empty() { return !_length; }
     inline ST_ Length() { return _length; }
+    inline void Clear() { _length=0; }
     // Inserts a value
     inline void Insert(const T& val) { _insert(val); }
     inline void Insert(T&& val) { _insert(std::move(val)); }

@@ -96,6 +96,13 @@ namespace bss_util {
       return false;
 		}
     template<unsigned char TypeID>
+    inline void SetKeyFrames(const KeyFrame<TypeID>* frames, AniAttribute::IDTYPE num)
+		{
+			AniAttributeT<TypeID>* hold = static_cast<AniAttributeT<TypeID>*>(GetTypeID(TypeID));
+      if(hold && hold->SetKeyFrames(frames,num) > _anicalc)
+			  _anicalc = hold->Length();
+    }
+    template<unsigned char TypeID>
 		AniAttribute::IDTYPE AddKeyFrame(const KeyFrame<TypeID>& frame)
 		{
 			AniAttributeT<TypeID>* hold = static_cast<AniAttributeT<TypeID>*>(GetTypeID(TypeID));
@@ -222,8 +229,7 @@ namespace bss_util {
     { 
       ani->SetInterpolation<TypeID>(func);
       ani->SetRelative<TypeID>(rel);
-      for(unsigned int i = 0; i < arr.Length(); ++i) 
-        ani->AddKeyFrame<TypeID>(arr[i]); 
+      ani->SetKeyFrames<TypeID>(arr,arr.Length());
     }
     bool rel;
     typename AniAttributeT<TypeID>::FUNC func;

@@ -47,6 +47,16 @@ namespace bss_util {
     if(root) root->prev=node;
     root=node;
   }
+  
+  template<typename T>
+  inline void BSS_FASTCALL LLAdd(T* node, T*& root, T*& last)
+  {
+    node->prev=0;
+    node->next=root;
+    if(root) root->prev=node;
+    else last=node;
+    root=node;
+  }
 
   // Does a full insert, calling LLInsertAssign and LLInsert
   template<typename T>

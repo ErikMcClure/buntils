@@ -9,7 +9,7 @@
 // Version numbers
 #define BSS_VERSION_MAJOR 0
 #define BSS_VERSION_MINOR 4
-#define BSS_VERSION_REVISION 1
+#define BSS_VERSION_REVISION 2
 
 //sometimes the std versions of these are a bit overboard, so this redefines the MS version, except it will no longer cause conflicts everywhere
 #define bssmax(a,b)            (((a) > (b)) ? (a) : (b))
@@ -30,24 +30,16 @@
 #endif
 #define CONCAT(...) __VA_ARGS__
 
-// These are random number generator #defines. Note that RANDINTGEN is susceptible to modulo bias, so if you need a true distribution cast
-// RANDFLOATGEN to int. Actually if you need a true distribution just use the damn std random class in C++11 like you're supposed to.
+// These yield float/int ranges using rand(). However, rand() is a horrible RNG, so if you need a real one, use the C++11 mersenne twister
 #ifndef RANDFLOATGEN
-#define RANDFLOATGEN(min,max) (((max) - (min)) * (double)rand()/(double)RAND_MAX + (min))
+#define RANDFLOATGEN(min,max) (((max) - (min)) * (rand()/(RAND_MAX+1.0)) + (min))
 #endif
 #ifndef RANDINTGEN
-#define RANDINTGEN(min,max) ((min)+(rand()%((int)((max)-(min))))) // This is [min,max) instead of [min,max] to facilitate use of length as max
+#define RANDINTGEN(min,max) ((min)+(int)((rand()/(RAND_MAX + 1.0))*((max)-(min))))
 #endif
 #ifndef RANDBOOLGEN
 #define RANDBOOLGEN() (rand()>(RAND_MAX>>1))
 #endif
-
-//These can be used to define properties
-#define CLASS_PROP(typeref, varname, funcname) CLASS_PROP_READONLY(typeref,varname,funcname) CLASS_PROP_WRITEONLY(typeref,varname,funcname)
-#define CLASS_PROP_VAL(typeref, varname, funcname) CLASS_PROP_READONLY(typeref,varname,funcname) CLASS_PROP_WRITEONLY_VAL(typeref,varname,funcname)
-#define CLASS_PROP_READONLY(typeref, varname, funcname) inline typeref Get##funcname() const { return varname; }
-#define CLASS_PROP_WRITEONLY(typeref, varname, funcname) inline void Set##funcname(const typeref m##varname##) { varname=m##varname##; }
-#define CLASS_PROP_WRITEONLY_VAL(typeref, varname, funcname) inline void Set##funcname(typeref m##varname##) { varname=m##varname##; }
 
 #define SAFESHIFT(v,s) ((s>0)?(v<<s):(v>>(-s))) //positive number shifts left, negative number shifts right, prevents undefined behavior.
 #define T_GETBIT(type, bit) ((type)(((type)1)<<(((type)bit)%(sizeof(type)<<3)))) // Gets a bitmask using its 0-based index.
@@ -75,11 +67,13 @@
 #ifdef  __cplusplus
 namespace bss_util { // This namespace can be inconvenient but its necessary because everything else on earth tries to define these too.
 #endif
+typedef unsigned char uint8;
 typedef unsigned short ushort;
+typedef unsigned short uint16;
 typedef unsigned int uint;
+typedef unsigned int uint32;
 typedef unsigned __int64 uint64;
 typedef unsigned long ulong;
-typedef unsigned long long ulonglong;
 #ifdef  __cplusplus
 }
 #endif

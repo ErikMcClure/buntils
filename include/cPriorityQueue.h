@@ -9,7 +9,7 @@
 namespace bss_util {
   // PriorityQueue that can be implemented as either a maxheap or a minheap
   template<typename K, typename D, char (*CFunc)(const K&, const K&)=CompT<K>, typename ST_=unsigned int, typename ARRAYTYPE=cArraySimple<std::pair<K,D>,ST_>>
-  class BSS_COMPILER_DLLEXPORT cPriorityQueue : private cBinaryHeap<std::pair<K,D>,ST_,CompTFirst<std::pair<K,D>,CFunc>,ARRAYTYPE>
+  class BSS_COMPILER_DLLEXPORT cPriorityQueue : protected cBinaryHeap<std::pair<K,D>,ST_,CompTFirst<std::pair<K,D>,CFunc>,ARRAYTYPE>
   {
     typedef std::pair<K,D> PAIR;
     typedef cBinaryHeap<std::pair<K,D>,ST_,CompTFirst<std::pair<K,D>,CFunc>,ARRAYTYPE> BASE;
@@ -27,6 +27,7 @@ namespace bss_util {
     BSS_FORCEINLINE bool Empty() { return BASE::Empty(); }
     BSS_FORCEINLINE const PAIR& Get(ST_ index) { return BASE::Get(index); }
     BSS_FORCEINLINE bool Remove(ST_ index) { return BASE::Remove(index); }
+    BSS_FORCEINLINE void Clear() { BASE::Clear(); }
     inline ST_ Length() { return BASE::_length; }
 
     inline cPriorityQueue& operator=(const cPriorityQueue& copy) { BASE::operator=(copy); return *this; }

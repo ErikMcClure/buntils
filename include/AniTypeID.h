@@ -13,8 +13,8 @@ namespace bss_util {
   template<unsigned char T>
   struct ANI_IDTYPE {}; //if you need your own type, just insert another explicit specialization in your code
 
-  template<typename V, typename T=void, typename D=V, typename S=void>
-  struct ANI_IDTYPE_TYPES { typedef V VALUE; typedef D DATA; typedef T TRAIT; typedef S SAFE; };
+  template<typename V, typename T=void, typename D=V, typename S=void, typename A=void>
+  struct ANI_IDTYPE_TYPES { typedef V VALUE; typedef D DATA; typedef T TRAIT; typedef S SAFE; typedef A AUX; };
 
   template<typename T, typename D>
   struct ANI_IDTYPE_EXPAND__
@@ -42,7 +42,8 @@ namespace bss_util {
     typedef typename T::TYPES::SAFE SAFE;
     typedef DATA const& DATACONST;
     typedef DATA& DATAREF;
-    typedef delegate<void,VALUECONST> DELEGATE;
+    typedef typename T::TYPES::AUX AUXTYPE;
+    typedef delegate<AUXTYPE,VALUECONST> DELEGATE;
   };
 
   struct AniAttribute;

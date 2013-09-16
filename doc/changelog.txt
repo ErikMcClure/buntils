@@ -2,6 +2,19 @@
 * Black Sphere Studios Utility Library Changelog *
 **************************************************
 
+0.4.2
+------
+- Removed CLASSPROP from bss_defines.h
+- Adjusted a few of the type shortcuts in bss_defines.h
+- Made animation keyframes more efficient and added the ability to set all keyframes for a certain attribute at once.
+- Gave cPriorityQueue and cBinaryHeap a Clear() function
+- Added Interval AniAttribute for transient discrete animations, like hitboxes.
+- Added SetArray to cArraySimple/Construct/Safe
+- Added 16bit and 8bit integer SSE instructions
+- Changed integral distribution using rand() to utilize an underlying float distribution because the performance is almost exactly the same.
+- Added a random seed-able mersenne function and gave it a suitable [min,max) wrapper in bss_algo.h
+- Added LLAdd specialization for both root and last
+
 0.4.1
 ------
 - cDynArray now supports + and += operations and derives its array as a protected member

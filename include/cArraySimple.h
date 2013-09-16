@@ -121,7 +121,7 @@ namespace bss_util {
       if(_array!=0)
         memset(_array,val,_size*sizeof(T));
     }
-
+    inline void SetArray(const T* a, SizeType n, SizeType s=0) { SetSize(n+s); memcpy(_array+s,a,n*sizeof(T)); }
     typedef SizeType ST_; // There are cases when you need access to these types even if you don't inherit (see cRandomQueue in bss_algo.h)
     typedef T T_;
 
@@ -270,6 +270,7 @@ namespace bss_util {
       _array=narray;
       _size=nsize;
     }
+    inline void SetArray(const T* a, SizeType n, SizeType s=0) { SetSize(n+s); memcpy(_array+s,a,n*sizeof(T)); }
 
   protected:
     template<typename U>
@@ -399,6 +400,7 @@ namespace bss_util {
       SetSize(_size+1);
       _pushback(location,_size-location-1,item);
     }
+    inline void SetArray(const T* a, SizeType n, SizeType s=0) { SetSize(n+s); for(SizeType i=s; i<n; ++i) _array[i]=a[i]; }
 
   protected:
     template<typename U>

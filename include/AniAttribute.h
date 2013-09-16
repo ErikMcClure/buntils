@@ -5,7 +5,7 @@
 #define __ANI_ATTRIBUTE__BSS__
 
 #include "AniTypeID.h"
-#include "cArraySimple.h"
+#include "cPriorityQueue.h"
 #include "bss_algo.h"
 
 namespace bss_util {
@@ -73,7 +73,19 @@ namespace bss_util {
     inline IDTYPE GetNumFrames() const { return _timevalues.Size(); }
     inline const KeyFrame<TypeID>& GetKeyFrame(IDTYPE index) const { return _timevalues[index]; }
     inline void Clear() { _timevalues.SetSize(1); _timevalues[0].time=0; _initzero=false; }
-		IDTYPE AddKeyFrame(const KeyFrame<TypeID>& frame) //time is given in milliseconds
+		virtual double SetKeyFrames(const KeyFrame<TypeID>* frames, IDTYPE num)
+    {
+      if(!num || !frames)
+        Clear();
+      else if(_initzero = (frames[0].time==0.0)) // If the array includes 0, we can just copy it over directly
+        _timevalues.SetArray(frames,num);
+      else { // If the array doesn't include 0, we have to introduce our own fake 0 value.
+        _timevalues.SetArray(frames,num,1);
+        _timevalues[0].time=0;
+      }
+      return Length();
+    }
+		virtual IDTYPE AddKeyFrame(const KeyFrame<TypeID>& frame) //time is given in milliseconds
 		{
       if(frame.time==0.0)
       {
@@ -83,9 +95,10 @@ namespace bss_util {
       }
       IDTYPE i;
       IDTYPE svar=_timevalues.Size(); //doesn't change
-      for(i=0; i<svar; ++i)
-        if(frame.time<=_timevalues[i].time)
+      for(i=svar; --i>0;) // We go through this backwards because it's more efficient when we're adding things in order
+        if(frame.time>_timevalues[i].time)
           break;
+      ++i;
 
       if(frame.time==_timevalues[i].time)
         _timevalues[i].value=frame.value;
@@ -93,7 +106,7 @@ namespace bss_util {
         _timevalues.Insert(frame,i);
       return i;
 		}
-    bool RemoveKeyFrame(IDTYPE ID)
+    virtual bool RemoveKeyFrame(IDTYPE ID)
     {
       if(ID>=_timevalues.Size()) return false;
       if(_timevalues.Size()<=1) _initzero=false;
@@ -236,6 +249,63 @@ namespace bss_util {
     const ANI_TID(VALUE)* _pval;
     bool _rel;
     FUNC _func;
+  };
+
+  // Discrete animation with an interval. After the interval has passed, the object is removed using a second delegate function.
+  template<unsigned char TypeID>
+  struct BSS_COMPILER_DLLEXPORT AniAttribute_Interval : AniAttributeDiscrete<TypeID>
+  {
+  public:
+    typedef typename AniAttributeT<TypeID>::IDTYPE IDTYPE;
+    using AniAttributeT<TypeID>::_timevalues;
+    using AniAttributeT<TypeID>::_curpair;
+    
+    inline AniAttribute_Interval(const AniAttribute_Interval& copy) : AniAttributeDiscrete<TypeID>(copy), _rmdel(copy._rmdel), _toduration(copy.toduration) {}
+    inline AniAttribute_Interval(ANI_TID(DELEGATE) del, delegate<void,ANI_TID(AUXTYPE)> rmdel, double (*toduration)(ANI_TID(VALUECONST))) : 
+      AniAttributeDiscrete<TypeID>(del), _rmdel(rmdel), _toduration(toduration) {}
+    virtual bool Interpolate(double timepassed)
+    {
+      IDTYPE svar=_timevalues.Size();
+      while(_curpair<svar && _timevalues[_curpair].time <= timepassed)
+        _addtoqueue(_timevalues[_curpair++].value); // We call all the discrete values because many discrete values are interdependent on each other.
+      
+      while(!_queue.Empty() && _queue.Peek().first <= timepassed)
+        _rmdel(_queue.Pop().second);
+      return _curpair<svar && _queue.Empty();
+    }
+    inline virtual double Length() { return _length; }
+		virtual double SetKeyFrames(const KeyFrame<TypeID>* frames, IDTYPE num) { AniAttributeDiscrete<TypeID>::SetKeyFrames(frames,num); _recalclength(); return _length; }
+		virtual IDTYPE AddKeyFrame(const KeyFrame<TypeID>& frame) //time is given in milliseconds
+		{
+      AniAttributeDiscrete<TypeID>::AddKeyFrame(frame);
+      double t = frame.time+_toduration(frame.value);
+      if(t>_length) _length=t;
+		}
+    virtual bool RemoveKeyFrame(IDTYPE ID)
+    {
+      if(ID<_timevalues.Size() && _length==_timevalues[ID].time+_toduration(_timevalues[ID].value)) _recalclength();
+      return AniAttributeDiscrete<TypeID>::RemoveKeyFrame(ID);
+    }
+    inline virtual void Start() { _queue.Clear(); _curpair=1; if(AniAttributeT<TypeID>::_initzero) _addtoqueue(_timevalues[0].value); }
+		inline virtual AniAttribute* BSS_FASTCALL Clone() const { return new AniAttribute_Interval(*this); }
+    inline virtual void BSS_FASTCALL CopyAnimation(AniAttribute* ptr) { operator=(*static_cast<AniAttribute_Interval*>(ptr)); }
+    inline AniAttribute_Interval& operator=(const AniAttribute_Interval& right) { AniAttributeDiscrete<TypeID>::operator=(right); _rmdel=right._rmdel; return *this; }
+
+  protected:
+    inline void _recalclength()
+    {
+      _length=0;
+      double t;
+      for(IDTYPE i = 0; i < _timevalues.Size(); ++i)
+        if((t=_timevalues[i].time+_toduration(_timevalues[i].value))>_length)
+          _length=t;
+    }
+    inline void _addtoqueue(ANI_TID(VALUECONST) v) { _queue.Push(_toduration(v),_del(v)); }
+
+    double (*_toduration)(ANI_TID(VALUECONST));
+    delegate<void,ANI_TID(AUXTYPE)> _rmdel; //delegate for removal
+    cPriorityQueue<double,ANI_TID(AUXTYPE)> _queue;
+    double _length;
   };
     
   // Generic attribute definition

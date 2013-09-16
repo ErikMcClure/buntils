@@ -80,6 +80,40 @@ namespace bss_util {
   template<typename T, typename ST_, char (*CFunc)(const T&, const T&), ST_ I>
   BSS_FORCEINLINE static ST_ BSS_FASTCALL binsearch_exact(const T (&arr)[I], const T& data) { return binsearch_exact<T,T,ST_,CFunc>(arr,data,0,I); }
   
+  inline static unsigned __int64 mersennerand64(unsigned __int64 seed=0) { 
+    static std::mt19937_64 m;
+#ifdef BSS_COMPILER_MSC
+    if(seed) m.seed((unsigned long)seed); // VC++ doesn't implement the seed function properly, forcing the value to a ULONG, which is a flagrant violation of the standard.
+#else
+    if(seed) m.seed(seed);
+#endif
+    return m();
+  }
+  inline static unsigned int mersennerand(unsigned int seed=0) {
+    static std::mt19937 m;
+    if(seed) m.seed((unsigned long)seed);
+    return m();
+  }
+
+  template<class T>
+  BSS_FORCEINLINE T bss_randmersenne(T min, T max)
+  {
+#ifdef BSS_COMPILER_MSC
+    static const unsigned __int64 WMSK = ~((~(unsigned __int64)(0) << (64 - 1)) << 1); // Because Microsoft is full of illiterate morons, despite the standard defining max() as a static function, it's not in VC++, which means we can't use it.
+#else
+    static const unsigned __int64 WMSK = std::mt19937_64::max();
+#endif
+    return min+(T)((mersennerand64()/(WMSK + 1.0))*(max-min));
+  }
+
+  // inline function wrapper around RANDINTGEN
+  template<class T>
+  BSS_FORCEINLINE T bss_randint(T min, T max)
+  {
+    static_assert(std::is_integral<T>::value,"T must be integral");
+    return !(max-min)?min:RANDINTGEN(min,max);
+  }
+
   // Shuffler using Fisher-Yates/Knuth Shuffle algorithm based on Durstenfeld's implementation.
   // This is an in-place algorithm that works with any data type. Randfunc should be [min,max)
   template<typename T, typename ST, ST (*RandFunc)(ST min, ST max)>
@@ -90,14 +124,6 @@ namespace bss_util {
   }
   template<typename T, typename ST, ST size, ST (*RandFunc)(ST min, ST max)>
   inline static void BSS_FASTCALL shuffle(T (&p)[size]) { shuffle<T,ST,RandFunc>(p,size); }
-
-  // inline function wrapper to the #define RANDINTGEN
-  template<class T>
-  BSS_FORCEINLINE T bss_randint(T min, T max)
-  {
-    static_assert(std::is_integral<T>::value,"T must be integral");
-    return !(max-min)?min:((min)+(rand()%((T)((max)-(min)))));
-  }
 
   /* Shuffler using default random number generator.*/
   template<typename T>

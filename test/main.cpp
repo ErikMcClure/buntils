@@ -226,12 +226,22 @@ int getuniformint()
   }
   return samples[cur++];
 }
-
 // --- Begin actual test procedure definitions ---
 
 TESTDEF::RETPAIR test_bss_util_c()
 {
   BEGINTEST;
+  //_MM_SET_DENORMALS_ZERO_MODE(_MM_DENORMALS_ZERO_ON);
+  //srand((int)time(0));
+  //int a=0;
+  //char prof = _debug.OpenProfiler();
+  //CPU_Barrier();
+  //for(int i = 0; i < 1000000; ++i) {
+  //  //a+= 5+(rand()/(RAND_MAX + 1.0))*(15-5);
+  //  a+= RANDINTGEN(9,12);
+  //}
+  //CPU_Barrier();
+  //std::cout << _debug.CloseProfiler(prof) << " :( " << a << std::endl;
 
   std::function<void()> b([](){ int i=0; i+=1; return; });
   b = std::move(std::function<void()>([](){ return; }));
@@ -1023,19 +1033,19 @@ TESTDEF::RETPAIR test_bss_FIXEDPT()
   FixedPt<13> fp(23563.2739);
   float res=fp;
   fp+=27.9;
-  res+=27.9;
+  res+=27.9f;
   TEST(fcompare(res,fp));
   res=fp;
   fp-=8327.9398437;
-  res-=8327.9398437;
+  res-=8327.9398437f;
   TEST(fcompare(res,fp));
   res=fp;
   fp*=6.847399;
-  res*=6.847399;
+  res*=6.847399f;
   TEST(fcompare(res,fp,215)); // We start approaching the edge of our fixed point range here so things predictably get out of whack
   res=fp;
   fp/=748.9272;
-  res/=748.9272;
+  res/=748.9272f;
   TEST(fcompare(res,fp,6));
   ENDTEST;
 }
@@ -1215,6 +1225,12 @@ TESTDEF::RETPAIR test_bss_SSE()
   c6 >> rv;
   TESTALLFOUR(rv,0);
   CPU_Barrier();
+
+  BSS_ALIGN(16) short rw[8] = {0,1,2,3,4,5,6,7};
+  sseVeci16 w1(rw);
+  sseVeci16 w2(rw);
+  sseVeci16 w3(((w1+w2)&(sseVeci16(4)|sseVeci16(2)))-w2);
+  sseVeci16 w4(w3<w1);
 
   BSS_ALIGN(16) float ch[4] = { 1.0f, 0.5f, 0.5f,1.0f };
   uint chr=flttoint(ch);

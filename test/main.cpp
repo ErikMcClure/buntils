@@ -1709,8 +1709,8 @@ TESTDEF::RETPAIR test_AVLTREE()
 {
   BEGINTEST;
 
-  Allocator<AVL_Node<int,int>,FixedPolicy<AVL_Node<int,int>>> fixedavl;
-  cAVLtree<int, int,CompT<int>,Allocator<AVL_Node<int,int>,FixedPolicy<AVL_Node<int,int>>>> avlblah(&fixedavl);
+  FixedPolicy<AVL_Node<std::pair<int,int>>> fixedavl;
+  cAVLtree<int, int,CompT<int>,FixedPolicy<AVL_Node<std::pair<int,int>>>> avlblah(&fixedavl);
 
   //char prof=_debug.OpenProfiler();
   for(int i = 0; i<TESTNUM; ++i)
@@ -1740,7 +1740,7 @@ TESTDEF::RETPAIR test_AVLTREE()
   cAVLtree<int, std::pair<int,int>*>* tree = new cAVLtree<int, std::pair<int,int>*>();
   std::pair<int,int> test(5,5);
   tree->Insert(test.first,&test);
-  tree->Get(test.first);
+  tree->Get(test.first,0);
   tree->ReplaceKey(5,2);
   tree->Remove(test.first);
   tree->Clear();
@@ -1753,7 +1753,7 @@ TESTDEF::RETPAIR test_AVLTREE()
     shuffle(testnums);
     cFixedAlloc<DEBUG_CDT<false>> dalloc(TESTNUM);
     typedef UqP_<DEBUG_CDT<false>,std::function<void(DEBUG_CDT<false>*)>> AVL_D;
-    cAVLtree<int,AVL_D,CompT<int>,FixedPolicy<AVL_Node<int,AVL_D>>> dtree;
+    cAVLtree<int,AVL_D,CompT<int>,FixedPolicy<AVL_Node<std::pair<int,AVL_D>>>> dtree;
     for(int i = 0; i<TESTNUM; ++i)
     {
       auto dp = dalloc.alloc(1);
@@ -1795,7 +1795,7 @@ TESTDEF::RETPAIR test_AVLTREE()
   }
   TEST(!DEBUG_CDT<false>::count)
 
-  cAVLtree<int,void,CompT<int>,Allocator<AVL_Node<int,void>,FixedPolicy<AVL_Node<int,void>>>> avlblah2;
+  cAVLtree<int,void,CompT<int>,FixedPolicy<AVL_Node<int>>> avlblah2;
 
   //char prof=_debug.OpenProfiler();
   for(int i = 0; i<TESTNUM; ++i)

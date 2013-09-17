@@ -14,6 +14,8 @@
 - Changed integral distribution using rand() to utilize an underlying float distribution because the performance is almost exactly the same.
 - Added a random seed-able mersenne function and gave it a suitable [min,max) wrapper in bss_algo.h
 - Added LLAdd specialization for both root and last
+- Created non-template cFixedAllocVoid class that is now instantiated by cFixedAlloc.
+- Simplified cAVLtree's method of handling void Data parameters
 
 0.4.1
 ------

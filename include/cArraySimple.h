@@ -13,27 +13,31 @@ namespace bss_util {
   class BSS_COMPILER_DLLEXPORT cArraySimple
   {
   public:
-    //inline cArraySimple<T,SizeType,Alloc>(const cArraySimple<T,SizeType,Alloc>& copy) : _array(!copy._size?(T*)0:(T*)malloc(copy._size*sizeof(T))), _size(copy._size)
-    inline cArraySimple<T,SizeType,Alloc>(const cArraySimple<T,SizeType,Alloc>& copy) : _array(!copy._size?(T*)0:(T*)Alloc::allocate(copy._size)), _size(copy._size)
+    typedef SizeType ST_; // There are cases when you need access to these types even if you don't inherit (see cRandomQueue in bss_algo.h)
+    typedef T T_;
+    static_assert(std::is_integral<SizeType>::value,"SizeType must be integral");
+
+    //inline cArraySimple<T,ST_,Alloc>(const cArraySimple<T,ST_,Alloc>& copy) : _array(!copy._size?(T*)0:(T*)malloc(copy._size*sizeof(T))), _size(copy._size)
+    inline cArraySimple<T,ST_,Alloc>(const cArraySimple<T,ST_,Alloc>& copy) : _array(!copy._size?(T*)0:(T*)Alloc::allocate(copy._size)), _size(copy._size)
     {
       memcpy(_array,copy._array,_size*sizeof(T));
     }
-    inline cArraySimple<T,SizeType,Alloc>(cArraySimple<T,SizeType,Alloc>&& mov) : _array(mov._array), _size(mov._size)
+    inline cArraySimple<T,ST_,Alloc>(cArraySimple<T,ST_,Alloc>&& mov) : _array(mov._array), _size(mov._size)
     {
       mov._array=0;
       mov._size=0;
     }
-    //inline explicit cArraySimple<T,SizeType,Alloc>(SizeType size) : _array(!size?(T*)0:(T*)malloc(size*sizeof(T))), _size(size)
-    inline explicit cArraySimple<T,SizeType,Alloc>(SizeType size) : _array(!size?(T*)0:(T*)Alloc::allocate(size)), _size(size)
+    //inline explicit cArraySimple<T,ST_,Alloc>(ST_ size) : _array(!size?(T*)0:(T*)malloc(size*sizeof(T))), _size(size)
+    inline explicit cArraySimple<T,ST_,Alloc>(ST_ size) : _array(!size?(T*)0:(T*)Alloc::allocate(size)), _size(size)
     {
     }
-    inline ~cArraySimple<T,SizeType,Alloc>()
+    inline ~cArraySimple<T,ST_,Alloc>()
     {
       if(_array!=0)
         Alloc::deallocate(_array);
     }
-    inline SizeType Size() const { return _size; }
-    void BSS_FASTCALL SetSizeDiscard(SizeType nsize)
+    inline ST_ Size() const { return _size; }
+    void BSS_FASTCALL SetSizeDiscard(ST_ nsize)
     {
       if(nsize<=_size) { _size=nsize; return; }
       if(_array!=0) Alloc::deallocate(_array);
@@ -41,7 +45,7 @@ namespace bss_util {
       _array = (T*)Alloc::allocate(nsize);
       _size=!_array?0:nsize;
     }
-    void BSS_FASTCALL SetSize(SizeType nsize)
+    void BSS_FASTCALL SetSize(ST_ nsize)
     {
       if(nsize<=_size) { _size=nsize; return; }
       //T* narray = (T*)realloc(_array,nsize*sizeof(T));
@@ -50,15 +54,15 @@ namespace bss_util {
       _array=!nsize?0:narray; // If nsize is 0 realloc will just deallocate _array.
       _size=!_array?0:nsize;
     }
-    inline void BSS_FASTCALL RemoveInternal(SizeType index)
+    inline void BSS_FASTCALL RemoveInternal(ST_ index)
     {
       assert(_size>0 && index<_size);
       memmove(_array+index,_array+index+1,(_size-index-1)*sizeof(T));
       //--_size;
     }
-    void BSS_FASTCALL Insert(T item, SizeType location)
+    void BSS_FASTCALL Insert(T item, ST_ location)
     {
-      SizeType nsize=_size+1;
+      ST_ nsize=_size+1;
       if(location==_size)
       {
         SetSize(nsize);
@@ -80,7 +84,7 @@ namespace bss_util {
     }
     //inline operator T*() { return _array; }
     //inline operator const T*() const { return _array; }
-    cArraySimple<T,SizeType,Alloc>& operator=(const cArraySimple<T,SizeType,Alloc>& copy)
+    cArraySimple<T,ST_,Alloc>& operator=(const cArraySimple<T,ST_,Alloc>& copy)
     {
       if(this == &copy) return *this;
       if(_array!=0) Alloc::deallocate(_array);
@@ -91,7 +95,7 @@ namespace bss_util {
         memcpy(_array,copy._array,_size*sizeof(T));
       return *this;
     }
-    cArraySimple<T,SizeType,Alloc>& operator=(cArraySimple<T,SizeType,Alloc>&& mov)
+    cArraySimple<T,ST_,Alloc>& operator=(cArraySimple<T,ST_,Alloc>&& mov)
     {
       if(this == &mov) return *this;
       if(_array!=0) Alloc::deallocate(_array);
@@ -101,18 +105,18 @@ namespace bss_util {
       mov._size=0;
       return *this;
     }
-    cArraySimple<T,SizeType,Alloc>& operator +=(const cArraySimple<T,SizeType,Alloc>& add)
+    cArraySimple<T,ST_,Alloc>& operator +=(const cArraySimple<T,ST_,Alloc>& add)
     {
       assert(this!=&add);
-      SizeType oldsize=_size;
+      ST_ oldsize=_size;
       SetSize(_size+add._size);
       if(add._size>0) 
         memcpy(_array+oldsize,add._array,add._size*sizeof(T));
       return *this;
     }
-    BSS_FORCEINLINE const cArraySimple<T,SizeType,Alloc> operator +(const cArraySimple<T,SizeType,Alloc>& add) const
+    BSS_FORCEINLINE const cArraySimple<T,ST_,Alloc> operator +(const cArraySimple<T,ST_,Alloc>& add) const
     {
-      cArraySimple<T,SizeType,Alloc> retval(*this);
+      cArraySimple<T,ST_,Alloc> retval(*this);
       retval+=add;
       return retval;
     }
@@ -121,19 +125,17 @@ namespace bss_util {
       if(_array!=0)
         memset(_array,val,_size*sizeof(T));
     }
-    inline void SetArray(const T* a, SizeType n, SizeType s=0) { SetSize(n+s); memcpy(_array+s,a,n*sizeof(T)); }
-    typedef SizeType ST_; // There are cases when you need access to these types even if you don't inherit (see cRandomQueue in bss_algo.h)
-    typedef T T_;
+    inline void SetArray(const T* a, ST_ n, ST_ s=0) { SetSize(n+s); memcpy(_array+s,a,n*sizeof(T)); }
 
   protected:
     //BSS_FORCEINLINE static void* _minmalloc(size_t n) { return malloc((n<1)?1:n); } //Malloc can legally return NULL if it tries to allocate 0 bytes
     template<typename U>
-    inline void _pushback(SizeType index, SizeType length, U && data) 
+    inline void _pushback(ST_ index, ST_ length, U && data) 
     {
       _mvarray(index+1,index,length);
       _array[index]=std::forward<U>(data);
     }
-    BSS_FORCEINLINE void _mvarray(SizeType begin, SizeType end, SizeType length)
+    BSS_FORCEINLINE void _mvarray(ST_ begin, ST_ end, ST_ length)
     {
       memmove(_array+begin,_array+end,length*sizeof(T));
     }
@@ -153,6 +155,7 @@ namespace bss_util {
   template<class T, typename SizeType=unsigned int, typename Alloc=StaticAllocPolicy<T>>
   class BSS_COMPILER_DLLEXPORT cArrayConstruct
   {
+    static_assert(std::is_integral<SizeType>::value,"SizeType must be integral");
   public:
     inline cArrayConstruct(const cArrayConstruct& copy) : _array(!copy._size?0:Alloc::allocate(copy._size)), _size(copy._size)
     {
@@ -296,6 +299,7 @@ namespace bss_util {
   template<class T, typename SizeType=unsigned int, typename Alloc=StaticAllocPolicy<T>>
   class BSS_COMPILER_DLLEXPORT cArraySafe
   {
+    static_assert(std::is_integral<SizeType>::value,"SizeType must be integral");
   public:
     inline cArraySafe(const cArraySafe& copy) : _array(Alloc::allocate(copy._size)), _size(copy._size)
     {

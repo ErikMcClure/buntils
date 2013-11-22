@@ -19,12 +19,15 @@
 #include "cBinaryHeap.h"
 #include "cBitArray.h"
 #include "cBitField.h"
+#include "cBitStream.h"
+#include "cBSS_Queue.h"
 #include "cBSS_Stack.h"
 #include "cByteQueue.h"
 #include "cCmdLineArgs.h"
 #include "cDef.h"
-#include "cDynArray.h"
 #include "cDisjointSet.h"
+#include "cDynArray.h"
+#include "cIDHash.h"
 #include "cINIstorage.h"
 #include "cKDTree.h"
 #include "cKhash.h"
@@ -132,7 +135,6 @@ void testbitcount(TESTDEF::RETPAIR& __testret)
     TEST(naivebitcount<T>(i)==bitcount<T>(i));
   }
 }
-template<class T> void VERIFYTYPE(const T& type) { }
 
 // This defines an enormous list of pangrams for a ton of languages, used for text processing in an attempt to expose possible unicode errors.
 const char* PANGRAM = "The wizard quickly jinxed the gnomes before they vapourized.";
@@ -168,15 +170,15 @@ const bsschar* PANGRAMS[] = {
   BSS__L("ژالہ باری میں ر‌ضائی کو غلط اوڑھے بیٹھی قرۃ العین اور عظمٰی کے پاس گھر کے ذخیرے سے آناً فاناً ڈش میں ثابت جو، صراحی میں چائے اور پلیٹ میں زردہ آیا۔") //Urdu
 };
 
-template<unsigned char B, __int64 SMIN, __int64 SMAX, unsigned __int64 UMIN, unsigned __int64 UMAX>
-inline void BSS_FASTCALL TEST_ABITLIMIT(TESTDEF::RETPAIR& __testret)
+template<unsigned char B, __int64 SMIN, __int64 SMAX, unsigned __int64 UMIN, unsigned __int64 UMAX, typename T>
+inline void TEST_BitLimit()
 {
-  VERIFYTYPE<char>(ABitLimit<1>::SIGNED(0));
-  VERIFYTYPE<unsigned char>(ABitLimit<1>::UNSIGNED(0));
-  TEST(ABitLimit<B>::SIGNED_MIN==SMIN); 
-  TEST(ABitLimit<B>::SIGNED_MAX==SMAX);
-  TEST(ABitLimit<B>::UNSIGNED_MIN==UMIN);
-  TEST(ABitLimit<B>::UNSIGNED_MAX==UMAX);
+  static_assert(std::is_same<T, BitLimit<B>::SIGNED>::value, "BitLimit failure");
+  static_assert(std::is_same<std::make_unsigned<T>::type, BitLimit<B>::UNSIGNED>::value, "BitLimit failure");
+  static_assert(BitLimit<B>::SIGNED_MIN==SMIN, "BitLimit failure");
+  static_assert(BitLimit<B>::SIGNED_MAX==SMAX, "BitLimit failure");
+  static_assert(BitLimit<B>::UNSIGNED_MIN==UMIN, "BitLimit failure");
+  static_assert(BitLimit<B>::UNSIGNED_MAX==UMAX, "BitLimit failure");
 }
 
 template<typename T, size_t S> inline static size_t BSS_FASTCALL _ARRSIZE(const T (&a)[S]) { return S; }
@@ -312,25 +314,32 @@ TESTDEF::RETPAIR test_bss_util()
   //TEST(bssFileSize(cStrW(fbuf))!=0);
   TESTNOERROR(GetTimeZoneMinutes());
   
-  TSignPick<sizeof(long double)>::SIGNED _u1;
-  TSignPick<sizeof(double)>::SIGNED _u2;
-  TSignPick<sizeof(float)>::SIGNED _u3;
-  TSignPick<sizeof(long double)>::UNSIGNED _v1;
-  TSignPick<sizeof(double)>::UNSIGNED _v2;
-  TSignPick<sizeof(float)>::UNSIGNED _v3;
-  TEST(T_CHARGETMSB(0)==0);
-  TEST(T_CHARGETMSB(1)==1);
-  TEST(T_CHARGETMSB(2)==2);
-  TEST(T_CHARGETMSB(3)==2);
-  TEST(T_CHARGETMSB(4)==4);
-  TEST(T_CHARGETMSB(7)==4);
-  TEST(T_CHARGETMSB(8)==8);
-  TEST(T_CHARGETMSB(20)==16);
-  TEST(T_CHARGETMSB(84)==64);
-  TEST(T_CHARGETMSB(189)==128);
-  TEST(T_CHARGETMSB(255)==128);
 
-  //TBitLimit conveniently calls TSignPick for us. Note that these tests CAN fail if trying to compile to an unsupported or buggy platform that doesn't have two's complement.
+  static_assert(std::is_same<BitLimit<sizeof(unsigned char)<<3>::SIGNED, char>::value, "Test Failure Line #" MAKESTRING(__LINE__));
+  static_assert(std::is_same<BitLimit<sizeof(unsigned short)<<3>::SIGNED, short>::value, "Test Failure Line #" MAKESTRING(__LINE__));
+  static_assert(std::is_same<BitLimit<sizeof(int)<<3>::SIGNED, int>::value, "Test Failure Line #" MAKESTRING(__LINE__));
+  static_assert(std::is_same<BitLimit<sizeof(char)<<3>::UNSIGNED, unsigned char>::value, "Test Failure Line #" MAKESTRING(__LINE__));
+  static_assert(std::is_same<BitLimit<sizeof(short)<<3>::UNSIGNED, unsigned short>::value, "Test Failure Line #" MAKESTRING(__LINE__));
+  static_assert(std::is_same<BitLimit<sizeof(unsigned int)<<3>::UNSIGNED, unsigned int>::value, "Test Failure Line #" MAKESTRING(__LINE__));
+  static_assert(std::is_same<BitLimit<sizeof(long double)<<3>::SIGNED, __int64>::value, "Test Failure Line #" MAKESTRING(__LINE__));
+  static_assert(std::is_same<BitLimit<sizeof(double)<<3>::SIGNED, __int64>::value, "Test Failure Line #" MAKESTRING(__LINE__));
+  static_assert(std::is_same<BitLimit<sizeof(float)<<3>::SIGNED, int>::value, "Test Failure Line #" MAKESTRING(__LINE__));
+  static_assert(std::is_same<BitLimit<sizeof(long double)<<3>::UNSIGNED, unsigned __int64>::value, "Test Failure Line #" MAKESTRING(__LINE__));
+  static_assert(std::is_same<BitLimit<sizeof(double)<<3>::UNSIGNED, unsigned __int64>::value, "Test Failure Line #" MAKESTRING(__LINE__));
+  static_assert(std::is_same<BitLimit<sizeof(float)<<3>::UNSIGNED, unsigned int>::value, "Test Failure Line #" MAKESTRING(__LINE__));
+  static_assert(T_CHARGETMSB(0)==0, "Test Failure Line #" MAKESTRING(__LINE__));
+  static_assert(T_CHARGETMSB(1)==1, "Test Failure Line #" MAKESTRING(__LINE__));
+  static_assert(T_CHARGETMSB(2)==2, "Test Failure Line #" MAKESTRING(__LINE__));
+  static_assert(T_CHARGETMSB(3)==2, "Test Failure Line #" MAKESTRING(__LINE__));
+  static_assert(T_CHARGETMSB(4)==4, "Test Failure Line #" MAKESTRING(__LINE__));
+  static_assert(T_CHARGETMSB(7)==4, "Test Failure Line #" MAKESTRING(__LINE__));
+  static_assert(T_CHARGETMSB(8)==8, "Test Failure Line #" MAKESTRING(__LINE__));
+  static_assert(T_CHARGETMSB(20)==16, "Test Failure Line #" MAKESTRING(__LINE__));
+  static_assert(T_CHARGETMSB(84)==64, "Test Failure Line #" MAKESTRING(__LINE__));
+  static_assert(T_CHARGETMSB(189)==128, "Test Failure Line #" MAKESTRING(__LINE__));
+  static_assert(T_CHARGETMSB(255)==128, "Test Failure Line #" MAKESTRING(__LINE__));
+
+  //Note that these tests CAN fail if trying to compile to an unsupported or buggy platform that doesn't have two's complement.
   TEST(TBitLimit<long long>::SIGNED_MIN == std::numeric_limits<long long>::min());
   TEST(TBitLimit<long>::SIGNED_MIN == std::numeric_limits<long>::min());
   TEST(TBitLimit<int>::SIGNED_MIN == std::numeric_limits<int>::min());
@@ -353,26 +362,16 @@ TESTDEF::RETPAIR test_bss_util()
   TEST(TBitLimit<char>::UNSIGNED_MIN == std::numeric_limits<unsigned char>::min());
 
   // These tests assume twos complement. This is ok because the previous tests would have caught errors relating to that anyway.
-  TEST_ABITLIMIT<1,-1,0,0,1>(__testret);
-  TEST_ABITLIMIT<2,-2,1,0,3>(__testret);
-  TEST_ABITLIMIT<7,-64,63,0,127>(__testret);
-  VERIFYTYPE<char>(ABitLimit<8>::SIGNED(0));
-  VERIFYTYPE<unsigned char>(ABitLimit<8>::UNSIGNED(0));
-  TEST(ABitLimit<8>::SIGNED_MIN==std::numeric_limits<char>::min());
-  TEST(ABitLimit<8>::SIGNED_MAX==std::numeric_limits<char>::max());
-  TEST(ABitLimit<8>::UNSIGNED_MIN==std::numeric_limits<unsigned char>::min());
-  TEST(ABitLimit<8>::UNSIGNED_MAX==std::numeric_limits<unsigned char>::max());
-  TEST_ABITLIMIT<9,-256,255,0,511>(__testret);
-  TEST_ABITLIMIT<15,-16384,16383,0,32767>(__testret);
-  VERIFYTYPE<short>(ABitLimit<16>::SIGNED(0));
-  VERIFYTYPE<unsigned short>(ABitLimit<16>::UNSIGNED(0));
-  TEST(ABitLimit<16>::SIGNED_MIN==std::numeric_limits<short>::min());
-  TEST(ABitLimit<16>::SIGNED_MAX==std::numeric_limits<short>::max());
-  TEST(ABitLimit<16>::UNSIGNED_MIN==std::numeric_limits<unsigned short>::min());
-  TEST(ABitLimit<16>::UNSIGNED_MAX==std::numeric_limits<unsigned short>::max());
-  TEST_ABITLIMIT<17,-65536,65535,0,131071>(__testret);
-  TEST_ABITLIMIT<63,-4611686018427387904,4611686018427387903,0,9223372036854775807>(__testret);
-  TEST_ABITLIMIT<64,-9223372036854775808,9223372036854775807,0,18446744073709551615>(__testret);
+  TEST_BitLimit<1, -1, 0, 0, 1, char>();
+  TEST_BitLimit<2, -2, 1, 0, 3, char>();
+  TEST_BitLimit<7, -64, 63, 0, 127, char>();
+  TEST_BitLimit<sizeof(char)<<3, CHAR_MIN, CHAR_MAX, 0, UCHAR_MAX, char>();
+  TEST_BitLimit<9, -256, 255, 0, 511, short>();
+  TEST_BitLimit<15, -16384, 16383, 0, 32767, short>();
+  TEST_BitLimit<sizeof(short)<<3, SHRT_MIN, SHRT_MAX, 0, USHRT_MAX, short>();
+  TEST_BitLimit<17, -65536, 65535, 0, 131071, int>();
+  TEST_BitLimit<63, -4611686018427387904, 4611686018427387903, 0, 9223372036854775807, __int64>();
+  TEST_BitLimit<64, -9223372036854775808LL, 9223372036854775807, 0, 18446744073709551615, __int64>();
   // For reference, the above strange bit values are used in fixed-point arithmetic found in bss_fixedpt.h
 
   TEST(GetBitMask<unsigned char>(4)==0x10); // 0001 0000
@@ -450,6 +449,25 @@ TESTDEF::RETPAIR test_bss_util()
   TEST(ta=="second");
   TEST(tb=="first");
 
+  TEST((intdiv<int,int>(10,5)==2));
+  TEST((intdiv<int,int>(9,5)==1));
+  TEST((intdiv<int,int>(5,5)==1));
+  TEST((intdiv<int,int>(4,5)==0));
+  TEST((intdiv<int,int>(0,5)==0));
+  TEST((intdiv<int,int>(-1,5)==-1));
+  TEST((intdiv<int,int>(-5,5)==-1));
+  TEST((intdiv<int,int>(-6,5)==-2));
+  TEST((intdiv<int,int>(-10,5)==-2));
+  TEST((intdiv<int,int>(-11,5)==-3));
+
+  TEST((bssmod(-1,7)==6)); 
+  TEST((bssmod(6,7)==6)); 
+  TEST((bssmod(7,7)==0)); 
+  TEST((bssmod(0,7)==0)); 
+  TEST((bssmod(1,7)==1)); 
+  TEST((bssmod(1,1)==0)); 
+  TEST((bssmod(-1,2)==1)); 
+
   int r[] = { -1,0,2,3,4,5,6 };
   int rr[] = { 6,5,4,3,2,0,-1 };
   bssreverse(r);
@@ -503,13 +521,8 @@ TESTDEF::RETPAIR test_bss_util()
   TEST(fcompare(angledist(PI+PI_HALF*7.0,PI_DOUBLE+PI),PI_HALF))
   TEST(fcompare(angledist(PIf,PI_HALFf),PI_HALFf))
   TEST(fsmall(angledist(PIf,PIf+PI_DOUBLEf),FLT_EPS*4))
-#if !defined(BSS_DEBUG) || defined(BSS_CPU_x86_64) // In debug mode, we use precise floating point. In release mode, we use fast floating point. This lets us test both models to reveal any significant differences.
-  TEST(fcompare(angledist(PI_DOUBLEf+PIf,PIf+PI_HALFf*7.0f),PI_HALFf,9)) // As one would expect, in fast floating point we need to be more tolerant of minor errors.
+  TEST(fcompare(angledist(PI_DOUBLEf+PIf,PIf+PI_HALFf*7.0f),PI_HALFf,9))
   TEST(fcompare(angledist(PIf+PI_HALFf*7.0f,PI_DOUBLEf+PIf),PI_HALFf,9))
-#else
-  TEST(fcompare(angledist(PI_DOUBLEf+PIf,PIf+PI_HALFf*7.0f),PI_HALFf)) // In precise mode, however, the result is almost exact
-  TEST(fcompare(angledist(PIf+PI_HALFf*7.0f,PI_DOUBLEf+PIf),PI_HALFf))
-#endif
 
   TEST(fcompare(angledistsgn(PI,PI_HALF),PI_HALF))
   TEST(fsmall(angledistsgn(PI,PI+PI_DOUBLE)))
@@ -517,11 +530,7 @@ TESTDEF::RETPAIR test_bss_util()
   TEST(fcompare(angledistsgn(PI_HALF,PI),-PI_HALF))
   TEST(fcompare(angledistsgn(PIf,PI_HALFf),PI_HALFf))
   TEST(fsmall(angledistsgn(PIf,PIf+PI_DOUBLEf),FLT_EPS*4))
-#if !defined(BSS_DEBUG) || defined(BSS_CPU_x86_64)
   TEST(fcompare(angledistsgn(PI_DOUBLEf+PIf,PIf+PI_HALFf*7.0f),PI_HALFf,9))
-#else
-  TEST(fcompare(angledistsgn(PI_DOUBLEf+PIf,PIf+PI_HALFf*7.0f),PI_HALFf))
-#endif
   TEST(fcompare(angledistsgn(PI_HALFf,PIf),-PI_HALFf))
 
   const float flt=FLT_EPSILON;
@@ -534,17 +543,17 @@ TESTDEF::RETPAIR test_bss_util()
   TEST(fsmall(*(double*)(&(--di))))
   TEST(fsmall(*(double*)(&(++di))))
   TEST(!fsmall(*(double*)(&(++di))))
-  
-  TEST(fcompare(1.0f,1.0f))
-  TEST(fcompare(1.0f,1.0f+FLT_EPSILON))
-  TEST(fcompare(10.0f,10.0f+FLT_EPSILON*10))
-  TEST(fcompare(10.0f,10.0f))
+
+  TEST(fcompare(1.0f, 1.0f))
+  TEST(fcompare(1.0f, 1.0f+FLT_EPSILON))
+  TEST(fcompare(10.0f, 10.0f+FLT_EPSILON*10))
+  TEST(fcompare(10.0f, 10.0f))
   TEST(!fcompare(0.1f, 0.1f+FLT_EPSILON*0.1f))
   TEST(!fcompare(0.1f, FLT_EPSILON))
-  TEST(fcompare(1.0,1.0))
-  TEST(fcompare(1.0,1.0+DBL_EPSILON))
-  TEST(fcompare(10.0,10.0+DBL_EPSILON*10))
-  TEST(fcompare(10.0,10.0))
+  TEST(fcompare(1.0, 1.0))
+  TEST(fcompare(1.0, 1.0+DBL_EPSILON))
+  TEST(fcompare(10.0, 10.0+DBL_EPSILON*10))
+  TEST(fcompare(10.0, 10.0))
   TEST(!fcompare(0.1, 0.1+DBL_EPSILON*0.1))
   TEST(!fcompare(0.1, DBL_EPSILON))
 
@@ -600,10 +609,8 @@ TESTDEF::RETPAIR test_bss_util()
   double ddbl = fabs(FastSqrt(2.0) - sqrt(2.0));
 #ifdef BSS_COMPILER_GCC
   TEST(fabs(FastSqrt(2.0f) - sqrt(2.0f))<=FLT_EPSILON*3);
-#elif !defined(BSS_DEBUG) || defined(BSS_CPU_x86_64)
-  TEST(fabs(FastSqrt(2.0f) - sqrt(2.0f))<=FLT_EPSILON*2);
 #else
-  TEST(fabs(FastSqrt(2.0f) - sqrt(2.0f))<=FLT_EPSILON);
+  TEST(fabs(FastSqrt(2.0f) - sqrt(2.0f))<=FLT_EPSILON*2);
 #endif
   TEST(fabs(FastSqrt(2.0) - sqrt(2.0))<=(DBL_EPSILON*100)); // Take note of the 100 epsilon error here on the fastsqrt for doubles.
   uint nmatch;
@@ -690,16 +697,16 @@ TESTDEF::RETPAIR test_bss_util()
   testbitcount<unsigned int>(__testret);
   testbitcount<unsigned __int64>(__testret);
 
+  auto flog = [](int i) -> int { int r = 0; while(i >>= 1) ++r; return r; };
   for(nmatch = 1; nmatch < 200000; ++nmatch)
   {
-    uint test=std::log((double)nmatch);
-    if(log2(nmatch)!=(uint)(std::log((double)nmatch)/std::log(2.0)))
+    if(log2(nmatch)!=flog(nmatch))
       break;
   }
   TEST(nmatch==200000);
   for(nmatch = 2; nmatch < INT_MAX; nmatch <<= 1) // You have to do INT_MAX here even though its unsigned, because 10000... is actually less than 1111... and you overflow.
   {
-    if(log2_p2(nmatch)!=(uint)(std::log((double)nmatch)/std::log(2.0)))
+    if(log2_p2(nmatch)!=flog(nmatch))
       break;
   }
   TEST(nmatch==(1<<31));
@@ -721,6 +728,13 @@ TESTDEF::RETPAIR test_bss_util()
   TEST((intdiv<int,int>(-218937542,378)==-579200));
   TEST((intdiv<int,int>(INT_MIN,3)==((INT_MIN/3)-1)));
   TEST((intdiv<int,int>(INT_MAX,3)==(INT_MAX/3)));
+
+  int a = -1;
+  flipendian(&a);
+  TEST(a==-1);
+  a = 1920199968;
+  flipendian(&a);
+  TEST(a==552432498);
 
   ENDTEST;
 }
@@ -869,6 +883,7 @@ TESTDEF::RETPAIR test_bss_algo()
   TEST(res==4.0);
   res=CubicBSpline<double,double>(1.0,2.0,4.0,8.0,16.0);
   TEST(res==8.0);
+
   ENDTEST;
 }
 
@@ -1047,6 +1062,139 @@ TESTDEF::RETPAIR test_bss_FIXEDPT()
   fp/=748.9272;
   res/=748.9272f;
   TEST(fcompare(res,fp,6));
+  ENDTEST;
+}
+
+bool GRAPHACTION(unsigned short s) { return false; }
+bool GRAPHISEDGE(const __edge_MaxFlow<__edge_LowerBound<void>>* e) { return e->capacity>0; }
+
+template<class G> // debug
+void outgraph(const G& g)
+{
+  std::cout << "--------" << std::endl;
+  auto& n = g.GetNodes();
+  for(int i = 0; i < g.NumNodes(); ++i)
+  {
+    for(auto p = n[i].to; p!=0; p = p->next)
+      std::cout << p->from << " -> (" << p->data.capacity << "," << p->data.flow << ") ->" << p->to << std::endl;
+  }
+}
+
+TESTDEF::RETPAIR test_bss_GRAPH()
+{
+  BEGINTEST;
+
+  {
+    Graph<void,void> g(6);
+
+    ushort s = 0;
+    ushort o = 1;
+    ushort p = 2;
+    ushort q = 3;
+    ushort r = 4;
+    ushort t = 5;
+    g.AddEdge(s,o,0); 
+    g.AddEdge(s,p,0); 
+    g.AddEdge(o,p,0); 
+    g.AddEdge(o,q,0); 
+    g.AddEdge(p,r,0); 
+    g.AddEdge(q,r,0); 
+    g.AddEdge(q,t,0);
+    g.AddEdge(r,t,0); 
+    TEST(g.NumEdges()==8);
+    TEST(g.NumNodes()==6);
+
+    ushort* queue = (ushort*)_alloca(sizeof(ushort)*g.NumNodes());
+    BreadthFirstGraph<Graph<void,void>,GRAPHACTION>(g,s,queue);
+    TEST(queue[0]==p);
+    TEST(queue[1]==o);
+    TEST(queue[2]==r);
+    TEST(queue[3]==q);
+    TEST(queue[4]==t);
+  }
+
+  {
+    Graph<__edge_MaxFlow<void>,void> g;
+    
+    ushort s = g.AddNode();
+    ushort o = g.AddNode();
+    ushort p = g.AddNode();
+    ushort q = g.AddNode();
+    ushort r = g.AddNode();
+    TEST(g.Back()==r);
+    ushort t = g.AddNode();
+    TEST(g.Front()==s);
+    TEST(g.Back()==t);
+    { __edge_MaxFlow<void> e = { 0,3 }; g.AddEdge(s,o,&e); }
+    { __edge_MaxFlow<void> e = { 0,3 }; g.AddEdge(s,p,&e); }
+    { __edge_MaxFlow<void> e = { 0,2 }; g.AddEdge(o,p,&e); }
+    { __edge_MaxFlow<void> e = { 0,3 }; g.AddEdge(o,q,&e); }
+    { __edge_MaxFlow<void> e = { 0,2 }; g.AddEdge(p,r,&e); }
+    { __edge_MaxFlow<void> e = { 0,4 }; g.AddEdge(q,r,&e); }
+    { __edge_MaxFlow<void> e = { 0,2 }; g.AddEdge(q,t,&e); }
+    { __edge_MaxFlow<void> e = { 0,3 }; g.AddEdge(r,t,&e); }
+    
+    MaxFlow_PushRelabel(g,s,t);
+    int res[] = { g[s].to->data.flow, g[s].to->next->data.flow, g[o].to->data.flow, g[o].to->next->data.flow, 
+                  g[p].to->data.flow, g[q].to->data.flow, g[q].to->next->data.flow, g[r].to->data.flow };
+    int resref[] = { 2,3,3,0,2,2,1,3 };
+    for(int i = 0; i < sizeof(res)/sizeof(int); ++i) TEST(res[i]==resref[i]);
+  }
+
+  {
+    __vertex_Demand<void> verts[4] = { {-3}, {-3}, {2}, {4} };
+    Graph<__edge_MaxFlow<void>, __vertex_Demand<void>> g(4, verts);
+    { __edge_MaxFlow<void> e = {0, 3}; g.AddEdge(0, 2, &e); } // Note, this problem has two valid answers. If the edges are added in 
+    { __edge_MaxFlow<void> e = {0, 3}; g.AddEdge(0, 1, &e); } // the opposite order, you'll get a different one.
+    { __edge_MaxFlow<void> e = {0, 2}; g.AddEdge(1, 3, &e); }
+    { __edge_MaxFlow<void> e = {0, 2}; g.AddEdge(1, 2, &e); }
+    { __edge_MaxFlow<void> e = {0, 2}; g.AddEdge(2, 3, &e); }
+
+    ushort s;
+    ushort t;
+    Circulation_MaxFlow(g,s,t);
+    MaxFlow_PushRelabel(g, s, t);
+    //outgraph(g);
+    g.RemoveNode(s);
+    g.RemoveNode(t);
+    int res[] = { g[0].to->data.flow, g[0].to->next->data.flow, g[1].to->data.flow, g[1].to->next->data.flow, g[2].to->data.flow };
+    int resref[] = { 1,2,2,2,2 };
+    for(int i = 0; i < sizeof(res)/sizeof(int); ++i) TEST(res[i]==resref[i]);
+  }
+
+  {
+    typedef __edge_MaxFlow<__edge_LowerBound<void>> EDGE;
+    EDGE m[16] = { {0,0,0},{0,4,1},{0,5,2},{0,0,0}, 
+                 {0,0,0},{0,0,0},{0,2,0},{0,2,0},
+                 {0,0,0},{0,0,0},{0,0,0},{0,2,0},
+                 {0,0,0},{0,0,0},{0,0,0},{0,0,0} };
+    __vertex_Demand<void> verts[4] = { {-6}, {-2}, {4}, {4} };
+    Graph<__edge_MaxFlow<__edge_LowerBound<void>>,__vertex_Demand<void>> g;
+    g.FromMatrix<GRAPHISEDGE>(4,m,verts);
+
+    ushort s;
+    ushort t;
+    LowerBound_Circulation(g);
+    Circulation_MaxFlow(g,s,t);
+    MaxFlow_PushRelabel(g,s,t);
+    g.RemoveNode(s);
+    g.RemoveNode(t);
+    int res[] = { g[0].to->data.flow, g[0].to->next->data.flow, g[1].to->data.flow, g[1].to->next->data.flow, g[2].to->data.flow };
+    int resref[] = { 3,0,2,1,2 }; // This adds the edges in a different order so we get the other legal answer
+    for(int i = 0; i < sizeof(res)/sizeof(int); ++i) TEST(res[i]==resref[i]);
+  }
+
+  { 
+    char m[16] = { 0,1,0,0,
+                 0,0,1,0,
+                 1,1,0,1,
+                 0,1,0,0, };
+    Graph<void,void> g(4,m,0);
+
+    char m2[16]={0};
+    g.ToMatrix(m2,0);
+    TEST(!memcmp(m,m2,sizeof(m)));
+  }
   ENDTEST;
 }
 
@@ -1438,24 +1586,46 @@ struct DEBUG_CDT : DEBUG_CDT_SAFE<SAFE> {
 template<> int DEBUG_CDT<true>::count=0;
 template<> int DEBUG_CDT<false>::count=0;
 
-AniAttribute* BSS_FASTCALL cAbstractAnim::SpawnBase(const cDef<AniAttribute>& p) { return p.Spawn(); }
-void* BSS_FASTCALL cAbstractAnim::AnimAlloc(size_t n, void* p) { return realloc(p,n); }
-void BSS_FASTCALL cAbstractAnim::AnimFree(void* p) { free(p); }
-
-namespace bss_util { template<> struct ANI_IDTYPE<0> { typedef ANI_IDTYPE_TYPES<cRefCounter*,void,cAutoRef<cRefCounter>,char> TYPES; }; }
+namespace bss_util { template<> struct ANI_IDTYPE<0> { typedef ANI_IDTYPE_TYPES<AniAttributeDiscrete<0>, cRefCounter*, cAutoRef<cRefCounter>, char, void, delegate<void, cRefCounter*>> TYPES; }; }
+namespace bss_util { template<> struct ANI_IDTYPE<1> { typedef ANI_IDTYPE_TYPES<AniAttributeInterval<1>, std::pair<cAutoRef<cRefCounter>, double>, std::pair<cAutoRef<cRefCounter>, double>, char, cRefCounter*> TYPES; }; }
+namespace bss_util { template<> struct ANI_IDTYPE<2> { typedef ANI_IDTYPE_TYPES<AniAttributeSmooth<2>, float> TYPES; }; }
+namespace bss_util { template<> struct ANI_IDTYPE<3> { typedef ANI_IDTYPE_TYPES<AniAttributeGeneric<3>, std::function<void(void)>, std::function<void(void)>, char> TYPES; }; }
 
 #include <memory>
 
-struct cAnimObj : cAbstractAnim
+struct cAnimObj
 {
   cAnimObj() : test(0) {}
   int test;
+  int test2;
+  float fl;
   void BSS_FASTCALL donothing(cRefCounter*) { ++test; }
-  virtual AniAttribute* BSS_FASTCALL TypeIDRegFunc(unsigned char TypeID)
+  cRefCounter* BSS_FASTCALL retnothing(const std::pair<cAutoRef<cRefCounter>, double>& p) { 
+    std::pair<cAutoRef<cRefCounter>, double>& pp = const_cast<std::pair<cAutoRef<cRefCounter>, double>&>(p); 
+    ++test2; 
+    pp.first->Grab(); 
+    return (cRefCounter*)pp.first; 
+  }
+  void BSS_FASTCALL remnothing(cRefCounter* p) { p->Drop(); }
+  void BSS_FASTCALL setfloat(float a) { fl = a; }
+  static BSS_FORCEINLINE double _grabduration(const std::pair<cAutoRef<cRefCounter>, double>& p) { return p.second; }
+  void BSS_FASTCALL TypeIDRegFunc(AniAttribute* p)
   {
-    if(!TypeID)
-      return SpawnBase(AttrDefDiscrete<0>(delegate<void,cRefCounter*>::From<cAnimObj,&cAnimObj::donothing>(this)));
-    return 0;
+    switch(p->typeID)
+    {
+    case 0:
+      p->Attach(&AttrDefDiscrete<0>(delegate<void, cRefCounter*>::From<cAnimObj, &cAnimObj::donothing>(this)));
+      break;
+    case 1:
+      p->Attach(&AttrDefInterval<1>(&_grabduration, delegate<void, cRefCounter*>::From<cAnimObj, &cAnimObj::remnothing>(this), delegate<cRefCounter*, const std::pair<cAutoRef<cRefCounter>, double>&>::From<cAnimObj, &cAnimObj::retnothing>(this)));
+      break;
+    //case 2:
+    //  p->Attach(&AttrDefSmooth<2>(delegate<void, float>::From<cAnimObj, &cAnimObj::donothing>(this)));
+    //  break;
+    case 3:
+      p->Attach(0);
+      break;
+    }
   }
 };
 
@@ -1465,8 +1635,7 @@ TESTDEF::RETPAIR test_ANIMATION()
   cRefCounter c;
   {
   c.Grab();
-  cAnimObj obj;
-  cAnimation a(&obj);
+  cAnimation<StaticAllocPolicy<char>> a;
   a.Pause(true);
   a.SetTimeWarp(1.0);
   TEST(a.IsPaused());
@@ -1480,6 +1649,9 @@ TESTDEF::RETPAIR test_ANIMATION()
   TEST(a.GetTypeID(0)!=0);
   TEST(a.GetAnimationLength()==2.0);
   
+  cAnimObj obj;
+  a.Attach(delegate<void,AniAttribute*>::From<cAnimObj,&cAnimObj::TypeIDRegFunc>(&obj));
+
   TEST(obj.test==0);
   a.Start(0);
   TEST(a.IsPlaying());
@@ -1513,18 +1685,15 @@ TESTDEF::RETPAIR test_ANIMATION()
   TEST(c.Grab()==5);
   c.Drop();
 
-  DEF_ANIMATION anidef;
-  anidef.AddFrame<0>(KeyFrame<0>(0.0,&c));
-  anidef.AddFrame<0>(KeyFrame<0>(1.0,&c));
-  anidef.AddFrame<0>(KeyFrame<0>(2.0,&c));
-  cAnimation b(anidef,&obj);
+  cAnimation<StaticAllocPolicy<char>> b(a);
   obj.test=0;
+  b.Attach(delegate<void,AniAttribute*>::From<cAnimObj,&cAnimObj::TypeIDRegFunc>(&obj));
   TEST(obj.test==0);
-  a.Start(0);
+  b.Start(0);
   TEST(obj.test==1);
-  a.Interpolate(1.0);
+  b.Interpolate(1.0);
   TEST(obj.test==2);
-  TEST(c.Grab()==11);
+  TEST(c.Grab()==8);
   c.Drop();
   }
   TEST(c.Grab()==2);
@@ -1705,6 +1874,11 @@ TESTDEF::RETPAIR test_ARRAYSORT()
   ENDTEST;
 }
 
+int avltestnum[8];
+BSS_FORCEINLINE bool AVLACTION(AVL_Node<int>* n) { static int c=0; avltestnum[c++]=n->_key; return false; }
+BSS_FORCEINLINE AVL_Node<int>* LAVLCHILD(AVL_Node<int>* n) { return n->_left; }
+BSS_FORCEINLINE AVL_Node<int>* RAVLCHILD(AVL_Node<int>* n) { return n->_right; }
+
 TESTDEF::RETPAIR test_AVLTREE()
 {
   BEGINTEST;
@@ -1817,6 +1991,23 @@ TESTDEF::RETPAIR test_AVLTREE()
   //std::cout << _debug.CloseProfiler(prof) << std::endl;
   avlblah2.Clear();
 
+  avlblah2.Insert(1);
+  avlblah2.Insert(4);
+  avlblah2.Insert(3);
+  avlblah2.Insert(5);
+  avlblah2.Insert(2);
+  avlblah2.Insert(-1);
+  avlblah2.Insert(-2);
+  avlblah2.Insert(-3);
+  BreadthFirstTree<AVL_Node<int>,AVLACTION,LAVLCHILD,RAVLCHILD>(avlblah2.GetRoot(),8);
+  TEST(avltestnum[0]==3);
+  TEST(avltestnum[1]==4);
+  TEST(avltestnum[2]==1);
+  TEST(avltestnum[3]==5);
+  TEST(avltestnum[4]==2);
+  TEST(avltestnum[5]==-2);
+  TEST(avltestnum[6]==-1);
+  TEST(avltestnum[7]==-3);
 
   ENDTEST;
 }
@@ -1958,6 +2149,110 @@ TESTDEF::RETPAIR test_BITFIELD()
   ENDTEST;
 }
 
+TESTDEF::RETPAIR test_BITSTREAM()
+{
+  BEGINTEST;
+
+  std::stringstream s;
+  {
+    int a = -1;
+    short b = 8199;
+    char c = 31;
+    char d = -63;
+    cBitStream<std::ostream> so(s);
+    so << a;
+    so << b;
+    so.Write(true);
+    so.Write(&d, 7);
+    so.Write(&d, 7);
+    so.Write(true);
+    so << c;
+    so.Write(&c, 3);
+    so.Write(&b, 14);
+    so.Write(&c, 3);
+    so << c;
+  }
+  {
+    cBitStream<std::istream> si(s);
+    int a;
+    short b;
+    char c;
+    bool k;
+    si >> a;
+    TEST(a==-1);
+    si >> b;
+    TEST(b==8199);
+    si >> k;
+    TEST(k);
+    c = 0;
+    si.Read(&c, 7);
+    TEST(c==65);
+    c = 0;
+    si.Read(&c, 7);
+    TEST(c==65);
+    si >> k;
+    TEST(k);
+    si >> c;
+    TEST(c==31);
+    c = 0;
+    si.Read(&c, 3);
+    TEST(c==7);
+    b = 0;
+    si.Read(&b, 14);
+    TEST(b==8199);
+    c = 0;
+    si.Read(&c, 3);
+    TEST(c==7);
+    c = 0;
+    si.Read<char>(c);
+    TEST(c==31);
+  }
+
+  ENDTEST;
+}
+
+TESTDEF::RETPAIR test_BSS_QUEUE()
+{
+  BEGINTEST;
+  cBSS_Queue<int> q(0);
+  q.Clear();
+  TEST(q.Capacity()==0);
+  TEST(q.Empty());
+  q.Push(1);
+  TEST(q.Pop()==1);
+  q.Push(2);
+  q.Push(3);
+  q.Push(4);
+  TEST(q.Length()==3);
+  TEST(q.Pop()==2);
+  TEST(q.Length()==2);
+  TEST(q.Pop()==3);
+  TEST(q.Length()==1);
+  q.Push(2);
+  q.Push(3);
+  q.Push(4);
+  TEST(q.Length()==4);
+  TEST(q.Pop()==4);
+  TEST(q.Length()==3);
+  TEST(q.Pop()==2);
+  TEST(q.Length()==2);
+  q.Clear();
+  q.Push(5);
+  TEST(q.Peek()==5);
+  q.Push(6);
+  TEST(q.Peek()==5);
+  q.Discard();
+  TEST(q.Length()==1);
+  TEST(q.Peek()==6);
+  cBSS_Queue<int> q2(3);
+  q2.Push(7);
+  TEST(q2.Peek()==7);
+  q2=q;
+  TEST(q2.Peek()==6);
+
+  ENDTEST;
+}
+
 TESTDEF::RETPAIR test_BSS_STACK()
 {
   BEGINTEST;
@@ -2044,7 +2339,18 @@ TESTDEF::RETPAIR test_DISJOINTSET()
   shuffle(E); // shuffle our edges
   auto tree = cDisjointSet<uint>::MinSpanningTree(5,std::begin(E),std::end(E));
   TEST(tree.Size()==4);
-
+  
+  cDisjointSet<uint> s(5);
+  s.Union(2,3);
+  s.Union(2,4);
+  s.Union(1,2);
+  TEST((s.NumElements(3)==4));
+  DYNARRAY(uint,elements,s.NumElements(3));
+  TEST((s.GetElements(3,elements)==4));
+  TEST(elements[0]==1);
+  TEST(elements[1]==2);
+  TEST(elements[2]==3);
+  TEST(elements[3]==4);
   ENDTEST;
 }
 
@@ -2139,6 +2445,84 @@ TESTDEF::RETPAIR test_HIGHPRECISIONTIMER()
   ENDTEST;
 }
 
+TESTDEF::RETPAIR test_IDHASH()
+{
+  BEGINTEST;
+
+  {
+    cIDHash<int> hash(3);
+    TEST(hash.Length()==0);
+    TEST(hash.MaxID()==0);
+    int a = hash.Add(5);
+    int b = hash.Add(6);
+    int c = hash.Add(7);
+    int d = hash.Add(8);
+    TEST(hash.Length()==4);
+    TEST(hash.MaxID()==3);
+    TEST(a==0);
+    TEST(b==1);
+    TEST(c==2);
+    TEST(d==3);
+    TEST(hash[a]==5);
+    TEST(hash[b]==6);
+    TEST(hash[c]==7);
+    TEST(hash.Get(d)==8);
+    hash.Remove(b);
+    TEST(hash.Length()==3);
+    b = hash.Add(9);
+    TEST(hash.Length()==4);
+    TEST(hash.MaxID()==3);
+    TEST(b==1);
+    TEST(hash[b]==9);
+    cIDHash<int> hash2(hash);
+    TEST(hash2.Length()==4);
+    TEST(hash2.MaxID()==3);
+    TEST(hash2[b]==9);
+    cIDHash<int> hash3(std::move(hash));
+    TEST(hash3.Length()==4);
+    TEST(hash3.MaxID()==3);
+    TEST(hash3[b]==9);
+  }
+
+  {
+    cIDReverse<int,unsigned int, StaticAllocPolicy<int>,-1> hash;
+    int a = hash.Add(1);
+    int b = hash.Add(2);
+    int c = hash.Add(3);
+    int d = hash.Add(4);
+    int e = hash.Add(5);
+    int f = hash.Add(6);
+    int g = hash.Add(7);
+    int h = hash.Add(8);
+    TEST(hash.Length()==8);
+    TEST(hash.MaxID()==7);
+    for(int i = 0; i<8; ++i) TEST(hash[i]==(i+1));
+    for(int i = 0; i<8; ++i) TEST(hash.Lookup(i+1)==i);
+    hash.Remove(b);
+    hash.Remove(d);
+    hash.Remove(e);
+    TEST(hash.Length()==5);
+    TEST(hash.MaxID()==7);
+    hash.Compress();
+    TEST(hash.Length()==5);
+    TEST(hash.MaxID()==4);
+    TEST(hash[0]==1);
+    TEST(hash[1]==8);
+    TEST(hash[2]==3);
+    TEST(hash[3]==7);
+    TEST(hash[4]==6);
+    TEST(hash.Lookup(1)==0);
+    TEST(hash.Lookup(2)==(unsigned int)-1);
+    TEST(hash.Lookup(3)==2);
+    TEST(hash.Lookup(4)==(unsigned int)-1);
+    TEST(hash.Lookup(5)==(unsigned int)-1);
+    TEST(hash.Lookup(6)==4);
+    TEST(hash.Lookup(7)==3);
+    TEST(hash.Lookup(8)==1);
+  }
+  ENDTEST;
+}
+
 TESTDEF::RETPAIR test_SCHEDULER()
 {
   BEGINTEST;
@@ -2170,7 +2554,7 @@ TESTDEF::RETPAIR test_INIPARSE()
 TESTDEF::RETPAIR test_INISTORAGE()
 {
   BEGINTEST;
-
+  
   cINIstorage ini("inistorage.ini");
 
   auto fn=[&](cINIentry* e, const char* s, int i) -> bool { return (e!=0 && !strcmp(e->GetString(),s) && e->GetInt()==i); };
@@ -3066,7 +3450,7 @@ TESTDEF::RETPAIR test_STRTABLE()
   mbstable.DumpToStream(&fs);
   fs.close();
   fs.open("dump.txt",std::ios_base::in | std::ios_base::binary);
-  cStrTable<char> ldtable(&fs,bssFileSize("dump.txt"));
+  cStrTable<char> ldtable(&fs,(size_t)bssFileSize("dump.txt"));
   for(int i = 0; i < SZ; ++i)
     TEST(!strcmp(ldtable[i],pstr[i]));
   for(int i = 0; i < 6; ++i)
@@ -3368,18 +3752,30 @@ TESTDEF::RETPAIR test_STREAMSPLITTER()
 }
 
 // wat
-typedef std::pair<const char*,size_t> Fragment;
-void BSS_FASTCALL MakeFragments(const char* str, cDynArray<cArraySimple<Fragment>>& r)
+//typedef std::pair<const char*,size_t> Fragment;
+//void BSS_FASTCALL MakeFragments(const char* str, cDynArray<cArraySimple<Fragment>>& r)
+//{
+//  cStr hold(str);
+//  char* context;
+//  char* p = STRTOK(hold.UnsafeString(),",.-?!;:~",&context);
+//  while(p)
+//  {
+//    r.Add(Fragment(str+(p-hold),strlen(p)+1));
+//    p = STRTOK(NULL,",.-",&context);
+//  }
+//}
+
+/*void subleq_computer(int[] mem)
 {
-  cStr hold(str);
-  char* context;
-  char* p = STRTOK(hold.UnsafeString(),",.-?!;:~",&context);
-  while(p)
+  int c=0;
+  int b;
+  while(c>=0)
   {
-    r.Add(Fragment(str+(p-hold),strlen(p)+1));
-    p = STRTOK(NULL,",.-",&context);
+    b=mem[c+1];
+    mem[b] = mem[b]-mem[mem[c]];
+    c=(mem[b]>0)?(c+3):mem[c+2];
   }
-}
+}*/
 
 // --- Begin main testing function ---
 
@@ -3391,7 +3787,7 @@ int main(int argc, char** argv)
 
   ForceWin64Crash();
   SetWorkDirToCur();
-  srand(time(NULL));
+  srand((unsigned int)time(NULL));
   
   for(int i = 0; i<TESTNUM; ++i)
     testnums[i]=i;
@@ -3432,6 +3828,7 @@ int main(int argc, char** argv)
     { "bss_depracated.h", &test_bss_deprecated },
     { "bss_dual.h", &test_bss_DUAL },
     { "bss_fixedpt.h", &test_bss_FIXEDPT },
+    { "bss_graph.h", &test_bss_GRAPH },
     { "bss_sse.h", &test_bss_SSE },
     { "cAliasTable.h", &test_ALIASTABLE },
     { "cAnimation.h", &test_ANIMATION },
@@ -3442,12 +3839,15 @@ int main(int argc, char** argv)
     { "cBinaryHeap.h", &test_BINARYHEAP },
     { "cBitArray.h", &test_BITARRAY },
     { "cBitField.h", &test_BITFIELD },
+    { "cBitStream.h", &test_BITSTREAM },
+    { "cBSS_Queue.h", &test_BSS_QUEUE },
     { "cBSS_Stack.h", &test_BSS_STACK },
     //{ "cByteQueue.h", &test_BYTEQUEUE },
     { "cCmdLineArgs.h", &test_CMDLINEARGS },
-    { "cDynArray.h", &test_DYNARRAY },
     { "cDisjointSet.h", &test_DISJOINTSET },
+    { "cDynArray.h", &test_DYNARRAY },
     { "cHighPrecisionTimer.h", &test_HIGHPRECISIONTIMER },
+    { "cIDHash.h", &test_IDHASH },
     { "cScheduler.h", &test_SCHEDULER },
     //{ "INIparse.h", &test_INIPARSE },
     { "cINIstorage.h", &test_INISTORAGE },

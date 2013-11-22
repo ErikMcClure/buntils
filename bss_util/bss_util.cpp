@@ -20,8 +20,6 @@
 //static const HMODULE bssdll_KERNAL = LoadLibraryA("Kernal32.dll");
 //static const GETFINALNAMEBYHANDLE bssdll_GetFinalNameByHandle = (GETFINALNAMEBYHANDLE)GetProcAddress(bssdll_KERNAL,"GetFinalPathNameByHandleW");
 
-
-
 #ifdef BSS_PLATFORM_WIN32
 template<DWORD T_FLAG>
 inline bool BSS_FASTCALL r_fexists(const wchar_t* path)
@@ -591,3 +589,13 @@ int BSS_FASTCALL bss_util::DelRegistryNode(HKEY__* hKeyRoot, const wchar_t* lpSu
 }
 
 #endif
+
+#include "delegate.h"
+
+struct testclass
+{
+  void BSS_FASTCALL f() {}
+};
+void BSS_FASTCALL ffff() {}
+
+bss_util::delegate<void> rrrrr = bss_util::delegate<void>::From<testclass,&testclass::f>(0);

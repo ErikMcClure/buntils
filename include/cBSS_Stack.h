@@ -19,7 +19,7 @@ namespace bss_util {
   public:
     inline cBSS_Stack(const cBSS_Stack& copy) : ArrayType(copy), _length(copy._length) {}
     inline cBSS_Stack(cBSS_Stack&& mov) : ArrayType(std::move(mov)), _length(mov._length) {}
-    inline explicit cBSS_Stack(int init=8) : ArrayType(8), _length(0) {}
+    inline explicit cBSS_Stack(SizeType init=0) : ArrayType(init), _length(0) {}
     inline ~cBSS_Stack() {}
     BSS_FORCEINLINE void BSS_FASTCALL Push(const T& value) { _push(value); }
     BSS_FORCEINLINE void BSS_FASTCALL Push(T&& value) { _push(std::move(value)); }
@@ -28,6 +28,7 @@ namespace bss_util {
     BSS_FORCEINLINE const T& BSS_FASTCALL Top() const { assert(_length!=0); return _array[_length-1]; }
     BSS_FORCEINLINE void Clear() { _length=0; }
     BSS_FORCEINLINE SizeType Length() const { return _length; }
+    BSS_FORCEINLINE SizeType Capacity() const { return _size; }
     inline cBSS_Stack& operator=(const cBSS_Stack& copy) { ArrayType::operator=(copy); _length=copy._length; return *this; }
     inline cBSS_Stack& operator=(cBSS_Stack&& mov) { ArrayType::operator=(std::move(mov)); _length=mov._length; return *this; }
 

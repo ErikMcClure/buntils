@@ -28,7 +28,7 @@ namespace bss_util {
     inline ~cFixedAllocVoid()
     {
       FIXEDLIST_NODE* hold=_root;
-      while(_root=hold)
+      while((_root=hold)!=0)
       {
         hold=_root->next;
         free(_root);
@@ -64,7 +64,7 @@ namespace bss_util {
     {
       size_t nsize=0;
       FIXEDLIST_NODE* hold=_root;
-      while(_root=hold)
+      while((_root=hold)!=0)
       {
         nsize+=hold->size;
         hold=_root->next;

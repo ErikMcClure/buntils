@@ -210,7 +210,9 @@ namespace bss_util {
     inline KHGET GetValue(khiter_t iter) const { if(!ExistsIter(iter)) return INVALID; return __getval_KHASH<std::is_same<KHGET,khval_t*>::value,KHGET,KHTYPE>::_getval(_h,iter); }
     inline const KHVAL& UnsafeValue(khiter_t iterator) const { return kh_val(_h,iterator); }
     inline bool SetValue(khiter_t iterator, const KHVAL& newvalue) { return _setvalue<const KHVAL&>(iterator,newvalue); } 
-    inline bool SetValue(khiter_t iterator, KHVAL&& newvalue) { return _setvalue<KHVAL&&>(iterator,std::move(newvalue)); } 
+    inline bool SetValue(khiter_t iterator, KHVAL&& newvalue) { return _setvalue<KHVAL&&>(iterator, std::move(newvalue)); }
+    inline bool Set(khiter_t iterator, const KHVAL& newvalue) { return _setvalue<const KHVAL&>(Iterator(iterator), newvalue); }
+    inline bool Set(khiter_t iterator, KHVAL&& newvalue) { return _setvalue<KHVAL&&>(Iterator(iterator), std::move(newvalue)); }
     inline void SetSize(unsigned int size) { if(kh_end(_h) < size) kh_resize_template(_h,size); }
 		inline bool Remove(KHKEY key) const
     {

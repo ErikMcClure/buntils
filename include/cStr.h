@@ -166,6 +166,7 @@ public:
 
   static void Explode(std::vector<cStrT> &dest, const CHAR delim, const CHAR* text)
   {
+    if(!delim) return ExplodeNull(dest,text);
     cStrT copy(text);
     CHAR delimhold[2] = { delim, 0 };
     CHAR* hold;
@@ -175,6 +176,15 @@ public:
     {
       dest.push_back(res);
       res = CSTR_CT<T>::STOK(NULL,delimhold,&hold);
+    }
+  }
+  static void ExplodeNull(std::vector<cStrT> &dest, const CHAR* text)
+  {
+    if(!text) return;
+    while(*text)
+    {
+      dest.push_back(text);
+      text+=strlen(text)+1;
     }
   }
   template<typename I, typename F> // F = I(const T* s)

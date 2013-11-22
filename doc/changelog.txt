@@ -16,6 +16,29 @@
 - Added LLAdd specialization for both root and last
 - Created non-template cFixedAllocVoid class that is now instantiated by cFixedAlloc.
 - Simplified cAVLtree's method of handling void Data parameters
+- Fixed a few subtle header errors
+- Added AltLLAdd and AltLLRemove to LLBase.h to allow arbitrary linked list structures
+- Added Capacity() to cLinkedArray
+- Tweaked bssmod, added tests for a few missing functions in bss_util.h
+- Added cBSS_queue, which implements an efficient queue using a circular array
+- Added StaticNullAlloc, useful for enforcing correct behavior when substituting array pointers.
+- Improved cDisjointSet so it can operate on an outside array pointer, changed MinSpanningTree() to use dynamic stack allocation, fixed GetElements()
+- Added bss_graph.h with an adjacency list representation of a DAG.
+- Added BreadthFirstTree and BreadthFirstGraph in bss_algo.h that perform an efficient breadth-first traversal of either a tree or a graph.
+- Added Push-Relabel algorithm for solving max-flow problems, a function for reducing a circulation graph to a max-flow graph, and a function for reducing a lower-bound graph to a circulation graph.
+- Added flipendian for dealing with bigendian architectures
+- Added cBitStream wrapper that lets you manipulate an ostream with bit-level precision.
+- Added simple bss_Serialize/bss_Deserialize functions for writing and reading basic types to an ostream while taking endianness into account.
+- Completely rewrote cAnimation using an attachment system. AniTypeID.h has been absorbed into AniAttribute.h
+- cAnimation can now be serialized and deserialized to an ostream
+- Added cIDHash for implementing simple, compact ID systems
+- Fixed bad usage of std::ostream move constructor
+- Added Set() to cKhash
+- log2 and log2_p2 now use the BSR instruction if available
+- Upgraded project to use Visual Studio 2013 variadic templates, but it should still work on earlier versions. BSS_VARIADIC_TEMPLATES is now defined if the current compiler supports variadic templates
+- Removed TSignPick, use std::make_signed and std::make_unsigned instead.
+- Renamed ABitLimit to BitLimit, use it to get integral types for specific bit counts
+- Changed a bunch of bss_util.h tests to static assertions
 
 0.4.1
 ------

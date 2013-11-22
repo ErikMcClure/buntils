@@ -13,13 +13,13 @@ namespace bss_util {
   {
     static BSS_FORCEINLINE T BSS_FASTCALL fixedpt_add(T x, T y) { return x+y; }
     static BSS_FORCEINLINE T BSS_FASTCALL fixedpt_mul(T x, T y) { 
-      return (T)((((typename TSignPick<(sizeof(T)<<1)>::SIGNED)x)*((typename TSignPick<(sizeof(T)<<1)>::SIGNED)y))>>(D)); }
-    static BSS_FORCEINLINE T BSS_FASTCALL fixedpt_div(T x, T y) { return (T)((((typename TSignPick<(sizeof(T)<<1)>::SIGNED)x)<<D)/y); }
+      return (T)((((std::make_signed<T>::type)x)*((typename BitLimit<(sizeof(T)<<4)>::SIGNED)y))>>(D)); }
+    static BSS_FORCEINLINE T BSS_FASTCALL fixedpt_div(T x, T y) { return (T)((((typename BitLimit<(sizeof(T)<<4)>::SIGNED)x)<<D)/y); }
   };
   template<typename T, unsigned char D> struct i_FIXED_PT_FUNC<T,D,true>
   {
-    static const T SMIN=((ABitLimit<((sizeof(T)<<3)-D)>::SIGNED_MIN_RAW)<<D);
-    static const T SMAX=((ABitLimit<((sizeof(T)<<3)-D)>::SIGNED_MAX)<<D);
+    static const T SMIN=((BitLimit<((sizeof(T)<<3)-D)>::SIGNED_MIN_RAW)<<D);
+    static const T SMAX=((BitLimit<((sizeof(T)<<3)-D)>::SIGNED_MAX)<<D);
 
     static T BSS_FASTCALL fixedpt_add(T x, T y)
     { 
@@ -31,7 +31,7 @@ namespace bss_util {
     }
     static T BSS_FASTCALL fixedpt_mul(T x, T y)
     { 
-      typename TSignPick<(sizeof(T)<<1)>::SIGNED r=((((typename TSignPick<(sizeof(T)<<1)>::SIGNED)x)*((typename TSignPick<(sizeof(T)<<1)>::SIGNED)y))>>(D));
+      typename BitLimit<(sizeof(T)<<4)>::SIGNED r = ((((typename BitLimit<(sizeof(T)<<4)>::SIGNED)x)*((typename BitLimit<(sizeof(T)<<4)>::SIGNED)y))>>(D));
       T u=(r<SMIN); //same technique for saturating with no branching
       T v=(r>SMAX);
       T w=(1&(~(u|v))); 
@@ -39,7 +39,7 @@ namespace bss_util {
     }
     static T BSS_FASTCALL fixedpt_div(T x, T y)
     { 
-      typename TSignPick<(sizeof(T)<<1)>::SIGNED r=((((typename TSignPick<(sizeof(T)<<1)>::SIGNED)x)<<D)/y);
+      typename BitLimit<(sizeof(T)<<4)>::SIGNED r = ((((typename BitLimit<(sizeof(T)<<4)>::SIGNED)x)<<D)/y);
       T u=(r<SMIN); //same technique for saturating with no branching
       T v=(r>SMAX);
       T w=(1&(~(u|v))); 

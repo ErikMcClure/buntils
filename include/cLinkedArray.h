@@ -50,6 +50,7 @@ namespace bss_util {
       return pcur.val;
     }
     inline ST_ Length() const { return _length; }
+    inline ST_ Capacity() const { return _ref.Size(); }
     inline void BSS_FASTCALL Reserve(ST_ size) { if(size<_ref.Size()) return; ST_ hold=_ref.Size(); _ref.SetSize(size); _setupchunk(hold); }
     inline void Clear() { _freelist=_start=_end=-1; _length=0; _setupchunk(0); }
     BSS_FORCEINLINE void Next(ST_& ref) const { ref=_ref[ref].next; }

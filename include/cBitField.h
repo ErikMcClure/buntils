@@ -37,7 +37,7 @@ namespace bss_util
     BSS_FORCEINLINE bool Get(T bit) const { return (_bits&bit)!=0; }
 
     inline cBitField& operator=(T right) { _bits=right; return *this; }
-    BSS_FORCEINLINE bool operator[](T bit) const { return GetBit(bit); }
+    BSS_FORCEINLINE bool operator[](T bit) const { return Get(bit); }
     BSS_FORCEINLINE _cBIT_REF<T> operator[](T bit) { return _cBIT_REF<T>(bit,_bits); }
     inline operator T() const { return _bits; }
     inline cBitField& operator+=(T bit) { _bits|=bit; return *this; }

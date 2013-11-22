@@ -30,6 +30,7 @@
 #endif
 #define CONCAT(...) __VA_ARGS__
 
+    
 // These yield float/int ranges using rand(). However, rand() is a horrible RNG, so if you need a real one, use the C++11 mersenne twister
 #ifndef RANDFLOATGEN
 #define RANDFLOATGEN(min,max) (((max) - (min)) * (rand()/(RAND_MAX+1.0)) + (min))
@@ -53,6 +54,7 @@
 // Round x up to next highest multiple of (t+1), which must be a multiple of 2. For example, to get the next multiple of 8: T_NEXTMULTIPLE(x,7)
 #define T_NEXTMULTIPLE(x,t) ((x+t)&(~t))
 #define T_SETBIT(w,b,f) (((w) & (~(b))) | ((-(char)f) & (b)))
+#define DYNARRAY(Type,Name,n) Type* Name = (Type*)_alloca(n*sizeof(Type))
 
 #if defined(BSS_PLATFORM_POSIX) || defined(BSS_PLATFORM_MINGW)
 #define BSSPOSIX_WCHAR(s) s

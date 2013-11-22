@@ -11,20 +11,15 @@ using namespace bss_util;
 using namespace std;
 
 
-bss_Log::bss_Log(const bss_Log& copy) : _split(new StreamSplitter()), _stream(_split), _tz(GetTimeZoneMinutes()) { assert(false); }
-//bss_Log::bss_Log(const bss_Log& copy) : _split(new StreamSplitter(*copy._split)), _stream(_split), _tz(GetTimeZoneMinutes())
-//{
-//}
-bss_Log::bss_Log(bss_Log&& mov) : _split(mov._split), _backup(std::move(mov._backup)), _tz(GetTimeZoneMinutes()), _files(std::move(mov._files)),
-#ifdef BSS_COMPILER_GCC // GCC has a bug where they haven't implemented move constructors for streams yet, which is not standards-compliant.
-  _stream(mov._split)
-#else
-  _stream(std::move(mov._stream))
-#endif
+bss_Log::bss_Log(const bss_Log& copy) : _split(new StreamSplitter()), _stream(_split), _tz(GetTimeZoneMinutes())
+{ 
+  assert(false);
+}
+bss_Log::bss_Log(bss_Log&& mov) : _split(mov._split), _stream(_split), _backup(std::move(mov._backup)),
+  _tz(GetTimeZoneMinutes()), _files(std::move(mov._files))
 {
   mov._split=0;
 }
-
 bss_Log::bss_Log(std::ostream* log) : _split(new StreamSplitter()), _stream(_split), _tz(GetTimeZoneMinutes())
 {
   if(log!=0)
@@ -120,8 +115,6 @@ bool BSS_FASTCALL bss_Log::_writedatetime(long timez, std::ostream& log, bool ti
 }
 bss_Log& bss_Log::operator=(const bss_Log& right)
 {
-//  ClearTargets();
-//  *_split=*right._split;
   assert(false);
   return *this; //We don't copy _stream because its attached to _split which gets copied anyway and we want it to stay that way.
 }
@@ -132,12 +125,7 @@ bss_Log& bss_Log::operator=(bss_Log&& right)
   _backup=std::move(right._backup);
   _split=right._split;
   right._split=0;
-#ifdef BSS_COMPILER_GCC
-  _stream.~basic_ostream(); // This stupid craziness is required due to GCC not implementing move constructors for streams like its supposed to >C
-  new(&_stream) ostream(_split);
-#else
-  _stream=std::move(right._stream);
-#endif
+  _stream.rdbuf(_split);
   return *this;
 }
 const char* BSS_FASTCALL bss_Log::_trimpath(const char* path)
@@ -147,20 +135,3 @@ const char* BSS_FASTCALL bss_Log::_trimpath(const char* path)
   r=bssmax(r,r2);
   return (!r)?path:(r+1);
 }
-//*/
-//const wchar_t* BSS_FASTCALL bss_Log::_trimpath(const wchar_t* path)
-//{
-//	const wchar_t* retval=wcsrchr(path,'/');
-//	if(!retval)
-//	{
-//		retval=wcsrchr(path,'\\');
-//		if(!retval) retval=path;
-//		else ++retval;
-//	}
-//	else
-//	{
-//		path=wcsrchr(path,'\\');
-//		retval=path>retval?++path:++retval;
-//	}
-//	return retval;
-//}

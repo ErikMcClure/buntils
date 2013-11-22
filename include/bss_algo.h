@@ -7,7 +7,9 @@
 #include "bss_util.h"
 #include "bss_compare.h"
 #include "bss_sse.h"
+#include "bss_graph.h"
 #include "cDynArray.h"
+#include "cDisjointSet.h"
 #include <algorithm>
 #include <random>
 #include <array>
@@ -17,7 +19,7 @@ namespace bss_util {
   template<typename T, typename D, typename ST_, char (*CFunc)(const D&, const T&), char (*CEQ)(const char&, const char&), char CVAL>
   inline static ST_ BSS_FASTCALL binsearch_near(const T* arr, const D& data, ST_ first, ST_ last)
   {
-    typename TSignPick<sizeof(ST_)>::SIGNED c = last-first; // Must be a signed version of whatever ST_ is
+    typename std::make_signed<ST_>::type c = last-first; // Must be a signed version of whatever ST_ is
     ST_ c2; //No possible operation can make this negative so we leave it as possibly unsigned.
     ST_ m;
 	  while(c>0)
@@ -58,14 +60,14 @@ namespace bss_util {
   
   // Returns index of the item, if it exists, or -1
   template<typename T, typename D, typename ST_, char (*CFunc)(const T&, const D&)>
-  inline static ST_ BSS_FASTCALL binsearch_exact(const T* arr, const D& data, typename TSignPick<sizeof(ST_)>::SIGNED f, typename TSignPick<sizeof(ST_)>::SIGNED l)
+  inline static ST_ BSS_FASTCALL binsearch_exact(const T* arr, const D& data, typename std::make_signed<ST_>::type f, typename std::make_signed<ST_>::type l)
   {
     --l; // Done so l can be an exclusive size parameter even though the algorithm is inclusive.
     ST_ m; // While f and l must be signed ints or the algorithm breaks, m does not.
     char r;
     while(l>=f) // This only works when l is an inclusive max indice
     {
-      m=f+((l-f)>>1);
+      m=f+((l-f)>>1); // Done to avoid overflow on large numbers
 
       if((r=(*CFunc)(arr[m],data))<0) // This is faster than a switch statement
         f=m+1;
@@ -495,6 +497,61 @@ namespace bss_util {
     D t2=t*t;
     D t3=t2*t;
     return (p1*(-t3+2*t2-t)+p2*(3*t3-5*t2+2)+p3*(-3*t3+4*t2+t)+p4*(t3-t2))/((D)2.0);
+  }
+
+  // Generic breadth-first search for a binary tree. Don't use this on a min/maxheap - it's internal array already IS in breadth-first order.
+  template<typename T, bool (*FACTION)(T*), T* (*LCHILD)(T*), T* (*RCHILD)(T*)> // return true to quit
+  inline static void BSS_FASTCALL BreadthFirstTree(T* root, size_t n)
+  {
+    n=(n/2)+1;
+    DYNARRAY(T*,queue,n);
+    queue[0]=root;
+    size_t l=1;
+    for(size_t i=0; i!=l; i=(i+1)%n)
+    {
+      if(FACTION(queue[i])) return;
+      queue[l]=LCHILD(queue[i]); //Enqueue the children
+      l=(l+(size_t)(queue[l]!=0))%n;
+      queue[l]=RCHILD(queue[i]);
+      l=(l+(size_t)(queue[l]!=0))%n;
+    }
+  }
+  // Breadth-first search for any directed graph. If FACTION returns true, terminates.
+  template<typename G, bool (*FACTION)(typename G::ST_)>
+  inline static void BSS_FASTCALL BreadthFirstGraph(G& graph, typename G::ST_ root)
+  {
+    DYNARRAY(typename G::ST_,queue,graph.NumNodes());
+    BreadthFirstGraph<G,FACTION>(graph,root,queue);
+  }
+
+  // Breadth-first search for any directed graph. If FACTION returns true, terminates. queue must point to an array at least GetNodes() long.
+  template<typename G, bool (*FACTION)(typename G::ST_)>
+  static void BSS_FASTCALL BreadthFirstGraph(G& graph, typename G::ST_ root, typename G::ST_* queue)
+  {
+    typedef typename G::ST_ ST;
+    typedef std::make_signed<ST>::type SST;
+    typedef Edge<typename G::E_,ST> E;
+    auto& n = graph.GetNodes();
+    if((*FACTION)(root)) return;
+    DYNARRAY(ST,aset,graph.Capacity());
+    cDisjointSet<ST,StaticNullPolicy<SST>> set((SST*)aset,graph.Capacity());
+
+    // Queue up everything next to the root, checking only for edges that connect the root to itself
+    size_t l=0;
+    for(E* edge=n[root].to; edge!=0; edge=edge->next) {
+      if(edge->to!=root)
+        queue[l++]=edge->to;
+    }
+
+    for(size_t i=0; i!=l; ++i) // Go through the queue
+    {
+      if(FACTION(queue[i])) return;
+      set.Union(root,queue[i]);
+      for(E* edge=n[queue[i]].to; edge!=0; edge=edge->next) {
+        if(set.Find(edge->to)!=root) //Enqueue the children if they aren't already in the set.
+          queue[l++]=edge->to; // Doesn't need to be circular because we can only enqueue n-1 anyway.
+      }
+    }
   }
 }
 

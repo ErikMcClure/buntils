@@ -8,7 +8,7 @@
 #include "bss_util.h"
 
 namespace bss_util {
-  // Dynamic array implemented using ArrayType (should only be used when std::vector won't work, for example, if constructors aren't needed)
+  // Dynamic array implemented using ArrayType (should only be used when constructors could potentially not be needed)
   template<class ArrayType>
   class BSS_COMPILER_DLLEXPORT cDynArray : protected ArrayType
   {

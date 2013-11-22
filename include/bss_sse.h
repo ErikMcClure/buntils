@@ -4,7 +4,7 @@
 #ifndef __BSS_SSE_H__
 #define __BSS_SSE_H__
 
-#include "bss_compiler.h"
+#include "bss_defines.h"
 #include "bss_deprecated.h"
 #include <assert.h>
 #include <emmintrin.h>
@@ -391,11 +391,11 @@ BSS_ALIGNED_STRUCT(16) sseVecT<__int8>
   BSS_FORCEINLINE void operator>>(BSS_UNALIGNED<__int8> v) const { BSS_SSE_STORE_USI128((BSS_SSE_M128i16*)v._p, xmm); }
   static sseVecT<__int8> ZeroVector() { return sseVecT<__int8>(_mm_setzero_si128()); }
   template<int shuffle>
-  static sseVecT<__int16> Shuffle(const sseVecT<__int16>& x) { return BSS_SSE_SHUFFLE_EPI32(x,shuffle); }
+  static sseVecT<__int8> Shuffle(const sseVecT<__int8>& x) { return BSS_SSE_SHUFFLE_EPI32(x,shuffle); }
   template<int shuffle>
-  static sseVecT<__int16> ShuffleHi(const sseVecT<__int16>& x) { return BSS_SSE_SHUFFLEHI_EPI16(x,shuffle); }
+  static sseVecT<__int8> ShuffleHi(const sseVecT<__int8>& x) { return BSS_SSE_SHUFFLEHI_EPI16(x,shuffle); }
   template<int shuffle>
-  static sseVecT<__int16> ShuffleLo(const sseVecT<__int16>& x) { return BSS_SSE_SHUFFLELO_EPI16(x,shuffle); }
+  static sseVecT<__int8> ShuffleLo(const sseVecT<__int8>& x) { return BSS_SSE_SHUFFLELO_EPI16(x,shuffle); }
 
   BSS_SSE_M128i8 xmm;
 };

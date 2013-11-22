@@ -52,15 +52,29 @@ namespace bss_util {
 
   // Static implementation of the standard allocation policy, used for cArraySimple
 	template<typename T>
-    class BSS_COMPILER_DLLEXPORT StaticAllocPolicy : public AllocPolicySize<T> {
+  class BSS_COMPILER_DLLEXPORT StaticAllocPolicy : public AllocPolicySize<T> {
     typedef typename bss_util::AllocPolicySize<T>::pointer pointer; 
-	public:
+  public:
+    template<typename U> struct rebind { typedef StaticAllocPolicy<U> other; };
+
     inline static pointer allocate(size_t cnt, 
       typename std::allocator<void>::const_pointer = 0) { 
         return reinterpret_cast<pointer>(malloc(cnt*sizeof(T)));
     }
     inline static void deallocate(pointer p, size_t = 0) { free(p); }
     inline static pointer reallocate(pointer p, size_t cnt) { return reinterpret_cast<pointer>(realloc(p,cnt*sizeof(T))); }
+	};
+
+  // Static null allocator. Doesn't free anything, always returns 0 on all allocations.
+	template<typename T>
+  class BSS_COMPILER_DLLEXPORT StaticNullPolicy : public AllocPolicySize<T> {
+    typedef typename bss_util::AllocPolicySize<T>::pointer pointer; 
+  public:
+    template<typename U> struct rebind { typedef StaticNullPolicy<U> other; };
+
+    inline static pointer allocate(size_t cnt, typename std::allocator<void>::const_pointer = 0) { return 0; }
+    inline static void deallocate(pointer p, size_t = 0) { }
+    inline static pointer reallocate(pointer p, size_t cnt) { return 0; }
 	};
 
 	template<typename T, typename T2>

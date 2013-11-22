@@ -60,6 +60,7 @@
 #define BSS_RESTRICT __restrict__
 #define BSS_ALIGN(n) __attribute__((aligned(n)))
 #define BSS_ALIGNED(sn, n) sn BSS_ALIGN(n)
+#define BSS_VARIADIC_TEMPLATES
 #ifndef __int8
 #define __int8 char
 #endif
@@ -89,6 +90,10 @@
 #define BSS_ALIGN(n) __declspec(align(n))
 #define BSS_ALIGNED(sn, n) BSS_ALIGN(n) sn
 #define BSS_VERIFY_HEAP _ASSERTE(_CrtCheckMemory());
+
+#if _MSC_VER >= 1800
+#define BSS_VARIADIC_TEMPLATES
+#endif
 #endif
 
 #if defined(__MINGW32__) || defined(__MINGW64__)

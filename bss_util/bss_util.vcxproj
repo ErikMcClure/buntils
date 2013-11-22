@@ -1,5 +1,5 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
-<Project DefaultTargets="Build" ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+<Project DefaultTargets="Build" ToolsVersion="12.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
   <ItemGroup Label="ProjectConfigurations">
     <ProjectConfiguration Include="Debug Static|Win32">
       <Configuration>Debug Static</Configuration>
@@ -55,6 +55,7 @@
     <ClInclude Include="..\include\bss_deprecated.h" />
     <ClInclude Include="..\include\bss_dual.h" />
     <ClInclude Include="..\include\bss_fixedpt.h" />
+    <ClInclude Include="..\include\bss_graph.h" />
     <ClInclude Include="..\include\bss_literals.h" />
     <ClInclude Include="..\include\bss_Log.h" />
     <ClInclude Include="..\include\bss_sse.h" />
@@ -63,7 +64,6 @@
     <ClInclude Include="..\include\bss_win32_includes.h" />
     <ClInclude Include="..\include\cAliasTable.h" />
     <ClInclude Include="..\include\AniAttribute.h" />
-    <ClInclude Include="..\include\AniTypeID.h" />
     <ClInclude Include="..\include\cAnimation.h" />
     <ClInclude Include="..\include\cArrayCircular.h" />
     <ClInclude Include="..\include\cArraySimple.h" />
@@ -72,6 +72,8 @@
     <ClInclude Include="..\include\cBinaryHeap.h" />
     <ClInclude Include="..\include\cBitArray.h" />
     <ClInclude Include="..\include\cBitField.h" />
+    <ClInclude Include="..\include\cBitStream.h" />
+    <ClInclude Include="..\include\cBSS_Queue.h" />
     <ClInclude Include="..\include\cBSS_Stack.h" />
     <ClInclude Include="..\include\cByteQueue.h" />
     <ClInclude Include="..\include\cCmdLineArgs.h" />
@@ -79,6 +81,7 @@
     <ClInclude Include="..\include\cDisjointSet.h" />
     <ClInclude Include="..\include\cDynArray.h" />
     <ClInclude Include="..\include\cHighPrecisionTimer.h" />
+    <ClInclude Include="..\include\cIDHash.h" />
     <ClInclude Include="..\include\cINIentry.h" />
     <ClInclude Include="..\include\cINIsection.h" />
     <ClInclude Include="..\include\cINIstorage.h" />
@@ -154,50 +157,59 @@
     <ConfigurationType>DynamicLibrary</ConfigurationType>
     <CharacterSet>Unicode</CharacterSet>
     <WholeProgramOptimization>true</WholeProgramOptimization>
+    <PlatformToolset>v120</PlatformToolset>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release STD|x64'" Label="Configuration">
     <ConfigurationType>DynamicLibrary</ConfigurationType>
     <CharacterSet>Unicode</CharacterSet>
     <WholeProgramOptimization>true</WholeProgramOptimization>
+    <PlatformToolset>v120</PlatformToolset>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug Static|Win32'" Label="Configuration">
     <ConfigurationType>StaticLibrary</ConfigurationType>
     <CharacterSet>Unicode</CharacterSet>
     <WholeProgramOptimization>false</WholeProgramOptimization>
+    <PlatformToolset>v120</PlatformToolset>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug Static|x64'" Label="Configuration">
     <ConfigurationType>StaticLibrary</ConfigurationType>
     <CharacterSet>Unicode</CharacterSet>
     <WholeProgramOptimization>false</WholeProgramOptimization>
+    <PlatformToolset>v120</PlatformToolset>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release Static|Win32'" Label="Configuration">
     <ConfigurationType>StaticLibrary</ConfigurationType>
     <CharacterSet>Unicode</CharacterSet>
     <WholeProgramOptimization>true</WholeProgramOptimization>
+    <PlatformToolset>v120</PlatformToolset>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release Static|x64'" Label="Configuration">
     <ConfigurationType>StaticLibrary</ConfigurationType>
     <CharacterSet>Unicode</CharacterSet>
     <WholeProgramOptimization>true</WholeProgramOptimization>
+    <PlatformToolset>v120</PlatformToolset>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'" Label="Configuration">
     <ConfigurationType>DynamicLibrary</ConfigurationType>
     <CharacterSet>Unicode</CharacterSet>
     <WholeProgramOptimization>true</WholeProgramOptimization>
+    <PlatformToolset>v120_xp</PlatformToolset>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'" Label="Configuration">
     <ConfigurationType>DynamicLibrary</ConfigurationType>
     <CharacterSet>Unicode</CharacterSet>
     <WholeProgramOptimization>true</WholeProgramOptimization>
+    <PlatformToolset>v120</PlatformToolset>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'" Label="Configuration">
     <ConfigurationType>DynamicLibrary</ConfigurationType>
     <CharacterSet>Unicode</CharacterSet>
-    <PlatformToolset>v100</PlatformToolset>
+    <PlatformToolset>v120_xp</PlatformToolset>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'" Label="Configuration">
     <ConfigurationType>DynamicLibrary</ConfigurationType>
     <CharacterSet>Unicode</CharacterSet>
+    <PlatformToolset>v120</PlatformToolset>
   </PropertyGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.props" />
   <ImportGroup Label="ExtensionSettings">

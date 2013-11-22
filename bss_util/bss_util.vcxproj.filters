@@ -183,9 +183,6 @@
     <ClInclude Include="..\include\cTRBtree.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="..\include\AniTypeID.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
     <ClInclude Include="..\include\AniAttribute.h">
       <Filter>Header Files</Filter>
     </ClInclude>
@@ -251,6 +248,18 @@
     </ClInclude>
     <ClInclude Include="..\include\shiny\ShinyZone.h">
       <Filter>Shiny</Filter>
+    </ClInclude>
+    <ClInclude Include="..\include\bss_graph.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="..\include\cBSS_Queue.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="..\include\cBitStream.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="..\include\cIDHash.h">
+      <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>

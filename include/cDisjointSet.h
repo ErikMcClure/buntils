@@ -10,11 +10,11 @@
 
 namespace bss_util {
   // Represents a disjoint set data structure that uses path compression.
-  template<typename T=unsigned int>
-  class BSS_COMPILER_DLLEXPORT cDisjointSet : protected cArraySimple<typename TSignPick<sizeof(T)>::SIGNED,T>
+  template<typename T = unsigned int, typename ALLOC = StaticAllocPolicy<typename std::make_signed<T>::type>>
+  class BSS_COMPILER_DLLEXPORT cDisjointSet : protected cArraySimple<typename std::make_signed<T>::type, T, ALLOC>
   {
   protected:
-    typedef cArraySimple<typename TSignPick<sizeof(T)>::SIGNED,T> ARRAY;
+    typedef cArraySimple<typename std::make_signed<T>::type, T, ALLOC> ARRAY;
     typedef typename ARRAY::T_ T_;
     using ARRAY::_array;
     using ARRAY::_size;
@@ -23,8 +23,14 @@ namespace bss_util {
     // Construct a disjoint set with num initial sets
     inline cDisjointSet(const cDisjointSet& copy) : ARRAY(copy), _numsets(copy._numsets) {}
     inline cDisjointSet(cDisjointSet&& mov) : ARRAY(std::move(mov)), _numsets(mov._numsets) {}
-    inline cDisjointSet(T num) : ARRAY(num) { Reset(); }
-
+    inline explicit cDisjointSet(T num) : ARRAY(num) { Reset(); }
+    inline cDisjointSet(T_* overload, T num) : ARRAY(0) { // This let's you use an outside array
+      int v = std::is_same<ALLOC,StaticNullPolicy<T_>>::value;
+      assert(v!=0); //You must use StaticNullPolicy if you overload the array pointer
+      _array=overload; 
+      _size=num;
+      Reset();
+    } 
     // Union (combine) two disjoint sets into one set. Returns false if set1 or set2 aren't set names.
     inline bool BSS_FASTCALL Union(T set1, T set2)
     {
@@ -69,10 +75,10 @@ namespace bss_util {
 
     inline T Length() const { return _size; }
     inline T NumSets() const { return _numsets; }
-    // Returns true is x is a valid set name
+    // Returns true if x is a valid set name
     inline bool IsSetName(T x) { return x<_size && _array[x]<0; }
     // Returns the number of elements in a given set. Returns -1 on failure.
-    inline T NumElements(T set) { if(_invalidindex(set)) return -1; return -_array[set]; } // Number of elements is simply the weight of the root node
+    inline T NumElements(T set) { if(set>=_size) return -1; return -_array[Find(set)]; } // Number of elements is simply the weight of the root node
     // Adds n elements to the disjoint set.
     inline void AddSets(T n)
     {
@@ -93,18 +99,26 @@ namespace bss_util {
       T len = NumElements(set);
       if(len<0) return UqP_<T[]>();
       T* ret = new T[len];
+      T j = GetElements(set,ret);      
+      assert(j<=len);
+      return UqP_<T[]>(ret);
+    }
+
+    // Fills target with the elements of the given set. target must be at least NumElements(set) long. If target is null, returns NumElements(set)
+    inline T GetElements(T set, T* target)
+    {
+      if(!target) return NumElements(set);
+      set=Find(set); // Get the root element of our set
       T j = 0;
     
       for(T i = 0; i < _size; ++i) 
       {
-        if (find(i) == set) // Does this element belong to our set?
-          ret[j++] = i; // If so, add it
+        if(Find(i) == set) // Does this element belong to our set?
+          target[j++] = i; // If so, add it
       }
-      assert(j<=len);
-
-      return UqP_<T[]>(ret);
+      return j;
     }
-  
+
     // Constructs a minimum spanning tree using Kruskal's algorithm, given a sorted list of edges (smallest first).
     template<class ITER>
     inline static typename WArray<std::pair<T,T>,T>::t BSS_FASTCALL MinSpanningTree(T numverts, ITER edges, ITER edgeslast)
@@ -118,7 +132,8 @@ namespace bss_util {
     template<class ITER>
     static T BSS_FASTCALL MinSpanningTree(T numverts, ITER edges, ITER edgeslast, std::pair<T,T>* out)
     {
-      cDisjointSet<T> set(numverts);
+      DYNARRAY(T_,arr,numverts); // Allocate everything on the stack
+      cDisjointSet<T,StaticNullPolicy<T_>> set(arr,numverts);
       T num=0;
       for(;edges != edgeslast; ++edges)
       {

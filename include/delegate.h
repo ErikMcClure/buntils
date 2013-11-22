@@ -7,25 +7,25 @@
 #include "bss_defines.h"
 
 namespace bss_util {
-  // delegate class using variadic templates in a beautiful, elegant solution I can't use.
-#ifdef BSS_COMPILER_GCC
+  // delegate class using variadic templates
+#ifdef BSS_VARIADIC_TEMPLATES
   template<typename R, typename... Args>
   class BSS_COMPILER_DLLEXPORT delegate
   {
   public:
     inline delegate(const delegate& copy) : _src(copy._src), _stub(copy._stub) {}
-    inline delegate(void* src, R (*BSS_FASTCALL stub)(void*,Args...)) : _src(src), _stub(stub) {}
+    inline delegate(void* src, R(BSS_FASTCALL *stub)(void*, Args...)):_src(src), _stub(stub) {}
     inline R operator()(Args... args) const { return (*_stub)(_src,args...); }
     inline delegate& operator=(const delegate& right) { _src=right._src; _stub=right._stub; return *this; }
 
-    template<class T, R (T::*BSS_FASTCALL F)(Args...)>
-    inline delegate static From(T* src) { return delegate(src, &stub<T,F>); }
+    template<class T, R(BSS_FASTCALL T::*F)(Args...)>
+    inline static delegate From(T* src) { return delegate(src, &stub<T, F>); }
 
   protected:
     void* _src;
-    R (*BSS_FASTCALL _stub)(void*,Args...);
+    R(BSS_FASTCALL *_stub)(void*, Args...);
 
-    template <class T, R (T::*BSS_FASTCALL F)(Args...)>
+    template <class T, R(BSS_FASTCALL T::*F)(Args...)>
     static R BSS_FASTCALL stub(void* src, Args... args) { return (static_cast<T*>(src)->*F)(args...); }
   };
 #else

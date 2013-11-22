@@ -6,12 +6,12 @@
 
 #include "bss_defines.h"
 #include <iterator>
-#include <list>
+#include <stddef.h>
 
 namespace bss_util {
   // A base node for a doubly-linked list. The given parameter T may be any class that publically inherits LLBase
   template<typename T>
-  struct LLBase
+  struct BSS_COMPILER_DLLEXPORT LLBase
   {
     T* next;
     T* prev;
@@ -114,6 +114,23 @@ namespace bss_util {
   {
 		if(node->prev != 0) node->prev->next = node->next;
 		if(node->next != 0) node->next->prev = node->prev;
+  }
+
+  // Reimplementations of LLAdd and LLRemove generalized to any data structure instead of requiring it to be inherited.
+  template<typename T, LLBase<T>& (*GETNODES)(T* n)>
+  BSS_FORCEINLINE void BSS_FASTCALL AltLLAdd(T* node, T*& root)
+  {
+    GETNODES(node).prev=0;
+    GETNODES(node).next=root;
+    if(root) GETNODES(root).prev=node;
+    root=node;
+  }
+  template<typename T, LLBase<T>& (*GETNODES)(T* n)>
+  inline void BSS_FASTCALL AltLLRemove(T* node, T*& root)
+  {
+		if(GETNODES(node).prev != 0) GETNODES(GETNODES(node).prev).next = GETNODES(node).next;
+		else root = static_cast<T*>(GETNODES(node).next);
+		if(GETNODES(node).next != 0) GETNODES(GETNODES(node).next).prev = GETNODES(node).prev;
   }
 
   // Iterator for doubly linked list where the item is itself. Does not support remove; use postfix-- or the equivelent

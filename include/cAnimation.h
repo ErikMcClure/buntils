@@ -7,31 +7,42 @@
 #include "AniAttribute.h"
 #include "cMap.h"
 #include "cDynArray.h"
-#include "cBitField.h"
 
 namespace bss_util {
-  struct DEF_ANIMATION;
-
-  // A class representing a single animation comprised of various attributes (position, rotation, etc.) 
+  // A class representing a single animation comprised of various attributes (position, rotation, etc.)
+  template<typename Alloc = StaticAllocPolicy<char>>
   class BSS_COMPILER_DLLEXPORT cAnimation
 	{
   protected:
-    enum ANIBOOLS : unsigned char { ANI_PLAYING=1,ANI_PAUSED=2 };
+    enum ANIBOOLS : unsigned char { ANI_PLAYING=1,ANI_PAUSED=2,ANI_ATTACHED=4 };
+    typedef typename Alloc::template rebind<std::pair<unsigned char, AniAttribute*>>::other MAPALLOC;
+
+    template<int TypeID>
+    AniAttribute* GenAttribute(unsigned char typeID)
+    {
+      typedef ANI_TID(TYPE)::template rebind<Alloc>::other T;
+      if(TypeID==typeID)
+        return new(Alloc::allocate(sizeof(T))) T();
+      else
+        return GenAttribute<std::is_void<typename bss_util::ANI_IDTYPE<TypeID+1>::TYPES::TYPE>::value?-1:TypeID+1>(typeID);
+    }
+    template<>
+    AniAttribute* GenAttribute<-1>(unsigned char typeID) { return 0; }
 
 	public:
-		inline cAnimation(const cAnimation& copy) : _parent(copy._parent) { operator=(copy); }
-		inline cAnimation(const cAnimation& copy, cAbstractAnim* ptr) : _parent(ptr) { operator=(copy); }
-    inline cAnimation(cAbstractAnim* ptr) : _parent(ptr), _aniwarp(1.0), _anilength(0), _timepassed(0), _anicalc(0), _looppoint(-1.0) { }
-		inline cAnimation(const DEF_ANIMATION& def, cAbstractAnim* ptr);
+		inline cAnimation(const cAnimation& copy) { operator=(copy); }
+		inline cAnimation(cAnimation&& mov) { operator=(std::move(mov)); }
+    inline cAnimation() : _aniwarp(1.0), _anilength(0), _timepassed(0), _anicalc(0), _looppoint(-1.0) { }
 		inline ~cAnimation()
     {
       for(unsigned char i = 0; i < _attributes.Length(); ++i)
-        _delattr(_attributes[i]);
+        delete _attributes[i];
       _attributes.Clear();
     }
     // Allows you to skip forward by setting _timepassed to the specified value.
 		inline virtual void Start(double timepassed=0.0)
     {
+      if(!(_anibool&ANI_ATTACHED)) return; // Can't start if you aren't attached to something
 	    _timepassed=timepassed;
       _anibool+=ANI_PLAYING;
   
@@ -50,8 +61,8 @@ namespace bss_util {
     // Interpolates the animation by moving it forward *delta* milliseconds
     bool Interpolate(double delta)
     {
+      if((_anibool&(ANI_PLAYING|ANI_ATTACHED))==0) return false; // If it isn't playing or it's not attached to anything, bail out.
       if((_anibool&ANI_PAUSED)!=0) return true;
-      if((_anibool&ANI_PLAYING)==0) return false;
 	    _timepassed += delta*_aniwarp;
 		  double length = _anilength==0.0?_anicalc:_anilength;
 
@@ -77,7 +88,7 @@ namespace bss_util {
     {
       unsigned char index=_attributes.Get(TypeID);
       if(index<_attributes.Length()) return _attributes[index];
-      AniAttribute* retval=_parent->TypeIDRegFunc(TypeID);
+      AniAttribute* retval=GenAttribute<0>(TypeID);
       if(retval!=0) _attributes.Insert(retval->typeID,retval);
       return retval;
     }
@@ -133,12 +144,30 @@ namespace bss_util {
 
 			return retval;
 		}
+    template<typename F> // F must be something resolving to void(AniAttribute* p) that calls p->Attach() if appropriate.
+    inline void Attach(F f)
+    {
+      Detach(); // Forces all attributes to assume they have no legal attachment (so when you don't call ->Attach() it works properly)
+      unsigned char svar=_attributes.Length();
+      for(unsigned char i = 0; i < svar; ++i)
+        f(_attributes[i]);
+
+      _anibool+=ANI_ATTACHED;
+    }
+    inline void Detach()
+    { 
+      unsigned char svar=_attributes.Length(); 
+      for(unsigned char i = 0; i < svar; ++i) 
+        _attributes[i]->Detach(); 
+      _anibool-=ANI_ATTACHED; 
+    }
     inline bool HasTypeID(unsigned char TypeID) const { return _attributes.Get(TypeID)<_attributes.Length(); }
     inline void SetAnimationLength(double anilength) { _anilength=anilength; }
 		inline double GetAnimationLength() const { return _anilength==0.0?_anicalc:_anilength; }
 		inline void SetTimeWarp(double aniwarp) { _aniwarp=aniwarp; }
 		inline double GetTimeWarp() const { return _aniwarp; }
     inline double GetTimePassed() const { return _timepassed; }
+    inline bool IsAttached() const { return (_anibool&ANI_ATTACHED)!=0; }
     inline bool IsPlaying() const { return (_anibool&ANI_PLAYING)!=0; }
     inline bool IsLooping() const { return _looppoint>=0.0; }
     inline bool IsPaused() const { return (_anibool&ANI_PAUSED)!=0; }
@@ -150,9 +179,10 @@ namespace bss_util {
       unsigned char j=0;
       for(unsigned char i = 0; i < rvar;)
       {
-        if(j>=svar) //We've run off the end of our existing IDs so simply append the rest
-          _appendattribute(add._attributes[i++]);
-        else
+        if(j>=svar) { //We've run off the end of our existing IDs so simply append the rest
+          AniAttribute* p = add._attributes[i++];
+          GetTypeID(p->typeID)->CopyAnimation(p);
+        } else
           switch(SGNCOMPARE(_attributes[j]->typeID,add._attributes[i]->typeID))
           {
           case -1:
@@ -162,7 +192,8 @@ namespace bss_util {
             _attributes[j]->AddAnimation(add._attributes[i]);
             break;
           case 1: // If this happens, we skipped over one of the IDs in the right, so just append it.
-            _appendattribute(add._attributes[i++]);
+            AniAttribute* p = add._attributes[i++];
+            GetTypeID(p->typeID)->CopyAnimation(p);
           }
       }
       return *this;
@@ -176,7 +207,7 @@ namespace bss_util {
 		cAnimation& operator=(const cAnimation& right)
     {
       for(unsigned char i = 0; i < _attributes.Length(); ++i)
-        _delattr(_attributes[i]);
+        delete _attributes[i];
       _attributes.Clear();
 
 	    _aniwarp=right._aniwarp;
@@ -185,103 +216,67 @@ namespace bss_util {
 	    _anicalc=right._anicalc;
 	    _anilength=right._anilength;
       _looppoint=right._looppoint;
+      _attributes=right._attributes;
 
-      unsigned char svar=right._attributes.Length(); 
+      unsigned char svar=_attributes.Length(); 
       for(unsigned char i = 0; i < svar; ++i)
-        _appendattribute(right._attributes[i]);
+        _attributes[i]=_attributes[i]->Clone();
 
 	    return *this;
     }
 
-    static inline void _delattr(AniAttribute* p) { p->~AniAttribute(); cAbstractAnim::AnimFree(p); }
+		cAnimation& operator=(cAnimation&& right)
+    {
+      for(unsigned char i = 0; i < _attributes.Length(); ++i)
+        delete _attributes[i];
+      _attributes.Clear();
+
+	    _aniwarp=right._aniwarp;
+      _anibool=right._anibool;
+	    _timepassed=right._timepassed;
+	    _anicalc=right._anicalc;
+	    _anilength=right._anilength;
+      _looppoint=right._looppoint;
+      _attributes=std::move(right._attributes);
+      return *this;
+    }
+
+    inline void Serialize(std::ostream& s)
+    {
+      bss_Serialize(_anilength,s);
+      bss_Serialize(_aniwarp,s);
+      bss_Serialize(_looppoint,s);
+      bss_Serialize<unsigned char>(_attributes.Length(),s);
+
+      for(int i = 0; i < _attributes.Length(); ++i) {
+        bss_Serialize(_attributes[i]->typeID,s);
+        _attributes[i]->Serialize(s);
+      }
+    }
+    inline void Deserialize(std::istream& s)
+    {
+      bss_Deserialize(_anilength,s);
+      bss_Deserialize(_aniwarp,s);
+      bss_Deserialize(_looppoint,s);
+      unsigned char l;
+      bss_Deserialize<unsigned char>(l,s);
+      
+      unsigned char id;
+      for(int i = 0; i < l; ++i) {
+        bss_Deserialize(id,s);
+        GetTypeID(id)->Deserialize(s);
+      }
+    }
 
 	protected:
-    bss_util::cMap<unsigned char,AniAttribute*,bss_util::CompT<unsigned char>,unsigned char,cArraySimple<std::pair<unsigned char,AniAttribute*>,unsigned char,AniStaticAlloc<std::pair<unsigned char,AniAttribute*>>>> _attributes;
+    bss_util::cMap<unsigned char, AniAttribute*, bss_util::CompT<unsigned char>, unsigned char, cArraySimple<std::pair<unsigned char, AniAttribute*>, unsigned char, MAPALLOC>> _attributes;
 		double _timepassed; //in milliseconds
 		double _anicalc; //Calculated effective length
 		double _anilength; //if zero, we automatically stop when all animations are exhausted
 		double _aniwarp; //Time warp factor
-    cAbstractAnim* _parent;
     cBitField<unsigned char> _anibool;
     double _looppoint;
-
-    BSS_FORCEINLINE void _appendattribute(AniAttribute* attr)
-    {
-      AniAttribute* cln = _parent->TypeIDRegFunc(attr->typeID);
-      if(!cln) return; // This will happen if we copied from a different object, or in the copy constructor
-      cln->CopyAnimation(attr);
-      _attributes.Insert(cln->typeID,cln);
-    }
 	};
-  
-  struct DEF_ANIATTRIBUTE
-  {
-    virtual ~DEF_ANIATTRIBUTE() {}
-		inline virtual DEF_ANIATTRIBUTE* BSS_FASTCALL Clone() const=0;
-		inline virtual void BSS_FASTCALL Load(cAnimation* ani) const=0;
-  };
-  template<unsigned char TypeID>
-  struct DEF_ANIATTRIBUTE_T : DEF_ANIATTRIBUTE
-  {
-    DEF_ANIATTRIBUTE_T() : rel(false),func(0) {}
-    inline virtual DEF_ANIATTRIBUTE_T* BSS_FASTCALL Clone() const { return new DEF_ANIATTRIBUTE_T(*this); }
-    inline virtual void BSS_FASTCALL Load(cAnimation* ani) const 
-    { 
-      ani->SetInterpolation<TypeID>(func);
-      ani->SetRelative<TypeID>(rel);
-      ani->SetKeyFrames<TypeID>(arr,arr.Length());
-    }
-    bool rel;
-    typename AniAttributeT<TypeID>::FUNC func;
-    cDynArray<typename ANI_ATTR__SAFE__<TypeID,ANI_TID(SAFE)>::INNER_ARRAY> arr;
-  };
-
-	struct DEF_ANIMATION : cDef<cAnimation>
-	{
-    typedef unsigned char ST_;
-		inline DEF_ANIMATION() : anilength(0.0), aniwarp(1.0), aniloop(-1.0) {}
-    inline DEF_ANIMATION(DEF_ANIMATION&& mov) : anilength(mov.anilength), aniwarp(mov.aniwarp), _frames(std::move(mov._frames)), aniloop(mov.aniloop) { }
-    inline DEF_ANIMATION(const DEF_ANIMATION& copy) : anilength(copy.anilength), aniwarp(copy.aniwarp), _frames(copy._frames), aniloop(copy.aniloop)
-    {
-      for(ST_ i = 0; i < _frames.Length(); ++i) 
-        _frames[i]=_frames[i]->Clone();
-    }
-		inline ~DEF_ANIMATION() { for(ST_ i = 0; i < _frames.Length(); ++i) delete _frames[i]; }
-		inline virtual cAnimation* BSS_FASTCALL Spawn() const { return 0; } // You can't spawn an animation because it can't attach to anything
-		inline virtual DEF_ANIMATION* BSS_FASTCALL Clone() const { return new DEF_ANIMATION(*this); }
-    template<ST_ TypeID>
-    DEF_ANIATTRIBUTE_T<TypeID>* BSS_FASTCALL GetAttribute()
-    { 
-      ST_ ind = _frames.Get(TypeID);
-      if(ind>=_frames.Length()) 
-      {
-        _frames.Insert(TypeID,new DEF_ANIATTRIBUTE_T<TypeID>());
-        ind = _frames.Get(TypeID);
-        assert(ind<_frames.Length());
-      }
-      return static_cast<DEF_ANIATTRIBUTE_T<TypeID>*>(_frames[ind]);
-    }
-    template<ST_ TypeID>
-    inline unsigned int AddFrame(const KeyFrame<TypeID>& frame) { return GetAttribute<TypeID>()->arr.Add(frame); }
-    template<ST_ TypeID>
-    inline bool RemoveFrame(unsigned int i) { auto p = GetAttribute<TypeID>(); if(i>=p->arr.Length()) return false; p->arr.Remove(i); return true; }
-    inline const bss_util::cMap<ST_,DEF_ANIATTRIBUTE*,bss_util::CompT<ST_>,ST_>& GetFrames() const { return _frames; }
-
-		double anilength; //if zero, we automatically stop when all animations are exhausted
-		double aniwarp; //Time warp factor
-    double aniloop; //loop point (by default, it's negative, which turns off looping)
-
-	private:
-    bss_util::cMap<ST_,DEF_ANIATTRIBUTE*,bss_util::CompT<ST_>,ST_> _frames;
-	};
-  
-  inline cAnimation::cAnimation(const DEF_ANIMATION& def, cAbstractAnim* ptr) : _parent(ptr), _aniwarp(def.aniwarp), _looppoint(def.aniloop),
-    _anicalc(0), _anilength(def.anilength), _timepassed(0)
-    {
-      auto& p = def.GetFrames();
-      for(unsigned int i = 0; i < p.Length(); ++i)
-        p[i]->Load(this);
-    }
 }
 
 #endif

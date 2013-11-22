@@ -5,6 +5,7 @@
 #define __C_THREAD_H__BSS__
 
 #include "bss_defines.h"
+#include <assert.h>
 #ifdef BSS_PLATFORM_WIN32
 #include "bss_win32_includes.h"
 #include <process.h>

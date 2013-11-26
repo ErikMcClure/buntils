@@ -33,12 +33,7 @@ namespace bss_util {
 		inline cAnimation(const cAnimation& copy) { operator=(copy); }
 		inline cAnimation(cAnimation&& mov) { operator=(std::move(mov)); }
     inline cAnimation() : _aniwarp(1.0), _anilength(0), _timepassed(0), _anicalc(0), _looppoint(-1.0) { }
-		inline ~cAnimation()
-    {
-      for(unsigned char i = 0; i < _attributes.Length(); ++i)
-        delete _attributes[i];
-      _attributes.Clear();
-    }
+    inline ~cAnimation() { Clear(); }
     // Allows you to skip forward by setting _timepassed to the specified value.
 		inline virtual void Start(double timepassed=0.0)
     {
@@ -206,10 +201,7 @@ namespace bss_util {
     }
 		cAnimation& operator=(const cAnimation& right)
     {
-      for(unsigned char i = 0; i < _attributes.Length(); ++i)
-        delete _attributes[i];
-      _attributes.Clear();
-
+      Clear();
 	    _aniwarp=right._aniwarp;
       _anibool=right._anibool;
 	    _timepassed=right._timepassed;
@@ -227,10 +219,7 @@ namespace bss_util {
 
 		cAnimation& operator=(cAnimation&& right)
     {
-      for(unsigned char i = 0; i < _attributes.Length(); ++i)
-        delete _attributes[i];
-      _attributes.Clear();
-
+      Clear();
 	    _aniwarp=right._aniwarp;
       _anibool=right._anibool;
 	    _timepassed=right._timepassed;
@@ -266,6 +255,15 @@ namespace bss_util {
         bss_Deserialize(id,s);
         GetTypeID(id)->Deserialize(s);
       }
+    }
+    inline void Clear()
+    {
+      for(unsigned char i = 0; i < _attributes.Length(); ++i) 
+      {
+        _attributes[i]->~AniAttribute();
+        Alloc::deallocate((char*)_attributes[i]);
+      }
+      _attributes.Clear();
     }
 
 	protected:

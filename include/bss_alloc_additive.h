@@ -100,22 +100,17 @@ namespace bss_util {
   };
 
 	template<typename T>
-  class BSS_COMPILER_DLLEXPORT AdditivePolicy : public AllocPolicySize<T>, protected cAdditiveAlloc {
-	public:
-    typedef typename AllocPolicySize<T>::pointer pointer;
+  class BSS_COMPILER_DLLEXPORT AdditivePolicy : protected cAdditiveAlloc {
+  public:
+    typedef T* pointer;
+    typedef T value_type;
     template<typename U>
     struct rebind { typedef AdditivePolicy<U> other; };
 
-    inline explicit AdditivePolicy() {}
+    inline AdditivePolicy() {}
     inline ~AdditivePolicy() {}
-    inline explicit AdditivePolicy(AdditivePolicy const&) {}
-    template <typename U>
-    inline explicit AdditivePolicy(AdditivePolicy<U> const&) {}
 
-    inline pointer allocate(std::size_t cnt, 
-      typename std::allocator<void>::const_pointer = 0) {
-        return cAdditiveAlloc::allocT<T>(cnt);
-    }
+    inline pointer allocate(std::size_t cnt, const pointer = 0) { return cAdditiveAlloc::allocT<T>(cnt); }
     inline void deallocate(pointer p, std::size_t num = 0) { }
     inline void BSS_FASTCALL clear() { cAdditiveAlloc::Clear(); } //done for functor reasons, BSS_FASTCALL has no effect here
 	};

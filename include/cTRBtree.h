@@ -33,7 +33,7 @@ namespace bss_util {
   };
 
   // Threaded Red-black tree implementation
-  template<typename T, char (*CFunc)(const T&, const T&)=CompT<T>, typename Alloc=Allocator<TRB_Node<T>>>
+  template<typename T, char(*CFunc)(const T&, const T&) = CompT<T>, typename Alloc = StandardAllocPolicy<TRB_Node<T>>>
   class BSS_COMPILER_DLLEXPORT cTRBtree : protected cAllocTracker<Alloc>
   {
   public:
@@ -415,7 +415,7 @@ namespace bss_util {
   };
 
   // Threaded red-black tree with duplicate values
-  template<class Key, class Data, char (*CFunc)(const Key&, const Key&)=CompT<Key>, typename Alloc=Allocator<TRB_Node<Key,Data>>>
+  template<class Key, class Data, char (*CFunc)(const Key&, const Key&)=CompT<Key>, typename Alloc=StandardAllocPolicy<TRB_Node<Key,Data>>>
 	class BSS_COMPILER_DLLEXPORT cTRBtree : protected cAllocTracker<Alloc>
   {
   public:

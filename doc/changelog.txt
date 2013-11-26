@@ -39,6 +39,8 @@
 - Removed TSignPick, use std::make_signed and std::make_unsigned instead.
 - Renamed ABitLimit to BitLimit, use it to get integral types for specific bit counts
 - Changed a bunch of bss_util.h tests to static assertions
+- Allocator<> has been removed, because it wasn't standard compatible anyway. Instead, use StandardAllocPolicy and FixedPolicy directly.
+- reallocate was removed from the static allocators. Static allocators are now expected to use realloc on the allocate() call, or at least emulate it if the pointer is non-null (deallocate the pointer sent in)
 
 0.4.1
 ------

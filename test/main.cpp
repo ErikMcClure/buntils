@@ -2897,7 +2897,7 @@ TESTDEF::RETPAIR test_LINKEDARRAY()
 }
 
 template<bool L, bool S>
-bool cmplist(cLinkedList<int,Allocator<cLLNode<int>>,L,S>& list, const char* nums)
+bool cmplist(cLinkedList<int, StandardAllocPolicy<cLLNode<int>>, L, S>& list, const char* nums)
 {
   auto cur = list.begin();
   bool r=true;
@@ -2909,7 +2909,7 @@ bool cmplist(cLinkedList<int,Allocator<cLLNode<int>>,L,S>& list, const char* num
 TESTDEF::RETPAIR test_LINKEDLIST()
 {
   BEGINTEST;
-  cLinkedList<int,Allocator<cLLNode<int>>,true,true> test;
+  cLinkedList<int, StandardAllocPolicy<cLLNode<int>>, true, true> test;
   cLLNode<int>* llp[5];
 
   llp[0] = test.Add(1);
@@ -2932,7 +2932,7 @@ TESTDEF::RETPAIR test_LINKEDLIST()
   TEST(cmplist(test,"230"));
   TEST(test.Length()==3);
   
-  cLinkedList<int,Allocator<cLLNode<int>>,false,true> test2;
+  cLinkedList<int, StandardAllocPolicy<cLLNode<int>>, false, true> test2;
 
   llp[0] = test2.Add(1);
   TEST(cmplist(test2,"1"));
@@ -2954,7 +2954,7 @@ TESTDEF::RETPAIR test_LINKEDLIST()
   TEST(cmplist(test2,"032"));
   TEST(test2.Length()==3);
 
-  cLinkedList<int,Allocator<cLLNode<int>>> test3;
+  cLinkedList<int, StandardAllocPolicy<cLLNode<int>>> test3;
 
   llp[0] = test3.Add(1);
   TEST(cmplist(test3,"1"));
@@ -3189,8 +3189,8 @@ TESTDEF::RETPAIR test_RATIONAL()
 TESTDEF::RETPAIR test_TRBTREE()
 {
   BEGINTEST;
-  Allocator<TRB_Node<int>,FixedPolicy<TRB_Node<int>>> fixedalloc;
-  cTRBtree<int,CompT<int>,Allocator<TRB_Node<int>,FixedPolicy<TRB_Node<int>>>> blah(&fixedalloc);
+  FixedPolicy<TRB_Node<int>> fixedalloc;
+  cTRBtree<int, CompT<int>, FixedPolicy<TRB_Node<int>>> blah(&fixedalloc);
 
   shuffle(testnums);
   for(int i = 0; i<TESTNUM; ++i)
@@ -3586,7 +3586,7 @@ TESTDEF::RETPAIR test_TRIE()
   ENDTEST;
 }
 
-struct foobar// : public cClassAllocator<foobar>
+struct foobar
 {
   void BSS_FASTCALL nyan(unsigned int cat) { TEST(cat==5); }
   void BSS_FASTCALL nyannyan(int cat, int kitty) { TEST(cat==2); TEST(kitty==-3); }
@@ -4109,7 +4109,7 @@ struct weird
   inline void validate() { i=-1; offset=-1;blah=-1; }
 };
 
-void printout(cLinkedList<int,Allocator<cLLNode<int>>,true>& list)
+void printout(cLinkedList<int,StandardAllocPolicy<cLLNode<int>>,true>& list)
 {
   cLLIter<int> cur(list.GetRoot());
 

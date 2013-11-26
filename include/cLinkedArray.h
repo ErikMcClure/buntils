@@ -68,7 +68,7 @@ namespace bss_util {
     BSS_FORCEINLINE const T& BSS_FASTCALL operator [](ST_ index) const { return GetItem(index); }
 
     // Iterator for cLinkedArray
-    template<typename U, typename D=cLinkedArray<T,SizeType>>
+    template<bool CONST, typename U = typename std::conditional<CONST, typename std::add_const<T>::type, T>::type, typename D = typename std::conditional<CONST, typename std::add_const<cLinkedArray>::type, cLinkedArray>::type>
     class BSS_COMPILER_DLLEXPORT cLAIter : public std::iterator<std::bidirectional_iterator_tag,typename D::value_type,ptrdiff_t,U*,U&>
 	  {
     public:
@@ -93,10 +93,10 @@ namespace bss_util {
       D& _src;
 	  };
     
-    inline cLAIter<const T, const cLinkedArray<T,SizeType>> begin() const { return cLAIter<const T, const cLinkedArray<T,SizeType>>(*this,_start); } // Use these to get an iterator you can use in standard containers
-    inline cLAIter<const T, const cLinkedArray<T,SizeType>> end() const { return cLAIter<const T, const cLinkedArray<T,SizeType>>(*this); }
-    inline cLAIter<T, cLinkedArray<T,SizeType>> begin() { return cLAIter<T, cLinkedArray<T,SizeType>>(*this,_start); } // Use these to get an iterator you can use in standard containers
-    inline cLAIter<T, cLinkedArray<T,SizeType>> end() { return cLAIter<T, cLinkedArray<T,SizeType>>(*this); }
+    inline cLAIter<true> begin() const { return cLAIter<true>(*this, _start); } // Use these to get an iterator you can use in standard containers
+    inline cLAIter<true> end() const { return cLAIter<true>(*this); }
+    inline cLAIter<false> begin() { return cLAIter<false>(*this, _start); } // Use these to get an iterator you can use in standard containers
+    inline cLAIter<false> end() { return cLAIter<false>(*this); }
 
   protected:
     template<typename U>

@@ -17,7 +17,7 @@ namespace bss_util {
   template<unsigned char T> //if you need your own type, just insert another explicit specialization in your code
   struct ANI_IDTYPE { typedef struct { typedef void TYPE; } TYPES; }; 
 
-  template<typename E, typename V, typename D = V, typename S = void, typename A = void, typename DEL = delegate<A, V const&>>
+  template<typename E, typename V, typename D = V, typename S = void, typename A = void, typename DEL = delegate<A, V>>
   struct ANI_IDTYPE_TYPES {
     typedef E TYPE;
     typedef V VALUE;
@@ -323,9 +323,8 @@ namespace bss_util {
   // Interval attribute definition
   template<unsigned char TypeID>
   struct BSS_COMPILER_DLLEXPORT AttrDefInterval : AttrDefDiscrete<TypeID> { 
-    AttrDefInterval(double(*to)(ANI_TID(DATACONST)), delegate<void, ANI_TID(AUX)> rm, ANI_TID(DELEGATE) d) : AttrDefDiscrete<TypeID>(d), rmdel(rm), toduration(to) {}
+    AttrDefInterval(delegate<void, ANI_TID(AUX)> rm, ANI_TID(DELEGATE) d) : AttrDefDiscrete<TypeID>(d), rmdel(rm) {}
     delegate<void, ANI_TID(AUX)> rmdel;
-    double(*toduration)(ANI_TID(DATACONST));
   };
 
   // Discrete animation with an interval. After the interval has passed, the object is removed using a second delegate function.
@@ -339,10 +338,10 @@ namespace bss_util {
     using AniAttributeT<TypeID>::_timevalues;
     using AniAttributeT<TypeID>::_curpair;
     
-    inline AniAttributeInterval(const AniAttributeInterval& copy) : AniAttributeDiscrete<TypeID>(copy), _rmdel(copy._rmdel), _toduration(copy._toduration) {}
-    inline AniAttributeInterval(ANI_TID(DELEGATE) del, delegate<void,ANI_TID(AUX)> rmdel, double (*toduration)(ANI_TID(DATACONST))) : 
-      AniAttributeDiscrete<TypeID>(del), _rmdel(rmdel), _toduration(toduration) {}
-    inline AniAttributeInterval() : AniAttributeDiscrete<TypeID>(), _toduration(0), _rmdel(0, 0), _length(0) {}
+    inline AniAttributeInterval(const AniAttributeInterval& copy) : AniAttributeDiscrete<TypeID>(copy), _rmdel(copy._rmdel) {}
+    inline AniAttributeInterval(ANI_TID(DELEGATE) del, delegate<void,ANI_TID(AUX)> rmdel) : 
+      AniAttributeDiscrete<TypeID>(del), _rmdel(rmdel) {}
+    inline AniAttributeInterval() : AniAttributeDiscrete<TypeID>(), _rmdel(0, 0), _length(0) {}
     virtual bool Interpolate(double timepassed)
     {
       IDTYPE svar=_timevalues.Size();
@@ -358,13 +357,13 @@ namespace bss_util {
 		virtual IDTYPE AddKeyFrame(const KeyFrame<TypeID>& frame) //time is given in milliseconds
 		{
       IDTYPE r = AniAttributeDiscrete<TypeID>::AddKeyFrame(frame);
-      double t = frame.time+_toduration(frame.value);
+      double t = frame.time+bss_util::ANI_IDTYPE<TypeID>::toduration(frame.value);
       if(t>_length) _length=t;
       return r;
 		}
     virtual bool RemoveKeyFrame(IDTYPE ID)
     {
-      if(ID<_timevalues.Size() && _length==_timevalues[ID].time+_toduration(_timevalues[ID].value)) _recalclength();
+      if(ID<_timevalues.Size() && _length==_timevalues[ID].time+bss_util::ANI_IDTYPE<TypeID>::toduration(_timevalues[ID].value)) _recalclength();
       return AniAttributeDiscrete<TypeID>::RemoveKeyFrame(ID);
     }
     inline virtual void Start() 
@@ -377,7 +376,7 @@ namespace bss_util {
     }
     inline virtual AniAttribute* BSS_FASTCALL Clone() const { return new(Alloc::allocate(sizeof(AniAttributeInterval))) AniAttributeInterval(*this); }
     inline virtual void BSS_FASTCALL CopyAnimation(AniAttribute* ptr) { operator=(*static_cast<AniAttributeInterval*>(ptr)); }
-    virtual void BSS_FASTCALL Attach(AttrDef* def) { AttrDefInterval<TypeID>* p=static_cast<AttrDefInterval<TypeID>*>(def); _rmdel=p->rmdel; _toduration=p->toduration; AniAttributeDiscrete<TypeID>::Attach(def); }
+    virtual void BSS_FASTCALL Attach(AttrDef* def) { _rmdel = static_cast<AttrDefInterval<TypeID>*>(def)->rmdel; AniAttributeDiscrete<TypeID>::Attach(def); }
     inline AniAttributeInterval& operator=(const AniAttributeInterval& right) { AniAttributeDiscrete<TypeID>::operator=(right); _length=right._length; return *this; }
 
   protected:
@@ -386,12 +385,11 @@ namespace bss_util {
       _length=0;
       double t;
       for(IDTYPE i = 0; i < _timevalues.Size(); ++i)
-        if((t=_timevalues[i].time+_toduration(_timevalues[i].value))>_length)
-          _length=t;
+      if((t = _timevalues[i].time+bss_util::ANI_IDTYPE<TypeID>::toduration(_timevalues[i].value))>_length)
+        _length=t;
     }
-    inline void _addtoqueue(ANI_TID(DATACONST) v) { _queue.Push(_toduration(v),_del(v)); }
+    inline void _addtoqueue(ANI_TID(DATACONST) v) { _queue.Push(bss_util::ANI_IDTYPE<TypeID>::toduration(v), _del(v)); }
 
-    double(*_toduration)(ANI_TID(DATACONST));
     delegate<void,ANI_TID(AUX)> _rmdel; //delegate for removal
     cPriorityQueue<double, ANI_TID(AUX), CompT<double>, unsigned int, cArraySimple<std::pair<double, ANI_TID(AUX)>, unsigned int, QUEUEALLOC>> _queue;
     double _length;

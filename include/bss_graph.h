@@ -46,6 +46,10 @@ namespace bss_util {
     inline cLinkedArray<Node<E,V,ST>,ST,ARRAYTYPE>& GetNodes() { return _nodes; }
     inline ST Front() const { return _nodes.Front(); }
     inline ST Back() const { return _nodes.Back(); }
+    inline typename cLinkedArray<Node<E, V, ST>, ST, ARRAYTYPE>::template cLAIter<true> begin() const { return _nodes.begin(); }
+    inline typename cLinkedArray<Node<E, V, ST>, ST, ARRAYTYPE>::template cLAIter<true> end() const { return _nodes.end(); }
+    inline typename cLinkedArray<Node<E, V, ST>, ST, ARRAYTYPE>::template cLAIter<false> begin() { return _nodes.begin(); }
+    inline typename cLinkedArray<Node<E, V, ST>, ST, ARRAYTYPE>::template cLAIter<false> end() { return _nodes.end(); }
     inline ST AddNode() { Node<E, V, ST> aux; memset(&aux, 0, sizeof(Node<E, V, ST>)); return _nodes.Add(aux); }
     inline ST AddNode(const V* node) { Node<E, V, ST> aux; aux.to = 0; aux.from = 0; _setdata<V>(aux, node); return _nodes.Add(aux); }
     inline Edge<E,ST>* AddEdge(ST from, ST to)
@@ -102,6 +106,8 @@ namespace bss_util {
     typedef ST ST_;
     typedef E E_;
     typedef V V_;
+    typedef Node<E, V, ST> N_;
+    typedef Edge<E, ST> EDGE_;
 
   protected:
     template<typename D> static BSS_FORCEINLINE void _setdata(VoidData<D>& t, const D* d) { t.data=*d; }

@@ -1073,9 +1073,9 @@ void outgraph(const G& g)
 {
   std::cout << "--------" << std::endl;
   auto& n = g.GetNodes();
-  for(int i = 0; i < g.NumNodes(); ++i)
+  for(const G::N_& node : n) // test range-based for loops
   {
-    for(auto p = n[i].to; p!=0; p = p->next)
+    for(auto p = node.to; p!=0; p = p->next)
       std::cout << p->from << " -> (" << p->data.capacity << "," << p->data.flow << ") ->" << p->to << std::endl;
   }
 }
@@ -1586,12 +1586,15 @@ struct DEBUG_CDT : DEBUG_CDT_SAFE<SAFE> {
 template<> int DEBUG_CDT<true>::count=0;
 template<> int DEBUG_CDT<false>::count=0;
 
-namespace bss_util { template<> struct ANI_IDTYPE<0> { typedef ANI_IDTYPE_TYPES<AniAttributeDiscrete<0>, cRefCounter*, cAutoRef<cRefCounter>, char, void, delegate<void, cRefCounter*>> TYPES; }; }
-namespace bss_util { template<> struct ANI_IDTYPE<1> { typedef ANI_IDTYPE_TYPES<AniAttributeInterval<1>, std::pair<cAutoRef<cRefCounter>, double>, std::pair<cAutoRef<cRefCounter>, double>, char, cRefCounter*> TYPES; }; }
+namespace bss_util { template<> struct ANI_IDTYPE<0> { typedef ANI_IDTYPE_TYPES<AniAttributeDiscrete<0>, cRefCounter*, cAutoRef<cRefCounter>, char> TYPES; }; }
+namespace bss_util { template<> struct ANI_IDTYPE<1> { typedef ANI_IDTYPE_TYPES<AniAttributeInterval<1>, std::pair<cAutoRef<cRefCounter>, double>, std::pair<cAutoRef<cRefCounter>, double>, char, cRefCounter*> TYPES;
+  static BSS_FORCEINLINE double toduration(TYPES::DATACONST p) { return p.second; } }; }
 namespace bss_util { template<> struct ANI_IDTYPE<2> { typedef ANI_IDTYPE_TYPES<AniAttributeSmooth<2>, float> TYPES; }; }
 namespace bss_util { template<> struct ANI_IDTYPE<3> { typedef ANI_IDTYPE_TYPES<AniAttributeGeneric<3>, std::function<void(void)>, std::function<void(void)>, char> TYPES; }; }
 
 #include <memory>
+
+typedef std::pair<cAutoRef<cRefCounter>, double> ANIOBJPAIR;
 
 struct cAnimObj
 {
@@ -1600,15 +1603,14 @@ struct cAnimObj
   int test2;
   float fl;
   void BSS_FASTCALL donothing(cRefCounter*) { ++test; }
-  cRefCounter* BSS_FASTCALL retnothing(const std::pair<cAutoRef<cRefCounter>, double>& p) { 
-    std::pair<cAutoRef<cRefCounter>, double>& pp = const_cast<std::pair<cAutoRef<cRefCounter>, double>&>(p); 
+  cRefCounter* BSS_FASTCALL retnothing(ANIOBJPAIR p) {
     ++test2; 
-    pp.first->Grab(); 
-    return (cRefCounter*)pp.first; 
+    p.first->Grab(); 
+    return (cRefCounter*)p.first; 
   }
   void BSS_FASTCALL remnothing(cRefCounter* p) { p->Drop(); }
   void BSS_FASTCALL setfloat(float a) { fl = a; }
-  static BSS_FORCEINLINE double _grabduration(const std::pair<cAutoRef<cRefCounter>, double>& p) { return p.second; }
+  
   void BSS_FASTCALL TypeIDRegFunc(AniAttribute* p)
   {
     switch(p->typeID)
@@ -1617,11 +1619,11 @@ struct cAnimObj
       p->Attach(&AttrDefDiscrete<0>(delegate<void, cRefCounter*>::From<cAnimObj, &cAnimObj::donothing>(this)));
       break;
     case 1:
-      p->Attach(&AttrDefInterval<1>(&_grabduration, delegate<void, cRefCounter*>::From<cAnimObj, &cAnimObj::remnothing>(this), delegate<cRefCounter*, const std::pair<cAutoRef<cRefCounter>, double>&>::From<cAnimObj, &cAnimObj::retnothing>(this)));
+      p->Attach(&AttrDefInterval<1>(delegate<void, cRefCounter*>::From<cAnimObj, &cAnimObj::remnothing>(this), delegate<cRefCounter*, ANIOBJPAIR>::From<cAnimObj, &cAnimObj::retnothing>(this)));
       break;
-    //case 2:
-    //  p->Attach(&AttrDefSmooth<2>(delegate<void, float>::From<cAnimObj, &cAnimObj::donothing>(this)));
-    //  break;
+    case 2:
+      p->Attach(&AttrDefSmooth<2>(&fl, delegate<void, float>::From<cAnimObj, &cAnimObj::setfloat>(this)));
+      break;
     case 3:
       p->Attach(0);
       break;
@@ -1639,9 +1641,16 @@ TESTDEF::RETPAIR test_ANIMATION()
   a.Pause(true);
   a.SetTimeWarp(1.0);
   TEST(a.IsPaused());
-  a.AddKeyFrame<0>(KeyFrame<0>(0.0,&c));
+  a.SetInterpolation<2>(&AniAttributeSmooth<2>::LerpInterpolate);
+  a.AddKeyFrame<0>(KeyFrame<0>(0.0, &c));
   a.AddKeyFrame<0>(KeyFrame<0>(1.0,&c));
-  a.AddKeyFrame<0>(KeyFrame<0>(2.0,&c));
+  a.AddKeyFrame<0>(KeyFrame<0>(2.0, &c));
+  a.AddKeyFrame<1>(KeyFrame<1>(0.0, ANIOBJPAIR(&c,1.5)));
+  a.AddKeyFrame<1>(KeyFrame<1>(1.0, ANIOBJPAIR(&c, 0.5)));
+  a.AddKeyFrame<1>(KeyFrame<1>(1.5, ANIOBJPAIR(&c, 0.5)));
+  a.AddKeyFrame<2>(KeyFrame<2>(0.0, 0.0f));
+  a.AddKeyFrame<2>(KeyFrame<2>(1.0, 1.0f));
+  a.AddKeyFrame<2>(KeyFrame<2>(2.0, 2.0f));
   a.Pause(false);
   TEST(!a.IsPaused());
   TEST(!a.HasTypeID(1));
@@ -1649,7 +1658,16 @@ TESTDEF::RETPAIR test_ANIMATION()
   TEST(a.GetTypeID(0)!=0);
   TEST(a.GetAnimationLength()==2.0);
   
+  std::stringstream ss;
+  a.Serialize(ss);
+  
+  cAnimation<StaticAllocPolicy<char>> aa;
+  aa.Deserialize(ss);
+  for(int i = 0; i<6; ++i) c.Grab(); // compensate for the pointer we just copied over
+
   cAnimObj obj;
+  a.AddKeyFrame<3>(KeyFrame<3>(0.0, [&](){ c.Grab(); obj.test++; }));
+  a.AddKeyFrame<3>(KeyFrame<3>(1.0, [&](){ c.Drop(); }));
   a.Attach(delegate<void,AniAttribute*>::From<cAnimObj,&cAnimObj::TypeIDRegFunc>(&obj));
 
   TEST(obj.test==0);

@@ -273,6 +273,12 @@ namespace bss_util {
     (a*sseVec(l[3][0]))+(b*sseVec(l[3][1]))+(c*sseVec(l[3][2]))+(d*sseVec(l[3][3])) >> out[3];
   }
 
+  // Multiply a 1x4 vector on the left with a 4x4 matrix on the right, resulting in a 1x4 vector.
+  BSS_FORCEINLINE sseVec BSS_FASTCALL Mult1x4(const float(&l)[4], const float(&r)[4][4])
+  {
+    return (sseVec(r[0])*sseVec(l[0]))+(sseVec(r[1])*sseVec(l[1]))+(sseVec(r[2])*sseVec(l[2]))+(sseVec(r[3])*sseVec(l[3]));
+  }
+
   // Random queue 
   template<class ArrayType, typename ArrayType::ST_ (*RandFunc)(typename ArrayType::ST_ min, typename ArrayType::ST_ max)=&bss_randint>
   class BSS_COMPILER_DLLEXPORT cRandomQueue : protected cDynArray<ArrayType>
@@ -470,14 +476,14 @@ namespace bss_util {
   inline static T BSS_FASTCALL UniformQuadraticBSpline(D t, const T& prev, const T& cur, const T& next)
   {
     D t2=t*t;
-    return (prev*(1 - 2*t + t2) + cur*(1 + 2*t - 2*t2) + next*t2)*((D)0.5);
+    return (prev*(1 - 2*t + t2) + cur*(1 + 2*t - 2*t2) + next*t2)/((D)2.0);
   }
 
   // Implementation of a uniform cubic B-spline interpolation. A uniform cubic B-spline matrix is:
-  //                / -1  3 -3  1 \       / p1 \
-  // [t^3,t²,t,1] * |  3 -6  3  0 | * ½ * | p2 |
-  //                | -3  0  3  0 |       | p3 |
-  //                \  1  4  1  0 /       \ p4 /
+  //                / -1  3 -3  1 \         / p1 \
+  // [t^3,t²,t,1] * |  3 -6  3  0 | * 1/6 * | p2 |
+  //                | -3  0  3  0 |         | p3 |
+  //                \  1  4  1  0 /         \ p4 /
   template<typename T, typename D>
   inline static T BSS_FASTCALL UniformCubicBSpline(D t, const T& p1, const T& p2, const T& p3, const T& p4)
   {
@@ -497,6 +503,44 @@ namespace bss_util {
     D t2=t*t;
     D t3=t2*t;
     return (p1*(-t3+2*t2-t)+p2*(3*t3-5*t2+2)+p3*(-3*t3+4*t2+t)+p4*(t3-t2))/((D)2.0);
+  }
+
+  // Implementation of a bezier curve. The B-spline matrix for this is
+  //                / -1  3 -3  1 \   / p1 \
+  // [t^3,t²,t,1] * |  3 -6  3  0 | * | p2 |
+  //                | -3  3  0  0 |   | p3 |
+  //                \  1  0  0  0 /   \ p4 /
+  template<typename T, typename D>
+  inline static T BSS_FASTCALL BezierCurve(D t, const T& p1, const T& p2, const T& p3, const T& p4)
+  {
+    static const float m[4][4] = {-1, 3, -3, 1, 3, -6, 3, 0, -3, 3, 0, 0, 1, 0, 0, 0};
+    const float p[4] = {p1, p2, p3, p4};
+    return StaticGenericSpline<T, D, m>(t, p);
+  }
+
+  // This implements all possible B-spline functions, but does it statically without optimizations (so it can be used with any type)
+  template<typename T, typename D, const T(&m)[4][4]>
+  BSS_FORCEINLINE static T BSS_FASTCALL StaticGenericSpline(D t, const T(&p)[4])
+  {
+    D t2 = t*t;
+    D t3 = t2*t;
+    return p[0]*(m[0][0]*t3+m[1][0]*t2+m[2][0]*t+m[3][0]) +
+      p[1]*(m[0][1]*t3+m[1][1]*t2+m[2][1]*t+m[3][1]) +
+      p[2]*(m[0][2]*t3+m[1][2]*t2+m[2][2]*t+m[3][2]) +
+      p[3]*(m[0][3]*t3+m[1][3]*t2+m[2][3]*t+m[3][3]);
+  }
+
+  // This implements all possible B-spline functions using a given matrix m, optimized for floats
+  inline static float BSS_FASTCALL GenericBSpline(float t, const float(&p)[4], const float(&m)[4][4])
+  {
+    float a[4] = {t*t*t, t*t, t, 1};
+    sseVec r = Mult1x4(a, m);
+    r *= sseVec(p);
+    sseVec r2 = r;
+    sseVec::Shuffle<0xB1>(r2);
+    r += r2;
+    sseVec::Shuffle<0x1B>(r2);
+    return BSS_SSE_SS_F32(r + r2);
   }
 
   // Generic breadth-first search for a binary tree. Don't use this on a min/maxheap - it's internal array already IS in breadth-first order.

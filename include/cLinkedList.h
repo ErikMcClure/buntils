@@ -106,7 +106,7 @@ namespace bss_util {
   };
 
   // Doubly linked list implementation with _root, optional _last and an optional _size
-  template<typename T, typename Alloc=Allocator<cLLNode<T>>, bool useLast=false, bool useSize=false>
+  template<typename T, typename Alloc = StandardAllocPolicy<cLLNode<T>>, bool useLast = false, bool useSize = false>
   class BSS_COMPILER_DLLEXPORT cLinkedList : protected cAllocTracker<Alloc>, public cLList_SIZE<useSize>, public cLList_LAST<T,useLast>
   {
   protected:

@@ -49,7 +49,7 @@ namespace bss_util {
     {
       if(nsize<=_size) { _size=nsize; return; }
       //T* narray = (T*)realloc(_array,nsize*sizeof(T));
-      T* narray = (T*)Alloc::reallocate(_array,nsize);
+      T* narray = (T*)Alloc::allocate(nsize, _array);
       if(!narray && nsize>0) Alloc::deallocate(_array); // realloc won't free _array if it fails
       _array=!nsize?0:narray; // If nsize is 0 realloc will just deallocate _array.
       _size=!_array?0:nsize;
@@ -257,7 +257,7 @@ namespace bss_util {
       SizeType nsize=_size+1;
       if(location==_size)
       {
-        _array = (T*)Alloc::reallocate(_array,_size=nsize);
+        _array = (T*)Alloc::allocate(_size = nsize, _array);
         assert(_array!=0); // Don't bother checking for null case becuase we'd have to explode anyway.
         new (_array+location) T(item);
         return;

@@ -7,8 +7,6 @@
 #include "bss_alloc.h"
 #include "bss_util.h"
 
-#define DECL_FIXEDPOLICY(T) bss_util::Allocator<T,bss_util::FixedPolicy<T>>
-
 namespace bss_util {
   // Fixed Chunk Alloc
   struct FIXEDLIST_NODE
@@ -124,24 +122,18 @@ namespace bss_util {
   };
   
 	template<typename T>
-  class BSS_COMPILER_DLLEXPORT FixedPolicy : public AllocPolicySize<T>, protected cFixedAlloc<T> {
-	public:
-    typedef typename AllocPolicySize<T>::pointer pointer;
+  class BSS_COMPILER_DLLEXPORT FixedPolicy : protected cFixedAlloc<T> {
+  public:
+    typedef T* pointer;
+    typedef T value_type;
     template<typename U>
     struct rebind { typedef FixedPolicy<U> other; };
 
-    inline explicit FixedPolicy() {}
+    inline FixedPolicy() {}
     inline ~FixedPolicy() {}
-    inline explicit FixedPolicy(FixedPolicy const&) {}
-    template <typename U>
-    inline explicit FixedPolicy(FixedPolicy<U> const&) {}
 
-    inline pointer allocate(size_t cnt, typename std::allocator<void>::const_pointer = 0) {
-        return cFixedAlloc<T>::alloc(cnt);
-    }
-    inline void deallocate(pointer p, size_t num = 0) { 
-      return cFixedAlloc<T>::dealloc(p);
-    }
+    inline pointer allocate(size_t cnt, const pointer = 0) { return cFixedAlloc<T>::alloc(cnt); }
+    inline void deallocate(pointer p, size_t num = 0) { return cFixedAlloc<T>::dealloc(p); }
 	};
 }
 

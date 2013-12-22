@@ -154,8 +154,16 @@ namespace bss_util {
 		static_assert(std::is_signed<T>::value && std::is_integral<T>::value,"T must be a signed integral type or this function is pointless");
     x%=m;
     return (x+((-(T)(x<0))&m));
+    //return (x+((x<0)*m)); // This is a tad slower
   }
 
+  // Performs a mathematically correct floating point modulo, unlike fmod, which performs a remainder operation, not a modulo operation.
+  template<typename T> //T must be floating point
+  BSS_FORCEINLINE static T BSS_FASTCALL bssfmod(T x, T m)
+  {
+    static_assert(std::is_floating_point<T>::value, "T must be a floating point type");
+    return x - floor(x/m)*m;
+  }
   // Uses rswap to reverse the order of an array
   template<typename T>
   inline static void BSS_FASTCALL bssreverse(T* src, unsigned int length)
@@ -249,7 +257,7 @@ namespace bss_util {
   BSS_FORCEINLINE static T BSS_FASTCALL angledistsgn(T a, T b)
   {
     static_assert(std::is_floating_point<T>::value,"T must be float, double, or long double");
-    return fmod(a - b - ((T)PI), (T)PI_DOUBLE) + ((T)PI);
+    return fmod(bssfmod(b - a, (T)PI_DOUBLE) + ((T)PI), (T)PI_DOUBLE) - ((T)PI);
   }
 
   // Smart compilers will use SSE2 instructions to eliminate the massive overhead of int -> float conversions. This uses SSE2 instructions

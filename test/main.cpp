@@ -245,6 +245,17 @@ TESTDEF::RETPAIR test_bss_util_c()
   //CPU_Barrier();
   //std::cout << _debug.CloseProfiler(prof) << " :( " << a << std::endl;
 
+  //{
+  //  float aaaa = 0;
+  //  char prof = _debug.OpenProfiler();
+  //  CPU_Barrier();
+  //  for(int i = 0; i < TESTNUM; ++i)
+  //    aaaa += bssfmod<float>(-1.0f, testnums[i]+PIf);
+  //  CPU_Barrier();
+  //  std::cout << _debug.CloseProfiler(prof) << std::endl;
+  //  std::cout << aaaa;
+  //}
+
   std::function<void()> b([](){ int i=0; i+=1; return; });
   b = std::move(std::function<void()>([](){ return; }));
 
@@ -460,13 +471,24 @@ TESTDEF::RETPAIR test_bss_util()
   TEST((intdiv<int,int>(-10,5)==-2));
   TEST((intdiv<int,int>(-11,5)==-3));
 
-  TEST((bssmod(-1,7)==6)); 
+  TEST((bssmod(-1, 7)==6));
+  TEST((bssmod(-90, 7)==1));
   TEST((bssmod(6,7)==6)); 
   TEST((bssmod(7,7)==0)); 
   TEST((bssmod(0,7)==0)); 
-  TEST((bssmod(1,7)==1)); 
+  TEST((bssmod(1, 7)==1));
+  TEST((bssmod(8, 7)==1));
+  TEST((bssmod(71, 7)==1));
   TEST((bssmod(1,1)==0)); 
   TEST((bssmod(-1,2)==1)); 
+
+  TEST(fcompare(bssfmod(-1.0f, PI_DOUBLEf), 5.2831853f, 10));
+  TEST(fcompare(bssfmod(-4.71f, PI_DOUBLEf), 1.57319f, 100));
+  TEST(fcompare(bssfmod(1.0f, PI_DOUBLEf), 1.0f));
+  TEST((bssfmod(0.0f, PI_DOUBLEf))==0.0f);
+  TEST(fcompare(bssfmod(12.0f, PI_DOUBLEf), 5.716814f, 10));
+  TEST(fcompare(bssfmod(90.0f, PI_DOUBLEf), 2.0354057f, 100));
+  TEST(fcompare(bssfmod(-90.0f, PI_DOUBLEf), 4.2477796f, 10));
 
   int r[] = { -1,0,2,3,4,5,6 };
   int rr[] = { 6,5,4,3,2,0,-1 };
@@ -522,16 +544,21 @@ TESTDEF::RETPAIR test_bss_util()
   TEST(fcompare(angledist(PIf,PI_HALFf),PI_HALFf))
   TEST(fsmall(angledist(PIf,PIf+PI_DOUBLEf),FLT_EPS*4))
   TEST(fcompare(angledist(PI_DOUBLEf+PIf,PIf+PI_HALFf*7.0f),PI_HALFf,9))
-  TEST(fcompare(angledist(PIf+PI_HALFf*7.0f,PI_DOUBLEf+PIf),PI_HALFf,9))
+  TEST(fcompare(angledist(PIf+PI_HALFf*7.0f, PI_DOUBLEf+PIf), PI_HALFf, 9))
+  TEST(fcompare(angledist(PIf+PI_HALFf*7.0f, PI_DOUBLEf+PIf), PI_HALFf, 9))
+  TEST(fcompare(angledist(1.28f, -4.71f), 0.2931f, 10000))
+  TEST(fcompare(angledist(1.28f, -4.71f+PI_DOUBLEf), 0.2931f,10000))
 
-  TEST(fcompare(angledistsgn(PI,PI_HALF),PI_HALF))
+  TEST(fcompare(angledistsgn(PI,PI_HALF),-PI_HALF))
   TEST(fsmall(angledistsgn(PI,PI+PI_DOUBLE)))
-  TEST(fcompare(angledistsgn(PI_DOUBLE+PI,PI+PI_HALF*7.0),PI_HALF))
-  TEST(fcompare(angledistsgn(PI_HALF,PI),-PI_HALF))
-  TEST(fcompare(angledistsgn(PIf,PI_HALFf),PI_HALFf))
-  TEST(fsmall(angledistsgn(PIf,PIf+PI_DOUBLEf),FLT_EPS*4))
-  TEST(fcompare(angledistsgn(PI_DOUBLEf+PIf,PIf+PI_HALFf*7.0f),PI_HALFf,9))
-  TEST(fcompare(angledistsgn(PI_HALFf,PIf),-PI_HALFf))
+  TEST(fcompare(angledistsgn(PI_DOUBLE+PI,PI+PI_HALF*7.0),-PI_HALF))
+  TEST(fcompare(angledistsgn(PI_HALF,PI),PI_HALF))
+  TEST(fcompare(angledistsgn(PIf,PI_HALFf),-PI_HALFf))
+  TEST(fsmall(angledistsgn(PIf,PIf+PI_DOUBLEf),-FLT_EPS*4))
+  TEST(fcompare(angledistsgn(PI_DOUBLEf+PIf,PIf+PI_HALFf*7.0f),-PI_HALFf,9))
+  TEST(fcompare(angledistsgn(PI_HALFf,PIf),PI_HALFf))
+  TEST(fcompare(angledistsgn(1.28f, -4.71f), 0.2931f, 10000))
+  TEST(fcompare(angledistsgn(1.28f, -4.71f+PI_DOUBLEf), 0.2931f, 10000))
 
   const float flt=FLT_EPSILON;
   __int32 fi = *(__int32*)(&flt);
@@ -3769,30 +3796,16 @@ TESTDEF::RETPAIR test_STREAMSPLITTER()
   ENDTEST;
 }
 
-// wat
-//typedef std::pair<const char*,size_t> Fragment;
-//void BSS_FASTCALL MakeFragments(const char* str, cDynArray<cArraySimple<Fragment>>& r)
-//{
-//  cStr hold(str);
-//  char* context;
-//  char* p = STRTOK(hold.UnsafeString(),",.-?!;:~",&context);
-//  while(p)
-//  {
-//    r.Add(Fragment(str+(p-hold),strlen(p)+1));
-//    p = STRTOK(NULL,",.-",&context);
-//  }
-//}
-
 /*void subleq_computer(int[] mem)
 {
-  int c=0;
-  int b;
-  while(c>=0)
-  {
-    b=mem[c+1];
-    mem[b] = mem[b]-mem[mem[c]];
-    c=(mem[b]>0)?(c+3):mem[c+2];
-  }
+int c=0;
+int b;
+while(c>=0)
+{
+b=mem[c+1];
+mem[b] = mem[b]-mem[mem[c]];
+c=(mem[b]>0)?(c+3):mem[c+2];
+}
 }*/
 
 // --- Begin main testing function ---
@@ -3810,30 +3823,6 @@ int main(int argc, char** argv)
   for(int i = 0; i<TESTNUM; ++i)
     testnums[i]=i;
   shuffle(testnums);
-
-
-  /*FILE* f;
-  fopen_s(&f,"story.txt","rb");
-  fseek(f, 0L, SEEK_END);
-  size_t sz = ftell(f);
-  fseek(f, 0L, SEEK_SET);
-  cStr story(sz+1);
-  fread(story.UnsafeString(), 1, sz, f);
-  fclose(f);
-  story.UnsafeString()[sz]=0;
-
-  cDynArray<cArraySimple<Fragment>> sr(10);
-  MakeFragments(story,sr);
-  shuffle<Fragment>(sr,sr.Length());
-
-  fopen_s(&f,"story.out.txt","wb");
-  for(uint i = 0; i < sr.Length(); ++i)
-    fwrite(sr[i].first,1,sr[i].second,f);
-  fclose(f);
-
-  std::cout << "\nPress Enter to exit the program." << std::endl;
-  std::cin.get();
-  return 0;*/
 
   TESTDEF tests[] = {
     { "bss_util_c.h", &test_bss_util_c },
@@ -3888,7 +3877,7 @@ int main(int argc, char** argv)
     { "cTrie.h", &test_TRIE },
     { "cSmartPtr.h", &test_SMARTPTR },
     { "delegate.h", &test_DELEGATE },
-    //{ "LLBase.h", &test_LLBASE },
+    //{ "LLBase.h", &test_LLBASE },*/
     { "os.h", &test_OS },
     { "cStreamSplitter.h", &test_STREAMSPLITTER },
   };

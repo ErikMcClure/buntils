@@ -29,13 +29,13 @@ namespace bss_util
     inline void Update()
     {
       cHighPrecisionTimer::Update();
-      while(BASE::GetRoot().first<=_time)
+      while(BASE::Peek().first<=_time)
       {
-        double r=BASE::GetRoot().second();
+        double r=BASE::Peek().second();
         if(r==0.0)
           BASE::Remove(0);
         else
-          BASE::Set(0,std::pair<double,F>(r+_time,BASE::GetRoot().second));
+          BASE::Set(0, std::pair<double, F>(r+_time, BASE::Peek().second));
       }
     }
   };

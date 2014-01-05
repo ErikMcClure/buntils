@@ -24,8 +24,9 @@ namespace bss_util {
     BSS_FORCEINLINE void BSS_FASTCALL Push(const T& value) { _push(value); }
     BSS_FORCEINLINE void BSS_FASTCALL Push(T&& value) { _push(std::move(value)); }
     BSS_FORCEINLINE T BSS_FASTCALL Pop() { assert(_length!=0); return std::move(_array[--_length]); }
-    BSS_FORCEINLINE T& BSS_FASTCALL Top() { assert(_length!=0); return _array[_length-1]; }
-    BSS_FORCEINLINE const T& BSS_FASTCALL Top() const { assert(_length!=0); return _array[_length-1]; }
+    BSS_FORCEINLINE T& BSS_FASTCALL Peek() { assert(_length!=0); return _array[_length-1]; }
+    BSS_FORCEINLINE const T& BSS_FASTCALL Peek() const { assert(_length!=0); return _array[_length-1]; }
+    BSS_FORCEINLINE void Discard() { --_length; }
     BSS_FORCEINLINE void Clear() { _length=0; }
     BSS_FORCEINLINE SizeType Length() const { return _length; }
     BSS_FORCEINLINE SizeType Capacity() const { return _size; }

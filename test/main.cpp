@@ -61,6 +61,7 @@
 #include <iostream>
 #include <sstream>
 #include <functional>
+#include <atomic>
 
 #ifdef BSS_PLATFORM_WIN32
 //#include "bss_win32_includes.h"
@@ -85,8 +86,8 @@ using namespace bss_util;
 
 // --- Define global variables ---
 
-const int TESTNUM=100000;
-int testnums[TESTNUM];
+const unsigned short TESTNUM=50000;
+unsigned short testnums[TESTNUM];
 bss_DebugInfo _debug;
 bss_Log _failedtests("../bin/failedtests.txt"); //This is spawned too early for us to save it with SetWorkDirToCur();
 
@@ -102,10 +103,10 @@ struct TESTDEF
 #define BEGINTEST TESTDEF::RETPAIR __testret(0,0)
 #define ENDTEST return __testret
 #define FAILEDTEST(t) BSSLOG(_failedtests,1) << "Test #" << __testret.first << " Failed  < " << MAKESTRING(t) << " >" << std::endl
-#define TEST(t) { ++__testret.first; try { if(t) ++__testret.second; else FAILEDTEST(t); } catch(...) { FAILEDTEST(t); } }
-#define TESTERROR(t, e) { ++__testret.first; try { (t); FAILEDTEST(t); } catch(e) { ++__testret.second; } }
+#define TEST(t) { atomic_xadd(&__testret.first); try { if(t) atomic_xadd(&__testret.second); else FAILEDTEST(t); } catch(...) { FAILEDTEST(t); } }
+#define TESTERROR(t, e) { atomic_xadd(&__testret.first); try { (t); FAILEDTEST(t); } catch(e) { atomic_xadd(&__testret.second); } }
 #define TESTERR(t) TESTERROR(t,...)
-#define TESTNOERROR(t) { ++__testret.first; try { (t); ++__testret.second; } catch(...) { FAILEDTEST(t); } }
+#define TESTNOERROR(t) { atomic_xadd(&__testret.first); try { (t); atomic_xadd(&__testret.second); } catch(...) { FAILEDTEST(t); } }
 #define TESTARRAY(t,f) _ITERFUNC(__testret,t,[&](uint i) -> bool { f });
 #define TESTALL(t,f) _ITERALL(__testret,t,[&](uint i) -> bool { f });
 #define TESTCOUNT(c,t) { for(uint i = 0; i < c; ++i) TEST(t) }
@@ -924,17 +925,19 @@ void TEST_ALLOC_FUZZER_THREAD(TESTDEF::RETPAIR& __testret,T& _alloc, cDynArray<c
     {
       if(RANDINTGEN(0,10)<5 || plist.Length()<3)
       {
-        size_t sz = RANDINTGEN(0,MAXSIZE);
-        sz=bssmax(sz,1); //Weird trick to avoid division by zero but still restrict it to [1,1]
+        size_t sz = RANDINTGEN(1,MAXSIZE);
         P* test=(P*)_alloc.alloc(sz);
-        *((unsigned char*)test)=0xFB;
+        for(int i = 0; i<sz; ++i) *(char*)(test+i) = i+1;
         plist.Add(std::pair<P*,size_t>(test,sz));
       }
       else
       {
         int index=RANDINTGEN(0,plist.Length());
-        if(*((unsigned char*)plist[index].first)!=0xFB)
-          pass=false;
+        for(int i = 0; i<plist[index].second; ++i) {
+          if(((char)(i+1) != *(char*)(plist[index].first+i)))
+            pass = false;
+        }
+        memset(plist[index].first, 0, sizeof(P)*plist[index].second);
         _alloc.dealloc(plist[index].first);
         rswap(plist.Back(),plist[index]);
         plist.RemoveLast(); // This little technique lets us randomly remove items from the array without having to move large chunks of data by swapping the invalid element with the last one and then removing the last element (which is cheap)
@@ -960,7 +963,7 @@ void TEST_ALLOC_FUZZER(TESTDEF::RETPAIR& __testret)
 TESTDEF::RETPAIR test_bss_ALLOC_ADDITIVE()
 {
   BEGINTEST;
-  TEST_ALLOC_FUZZER<cAdditiveAlloc,char,4000>(__testret);
+  TEST_ALLOC_FUZZER<cAdditiveAlloc,char,400>(__testret);
   ENDTEST;
 }
 
@@ -982,7 +985,7 @@ BSS_PFUNC_PRE TEST_ALLOC_MT(void* arg)
 {
   std::pair<TESTDEF::RETPAIR*,T*> p = *((std::pair<TESTDEF::RETPAIR*,T*>*)arg);
   cDynArray<cArraySimple<std::pair<P*,size_t>>> plist;
-  TEST_ALLOC_FUZZER_THREAD<T,P,1,10000>(*p.first,*p.second,plist);
+  TEST_ALLOC_FUZZER_THREAD<T, P, 1, 100000>(*p.first, *p.second, plist);
   return 0;
 }
 
@@ -993,13 +996,14 @@ TESTDEF::RETPAIR test_bss_ALLOC_FIXED_LOCKLESS()
 {
   BEGINTEST;
   MTALLOCWRAP<size_t> _alloc(10000);
-  std::pair<TESTDEF::RETPAIR*,MTALLOCWRAP<size_t>*> args(&__testret,&_alloc);
+  std::pair<TESTDEF::RETPAIR*, MTALLOCWRAP<size_t>*> args(&__testret, &_alloc);
 
-  const int NUM=100;
+  const int NUM = 16;
   cThread threads[NUM];
-  for(int i = 0; i < NUM; ++i)
-    threads[i].Start(&TEST_ALLOC_MT<MTALLOCWRAP<size_t>,size_t>,&args);
-  
+  int count=0;
+  for(int i = 0; i < NUM; ++i) {
+    count += !threads[i].Start(&TEST_ALLOC_MT<MTALLOCWRAP<size_t>, size_t>, &args);
+  }
   for(int i = 0; i < NUM; ++i)
     threads[i].Join();
 
@@ -1596,7 +1600,8 @@ template<bool SAFE=true>
 struct DEBUG_CDT : DEBUG_CDT_SAFE<SAFE> {
   inline DEBUG_CDT(const DEBUG_CDT& copy) : _index(copy._index) { ++count; isdead=this; }
   inline DEBUG_CDT(int index=0) : _index(index) { ++count; isdead=this; }
-  inline ~DEBUG_CDT() { /*if(isdead!=this) throw "fail";*/ --count; isdead=0; }
+  inline ~DEBUG_CDT() { //if(isdead!=this) throw "fail";
+    --count; isdead=0; }
 
   inline DEBUG_CDT& operator=(const DEBUG_CDT& right) { _index=right._index; return *this; }
   inline bool operator<(const DEBUG_CDT& other) const { return _index<other._index; }
@@ -1625,7 +1630,7 @@ typedef std::pair<cAutoRef<cRefCounter>, double> ANIOBJPAIR;
 
 struct cAnimObj
 {
-  cAnimObj() : test(0) {}
+  cAnimObj() : test(0), test2(0) {}
   int test;
   int test2;
   float fl;
@@ -1670,7 +1675,7 @@ TESTDEF::RETPAIR test_ANIMATION()
   TEST(a.IsPaused());
   a.SetInterpolation<2>(&AniAttributeSmooth<2>::LerpInterpolate);
   a.AddKeyFrame<0>(KeyFrame<0>(0.0, &c));
-  a.AddKeyFrame<0>(KeyFrame<0>(1.0,&c));
+  a.AddKeyFrame<0>(KeyFrame<0>(1.1, &c));
   a.AddKeyFrame<0>(KeyFrame<0>(2.0, &c));
   a.AddKeyFrame<1>(KeyFrame<1>(0.0, ANIOBJPAIR(&c,1.5)));
   a.AddKeyFrame<1>(KeyFrame<1>(1.0, ANIOBJPAIR(&c, 0.5)));
@@ -1694,40 +1699,42 @@ TESTDEF::RETPAIR test_ANIMATION()
 
   cAnimObj obj;
   a.AddKeyFrame<3>(KeyFrame<3>(0.0, [&](){ c.Grab(); obj.test++; }));
-  a.AddKeyFrame<3>(KeyFrame<3>(1.0, [&](){ c.Drop(); }));
+  a.AddKeyFrame<3>(KeyFrame<3>(0.6, [&](){ c.Drop(); }));
   a.Attach(delegate<void,AniAttribute*>::From<cAnimObj,&cAnimObj::TypeIDRegFunc>(&obj));
 
   TEST(obj.test==0);
   a.Start(0);
   TEST(a.IsPlaying());
-  TEST(obj.test==1);
-  a.Interpolate(0.5);
-  TEST(obj.test==1);
-  a.Interpolate(0.5);
   TEST(obj.test==2);
   a.Interpolate(0.5);
   TEST(obj.test==2);
+  a.Interpolate(0.5);
+  TEST(obj.test==2);
+  a.Interpolate(0.5);
+  TEST(obj.test==3);
   TEST(a.GetTimePassed()==1.5);
   a.Interpolate(0.5);
   TEST(a.GetTimePassed()==0.0);
-  TEST(obj.test==3);
+  TEST(obj.test==4);
   a.Interpolate(0.5);
-  TEST(obj.test==3);
+  TEST(obj.test==4);
   TEST(a.GetTimeWarp()==1.0);
   obj.test=0;
   a.Stop();
   TEST(!a.IsPlaying());
   a.Start(0);
-  TEST(obj.test==1);
+  TEST(obj.test==2);
+  a.Interpolate(0.6);
   obj.test=0;
   a.Stop();
   TEST(!a.IsLooping());
   a.Loop(1.5,1.0);
   a.Interpolate(0.0);
   TEST(a.IsLooping());
-  TEST(obj.test==2);
+  TEST(obj.test==3);
+  a.Interpolate(1.0);
   a.Stop();
-  TEST(c.Grab()==5);
+  TEST(c.Grab()==15);
   c.Drop();
 
   cAnimation<StaticAllocPolicy<char>> b(a);
@@ -1738,7 +1745,7 @@ TESTDEF::RETPAIR test_ANIMATION()
   TEST(obj.test==1);
   b.Interpolate(1.0);
   TEST(obj.test==2);
-  TEST(c.Grab()==8);
+  TEST(c.Grab()==23);
   c.Drop();
   }
   TEST(c.Grab()==2);
@@ -2315,13 +2322,13 @@ TESTDEF::RETPAIR test_BSS_STACK()
   TEST(s.Length()==1);
   s.Clear();
   s.Push(5);
-  TEST(s.Top()==5);
+  TEST(s.Peek()==5);
   TEST(s.Length()==1);
   cBSS_Stack<int> s2(3);
   s2.Push(6);
-  TEST(s2.Top()==6);
+  TEST(s2.Peek()==6);
   s2=s;
-  TEST(s2.Top()==5);
+  TEST(s2.Peek()==5);
   ENDTEST;
 }
 
@@ -3006,19 +3013,17 @@ TESTDEF::RETPAIR test_LINKEDLIST()
 }
 
 unsigned int lq_c;
-static const int TOTALNUM=1000000;
-unsigned int lq_end[TOTALNUM];
-unsigned int lq_pos;
+unsigned short lq_end[TESTNUM];
+unsigned short lq_pos;
 
 template<class T>
 BSS_PFUNC_PRE _locklessqueue_consume(void* p)
 {
   T* q = (T*)p;
   uint c;
-  while(lq_pos<TOTALNUM || q->Length()>0) {
-    c=atomic_xadd(&lq_pos);
-    while((lq_pos<=TOTALNUM || q->Length()>0) && !q->Consume(lq_end[c])); // Keep trying to consume something and put it into our given bucket until it works
-    assert(lq_end[c]!=0);
+  while((c = atomic_xadd(&lq_pos))<TESTNUM) {
+    while(!q->Pop(lq_end[c]));
+    assert(lq_end[c]<=TESTNUM);
   }
   return 0;
 }
@@ -3027,8 +3032,11 @@ template<class T>
 BSS_PFUNC_PRE _locklessqueue_produce(void* p)
 {
   T* q = (T*)p;
-  while(lq_c<=TOTALNUM)
-    q->Produce(atomic_xadd(&lq_c));
+  unsigned int c;
+  while((c = atomic_xadd(&lq_c))<=TESTNUM) {
+    q->Push(c);
+    assert(c<=TESTNUM);
+  }
 
   return 0;
 }
@@ -3038,72 +3046,72 @@ TESTDEF::RETPAIR test_LOCKLESSQUEUE()
   BEGINTEST;
   {
   cLocklessQueue<__int64> q; // Basic sanity test
-  q.Produce(5);
+  q.Push(5);
   __int64 c;
-  TEST(q.Consume(c));
+  TEST(q.Pop(c));
   TEST(c==5);
-  TEST(!q.Consume(c));
+  TEST(!q.Pop(c));
   TEST(c==5);
-  q.Produce(4);
-  q.Produce(3);
-  TEST(q.Consume(c));
+  q.Push(4);
+  q.Push(3);
+  TEST(q.Pop(c));
   TEST(c==4);
-  q.Produce(2);
-  q.Produce(1);
-  TEST(q.Consume(c));
+  q.Push(2);
+  q.Push(1);
+  TEST(q.Pop(c));
   TEST(c==3);
-  TEST(q.Consume(c));
+  TEST(q.Pop(c));
   TEST(c==2);
-  TEST(q.Consume(c));
+  TEST(q.Pop(c));
   TEST(c==1);
-  TEST(!q.Consume(c));
+  TEST(!q.Pop(c));
   TEST(c==1);
   }
 
-  const int NUMTHREADS=17;
+  const int NUMTHREADS=20;
   cThread threads[NUMTHREADS];
   std::vector<size_t> values;
 
   //typedef cLocklessQueue<unsigned int,true,true,size_t,size_t> LLQUEUE_SCSP; 
-  typedef cLocklessQueue<unsigned int,size_t> LLQUEUE_SCSP; 
+  typedef cLocklessQueue<unsigned short, size_t> LLQUEUE_SCSP;
   {
   LLQUEUE_SCSP q; // single consumer single producer test
   char ppp=_debug.OpenProfiler();
   lq_c=1;
   lq_pos=0;
-
-  threads[1]=cThread(_locklessqueue_consume<LLQUEUE_SCSP>, &q);
-  threads[0]=cThread(_locklessqueue_produce<LLQUEUE_SCSP>, &q);
+  memset(lq_end, 0, sizeof(short)*TESTNUM);
+  threads[1].Start(_locklessqueue_consume<LLQUEUE_SCSP>, &q);
+  threads[0].Start(_locklessqueue_produce<LLQUEUE_SCSP>, &q);
   while(threads[0].Join(1)==-1)
     values.push_back(q.Length());
   threads[1].Join();
   //std::cout << '\n' << _debug.CloseProfiler(ppp) << std::endl;
   bool check=true;
-  for(int i = 0; i < TOTALNUM;++i)
+  for(int i = 0; i < TESTNUM;++i)
     check=check&&(lq_end[i]==i+1);
   TEST(check);
   }
 
-  //lq_c=lq_pos=0;
-  //typedef cLocklessQueue<unsigned int,false,false,size_t,size_t> LLQUEUE_MCMP; 
-  //{
-  //for(int j=1; j<=NUMTHREADS; ++j) {
-  //LLQUEUE_MCMP q;   // multi consumer multi producer test
-  //  _locklessqueue_produce<LLQUEUE_MCMP>(&q);
-  //  for(int i=0; i<j; ++i)
-  //    handles[i]=_beginthreadex(0,0, _locklessqueue_consume<LLQUEUE_MCMP>, &q, 0, tret+1);
-  //  for(int i=0; i<j; ++i)
-  //    WaitForSingleObject((void*)handles[i], INFINITE);
-  //  
-  //  std::sort(std::begin(lq_end),std::end(lq_end));
-  //  bool check=true;
-  //  for(int i = 0; i < TOTALNUM; ++i)
-  //    check=check&&(lq_end[i]==i);
-  //  TEST(check);
-  //    
-  //  std::cout << '\n' << j << " threads: " << q.GetContentions() << std::endl;
-  //}
-  //}
+  typedef cLocklessQueueMM<unsigned short,size_t> LLQUEUE_MCMP; 
+  for(int j = 2; j<=NUMTHREADS; ++j) {
+    lq_c = 1;
+    lq_pos = 0;
+    memset(lq_end, 0, sizeof(short)*TESTNUM);
+    LLQUEUE_MCMP q;   // multi consumer multi producer test
+    for(int i=0; i<j; ++i)
+      threads[i].Start((i&1)?_locklessqueue_consume<LLQUEUE_MCMP>:_locklessqueue_produce<LLQUEUE_MCMP>, &q);
+    for(int i = 0; i<j; ++i)
+      threads[i].Join();
+    
+    std::sort(std::begin(lq_end),std::end(lq_end));
+    bool check=true;
+    for(int i = 0; i < TESTNUM-1; ++i) {
+      check = check&&(lq_end[i]==i+1);
+    }
+    TEST(check);
+      
+    //std::cout << '\n' << j << " threads: " << q.GetContentions() << std::endl;
+  }
 
   ENDTEST;
 }
@@ -3558,29 +3566,29 @@ TESTDEF::RETPAIR test_TRIE()
   TEST(t3["fail"]==0);
   TEST(t3["tick"]==9);
   
-  /*cStr randcstr[200];
-  const char* randstr[200];
-  for(uint i = 0; i < 200; ++i)
-  {
-    for(uint j = RANDINTGEN(2,20); j>0; --j)
-      randcstr[i]+=(char)RANDINTGEN('a','z');
-    randstr[i]=randcstr[i];
-  }
-  cTrie<unsigned int> t(50,randstr);
-  cKhash_String<unsigned char> hashtest;
-  for(uint i = 0; i < 50; ++i)
-    hashtest.Insert(randstr[i],i);
-  unsigned int dm;
-  shuffle(testnums);
-  auto prof = _debug.OpenProfiler();
-  CPU_Barrier();
-  for(uint i = 0; i < TESTNUM; ++i)
-    //dm=hashtest[randstr[testnums[i]%200]];
-    dm=t[randstr[testnums[i]%200]];
-    //dm=t[strs[testnums[i]%10]];
-  CPU_Barrier();
-  auto res = _debug.CloseProfiler(prof);
-  std::cout << dm << "\nTIME:" << res << std::endl;*/
+  //cStr randcstr[200];
+  //const char* randstr[200];
+  //for(uint i = 0; i < 200; ++i)
+  //{
+  //  for(uint j = RANDINTGEN(2,20); j>0; --j)
+  //    randcstr[i]+=(char)RANDINTGEN('a','z');
+  //  randstr[i]=randcstr[i];
+  //}
+  //cTrie<unsigned int> t(50,randstr);
+  //cKhash_String<unsigned char> hashtest;
+  //for(uint i = 0; i < 50; ++i)
+  //  hashtest.Insert(randstr[i],i);
+  //unsigned int dm;
+  //shuffle(testnums);
+  //auto prof = _debug.OpenProfiler();
+  //CPU_Barrier();
+  //for(uint i = 0; i < TESTNUM; ++i)
+  //  //dm=hashtest[randstr[testnums[i]%200]];
+  //  dm=t[randstr[testnums[i]%200]];
+  //  //dm=t[strs[testnums[i]%10]];
+  //CPU_Barrier();
+  //auto res = _debug.CloseProfiler(prof);
+  //std::cout << dm << "\nTIME:" << res << std::endl;
   
   for(uint i = 0; i < 9; ++i)
   {
@@ -3678,7 +3686,7 @@ TESTDEF::RETPAIR test_LLBASE()
 {
   BEGINTEST;
   ENDTEST;
-}
+}//*/
 
 TESTDEF::RETPAIR test_LOCKLESS()
 {
@@ -3938,7 +3946,8 @@ TESTDEF::RETPAIR test_OBJSWAP()
   unsigned int* zp5=vals+4;
   OBJSWAP_TEST o[6] = { {1},{2},{3},{4},{5},{6} };
   for(uint i = 0; i < 5; ++i)
-  {    switch(PSWAP(vals+i,5,zp,zp2,zp3,zp4,zp5))
+  {
+    switch(PSWAP(vals+i,5,zp,zp2,zp3,zp4,zp5))
     {
     case 0:
       TEST(i==0); break;
@@ -4016,69 +4025,6 @@ TESTDEF::RETPAIR test_OBJSWAP()
 //  int y;
 //};
 
-//char numarray[] = {3,4,9,14,15,19,28,37,47,50,54,56,59,61,70,73,78,81,92,95,97,99 };
-//char numarray[] = { 1, 2, 3, 4, 6 };
-
-//BSS_PFUNC_PRE dorandomcrap(void* arg)
-//{
-//  cLocklessQueue* args = (cLocklessQueue*)arg;
-//
-//  FILE* f = fopen("Write.txt","w");
-//  int id;
-//  while(true)
-//  {
-//    id=rand()%1000;
-//    memset(args->StartWrite(id),id,id);
-//    args->FinishWrite();
-//    fputs("wrote",f);
-//    Sleep(1);
-//  }
-//  fclose(f);
-//  return 0;
-//}
-
-/*
-static const int NUM_RUNS=1;
-static const int MAX_ALLOC=50;
-BSS_PFUNC_PRE dorandomcrap(void* arg)
-{
-  Sleep(1); //lets the other thread catch up
-  cLocklessQueue* args = (cLocklessQueue*)arg;
-
-  int id;
-  for(int i = 0; i < NUM_RUNS; ++i)
-  {
-    id=(i<<3)%MAX_ALLOC;
-    memset(args->StartWrite(id),id,id);
-    args->FinishWrite();
-  }
-  memset(args->StartWrite(MAX_ALLOC+1),MAX_ALLOC+1,MAX_ALLOC+1);
-  args->FinishWrite();
-  return 0;
-}
-
-BSS_PFUNC_PRE threadtest(void* arg)
-{
-  cThread* ptr=(cThread*)arg;
-  while(!ptr->ThreadStop());
-  return 0;
-}
-
-char* fliphold;
-
-BSS_PFUNC_PRE flippertest(void* arg)
-{
-  volatile cLocklessFlipper<char>* ptr = (cLocklessFlipper<char>*)arg;
-
-  char* fliphold2;
-  while(true)
-  {
-    fliphold2=((cLocklessFlipper<char>*)ptr)->StartRead();
-    assert(fliphold!=fliphold2);
-    ((cLocklessFlipper<char>*)ptr)->EndRead();
-  }
-}
-*/
 /*
 int PI_ITERATIONS=500;
 double pi=((PI_ITERATIONS<<1)-1)+(PI_ITERATIONS*PI_ITERATIONS);
@@ -4231,84 +4177,6 @@ void printout(cLinkedArray<int>& list)
     return (total);
 }
 
- 
-int main2()
-{  
-  /*bss_DebugInfo _debug("log.txt");
-  unsigned int seed=time(NULL);
-  void* val=(void*)&seed;
-  rand();
-
-  char p1=1;
-  char p2=2;
-  volatile cLocklessFlipper<char> flipper(&p1,&p2);
-
-  cThread flipthread(&flippertest);
-  flipthread.Start((void*)&flipper);
-  Sleep(1);
-
-  while(true)
-  {
-    int fail=0;
-    for(int i = 0; i < 1000000; ++i)
-    {
-      fliphold=((cLocklessFlipper<char>&)flipper).StartWrite();
-      if(!fliphold)
-        ++fail;
-      else { Sleep(1); fliphold=0; ((cLocklessFlipper<char>&)flipper).EndWrite(); }
-    }
-    std::cout << "Failed: " << (fail/1000000.0f) << std::endl;
-  }
-  
-  return 0;
-
-  cLocklessQueue qtest(512000);*/
-  
-
-  //int id;
-  //while(true)
-  //{
-  //  for(unsigned int i = (last=rand()%10); i>0; --i) {
-  //    id=rand()%50;
-  //    memset(qtest.StartWrite(id),id,id);
-  //    qtest.FinishWrite();
-  //  }
-  //  for(unsigned int i = rand()%10; i>0; --i) {
-  //    qtest.ReadNextChunk();
-  //    //_debug.WriteLog("read",0,__FILE__,__LINE__);
-  //  }
-  //}
-  
-  /*bool expResult = true;
-
-  cThread crapthread(&dorandomcrap);
-  crapthread.Start(&qtest);
-
-  FILE* f = fopen("read.txt","w");
-  std::pair<void*, unsigned int> hold;
-  bool br=true;
-  int num=-1;
-  while(br)
-  {
-    while((hold=qtest.ReadNextChunk()).first!=0)
-    {
-      if(hold.second==MAX_ALLOC+1) br=false;
-      else if(hold.second!=(((++num)<<3)%MAX_ALLOC))
-      {  expResult=false; assert(expResult); }
-    }
-  }
-  
-  crapthread.Join();
-  if(qtest.ReadNextChunk().first!=0) { expResult=false; assert(expResult); } //This should have been done by now
-  assert(expResult);
-  if(!expResult) num=num/0;
-
-  qtest.Clear();*/
-  return 0;
-}
-
-//const char string[] = "FourscoreandsevenyearsagoourfaathersbroughtforthonthiscontainentanewnationconceivedinzLibertyanddedicatedtothepropositionthatallmenarecreatedequalNowweareengagedinagreahtcivilwartestingwhetherthatnaptionoranynartionsoconceivedandsodedicatedcanlongendureWeareqmetonagreatbattlefiemldoftzhatwarWehavecometodedicpateaportionofthatfieldasafinalrestingplaceforthosewhoheregavetheirlivesthatthatnationmightliveItisaltogetherfangandproperthatweshoulddothisButinalargersensewecannotdedicatewecannotconsecratewecannothallowthisgroundThebravelmenlivinganddeadwhostruggledherehaveconsecrateditfaraboveourpoorponwertoaddordetractTgheworldadswfilllittlenotlenorlongrememberwhatwesayherebutitcanneverforgetwhattheydidhereItisforusthelivingrathertobededicatedheretotheulnfinishedworkwhichtheywhofoughtherehavethusfarsonoblyadvancedItisratherforustobeherededicatedtothegreattdafskremainingbeforeusthatfromthesehonoreddeadwetakeincreaseddevotiontothatcauseforwhichtheygavethelastpfullmeasureofdevotionthatweherehighlyresolvethatthesedeadshallnothavediedinvainthatthisnationunsderGodshallhaveanewbirthoffreedomandthatgovernmentofthepeoplebythepeopleforthepeopleshallnotperishfromtheearth";
-//
 //inline bool backwardscheck(const char* begin, int length)
 //{
 //  int mid = length/2;

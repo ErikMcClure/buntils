@@ -21,9 +21,9 @@ namespace bss_util {
     ~cPriorityQueue() {}
     BSS_FORCEINLINE void Push(const K& key, D value) { BASE::Insert(PAIR(key,value)); }
     BSS_FORCEINLINE void Push(K&& key, D value) { BASE::Insert(PAIR(std::move(key),value)); }
-    BSS_FORCEINLINE const PAIR& Peek() { return BASE::GetRoot(); }
+    BSS_FORCEINLINE const PAIR& Peek() { return BASE::Peek(); }
     BSS_FORCEINLINE void Discard() { BASE::Remove(0); }
-    BSS_FORCEINLINE PAIR Pop() { return std::move(BASE::PopRoot()); }
+    BSS_FORCEINLINE PAIR Pop() { return std::move(BASE::Pop()); }
     BSS_FORCEINLINE bool Empty() { return BASE::Empty(); }
     BSS_FORCEINLINE const PAIR& Get(ST_ index) { return BASE::Get(index); }
     BSS_FORCEINLINE bool Remove(ST_ index) { return BASE::Remove(index); }

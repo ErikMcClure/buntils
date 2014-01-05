@@ -1,3 +1,4 @@
+
 // Copyright ©2013 Black Sphere Studios
 // For conditions of distribution and use, see copyright notice in "bss_util.h"
 
@@ -39,26 +40,22 @@ namespace bss_util {
 #endif
       bss_PTag<void> ret;
       bss_PTag<void> nval;
+
       for(;;)
       {
-        ret.p=_freelist.p;
-        ret.tag=_freelist.tag;
+        ret = (bss_PTag<void>&)_freelist;
         if(!ret.p)
         {
-          while(atomic_xadd<unsigned int>(&_spin,1)!=0) { // Attempt to acquire lock.
-            atomic_xadd<unsigned int>(&_spin,-1); // Remove our attempt at hitting the lock.
-            while(_spin!=0); // Wait until spin is 0 again.
-            //atomic_xadd<size_t>(&contention); //DEBUG
+          if(atomic_xchg<size_t>(&_spin, 1)==1) { // If we get the lock, do a new allocation
+            if(!_freelist.p) // Check this due to race condition
+              _allocchunk(fbnext(_root->size/sizeof(T))*sizeof(T));
+            atomic_xchg<size_t>(&_spin, 0);
           }
-          if(!_freelist.p)
-            _allocchunk(fbnext(_root->size/sizeof(T))*sizeof(T));
-          atomic_xadd<unsigned int>(&_spin,-1);
-          continue; // _freelist.p can be NULL here due to a race condition where _freelist becomes non-null, and then another thread uses the entire freelist, followed by this thread executing
+          continue;
         }
-        assert(ret.p!=0);
         nval.p = *((void**)ret.p);
-        nval.tag= ret.tag+1;
-        if(asmcas<bss_PTag<void>>(&_freelist,nval,ret)) break; // Have to do this here so continue; works the way we want it to.
+        nval.tag = ret.tag+1;
+        if(asmcas<bss_PTag<void>>(&_freelist, nval, ret)) break;
       }
 
       //assert(_validpointer(ret));
@@ -67,27 +64,13 @@ namespace bss_util {
 	  inline void BSS_FASTCALL dealloc(void* p)
     {
 #ifdef BSS_DISABLE_CUSTOM_ALLOCATORS
-      delete p; return;
+      free(p); return;
 #endif
       assert(_validpointer(p));
 #ifdef BSS_DEBUG
       memset(p,0xDEADBEEF,sizeof(T));
 #endif
-      bss_PTag<void> prev={_freelist.p,_freelist.tag};
-      *((void**)p)=(void*)prev.p;
-      bss_PTag<void> nval = { p,prev.tag+1 };
-      //size_t count=0;
-      while(!asmcas<bss_PTag<void>>(&_freelist,nval,prev)) {
-        prev.p=_freelist.p;
-        prev.tag=_freelist.tag;
-        *((void**)p)=(void*)prev.p;
-        nval.tag=prev.tag+1;
-        //atomic_xadd<size_t>(&contention); //DEBUG
-        //++count;
-      }
-      //if(count>contention)
-      //  while(atomic_xchg(&contention,count)>contention);
-
+      _setfreelist(p, p);
       //*((void**)p)=(void*)_freelist;
       //while(!asmcas<volatile void*>(&_freelist,p,*((void**)p))) //ABA problem
       //  *((void**)p)=(void*)_freelist;
@@ -110,16 +93,16 @@ namespace bss_util {
       return false;
     }
 #endif
-    inline void _allocchunk(size_t nsize)
+    inline void BSS_FASTCALL _allocchunk(size_t nsize)
     {
       FIXEDLIST_NODE* retval=(FIXEDLIST_NODE*)malloc(sizeof(FIXEDLIST_NODE)+nsize);
       retval->next=_root;
       retval->size=nsize;
+      _root = retval; // There's a potential race condition on DEBUG mode only where failing to set this first would allow a thread to allocate a new pointer and then delete it before _root got changed, which would then be mistaken for an invalid pointer
       _initchunk(retval);
-      _root=retval;
     }
 
-    inline void _initchunk(const FIXEDLIST_NODE* chunk)
+    inline void BSS_FASTCALL _initchunk(const FIXEDLIST_NODE* chunk)
     {
       void* hold=0;
       unsigned char* memend=((unsigned char*)(chunk+1))+chunk->size;
@@ -128,24 +111,24 @@ namespace bss_util {
         *((void**)(memref))=hold;
         hold=memref;
       }
-      bss_PTag<void> prev = { _freelist.p,_freelist.tag };
-      *((void**)(chunk+1))=(void*)prev.p;
-      bss_PTag<void> nval = { hold,prev.tag+1 };
-      while(!asmcas<bss_PTag<void>>(&_freelist,nval,prev)) {
-        prev.p=_freelist.p;
-        prev.tag=_freelist.tag;
-        *((void**)(chunk+1))=(void*)prev.p;
-        nval.tag=prev.tag+1;
+      _setfreelist(hold, (void*)(chunk+1)); // The target here is different because normally, the first block (at chunk+1) would point to whatever _freelist used to be. However, since we are lockless, _freelist could not be 0 at the time we insert this, so we have to essentially go backwards and set the first one to whatever freelist is NOW, before setting freelist to the one on the end.
+    }
+
+    inline void BSS_FASTCALL _setfreelist(void* p, void* target) {
+      bss_PTag<void> prev;
+      bss_PTag<void> nval = { p, 0 };
+      do
+      {
+        prev = (bss_PTag<void>&)_freelist;
+        nval.tag = prev.tag+1;
+        *((void**)(target)) = (void*)prev.p;
         //atomic_xadd<size_t>(&contention); //DEBUG
-      }
-      //*((void**)(chunk+1))=(void*)_freelist; //We have to make sure we don't lose any existing values.
-      //while(!asmcas<volatile bss_PTag<void>>(&_freelist,hold,*((void**)(chunk+1))))
-      //  *((void**)(chunk+1))=(void*)_freelist; // Keep assigning until it works. This is safe because no one has access to this chunk of memory until it succeeds.
+      } while(!asmcas<bss_PTag<void>>(&_freelist, nval, prev));
     }
 
     FIXEDLIST_NODE* _root;
     BSS_ALIGN(16) volatile bss_PTag<void> _freelist;
-    BSS_ALIGN(4) volatile unsigned int _spin;
+    BSS_ALIGN(4) volatile size_t _spin;
   };
 }
 

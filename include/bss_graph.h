@@ -15,11 +15,11 @@ namespace bss_util {
   struct BSS_COMPILER_DLLEXPORT VoidData<void> {};
 
   // DAG edge
-  template<typename E, typename ST>
+  template<typename E, typename ST=unsigned short>
   struct BSS_COMPILER_DLLEXPORT Edge : LLBase<Edge<E, ST>>, VoidData<E> { ST to; ST from; LLBase<Edge<E, ST>> alt; };
 
   // Node for a DAG.
-  template<typename E, typename V, typename ST>
+  template<typename E, typename V, typename ST=unsigned short>
   struct BSS_COMPILER_DLLEXPORT Node : VoidData<V> { Edge<E, ST>* to; Edge<E, ST>* from; };
 
   // Represents a graph using an adjacency list. Converts to and from an adjacency matrix representation.
@@ -41,7 +41,7 @@ namespace bss_util {
     inline ST NumNodes() const { return _nodes.Length(); }
     inline ST NumEdges() const { return _nedges; }
     inline ST Capacity() const { return _nodes.Capacity(); }
-    inline Node<E,V,ST>* GetNode(ST index) const { return index<_nodes.Length()?_nodes[index]:0; }
+    inline Node<E,V,ST>* GetNode(ST index) const { return index<_nodes.Length()?&_nodes[index]:0; }
     inline const cLinkedArray<Node<E,V,ST>,ST,ARRAYTYPE>& GetNodes() const { return _nodes; }
     inline cLinkedArray<Node<E,V,ST>,ST,ARRAYTYPE>& GetNodes() { return _nodes; }
     inline ST Front() const { return _nodes.Front(); }

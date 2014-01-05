@@ -42,6 +42,9 @@
 - Allocator<> has been removed, because it wasn't standard compatible anyway. Instead, use StandardAllocPolicy and FixedPolicy directly.
 - reallocate was removed from the static allocators. Static allocators are now expected to use realloc on the allocate() call, or at least emulate it if the pointer is non-null (deallocate the pointer sent in)
 - Added bssfmod() for real modulo operations on floats, fixed edge-case in angledistsgn()
+- Simplified cLocklessFixedAlloc
+- Changed a few function names to enforce more consistency
+- Introduced multi-producer multi-consumer cLocklessQueueMM
 
 0.4.1
 ------

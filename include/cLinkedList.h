@@ -55,7 +55,6 @@ namespace bss_util {
   struct cLList_LAST
   { 
     inline cLLNode<T>* Back() const { return _last; }
-    inline cLLNode<T>* GetLast() const { return _last; }
     inline cLLNode<T>* BSS_FASTCALL Item(T item, cLLNode<T>* from=0, bool backwards=false) const 
     { //if target is 0 we start from the root
       if(!from) from=_root;

@@ -57,7 +57,11 @@ namespace bss_util {
     inline const std::pair<Key,Data>* begin() const { return _array; }
     inline const std::pair<Key,Data>* end() const { return _array+_length; }
     inline std::pair<Key,Data>* begin() { return _array; }
-    inline std::pair<Key,Data>* end() { return _array+_length; }
+    inline std::pair<Key, Data>* end() { return _array+_length; }
+    inline const std::pair<Key, Data>& Front() const { assert(_length>0); return _array[0]; }
+    inline std::pair<Key, Data>& Front() { assert(_length>0); return _array[0]; }
+    inline const std::pair<Key, Data>& Back() const { assert(_length>0); return _array[_length-1]; }
+    inline std::pair<Key, Data>& Back() { assert(_length>0); return _array[_length-1]; }
 
     inline cMap& operator =(const cMap& right) { cArraySort_t::operator =(right); return *this; }
     inline cMap& operator =(cMap&& right) { cArraySort_t::operator =(std::move(right)); return *this; }

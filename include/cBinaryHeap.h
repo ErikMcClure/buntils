@@ -29,9 +29,9 @@ namespace bss_util {
     template<ST_ SIZE>
     inline cBinaryHeap(const T (&src)[SIZE]) : ArrayType(SIZE),_length(SIZE) { memcpy(_array,src,sizeof(T)*_length); Heapify(_array,_length); }
     inline ~cBinaryHeap() {}
-    inline const T& GetRoot() { return _array[0]; }
+    inline const T& Peek() { return _array[0]; }
     inline const T& Get(ST_ index) { assert(index<_length); return _array[index]; }
-    inline T PopRoot() { T r=std::move(_array[0]); Remove(0); return std::move(r); }
+    inline T Pop() { T r=std::move(_array[0]); Remove(0); return std::move(r); }
     inline bool Empty() { return !_length; }
     inline ST_ Length() { return _length; }
     inline void Clear() { _length=0; }

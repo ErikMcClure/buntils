@@ -5,6 +5,7 @@
 #define __C_LOCKLESS_QUEUE_H__
 
 #include "bss_alloc_fixed_MT.h"
+#include "concurrent_queue.h"
 
 namespace bss_util {
   template<typename T>
@@ -20,13 +21,14 @@ namespace bss_util {
   template<typename ST_>
   struct i_LocklessQueue_Length
   { 
-    inline i_LocklessQueue_Length() : _length(0) {}
+    inline i_LocklessQueue_Length(const i_LocklessQueue_Length& copy) { _length = copy._length; }
+    inline i_LocklessQueue_Length() { _length = ATOMIC_VAR_INIT(0); }
     inline ST_ Length() const { return _length; }
 
   protected:
-    BSS_FORCEINLINE void _inclength() { atomic_xadd<ST_>(&_length); }
-    BSS_FORCEINLINE void _declength() { atomic_xadd<ST_>(&_length,-1); }
-    ST_ _length; 
+    BSS_FORCEINLINE void _inclength() { _length.fetch_add(1); }
+    BSS_FORCEINLINE void _declength() { _length.fetch_add((ST_)-1); }
+    std::atomic<ST_> _length; 
   };
   template<>
   struct i_LocklessQueue_Length<void>
@@ -40,33 +42,48 @@ namespace bss_util {
   class cLocklessQueue : public i_LocklessQueue_Length<LENGTH>
   {
   public:
-    inline cLocklessQueue() { _div=_last=_first=_alloc.alloc(1); new((cLQ_QNode<T>*)_first) cLQ_QNode<T>(); }
+    cLocklessQueue(const cLocklessQueue&) = delete;
+    cLocklessQueue(cLocklessQueue&& mov) : i_LocklessQueue_Length<LENGTH>(std::move(mov)), _div(mov._div), _last(mov._last), _first(mov._first), _alloc(std::move(mov._alloc)) { mov._div=mov._last=mov._first=0; }
+    inline cLocklessQueue() { _div=_last=_first=_alloc.alloc(1); new((cLQ_QNode<T>*)_first) cLQ_QNode<T>(); assert(_last.is_lock_free()); assert(_div.is_lock_free()); }
     inline ~cLocklessQueue() { } // Don't need to clean up because the allocator will destroy everything by itself
     BSS_FORCEINLINE void Push(const T& t) { _produce<const T&>(t); }
     BSS_FORCEINLINE void Push(T&& t) { _produce<T&&>(std::move(t)); }
     inline bool Pop(T& result)
     { 
-      if( _div != _last )
+      cLQ_QNode<T>* div=_div.load(std::memory_order_acquire);
+      if(div != _last.load(std::memory_order_relaxed))
       {
-        result = std::move(_div->next->item); 	// try to use move semantics if possible
-        atomic_xchg<volatile cLQ_QNode<T>*>(&_div,_div->next);		// publish it
+        result = std::move(div->next->item); 	// try to use move semantics if possible
+        _div.store(div->next, std::memory_order_release); // publish it
         i_LocklessQueue_Length<LENGTH>::_declength(); // Decrement length if we're tracking it
         return true;
       }
       return false;
     }
 
+    cLocklessQueue& operator=(const cLocklessQueue&) = delete;
+    inline cLocklessQueue& operator=(cLocklessQueue&& mov)
+    {
+      _div=mov._div;
+      _last=mov._last;
+      _first=mov._first;
+      _alloc=std::move(mov._alloc);
+      mov._div=mov._last=mov._first=0;
+      i_LocklessQueue_Length<LENGTH>::operator=(std::move(mov));
+    }
+
   protected:
     template<typename U>
     void _produce(U && t)
     {
-      _last->next=_alloc.alloc(1);
-      new((cLQ_QNode<T>*)_last->next) cLQ_QNode<T>(std::forward<U>(t));
-      atomic_xchg<volatile cLQ_QNode<T>*>(&_last,_last->next);		// publish it
+      cLQ_QNode<T>* last=_last.load(std::memory_order_acquire);
+      last->next=_alloc.alloc(1);
+      new((cLQ_QNode<T>*)last->next) cLQ_QNode<T>(std::forward<U>(t));
+      _last.store(last->next, std::memory_order_release); // publish it
       i_LocklessQueue_Length<LENGTH>::_inclength(); // If we are tracking length, atomically increment it
       
       cLQ_QNode<T>* tmp; // collect garbage
-      while( _first != _div ) {	
+      while(_first != _div.load(std::memory_order_relaxed)) {
         tmp = _first;
         _first = _first->next;
         tmp->~cLQ_QNode<T>(); // We have to let item clean itself up
@@ -75,29 +92,93 @@ namespace bss_util {
     }
 
     cFixedAlloc<cLQ_QNode<T>> _alloc;
-    cLQ_QNode<T>* _first; 
-    BSS_ALIGN(64) volatile cLQ_QNode<T>* _div; // Align to try and get them on different cache lines
-    BSS_ALIGN(64) volatile cLQ_QNode<T>* _last;
+    cLQ_QNode<T>* _first;
+    BSS_ALIGN(64) std::atomic<cLQ_QNode<T>*> _div; // Align to try and get them on different cache lines
+    BSS_ALIGN(64) std::atomic<cLQ_QNode<T>*> _last;
   };
 
-  // Multi-producer Multi-consumer lockless queue using a multithreaded allocator
+  // Multi-producer Multi-consumer microlock queue using a multithreaded allocator
   template<typename T, typename LENGTH = void>
-  class cLocklessQueueMM : public i_LocklessQueue_Length<LENGTH>
+  class cMicroLockQueue : public i_LocklessQueue_Length<LENGTH>
   {
   public:
-    inline cLocklessQueueMM() : _spin(0) { _last = _div.p = _alloc.alloc(1); new(_last) cLQ_QNode<T>(); }
-    inline ~cLocklessQueueMM() { } // Don't need to clean up because the allocator will destroy everything by itself
+    cMicroLockQueue(const cMicroLockQueue&) = delete;
+    cMicroLockQueue(cMicroLockQueue&& mov) : i_LocklessQueue_Length<LENGTH>(std::move(mov)), _div(mov._div), _last(mov._last), _alloc(std::move(mov._alloc)) { mov._div=mov._last=0; _cflag.clear(std::memory_order_relaxed);  _pflag.clear(std::memory_order_relaxed); }
+    inline cMicroLockQueue() { _last = _div = _alloc.alloc(1); new(_div)cLQ_QNode<T>(); _cflag.clear(std::memory_order_relaxed);  _pflag.clear(std::memory_order_relaxed); }
+    inline ~cMicroLockQueue() { } // Don't need to clean up because the allocator will destroy everything by itself
     BSS_FORCEINLINE void Push(const T& t) { _produce<const T&>(t); }
     BSS_FORCEINLINE void Push(T&& t) { _produce<T&&>(std::move(t)); }
     inline bool Pop(T& result)
     {
-      bss_PTag<cLQ_QNode<T>> ref;
+      if(!_div->next) return false; // Remove some contending pressure
+      while(_cflag.test_and_set(std::memory_order_acquire));
+      cLQ_QNode<T>* ref = _div;
+      cLQ_QNode<T>* n = _div->next;
+      if(n != 0) {
+        result = std::move(n->item); 	// try to use move semantics if possible
+        _div = n;
+        _cflag.clear(std::memory_order_release);
+        ref->~cLQ_QNode<T>(); // We have to let item clean itself up
+        _alloc.dealloc(ref);
+        i_LocklessQueue_Length<LENGTH>::_declength(); // If we are tracking length, atomically increment it
+        return true;
+      }
+      _cflag.clear(std::memory_order_release);
+      return false; 
+    }
+
+    cMicroLockQueue& operator=(const cMicroLockQueue&) = delete;
+    inline cMicroLockQueue& operator=(cMicroLockQueue&& mov)
+    {
+      _div=mov._div;
+      _last=mov._last;
+      _alloc=std::move(mov._alloc);
+      _cflag.clear(std::memory_order_release);
+      mov._div=mov._last=0;
+      i_LocklessQueue_Length<LENGTH>::operator=(std::move(mov));
+    }
+  protected:
+    template<typename U>
+    void _produce(U && t)
+    {
+      cLQ_QNode<T>* nval = _alloc.alloc(1);
+      new(nval) cLQ_QNode<T>(std::forward<U>(t));
+
+      while(_pflag.test_and_set(std::memory_order_acquire));
+      _last->next=nval;
+      _last=nval;
+      _pflag.clear(std::memory_order_release);
+      i_LocklessQueue_Length<LENGTH>::_inclength(); // If we are tracking length, atomically increment it
+    }
+
+    cLocklessFixedAlloc<cLQ_QNode<T>> _alloc;
+    BSS_ALIGN(64) cLQ_QNode<T>* _div; // Align to try and get them on different cache lines
+    BSS_ALIGN(64) cLQ_QNode<T>* _last;
+    BSS_ALIGN(64) std::atomic_flag _cflag;
+    BSS_ALIGN(64) std::atomic_flag _pflag;
+  };
+  
+  // Multi-producer Multi-consumer lockless queue using a multithreaded allocator
+  /*template<typename T, typename LENGTH = void>
+  class cMicroLockQueue : public i_LocklessQueue_Length<LENGTH>
+  {
+  public:
+    cMicroLockQueue(const cMicroLockQueue&) = delete;
+    cMicroLockQueue(cMicroLockQueue&& mov) : i_LocklessQueue_Length<LENGTH>(std::move(mov)), _div(mov._div), _last(mov._last), _alloc(std::move(mov._alloc)) { mov._div=mov._last=0; }
+    inline cMicroLockQueue() { _last.store(_div.p = _alloc.alloc(1), std::memory_order_relaxed); new(_div.p) cLQ_QNode<T>(); assert(_last.is_lock_free());}
+    inline ~cMicroLockQueue() { } // Don't need to clean up because the allocator will destroy everything by itself
+    BSS_FORCEINLINE void Push(const T& t) { _produce<const T&>(t); }
+    BSS_FORCEINLINE void Push(T&& t) { _produce<T&&>(std::move(t)); }
+    inline bool Pop(T& result)
+    {
+      bss_PTag<cLQ_QNode<T>> ref ={0, 0};
       bss_PTag<cLQ_QNode<T>> nval;
-      while((ref = (bss_PTag<cLQ_QNode<T>>&)_div).p != _last)
+      asmcasr<bss_PTag<cLQ_QNode<T>>>(&_div, ref, ref, ref);
+      while(ref.p != _last.load(std::memory_order_relaxed))
       {
-        nval.p = ref.p->next;
+        nval.p = ref.p->next; // This can fail because if there are two consumers ahead of this one, one can increment the pointer, then another can increment the pointer and is then legally allowed to destroy that pointer, leaving this thread with an invalid ref.p->next value.
         nval.tag = ref.tag+1;
-        if(!asmcas<bss_PTag<cLQ_QNode<T>>>(&_div, nval, ref)) continue;
+        if(!asmcasr<bss_PTag<cLQ_QNode<T>>>(&_div, nval, ref, ref)) continue;
         result = std::move(ref.p->item); 	// try to use move semantics if possible
         ref.p->~cLQ_QNode<T>(); // We have to let item clean itself up
         _alloc.dealloc(ref.p);
@@ -107,6 +188,15 @@ namespace bss_util {
       return false;
     }
 
+    cMicroLockQueue& operator=(const cMicroLockQueue&) = delete;
+    inline cMicroLockQueue& operator=(cMicroLockQueue&& mov)
+    {
+        _div=mov._div;
+        _last=mov._last;
+        _alloc=std::move(mov._alloc);
+        mov._div=mov._last=0;
+        i_LocklessQueue_Length<LENGTH>::operator=(std::move(mov));
+    }
   protected:
     template<typename U>
     void _produce(U && t)
@@ -114,65 +204,16 @@ namespace bss_util {
       cLQ_QNode<T>* nval = _alloc.alloc(1);
       new(nval) cLQ_QNode<T>();
 
-      while(!asmcas<cLQ_QNode<T>*>(&_last->next, nval, 0)); // So long as last->next is zero, this will succeed and then block all other threads until the below atomic exchange is completed, at which point _last->next will be 0 again.
-      _last->item=std::forward<U>(t);
-      atomic_xchg<cLQ_QNode<T>*>(&_last, nval);
+      while(!asmcas<cLQ_QNode<T>*>(&_last.load(std::memory_order_relaxed)->next, nval, 0)); //This doesn't work because of a race condition where this thread loads _last, then another producer pushes through a new _last and a consume thread then destroys the _last we just loaded, and we end up writing to an undefined location.
+      _last.load(std::memory_order_relaxed)->item=std::forward<U>(t);
+      _last.store(nval, std::memory_order_release);
       i_LocklessQueue_Length<LENGTH>::_inclength(); // If we are tracking length, atomically increment it
     }
 
     cLocklessFixedAlloc<cLQ_QNode<T>> _alloc;
-    BSS_ALIGN(64) volatile bss_PTag<cLQ_QNode<T>> _div; // Align to try and get them on different cache lines
-    BSS_ALIGN(64) cLQ_QNode<T>* _last;
-    BSS_ALIGN(4) volatile size_t _spin;
-  };
-
-  // Single-producer multi-consumer lockless queue implemented in such a way that it can use a normal single-threaded allocator
-  /*template<typename T, typename LENGTH=void>
-  class cLocklessQueueSM : public i_LocklessQueue_Length<LENGTH>
-  {
-  public:
-    inline cLocklessQueueSM() { _div.p=_last=_first=_alloc.alloc(1); _div.tag=0; new((cLQ_QNode<T>*)_first) cLQ_QNode<T>(); }
-    inline ~cLocklessQueueSM() { } // Don't need to clean up because the allocator will destroy everything by itself
-    inline void Produce(const T& t) { _produce<const T&>(t); }
-    inline void Produce(T&& t) { _produce<T&&>(std::move(t)); }
-    inline bool Consume(T& result)
-    { 
-      bss_PTag<cLQ_QNode<T>> cur = { _div.p,_div.tag };
-      bss_PTag<cLQ_QNode<T>> ndiv = { cur.p->next,cur.tag+1 };
-      result = std::move(cur.p->next->item); 	// THIS DOESNT WORK, cur.p->next could be invalid due to race conditions and you can't touch it ever
-      while(cur.p != _last && asmcas<bss_PTag<cLQ_QNode<T>>>(&_div,ndiv,_div))
-      {
-        atomic_xchg<volatile cLQ_QNode<T>*>(&_div,_div->next);		// publish it
-        i_LocklessQueue_Length<LENGTH>::_declength(); // Decrement length if we're tracking it
-        return true;
-      }
-      return false;
-    }
-
-  protected:
-    template<typename U>
-    inline void _produce(U && t)
-    {
-      _last->next=_alloc.alloc(1);
-      new((cLQ_QNode<T>*)_last->next) cLQ_QNode<T>(std::forward<U>(t));
-      atomic_xchg<volatile cLQ_QNode<T>*>(&_last,_last->next);		// publish it
-      i_LocklessQueue_Length<LENGTH>::_inclength(); // If we are tracking length, atomically increment it
-      
-      cLQ_QNode<T>* tmp; // collect garbage
-      while( _first != _div.p ) {	
-        tmp = _first;
-        _first = _first->next;
-        tmp->~cLQ_QNode<T>(); // We have to let item clean itself up
-        _alloc.dealloc(tmp); 
-      }
-    }
-
-    cFixedAlloc<cLQ_QNode<T>> _alloc;
-    cLQ_QNode<T>* _first; 
-    BSS_ALIGN(64) volatile bss_PTag<cLQ_QNode<T>> _div; // Align to try and get them on different cache lines
-    BSS_ALIGN(64) volatile cLQ_QNode<T>* _last;
+    BSS_ALIGN(64) bss_PTag<cLQ_QNode<T>> _div; // Align to try and get them on different cache lines
+    BSS_ALIGN(64) std::atomic<cLQ_QNode<T>*> _last;
   };*/
-
 }
 
 #endif

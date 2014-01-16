@@ -16,6 +16,7 @@ namespace bss_util
   {
   public:
     // Starts the timer and takes an initial sample. If you want to reset the time or delta to zero later, call ResetTime() or ResetDelta()
+    cHighPrecisionTimer(const cHighPrecisionTimer& copy);
     cHighPrecisionTimer();
     // Resamples the timer, updating the current time and setting the delta to the difference between the last time and the current time.
     double BSS_FASTCALL Update();
@@ -36,6 +37,7 @@ namespace bss_util
     double _delta; // milliseconds
     double _time; // milliseconds
     unsigned __int64 _curTime;
+    void _construct();
 
 #ifdef BSS_PLATFORM_WIN32
     void BSS_FASTCALL _querytime(unsigned __int64* _pval);

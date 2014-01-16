@@ -25,7 +25,8 @@ class BSS_DLLEXPORT bss_Log
 {
 public:
 	// Move semantics only
-	bss_Log(bss_Log&& mov);
+  bss_Log(const bss_Log& copy) = delete;
+  bss_Log(bss_Log&& mov);
 	// Constructor - takes a stream and adds it
 	explicit bss_Log(std::ostream* log=0);
 	// Constructor - takes either a stream or a file (or both) and adds them
@@ -49,6 +50,7 @@ public:
   // Gets the stream for this log
   inline std::ostream& GetStream() { return _stream; }
 
+  bss_Log& operator=(const bss_Log& right) = delete;
   bss_Log& operator=(bss_Log&& right);
   inline operator std::ostream&() { return _stream; }
   
@@ -63,8 +65,6 @@ public:
   }
 
 private:
-	bss_Log(const bss_Log& copy);
-  bss_Log& operator=(const bss_Log& right);
   static bool BSS_FASTCALL _writedatetime(long timezone, std::ostream& log, bool timeonly);
   static const char* BSS_FASTCALL _trimpath(const char* path);
   //static const wchar_t* BSS_FASTCALL _trimpath(const wchar_t* path);

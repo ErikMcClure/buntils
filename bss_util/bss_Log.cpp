@@ -10,11 +10,6 @@
 using namespace bss_util;
 using namespace std;
 
-
-bss_Log::bss_Log(const bss_Log& copy) : _split(new StreamSplitter()), _stream(_split), _tz(GetTimeZoneMinutes())
-{ 
-  assert(false);
-}
 bss_Log::bss_Log(bss_Log&& mov) : _split(mov._split), _stream(_split), _backup(std::move(mov._backup)),
   _tz(GetTimeZoneMinutes()), _files(std::move(mov._files))
 {
@@ -112,11 +107,6 @@ bool BSS_FASTCALL bss_Log::_writedatetime(long timez, std::ostream& log, bool ti
   log.fill(logchar);
 
   return true;
-}
-bss_Log& bss_Log::operator=(const bss_Log& right)
-{
-  assert(false);
-  return *this; //We don't copy _stream because its attached to _split which gets copied anyway and we want it to stay that way.
 }
 bss_Log& bss_Log::operator=(bss_Log&& right)
 {

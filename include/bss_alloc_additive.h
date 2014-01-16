@@ -15,9 +15,11 @@ namespace bss_util {
   };
 
   // Dynamic additive allocator that can allocate any number of bytes
-	class BSS_COMPILER_DLLEXPORT cAdditiveAlloc
+  class BSS_COMPILER_DLLEXPORT cAdditiveAlloc
   {
   public:
+    cAdditiveAlloc(const cAdditiveAlloc& copy) = delete;
+    inline cAdditiveAlloc(cAdditiveAlloc&& mov) : _curpos(mov._curpos), _root(mov._root) { mov._root=0; mov._curpos=0; }
     inline explicit cAdditiveAlloc(size_t init=64) : _curpos(0), _root(0)
     {
       _allocchunk(init);
@@ -79,6 +81,7 @@ namespace bss_util {
       }
       _allocchunk(nsize); //consolidates all memory into one chunk to try and take advantage of data locality
     }
+    cAdditiveAlloc& operator=(const cAdditiveAlloc& copy) = delete;
   protected:
     BSS_FORCEINLINE void _allocchunk(size_t nsize)
     {

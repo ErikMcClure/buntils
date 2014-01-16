@@ -141,9 +141,6 @@
     <ClInclude Include="..\include\cStrTable.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="..\include\cThread.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
     <ClInclude Include="..\include\INIparse.h">
       <Filter>Header Files</Filter>
     </ClInclude>

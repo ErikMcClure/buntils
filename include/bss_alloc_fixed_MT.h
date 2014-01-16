@@ -7,6 +7,7 @@
 
 #include "bss_alloc_fixed.h"
 #include "lockless.h"
+#include <atomic>
 
 namespace bss_util {
   /* Multi-producer multi-consumer lockless fixed size allocator */
@@ -14,13 +15,16 @@ namespace bss_util {
   class BSS_COMPILER_DLLEXPORT cLocklessFixedAlloc
   {
   public:
-    inline explicit cLocklessFixedAlloc(size_t init=8) : _root(0), _spin(0)
+    cLocklessFixedAlloc(const cLocklessFixedAlloc& copy) = delete;
+    inline cLocklessFixedAlloc(cLocklessFixedAlloc&& mov) : _root(mov._root), _freelist(mov._freelist) { mov._freelist.p=mov._root=0; _flag.clear(std::memory_order_relaxed); }
+    inline explicit cLocklessFixedAlloc(size_t init=8) : _root(0)
     {
+      _flag.clear(std::memory_order_relaxed);
       //contention=0;
       _freelist.p=0;
       _freelist.tag=0;
 		  static_assert((sizeof(T)>=sizeof(void*)),"T cannot be less than the size of a pointer");
-		  static_assert((sizeof(bss_PTag<void>)==(sizeof(void*)*2)),"ABAPointer isn't twice the size of a pointer!");
+      static_assert((sizeof(bss_PTag<void>)==(sizeof(void*)*2)), "ABAPointer isn't twice the size of a pointer!");
       _allocchunk(init*sizeof(T));
     }
     inline ~cLocklessFixedAlloc()
@@ -38,24 +42,24 @@ namespace bss_util {
 #ifdef BSS_DISABLE_CUSTOM_ALLOCATORS
       return (T*)malloc(num*sizeof(T));
 #endif
-      bss_PTag<void> ret;
+      bss_PTag<void> ret={0,0};
       bss_PTag<void> nval;
-
+      asmcasr<bss_PTag<void>>(&_freelist, ret, ret, ret);
       for(;;)
       {
-        ret = (bss_PTag<void>&)_freelist;
         if(!ret.p)
         {
-          if(atomic_xchg<size_t>(&_spin, 1)==1) { // If we get the lock, do a new allocation
+          if(!_flag.test_and_set(std::memory_order_acquire)) { // If we get the lock, do a new allocation
             if(!_freelist.p) // Check this due to race condition
               _allocchunk(fbnext(_root->size/sizeof(T))*sizeof(T));
-            atomic_xchg<size_t>(&_spin, 0);
+            _flag.clear(std::memory_order_release);
           }
+          asmcasr<bss_PTag<void>>(&_freelist, ret, ret, ret); // we could put this in the while loop but then you have to set nval to ret and it's just as messy
           continue;
         }
         nval.p = *((void**)ret.p);
         nval.tag = ret.tag+1;
-        if(asmcas<bss_PTag<void>>(&_freelist, nval, ret)) break;
+        if(asmcasr<bss_PTag<void>>(&_freelist, nval, ret, ret)) break;
       }
 
       //assert(_validpointer(ret));
@@ -72,11 +76,12 @@ namespace bss_util {
 #endif
       _setfreelist(p, p);
       //*((void**)p)=(void*)_freelist;
-      //while(!asmcas<volatile void*>(&_freelist,p,*((void**)p))) //ABA problem
+      //while(!asmcas<void*>(&_freelist,p,*((void**)p))) //ABA problem
       //  *((void**)p)=(void*)_freelist;
     }
     
     //size_t contention;
+    cLocklessFixedAlloc& operator=(const cLocklessFixedAlloc& copy) = delete;
 
   protected:
 #ifdef BSS_DEBUG
@@ -115,20 +120,20 @@ namespace bss_util {
     }
 
     inline void BSS_FASTCALL _setfreelist(void* p, void* target) {
-      bss_PTag<void> prev;
+      bss_PTag<void> prev ={0, 0};
       bss_PTag<void> nval = { p, 0 };
+      asmcasr<bss_PTag<void>>(&_freelist, prev, prev, prev);
       do
       {
-        prev = (bss_PTag<void>&)_freelist;
         nval.tag = prev.tag+1;
         *((void**)(target)) = (void*)prev.p;
         //atomic_xadd<size_t>(&contention); //DEBUG
-      } while(!asmcas<bss_PTag<void>>(&_freelist, nval, prev));
+      } while(!asmcasr<bss_PTag<void>>(&_freelist, nval, prev, prev));
     }
 
     FIXEDLIST_NODE* _root;
     BSS_ALIGN(16) volatile bss_PTag<void> _freelist;
-    BSS_ALIGN(4) volatile size_t _spin;
+    BSS_ALIGN(4) std::atomic_flag _flag;
   };
 }
 

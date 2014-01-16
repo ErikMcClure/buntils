@@ -17,6 +17,8 @@ namespace bss_util
   public:
     // Constructor
     inline cScheduler() {}
+    inline cScheduler(const cScheduler& copy) : BASE(copy), cHighPrecisionTimer(copy) {}
+    inline cScheduler(cScheduler&& mov) : BASE(std::move(mov)), cHighPrecisionTimer(mov) {}
     inline cScheduler(double t, const F& f) { Add(t,f); }
     inline cScheduler(double t, F&& f) { Add(t,std::move(f)); }
     inline ~cScheduler() {}
@@ -35,7 +37,7 @@ namespace bss_util
         if(r==0.0)
           BASE::Remove(0);
         else
-          BASE::Set(0, std::pair<double, F>(r+_time, BASE::Peek().second));
+          BASE::Set(0, std::pair<double, F>(r+_time, BASE::Peek().second)); // This is why we don't use the actual priority queue data structure
       }
     }
   };

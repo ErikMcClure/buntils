@@ -44,7 +44,6 @@
 #include "cSmartPtr.h"
 #include "cStr.h"
 #include "cStrTable.h"
-#include "cThread.h"
 #include "cTRBtree.h"
 #include "cTrie.h"
 #include "delegate.h"
@@ -62,6 +61,7 @@
 #include <sstream>
 #include <functional>
 #include <atomic>
+#include <thread>
 
 #ifdef BSS_PLATFORM_WIN32
 //#include "bss_win32_includes.h"
@@ -385,7 +385,7 @@ TESTDEF::RETPAIR test_bss_util()
   TEST_BitLimit<63, -4611686018427387904, 4611686018427387903, 0, 9223372036854775807, __int64>();
   TEST_BitLimit<64, -9223372036854775808LL, 9223372036854775807, 0, 18446744073709551615, __int64>();
   // For reference, the above strange bit values are used in fixed-point arithmetic found in bss_fixedpt.h
-
+  
   TEST(GetBitMask<unsigned char>(4)==0x10); // 0001 0000
   TEST(GetBitMask<unsigned char>(2,4)==0x1C); // 0001 1100
   TEST(GetBitMask<unsigned char>(-2,2)==0xC7); // 1100 0111
@@ -438,7 +438,7 @@ TESTDEF::RETPAIR test_bss_util()
   TEST(strccount<char>("10010010101110001",'1')==8);
   TEST(strccount<char>("0100100101011100010",'1')==8);
   // Linux really hates wchar_t, so getting it to assign the right character is exceedingly difficult. We manually assign 1585 instead.
-  TEST(strccount<wchar_t>(L"الرِضَءَجيعُ بِهءَرِا نَجلاءَرِ رِمِعطارِ",(wchar_t)1585/*L'رِ'*/)==5);
+  TEST(strccount<wchar_t>(L"الرِضَءَجيعُ بِهءَرِا نَجلاءَرِ رِمِعطارِ",(wchar_t)1585)==5); //L'رِ'
 
   int ia=0;
   int ib=1;
@@ -617,16 +617,16 @@ TESTDEF::RETPAIR test_bss_util()
   //  a=NUMBERS[i];
   //  b=std::sqrtf(a);
   //}
-  ///*for(uint i = 0; i < 100000; ++i)
+  //for(uint i = 0; i < 100000; ++i)
   //{
   //  a=NUMBERS[i];
   //  b=FastSqrtsse(a);
-  //}*/
-  ///*for(uint i = 0; i < 100000; ++i)
+  //}
+  //for(uint i = 0; i < 100000; ++i)
   //{
   //  a=NUMBERS[i];
   //  b=FastSqrt(a);
-  //}*/
+  //}
   //}
   //CPU_Barrier();
   //sqrt_avg=_debug.CloseProfiler(p);
@@ -647,22 +647,22 @@ TESTDEF::RETPAIR test_bss_util()
       break;
   TEST(nmatch==200000);
   
-  /*static const int NUM=100000;
-  float _numrand[NUM];
-  for(uint i = 0; i < NUM; ++i)
-    _numrand[i]=RANDFLOATGEN(0,100.0f);
+  //static const int NUM=100000;
+  //float _numrand[NUM];
+  //for(uint i = 0; i < NUM; ++i)
+  //  _numrand[i]=RANDFLOATGEN(0,100.0f);
 
-  int add=0;
-  unsigned char prof = _debug.OpenProfiler();
-  CPU_Barrier();
-  for(uint i = 0; i < NUM; ++i)
-    //add+=(int)_numrand[i];
-    add+=fFastTruncate(_numrand[i]);
-  CPU_Barrier();
-  auto res = _debug.CloseProfiler(prof);
-  double avg = res/(double)NUM;
-  TEST(add>-1);
-  std::cout << "\n" << avg << std::endl;*/
+  //int add=0;
+  //unsigned char prof = _debug.OpenProfiler();
+  //CPU_Barrier();
+  //for(uint i = 0; i < NUM; ++i)
+  //  //add+=(int)_numrand[i];
+  //  add+=fFastTruncate(_numrand[i]);
+  //CPU_Barrier();
+  //auto res = _debug.CloseProfiler(prof);
+  //double avg = res/(double)NUM;
+  //TEST(add>-1);
+  //std::cout << "\n" << avg << std::endl;
 
   TEST(fFastRound(5.0f)==5);
   TEST(fFastRound(5.000001f)==5);
@@ -980,13 +980,14 @@ TESTDEF::RETPAIR test_bss_ALLOC_FIXED()
 #define BSS_PFUNC_PRE void*
 #endif
 
+std::atomic<bool> startflag;
+
 template<class T, typename P>
-BSS_PFUNC_PRE TEST_ALLOC_MT(void* arg)
+void TEST_ALLOC_MT(TESTDEF::RETPAIR& pair, T& p)
 {
-  std::pair<TESTDEF::RETPAIR*,T*> p = *((std::pair<TESTDEF::RETPAIR*,T*>*)arg);
+  while(!startflag);
   cDynArray<cArraySimple<std::pair<P*,size_t>>> plist;
-  TEST_ALLOC_FUZZER_THREAD<T, P, 1, 100000>(*p.first, *p.second, plist);
-  return 0;
+  TEST_ALLOC_FUZZER_THREAD<T, P, 1, 50000>(pair, p, plist);
 }
 
 template<class T>
@@ -996,25 +997,24 @@ TESTDEF::RETPAIR test_bss_ALLOC_FIXED_LOCKLESS()
 {
   BEGINTEST;
   MTALLOCWRAP<size_t> _alloc(10000);
-  std::pair<TESTDEF::RETPAIR*, MTALLOCWRAP<size_t>*> args(&__testret, &_alloc);
 
   const int NUM = 16;
-  cThread threads[NUM];
-  int count=0;
-  for(int i = 0; i < NUM; ++i) {
-    count += !threads[i].Start(&TEST_ALLOC_MT<MTALLOCWRAP<size_t>, size_t>, &args);
-  }
+  std::thread threads[NUM];
+  startflag=false;
   for(int i = 0; i < NUM; ++i)
-    threads[i].Join();
+    threads[i] = std::thread(TEST_ALLOC_MT<MTALLOCWRAP<size_t>, size_t>, std::ref(__testret), std::ref(_alloc));
+  startflag=true;
+
+  for(int i = 0; i < NUM; ++i)
+    threads[i].join();
 
   MTALLOCWRAP<size_t> _alloc2;
-  std::pair<TESTDEF::RETPAIR*,MTALLOCWRAP<size_t>*> args2(&__testret,&_alloc2);
 
   for(int i = 0; i < NUM; ++i)
-    threads[i].Start(&TEST_ALLOC_MT<MTALLOCWRAP<size_t>,size_t>,&args2);
+    threads[i] = std::thread(TEST_ALLOC_MT<MTALLOCWRAP<size_t>, size_t>, std::ref(__testret), std::ref(_alloc2));
   
   for(int i = 0; i < NUM; ++i)
-    threads[i].Join();
+    threads[i].join();
 
   //std::cout << _alloc2.contention << std::endl;
   //std::cout << _alloc2.grow_contention << std::endl;
@@ -1702,6 +1702,8 @@ TESTDEF::RETPAIR test_ANIMATION()
   a.AddKeyFrame<3>(KeyFrame<3>(0.6, [&](){ c.Drop(); }));
   a.Attach(delegate<void,AniAttribute*>::From<cAnimObj,&cAnimObj::TypeIDRegFunc>(&obj));
 
+  TEST(c.Grab()==14);
+  c.Drop();
   TEST(obj.test==0);
   a.Start(0);
   TEST(a.IsPlaying());
@@ -1727,26 +1729,33 @@ TESTDEF::RETPAIR test_ANIMATION()
   a.Interpolate(0.6);
   obj.test=0;
   a.Stop();
+  TEST(c.Grab()==15);
+  c.Drop();
+  c.Drop();
   TEST(!a.IsLooping());
   a.Loop(1.5,1.0);
   a.Interpolate(0.0);
   TEST(a.IsLooping());
   TEST(obj.test==3);
-  a.Interpolate(1.0);
+  a.Interpolate(3.0);
   a.Stop();
-  TEST(c.Grab()==15);
+  TEST(c.Grab()==14);
   c.Drop();
 
-  cAnimation<StaticAllocPolicy<char>> b(a);
-  obj.test=0;
-  b.Attach(delegate<void,AniAttribute*>::From<cAnimObj,&cAnimObj::TypeIDRegFunc>(&obj));
-  TEST(obj.test==0);
-  b.Start(0);
-  TEST(obj.test==1);
-  b.Interpolate(1.0);
-  TEST(obj.test==2);
-  TEST(c.Grab()==23);
-  c.Drop();
+  {
+    cAnimation<StaticAllocPolicy<char>> b(a);
+    obj.test=0;
+    b.Attach(delegate<void, AniAttribute*>::From<cAnimObj, &cAnimObj::TypeIDRegFunc>(&obj));
+    TEST(obj.test==0);
+    b.Start(0);
+    TEST(obj.test==4);
+    TEST(c.Grab()==22);
+    TEST(obj.test==2);
+    b.Interpolate(10.0);
+    TEST(obj.test==4);
+    TEST(c.Grab()==20);
+    c.Drop();
+  }
   }
   TEST(c.Grab()==2);
   ENDTEST;
@@ -3012,33 +3021,30 @@ TESTDEF::RETPAIR test_LINKEDLIST()
   ENDTEST;
 }
 
-unsigned int lq_c;
+std::atomic<unsigned int> lq_c;
 unsigned short lq_end[TESTNUM];
-unsigned short lq_pos;
+std::atomic<unsigned short> lq_pos;
 
 template<class T>
-BSS_PFUNC_PRE _locklessqueue_consume(void* p)
+void _locklessqueue_consume(void* p)
 {
+  while(!startflag);
   T* q = (T*)p;
   uint c;
-  while((c = atomic_xadd(&lq_pos))<TESTNUM) {
+  while((c = lq_pos.fetch_add(1, std::memory_order_relaxed))<TESTNUM) {
     while(!q->Pop(lq_end[c]));
-    assert(lq_end[c]<=TESTNUM);
   }
-  return 0;
 }
 
 template<class T>
-BSS_PFUNC_PRE _locklessqueue_produce(void* p)
+void _locklessqueue_produce(void* p)
 {
+  while(!startflag);
   T* q = (T*)p;
   unsigned int c;
-  while((c = atomic_xadd(&lq_c))<=TESTNUM) {
+  while((c = lq_c.fetch_add(1, std::memory_order_relaxed))<=TESTNUM) {
     q->Push(c);
-    assert(c<=TESTNUM);
   }
-
-  return 0;
 }
 
 TESTDEF::RETPAIR test_LOCKLESSQUEUE()
@@ -3068,9 +3074,8 @@ TESTDEF::RETPAIR test_LOCKLESSQUEUE()
   TEST(c==1);
   }
 
-  const int NUMTHREADS=20;
-  cThread threads[NUMTHREADS];
-  std::vector<size_t> values;
+  const int NUMTHREADS=18;
+  std::thread threads[NUMTHREADS];
 
   //typedef cLocklessQueue<unsigned int,true,true,size_t,size_t> LLQUEUE_SCSP; 
   typedef cLocklessQueue<unsigned short, size_t> LLQUEUE_SCSP;
@@ -3080,11 +3085,12 @@ TESTDEF::RETPAIR test_LOCKLESSQUEUE()
   lq_c=1;
   lq_pos=0;
   memset(lq_end, 0, sizeof(short)*TESTNUM);
-  threads[1].Start(_locklessqueue_consume<LLQUEUE_SCSP>, &q);
-  threads[0].Start(_locklessqueue_produce<LLQUEUE_SCSP>, &q);
-  while(threads[0].Join(1)==-1)
-    values.push_back(q.Length());
-  threads[1].Join();
+  startflag=false;
+  threads[0] = std::thread(_locklessqueue_produce<LLQUEUE_SCSP>, &q);
+  threads[1] = std::thread(_locklessqueue_consume<LLQUEUE_SCSP>, &q);
+  startflag=true;
+  threads[0].join();
+  threads[1].join();
   //std::cout << '\n' << _debug.CloseProfiler(ppp) << std::endl;
   bool check=true;
   for(int i = 0; i < TESTNUM;++i)
@@ -3092,25 +3098,32 @@ TESTDEF::RETPAIR test_LOCKLESSQUEUE()
   TEST(check);
   }
 
-  typedef cLocklessQueueMM<unsigned short,size_t> LLQUEUE_MCMP; 
-  for(int j = 2; j<=NUMTHREADS; ++j) {
-    lq_c = 1;
-    lq_pos = 0;
-    memset(lq_end, 0, sizeof(short)*TESTNUM);
-    LLQUEUE_MCMP q;   // multi consumer multi producer test
-    for(int i=0; i<j; ++i)
-      threads[i].Start((i&1)?_locklessqueue_consume<LLQUEUE_MCMP>:_locklessqueue_produce<LLQUEUE_MCMP>, &q);
-    for(int i = 0; i<j; ++i)
-      threads[i].Join();
-    
-    std::sort(std::begin(lq_end),std::end(lq_end));
-    bool check=true;
-    for(int i = 0; i < TESTNUM-1; ++i) {
-      check = check&&(lq_end[i]==i+1);
+  for(int k= 0; k < 1; ++k) {
+    typedef cLocklessQueueMM<unsigned short, size_t> LLQUEUE_MCMP;
+    for(int j = 2; j<=NUMTHREADS; j=fbnext(j)) {
+      lq_c = 1;
+      lq_pos = 0;
+      memset(lq_end, 0, sizeof(short)*TESTNUM);
+      LLQUEUE_MCMP q;   // multi consumer multi producer test
+      startflag=false;
+      //threads[0] = std::thread(_locklessqueue_consume<LLQUEUE_MCMP>, &q);
+      //for(int i=1; i<j; ++i)
+      //  threads[i] = std::thread(_locklessqueue_produce<LLQUEUE_MCMP>, &q);
+      for(int i=0; i<j; ++i)
+        threads[i] = std::thread((i&1)?_locklessqueue_produce<LLQUEUE_MCMP>:_locklessqueue_consume<LLQUEUE_MCMP>, &q);
+      startflag=true;
+      for(int i = 0; i<j; ++i)
+        threads[i].join();
+
+      std::sort(std::begin(lq_end), std::end(lq_end));
+      bool check=true;
+      for(int i = 0; i < TESTNUM-1; ++i) {
+        check = check&&(lq_end[i]==i+1);
+      }
+      TEST(check);
+
+      //std::cout << '\n' << j << " threads: " << q.GetContentions() << std::endl;
     }
-    TEST(check);
-      
-    //std::cout << '\n' << j << " threads: " << q.GetContentions() << std::endl;
   }
 
   ENDTEST;
@@ -3518,19 +3531,19 @@ TESTDEF::RETPAIR test_STRTABLE()
   ENDTEST;
 }
 
-BSS_PFUNC_PRE APCthread(void* arg)
-{
-  size_t* i=reinterpret_cast<size_t*>(arg);
-  //cHighPrecisionTimer* p=(cHighPrecisionTimer*)arg;
-
-  while(--*i)
-  {
-    cThread::SignalWait();
-    //p->Update();
-    //std::cout << "\n" << p->GetDelta() << std::endl;
-  }
-  return 0;
-}
+//BSS_PFUNC_PRE APCthread(void* arg)
+//{
+//  size_t* i=reinterpret_cast<size_t*>(arg);
+//  //cHighPrecisionTimer* p=(cHighPrecisionTimer*)arg;
+//
+//  while(--*i)
+//  {
+//    cThread::SignalWait();
+//    //p->Update();
+//    //std::cout << "\n" << p->GetDelta() << std::endl;
+//  }
+//  return 0;
+//}
 
 TESTDEF::RETPAIR test_THREAD()
 {
@@ -3538,17 +3551,17 @@ TESTDEF::RETPAIR test_THREAD()
   //cHighPrecisionTimer timer;
   //cHighPrecisionTimer useless;
   //timer.Update();
-  //Sleep(2);
+  //std::this_thread::sleep_for(2);
   //timer.Update();
   //std::cout << "\n" << timer.GetDelta() << std::endl;
 
   //cThread apc(APCthread,&timer);
   //size_t i=10;
   //cThread apc(APCthread,(void*)&i);
-  //while(i==10) SLEEP(1);
+  //while(i==10) std::this_thread::sleep_for(1);
   //while(i > 0)
   //{
-  //  //for(int j = RANDINTGEN(50000,100000); j > 0; --j) { SLEEP(0); useless.Update(); }
+  //  //for(int j = RANDINTGEN(50000,100000); j > 0; --j) { std::this_thread::sleep_for(0); useless.Update(); }
   //  //timer.Update();
   //  apc.SendSignal(); // This doesn't work on linux
   //} 
@@ -3826,7 +3839,8 @@ int main(int argc, char** argv)
 
   ForceWin64Crash();
   SetWorkDirToCur();
-  srand((unsigned int)time(NULL));
+  unsigned int seed=time(NULL);
+  srand(seed);
   
   for(int i = 0; i<TESTNUM; ++i)
     testnums[i]=i;
@@ -3911,7 +3925,7 @@ int main(int argc, char** argv)
     std::cout << "\nAll tests passed successfully!" << std::endl;
   else
   {
-    std::cout << "\nThe following tests failed: " << std::endl;
+    std::cout << "\nThe following tests failed (seed = " << seed << "): " << std::endl;
     for (uint i = 0; i < failures.size(); i++)
       std::cout << "  " << tests[failures[i]].NAME << std::endl;
     std::cout << "\nThese failures indicate either a misconfiguration on your system, or a potential bug. Please report all bugs to http://code.google.com/p/bss-util/issues/list\n\nA detailed list of failed tests was written to failedtests.txt" << std::endl;

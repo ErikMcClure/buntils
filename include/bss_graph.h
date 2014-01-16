@@ -31,6 +31,8 @@ namespace bss_util {
     typedef typename std::conditional<std::is_void<E>::value,char,E>::type EDATA;
 
   public:
+    Graph(const Graph&) = delete;
+    inline Graph(Graph&& mov) : _nodes(std::move(mov._nodes)), _nedges(mov._nedges) { mov._nedges=0; }
     inline Graph() : _nodes(0), _nedges(0) {}
     // Build a matrix out of a standard adjacency matrix
     inline Graph(ST n, const char* M, const V* nodes) : _nodes(n), _nedges(0) { _construct<char,_basecheck>(n,M,nodes); }
@@ -103,6 +105,8 @@ namespace bss_util {
 
     inline const Node<E,V,ST>& operator[](ST index) const { return _nodes[index]; }
     inline Node<E,V,ST>& operator[](ST index) { return _nodes[index]; }
+    Graph& operator=(const Graph&) = delete;
+    inline Graph& operator=(Graph&& mov) { _nodes = std::move(mov._nodes); _nedges = mov._nedges; mov._nedges=0; return *this; }
     typedef ST ST_;
     typedef E E_;
     typedef V V_;

@@ -35,6 +35,7 @@ namespace bss_util {
   {
   public:
     inline explicit cKDTree(unsigned int rb=RBTHRESHOLD,Alloc* alloc=0) : cAllocTracker<Alloc>(alloc), _root(0),_rbthreshold(rb) {}
+    inline cKDTree(const cKDTree&) = delete;
     inline cKDTree(cKDTree&& mov) : cAllocTracker<Alloc>(std::move(mov)), _root(mov._root),_rbthreshold(mov._rbthreshold) { mov._root=0; }
     inline ~cKDTree() { Clear(); }
     inline void Clear() { if(_root) _destroynode(_root); _root=0; }
@@ -107,6 +108,7 @@ namespace bss_util {
       mov._root=0;
       return *this;
     }
+    inline cKDTree& operator=(const cKDTree&) = delete;
     BSS_FORCEINLINE void Rebalance(KDNode<T>* node)
     {
       float rect[4]={-FLT_MAX,-FLT_MAX,FLT_MAX,FLT_MAX};

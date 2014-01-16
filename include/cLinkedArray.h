@@ -27,7 +27,7 @@ namespace bss_util {
 
     inline cLinkedArray() : _ref(1),_length(0),_start(-1),_end(-1),_freelist(-1) { _setupchunk(0); }
     inline cLinkedArray(const cLinkedArray& copy) : _ref(copy._ref),_length(copy._length),_start(copy._start),_end(copy._end),_freelist(copy._freelist) { }
-    inline cLinkedArray(cLinkedArray&& mov) : _ref(std::move(mov._ref)),_length(mov._length),_start(mov._start),_end(mov._end),_freelist(mov._freelist) { }
+    inline cLinkedArray(cLinkedArray&& mov) : _ref(std::move(mov._ref)), _length(mov._length), _start(mov._start), _end(mov._end), _freelist(mov._freelist) { mov._ref=1; mov._length=0; mov._start=mov._end=-1=mov._freelist=-1; }
     inline explicit cLinkedArray(ST_ size) : _ref(size),_length(0),_start(-1),_end(-1),_freelist(-1) { _setupchunk(0); }
     inline ~cLinkedArray() {}
     BSS_FORCEINLINE ST_ BSS_FASTCALL Add(const T& item) { return InsertAfter(item,_end); }

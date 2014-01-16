@@ -90,9 +90,6 @@
     <ClInclude Include="..\include\cBSS_Stack.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="..\include\cByteQueue.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
     <ClInclude Include="..\include\cCmdLineArgs.h">
       <Filter>Header Files</Filter>
     </ClInclude>

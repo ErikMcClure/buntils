@@ -44,10 +44,10 @@
 - Added bssfmod() for real modulo operations on floats, fixed edge-case in angledistsgn()
 - Simplified cLocklessFixedAlloc and fixed a bug in the DCAS sync
 - Changed a few function names to enforce more consistency
-- Removed cThread (use std::thread instead)
 - Upgraded all move/copy constructors to properly use c++11 = delete syntax where appropriate
-
-- Added multi-producer multi-consumer cLocklessQueueMM // STILL BROKEN
+- Added multi-producer multi-consumer cMicroLockQueue (in cLocklessQueue.h)
+- cThread now inherits from std::thread and augments its existing functions with a timeout join and signalable state.
+- bss_deprecated.h has been removed - its contents have been absorbed into bss_defines.h
 - Added cThreadPool
 
 0.4.1

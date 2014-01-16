@@ -14,6 +14,7 @@ namespace bss_util {
   class BSS_DLLEXPORT cCmdLineArgs
   {
   public:
+    cCmdLineArgs(const cCmdLineArgs& copy);
     explicit cCmdLineArgs(const char* specify);
     cCmdLineArgs(int argc, char** argv);
     template<typename F> //std::function<void(char* const*,int num)>

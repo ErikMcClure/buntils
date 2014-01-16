@@ -22,6 +22,7 @@ namespace bss_util {
   class BSS_COMPILER_DLLEXPORT StreamSplitter : public std::basic_stringbuf<char>
   {
   public:
+    inline StreamSplitter(const StreamSplitter& copy) = delete;
 #ifndef BSS_COMPILER_GCC
     inline StreamSplitter(StreamSplitter&& mov) : std::basic_stringbuf<char>(std::move(mov)), _targets(std::move(mov._targets)) {}//, _wtargets(move(copy._wtargets)) {}
 #endif
@@ -44,10 +45,9 @@ namespace bss_util {
       std::basic_stringbuf<char>::seekpos(0,std::ios_base::out); //Flush the buffer (make it overwrite itself because we no longer need what's in there)
       return std::basic_stringbuf<char>::sync();
     }
+    inline StreamSplitter& operator =(const StreamSplitter& right) = delete;
 
-  private: // basic_stringbuf has move semantics, not copy semantics. Of course, VC++ doesn't actually warn you about this. Anywhere.
-    inline StreamSplitter(const StreamSplitter& copy) { assert(false); }
-    inline StreamSplitter& operator =(const StreamSplitter& right) { assert(false); return *this; }
+  protected: // basic_stringbuf has move semantics, not copy semantics. Of course, VC++ doesn't actually warn you about this. Anywhere.
     std::vector<std::ostream*> _targets;
   };
 #pragma warning(pop)

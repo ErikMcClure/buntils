@@ -12,15 +12,6 @@
 #include <unistd.h>     // readlink()
 #endif
 
-bss_DebugInfo::bss_DebugInfo(const bss_DebugInfo& copy) { assert(false); }
-//bss_DebugInfo::bss_DebugInfo(const bss_DebugInfo& copy) : cHighPrecisionTimer(copy), bss_Log(copy),_flstart(copy._flstart),
-//  _flend(copy._flend), _modpath(copy._modpath)
-//{
-//  memcpy(_profilers,copy._profilers, sizeof(unsigned __int64)*NUMPROFILERS);
-//  memcpy(_flprof,copy._flprof, sizeof(unsigned char)*NUMPROFILERS);
-//  _counter = new PROCESS_MEMORY_COUNTERS();
-//  *_counter=*copy._counter;
-//}
 bss_DebugInfo::bss_DebugInfo(bss_DebugInfo&& mov) : cHighPrecisionTimer(std::move(mov)), bss_Log(std::move(mov)), _flstart(mov._flstart),
   _flend(mov._flend), _modpath(std::move(mov._modpath))
 {
@@ -119,14 +110,3 @@ bss_DebugInfo& bss_DebugInfo::operator =(bss_DebugInfo&& right)
   cHighPrecisionTimer::operator=(std::move(right));
   return *this;
 }
-
-bss_DebugInfo& bss_DebugInfo::operator =(const bss_DebugInfo& right) { assert(false); return *this; }
-//{
-//  memcpy(_profilers,right._profilers, sizeof(unsigned __int64)*NUMPROFILERS);
-//  memcpy(_flprof,right._flprof, sizeof(unsigned char)*NUMPROFILERS);
-//  _modpath=right._modpath;
-//  _flstart=right._flstart;
-//  _flend=right._flend;
-//  *_counter=*right._counter;
-//  return *this;
-//}

@@ -10,18 +10,17 @@
 
 using namespace bss_util;
 
+double _delta; // milliseconds
+double _time; // milliseconds
+unsigned __int64 _curTime;
+
+cHighPrecisionTimer::cHighPrecisionTimer(const cHighPrecisionTimer& copy) : _time(copy._time), _delta(copy._delta), _curTime(copy._curTime)
+{
+  _construct();
+}
 cHighPrecisionTimer::cHighPrecisionTimer()
 {
-#ifdef BSS_PLATFORM_WIN32
-  _curprocess = GetCurrentProcess();
-  _curthread = GetCurrentThread();
-  
-  _getaffinity();  
-  _curthread = GetCurrentThread();
-  SetThreadAffinityMask(_curthread, 1);
-  QueryPerformanceFrequency((LARGE_INTEGER*)&_freq);//we have to do this here before ResetDelta() otherwise ResetDelta will read in the wrong values with _getaffinity()
-  SetThreadAffinityMask(_curthread, _procmask);
-#endif
+  _construct();
   ResetDelta();
   _time = 0;
 }
@@ -58,6 +57,20 @@ void cHighPrecisionTimer::Override(double delta)
   _querytime(&_curTime);
   _delta=delta;
   _time += _delta;
+}
+
+void cHighPrecisionTimer::_construct()
+{
+#ifdef BSS_PLATFORM_WIN32
+  _curprocess = GetCurrentProcess();
+  _curthread = GetCurrentThread();
+
+  _getaffinity();
+  _curthread = GetCurrentThread();
+  SetThreadAffinityMask(_curthread, 1);
+  QueryPerformanceFrequency((LARGE_INTEGER*)&_freq);//we have to do this here before ResetDelta() otherwise ResetDelta will read in the wrong values with _getaffinity()
+  SetThreadAffinityMask(_curthread, _procmask);
+#endif
 }
 
 #ifdef BSS_PLATFORM_WIN32

@@ -6,7 +6,6 @@
 #include <iomanip>
 #include <stdio.h>
 #include <string.h>
-#include "bss_deprecated.h"
 #include "bss_util_c.h"
 #include "cStr.h"
 #include "INIparse.h"

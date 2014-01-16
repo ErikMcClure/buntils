@@ -5,7 +5,6 @@
 #define __BSS_SSE_H__
 
 #include "bss_defines.h"
-#include "bss_deprecated.h"
 #include <assert.h>
 #include <emmintrin.h>
 

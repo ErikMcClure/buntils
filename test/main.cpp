@@ -8,7 +8,6 @@
 #include "bss_alloc_additive.h"
 #include "bss_alloc_fixed.h"
 #include "bss_alloc_fixed_MT.h"
-#include "bss_deprecated.h"
 #include "bss_dual.h"
 #include "bss_fixedpt.h"
 #include "bss_sse.h"

@@ -5,7 +5,6 @@
 #define __C_ALIAS_TABLE_H__BSS__
 
 #include "bss_defines.h"
-#include "bss_deprecated.h"
 
 namespace bss_util {
   // Implementation of the Alias method, based off Keith Schwarz's code, found here: http://www.keithschwarz.com/darts-dice-coins/

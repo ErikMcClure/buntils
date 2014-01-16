@@ -48,6 +48,7 @@
 - Added multi-producer multi-consumer cMicroLockQueue (in cLocklessQueue.h)
 - cThread now inherits from std::thread and augments its existing functions with a timeout join and signalable state.
 - bss_deprecated.h has been removed - its contents have been absorbed into bss_defines.h
+- Removed cByteQueue
 - Added cThreadPool
 
 0.4.1

@@ -21,7 +21,6 @@
 #include "cBitStream.h"
 #include "cBSS_Queue.h"
 #include "cBSS_Stack.h"
-#include "cByteQueue.h"
 #include "cCmdLineArgs.h"
 #include "cDef.h"
 #include "cDisjointSet.h"
@@ -43,15 +42,14 @@
 #include "cSmartPtr.h"
 #include "cStr.h"
 #include "cStrTable.h"
+#include "cThread.h"
 #include "cTRBtree.h"
 #include "cTrie.h"
 #include "delegate.h"
-//#include "leaktest.h"
 #include "lockless.h"
 #include "os.h"
 #include "StreamSplitter.h"
 #include "Shiny.h"
-#include "cThread.h"
 
 #include <fstream>
 #include <algorithm>
@@ -2341,12 +2339,6 @@ TESTDEF::RETPAIR test_BSS_STACK()
   ENDTEST;
 }
 
-TESTDEF::RETPAIR test_BYTEQUEUE()
-{
-  BEGINTEST;
-  ENDTEST;
-}
-
 TESTDEF::RETPAIR test_CMDLINEARGS()
 {
   BEGINTEST;
@@ -3531,20 +3523,6 @@ TESTDEF::RETPAIR test_STRTABLE()
   ENDTEST;
 }
 
-//BSS_PFUNC_PRE APCthread(void* arg)
-//{
-//  size_t* i=reinterpret_cast<size_t*>(arg);
-//  //cHighPrecisionTimer* p=(cHighPrecisionTimer*)arg;
-//
-//  while(--*i)
-//  {
-//    cThread::SignalWait();
-//    //p->Update();
-//    //std::cout << "\n" << p->GetDelta() << std::endl;
-//  }
-//  return 0;
-//}
-
 TESTDEF::RETPAIR test_THREAD()
 {
   BEGINTEST;
@@ -3871,7 +3849,6 @@ int main(int argc, char** argv)
     { "cBitStream.h", &test_BITSTREAM },
     { "cBSS_Queue.h", &test_BSS_QUEUE },
     { "cBSS_Stack.h", &test_BSS_STACK },
-    //{ "cByteQueue.h", &test_BYTEQUEUE },
     { "cCmdLineArgs.h", &test_CMDLINEARGS },
     { "cDisjointSet.h", &test_DISJOINTSET },
     { "cDynArray.h", &test_DYNARRAY },

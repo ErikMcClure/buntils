@@ -52,6 +52,7 @@
 #include "os.h"
 #include "StreamSplitter.h"
 #include "Shiny.h"
+#include "cThread.h"
 
 #include <fstream>
 #include <algorithm>
@@ -3099,7 +3100,7 @@ TESTDEF::RETPAIR test_LOCKLESSQUEUE()
   }
 
   for(int k= 0; k < 1; ++k) {
-    typedef cLocklessQueueMM<unsigned short, size_t> LLQUEUE_MCMP;
+    typedef cMicroLockQueue<unsigned short, size_t> LLQUEUE_MCMP;
     for(int j = 2; j<=NUMTHREADS; j=fbnext(j)) {
       lq_c = 1;
       lq_pos = 0;

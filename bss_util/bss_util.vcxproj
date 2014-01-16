@@ -101,7 +101,6 @@
     <ClInclude Include="..\include\cSingleton.h" />
     <ClInclude Include="..\include\cStr.h" />
     <ClInclude Include="..\include\cStrTable.h" />
-    <ClInclude Include="..\include\cThread.h" />
     <ClInclude Include="..\include\cTrie.h" />
     <ClInclude Include="..\include\delegate.h" />
     <ClInclude Include="..\include\INIparse.h" />

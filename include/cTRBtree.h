@@ -38,6 +38,7 @@ namespace bss_util {
   {
   public:
     inline explicit cTRBtree(Alloc* allocator=0) : cAllocTracker<Alloc>(allocator), _first(0), _last(0), _root(pNIL) {}
+    inline cTRBtree(const cTRBtree&) = delete;
     inline cTRBtree(cTRBtree&& mov) : cAllocTracker<Alloc>(std::move(mov)), _first(mov.first), _last(mov._last), _root(mov._root)
     {
       mov._first=0;
@@ -100,6 +101,7 @@ namespace bss_util {
       mov._root=pNIL;
       return *this;
     }
+    inline cTRBtree& operator=(const cTRBtree&) = delete;
 
   protected:
 	  TRB_Node<T>* BSS_FASTCALL _get(const T& x) const

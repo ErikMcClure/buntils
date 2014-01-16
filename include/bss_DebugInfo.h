@@ -17,6 +17,7 @@ struct _PROCESS_MEMORY_COUNTERS; //Include <psapi.h> to read the information
 class BSS_DLLEXPORT bss_DebugInfo : public bss_util::cHighPrecisionTimer, public bss_Log
 {
 public:
+  bss_DebugInfo(const bss_DebugInfo&) = delete;
   bss_DebugInfo(bss_DebugInfo&& mov);
   explicit bss_DebugInfo(std::ostream* log=0);
   explicit bss_DebugInfo(const char* logfile, std::ostream* log=0);
@@ -66,6 +67,7 @@ public:
   // Clears all profilers
   void ClearProfilers();
 
+  bss_DebugInfo& operator=(const bss_DebugInfo&) = delete;
   bss_DebugInfo& operator =(bss_DebugInfo&& right);
   static const unsigned char NUMPROFILERS = 64;
 
@@ -79,11 +81,6 @@ protected:
   unsigned char _flstart; //profiler free list location
   unsigned char _flend;
   //void* _curprocess; // We only need this if HighPrecisionTimer doesn't have it
-
-private:
-  bss_DebugInfo(const bss_DebugInfo& copy);
-  bss_DebugInfo& operator =(const bss_DebugInfo& right);
-
 };
 
 #endif

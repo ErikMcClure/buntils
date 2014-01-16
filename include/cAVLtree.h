@@ -82,7 +82,7 @@ namespace bss_util {
     typedef typename BASE::DATAGET DATAGET;
     
   public:
-    inline cAVLtree(const cAVLtree& copy) : cAllocTracker<Alloc>(copy), _root(0) {}
+    cAVLtree(const cAVLtree& copy) = delete;
     inline cAVLtree(cAVLtree&& mov) : cAllocTracker<Alloc>(std::move(mov)), _root(mov._root) { mov._root=0; }
     inline cAVLtree(Alloc* allocator=0) : cAllocTracker<Alloc>(allocator), _root(0) {}
     inline ~cAVLtree() { Clear(); }
@@ -147,6 +147,7 @@ namespace bss_util {
     }
 
     inline cAVLtree& operator=(cAVLtree&& mov) { Clear(); _root=mov._root; mov._root=0; }
+    cAVLtree& operator=(const cAVLtree& copy) = delete;
 
   protected:
     template<typename F>

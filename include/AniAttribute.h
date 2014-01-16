@@ -1,4 +1,4 @@
-// Copyright ©2013 Black Sphere Studios
+// Copyright ©2*013 Black Sphere Studios
 // For conditions of distribution and use, see copyright notice in "bss_util.h"
 
 #ifndef __ANI_ATTRIBUTE__BSS__
@@ -339,7 +339,7 @@ namespace bss_util {
     using AniAttributeT<TypeID>::_curpair;
     
     inline AniAttributeInterval(const AniAttributeInterval& copy) : AniAttributeDiscrete<TypeID>(copy), _rmdel(copy._rmdel) {}
-    inline AniAttributeInterval(ANI_TID(DELEGATE) del, delegate<void,ANI_TID(AUX)> rmdel) : 
+    inline AniAttributeInterval(ANI_TID(DELEGATE) del, delegate<void,ANI_TID(AUX)> rmdel) :
       AniAttributeDiscrete<TypeID>(del), _rmdel(rmdel) {}
     inline AniAttributeInterval() : AniAttributeDiscrete<TypeID>(), _rmdel(0, 0), _length(0) {}
     virtual bool Interpolate(double timepassed)

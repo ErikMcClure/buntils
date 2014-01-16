@@ -240,6 +240,8 @@ public:
     return r;
   }
 
+  void operator[](std::allocator<char>&) = delete;
+
 private:
 #ifdef BSS_COMPILER_MSC
   BSS_FORCEINLINE CHAR* _internal_ptr() { return _Myptr(); }
@@ -263,8 +265,6 @@ private:
 
   inline static T* BSS_FASTCALL _ltrim(T* str) { for(;*str>0 && *str<33;++str); return str; }
   inline static T* BSS_FASTCALL _rtrim(T* str, size_t size) { T* inter=str+size; for(;inter>str && *inter<33;--inter); *(++inter)=0; return str; }
-  //The following line of code is in such a twisted state because it must overload the operator[] inherent in the basic_string class and render it totally unusable so as to force the compiler to disregard it as a possibility, otherwise it gets confused with the CHAR* type conversion
-  void operator[](std::allocator<CHAR>& f) { }//return BASE::operator [](_Off); }
 
 };
 #pragma warning(pop)

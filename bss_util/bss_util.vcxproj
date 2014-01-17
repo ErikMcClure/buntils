@@ -50,7 +50,6 @@
     <ClInclude Include="..\include\bss_alloc_fixed_MT.h" />
     <ClInclude Include="..\include\bss_compare.h" />
     <ClInclude Include="..\include\bss_compiler.h" />
-    <ClInclude Include="..\include\bss_DebugInfo.h" />
     <ClInclude Include="..\include\bss_defines.h" />
     <ClInclude Include="..\include\bss_dual.h" />
     <ClInclude Include="..\include\bss_fixedpt.h" />
@@ -124,7 +123,6 @@
     <ClInclude Include="..\include\StreamSplitter.h" />
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="bss_DebugInfo.cpp" />
     <ClCompile Include="bss_Log.cpp" />
     <ClCompile Include="bss_util.cpp" />
     <ClCompile Include="bss_util_c.c" />

@@ -49,6 +49,7 @@
 - cThread now inherits from std::thread and augments its existing functions with a timeout join and signalable state.
 - bss_deprecated.h has been removed - its contents have been absorbed into bss_defines.h
 - Removed cByteQueue
+- Removed cBSS_DebugInfo, it's useful functions are now standalone in bss_util_c.h
 - Added cThreadPool
 
 0.4.1

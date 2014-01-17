@@ -3,7 +3,7 @@
 
 #include "Shiny.h"
 #include "bss_util.h"
-#include "bss_DebugInfo.h"
+#include "bss_log.h"
 #include "bss_algo.h"
 #include "bss_alloc_additive.h"
 #include "bss_alloc_fixed.h"
@@ -86,7 +86,7 @@ using namespace bss_util;
 
 const unsigned short TESTNUM=50000;
 unsigned short testnums[TESTNUM];
-bss_DebugInfo _debug;
+cHighPrecisionTimer _prof;
 bss_Log _failedtests("../bin/failedtests.txt"); //This is spawned too early for us to save it with SetWorkDirToCur();
 
 // --- Define testing utilities ---
@@ -235,23 +235,23 @@ TESTDEF::RETPAIR test_bss_util_c()
   //_MM_SET_DENORMALS_ZERO_MODE(_MM_DENORMALS_ZERO_ON);
   //srand((int)time(0));
   //int a=0;
-  //char prof = _debug.OpenProfiler();
+  //unsigned __int64 prof = _prof.OpenProfiler();
   //CPU_Barrier();
   //for(int i = 0; i < 1000000; ++i) {
   //  //a+= 5+(rand()/(RAND_MAX + 1.0))*(15-5);
   //  a+= RANDINTGEN(9,12);
   //}
   //CPU_Barrier();
-  //std::cout << _debug.CloseProfiler(prof) << " :( " << a << std::endl;
+  //std::cout << _prof.CloseProfiler(prof) << " :( " << a << std::endl;
 
   //{
   //  float aaaa = 0;
-  //  char prof = _debug.OpenProfiler();
+  //  unsigned __int64 prof = _prof.OpenProfiler();
   //  CPU_Barrier();
   //  for(int i = 0; i < TESTNUM; ++i)
   //    aaaa += bssfmod<float>(-1.0f, testnums[i]+PIf);
   //  CPU_Barrier();
-  //  std::cout << _debug.CloseProfiler(prof) << std::endl;
+  //  std::cout << _prof.CloseProfiler(prof) << std::endl;
   //  std::cout << aaaa;
   //}
 
@@ -313,6 +313,8 @@ TESTDEF::RETPAIR test_bss_util_c()
   _itoa_r(-1,buf,10);
   TEST(!strcmp(buf,"-1"));
 
+  TEST(GetWorkingSet()!=0);
+
   ENDTEST;
 }
 
@@ -320,7 +322,7 @@ TESTDEF::RETPAIR test_bss_util()
 {
   BEGINTEST;
   TESTNOERROR(SetWorkDirToCur());
-  TEST(bssFileSize(_debug.ModulePath())!=0);
+  TEST(bssFileSize(GetProgramPath())!=0);
   //TEST(bssFileSize(cStrW(fbuf))!=0);
   TESTNOERROR(GetTimeZoneMinutes());
   
@@ -606,7 +608,7 @@ TESTDEF::RETPAIR test_bss_util()
   //for(uint i = 0; i < 100000; ++i)
   //  NUMBERS[i]=RANDFLOATGEN(2,4);
 
-  //char p=_debug.OpenProfiler();
+  //unsigned __int64 p=_prof.OpenProfiler();
   //CPU_Barrier();
   //for(uint j = 0; j < 10; ++j)
   //{
@@ -627,7 +629,7 @@ TESTDEF::RETPAIR test_bss_util()
   //}
   //}
   //CPU_Barrier();
-  //sqrt_avg=_debug.CloseProfiler(p);
+  //sqrt_avg=_prof.CloseProfiler(p);
   //
   //TEST(b==a); //keep things from optimizing out
   //cout << sqrt_avg << std::endl;
@@ -651,13 +653,13 @@ TESTDEF::RETPAIR test_bss_util()
   //  _numrand[i]=RANDFLOATGEN(0,100.0f);
 
   //int add=0;
-  //unsigned char prof = _debug.OpenProfiler();
+  //unsigned __int64 prof = _prof.OpenProfiler();
   //CPU_Barrier();
   //for(uint i = 0; i < NUM; ++i)
   //  //add+=(int)_numrand[i];
   //  add+=fFastTruncate(_numrand[i]);
   //CPU_Barrier();
-  //auto res = _debug.CloseProfiler(prof);
+  //auto res = _prof.CloseProfiler(prof);
   //double avg = res/(double)NUM;
   //TEST(add>-1);
   //std::cout << "\n" << avg << std::endl;
@@ -765,26 +767,14 @@ TESTDEF::RETPAIR test_bss_util()
   ENDTEST;
 }
 
-TESTDEF::RETPAIR test_bss_DEBUGINFO()
+TESTDEF::RETPAIR test_bss_LOG()
 {
   BEGINTEST;
   std::stringstream ss;
   std::fstream fs;
   std::wstringstream wss;
   fs.open(BSS__L("黑色球体工作室.log"));
-  auto tf = [&](bss_DebugInfo& di) {
-    TEST(di.CloseProfiler(di.OpenProfiler()) < 500000);
-    TEST(di.ModulePath()!=0);
-#ifdef BSS_PLATFORM_WIN32
-    TEST(di.GetProcMemInfo()!=0);
-    TEST(di.GetWorkingSet()!=0);
-#endif
-    TESTNOERROR(di.ClearProfilers());
-    di.OpenProfiler();
-    TESTNOERROR(di.ClearProfilers());
-    double d=di.GetDelta();
-    double t=di.GetTime();
-
+  auto tf = [&](bss_Log& di) {
     ss.clear();
     fs.clear();
     wss.clear();
@@ -795,14 +785,14 @@ TESTDEF::RETPAIR test_bss_DEBUGINFO()
     di.ClearTargets();
     di.GetStream() << BSS__L("黑色球体工作室");
   };
-  bss_DebugInfo a(BSS__L("黑色球体工作室.txt"),&ss); //Supposedly 黑色球体工作室 is Black Sphere Studios in Chinese, but the literal translation appears to be Black Ball Studio. Oh well.
-  bss_DebugInfo b("logtest.txt");
+  bss_Log a(BSS__L("黑色球体工作室.txt"), &ss); //Supposedly 黑色球体工作室 is Black Sphere Studios in Chinese, but the literal translation appears to be Black Ball Studio. Oh well.
+  bss_Log b("logtest.txt");
   b.AddTarget(fs);
-  bss_DebugInfo c;
+  bss_Log c;
   tf(a);
   tf(b);
   tf(c);
-  bss_DebugInfo d(std::move(a));
+  bss_Log d(std::move(a));
 
   bss_Log lg("logtest2.txt");
   lg.FORMATLOG<0>("main.cpp",-1) << std::endl;
@@ -1464,7 +1454,7 @@ TESTDEF::RETPAIR test_bss_SSE()
 
   //shuffle(megatest);
   //int l=0;
-  //prof=_debug.OpenProfiler();
+  //prof=_prof.OpenProfiler();
   //CPU_Barrier();
   //int v;
   //for(int i = 0; i < 1000000; i+=8) {
@@ -1472,11 +1462,11 @@ TESTDEF::RETPAIR test_bss_SSE()
   //  l+=SGNCOMPARE(v,0);
   //}
   //CPU_Barrier();
-  //std::cout << "SSE:" << _debug.CloseProfiler(prof) << std::endl;
+  //std::cout << "SSE:" << _prof.CloseProfiler(prof) << std::endl;
 
   //shuffle(megatest);
   //int l2=0;
-  //prof=_debug.OpenProfiler();
+  //prof=_prof.OpenProfiler();
   //CPU_Barrier();
   //for(int i = 0; i < 1000000; i+=8)
   //{
@@ -1498,7 +1488,7 @@ TESTDEF::RETPAIR test_bss_SSE()
   //  }
   //}
   //CPU_Barrier();
-  //std::cout << "NORMAL:" << _debug.CloseProfiler(prof) << std::endl;
+  //std::cout << "NORMAL:" << _prof.CloseProfiler(prof) << std::endl;
   //TEST(l==l2);
   //}
   
@@ -1509,7 +1499,7 @@ TESTDEF::RETPAIR test_bss_SSE()
   //  testfloats[i]=0.1*i;
 
   //float res[4];
-  //char prof=_debug.OpenProfiler();
+  //unsigned __int64 prof=_prof.OpenProfiler();
   //CPU_Barrier();
   //for(int cur=0; cur<70000; cur+=7)
   //{
@@ -1522,7 +1512,7 @@ TESTDEF::RETPAIR test_bss_SSE()
   //  y=testfloats[cur+6];
   //}
   //CPU_Barrier();
-  //std::cout << "NORMAL:" << _debug.CloseProfiler(prof) << std::endl;
+  //std::cout << "NORMAL:" << _prof.CloseProfiler(prof) << std::endl;
   //std::cout << left << right << top << bottom << std::endl;
   ENDTEST;
 }
@@ -1945,24 +1935,24 @@ TESTDEF::RETPAIR test_AVLTREE()
   FixedPolicy<AVL_Node<std::pair<int,int>>> fixedavl;
   cAVLtree<int, int,CompT<int>,FixedPolicy<AVL_Node<std::pair<int,int>>>> avlblah(&fixedavl);
 
-  //char prof=_debug.OpenProfiler();
+  //unsigned __int64 prof=_prof.OpenProfiler();
   for(int i = 0; i<TESTNUM; ++i)
     avlblah.Insert(testnums[i],testnums[i]);
-  //std::cout << _debug.CloseProfiler(prof) << std::endl;
+  //std::cout << _prof.CloseProfiler(prof) << std::endl;
 
   shuffle(testnums);
-  //prof=_debug.OpenProfiler();
+  //prof=_prof.OpenProfiler();
   uint c=0;
   for(int i = 0; i<TESTNUM; ++i)
     c+=(avlblah.GetRef(testnums[i])!=0);
   TEST(c==TESTNUM);
-  //std::cout << _debug.CloseProfiler(prof) << std::endl;
+  //std::cout << _prof.CloseProfiler(prof) << std::endl;
   
   shuffle(testnums);
-  //prof=_debug.OpenProfiler();
+  //prof=_prof.OpenProfiler();
   for(int i = 0; i<TESTNUM; ++i)
     avlblah.Remove(testnums[i]);
-  //std::cout << _debug.CloseProfiler(prof) << std::endl;
+  //std::cout << _prof.CloseProfiler(prof) << std::endl;
   avlblah.Clear();
 
   c=0;
@@ -2030,24 +2020,24 @@ TESTDEF::RETPAIR test_AVLTREE()
 
   cAVLtree<int,void,CompT<int>,FixedPolicy<AVL_Node<int>>> avlblah2;
 
-  //char prof=_debug.OpenProfiler();
+  //unsigned __int64 prof=_prof.OpenProfiler();
   for(int i = 0; i<TESTNUM; ++i)
     avlblah2.Insert(testnums[i]);
-  //std::cout << _debug.CloseProfiler(prof) << std::endl;
+  //std::cout << _prof.CloseProfiler(prof) << std::endl;
 
   shuffle(testnums);
-  //prof=_debug.OpenProfiler();
+  //prof=_prof.OpenProfiler();
   c=0;
   for(int i = 0; i<TESTNUM; ++i)
     c+=((avlblah2.GetRef(testnums[i])!=0)&(avlblah2.Get(testnums[i],-1)==testnums[i]));
   TEST(c==TESTNUM);
-  //std::cout << _debug.CloseProfiler(prof) << std::endl;
+  //std::cout << _prof.CloseProfiler(prof) << std::endl;
   
   shuffle(testnums);
-  //prof=_debug.OpenProfiler();
+  //prof=_prof.OpenProfiler();
   for(int i = 0; i<TESTNUM; ++i)
     avlblah2.Remove(testnums[i]);
-  //std::cout << _debug.CloseProfiler(prof) << std::endl;
+  //std::cout << _prof.CloseProfiler(prof) << std::endl;
   avlblah2.Clear();
 
   avlblah2.Insert(1);
@@ -2495,6 +2485,9 @@ TESTDEF::RETPAIR test_HIGHPRECISIONTIMER()
   timer.ResetTime();
   TEST(timer.GetDelta()>0.0);
   TEST(timer.GetTime()==0.0);
+  auto prof = timer.OpenProfiler();
+  TEST(prof!=0);
+  TEST(timer.CloseProfiler(prof)<1000);
   ENDTEST;
 }
 
@@ -2881,18 +2874,18 @@ TESTDEF::RETPAIR test_KHASH()
   //hashtest.Insert(52,0);
   //hashtest.Insert(1,0);
   //int r=hashtest.GetIterKey(hashtest.GetIterator(1));
-  cKhash_Int<bss_DebugInfo*> hasherint;
-  hasherint.Insert(25, &_debug);
+  cKhash_Int<bss_Log*> hasherint;
+  hasherint.Insert(25, &_failedtests);
   hasherint.Get(25);
   hasherint.Remove(25);
-  cKhash_StringIns<bss_DebugInfo*> hasher;
-  hasher.Insert("",&_debug);
-  hasher.Insert("Video",(bss_DebugInfo*)5);
+  cKhash_StringIns<bss_Log*> hasher;
+  hasher.Insert("", &_failedtests);
+  hasher.Insert("Video", (bss_Log*)5);
   hasher.SetSize(100);
   hasher.Insert("Physics",0);
-  bss_DebugInfo* check = hasher.Get("Video");
+  bss_Log* check = hasher.Get("Video");
   check = hasher.Get("Video");
-  //unsigned __int64 diff = _debug.CloseProfiler(ID);
+  //unsigned __int64 diff = _prof.CloseProfiler(ID);
 
   cKhash_Pointer<short,const void*,false> set;
   set.Insert(0,1);
@@ -3073,7 +3066,7 @@ TESTDEF::RETPAIR test_LOCKLESSQUEUE()
   typedef cLocklessQueue<unsigned short, size_t> LLQUEUE_SCSP;
   {
   LLQUEUE_SCSP q; // single consumer single producer test
-  char ppp=_debug.OpenProfiler();
+  unsigned __int64 ppp=_prof.OpenProfiler();
   lq_c=1;
   lq_pos=0;
   memset(lq_end, 0, sizeof(short)*TESTNUM);
@@ -3083,7 +3076,7 @@ TESTDEF::RETPAIR test_LOCKLESSQUEUE()
   startflag=true;
   threads[0].join();
   threads[1].join();
-  //std::cout << '\n' << _debug.CloseProfiler(ppp) << std::endl;
+  //std::cout << '\n' << _prof.CloseProfiler(ppp) << std::endl;
   bool check=true;
   for(int i = 0; i < TESTNUM;++i)
     check=check&&(lq_end[i]==i+1);
@@ -3284,7 +3277,7 @@ TESTDEF::RETPAIR test_TRBTREE()
   TEST(n2==TESTNUM);
   TEST(n3==TESTNUM);
 
-  //std::cout << _debug.CloseProfiler(prof) << std::endl;
+  //std::cout << _prof.CloseProfiler(prof) << std::endl;
   ENDTEST;
 }
 
@@ -3526,17 +3519,14 @@ TESTDEF::RETPAIR test_STRTABLE()
 TESTDEF::RETPAIR test_THREAD()
 {
   BEGINTEST;
-  //cHighPrecisionTimer timer;
-  //cHighPrecisionTimer useless;
-  //timer.Update();
-  //std::this_thread::sleep_for(2);
-  //timer.Update();
-  //std::cout << "\n" << timer.GetDelta() << std::endl;
-
-  //cThread apc(APCthread,&timer);
-  //size_t i=10;
-  //cThread apc(APCthread,(void*)&i);
-  //while(i==10) std::this_thread::sleep_for(1);
+  cHighPrecisionTimer timer;
+  unsigned __int64 m;
+  cThread t([](unsigned __int64& m, cHighPrecisionTimer& timer){cThread::Wait(); m=timer.CloseProfiler(m); }, std::ref(m), std::ref(timer));
+  TEST(t.join(2)==-1);
+  m=timer.OpenProfiler();
+  t.Signal();
+  TEST(t.join(1000)!=(size_t)-1);
+  std::cout << "\n" << m << std::endl;
   //while(i > 0)
   //{
   //  //for(int j = RANDINTGEN(50000,100000); j > 0; --j) { std::this_thread::sleep_for(0); useless.Update(); }
@@ -3571,14 +3561,14 @@ TESTDEF::RETPAIR test_TRIE()
   //  hashtest.Insert(randstr[i],i);
   //unsigned int dm;
   //shuffle(testnums);
-  //auto prof = _debug.OpenProfiler();
+  //auto prof = _prof.OpenProfiler();
   //CPU_Barrier();
   //for(uint i = 0; i < TESTNUM; ++i)
   //  //dm=hashtest[randstr[testnums[i]%200]];
   //  dm=t[randstr[testnums[i]%200]];
   //  //dm=t[strs[testnums[i]%10]];
   //CPU_Barrier();
-  //auto res = _debug.CloseProfiler(prof);
+  //auto res = _prof.CloseProfiler(prof);
   //std::cout << dm << "\nTIME:" << res << std::endl;
   
   for(uint i = 0; i < 9; ++i)
@@ -3817,7 +3807,7 @@ int main(int argc, char** argv)
 
   ForceWin64Crash();
   SetWorkDirToCur();
-  unsigned int seed=time(NULL);
+  unsigned int seed=(unsigned int)time(NULL);
   srand(seed);
   
   for(int i = 0; i<TESTNUM; ++i)
@@ -3827,7 +3817,7 @@ int main(int argc, char** argv)
   TESTDEF tests[] = {
     { "bss_util_c.h", &test_bss_util_c },
     { "bss_util.h", &test_bss_util },
-    { "bss_DebugInfo.h", &test_bss_DEBUGINFO },
+    { "bss_Log.h", &test_bss_LOG },
     { "bss_algo.h", &test_bss_algo },
     { "bss_alloc_additive.h", &test_bss_ALLOC_ADDITIVE },
     { "bss_alloc_fixed.h", &test_bss_ALLOC_FIXED },

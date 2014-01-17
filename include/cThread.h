@@ -33,7 +33,7 @@ namespace bss_util {
       if(joinable())
       {
 #ifdef BSS_PLATFORM_WIN32
-        if(WaitForSingleObject((HANDLE)native_handle(), mstimeout)!=0)
+        if(WaitForSingleObject((HANDLE)native_handle(), (DWORD)mstimeout)!=0)
           return (size_t)-1;
         GetExitCodeThread((HANDLE)native_handle(), (DWORD*)&ret); // size_t is gaurenteed to be big enough to hold DWORD
 #else // BSS_PLATFORM_POSIX
@@ -58,11 +58,11 @@ namespace bss_util {
     cThread& operator=(cThread&& mov) _NOEXCEPT { std::thread::operator=(std::move((std::thread&&)mov)); return *this; }
 
 #ifdef BSS_PLATFORM_WIN32
-    BSS_FORCEINLINE void SendSignal() { DWORD r=QueueUserAPC(&cThread::_APCactivate, native_handle(), 0); assert(r); }
-    BSS_FORCEINLINE static void SignalWait() { SleepEx(INFINITE,true); }
+    BSS_FORCEINLINE void Signal() { DWORD r=QueueUserAPC(&cThread::_APCactivate, native_handle(), 0); assert(r); }
+    BSS_FORCEINLINE static void Wait() { SleepEx(INFINITE,true); }
 #else
-    BSS_FORCEINLINE void SendSignal() { raise(SIGUSR2); }
-    inline static int SignalWait() {
+    BSS_FORCEINLINE void Signal() { raise(SIGUSR2); }
+    inline static int Wait() {
       struct timespec ts;
       sigset_t set;
 		  ts.tv_sec=1;

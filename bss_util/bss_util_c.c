@@ -8,6 +8,7 @@
 #ifdef BSS_PLATFORM_WIN32
 #include "bss_win32_includes.h"
 #include <intrin.h>
+#include <psapi.h>
 #else
 #include <iconv.h>
 #include <unistd.h> // for sysconf
@@ -61,6 +62,25 @@ extern union bssCPUInfo BSS_FASTCALL bssGetCPUInfo()
   r.flags|=(((info[3]&T_GETBIT(int,19))!=0)<<4); // CFLUSH support
   r.flags|=(((info[2]&T_GETBIT(int,23))!=0)<<5); // POPCNT support
   return r;
+}
+
+BSS_COMPILER_DLLEXPORT 
+extern const char* GetProgramPath()
+{
+  static char buf[MAX_PATH*2];
+  wchar_t wbuf[MAX_PATH];
+  GetModuleFileNameExW(GetCurrentProcess(), 0, wbuf, MAX_PATH);
+  wbuf[MAX_PATH-1]=0; //XP doesn't ensure this is null terminated
+  UTF16toUTF8(wbuf, buf, MAX_PATH);
+  return buf;
+}
+
+BSS_COMPILER_DLLEXPORT
+extern size_t GetWorkingSet()
+{
+  PROCESS_MEMORY_COUNTERS counter;
+  GetProcessMemoryInfo(GetCurrentProcess(), &counter, sizeof(PROCESS_MEMORY_COUNTERS));
+  return counter.WorkingSetSize;
 }
 
 BSS_COMPILER_DLLEXPORT

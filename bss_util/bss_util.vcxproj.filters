@@ -36,9 +36,6 @@
     <ClInclude Include="..\include\bss_compiler.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="..\include\bss_DebugInfo.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
     <ClInclude Include="..\include\bss_defines.h">
       <Filter>Header Files</Filter>
     </ClInclude>
@@ -257,9 +254,6 @@
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="bss_DebugInfo.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
     <ClCompile Include="bss_Log.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>

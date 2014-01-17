@@ -33,6 +33,29 @@ namespace bss_util
     // Resets the delta to 0, and resamples the timer.
     inline void BSS_FASTCALL ResetDelta() { _querytime(&_curTime); _delta = 0; }
 
+    // Starts a profiler call
+    inline unsigned __int64 OpenProfiler()
+    {
+      unsigned __int64 ret;
+#ifdef BSS_PLATFORM_WIN32
+      _querytime(&ret);
+#else
+      _querytime(&ret, CLOCK_PROCESS_CPUTIME_ID);
+#endif
+      return ret;
+    }
+    // Closes a profiler
+    inline unsigned __int64 BSS_FASTCALL CloseProfiler(unsigned __int64 begin)
+    {
+      unsigned __int64 compare;
+#ifdef BSS_PLATFORM_WIN32
+      _querytime(&compare); //done up here to minimize timing inaccuracies
+#else
+      _querytime(&compare, CLOCK_PROCESS_CPUTIME_ID);
+#endif
+      return compare-begin;
+    }
+
   protected:
     double _delta; // milliseconds
     double _time; // milliseconds

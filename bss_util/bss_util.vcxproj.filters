@@ -252,6 +252,9 @@
     <ClInclude Include="..\include\cThread.h">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="..\include\cThreadPool.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="bss_Log.cpp">

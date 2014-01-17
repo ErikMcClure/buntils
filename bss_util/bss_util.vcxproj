@@ -93,6 +93,7 @@
     <ClInclude Include="..\include\cScheduler.h" />
     <ClInclude Include="..\include\cSmartPtr.h" />
     <ClInclude Include="..\include\cThread.h" />
+    <ClInclude Include="..\include\cThreadPool.h" />
     <ClInclude Include="..\include\cTRBtree.h" />
     <ClInclude Include="..\include\cRefCounter.h" />
     <ClInclude Include="..\include\cSettings.h" />

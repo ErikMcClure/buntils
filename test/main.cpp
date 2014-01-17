@@ -43,6 +43,7 @@
 #include "cStr.h"
 #include "cStrTable.h"
 #include "cThread.h"
+#include "cThreadPool.h"
 #include "cTRBtree.h"
 #include "cTrie.h"
 #include "delegate.h"

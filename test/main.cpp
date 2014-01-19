@@ -8,9 +8,9 @@
 #include "bss_alloc_additive.h"
 #include "bss_alloc_fixed.h"
 #include "bss_alloc_fixed_MT.h"
-#include "bss_dual.h"
-#include "bss_fixedpt.h"
+#include "bss_queue.h"
 #include "bss_sse.h"
+#include "bss_stack.h"
 #include "cAliasTable.h"
 #include "cAnimation.h"
 #include "cArrayCircular.h"
@@ -19,8 +19,6 @@
 #include "cBitArray.h"
 #include "cBitField.h"
 #include "cBitStream.h"
-#include "cBSS_Queue.h"
-#include "cBSS_Stack.h"
 #include "cCmdLineArgs.h"
 #include "cDef.h"
 #include "cDisjointSet.h"
@@ -47,6 +45,8 @@
 #include "cTRBtree.h"
 #include "cTrie.h"
 #include "delegate.h"
+#include "Dual.h"
+#include "FixedPt.h"
 #include "lockless.h"
 #include "os.h"
 #include "StreamSplitter.h"
@@ -2264,7 +2264,7 @@ TESTDEF::RETPAIR test_BITSTREAM()
 TESTDEF::RETPAIR test_BSS_QUEUE()
 {
   BEGINTEST;
-  cBSS_Queue<int> q(0);
+  cQueue<int> q(0);
   q.Clear();
   TEST(q.Capacity()==0);
   TEST(q.Empty());
@@ -2294,7 +2294,7 @@ TESTDEF::RETPAIR test_BSS_QUEUE()
   q.Discard();
   TEST(q.Length()==1);
   TEST(q.Peek()==6);
-  cBSS_Queue<int> q2(3);
+  cQueue<int> q2(3);
   q2.Push(7);
   TEST(q2.Peek()==7);
   q2=q;
@@ -2306,7 +2306,7 @@ TESTDEF::RETPAIR test_BSS_QUEUE()
 TESTDEF::RETPAIR test_BSS_STACK()
 {
   BEGINTEST;
-  cBSS_Stack<int> s(0);
+  cStack<int> s(0);
   s.Clear();
   s.Push(1);
   TEST(s.Pop()==1);
@@ -2322,7 +2322,7 @@ TESTDEF::RETPAIR test_BSS_STACK()
   s.Push(5);
   TEST(s.Peek()==5);
   TEST(s.Length()==1);
-  cBSS_Stack<int> s2(3);
+  cStack<int> s2(3);
   s2.Push(6);
   TEST(s2.Peek()==6);
   s2=s;
@@ -3876,8 +3876,8 @@ int main(int argc, char** argv)
     { "cBitArray.h", &test_BITARRAY },
     { "cBitField.h", &test_BITFIELD },
     { "cBitStream.h", &test_BITSTREAM },
-    { "cBSS_Queue.h", &test_BSS_QUEUE },
-    { "cBSS_Stack.h", &test_BSS_STACK },
+    { "cQueue.h", &test_BSS_QUEUE },
+    { "cStack.h", &test_BSS_STACK },
     { "cCmdLineArgs.h", &test_CMDLINEARGS },
     { "cDisjointSet.h", &test_DISJOINTSET },
     { "cDynArray.h", &test_DYNARRAY },

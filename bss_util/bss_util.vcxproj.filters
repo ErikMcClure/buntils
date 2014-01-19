@@ -39,9 +39,6 @@
     <ClInclude Include="..\include\bss_defines.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="..\include\bss_fixedpt.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
     <ClInclude Include="..\include\bss_literals.h">
       <Filter>Header Files</Filter>
     </ClInclude>
@@ -82,9 +79,6 @@
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="..\include\cBitField.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="..\include\cBSS_Stack.h">
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="..\include\cCmdLineArgs.h">
@@ -165,9 +159,6 @@
     <ClInclude Include="..\include\cLocklessQueue.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="..\include\bss_dual.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
     <ClInclude Include="..\include\cTRBtree.h">
       <Filter>Header Files</Filter>
     </ClInclude>
@@ -240,9 +231,6 @@
     <ClInclude Include="..\include\bss_graph.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="..\include\cBSS_Queue.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
     <ClInclude Include="..\include\cBitStream.h">
       <Filter>Header Files</Filter>
     </ClInclude>
@@ -253,6 +241,18 @@
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="..\include\cThreadPool.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="..\include\bss_queue.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="..\include\bss_stack.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="..\include\Dual.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="..\include\FixedPt.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>

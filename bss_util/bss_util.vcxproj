@@ -51,12 +51,12 @@
     <ClInclude Include="..\include\bss_compare.h" />
     <ClInclude Include="..\include\bss_compiler.h" />
     <ClInclude Include="..\include\bss_defines.h" />
-    <ClInclude Include="..\include\bss_dual.h" />
-    <ClInclude Include="..\include\bss_fixedpt.h" />
     <ClInclude Include="..\include\bss_graph.h" />
     <ClInclude Include="..\include\bss_literals.h" />
     <ClInclude Include="..\include\bss_Log.h" />
+    <ClInclude Include="..\include\bss_queue.h" />
     <ClInclude Include="..\include\bss_sse.h" />
+    <ClInclude Include="..\include\bss_stack.h" />
     <ClInclude Include="..\include\bss_util.h" />
     <ClInclude Include="..\include\bss_util_c.h" />
     <ClInclude Include="..\include\bss_win32_includes.h" />
@@ -71,8 +71,6 @@
     <ClInclude Include="..\include\cBitArray.h" />
     <ClInclude Include="..\include\cBitField.h" />
     <ClInclude Include="..\include\cBitStream.h" />
-    <ClInclude Include="..\include\cBSS_Queue.h" />
-    <ClInclude Include="..\include\cBSS_Stack.h" />
     <ClInclude Include="..\include\cCmdLineArgs.h" />
     <ClInclude Include="..\include\cDef.h" />
     <ClInclude Include="..\include\cDisjointSet.h" />
@@ -102,6 +100,8 @@
     <ClInclude Include="..\include\cStrTable.h" />
     <ClInclude Include="..\include\cTrie.h" />
     <ClInclude Include="..\include\delegate.h" />
+    <ClInclude Include="..\include\Dual.h" />
+    <ClInclude Include="..\include\FixedPt.h" />
     <ClInclude Include="..\include\INIparse.h" />
     <ClInclude Include="..\include\khash.h" />
     <ClInclude Include="..\include\leaktest.h" />

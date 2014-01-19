@@ -1673,8 +1673,10 @@ TESTDEF::RETPAIR test_ANIMATION()
   a.AddKeyFrame<2>(KeyFrame<2>(2.0, 2.0f));
   a.Pause(false);
   TEST(!a.IsPaused());
-  TEST(!a.HasTypeID(1));
   TEST(a.HasTypeID(0));
+  TEST(a.HasTypeID(1));
+  TEST(a.HasTypeID(2));
+  TEST(!a.HasTypeID(3));
   TEST(a.GetTypeID(0)!=0);
   TEST(a.GetAnimationLength()==2.0);
   
@@ -1727,7 +1729,7 @@ TESTDEF::RETPAIR test_ANIMATION()
   TEST(obj.test==3);
   a.Interpolate(3.0);
   a.Stop();
-  TEST(c.Grab()==14);
+  TEST(c.Grab()==13);
   c.Drop();
 
   {
@@ -1736,12 +1738,11 @@ TESTDEF::RETPAIR test_ANIMATION()
     b.Attach(delegate<void, AniAttribute*>::From<cAnimObj, &cAnimObj::TypeIDRegFunc>(&obj));
     TEST(obj.test==0);
     b.Start(0);
-    TEST(obj.test==4);
-    TEST(c.Grab()==22);
     TEST(obj.test==2);
+    TEST(c.Grab()==21);
+    c.Drop();
     b.Interpolate(10.0);
-    TEST(obj.test==4);
-    TEST(c.Grab()==20);
+    TEST(c.Grab()==22);
     c.Drop();
   }
   }

@@ -31,7 +31,7 @@ namespace bss_util
       SetLength(num); 
     }
     ~cThreadPool() { _killall();  }
-    inline void Push(FUNC f, void* a) { _queue.Push(PAIR(f, a)); }
+    inline void Push(FUNC f, void* a) { _numtasks.fetch_add(1, std::memory_order_acquire); _queue.Push(PAIR(f, a)); }
     inline void SetLength(size_t num)
     {
       for(int i = num; i < _pool.size(); ++i) // signal deleted threads to exit
@@ -45,7 +45,7 @@ namespace bss_util
       }
     }
     inline size_t Length() const { return _pool.size(); }
-    inline size_t NumTasks() const { return _queue.Length(); }
+    inline size_t NumTasks() const { return _numtasks.load(std::memory_order_relaxed); }
 
     inline void Prime()
     {
@@ -53,7 +53,7 @@ namespace bss_util
       for(unsigned int i = 0; i < _pool.size(); ++i)
         _pool[i].Signal();
     }
-    inline void Wait() { _sleepflag.store(1, std::memory_order_release); }
+    inline void Wait() { _sleepflag.store(1, std::memory_order_relaxed); }
     inline void Join() { while(NumTasks()>0); }
 
     cThreadPool& operator=(const cThreadPool&) = delete;
@@ -79,12 +79,14 @@ namespace bss_util
 
     static void _threadpool_worker(cThreadPool& pool, std::atomic<unsigned int>& qflags, unsigned int qmask)
     {
-      cMicroLockQueue<PAIR, char>& queue = pool._queue;
+      cMicroLockQueue<PAIR>& queue = pool._queue;
       PAIR cur;
       for(;;)
       {
-        if(queue.Pop(cur))
+        if(queue.Pop(cur)) {
           (*cur.first)(cur.second);
+          pool._numtasks.fetch_add((size_t)-1, std::memory_order_release);
+        }
         if(qflags.load(std::memory_order_relaxed)&qmask)
           break;
         if(pool._sleepflag.load(std::memory_order_relaxed)!=0)
@@ -92,10 +94,11 @@ namespace bss_util
       }
     }
 
-    cMicroLockQueue<PAIR, char> _queue;
+    cMicroLockQueue<PAIR> _queue;
     std::vector<cThread> _pool;
     std::atomic<unsigned int> _quitflags[NUMMAXCHARS]; // each thread gets its own bit, which let's us resize the threadpool on the fly, even when things are queue up in it.
     std::atomic<unsigned char> _sleepflag;
+    std::atomic<size_t> _numtasks; // We manually keep track of this so it is decremented AFTER a task is finished rather then relying on the lockless queue's internal counter.
     //std::atomic<unsigned int> _timeout;
   };
 

@@ -49,10 +49,11 @@ namespace bss_util {
         }
 #endif
       }
-
+      
       std::thread::join();
       return ret;
     }
+    BSS_FORCEINLINE void join() { std::thread::join(); }
 
     cThread& operator=(const cThread&) = delete;
     cThread& operator=(cThread&& mov) _NOEXCEPT { std::thread::operator=(std::move((std::thread&&)mov)); return *this; }

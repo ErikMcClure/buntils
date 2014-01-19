@@ -87,7 +87,6 @@ using namespace bss_util;
 
 const unsigned short TESTNUM=50000;
 unsigned short testnums[TESTNUM];
-cHighPrecisionTimer _prof;
 bss_Log _failedtests("../bin/failedtests.txt"); //This is spawned too early for us to save it with SetWorkDirToCur();
 
 // --- Define testing utilities ---
@@ -236,23 +235,23 @@ TESTDEF::RETPAIR test_bss_util_c()
   //_MM_SET_DENORMALS_ZERO_MODE(_MM_DENORMALS_ZERO_ON);
   //srand((int)time(0));
   //int a=0;
-  //unsigned __int64 prof = _prof.OpenProfiler();
+  //unsigned __int64 prof = cHighPrecisionTimer::OpenProfiler();
   //CPU_Barrier();
   //for(int i = 0; i < 1000000; ++i) {
   //  //a+= 5+(rand()/(RAND_MAX + 1.0))*(15-5);
   //  a+= RANDINTGEN(9,12);
   //}
   //CPU_Barrier();
-  //std::cout << _prof.CloseProfiler(prof) << " :( " << a << std::endl;
+  //std::cout << cHighPrecisionTimer::CloseProfiler(prof) << " :( " << a << std::endl;
 
   //{
   //  float aaaa = 0;
-  //  unsigned __int64 prof = _prof.OpenProfiler();
+  //  unsigned __int64 prof = cHighPrecisionTimer::OpenProfiler();
   //  CPU_Barrier();
   //  for(int i = 0; i < TESTNUM; ++i)
   //    aaaa += bssfmod<float>(-1.0f, testnums[i]+PIf);
   //  CPU_Barrier();
-  //  std::cout << _prof.CloseProfiler(prof) << std::endl;
+  //  std::cout << cHighPrecisionTimer::CloseProfiler(prof) << std::endl;
   //  std::cout << aaaa;
   //}
 
@@ -609,7 +608,7 @@ TESTDEF::RETPAIR test_bss_util()
   //for(uint i = 0; i < 100000; ++i)
   //  NUMBERS[i]=RANDFLOATGEN(2,4);
 
-  //unsigned __int64 p=_prof.OpenProfiler();
+  //unsigned __int64 p=cHighPrecisionTimer::OpenProfiler();
   //CPU_Barrier();
   //for(uint j = 0; j < 10; ++j)
   //{
@@ -630,7 +629,7 @@ TESTDEF::RETPAIR test_bss_util()
   //}
   //}
   //CPU_Barrier();
-  //sqrt_avg=_prof.CloseProfiler(p);
+  //sqrt_avg=cHighPrecisionTimer::CloseProfiler(p);
   //
   //TEST(b==a); //keep things from optimizing out
   //cout << sqrt_avg << std::endl;
@@ -654,13 +653,13 @@ TESTDEF::RETPAIR test_bss_util()
   //  _numrand[i]=RANDFLOATGEN(0,100.0f);
 
   //int add=0;
-  //unsigned __int64 prof = _prof.OpenProfiler();
+  //unsigned __int64 prof = cHighPrecisionTimer::OpenProfiler();
   //CPU_Barrier();
   //for(uint i = 0; i < NUM; ++i)
   //  //add+=(int)_numrand[i];
   //  add+=fFastTruncate(_numrand[i]);
   //CPU_Barrier();
-  //auto res = _prof.CloseProfiler(prof);
+  //auto res = cHighPrecisionTimer::CloseProfiler(prof);
   //double avg = res/(double)NUM;
   //TEST(add>-1);
   //std::cout << "\n" << avg << std::endl;
@@ -1455,7 +1454,7 @@ TESTDEF::RETPAIR test_bss_SSE()
 
   //shuffle(megatest);
   //int l=0;
-  //prof=_prof.OpenProfiler();
+  //prof=cHighPrecisionTimer::OpenProfiler();
   //CPU_Barrier();
   //int v;
   //for(int i = 0; i < 1000000; i+=8) {
@@ -1463,11 +1462,11 @@ TESTDEF::RETPAIR test_bss_SSE()
   //  l+=SGNCOMPARE(v,0);
   //}
   //CPU_Barrier();
-  //std::cout << "SSE:" << _prof.CloseProfiler(prof) << std::endl;
+  //std::cout << "SSE:" << cHighPrecisionTimer::CloseProfiler(prof) << std::endl;
 
   //shuffle(megatest);
   //int l2=0;
-  //prof=_prof.OpenProfiler();
+  //prof=cHighPrecisionTimer::OpenProfiler();
   //CPU_Barrier();
   //for(int i = 0; i < 1000000; i+=8)
   //{
@@ -1489,7 +1488,7 @@ TESTDEF::RETPAIR test_bss_SSE()
   //  }
   //}
   //CPU_Barrier();
-  //std::cout << "NORMAL:" << _prof.CloseProfiler(prof) << std::endl;
+  //std::cout << "NORMAL:" << cHighPrecisionTimer::CloseProfiler(prof) << std::endl;
   //TEST(l==l2);
   //}
   
@@ -1500,7 +1499,7 @@ TESTDEF::RETPAIR test_bss_SSE()
   //  testfloats[i]=0.1*i;
 
   //float res[4];
-  //unsigned __int64 prof=_prof.OpenProfiler();
+  //unsigned __int64 prof=cHighPrecisionTimer::OpenProfiler();
   //CPU_Barrier();
   //for(int cur=0; cur<70000; cur+=7)
   //{
@@ -1513,7 +1512,7 @@ TESTDEF::RETPAIR test_bss_SSE()
   //  y=testfloats[cur+6];
   //}
   //CPU_Barrier();
-  //std::cout << "NORMAL:" << _prof.CloseProfiler(prof) << std::endl;
+  //std::cout << "NORMAL:" << cHighPrecisionTimer::CloseProfiler(prof) << std::endl;
   //std::cout << left << right << top << bottom << std::endl;
   ENDTEST;
 }
@@ -1936,24 +1935,24 @@ TESTDEF::RETPAIR test_AVLTREE()
   FixedPolicy<AVL_Node<std::pair<int,int>>> fixedavl;
   cAVLtree<int, int,CompT<int>,FixedPolicy<AVL_Node<std::pair<int,int>>>> avlblah(&fixedavl);
 
-  //unsigned __int64 prof=_prof.OpenProfiler();
+  //unsigned __int64 prof=cHighPrecisionTimer::OpenProfiler();
   for(int i = 0; i<TESTNUM; ++i)
     avlblah.Insert(testnums[i],testnums[i]);
-  //std::cout << _prof.CloseProfiler(prof) << std::endl;
+  //std::cout << cHighPrecisionTimer::CloseProfiler(prof) << std::endl;
 
   shuffle(testnums);
-  //prof=_prof.OpenProfiler();
+  //prof=cHighPrecisionTimer::OpenProfiler();
   uint c=0;
   for(int i = 0; i<TESTNUM; ++i)
     c+=(avlblah.GetRef(testnums[i])!=0);
   TEST(c==TESTNUM);
-  //std::cout << _prof.CloseProfiler(prof) << std::endl;
+  //std::cout << cHighPrecisionTimer::CloseProfiler(prof) << std::endl;
   
   shuffle(testnums);
-  //prof=_prof.OpenProfiler();
+  //prof=cHighPrecisionTimer::OpenProfiler();
   for(int i = 0; i<TESTNUM; ++i)
     avlblah.Remove(testnums[i]);
-  //std::cout << _prof.CloseProfiler(prof) << std::endl;
+  //std::cout << cHighPrecisionTimer::CloseProfiler(prof) << std::endl;
   avlblah.Clear();
 
   c=0;
@@ -2021,24 +2020,24 @@ TESTDEF::RETPAIR test_AVLTREE()
 
   cAVLtree<int,void,CompT<int>,FixedPolicy<AVL_Node<int>>> avlblah2;
 
-  //unsigned __int64 prof=_prof.OpenProfiler();
+  //unsigned __int64 prof=cHighPrecisionTimer::OpenProfiler();
   for(int i = 0; i<TESTNUM; ++i)
     avlblah2.Insert(testnums[i]);
-  //std::cout << _prof.CloseProfiler(prof) << std::endl;
+  //std::cout << cHighPrecisionTimer::CloseProfiler(prof) << std::endl;
 
   shuffle(testnums);
-  //prof=_prof.OpenProfiler();
+  //prof=cHighPrecisionTimer::OpenProfiler();
   c=0;
   for(int i = 0; i<TESTNUM; ++i)
     c+=((avlblah2.GetRef(testnums[i])!=0)&(avlblah2.Get(testnums[i],-1)==testnums[i]));
   TEST(c==TESTNUM);
-  //std::cout << _prof.CloseProfiler(prof) << std::endl;
+  //std::cout << cHighPrecisionTimer::CloseProfiler(prof) << std::endl;
   
   shuffle(testnums);
-  //prof=_prof.OpenProfiler();
+  //prof=cHighPrecisionTimer::OpenProfiler();
   for(int i = 0; i<TESTNUM; ++i)
     avlblah2.Remove(testnums[i]);
-  //std::cout << _prof.CloseProfiler(prof) << std::endl;
+  //std::cout << cHighPrecisionTimer::CloseProfiler(prof) << std::endl;
   avlblah2.Clear();
 
   avlblah2.Insert(1);
@@ -2486,9 +2485,15 @@ TESTDEF::RETPAIR test_HIGHPRECISIONTIMER()
   timer.ResetTime();
   TEST(timer.GetDelta()>0.0);
   TEST(timer.GetTime()==0.0);
-  auto prof = timer.OpenProfiler();
+  auto prof = cHighPrecisionTimer::OpenProfiler();
   TEST(prof!=0);
-  TEST(timer.CloseProfiler(prof)<1000);
+  std::this_thread::sleep_for(std::chrono::milliseconds(2));
+  auto val = cHighPrecisionTimer::CloseProfiler(prof);
+
+  TEST(cHighPrecisionTimer::CloseProfiler(prof)>1000000); // we should have slept for at least 1 millisecond
+  TEST(cHighPrecisionTimer::CloseProfiler(prof)<5000000); // but less than 5 milliseconds
+  prof = cHighPrecisionTimer::OpenProfiler();
+  TEST(cHighPrecisionTimer::CloseProfiler(prof)<10000);
   ENDTEST;
 }
 
@@ -2886,7 +2891,7 @@ TESTDEF::RETPAIR test_KHASH()
   hasher.Insert("Physics",0);
   bss_Log* check = hasher.Get("Video");
   check = hasher.Get("Video");
-  //unsigned __int64 diff = _prof.CloseProfiler(ID);
+  //unsigned __int64 diff = cHighPrecisionTimer::CloseProfiler(ID);
 
   cKhash_Pointer<short,const void*,false> set;
   set.Insert(0,1);
@@ -3067,7 +3072,7 @@ TESTDEF::RETPAIR test_LOCKLESSQUEUE()
   typedef cLocklessQueue<unsigned short, size_t> LLQUEUE_SCSP;
   {
   LLQUEUE_SCSP q; // single consumer single producer test
-  unsigned __int64 ppp=_prof.OpenProfiler();
+  unsigned __int64 ppp=cHighPrecisionTimer::OpenProfiler();
   lq_c=1;
   lq_pos=0;
   memset(lq_end, 0, sizeof(short)*TESTNUM);
@@ -3077,7 +3082,7 @@ TESTDEF::RETPAIR test_LOCKLESSQUEUE()
   startflag=true;
   threads[0].join();
   threads[1].join();
-  //std::cout << '\n' << _prof.CloseProfiler(ppp) << std::endl;
+  //std::cout << '\n' << cHighPrecisionTimer::CloseProfiler(ppp) << std::endl;
   bool check=true;
   for(int i = 0; i < TESTNUM;++i)
     check=check&&(lq_end[i]==i+1);
@@ -3278,7 +3283,7 @@ TESTDEF::RETPAIR test_TRBTREE()
   TEST(n2==TESTNUM);
   TEST(n3==TESTNUM);
 
-  //std::cout << _prof.CloseProfiler(prof) << std::endl;
+  //std::cout << cHighPrecisionTimer::CloseProfiler(prof) << std::endl;
   ENDTEST;
 }
 
@@ -3520,20 +3525,52 @@ TESTDEF::RETPAIR test_STRTABLE()
 TESTDEF::RETPAIR test_THREAD()
 {
   BEGINTEST;
-  cHighPrecisionTimer timer;
   unsigned __int64 m;
-  cThread t([](unsigned __int64& m, cHighPrecisionTimer& timer){cThread::Wait(); m=timer.CloseProfiler(m); }, std::ref(m), std::ref(timer));
+  cThread t([](unsigned __int64& m){cThread::Wait(); m=cHighPrecisionTimer::CloseProfiler(m); }, std::ref(m));
   TEST(t.join(2)==-1);
-  m=timer.OpenProfiler();
+  m=cHighPrecisionTimer::OpenProfiler();
   t.Signal();
   TEST(t.join(1000)!=(size_t)-1);
-  std::cout << "\n" << m << std::endl;
+  //std::cout << "\n" << m << std::endl;
   //while(i > 0)
   //{
   //  //for(int j = RANDINTGEN(50000,100000); j > 0; --j) { std::this_thread::sleep_for(0); useless.Update(); }
   //  //timer.Update();
   //  apc.SendSignal(); // This doesn't work on linux
   //} 
+
+  ENDTEST;
+}
+
+void pooltest(int i) {
+  lq_end[lq_c.fetch_add(1,std::memory_order_relaxed)]=i;
+}
+TESTDEF::RETPAIR test_THREADPOOL()
+{
+  BEGINTEST;
+  static const int NUM=8;
+  cThreadPool<32> pool(NUM);
+  cTaskPool<32,int> tasks(pool);
+  pool.Wait();
+  memset(lq_end, 0, sizeof(unsigned short)*TESTNUM);
+  lq_c=0;
+
+  for(int i = 1; i < 5000; ++i) // fill up initial bunch
+    tasks.Push(pooltest, i);
+
+  pool.Prime();
+
+  for(int i = 5000; i <= TESTNUM; ++i)
+    tasks.Push(pooltest, i);
+
+  pool.Join();
+
+  TEST(lq_c==TESTNUM);
+  std::sort(std::begin(lq_end), std::end(lq_end));
+  bool check=true;
+  for(int i = 1; i <= TESTNUM; ++i)
+    check=(lq_end[i-1]==i)&&check;
+  TEST(check);
 
   ENDTEST;
 }
@@ -3562,14 +3599,14 @@ TESTDEF::RETPAIR test_TRIE()
   //  hashtest.Insert(randstr[i],i);
   //unsigned int dm;
   //shuffle(testnums);
-  //auto prof = _prof.OpenProfiler();
+  //auto prof = cHighPrecisionTimer::OpenProfiler();
   //CPU_Barrier();
   //for(uint i = 0; i < TESTNUM; ++i)
   //  //dm=hashtest[randstr[testnums[i]%200]];
   //  dm=t[randstr[testnums[i]%200]];
   //  //dm=t[strs[testnums[i]%10]];
   //CPU_Barrier();
-  //auto res = _prof.CloseProfiler(prof);
+  //auto res = cHighPrecisionTimer::CloseProfiler(prof);
   //std::cout << dm << "\nTIME:" << res << std::endl;
   
   for(uint i = 0; i < 9; ++i)
@@ -3863,6 +3900,7 @@ int main(int argc, char** argv)
     { "cStr.h", &test_STR },
     { "cStrTable.h", &test_STRTABLE },
     { "cThread.h", &test_THREAD },
+    { "cThreadPool.h", &test_THREADPOOL },
     { "cTRBtree.h", &test_TRBTREE },
     { "cTrie.h", &test_TRIE },
     { "cSmartPtr.h", &test_SMARTPTR },

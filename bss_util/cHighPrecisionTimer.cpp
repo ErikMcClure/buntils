@@ -10,9 +10,9 @@
 
 using namespace bss_util;
 
-double _delta; // milliseconds
-double _time; // milliseconds
-unsigned __int64 _curTime;
+HANDLE hpt_curprocess = GetCurrentProcess(); // Neither the current process nor the CPU frequency can change during program execution, so we just get them here and retrieve them later.
+unsigned __int64 hpt_freq;
+BOOL hpt_throwaway = QueryPerformanceFrequency((LARGE_INTEGER*)&hpt_freq);
 
 cHighPrecisionTimer::cHighPrecisionTimer(const cHighPrecisionTimer& copy) : _time(copy._time), _delta(copy._delta), _curTime(copy._curTime)
 {
@@ -30,7 +30,7 @@ double cHighPrecisionTimer::Update()
   unsigned __int64 newTime;
   _querytime(&newTime);
 #ifdef BSS_PLATFORM_WIN32
-  _delta = ((newTime - _curTime)*1000) / (double)_freq; //We multiply by 1000 BEFORE dividing into a double to maintain precision (since its unlikely the difference between newtime and oldtime is going to be bigger then 9223372036854775
+  _delta = ((newTime - _curTime)*1000) / (double)hpt_freq; //We multiply by 1000 BEFORE dividing into a double to maintain precision (since its unlikely the difference between newtime and oldtime is going to be bigger then 9223372036854775
 #else
   _delta = (newTime - _curTime) / ((double)1000000);
 #endif
@@ -44,7 +44,7 @@ double cHighPrecisionTimer::Update(double timewarp)
   unsigned __int64 newTime;
   _querytime(&newTime);
 #ifdef BSS_PLATFORM_WIN32
-  _delta = ((newTime - _curTime)*1000) / (_freq*timewarp);
+  _delta = ((newTime - _curTime)*1000) / (hpt_freq*timewarp);
 #else
   _delta = (newTime - _curTime) / (1000000*timewarp);
 #endif
@@ -62,27 +62,25 @@ void cHighPrecisionTimer::Override(double delta)
 void cHighPrecisionTimer::_construct()
 {
 #ifdef BSS_PLATFORM_WIN32
-  _curprocess = GetCurrentProcess();
-  _curthread = GetCurrentThread();
 
-  _getaffinity();
-  _curthread = GetCurrentThread();
-  SetThreadAffinityMask(_curthread, 1);
-  QueryPerformanceFrequency((LARGE_INTEGER*)&_freq);//we have to do this here before ResetDelta() otherwise ResetDelta will read in the wrong values with _getaffinity()
-  SetThreadAffinityMask(_curthread, _procmask);
+  DWORD procmask=_getaffinity();
+  HANDLE curthread = GetCurrentThread();
+  SetThreadAffinityMask(curthread, 1);
+  //we have to do this here before ResetDelta() otherwise ResetDelta will read in the wrong values with _getaffinity()
+  SetThreadAffinityMask(curthread, procmask);
 #endif
 }
 
 #ifdef BSS_PLATFORM_WIN32
 void cHighPrecisionTimer::_querytime(unsigned __int64* _pval)
 {
-  _getaffinity();  
-  _curthread = GetCurrentThread();
-  SetThreadAffinityMask(_curthread, 1);
+  DWORD procmask=_getaffinity();
+  HANDLE curthread = GetCurrentThread();
+  SetThreadAffinityMask(curthread, 1);
   
   QueryPerformanceCounter((LARGE_INTEGER*)_pval);
   
-  SetThreadAffinityMask(_curthread, _procmask);
+  SetThreadAffinityMask(curthread, procmask);
 }
 #else
 void cHighPrecisionTimer::_querytime(unsigned __int64* _pval, clockid_t clock)
@@ -94,12 +92,12 @@ void cHighPrecisionTimer::_querytime(unsigned __int64* _pval, clockid_t clock)
 #endif
 
 #ifdef BSS_PLATFORM_WIN32
-void cHighPrecisionTimer::_getaffinity()
+unsigned long cHighPrecisionTimer::_getaffinity()
 {
-#if _MSC_VER >= 1400 && defined(BSS_CPU_x86_64)
-  GetProcessAffinityMask(_curprocess, (PDWORD_PTR)&_procmask, (PDWORD_PTR)&_sysmask);
-#else
-  GetProcessAffinityMask(_curprocess, &_procmask, &_sysmask);
-#endif
+  DWORD_PTR sysmask;
+  DWORD_PTR procmask;
+  GetProcessAffinityMask(hpt_curprocess, &procmask, &sysmask);
+  return procmask;
 }
+unsigned __int64 cHighPrecisionTimer::_getfreq() { return hpt_freq; }
 #endif

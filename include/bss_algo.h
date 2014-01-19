@@ -145,7 +145,7 @@ namespace bss_util {
   BSS_FORCEINLINE static void transform(T (&t)[SIZE], F func) { std::transform(std::begin(t),std::end(t),t,func); }
   template<class F, typename T, size_t SIZE>
   BSS_FORCEINLINE static void for_each(T (&t)[SIZE], F func) { std::for_each(std::begin(t),std::end(t),func); }
-  
+
   // Gets the squared distance between two n-dimensional points
   template<typename T, int N>
   inline static T NVectDistSq(const T (&t1)[N], const T (&t2)[N])

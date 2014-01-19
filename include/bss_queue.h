@@ -9,17 +9,17 @@
 namespace bss_util {
   // Fast, tiny circular array-based queue. Pop and Peek are only valid if there is an item in the stack; this check must be done by the user.
   template<class T, typename SizeType=int, typename ArrayType=cArraySimple<T,SizeType>>
-  class BSS_COMPILER_DLLEXPORT cBSS_Queue : protected cArrayCircular<T,SizeType,ArrayType>
+  class BSS_COMPILER_DLLEXPORT cQueue : protected cArrayCircular<T,SizeType,ArrayType>
   {
   protected:
     typedef cArrayCircular<T,SizeType,ArrayType> BASE;
     using BASE::_length;
 
   public:
-    inline cBSS_Queue(const cBSS_Queue& copy) : BASE(copy) {}
-    inline cBSS_Queue(cBSS_Queue&& mov) : BASE(std::move(mov)) {}
-    inline explicit cBSS_Queue(SizeType init=8) : BASE(0) {}
-    inline ~cBSS_Queue() {}
+    inline cQueue(const cQueue& copy) : BASE(copy) {}
+    inline cQueue(cQueue&& mov) : BASE(std::move(mov)) {}
+    inline explicit cQueue(SizeType init=8) : BASE(0) {}
+    inline ~cQueue() {}
     BSS_FORCEINLINE void BSS_FASTCALL Push(const T& value) { _push<const T&>(value); }
     BSS_FORCEINLINE void BSS_FASTCALL Push(T&& value) { _push<T&&>(std::move(value)); }
     BSS_FORCEINLINE T BSS_FASTCALL Pop() { assert(_length!=0); return BASE::PopBack(); }
@@ -31,8 +31,8 @@ namespace bss_util {
     BSS_FORCEINLINE SizeType Capacity() const { return BASE::Capacity(); }
     BSS_FORCEINLINE SizeType Length() const { return _length; }
 
-    inline cBSS_Queue& operator=(const cBSS_Queue& copy) { BASE::operator=(copy); return *this; }
-    inline cBSS_Queue& operator=(cBSS_Queue&& mov) { BASE::operator=(std::move(mov)); return *this; }
+    inline cQueue& operator=(const cQueue& copy) { BASE::operator=(copy); return *this; }
+    inline cQueue& operator=(cQueue&& mov) { BASE::operator=(std::move(mov)); return *this; }
 
   protected:
     template<typename U>

@@ -671,6 +671,16 @@ namespace bss_util {
 	  return a+((T)((b-a)*amt));
   }
   
+  // Generates a packed sequence of numbers
+  template<int N, int ...S> 
+  struct bssSeq : bssSeq<N-1, N-1, S...> { };
+
+  template<int ...> struct bssSeq_gen { };
+  template<int ...S>
+  struct bssSeq<0, S...> {
+    typedef bssSeq_gen<S...> type;
+  };
+
   //unique_ptr deleter class that forces the deletion to occur in this DLL
   template<class _Ty>
 	struct bssdll_delete

@@ -34,7 +34,7 @@ namespace bss_util
     inline void BSS_FASTCALL ResetDelta() { _querytime(&_curTime); _delta = 0; }
 
     // Starts a profiler call
-    inline unsigned __int64 OpenProfiler()
+    inline static unsigned __int64 OpenProfiler()
     {
       unsigned __int64 ret;
 #ifdef BSS_PLATFORM_WIN32
@@ -44,16 +44,17 @@ namespace bss_util
 #endif
       return ret;
     }
-    // Closes a profiler
-    inline unsigned __int64 BSS_FASTCALL CloseProfiler(unsigned __int64 begin)
+    // Closes a profiler and returns the number of nanoseconds that elapsed between the open and close function calls.
+    inline static unsigned __int64 BSS_FASTCALL CloseProfiler(unsigned __int64 begin)
     {
       unsigned __int64 compare;
 #ifdef BSS_PLATFORM_WIN32
-      _querytime(&compare); //done up here to minimize timing inaccuracies
+      _querytime(&compare);
+      return ((compare-begin)*1000000000)/_getfreq(); //convert to nanoseconds
 #else
       _querytime(&compare, CLOCK_PROCESS_CPUTIME_ID);
-#endif
       return compare-begin;
+#endif
     }
 
   protected:
@@ -63,18 +64,11 @@ namespace bss_util
     void _construct();
 
 #ifdef BSS_PLATFORM_WIN32
-    void BSS_FASTCALL _querytime(unsigned __int64* _pval);
-    void BSS_FASTCALL _getaffinity();
-    
-    unsigned __int64 _freq;
-    void* _curprocess;
-
-  private:
-    unsigned long _procmask; //DWORD
-    unsigned long _sysmask;
-    void* _curthread; //this is private because it only reflects the thread that happened to call Update()
+    static void BSS_FASTCALL _querytime(unsigned __int64* _pval);
+    static unsigned long _getaffinity();
+    static unsigned __int64 _getfreq();
 #else
-    void BSS_FASTCALL _querytime(unsigned __int64* _pval, clockid_t clock=CLOCK_MONOTONIC_RAW);
+    static void BSS_FASTCALL _querytime(unsigned __int64* _pval, clockid_t clock=CLOCK_MONOTONIC_RAW);
 #endif
   };
 }

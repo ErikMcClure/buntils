@@ -5,7 +5,6 @@
 #define __C_LOCKLESS_QUEUE_H__
 
 #include "bss_alloc_fixed_MT.h"
-#include "concurrent_queue.h"
 
 namespace bss_util {
   template<typename T>

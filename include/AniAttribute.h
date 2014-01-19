@@ -342,6 +342,10 @@ namespace bss_util {
     inline AniAttributeInterval(ANI_TID(DELEGATE) del, delegate<void,ANI_TID(AUX)> rmdel) :
       AniAttributeDiscrete<TypeID>(del), _rmdel(rmdel) {}
     inline AniAttributeInterval() : AniAttributeDiscrete<TypeID>(), _rmdel(0, 0), _length(0) {}
+    inline ~AniAttributeInterval() {
+      while(!_queue.Empty()) // Correctly remove everything currently on the queue
+        _rmdel(_queue.Pop().second);
+    }
     virtual bool Interpolate(double timepassed)
     {
       IDTYPE svar=_timevalues.Size();
@@ -367,8 +371,9 @@ namespace bss_util {
       return AniAttributeDiscrete<TypeID>::RemoveKeyFrame(ID);
     }
     inline virtual void Start() 
-    { 
-      _queue.Clear();
+    {
+      while(!_queue.Empty()) // Correctly remove everything currently on the queue
+        _rmdel(_queue.Pop().second);
       if(!_attached()) return;
       _curpair=1;
       if(AniAttributeT<TypeID>::_initzero())

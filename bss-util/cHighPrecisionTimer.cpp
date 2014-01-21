@@ -1,7 +1,5 @@
-
 // Copyright ©2013 Black Sphere Studios
 // For conditions of distribution and use, see copyright notice in "bss_util.h"
-// WINDOWS ONLY (right now)
 
 #include "cHighPrecisionTimer.h"
 #ifdef BSS_PLATFORM_WIN32
@@ -10,9 +8,11 @@
 
 using namespace bss_util;
 
+#ifdef BSS_PLATFORM_WIN32
 HANDLE hpt_curprocess = GetCurrentProcess(); // Neither the current process nor the CPU frequency can change during program execution, so we just get them here and retrieve them later.
 unsigned __int64 hpt_freq;
 BOOL hpt_throwaway = QueryPerformanceFrequency((LARGE_INTEGER*)&hpt_freq);
+#endif
 
 cHighPrecisionTimer::cHighPrecisionTimer(const cHighPrecisionTimer& copy) : _time(copy._time), _delta(copy._delta), _curTime(copy._curTime)
 {

@@ -70,13 +70,13 @@
 
 #ifdef BSS_COMPILER_MSC
 #if defined(BSS_DEBUG) && defined(BSS_CPU_x86_64)
-#pragma comment(lib, "../bin/bss_util64_d.lib")
+#pragma comment(lib, "../bin/bss-util64_d.lib")
 #elif defined(BSS_CPU_x86_64)
-#pragma comment(lib, "../bin/bss_util64.lib")
+#pragma comment(lib, "../bin/bss-util64.lib")
 #elif defined(BSS_DEBUG)
-#pragma comment(lib, "../bin/bss_util_d.lib")
+#pragma comment(lib, "../bin/bss-util_d.lib")
 #else
-#pragma comment(lib, "../bin/bss_util.lib")
+#pragma comment(lib, "../bin/bss-util.lib")
 #endif
 #endif
 

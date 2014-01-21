@@ -169,20 +169,20 @@ namespace bss_util {
 
 #ifdef BSS_COMPILER_GCC
   template<typename T> struct ASMCAS_REGPICK_READ<T,1> { 
-    BSS_FORCEINLINE static bool BSS_FASTCALL asmcas(volatile T *dest, T newval, T oldval, T& retval) { retval = __sync_val_compare_and_swap((volatile char*)dest, *(__int8*)&oldval, *(__int8*)&newval); return *(__int8*)&retval==*(__int8*)&oldval; }
+    BSS_FORCEINLINE static bool BSS_FASTCALL asmcas(volatile T *dest, T newval, T oldval, T& retval) { *(char*)&retval = __sync_val_compare_and_swap((volatile char*)dest, *(__int8*)&oldval, *(__int8*)&newval); return *(__int8*)&retval==*(__int8*)&oldval; }
   };
   template<typename T> struct ASMCAS_REGPICK_READ<T,2> { 
-    BSS_FORCEINLINE static bool BSS_FASTCALL asmcas(volatile T *dest, T newval, T oldval, T& retval) { retval = __sync_val_compare_and_swap((volatile short*)dest, *(__int16*)&oldval, *(__int16*)&newval); return *(__int16*)&retval==*(__int16*)&oldval; }
+    BSS_FORCEINLINE static bool BSS_FASTCALL asmcas(volatile T *dest, T newval, T oldval, T& retval) { *(short*)&retval = __sync_val_compare_and_swap((volatile short*)dest, *(__int16*)&oldval, *(__int16*)&newval); return *(__int16*)&retval==*(__int16*)&oldval; }
   };
   template<typename T> struct ASMCAS_REGPICK_READ<T,4> { 
-    BSS_FORCEINLINE static bool BSS_FASTCALL asmcas(volatile T *dest, T newval, T oldval, T& retval) { retval = __sync_val_compare_and_swap((volatile long*)dest, *(__int32*)&oldval, *(__int32*)&newval); return *(__int32*)&retval==*(__int32*)&oldval; }
+    BSS_FORCEINLINE static bool BSS_FASTCALL asmcas(volatile T *dest, T newval, T oldval, T& retval) { *(long*)&retval = __sync_val_compare_and_swap((volatile long*)dest, *(__int32*)&oldval, *(__int32*)&newval); return *(__int32*)&retval==*(__int32*)&oldval; }
   };
   template<typename T> struct ASMCAS_REGPICK_READ<T,8> { 
-    BSS_FORCEINLINE static bool BSS_FASTCALL asmcas(volatile T *dest, T newval, T oldval, T& retval) { retval = __sync_val_compare_and_swap((volatile long long*)dest, *(__int64*)&oldval, *(__int64*)&newval); return *(__int64*)&retval==*(__int64*)&oldval;  }
+    BSS_FORCEINLINE static bool BSS_FASTCALL asmcas(volatile T *dest, T newval, T oldval, T& retval) { *(long long*)&retval = __sync_val_compare_and_swap((volatile long long*)dest, *(__int64*)&oldval, *(__int64*)&newval); return *(__int64*)&retval==*(__int64*)&oldval; }
   };
 #ifdef BSS_64BIT
   template<typename T> struct ASMCAS_REGPICK_READ<T,16> { 
-    BSS_FORCEINLINE static bool BSS_FASTCALL asmcas(volatile T *dest, T newval, T oldval, T& retval) { retval = __sync_val_compare_and_swap((volatile __int128*)dest, *(__int128*)&oldval, *(__int128*)&newval); return *(__int128*)&retval==*(__int128*)&oldval; }
+    BSS_FORCEINLINE static bool BSS_FASTCALL asmcas(volatile T *dest, T newval, T oldval, T& retval) { *(__int128*)&retval = __sync_val_compare_and_swap((volatile __int128*)dest, *(__int128*)&oldval, *(__int128*)&newval); return *(__int128*)&retval==*(__int128*)&oldval; }
   };
 #endif
 #else

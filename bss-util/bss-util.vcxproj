@@ -142,7 +142,7 @@
     <ClCompile Include="ShinyZone.c" />
   </ItemGroup>
   <ItemGroup>
-    <ResourceCompile Include="bss_util.rc" />
+    <ResourceCompile Include="bss-util.rc" />
   </ItemGroup>
   <PropertyGroup Label="Globals">
     <ProjectGuid>{4F702B9E-ADE1-41D3-AC1C-4059B557BE68}</ProjectGuid>

@@ -307,7 +307,7 @@
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
-    <ResourceCompile Include="bss_util.rc">
+    <ResourceCompile Include="bss-util.rc">
       <Filter>Resource Files</Filter>
     </ResourceCompile>
   </ItemGroup>

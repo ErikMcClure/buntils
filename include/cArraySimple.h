@@ -5,7 +5,7 @@
 #define __C_ARRAY_SIMPLE_H__BSS__
 
 #include "bss_alloc.h"
-#include <malloc.h>
+#include <string.h>
 
 namespace bss_util {
   // Very simple "dynamic" array. Designed to be used when size must be maintained at an exact value.

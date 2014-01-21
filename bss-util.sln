@@ -6,7 +6,7 @@ Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "test", "test\test.vcxproj",
 		{4F702B9E-ADE1-41D3-AC1C-4059B557BE68} = {4F702B9E-ADE1-41D3-AC1C-4059B557BE68}
 	EndProjectSection
 EndProject
-Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "bss_util", "bss_util\bss_util.vcxproj", "{4F702B9E-ADE1-41D3-AC1C-4059B557BE68}"
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "bss-util", "bss-util\bss-util.vcxproj", "{4F702B9E-ADE1-41D3-AC1C-4059B557BE68}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution

@@ -23,7 +23,7 @@ namespace bss_util {
 
     inline pointer allocate(size_t cnt, const pointer p = 0) { 
         //return reinterpret_cast<pointer>(::operator new(cnt * sizeof (T))); // note that while operator new does not call a constructor (it can't), it's much easier to override for leak tests.
-      return reinterpret_cast<realloc>(realloc(p, cnt*sizeof(T)));
+      return reinterpret_cast<pointer>(realloc(p, cnt*sizeof(T)));
     }
     //inline void deallocate(pointer p, size_t = 0) { ::operator delete(p); }
     inline void deallocate(pointer p, size_t = 0) { free(p); }

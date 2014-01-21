@@ -53,7 +53,7 @@
     <ClInclude Include="..\include\bss_defines.h" />
     <ClInclude Include="..\include\bss_graph.h" />
     <ClInclude Include="..\include\bss_literals.h" />
-    <ClInclude Include="..\include\bss_Log.h" />
+    <ClInclude Include="..\include\bss_log.h" />
     <ClInclude Include="..\include\bss_queue.h" />
     <ClInclude Include="..\include\bss_sse.h" />
     <ClInclude Include="..\include\bss_stack.h" />
@@ -124,7 +124,7 @@
     <ClInclude Include="..\include\StreamSplitter.h" />
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="bss_Log.cpp" />
+    <ClCompile Include="bss_log.cpp" />
     <ClCompile Include="bss_util.cpp" />
     <ClCompile Include="bss_util_c.c" />
     <ClCompile Include="cCmdLineArgs.cpp" />

@@ -12,20 +12,21 @@ namespace bss_util {
   template<typename R, typename... Args>
   class BSS_COMPILER_DLLEXPORT delegate
   {
+    typedef R RTYPE;
   public:
     inline delegate(const delegate& copy) : _src(copy._src), _stub(copy._stub) {}
     inline delegate(void* src, R(MSC_FASTCALL *GCC_FASTCALL stub)(void*, Args...)):_src(src), _stub(stub) {}
     inline R operator()(Args... args) const { return (*_stub)(_src,args...); }
     inline delegate& operator=(const delegate& right) { _src=right._src; _stub=right._stub; return *this; }
 
-    template<class T, R(MSC_FASTCALL T::*GCC_FASTCALL F)(Args...)>
+    template<class T, RTYPE(MSC_FASTCALL T::*GCC_FASTCALL F)(Args...)>
     inline static delegate From(T* src) { return delegate(src, &stub<T, F>); }
 
   protected:
     void* _src;
     R(MSC_FASTCALL *GCC_FASTCALL _stub)(void*, Args...);
 
-    template <class T, R(MSC_FASTCALL T::*GCC_FASTCALL F)(Args...)>
+    template <class T, RTYPE(MSC_FASTCALL T::*GCC_FASTCALL F)(Args...)>
     static R BSS_FASTCALL stub(void* src, Args... args) { return (static_cast<T*>(src)->*F)(args...); }
   };
 #else

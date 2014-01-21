@@ -152,9 +152,10 @@ namespace bss_util
     cThreadPool<MAXTHREADS>& _pool;
   };
 
-  /*class cFunctionStack : protected cArrayCircular<void(*)(void*,int*)>
+  // Multi-producer Single-consumer function stack, useful for pushing updates to another thread (like an audio thread)
+  /*class cFunctionStack : protected cArrayCircular<void*>
   {
-    typedef void(*FUNC)(void*);
+    typedef void(*FUNC)(void*,std::atomic<size_t>*);
     typedef cArrayCircular<void*> BASE;
 
   public:
@@ -162,20 +163,57 @@ namespace bss_util
     BSS_FORCEINLINE void BSS_FASTCALL Push(void(*f)(Args...), Args... args) 
     { 
       typedef StoredFunction<void, Args...> SFUNC;
-      if(_length+1+sizeof(SFUNC)) {
-        while(_flag.test_and_set());
-        _expand();
-        _flag.clear();
+      size_t len = 1+(T_NEXTMULTIPLE(sizeof(SFUNC),3)>>2);
+      for(;;)
+      {
+        size_T index=_head.fetch_add(len);
+        
+        for(;;)
+        {
+        while(_resize.load()); // if this is true we're in a resize so wait
+        _ref.fetch_add(1); // register a reference
+        if(index+len>=_tail.load()+atomic_load(_size)) { // if we hit our tail, resize
+          if(_resize.exchange(true)) { // attempt to grab the resize
+            _ref.fetch_add(-1);
+            continue; // someone else got it first, so we're punted back to the beginning
+          }
+          _ref.fetch_add(-1);
+          while(_flag.test_and_set()); // Wait for any consume operation to terminate
+          while(_ref.load()>0) // Wait for all pending references to finish
+          if(index+len>=_tail.load()+atomic_load(_size)) { // verify we still actually need to resize to account for various race conditions
+            _expand();
+            // atomically set _size down here after all operations are complete
+          }
+          _resize.store(false);
+        }
+        break;
+        }
+
+        if(index+len>_size) { // If we run over the edge of the actual array, abandon our attempt by zeroing the function and restarting
+          _array[index]=(FUNC)-1;
+          continue;
+        }
+        new (_array+index+1) SFUNC(f, args...);
+        atomic_store(&_array[index],&_helper<SFUNC>);
+        break;
       }
-      _array[_length]=_helper<SFUNC>;
-      new (_array+_length+1) SFUNC(f, args...); 
-      _length+=1+sizeof(SFUNC)
     }
-    BSS_FORCEINLINE void BSS_FASTCALL Pop() {
+    BSS_FORCEINLINE bool BSS_FASTCALL Pop() {
       while(_flag.test_and_set()); // keeps us from doing anything while resizing the array
-    //if(); // If the function is null, it means we ran out of space at the end, so skip to the beginning
-      (*_array[_cur])(_array+_cur+1,&_cur);
+      if(!_array[_tail%_size])
+        return false;
+      if(_array[_tail]==-1) {// If the function is -1, it means we ran out of space at the end, so skip to the beginning
+        _tail.fetch_add(); // add enough to equal the modulo
+        if(!_array[_tail%_size]) // check once again to see if we've read everything
+          return false;
+      } // _Size must be a power of two for this to work
+      size_t sz;
+      (*(FUNC)_array[_tail%_size])(_array+((_tail+1)%_size), &sz);
+
+      memset(_array+old%size,0,_tail-old); // set to 0 
+      tail->fetch_add(sizeof(T)+sizeof(T*)); //increment tail
       _flag.clear();
+      return true;
     }
     BSS_FORCEINLINE bool Empty() { return !_length; }
     //BSS_FORCEINLINE void Clear() { BASE::Clear(); }
@@ -184,9 +222,13 @@ namespace bss_util
 
   protected:
     template<typename T>
-    static inline void _helper(void* p, int* cur) { ((T*)p)->Call(); cur+=sizeof(T); }
-
+    static inline void _helper(void* p, size_t* sz) { ((T*)p)->Call(); *sz=sizeof(T)+sizeof(T*); }
+    
+    BSS_ALIGN(64) std::atomic<size_t> _tail; // tail of the queue (read pointer)
+    BSS_ALIGN(64) std::atomic<size_t> _head; // head of the queue (write pointer)
+    BSS_ALIGN(64) std::atomic<size_t> _ref; // Number of actions pending before we can resize;
     std::atomic_flag _flag;
+    std::atomic_bool _resize;
   };*/
 }
 

@@ -51,6 +51,7 @@
 - Removed cByteQueue
 - Removed cBSS_DebugInfo, it's useful functions are now standalone in bss_util_c.h, and it's profiler code is now a static function in cHighPrecisionTimer
 - Added cThreadPool, cTaskPool, and StoredFunction
+- Renamed cBSS_Queue.h -> bss_queue.h and cBSS_Queue -> cQueue, and did the same for cBSS_Stack. bss_fixedpt.h is now FixedPt.h and bss_dual is now Dual.h
 
 0.4.1
 ------

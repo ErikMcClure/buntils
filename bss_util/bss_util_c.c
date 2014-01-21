@@ -19,7 +19,7 @@ BSS_COMPILER_DLLEXPORT
 extern union bssCPUInfo BSS_FASTCALL bssGetCPUInfo()
 {
   union bssCPUInfo r={0};
-  int info[4];
+  unsigned int info[4];
 #ifdef BSS_COMPILER_MSC
   SYSTEM_INFO sysinfo;
   GetSystemInfo(&sysinfo);
@@ -31,56 +31,64 @@ extern union bssCPUInfo BSS_FASTCALL bssGetCPUInfo()
     //asm volatile ("cpuid" : "=a" (info[0]), [ebx] "=r" (info[1]), "=c" (info[2]), "=d" (info[3]) : "a" (1), "c" (0));
 #endif
     
-  if(info[3]&T_GETBIT(int,23)) // MMX
+  if(info[3]&T_GETBIT(unsigned int, 23)) // MMX
     r.SSE=1;
-  if(info[3]&T_GETBIT(int,25)) {// SSE
+  if(info[3]&T_GETBIT(unsigned int, 25)) {// SSE
     assert(r.SSE==1); // Ensure that our assumption that no processor skips any of these is correct, otherwise explode.
     r.SSE=2;
-  } if(info[3]&T_GETBIT(int,26)) {// SSE2
+  } if(info[3]&T_GETBIT(unsigned int, 26)) {// SSE2
     assert(r.SSE==2);
     r.SSE=3;
-  } if(info[2]&T_GETBIT(int,0)) {// SSE3
+  } if(info[2]&T_GETBIT(unsigned int, 0)) {// SSE3
     assert(r.SSE==3);
     r.SSE=4;
-  } if(info[2]&T_GETBIT(int,9)) {// SSSE3
+  } if(info[2]&T_GETBIT(unsigned int, 9)) {// SSSE3
     assert(r.SSE==4);
     r.SSE=5;
-  } if(info[2]&T_GETBIT(int,19)) {// SSE4.1
+  } if(info[2]&T_GETBIT(unsigned int, 19)) {// SSE4.1
     assert(r.SSE==5);
     r.SSE=6;
-  } if(info[2]&T_GETBIT(int,20)) {// SSE4.2
+  } if(info[2]&T_GETBIT(unsigned int, 20)) {// SSE4.2
     assert(r.SSE==6);
     r.SSE=7;
-  } if(info[2]&T_GETBIT(int,28)) {// AVX
+  } if(info[2]&T_GETBIT(unsigned int, 28)) {// AVX
     assert(r.SSE==7);
     r.SSE=8;
   }
-  r.flags|=(((info[3]&T_GETBIT(int,8))!=0)<<0); // cmpxchg8b support
-  r.flags|=(((info[2]&T_GETBIT(int,13))!=0)<<1); // cmpxchg16b support
-  r.flags|=(((info[2]&T_GETBIT(int,6))!=0)<<2); // SSE4a support
-  r.flags|=(((info[3]&T_GETBIT(int,15))!=0)<<3); // cmov support
-  r.flags|=(((info[3]&T_GETBIT(int,19))!=0)<<4); // CFLUSH support
-  r.flags|=(((info[2]&T_GETBIT(int,23))!=0)<<5); // POPCNT support
+  r.flags|=(((info[3]&T_GETBIT(unsigned int, 8))!=0)<<0); // cmpxchg8b support
+  r.flags|=(((info[2]&T_GETBIT(unsigned int, 13))!=0)<<1); // cmpxchg16b support
+  r.flags|=(((info[2]&T_GETBIT(unsigned int, 6))!=0)<<2); // SSE4a support
+  r.flags|=(((info[3]&T_GETBIT(unsigned int, 15))!=0)<<3); // cmov support
+  r.flags|=(((info[3]&T_GETBIT(unsigned int, 19))!=0)<<4); // CFLUSH support
+  r.flags|=(((info[2]&T_GETBIT(unsigned int, 23))!=0)<<5); // POPCNT support
   return r;
 }
 
 BSS_COMPILER_DLLEXPORT 
 extern const char* GetProgramPath()
 {
+#ifdef BSS_PLATFORM_WIN32
   static char buf[MAX_PATH*2];
   wchar_t wbuf[MAX_PATH];
   GetModuleFileNameExW(GetCurrentProcess(), 0, wbuf, MAX_PATH);
   wbuf[MAX_PATH-1]=0; //XP doesn't ensure this is null terminated
   UTF16toUTF8(wbuf, buf, MAX_PATH);
   return buf;
+#else
+  return 0;
+#endif
 }
 
 BSS_COMPILER_DLLEXPORT
 extern size_t GetWorkingSet()
 {
+#ifdef BSS_PLATFORM_WIN32
   PROCESS_MEMORY_COUNTERS counter;
   GetProcessMemoryInfo(GetCurrentProcess(), &counter, sizeof(PROCESS_MEMORY_COUNTERS));
   return counter.WorkingSetSize;
+#else
+  return 0;
+#endif
 }
 
 BSS_COMPILER_DLLEXPORT

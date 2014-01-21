@@ -1,5 +1,5 @@
 TARGET := libbss_util.so
-SRCDIR := bss_util
+SRCDIR := bss-util
 BUILDDIR := bin
 OBJDIR := bin/obj
 C_SRCS := $(wildcard $(SRCDIR)/*.c)

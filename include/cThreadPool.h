@@ -34,7 +34,7 @@ namespace bss_util
     inline void Push(FUNC f, void* a) { _numtasks.fetch_add(1, std::memory_order_acquire); _queue.Push(PAIR(f, a)); }
     inline void SetLength(size_t num)
     {
-      for(int i = num; i < _pool.size(); ++i) // signal deleted threads to exit
+      for(unsigned int i = num; i < _pool.size(); ++i) // signal deleted threads to exit
         _quitflags[i>>5].store(_quitflags[i>>5].load(std::memory_order_relaxed)|(1<<(i%32)), std::memory_order_relaxed);
       Prime(); // prime in case the threads are asleep
       unsigned int oldsize = _pool.size();

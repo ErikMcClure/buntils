@@ -915,13 +915,13 @@ void TEST_ALLOC_FUZZER_THREAD(TESTDEF::RETPAIR& __testret,T& _alloc, cDynArray<c
       {
         size_t sz = RANDINTGEN(1,MAXSIZE);
         P* test=(P*)_alloc.alloc(sz);
-        for(int i = 0; i<sz; ++i) *(char*)(test+i) = i+1;
+        for(size_t i = 0; i<sz; ++i) *(char*)(test+i) = i+1;
         plist.Add(std::pair<P*,size_t>(test,sz));
       }
       else
       {
         int index=RANDINTGEN(0,plist.Length());
-        for(int i = 0; i<plist[index].second; ++i) {
+        for(size_t i = 0; i<plist[index].second; ++i) {
           if(((char)(i+1) != *(char*)(plist[index].first+i)))
             pass = false;
         }

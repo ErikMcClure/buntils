@@ -39,10 +39,9 @@ namespace bss_util {
       _woffset=((_woffset+i)&7);
       _buf = (_buf&((1<<_woffset)-1)); // This zeros out all bits we didn't assign in _buf
     }
+    void Write(bool source) { Write(&source, 1); }
     template<typename T>
     void Write(const T& source) { Write(&source,sizeof(T)<<3); }
-    template<>
-    void Write<bool>(const bool& source) { Write(&source,1); }
     void Read(void* dest, int bits)
     {
       unsigned char* d = (unsigned char*)dest;

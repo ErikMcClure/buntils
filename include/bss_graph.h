@@ -22,9 +22,31 @@ namespace bss_util {
   template<typename E, typename V, typename ST=unsigned short>
   struct BSS_COMPILER_DLLEXPORT Node : VoidData<V> { Edge<E, ST>* to; Edge<E, ST>* from; };
 
+  template<typename E> struct __Graph__InternalEdge {
+    static BSS_FORCEINLINE void _getdata(E& target, const VoidData<E>& t) { target=t.data; }
+    static BSS_FORCEINLINE void _setdataE(VoidData<E>& t, const E* d) { t.data=*d; }
+  };
+  template<> struct __Graph__InternalEdge<void> {
+    static BSS_FORCEINLINE void _getdata(char& target, const VoidData<void>& t) { target=1; }
+    static BSS_FORCEINLINE void _setdataE(VoidData<void>& t, const void* d) { }
+  };
+
+  template<typename V, typename ST>
+  struct __Graph__InternalVertex {
+    static BSS_FORCEINLINE void _setdataV(VoidData<V>& t, const V* d) { t.data=*d; }
+    static BSS_FORCEINLINE void _setvertex(V* v, ST i, const VoidData<V>& t) { v[i] = t.data; }
+    static BSS_FORCEINLINE const V* _addvertex(const V* v, ST i) { return (v+i); }
+  };
+  template<typename ST>
+  struct __Graph__InternalVertex<void, ST> {
+    static BSS_FORCEINLINE void _setdataV(VoidData<void>& t, const void* d) { }
+    static BSS_FORCEINLINE void _setvertex(void* v, ST i, const VoidData<void>& t) { }
+    static BSS_FORCEINLINE const void* _addvertex(const void* v, ST i) { return 0; }
+  };
+
   // Represents a graph using an adjacency list. Converts to and from an adjacency matrix representation.
   template<typename E, typename V, typename ST=unsigned short, typename ALLOC=FixedPolicy<Edge<E,ST>>, typename ARRAYTYPE=cArraySimple<LINKEDNODE<Node<E,V,ST>,ST>,ST>>
-  class Graph : public cAllocTracker<ALLOC>
+  class Graph : public cAllocTracker<ALLOC>, protected __Graph__InternalEdge<E>, protected __Graph__InternalVertex<V,ST>
   {
     static BSS_FORCEINLINE bool _basecheck(const char* b) { return (*b)!=0; }
     static BSS_FORCEINLINE LLBase<Edge<E,ST>>& _altget(Edge<E,ST>* p) { return p->alt; }
@@ -53,7 +75,7 @@ namespace bss_util {
     inline typename cLinkedArray<Node<E, V, ST>, ST, ARRAYTYPE>::template cLAIter<false> begin() { return _nodes.begin(); }
     inline typename cLinkedArray<Node<E, V, ST>, ST, ARRAYTYPE>::template cLAIter<false> end() { return _nodes.end(); }
     inline ST AddNode() { Node<E, V, ST> aux; memset(&aux, 0, sizeof(Node<E, V, ST>)); return _nodes.Add(aux); }
-    inline ST AddNode(const V* node) { Node<E, V, ST> aux; aux.to = 0; aux.from = 0; _setdata<V>(aux, node); return _nodes.Add(aux); }
+    inline ST AddNode(const V* node) { if(!node) return AddNode(); Node<E, V, ST> aux; aux.to = 0; aux.from = 0; _setdataV(aux, node); return _nodes.Add(aux); }
     inline Edge<E,ST>* AddEdge(ST from, ST to)
     {
       Edge<E,ST>* r = _allocate(1);
@@ -67,7 +89,7 @@ namespace bss_util {
     inline Edge<E,ST>* AddEdge(ST from, ST to, const E* edge)
     {
       Edge<E,ST>* r = AddEdge(from,to);
-      _setdata(*r,edge);
+      _setdataE(*r,edge);
       return r;
     }
     inline void RemoveNode(ST index)
@@ -96,9 +118,9 @@ namespace bss_util {
       for(ST i=_nodes.Front(); i!=(ST)-1; _nodes.Next(i)) hash[i]=k++; // Build up a hash mapping the IDs to monotonically increasing integers.
       for(ST i=_nodes.Front(); i!=(ST)-1; _nodes.Next(i))
       {
-        _setvertex<V>(nodes, i, _nodes[i]);
+        _setvertex(nodes, i, _nodes[i]);
         for(cur=_nodes[i].to; cur!=0; cur=cur->next)
-          _getdata<E>(matrix[(hash[i]*len)+hash[cur->to]],*cur);
+          _getdata(matrix[(hash[i]*len)+hash[cur->to]],*cur);
       }
       return len;
     }
@@ -114,21 +136,13 @@ namespace bss_util {
     typedef Edge<E, ST> EDGE_;
 
   protected:
-    template<typename D> static BSS_FORCEINLINE void _setdata(VoidData<D>& t, const D* d) { t.data=*d; }
-    template<> static BSS_FORCEINLINE void _setdata<void>(VoidData<void>& t, const void* d) { }
-    template<typename D> static BSS_FORCEINLINE void _getdata(EDATA& target, const VoidData<D>& t) { target=t.data; }
-    template<> static BSS_FORCEINLINE void _getdata<void>(EDATA& target, const VoidData<void>& t) { target=1; }
-    template<typename D> static BSS_FORCEINLINE void _setvertex(V* v, ST i, const VoidData<D>& t) { v[i] = t.data; }
-    template<> static BSS_FORCEINLINE void _setvertex<void>(V* v, ST i, const VoidData<void>& t) { }
-    template<typename D> BSS_FORCEINLINE ST _addvertex(const D* v, ST i) { return AddNode(v+i); }
-    template<> BSS_FORCEINLINE ST _addvertex<void>(const void* v, ST i) { return AddNode(); }
 
     template<typename D, bool (*ISEDGE)(const D*)>
     void _construct(ST n, const D* M, const V* nodes)
     {
       DYNARRAY(ST,k,n);
       for(ST i = 0; i < n; ++i)
-        k[i]=_addvertex<V>(nodes,i);
+        k[i]=AddNode(_addvertex(nodes, i));
       for(ST i = 0; i < n; ++i)
       {
         for(ST j = 0; j < n; ++j)

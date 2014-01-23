@@ -9,6 +9,23 @@
 #include "cDynArray.h"
 
 namespace bss_util {
+  template<typename Alloc, int TypeID>
+  struct cAnimation_GenAttribute {
+    BSS_FORCEINLINE static AniAttribute* f(unsigned char typeID)
+    {
+      typedef ANI_TID(TYPE)::template rebind<Alloc>::other T;
+      if(TypeID==typeID)
+        return new(Alloc::allocate(sizeof(T))) T();
+      else
+        return cAnimation_GenAttribute<Alloc,std::is_void<typename bss_util::ANI_IDTYPE<TypeID+1>::TYPES::TYPE>::value?-1:TypeID+1>::f(typeID);
+    }
+  };
+
+  template<typename Alloc>
+  struct cAnimation_GenAttribute<Alloc, -1> {
+    BSS_FORCEINLINE static AniAttribute* f(unsigned char typeID) { return 0; }
+  };
+
   // A class representing a single animation comprised of various attributes (position, rotation, etc.)
   template<typename Alloc = StaticAllocPolicy<char>>
   class BSS_COMPILER_DLLEXPORT cAnimation
@@ -17,17 +34,6 @@ namespace bss_util {
     enum ANIBOOLS : unsigned char { ANI_PLAYING=1,ANI_PAUSED=2,ANI_ATTACHED=4 };
     typedef typename Alloc::template rebind<std::pair<unsigned char, AniAttribute*>>::other MAPALLOC;
 
-    template<int TypeID>
-    AniAttribute* GenAttribute(unsigned char typeID)
-    {
-      typedef ANI_TID(TYPE)::template rebind<Alloc>::other T;
-      if(TypeID==typeID)
-        return new(Alloc::allocate(sizeof(T))) T();
-      else
-        return GenAttribute<std::is_void<typename bss_util::ANI_IDTYPE<TypeID+1>::TYPES::TYPE>::value?-1:TypeID+1>(typeID);
-    }
-    template<>
-    AniAttribute* GenAttribute<-1>(unsigned char typeID) { return 0; }
 
 	public:
 		inline cAnimation(const cAnimation& copy) { operator=(copy); }
@@ -83,7 +89,7 @@ namespace bss_util {
     {
       unsigned char index=_attributes.Get(TypeID);
       if(index<_attributes.Length()) return _attributes[index];
-      AniAttribute* retval=GenAttribute<0>(TypeID);
+      AniAttribute* retval=cAnimation_GenAttribute<Alloc,0>::f(TypeID);
       if(retval!=0) _attributes.Insert(retval->typeID,retval);
       return retval;
     }

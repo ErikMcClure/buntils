@@ -54,7 +54,7 @@
 // Round x up to next highest multiple of (t+1), which must be a multiple of 2. For example, to get the next multiple of 8: T_NEXTMULTIPLE(x,7)
 #define T_NEXTMULTIPLE(x,t) ((x+t)&(~t))
 #define T_SETBIT(w,b,f) (((w) & (~(b))) | ((-(char)f) & (b)))
-#define DYNARRAY(Type,Name,n) Type* Name = (Type*)_alloca(n*sizeof(Type))
+#define DYNARRAY(Type,Name,n) Type* Name = (Type*)ALLOCA(n*sizeof(Type))
 
 #if defined(BSS_PLATFORM_POSIX) || defined(BSS_PLATFORM_MINGW)
 #define BSSPOSIX_WCHAR(s) s
@@ -127,7 +127,7 @@ typedef unsigned long ulong;
 #define ITOA(v,buf,bufsize,r) _itoa_s(v,buf,bufsize,r)
 #define ATOLL(s) _atoi64(s)
 #define STRTOULL(s,e,r) _strtoui64(s,e,r)
-#define SLEEP(s) _sleep(s)
+#define ALLOCA(x) _malloca(x)
 #else
 #ifdef BSS_PLATFORM_MINGW
 #define TIME64(ptime) _time64(ptime)
@@ -164,7 +164,7 @@ typedef unsigned long ulong;
 #define ITOA(v,buf,bufsize,r) itoa_r(v,buf,bufsize,r)
 #define ATOLL(s) atoll(s)
 #define STRTOULL(s,e,r) strtoull(s,e,r)
-#define SLEEP(s) sleep(s)
+#define ALLOCA(x) alloca(x)
 #endif
 
 #endif

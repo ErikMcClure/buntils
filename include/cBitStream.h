@@ -39,9 +39,8 @@ namespace bss_util {
       _woffset=((_woffset+i)&7);
       _buf = (_buf&((1<<_woffset)-1)); // This zeros out all bits we didn't assign in _buf
     }
-    void Write(bool source) { Write(&source, 1); }
     template<typename T>
-    void Write(const T& source) { Write(&source,sizeof(T)<<3); }
+    void Write(const T& source) { Write(&source, std::conditional<std::is_same<T, bool>::value, std::integral_constant<int, 1>, std::integral_constant<int, (sizeof(T)<<3)>>::type::value); }
     void Read(void* dest, int bits)
     {
       unsigned char* d = (unsigned char*)dest;
@@ -66,10 +65,8 @@ namespace bss_util {
       d[k] = (d[k]&((1<<i)-1)); // This zeros out all bits we didn't assign
     }
     template<typename T>
-    void Read(T& dest) { Read(&dest,sizeof(T)<<3); }
-    template<>
-    void Read<bool>(bool& dest) { dest=false; Read(&dest,1); }
-    void Flush() { if(_woffset) _flush<std::is_base_of<std::ostream,STREAM>::value>(_base,_buf); }
+    void Read(T& dest) { Read(&dest, std::conditional<std::is_same<T, bool>::value, std::integral_constant<int, 1>, std::integral_constant<int, (sizeof(T)<<3)>>::type::value); }
+    void Flush() { if(_woffset) call_if<std::is_base_of<std::ostream, STREAM>::value, void(*)(std::ostream*, unsigned char)>::Call<&cBitStream::_flush>(_base, _buf); }
 
     cBitStream& operator=(const cBitStream& copy) { _base=copy._base; return *this; }
     cBitStream& operator=(cBitStream&& mov) { _base=mov._base; mov._base=0; return *this; }
@@ -79,8 +76,7 @@ namespace bss_util {
     cBitStream& operator>>(T& v) { Read<T>(v); return *this; }
 
   protected:
-    template<bool b> BSS_FORCEINLINE static void _flush(STREAM* s, unsigned char buf) { s->write((char*)&buf,1); }
-    template<> BSS_FORCEINLINE static void _flush<false>(STREAM* s, unsigned char buf) { }
+    BSS_FORCEINLINE static void _flush(std::ostream* s, unsigned char buf) { s->write((char*)&buf, 1); }
 
     STREAM* _base;
     unsigned char _buf;

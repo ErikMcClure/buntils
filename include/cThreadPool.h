@@ -90,7 +90,7 @@ namespace bss_util
         if(qflags.load(std::memory_order_relaxed)&qmask)
           break;
         if(pool._sleepflag.load(std::memory_order_relaxed)!=0)
-          SleepEx(INFINITE, true);
+          cThread::Wait();
       }
     }
 

@@ -505,19 +505,6 @@ namespace bss_util {
     return (p1*(-t3+2*t2-t)+p2*(3*t3-5*t2+2)+p3*(-3*t3+4*t2+t)+p4*(t3-t2))/((D)2.0);
   }
 
-  // Implementation of a bezier curve. The B-spline matrix for this is
-  //                / -1  3 -3  1 \   / p1 \
-  // [t^3,t²,t,1] * |  3 -6  3  0 | * | p2 |
-  //                | -3  3  0  0 |   | p3 |
-  //                \  1  0  0  0 /   \ p4 /
-  template<typename T, typename D>
-  inline static T BSS_FASTCALL BezierCurve(D t, const T& p1, const T& p2, const T& p3, const T& p4)
-  {
-    static const float m[4][4] = {-1, 3, -3, 1, 3, -6, 3, 0, -3, 3, 0, 0, 1, 0, 0, 0};
-    const float p[4] = {p1, p2, p3, p4};
-    return StaticGenericSpline<T, D, m>(t, p);
-  }
-
   // This implements all possible B-spline functions, but does it statically without optimizations (so it can be used with any type)
   template<typename T, typename D, const T(&m)[4][4]>
   BSS_FORCEINLINE static T BSS_FASTCALL StaticGenericSpline(D t, const T(&p)[4])
@@ -541,6 +528,19 @@ namespace bss_util {
     r += r2;
     sseVec::Shuffle<0x1B>(r2);
     return BSS_SSE_SS_F32(r + r2);
+  }
+
+  // Implementation of a bezier curve. The B-spline matrix for this is
+  //                / -1  3 -3  1 \   / p1 \
+    // [t^3,t²,t,1] * |  3 -6  3  0 | * | p2 |
+  //                | -3  3  0  0 |   | p3 |
+  //                \  1  0  0  0 /   \ p4 /
+  template<typename T, typename D>
+  inline static T BSS_FASTCALL BezierCurve(D t, const T& p1, const T& p2, const T& p3, const T& p4)
+  {
+    static const float m[4][4] ={-1, 3, -3, 1, 3, -6, 3, 0, -3, 3, 0, 0, 1, 0, 0, 0};
+    const float p[4] ={p1, p2, p3, p4};
+    return StaticGenericSpline<T, D, m>(t, p);
   }
 
   // Generic breadth-first search for a binary tree. Don't use this on a min/maxheap - it's internal array already IS in breadth-first order.
@@ -573,7 +573,7 @@ namespace bss_util {
   static void BSS_FASTCALL BreadthFirstGraph(G& graph, typename G::ST_ root, typename G::ST_* queue)
   {
     typedef typename G::ST_ ST;
-    typedef std::make_signed<ST>::type SST;
+    typedef typename std::make_signed<ST>::type SST;
     typedef Edge<typename G::E_,ST> E;
     auto& n = graph.GetNodes();
     if((*FACTION)(root)) return;

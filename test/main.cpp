@@ -1123,7 +1123,7 @@ TESTDEF::RETPAIR test_bss_GRAPH()
     TEST(g.NumEdges()==8);
     TEST(g.NumNodes()==6);
 
-    ushort* queue = (ushort*)_alloca(sizeof(ushort)*g.NumNodes());
+    ushort* queue = (ushort*)ALLOCA(sizeof(ushort)*g.NumNodes());
     BreadthFirstGraph<Graph<void,void>,GRAPHACTION>(g,s,queue);
     TEST(queue[0]==p);
     TEST(queue[1]==o);
@@ -1633,16 +1633,19 @@ struct cAnimObj
   
   void BSS_FASTCALL TypeIDRegFunc(AniAttribute* p)
   {
+    AttrDefDiscrete<0> a(delegate<void, cRefCounter*>::From<cAnimObj, &cAnimObj::donothing>(this));
+    AttrDefInterval<1> b(delegate<void, cRefCounter*>::From<cAnimObj, &cAnimObj::remnothing>(this), delegate<cRefCounter*, ANIOBJPAIR>::From<cAnimObj, &cAnimObj::retnothing>(this));
+    AttrDefSmooth<2> c(&fl, delegate<void, float>::From<cAnimObj, &cAnimObj::setfloat>(this));
     switch(p->typeID)
     {
     case 0:
-      p->Attach(&AttrDefDiscrete<0>(delegate<void, cRefCounter*>::From<cAnimObj, &cAnimObj::donothing>(this)));
+      p->Attach(&a);
       break;
     case 1:
-      p->Attach(&AttrDefInterval<1>(delegate<void, cRefCounter*>::From<cAnimObj, &cAnimObj::remnothing>(this), delegate<cRefCounter*, ANIOBJPAIR>::From<cAnimObj, &cAnimObj::retnothing>(this)));
+      p->Attach(&b);
       break;
     case 2:
-      p->Attach(&AttrDefSmooth<2>(&fl, delegate<void, float>::From<cAnimObj, &cAnimObj::setfloat>(this)));
+      p->Attach(&c);
       break;
     case 3:
       p->Attach(0);

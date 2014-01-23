@@ -99,34 +99,35 @@ namespace bss_util {
   class cIDReverse : protected cIDHash<T,ST,Alloc,INVALID>
   {
   protected:
-    using cIDHash<T, ST, Alloc, INVALID>::_array;
-    using cIDHash<T, ST, Alloc, INVALID>::_size;
+    typedef cIDHash<T, ST, Alloc, INVALID> BASE;
+    using BASE::_array;
+    using BASE::_size;
 
   public:
-    cIDReverse(const cIDReverse& copy) : cIDHash<T,ST,Alloc,INVALID>(copy), _hash(copy._freelist) {}
-    cIDReverse(cIDReverse&& mov) : cIDHash<T,ST,Alloc,INVALID>(std::move(mov)), _hash(std::move(mov._hash)) {}
-    explicit cIDReverse(ST reserve=0) : cIDHash<T,ST,Alloc,INVALID>(reserve) { }
+    cIDReverse(const cIDReverse& copy) : BASE(copy), _hash(copy._freelist) {}
+    cIDReverse(cIDReverse&& mov) : BASE(std::move(mov)), _hash(std::move(mov._hash)) {}
+    explicit cIDReverse(ST reserve=0) : BASE(reserve) { }
     ~cIDReverse() {}
     virtual ST Add(T item)
     { 
-      ST r = cIDHash<T,ST,Alloc,INVALID>::Add(item);
+      ST r = BASE::Add(item);
       _hash.Insert(item,r);
       return r;
     }
     virtual T Remove(ST id)
     {
       _hash.Remove(_array[id]);
-      return cIDHash<T,ST,Alloc,INVALID>::Remove(id);
+      return BASE::Remove(id);
     }
     inline T Get(ST id) const { return _array[id]; }
     inline ST Lookup(T item) { return _hash[item]; }
-    inline ST Length() const { return cIDHash<T, ST, Alloc, INVALID>::_length; }
-    inline ST MaxID() const { return cIDHash<T, ST, Alloc, INVALID>::_max; }
+    inline ST Length() const { return BASE::_length; }
+    inline ST MaxID() const { return BASE::_max; }
     // Compresses the IDs by eliminating holes. F is called on any ID before its changed so you can adjust it.
-    void Compress() { cIDHash<T, ST, Alloc, INVALID>::Compress<delegate<void, ST, ST>>(delegate<void, ST, ST>::From<cIDReverse, &cIDReverse::_flip>(this)); }
+    void Compress() { BASE::Compress<delegate<void, ST, ST>>(delegate<void, ST, ST>::From<cIDReverse, &cIDReverse::_flip>(this)); }
 
-    inline cIDReverse& operator=(const cIDReverse& copy) { cIDHash<T,ST,Alloc,INVALID>::operator=(copy); _hash=copy._hash; return *this; }
-    inline cIDReverse& operator=(cIDReverse&& mov) { cIDHash<T,ST,Alloc,INVALID>::operator=(std::move(mov)); _hash=mov._hash; return *this; }
+    inline cIDReverse& operator=(const cIDReverse& copy) { BASE::operator=(copy); _hash=copy._hash; return *this; }
+    inline cIDReverse& operator=(cIDReverse&& mov) { BASE::operator=(std::move(mov)); _hash=mov._hash; return *this; }
     inline T& operator[](ST id) { return _array[id]; }
     inline const T& operator[](ST id) const { return _array[id]; }
 

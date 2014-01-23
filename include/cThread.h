@@ -39,7 +39,7 @@ namespace bss_util {
 #else // BSS_PLATFORM_POSIX
         struct timespec ts;
         if(!mstimeout || clock_gettime(CLOCK_REALTIME, &ts) == -1) {
-          if(pthread_tryjoin_np(_id,(void**)&ret)!=0) // If failed, thread is either still busy or something blew up, so return -1
+          if(pthread_tryjoin_np(native_handle(), (void**)&ret)!=0) // If failed, thread is either still busy or something blew up, so return -1
             return (size_t)-1;
         } else {
           ts.tv_sec += mstimeout/1000;

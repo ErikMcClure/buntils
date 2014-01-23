@@ -14,6 +14,10 @@ namespace bss_util {
   template<typename T, typename ST=unsigned int, typename Alloc=StaticAllocPolicy<T>, T INVALID=0>
   class cIDHash : protected cArraySimple<T,ST,Alloc>
   {
+  protected:
+    using cArraySimple<T, ST, Alloc>::_array;
+    using cArraySimple<T, ST, Alloc>::_size;
+
   public:
     cIDHash(const cIDHash& copy) : cArraySimple<T,ST,Alloc>(copy), _max(copy._max), _length(copy._length), _freelist(copy._freelist) {}
     cIDHash(cIDHash&& mov) : cArraySimple<T,ST,Alloc>(std::move(mov)), _max(mov._max), _length(mov._length), _freelist(mov._freelist) {}
@@ -94,6 +98,10 @@ namespace bss_util {
   template<typename T, typename ST = unsigned int, typename Alloc = StaticAllocPolicy<T>, T INVALID = 0, khint_t(*__hash_func)(T) = &KH_POINTER_HASHFUNC<T>, bool(*__hash_equal)(T, T) = &KH_INT_EQUALFUNC<T>>
   class cIDReverse : protected cIDHash<T,ST,Alloc,INVALID>
   {
+  protected:
+    using cIDHash<T, ST, Alloc, INVALID>::_array;
+    using cIDHash<T, ST, Alloc, INVALID>::_size;
+
   public:
     cIDReverse(const cIDReverse& copy) : cIDHash<T,ST,Alloc,INVALID>(copy), _hash(copy._freelist) {}
     cIDReverse(cIDReverse&& mov) : cIDHash<T,ST,Alloc,INVALID>(std::move(mov)), _hash(std::move(mov._hash)) {}
@@ -112,8 +120,8 @@ namespace bss_util {
     }
     inline T Get(ST id) const { return _array[id]; }
     inline ST Lookup(T item) { return _hash[item]; }
-    inline ST Length() const { return _length; }
-    inline ST MaxID() const { return _max; }
+    inline ST Length() const { return cIDHash<T, ST, Alloc, INVALID>::_length; }
+    inline ST MaxID() const { return cIDHash<T, ST, Alloc, INVALID>::_max; }
     // Compresses the IDs by eliminating holes. F is called on any ID before its changed so you can adjust it.
     void Compress() { cIDHash<T, ST, Alloc, INVALID>::Compress<delegate<void, ST, ST>>(delegate<void, ST, ST>::From<cIDReverse, &cIDReverse::_flip>(this)); }
 

@@ -13,6 +13,9 @@
 #include <algorithm>
 #include <random>
 #include <array>
+#ifdef BSS_COMPILER_GCC
+#include <alloca.h>
+#endif
 
 namespace bss_util {
   // Performs a binary search on "arr" between first and last. if CEQ=NEQ and char CVAL=-1, uses an upper bound, otherwise uses lower bound.

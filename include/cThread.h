@@ -56,11 +56,14 @@ namespace bss_util {
     BSS_FORCEINLINE void join() { std::thread::join(); }
 
     cThread& operator=(const cThread&) = delete;
-    cThread& operator=(cThread&& mov) _NOEXCEPT { std::thread::operator=(std::move((std::thread&&)mov)); return *this; }
+    cThread& operator=(cThread&& mov) { std::thread::operator=(std::move((std::thread&&)mov)); return *this; }
 
 #ifdef BSS_PLATFORM_WIN32
     BSS_FORCEINLINE void Signal() { DWORD r=QueueUserAPC(&cThread::_APCactivate, native_handle(), 0); assert(r); }
-    BSS_FORCEINLINE static void Wait() { SleepEx(INFINITE,true); }
+    BSS_FORCEINLINE static void Wait() { SleepEx(INFINITE, true); }
+
+  protected:
+    inline static void BSS_COMPILER_STDCALL _APCactivate(ULONG_PTR) {}
 #else
     BSS_FORCEINLINE void Signal() { raise(SIGUSR2); }
     inline static int Wait() {
@@ -72,9 +75,6 @@ namespace bss_util {
 		  return pselect(0,NULL,NULL,NULL,&ts,&set);
     }
 #endif
-
-  protected:
-    inline static void BSS_COMPILER_STDCALL _APCactivate(ULONG_PTR) {}
   };
 }
 

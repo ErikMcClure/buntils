@@ -78,6 +78,17 @@ namespace bss_util {
   template<typename T>
   struct TBitLimit : public BitLimit<sizeof(T)<<3> {};
 
+  // Lets you only call a function if a condition is true - otherwise does nothing
+  template<bool Cond, typename F>
+  struct call_if { template<F f, typename ...Args> BSS_FORCEINLINE static void Call(Args... args) { (*f)(args...); } };
+  template<typename F>
+  struct call_if<false, F> { template<F f, typename ...Args> BSS_FORCEINLINE static void Call(Args... args) { } };
+
+  //template<bool Cond, typename F, F f1, F f2>
+  //struct choose_func { BSS_FORCEINLINE static F get() { return f1; } };
+  //template<typename F, F f1, F f2>
+  //struct choose_func<false,F,f1,f2> { BSS_FORCEINLINE static F get() { return f2; } };
+
   // template inferred version of T_GETBIT and T_GETBITRANGE
   template<class T>
   inline static T BSS_FASTCALL GetBitMask(int bit) { return T_GETBIT(T,bit); }

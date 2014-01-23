@@ -7,6 +7,9 @@
 #include "cLinkedArray.h"
 #include "bss_alloc_fixed.h"
 #include "LLBase.h"
+#ifdef BSS_COMPILER_GCC
+#include <alloca.h>
+#endif
 
 namespace bss_util {
   template<typename D>
@@ -78,7 +81,7 @@ namespace bss_util {
     inline ST AddNode(const V* node) { if(!node) return AddNode(); Node<E, V, ST> aux; aux.to = 0; aux.from = 0; _setdataV(aux, node); return _nodes.Add(aux); }
     inline Edge<E,ST>* AddEdge(ST from, ST to)
     {
-      Edge<E,ST>* r = _allocate(1);
+      Edge<E, ST>* r = cAllocTracker<ALLOC>::_allocate(1);
       r->to=to;
       r->from=from;
       LLAdd(r,_nodes[from].to);

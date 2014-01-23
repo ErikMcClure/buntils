@@ -77,7 +77,7 @@ namespace bss_util {
     BSS_FORCEINLINE void _grow()
     {
       ST oldsize=_size;
-      SetSize(fbnext(_size));
+      cArraySimple<T, ST, Alloc>::SetSize(fbnext(_size));
       _fixfreelist(oldsize);
     }
     inline void _fixfreelist(ST start)

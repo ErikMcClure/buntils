@@ -112,7 +112,7 @@ namespace bss_util {
     {
       LLRemove(edge,_nodes[edge->from].to);
       AltLLRemove<Edge<E,ST>,&_altget>(edge,_nodes[edge->to].from);
-      _deallocate(edge);
+      cAllocTracker<ALLOC>::_deallocate(edge);
       --_nedges;
     }
     template<bool ISEDGE(const E*)>

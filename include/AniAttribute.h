@@ -196,10 +196,11 @@ namespace bss_util {
   {
   public:
     template<typename U> struct rebind { typedef AniAttributeGeneric<TypeID, U> other; };
-    using AniAttributeT<TypeID>::_timevalues;
-    using AniAttributeT<TypeID>::_curpair;
+    typedef AniAttributeT<TypeID, Alloc> BASE;
+    using BASE::_timevalues;
+    using BASE::_curpair;
 
-    inline AniAttributeGeneric(const AniAttributeGeneric& copy) : AniAttributeT<TypeID>(copy) {}
+    inline AniAttributeGeneric(const AniAttributeGeneric& copy) : BASE(copy) {}
     inline AniAttributeGeneric() {}
     virtual bool Interpolate(double timepassed)
     {
@@ -208,9 +209,9 @@ namespace bss_util {
         _timevalues[_curpair++].value(); //You have to call ALL events even if you missed some because you don't know which ones do what
       return _curpair<svar;
     }
-    inline virtual void Start() { if(!_attached()) return; _curpair=1; if(AniAttributeT<TypeID>::_initzero()) _timevalues[0].value(); }
+    inline virtual void Start() { if(!BASE::_attached()) return; _curpair=1; if(BASE::_initzero()) _timevalues[0].value(); }
     inline virtual AniAttribute* BSS_FASTCALL Clone() const { return new(Alloc::allocate(sizeof(AniAttributeGeneric))) AniAttributeGeneric(*this); }
-		inline AniAttributeGeneric& operator=(const AniAttributeGeneric& right) { AniAttributeT<TypeID>::operator=(right); return *this; }
+		inline AniAttributeGeneric& operator=(const AniAttributeGeneric& right) { BASE::operator=(right); return *this; }
   };
 
   // Discrete attribute definition
@@ -222,13 +223,14 @@ namespace bss_util {
   class BSS_COMPILER_DLLEXPORT AniAttributeDiscrete : public AniAttributeT<TypeID, Alloc>
   {
   public:
+    typedef AniAttributeT<TypeID, Alloc> BASE;
     template<typename U> struct rebind { typedef AniAttributeDiscrete<TypeID, U> other; };
-    using AniAttributeT<TypeID>::_timevalues;
-    using AniAttributeT<TypeID>::_curpair;
+    using BASE::_timevalues;
+    using BASE::_curpair;
     
-    inline AniAttributeDiscrete(const AniAttributeDiscrete& copy) : AniAttributeT<TypeID>(copy), _del(copy._del) {}
-    inline explicit AniAttributeDiscrete(ANI_TID(DELEGATE) del) : AniAttributeT<TypeID>(), _del(del) {}
-    inline AniAttributeDiscrete() : AniAttributeT<TypeID>(), _del(0,0) {}
+    inline AniAttributeDiscrete(const AniAttributeDiscrete& copy) : BASE(copy), _del(copy._del) {}
+    inline explicit AniAttributeDiscrete(ANI_TID(DELEGATE) del) : BASE(), _del(del) {}
+    inline AniAttributeDiscrete() : BASE(), _del(0,0) {}
     virtual bool Interpolate(double timepassed)
     {
       auto svar=_timevalues.Size();
@@ -241,9 +243,9 @@ namespace bss_util {
    //   _del(_timevalues[_curpair].value);
 			//return true;
     }
-    inline virtual void Start() { if(!_attached()) return; _curpair=1; if(AniAttributeT<TypeID>::_initzero()) _del(_timevalues[0].value); }
+    inline virtual void Start() { if(!BASE::_attached()) return; _curpair=1; if(BASE::_initzero()) _del(_timevalues[0].value); }
     inline virtual AniAttribute* BSS_FASTCALL Clone() const { return new(Alloc::allocate(sizeof(AniAttributeDiscrete))) AniAttributeDiscrete(*this); }
-    virtual void BSS_FASTCALL Attach(AttrDef* def) { _del=static_cast<AttrDefDiscrete<TypeID>*>(def)->del; _flags+=ATTR_ATTACHED; }
+    virtual void BSS_FASTCALL Attach(AttrDef* def) { _del=static_cast<AttrDefDiscrete<TypeID>*>(def)->del; BASE::_flags+=BASE::ATTR_ATTACHED; }
     
   protected:
     ANI_TID(DELEGATE) _del;
@@ -261,6 +263,10 @@ namespace bss_util {
   template<unsigned char TypeID, typename Alloc = StaticAllocPolicy<char>>
   class BSS_COMPILER_DLLEXPORT AniAttributeSmooth : public AniAttributeDiscrete<TypeID, Alloc>
   {
+    typedef AniAttributeDiscrete<TypeID, Alloc> BASE;
+    using BASE::_flags;
+    using BASE::ATTR_REL;
+
   public:
     template<typename U> struct rebind { typedef AniAttributeSmooth<TypeID, U> other; };
     typedef typename AniAttributeT<TypeID>::TVT_ARRAY_T TVT_ARRAY_T;
@@ -271,7 +277,7 @@ namespace bss_util {
 
     inline AniAttributeSmooth(const AniAttributeSmooth& copy) : AniAttributeDiscrete<TypeID>(copy), _pval(0), _func(copy._func), _initval(false) {}
     inline AniAttributeSmooth(ANI_TID(DELEGATE) del, FUNC func=&NoInterpolate, const ANI_TID(VALUE)* pval=0, bool rel=false) :
-    AniAttributeDiscrete<TypeID>(del), _func(func), _pval(pval), _initval(false) { _flags[ATTR_REL]=rel&&(_pval!=0); }
+      AniAttributeDiscrete<TypeID>(del), _func(func), _pval(pval), _initval(false) { _flags[ATTR_REL]=rel&&(_pval!=0); }
     inline AniAttributeSmooth() : AniAttributeDiscrete<TypeID>(), _func(&NoInterpolate), _pval(0), _initval(false) {}
     virtual bool Interpolate(double timepassed)
     {
@@ -288,7 +294,7 @@ namespace bss_util {
     }
     virtual void Start()
     { 
-      if(!_attached()) return;
+      if(!BASE::_attached()) return;
       _curpair=1; 
       if(_pval) _initval=*_pval; 
       assert(AniAttributeT<TypeID>::_initzero() || _pval!=0); // You can have a _timevalues size of just 1, but only if you have interpolation disabled
@@ -333,15 +339,16 @@ namespace bss_util {
   {
   public:
     template<typename U> struct rebind { typedef AniAttributeInterval<TypeID, U> other; };
+    typedef AniAttributeDiscrete<TypeID, Alloc> BASE;
     typedef typename AniAttributeT<TypeID>::IDTYPE IDTYPE;
     typedef typename Alloc::template rebind<std::pair<double, ANI_TID(AUX)>>::other QUEUEALLOC;
     using AniAttributeT<TypeID>::_timevalues;
     using AniAttributeT<TypeID>::_curpair;
     
-    inline AniAttributeInterval(const AniAttributeInterval& copy) : AniAttributeDiscrete<TypeID>(copy), _rmdel(copy._rmdel) {}
+    inline AniAttributeInterval(const AniAttributeInterval& copy) : BASE(copy), _rmdel(copy._rmdel) {}
     inline AniAttributeInterval(ANI_TID(DELEGATE) del, delegate<void,ANI_TID(AUX)> rmdel) :
-      AniAttributeDiscrete<TypeID>(del), _rmdel(rmdel) {}
-    inline AniAttributeInterval() : AniAttributeDiscrete<TypeID>(), _rmdel(0, 0), _length(0) {}
+      BASE(del), _rmdel(rmdel) {}
+    inline AniAttributeInterval() : BASE(), _rmdel(0, 0), _length(0) {}
     inline ~AniAttributeInterval() {
       while(!_queue.Empty()) // Correctly remove everything currently on the queue
         _rmdel(_queue.Pop().second);
@@ -357,10 +364,10 @@ namespace bss_util {
       return _curpair<svar && _queue.Empty();
     }
     inline virtual double Length() { return _length; }
-		virtual double SetKeyFrames(const KeyFrame<TypeID>* frames, IDTYPE num) { AniAttributeDiscrete<TypeID>::SetKeyFrames(frames,num); _recalclength(); return _length; }
+		virtual double SetKeyFrames(const KeyFrame<TypeID>* frames, IDTYPE num) { BASE::SetKeyFrames(frames,num); _recalclength(); return _length; }
 		virtual IDTYPE AddKeyFrame(const KeyFrame<TypeID>& frame) //time is given in milliseconds
 		{
-      IDTYPE r = AniAttributeDiscrete<TypeID>::AddKeyFrame(frame);
+      IDTYPE r = BASE::AddKeyFrame(frame);
       double t = frame.time+bss_util::ANI_IDTYPE<TypeID>::toduration(frame.value);
       if(t>_length) _length=t;
       return r;
@@ -368,21 +375,21 @@ namespace bss_util {
     virtual bool RemoveKeyFrame(IDTYPE ID)
     {
       if(ID<_timevalues.Size() && _length==_timevalues[ID].time+bss_util::ANI_IDTYPE<TypeID>::toduration(_timevalues[ID].value)) _recalclength();
-      return AniAttributeDiscrete<TypeID>::RemoveKeyFrame(ID);
+      return BASE::RemoveKeyFrame(ID);
     }
     inline virtual void Start() 
     {
       while(!_queue.Empty()) // Correctly remove everything currently on the queue
         _rmdel(_queue.Pop().second);
-      if(!_attached()) return;
+      if(!BASE::_attached()) return;
       _curpair=1;
       if(AniAttributeT<TypeID>::_initzero())
         _addtoqueue(_timevalues[0].value); 
     }
     inline virtual AniAttribute* BSS_FASTCALL Clone() const { return new(Alloc::allocate(sizeof(AniAttributeInterval))) AniAttributeInterval(*this); }
     inline virtual void BSS_FASTCALL CopyAnimation(AniAttribute* ptr) { operator=(*static_cast<AniAttributeInterval*>(ptr)); }
-    virtual void BSS_FASTCALL Attach(AttrDef* def) { _rmdel = static_cast<AttrDefInterval<TypeID>*>(def)->rmdel; AniAttributeDiscrete<TypeID>::Attach(def); }
-    inline AniAttributeInterval& operator=(const AniAttributeInterval& right) { AniAttributeDiscrete<TypeID>::operator=(right); _length=right._length; return *this; }
+    virtual void BSS_FASTCALL Attach(AttrDef* def) { _rmdel = static_cast<AttrDefInterval<TypeID>*>(def)->rmdel; BASE::Attach(def); }
+    inline AniAttributeInterval& operator=(const AniAttributeInterval& right) { BASE::operator=(right); _length=right._length; return *this; }
 
   protected:
     inline void _recalclength()

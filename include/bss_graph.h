@@ -7,6 +7,7 @@
 #include "cLinkedArray.h"
 #include "bss_alloc_fixed.h"
 #include "LLBase.h"
+#include <limits.h>
 #ifdef BSS_COMPILER_GCC
 #include <alloca.h>
 #endif
@@ -54,6 +55,11 @@ namespace bss_util {
     static BSS_FORCEINLINE bool _basecheck(const char* b) { return (*b)!=0; }
     static BSS_FORCEINLINE LLBase<Edge<E,ST>>& _altget(Edge<E,ST>* p) { return p->alt; }
     typedef typename std::conditional<std::is_void<E>::value,char,E>::type EDATA;
+    using __Graph__InternalVertex<V, ST>::_setdataV;
+    using __Graph__InternalVertex<V, ST>::_setvertex;
+    using __Graph__InternalVertex<V, ST>::_addvertex;
+    using __Graph__InternalEdge<E>::_setdataE;
+    using __Graph__InternalEdge<E>::_getdata;
 
   public:
     Graph(const Graph&) = delete;

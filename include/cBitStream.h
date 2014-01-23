@@ -9,10 +9,18 @@
 #include <iostream>
 
 namespace bss_util {
+  template<typename STREAM, bool ISOUT>
+  struct __bitstream_internal { BSS_FORCEINLINE static void _flush(STREAM* s, unsigned char buf) { s->write((char*)&buf, 1); } };
+  
+  template<typename STREAM>
+  struct __bitstream_internal<STREAM,false> { BSS_FORCEINLINE static void _flush(STREAM* s, unsigned char buf) { } };
+
   // This wraps around an existing stream and flushes to it. Capable of writing and reading with single-bit precision.
   template<typename STREAM=std::iostream>
-  class BSS_COMPILER_DLLEXPORT cBitStream
-  {
+  class BSS_COMPILER_DLLEXPORT cBitStream : protected __bitstream_internal<STREAM,std::is_base_of<std::ostream, STREAM>::value>
+  { 
+    using __bitstream_internal<STREAM, std::is_base_of<std::ostream, STREAM>::value>::_flush;
+
   public:
     cBitStream(const cBitStream& copy) : _base(copy._base), _roffset(copy._roffset), _woffset(copy._woffset), _buf(copy._buf) {}
     cBitStream(cBitStream&& mov) : _base(mov._base), _roffset(mov._roffset), _woffset(mov._woffset), _buf(mov._buf) { mov._base = 0; }
@@ -66,7 +74,7 @@ namespace bss_util {
     }
     template<typename T>
     void Read(T& dest) { Read(&dest, std::conditional<std::is_same<T, bool>::value, std::integral_constant<int, 1>, std::integral_constant<int, (sizeof(T)<<3)>>::type::value); }
-    void Flush() { if(_woffset) call_if<std::is_base_of<std::ostream, STREAM>::value, void(*)(std::ostream*, unsigned char)>::Call<&cBitStream::_flush>(_base, _buf); }
+    void Flush() { if(_woffset) _flush(_base, _buf); }
 
     cBitStream& operator=(const cBitStream& copy) { _base=copy._base; return *this; }
     cBitStream& operator=(cBitStream&& mov) { _base=mov._base; mov._base=0; return *this; }
@@ -76,8 +84,6 @@ namespace bss_util {
     cBitStream& operator>>(T& v) { Read<T>(v); return *this; }
 
   protected:
-    BSS_FORCEINLINE static void _flush(std::ostream* s, unsigned char buf) { s->write((char*)&buf, 1); }
-
     STREAM* _base;
     unsigned char _buf;
     unsigned char _roffset; // Offset from current reading position in bits

@@ -1092,7 +1092,7 @@ void outgraph(const G& g)
 {
   std::cout << "--------" << std::endl;
   auto& n = g.GetNodes();
-  for(const G::N_& node : n) // test range-based for loops
+  for(const typename G::N_& node : n) // test range-based for loops
   {
     for(auto p = node.to; p!=0; p = p->next)
       std::cout << p->from << " -> (" << p->data.capacity << "," << p->data.flow << ") ->" << p->to << std::endl;

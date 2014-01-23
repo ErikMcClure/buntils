@@ -13,7 +13,8 @@ namespace bss_util {
   {
     static BSS_FORCEINLINE T BSS_FASTCALL fixedpt_add(T x, T y) { return x+y; }
     static BSS_FORCEINLINE T BSS_FASTCALL fixedpt_mul(T x, T y) { 
-      return (T)((((std::make_signed<T>::type)x)*((typename BitLimit<(sizeof(T)<<4)>::SIGNED)y))>>(D)); }
+      return (T)((((typename std::make_signed<T>::type)x)*((typename BitLimit<(sizeof(T)<<4)>::SIGNED)y))>>(D));
+    }
     static BSS_FORCEINLINE T BSS_FASTCALL fixedpt_div(T x, T y) { return (T)((((typename BitLimit<(sizeof(T)<<4)>::SIGNED)x)<<D)/y); }
   };
   template<typename T, unsigned char D> struct i_FIXED_PT_FUNC<T,D,true>

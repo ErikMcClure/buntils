@@ -269,16 +269,16 @@ namespace bss_util {
 
   public:
     template<typename U> struct rebind { typedef AniAttributeSmooth<TypeID, U> other; };
-    typedef typename AniAttributeT<TypeID>::TVT_ARRAY_T TVT_ARRAY_T;
-    typedef typename AniAttributeT<TypeID>::IDTYPE IDTYPE;
-    typedef typename AniAttributeT<TypeID>::FUNC FUNC;
-    using AniAttributeT<TypeID>::_timevalues;
-    using AniAttributeT<TypeID>::_curpair;
+    typedef typename AniAttributeT<TypeID, Alloc>::TVT_ARRAY_T TVT_ARRAY_T;
+    typedef typename AniAttributeT<TypeID, Alloc>::IDTYPE IDTYPE;
+    typedef typename AniAttributeT<TypeID, Alloc>::FUNC FUNC;
+    using AniAttributeT<TypeID, Alloc>::_timevalues;
+    using AniAttributeT<TypeID, Alloc>::_curpair;
 
-    inline AniAttributeSmooth(const AniAttributeSmooth& copy) : AniAttributeDiscrete<TypeID>(copy), _pval(0), _func(copy._func), _initval(false) {}
+    inline AniAttributeSmooth(const AniAttributeSmooth& copy) : BASE(copy), _pval(0), _func(copy._func), _initval(false) {}
     inline AniAttributeSmooth(ANI_TID(DELEGATE) del, FUNC func=&NoInterpolate, const ANI_TID(VALUE)* pval=0, bool rel=false) :
-      AniAttributeDiscrete<TypeID>(del), _func(func), _pval(pval), _initval(false) { _flags[ATTR_REL]=rel&&(_pval!=0); }
-    inline AniAttributeSmooth() : AniAttributeDiscrete<TypeID>(), _func(&NoInterpolate), _pval(0), _initval(false) {}
+      AniAttributeDiscrete<TypeID,Alloc>(del), _func(func), _pval(pval), _initval(false) { _flags[ATTR_REL]=rel&&(_pval!=0); }
+    inline AniAttributeSmooth() : BASE(), _func(&NoInterpolate), _pval(0), _initval(false) {}
     virtual bool Interpolate(double timepassed)
     {
       IDTYPE svar=_timevalues.Size();
@@ -297,8 +297,8 @@ namespace bss_util {
       if(!BASE::_attached()) return;
       _curpair=1; 
       if(_pval) _initval=*_pval; 
-      assert(AniAttributeT<TypeID>::_initzero() || _pval!=0); // You can have a _timevalues size of just 1, but only if you have interpolation disabled
-      if(!AniAttributeT<TypeID>::_initzero()) 
+      assert(BASE::_initzero() || _pval!=0); // You can have a _timevalues size of just 1, but only if you have interpolation disabled
+      if(!BASE::_initzero())
         _timevalues[0].value=*_pval;
       _setval(_func(_timevalues,_curpair,0.0));
     }
@@ -306,10 +306,10 @@ namespace bss_util {
     inline virtual void BSS_FASTCALL CopyAnimation(AniAttribute* ptr) { operator=(*static_cast<AniAttributeSmooth*>(ptr)); }
     inline virtual bool SetInterpolation(FUNC func) { if(!func) return false; _func=func; return true; }
     inline virtual bool SetRelative(bool rel) { if(!_pval) return false; _flags[ATTR_REL]=rel; return true; } // If set to non-zero, this will be relative.
-    virtual void BSS_FASTCALL Attach(AttrDef* def) { _pval=static_cast<AttrDefSmooth<TypeID>*>(def)->src; AniAttributeDiscrete<TypeID>::Attach(def); }
+    virtual void BSS_FASTCALL Attach(AttrDef* def) { _pval=static_cast<AttrDefSmooth<TypeID>*>(def)->src; BASE::Attach(def); }
     inline AniAttributeSmooth& operator=(const AniAttributeSmooth& right)
     { 
-      AniAttributeDiscrete<TypeID>::operator=(right);
+      BASE::operator=(right);
       _func=right._func;
       return *this;
     }
@@ -319,7 +319,7 @@ namespace bss_util {
     static inline ANI_TID(VALUE) BSS_FASTCALL CubicInterpolate(const TVT_ARRAY_T& a, IDTYPE i, double t) { return CubicBSpline<ANI_TID(VALUE)>(t,a[i-1-(i!=1)].value,a[i-1].value,a[i].value,a[i+((i+1)!=a.Size())].value); }
 
   protected:
-    BSS_FORCEINLINE void _setval(ANI_TID(VALUECONST) val) const { AniAttributeDiscrete<TypeID>::_del((_flags&ATTR_REL)?val+_initval:val); }
+    BSS_FORCEINLINE void _setval(ANI_TID(VALUECONST) val) const { AniAttributeDiscrete<TypeID, Alloc>::_del((_flags&ATTR_REL)?val+_initval:val); }
 
     ANI_TID(VALUE) _initval;
     const ANI_TID(VALUE)* _pval;
@@ -340,10 +340,10 @@ namespace bss_util {
   public:
     template<typename U> struct rebind { typedef AniAttributeInterval<TypeID, U> other; };
     typedef AniAttributeDiscrete<TypeID, Alloc> BASE;
-    typedef typename AniAttributeT<TypeID>::IDTYPE IDTYPE;
+    typedef typename AniAttributeT<TypeID, Alloc>::IDTYPE IDTYPE;
     typedef typename Alloc::template rebind<std::pair<double, ANI_TID(AUX)>>::other QUEUEALLOC;
-    using AniAttributeT<TypeID>::_timevalues;
-    using AniAttributeT<TypeID>::_curpair;
+    using AniAttributeT<TypeID, Alloc>::_timevalues;
+    using AniAttributeT<TypeID, Alloc>::_curpair;
     
     inline AniAttributeInterval(const AniAttributeInterval& copy) : BASE(copy), _rmdel(copy._rmdel) {}
     inline AniAttributeInterval(ANI_TID(DELEGATE) del, delegate<void,ANI_TID(AUX)> rmdel) :
@@ -383,7 +383,7 @@ namespace bss_util {
         _rmdel(_queue.Pop().second);
       if(!BASE::_attached()) return;
       _curpair=1;
-      if(AniAttributeT<TypeID>::_initzero())
+      if(AniAttributeT<TypeID, Alloc>::_initzero())
         _addtoqueue(_timevalues[0].value); 
     }
     inline virtual AniAttribute* BSS_FASTCALL Clone() const { return new(Alloc::allocate(sizeof(AniAttributeInterval))) AniAttributeInterval(*this); }
@@ -400,7 +400,7 @@ namespace bss_util {
       if((t = _timevalues[i].time+bss_util::ANI_IDTYPE<TypeID>::toduration(_timevalues[i].value))>_length)
         _length=t;
     }
-    inline void _addtoqueue(ANI_TID(DATACONST) v) { _queue.Push(bss_util::ANI_IDTYPE<TypeID>::toduration(v), _del(v)); }
+    inline void _addtoqueue(ANI_TID(DATACONST) v) { _queue.Push(bss_util::ANI_IDTYPE<TypeID>::toduration(v), AniAttributeDiscrete<TypeID, Alloc>::_del(v)); }
 
     delegate<void,ANI_TID(AUX)> _rmdel; //delegate for removal
     cPriorityQueue<double, ANI_TID(AUX), CompT<double>, unsigned int, cArraySimple<std::pair<double, ANI_TID(AUX)>, unsigned int, QUEUEALLOC>> _queue;

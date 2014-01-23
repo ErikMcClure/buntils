@@ -91,7 +91,7 @@ namespace bss_util {
       r->to=to;
       r->from=from;
       LLAdd(r,_nodes[from].to);
-      AltLLAdd<Edge<E,ST>,&_altget>(r,_nodes[to].from);
+      AltLLAdd<Edge<E, ST>, &Graph::_altget>(r, _nodes[to].from);
       ++_nedges;
       return r;
     }
@@ -111,7 +111,7 @@ namespace bss_util {
     inline void RemoveEdge(Edge<E,ST>* edge)
     {
       LLRemove(edge,_nodes[edge->from].to);
-      AltLLRemove<Edge<E,ST>,&_altget>(edge,_nodes[edge->to].from);
+      AltLLRemove<Edge<E, ST>, &Graph::_altget>(edge, _nodes[edge->to].from);
       cAllocTracker<ALLOC>::_deallocate(edge);
       --_nedges;
     }

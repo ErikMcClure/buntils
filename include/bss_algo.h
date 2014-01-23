@@ -541,7 +541,11 @@ namespace bss_util {
   template<typename T, typename D>
   inline static T BSS_FASTCALL BezierCurve(D t, const T& p1, const T& p2, const T& p3, const T& p4)
   {
-    const float m[4][4] ={-1, 3, -3, 1, 3, -6, 3, 0, -3, 3, 0, 0, 1, 0, 0, 0};
+#ifdef BSS_COMPILER_GCC
+    constexpr float m[4][4] ={-1, 3, -3, 1, 3, -6, 3, 0, -3, 3, 0, 0, 1, 0, 0, 0};
+#else
+    static const float m[4][4] ={-1, 3, -3, 1, 3, -6, 3, 0, -3, 3, 0, 0, 1, 0, 0, 0};
+#endif
     const float p[4] ={p1, p2, p3, p4};
     return StaticGenericSpline<T, D, m>(t, p);
   }

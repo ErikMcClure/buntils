@@ -333,12 +333,12 @@ TESTDEF::RETPAIR test_bss_util()
   static_assert(std::is_same<BitLimit<sizeof(char)<<3>::UNSIGNED, unsigned char>::value, "Test Failure Line #" MAKESTRING(__LINE__));
   static_assert(std::is_same<BitLimit<sizeof(short)<<3>::UNSIGNED, unsigned short>::value, "Test Failure Line #" MAKESTRING(__LINE__));
   static_assert(std::is_same<BitLimit<sizeof(unsigned int)<<3>::UNSIGNED, unsigned int>::value, "Test Failure Line #" MAKESTRING(__LINE__));
-  static_assert(std::is_same<BitLimit<sizeof(long double)<<3>::SIGNED, __int64>::value, "Test Failure Line #" MAKESTRING(__LINE__));
   static_assert(std::is_same<BitLimit<sizeof(double)<<3>::SIGNED, __int64>::value, "Test Failure Line #" MAKESTRING(__LINE__));
   static_assert(std::is_same<BitLimit<sizeof(float)<<3>::SIGNED, int>::value, "Test Failure Line #" MAKESTRING(__LINE__));
-  static_assert(std::is_same<BitLimit<sizeof(long double)<<3>::UNSIGNED, unsigned __int64>::value, "Test Failure Line #" MAKESTRING(__LINE__));
   static_assert(std::is_same<BitLimit<sizeof(double)<<3>::UNSIGNED, unsigned __int64>::value, "Test Failure Line #" MAKESTRING(__LINE__));
   static_assert(std::is_same<BitLimit<sizeof(float)<<3>::UNSIGNED, unsigned int>::value, "Test Failure Line #" MAKESTRING(__LINE__));
+  //static_assert(std::is_same<BitLimit<sizeof(long double)<<3>::SIGNED, __int64>::value, "Test Failure Line #" MAKESTRING(__LINE__)); // long double is not a well defined type
+  //static_assert(std::is_same<BitLimit<sizeof(long double)<<3>::UNSIGNED, unsigned __int64>::value, "Test Failure Line #" MAKESTRING(__LINE__));
   static_assert(T_CHARGETMSB(0)==0, "Test Failure Line #" MAKESTRING(__LINE__));
   static_assert(T_CHARGETMSB(1)==1, "Test Failure Line #" MAKESTRING(__LINE__));
   static_assert(T_CHARGETMSB(2)==2, "Test Failure Line #" MAKESTRING(__LINE__));

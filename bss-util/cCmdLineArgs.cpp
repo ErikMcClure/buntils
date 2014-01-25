@@ -12,7 +12,7 @@ using namespace bss_util;
 
 cCmdLineArgs::cCmdLineArgs(const cCmdLineArgs& copy) : _cmdline(copy._cmdline), _lines(copy._lines)
 {
-  for(int i = 0; i < _lines.Length(); ++i) // transform pointer locations to point to our string
+  for(unsigned int i = 0; i < _lines.Length(); ++i) // transform pointer locations to point to our string
     _lines[i]=_cmdline.c_str()+(copy._lines[i]-copy._cmdline.c_str());
 }
 cCmdLineArgs::cCmdLineArgs(const char* specify) : _cmdline(specify)

@@ -1,4 +1,4 @@
-// Copyright ©2013 Black Sphere Studios
+// Copyright ©2014 Black Sphere Studios
 // For conditions of distribution and use, see copyright notice in "bss_util.h"
 
 #include "bss_util_c.h"
@@ -13,6 +13,8 @@
 #include <iconv.h>
 #include <unistd.h> // for sysconf
 #include <cpuid.h>
+#include <stdio.h>
+#include <sys/resource.h>
 #endif
 
 BSS_COMPILER_DLLEXPORT 
@@ -87,10 +89,33 @@ extern size_t GetWorkingSet()
   GetProcessMemoryInfo(GetCurrentProcess(), &counter, sizeof(PROCESS_MEMORY_COUNTERS));
   return counter.WorkingSetSize;
 #else
-  return 0;
+  long rss = 0L;
+  FILE* fp = fopen("/proc/self/statm", "r");
+  if(!fp) return (size_t)0L;
+  if(fscanf(fp, "%*s%ld", &rss) != 1)
+    rss=0;
+  fclose(fp);
+  return (size_t)rss * (size_t)sysconf(_SC_PAGESIZE);
 #endif
 }
 
+BSS_COMPILER_DLLEXPORT
+extern size_t GetPeakWorkingSet()
+{
+#ifdef BSS_PLATFORM_WIN32
+  PROCESS_MEMORY_COUNTERS info;
+  GetProcessMemoryInfo(GetCurrentProcess(), &info, sizeof(info));
+  return (size_t)info.PeakWorkingSetSize;
+#else
+  struct rusage rusage;
+  getrusage(RUSAGE_SELF, &rusage);
+#if defined(__APPLE__) && defined(__MACH__)
+  return (size_t)rusage.ru_maxrss;
+#else
+  return (size_t)(rusage.ru_maxrss * 1024L);
+#endif
+#endif
+}
 BSS_COMPILER_DLLEXPORT
 extern unsigned long BSS_FASTCALL strhex(const char* text)
 {

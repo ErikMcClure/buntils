@@ -1,4 +1,4 @@
-﻿// Copyright ©2013 Black Sphere Studios
+﻿// Copyright ©2014 Black Sphere Studios
 // For conditions of distribution and use, see copyright notice in "bss_util.h"
 
 #include "Shiny.h"
@@ -172,12 +172,12 @@ const bsschar* PANGRAMS[] = {
 template<unsigned char B, __int64 SMIN, __int64 SMAX, unsigned __int64 UMIN, unsigned __int64 UMAX, typename T>
 inline void TEST_BitLimit()
 {
-  static_assert(std::is_same<T, BitLimit<B>::SIGNED>::value, "BitLimit failure");
-  static_assert(std::is_same<std::make_unsigned<T>::type, BitLimit<B>::UNSIGNED>::value, "BitLimit failure");
-  static_assert(BitLimit<B>::SIGNED_MIN==SMIN, "BitLimit failure");
-  static_assert(BitLimit<B>::SIGNED_MAX==SMAX, "BitLimit failure");
-  static_assert(BitLimit<B>::UNSIGNED_MIN==UMIN, "BitLimit failure");
-  static_assert(BitLimit<B>::UNSIGNED_MAX==UMAX, "BitLimit failure");
+  static_assert(std::is_same<T, typename BitLimit<B>::SIGNED>::value, "BitLimit failure" MAKESTRING(B));
+  static_assert(std::is_same<typename std::make_unsigned<T>::type, typename BitLimit<B>::UNSIGNED>::value, "BitLimit failure" MAKESTRING(B));
+  static_assert(BitLimit<B>::SIGNED_MIN==SMIN, "BitLimit failure" MAKESTRING(B));
+  static_assert(BitLimit<B>::SIGNED_MAX==SMAX, "BitLimit failure" MAKESTRING(B));
+  static_assert(BitLimit<B>::UNSIGNED_MIN==UMIN, "BitLimit failure" MAKESTRING(B));
+  static_assert(BitLimit<B>::UNSIGNED_MAX==UMAX, "BitLimit failure" MAKESTRING(B));
 }
 
 template<typename T, size_t S> inline static size_t BSS_FASTCALL _ARRSIZE(const T (&a)[S]) { return S; }
@@ -314,6 +314,7 @@ TESTDEF::RETPAIR test_bss_util_c()
   TEST(!strcmp(buf,"-1"));
 
   TEST(GetWorkingSet()!=0);
+  TEST(GetPeakWorkingSet()!=0);
 
   ENDTEST;
 }
@@ -2491,8 +2492,8 @@ TESTDEF::RETPAIR test_HIGHPRECISIONTIMER()
   TEST(timer.GetTime()==0.0);
   auto prof = cHighPrecisionTimer::OpenProfiler();
   TEST(prof!=0);
-  std::this_thread::sleep_for(std::chrono::milliseconds(2));
-  auto val = cHighPrecisionTimer::CloseProfiler(prof);
+  timer.ResetDelta(); // The linux profiler is *too accurate* in that it only measures precisely how much time the process is using. So we can't just put it to sleep.
+  while(timer.GetTime()<2.0) timer.Update();
 
   TEST(cHighPrecisionTimer::CloseProfiler(prof)>1000000); // we should have slept for at least 1 millisecond
   TEST(cHighPrecisionTimer::CloseProfiler(prof)<5000000); // but less than 5 milliseconds

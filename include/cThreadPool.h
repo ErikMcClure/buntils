@@ -1,4 +1,4 @@
-// Copyright ©2013 Black Sphere Studios
+// Copyright ©2014 Black Sphere Studios
 // For conditions of distribution and use, see copyright notice in "bss_util.h"
 
 #ifndef __C_THREAD_POOL_H__BSS__
@@ -21,11 +21,13 @@ namespace bss_util
   public:
     cThreadPool(const cThreadPool& copy) = delete;
     cThreadPool(cThreadPool&& mov) : _queue(std::move(mov._queue)), _pool(std::move(mov._pool)) {
+      _numtasks.store(0, std::memory_order_relaxed);
       _sleepflag.store(mov._sleepflag.load(std::memory_order_relaxed), std::memory_order_relaxed);
       for(unsigned int i = 0; i < NUMMAXCHARS; ++i)
         _quitflags[i].store(mov._quitflags[i].load(std::memory_order_relaxed), std::memory_order_relaxed);
     }
     explicit cThreadPool(size_t num=4) {
+      _numtasks.store(0, std::memory_order_relaxed);
       for(unsigned int i = 0; i < NUMMAXCHARS; ++i)
         _quitflags[i].store(0, std::memory_order_relaxed);
       SetLength(num); 

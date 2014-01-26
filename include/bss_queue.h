@@ -1,4 +1,4 @@
-// Copyright ©2013 Black Sphere Studios
+// Copyright ©2014 Black Sphere Studios
 // For conditions of distribution and use, see copyright notice in "bss_util.h"
 
 #ifndef __C_BSS_QUEUE_H__
@@ -18,7 +18,7 @@ namespace bss_util {
   public:
     inline cQueue(const cQueue& copy) : BASE(copy) {}
     inline cQueue(cQueue&& mov) : BASE(std::move(mov)) {}
-    inline explicit cQueue(SizeType init=8) : BASE(0) {}
+    inline explicit cQueue(SizeType init=0) : BASE(init) {}
     inline ~cQueue() {}
     BSS_FORCEINLINE void BSS_FASTCALL Push(const T& value) { _push<const T&>(value); }
     BSS_FORCEINLINE void BSS_FASTCALL Push(T&& value) { _push<T&&>(std::move(value)); }

@@ -1,4 +1,4 @@
-// Copyright ©2013 Black Sphere Studios
+// Copyright ©2014 Black Sphere Studios
 // For conditions of distribution and use, see copyright notice in "bss_util.h"
 
 #ifndef __C_LOCKLESS_QUEUE_H__
@@ -43,7 +43,7 @@ namespace bss_util {
   public:
     cLocklessQueue(const cLocklessQueue&) = delete;
     cLocklessQueue(cLocklessQueue&& mov) : i_LocklessQueue_Length<LENGTH>(std::move(mov)), _div(mov._div), _last(mov._last), _first(mov._first), _alloc(std::move(mov._alloc)) { mov._div=mov._last=mov._first=0; }
-    inline cLocklessQueue() { _div=_last=_first=_alloc.alloc(1); new((cLQ_QNode<T>*)_first) cLQ_QNode<T>(); assert(_last.is_lock_free()); assert(_div.is_lock_free()); }
+    inline cLocklessQueue() { _div=_last=_first=_alloc.alloc(1); new((cLQ_QNode<T>*)_first) cLQ_QNode<T>(); /*assert(_last.is_lock_free()); assert(_div.is_lock_free());*/ } // bug in GCC doesn't define is_lock_free
     inline ~cLocklessQueue() { } // Don't need to clean up because the allocator will destroy everything by itself
     BSS_FORCEINLINE void Push(const T& t) { _produce<const T&>(t); }
     BSS_FORCEINLINE void Push(T&& t) { _produce<T&&>(std::move(t)); }

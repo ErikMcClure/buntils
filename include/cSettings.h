@@ -8,7 +8,6 @@
 #include <sstream>
 #include <functional>
 #include <vector>
-#include "cCmdLineArgs.h"
 
 namespace bss_util {
   // Base template cSetting class containing the master cmdhash for processing command lines.

@@ -95,7 +95,7 @@ namespace bss_util {
   };
 
   // This is a reversible wrapper around cIDhash that allows for two-way lookups.
-  template<typename T, typename ST = unsigned int, typename Alloc = StaticAllocPolicy<T>, T INVALID = 0, khint_t(*__hash_func)(T) = &KH_POINTER_HASHFUNC<T>, bool(*__hash_equal)(T, T) = &KH_INT_EQUALFUNC<T>>
+  template<typename T, typename ST = unsigned int, typename Alloc = StaticAllocPolicy<T>, T INVALID = 0, khint_t(*__hash_func)(T) = &KH_AUTO_HASHFUNC<T>, bool(*__hash_equal)(T, T) = &KH_AUTO_EQUALFUNC<T>>
   class cIDReverse : protected cIDHash<T,ST,Alloc,INVALID>
   {
   protected:

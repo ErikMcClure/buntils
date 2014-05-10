@@ -19,7 +19,6 @@
 #include "cBitArray.h"
 #include "cBitField.h"
 #include "cBitStream.h"
-#include "cCmdLineArgs.h"
 #include "cDef.h"
 #include "cDisjointSet.h"
 #include "cDynArray.h"
@@ -2334,34 +2333,6 @@ TESTDEF::RETPAIR test_BSS_STACK()
   ENDTEST;
 }
 
-TESTDEF::RETPAIR test_CMDLINEARGS()
-{
-  BEGINTEST;
-  cCmdLineArgs args("C:/fake/file/path.txt -r 2738 283.5 -aa 3 -noindice");
-  args.Process([&__testret](const char* const* p, size_t n)
-  {
-    static cTrie<unsigned char> t(3,"-r","-aa","-noindice");
-    switch(t[p[0]])
-    {
-    case 0:
-      TEST(n==3);
-      TEST(atof(p[1])==2738.0);
-      TEST(atof(p[2])==283.5);
-      break;
-    case 1:
-      TEST(n==2);
-      TEST(atoi(p[1])==3);
-      break;
-    case 2:
-      TEST(n==1);
-      break;
-    default:
-      TEST(!strcmp(p[0],"C:/fake/file/path.txt"));
-    }
-  });
-  ENDTEST;
-}
-
 TESTDEF::RETPAIR test_DISJOINTSET()
 {
   BEGINTEST;
@@ -2885,11 +2856,11 @@ TESTDEF::RETPAIR test_KHASH()
   //hashtest.Insert(52,0);
   //hashtest.Insert(1,0);
   //int r=hashtest.GetIterKey(hashtest.GetIterator(1));
-  cKhash_Int<bss_Log*> hasherint;
+  cHash<int,bss_Log*> hasherint;
   hasherint.Insert(25, &_failedtests);
   hasherint.Get(25);
   hasherint.Remove(25);
-  cKhash_StringIns<bss_Log*> hasher;
+  cHash<const char*, bss_Log*, true, true> hasher;
   hasher.Insert("", &_failedtests);
   hasher.Insert("Video", (bss_Log*)5);
   hasher.SetSize(100);
@@ -2898,7 +2869,7 @@ TESTDEF::RETPAIR test_KHASH()
   check = hasher.Get("Video");
   //unsigned __int64 diff = cHighPrecisionTimer::CloseProfiler(ID);
 
-  cKhash_Pointer<short,const void*,false> set;
+  cHash<const void*, short, false> set;
   set.Insert(0,1);
   set.Insert(&check,1);
   set.Insert(&hasher,1);
@@ -3776,6 +3747,36 @@ TESTDEF::RETPAIR test_OS()
   TEST(FileExists(BSS__L("blank.txt")));
   TEST(!FileExists("testaskdjlhfs.sdkj"));
   TEST(!FileExists(BSS__L("testaskdjlhfs.sdkj")));
+
+
+
+  //cStr cmd(GetCommandLineW());
+  cStr cmd("\"\"C:/fake/f\"\"ile/p\"ath.txt\"\" -r 2738 283.5 -a\"a\" 3 \"-no indice\"");
+  int argc = ToArgV(0, cmd.UnsafeString());
+  DYNARRAY(char*, argv, argc);
+  ToArgV(argv, cmd.UnsafeString());
+  ProcessCmdArgs(argc, argv, [&__testret](const char* const* p, size_t n)
+  {
+    static cTrie<unsigned char> t(3, "-r", "-a\"a\"", "-no indice");
+    switch(t[p[0]])
+    {
+    case 0:
+      TEST(n==3);
+      TEST(atof(p[1])==2738.0);
+      TEST(atof(p[2])==283.5);
+      break;
+    case 1:
+      TEST(n==2);
+      TEST(atoi(p[1])==3);
+      break;
+    case 2:
+      TEST(n==1);
+      break;
+    default:
+      TEST(!strcmp(p[0], "\"C:/fake/f\"\"ile/p\"ath.txt\""));
+    }
+  });
+
   //TEST(FileExists("testlink"));
   //TEST(FileExists(BSS__L("testlink")));
   //TEST(FolderExists("IGNORE/symlink/"));
@@ -3882,7 +3883,6 @@ int main(int argc, char** argv)
     { "cBitStream.h", &test_BITSTREAM },
     { "cQueue.h", &test_BSS_QUEUE },
     { "cStack.h", &test_BSS_STACK },
-    { "cCmdLineArgs.h", &test_CMDLINEARGS },
     { "cDisjointSet.h", &test_DISJOINTSET },
     { "cDynArray.h", &test_DYNARRAY },
     { "cHighPrecisionTimer.h", &test_HIGHPRECISIONTIMER },

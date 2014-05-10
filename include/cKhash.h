@@ -186,13 +186,14 @@ namespace bss_util {
   struct __getval_KHASH<true,KHGET,KHTYPE> { static inline KHGET BSS_FASTCALL _getval(KHTYPE* _h, khiter_t i) { return &kh_val(_h,i); } };
 
   // Base template for cKhash. If you want a set instead of a map, set khval_t to 'char' and kh_is_map to 'false'.
-  template<typename khkey_t, typename khval_t, bool kh_is_map, khint_t (*__hash_func)(khkey_t), bool (*__hash_equal)(khkey_t, khkey_t), typename KHGET=khval_t*, KHGET INVALID=0>
+  template<typename khkey_t, typename khval_t, bool kh_is_map, khint_t(*__hash_func)(khkey_t), bool(*__hash_equal)(khkey_t, khkey_t), typename khget_t=khval_t*, khget_t INVALID=0>
   class BSS_COMPILER_DLLEXPORT cKhash
   {
   protected:
     typedef khkey_t KHKEY;
     typedef khval_t KHVAL;
     typedef kh_template_t<KHKEY,KHVAL,kh_is_map,__hash_func,__hash_equal> KHTYPE;
+    typedef khget_t KHGET;
 
   public:
     inline cKhash(const cKhash& copy) : _h(kh_init_template<KHKEY,KHVAL,kh_is_map,__hash_func,__hash_equal>()) { operator =(copy); }
@@ -259,9 +260,9 @@ namespace bss_util {
       mov._h=0;
       return *this;
     }
+    inline KHGET operator[](KHKEY key) const { return Get(key); }
     //inline KHVAL& operator[](khiter_t iterator) { return kh_val(_h, iterator); }
     //inline const KHVAL& operator[](khiter_t iterator) const { return kh_val(_h, iterator); }
-    inline KHGET operator[](KHKEY key) const { return Get(key); }
 
     class BSS_COMPILER_DLLEXPORT cKhash_Iter : public std::iterator<std::bidirectional_iterator_tag,khiter_t>
 	  {
@@ -306,7 +307,6 @@ namespace bss_util {
   };
 
   inline khint_t KH_INT64_HASHFUNC(__int64 key) { return (khint32_t)((key)>>33^(key)^(key)<<11); }
-  inline khint_t KH_UINT64_HASHFUNC(unsigned __int64 key) { return KH_INT64_HASHFUNC((__int64)key); }
   template<class T>
   BSS_FORCEINLINE khint_t KH_INT_HASHFUNC(T key) { return (khint32_t)key; }
   inline khint_t KH_STR_HASHFUNC(const char * s) { khint_t h = *s; if (h) for (++s ; *s; ++s) h = (h << 5) - h + *s; return h; }
@@ -321,97 +321,66 @@ namespace bss_util {
   return (khint32_t)p;
 #endif
   }
+  template<typename T, int I> struct KH_AUTO_HELPER { };
+  template<typename T> struct KH_AUTO_HELPER<T, 1> { BSS_FORCEINLINE static khint_t hash(T k) { return KH_POINTER_HASHFUNC<T>(k); } };
+  template<typename T> struct KH_AUTO_HELPER<T, 2> { BSS_FORCEINLINE static khint_t hash(T k) { return KH_INT_HASHFUNC<T>((__int32)k); } };
+  template<typename T> struct KH_AUTO_HELPER<T, 4> { BSS_FORCEINLINE static khint_t hash(T k) { return KH_INT64_HASHFUNC<T>((__int64)k); } };
 
-  inline bool KH_STR_EQUALFUNC(const char* a,const char* b) { return strcmp(a,b)==0; }
-  inline bool KH_STRINS_EQUALFUNC(const char* a,const char* b) { return STRICMP(a,b)==0; }
-  inline bool KH_STRW_EQUALFUNC(const wchar_t* a,const wchar_t* b) { return wcscmp(a,b)==0; }
-  inline bool KH_STRWINS_EQUALFUNC(const wchar_t* a,const wchar_t* b) { return WCSICMP(a,b)==0; }
-  template<class T>
-  BSS_FORCEINLINE bool KH_INT_EQUALFUNC(T a,T b) { return a==b; }
+  template<typename T>
+  BSS_FORCEINLINE khint_t KH_AUTO_HASHFUNC(T k) { return KH_AUTO_HELPER<T,std::is_pointer<T>::value + std::is_integral<T>::value*2*(1+(sizeof(T)==8))>::hash(k); }
+  template<> BSS_FORCEINLINE khint_t KH_AUTO_HASHFUNC<const char*>(const char* k) { return KH_STR_HASHFUNC(k); }
+  template<> BSS_FORCEINLINE khint_t KH_AUTO_HASHFUNC<char*>(char* k) { return KH_STR_HASHFUNC(k); }
+  template<> BSS_FORCEINLINE khint_t KH_AUTO_HASHFUNC<const wchar_t*>(const wchar_t* k) { return KH_STRW_HASHFUNC(k); }
+  template<> BSS_FORCEINLINE khint_t KH_AUTO_HASHFUNC<wchar_t*>(wchar_t* k) { return KH_STRW_HASHFUNC(k); }
+  template<> BSS_FORCEINLINE khint_t KH_AUTO_HASHFUNC<double>(double k) { return KH_INT64_HASHFUNC(*(__int64*)&k); }
+  template<> BSS_FORCEINLINE khint_t KH_AUTO_HASHFUNC<float>(float k) { return *(khint32_t*)&k; }
+  template<typename T> BSS_FORCEINLINE khint_t KH_AUTOINS_HASHFUNC(T k) { return KH_STRINS_HASHFUNC(k); }
+  template<> BSS_FORCEINLINE khint_t KH_AUTOINS_HASHFUNC<const wchar_t*>(const wchar_t* k) { return KH_STRWINS_HASHFUNC(k); }
+  template<> BSS_FORCEINLINE khint_t KH_AUTOINS_HASHFUNC<wchar_t*>(wchar_t* k) { return KH_STRWINS_HASHFUNC(k); }
+
+  template<typename T>
+  BSS_FORCEINLINE bool KH_AUTO_EQUALFUNC(T a, T b) { return a==b; }
+  template<> BSS_FORCEINLINE bool KH_AUTO_EQUALFUNC<const char*>(const char* a, const char* b) { return strcmp(a, b)==0; }
+  template<> BSS_FORCEINLINE bool KH_AUTO_EQUALFUNC<const wchar_t*>(const wchar_t* a, const wchar_t* b) { return wcscmp(a, b)==0; }
+  template<typename T> BSS_FORCEINLINE bool KH_AUTOINS_EQUALFUNC(T a, T b) { return STRICMP(a, b)==0; }
+  template<> BSS_FORCEINLINE bool KH_AUTOINS_EQUALFUNC<const wchar_t*>(const wchar_t* a, const wchar_t* b) { return WCSICMP(a, b)==0; }
+  template<> BSS_FORCEINLINE bool KH_AUTOINS_EQUALFUNC<wchar_t*>(wchar_t* a, wchar_t* b) { return WCSICMP(a, b)==0; }
 
   template<typename T,bool I> struct __cKh_KHGET { typedef typename std::remove_pointer<T>::type* KHGET; static const unsigned int INV=0; };
   template<typename T> struct __cKh_KHGET<T,true> { typedef T KHGET; static const KHGET INV=(KHGET)-1; };
   template<typename T> struct KHGET_cKh : __cKh_KHGET<T,std::is_integral<T>::value> { typedef typename __cKh_KHGET<T,std::is_integral<T>::value>::KHGET KHGET; };
-
-  // Catch-all templatization for integral types. Automatically handles 64-bit integers
-  template<typename T=void*, typename K=__int32, bool ismap=true>
-  class BSS_COMPILER_DLLEXPORT cKhash_Int : public cKhash<K, T, ismap, &KH_INT_HASHFUNC<K>, &KH_INT_EQUALFUNC<K>, typename KHGET_cKh<T>::KHGET, (typename KHGET_cKh<T>::KHGET)KHGET_cKh<T>::INV>
-  {
-    typedef cKhash<K, T, ismap, &KH_INT_HASHFUNC<K>, &KH_INT_EQUALFUNC<K>, typename KHGET_cKh<T>::KHGET, (typename KHGET_cKh<T>::KHGET)KHGET_cKh<T>::INV> BASE;
-  public:
-    cKhash_Int() : BASE() {}
-    cKhash_Int(cKhash_Int&& mov) : BASE(std::move(mov)) {}
-    inline cKhash_Int& operator=(cKhash_Int&& right) { BASE::operator=(std::move(right)); return *this; }
+  template<typename T, bool ins> struct CHASH_HELPER {
+    BSS_FORCEINLINE static khint_t hash(T k) { return KH_AUTO_HASHFUNC<T>(k); }
+    BSS_FORCEINLINE static bool equal(T a, T b) { return KH_AUTO_EQUALFUNC<T>(a,b); }
+  };
+  template<typename T> struct CHASH_HELPER<T,true> {
+    BSS_FORCEINLINE static khint_t hash(T k) { return KH_AUTOINS_HASHFUNC<T>(k); }
+    BSS_FORCEINLINE static bool equal(T a, T b) { return KH_AUTOINS_EQUALFUNC<T>(a, b); }
   };
 
-  template<typename T, bool ismap>
-  class BSS_COMPILER_DLLEXPORT cKhash_Int<T,__int64,ismap> : public cKhash<__int64, T, ismap, &KH_INT64_HASHFUNC, &KH_INT_EQUALFUNC<__int64>, typename KHGET_cKh<T>::KHGET, (typename KHGET_cKh<T>::KHGET)KHGET_cKh<T>::INV>
+  // Generic hash definition
+  template<typename K, typename T, bool ismap=true, bool ins=false>
+  class BSS_COMPILER_DLLEXPORT cHash : public cKhash<K, T, ismap, &CHASH_HELPER<K, ins>::hash, &CHASH_HELPER<K, ins>::equal, typename KHGET_cKh<T>::KHGET, (typename KHGET_cKh<T>::KHGET)KHGET_cKh<T>::INV>
   {
-    typedef cKhash<__int64, T, ismap, &KH_INT64_HASHFUNC, &KH_INT_EQUALFUNC<__int64>, typename KHGET_cKh<T>::KHGET, (typename KHGET_cKh<T>::KHGET)KHGET_cKh<T>::INV> BASE;
+    typedef cKhash<K, T, ismap, &CHASH_HELPER<K, ins>::hash, &CHASH_HELPER<K, ins>::equal, typename KHGET_cKh<T>::KHGET, (typename KHGET_cKh<T>::KHGET)KHGET_cKh<T>::INV> BASE;
+
   public:
-    cKhash_Int() : BASE() {}
-    cKhash_Int(cKhash_Int&& mov) : BASE(std::move(mov)) {}
-    inline cKhash_Int& operator=(cKhash_Int&& right) { BASE::operator=(std::move(right)); return *this; }
+    inline cHash(const cHash& copy) : BASE(copy) {}
+    inline cHash(cHash&& mov) : BASE(std::move(mov)) {}
+    inline cHash(unsigned int size=0) : BASE(size) {}
+
+    inline cHash& operator =(const cHash& right) { BASE::operator=(right); return *this; }
+    inline cHash& operator =(cHash&& mov) { BASE::operator=(std::move(mov)); return *this; }
+    inline typename BASE::KHGET operator[](typename BASE::KHKEY key) const { return BASE::operator[](key); }
   };
 
-  template<typename T, bool ismap>
-  class BSS_COMPILER_DLLEXPORT cKhash_Int<T,unsigned __int64,ismap> : public cKhash<unsigned __int64, T, ismap, &KH_UINT64_HASHFUNC, &KH_INT_EQUALFUNC<unsigned __int64>, typename KHGET_cKh<T>::KHGET, (typename KHGET_cKh<T>::KHGET)KHGET_cKh<T>::INV>
+  template<typename _Ty>
+  struct cDict
   {
-    typedef cKhash<unsigned __int64, T, ismap, &KH_UINT64_HASHFUNC, &KH_INT_EQUALFUNC<unsigned __int64>, typename KHGET_cKh<T>::KHGET, (typename KHGET_cKh<T>::KHGET)KHGET_cKh<T>::INV> BASE;
-  public:
-    cKhash_Int() : BASE() {}
-    cKhash_Int(cKhash_Int&& mov) : BASE(std::move(mov)) {}
-    inline cKhash_Int& operator=(cKhash_Int&& right) { BASE::operator=(std::move(right)); return *this; }
-  };
-
-  template<typename T=void*, bool ismap=true>
-  class BSS_COMPILER_DLLEXPORT cKhash_String : public cKhash<const char*, T, ismap, &KH_STR_HASHFUNC, &KH_STR_EQUALFUNC, typename KHGET_cKh<T>::KHGET, (typename KHGET_cKh<T>::KHGET)KHGET_cKh<T>::INV>
-  {
-    typedef cKhash<const char*, T, ismap, &KH_STR_HASHFUNC, &KH_STR_EQUALFUNC, typename KHGET_cKh<T>::KHGET, (typename KHGET_cKh<T>::KHGET)KHGET_cKh<T>::INV> BASE;
-  public:
-    cKhash_String() : BASE() {}
-    cKhash_String(cKhash_String&& mov) : BASE(std::move(mov)) {}
-    inline cKhash_String& operator=(cKhash_String&& right) { BASE::operator=(std::move(right)); return *this; }
-  };
-
-  template<typename T=void*, bool ismap=true>
-  class BSS_COMPILER_DLLEXPORT cKhash_StringIns : public cKhash<const char*, T, ismap, &KH_STRINS_HASHFUNC, &KH_STRINS_EQUALFUNC, typename KHGET_cKh<T>::KHGET, (typename KHGET_cKh<T>::KHGET)KHGET_cKh<T>::INV>
-  {
-    typedef cKhash<const char*, T, ismap, &KH_STRINS_HASHFUNC, &KH_STRINS_EQUALFUNC, typename KHGET_cKh<T>::KHGET, (typename KHGET_cKh<T>::KHGET)KHGET_cKh<T>::INV> BASE;
-  public:
-    cKhash_StringIns() : BASE() {}
-    cKhash_StringIns(cKhash_StringIns&& mov) : BASE(std::move(mov)) {}
-    inline cKhash_StringIns& operator=(cKhash_StringIns&& right) { BASE::operator=(std::move(right)); return *this; }
-  };
-
-  template<typename T=void*, bool ismap=true>
-  class BSS_COMPILER_DLLEXPORT cKhash_StringW : public cKhash<const wchar_t*, T, ismap, &KH_STRW_HASHFUNC, &KH_STRW_EQUALFUNC, typename KHGET_cKh<T>::KHGET, (typename KHGET_cKh<T>::KHGET)KHGET_cKh<T>::INV>
-  {
-    typedef cKhash<const wchar_t*, T, ismap, &KH_STRW_HASHFUNC, &KH_STRW_EQUALFUNC, typename KHGET_cKh<T>::KHGET, (typename KHGET_cKh<T>::KHGET)KHGET_cKh<T>::INV> BASE;
-  public:
-    cKhash_StringW() : BASE() {}
-    cKhash_StringW(cKhash_StringW&& mov) : BASE(std::move(mov)) {}
-    inline cKhash_StringW& operator=(cKhash_StringW&& right) { BASE::operator=(std::move(right)); return *this; }
-  };
-
-  template<typename T=void*, bool ismap=true>
-  class BSS_COMPILER_DLLEXPORT cKhash_StringWIns : public cKhash<const wchar_t*, T, ismap, &KH_STRWINS_HASHFUNC, &KH_STRWINS_EQUALFUNC, typename KHGET_cKh<T>::KHGET, (typename KHGET_cKh<T>::KHGET)KHGET_cKh<T>::INV>
-  {
-    typedef cKhash<const wchar_t*, T, ismap, &KH_STRWINS_HASHFUNC, &KH_STRWINS_EQUALFUNC, typename KHGET_cKh<T>::KHGET, (typename KHGET_cKh<T>::KHGET)KHGET_cKh<T>::INV> BASE;
-  public:
-    cKhash_StringWIns() : BASE() {}
-    cKhash_StringWIns(cKhash_StringWIns&& mov) : BASE(std::move(mov)) {}
-    inline cKhash_StringWIns& operator=(cKhash_StringWIns&& right) { BASE::operator=(std::move(right)); return *this; }
-  };
-
-  template<typename T=void*, typename K=const void*, bool ismap=true>
-  class BSS_COMPILER_DLLEXPORT cKhash_Pointer : public cKhash<K, T, ismap, &KH_POINTER_HASHFUNC<K>, &KH_INT_EQUALFUNC<K>, typename KHGET_cKh<T>::KHGET, (typename KHGET_cKh<T>::KHGET)KHGET_cKh<T>::INV>
-  {
-    typedef cKhash<K, T, ismap, &KH_POINTER_HASHFUNC<K>, &KH_INT_EQUALFUNC<K>, typename KHGET_cKh<T>::KHGET, (typename KHGET_cKh<T>::KHGET)KHGET_cKh<T>::INV> BASE;
-  public:
-    cKhash_Pointer() : BASE() {}
-    cKhash_Pointer(cKhash_Pointer&& mov) : BASE(std::move(mov)) {}
-    inline cKhash_Pointer& operator=(cKhash_Pointer&& right) { BASE::operator=(std::move(right)); return *this; }
+    typedef cHash<const char*, _Ty, true, false> T;
+    typedef cHash<const wchar_t*, _Ty, true, false> Tw;
+    typedef cHash<const char*, _Ty, true, true> INS;
+    typedef cHash<const wchar_t*, _Ty, true, true> INSw;
   };
 }
 

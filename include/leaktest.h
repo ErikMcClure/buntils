@@ -68,7 +68,7 @@ public:
   }
 
 protected:
-  bss_util::cKhash_Pointer<BSS_LEAKINFO*> _leakinfo;
+  cHash<BSS_LEAKINFO*,void*> _leakinfo;
   FILE* f;
 };
 

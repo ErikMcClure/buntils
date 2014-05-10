@@ -6,6 +6,7 @@
 
 #include "cBinaryHeap.h"
 #include "bss_algo.h"
+#include <stdarg.h>
 
 namespace bss_util {
   // Trie node
@@ -56,6 +57,26 @@ namespace bss_util {
       {
         if(cur->clen>1) // This is faster than a switch statement
           r=binsearch_exact<TNODE,char,T,&cTrie::_CompTNode>(cur,c,0,cur->clen);
+        else if(cur->clen==1)
+          r=(T)-(cur->chr!=c);
+        else
+          return (T)-1;
+        if(r==(T)-1) return (T)-1;
+        cur=_array+cur[r].child;
+      }
+      return cur->word;
+    }
+    T BSS_FASTCALL Get(const char* word, T len) const
+    {
+      assert(word!=0);
+      TNODE* cur=_array; // root is always 0
+      T r=0;
+      char c;
+      while((len--)>0)
+      {
+        c=*(word++);
+        if(cur->clen>1) // This is faster than a switch statement
+          r=binsearch_exact<TNODE, char, T, &cTrie::_CompTNode>(cur, c, 0, cur->clen);
         else if(cur->clen==1)
           r=(T)-(cur->chr!=c);
         else

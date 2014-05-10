@@ -271,6 +271,30 @@ extern void BSS_FASTCALL bss_util::AlertBox(const wchar_t* text, const wchar_t* 
 
 void bss_util::bssdll_delete_delfunc(void* p) { ::operator delete(p); } // operator delete[] simply calls operator delete when its void*
 
+extern int BSS_FASTCALL bss_util::ToArgV(char** argv, char* cmdline)
+{
+  int count=0;
+  while(*cmdline)
+  {
+    if(!isspace(*cmdline))
+    {
+      if(*cmdline == '"') {
+        if(argv!=0) argv[count++]=cmdline+1;
+        else ++count;
+        while(*++cmdline !=0 && cmdline[1] !=0 && (*cmdline != '"' || !isspace(cmdline[1])));
+      } else {
+        if(argv!=0) argv[count++]=cmdline;
+        else ++count;
+        while(*++cmdline !=0 && !isspace(*cmdline));
+      }
+      if(!*cmdline) break;
+      if(argv!=0) *cmdline=0;
+    }
+    ++cmdline;
+  }
+  return count;
+}
+
 //namespace bss_util {
 //  bool BSS_FASTCALL _exists(const char* path, bool isdir)
 //  {

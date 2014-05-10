@@ -78,9 +78,6 @@
     <ClInclude Include="..\include\cBitField.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="..\include\cCmdLineArgs.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
     <ClInclude Include="..\include\cDef.h">
       <Filter>Header Files</Filter>
     </ClInclude>
@@ -261,9 +258,6 @@
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="bss_util_c.c">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="cCmdLineArgs.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="cHighPrecisionTimer.cpp">

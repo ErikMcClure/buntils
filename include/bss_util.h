@@ -214,6 +214,26 @@ namespace bss_util {
     return strrtrim(strltrim(str));
   }
 
+  // Processes an argv command line using the given function and divider
+  template<typename F> //std::function<void(char* const*,int num)>
+  inline static void ProcessCmdArgs(int argc, char** argv, F && fn, char divider='-')
+  {
+    const char* const* cur=argv;
+    size_t len=1;
+    for(size_t i = 1; i<argc; ++i)
+    {
+      if(argv[i][0]==divider)
+      {
+        fn(cur, len);
+        cur=argv+i;
+        len=1;
+      }
+      else
+        ++len;
+    }
+    fn(cur, len);
+  }
+
   // Flips the endianness of a memory location
   BSS_FORCEINLINE static void BSS_FASTCALL flipendian(char* target, char n)
   {

@@ -10,47 +10,50 @@
 using namespace bss_util;
 using namespace std;
 
-bss_Log::bss_Log(bss_Log&& mov) : _split(mov._split), _stream(_split), _backup(std::move(mov._backup)),
-  _tz(GetTimeZoneMinutes()), _files(std::move(mov._files))
+cLog::cLog(cLog&& mov) : _split(mov._split), _stream(_split), _backup(std::move(mov._backup)),
+  _tz(GetTimeZoneMinutes()), _files(std::move(mov._files)), _levels(std::move(mov._levels))
 {
   mov._split=0;
 }
-bss_Log::bss_Log(std::ostream* log) : _split(new StreamSplitter()), _stream(_split), _tz(GetTimeZoneMinutes())
+cLog::cLog(std::ostream* log) : _split(new StreamSplitter()), _stream(_split), _tz(GetTimeZoneMinutes()), _levels(6)
 {
+  _leveldefaults();
   if(log!=0)
     AddTarget(*log);
 }
-bss_Log::bss_Log(const char* logfile, std::ostream* log) : _split(new StreamSplitter()), _stream(_split), _tz(GetTimeZoneMinutes())
+cLog::cLog(const char* logfile, std::ostream* log) : _split(new StreamSplitter()), _stream(_split), _tz(GetTimeZoneMinutes()), _levels(6)
 {
+  _leveldefaults();
   AddTarget(logfile);
   if(log!=0)
     AddTarget(*log);
 }
 #ifdef BSS_PLATFORM_WIN32
-bss_Log::bss_Log(const wchar_t* logfile, std::ostream* log) : _split(new StreamSplitter()), _stream(_split), _tz(GetTimeZoneMinutes())
+cLog::cLog(const wchar_t* logfile, std::ostream* log) : _split(new StreamSplitter()), _stream(_split), _tz(GetTimeZoneMinutes()), _levels(6)
 {
+  _leveldefaults();
   AddTarget(logfile);
   if(log!=0)
     AddTarget(*log);
 }
 #endif
-bss_Log::~bss_Log()
+cLog::~cLog()
 {
   ClearTargets();
   for(size_t i = 0; i < _backup.size(); ++i) //restore stream buffer backups so we don't blow up someone else's stream when destroying ourselves (suicide bombing is bad for your health)
     _backup[i].first.rdbuf(_backup[i].second);
   if(_split!=0) delete _split;
 }
-void BSS_FASTCALL bss_Log::Assimilate(std::ostream& stream)
+void BSS_FASTCALL cLog::Assimilate(std::ostream& stream)
 {
   _backup.push_back(std::pair<std::ostream&, std::streambuf*>(stream,stream.rdbuf()));
   if(_split!=0) stream.rdbuf(_split);
 }
-void BSS_FASTCALL bss_Log::AddTarget(std::ostream& stream)
+void BSS_FASTCALL cLog::AddTarget(std::ostream& stream)
 {
   if(_split!=0) _split->AddTarget(&stream);
 }
-void BSS_FASTCALL bss_Log::AddTarget(const char* file)
+void BSS_FASTCALL cLog::AddTarget(const char* file)
 {
   if(!file) return;
 #ifdef BSS_COMPILER_GCC 
@@ -62,7 +65,7 @@ void BSS_FASTCALL bss_Log::AddTarget(const char* file)
 #endif
 }
 #ifdef BSS_PLATFORM_WIN32
-void BSS_FASTCALL bss_Log::AddTarget(const wchar_t* file)
+void BSS_FASTCALL cLog::AddTarget(const wchar_t* file)
 {
   if(!file) return;
   _files.push_back(ofstream(file,ios_base::out|ios_base::trunc));
@@ -70,7 +73,7 @@ void BSS_FASTCALL bss_Log::AddTarget(const wchar_t* file)
 }
 #endif
 
-void bss_Log::ClearTargets()
+void cLog::ClearTargets()
 {
   if(_split!=0) _split->ClearTargets();
   for(size_t i = 0; i < _files.size(); ++i)
@@ -81,7 +84,14 @@ void bss_Log::ClearTargets()
 #endif
   _files.clear();
 }
-bool BSS_FASTCALL bss_Log::_writedatetime(long timez, std::ostream& log, bool timeonly)
+
+void BSS_FASTCALL cLog::SetLevel(unsigned char level, const char* str)
+{
+  if(_levels.Size()>=level)
+    _levels.SetSize(level+1);
+  _levels[level]=str;
+}
+bool BSS_FASTCALL cLog::_writedatetime(long timez, std::ostream& log, bool timeonly)
 {
   time_t rawtime;
   TIME64(&rawtime);
@@ -108,7 +118,7 @@ bool BSS_FASTCALL bss_Log::_writedatetime(long timez, std::ostream& log, bool ti
 
   return true;
 }
-bss_Log& bss_Log::operator=(bss_Log&& right)
+cLog& cLog::operator=(cLog&& right)
 {
   _tz=GetTimeZoneMinutes();
   _files=std::move(right._files);
@@ -118,10 +128,19 @@ bss_Log& bss_Log::operator=(bss_Log&& right)
   _stream.rdbuf(_split);
   return *this;
 }
-const char* BSS_FASTCALL bss_Log::_trimpath(const char* path)
+const char* BSS_FASTCALL cLog::_trimpath(const char* path)
 {
 	const char* r=strrchr(path,'/');
 	const char* r2=strrchr(path,'\\');
   r=bssmax(r,r2);
   return (!r)?path:(r+1);
+}
+void cLog::_leveldefaults()
+{
+  SetLevel(0, "FATAL ERROR: ");
+  SetLevel(1, "ERROR: ");
+  SetLevel(2, "WARNING: ");
+  SetLevel(3, "NOTICE: ");
+  SetLevel(4, "INFO: ");
+  SetLevel(5, "DEBUG: ");
 }

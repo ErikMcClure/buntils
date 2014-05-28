@@ -5,7 +5,7 @@
 #define __C_LINKED_ARRAY_H__BSS__
 
 #include "bss_util.h"
-#include "cArraySimple.h"
+#include "cArray.h"
 
 namespace bss_util {
   template<class T,typename SizeType>

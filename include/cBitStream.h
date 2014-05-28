@@ -92,7 +92,7 @@ namespace bss_util {
 
   // This is a function that takes a basic type and serializes it, converting it to little-endian format if necessary
   template<class T>
-  void bss_Serialize(T d, std::ostream& s)
+  static void bss_Serialize(T d, std::ostream& s)
   {
 #ifdef BSS_ENDIAN_BIG
     flipendian((char*)&d,sizeof(T));
@@ -100,7 +100,7 @@ namespace bss_util {
     s.write((const char*)&d,sizeof(T));
   }
   template<>
-  void bss_Serialize<const char*>(const char* d, std::ostream& s)
+  static void bss_Serialize<const char*>(const char* d, std::ostream& s)
   {
     uint len=strlen(d);
     bss_Serialize(len,s);
@@ -108,7 +108,7 @@ namespace bss_util {
   }
 
   template<class T>
-  void bss_Deserialize(T& d, std::istream& s)
+  static void bss_Deserialize(T& d, std::istream& s)
   {
     s.read((char*)&d,sizeof(T));
 #ifdef BSS_ENDIAN_BIG
@@ -116,7 +116,7 @@ namespace bss_util {
 #endif
   }
   template<>
-  void bss_Deserialize<std::string>(std::string& d, std::istream& s)
+  static void bss_Deserialize<std::string>(std::string& d, std::istream& s)
   {
     uint len;
     bss_Deserialize(len,s);
@@ -124,7 +124,7 @@ namespace bss_util {
     s.read(const_cast<char*>(d.c_str()),len);
   }
   template<>
-  void bss_Deserialize<cStr>(cStr& d, std::istream& s) { bss_Deserialize<std::string>(d,s); }
+  static void bss_Deserialize<cStr>(cStr& d, std::istream& s) { bss_Deserialize<std::string>(d, s); }
 }
 
 #endif

@@ -5,8 +5,8 @@
 #define __C_INISECTION_H__BSS__
 
 #include "cINIentry.h"
-#include "cKhash.h"
-#include "cArraySimple.h"
+#include "cHash.h"
+#include "cArray.h"
 #include "LLBase.h"
 #include "bss_alloc_fixed_MT.h"
 

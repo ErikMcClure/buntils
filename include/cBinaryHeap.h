@@ -5,7 +5,7 @@
 #define __C_HEAP_H__BSS__
 
 #include "bss_compare.h"
-#include "cArraySimple.h"
+#include "cArray.h"
 #include <memory>
 #include <limits>
 

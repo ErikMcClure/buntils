@@ -4,7 +4,7 @@
 #ifndef __C_BSS_STACK_H__
 #define __C_BSS_STACK_H__
 
-#include "cArraySimple.h"
+#include "cArray.h"
 #include "bss_util.h"
 
 namespace bss_util {

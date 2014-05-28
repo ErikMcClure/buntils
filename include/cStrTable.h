@@ -6,7 +6,7 @@
 
 //#include "bss_alloc.h"
 #include "bss_util.h"
-#include "cArraySimple.h"
+#include "cArray.h"
 #include "cStr.h"
 #include <stdlib.h>
 #include <ostream>

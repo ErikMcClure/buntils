@@ -8,8 +8,10 @@
 - Fixed header includes
 - Removed cCmdLineArgs and replaced it with a simple GetWindowsArgV() function and ProcessCmdArgs()
 - Replaced cKhash specializations with cHash, which automatically chooses a hash for you and implements operator[]
-- Replaced Shiny with bss_profiler.h
-- Added cLocklessStack
+- Restored CreateDir, DelDir, and ListDir functions in os.h
+- Changed some functions to static so they don't cause link conflicts
+- rewrote how bss_log does levels and renamed it cLog
+- Renamed cArraySimple.h to cArray.h, but didn't rename the actual class.
 
 0.4.2
 ------

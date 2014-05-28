@@ -4,9 +4,9 @@
 #ifndef __C_ID_HASH_H__BSS__
 #define __C_ID_HASH_H__BSS__
 
-#include "cArraySimple.h"
+#include "cArray.h"
 #include "bss_util.h"
-#include "cKhash.h"
+#include "cHash.h"
 #include "delegate.h"
 
 namespace bss_util {

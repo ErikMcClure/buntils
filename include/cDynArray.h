@@ -4,7 +4,7 @@
 #ifndef __C_DYN_ARRAY_H__BSS__
 #define __C_DYN_ARRAY_H__BSS__
 
-#include "cArraySimple.h"
+#include "cArray.h"
 #include "bss_util.h"
 
 namespace bss_util {

@@ -5,9 +5,7 @@
 #define __ANI_ATTRIBUTE__BSS__
 
 #include "delegate.h"
-#include "cDef.h"
 #include "cPriorityQueue.h"
-#include "bss_algo.h"
 #include "cBitField.h"
 #include "cBitStream.h"
 
@@ -74,8 +72,12 @@ namespace bss_util {
     virtual void BSS_FASTCALL Serialize(std::ostream& s)=0;
     virtual void BSS_FASTCALL Deserialize(std::istream& s)=0;
 
-		unsigned char typeID;
+    const unsigned char typeID;
+    //static cHash<unsigned char, size_t(*)(AniAttribute*)> _attrhash;
   };
+
+  //template<unsigned char TypeID>
+  //struct ANI_ADD { typedef ANI_TID(TYPE)::template rebind<Alloc>::other T; static size_t _add(AniAttribute* p) { if(p!=0) new(p) T(); return sizeof(ANI_TID(TYPE)); } ANI_ADD() { AniAttribute::_attrhash.Insert(TypeID, &_add); } };
 
   template<unsigned char TypeID, typename Alloc, typename T> struct ANI_ATTR__SAFE__ { typedef cArraySafe<KeyFrame<TypeID>, AniAttribute::IDTYPE, Alloc> INNER_ARRAY; };
   template<unsigned char TypeID, typename Alloc> struct ANI_ATTR__SAFE__<TypeID, Alloc, void> { typedef cArraySimple<KeyFrame<TypeID>, AniAttribute::IDTYPE, Alloc> INNER_ARRAY; };

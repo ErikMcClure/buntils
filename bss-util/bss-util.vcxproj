@@ -64,7 +64,7 @@
     <ClInclude Include="..\include\AniAttribute.h" />
     <ClInclude Include="..\include\cAnimation.h" />
     <ClInclude Include="..\include\cArrayCircular.h" />
-    <ClInclude Include="..\include\cArraySimple.h" />
+    <ClInclude Include="..\include\cArray.h" />
     <ClInclude Include="..\include\cArraySort.h" />
     <ClInclude Include="..\include\cAVLtree.h" />
     <ClInclude Include="..\include\cBinaryHeap.h" />
@@ -80,7 +80,7 @@
     <ClInclude Include="..\include\cINIsection.h" />
     <ClInclude Include="..\include\cINIstorage.h" />
     <ClInclude Include="..\include\cKDTree.h" />
-    <ClInclude Include="..\include\cKhash.h" />
+    <ClInclude Include="..\include\cHash.h" />
     <ClInclude Include="..\include\cLinkedArray.h" />
     <ClInclude Include="..\include\cLinkedList.h" />
     <ClInclude Include="..\include\cLocklessQueue.h" />

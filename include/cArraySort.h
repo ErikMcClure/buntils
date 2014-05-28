@@ -6,7 +6,7 @@
 
 #include "bss_algo.h"
 #include "bss_compare.h"
-#include "cArraySimple.h"
+#include "cArray.h"
 
 namespace bss_util {
   // Sorted dynamic array

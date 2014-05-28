@@ -23,8 +23,7 @@
 #include <memory>
 #include <cstring> // for memcmp
 #include <emmintrin.h> // for SSE intrinsics
-//#include <type_traits>
-//#include <utility>
+#include <float.h>
 #ifdef BSS_COMPILER_GCC
 #include <stdlib.h> // For abs(int) on GCC
 #endif
@@ -37,6 +36,7 @@ namespace bss_util {
   BSS_COMPILER_DLLEXPORT extern unsigned long long BSS_FASTCALL bssFileSize(const char* path);
   BSS_COMPILER_DLLEXPORT extern unsigned long long BSS_FASTCALL bssFileSize(const wchar_t* path);
   BSS_COMPILER_DLLEXPORT extern long BSS_FASTCALL GetTimeZoneMinutes(); //Returns the current time zone difference from UTC in minutes
+  BSS_COMPILER_DLLEXPORT extern int BSS_FASTCALL ToArgV(char** argv, char* cmdline);
 
   //Useful numbers
   const double PI = 3.141592653589793238462643383279;
@@ -215,9 +215,10 @@ namespace bss_util {
   }
 
   // Processes an argv command line using the given function and divider
-  template<typename F> //std::function<void(char* const*,int num)>
-  inline static void ProcessCmdArgs(int argc, char** argv, F && fn, char divider='-')
+  template<typename F> //std::function<void(const char* const*,int num)>
+  inline static void ProcessCmdArgs(int argc, const char* const* argv, F && fn, char divider='-')
   {
+    if(!argc||!argv) return;
     const char* const* cur=argv;
     size_t len=1;
     for(size_t i = 1; i<argc; ++i)
@@ -310,6 +311,17 @@ namespace bss_util {
   BSS_FORCEINLINE static __int32 fFastTruncate(double f)
   {
     return _mm_cvttsd_si32(_mm_load_sd(&f));
+  }
+
+  BSS_FORCEINLINE static void fSetRounding(bool nearest)
+  {
+    uint a;
+    _controlfp_s(&a, nearest?_RC_NEAR:_RC_CHOP, _MCW_RC);
+  }
+  BSS_FORCEINLINE static void fSetDenormal(bool on)
+  {
+    uint a;
+    _controlfp_s(&a, on?_DN_SAVE:_DN_FLUSH, _MCW_DN);
   }
 
   // Returns true if FPU is in single precision mode and false otherwise (false for both double and extended precision)

@@ -25,7 +25,7 @@
 #include "cIDHash.h"
 #include "cINIstorage.h"
 #include "cKDTree.h"
-#include "cKhash.h"
+#include "cHash.h"
 #include "cLinkedArray.h"
 #include "cLinkedList.h"
 #include "cLocklessQueue.h"
@@ -86,7 +86,7 @@ using namespace bss_util;
 
 const unsigned short TESTNUM=50000;
 unsigned short testnums[TESTNUM];
-bss_Log _failedtests("../bin/failedtests.txt"); //This is spawned too early for us to save it with SetWorkDirToCur();
+cLog _failedtests("../bin/failedtests.txt"); //This is spawned too early for us to save it with SetWorkDirToCur();
 
 // --- Define testing utilities ---
 
@@ -774,7 +774,7 @@ TESTDEF::RETPAIR test_bss_LOG()
   std::fstream fs;
   std::wstringstream wss;
   fs.open(BSS__L("黑色球体工作室.log"));
-  auto tf = [&](bss_Log& di) {
+  auto tf = [&](cLog& di) {
     ss.clear();
     fs.clear();
     wss.clear();
@@ -785,32 +785,32 @@ TESTDEF::RETPAIR test_bss_LOG()
     di.ClearTargets();
     di.GetStream() << BSS__L("黑色球体工作室");
   };
-  bss_Log a(BSS__L("黑色球体工作室.txt"), &ss); //Supposedly 黑色球体工作室 is Black Sphere Studios in Chinese, but the literal translation appears to be Black Ball Studio. Oh well.
-  bss_Log b("logtest.txt");
+  cLog a(BSS__L("黑色球体工作室.txt"), &ss); //Supposedly 黑色球体工作室 is Black Sphere Studios in Chinese, but the literal translation appears to be Black Ball Studio. Oh well.
+  cLog b("logtest.txt");
   b.AddTarget(fs);
-  bss_Log c;
+  cLog c;
   tf(a);
   tf(b);
   tf(c);
-  bss_Log d(std::move(a));
+  cLog d(std::move(a));
 
-  bss_Log lg("logtest2.txt");
-  lg.FORMATLOG<0>("main.cpp",-1) << std::endl;
-  lg.FORMATLOG<0>("main.cpp",0) << std::endl;
-  lg.FORMATLOG<0>(__FILE__,0) << std::endl;
-  lg.FORMATLOG<0>(__FILE__,__LINE__) << std::endl;
-  lg.FORMATLOG<0>("main.cpp",__LINE__) << std::endl;
-  lg.FORMATLOG<0>("\\main.cpp",__LINE__) << std::endl;
-  lg.FORMATLOG<0>("/main.cpp",__LINE__) << std::endl;
-  lg.FORMATLOG<0>("a\\main.cpp",__LINE__) << std::endl;
-  lg.FORMATLOG<0>("a/main.cpp",__LINE__) << std::endl;
-  lg.FORMATLOG<0>("asfsdbs dsfs ds/main.cpp",__LINE__) << std::endl;
-  lg.FORMATLOG<0>("asfsdbs dsfs ds\\main.cpp",__LINE__) << std::endl;
-  lg.FORMATLOG<0>("asfsdbs\\dsfs/ds/main.cpp",__LINE__) << std::endl;
-  lg.FORMATLOG<0>("\\asfsdbs\\dsfs/ds/main.cpp",__LINE__) << std::endl;
-  lg.FORMATLOG<0>("\\asfsdbs/dsfs\\ds/main.cpp",__LINE__) << std::endl;
-  lg.FORMATLOG<0>("\\asfsdbs/dsfs\\ds/main.cpp\\",__LINE__) << std::endl;
-  lg.FORMATLOG<0>("\\asfsdbs/dsfs\\ds/main.cpp/",__LINE__) << std::endl;
+  cLog lg("logtest2.txt");
+  lg.FORMATLOG(0,"main.cpp",-1) << std::endl;
+  lg.FORMATLOG(0,"main.cpp",0) << std::endl;
+  lg.FORMATLOG(0,__FILE__,0) << std::endl;
+  lg.FORMATLOG(0,__FILE__,__LINE__) << std::endl;
+  lg.FORMATLOG(1,"main.cpp",__LINE__) << std::endl;
+  lg.FORMATLOG(2,"\\main.cpp",__LINE__) << std::endl;
+  lg.FORMATLOG(3,"/main.cpp",__LINE__) << std::endl;
+  lg.FORMATLOG(4,"a\\main.cpp",__LINE__) << std::endl;
+  lg.FORMATLOG(5,"a/main.cpp",__LINE__) << std::endl;
+  lg.FORMATLOG(1,"asfsdbs dsfs ds/main.cpp",__LINE__) << std::endl;
+  lg.FORMATLOG(0,"asfsdbs dsfs ds\\main.cpp",__LINE__) << std::endl;
+  lg.FORMATLOG(0,"asfsdbs\\dsfs/ds/main.cpp",__LINE__) << std::endl;
+  lg.FORMATLOG(0,"\\asfsdbs\\dsfs/ds/main.cpp",__LINE__) << std::endl;
+  lg.FORMATLOG(0,"\\asfsdbs/dsfs\\ds/main.cpp",__LINE__) << std::endl;
+  lg.FORMATLOG(0,"\\asfsdbs/dsfs\\ds/main.cpp\\",__LINE__) << std::endl;
+  lg.FORMATLOG(0,"\\asfsdbs/dsfs\\ds/main.cpp/",__LINE__) << std::endl;
 
   ENDTEST;
 }
@@ -2856,16 +2856,16 @@ TESTDEF::RETPAIR test_KHASH()
   //hashtest.Insert(52,0);
   //hashtest.Insert(1,0);
   //int r=hashtest.GetIterKey(hashtest.GetIterator(1));
-  cHash<int,bss_Log*> hasherint;
+  cHash<int,cLog*> hasherint;
   hasherint.Insert(25, &_failedtests);
   hasherint.Get(25);
   hasherint.Remove(25);
-  cHash<const char*, bss_Log*, true, true> hasher;
+  cHash<const char*, cLog*, true, true> hasher;
   hasher.Insert("", &_failedtests);
-  hasher.Insert("Video", (bss_Log*)5);
+  hasher.Insert("Video", (cLog*)5);
   hasher.SetSize(100);
   hasher.Insert("Physics",0);
-  bss_Log* check = hasher.Get("Video");
+  cLog* check = hasher.Get("Video");
   check = hasher.Get("Video");
   //unsigned __int64 diff = cHighPrecisionTimer::CloseProfiler(ID);
 
@@ -3734,19 +3734,19 @@ TESTDEF::RETPAIR test_OS()
   BEGINTEST;
   TEST(FolderExists("../bin")||FolderExists("bin"));
 #ifdef BSS_PLATFORM_WIN32
-  TEST(FolderExists(BSS__L("C:/windows/")));
+  TEST(FolderExistsW(BSS__L("C:/windows/")));
 #else
   TEST(FolderExists(BSS__L("/usr/")));
 #endif
   TEST(!FolderExists("abasdfwefs"));
-  TEST(!FolderExists(BSS__L("abasdfwefs/alkjsdfs/sdfjkd/alkjsdfs/sdfjkd/alkjsdfs/sdfjkd/")));
+  TEST(!FolderExistsW(BSS__L("abasdfwefs/alkjsdfs/sdfjkd/alkjsdfs/sdfjkd/alkjsdfs/sdfjkd/")));
   FILE* f;
   FOPEN(f,"blank.txt","w+");
   fclose(f);
   TEST(FileExists("blank.txt"));
-  TEST(FileExists(BSS__L("blank.txt")));
+  TEST(FileExistsW(BSS__L("blank.txt")));
   TEST(!FileExists("testaskdjlhfs.sdkj"));
-  TEST(!FileExists(BSS__L("testaskdjlhfs.sdkj")));
+  TEST(!FileExistsW(BSS__L("testaskdjlhfs.sdkj")));
 
 
 
@@ -3777,6 +3777,18 @@ TESTDEF::RETPAIR test_OS()
     }
   });
 
+  TEST(!CreateDir("testdir/recurse/recurseagain"));
+  TEST(FolderExists("testdir/recurse/recurseagain"));
+  TEST(!DelDir("testdir/recurse"));
+  TEST(!FolderExists("testdir/recurse/recurseagain"));
+  TEST(!FolderExists("testdir/recurse"));
+  TEST(FolderExists("testdir"));
+  TEST(!DelDir("testdir"));
+  TEST(!FolderExists("testdir"));
+  std::vector<cStr> files;
+  ListDir(".", files, 1);
+  TEST(files.size()>2); // There should be at least two files, test.exe and bss-util.dll
+  
   //TEST(FileExists("testlink"));
   //TEST(FileExists(BSS__L("testlink")));
   //TEST(FolderExists("IGNORE/symlink/"));
@@ -3861,7 +3873,7 @@ int main(int argc, char** argv)
   TESTDEF tests[] = {
     { "bss_util_c.h", &test_bss_util_c },
     { "bss_util.h", &test_bss_util },
-    { "bss_Log.h", &test_bss_LOG },
+    { "cLog.h", &test_bss_LOG },
     { "bss_algo.h", &test_bss_algo },
     { "bss_alloc_additive.h", &test_bss_ALLOC_ADDITIVE },
     { "bss_alloc_fixed.h", &test_bss_ALLOC_FIXED },

@@ -60,9 +60,6 @@
     <ClInclude Include="..\include\cArrayCircular.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="..\include\cArraySimple.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
     <ClInclude Include="..\include\cArraySort.h">
       <Filter>Header Files</Filter>
     </ClInclude>
@@ -88,9 +85,6 @@
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="..\include\cINIstorage.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="..\include\cKhash.h">
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="..\include\cLinkedArray.h">
@@ -250,6 +244,12 @@
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="..\include\bss_log.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="..\include\cHash.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="..\include\cArray.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>

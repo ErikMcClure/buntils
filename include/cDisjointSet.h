@@ -4,8 +4,7 @@
 #ifndef __C_DISJOINT_SET_H__BSS__
 #define __C_DISJOINT_SET_H__BSS__
 
-#include "cArraySimple.h"
-#include "cSmartPtr.h"
+#include "cArray.h"
 #include "bss_util.h"
 
 namespace bss_util {
@@ -94,14 +93,14 @@ namespace bss_util {
     }
 
     // Returns an array containing the elements in the given set.
-    inline UqP_<T[]> GetElements(T set) 
+    inline std::unique_ptr<T[]> GetElements(T set) 
     {
       T len = NumElements(set);
-      if(len<0) return UqP_<T[]>();
+      if(len<0) return std::unique_ptr<T[]>();
       T* ret = new T[len];
       T j = GetElements(set,ret);      
       assert(j<=len);
-      return UqP_<T[]>(ret);
+      return std::unique_ptr<T[]>(ret);
     }
 
     // Fills target with the elements of the given set. target must be at least NumElements(set) long. If target is null, returns NumElements(set)

@@ -34,7 +34,6 @@ namespace bss_util {
     enum ANIBOOLS : unsigned char { ANI_PLAYING=1,ANI_PAUSED=2,ANI_ATTACHED=4 };
     typedef typename Alloc::template rebind<std::pair<unsigned char, AniAttribute*>>::other MAPALLOC;
 
-
 	public:
 		inline cAnimation(const cAnimation& copy) { operator=(copy); }
 		inline cAnimation(cAnimation&& mov) { operator=(std::move(mov)); }

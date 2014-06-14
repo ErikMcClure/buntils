@@ -40,8 +40,9 @@ namespace bss_util {
   template<typename T, typename LENGTH=void>
   class cLocklessQueue : public i_LocklessQueue_Length<LENGTH>
   {
+    cLocklessQueue(const cLocklessQueue&) BSS_DELETEFUNC
+    cLocklessQueue& operator=(const cLocklessQueue&)BSS_DELETEFUNCOP
   public:
-    cLocklessQueue(const cLocklessQueue&) = delete;
     cLocklessQueue(cLocklessQueue&& mov) : i_LocklessQueue_Length<LENGTH>(std::move(mov)), _div(mov._div), _last(mov._last), _first(mov._first), _alloc(std::move(mov._alloc)) { mov._div=mov._last=mov._first=0; }
     inline cLocklessQueue() { _div=_last=_first=_alloc.alloc(1); new((cLQ_QNode<T>*)_first) cLQ_QNode<T>(); /*assert(_last.is_lock_free()); assert(_div.is_lock_free());*/ } // bug in GCC doesn't define is_lock_free
     inline ~cLocklessQueue() { } // Don't need to clean up because the allocator will destroy everything by itself
@@ -60,7 +61,6 @@ namespace bss_util {
       return false;
     }
 
-    cLocklessQueue& operator=(const cLocklessQueue&) = delete;
     inline cLocklessQueue& operator=(cLocklessQueue&& mov)
     {
       _div=mov._div;
@@ -100,8 +100,9 @@ namespace bss_util {
   template<typename T, typename LENGTH = void>
   class cMicroLockQueue : public i_LocklessQueue_Length<LENGTH>
   {
+    cMicroLockQueue(const cMicroLockQueue&) BSS_DELETEFUNC
+    cMicroLockQueue& operator=(const cMicroLockQueue&) BSS_DELETEFUNCOP
   public:
-    cMicroLockQueue(const cMicroLockQueue&) = delete;
     cMicroLockQueue(cMicroLockQueue&& mov) : i_LocklessQueue_Length<LENGTH>(std::move(mov)), _div(mov._div), _last(mov._last), _alloc(std::move(mov._alloc)) { mov._div=mov._last=0; _cflag.clear(std::memory_order_relaxed);  _pflag.clear(std::memory_order_relaxed); }
     inline cMicroLockQueue() { _last = _div = _alloc.alloc(1); new(_div)cLQ_QNode<T>(); _cflag.clear(std::memory_order_relaxed);  _pflag.clear(std::memory_order_relaxed); }
     inline ~cMicroLockQueue() { } // Don't need to clean up because the allocator will destroy everything by itself
@@ -126,7 +127,6 @@ namespace bss_util {
       return false; 
     }
 
-    cMicroLockQueue& operator=(const cMicroLockQueue&) = delete;
     inline cMicroLockQueue& operator=(cMicroLockQueue&& mov)
     {
       _div=mov._div;
@@ -162,7 +162,7 @@ namespace bss_util {
   class cMicroLockQueue : public i_LocklessQueue_Length<LENGTH>
   {
   public:
-    cMicroLockQueue(const cMicroLockQueue&) = delete;
+    cMicroLockQueue(const cMicroLockQueue&) BSS_DELETEFUNC
     cMicroLockQueue(cMicroLockQueue&& mov) : i_LocklessQueue_Length<LENGTH>(std::move(mov)), _div(mov._div), _last(mov._last), _alloc(std::move(mov._alloc)) { mov._div=mov._last=0; }
     inline cMicroLockQueue() { _last.store(_div.p = _alloc.alloc(1), std::memory_order_relaxed); new(_div.p) cLQ_QNode<T>(); assert(_last.is_lock_free());}
     inline ~cMicroLockQueue() { } // Don't need to clean up because the allocator will destroy everything by itself
@@ -187,7 +187,7 @@ namespace bss_util {
       return false;
     }
 
-    cMicroLockQueue& operator=(const cMicroLockQueue&) = delete;
+    cMicroLockQueue& operator=(const cMicroLockQueue&) BSS_DELETEFUNCOP
     inline cMicroLockQueue& operator=(cMicroLockQueue&& mov)
     {
         _div=mov._div;

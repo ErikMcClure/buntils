@@ -61,8 +61,9 @@ namespace bss_util {
     using __Graph__InternalEdge<E>::_setdataE;
     using __Graph__InternalEdge<E>::_getdata;
 
+    Graph(const Graph&) BSS_DELETEFUNC
+    Graph& operator=(const Graph&) BSS_DELETEFUNCOP
   public:
-    Graph(const Graph&) = delete;
     inline Graph(Graph&& mov) : _nodes(std::move(mov._nodes)), _nedges(mov._nedges) { mov._nedges=0; }
     inline Graph() : _nodes(0), _nedges(0) {}
     // Build a matrix out of a standard adjacency matrix
@@ -136,7 +137,6 @@ namespace bss_util {
 
     inline const Node<E,V,ST>& operator[](ST index) const { return _nodes[index]; }
     inline Node<E,V,ST>& operator[](ST index) { return _nodes[index]; }
-    Graph& operator=(const Graph&) = delete;
     inline Graph& operator=(Graph&& mov) { _nodes = std::move(mov._nodes); _nedges = mov._nedges; mov._nedges=0; return *this; }
     typedef ST ST_;
     typedef E E_;

@@ -8,6 +8,9 @@
 #ifdef BSS_COMPILER_MSC
 #include <intrin.h>
 #endif
+#ifndef BSS_COMPILER_MSC2010
+#include <atomic>
+#endif
 
 #ifdef BSS_CPU_x86
 #define BSSASM_PREG ECX
@@ -332,51 +335,64 @@ namespace bss_util {
   //}
 #endif
  //defined(BSS_CPU_x86_64) || defined(BSS_CPU_x86)
-
-  /* This is a flip-flop that allows lockless two thread communication using the exchange property of CAS */
-  /*template<typename T>
-  struct BSS_COMPILER_DLLEXPORT cLocklessFlipper
-  {
-  public:
-    inline cLocklessFlipper(T* ptr1, T* ptr2) : _ptr1(ptr1), _ptr2(ptr2), _readnum(0), _curwrite(-1), _flag(0)
-    {
-    }
-    // Call this before you do any reading. Use the returned pointer.
-    inline T* StartRead()
-    { 
-      asmcas<unsigned char>(&_flag,1,_flag);
-      return (T*)_ptr1;
-    }
-    // Call this after you finish all reading - do not use the pointer again
-    inline void EndRead()
-    {
-      asmcas<unsigned char>(&_flag,0,_flag);
-      asmcas<unsigned __int32>(&_readnum,_readnum+1,_readnum);
-    }
-    // Call this before you do any writing. Use only the returned pointer
-    inline T* StartWrite()
-    {
-      if(_flag!=0 && _curwrite==_readnum) return 0; //We haven't finished a read since the last write
-      return (T*)_ptr2;
-    }
-    // Call this after you finish writing - do not use the pointer again
-    inline void EndWrite()
-    {
-      //asmcas<unsigned __int32>(&_curwrite,_readnum,_curwrite);
-      volatile unsigned __int32 vread = _readnum; //this allows us to read the _readnum BEFORE we check the flag
-      if(_flag!=0) _curwrite=vread;
-      volatile T* swap = _ptr1;
-      asmcas<volatile T*>(&_ptr1,_ptr2,_ptr1);
-      _ptr2=swap;
-    }
-
-  protected:
-    volatile T* _ptr1;
-    volatile T* _ptr2;
-    volatile unsigned __int32 _curwrite;
-    volatile unsigned __int32 _readnum;
-    volatile unsigned char _flag;
-  };*/
 }
 
+#ifdef BSS_COMPILER_MSC2010
+namespace std
+{
+  typedef enum memory_order {
+    memory_order_relaxed,
+    memory_order_consume,
+    memory_order_acquire,
+    memory_order_release,
+    memory_order_acq_rel,
+    memory_order_seq_cst
+  } memory_order;
+  // Re-implements just enough of atomic_flag for it to work with our data structures
+  struct atomic_flag
+  {	
+    bool test_and_set(memory_order _Order = memory_order_seq_cst) volatile
+    {
+      return _interlockedbittestandset((volatile long*)_My_flag, 0);
+    }
+    bool test_and_set(memory_order _Order = memory_order_seq_cst)
+    {	// atomically set *this to true and return previous value
+      return _interlockedbittestandset((volatile long*)_My_flag, 0);
+    }
+    void clear(memory_order _Order = memory_order_seq_cst) volatile 
+    {	// atomically clear *this
+      _Atomic_store_4((volatile unsigned long *)_My_flag, 0, _Order);
+    }
+    void clear(memory_order _Order = memory_order_seq_cst)
+    {	// atomically clear *this
+      _Atomic_store_4((volatile unsigned long *)_My_flag, 0, _Order);
+    }
+
+  private:
+    long _My_flag;
+
+    atomic_flag() = default;
+    atomic_flag(const atomic_flag&) BSS_DELETEFUNC
+    atomic_flag& operator=(const atomic_flag&) BSS_DELETEFUNCOP
+    atomic_flag& operator=(const atomic_flag&) volatile BSS_DELETEFUNCOP
+
+    inline void _Atomic_store_4(volatile unsigned long *_Tgt, unsigned long _Value, memory_order _Order) volatile
+    {	/* store _Value atomically */
+      switch(_Order)
+      {
+      case memory_order_relaxed:
+        *_Tgt = _Value;
+        break;
+      case memory_order_release:
+        _Compiler_barrier();
+        *_Tgt = _Value;
+        break;
+      case memory_order_seq_cst:
+        _InterlockedExchange((volatile long *)_Tgt, _Value);
+        break;
+      }
+    }
+  };
+}
+#endif
 #endif

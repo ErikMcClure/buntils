@@ -19,7 +19,7 @@ namespace bss_util
     static const int NUMMAXCHARS = T_NEXTMULTIPLE(MAXTHREADS, 31)>>5;
 
   public:
-    cThreadPool(const cThreadPool& copy) = delete;
+    cThreadPool(const cThreadPool& copy) BSS_DELETEFUNC
     cThreadPool(cThreadPool&& mov) : _queue(std::move(mov._queue)), _pool(std::move(mov._pool)) {
       _numtasks.store(0, std::memory_order_relaxed);
       _sleepflag.store(mov._sleepflag.load(std::memory_order_relaxed), std::memory_order_relaxed);
@@ -58,7 +58,7 @@ namespace bss_util
     inline void Wait() { _sleepflag.store(1, std::memory_order_relaxed); }
     inline void Join() { while(NumTasks()>0); }
 
-    cThreadPool& operator=(const cThreadPool&) = delete;
+    cThreadPool& operator=(const cThreadPool&) BSS_DELETEFUNCOP
     cThreadPool& operator=(cThreadPool&& mov)
     {
       _killall();
@@ -104,6 +104,7 @@ namespace bss_util
     //std::atomic<unsigned int> _timeout;
   };
 
+#ifdef BSS_VARIADIC_TEMPLATES
   template<typename R, typename ...Args>
   struct StoredFunction {
     typedef std::tuple<Args...> TUPLE;
@@ -138,7 +139,7 @@ namespace bss_util
     };
 
   public:
-    inline cTaskPool(const cTaskPool&) = delete;
+    inline cTaskPool(const cTaskPool&) BSS_DELETEFUNC
     inline cTaskPool(cTaskPool&& mov) : _pool(mov._pool) {}
     explicit inline cTaskPool(cThreadPool<MAXTHREADS>& pool) : _pool(pool) {}
     inline void Push(FUNC f, Args... args) {
@@ -153,6 +154,7 @@ namespace bss_util
     cLocklessFixedAlloc<PAIR> _alloc;
     cThreadPool<MAXTHREADS>& _pool;
   };
+#endif
 
   // Multi-producer Single-consumer function stack, useful for pushing updates to another thread (like an audio thread)
   /*class cFunctionStack : protected cArrayCircular<void*>

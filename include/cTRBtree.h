@@ -36,9 +36,10 @@ namespace bss_util {
   template<typename T, char(*CFunc)(const T&, const T&) = CompT<T>, typename Alloc = StandardAllocPolicy<TRB_Node<T>>>
   class BSS_COMPILER_DLLEXPORT cTRBtree : protected cAllocTracker<Alloc>
   {
+    inline cTRBtree(const cTRBtree&) BSS_DELETEFUNC
+    inline cTRBtree& operator=(const cTRBtree&) BSS_DELETEFUNCOP
   public:
     inline explicit cTRBtree(Alloc* allocator=0) : cAllocTracker<Alloc>(allocator), _first(0), _last(0), _root(pNIL) {}
-    inline cTRBtree(const cTRBtree&) = delete;
     inline cTRBtree(cTRBtree&& mov) : cAllocTracker<Alloc>(std::move(mov)), _first(mov.first), _last(mov._last), _root(mov._root)
     {
       mov._first=0;
@@ -101,7 +102,6 @@ namespace bss_util {
       mov._root=pNIL;
       return *this;
     }
-    inline cTRBtree& operator=(const cTRBtree&) = delete;
 
   protected:
 	  TRB_Node<T>* BSS_FASTCALL _get(const T& x) const

@@ -239,9 +239,8 @@ public:
     return r;
   }
 
-  void operator[](std::allocator<char>&) = delete;
-
 private:
+  void operator[](std::allocator<char>&) BSS_DELETEFUNC
 #ifdef BSS_COMPILER_MSC
   BSS_FORCEINLINE CHAR* _internal_ptr() { return _Myptr(); }
   BSS_FORCEINLINE const CHAR* _internal_ptr() const { return _Myptr(); }

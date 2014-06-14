@@ -12,6 +12,9 @@
 - Changed some functions to static so they don't cause link conflicts
 - rewrote how bss_log does levels and renamed it cLog
 - Renamed cArraySimple.h to cArray.h, but didn't rename the actual class.
+- Added WriteLog() using variadic templates to cLog
+- delegate now implicitely constructs from an equivalent lambda function
+- Added FPU control functions
 
 0.4.2
 ------

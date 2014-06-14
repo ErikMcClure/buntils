@@ -811,6 +811,8 @@ TESTDEF::RETPAIR test_bss_LOG()
   lg.FORMATLOG(0,"\\asfsdbs/dsfs\\ds/main.cpp",__LINE__) << std::endl;
   lg.FORMATLOG(0,"\\asfsdbs/dsfs\\ds/main.cpp\\",__LINE__) << std::endl;
   lg.FORMATLOG(0,"\\asfsdbs/dsfs\\ds/main.cpp/",__LINE__) << std::endl;
+  lg.WriteLog(0, "main.cpp", __LINE__, 0, "string", 1.0f, 35);
+  BSSLOGV(lg, 3, 0, "string", 1.0f, 35);
 
   ENDTEST;
 }
@@ -1654,10 +1656,16 @@ struct cAnimObj
   }
 };
 
+struct RCounter : cRefCounter
+{
+  RCounter() {}
+  ~RCounter() {}
+};
+
 TESTDEF::RETPAIR test_ANIMATION()
 {
   BEGINTEST;
-  cRefCounter c;
+  RCounter c;
   {
   c.Grab();
   cAnimation<StaticAllocPolicy<char>> a;
@@ -3275,9 +3283,9 @@ struct REF_TEST : cRefCounter
 TESTDEF::RETPAIR test_REFCOUNTER()
 {
   BEGINTEST;
-  cRefCounter a;
+  RCounter a;
   TEST(a.Grab()==1);
-  cRefCounter b(a);
+  RCounter b(a);
   TEST(b.Grab()==1);
   REF_TEST* c = new REF_TEST(__testret);
   c->Grab();
@@ -3674,6 +3682,13 @@ TESTDEF::RETPAIR test_DELEGATE()
   CPU_Barrier();
   three(2,-3);
   four(-6,0,true);
+
+  bool fcalled = false;
+  std::function<void()> f =[&](){ fcalled = true; };
+  delegate<void> d = f;
+  //delegate<void> d(std::function<void()>([](){})); // This should throw a compiler error
+  d();
+  TEST(fcalled);
   ENDTEST;
 }
 

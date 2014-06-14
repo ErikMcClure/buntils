@@ -74,6 +74,8 @@ namespace bss_util {
   template<class Key, class Data, char(*CFunc)(const Key&, const Key&) = CompT<Key>, typename Alloc = StandardAllocPolicy<typename _AVL_TREE_DATAFIELD<Key, Data>::AVLNode>>
 	class BSS_COMPILER_DLLEXPORT cAVLtree : protected cAllocTracker<Alloc>, public _AVL_TREE_DATAFIELD<Key,Data>
   {
+    cAVLtree(const cAVLtree& copy) BSS_DELETEFUNC
+    cAVLtree& operator=(const cAVLtree& copy) BSS_DELETEFUNCOP
   protected:
     typedef _AVL_TREE_DATAFIELD<Key,Data> BASE;
     typedef typename BASE::KeyData KeyData;
@@ -82,7 +84,6 @@ namespace bss_util {
     typedef typename BASE::DATAGET DATAGET;
     
   public:
-    cAVLtree(const cAVLtree& copy) = delete;
     inline cAVLtree(cAVLtree&& mov) : cAllocTracker<Alloc>(std::move(mov)), _root(mov._root) { mov._root=0; }
     inline cAVLtree(Alloc* allocator=0) : cAllocTracker<Alloc>(allocator), _root(0) {}
     inline ~cAVLtree() { Clear(); }
@@ -147,7 +148,6 @@ namespace bss_util {
     }
 
     inline cAVLtree& operator=(cAVLtree&& mov) { Clear(); _root=mov._root; mov._root=0; }
-    cAVLtree& operator=(const cAVLtree& copy) = delete;
 
   protected:
     template<typename F>

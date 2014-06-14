@@ -31,6 +31,11 @@
 #define BSS_CPU_UNKNOWN //Unknown CPU architecture (should force architecture independent C implementations for all utilities)
 #endif
 
+#define BSS_COMPILER_DELETEFUNC = delete;
+#define BSS_COMPILER_DELETEOPFUNC = delete;
+#define BSS_COMPILER_DELETEFUNC2010 { assert(false); }
+#define BSS_COMPILER_DELETEOPFUNC2010 { assert(false); return *this; }
+
 // Compiler detection and macro generation
 #if defined(__INTEL_COMPILER) || defined(__ICL) || defined(__ICC) || defined(__ECC) // Intel C++ compiler
 #define BSS_COMPILER_INTEL
@@ -47,6 +52,8 @@
 #define BSS_ALIGNED(sn, n) sn
 #define MSC_FASTCALL BSS_FASTCALL
 #define GCC_FASTCALL 
+#define BSS_DELETEFUNC BSS_COMPILER_DELETEFUNC
+#define BSS_DELETEFUNCOP BSS_COMPILER_DELETEOPFUNC
 
 # elif defined __GNUC__ // GCC
 #define BSS_COMPILER_GCC
@@ -78,6 +85,8 @@
 //typedef __int128 __int128; // GCC doesn't have __int64/32/16/8, but it does have __int128 for whatever reason.
 #define MSC_FASTCALL 
 #define GCC_FASTCALL BSS_FASTCALL
+#define BSS_DELETEFUNC BSS_COMPILER_DELETEFUNC
+#define BSS_DELETEFUNCOP BSS_COMPILER_DELETEOPFUNC
 
 #elif defined _MSC_VER // VC++
 #define BSS_COMPILER_MSC
@@ -97,9 +106,22 @@
 #define FUNCPTRCC(m,CC) CC m
 #define MSC_FASTCALL BSS_FASTCALL
 #define GCC_FASTCALL 
+#if (_MANAGED == 1) || (_M_CEE == 1)
+#define MSC_MANAGED
+#endif
 
 #if _MSC_VER >= 1800
 #define BSS_VARIADIC_TEMPLATES
+#define BSS_DELETEFUNC BSS_COMPILER_DELETEFUNC
+#define BSS_DELETEFUNCOP BSS_COMPILER_DELETEOPFUNC
+#elif _MSC_VER >= 1700
+#define BSS_DELETEFUNC BSS_COMPILER_DELETEFUNC
+#define BSS_DELETEFUNCOP BSS_COMPILER_DELETEOPFUNC
+#elif _MSC_VER >= 1600
+#define BSS_COMPILER_MSC2010
+#define BSS_NOSTDTHREADS
+#define BSS_DELETEFUNC BSS_COMPILER_DELETEFUNC2010
+#define BSS_DELETEFUNCOP BSS_COMPILER_DELETEOPFUNC2010
 #endif
 #endif
 

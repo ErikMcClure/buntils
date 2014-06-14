@@ -17,8 +17,9 @@ namespace bss_util {
 
   class BSS_COMPILER_DLLEXPORT cFixedAllocVoid
   {
+    cFixedAllocVoid(const cFixedAllocVoid& copy) BSS_DELETEFUNC
+    cFixedAllocVoid& operator=(const cFixedAllocVoid& copy) BSS_DELETEFUNCOP
   public:
-    cFixedAllocVoid(const cFixedAllocVoid& copy) = delete;
     inline cFixedAllocVoid(cFixedAllocVoid&& mov) : _freelist(mov._freelist), _root(mov._root), _sz(mov._sz) { mov._root=0; mov._freelist=0; }
     inline explicit cFixedAllocVoid(size_t sz, size_t init=8) : _freelist(0), _root(0), _sz(sz)
     {
@@ -74,7 +75,6 @@ namespace bss_util {
       _allocchunk(nsize); // Note that nsize is in bytes
     }
 
-    cFixedAllocVoid& operator=(const cFixedAllocVoid& copy) = delete;
   protected:
 #ifdef BSS_DEBUG
     bool _validpointer(const void* p) const
@@ -119,28 +119,29 @@ namespace bss_util {
   template<class T>
   class BSS_COMPILER_DLLEXPORT cFixedAlloc : public cFixedAllocVoid
   {
+    cFixedAlloc(const cFixedAlloc& copy) BSS_DELETEFUNC
+    cFixedAlloc& operator=(const cFixedAlloc& copy) BSS_DELETEFUNCOP
   public:
-    cFixedAlloc(const cFixedAlloc& copy) = delete;
     inline cFixedAlloc(cFixedAlloc&& mov) : cFixedAllocVoid(std::move(mov)) {}
     inline explicit cFixedAlloc(size_t init=8) : cFixedAllocVoid(sizeof(T),init) { static_assert((sizeof(T)>=sizeof(void*)),"T cannot be less than the size of a pointer"); }
     inline T* BSS_FASTCALL alloc(size_t num) { return (T*)cFixedAllocVoid::alloc(num); }
-    cFixedAlloc& operator=(const cFixedAlloc& copy) = delete;
   };
   
 	template<typename T>
-  class BSS_COMPILER_DLLEXPORT FixedPolicy : protected cFixedAlloc<T> {
+  class BSS_COMPILER_DLLEXPORT FixedPolicy : protected cFixedAlloc<T>
+  {
+    FixedPolicy(const FixedPolicy& copy) BSS_DELETEFUNC
+    FixedPolicy& operator=(const FixedPolicy& copy) BSS_DELETEFUNCOP
   public:
     typedef T* pointer;
     typedef T value_type;
     template<typename U>
     struct rebind { typedef FixedPolicy<U> other; };
 
-    FixedPolicy(const FixedPolicy& copy) = delete;
     inline FixedPolicy(FixedPolicy&& mov) : cFixedAlloc<T>(std::move(mov)) {}
     inline FixedPolicy() {}
     inline ~FixedPolicy() {}
 
-    FixedPolicy& operator=(const FixedPolicy& copy) = delete;
 
     inline pointer allocate(size_t cnt, const pointer = 0) { return cFixedAlloc<T>::alloc(cnt); }
     inline void deallocate(pointer p, size_t num = 0) { return cFixedAlloc<T>::dealloc(p); }

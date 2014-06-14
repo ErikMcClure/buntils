@@ -10,6 +10,7 @@
 #include "cArray.h"
 
 #define BSSLOG(logger,level) ((logger).FORMATLOG(level,__FILE__,__LINE__))
+#define BSSLOGV(logger,level,...) ((logger).WriteLog(level,__FILE__,__LINE__,__VA_ARGS__))
 
 namespace bss_util {
   class StreamSplitter;
@@ -17,9 +18,10 @@ namespace bss_util {
   // Log class that can be converted into a stream and redirected to various different stream targets
   class BSS_DLLEXPORT cLog
   {
+    cLog(const cLog& copy) BSS_DELETEFUNC
+    cLog& operator=(const cLog& right) BSS_DELETEFUNCOP
   public:
     // Move semantics only
-    cLog(const cLog& copy) = delete;
     cLog(cLog&& mov);
     // Constructor - takes a stream and adds it
     explicit cLog(std::ostream* log=0);
@@ -46,10 +48,13 @@ namespace bss_util {
     // Sets a level string (which should be a constant, not something that will get deallocated)
     void BSS_FASTCALL SetLevel(unsigned char level, const char* str);
 
-    cLog& operator=(const cLog& right) = delete;
     cLog& operator=(cLog&& right);
     inline operator std::ostream&() { return _stream; }
 
+#ifdef BSS_VARIADIC_TEMPLATES
+    template<typename... Args>
+    BSS_FORCEINLINE void BSS_FASTCALL WriteLog(unsigned char level, const char* file, unsigned int line, Args... args) { _writelog(FORMATLOGLEVEL(_levels[level], file, line), args...); }
+#endif
     BSS_FORCEINLINE std::ostream& BSS_FASTCALL FORMATLOG(unsigned char level, const char* file, unsigned int line) { return FORMATLOGLEVEL(_levels[level], file, line); }
     inline std::ostream& BSS_FASTCALL FORMATLOGLEVEL(const char* level, const char* file, unsigned int line)
     {
@@ -60,6 +65,11 @@ namespace bss_util {
     }
 
   protected:
+#ifdef BSS_VARIADIC_TEMPLATES
+    template<typename Arg, typename... Args>
+    static inline void _writelog(std::ostream& s, Arg arg, Args... args) { s << arg; _writelog(s, args...); }
+    static inline void _writelog(std::ostream& s) { s << std::endl; }
+#endif
     static bool BSS_FASTCALL _writedatetime(long timezone, std::ostream& log, bool timeonly);
     static const char* BSS_FASTCALL _trimpath(const char* path);
     void _leveldefaults();

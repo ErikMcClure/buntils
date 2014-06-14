@@ -7,15 +7,15 @@
 
 #include "bss_alloc_fixed.h"
 #include "lockless.h"
-#include <atomic>
 
 namespace bss_util {
   /* Multi-producer multi-consumer lockless fixed size allocator */
   template<class T>
   class BSS_COMPILER_DLLEXPORT cLocklessFixedAlloc
   {
+    cLocklessFixedAlloc(const cLocklessFixedAlloc& copy) BSS_DELETEFUNC
+    cLocklessFixedAlloc& operator=(const cLocklessFixedAlloc& copy) BSS_DELETEFUNCOP
   public:
-    cLocklessFixedAlloc(const cLocklessFixedAlloc& copy) = delete;
     inline cLocklessFixedAlloc(cLocklessFixedAlloc&& mov) : _root(mov._root), _freelist(mov._freelist) { mov._freelist.p=mov._root=0; _flag.clear(std::memory_order_relaxed); }
     inline explicit cLocklessFixedAlloc(size_t init=8) : _root(0)
     {
@@ -81,7 +81,6 @@ namespace bss_util {
     }
     
     //size_t contention;
-    cLocklessFixedAlloc& operator=(const cLocklessFixedAlloc& copy) = delete;
 
   protected:
 #ifdef BSS_DEBUG

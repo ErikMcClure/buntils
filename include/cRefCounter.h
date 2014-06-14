@@ -11,19 +11,20 @@ namespace bss_util {
   class BSS_COMPILER_DLLEXPORT cRefCounter
   {
   public:
+    // Increments and returns the reference counter
+    BSS_FORCEINLINE unsigned int Grab() { return ++_refs; } const
+    // Decrements the reference counter and calls delete this; if it is equal to or less then 0
+    BSS_FORCEINLINE void Drop() { if(--_refs <= 0) DestroyThis(); }
+
+  protected:
     // Constructor - Reference is set to 0 because you may or may not have a persistent reference to this, or something else will try to grab it or whatever
     inline cRefCounter() { _refs = 0; }
     inline cRefCounter(const cRefCounter& copy) { _refs = 0; }
     // Destructor - Does nothing, but because it is virtual, ensures that all superclasses get destroyed as well
     virtual ~cRefCounter() { }
-    // Increments and returns the reference counter
-    BSS_FORCEINLINE unsigned int Grab() { return ++_refs; } const
-    // Decrements the reference counter and calls delete this; if it is equal to or less then 0
-    BSS_FORCEINLINE void Drop() { if(--_refs <= 0) DestroyThis(); }
     // Destroys this object - made a seperate virtual function so it is overridable to ensure it is deleted in the proper DLL
     virtual void DestroyThis() { delete this; }
 
-  protected:
     int _refs; //holds the number of references held for this object
   };
 }

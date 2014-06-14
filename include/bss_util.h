@@ -26,6 +26,7 @@
 #include <float.h>
 #ifdef BSS_COMPILER_GCC
 #include <stdlib.h> // For abs(int) on GCC
+#include <fpu_control.h> // for CPU control on GCC
 #endif
 
 namespace bss_util { 
@@ -220,8 +221,8 @@ namespace bss_util {
   {
     if(!argc||!argv) return;
     const char* const* cur=argv;
-    size_t len=1;
-    for(size_t i = 1; i<argc; ++i)
+    int len=1;
+    for(int i = 1; i<argc; ++i)
     {
       if(argv[i][0]==divider)
       {
@@ -313,16 +314,30 @@ namespace bss_util {
     return _mm_cvttsd_si32(_mm_load_sd(&f));
   }
 
+#ifndef MSC_MANAGED
   BSS_FORCEINLINE static void fSetRounding(bool nearest)
   {
-    uint a;
+    unsigned int a;
+#ifdef BSS_COMPILER_MSC
     _controlfp_s(&a, nearest?_RC_NEAR:_RC_CHOP, _MCW_RC);
+#else
+    _FPU_GETCW(a);
+    a = (a&(~(_FPU_RC_NEAREST|_FPU_RC_DOWN|_FPU_RC_UP|_FPU_RC_ZERO)))|(nearest?_FPU_RC_NEAREST:_FPU_RC_ZERO);
+    _FPU_SETCW(a);
+#endif
   }
   BSS_FORCEINLINE static void fSetDenormal(bool on)
   {
-    uint a;
+    unsigned int a;
+#ifdef BSS_COMPILER_MSC
     _controlfp_s(&a, on?_DN_SAVE:_DN_FLUSH, _MCW_DN);
+#else
+    _FPU_GETCW(a); // Linux doesn't know what the denormal flags are, so we just hardcode the values in from windows' flags.
+    a = (a&(~0x03000000))|(on?0:0x01000000);
+    _FPU_SETCW(a);
+#endif
   }
+#endif
 
   // Returns true if FPU is in single precision mode and false otherwise (false for both double and extended precision)
   BSS_FORCEINLINE static bool FPUsingle()
@@ -330,7 +345,7 @@ namespace bss_util {
 #if defined(BSS_CPU_x86) || defined(BSS_CPU_x86_64) || defined(BSS_CPU_IA_64)
     unsigned int i;
 #ifdef BSS_COMPILER_GCC
-    __asm__ __volatile__ ("fnstcw %0" : "=m" (i));
+    _FPU_GETCW(i);
 #elif defined(BSS_COMPILER_MSC)
     i=_mm_getcsr();
 #endif
@@ -713,6 +728,7 @@ namespace bss_util {
 	  return a+((T)((b-a)*amt));
   }
   
+#ifdef BSS_VARIADIC_TEMPLATES
   // Generates a packed sequence of numbers
   template<int N, int ...S> 
   struct bssSeq : bssSeq<N-1, N-1, S...> { };
@@ -722,6 +738,7 @@ namespace bss_util {
   struct bssSeq<0, S...> {
     typedef bssSeq_gen<S...> type;
   };
+#endif
 
   //unique_ptr deleter class that forces the deletion to occur in this DLL
   template<class _Ty>

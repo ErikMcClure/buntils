@@ -1,7 +1,8 @@
 ﻿// Copyright ©2014 Black Sphere Studios
 // For conditions of distribution and use, see copyright notice in "bss_util.h"
 
-#include "Shiny.h"
+#define BSS_ENABLE_PROFILER
+
 #include "bss_util.h"
 #include "bss_log.h"
 #include "bss_algo.h"
@@ -48,8 +49,8 @@
 #include "FixedPt.h"
 #include "lockless.h"
 #include "os.h"
+#include "profiler.h"
 #include "StreamSplitter.h"
-#include "Shiny.h"
 
 #include <fstream>
 #include <algorithm>
@@ -58,8 +59,7 @@
 #include <iostream>
 #include <sstream>
 #include <functional>
-#include <atomic>
-#include <thread>
+#include <time.h>
 
 #ifdef BSS_PLATFORM_WIN32
 //#include "bss_win32_includes.h"
@@ -68,6 +68,17 @@
 #endif
 
 #ifdef BSS_COMPILER_MSC
+#if defined(BSS_STATIC_LIB)
+#if defined(BSS_DEBUG) && defined(BSS_CPU_x86_64)
+#pragma comment(lib, "../bin/bss-util64_s_d.lib")
+#elif defined(BSS_CPU_x86_64)
+#pragma comment(lib, "../bin/bss-util64_s.lib")
+#elif defined(BSS_DEBUG)
+#pragma comment(lib, "../bin/bss-util_s_d.lib")
+#else
+#pragma comment(lib, "../bin/bss-util_s.lib")
+#endif
+#else
 #if defined(BSS_DEBUG) && defined(BSS_CPU_x86_64)
 #pragma comment(lib, "../bin/bss-util64_d.lib")
 #elif defined(BSS_CPU_x86_64)
@@ -76,6 +87,7 @@
 #pragma comment(lib, "../bin/bss-util_d.lib")
 #else
 #pragma comment(lib, "../bin/bss-util.lib")
+#endif
 #endif
 #endif
 
@@ -593,7 +605,7 @@ TESTDEF::RETPAIR test_bss_util()
   for(nc = 1; nc < 10000;++nc)
   {
     total += nc*nc;
-    avg=bssavg<double>(avg,(double)(nc*nc),nc);
+    avg = bssavg<double>(avg,(double)(nc*nc),nc);
     diff=bssmax(diff,fabs((total/(double)nc)-avg));
   }
   TEST(diff<FLT_EPSILON*2);
@@ -970,12 +982,12 @@ TESTDEF::RETPAIR test_bss_ALLOC_FIXED()
 #define BSS_PFUNC_PRE void*
 #endif
 
-std::atomic<bool> startflag;
+volatile std::atomic<bool> startflag;
 
 template<class T, typename P>
 void TEST_ALLOC_MT(TESTDEF::RETPAIR& pair, T& p)
 {
-  while(!startflag);
+  while(!startflag.load());
   cDynArray<cArraySimple<std::pair<P*,size_t>>> plist;
   TEST_ALLOC_FUZZER_THREAD<T, P, 1, 50000>(pair, p, plist);
 }
@@ -983,16 +995,17 @@ void TEST_ALLOC_MT(TESTDEF::RETPAIR& pair, T& p)
 template<class T>
 struct MTALLOCWRAP : cLocklessFixedAlloc<T> { inline MTALLOCWRAP(size_t init=8) : cLocklessFixedAlloc<T>(init) {} inline void Clear() {} };
 
+typedef void (*ALLOCFN)(TESTDEF::RETPAIR&, MTALLOCWRAP<size_t>&);
 TESTDEF::RETPAIR test_bss_ALLOC_FIXED_LOCKLESS()
 {
   BEGINTEST;
   MTALLOCWRAP<size_t> _alloc(10000);
 
   const int NUM = 16;
-  std::thread threads[NUM];
+  cThread threads[NUM];
   startflag=false;
   for(int i = 0; i < NUM; ++i)
-    threads[i] = std::thread(TEST_ALLOC_MT<MTALLOCWRAP<size_t>, size_t>, std::ref(__testret), std::ref(_alloc));
+    threads[i] = cThread((ALLOCFN)&TEST_ALLOC_MT<MTALLOCWRAP<size_t>, size_t>, std::ref(__testret), std::ref(_alloc));
   startflag=true;
 
   for(int i = 0; i < NUM; ++i)
@@ -1001,7 +1014,7 @@ TESTDEF::RETPAIR test_bss_ALLOC_FIXED_LOCKLESS()
   MTALLOCWRAP<size_t> _alloc2;
 
   for(int i = 0; i < NUM; ++i)
-    threads[i] = std::thread(TEST_ALLOC_MT<MTALLOCWRAP<size_t>, size_t>, std::ref(__testret), std::ref(_alloc2));
+    threads[i] = cThread((ALLOCFN)&TEST_ALLOC_MT<MTALLOCWRAP<size_t>, size_t>, std::ref(__testret), std::ref(_alloc2));
   
   for(int i = 0; i < NUM; ++i)
     threads[i].join();
@@ -1672,7 +1685,7 @@ TESTDEF::RETPAIR test_ANIMATION()
   a.Pause(true);
   a.SetTimeWarp(1.0);
   TEST(a.IsPaused());
-  a.SetInterpolation<2>(&AniAttributeSmooth<2>::LerpInterpolate);
+  a.GetAttribute<2>()->SetInterpolation(&AniAttributeSmooth<2>::LerpInterpolate);
   a.AddKeyFrame<0>(KeyFrame<0>(0.0, &c));
   a.AddKeyFrame<0>(KeyFrame<0>(1.1, &c));
   a.AddKeyFrame<0>(KeyFrame<0>(2.0, &c));
@@ -3003,7 +3016,7 @@ std::atomic<unsigned short> lq_pos;
 template<class T>
 void _locklessqueue_consume(void* p)
 {
-  while(!startflag);
+  while(!startflag.load());
   T* q = (T*)p;
   uint c;
   while((c = lq_pos.fetch_add(1, std::memory_order_relaxed))<TESTNUM) {
@@ -3014,13 +3027,14 @@ void _locklessqueue_consume(void* p)
 template<class T>
 void _locklessqueue_produce(void* p)
 {
-  while(!startflag);
+  while(!startflag.load());
   T* q = (T*)p;
   unsigned int c;
   while((c = lq_c.fetch_add(1, std::memory_order_relaxed))<=TESTNUM) {
     q->Push(c);
   }
 }
+typedef void(*VOIDFN)(void*);
 
 TESTDEF::RETPAIR test_LOCKLESSQUEUE()
 {
@@ -3050,7 +3064,7 @@ TESTDEF::RETPAIR test_LOCKLESSQUEUE()
   }
 
   const int NUMTHREADS=18;
-  std::thread threads[NUMTHREADS];
+  cThread threads[NUMTHREADS];
 
   //typedef cLocklessQueue<unsigned int,true,true,size_t,size_t> LLQUEUE_SCSP; 
   typedef cLocklessQueue<unsigned short, size_t> LLQUEUE_SCSP;
@@ -3061,8 +3075,8 @@ TESTDEF::RETPAIR test_LOCKLESSQUEUE()
   lq_pos=0;
   memset(lq_end, 0, sizeof(short)*TESTNUM);
   startflag=false;
-  threads[0] = std::thread(_locklessqueue_produce<LLQUEUE_SCSP>, &q);
-  threads[1] = std::thread(_locklessqueue_consume<LLQUEUE_SCSP>, &q);
+  threads[0] = cThread((VOIDFN)&_locklessqueue_produce<LLQUEUE_SCSP>, &q);
+  threads[1] = cThread((VOIDFN)&_locklessqueue_consume<LLQUEUE_SCSP>, &q);
   startflag=true;
   threads[0].join();
   threads[1].join();
@@ -3085,7 +3099,7 @@ TESTDEF::RETPAIR test_LOCKLESSQUEUE()
       //for(int i=1; i<j; ++i)
       //  threads[i] = std::thread(_locklessqueue_produce<LLQUEUE_MCMP>, &q);
       for(int i=0; i<j; ++i)
-        threads[i] = std::thread((i&1)?_locklessqueue_produce<LLQUEUE_MCMP>:_locklessqueue_consume<LLQUEUE_MCMP>, &q);
+        threads[i] = cThread((i&1)?_locklessqueue_produce<LLQUEUE_MCMP>:_locklessqueue_consume<LLQUEUE_MCMP>, &q);
       startflag=true;
       for(int i = 0; i<j; ++i)
         threads[i].join();
@@ -3534,6 +3548,7 @@ TESTDEF::RETPAIR test_THREADPOOL()
   BEGINTEST;
   static const int NUM=8;
   cThreadPool<32> pool(NUM);
+#ifdef BSS_VARIADIC_TEMPLATES
   cTaskPool<32,int> tasks(pool);
   pool.Wait();
   memset(lq_end, 0, sizeof(unsigned short)*TESTNUM);
@@ -3555,6 +3570,7 @@ TESTDEF::RETPAIR test_THREADPOOL()
   for(int i = 1; i <= TESTNUM; ++i)
     check=(lq_end[i-1]==i)&&check;
   TEST(check);
+#endif
 
   ENDTEST;
 }
@@ -3827,6 +3843,46 @@ TESTDEF::RETPAIR test_OS()
   ENDTEST;
 }
 
+
+TESTDEF::RETPAIR test_PROFILE()
+{
+  BEGINTEST;
+  { // If you don't scope the PROFILE_FUNC, it won't actually return until AFTER PROFILE_OUTPUT gets called.
+    PROFILE_FUNC(); 
+
+    for(int i = 0; i < 100000; ++i)
+    {
+      CPU_Barrier();
+      __PROFILE_STATBLOCK(control, MAKESTRING(control));
+      CPU_Barrier();
+      __PROFILE_ZONE(control);
+      CPU_Barrier();
+      testnums[rand()%TESTNUM] += 1;
+    }
+
+    auto pr = cHighPrecisionTimer::OpenProfiler();
+    for(int i = 0; i < 100000; ++i)
+    {
+      PROFILE_BLOCK(outer);
+      {
+        PROFILE_BLOCK(inner);
+        testnums[rand()%TESTNUM] += 1;
+      }
+    }
+    //std::cout << cHighPrecisionTimer::CloseProfiler(pr)/100000.0 << std::endl;
+
+    for(int i = 0; i < 100000; ++i)
+    {
+      PROFILE_BEGIN(beginend);
+      testnums[rand()%TESTNUM] += 1;
+      PROFILE_END(beginend);
+    }
+
+  }
+  PROFILE_OUTPUT("testprofile.txt", 7);
+  ENDTEST;
+}
+
 TESTDEF::RETPAIR test_STREAMSPLITTER()
 {
   BEGINTEST;
@@ -3872,10 +3928,6 @@ c=(mem[b]>0)?(c+3):mem[c+2];
 
 int main(int argc, char** argv)
 {
-  PROFILE_FUNC();
-  PROFILE_UPDATE();
-  PROFILE_OUTPUT("./memtest.txt");
-
   ForceWin64Crash();
   SetWorkDirToCur();
   unsigned int seed=(unsigned int)time(NULL);
@@ -3939,6 +3991,7 @@ int main(int argc, char** argv)
     { "delegate.h", &test_DELEGATE },
     //{ "LLBase.h", &test_LLBASE },*/
     { "os.h", &test_OS },
+    { "profile.h", &test_PROFILE },
     { "cStreamSplitter.h", &test_STREAMSPLITTER },
   };
 

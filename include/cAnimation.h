@@ -32,7 +32,8 @@ namespace bss_util {
 	{
   protected:
     enum ANIBOOLS : unsigned char { ANI_PLAYING=1,ANI_PAUSED=2,ANI_ATTACHED=4 };
-    typedef typename Alloc::template rebind<std::pair<unsigned char, AniAttribute*>>::other MAPALLOC;
+    typedef std::pair<unsigned char, AniAttribute*> MAPPAIR; // VS2010 can't handle this being inside the rebind for some reason
+    typedef typename Alloc::template rebind<MAPPAIR>::other MAPALLOC;
 
 	public:
 		inline cAnimation(const cAnimation& copy) { operator=(copy); }
@@ -92,20 +93,8 @@ namespace bss_util {
       if(retval!=0) _attributes.Insert(retval->typeID,retval);
       return retval;
     }
-		template<unsigned char TypeID>
-		inline bool SetInterpolation(typename AniAttributeT<TypeID>::FUNC interpolation)
-		{
-			AniAttribute* hold = GetTypeID(TypeID);
-			if(hold) return static_cast<AniAttributeT<TypeID>*>(hold)->SetInterpolation(interpolation);
-      return false;
-		}
-		template<unsigned char TypeID>
-		inline bool SetRelative(bool rel)
-		{
-			AniAttribute* hold = GetTypeID(TypeID);
-			if(hold) return static_cast<AniAttributeT<TypeID>*>(hold)->SetRelative(rel);
-      return false;
-		}
+    template<unsigned char TypeID>
+    inline ANI_TID(TYPE)* GetAttribute() { return static_cast<ANI_TID(TYPE)*>(GetTypeID(TypeID)); }
     template<unsigned char TypeID>
     inline void SetKeyFrames(const KeyFrame<TypeID>* frames, AniAttribute::IDTYPE num)
 		{

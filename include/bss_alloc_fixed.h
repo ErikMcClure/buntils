@@ -17,7 +17,11 @@ namespace bss_util {
 
   class BSS_COMPILER_DLLEXPORT cFixedAllocVoid
   {
-    cFixedAllocVoid(const cFixedAllocVoid& copy) BSS_DELETEFUNC
+#ifdef BSS_COMPILER_MSC2010
+    cFixedAllocVoid(const cFixedAllocVoid& copy) : _freelist(0), _root(0), _sz(0) { assert(false); }
+#else
+    cFixedAllocVoid(const cFixedAllocVoid& copy) = delete;
+#endif
     cFixedAllocVoid& operator=(const cFixedAllocVoid& copy) BSS_DELETEFUNCOP
   public:
     inline cFixedAllocVoid(cFixedAllocVoid&& mov) : _freelist(mov._freelist), _root(mov._root), _sz(mov._sz) { mov._root=0; mov._freelist=0; }

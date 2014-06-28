@@ -33,8 +33,6 @@
 
 #define BSS_COMPILER_DELETEFUNC = delete;
 #define BSS_COMPILER_DELETEOPFUNC = delete;
-#define BSS_COMPILER_DELETEFUNC2010 { assert(false); }
-#define BSS_COMPILER_DELETEOPFUNC2010 { assert(false); return *this; }
 
 // Compiler detection and macro generation
 #if defined(__INTEL_COMPILER) || defined(__ICL) || defined(__ICC) || defined(__ECC) // Intel C++ compiler
@@ -119,9 +117,8 @@
 #define BSS_DELETEFUNCOP BSS_COMPILER_DELETEOPFUNC
 #elif _MSC_VER >= 1600
 #define BSS_COMPILER_MSC2010
-#define BSS_NOSTDTHREADS
-#define BSS_DELETEFUNC BSS_COMPILER_DELETEFUNC2010
-#define BSS_DELETEFUNCOP BSS_COMPILER_DELETEOPFUNC2010
+#define BSS_DELETEFUNC { assert(false); }
+#define BSS_DELETEFUNCOP { assert(false); return *this; }
 #endif
 #endif
 

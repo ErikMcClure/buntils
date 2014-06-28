@@ -1,4 +1,6 @@
-The Black Sphere Studios Utility Library is released under the Apache License v2.0, reproduced below. This library also contains code from other projects; these licenses are included as seperate files inside this folder.
+The Black Sphere Studios Utility Library is released under the Apache
+License v2.0, reproduced below. This library also contains code from other
+projects; these licenses are included as seperate files inside this folder.
 
                                  Apache License
                            Version 2.0, January 2004

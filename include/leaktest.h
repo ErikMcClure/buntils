@@ -6,8 +6,7 @@
 #define __BSS_LEAKTEST_H__
 
 #include "cHash.h"
-#include "BSS_Log.h"
-#include <stdio.h>
+#include "bss_Log.h"
 
 typedef struct
 {

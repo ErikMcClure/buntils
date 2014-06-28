@@ -4,13 +4,13 @@
 #ifndef __C_THREAD_H__BSS__
 #define __C_THREAD_H__BSS__
 
-#ifdef BSS_NOSTDTHREADS
-#error "You can't use cThread with this compiler"
-#endif
-
 #include "bss_defines.h"
 #include <assert.h>
+#ifndef BSS_COMPILER_MSC2010
 #include <thread>
+#else
+#include <functional>
+#endif
 #ifdef BSS_PLATFORM_WIN32
 #include "bss_win32_includes.h"
 #include <process.h>
@@ -20,6 +20,7 @@
 #endif
 
 namespace bss_util {
+#ifndef BSS_COMPILER_MSC2010
   // This extends std::thread and adds support for joining with a timeout and signaled state
   class BSS_COMPILER_DLLEXPORT cThread : public std::thread
   {
@@ -90,6 +91,75 @@ namespace bss_util {
     static void ___catcher(int sig) {}
 #endif
   };
+#else // This is for VS2010 which means we only implement this manually for the win32 platform.
+  class BSS_COMPILER_DLLEXPORT cThread
+  {
+    inline cThread(const cThread&) {}
+    cThread& operator=(const cThread&) { return *this; }
+    
+  public:
+    inline cThread(cThread&& mov) : _id(mov._id) { mov._id=(size_t)-1; }
+    template<class _Fn> explicit cThread(_Fn&& _Fx) { std::function<void(void)> fn = [&](){ _started.clear(); _Fx(); }; _start(&fn); }
+    template<class _Fn, class A1> cThread(_Fn&& _Fx, A1&& a1) { std::function<void(void)> fn = [&](){ _started.clear(); _Fx(std::forward<A1>(a1)); }; _start(&fn); }
+    template<class _Fn, class A1, class A2> cThread(_Fn&& _Fx, A1&& a1, A2&& a2) { std::function<void(void)> fn = [&](){ _started.clear(); _Fx(std::forward<A1>(a1), std::forward<A2>(a2)); }; _start(&fn); }
+    template<class _Fn, class A1, class A2, class A3> cThread(_Fn&& _Fx, A1&& a1, A2&& a2, A3&& a3) { std::function<void(void)> fn = [&](){ _started.clear(); _Fx(std::forward<A1>(a1), std::forward<A2>(a2), std::forward<A3>(a3)); }; _start(&fn); }
+    template<class _Fn, class A1, class A2, class A3, class A4> cThread(_Fn&& _Fx, A1&& a1, A2&& a2, A3&& a3, A4&& a4) { std::function<void(void)> fn = [&](){ _started.clear(); _Fx(std::forward<A1>(a1), std::forward<A2>(a2), std::forward<A3>(a3), std::forward<A4>(a4)); }; _start(&fn); }
+    template<class _Fn, class A1, class A2, class A3, class A4, class A5> cThread(_Fn&& _Fx, A1&& a1, A2 &&a2, A3&& a3, A4&& a4, A5&& a5) { std::function<void(void)> fn = [&](){ _started.clear(); _Fx(std::forward<A1>(a1), std::forward<A2>(a2), std::forward<A3>(a3), std::forward<A4>(a4), std::forward<A5>(a5)); }; _start(&fn); }
+    inline cThread() : _id((size_t)-1) { }
+    inline ~cThread() { if(joinable()) join(); }
+    inline bool joinable() const { return _id!=(size_t)-1; }
+    inline void detach() { _id=(size_t)-1; }
+    inline void swap(cThread& other) { size_t i = _id; _id=other._id; other._id=i; }
+    inline size_t native_handle() const { return _id; }
+
+    // Blocks until this thread has terminated, and returns the threads exit code
+    BSS_FORCEINLINE size_t join()
+    {
+      size_t ret=(size_t)-1;
+      if(joinable())
+      {
+        if(WaitForSingleObject((HANDLE)native_handle(), INFINITE)!=0)
+          return (size_t)-1;
+        GetExitCodeThread((HANDLE)native_handle(), (DWORD*)&ret); // size_t is gaurenteed to be big enough to hold DWORD
+      }
+
+      _id=(size_t)-1;
+      return ret;
+    }
+    // Blocks until either the thread has terminated, or 'timeout' milliseconds have elapsed. If a timeout occurs, returns -1.
+    BSS_FORCEINLINE size_t join(size_t mstimeout)
+    {
+      size_t ret=(size_t)-1;
+      if(joinable())
+      {
+        if(WaitForSingleObject((HANDLE)native_handle(), (DWORD)mstimeout)!=0)
+          return (size_t)-1;
+        GetExitCodeThread((HANDLE)native_handle(), (DWORD*)&ret); // size_t is gaurenteed to be big enough to hold DWORD
+      }
+      _id=(size_t)-1;
+      return ret;
+    }
+
+    inline cThread& operator=(cThread&& mov) { _id=mov._id; mov._id=(size_t)-1; return *this; }
+
+    BSS_FORCEINLINE void Signal() { DWORD r=QueueUserAPC(&cThread::_APCactivate, (HANDLE)native_handle(), 0); assert(r); }
+    BSS_FORCEINLINE static void Wait() { SleepEx(INFINITE, true); }
+
+  protected:
+    inline static void BSS_COMPILER_STDCALL _APCactivate(ULONG_PTR) {}
+    inline static unsigned int __stdcall _threadwrap(void* arg) { std::function<void(void)> fn = *(std::function<void(void)>*)arg; fn(); return 0; }
+    BSS_FORCEINLINE void BSS_FASTCALL _start(void* arg)
+    {
+      _started.test_and_set();
+      _id=_beginthreadex(0, 0, _threadwrap, arg, 0, 0);
+      if(!_id) _id=(size_t)-1; // WHAT GODDAMN MANIAC LET _beginthreadex RETURN 0 ON HALF ITS ERRORS?! 0 ISN'T EVEN THE INVALID HANDLE VALUE!
+      while(_started.test_and_set()); // Spin until we've actually copied the function in our wrapper thread so we don't nuke the stack.
+    }
+
+    size_t _id;
+    std::atomic_flag _started;
+  };
+#endif
 }
 
 #endif

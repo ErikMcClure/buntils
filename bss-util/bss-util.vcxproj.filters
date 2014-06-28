@@ -9,9 +9,6 @@
       <UniqueIdentifier>{93995380-89BD-4b04-88EB-625FBE52EBFB}</UniqueIdentifier>
       <Extensions>h;hpp;hxx;hm;inl;inc;xsd</Extensions>
     </Filter>
-    <Filter Include="Shiny">
-      <UniqueIdentifier>{63b77cfc-1383-4570-a352-f78fb3755353}</UniqueIdentifier>
-    </Filter>
     <Filter Include="Resource Files">
       <UniqueIdentifier>{67DA6AB6-F800-4c08-8B7A-83BB121AAD01}</UniqueIdentifier>
       <Extensions>rc;ico;cur;bmp;dlg;rc2;rct;bin;rgs;gif;jpg;jpeg;jpe;resx;tiff;tif;png;wav</Extensions>
@@ -132,9 +129,6 @@
     <ClInclude Include="..\include\os.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="..\include\Shiny.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
     <ClInclude Include="..\include\StreamSplitter.h">
       <Filter>Header Files</Filter>
     </ClInclude>
@@ -180,42 +174,6 @@
     <ClInclude Include="..\include\cSmartPtr.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="..\include\shiny\ShinyConfig.h">
-      <Filter>Shiny</Filter>
-    </ClInclude>
-    <ClInclude Include="..\include\shiny\ShinyData.h">
-      <Filter>Shiny</Filter>
-    </ClInclude>
-    <ClInclude Include="..\include\shiny\ShinyMacros.h">
-      <Filter>Shiny</Filter>
-    </ClInclude>
-    <ClInclude Include="..\include\shiny\ShinyManager.h">
-      <Filter>Shiny</Filter>
-    </ClInclude>
-    <ClInclude Include="..\include\shiny\ShinyNode.h">
-      <Filter>Shiny</Filter>
-    </ClInclude>
-    <ClInclude Include="..\include\shiny\ShinyNodePool.h">
-      <Filter>Shiny</Filter>
-    </ClInclude>
-    <ClInclude Include="..\include\shiny\ShinyNodeState.h">
-      <Filter>Shiny</Filter>
-    </ClInclude>
-    <ClInclude Include="..\include\shiny\ShinyOutput.h">
-      <Filter>Shiny</Filter>
-    </ClInclude>
-    <ClInclude Include="..\include\shiny\ShinyPrereqs.h">
-      <Filter>Shiny</Filter>
-    </ClInclude>
-    <ClInclude Include="..\include\shiny\ShinyTools.h">
-      <Filter>Shiny</Filter>
-    </ClInclude>
-    <ClInclude Include="..\include\shiny\ShinyVersion.h">
-      <Filter>Shiny</Filter>
-    </ClInclude>
-    <ClInclude Include="..\include\shiny\ShinyZone.h">
-      <Filter>Shiny</Filter>
-    </ClInclude>
     <ClInclude Include="..\include\bss_graph.h">
       <Filter>Header Files</Filter>
     </ClInclude>
@@ -252,6 +210,9 @@
     <ClInclude Include="..\include\cArray.h">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="..\include\profiler.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="bss_util.cpp">
@@ -275,28 +236,10 @@
     <ClCompile Include="cINIentry.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="ShinyManager.c">
-      <Filter>Shiny</Filter>
-    </ClCompile>
-    <ClCompile Include="ShinyNode.c">
-      <Filter>Shiny</Filter>
-    </ClCompile>
-    <ClCompile Include="ShinyNodePool.c">
-      <Filter>Shiny</Filter>
-    </ClCompile>
-    <ClCompile Include="ShinyNodeState.c">
-      <Filter>Shiny</Filter>
-    </ClCompile>
-    <ClCompile Include="ShinyOutput.c">
-      <Filter>Shiny</Filter>
-    </ClCompile>
-    <ClCompile Include="ShinyTools.c">
-      <Filter>Shiny</Filter>
-    </ClCompile>
-    <ClCompile Include="ShinyZone.c">
-      <Filter>Shiny</Filter>
-    </ClCompile>
     <ClCompile Include="bss_log.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="profiler.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>

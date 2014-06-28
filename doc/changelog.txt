@@ -15,6 +15,10 @@
 - Added WriteLog() using variadic templates to cLog
 - delegate now implicitely constructs from an equivalent lambda function
 - Added FPU control functions
+- Support was added (again) for VS2010
+- SetInterpolate is no longer available on cAnimation. Use GetAttribute<> instead
+- Added a high performance custom profiler in profiler.h and removed Shiny
+- Added a time interpolation helper function
 
 0.4.2
 ------

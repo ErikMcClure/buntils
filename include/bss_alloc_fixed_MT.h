@@ -1,4 +1,3 @@
-
 // Copyright ©2014 Black Sphere Studios
 // For conditions of distribution and use, see copyright notice in "bss_util.h"
 

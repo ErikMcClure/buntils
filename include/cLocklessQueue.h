@@ -21,7 +21,7 @@ namespace bss_util {
   struct i_LocklessQueue_Length
   { 
     inline i_LocklessQueue_Length(const i_LocklessQueue_Length& copy) { _length = copy._length; }
-    inline i_LocklessQueue_Length() { _length = ATOMIC_VAR_INIT(0); }
+    inline i_LocklessQueue_Length() : _length(0) { }
     inline ST_ Length() const { return _length; }
 
   protected:

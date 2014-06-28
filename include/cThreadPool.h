@@ -15,11 +15,13 @@ namespace bss_util
   class cThreadPool
   {
     typedef void(*FUNC)(void*);
+    typedef void(*POOLFUNC)(cThreadPool&, std::atomic<unsigned int>&, unsigned int);
     typedef std::pair<FUNC, void*> PAIR;
     static const int NUMMAXCHARS = T_NEXTMULTIPLE(MAXTHREADS, 31)>>5;
 
-  public:
     cThreadPool(const cThreadPool& copy) BSS_DELETEFUNC
+    cThreadPool& operator=(const cThreadPool&)BSS_DELETEFUNCOP
+  public:
     cThreadPool(cThreadPool&& mov) : _queue(std::move(mov._queue)), _pool(std::move(mov._pool)) {
       _numtasks.store(0, std::memory_order_relaxed);
       _sleepflag.store(mov._sleepflag.load(std::memory_order_relaxed), std::memory_order_relaxed);
@@ -43,7 +45,7 @@ namespace bss_util
       _pool.resize(num);
       for(unsigned int i = oldsize; i < _pool.size(); ++i) { // Initialize new threads
         _quitflags[i>>5].store(_quitflags[i>>5].load(std::memory_order_relaxed)&(~(1<<(i%32))), std::memory_order_relaxed);
-        _pool[i] = cThread(_threadpool_worker, std::ref(*this), std::ref(_quitflags[i>>5]), (1<<(i%32)));
+        _pool[i] = cThread((POOLFUNC)&_threadpool_worker, std::ref(*this), std::ref(_quitflags[i>>5]), (1<<(i%32)));
       }
     }
     inline size_t Length() const { return _pool.size(); }
@@ -58,7 +60,6 @@ namespace bss_util
     inline void Wait() { _sleepflag.store(1, std::memory_order_relaxed); }
     inline void Join() { while(NumTasks()>0); }
 
-    cThreadPool& operator=(const cThreadPool&) BSS_DELETEFUNCOP
     cThreadPool& operator=(cThreadPool&& mov)
     {
       _killall();

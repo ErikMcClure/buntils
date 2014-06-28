@@ -18,7 +18,11 @@ namespace bss_util {
   // Log class that can be converted into a stream and redirected to various different stream targets
   class BSS_DLLEXPORT cLog
   {
-    cLog(const cLog& copy) BSS_DELETEFUNC
+#ifdef BSS_COMPILER_MSC2010
+    cLog(const cLog& copy) : _stream(std::_Noinit) {}
+#else
+    cLog(const cLog& copy) = delete;
+#endif
     cLog& operator=(const cLog& right) BSS_DELETEFUNCOP
   public:
     // Move semantics only
@@ -54,6 +58,12 @@ namespace bss_util {
 #ifdef BSS_VARIADIC_TEMPLATES
     template<typename... Args>
     BSS_FORCEINLINE void BSS_FASTCALL WriteLog(unsigned char level, const char* file, unsigned int line, Args... args) { _writelog(FORMATLOGLEVEL(_levels[level], file, line), args...); }
+#else // For VS2010, we get to do this the messy way...
+    template<class A1> BSS_FORCEINLINE void BSS_FASTCALL WriteLog(unsigned char level, const char* file, unsigned int line, A1 a1) { FORMATLOGLEVEL(_levels[level], file, line) << a1 << std::endl; }
+    template<class A1, class A2> BSS_FORCEINLINE void BSS_FASTCALL WriteLog(unsigned char level, const char* file, unsigned int line, A1 a1, A2 a2) { FORMATLOGLEVEL(_levels[level], file, line) << a1 << a2 << std::endl; }
+    template<class A1, class A2, class A3> BSS_FORCEINLINE void BSS_FASTCALL WriteLog(unsigned char level, const char* file, unsigned int line, A1 a1, A2 a2, A3 a3) { FORMATLOGLEVEL(_levels[level], file, line) << a1 << a2 << a3 << std::endl; }
+    template<class A1, class A2, class A3, class A4> BSS_FORCEINLINE void BSS_FASTCALL WriteLog(unsigned char level, const char* file, unsigned int line, A1 a1, A2 a2, A3 a3, A4 a4) { FORMATLOGLEVEL(_levels[level], file, line) << a1 << a2 << a3 << a4 << std::endl; }
+    template<class A1, class A2, class A3, class A4, class A5> BSS_FORCEINLINE void BSS_FASTCALL WriteLog(unsigned char level, const char* file, unsigned int line, A1 a1, A2 a2, A3 a3, A4 a4, A5 a5) { FORMATLOGLEVEL(_levels[level], file, line) << a1 << a2 << a3 << a4 << a5 << std::endl; }
 #endif
     BSS_FORCEINLINE std::ostream& BSS_FASTCALL FORMATLOG(unsigned char level, const char* file, unsigned int line) { return FORMATLOGLEVEL(_levels[level], file, line); }
     inline std::ostream& BSS_FASTCALL FORMATLOGLEVEL(const char* level, const char* file, unsigned int line)

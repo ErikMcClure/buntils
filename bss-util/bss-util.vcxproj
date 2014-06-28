@@ -107,19 +107,7 @@
     <ClInclude Include="..\include\LLBase.h" />
     <ClInclude Include="..\include\lockless.h" />
     <ClInclude Include="..\include\os.h" />
-    <ClInclude Include="..\include\Shiny.h" />
-    <ClInclude Include="..\include\shiny\ShinyConfig.h" />
-    <ClInclude Include="..\include\shiny\ShinyData.h" />
-    <ClInclude Include="..\include\shiny\ShinyMacros.h" />
-    <ClInclude Include="..\include\shiny\ShinyManager.h" />
-    <ClInclude Include="..\include\shiny\ShinyNode.h" />
-    <ClInclude Include="..\include\shiny\ShinyNodePool.h" />
-    <ClInclude Include="..\include\shiny\ShinyNodeState.h" />
-    <ClInclude Include="..\include\shiny\ShinyOutput.h" />
-    <ClInclude Include="..\include\shiny\ShinyPrereqs.h" />
-    <ClInclude Include="..\include\shiny\ShinyTools.h" />
-    <ClInclude Include="..\include\shiny\ShinyVersion.h" />
-    <ClInclude Include="..\include\shiny\ShinyZone.h" />
+    <ClInclude Include="..\include\profiler.h" />
     <ClInclude Include="..\include\StreamSplitter.h" />
   </ItemGroup>
   <ItemGroup>
@@ -131,13 +119,7 @@
     <ClCompile Include="cINIsection.cpp" />
     <ClCompile Include="cINIstorage.cpp" />
     <ClCompile Include="INIParser.c" />
-    <ClCompile Include="ShinyManager.c" />
-    <ClCompile Include="ShinyNode.c" />
-    <ClCompile Include="ShinyNodePool.c" />
-    <ClCompile Include="ShinyNodeState.c" />
-    <ClCompile Include="ShinyOutput.c" />
-    <ClCompile Include="ShinyTools.c" />
-    <ClCompile Include="ShinyZone.c" />
+    <ClCompile Include="profiler.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ResourceCompile Include="bss-util.rc" />
@@ -421,7 +403,7 @@
       <ProgramDataBaseFileName>$(TargetDir)$(TargetName).pdb</ProgramDataBaseFileName>
     </ClCompile>
     <Lib>
-      <AdditionalDependencies>psapi.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalDependencies>psapi.lib;Shlwapi.lib;%(AdditionalDependencies)</AdditionalDependencies>
       <TargetMachine>MachineX86</TargetMachine>
     </Lib>
   </ItemDefinitionGroup>
@@ -444,7 +426,7 @@
       <ProgramDataBaseFileName>$(TargetDir)$(TargetName).pdb</ProgramDataBaseFileName>
     </ClCompile>
     <Lib>
-      <AdditionalDependencies>psapi.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalDependencies>psapi.lib;Shlwapi.lib;%(AdditionalDependencies)</AdditionalDependencies>
       <TargetMachine>MachineX64</TargetMachine>
     </Lib>
   </ItemDefinitionGroup>
@@ -463,7 +445,7 @@
       <ProgramDataBaseFileName>$(TargetDir)$(TargetName).pdb</ProgramDataBaseFileName>
     </ClCompile>
     <Lib>
-      <AdditionalDependencies>psapi.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalDependencies>psapi.lib;Shlwapi.lib;%(AdditionalDependencies)</AdditionalDependencies>
       <TargetMachine>MachineX86</TargetMachine>
     </Lib>
   </ItemDefinitionGroup>
@@ -482,7 +464,7 @@
       <ProgramDataBaseFileName>$(TargetDir)$(TargetName).pdb</ProgramDataBaseFileName>
     </ClCompile>
     <Lib>
-      <AdditionalDependencies>psapi.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalDependencies>psapi.lib;Shlwapi.lib;%(AdditionalDependencies)</AdditionalDependencies>
       <TargetMachine>MachineX64</TargetMachine>
     </Lib>
   </ItemDefinitionGroup>

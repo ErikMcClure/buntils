@@ -103,8 +103,6 @@ namespace bss_util {
 		inline virtual AniAttribute* BSS_FASTCALL Clone() const { return 0; }
     inline virtual void BSS_FASTCALL CopyAnimation(AniAttribute* ptr) { operator=(*static_cast<AniAttributeT*>(ptr)); }
     inline virtual void BSS_FASTCALL AddAnimation(AniAttribute* ptr) { operator+=(*static_cast<AniAttributeT*>(ptr)); }
-    inline virtual bool SetInterpolation(FUNC f) { return false; }
-    inline virtual bool SetRelative(bool rel) { return false; } // If set to non-zero, this will be relative.
     inline IDTYPE GetNumFrames() const { return _timevalues.Size(); }
     inline const KeyFrame<TypeID>& GetKeyFrame(IDTYPE index) const { return _timevalues[index]; }
     inline void Clear() { _timevalues.SetSize(1); _timevalues[0].time=0; _flags-=ATTR_INITZERO; }
@@ -319,6 +317,9 @@ namespace bss_util {
     static inline ANI_TID(VALUE) BSS_FASTCALL NoInterpolate(const TVT_ARRAY_T& a, IDTYPE i, double t) { return a[i-(t!=1.0)].value; }
     static inline ANI_TID(VALUE) BSS_FASTCALL LerpInterpolate(const TVT_ARRAY_T& a, IDTYPE i, double t) { return lerp<ANI_TID(VALUE)>(a[i-1].value,a[i].value,t); }
     static inline ANI_TID(VALUE) BSS_FASTCALL CubicInterpolate(const TVT_ARRAY_T& a, IDTYPE i, double t) { return CubicBSpline<ANI_TID(VALUE)>(t,a[i-1-(i!=1)].value,a[i-1].value,a[i].value,a[i+((i+1)!=a.Size())].value); }
+    typedef ANI_TID(VALUE) (BSS_FASTCALL *TIME_FNTYPE)(const TVT_ARRAY_T& a, IDTYPE i, double t); // VC++ 2010 can't handle this being in the template itself
+    template<TIME_FNTYPE FN, double (*TIME)(ANI_TID(DATA)&)>
+    static inline ANI_TID(VALUE) BSS_FASTCALL TimeInterpolate(const TVT_ARRAY_T& a, IDTYPE i, double t) { return (*FN)(a, i, UniformQuadraticBSpline<double, double>(t, (*TIME)(a[i-1-(i>2)]), (*TIME)(a[i-1]), (*TIME)(a[i]))); }
 
   protected:
     BSS_FORCEINLINE void _setval(ANI_TID(VALUECONST) val) const { AniAttributeDiscrete<TypeID, Alloc>::_del((_flags&ATTR_REL)?val+_initval:val); }
@@ -343,7 +344,8 @@ namespace bss_util {
     template<typename U> struct rebind { typedef AniAttributeInterval<TypeID, U> other; };
     typedef AniAttributeDiscrete<TypeID, Alloc> BASE;
     typedef typename AniAttributeT<TypeID, Alloc>::IDTYPE IDTYPE;
-    typedef typename Alloc::template rebind<std::pair<double, ANI_TID(AUX)>>::other QUEUEALLOC;
+    typedef std::pair<double, ANI_TID(AUX)> QUEUEPAIR; // VS2010 can't handle this being inside the rebind for some reason
+    typedef typename Alloc::template rebind<QUEUEPAIR>::other QUEUEALLOC;
     using AniAttributeT<TypeID, Alloc>::_timevalues;
     using AniAttributeT<TypeID, Alloc>::_curpair;
     

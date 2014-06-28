@@ -41,7 +41,7 @@ namespace bss_util {
   BSS_COMPILER_DLLEXPORT extern int BSS_FASTCALL DelRegistryNode(HKEY__* hKeyRoot, const char* lpSubKey);
   BSS_COMPILER_DLLEXPORT extern int BSS_FASTCALL DelRegistryNodeW(HKEY__* hKeyRoot, const wchar_t* lpSubKey);
 #else
-  BSS_FORCEINLINE int BSS_FASTCALL ListDir(const char* dir, std::vector<cStr>& files, char flags); // Setting flags to 1 will do a recursive search. Setting flags to 2 will return directory+file names. Setting flags to 3 will both be recursive and return directory names.
+  BSS_COMPILER_DLLEXPORT extern int BSS_FASTCALL ListDir(const char* dir, std::vector<cStr>& files, char flags); // Setting flags to 1 will do a recursive search. Setting flags to 2 will return directory+file names. Setting flags to 3 will both be recursive and return directory names.
 #endif
 }
 

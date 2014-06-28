@@ -12,7 +12,8 @@
 #else
 #include <sys/types.h>  // stat().
 #include <sys/stat.h>   // stat().
-#include <dirent.h> //Linux
+#include <dirent.h>
+#include <unistd.h> // rmdir()
 //#include <gtkmm.h> // file dialog
 #endif
 
@@ -326,14 +327,14 @@ extern int BSS_FASTCALL bss_util::CreateDir(const char* path)
   cStr hold(path);
   hold.ReplaceChar('\\', '/');
   if(hold[hold.size()-1] != '/') hold += '/'; //Make sure we've got a trailing \\ on the path.
-  const wchar_t* pos = strchr(hold, '/');
+  const char* pos = strchr(hold, '/');
   cStr temppath;
   while(pos)
   {
-    temppath = hold.substr(0, pos-(const wchar_t*)hold);
-    if(stat(temppath, &st) == -1 && mkdir(temppath, 0700) != 0)
+    temppath = hold.substr(0, pos-(const char*)hold);
+    if(stat(temppath, &st) < 0 && mkdir(temppath, 0700) < 0)
       return -1;
-    pos = strchr(++pos, '\\');
+    pos = strchr(++pos, '/');
   }
   return 0;
 }
@@ -387,8 +388,7 @@ int _deldir_func(const char *fpath, const struct stat *sb, int typeflag, struct 
 
 extern int BSS_FASTCALL bss_util::DelDir(const char* cdir)
 {
-  nftw(cdir,&_deldir_func, 20, FTW_DEPTH);
-  rmdir(cdir);
+  return nftw(cdir,&_deldir_func, 20, FTW_DEPTH);
 }
 #endif
 
@@ -399,6 +399,7 @@ BSS_COMPILER_DLLEXPORT extern int BSS_FASTCALL bss_util::_listdir(const wchar_t*
   HANDLE hdir = INVALID_HANDLE_VALUE;
 
   cStrW dir(cdir);
+  if(dir[dir.length()-1] == '/') dir.UnsafeString()[dir.length()-1] = '\\';
   if(dir[dir.length()-1] != '\\') dir += '\\';
   hdir = FindFirstFileW(dir+"*", &ffd);
 
@@ -407,8 +408,9 @@ BSS_COMPILER_DLLEXPORT extern int BSS_FASTCALL bss_util::_listdir(const wchar_t*
     if(WCSICMP(ffd.cFileName, L".")!=0 && WCSICMP(ffd.cFileName, L"..")!=0)
     {
       if(ffd.dwFileAttributes & FILE_ATTRIBUTE_DIRECTORY) {
-        if(flags&1) _listdir(dir+ffd.cFileName, fn, files, flags);
-        if(flags&2) (*fn)(dir.c_str(), files);
+        cStrW fldir(dir+ffd.cFileName);
+        if(flags&2) (*fn)(fldir.c_str(), files);
+        if(flags&1) _listdir(fldir.c_str(), fn, files, flags);
       } else
         (*fn)((dir+ffd.cFileName).c_str(),files);
     }
@@ -419,30 +421,36 @@ BSS_COMPILER_DLLEXPORT extern int BSS_FASTCALL bss_util::_listdir(const wchar_t*
   return 0;
 }
 #else //Linux function
-//extern int BSS_FASTCALL bss_util::GetDirFiles(const char* cdir, std::vector<cStr>* files)
-//{
-//  DIR *dp;
-//  struct dirent *dirp;
-//  if((dp = opendir(cdir)) == NULL)
-//    return errno;
-//  cStr dir(cdir);
-//  if(dir[dir.length()-1] != '\\') dir += '\\';
-//
-//  while((dirp = readdir(dp)) != NULL)
-//  {
-//    struct stat _stat;
-//    if(lstat(dirp->d_name, &_stat) != 0 && stricmp(dirp->d_name, ".")!=0 && stricmp(dirp->d_name, "..")!=0)
-//    {
-//      if(S_ISDIR(_stat.st_mode))
-//        GetDirFiles(dir+dirp->d_name,files);
-//      else
-//        files->push_back(cStr(dir, dirp->d_name).c_str());
-//    }
-//  }
-//
-//  closedir(dp);
-//  return 0;
-//}
+BSS_COMPILER_DLLEXPORT extern int BSS_FASTCALL bss_util::ListDir(const char* path, std::vector<cStr>& files, char flags) // Setting flags to 1 will do a recursive search. Setting flags to 2 will return directory+file names. Setting flags to 3 will both be recursive and return directory names.
+{
+  DIR* srcdir = opendir(path);
+
+  if(!srcdir)
+    return -1;
+
+  struct stat st;
+  struct dirent* dent;
+  cStr dir(path);
+  if(dir[dir.length()-1] == '\\') dir.UnsafeString()[dir.length()-1] = '/';
+  if(dir[dir.length()-1] != '/') dir += '/';
+
+  while((dent = readdir(srcdir))!=0)
+  {
+    if(strcmp(dent->d_name, ".") == 0 || strcmp(dent->d_name, "..") == 0)
+      continue;
+    if (fstatat(dirfd(srcdir), dent->d_name, &st, 0) == 0)
+    {
+      cStr sdir(dir+dent->d_name);
+      if(S_ISDIR(st.st_mode)) {
+        if(flags&2) files.push_back(sdir.c_str());
+        if(flags&1) ListDir(sdir.c_str(), files, flags);
+      } else
+        files.push_back((dir+dent->d_name).c_str());
+    }
+  }
+  closedir(srcdir);
+  return 0;
+}
 #endif
 
 

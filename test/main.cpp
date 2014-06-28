@@ -1003,10 +1003,10 @@ TESTDEF::RETPAIR test_bss_ALLOC_FIXED_LOCKLESS()
 
   const int NUM = 16;
   cThread threads[NUM];
-  startflag=false;
+  startflag.store(false);
   for(int i = 0; i < NUM; ++i)
     threads[i] = cThread((ALLOCFN)&TEST_ALLOC_MT<MTALLOCWRAP<size_t>, size_t>, std::ref(__testret), std::ref(_alloc));
-  startflag=true;
+  startflag.store(true);
 
   for(int i = 0; i < NUM; ++i)
     threads[i].join();
@@ -3074,10 +3074,10 @@ TESTDEF::RETPAIR test_LOCKLESSQUEUE()
   lq_c=1;
   lq_pos=0;
   memset(lq_end, 0, sizeof(short)*TESTNUM);
-  startflag=false;
+  startflag.store(false);
   threads[0] = cThread((VOIDFN)&_locklessqueue_produce<LLQUEUE_SCSP>, &q);
   threads[1] = cThread((VOIDFN)&_locklessqueue_consume<LLQUEUE_SCSP>, &q);
-  startflag=true;
+  startflag.store(true);
   threads[0].join();
   threads[1].join();
   //std::cout << '\n' << cHighPrecisionTimer::CloseProfiler(ppp) << std::endl;
@@ -3094,13 +3094,13 @@ TESTDEF::RETPAIR test_LOCKLESSQUEUE()
       lq_pos = 0;
       memset(lq_end, 0, sizeof(short)*TESTNUM);
       LLQUEUE_MCMP q;   // multi consumer multi producer test
-      startflag=false;
+      startflag.store(false);
       //threads[0] = std::thread(_locklessqueue_consume<LLQUEUE_MCMP>, &q);
       //for(int i=1; i<j; ++i)
       //  threads[i] = std::thread(_locklessqueue_produce<LLQUEUE_MCMP>, &q);
       for(int i=0; i<j; ++i)
         threads[i] = cThread((i&1)?_locklessqueue_produce<LLQUEUE_MCMP>:_locklessqueue_consume<LLQUEUE_MCMP>, &q);
-      startflag=true;
+      startflag.store(true);
       for(int i = 0; i<j; ++i)
         threads[i].join();
 
@@ -3770,16 +3770,16 @@ TESTDEF::RETPAIR test_OS()
   TEST(FolderExists(BSS__L("/usr/")));
 #endif
   TEST(!FolderExists("abasdfwefs"));
-  TEST(!FolderExistsW(BSS__L("abasdfwefs/alkjsdfs/sdfjkd/alkjsdfs/sdfjkd/alkjsdfs/sdfjkd/")));
   FILE* f;
   FOPEN(f,"blank.txt","w+");
   fclose(f);
   TEST(FileExists("blank.txt"));
-  TEST(FileExistsW(BSS__L("blank.txt")));
   TEST(!FileExists("testaskdjlhfs.sdkj"));
+#ifdef BSS_PLATFORM_WIN32
+  TEST(!FolderExistsW(BSS__L("abasdfwefs/alkjsdfs/sdfjkd/alkjsdfs/sdfjkd/alkjsdfs/sdfjkd/")));
+  TEST(FileExistsW(BSS__L("blank.txt")));
   TEST(!FileExistsW(BSS__L("testaskdjlhfs.sdkj")));
-
-
+#endif
 
   //cStr cmd(GetCommandLineW());
   cStr cmd("\"\"C:/fake/f\"\"ile/p\"ath.txt\"\" -r 2738 283.5 -a\"a\" 3 \"-no indice\"");
@@ -3925,7 +3925,6 @@ c=(mem[b]>0)?(c+3):mem[c+2];
 }*/
 
 // --- Begin main testing function ---
-
 int main(int argc, char** argv)
 {
   ForceWin64Crash();
@@ -4004,8 +4003,13 @@ int main(int argc, char** argv)
 
   TESTDEF::RETPAIR numpassed;
   std::vector<uint> failures;
+#ifndef BSS_ISOLATE_TEST
   for(uint i = 0; i < NUMTESTS; ++i)
   {
+#else
+  {
+    uint i = BSS_ISOLATE_TEST;
+#endif
     numpassed=tests[i].FUNC(); //First is total, second is succeeded
     if(numpassed.first!=numpassed.second) failures.push_back(i);
 

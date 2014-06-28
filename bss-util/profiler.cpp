@@ -48,7 +48,7 @@ void Profiler::AddData(PROFILER_INT id, ProfilerData* p)
 }
 void Profiler::WriteToFile(const char* s, unsigned char output)
 {
-  std::ofstream stream(cStrW(s).c_str(), std::ios_base::out|std::ios_base::binary|std::ios_base::trunc);
+  std::ofstream stream(BSSPOSIX_WCHAR(s), std::ios_base::out|std::ios_base::binary|std::ios_base::trunc);
   WriteToStream(stream, output);
 }
 void Profiler::WriteToStream(std::ostream& stream, unsigned char output)

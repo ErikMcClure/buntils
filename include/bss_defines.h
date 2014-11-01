@@ -9,7 +9,7 @@
 // Version numbers
 #define BSS_VERSION_MAJOR 0
 #define BSS_VERSION_MINOR 4
-#define BSS_VERSION_REVISION 3
+#define BSS_VERSION_REVISION 4
 
 //sometimes the std versions of these are a bit overboard, so this redefines the MS version, except it will no longer cause conflicts everywhere
 #define bssmax(a,b)            (((a) > (b)) ? (a) : (b))
@@ -54,7 +54,9 @@
 // Round x up to next highest multiple of (t+1), which must be a multiple of 2. For example, to get the next multiple of 8: T_NEXTMULTIPLE(x,7)
 #define T_NEXTMULTIPLE(x,t) ((x+t)&(~t))
 #define T_SETBIT(w,b,f) (((w) & (~(b))) | ((-(char)f) & (b)))
+#define T_FBNEXT(x) (x + 1 + (x>>1) + (x>>3) - (x>>7))
 #define DYNARRAY(Type,Name,n) Type* Name = (Type*)ALLOCA(n*sizeof(Type))
+#define ISPOW2(x) (x && !( (x-1) & x ))
 
 #if defined(BSS_PLATFORM_POSIX) || defined(BSS_PLATFORM_MINGW)
 #define BSSPOSIX_WCHAR(s) s

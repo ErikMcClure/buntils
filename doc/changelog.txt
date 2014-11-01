@@ -2,6 +2,11 @@
 * Black Sphere Studios Utility Library Changelog *
 **************************************************
 
+0.4.4
+-----
+- Fixed static keywords on explicit template specializations. 
+- Fixed divide by zero error in bss_profiler.
+
 0.4.3
 -----
 - Added version of Get() to cTrie that takes a string length parameter for non-null terminated strings.
@@ -13,7 +18,7 @@
 - rewrote how bss_log does levels and renamed it cLog
 - Renamed cArraySimple.h to cArray.h, but didn't rename the actual class.
 - Added WriteLog() using variadic templates to cLog
-- delegate now implicitely constructs from an equivalent lambda function
+- delegate now implicitly constructs from an equivalent lambda function
 - Added FPU control functions
 - Support was added (again) for VS2010
 - SetInterpolate is no longer available on cAnimation. Use GetAttribute<> instead

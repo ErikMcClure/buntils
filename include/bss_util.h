@@ -255,11 +255,11 @@ namespace bss_util {
 
     // This is a bit-shift method of calculating the next number in the fibonacci sequence by approximating the golden ratio with 0.6171875 (1/2 + 1/8 - 1/128)
   template<typename T>
-  BSS_FORCEINLINE static T BSS_FASTCALL fbnext(T in)
+  BSS_FORCEINLINE static T BSS_FASTCALL fbnext(T x)
   {
     static_assert(std::is_integral<T>::value,"T must be integral");
-    return in + 1 + (in>>1) + (in>>3) - (in>>7);
-    //return in + 1 + (in>>1) + (in>>3) - (in>>7) + (in>>10) - (in>>13) - (in>>17) - (in>>21) + (in>>24); // 0.61803394 (but kind of pointless)
+    return T_FBNEXT(x);
+    //return x + 1 + (x>>1) + (x>>3) - (x>>7) + (x>>10) - (x>>13) - (x>>17) - (x>>21) + (x>>24); // 0.61803394 (but kind of pointless)
   }
 
   // Gets the sign of any number (0 is assumed to be positive)

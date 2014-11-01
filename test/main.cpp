@@ -29,6 +29,7 @@
 #include "cHash.h"
 #include "cLinkedArray.h"
 #include "cLinkedList.h"
+#include "cLocklessArrayQueue.h"
 #include "cLocklessQueue.h"
 #include "cMap.h"
 #include "cPriorityQueue.h"
@@ -3118,6 +3119,69 @@ TESTDEF::RETPAIR test_LOCKLESSQUEUE()
   ENDTEST;
 }
 
+TESTDEF::RETPAIR test_LOCKLESSARRAYQUEUE()
+{
+  BEGINTEST;
+
+  { // basic sanity test
+    cLocklessArrayQueue<char, unsigned char, 8, 0> queue;
+    queue.Push(1);
+    queue.Push(2);
+    queue.Push(3);
+    queue.Push(4);
+    queue.Push(5);
+    char res = 0;
+    TEST(queue.Pop(res));
+    TEST(res == 1);
+    TEST(queue.Pop(res));
+    TEST(res == 2);
+    TEST(queue.Pop(res));
+    TEST(res == 3);
+    queue.Push(6);
+    queue.Push(7);
+    TEST(queue.Pop(res));
+    TEST(res == 4);
+    queue.Push(8);
+    queue.Push(9);
+    TEST(queue.Pop(res));
+    TEST(res == 5);
+    TEST(queue.Pop(res));
+    TEST(res == 6);
+    TEST(queue.Pop(res));
+    TEST(res == 7);
+    TEST(queue.Pop(res));
+    TEST(res == 8);
+    TEST(queue.Pop(res));
+    TEST(res == 9);
+    TEST(!queue.Pop(res));
+  }
+
+  const int NUMTHREADS=8;
+  cThread threads[NUMTHREADS];
+
+  typedef cLocklessArrayQueue<unsigned short, unsigned char, 8, 0> LLQUEUE_SCMP;
+  {
+    LLQUEUE_SCMP q; // single consumer single producer test
+    unsigned __int64 ppp=cHighPrecisionTimer::OpenProfiler();
+    lq_c=1;
+    lq_pos=0;
+    memset(lq_end, 0, sizeof(short)*TESTNUM);
+    startflag.store(false);
+    threads[0] = cThread((VOIDFN)&_locklessqueue_consume<LLQUEUE_SCMP>, &q);
+    for(int i = 1; i < NUMTHREADS; ++i)
+      threads[i] = cThread((VOIDFN)&_locklessqueue_produce<LLQUEUE_SCMP>, &q);
+    startflag.store(true);
+    for(int i = 0; i < NUMTHREADS; ++i)
+      threads[i].join();
+    //std::cout << '\n' << cHighPrecisionTimer::CloseProfiler(ppp) << std::endl;
+    std::sort(std::begin(lq_end), std::end(lq_end));
+    bool check=true;
+    for(int i = 0; i < TESTNUM; ++i)
+      check=check&&(lq_end[i]==i+1);
+    TEST(check);
+  }
+  ENDTEST;
+}
 
 TESTDEF::RETPAIR test_MAP()
 {
@@ -3974,6 +4038,7 @@ int main(int argc, char** argv)
     { "cLinkedList.h", &test_LINKEDLIST },
     { "lockless.h", &test_LOCKLESS },
     { "cLocklessQueue.h", &test_LOCKLESSQUEUE },
+    { "cLocklessArrayQueue.h", &test_LOCKLESSARRAYQUEUE },
     { "cMap.h", &test_MAP },
     { "cPriorityQueue.h", &test_PRIORITYQUEUE },
     { "cRational.h", &test_RATIONAL },

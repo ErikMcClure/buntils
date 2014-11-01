@@ -52,6 +52,9 @@
 #define GCC_FASTCALL 
 #define BSS_DELETEFUNC BSS_COMPILER_DELETEFUNC
 #define BSS_DELETEFUNCOP BSS_COMPILER_DELETEOPFUNC
+#define BSS_UNREACHABLE() 
+#define BSS_ASSUME(x) 
+#define BSS_EXPLICITSTATIC static
 
 # elif defined __GNUC__ // GCC
 #define BSS_COMPILER_GCC
@@ -85,6 +88,16 @@
 #define GCC_FASTCALL BSS_FASTCALL
 #define BSS_DELETEFUNC BSS_COMPILER_DELETEFUNC
 #define BSS_DELETEFUNCOP BSS_COMPILER_DELETEOPFUNC
+#define BSS_EXPLICITSTATIC // GCC says that putting "static" on explicit templatizations of functions is illegal. VC++ breaks if you don't.
+
+#ifndef __has_builtin
+#define __has_builtin(x) 0
+#endif
+
+#if __has_builtin(__builtin_unreachable) || __GNUC__ > 4 || (__GNUC__ == 4 && __GNUC_MINOR__ >= 5)
+#define PORTABLE_UNREACHABLE() __builtin_unreachable()
+#define PORTABLE_ASSUME(x) do { if (!(x)) { __builtin_unreachable(); } } while (0)
+#endif
 
 #elif defined _MSC_VER // VC++
 #define BSS_COMPILER_MSC
@@ -104,6 +117,9 @@
 #define FUNCPTRCC(m,CC) CC m
 #define MSC_FASTCALL BSS_FASTCALL
 #define GCC_FASTCALL 
+#define BSS_EXPLICITSTATIC static // GCC says that putting "static" on explicit templatizations of functions is illegal. VC++ breaks if you don't.
+#define BSS_UNREACHABLE() __assume(0)
+#define BSS_ASSUME(x) __assume(x)
 #if (_MANAGED == 1) || (_M_CEE == 1)
 #define MSC_MANAGED
 #endif

@@ -52,16 +52,18 @@ namespace bss_util {
     };
 
     BSS_FORCEINLINE unsigned __int64 BSS_FASTCALL StartProfile(PROFILER_INT id)
-    { 
+    {
       PROF_TRIENODE** r=&_cur;
       while(id>0)
       {
         r = &(*r)->_children[id%16];
         id = (id>>4);
         if(!*r)
-          *r = _allocnode(id==0);
+          *r = _allocnode();
       }
       _cur=*r;
+      if(_cur->total == (unsigned __int64)-1)
+        _cur->total = 0;
       _cur->inner=0;
       return cHighPrecisionTimer::OpenProfiler();
     }
@@ -74,6 +76,7 @@ namespace bss_util {
       _cur=old;
       _cur->inner += time;
     }
+    BSS_FORCEINLINE PROF_TRIENODE* GetRoot() { return _trie; }
     BSS_FORCEINLINE PROF_TRIENODE* GetCur() { return _cur; }
     void AddData(PROFILER_INT id, ProfilerData* p);
     enum OUTPUT_DATA : unsigned char { OUTPUT_FLAT=1, OUTPUT_TREE=2, OUTPUT_HEATMAP=4, OUTPUT_ALL=1|2|4 };
@@ -82,10 +85,10 @@ namespace bss_util {
 
     static Profiler profiler;
     static const PROFILER_INT BUFSIZE=4096;
-    
+
   private:
     Profiler();
-    PROF_TRIENODE* _allocnode(bool leaf);
+    PROF_TRIENODE* _allocnode();
     void BSS_FASTCALL _treeout(std::ostream& stream, PROF_TRIENODE* node, PROFILER_INT id, unsigned int level, PROFILER_INT idlevel);
     void BSS_FASTCALL _heatout(PROF_HEATNODE& heat, PROF_TRIENODE* node, PROFILER_INT id, PROFILER_INT idlevel);
     void BSS_FASTCALL _heatwrite(std::ostream& stream, PROF_HEATNODE& node, unsigned int level, double max);
@@ -101,6 +104,18 @@ namespace bss_util {
     cFixedAlloc<PROF_TRIENODE> _alloc;
     unsigned int _totalnodes;
   };
+
+  BSS_FORCEINLINE static bool BSS_FASTCALL __DEBUG_VERIFY(PROF_TRIENODE* node)
+  {
+    if(!node) return true;
+    if(!std::isfinite(node->avg) || !std::isfinite(node->codeavg)) {
+      return false;
+    }
+    for(int i = 0; i < 16; ++i)
+      if(!__DEBUG_VERIFY(node->_children[i]))
+        return false;
+    return true;
+  }
 
   struct ProfilerBlock
   {

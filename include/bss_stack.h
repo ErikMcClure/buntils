@@ -5,7 +5,6 @@
 #define __C_BSS_STACK_H__
 
 #include "cArray.h"
-#include "bss_util.h"
 
 namespace bss_util {
   // Fast, tiny array-based stack. Pop and Top are only valid if there is an item in the stack; this check must be done by the user.
@@ -35,7 +34,7 @@ namespace bss_util {
 
   protected:
     template<typename U>
-    void BSS_FASTCALL _push(U && value) { if(++_length>_size) ArrayType::SetSize(fbnext(_size)); assert(_length-1<_size); _array[_length-1]=std::forward<U>(value); }
+    void BSS_FASTCALL _push(U && value) { if(++_length>_size) ArrayType::SetSize(T_FBNEXT(_size)); assert(_length-1<_size); _array[_length-1]=std::forward<U>(value); }
     
     SizeType _length;
   };

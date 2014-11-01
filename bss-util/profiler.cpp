@@ -38,7 +38,7 @@ Profiler Profiler::profiler;
 PROFILER_INT Profiler::total=0;
 cAdditiveAlloc PROF_HEATNODE::HeatAllocPolicy::_alloc(128*sizeof(PROF_HEATNODE));
 
-Profiler::Profiler() : _alloc(32), _data(1), _totalnodes(0) { _trie=_cur=_allocnode(false); _data[0]=0; }
+Profiler::Profiler() : _alloc(32), _data(1), _totalnodes(0) { _trie=_cur=_allocnode(); _data[0]=0; }
 
 void Profiler::AddData(PROFILER_INT id, ProfilerData* p)
 {
@@ -53,6 +53,14 @@ void Profiler::WriteToFile(const char* s, unsigned char output)
 }
 void Profiler::WriteToStream(std::ostream& stream, unsigned char output)
 {
+#ifdef BSS_DEBUG
+  if(!__DEBUG_VERIFY(_trie))
+  {
+    stream << "ERROR: Infinite value detected in BSS Profiler! Skipping output to avoid infinite loop." << std::endl;
+    return;
+  }
+#endif
+
   if(output|OUTPUT_TREE)
   {
     stream << "BSS Profiler Tree Output: " << std::endl;
@@ -203,12 +211,11 @@ void BSS_FASTCALL Profiler::_timeformat(std::ostream& stream, double avg, double
   else
     stream << avg << " ns";
 }
-PROF_TRIENODE* Profiler::_allocnode(bool leaf)
+PROF_TRIENODE* Profiler::_allocnode()
 {
   PROF_TRIENODE* r = _alloc.alloc(1);
   memset(r, 0, sizeof(PROF_TRIENODE));
-  if(!leaf)
-    r->total = (unsigned __int64)-1;
+  r->total = (unsigned __int64)-1;
   ++_totalnodes;
   return r;
 }

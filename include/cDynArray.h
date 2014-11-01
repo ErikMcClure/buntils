@@ -5,7 +5,6 @@
 #define __C_DYN_ARRAY_H__BSS__
 
 #include "cArray.h"
-#include "bss_util.h"
 
 namespace bss_util {
   // Dynamic array implemented using ArrayType (should only be used when constructors could potentially not be needed)
@@ -59,7 +58,7 @@ namespace bss_util {
     void _insert(U && t, ST_ index=0) { _checksize(); AT_::_pushback(index,(_length++)-index,std::forward<U>(t)); assert(_length<=_size); }
     BSS_FORCEINLINE void _checksize()
     {
-      if(_length>=_size) AT_::SetSize(fbnext(_size));
+      if(_length>=_size) AT_::SetSize(T_FBNEXT(_size));
       assert(_length<_size);
     }
 
@@ -82,7 +81,7 @@ namespace bss_util {
     template<typename T>
     inline ST_ Add(const T& t)
     {
-      if((_length*_element)>=_size) AT_::SetSize(fbnext(_length)*_element);
+      if((_length*_element)>=_size) AT_::SetSize(T_FBNEXT(_length)*_element);
       memcpy(_array+(_length*_element),&t,bssmin(sizeof(T),_element));
       return _length++;
     }

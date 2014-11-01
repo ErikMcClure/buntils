@@ -36,7 +36,7 @@ namespace bss_util {
 
   protected:
     template<typename U>
-    void BSS_FASTCALL _push(U && value) { if(_length>=BASE::_size) BASE::SetSize(fbnext(_length)); BASE::_push(std::forward<U>(value)); }
+    void BSS_FASTCALL _push(U && value) { if(_length>=BASE::_size) BASE::SetSize(T_FBNEXT(_length)); BASE::_push(std::forward<U>(value)); }
   };
 
 }

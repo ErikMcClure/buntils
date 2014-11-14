@@ -13,7 +13,7 @@ namespace bss_util {
   class BSS_COMPILER_DLLEXPORT cLocklessFixedAlloc
   {
     cLocklessFixedAlloc(const cLocklessFixedAlloc& copy) BSS_DELETEFUNC
-    cLocklessFixedAlloc& operator=(const cLocklessFixedAlloc& copy) BSS_DELETEFUNCOP
+      cLocklessFixedAlloc& operator=(const cLocklessFixedAlloc& copy) BSS_DELETEFUNCOP
   public:
     inline cLocklessFixedAlloc(cLocklessFixedAlloc&& mov) : _root(mov._root), _freelist(mov._freelist) { mov._freelist.p=mov._root=0; _flag.clear(std::memory_order_relaxed); }
     inline explicit cLocklessFixedAlloc(size_t init=8) : _root(0)
@@ -22,7 +22,7 @@ namespace bss_util {
       //contention=0;
       _freelist.p=0;
       _freelist.tag=0;
-		  static_assert((sizeof(T)>=sizeof(void*)),"T cannot be less than the size of a pointer");
+      static_assert((sizeof(T)>=sizeof(void*)), "T cannot be less than the size of a pointer");
       static_assert((sizeof(bss_PTag<void>)==(sizeof(void*)*2)), "ABAPointer isn't twice the size of a pointer!");
       _allocchunk(init*sizeof(T));
     }
@@ -35,13 +35,13 @@ namespace bss_util {
         free(_root);
       }
     }
-	  inline T* BSS_FASTCALL alloc(size_t num)
+    inline T* BSS_FASTCALL alloc(size_t num)
     {
       assert(num==1);
 #ifdef BSS_DISABLE_CUSTOM_ALLOCATORS
       return (T*)malloc(num*sizeof(T));
 #endif
-      bss_PTag<void> ret={0,0};
+      bss_PTag<void> ret={ 0, 0 };
       bss_PTag<void> nval;
       asmcasr<bss_PTag<void>>(&_freelist, ret, ret, ret);
       for(;;)
@@ -64,21 +64,21 @@ namespace bss_util {
       //assert(_validpointer(ret));
       return (T*)ret.p;
     }
-	  inline void BSS_FASTCALL dealloc(void* p)
+    inline void BSS_FASTCALL dealloc(void* p)
     {
 #ifdef BSS_DISABLE_CUSTOM_ALLOCATORS
       free(p); return;
 #endif
       assert(_validpointer(p));
 #ifdef BSS_DEBUG
-      memset(p,0xDEADBEEF,sizeof(T));
+      memset(p, 0xDEADBEEF, sizeof(T));
 #endif
       _setfreelist(p, p);
       //*((void**)p)=(void*)_freelist;
       //while(!asmcas<void*>(&_freelist,p,*((void**)p))) //ABA problem
       //  *((void**)p)=(void*)_freelist;
     }
-    
+
     //size_t contention;
 
   protected:
@@ -90,7 +90,7 @@ namespace bss_util {
       {
         if(p>=(hold+1) && p<(((unsigned char*)(hold+1))+hold->size))
           return ((((unsigned char*)p)-((unsigned char*)(hold+1)))%sizeof(T))==0; //the pointer should be an exact multiple of sizeof(T)
-        
+
         hold=hold->next;
       }
       return false;
@@ -118,8 +118,8 @@ namespace bss_util {
     }
 
     inline void BSS_FASTCALL _setfreelist(void* p, void* target) {
-      bss_PTag<void> prev ={0, 0};
-      bss_PTag<void> nval = { p, 0 };
+      bss_PTag<void> prev ={ 0, 0 };
+      bss_PTag<void> nval ={ p, 0 };
       asmcasr<bss_PTag<void>>(&_freelist, prev, prev, prev);
       do
       {

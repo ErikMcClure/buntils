@@ -23,9 +23,9 @@ namespace bss_util {
     inline cStrTable(cStrTable&& mov) : _strings(std::move(mov._strings)), _indices(std::move(mov._indices)) {}
     // Constructor for array with compile-time determined size
     template<ST_ N>
-    inline cStrTable(const T* (&strings)[N]) : _strings(0), _indices(0) { _construct(strings,N); }
+    inline cStrTable(const T* (&strings)[N]) : _strings(0), _indices(0) { _construct(strings, N); }
     // Constructor with a null-terminated array of strings.
-    inline cStrTable(const T* const* strings, ST_ size) : _strings(0), _indices(0) { _construct(strings,size); }
+    inline cStrTable(const T* const* strings, ST_ size) : _strings(0), _indices(0) { _construct(strings, size); }
     // Constructor from a stream that's a series of null terminated strings.
     cStrTable(std::istream* stream, ST_ bytes) : _strings(0), _indices(0)
     {
@@ -33,11 +33,11 @@ namespace bss_util {
         return;
 
       _strings.SetSize(bytes/sizeof(T));
-      stream->read((char*)(T*)_strings,_strings.Size()*sizeof(T));
+      stream->read((char*)(T*)_strings, _strings.Size()*sizeof(T));
       _strings[(stream->gcount()/sizeof(T))-1]='\0'; //make sure the end is a null terminator
 
-      _indices.SetSize(strccount<T>(_strings,0,_strings.Size()));
-      memset((ST_*)_indices,0,_indices.Size()*sizeof(ST_));
+      _indices.SetSize(strccount<T>(_strings, 0, _strings.Size()));
+      memset((ST_*)_indices, 0, _indices.Size()*sizeof(ST_));
 
       ST_ j=1;
       for(ST_ i=0; i<_strings.Size() && j<_indices.Size(); ++i)
@@ -55,20 +55,20 @@ namespace bss_util {
     // Returns string with the corresponding index. Strings are returned null-terminated, but the index bound is not checked.
     inline const T* GetString(ST_ index) const { assert(index<_indices.Size()); return _strings+_indices[index]; }
     inline void AppendString(const char* s)
-    { 
+    {
       ST_ last = CSTR_CT<T>::SLEN(_strings+_indices[_indices.Size()-1])+1+_indices[_indices.Size()-1];
       ST_ sz = CSTR_CT<T>::SLEN(s)+1;
-      
+
       _indices.SetSize(_indices.Size()+1);
       _indices[_indices.Size()-1]=last; // Add another indice and set its value appropriately
       last=_strings.Size();
       _strings.SetSize(_strings.Size()+sz); // Allocate more space in string buffer
-      memcpy(_strings+last,s,sz); // Copy over new string (including null terminator)
+      memcpy(_strings+last, s, sz); // Copy over new string (including null terminator)
     };
     // Returns index array
     inline const ST_* GetIndices() const { return _indices; }
     // Dumps table to stream
-    inline void DumpToStream(std::ostream* stream) { stream->write((const char*)_strings,_strings.Size()*sizeof(T)); }
+    inline void DumpToStream(std::ostream* stream) { stream->write((const char*)_strings, _strings.Size()*sizeof(T)); }
 
     inline const T* operator[](ST_ index) { return GetString(index); }
     inline cStrTable& operator=(const cStrTable& right)
@@ -119,14 +119,14 @@ namespace bss_util {
       {
         hold=_indices[i];
         _indices[i]=curlength;
-        memcpy(_strings+curlength,strings[i],hold*sizeof(T)); //we could recalculate strlen here but that's dangerous because it might overwrite memory
+        memcpy(_strings+curlength, strings[i], hold*sizeof(T)); //we could recalculate strlen here but that's dangerous because it might overwrite memory
         curlength+=hold;
       }
     }
 
-    cArrayWrap<cArraySimple<T,ST_>> _strings;
-    cArrayWrap<cArraySimple<ST_,ST_>> _indices;
-  };   
+    cArrayWrap<T, ST_> _strings;
+    cArrayWrap<ST_, ST_> _indices;
+  };
 }
 
 #endif

@@ -8,26 +8,26 @@
 
 namespace bss_util {
   // Dynamic array implemented using ArrayType (should only be used when constructors could potentially not be needed)
-  template<class ArrayType>
-  class BSS_COMPILER_DLLEXPORT cDynArray : protected ArrayType
+  template<class T, typename SizeType=unsigned int, ARRAY_TYPE ArrayType = CARRAY_SIMPLE, typename Alloc=StaticAllocPolicy<T>>
+  class BSS_COMPILER_DLLEXPORT cDynArray : protected cArray<T, SizeType, ArrayType, Alloc>
   {
   protected:
-    typedef typename ArrayType::ST_ ST_;
-    typedef typename ArrayType::T_ T_;
-    typedef ArrayType AT_;
-    using ArrayType::_array;
-    using ArrayType::_size;
+    typedef cArray<T, SizeType, ArrayType, Alloc> AT_;
+    typedef typename AT_::ST_ ST_;
+    typedef typename AT_::T_ T_;
+    using AT_::_array;
+    using AT_::_size;
 
   public:
     inline cDynArray(const cDynArray& copy) : AT_(copy), _length(copy._length) {}
     inline cDynArray(cDynArray&& mov) : AT_(std::move(mov)), _length(mov._length) {}
-    inline explicit cDynArray(ST_ size=0): AT_(size), _length(0) {}
+    inline explicit cDynArray(ST_ size=0) : AT_(size), _length(0) {}
     BSS_FORCEINLINE ST_ Add(const T_& t) { return _add(t); }
     BSS_FORCEINLINE ST_ Add(T_&& t) { return _add(std::move(t)); }
     BSS_FORCEINLINE void Remove(ST_ index) { AT_::RemoveInternal(index); --_length; }
     BSS_FORCEINLINE void RemoveLast() { --_length; }
-    BSS_FORCEINLINE void Insert(const T_& t, ST_ index=0) { return _insert(t,index); }
-    BSS_FORCEINLINE void Insert(T_&& t, ST_ index=0) { return _insert(std::move(t),index); }
+    BSS_FORCEINLINE void Insert(const T_& t, ST_ index=0) { return _insert(t, index); }
+    BSS_FORCEINLINE void Insert(T_&& t, ST_ index=0) { return _insert(std::move(t), index); }
     BSS_FORCEINLINE bool Empty() const { return !_length; }
     BSS_FORCEINLINE void Clear() { _length=0; }
     BSS_FORCEINLINE void SetLength(ST_ length) { if(length>_size) AT_::SetSize(length); _length=length; }
@@ -55,7 +55,7 @@ namespace bss_util {
     template<typename U>
     ST_ _add(U && t) { _checksize(); _array[_length]=std::forward<U>(t); return _length++; }
     template<typename U>
-    void _insert(U && t, ST_ index=0) { _checksize(); AT_::_pushback(index,(_length++)-index,std::forward<U>(t)); assert(_length<=_size); }
+    void _insert(U && t, ST_ index=0) { _checksize(); AT_::_pushback(index, (_length++)-index, std::forward<U>(t)); assert(_length<=_size); }
     BSS_FORCEINLINE void _checksize()
     {
       if(_length>=_size) AT_::SetSize(T_FBNEXT(_size));
@@ -67,10 +67,10 @@ namespace bss_util {
 
   // A dynamic array that can dynamically adjust the size of each element
   template<typename ST_, typename Alloc=StaticAllocPolicy<unsigned char>>
-  class BSS_COMPILER_DLLEXPORT cArbitraryArray : protected cArraySimple<unsigned char, ST_, Alloc>
+  class BSS_COMPILER_DLLEXPORT cArbitraryArray : protected cArray<unsigned char, ST_, CARRAY_SIMPLE, Alloc>
   {
   protected:
-    typedef cArraySimple<unsigned char, ST_, Alloc> AT_;
+    typedef cArray<unsigned char, ST_, CARRAY_SIMPLE, Alloc> AT_;
     using AT_::_array;
     using AT_::_size;
 
@@ -82,14 +82,14 @@ namespace bss_util {
     inline ST_ Add(const T& t)
     {
       if((_length*_element)>=_size) AT_::SetSize(T_FBNEXT(_length)*_element);
-      memcpy(_array+(_length*_element),&t,bssmin(sizeof(T),_element));
+      memcpy(_array+(_length*_element), &t, bssmin(sizeof(T), _element));
       return _length++;
     }
     inline void Remove(ST_ index)
-    { 
+    {
       index *= _element;
       assert(_size>0 && index<_size);
-      memmove(_array+index,_array+index+_element,_size-index-_element);
+      memmove(_array+index, _array+index+_element, _size-index-_element);
       --_length;
     }
     inline void RemoveLast() { --_length; }
@@ -100,21 +100,21 @@ namespace bss_util {
       _length=num;
       if((_length*_element)>_size) AT_::SetSizeDiscard(_length*_element);
       if(_array)
-        memcpy(_array,newarray,element*num);
+        memcpy(_array, newarray, element*num);
     }
     template<typename T> // num is a count of how many elements are in the array
-    BSS_FORCEINLINE void SetElement(const T* newarray, ST_ num) { SetElement(newarray,sizeof(T),num); }
+    BSS_FORCEINLINE void SetElement(const T* newarray, ST_ num) { SetElement(newarray, sizeof(T), num); }
     template<typename T, unsigned int NUM>
-    BSS_FORCEINLINE void SetElement(const T (&newarray)[NUM]) { SetElement(newarray,sizeof(T),NUM); }
+    BSS_FORCEINLINE void SetElement(const T(&newarray)[NUM]) { SetElement(newarray, sizeof(T), NUM); }
     void SetElement(ST_ element)
     {
       if(element==_element) return;
       _size=element*_length;
       unsigned char* narray = !_length?0:(unsigned char*)Alloc::allocate(_size);
-      memset(narray,0,_size);
-      ST_ m=bssmin(element,_element);
+      memset(narray, 0, _size);
+      ST_ m=bssmin(element, _element);
       for(unsigned int i = 0; i < _length; ++i)
-        memcpy(narray+(i*element),_array+(i*_element),m);
+        memcpy(narray+(i*element), _array+(i*_element), m);
       if(_array)
         Alloc::deallocate(_array);
       _array=narray;
@@ -124,7 +124,7 @@ namespace bss_util {
     inline ST_ Element() const { return _element; }
     inline bool Empty() const { return !_length; }
     inline void Clear() { _length=0; }
-    inline void SetLength(ST_ length) { _length=length; length*=_element; if(length>_size) AT_::SetSize(length);  }
+    inline void SetLength(ST_ length) { _length=length; length*=_element; if(length>_size) AT_::SetSize(length); }
     inline ST_ Length() const { return _length; }
     // These are templatized accessors, but we don't do an assertion on if the size of T is the same as _element, because there are many cases where this isn't actually true.
     template<typename T> inline const T& Front() const { assert(_length>0); return _array[0]; }
@@ -149,7 +149,6 @@ namespace bss_util {
     ST_ _length; // Total length of the array in number of elements
     ST_ _element; // Size of each element
   };
-
 }
 
 #endif

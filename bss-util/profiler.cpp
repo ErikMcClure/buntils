@@ -10,7 +10,7 @@
 using namespace bss_util;
 
 namespace bss_util {
-  // Static implementation of the standard allocation policy, used for cArraySimple
+  // Static implementation of the standard allocation policy, used for cArray
   struct PROF_HEATNODE
   {
     struct BSS_COMPILER_DLLEXPORT HeatAllocPolicy {
@@ -22,7 +22,7 @@ namespace bss_util {
 
     inline PROF_HEATNODE() : avg(0.0), id(0) {}
     inline PROF_HEATNODE(PROFILER_INT ID, double Avg) : avg(Avg), id(ID) {}
-    cArraySort<PROF_HEATNODE, COMP, unsigned int, cArrayConstruct<PROF_HEATNODE, unsigned int, HeatAllocPolicy>> _children;
+    cArraySort<PROF_HEATNODE, COMP, unsigned int, CARRAY_CONSTRUCT, HeatAllocPolicy> _children;
     double avg;
     PROFILER_INT id;
   };

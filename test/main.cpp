@@ -854,42 +854,6 @@ TESTDEF::RETPAIR test_bss_algo()
   TEST((binsearch_exact<int,int,uint,CompT<int>>(d,1,1,1)==-1));
   TEST((binsearch_exact<int,uint,CompT<int>>(d,2)==-1));
 
-  srand(90);
-  rand();
-  shuffle(a);
-  TEST(a[0]!=-5);
-  TEST(a[14]!=35);
-
-  BSS_ALIGN(16) float v[4]={2,-3,4,-5};
-  BSS_ALIGN(16) float u[4]={1,-2,-1,2};
-  BSS_ALIGN(16) float w[4]={0,0,0,0};
-  TEST(fcompare(NVectDistSq(v,w),54.0f));
-  TEST(fcompare(NVectDist(v,w),7.34846922835f));
-  TEST(fcompare(NVectDist(u,v),NVectDist(v,u)));
-  TEST(fcompare(NVectDist(u,v),8.717797887f));
-  TEST(fcompare(NTriangleArea(v,u,w),11.22497216f,100));
-  TEST(fcompare(NTriangleArea(u,v,w),11.22497216f,100));
-  TEST(fsmall(NDot(u,w)));
-  TEST(fcompare(NDot(u,v),-6.0f));
-  NVectAdd(v,w,w);
-  TESTFOUR(w,v[0],v[1],v[2],v[3]);
-  NVectAdd(v,3.0f,w);
-  TESTFOUR(w,5,0,7,-2);
-  NVectAdd(v,u,w);
-  TESTRELFOUR(w,3,-5,3,-3);
-  NVectSub(v,3.0f,w);
-  TESTRELFOUR(w,-1,-6,1,-8);
-  NVectSub(v,u,w);
-  TESTRELFOUR(w,1,-1,5,-7);
-  NVectMul(v,2.5f,w);
-  TESTRELFOUR(w,5,-7.5f,10,-12.5f);
-  NVectMul(v,u,w);
-  TESTRELFOUR(w,2,6,-4,-10);
-  NVectDiv(v,2.5f,w);
-  TESTRELFOUR(w,0.8f,-1.2f,1.6f,-2);
-  NVectDiv(v,u,w);
-  TESTRELFOUR(w,2,1.5f,-4,-2.5f);
-
   NormalZig<128> zig; // TAKE OFF EVERY ZIG!
   float rect[4] = { 0,100,1000,2000 };
   StochasticSubdivider<float>(rect,
@@ -898,17 +862,6 @@ TESTDEF::RETPAIR test_bss_algo()
     [&](unsigned int d, const float (&r)[4]) -> double { return zig(); });
 
   PoissonDiskSample<float>(rect,4.0f,[](float* f)->float{ return f[0]+f[1];});
-
-  BSS_ALIGN(16) float m1[4][4]={ {1,2,4,8}, {16,32,64,128}, {-1,-2,-4,-8 }, { -16,-32,-64,-128 } };
-  BSS_ALIGN(16) float m2[4][4]={ {8,4,2,1}, {16,32,64,128}, {-1,-32,-4,-16 }, { -8,-2,-64,-128 } };
-  BSS_ALIGN(16) float m3[4][4]={0};
-  BSS_ALIGN(16) float m4[4][4]={0};
-  BSS_ALIGN(16) float m5[4][4]={{-28, -76, -398, -831}, {-448, -1216, -6368, -13296}, {28, 76, 398, 831}, {448, 1216, 6368, 13296}};
-  BSS_ALIGN(16) float m6[4][4]={{54, 108, 216, 432}, {-1584, -3168, -6336, -12672}, {-253, -506, -1012, -2024}, {2072, 4144, 8288, 16576}};
-  Mult4x4(m3,m1,m2);
-  Mult4x4(m4,m2,m1);
-  TEST(!memcmp(m3,m5,sizeof(float)*4*4));
-  TEST(!memcmp(m4,m6,sizeof(float)*4*4));
   //TEST(QuadraticBSpline<double,double>(1.0,2.0,4.0,8.0)==4.0);
   double res=CubicBSpline<double,double>(0.0,2.0,4.0,8.0,16.0);
   TEST(res==4.0);
@@ -919,7 +872,7 @@ TESTDEF::RETPAIR test_bss_algo()
 }
 
 template<class T, typename P, int MAXSIZE, int TRIALS>
-void TEST_ALLOC_FUZZER_THREAD(TESTDEF::RETPAIR& __testret,T& _alloc, cDynArray<cArraySimple<std::pair<P*,size_t>>>& plist)
+void TEST_ALLOC_FUZZER_THREAD(TESTDEF::RETPAIR& __testret,T& _alloc, cDynArray<std::pair<P*,size_t>>& plist)
 {
   for(int j=0; j<5; ++j)
   {
@@ -955,7 +908,7 @@ void TEST_ALLOC_FUZZER_THREAD(TESTDEF::RETPAIR& __testret,T& _alloc, cDynArray<c
 template<class T, typename P, int MAXSIZE>
 void TEST_ALLOC_FUZZER(TESTDEF::RETPAIR& __testret)
 {
-  cDynArray<cArraySimple<std::pair<P*,size_t>>> plist;
+  cDynArray<std::pair<P*,size_t>> plist;
   for(int k=0; k<10; ++k)
   {
     T _alloc;
@@ -989,7 +942,7 @@ template<class T, typename P>
 void TEST_ALLOC_MT(TESTDEF::RETPAIR& pair, T& p)
 {
   while(!startflag.load());
-  cDynArray<cArraySimple<std::pair<P*,size_t>>> plist;
+  cDynArray<std::pair<P*,size_t>> plist;
   TEST_ALLOC_FUZZER_THREAD<T, P, 1, 50000>(pair, p, plist);
 }
 
@@ -1774,11 +1727,11 @@ TESTDEF::RETPAIR test_ANIMATION()
   TEST(c.Grab()==2);
   ENDTEST;
 }
-TESTDEF::RETPAIR test_ARRAYSIMPLE()
+TESTDEF::RETPAIR test_ARRAY()
 {
   BEGINTEST;
 
-  WArray<int>::t a(5);
+  cArrayWrap<int> a(5);
   TEST(a.Size()==5);
   a.Insert(5,2);
   TEST(a.Size()==6);
@@ -1790,8 +1743,8 @@ TESTDEF::RETPAIR test_ARRAYSIMPLE()
   TEST(a.Size()==10);
 
   {
-  WArray<int>::t e(0);
-  WArray<int>::t b(e);
+  cArrayWrap<int> e(0);
+  cArrayWrap<int> b(e);
   b=e;
   e.Insert(5,0);
   e.Insert(4,0);
@@ -1800,10 +1753,10 @@ TESTDEF::RETPAIR test_ARRAYSIMPLE()
   TEST(e.Size()==4);
   int sol[] = { 2,3,4,5 };
   TESTARRAY(sol,return e[i]==sol[i];);
-  WArray<int>::t c(0);
+  cArrayWrap<int> c(0);
   c=e;
   TESTARRAY(sol,return c[i]==sol[i];);
-  WArray<int>::t d(0);
+  cArrayWrap<int> d(0);
   e=d;
   TEST(!e.Size());
   e+=d;
@@ -1819,17 +1772,17 @@ TESTDEF::RETPAIR test_ARRAYSIMPLE()
   TESTARRAY(sol,return e[i]==sol[i];);
   }
 
-  auto f = [](WArray<DEBUG_CDT<true>>::tSafe& arr)->bool{ 
+  auto f = [](cArrayWrap<DEBUG_CDT<true>, unsigned int, CARRAY_SAFE>& arr)->bool{
     for(unsigned int i = 0; i < arr.Size(); ++i) 
       if(arr[i]._index!=i) 
         return false; 
     return true; 
   };
-  auto f2 = [](WArray<DEBUG_CDT<true>>::tSafe& arr, unsigned int s){ for(unsigned int i = s; i < arr.Size(); ++i) arr[i]._index=i; };
+  auto f2 = [](cArrayWrap<DEBUG_CDT<true>, unsigned int, CARRAY_SAFE>& arr, unsigned int s){ for(unsigned int i = s; i < arr.Size(); ++i) arr[i]._index=i; };
   {
     DEBUG_CDT_SAFE<true>::_testret=&__testret;
     DEBUG_CDT<true>::count=0;
-    WArray<DEBUG_CDT<true>>::tSafe b(10);
+    cArrayWrap<DEBUG_CDT<true>, unsigned int, CARRAY_SAFE> b(10);
     f2(b,0);
     b.Remove(5);
     for(unsigned int i = 0; i < 5; ++i) TEST(b[i]._index==i);
@@ -1842,7 +1795,7 @@ TESTDEF::RETPAIR test_ARRAYSIMPLE()
     TEST(f(b));
     TEST(DEBUG_CDT<true>::count == 19);
     TEST(b.Size()==19);
-    WArray<DEBUG_CDT<true>>::tSafe c(b);
+    cArrayWrap<DEBUG_CDT<true>, unsigned int, CARRAY_SAFE> c(b);
     TEST(f(c));
     TEST(DEBUG_CDT<true>::count == 38);
     b+=c;
@@ -1860,16 +1813,16 @@ TESTDEF::RETPAIR test_ARRAYSIMPLE()
   }
   TEST(!DEBUG_CDT<true>::count);
   
-  auto f3 = [](WArray<DEBUG_CDT<false>>::tConstruct& arr)->bool{ 
+  auto f3 = [](cArrayWrap<DEBUG_CDT<false>, unsigned int, CARRAY_CONSTRUCT>& arr)->bool{
     for(unsigned int i = 0; i < arr.Size(); ++i) 
       if(arr[i]._index!=i) 
         return false; 
     return true; 
   };
-  auto f4 = [](WArray<DEBUG_CDT<false>>::tConstruct& arr, unsigned int s){ for(unsigned int i = s; i < arr.Size(); ++i) arr[i]._index=i; };
+  auto f4 = [](cArrayWrap<DEBUG_CDT<false>, unsigned int, CARRAY_CONSTRUCT>& arr, unsigned int s){ for(unsigned int i = s; i < arr.Size(); ++i) arr[i]._index=i; };
   {
     DEBUG_CDT<false>::count=0;
-    WArray<DEBUG_CDT<false>>::tConstruct b(10);
+    cArrayWrap<DEBUG_CDT<false>, unsigned int, CARRAY_CONSTRUCT> b(10);
     f4(b,0);
     b.Remove(5);
     for(unsigned int i = 0; i < 5; ++i) TEST(b[i]._index==i);
@@ -1882,7 +1835,7 @@ TESTDEF::RETPAIR test_ARRAYSIMPLE()
     TEST(f3(b));
     TEST(DEBUG_CDT<false>::count == 19);
     TEST(b.Size()==19);
-    WArray<DEBUG_CDT<false>>::tConstruct c(b);
+    cArrayWrap<DEBUG_CDT<false>, unsigned int, CARRAY_CONSTRUCT> c(b);
     TEST(f3(c));
     TEST(DEBUG_CDT<false>::count == 38);
     b+=c;
@@ -1911,42 +1864,42 @@ struct FWDTEST {
 TESTDEF::RETPAIR test_ARRAYSORT()
 {
   BEGINTEST;
-  
+
   DEBUG_CDT_SAFE<true>::_testret=&__testret; //If you don't do this it smashes the stack, but only sometimes, so it can create amazingly weird bugs.
   DEBUG_CDT<true>::count=0;
 
   {
-  cArraySort<DEBUG_CDT<true>,CompT<DEBUG_CDT<true>>,unsigned int,cArraySafe<DEBUG_CDT<true>,unsigned int>> arrtest;
-  arrtest.Insert(DEBUG_CDT<true>(0));
-  arrtest.Insert(DEBUG_CDT<true>(1));
-  arrtest.Insert(DEBUG_CDT<true>(2));
-  arrtest.Remove(2);
-  arrtest.Insert(DEBUG_CDT<true>(3));
-  arrtest.Insert(DEBUG_CDT<true>(4));
-  arrtest.Insert(DEBUG_CDT<true>(5));
-  arrtest.Remove(0);
-  arrtest.Insert(DEBUG_CDT<true>(6));
-  arrtest.Remove(3);
+    cArraySort<DEBUG_CDT<true>, CompT<DEBUG_CDT<true>>, unsigned int, CARRAY_SAFE> arrtest;
+    arrtest.Insert(DEBUG_CDT<true>(0));
+    arrtest.Insert(DEBUG_CDT<true>(1));
+    arrtest.Insert(DEBUG_CDT<true>(2));
+    arrtest.Remove(2);
+    arrtest.Insert(DEBUG_CDT<true>(3));
+    arrtest.Insert(DEBUG_CDT<true>(4));
+    arrtest.Insert(DEBUG_CDT<true>(5));
+    arrtest.Remove(0);
+    arrtest.Insert(DEBUG_CDT<true>(6));
+    arrtest.Remove(3);
 
-  TEST(arrtest[0]==1);
-  TEST(arrtest[1]==3);
-  TEST(arrtest[2]==4);
-  TEST(arrtest[3]==6);
+    TEST(arrtest[0]==1);
+    TEST(arrtest[1]==3);
+    TEST(arrtest[2]==4);
+    TEST(arrtest[3]==6);
 
-  std::for_each(arrtest.begin(),arrtest.end(),[](DEBUG_CDT<true>& d) { d._index+=1; });
-  TEST(arrtest[0]==2);
-  TEST(arrtest[1]==4);
-  TEST(arrtest[2]==5);
-  TEST(arrtest[3]==7);
+    std::for_each(arrtest.begin(), arrtest.end(), [](DEBUG_CDT<true>& d) { d._index+=1; });
+    TEST(arrtest[0]==2);
+    TEST(arrtest[1]==4);
+    TEST(arrtest[2]==5);
+    TEST(arrtest[3]==7);
 
-  cArraySort<DEBUG_CDT<true>,CompT<DEBUG_CDT<true>>,unsigned int,cArraySafe<DEBUG_CDT<true>,unsigned int>> arrtest2;
-  arrtest2.Insert(DEBUG_CDT<true>(7));
-  arrtest2.Insert(DEBUG_CDT<true>(8));
-  arrtest=arrtest2;
+    cArraySort<DEBUG_CDT<true>, CompT<DEBUG_CDT<true>>, unsigned int, CARRAY_SAFE> arrtest2;
+    arrtest2.Insert(DEBUG_CDT<true>(7));
+    arrtest2.Insert(DEBUG_CDT<true>(8));
+    arrtest=arrtest2;
   }
   TEST(!DEBUG_CDT<true>::count)
 
-  ENDTEST;
+    ENDTEST;
 }
 
 int avltestnum[8];
@@ -1958,12 +1911,12 @@ TESTDEF::RETPAIR test_AVLTREE()
 {
   BEGINTEST;
 
-  FixedPolicy<AVL_Node<std::pair<int,int>>> fixedavl;
-  cAVLtree<int, int,CompT<int>,FixedPolicy<AVL_Node<std::pair<int,int>>>> avlblah(&fixedavl);
+  FixedPolicy<AVL_Node<std::pair<int, int>>> fixedavl;
+  cAVLtree<int, int, CompT<int>, FixedPolicy<AVL_Node<std::pair<int, int>>>> avlblah(&fixedavl);
 
   //unsigned __int64 prof=cHighPrecisionTimer::OpenProfiler();
   for(int i = 0; i<TESTNUM; ++i)
-    avlblah.Insert(testnums[i],testnums[i]);
+    avlblah.Insert(testnums[i], testnums[i]);
   //std::cout << cHighPrecisionTimer::CloseProfiler(prof) << std::endl;
 
   shuffle(testnums);
@@ -1973,7 +1926,7 @@ TESTDEF::RETPAIR test_AVLTREE()
     c+=(avlblah.GetRef(testnums[i])!=0);
   TEST(c==TESTNUM);
   //std::cout << cHighPrecisionTimer::CloseProfiler(prof) << std::endl;
-  
+
   shuffle(testnums);
   //prof=cHighPrecisionTimer::OpenProfiler();
   for(int i = 0; i<TESTNUM; ++i)
@@ -1986,11 +1939,11 @@ TESTDEF::RETPAIR test_AVLTREE()
     c+=(avlblah.GetRef(testnums[i])==0);
   TEST(c==TESTNUM);
 
-  cAVLtree<int, std::pair<int,int>*>* tree = new cAVLtree<int, std::pair<int,int>*>();
-  std::pair<int,int> test(5,5);
-  tree->Insert(test.first,&test);
-  tree->Get(test.first,0);
-  tree->ReplaceKey(5,2);
+  cAVLtree<int, std::pair<int, int>*>* tree = new cAVLtree<int, std::pair<int, int>*>();
+  std::pair<int, int> test(5, 5);
+  tree->Insert(test.first, &test);
+  tree->Get(test.first, 0);
+  tree->ReplaceKey(5, 2);
   tree->Remove(test.first);
   tree->Clear();
   delete tree;
@@ -2001,13 +1954,13 @@ TESTDEF::RETPAIR test_AVLTREE()
   {
     shuffle(testnums);
     cFixedAlloc<DEBUG_CDT<false>> dalloc(TESTNUM);
-    typedef UqP_<DEBUG_CDT<false>,std::function<void(DEBUG_CDT<false>*)>> AVL_D;
-    cAVLtree<int,AVL_D,CompT<int>,FixedPolicy<AVL_Node<std::pair<int,AVL_D>>>> dtree;
+    typedef UqP_<DEBUG_CDT<false>, std::function<void(DEBUG_CDT<false>*)>> AVL_D;
+    cAVLtree<int, AVL_D, CompT<int>, FixedPolicy<AVL_Node<std::pair<int, AVL_D>>>> dtree;
     for(int i = 0; i<TESTNUM; ++i)
     {
       auto dp = dalloc.alloc(1);
-      new(dp) DEBUG_CDT<false>(testnums[i]);
-      dtree.Insert(testnums[i],AVL_D(dp,[&](DEBUG_CDT<false>* p){p->~DEBUG_CDT<false>(); dalloc.dealloc(p);}));
+      new(dp)DEBUG_CDT<false>(testnums[i]);
+      dtree.Insert(testnums[i], AVL_D(dp, [&](DEBUG_CDT<false>* p){p->~DEBUG_CDT<false>(); dalloc.dealloc(p); }));
     }
 
     shuffle(testnums);
@@ -2015,11 +1968,11 @@ TESTDEF::RETPAIR test_AVLTREE()
     for(int i = 0; i<TESTNUM; ++i)
       c+=(dtree.GetRef(testnums[i])!=0);
     TEST(c==TESTNUM);
-    
+
     shuffle(testnums);
     c=0;
     for(int i = 0; i<TESTNUM; ++i)
-      c+=dtree.ReplaceKey(testnums[i],testnums[i]);
+      c+=dtree.ReplaceKey(testnums[i], testnums[i]);
     TEST(c==TESTNUM);
 
     shuffle(testnums);
@@ -2044,7 +1997,7 @@ TESTDEF::RETPAIR test_AVLTREE()
   }
   TEST(!DEBUG_CDT<false>::count)
 
-  cAVLtree<int,void,CompT<int>,FixedPolicy<AVL_Node<int>>> avlblah2;
+    cAVLtree<int, void, CompT<int>, FixedPolicy<AVL_Node<int>>> avlblah2;
 
   //unsigned __int64 prof=cHighPrecisionTimer::OpenProfiler();
   for(int i = 0; i<TESTNUM; ++i)
@@ -2055,10 +2008,10 @@ TESTDEF::RETPAIR test_AVLTREE()
   //prof=cHighPrecisionTimer::OpenProfiler();
   c=0;
   for(int i = 0; i<TESTNUM; ++i)
-    c+=((avlblah2.GetRef(testnums[i])!=0)&(avlblah2.Get(testnums[i],-1)==testnums[i]));
+    c+=((avlblah2.GetRef(testnums[i])!=0)&(avlblah2.Get(testnums[i], -1)==testnums[i]));
   TEST(c==TESTNUM);
   //std::cout << cHighPrecisionTimer::CloseProfiler(prof) << std::endl;
-  
+
   shuffle(testnums);
   //prof=cHighPrecisionTimer::OpenProfiler();
   for(int i = 0; i<TESTNUM; ++i)
@@ -2074,7 +2027,7 @@ TESTDEF::RETPAIR test_AVLTREE()
   avlblah2.Insert(-1);
   avlblah2.Insert(-2);
   avlblah2.Insert(-3);
-  BreadthFirstTree<AVL_Node<int>,AVLACTION,LAVLCHILD,RAVLCHILD>(avlblah2.GetRoot(),8);
+  BreadthFirstTree<AVL_Node<int>, AVLACTION, LAVLCHILD, RAVLCHILD>(avlblah2.GetRoot(), 8);
   TEST(avltestnum[0]==3);
   TEST(avltestnum[1]==4);
   TEST(avltestnum[2]==1);
@@ -2355,6 +2308,178 @@ TESTDEF::RETPAIR test_BSS_STACK()
   ENDTEST;
 }
 
+/*
+template<typename T, int N>
+void TESTVECTOR(Vector<T,N> v, T(&a)[N])
+{
+  for(int i = 0; i < N; ++i) {
+    TEST(v.v[i]==a[i]);
+  }
+}
+template<typename T, int N>
+void TESTVALUES_To(T(&out)[N], int c) {
+  for(int i = 0; i < N; ++i) out[i] = (T)(i+N*c+1);
+}
+
+static const int NUMANSWERS=17;
+
+static const float Answers2[NUMANSWERS][2] ={
+  {1,2},
+  {3,4},
+  {7,7},
+  {4,6},
+  {8,9},
+  {-2,-2},
+  {2,2},
+  {3,8},
+  {7,14},
+  {0.5f,1},
+  {7, 3.5f},
+  {4,6},
+  {-3,-1},
+  {12,24},
+  {-3/12.0f,-1/24.0f},
+  {3,1},
+  {FastSqrt(10.0f),0}
+
+};
+
+static const float Answers3[NUMANSWERS][3] ={
+  { 1, 2, 3 },
+  { 4, 5, 6 },
+  { 7, 7, 7 },
+  { 4, 6,0 },
+  { 8, 9, 0 },
+  { -2, -2, 0 },
+  { 2, 2, 0 },
+  { 3, 8, 0 },
+  { 7, 14, 0 },
+  { 0.5f, 1, 0 },
+  { 7, 3.5f, 0 },
+  { 4, 6, 0 },
+  { -3, -1, 0 },
+  { 12, 24, 0 },
+  { -3/12.0f, -1/24.0f, 0 },
+  { 3, 1, 0 },
+  { FastSqrt(10.0f), 0, 0 }
+
+};
+
+template<typename T, int N> void VECTOR_N_TEST()
+{
+  T ans[NUMANSWERS][N];
+  switch(N)
+  {
+  case 2: memcpy(ans, Answers2, sizeof(T)*N*NUMANSWERS); break;
+  case 3: memcpy(ans, Answers3, sizeof(T)*N*NUMANSWERS); break;
+  case 4: memcpy(ans, Answers4, sizeof(T)*N*NUMANSWERS); break;
+  case 5: memcpy(ans, Answers5, sizeof(T)*N*NUMANSWERS); break;
+  }
+  T at[N];
+  T bt[N];
+  TESTVALUES_To<T, N>(at, 0);
+  TESTVALUES_To<T, N>(bt, 1);
+  Vector<T, N> a(at);
+  Vector<T, N> b(bt);
+  Vector<T, N> c(7);
+  Vector<T, N> d(b);
+  Vector<T, N> e;
+  TESTVECTOR(a,Answers)
+  e = a+b;
+  TESTVECTOR()
+  e = c+a;
+  e = a-b;
+  e = b-a;
+  e = a*b;
+  e = c*a;
+  e = a/b;
+  e = c/a;
+  a += b;
+  c -= a;
+  b *= a;
+  c /= b;
+  //e = a.Normalize();
+  e = c.Abs();
+  T l = c.Length();
+  l = c.Dot(a);
+  l = c.DistanceSq(b);
+  l = b.Distance(c);
+}*/
+
+TESTDEF::RETPAIR test_VECTOR()
+{
+  BEGINTEST;
+  /*VECTOR_N_TEST<float, 2>();
+  VECTOR_N_TEST<double, 2>();
+  VECTOR_N_TEST<int, 2>();
+  VECTOR_N_TEST<unsigned int, 2>();
+  VECTOR_N_TEST<__int64, 2>();
+  VECTOR_N_TEST<float, 3>();
+  VECTOR_N_TEST<double, 3>();
+  VECTOR_N_TEST<int, 3>();
+  VECTOR_N_TEST<unsigned int, 3>();
+  VECTOR_N_TEST<__int64, 3>();
+  VECTOR_N_TEST<float, 4>();
+  VECTOR_N_TEST<double, 4>();
+  VECTOR_N_TEST<int, 4>();
+  VECTOR_N_TEST<unsigned int, 4>();
+  VECTOR_N_TEST<__int64, 4>();
+  VECTOR_N_TEST<float, 5>();
+  VECTOR_N_TEST<double, 5>();
+  VECTOR_N_TEST<int, 5>();
+  VECTOR_N_TEST<unsigned int, 5>();
+  VECTOR_N_TEST<__int64, 5>();*/
+
+  /*
+  srand(90);
+  rand();
+  shuffle(a);
+  TEST(a[0]!=-5);
+  TEST(a[14]!=35);
+
+  BSS_ALIGN(16) float v[4]={ 2, -3, 4, -5 };
+  BSS_ALIGN(16) float u[4]={ 1, -2, -1, 2 };
+  BSS_ALIGN(16) float w[4]={ 0, 0, 0, 0 };
+  TEST(fcompare(NVectDistSq(v, w), 54.0f));
+  TEST(fcompare(NVectDist(v, w), 7.34846922835f));
+  TEST(fcompare(NVectDist(u, v), NVectDist(v, u)));
+  TEST(fcompare(NVectDist(u, v), 8.717797887f));
+  TEST(fcompare(NTriangleArea(v, u, w), 11.22497216f, 100));
+  TEST(fcompare(NTriangleArea(u, v, w), 11.22497216f, 100));
+  TEST(fsmall(NDot(u, w)));
+  TEST(fcompare(NDot(u, v), -6.0f));
+  NVectAdd(v, w, w);
+  TESTFOUR(w, v[0], v[1], v[2], v[3]);
+  NVectAdd(v, 3.0f, w);
+  TESTFOUR(w, 5, 0, 7, -2);
+  NVectAdd(v, u, w);
+  TESTRELFOUR(w, 3, -5, 3, -3);
+  NVectSub(v, 3.0f, w);
+  TESTRELFOUR(w, -1, -6, 1, -8);
+  NVectSub(v, u, w);
+  TESTRELFOUR(w, 1, -1, 5, -7);
+  NVectMul(v, 2.5f, w);
+  TESTRELFOUR(w, 5, -7.5f, 10, -12.5f);
+  NVectMul(v, u, w);
+  TESTRELFOUR(w, 2, 6, -4, -10);
+  NVectDiv(v, 2.5f, w);
+  TESTRELFOUR(w, 0.8f, -1.2f, 1.6f, -2);
+  NVectDiv(v, u, w);
+  TESTRELFOUR(w, 2, 1.5f, -4, -2.5f);
+
+  BSS_ALIGN(16) float m1[4][4]={ { 1, 2, 4, 8 }, { 16, 32, 64, 128 }, { -1, -2, -4, -8 }, { -16, -32, -64, -128 } };
+  BSS_ALIGN(16) float m2[4][4]={ { 8, 4, 2, 1 }, { 16, 32, 64, 128 }, { -1, -32, -4, -16 }, { -8, -2, -64, -128 } };
+  BSS_ALIGN(16) float m3[4][4]={ 0 };
+  BSS_ALIGN(16) float m4[4][4]={ 0 };
+  BSS_ALIGN(16) float m5[4][4]={ { -28, -76, -398, -831 }, { -448, -1216, -6368, -13296 }, { 28, 76, 398, 831 }, { 448, 1216, 6368, 13296 } };
+  BSS_ALIGN(16) float m6[4][4]={ { 54, 108, 216, 432 }, { -1584, -3168, -6336, -12672 }, { -253, -506, -1012, -2024 }, { 2072, 4144, 8288, 16576 } };
+  Mult4x4(m3, m1, m2);
+  Mult4x4(m4, m2, m1);
+  TEST(!memcmp(m3, m5, sizeof(float)*4*4));
+  TEST(!memcmp(m4, m6, sizeof(float)*4*4));*/
+  ENDTEST;
+}
+
 TESTDEF::RETPAIR test_DISJOINTSET()
 {
   BEGINTEST;
@@ -2398,7 +2523,7 @@ TESTDEF::RETPAIR test_DISJOINTSET()
 TESTDEF::RETPAIR test_DYNARRAY()
 {
   BEGINTEST;
-  cDynArray<cArraySimple<int>> x(0);
+  cDynArray<int> x(0);
   TEST(!(int*)x);
   x.SetLength(5);
   x[0]=1;
@@ -2419,7 +2544,7 @@ TESTDEF::RETPAIR test_DYNARRAY()
   x.Insert(6,5);
   TEST(x[5]==6);
   TEST(x[6]==7);
-  cDynArray<cArraySimple<int>> y(3);
+  cDynArray<int> y(3);
   y.Add(9);
   y.Add(10);
   y.Add(11);
@@ -3215,7 +3340,7 @@ TESTDEF::RETPAIR test_MAP()
 TESTDEF::RETPAIR test_PRIORITYQUEUE()
 {
   BEGINTEST;
-  cPriorityQueue<int,cStr,CompTInv<int>,uint,cArraySafe<std::pair<int,cStr>,uint>> q;
+  cPriorityQueue<int, cStr, CompTInv<int>, uint, CARRAY_SAFE> q;
 
   q.Push(5,"5");
   q.Push(3,"3");
@@ -4013,10 +4138,11 @@ int main(int argc, char** argv)
     { "bss_fixedpt.h", &test_bss_FIXEDPT },
     { "bss_graph.h", &test_bss_GRAPH },
     { "bss_sse.h", &test_bss_SSE },
+    { "bss_vector.h", &test_VECTOR },
     { "cAliasTable.h", &test_ALIASTABLE },
     { "cAnimation.h", &test_ANIMATION },
     { "cArrayCircular.h", &test_ARRAYCIRCULAR },
-    { "cArraySimple.h", &test_ARRAYSIMPLE },
+    { "cArray.h", &test_ARRAY },
     { "cArraySort.h", &test_ARRAYSORT },
     { "cAVLtree.h", &test_AVLTREE },
     { "cBinaryHeap.h", &test_BINARYHEAP },

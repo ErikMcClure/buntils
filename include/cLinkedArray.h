@@ -8,7 +8,7 @@
 #include "cArray.h"
 
 namespace bss_util {
-  template<class T,typename SizeType>
+  template<class T, typename SizeType>
   struct BSS_COMPILER_DLLEXPORT LINKEDNODE
   {
     T val;
@@ -17,25 +17,25 @@ namespace bss_util {
   };
 
   // Linked list implemented as an array.
-  template<class T, typename SizeType=unsigned int, typename ARRAYTYPE=cArraySimple<LINKEDNODE<T,SizeType>,SizeType>>
+  template<class T, typename SizeType=unsigned int, ARRAY_TYPE ArrayType = CARRAY_SIMPLE, typename Alloc=StaticAllocPolicy<LINKEDNODE<T, SizeType>>>
   class BSS_COMPILER_DLLEXPORT cLinkedArray
   {
   public:
-    typedef LINKEDNODE<T,SizeType> TLNODE;
+    typedef LINKEDNODE<T, SizeType> TLNODE;
     typedef SizeType ST_;
     typedef T value_type;
 
-    inline cLinkedArray() : _ref(1),_length(0),_start(-1),_end(-1),_freelist(-1) { _setupchunk(0); }
-    inline cLinkedArray(const cLinkedArray& copy) : _ref(copy._ref),_length(copy._length),_start(copy._start),_end(copy._end),_freelist(copy._freelist) { }
+    inline cLinkedArray() : _ref(1), _length(0), _start(-1), _end(-1), _freelist(-1) { _setupchunk(0); }
+    inline cLinkedArray(const cLinkedArray& copy) : _ref(copy._ref), _length(copy._length), _start(copy._start), _end(copy._end), _freelist(copy._freelist) { }
     inline cLinkedArray(cLinkedArray&& mov) : _ref(std::move(mov._ref)), _length(mov._length), _start(mov._start), _end(mov._end), _freelist(mov._freelist) { mov._ref=1; mov._length=0; mov._start=mov._end=-1=mov._freelist=-1; }
-    inline explicit cLinkedArray(ST_ size) : _ref(size),_length(0),_start(-1),_end(-1),_freelist(-1) { _setupchunk(0); }
+    inline explicit cLinkedArray(ST_ size) : _ref(size), _length(0), _start(-1), _end(-1), _freelist(-1) { _setupchunk(0); }
     inline ~cLinkedArray() {}
-    BSS_FORCEINLINE ST_ BSS_FASTCALL Add(const T& item) { return InsertAfter(item,_end); }
-    BSS_FORCEINLINE ST_ BSS_FASTCALL Add(T&& item) { return InsertAfter(std::move(item),_end); }
-    BSS_FORCEINLINE ST_ BSS_FASTCALL InsertBefore(const T& item, ST_ index) { return _insertbefore<const T&>(item,index); }
-    BSS_FORCEINLINE ST_ BSS_FASTCALL InsertBefore(T&& item, ST_ index) { return _insertbefore<T&&>(std::move(item),index); }
-    BSS_FORCEINLINE ST_ BSS_FASTCALL InsertAfter(const T& item, ST_ index) { return _insertafter<const T&>(item,index); }
-    BSS_FORCEINLINE ST_ BSS_FASTCALL InsertAfter(T&& item, ST_ index) { return _insertafter<T&&>(std::move(item),index); }
+    BSS_FORCEINLINE ST_ BSS_FASTCALL Add(const T& item) { return InsertAfter(item, _end); }
+    BSS_FORCEINLINE ST_ BSS_FASTCALL Add(T&& item) { return InsertAfter(std::move(item), _end); }
+    BSS_FORCEINLINE ST_ BSS_FASTCALL InsertBefore(const T& item, ST_ index) { return _insertbefore<const T&>(item, index); }
+    BSS_FORCEINLINE ST_ BSS_FASTCALL InsertBefore(T&& item, ST_ index) { return _insertbefore<T&&>(std::move(item), index); }
+    BSS_FORCEINLINE ST_ BSS_FASTCALL InsertAfter(const T& item, ST_ index) { return _insertafter<const T&>(item, index); }
+    BSS_FORCEINLINE ST_ BSS_FASTCALL InsertAfter(T&& item, ST_ index) { return _insertafter<T&&>(std::move(item), index); }
     T BSS_FASTCALL Remove(ST_ index)
     {
       assert(index<_ref.Size());
@@ -59,8 +59,8 @@ namespace bss_util {
     BSS_FORCEINLINE ST_ Back() const { return _end; }
     //inline cLinkedArray& BSS_FASTCALL operator +=(const cLinkedArray& right);
     //inline cLinkedArray BSS_FASTCALL operator +(const cLinkedArray& right) const { cLinkedArray retval(*this); retval+=right; return retval; }
-    inline cLinkedArray& BSS_FASTCALL operator =(const cLinkedArray& right) { _ref=right._ref; _length=right._length;_start=right._start;_end=right._end;_freelist=right._freelist; return *this; }
-    inline cLinkedArray& BSS_FASTCALL operator =(cLinkedArray&& mov) { _ref=std::move(mov._ref); _length=mov._length;_start=mov._start;_end=mov._end;_freelist=mov._freelist; return *this; }
+    inline cLinkedArray& BSS_FASTCALL operator =(const cLinkedArray& right) { _ref=right._ref; _length=right._length; _start=right._start; _end=right._end; _freelist=right._freelist; return *this; }
+    inline cLinkedArray& BSS_FASTCALL operator =(cLinkedArray&& mov) { _ref=std::move(mov._ref); _length=mov._length; _start=mov._start; _end=mov._end; _freelist=mov._freelist; return *this; }
     BSS_FORCEINLINE T& BSS_FASTCALL GetItem(ST_ index) { return _ref[index].val; }
     BSS_FORCEINLINE const T& BSS_FASTCALL GetItem(ST_ index) const { return _ref[index].val; }
     BSS_FORCEINLINE T* BSS_FASTCALL GetItemPtr(ST_ index) { return &_ref[index].val; }
@@ -69,8 +69,8 @@ namespace bss_util {
 
     // Iterator for cLinkedArray
     template<bool CONST, typename U = typename std::conditional<CONST, typename std::add_const<T>::type, T>::type, typename D = typename std::conditional<CONST, typename std::add_const<cLinkedArray>::type, cLinkedArray>::type>
-    class BSS_COMPILER_DLLEXPORT cLAIter : public std::iterator<std::bidirectional_iterator_tag,typename D::value_type,ptrdiff_t,U*,U&>
-	  {
+    class BSS_COMPILER_DLLEXPORT cLAIter : public std::iterator<std::bidirectional_iterator_tag, typename D::value_type, ptrdiff_t, U*, U&>
+    {
     public:
       inline explicit cLAIter(D& src) : _src(src), cur((ST_)-1) {}
       inline cLAIter(D& src, ST_ start) : _src(src), cur(start) {}
@@ -82,7 +82,7 @@ namespace bss_util {
       BSS_FORCEINLINE cLAIter& operator--() { _src.Prev(cur); return *this; } //prefix
       BSS_FORCEINLINE cLAIter operator--(int) { cLAIter r=*this; --*this; return r; } //postfix
       BSS_FORCEINLINE bool operator==(const cLAIter& _Right) const { return (cur == _Right.cur); }
-	    BSS_FORCEINLINE bool operator!=(const cLAIter& _Right) const { return (cur != _Right.cur); }
+      BSS_FORCEINLINE bool operator!=(const cLAIter& _Right) const { return (cur != _Right.cur); }
       BSS_FORCEINLINE bool operator!() const { return cur==(ST_)-1; }
       BSS_FORCEINLINE bool IsValid() { return cur!=(ST_)-1; }
       BSS_FORCEINLINE void Remove() { _src.Remove(cur); } // Only use this in the form (i++).Remove(), so you don't blow up the iterator.
@@ -91,8 +91,8 @@ namespace bss_util {
 
     protected:
       D& _src;
-	  };
-    
+    };
+
     inline cLAIter<true> begin() const { return cLAIter<true>(*this, _start); } // Use these to get an iterator you can use in standard containers
     inline cLAIter<true> end() const { return cLAIter<true>(*this); }
     inline cLAIter<false> begin() { return cLAIter<false>(*this, _start); } // Use these to get an iterator you can use in standard containers
@@ -160,9 +160,8 @@ namespace bss_util {
     ST_ _freelist;
 
   private:
-    cArrayWrap<ARRAYTYPE> _ref;
+    cArrayWrap<LINKEDNODE<T, SizeType>, SizeType, ArrayType, Alloc> _ref;
   };
-    
 }
 
 #endif

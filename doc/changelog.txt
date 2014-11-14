@@ -6,6 +6,11 @@
 -----
 - Fixed static keywords on explicit template specializations. 
 - Fixed divide by zero error in bss_profiler.
+- Created a #define version of fbnext that can be used instead of the template version, then removed bss_util references from several files.
+- Added operator[] to cStack
+- Added * operator to sseVeci
+- Added bss_vector.h and moved n-dimensional vector algorithms from bss_algo.h to there.
+- Changed cArraySimple/cArrayConstruct/cArraySafe into just cArray<> that takes a template parameter and changed all the template signitures of dependent types. Removed WArray since you can use cArrayWrap now instead.
 
 0.4.3
 -----

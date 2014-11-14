@@ -9,20 +9,21 @@
 #include "cArray.h"
 
 namespace bss_util {
-  // Sorted dynamic array
-  template<typename T, char (*CFunc)(const T&,const T&)=CompT<T>, typename SizeType=unsigned int, class ArrayType=cArraySimple<T,SizeType>>
-  class BSS_COMPILER_DLLEXPORT cArraySort : protected ArrayType
+  // A dynamic array that keeps its contents sorted using insertion sort and uses a binary search to retrieve items.
+  template<typename T, char(*CFunc)(const T&, const T&)=CompT<T>, typename SizeType = unsigned int, ARRAY_TYPE ArrayType = CARRAY_SIMPLE, typename Alloc=StaticAllocPolicy<T>>
+  class BSS_COMPILER_DLLEXPORT cArraySort : protected cArray<T, SizeType, ArrayType, Alloc>
   {
   public:
     typedef SizeType ST_;
     typedef const T& constref;
     typedef T&& moveref;
-    using ArrayType::_array;
-    using ArrayType::_size;
+    typedef cArray<T, SizeType, ArrayType, Alloc> AT_;
+    using AT_::_array;
+    using AT_::_size;
 
-    inline cArraySort(const cArraySort& copy) : _length(copy._length), ArrayType(copy) {} 
-    inline cArraySort(cArraySort&& mov) : _length(mov._length), ArrayType(std::move(mov)) {} 
-    inline explicit cArraySort(ST_ size=0) : _length(0), ArrayType(size) {}
+    inline cArraySort(const cArraySort& copy) : _length(copy._length), AT_(copy) {}
+    inline cArraySort(cArraySort&& mov) : _length(mov._length), AT_(std::move(mov)) {}
+    inline explicit cArraySort(ST_ size=0) : _length(0), AT_(size) {}
     inline ~cArraySort() { }
     BSS_FORCEINLINE ST_ BSS_FASTCALL Insert(constref data) { return _insert(data); }
     BSS_FORCEINLINE ST_ BSS_FASTCALL Insert(moveref data) { return _insert(std::move(data)); }
@@ -57,24 +58,22 @@ namespace bss_util {
     inline bool BSS_FASTCALL Remove(ST_ index)
     {
       if(index<0||index>=_length) return false;
-      ArrayType::RemoveInternal(index);
+      AT_::RemoveInternal(index);
       --_length;
       return true;
     }
     BSS_FORCEINLINE void BSS_FASTCALL Expand(ST_ newsize)
     {
-      ArrayType::SetSize(newsize);
+      AT_::SetSize(newsize);
     }
     BSS_FORCEINLINE ST_ BSS_FASTCALL Find(constref data) const
     {
-      return binsearch_exact<T,T,ST_,CFunc>(_array,data,0,_length);
-      //ST_ retval=_findnear(data,true);
-      //return ((retval!=(ST_)(-1))&&(!CFunc(_array[retval],data)))?retval:(ST_)(-1);
+      return binsearch_exact<T, T, ST_, CFunc>(_array, data, 0, _length);
     }
     // Can actually return -1 if there isn't anything in the array
     inline ST_ BSS_FASTCALL FindNear(constref data, bool before=true) const
     {
-      ST_ retval=before?binsearch_before<T,ST_,CFunc>(_array,_length,data):binsearch_after<T,ST_,CFunc>(_array,_length,data);
+      ST_ retval=before?binsearch_before<T, ST_, CFunc>(_array, _length, data):binsearch_after<T, ST_, CFunc>(_array, _length, data);
       return (retval<_length)?retval:(ST_)(-1); // This is only needed for before=false in case it returns a value outside the range.
     }
     BSS_FORCEINLINE bool Empty() const { return !_length; }
@@ -82,14 +81,14 @@ namespace bss_util {
     BSS_FORCEINLINE constref operator [](ST_ index) const { return _array[index]; }
     BSS_FORCEINLINE T& operator [](ST_ index) { return _array[index]; }
     inline cArraySort& operator=(const cArraySort& right)
-    { 
-      ArrayType::operator=(right);
+    {
+      AT_::operator=(right);
       _length=right._length;
       return *this;
     }
     inline cArraySort& operator=(cArraySort&& mov)
     {
-      ArrayType::operator=(std::move(mov));
+      AT_::operator=(std::move(mov));
       _length=mov._length;
       return *this;
     }
@@ -101,8 +100,8 @@ namespace bss_util {
       if(!_length) _array[_length++]=std::forward<U>(data);
       else
       {
-        ST_ loc = binsearch_after<T,ST_,CFunc>(_array,_length,std::forward<U>(data));
-        ArrayType::_pushback(loc,(_length++)-loc,std::forward<U>(data));
+        ST_ loc = binsearch_after<T, ST_, CFunc>(_array, _length, std::forward<U>(data));
+        AT_::_pushback(loc, (_length++)-loc, std::forward<U>(data));
         return loc;
       }
       return 0;

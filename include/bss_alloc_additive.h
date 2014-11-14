@@ -18,7 +18,7 @@ namespace bss_util {
   class BSS_COMPILER_DLLEXPORT cAdditiveAlloc
   {
     cAdditiveAlloc(const cAdditiveAlloc& copy) BSS_DELETEFUNC
-    cAdditiveAlloc& operator=(const cAdditiveAlloc& copy) BSS_DELETEFUNCOP
+      cAdditiveAlloc& operator=(const cAdditiveAlloc& copy) BSS_DELETEFUNCOP
   public:
     inline cAdditiveAlloc(cAdditiveAlloc&& mov) : _curpos(mov._curpos), _root(mov._root) { mov._root=0; mov._curpos=0; }
     inline explicit cAdditiveAlloc(size_t init=64) : _curpos(0), _root(0)
@@ -35,16 +35,16 @@ namespace bss_util {
       }
     }
     template<typename T>
-	  inline T* BSS_FASTCALL allocT(size_t num)
+    inline T* BSS_FASTCALL allocT(size_t num)
     {
       return (T*)alloc(num*sizeof(T));
     }
-	  inline void* BSS_FASTCALL alloc(size_t _sz)
+    inline void* BSS_FASTCALL alloc(size_t _sz)
     {
 #ifdef BSS_DISABLE_CUSTOM_ALLOCATORS
       return malloc(_sz);
 #endif
-      if((_curpos+_sz)>=_root->size) { _allocchunk(fbnext(bssmax(_root->size,_sz))); _curpos=0; }
+      if((_curpos+_sz)>=_root->size) { _allocchunk(fbnext(bssmax(_root->size, _sz))); _curpos=0; }
 
       void* retval= ((char*)(_root+1))+_curpos;
       _curpos+=_sz;
@@ -94,7 +94,7 @@ namespace bss_util {
     BSS_FORCEINLINE bool _prepDEBUG()
     {
       if(!_root) return false;
-      memset(_root+1,0xcdcdcdcd,_root->size);
+      memset(_root+1, 0xcdcdcdcd, _root->size);
       return true;
     }
 
@@ -102,7 +102,7 @@ namespace bss_util {
     size_t _curpos;
   };
 
-	template<typename T>
+  template<typename T>
   class BSS_COMPILER_DLLEXPORT AdditivePolicy : protected cAdditiveAlloc {
   public:
     typedef T* pointer;
@@ -116,7 +116,7 @@ namespace bss_util {
     inline pointer allocate(std::size_t cnt, const pointer = 0) { return cAdditiveAlloc::allocT<T>(cnt); }
     inline void deallocate(pointer p, std::size_t num = 0) { }
     inline void BSS_FASTCALL clear() { cAdditiveAlloc::Clear(); } //done for functor reasons, BSS_FASTCALL has no effect here
-	};
+  };
 }
 
 

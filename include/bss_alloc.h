@@ -11,7 +11,7 @@
 
 namespace bss_util {
   // An implementation of a standard allocation policy
-	template<typename T>
+  template<typename T>
   struct BSS_COMPILER_DLLEXPORT StandardAllocPolicy {
     typedef T* pointer;
     typedef T value_type;
@@ -21,8 +21,8 @@ namespace bss_util {
     inline StandardAllocPolicy() {}
     inline ~StandardAllocPolicy() {}
 
-    inline pointer allocate(size_t cnt, const pointer p = 0) { 
-        //return reinterpret_cast<pointer>(::operator new(cnt * sizeof (T))); // note that while operator new does not call a constructor (it can't), it's much easier to override for leak tests.
+    inline pointer allocate(size_t cnt, const pointer p = 0) {
+      //return reinterpret_cast<pointer>(::operator new(cnt * sizeof (T))); // note that while operator new does not call a constructor (it can't), it's much easier to override for leak tests.
       return reinterpret_cast<pointer>(realloc(p, cnt*sizeof(T)));
     }
     //inline void deallocate(pointer p, size_t = 0) { ::operator delete(p); }
@@ -30,8 +30,8 @@ namespace bss_util {
     inline size_t max_size() const { return ((size_t)(-1)/sizeof(T)); }
   };
 
-  // Static implementation of the standard allocation policy, used for cArraySimple
-	template<typename T>
+  // Static implementation of the standard allocation policy, used for cArray
+  template<typename T>
   struct BSS_COMPILER_DLLEXPORT StaticAllocPolicy {
     typedef T* pointer;
     typedef T value_type;
@@ -39,10 +39,10 @@ namespace bss_util {
 
     inline static pointer allocate(size_t cnt, const pointer p = 0) { return reinterpret_cast<pointer>(realloc(p, cnt*sizeof(T))); }
     inline static void deallocate(pointer p, size_t = 0) { free(p); }
-	};
+  };
 
   // Static null allocator. Doesn't free anything, always returns 0 on all allocations.
-	template<typename T>
+  template<typename T>
   struct BSS_COMPILER_DLLEXPORT StaticNullPolicy {
     typedef T* pointer;
     typedef T value_type;
@@ -50,49 +50,49 @@ namespace bss_util {
 
     inline static pointer allocate(size_t cnt, const pointer = 0) { return 0; }
     inline static void deallocate(pointer p, size_t = 0) { }
-	};
+  };
 
   // Internal class used by cAllocTracker
-	template<typename T, typename _Ax>
-	class i_AllocTracker
-	{
+  template<typename T, typename _Ax>
+  class i_AllocTracker
+  {
     typedef typename _Ax::pointer pointer;
-	public:
-		inline i_AllocTracker(const i_AllocTracker& copy) : _allocator(copy._alloc_extern?copy._allocator:new _Ax()), _alloc_extern(copy._alloc_extern) {}
+  public:
+    inline i_AllocTracker(const i_AllocTracker& copy) : _allocator(copy._alloc_extern?copy._allocator:new _Ax()), _alloc_extern(copy._alloc_extern) {}
     inline i_AllocTracker(i_AllocTracker&& mov) : _allocator(mov._allocator), _alloc_extern(mov._alloc_extern) { mov._alloc_extern=true; }
-		inline i_AllocTracker(_Ax* ptr=0) :	_allocator((!ptr)?(new _Ax()):(ptr)), _alloc_extern(ptr!=0) {}
-		inline ~i_AllocTracker() { if(!_alloc_extern) delete _allocator; }
-    inline pointer _allocate(size_t cnt, const pointer p = 0) { return _allocator->allocate(cnt,p); }
-    inline void _deallocate(pointer p, size_t s = 0) { _allocator->deallocate(p,s); }
+    inline i_AllocTracker(_Ax* ptr=0) :	_allocator((!ptr)?(new _Ax()):(ptr)), _alloc_extern(ptr!=0) {}
+    inline ~i_AllocTracker() { if(!_alloc_extern) delete _allocator; }
+    inline pointer _allocate(size_t cnt, const pointer p = 0) { return _allocator->allocate(cnt, p); }
+    inline void _deallocate(pointer p, size_t s = 0) { _allocator->deallocate(p, s); }
 
-		inline i_AllocTracker& operator =(const i_AllocTracker& copy) { if(&copy==this) return *this; if(!_alloc_extern) delete _allocator; _allocator = copy._alloc_extern?copy._allocator:new _Ax(); _alloc_extern=copy._alloc_extern; return *this; }
-		inline i_AllocTracker& operator =(i_AllocTracker&& mov) { if(&mov==this) return *this; if(!_alloc_extern) delete _allocator; _allocator = mov._allocator; _alloc_extern=mov._alloc_extern; mov._alloc_extern=true; return *this; }
+    inline i_AllocTracker& operator =(const i_AllocTracker& copy) { if(&copy==this) return *this; if(!_alloc_extern) delete _allocator; _allocator = copy._alloc_extern?copy._allocator:new _Ax(); _alloc_extern=copy._alloc_extern; return *this; }
+    inline i_AllocTracker& operator =(i_AllocTracker&& mov) { if(&mov==this) return *this; if(!_alloc_extern) delete _allocator; _allocator = mov._allocator; _alloc_extern=mov._alloc_extern; mov._alloc_extern=true; return *this; }
 
-	protected:
-		_Ax* _allocator;
-		bool _alloc_extern;
-	};
+  protected:
+    _Ax* _allocator;
+    bool _alloc_extern;
+  };
 
   // Explicit specialization of cAllocTracker that removes the memory usage for a standard allocation policy, as it isn't needed.
-	template<typename T>
+  template<typename T>
   class i_AllocTracker<T, StandardAllocPolicy<T>>
-	{
+  {
     typedef typename StandardAllocPolicy<T>::pointer pointer;
-	public:
+  public:
     inline i_AllocTracker(StandardAllocPolicy<T>* ptr = 0) {}
     inline pointer _allocate(size_t cnt, const pointer = 0) { return reinterpret_cast<pointer>(malloc(cnt*sizeof(T))); }
     inline void _deallocate(pointer p, size_t = 0) { free(p); }
-	};
+  };
 
   // This implements stateful allocators.
-	template<typename _Ax>
-	class cAllocTracker : public i_AllocTracker<typename _Ax::value_type, _Ax>
+  template<typename _Ax>
+  class cAllocTracker : public i_AllocTracker<typename _Ax::value_type, _Ax>
   {
     typedef i_AllocTracker<typename _Ax::value_type, _Ax> BASE;
   public:
     inline cAllocTracker(const cAllocTracker& copy) : BASE(copy) {}
     inline cAllocTracker(cAllocTracker&& mov) : BASE(std::move(mov)) {}
-		inline cAllocTracker(_Ax* ptr=0) : BASE(ptr) {}
+    inline cAllocTracker(_Ax* ptr=0) : BASE(ptr) {}
   };
 }
 

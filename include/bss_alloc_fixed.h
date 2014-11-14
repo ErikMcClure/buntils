@@ -39,7 +39,7 @@ namespace bss_util {
         free(_root);
       }
     }
-	  inline void* BSS_FASTCALL alloc(size_t num)
+    inline void* BSS_FASTCALL alloc(size_t num)
     {
       assert(num==1);
 #ifdef BSS_DISABLE_CUSTOM_ALLOCATORS
@@ -53,14 +53,14 @@ namespace bss_util {
       assert(_validpointer(ret));
       return ret;
     }
-	  inline void BSS_FASTCALL dealloc(void* p)
+    inline void BSS_FASTCALL dealloc(void* p)
     {
 #ifdef BSS_DISABLE_CUSTOM_ALLOCATORS
       delete p; return;
 #endif
       assert(_validpointer(p));
 #ifdef BSS_DEBUG
-      memset(p,0xDEADBEEF,_sz);
+      memset(p, 0xDEADBEEF, _sz);
 #endif
       *((void**)p)=_freelist;
       _freelist=p;
@@ -88,7 +88,7 @@ namespace bss_util {
       {
         if(p>=(hold+1) && p<(((unsigned char*)(hold+1))+hold->size))
           return ((((unsigned char*)p)-((unsigned char*)(hold+1)))%_sz)==0; //the pointer should be an exact multiple of _sz
-        
+
         hold=hold->next;
       }
       return false;
@@ -99,7 +99,7 @@ namespace bss_util {
       FIXEDLIST_NODE* retval=(FIXEDLIST_NODE*)malloc(sizeof(FIXEDLIST_NODE)+nsize);
       retval->next=_root;
       retval->size=nsize;
-//#pragma message(TODO "DEBUG REMOVE")
+      //#pragma message(TODO "DEBUG REMOVE")
       //memset(retval->mem,0xff,retval->size);
       _initchunk(retval);
       _root=retval;
@@ -124,18 +124,18 @@ namespace bss_util {
   class BSS_COMPILER_DLLEXPORT cFixedAlloc : public cFixedAllocVoid
   {
     cFixedAlloc(const cFixedAlloc& copy) BSS_DELETEFUNC
-    cFixedAlloc& operator=(const cFixedAlloc& copy) BSS_DELETEFUNCOP
+      cFixedAlloc& operator=(const cFixedAlloc& copy) BSS_DELETEFUNCOP
   public:
     inline cFixedAlloc(cFixedAlloc&& mov) : cFixedAllocVoid(std::move(mov)) {}
-    inline explicit cFixedAlloc(size_t init=8) : cFixedAllocVoid(sizeof(T),init) { static_assert((sizeof(T)>=sizeof(void*)),"T cannot be less than the size of a pointer"); }
+    inline explicit cFixedAlloc(size_t init=8) : cFixedAllocVoid(sizeof(T), init) { static_assert((sizeof(T)>=sizeof(void*)), "T cannot be less than the size of a pointer"); }
     inline T* BSS_FASTCALL alloc(size_t num) { return (T*)cFixedAllocVoid::alloc(num); }
   };
-  
-	template<typename T>
+
+  template<typename T>
   class BSS_COMPILER_DLLEXPORT FixedPolicy : protected cFixedAlloc<T>
   {
     FixedPolicy(const FixedPolicy& copy) BSS_DELETEFUNC
-    FixedPolicy& operator=(const FixedPolicy& copy) BSS_DELETEFUNCOP
+      FixedPolicy& operator=(const FixedPolicy& copy) BSS_DELETEFUNCOP
   public:
     typedef T* pointer;
     typedef T value_type;
@@ -149,7 +149,7 @@ namespace bss_util {
 
     inline pointer allocate(size_t cnt, const pointer = 0) { return cFixedAlloc<T>::alloc(cnt); }
     inline void deallocate(pointer p, size_t num = 0) { return cFixedAlloc<T>::dealloc(p); }
-	};
+  };
 }
 
 #endif

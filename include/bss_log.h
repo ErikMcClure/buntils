@@ -84,7 +84,7 @@ namespace bss_util {
     static const char* BSS_FASTCALL _trimpath(const char* path);
     void _leveldefaults();
 
-    WArray<const char*, unsigned char>::t _levels;
+    cArrayWrap<const char*, unsigned char> _levels;
     StreamSplitter* _split;
     long _tz;
 #pragma warning(push)

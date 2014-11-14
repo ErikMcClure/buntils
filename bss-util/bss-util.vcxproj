@@ -59,6 +59,7 @@
     <ClInclude Include="..\include\bss_stack.h" />
     <ClInclude Include="..\include\bss_util.h" />
     <ClInclude Include="..\include\bss_util_c.h" />
+    <ClInclude Include="..\include\bss_vector.h" />
     <ClInclude Include="..\include\bss_win32_includes.h" />
     <ClInclude Include="..\include\cAliasTable.h" />
     <ClInclude Include="..\include\AniAttribute.h" />

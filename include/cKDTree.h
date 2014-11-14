@@ -13,20 +13,20 @@ namespace bss_util {
   // Node for the KD-tree 
   template<typename T>
   struct KDNode {
-      unsigned int num;
-      float div;
-      union {
-        struct {
-          struct KDNode* right; //not needed for in-array implementation
-          struct KDNode* left;
-        };
-        struct KDNode* _children[2];
+    unsigned int num;
+    float div;
+    union {
+      struct {
+        struct KDNode* right; //not needed for in-array implementation
+        struct KDNode* left;
       };
-      struct KDNode* parent;
-      T* items;
-      short balance;
-      char axis; // This could be absorbed into num to allow balance to become a full 32-bit int.
-      float total[2]; //holds the true accumulations. This may cause precision problems, but calculating and updating the true average is more expensive
+      struct KDNode* _children[2];
+    };
+    struct KDNode* parent;
+    T* items;
+    short balance;
+    char axis; // This could be absorbed into num to allow balance to become a full 32-bit int.
+    float total[2]; //holds the true accumulations. This may cause precision problems, but calculating and updating the true average is more expensive
   };
 
   // KD-tree storing arbitrary rectangles. Requires a function turning T into a float[4] reference, LLBASE<T> list, and an action.
@@ -34,17 +34,17 @@ namespace bss_util {
   class cKDTree : protected cAllocTracker<Alloc>
   {
     inline cKDTree(const cKDTree&) BSS_DELETEFUNC
-    inline cKDTree& operator=(const cKDTree&)BSS_DELETEFUNCOP
+      inline cKDTree& operator=(const cKDTree&)BSS_DELETEFUNCOP
   public:
-    inline explicit cKDTree(unsigned int rb=RBTHRESHOLD,Alloc* alloc=0) : cAllocTracker<Alloc>(alloc), _root(0),_rbthreshold(rb) {}
-    inline cKDTree(cKDTree&& mov) : cAllocTracker<Alloc>(std::move(mov)), _root(mov._root),_rbthreshold(mov._rbthreshold) { mov._root=0; }
+    inline explicit cKDTree(unsigned int rb=RBTHRESHOLD, Alloc* alloc=0) : cAllocTracker<Alloc>(alloc), _root(0), _rbthreshold(rb) {}
+    inline cKDTree(cKDTree&& mov) : cAllocTracker<Alloc>(std::move(mov)), _root(mov._root), _rbthreshold(mov._rbthreshold) { mov._root=0; }
     inline ~cKDTree() { Clear(); }
     inline void Clear() { if(_root) _destroynode(_root); _root=0; }
-    void BSS_FASTCALL Traverse(float (&rect)[4]) const { if(_root) _traverse<0,1>(_root,rect); }
+    void BSS_FASTCALL Traverse(float(&rect)[4]) const { if(_root) _traverse<0, 1>(_root, rect); }
     template<typename F>
-    void BSS_FASTCALL TraverseAll(F && f) { _traverseall(_root,std::forward<F>(f)); }
+    void BSS_FASTCALL TraverseAll(F && f) { _traverseall(_root, std::forward<F>(f)); }
     void BSS_FASTCALL Insert(T* item)
-    { 
+    {
       KDNode<T>** p=&_root;
       KDNode<T>* h;
       KDNode<T>* parent=0;
@@ -70,14 +70,14 @@ namespace bss_util {
       }
       if(!h)
       {
-        h=_allocnode(parent,axis);
+        h=_allocnode(parent, axis);
         h->total[0]=r[0]+r[2];
         h->total[1]=r[1]+r[3];
         h->num=1;
         h->div=h->total[axis]/2;
         *p=h;
       }
-      _insertitem(h,item);
+      _insertitem(h, item);
       if(rb) Rebalance(rb);
     }
     void BSS_FASTCALL Remove(T* item)
@@ -86,7 +86,7 @@ namespace bss_util {
       KDNode<T>* rb=0;
       KDNode<T>* prev=node;
       const float* r = FRECT(item);
-      _removeitem(node,item); // If the node becomes empty, we'll only remove it after a rebalance is triggered
+      _removeitem(node, item); // If the node becomes empty, we'll only remove it after a rebalance is triggered
       ++node->balance; //we're about to subtract one so counter it here for the bottom node (whose balance won't be changed)
 
       while(node)
@@ -111,20 +111,20 @@ namespace bss_util {
     }
     BSS_FORCEINLINE void Rebalance(KDNode<T>* node)
     {
-      float rect[4]={-FLT_MAX,-FLT_MAX,FLT_MAX,FLT_MAX};
-      KDNode<T>* parents[4] = {0};
+      float rect[4]={ -FLT_MAX, -FLT_MAX, FLT_MAX, FLT_MAX };
+      KDNode<T>* parents[4] ={ 0 };
       float total[2];
-      _rebalance(node,rect,parents,total); // We don't bother trying to do a checkdestroy here because it isn't possible. In order for this node to be rebalanced, it must have images, and those images cannot go higher than this node in the tree.
+      _rebalance(node, rect, parents, total); // We don't bother trying to do a checkdestroy here because it isn't possible. In order for this node to be rebalanced, it must have images, and those images cannot go higher than this node in the tree.
     }
     inline void InsertRoot(T* item)
-    { 
-      if(!_root) _root=_allocnode(0,0);
+    {
+      if(!_root) _root=_allocnode(0, 0);
       const float* r;
       r=FRECT(item);
       _root->total[0]+=r[0]+r[2];
       _root->total[1]+=r[1]+r[3];
       ++_root->num;
-      _insertitem(_root,item);
+      _insertitem(_root, item);
     }
     inline void Solve() { if(_root) _solve(&_root); }
     inline KDNode<T>* GetRoot() { return _root; }
@@ -146,16 +146,16 @@ namespace bss_util {
       T* item;
       T* next=node->items;
       while(item=next)
-      { 
+      {
         next=FLIST(item).next;
         r=FRECT(item);
         if(r[node->axis+2]<node->div) p=&node->left; // Drop into left
         else if(r[node->axis]>node->div) p=&node->right; // Drop into right
         else continue;
         if(!(*p)) // If null create the node
-          *p=_allocnode(node,((node->axis+1)&1));
-        _removeitem(node,item);
-        _insertitem(h=*p,item);
+          *p=_allocnode(node, ((node->axis+1)&1));
+        _removeitem(node, item);
+        _insertitem(h=*p, item);
         h->total[0]+=r[0]+r[2];
         h->total[1]+=r[1]+r[3];
         ++h->num;
@@ -165,22 +165,22 @@ namespace bss_util {
       if(node->right) _solve(&node->right);
     }
 
-    void BSS_FASTCALL _rebalance(KDNode<T>* node, const float (&r)[4], KDNode<T>* const* p, float (&total)[2])
+    void BSS_FASTCALL _rebalance(KDNode<T>* node, const float(&r)[4], KDNode<T>* const* p, float(&total)[2])
     {
       node->div=node->total[node->axis]/(node->num*2);
       node->balance=0;
       total[0]-=node->total[0]; // Subtract our total from the parent total
-      total[1]-=node->total[1]; 
+      total[1]-=node->total[1];
 
-      float rect[4] = {r[0],r[1],r[2],r[3]}; // Run down through the tree, resetting all the divider lines to whatever the current total is.
-      KDNode<T>* parents[4] = {p[0],p[1],p[2],p[3]};
+      float rect[4] ={ r[0], r[1], r[2], r[3] }; // Run down through the tree, resetting all the divider lines to whatever the current total is.
+      KDNode<T>* parents[4] ={ p[0], p[1], p[2], p[3] };
       char axis=node->axis;
       if(node->left)
       {
         node->num-=node->left->num;
         rect[axis+2]=node->div;
         parents[axis+2]=node;
-        _rebalance(node->left,rect,parents,node->total);
+        _rebalance(node->left, rect, parents, node->total);
         node->num+=node->left->num;
         _checkdestroy(node->left);
         rect[axis+2]=r[axis+2]; // Reset so we don't mess up node below
@@ -190,18 +190,18 @@ namespace bss_util {
         node->num-=node->right->num;
         rect[axis]=node->div;
         parents[axis]=node;
-        _rebalance(node->right,rect,parents,node->total);
+        _rebalance(node->right, rect, parents, node->total);
         node->num+=node->right->num;
         _checkdestroy(node->right);
       }
-      
+
       T* item;
       T* next=node->items;
       const float* itemr;
       KDNode<T>* par;
       char i;
       while(item=next)
-      { 
+      {
         next=FLIST(item).next;
         itemr=FRECT(item);
         if(itemr[0] < r[0]) i=0; // Check for a violation. We don't bother checking to see if there are multiple violations, because 
@@ -212,14 +212,14 @@ namespace bss_util {
         node->total[0]-=itemr[0]+itemr[2]; // Remove image from us
         node->total[1]-=itemr[1]+itemr[3];
         --node->num;
-        _removeitem(node,item);
+        _removeitem(node, item);
         par=p[i];
         par->total[0]+=itemr[0]+itemr[2]; // Add image to violated parent. We don't worry about the middle, because the rebalance will
         par->total[1]+=itemr[1]+itemr[3]; // fix all the intermediate totals and nums for us.
         ++par->num;
-        _insertitem(par,item);
+        _insertitem(par, item);
       }
-      
+
       total[0]+=node->total[0]; // Now add our new total back to the parent
       total[1]+=node->total[1];
     }
@@ -243,31 +243,31 @@ namespace bss_util {
     {
       if(!node) return;
       f(node->items);
-      _traverseall(node->left,std::forward<F>(f));
-      _traverseall(node->right,std::forward<F>(f));
+      _traverseall(node->left, std::forward<F>(f));
+      _traverseall(node->right, std::forward<F>(f));
     }
     template<char cur, char next>
-    static void BSS_FASTCALL _traverse(const KDNode<T>* node, const float (&rect)[4])
+    static void BSS_FASTCALL _traverse(const KDNode<T>* node, const float(&rect)[4])
     {
       T* item=node->items;
       const float* r;
       while(item)
-      { 
+      {
         r=FRECT(item);
         if(r[0] <= rect[2] && r[1] <= rect[3] && r[2] >= rect[0] && r[3] >= rect[1])
           FACTION(item);
         item=FLIST(item).next;
       }
-  
+
       if(node->div > rect[cur] && node->left!=0)
-        _traverse<next,cur>(node->left,rect);
+        _traverse<next, cur>(node->left, rect);
       if(node->div < rect[cur+2] && node->right!=0)
-        _traverse<next,cur>(node->right,rect);
+        _traverse<next, cur>(node->right, rect);
     }
     inline KDNode<T>* BSS_FASTCALL _allocnode(KDNode<T>* parent, char axis)
     {
       KDNode<T>* r=cAllocTracker<Alloc>::_allocate(1);
-      memset(r,0,sizeof(KDNode<T>));
+      memset(r, 0, sizeof(KDNode<T>));
       r->parent=parent;
       r->axis=axis;
       return r;

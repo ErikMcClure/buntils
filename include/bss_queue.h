@@ -8,11 +8,11 @@
 
 namespace bss_util {
   // Fast, tiny circular array-based queue. Pop and Peek are only valid if there is an item in the stack; this check must be done by the user.
-  template<class T, typename SizeType=int, typename ArrayType=cArraySimple<T,SizeType>>
-  class BSS_COMPILER_DLLEXPORT cQueue : protected cArrayCircular<T,SizeType,ArrayType>
+  template<class T, typename SizeType=int, ARRAY_TYPE ArrayType = CARRAY_SIMPLE, typename Alloc=StaticAllocPolicy<T>>
+  class BSS_COMPILER_DLLEXPORT cQueue : protected cArrayCircular<T, SizeType, ArrayType, Alloc>
   {
   protected:
-    typedef cArrayCircular<T,SizeType,ArrayType> BASE;
+    typedef cArrayCircular<T, SizeType, ArrayType, Alloc> BASE;
     using BASE::_length;
 
   public:
@@ -38,7 +38,6 @@ namespace bss_util {
     template<typename U>
     void BSS_FASTCALL _push(U && value) { if(_length>=BASE::_size) BASE::SetSize(T_FBNEXT(_length)); BASE::_push(std::forward<U>(value)); }
   };
-
 }
 
 #endif

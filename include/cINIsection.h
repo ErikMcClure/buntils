@@ -17,7 +17,7 @@ namespace bss_util {
   template<class T>
   struct BSS_COMPILER_DLLEXPORT _INInode : public LLBase<_INInode<T>>
   {
-    typename WArray<_INInode<T>*>::t instances; // If this is not the only instance, points to an array of all the other instances
+    typename cArrayWrap<_INInode<T>*> instances; // If this is not the only instance, points to an array of all the other instances
     T val;
   };
 

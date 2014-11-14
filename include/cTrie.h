@@ -21,18 +21,18 @@ namespace bss_util {
 
   // A static trie optimized for looking up small collections of words.
   template<typename T=unsigned char>
-  class BSS_COMPILER_DLLEXPORT cTrie : protected cArraySimple<TRIE_NODE__<T>, T>
+  class BSS_COMPILER_DLLEXPORT cTrie : protected cArray<TRIE_NODE__<T>, T>
   {
-    typedef cArraySimple<TRIE_NODE__<T>, T> BASE;
+    typedef cArray<TRIE_NODE__<T>, T> BASE;
     typedef TRIE_NODE__<T> TNODE;
     using BASE::_array;
     using BASE::_size;
     typedef std::pair<T, const char*> PAIR;
 
   public:
-    inline cTrie(cTrie&& mov) : cArraySimple<TNODE, T>(std::move(mov)) {}
-    inline cTrie(const cTrie& copy) : cArraySimple<TNODE, T>(copy) {}
-    inline cTrie(T num, ...) : cArraySimple<TNODE, T>(num)
+    inline cTrie(cTrie&& mov) : BASE(std::move(mov)) {}
+    inline cTrie(const cTrie& copy) : BASE(copy) {}
+    inline cTrie(T num, ...) : BASE(num)
     {
       _fill(0, num);
       DYNARRAY(PAIR, s, num);
@@ -43,9 +43,9 @@ namespace bss_util {
       cBinaryHeap<PAIR, T, CompTSecond<PAIR, CompStr<const char*>>>::HeapSort(s, num); // sort into alphabetical order
       _init(num, s, 0, 0); // Put into our recursive initializer
     }
-    inline cTrie(T num, const char* const* initstr) : cArraySimple<TNODE, T>(num) { _construct(num, initstr); }
+    inline cTrie(T num, const char* const* initstr) : BASE(num) { _construct(num, initstr); }
     template<int SZ>
-    inline cTrie(const char* const (&initstr)[SZ]) : cArraySimple<TNODE, T>(SZ) { _construct(SZ, initstr); }
+    inline cTrie(const char* const (&initstr)[SZ]) : BASE(SZ) { _construct(SZ, initstr); }
     inline ~cTrie() {}
     T BSS_FASTCALL Get(const char* word) const
     {
@@ -88,8 +88,8 @@ namespace bss_util {
     }
     inline const TNODE* Internal() const { return _array; }
     inline T operator[](const char* word) const { return Get(word); }
-    inline cTrie& operator=(const cTrie& copy) { cArraySimple<TNODE, T>::operator=(copy); return *this; }
-    inline cTrie& operator=(cTrie&& mov) { cArraySimple<TNODE, T>::operator=(std::move(mov)); return *this; }
+    inline cTrie& operator=(const cTrie& copy) { BASE::operator=(copy); return *this; }
+    inline cTrie& operator=(cTrie&& mov) { BASE::operator=(std::move(mov)); return *this; }
     static inline char _CompTNode(const TNODE& t, const char& c) { return SGNCOMPARE(t.chr, c); }
 
   protected:

@@ -16,7 +16,7 @@ namespace bss_util {
   template<typename T> // Returns -1,0,1 if l<r,l==r,l>r, respectively
   BSS_FORCEINLINE char CompTInv(const T& left, const T& right) { return SGNCOMPARE(right,left); }
 
-  template<typename T> // Returns 1 if l<r or 0 otherwise
+  template<typename T> // Returns -1 if l<r or 0 otherwise
   BSS_FORCEINLINE char CompT_LT(const T& left, const T& right) { return -(left<right); }
 
   template<typename T> // Returns 1 if l>r or 0 otherwise

@@ -13,7 +13,7 @@ namespace bss_util {
   class BSS_COMPILER_DLLEXPORT cLocklessFixedAlloc
   {
     cLocklessFixedAlloc(const cLocklessFixedAlloc& copy) BSS_DELETEFUNC
-      cLocklessFixedAlloc& operator=(const cLocklessFixedAlloc& copy) BSS_DELETEFUNCOP
+    cLocklessFixedAlloc& operator=(const cLocklessFixedAlloc& copy) BSS_DELETEFUNCOP
   public:
     inline cLocklessFixedAlloc(cLocklessFixedAlloc&& mov) : _root(mov._root), _freelist(mov._freelist) { mov._freelist.p=mov._root=0; _flag.clear(std::memory_order_relaxed); }
     inline explicit cLocklessFixedAlloc(size_t init=8) : _root(0)
@@ -49,7 +49,7 @@ namespace bss_util {
         if(!ret.p)
         {
           if(!_flag.test_and_set(std::memory_order_acquire)) { // If we get the lock, do a new allocation
-            if(!_freelist.p) // Check this due to race condition
+            if(!_freelist.p) // Check this due to race condition where someone finishes a new allocation and unlocks while we were testing that flag.
               _allocchunk(fbnext(_root->size/sizeof(T))*sizeof(T));
             _flag.clear(std::memory_order_release);
           }

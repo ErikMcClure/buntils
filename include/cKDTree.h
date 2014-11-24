@@ -259,9 +259,9 @@ namespace bss_util {
         item=FLIST(item).next;
       }
 
-      if(node->div > rect[cur] && node->left!=0)
+      if(node->div >= rect[cur] && node->left!=0)
         _traverse<next, cur>(node->left, rect);
-      if(node->div < rect[cur+2] && node->right!=0)
+      if(node->div <= rect[cur+2] && node->right!=0)
         _traverse<next, cur>(node->right, rect);
     }
     inline KDNode<T>* BSS_FASTCALL _allocnode(KDNode<T>* parent, char axis)

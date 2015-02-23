@@ -12,10 +12,10 @@
 namespace bss_util {
   // This is a binary max-heap implemented using an array. Use CompTInv to change it into a min-heap, or to make it use pairs.
   template<class T, typename ST_=unsigned int, char(*CFunc)(const T&, const T&)=CompT<T>, ARRAY_TYPE ArrayType = CARRAY_SIMPLE, typename Alloc=StaticAllocPolicy<T>>
-  class BSS_COMPILER_DLLEXPORT cBinaryHeap : protected cArray<T, ST_, ArrayType, Alloc>
+  class BSS_COMPILER_DLLEXPORT cBinaryHeap : protected cArrayInternal<T, ST_, ArrayType, Alloc>
   {
   protected:
-    typedef cArray<T, ST_, ArrayType, Alloc> AT_;
+    typedef cArrayInternal<T, ST_, ArrayType, Alloc> AT_;
     using AT_::_array;
     using AT_::_size;
 #define CBH_PARENT(i) ((i-1)/2)

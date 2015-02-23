@@ -46,6 +46,7 @@
     <ClInclude Include="..\include\bss_algo.h" />
     <ClInclude Include="..\include\bss_alloc.h" />
     <ClInclude Include="..\include\bss_alloc_additive.h" />
+    <ClInclude Include="..\include\bss_alloc_circular.h" />
     <ClInclude Include="..\include\bss_alloc_fixed.h" />
     <ClInclude Include="..\include\bss_alloc_fixed_MT.h" />
     <ClInclude Include="..\include\bss_compare.h" />
@@ -85,7 +86,6 @@
     <ClInclude Include="..\include\cHash.h" />
     <ClInclude Include="..\include\cLinkedArray.h" />
     <ClInclude Include="..\include\cLinkedList.h" />
-    <ClInclude Include="..\include\cLocklessArrayQueue.h" />
     <ClInclude Include="..\include\cLocklessQueue.h" />
     <ClInclude Include="..\include\cMap.h" />
     <ClInclude Include="..\include\cPriorityQueue.h" />

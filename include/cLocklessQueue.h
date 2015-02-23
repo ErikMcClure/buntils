@@ -145,7 +145,7 @@ namespace bss_util {
 
       while(_pflag.test_and_set(std::memory_order_acquire));
       _last->next=nval;
-      _last=nval;
+      _last=nval; // This can happen before or after modifying _last->next because no other function uses _last
       _pflag.clear(std::memory_order_release);
       i_LocklessQueue_Length<LENGTH>::_inclength(); // If we are tracking length, atomically increment it
     }

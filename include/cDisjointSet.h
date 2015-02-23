@@ -10,10 +10,10 @@
 namespace bss_util {
   // Represents a disjoint set data structure that uses path compression.
   template<typename T = unsigned int, typename ALLOC = StaticAllocPolicy<typename std::make_signed<T>::type>>
-  class BSS_COMPILER_DLLEXPORT cDisjointSet : protected cArray<typename std::make_signed<T>::type, T, CARRAY_SIMPLE, ALLOC>
+  class BSS_COMPILER_DLLEXPORT cDisjointSet : protected cArrayInternal<typename std::make_signed<T>::type, T, CARRAY_SIMPLE, ALLOC>
   {
   protected:
-    typedef cArray<typename std::make_signed<T>::type, T, CARRAY_SIMPLE, ALLOC> ARRAY;
+    typedef cArrayInternal<typename std::make_signed<T>::type, T, CARRAY_SIMPLE, ALLOC> ARRAY;
     typedef typename ARRAY::T_ T_;
     using ARRAY::_array;
     using ARRAY::_size;
@@ -120,9 +120,9 @@ namespace bss_util {
 
     // Constructs a minimum spanning tree using Kruskal's algorithm, given a sorted list of edges (smallest first).
     template<class ITER>
-    inline static cArrayWrap<std::pair<T,T>,T> BSS_FASTCALL MinSpanningTree(T numverts, ITER edges, ITER edgeslast)
+    inline static cArray<std::pair<T,T>,T> BSS_FASTCALL MinSpanningTree(T numverts, ITER edges, ITER edgeslast)
     {
-      cArrayWrap<std::pair<T, T>, T> ret(numverts-1); // A nice result in combinatorics tells us that all trees have exactly n-1 edges.
+      cArray<std::pair<T, T>, T> ret(numverts-1); // A nice result in combinatorics tells us that all trees have exactly n-1 edges.
       ret.SetSize(MinSpanningTree(numverts,edges,edgeslast,ret)); // This will always be <= n-1 so the SetSize is basically free.
       return ret;
     }

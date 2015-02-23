@@ -40,7 +40,7 @@ namespace bss_util
     {
       if(bitindex>=_numbits) return false;
       ST_ realindex=(bitindex/DIV_AMT); //divide bitindex by 8
-      STORE_ mask=(1<<(bitindex&MOD_AMT)); //assign bitindex the remainder
+      STORE_ mask=(((STORE_)1)<<(bitindex&MOD_AMT)); //assign bitindex the remainder
       _bits[realindex] = T_SETBIT(_bits[realindex],mask,value);
       return true;
     }    
@@ -94,7 +94,7 @@ namespace bss_util
   protected:
     BSS_FORCEINLINE static ST_ _maxchunks(ST_ numbits) { return T_NEXTMULTIPLE(numbits,MOD_AMT); }
 
-    typename cArrayWrap<STORE_,ST_> _bits;
+    typename cArray<STORE_,ST_> _bits;
     ST_ _numbits;
   };
 }

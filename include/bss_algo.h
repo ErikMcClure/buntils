@@ -7,7 +7,6 @@
 #include "bss_util.h"
 #include "bss_compare.h"
 #include "bss_sse.h"
-#include "bss_graph.h"
 #include "bss_vector.h"
 #include "cDynArray.h"
 #include "cDisjointSet.h"
@@ -109,6 +108,52 @@ namespace bss_util {
     static const unsigned __int64 WMSK = std::mt19937_64::max();
 #endif
     return min+(T)((mersennerand64()/(WMSK + 1.0))*(max-min));
+  }
+
+  // Implementation of an xorshift64star generator. x serves as the generator state, which should initially be set to the RNG seed.
+  unsigned __int64 xorshift64star(unsigned __int64& x)
+  {
+    x ^= x >> 12;
+    x ^= x << 25;
+    x ^= x >> 27;
+    return x * UINT64_C(2685821657736338717);
+  }
+
+  // Implementation of 2^1024-1 period xorshift generator. x is the 16*64 bit state, plus 1 extra integer for counting indices.
+  unsigned __int64 xorshift1024star(unsigned __int64(&x)[17])
+  {
+    uint64_t x0 = x[x[16]];
+    uint64_t x1 = x[x[16] = (x[16] + 1) & 15];
+    x1 ^= x1 << 31; // a
+    x1 ^= x1 >> 11; // b
+    x0 ^= x0 >> 30; // c
+    return (x[x[16]] = x0 ^ x1) * UINT64_C(1181783497276652981);
+  }
+
+  // Generates a seed for xorshift1024star from a 64-bit value
+  void genxor1024seed(unsigned __int64 x, unsigned __int64(&seed)[17])
+  {
+    xorshift64star(x);
+    for(unsigned char i = 0; i < 16; ++i)
+      seed[i] = xorshift64star(x);
+    seed[16]=0;
+  }
+
+  inline static unsigned __int64 xorshiftrand(unsigned __int64 seed=0) {
+    static unsigned __int64 state[17];
+    if(seed) genxor1024seed(seed, state);
+    return xorshift1024star(state);
+  }
+
+  template<class T>
+  BSS_FORCEINLINE T bss_randxorshift(T min, T max)
+  {
+#ifdef BSS_COMPILER_MSC
+    static const unsigned __int64 WMSK = ~((~(unsigned __int64)(0) << (64 - 1)) << 1); // Because Microsoft is full of illiterate morons, despite the standard defining max() as a static function, it's not in VC++, which means we can't use it.
+#else
+    static const unsigned __int64 WMSK = std::mt19937_64::max();
+#endif
+    return min+(T)((xorshiftrand()/(WMSK + 1.0))*(max-min));
   }
 
   // inline function wrapper around RANDINTGEN

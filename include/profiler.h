@@ -98,7 +98,7 @@ namespace bss_util {
     static void BSS_FASTCALL _timeformat(std::ostream& stream, double avg, double variance, unsigned __int64 num);
     static PROFILER_INT total;
 
-    cArrayWrap<ProfilerData*, PROFILER_INT> _data;
+    cArray<ProfilerData*, PROFILER_INT> _data;
     PROF_TRIENODE* _trie;
     PROF_TRIENODE* _cur;
     cFixedAlloc<PROF_TRIENODE> _alloc;

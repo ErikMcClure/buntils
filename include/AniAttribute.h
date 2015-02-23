@@ -83,7 +83,7 @@ namespace bss_util {
   public:
     template<typename U> struct rebind { typedef AniAttributeT<TypeID, U> other; };
     typedef typename AniAttribute::IDTYPE IDTYPE;
-    typedef cArrayWrap<KeyFrame<TypeID>, AniAttribute::IDTYPE, std::is_void<ANI_TID(SAFE)>::value?CARRAY_SIMPLE:CARRAY_SAFE, typename Alloc::template rebind<KeyFrame<TypeID>>::other> TVT_ARRAY_T;
+    typedef cArray<KeyFrame<TypeID>, AniAttribute::IDTYPE, std::is_void<ANI_TID(SAFE)>::value?CARRAY_SIMPLE:CARRAY_SAFE, typename Alloc::template rebind<KeyFrame<TypeID>>::other> TVT_ARRAY_T;
     typedef ANI_TID(VALUE) (BSS_FASTCALL *FUNC)(const TVT_ARRAY_T&, IDTYPE, double);
     enum ATTR_FLAGS : unsigned char { ATTR_INITZERO=1, ATTR_REL=2, ATTR_ATTACHED=4 };
 

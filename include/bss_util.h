@@ -37,7 +37,6 @@ namespace bss_util {
   BSS_COMPILER_DLLEXPORT extern unsigned long long BSS_FASTCALL bssFileSize(const char* path);
   BSS_COMPILER_DLLEXPORT extern unsigned long long BSS_FASTCALL bssFileSize(const wchar_t* path);
   BSS_COMPILER_DLLEXPORT extern long BSS_FASTCALL GetTimeZoneMinutes(); //Returns the current time zone difference from UTC in minutes
-  BSS_COMPILER_DLLEXPORT extern int BSS_FASTCALL ToArgV(char** argv, char* cmdline);
 
   //Useful numbers
   const double PI = 3.141592653589793238462643383279;
@@ -215,7 +214,32 @@ namespace bss_util {
     return strrtrim(strltrim(str));
   }
 
-  // Processes an argv command line using the given function and divider
+  template<typename T>
+  inline static int ToArgV(T** argv, T* cmdline)
+  {
+    int count=0;
+    while(*cmdline)
+    {
+      if(!isspace(*cmdline))
+      {
+        if(*cmdline == '"') {
+          if(argv!=0) argv[count++]=cmdline+1;
+          else ++count;
+          while(*++cmdline !=0 && cmdline[1] !=0 && (*cmdline != '"' || !isspace(cmdline[1])));
+        } else {
+          if(argv!=0) argv[count++]=cmdline;
+          else ++count;
+          while(*++cmdline !=0 && !isspace(*cmdline));
+        }
+        if(!*cmdline) break;
+        if(argv!=0) *cmdline=0;
+      }
+      ++cmdline;
+    }
+    return count;
+  }
+
+  // Processes an argv command line using the given function and divider. Use ToArgV if you only have a string (for windows command lines)
   template<typename F> //std::function<void(const char* const*,int num)>
   inline static void ProcessCmdArgs(int argc, const char* const* argv, F && fn, char divider='-')
   {

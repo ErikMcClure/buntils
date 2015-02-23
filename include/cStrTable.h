@@ -124,8 +124,8 @@ namespace bss_util {
       }
     }
 
-    cArrayWrap<T, ST_> _strings;
-    cArrayWrap<ST_, ST_> _indices;
+    cArray<T, ST_> _strings;
+    cArray<ST_, ST_> _indices;
   };
 }
 

@@ -10,7 +10,14 @@
 - Added operator[] to cStack
 - Added * operator to sseVeci
 - Added bss_vector.h and moved n-dimensional vector algorithms from bss_algo.h to there.
-- Changed cArraySimple/cArrayConstruct/cArraySafe into just cArray<> that takes a template parameter and changed all the template signitures of dependent types. Removed WArray since you can use cArrayWrap now instead.
+- Changed cArraySimple/cArrayConstruct/cArraySafe into just cArrayInternal<> that takes a template parameter and changed all the template signitures of dependent types. Removed WArray since you can use cArray now instead.
+- Made ToArgV an inline template function
+- cHash now directly implements kh_template_t, which was promoted to a real class
+- cStr can now construct a substring from a larger string
+- Added xorshift random number generator
+- Fixed error in cHash Set() function definition
+- Added multithreaded circular allocator
+- Fixed issue with integer constants that were assumed to be 32-bits long when they should have been 64-bits long.
 
 0.4.3
 -----

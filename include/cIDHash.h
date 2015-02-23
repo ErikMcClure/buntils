@@ -12,16 +12,16 @@
 namespace bss_util {
   // This is a simple ID hash intended for pointers, which can optionally be compressed to eliminate holes.
   template<typename T, typename ST=unsigned int, typename Alloc=StaticAllocPolicy<T>, T INVALID=0>
-  class cIDHash : protected cArray<T, ST, CARRAY_SIMPLE, Alloc>
+  class cIDHash : protected cArrayInternal<T, ST, CARRAY_SIMPLE, Alloc>
   {
   protected:
-    using cArray<T, ST, CARRAY_SIMPLE, Alloc>::_array;
-    using cArray<T, ST, CARRAY_SIMPLE, Alloc>::_size;
+    using cArrayInternal<T, ST, CARRAY_SIMPLE, Alloc>::_array;
+    using cArrayInternal<T, ST, CARRAY_SIMPLE, Alloc>::_size;
 
   public:
-    cIDHash(const cIDHash& copy) : cArray<T, ST, CARRAY_SIMPLE, Alloc>(copy), _max(copy._max), _length(copy._length), _freelist(copy._freelist) {}
-    cIDHash(cIDHash&& mov) : cArray<T, ST, CARRAY_SIMPLE, Alloc>(std::move(mov)), _max(mov._max), _length(mov._length), _freelist(mov._freelist) {}
-    explicit cIDHash(ST reserve = 0) : cArray<T, ST, CARRAY_SIMPLE, Alloc>(reserve), _max(0), _length(0), _freelist((ST)-1) { _fixfreelist(0); }
+    cIDHash(const cIDHash& copy) : cArrayInternal<T, ST, CARRAY_SIMPLE, Alloc>(copy), _max(copy._max), _length(copy._length), _freelist(copy._freelist) {}
+    cIDHash(cIDHash&& mov) : cArrayInternal<T, ST, CARRAY_SIMPLE, Alloc>(std::move(mov)), _max(mov._max), _length(mov._length), _freelist(mov._freelist) {}
+    explicit cIDHash(ST reserve = 0) : cArrayInternal<T, ST, CARRAY_SIMPLE, Alloc>(reserve), _max(0), _length(0), _freelist((ST)-1) { _fixfreelist(0); }
     virtual ~cIDHash() {}
     virtual ST Add(T item)
     {
@@ -68,8 +68,8 @@ namespace bss_util {
       _max=_length-1; // Reset max value to one less than _length
     }
 
-    inline cIDHash& operator=(const cIDHash& copy) { cArray<T, ST, CARRAY_SIMPLE, Alloc>::operator=(copy); _max=copy._max; _length=copy._length; _freelist=copy._freelist; return *this; }
-    inline cIDHash& operator=(cIDHash&& mov) { cArray<T, ST, CARRAY_SIMPLE, Alloc>::operator=(std::move(mov)); _max=mov._max; _length=mov._length; _freelist=mov._freelist; return *this; }
+    inline cIDHash& operator=(const cIDHash& copy) { cArrayInternal<T, ST, CARRAY_SIMPLE, Alloc>::operator=(copy); _max=copy._max; _length=copy._length; _freelist=copy._freelist; return *this; }
+    inline cIDHash& operator=(cIDHash&& mov) { cArrayInternal<T, ST, CARRAY_SIMPLE, Alloc>::operator=(std::move(mov)); _max=mov._max; _length=mov._length; _freelist=mov._freelist; return *this; }
     inline T& operator[](ST id) { return _array[id]; }
     inline const T& operator[](ST id) const { return _array[id]; }
 
@@ -77,7 +77,7 @@ namespace bss_util {
     BSS_FORCEINLINE void _grow()
     {
       ST oldsize=_size;
-      cArray<T, ST, CARRAY_SIMPLE, Alloc>::SetSize(fbnext(_size));
+      cArrayInternal<T, ST, CARRAY_SIMPLE, Alloc>::SetSize(fbnext(_size));
       _fixfreelist(oldsize);
     }
     inline void _fixfreelist(ST start)

@@ -113,7 +113,7 @@
 #define BSS_RESTRICT __restrict
 #define BSS_ALIGN(n) __declspec(align(n))
 #define BSS_ALIGNED(sn, n) BSS_ALIGN(n) sn
-#define BSS_VERIFY_HEAP _ASSERTE(_CrtCheckMemory());
+#define BSS_VERIFY_HEAP _ASSERTE(_CrtCheckMemory())
 #define FUNCPTRCC(m,CC) CC m
 #define MSC_FASTCALL BSS_FASTCALL
 #define GCC_FASTCALL 

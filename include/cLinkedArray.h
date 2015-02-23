@@ -160,7 +160,7 @@ namespace bss_util {
     ST_ _freelist;
 
   private:
-    cArrayWrap<LINKEDNODE<T, SizeType>, SizeType, ArrayType, Alloc> _ref;
+    cArray<LINKEDNODE<T, SizeType>, SizeType, ArrayType, Alloc> _ref;
   };
 }
 

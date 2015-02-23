@@ -109,6 +109,7 @@ public:
   template<class U> inline cStrT(const cStrT<T,U>& copy) : BASE(copy) {}
   template<class U> inline cStrT(const cStrT<OTHER_C,U>& copy) : BASE() { _convstr(copy.c_str()); }
   inline cStrT(const CHAR* string) : BASE(!string?CSTR_CT<T>::STREMPTY():string) { }
+  inline cStrT(const CHAR* string, size_t count) : BASE(!string?CSTR_CT<T>::STREMPTY():string, count) { }
   inline cStrT(const OTHER_C* text) : BASE() { if(text!=0) _convstr(text); }
   cStrT(unsigned short index, const CHAR* text, const CHAR delim) : BASE() //Creates a new string from the specified chunk
   {

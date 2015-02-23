@@ -11,13 +11,13 @@
 namespace bss_util {
   // A dynamic array that keeps its contents sorted using insertion sort and uses a binary search to retrieve items.
   template<typename T, char(*CFunc)(const T&, const T&)=CompT<T>, typename SizeType = unsigned int, ARRAY_TYPE ArrayType = CARRAY_SIMPLE, typename Alloc=StaticAllocPolicy<T>>
-  class BSS_COMPILER_DLLEXPORT cArraySort : protected cArray<T, SizeType, ArrayType, Alloc>
+  class BSS_COMPILER_DLLEXPORT cArraySort : protected cArrayInternal<T, SizeType, ArrayType, Alloc>
   {
   public:
     typedef SizeType ST_;
     typedef const T& constref;
     typedef T&& moveref;
-    typedef cArray<T, SizeType, ArrayType, Alloc> AT_;
+    typedef cArrayInternal<T, SizeType, ArrayType, Alloc> AT_;
     using AT_::_array;
     using AT_::_size;
 

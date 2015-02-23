@@ -30,7 +30,7 @@ namespace bss_util {
     inline size_t max_size() const { return ((size_t)(-1)/sizeof(T)); }
   };
 
-  // Static implementation of the standard allocation policy, used for cArray
+  // Static implementation of the standard allocation policy, used for cArrayInternal
   template<typename T>
   struct BSS_COMPILER_DLLEXPORT StaticAllocPolicy {
     typedef T* pointer;

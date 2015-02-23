@@ -10,7 +10,7 @@
 using namespace bss_util;
 
 namespace bss_util {
-  // Static implementation of the standard allocation policy, used for cArray
+  // Static implementation of the standard allocation policy, used for cArrayInternal
   struct PROF_HEATNODE
   {
     struct BSS_COMPILER_DLLEXPORT HeatAllocPolicy {

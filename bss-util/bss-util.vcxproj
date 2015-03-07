@@ -45,10 +45,10 @@
   <ItemGroup>
     <ClInclude Include="..\include\bss_algo.h" />
     <ClInclude Include="..\include\bss_alloc.h" />
-    <ClInclude Include="..\include\bss_alloc_additive.h" />
-    <ClInclude Include="..\include\bss_alloc_circular.h" />
-    <ClInclude Include="..\include\bss_alloc_fixed.h" />
-    <ClInclude Include="..\include\bss_alloc_fixed_MT.h" />
+    <ClInclude Include="..\include\bss_alloc_greedy.h" />
+    <ClInclude Include="..\include\bss_alloc_ring.h" />
+    <ClInclude Include="..\include\bss_alloc_block.h" />
+    <ClInclude Include="..\include\bss_alloc_block_MT.h" />
     <ClInclude Include="..\include\bss_compare.h" />
     <ClInclude Include="..\include\bss_compiler.h" />
     <ClInclude Include="..\include\bss_defines.h" />

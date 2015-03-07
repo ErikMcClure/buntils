@@ -6,7 +6,7 @@
 
 #include "cHighPrecisionTimer.h"
 #include "cArray.h"
-#include "bss_alloc_fixed.h"
+#include "bss_alloc_block.h"
 
 #ifndef BSS_ENABLE_PROFILER
 #define PROFILE_BEGIN(name)
@@ -101,7 +101,7 @@ namespace bss_util {
     cArray<ProfilerData*, PROFILER_INT> _data;
     PROF_TRIENODE* _trie;
     PROF_TRIENODE* _cur;
-    cFixedAlloc<PROF_TRIENODE> _alloc;
+    cBlockAlloc<PROF_TRIENODE> _alloc;
     unsigned int _totalnodes;
   };
 

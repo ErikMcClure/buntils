@@ -1,8 +1,8 @@
 // Copyright ©2014 Black Sphere Studios
 // For conditions of distribution and use, see copyright notice in "bss_util.h"
 
-#ifndef __BSS_ALLOC_ADDITIVE_H__
-#define __BSS_ALLOC_ADDITIVE_H__
+#ifndef __BSS_ALLOC_GREEDY_H__
+#define __BSS_ALLOC_GREEDY_H__
 
 #include "bss_alloc.h"
 #include "bss_util.h"
@@ -14,18 +14,18 @@ namespace bss_util {
     size_t size;
   };
 
-  // Dynamic additive allocator that can allocate any number of bytes
-  class BSS_COMPILER_DLLEXPORT cAdditiveAlloc
+  // Dynamic greedy allocator that can allocate any number of bytes
+  class BSS_COMPILER_DLLEXPORT cGreedyAlloc
   {
-    cAdditiveAlloc(const cAdditiveAlloc& copy) BSS_DELETEFUNC
-      cAdditiveAlloc& operator=(const cAdditiveAlloc& copy) BSS_DELETEFUNCOP
+    cGreedyAlloc(const cGreedyAlloc& copy) BSS_DELETEFUNC
+      cGreedyAlloc& operator=(const cGreedyAlloc& copy) BSS_DELETEFUNCOP
   public:
-    inline cAdditiveAlloc(cAdditiveAlloc&& mov) : _curpos(mov._curpos), _root(mov._root) { mov._root=0; mov._curpos=0; }
-    inline explicit cAdditiveAlloc(size_t init=64) : _curpos(0), _root(0)
+    inline cGreedyAlloc(cGreedyAlloc&& mov) : _curpos(mov._curpos), _root(mov._root) { mov._root=0; mov._curpos=0; }
+    inline explicit cGreedyAlloc(size_t init=64) : _curpos(0), _root(0)
     {
       _allocchunk(init);
     }
-    inline ~cAdditiveAlloc()
+    inline ~cGreedyAlloc()
     {
       AFLISTITEM* hold=_root;
       while(_root=hold)
@@ -103,19 +103,19 @@ namespace bss_util {
   };
 
   template<typename T>
-  class BSS_COMPILER_DLLEXPORT AdditivePolicy : protected cAdditiveAlloc {
+  class BSS_COMPILER_DLLEXPORT GreedyPolicy : protected cGreedyAlloc {
   public:
     typedef T* pointer;
     typedef T value_type;
     template<typename U>
-    struct rebind { typedef AdditivePolicy<U> other; };
+    struct rebind { typedef GreedyPolicy<U> other; };
 
-    inline AdditivePolicy() {}
-    inline ~AdditivePolicy() {}
+    inline GreedyPolicy() {}
+    inline ~GreedyPolicy() {}
 
-    inline pointer allocate(std::size_t cnt, const pointer = 0) { return cAdditiveAlloc::allocT<T>(cnt); }
+    inline pointer allocate(std::size_t cnt, const pointer = 0) { return cGreedyAlloc::allocT<T>(cnt); }
     inline void deallocate(pointer p, std::size_t num = 0) { }
-    inline void BSS_FASTCALL clear() { cAdditiveAlloc::Clear(); } //done for functor reasons, BSS_FASTCALL has no effect here
+    inline void BSS_FASTCALL clear() { cGreedyAlloc::Clear(); } //done for functor reasons, BSS_FASTCALL has no effect here
   };
 }
 

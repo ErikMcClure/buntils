@@ -12,16 +12,16 @@
 namespace bss_util {
   // This is a simple ID hash intended for pointers, which can optionally be compressed to eliminate holes.
   template<typename T, typename ST=unsigned int, typename Alloc=StaticAllocPolicy<T>, T INVALID=0>
-  class cIDHash : protected cArrayInternal<T, ST, CARRAY_SIMPLE, Alloc>
+  class cIDHash : protected cArrayBase<T, ST, CARRAY_SIMPLE, Alloc>
   {
   protected:
-    using cArrayInternal<T, ST, CARRAY_SIMPLE, Alloc>::_array;
-    using cArrayInternal<T, ST, CARRAY_SIMPLE, Alloc>::_size;
+    using cArrayBase<T, ST, CARRAY_SIMPLE, Alloc>::_array;
+    using cArrayBase<T, ST, CARRAY_SIMPLE, Alloc>::_size;
 
   public:
-    cIDHash(const cIDHash& copy) : cArrayInternal<T, ST, CARRAY_SIMPLE, Alloc>(copy), _max(copy._max), _length(copy._length), _freelist(copy._freelist) {}
-    cIDHash(cIDHash&& mov) : cArrayInternal<T, ST, CARRAY_SIMPLE, Alloc>(std::move(mov)), _max(mov._max), _length(mov._length), _freelist(mov._freelist) {}
-    explicit cIDHash(ST reserve = 0) : cArrayInternal<T, ST, CARRAY_SIMPLE, Alloc>(reserve), _max(0), _length(0), _freelist((ST)-1) { _fixfreelist(0); }
+    cIDHash(const cIDHash& copy) : cArrayBase<T, ST, CARRAY_SIMPLE, Alloc>(copy), _max(copy._max), _length(copy._length), _freelist(copy._freelist) {}
+    cIDHash(cIDHash&& mov) : cArrayBase<T, ST, CARRAY_SIMPLE, Alloc>(std::move(mov)), _max(mov._max), _length(mov._length), _freelist(mov._freelist) {}
+    explicit cIDHash(ST reserve = 0) : cArrayBase<T, ST, CARRAY_SIMPLE, Alloc>(reserve), _max(0), _length(0), _freelist((ST)-1) { _fixfreelist(0); }
     virtual ~cIDHash() {}
     virtual ST Add(T item)
     {
@@ -68,8 +68,8 @@ namespace bss_util {
       _max=_length-1; // Reset max value to one less than _length
     }
 
-    inline cIDHash& operator=(const cIDHash& copy) { cArrayInternal<T, ST, CARRAY_SIMPLE, Alloc>::operator=(copy); _max=copy._max; _length=copy._length; _freelist=copy._freelist; return *this; }
-    inline cIDHash& operator=(cIDHash&& mov) { cArrayInternal<T, ST, CARRAY_SIMPLE, Alloc>::operator=(std::move(mov)); _max=mov._max; _length=mov._length; _freelist=mov._freelist; return *this; }
+    inline cIDHash& operator=(const cIDHash& copy) { cArrayBase<T, ST, CARRAY_SIMPLE, Alloc>::operator=(copy); _max=copy._max; _length=copy._length; _freelist=copy._freelist; return *this; }
+    inline cIDHash& operator=(cIDHash&& mov) { cArrayBase<T, ST, CARRAY_SIMPLE, Alloc>::operator=(std::move(mov)); _max=mov._max; _length=mov._length; _freelist=mov._freelist; return *this; }
     inline T& operator[](ST id) { return _array[id]; }
     inline const T& operator[](ST id) const { return _array[id]; }
 
@@ -77,7 +77,7 @@ namespace bss_util {
     BSS_FORCEINLINE void _grow()
     {
       ST oldsize=_size;
-      cArrayInternal<T, ST, CARRAY_SIMPLE, Alloc>::SetSize(fbnext(_size));
+      cArrayBase<T, ST, CARRAY_SIMPLE, Alloc>::SetSize(fbnext(_size));
       _fixfreelist(oldsize);
     }
     inline void _fixfreelist(ST start)
@@ -124,7 +124,7 @@ namespace bss_util {
     inline ST Length() const { return BASE::_length; }
     inline ST MaxID() const { return BASE::_max; }
     // Compresses the IDs by eliminating holes. F is called on any ID before its changed so you can adjust it.
-    void Compress() { BASE::Compress(delegate<void, size_t, size_t>::From<cIDReverse, &cIDReverse::_flip>(this)); } // GCC is broken and won't compile ST,ST, so we just replace it with size_t and force it to infer the template
+    void Compress() { BASE::Compress(delegate<void, size_t, ST>::From<cIDReverse, &cIDReverse::_flip>(this)); } // GCC is broken and won't compile ST,ST, so we just replace it with size_t and force it to infer the template
 
     inline cIDReverse& operator=(const cIDReverse& copy) { BASE::operator=(copy); _hash=copy._hash; return *this; }
     inline cIDReverse& operator=(cIDReverse&& mov) { BASE::operator=(std::move(mov)); _hash=mov._hash; return *this; }
@@ -132,7 +132,7 @@ namespace bss_util {
     inline const T& operator[](ST id) const { return _array[id]; }
 
   protected:
-    inline void BSS_FASTCALL _flip(size_t id, size_t nid) { _hash.Set(_array[id], nid); }
+    inline void BSS_FASTCALL _flip(size_t id, ST nid) { _hash.Set(_array[id], nid); }
 
     cKhash<T, ST, true, __hash_func, __hash_equal, ST, -1> _hash;
   };

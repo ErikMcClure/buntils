@@ -4,17 +4,17 @@
 #include "profiler.h"
 #include "cStr.h"
 #include "cArraySort.h"
-#include "bss_alloc_additive.h"
+#include "bss_alloc_greedy.h"
 #include <fstream>
 
 using namespace bss_util;
 
 namespace bss_util {
-  // Static implementation of the standard allocation policy, used for cArrayInternal
+  // Static implementation of the standard allocation policy, used for cArrayBase
   struct PROF_HEATNODE
   {
     struct BSS_COMPILER_DLLEXPORT HeatAllocPolicy {
-      static cAdditiveAlloc _alloc;
+      static cGreedyAlloc _alloc;
       inline static PROF_HEATNODE* allocate(size_t cnt, const PROF_HEATNODE* p = 0) { return _alloc.allocT<PROF_HEATNODE>(cnt); }
       inline static void deallocate(PROF_HEATNODE* p, size_t = 0) { _alloc.dealloc(p); }
     };
@@ -36,7 +36,7 @@ namespace bss_util {
 
 Profiler Profiler::profiler;
 PROFILER_INT Profiler::total=0;
-cAdditiveAlloc PROF_HEATNODE::HeatAllocPolicy::_alloc(128*sizeof(PROF_HEATNODE));
+cGreedyAlloc PROF_HEATNODE::HeatAllocPolicy::_alloc(128*sizeof(PROF_HEATNODE));
 
 Profiler::Profiler() : _alloc(32), _data(1), _totalnodes(0) { _trie=_cur=_allocnode(); _data[0]=0; }
 

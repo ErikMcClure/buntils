@@ -10,31 +10,29 @@
 namespace bss_util {
   enum ARRAY_TYPE : unsigned char { CARRAY_SIMPLE=0, CARRAY_CONSTRUCT=1, CARRAY_SAFE=2 };
 
-  // cArrayInternal class that can be specialized as a simple, constructor-only, or fully safe array for performance reasons.
+  // cArrayBase class that can be specialized as a simple, constructor-only, or fully safe array for performance reasons.
   // Defaults to a simple array used to avoid constructors and assignment operator bottlenecks for simple data types.
   template<class T, typename SizeType=unsigned int, ARRAY_TYPE ArrayType = CARRAY_SIMPLE, typename Alloc=StaticAllocPolicy<T>>
-  class BSS_COMPILER_DLLEXPORT cArrayInternal
+  class BSS_COMPILER_DLLEXPORT cArrayBase
   {
   public:
     typedef SizeType ST_; // There are cases when you need access to these types even if you don't inherit (see cRandomQueue in bss_algo.h)
     typedef T T_;
     static_assert(std::is_integral<SizeType>::value, "SizeType must be integral");
 
-    //inline cArrayInternal<T,ST_,Alloc,ArrayType>(const cArrayInternal<T,ST_,Alloc,ArrayType>& copy) : _array(!copy._size?(T*)0:(T*)malloc(copy._size*sizeof(T))), _size(copy._size)
-    inline cArrayInternal<T, ST_, ArrayType, Alloc>(const cArrayInternal<T, ST_, ArrayType, Alloc>& copy) : _array(!copy._size?(T*)0:(T*)Alloc::allocate(copy._size)), _size(copy._size)
+    inline cArrayBase<T, ST_, ArrayType, Alloc>(const cArrayBase<T, ST_, ArrayType, Alloc>& copy) : _array(!copy._size?(T*)0:(T*)Alloc::allocate(copy._size)), _size(copy._size)
     {
       memcpy(_array, copy._array, _size*sizeof(T));
     }
-    inline cArrayInternal<T, ST_, ArrayType, Alloc>(cArrayInternal<T, ST_, ArrayType, Alloc>&& mov) : _array(mov._array), _size(mov._size)
+    inline cArrayBase<T, ST_, ArrayType, Alloc>(cArrayBase<T, ST_, ArrayType, Alloc>&& mov) : _array(mov._array), _size(mov._size)
     {
       mov._array=0;
       mov._size=0;
     }
-    //inline explicit cArrayInternal<T,ST_,Alloc,ArrayType>(ST_ size) : _array(!size?(T*)0:(T*)malloc(size*sizeof(T))), _size(size)
-    inline explicit cArrayInternal<T, ST_, ArrayType, Alloc>(ST_ size) : _array(!size?(T*)0:(T*)Alloc::allocate(size)), _size(size)
+    inline explicit cArrayBase<T, ST_, ArrayType, Alloc>(ST_ size) : _array(!size?(T*)0:(T*)Alloc::allocate(size)), _size(size)
     {
     }
-    inline ~cArrayInternal<T, ST_, ArrayType, Alloc>()
+    inline ~cArrayBase<T, ST_, ArrayType, Alloc>()
     {
       if(_array!=0)
         Alloc::deallocate(_array);
@@ -87,7 +85,7 @@ namespace bss_util {
     }
     //inline operator T*() { return _array; }
     //inline operator const T*() const { return _array; }
-    cArrayInternal<T, ST_, ArrayType, Alloc>& operator=(const cArrayInternal<T, ST_, ArrayType, Alloc>& copy)
+    cArrayBase<T, ST_, ArrayType, Alloc>& operator=(const cArrayBase<T, ST_, ArrayType, Alloc>& copy)
     {
       if(this == &copy) return *this;
       if(_array!=0) Alloc::deallocate(_array);
@@ -98,7 +96,7 @@ namespace bss_util {
         memcpy(_array, copy._array, _size*sizeof(T));
       return *this;
     }
-    cArrayInternal<T, ST_, ArrayType, Alloc>& operator=(cArrayInternal<T, ST_, ArrayType, Alloc>&& mov)
+    cArrayBase<T, ST_, ArrayType, Alloc>& operator=(cArrayBase<T, ST_, ArrayType, Alloc>&& mov)
     {
       if(this == &mov) return *this;
       if(_array!=0) Alloc::deallocate(_array);
@@ -108,7 +106,7 @@ namespace bss_util {
       mov._size=0;
       return *this;
     }
-    cArrayInternal<T, ST_, ArrayType, Alloc>& operator +=(const cArrayInternal<T, ST_, ArrayType, Alloc>& add)
+    cArrayBase<T, ST_, ArrayType, Alloc>& operator +=(const cArrayBase<T, ST_, ArrayType, Alloc>& add)
     {
       assert(this!=&add);
       ST_ oldsize=_size;
@@ -117,9 +115,9 @@ namespace bss_util {
         memcpy(_array+oldsize, add._array, add._size*sizeof(T));
       return *this;
     }
-    BSS_FORCEINLINE const cArrayInternal<T, ST_, ArrayType, Alloc> operator +(const cArrayInternal<T, ST_, ArrayType, Alloc>& add) const
+    BSS_FORCEINLINE const cArrayBase<T, ST_, ArrayType, Alloc> operator +(const cArrayBase<T, ST_, ArrayType, Alloc>& add) const
     {
-      cArrayInternal<T, ST_, ArrayType, Alloc> retval(*this);
+      cArrayBase<T, ST_, ArrayType, Alloc> retval(*this);
       retval+=add;
       return retval;
     }
@@ -156,27 +154,27 @@ namespace bss_util {
 
   // Very simple "dynamic" array that calls the constructor and destructor
   template<class T, typename SizeType, typename Alloc>
-  class BSS_COMPILER_DLLEXPORT cArrayInternal<T, SizeType, CARRAY_CONSTRUCT, Alloc>
+  class BSS_COMPILER_DLLEXPORT cArrayBase<T, SizeType, CARRAY_CONSTRUCT, Alloc>
   {
     static_assert(std::is_integral<SizeType>::value, "SizeType must be integral");
   public:
-    inline cArrayInternal(const cArrayInternal& copy) : _array(!copy._size?0:Alloc::allocate(copy._size)), _size(copy._size)
+    inline cArrayBase(const cArrayBase& copy) : _array(!copy._size?0:Alloc::allocate(copy._size)), _size(copy._size)
     {
       //memcpy(_array,copy._array,_size*sizeof(T)); // Can't use memcpy on an external source because you could end up copying a pointer that would later be destroyed
       for(SizeType i = 0; i < _size; ++i)
         new (_array+i) T(copy._array[i]);
     }
-    inline cArrayInternal(cArrayInternal&& mov) : _array(mov._array), _size(mov._size)
+    inline cArrayBase(cArrayBase&& mov) : _array(mov._array), _size(mov._size)
     {
       mov._array=0;
       mov._size=0;
     }
-    inline explicit cArrayInternal(SizeType size) : _array(!size?0:Alloc::allocate(size)), _size(size)
+    inline explicit cArrayBase(SizeType size) : _array(!size?0:Alloc::allocate(size)), _size(size)
     {
       for(SizeType i = 0; i < _size; ++i)
         new (_array+i) T();
     }
-    inline ~cArrayInternal()
+    inline ~cArrayBase()
     {
       for(SizeType i = 0; i < _size; ++i)
         (_array+i)->~T();
@@ -209,7 +207,7 @@ namespace bss_util {
       memmove(_array+index, _array+index+1, (_size-index-1)*sizeof(T));
       new(_array+(_size-1)) T();
     }
-    cArrayInternal& operator=(const cArrayInternal& copy)
+    cArrayBase& operator=(const cArrayBase& copy)
     {
       if(this == &copy) return *this;
       for(SizeType i = 0; i < _size; ++i)
@@ -222,7 +220,7 @@ namespace bss_util {
         new (_array+i) T(copy._array[i]);
       return *this;
     }
-    cArrayInternal& operator=(cArrayInternal&& mov)
+    cArrayBase& operator=(cArrayBase&& mov)
     {
       if(this == &mov) return *this;
       for(SizeType i = 0; i < _size; ++i)
@@ -234,7 +232,7 @@ namespace bss_util {
       mov._size=0;
       return *this;
     }
-    cArrayInternal& operator +=(const cArrayInternal& add)
+    cArrayBase& operator +=(const cArrayBase& add)
     {
       SizeType nsize=_size+add._size;
       T* narray = Alloc::allocate(nsize);
@@ -249,9 +247,9 @@ namespace bss_util {
       _size=nsize;
       return *this;
     }
-    BSS_FORCEINLINE const cArrayInternal operator +(const cArrayInternal& add) const
+    BSS_FORCEINLINE const cArrayBase operator +(const cArrayBase& add) const
     {
-      cArrayInternal retval(*this);
+      cArrayBase retval(*this);
       retval+=add;
       return retval;
     }
@@ -300,26 +298,26 @@ namespace bss_util {
 
   // Typesafe array that reconstructs everything properly, without any memory moving tricks
   template<class T, typename SizeType, typename Alloc>
-  class BSS_COMPILER_DLLEXPORT cArrayInternal<T, SizeType, CARRAY_SAFE, Alloc>
+  class BSS_COMPILER_DLLEXPORT cArrayBase<T, SizeType, CARRAY_SAFE, Alloc>
   {
     static_assert(std::is_integral<SizeType>::value, "SizeType must be integral");
   public:
-    inline cArrayInternal(const cArrayInternal& copy) : _array(Alloc::allocate(copy._size)), _size(copy._size)
+    inline cArrayBase(const cArrayBase& copy) : _array(Alloc::allocate(copy._size)), _size(copy._size)
     {
       for(SizeType i = 0; i < _size; ++i)
         new (_array+i) T(copy._array[i]);
     }
-    inline cArrayInternal(cArrayInternal&& mov) : _array(mov._array), _size(mov._size)
+    inline cArrayBase(cArrayBase&& mov) : _array(mov._array), _size(mov._size)
     {
       mov._array=0;
       mov._size=0;
     }
-    inline explicit cArrayInternal(SizeType size) : _array(Alloc::allocate(size)), _size(size)
+    inline explicit cArrayBase(SizeType size) : _array(Alloc::allocate(size)), _size(size)
     {
       for(SizeType i = 0; i < _size; ++i)
         new (_array+i) T();
     }
-    inline ~cArrayInternal()
+    inline ~cArrayBase()
     {
       for(SizeType i = 0; i < _size; ++i)
         (_array+i)->~T();
@@ -346,7 +344,7 @@ namespace bss_util {
     }
     void BSS_FASTCALL RemoveInternal(SizeType index)
     {
-      --_size; // Note that this _size decrease is reversed at the end of this function, so _size doesn't actually change, matching the behavior of cArrayInternal
+      --_size; // Note that this _size decrease is reversed at the end of this function, so _size doesn't actually change, matching the behavior of cArrayBase
       for(SizeType i=index; i<_size; ++i)
         _array[i]=std::move(_array[i+1]);
       _array[_size].~T();
@@ -354,7 +352,7 @@ namespace bss_util {
     }
     //inline operator T*() { return _array; }
     //inline operator const T*() const { return _array; }
-    cArrayInternal& operator=(const cArrayInternal& copy)
+    cArrayBase& operator=(const cArrayBase& copy)
     {
       if(this == &copy) return *this;
       for(SizeType i = 0; i < _size; ++i)
@@ -366,7 +364,7 @@ namespace bss_util {
         new (_array+i) T(copy._array[i]);
       return *this;
     }
-    cArrayInternal& operator=(cArrayInternal&& mov)
+    cArrayBase& operator=(cArrayBase&& mov)
     {
       if(this == &mov) return *this;
       for(SizeType i = 0; i < _size; ++i)
@@ -378,7 +376,7 @@ namespace bss_util {
       mov._size=0;
       return *this;
     }
-    cArrayInternal& operator +=(const cArrayInternal& add)
+    cArrayBase& operator +=(const cArrayBase& add)
     {
       SizeType nsize=_size+add._size;
       T* narray = Alloc::allocate(nsize);
@@ -396,9 +394,9 @@ namespace bss_util {
       _size=nsize;
       return *this;
     }
-    BSS_FORCEINLINE const cArrayInternal operator +(const cArrayInternal& add) const
+    BSS_FORCEINLINE const cArrayBase operator +(const cArrayBase& add) const
     {
-      cArrayInternal retval(*this);
+      cArrayBase retval(*this);
       retval+=add;
       return retval;
     }
@@ -439,10 +437,10 @@ namespace bss_util {
 
   // Wrapper for underlying arrays that expose the array, making them independently usable without blowing up everything that inherits them
   template<class T, typename SizeType=unsigned int, ARRAY_TYPE ArrayType = CARRAY_SIMPLE, typename Alloc=StaticAllocPolicy<T>>
-  class BSS_COMPILER_DLLEXPORT cArray : public cArrayInternal<T, SizeType, ArrayType, Alloc>
+  class BSS_COMPILER_DLLEXPORT cArray : public cArrayBase<T, SizeType, ArrayType, Alloc>
   {
   protected:
-    typedef cArrayInternal<T, SizeType, ArrayType, Alloc> AT_;
+    typedef cArrayBase<T, SizeType, ArrayType, Alloc> AT_;
     typedef typename AT_::ST_ ST_;
     typedef typename AT_::T_ T_;
     using AT_::_array;

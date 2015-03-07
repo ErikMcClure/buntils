@@ -18,9 +18,6 @@ namespace bss_util {
     template<typename U>
     struct rebind { typedef StandardAllocPolicy<U> other; };
 
-    inline StandardAllocPolicy() {}
-    inline ~StandardAllocPolicy() {}
-
     inline pointer allocate(size_t cnt, const pointer p = 0) {
       //return reinterpret_cast<pointer>(::operator new(cnt * sizeof (T))); // note that while operator new does not call a constructor (it can't), it's much easier to override for leak tests.
       return reinterpret_cast<pointer>(realloc(p, cnt*sizeof(T)));
@@ -30,7 +27,20 @@ namespace bss_util {
     inline size_t max_size() const { return ((size_t)(-1)/sizeof(T)); }
   };
 
-  // Static implementation of the standard allocation policy, used for cArrayInternal
+  // Implementation of a null allocation policy. Doesn't free anything, always returns 0 on all allocations.
+  template<typename T>
+  struct BSS_COMPILER_DLLEXPORT NullAllocPolicy {
+    typedef T* pointer;
+    typedef T value_type;
+    template<typename U>
+    struct rebind { typedef NullAllocPolicy<U> other; };
+
+    inline pointer allocate(size_t cnt, const pointer p = 0) { return 0; }
+    inline void deallocate(pointer p, size_t = 0) { }
+    inline size_t max_size() const { return ((size_t)(-1)/sizeof(T)); }
+  };
+
+  // Static implementation of the standard allocation policy, used for cArrayBase
   template<typename T>
   struct BSS_COMPILER_DLLEXPORT StaticAllocPolicy {
     typedef T* pointer;

@@ -6,10 +6,10 @@
 #include "bss_util.h"
 #include "bss_log.h"
 #include "bss_algo.h"
-#include "bss_alloc_additive.h"
-#include "bss_alloc_circular.h"
-#include "bss_alloc_fixed.h"
-#include "bss_alloc_fixed_MT.h"
+#include "bss_alloc_greedy.h"
+#include "bss_alloc_ring.h"
+#include "bss_alloc_block.h"
+#include "bss_alloc_block_MT.h"
 #include "bss_queue.h"
 #include "bss_sse.h"
 #include "bss_stack.h"
@@ -18,6 +18,7 @@
 #include "cAnimation.h"
 #include "cArrayCircular.h"
 #include "cAVLtree.h"
+#include "cAATree.h"
 #include "cBinaryHeap.h"
 #include "cBitArray.h"
 #include "cBitField.h"
@@ -941,14 +942,14 @@ void TEST_ALLOC_FUZZER(TESTDEF::RETPAIR& __testret)
 TESTDEF::RETPAIR test_bss_ALLOC_ADDITIVE()
 {
   BEGINTEST;
-  TEST_ALLOC_FUZZER<cAdditiveAlloc, char, 400, 10000>(__testret);
+  TEST_ALLOC_FUZZER<cGreedyAlloc, char, 400, 10000>(__testret);
   ENDTEST;
 }
 
 TESTDEF::RETPAIR test_bss_ALLOC_FIXED()
 {
   BEGINTEST;
-  TEST_ALLOC_FUZZER<cFixedAlloc<size_t>, size_t, 1, 10000>(__testret);
+  TEST_ALLOC_FUZZER<cBlockAlloc<size_t>, size_t, 1, 10000>(__testret);
   ENDTEST;
 }
 
@@ -961,7 +962,7 @@ TESTDEF::RETPAIR test_bss_ALLOC_FIXED()
 volatile std::atomic<bool> startflag;
 
 template<class T>
-struct MTCIRCALLOCWRAP : cCircularAlloc<T> { inline MTCIRCALLOCWRAP(size_t init=8) : cCircularAlloc<T>(init) {} inline void Clear() {} };
+struct MTCIRCALLOCWRAP : cRingAlloc<T> { inline MTCIRCALLOCWRAP(size_t init=8) : cRingAlloc<T>(init) {} inline void Clear() {} };
 
 template<class T, typename P, int TRIALS>
 void TEST_ALLOC_MT(TESTDEF::RETPAIR& pair, T& p)
@@ -975,7 +976,7 @@ typedef void(*CIRCALLOCFN)(TESTDEF::RETPAIR&, MTCIRCALLOCWRAP<size_t>&);
 TESTDEF::RETPAIR test_bss_ALLOC_CIRCULAR()
 {
   BEGINTEST;
-  TEST_ALLOC_FUZZER<cCircularAlloc<size_t>, size_t, 200, 1000>(__testret);
+  TEST_ALLOC_FUZZER<cRingAlloc<size_t>, size_t, 200, 1000>(__testret);
   MTCIRCALLOCWRAP<size_t> _alloc;
 
   const int NUM = 16;
@@ -992,7 +993,7 @@ TESTDEF::RETPAIR test_bss_ALLOC_CIRCULAR()
 }
 
 template<class T>
-struct MTALLOCWRAP : cLocklessFixedAlloc<T> { inline MTALLOCWRAP(size_t init=8) : cLocklessFixedAlloc<T>(init) {} inline void Clear() {} };
+struct MTALLOCWRAP : cLocklessBlockAlloc<T> { inline MTALLOCWRAP(size_t init=8) : cLocklessBlockAlloc<T>(init) {} inline void Clear() {} };
 
 typedef void (*ALLOCFN)(TESTDEF::RETPAIR&, MTALLOCWRAP<size_t>&);
 TESTDEF::RETPAIR test_bss_ALLOC_FIXED_LOCKLESS()
@@ -1545,7 +1546,7 @@ TESTDEF::RETPAIR test_ALIASTABLE()
   for(uint i = 0; i < 7; ++i)
     real[i]=counts[i]/10000000.0;
   for(uint i = 0; i < 7; ++i)
-    TEST(fcompare(p[i],real[i],(1LL<<44)));
+    TEST(fcompare(p[i],real[i],(1LL<<45)));
 
   ENDTEST;
 }
@@ -1622,11 +1623,14 @@ struct DEBUG_CDT : DEBUG_CDT_SAFE<SAFE> {
 template<> int DEBUG_CDT<true>::count=0;
 template<> int DEBUG_CDT<false>::count=0;
 
-namespace bss_util { template<> struct ANI_IDTYPE<0> { typedef ANI_IDTYPE_TYPES<AniAttributeDiscrete<0>, cRefCounter*, cAutoRef<cRefCounter>, char> TYPES; }; }
-namespace bss_util { template<> struct ANI_IDTYPE<1> { typedef ANI_IDTYPE_TYPES<AniAttributeInterval<1>, std::pair<cAutoRef<cRefCounter>, double>, std::pair<cAutoRef<cRefCounter>, double>, char, cRefCounter*> TYPES;
-  static BSS_FORCEINLINE double toduration(TYPES::DATACONST p) { return p.second; } }; }
-namespace bss_util { template<> struct ANI_IDTYPE<2> { typedef ANI_IDTYPE_TYPES<AniAttributeSmooth<2>, float> TYPES; }; }
-namespace bss_util { template<> struct ANI_IDTYPE<3> { typedef ANI_IDTYPE_TYPES<AniAttributeGeneric<3>, std::function<void(void)>, std::function<void(void)>, char> TYPES; }; }
+namespace bss_util { template<typename Alloc> struct AniAttributeT<0, Alloc> : public AniAttributeDiscrete<Alloc, cAutoRef<cRefCounter>, delegate<void, cRefCounter*>, CARRAY_SAFE>{ AniAttributeT() : AniAttributeDiscrete(0) {} }; }
+namespace bss_util {
+  BSS_FORCEINLINE double interval_toduration(const std::pair<cAutoRef<cRefCounter>, double>& p) { return p.second; }
+  template<typename Alloc> struct AniAttributeT<1, Alloc> : public AniAttributeInterval<Alloc, std::pair<cAutoRef<cRefCounter>, double>, cRefCounter*, &interval_toduration, delegate<void, cRefCounter*>, delegate<cRefCounter*, std::pair<cAutoRef<cRefCounter>, double>>, CARRAY_SAFE>{ AniAttributeT() : AniAttributeInterval(1) {}
+  }; 
+}
+namespace bss_util { template<typename Alloc> struct AniAttributeT<2, Alloc> : public AniAttributeSmooth<Alloc, float>{ AniAttributeT() : AniAttributeSmooth(2) {} }; }
+namespace bss_util { template<typename Alloc> struct AniAttributeT<3, Alloc> : public AniAttributeGeneric<Alloc, std::function<void(void)>> { AniAttributeT() : AniAttributeGeneric(3) {} }; }
 
 #include <memory>
 
@@ -1646,12 +1650,12 @@ struct cAnimObj
   }
   void BSS_FASTCALL remnothing(cRefCounter* p) { p->Drop(); }
   void BSS_FASTCALL setfloat(float a) { fl = a; }
-  
+  const float& BSS_FASTCALL getfloat() { return fl; }
   void BSS_FASTCALL TypeIDRegFunc(AniAttribute* p)
   {
-    AttrDefDiscrete<0> a(delegate<void, cRefCounter*>::From<cAnimObj, &cAnimObj::donothing>(this));
-    AttrDefInterval<1> b(delegate<void, cRefCounter*>::From<cAnimObj, &cAnimObj::remnothing>(this), delegate<cRefCounter*, ANIOBJPAIR>::From<cAnimObj, &cAnimObj::retnothing>(this));
-    AttrDefSmooth<2> c(&fl, delegate<void, float>::From<cAnimObj, &cAnimObj::setfloat>(this));
+    AniAttributeT<0>::ATTRDEF a(delegate<void, cRefCounter*>::From<cAnimObj, &cAnimObj::donothing>(this));
+    AniAttributeT<1>::ATTRDEF b(delegate<void, cRefCounter*>::From<cAnimObj, &cAnimObj::remnothing>(this), delegate<cRefCounter*, ANIOBJPAIR>::From<cAnimObj, &cAnimObj::retnothing>(this));
+    AniAttributeT<2>::ATTRDEF c(delegate<const float&>::From<cAnimObj, &cAnimObj::getfloat>(this), delegate<void, float>::From<cAnimObj, &cAnimObj::setfloat>(this));
     switch(p->typeID)
     {
     case 0:
@@ -1686,16 +1690,16 @@ TESTDEF::RETPAIR test_ANIMATION()
   a.Pause(true);
   a.SetTimeWarp(1.0);
   TEST(a.IsPaused());
-  a.GetAttribute<2>()->SetInterpolation(&AniAttributeSmooth<2>::LerpInterpolate);
-  a.AddKeyFrame<0>(KeyFrame<0>(0.0, &c));
-  a.AddKeyFrame<0>(KeyFrame<0>(1.1, &c));
-  a.AddKeyFrame<0>(KeyFrame<0>(2.0, &c));
-  a.AddKeyFrame<1>(KeyFrame<1>(0.0, ANIOBJPAIR(&c,1.5)));
-  a.AddKeyFrame<1>(KeyFrame<1>(1.0, ANIOBJPAIR(&c, 0.5)));
-  a.AddKeyFrame<1>(KeyFrame<1>(1.5, ANIOBJPAIR(&c, 0.5)));
-  a.AddKeyFrame<2>(KeyFrame<2>(0.0, 0.0f));
-  a.AddKeyFrame<2>(KeyFrame<2>(1.0, 1.0f));
-  a.AddKeyFrame<2>(KeyFrame<2>(2.0, 2.0f));
+  a.GetAttribute<2>()->SetInterpolation(&AniAttributeT<2>::LerpInterpolate);
+  a.GetAttribute<0>()->AddKeyFrame(AniAttributeT<0>::KeyFrame(0.0, &c));
+  a.GetAttribute<0>()->AddKeyFrame(AniAttributeT<0>::KeyFrame(1.1, &c));
+  a.GetAttribute<0>()->AddKeyFrame(AniAttributeT<0>::KeyFrame(2.0, &c));
+  a.GetAttribute<1>()->AddKeyFrame(AniAttributeT<1>::KeyFrame(0.0, ANIOBJPAIR(&c,1.5)));
+  a.GetAttribute<1>()->AddKeyFrame(AniAttributeT<1>::KeyFrame(1.0, ANIOBJPAIR(&c, 0.5)));
+  a.GetAttribute<1>()->AddKeyFrame(AniAttributeT<1>::KeyFrame(1.5, ANIOBJPAIR(&c, 0.5)));
+  a.GetAttribute<2>()->AddKeyFrame(AniAttributeT<2>::KeyFrame(0.0, 0.0f));
+  a.GetAttribute<2>()->AddKeyFrame(AniAttributeT<2>::KeyFrame(1.0, 1.0f));
+  a.GetAttribute<2>()->AddKeyFrame(AniAttributeT<2>::KeyFrame(2.0, 2.0f));
   a.Pause(false);
   TEST(!a.IsPaused());
   TEST(a.HasTypeID(0));
@@ -1703,6 +1707,7 @@ TESTDEF::RETPAIR test_ANIMATION()
   TEST(a.HasTypeID(2));
   TEST(!a.HasTypeID(3));
   TEST(a.GetTypeID(0)!=0);
+  a.SetAnimationLength(); // Forces a recalculation of the length from the attributes.
   TEST(a.GetAnimationLength()==2.0);
   
   std::stringstream ss;
@@ -1713,10 +1718,10 @@ TESTDEF::RETPAIR test_ANIMATION()
   for(int i = 0; i<6; ++i) c.Grab(); // compensate for the pointer we just copied over
 
   cAnimObj obj;
-  a.AddKeyFrame<3>(KeyFrame<3>(0.0, [&](){ c.Grab(); obj.test++; }));
-  a.AddKeyFrame<3>(KeyFrame<3>(0.6, [&](){ c.Drop(); }));
+  a.GetAttribute<3>()->AddKeyFrame(AniAttributeT<3>::KeyFrame(0.0, [&](){ c.Grab(); obj.test++; }));
+  a.GetAttribute<3>()->AddKeyFrame(AniAttributeT<3>::KeyFrame(0.6, [&](){ c.Drop(); }));
   a.Attach(delegate<void,AniAttribute*>::From<cAnimObj,&cAnimObj::TypeIDRegFunc>(&obj));
-
+  
   TEST(c.Grab()==14);
   c.Drop();
   TEST(obj.test==0);
@@ -1958,8 +1963,8 @@ TESTDEF::RETPAIR test_AVLTREE()
 {
   BEGINTEST;
 
-  FixedPolicy<AVL_Node<std::pair<int, int>>> fixedavl;
-  cAVLtree<int, int, CompT<int>, FixedPolicy<AVL_Node<std::pair<int, int>>>> avlblah(&fixedavl);
+  BlockPolicy<AVL_Node<std::pair<int, int>>> fixedavl;
+  cAVLtree<int, int, CompT<int>, BlockPolicy<AVL_Node<std::pair<int, int>>>> avlblah(&fixedavl);
 
   //unsigned __int64 prof=cHighPrecisionTimer::OpenProfiler();
   for(int i = 0; i<TESTNUM; ++i)
@@ -2000,9 +2005,9 @@ TESTDEF::RETPAIR test_AVLTREE()
 
   {
     shuffle(testnums);
-    cFixedAlloc<DEBUG_CDT<false>> dalloc(TESTNUM);
+    cBlockAlloc<DEBUG_CDT<false>> dalloc(TESTNUM);
     typedef UqP_<DEBUG_CDT<false>, std::function<void(DEBUG_CDT<false>*)>> AVL_D;
-    cAVLtree<int, AVL_D, CompT<int>, FixedPolicy<AVL_Node<std::pair<int, AVL_D>>>> dtree;
+    cAVLtree<int, AVL_D, CompT<int>, BlockPolicy<AVL_Node<std::pair<int, AVL_D>>>> dtree;
     for(int i = 0; i<TESTNUM; ++i)
     {
       auto dp = dalloc.alloc(1);
@@ -2044,7 +2049,7 @@ TESTDEF::RETPAIR test_AVLTREE()
   }
   TEST(!DEBUG_CDT<false>::count)
 
-    cAVLtree<int, void, CompT<int>, FixedPolicy<AVL_Node<int>>> avlblah2;
+    cAVLtree<int, void, CompT<int>, BlockPolicy<AVL_Node<int>>> avlblah2;
 
   //unsigned __int64 prof=cHighPrecisionTimer::OpenProfiler();
   for(int i = 0; i<TESTNUM; ++i)
@@ -2083,6 +2088,58 @@ TESTDEF::RETPAIR test_AVLTREE()
   TEST(avltestnum[5]==-2);
   TEST(avltestnum[6]==-1);
   TEST(avltestnum[7]==-3);
+
+  ENDTEST;
+}
+
+
+TESTDEF::RETPAIR test_AA_TREE()
+{
+  BEGINTEST;
+
+  BlockPolicy<AANODE<int>> fixedaa;
+  cAATree<int, CompT<int>, BlockPolicy<AANODE<int>>> aat(&fixedaa);
+
+  //unsigned __int64 prof=cHighPrecisionTimer::OpenProfiler();
+  for(int i = 0; i<TESTNUM; ++i)
+    aat.Insert(testnums[i]);
+  //std::cout << cHighPrecisionTimer::CloseProfiler(prof) << std::endl;
+
+  shuffle(testnums);
+  //prof=cHighPrecisionTimer::OpenProfiler();
+  uint c=0;
+  for(int i = 0; i<TESTNUM; ++i)
+    c+=(aat.Get(testnums[i])!=0);
+  TEST(c==TESTNUM);
+  //std::cout << cHighPrecisionTimer::CloseProfiler(prof) << std::endl;
+
+  shuffle(testnums);
+  //prof=cHighPrecisionTimer::OpenProfiler();
+  c=0;
+  for(int i = 0; i<TESTNUM; ++i) {
+    if(testnums[i] == 20159)
+      std::cout << (aat.Get(testnums[i])!=0) << std::endl;
+
+    if(!aat.Remove(testnums[i])) {
+      std::cout << testnums[i] << std::endl;
+    } else {
+      c++;
+    }
+
+    //c+=aat.Remove(testnums[i]);
+  }
+  TEST(c==TESTNUM);
+  //std::cout << cHighPrecisionTimer::CloseProfiler(prof) << std::endl;
+  std::cout << aat.Remove(20159) << std::endl;
+  std::cout << aat.Remove(aat.GetRoot()->data) << std::endl;
+  
+  TEST(aat.GetRoot()==0);
+  aat.Clear();
+
+  c=0;
+  for(int i = 0; i<TESTNUM; ++i) // Test that no numbers are in the tree
+    c+=(aat.Get(testnums[i])==0);
+  TEST(c==TESTNUM);
 
   ENDTEST;
 }
@@ -2705,7 +2762,8 @@ TESTDEF::RETPAIR test_HIGHPRECISIONTIMER()
 {
   BEGINTEST;
   cHighPrecisionTimer timer;
-  timer.Update();
+  while(timer.GetTime()==0.0)
+    timer.Update();
   double ldelta=timer.GetDelta();
   double ltime=timer.GetTime();
   TEST(ldelta>0.0);
@@ -2719,6 +2777,7 @@ TESTDEF::RETPAIR test_HIGHPRECISIONTIMER()
   timer.ResetDelta();
   TEST(timer.GetDelta()==0.0);
   TEST(timer.GetTime()>0.0);
+  std::this_thread::sleep_for(std::chrono::duration<uint64>::min());
   timer.Update();
   timer.ResetTime();
   TEST(timer.GetDelta()>0.0);
@@ -3071,8 +3130,8 @@ BSS_FORCEINLINE KDNode<KDtest>*& BSS_FASTCALL KDtest_NODE(KDtest* t) { return t-
 TESTDEF::RETPAIR test_KDTREE()
 {
   BEGINTEST;
-  FixedPolicy<KDNode<KDtest>> alloc;
-  cKDTree<KDtest,FixedPolicy<KDNode<KDtest>>,&KDtest_RECT,&KDtest_LIST,&KDtest_ACTION,&KDtest_NODE> tree;
+  BlockPolicy<KDNode<KDtest>> alloc;
+  cKDTree<KDtest,BlockPolicy<KDNode<KDtest>>,&KDtest_RECT,&KDtest_LIST,&KDtest_ACTION,&KDtest_NODE> tree;
   KDtest r1 = { 0,0,1,1,0,0 };
   KDtest r2 = { 1,1,2,2,0,0 };
   KDtest r3 = { 0,0,2,2,0,0 };
@@ -3262,7 +3321,7 @@ TESTDEF::RETPAIR test_LINKEDLIST()
   ENDTEST;
 }
 
-std::atomic<unsigned int> lq_c;
+std::atomic<size_t> lq_c;
 unsigned short lq_end[TESTNUM];
 std::atomic<unsigned short> lq_pos;
 
@@ -3478,8 +3537,8 @@ TESTDEF::RETPAIR test_RATIONAL()
 TESTDEF::RETPAIR test_TRBTREE()
 {
   BEGINTEST;
-  FixedPolicy<TRB_Node<int>> fixedalloc;
-  cTRBtree<int, CompT<int>, FixedPolicy<TRB_Node<int>>> blah(&fixedalloc);
+  BlockPolicy<TRB_Node<int>> fixedalloc;
+  cTRBtree<int, CompT<int>, BlockPolicy<TRB_Node<int>>> blah(&fixedalloc);
 
   shuffle(testnums);
   for(int i = 0; i<TESTNUM; ++i)
@@ -3795,34 +3854,30 @@ TESTDEF::RETPAIR test_THREAD()
 }
 
 void pooltest(int i) {
+  while(!startflag.load(std::memory_order_relaxed));
   lq_end[lq_c.fetch_add(1,std::memory_order_relaxed)]=i;
 }
 TESTDEF::RETPAIR test_THREADPOOL()
 {
   BEGINTEST;
   static const int NUM=8;
-  cThreadPool<32> pool(NUM);
+  cThreadPool pool(NUM);
 #ifdef BSS_VARIADIC_TEMPLATES
-  cTaskPool<32,int> tasks(pool);
-  pool.Wait();
   memset(lq_end, 0, sizeof(unsigned short)*TESTNUM);
   lq_c=0;
+  startflag.store(false, std::memory_order_relaxed);
 
-  for(int i = 1; i < 5000; ++i) // fill up initial bunch
-    tasks.Push(pooltest, i);
+  for(int i = 0; i < TESTNUM; ++i) 
+    pool.AddFunc(pooltest, i);
 
-  pool.Prime();
-
-  for(int i = 5000; i <= TESTNUM; ++i)
-    tasks.Push(pooltest, i);
-
-  pool.Join();
+  startflag.store(true, std::memory_order_relaxed);
+  pool.Wait();
 
   TEST(lq_c==TESTNUM);
   std::sort(std::begin(lq_end), std::end(lq_end));
   bool check=true;
-  for(int i = 1; i <= TESTNUM; ++i)
-    check=(lq_end[i-1]==i)&&check;
+  for(int i = 0; i < TESTNUM; ++i)
+    check=(lq_end[i]==i)&&check;
   TEST(check);
 #endif
 
@@ -4166,17 +4221,7 @@ TESTDEF::RETPAIR test_STREAMSPLITTER()
   ENDTEST;
 }
 
-/*void subleq_computer(int[] mem)
-{
-int c=0;
-int b;
-while(c>=0)
-{
-b=mem[c+1];
-mem[b] = mem[b]-mem[mem[c]];
-c=(mem[b]>0)?(c+3):mem[c+2];
-}
-}*/
+void profile_ring_alloc();
 
 // --- Begin main testing function ---
 int main(int argc, char** argv)
@@ -4184,22 +4229,25 @@ int main(int argc, char** argv)
   ForceWin64Crash();
   SetWorkDirToCur();
   unsigned int seed=(unsigned int)time(NULL);
+  seed = 1425459123;
   srand(seed);
-  
+
+  //profile_ring_alloc();
+
   for(int i = 0; i<TESTNUM; ++i)
     testnums[i]=i;
   shuffle(testnums);
-
+  
   // For best results on windows, add the test application to Application Verifier before going through the tests.
   TESTDEF tests[] = {
     { "bss_util_c.h", &test_bss_util_c },
     { "bss_util.h", &test_bss_util },
     { "cLog.h", &test_bss_LOG },
     { "bss_algo.h", &test_bss_algo },
-    { "bss_alloc_additive.h", &test_bss_ALLOC_ADDITIVE },
+    { "bss_alloc_greedy.h", &test_bss_ALLOC_ADDITIVE },
     { "bss_alloc_circular.h", &test_bss_ALLOC_CIRCULAR },
-    { "bss_alloc_fixed.h", &test_bss_ALLOC_FIXED },
-    { "bss_alloc_fixed_MT.h", &test_bss_ALLOC_FIXED_LOCKLESS },
+    { "bss_alloc_block.h", &test_bss_ALLOC_FIXED },
+    { "bss_alloc_block_MT.h", &test_bss_ALLOC_FIXED_LOCKLESS },
     { "bss_depracated.h", &test_bss_deprecated },
     { "bss_dual.h", &test_bss_DUAL },
     { "bss_fixedpt.h", &test_bss_FIXEDPT },
@@ -4212,6 +4260,7 @@ int main(int argc, char** argv)
     { "cArray.h", &test_ARRAY },
     { "cArraySort.h", &test_ARRAYSORT },
     { "cAVLtree.h", &test_AVLTREE },
+    { "cAAtree.h", &test_AA_TREE },
     { "cBinaryHeap.h", &test_BINARYHEAP },
     { "cBitArray.h", &test_BITARRAY },
     { "cBitField.h", &test_BITFIELD },
@@ -4288,6 +4337,86 @@ int main(int argc, char** argv)
 
   return 0;
 }
+
+
+template<class Alloc, int MAX, int SZ>
+void profile_push(Alloc& a, std::atomic<void*>* q)
+{
+  while(!startflag.load(std::memory_order_relaxed));
+  uint c;
+  while((c=lq_c.fetch_add(1, std::memory_order_acquire))<MAX) {
+    void* p=a.allocate((c<<3)%SZ);
+    q[c].store((!p?(void*)1:p), std::memory_order_release);
+    //q[c] = p;
+  }
+}
+
+std::atomic<size_t> lq_r;
+
+template<class Alloc, int MAX>
+void profile_pop(Alloc& a, std::atomic<void*>* q)
+{
+  while(!startflag.load(std::memory_order_relaxed));
+  void* p;
+  uint c;
+  while((c=lq_r.fetch_add(1, std::memory_order_acquire))<MAX)
+  {
+    while(!(p = q[c].load(std::memory_order_acquire)));
+    a.deallocate((size_t*)p);
+  }
+}
+
+template<class Alloc, int MAX, int SZ>
+uint64 doprofile(Alloc& a)
+{
+  lq_c.store(0);
+  lq_r.store(0);
+  std::atomic<void*> arr[MAX];
+  memset(arr, 0, sizeof(void*)*MAX);
+  const int NUM = 8;
+  cThread threads[NUM];
+  startflag.store(false);
+  for(int i = 0; i < NUM; ++i)
+    threads[i] = cThread((i%2)?&profile_pop<Alloc, MAX>:&profile_push<Alloc, MAX, SZ>, std::ref(a), arr);
+
+  auto prof = cHighPrecisionTimer::OpenProfiler();
+  startflag.store(true);
+
+  while(lq_r.load(std::memory_order_relaxed)<MAX);
+  void* p;
+  uint64 diff = cHighPrecisionTimer::CloseProfiler(prof);
+
+  for(int i = 0; i < NUM; ++i)
+    threads[i].join();
+
+  return diff;
+}
+
+void profile_ring_alloc()
+{
+  NullAllocPolicy<size_t> nalloc;
+  RingPolicy<size_t> ralloc(50000);
+  StandardAllocPolicy<size_t> salloc;
+  //std::this_thread::sleep_for(std::chrono::duration<uint64>::min());
+
+  std::cout << doprofile<NullAllocPolicy<size_t>, 500000, 100>(nalloc) << std::endl;
+  std::cout << doprofile<StandardAllocPolicy<size_t>, 500000, 100>(salloc) << std::endl;
+  std::cout << doprofile<RingPolicy<size_t>, 500000, 100>(ralloc) << std::endl;
+  std::cout << doprofile<NullAllocPolicy<size_t>, 500000, 100>(nalloc) << std::endl;
+}
+
+/*void subleq_computer(int[] mem)
+{
+int c=0;
+int b;
+while(c>=0)
+{
+b=mem[c+1];
+mem[b] = mem[b]-mem[mem[c]];
+c=(mem[b]>0)?(c+3):mem[c+2];
+}
+}*/
+
 
 // --- The rest of this file is archived dead code ---
 
@@ -4436,30 +4565,6 @@ void printout(cLinkedArray<int>& list)
 //{  
   //char* romanstuff = inttoroman(3333);
 
-  //cTAATree<int,int> _aatest;
-
-  //for(int i = 0; i < 100000; ++i)
-  //{
-  //  _aatest.Insert(rand(),rand());
-  //  
-  //  const cTAATree<int,int>::TNODE* hold=_aatest.GetFirst();
-  //  while(hold)
-  //  {
-  //    if(hold->next!=0)
-  //      assert(hold->key<=hold->next->key);
-  //    hold=hold->next;
-  //  }
-  //}
-
-  //int count=0;
-  //const cTAATree<int,int>::TNODE* hold=_aatest.GetFirst();
-  //while(hold)
-  //{
-  //  if(hold->next!=0)
-  //    assert(hold->key<=hold->next->key);
-  //  hold=hold->next;
-  //  ++count;
-  //}
   //int prev=0;
   //int cur=1;
   //int res=0;

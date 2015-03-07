@@ -1,22 +1,28 @@
 // Copyright ©2014 Black Sphere Studios
 // For conditions of distribution and use, see copyright notice in "bss_util.h"
 
-#ifndef __BSS_ALLOC_FIXED_LOCKLESS_H__
-#define __BSS_ALLOC_FIXED_LOCKLESS_H__
+#ifndef __BSS_ALLOC_BLOCK_LOCKLESS_H__
+#define __BSS_ALLOC_BLOCK_LOCKLESS_H__
 
-#include "bss_alloc_fixed.h"
+#include "bss_alloc_block.h"
 #include "lockless.h"
 
 namespace bss_util {
   /* Multi-producer multi-consumer lockless fixed size allocator */
   template<class T>
-  class BSS_COMPILER_DLLEXPORT cLocklessFixedAlloc
+  class BSS_COMPILER_DLLEXPORT cLocklessBlockAlloc
   {
-    cLocklessFixedAlloc(const cLocklessFixedAlloc& copy) BSS_DELETEFUNC
-    cLocklessFixedAlloc& operator=(const cLocklessFixedAlloc& copy) BSS_DELETEFUNCOP
+    cLocklessBlockAlloc(const cLocklessBlockAlloc& copy) BSS_DELETEFUNC
+    cLocklessBlockAlloc& operator=(const cLocklessBlockAlloc& copy) BSS_DELETEFUNCOP
   public:
-    inline cLocklessFixedAlloc(cLocklessFixedAlloc&& mov) : _root(mov._root), _freelist(mov._freelist) { mov._freelist.p=mov._root=0; _flag.clear(std::memory_order_relaxed); }
-    inline explicit cLocklessFixedAlloc(size_t init=8) : _root(0)
+    inline cLocklessBlockAlloc(cLocklessBlockAlloc&& mov) : _root(mov._root)
+    { 
+      _freelist.p = mov._freelist.p;
+      _freelist.tag = mov._freelist.tag;
+      mov._freelist.p=mov._root=0;
+      _flag.clear(std::memory_order_relaxed);
+    }
+    inline explicit cLocklessBlockAlloc(size_t init=8) : _root(0)
     {
       _flag.clear(std::memory_order_relaxed);
       //contention=0;
@@ -26,7 +32,7 @@ namespace bss_util {
       static_assert((sizeof(bss_PTag<void>)==(sizeof(void*)*2)), "ABAPointer isn't twice the size of a pointer!");
       _allocchunk(init*sizeof(T));
     }
-    inline ~cLocklessFixedAlloc()
+    inline ~cLocklessBlockAlloc()
     {
       FIXEDLIST_NODE* hold=_root;
       while(_root=hold)
@@ -77,6 +83,16 @@ namespace bss_util {
       //*((void**)p)=(void*)_freelist;
       //while(!asmcas<void*>(&_freelist,p,*((void**)p))) //ABA problem
       //  *((void**)p)=(void*)_freelist;
+    }
+
+    cLocklessBlockAlloc& operator=(cLocklessBlockAlloc&& mov)
+    {
+      _root = mov._root;
+      _freelist.p = mov._freelist.p;
+      _freelist.tag = mov._freelist.tag;
+      mov._freelist.p=mov._root=0;
+      _flag.clear(std::memory_order_relaxed);
+      return *this;
     }
 
     //size_t contention;
@@ -132,6 +148,26 @@ namespace bss_util {
     FIXEDLIST_NODE* _root;
     BSS_ALIGN(16) volatile bss_PTag<void> _freelist;
     BSS_ALIGN(4) std::atomic_flag _flag;
+  };
+
+  template<typename T>
+  class BSS_COMPILER_DLLEXPORT LocklessBlockPolicy : protected cLocklessBlockAlloc<T>
+  {
+    LocklessBlockPolicy(const LocklessBlockPolicy& copy) BSS_DELETEFUNC
+    LocklessBlockPolicy& operator=(const LocklessBlockPolicy& copy) BSS_DELETEFUNCOP
+
+  public:
+    typedef T* pointer;
+    typedef T value_type;
+    template<typename U>
+    struct rebind { typedef LocklessBlockPolicy<U> other; };
+
+    inline LocklessBlockPolicy(LocklessBlockPolicy&& mov) : cLocklessBlockAlloc<T>(std::move(mov)) {}
+    inline LocklessBlockPolicy() {}
+    inline ~LocklessBlockPolicy() {}
+
+    inline pointer allocate(size_t cnt, const pointer = 0) { return cLocklessBlockAlloc<T>::alloc(cnt); }
+    inline void deallocate(pointer p, size_t num = 0) { return cLocklessBlockAlloc<T>::dealloc(p); }
   };
 }
 

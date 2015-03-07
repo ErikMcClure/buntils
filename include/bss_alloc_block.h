@@ -1,36 +1,36 @@
 // Copyright ©2014 Black Sphere Studios
 // For conditions of distribution and use, see copyright notice in "bss_util.h"
 
-#ifndef __BSS_ALLOC_FIXED_H__
-#define __BSS_ALLOC_FIXED_H__
+#ifndef __BSS_ALLOC_BLOCK_H__
+#define __BSS_ALLOC_BLOCK_H__
 
 #include "bss_alloc.h"
 #include "bss_util.h"
 
 namespace bss_util {
-  // Fixed Chunk Alloc
+  // Block Chunk Alloc
   struct FIXEDLIST_NODE
   {
     size_t size;
     FIXEDLIST_NODE* next;
   };
 
-  class BSS_COMPILER_DLLEXPORT cFixedAllocVoid
+  class BSS_COMPILER_DLLEXPORT cBlockAllocVoid
   {
 #ifdef BSS_COMPILER_MSC2010
-    cFixedAllocVoid(const cFixedAllocVoid& copy) : _freelist(0), _root(0), _sz(0) { assert(false); }
+    cBlockAllocVoid(const cBlockAllocVoid& copy) : _freelist(0), _root(0), _sz(0) { assert(false); }
 #else
-    cFixedAllocVoid(const cFixedAllocVoid& copy) = delete;
+    cBlockAllocVoid(const cBlockAllocVoid& copy) = delete;
 #endif
-    cFixedAllocVoid& operator=(const cFixedAllocVoid& copy) BSS_DELETEFUNCOP
+    cBlockAllocVoid& operator=(const cBlockAllocVoid& copy) BSS_DELETEFUNCOP
   public:
-    inline cFixedAllocVoid(cFixedAllocVoid&& mov) : _freelist(mov._freelist), _root(mov._root), _sz(mov._sz) { mov._root=0; mov._freelist=0; }
-    inline explicit cFixedAllocVoid(size_t sz, size_t init=8) : _freelist(0), _root(0), _sz(sz)
+    inline cBlockAllocVoid(cBlockAllocVoid&& mov) : _freelist(mov._freelist), _root(mov._root), _sz(mov._sz) { mov._root=0; mov._freelist=0; }
+    inline explicit cBlockAllocVoid(size_t sz, size_t init=8) : _freelist(0), _root(0), _sz(sz)
     {
       assert(sz>=sizeof(void*));
       _allocchunk(init*_sz);
     }
-    inline ~cFixedAllocVoid()
+    inline ~cBlockAllocVoid()
     {
       FIXEDLIST_NODE* hold=_root;
       while((_root=hold)!=0)
@@ -121,34 +121,34 @@ namespace bss_util {
   };
 
   template<class T>
-  class BSS_COMPILER_DLLEXPORT cFixedAlloc : public cFixedAllocVoid
+  class BSS_COMPILER_DLLEXPORT cBlockAlloc : public cBlockAllocVoid
   {
-    cFixedAlloc(const cFixedAlloc& copy) BSS_DELETEFUNC
-      cFixedAlloc& operator=(const cFixedAlloc& copy) BSS_DELETEFUNCOP
+    cBlockAlloc(const cBlockAlloc& copy) BSS_DELETEFUNC
+      cBlockAlloc& operator=(const cBlockAlloc& copy) BSS_DELETEFUNCOP
   public:
-    inline cFixedAlloc(cFixedAlloc&& mov) : cFixedAllocVoid(std::move(mov)) {}
-    inline explicit cFixedAlloc(size_t init=8) : cFixedAllocVoid(sizeof(T), init) { static_assert((sizeof(T)>=sizeof(void*)), "T cannot be less than the size of a pointer"); }
-    inline T* BSS_FASTCALL alloc(size_t num) { return (T*)cFixedAllocVoid::alloc(num); }
+    inline cBlockAlloc(cBlockAlloc&& mov) : cBlockAllocVoid(std::move(mov)) {}
+    inline explicit cBlockAlloc(size_t init=8) : cBlockAllocVoid(sizeof(T), init) { static_assert((sizeof(T)>=sizeof(void*)), "T cannot be less than the size of a pointer"); }
+    inline T* BSS_FASTCALL alloc(size_t num) { return (T*)cBlockAllocVoid::alloc(num); }
   };
 
   template<typename T>
-  class BSS_COMPILER_DLLEXPORT FixedPolicy : protected cFixedAlloc<T>
+  class BSS_COMPILER_DLLEXPORT BlockPolicy : protected cBlockAlloc<T>
   {
-    FixedPolicy(const FixedPolicy& copy) BSS_DELETEFUNC
-      FixedPolicy& operator=(const FixedPolicy& copy) BSS_DELETEFUNCOP
+    BlockPolicy(const BlockPolicy& copy) BSS_DELETEFUNC
+      BlockPolicy& operator=(const BlockPolicy& copy) BSS_DELETEFUNCOP
   public:
     typedef T* pointer;
     typedef T value_type;
     template<typename U>
-    struct rebind { typedef FixedPolicy<U> other; };
+    struct rebind { typedef BlockPolicy<U> other; };
 
-    inline FixedPolicy(FixedPolicy&& mov) : cFixedAlloc<T>(std::move(mov)) {}
-    inline FixedPolicy() {}
-    inline ~FixedPolicy() {}
+    inline BlockPolicy(BlockPolicy&& mov) : cBlockAlloc<T>(std::move(mov)) {}
+    inline BlockPolicy() {}
+    inline ~BlockPolicy() {}
 
 
-    inline pointer allocate(size_t cnt, const pointer = 0) { return cFixedAlloc<T>::alloc(cnt); }
-    inline void deallocate(pointer p, size_t num = 0) { return cFixedAlloc<T>::dealloc(p); }
+    inline pointer allocate(size_t cnt, const pointer = 0) { return cBlockAlloc<T>::alloc(cnt); }
+    inline void deallocate(pointer p, size_t num = 0) { return cBlockAlloc<T>::dealloc(p); }
   };
 }
 

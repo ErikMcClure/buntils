@@ -21,12 +21,6 @@
     <ClInclude Include="..\include\bss_alloc.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="..\include\bss_alloc_additive.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="..\include\bss_alloc_fixed.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
     <ClInclude Include="..\include\bss_compare.h">
       <Filter>Header Files</Filter>
     </ClInclude>
@@ -159,9 +153,6 @@
     <ClInclude Include="..\include\cLinkedList.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="..\include\bss_alloc_fixed_MT.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
     <ClInclude Include="..\include\cScheduler.h">
       <Filter>Header Files</Filter>
     </ClInclude>
@@ -219,7 +210,16 @@
     <ClInclude Include="..\include\cAATree.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="..\include\bss_alloc_circular.h">
+    <ClInclude Include="..\include\bss_alloc_ring.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="..\include\bss_alloc_greedy.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="..\include\bss_alloc_block.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="..\include\bss_alloc_block_MT.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>

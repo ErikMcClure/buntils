@@ -13,11 +13,10 @@ namespace bss_util {
   struct cAnimation_GenAttribute {
     BSS_FORCEINLINE static AniAttribute* f(unsigned char typeID)
     {
-      typedef ANI_TID(TYPE)::template rebind<Alloc>::other T;
       if(TypeID==typeID)
-        return new(Alloc::allocate(sizeof(T))) T();
+        return new(Alloc::template rebind<AniAttributeT<TypeID, Alloc>>::other::allocate(1)) AniAttributeT<TypeID, Alloc>();
       else
-        return cAnimation_GenAttribute<Alloc, std::is_void<typename bss_util::ANI_IDTYPE<TypeID+1>::TYPES::TYPE>::value?-1:TypeID+1>::f(typeID);
+        return cAnimation_GenAttribute<Alloc, std::is_void<typename AniAttributeT<TypeID+1, Alloc>::IDTYPE>::value?-1:TypeID+1>::f(typeID);
     }
   };
 
@@ -48,8 +47,14 @@ namespace bss_util {
       _anibool+=ANI_PLAYING;
 
       unsigned char svar=_attributes.Length();
-      for(unsigned char i = 0; i < svar; ++i)
+      double length;
+      _anicalc = 0.0;
+
+      for(unsigned char i = 0; i < svar; ++i) {
         _attributes[i]->Start();
+        if((length = _attributes[i]->Length()) > _anicalc)
+          _anicalc = length;
+      }
     }
     // Stop animation
     inline void Stop() { _anibool-=ANI_PLAYING; _timepassed=0.0; }
@@ -94,45 +99,7 @@ namespace bss_util {
       return retval;
     }
     template<unsigned char TypeID>
-    inline ANI_TID(TYPE)* GetAttribute() { return static_cast<ANI_TID(TYPE)*>(GetTypeID(TypeID)); }
-    template<unsigned char TypeID>
-    inline void SetKeyFrames(const KeyFrame<TypeID>* frames, AniAttribute::IDTYPE num)
-    {
-      AniAttributeT<TypeID>* hold = static_cast<AniAttributeT<TypeID>*>(GetTypeID(TypeID));
-      if(hold && hold->SetKeyFrames(frames, num) > _anicalc)
-        _anicalc = hold->Length();
-    }
-    template<unsigned char TypeID>
-    AniAttribute::IDTYPE AddKeyFrame(const KeyFrame<TypeID>& frame)
-    {
-      AniAttributeT<TypeID>* hold = static_cast<AniAttributeT<TypeID>*>(GetTypeID(TypeID));
-      if(hold)
-      {
-        AniAttribute::IDTYPE retval = hold->AddKeyFrame(frame);
-        if(hold->Length() > _anicalc)
-          _anicalc = hold->Length();
-        return retval;
-      }
-      return (AniAttribute::IDTYPE)-1;
-    }
-    template<unsigned char TypeID>
-    BSS_FORCEINLINE AniAttribute::IDTYPE AddKeyFrame(double time, ANI_TID(DATACONST) value) { return AddKeyFrame<TypeID>(KeyFrame<TypeID>(time, value)); };
-    template<unsigned char TypeID>
-    bool RemoveKeyFrame(AniAttribute::IDTYPE ID)
-    { //This is inline because the adding function is inline, and we must preserve the DLL we're adding/deleting things from
-      bool retval=false;
-      unsigned char index = _attributes.Get(TypeID);
-      if(index<_attributes.Length()) retval=static_cast<AniAttributeT<TypeID>*>(_attributes[index])->RemoveKeyFrame(ID);
-      else return false;
-
-      _anicalc=0.0;
-      unsigned char svar=_attributes.Length();
-      for(unsigned char i = 0; i < svar; ++i)
-        if(_anicalc>_attributes[i]->Length())
-          _anicalc=_attributes[i]->Length();
-
-      return retval;
-    }
+    inline AniAttributeT<TypeID, Alloc>* GetAttribute() { return static_cast<AniAttributeT<TypeID, Alloc>*>(GetTypeID(TypeID)); }
     template<typename F> // F must be something resolving to void(AniAttribute* p) that calls p->Attach() if appropriate.
     inline void Attach(F f)
     {
@@ -151,7 +118,15 @@ namespace bss_util {
       _anibool-=ANI_ATTACHED;
     }
     inline bool HasTypeID(unsigned char TypeID) const { return _attributes.Get(TypeID)<_attributes.Length(); }
-    inline void SetAnimationLength(double anilength) { _anilength=anilength; }
+    inline void SetAnimationLength(double anilength = 0.0) {
+      _anilength=anilength;
+      _anicalc = 0.0;
+      double length;
+      for(unsigned char i = 0; i < _attributes.Length(); ++i) {
+        if((length = _attributes[i]->Length()) > _anicalc)
+          _anicalc = length;
+      }
+    }
     inline double GetAnimationLength() const { return _anilength==0.0?_anicalc:_anilength; }
     inline void SetTimeWarp(double aniwarp) { _aniwarp=aniwarp; }
     inline double GetTimeWarp() const { return _aniwarp; }

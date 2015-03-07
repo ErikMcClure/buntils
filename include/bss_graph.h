@@ -5,7 +5,7 @@
 #define __BSS_GRAPH_H__
 
 #include "cLinkedArray.h"
-#include "bss_alloc_fixed.h"
+#include "bss_alloc_block.h"
 #include "LLBase.h"
 #include <limits.h>
 #ifdef BSS_COMPILER_GCC
@@ -49,7 +49,7 @@ namespace bss_util {
   };
 
   // Represents a graph using an adjacency list. Converts to and from an adjacency matrix representation.
-  template<typename E, typename V, typename ST=unsigned short, typename ALLOC=FixedPolicy<Edge<E, ST>>, typename NODEALLOC=StaticAllocPolicy<LINKEDNODE<Node<E, V, ST>, ST>>, ARRAY_TYPE ArrayType = CARRAY_SIMPLE>
+  template<typename E, typename V, typename ST=unsigned short, typename ALLOC=BlockPolicy<Edge<E, ST>>, typename NODEALLOC=StaticAllocPolicy<LINKEDNODE<Node<E, V, ST>, ST>>, ARRAY_TYPE ArrayType = CARRAY_SIMPLE>
   class Graph : public cAllocTracker<ALLOC>, protected __Graph__InternalEdge<E>, protected __Graph__InternalVertex<V, ST>
   {
     static BSS_FORCEINLINE bool _basecheck(const char* b) { return (*b)!=0; }

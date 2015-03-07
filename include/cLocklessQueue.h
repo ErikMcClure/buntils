@@ -4,7 +4,7 @@
 #ifndef __C_LOCKLESS_QUEUE_H__
 #define __C_LOCKLESS_QUEUE_H__
 
-#include "bss_alloc_fixed_MT.h"
+#include "bss_alloc_block_MT.h"
 
 namespace bss_util {
   template<typename T>
@@ -20,9 +20,11 @@ namespace bss_util {
   template<typename ST_>
   struct i_LocklessQueue_Length
   { 
-    inline i_LocklessQueue_Length(const i_LocklessQueue_Length& copy) { _length = copy._length; }
+    inline i_LocklessQueue_Length(const i_LocklessQueue_Length& copy) : _length(copy._length.load(std::memory_order_relaxed)) { }
     inline i_LocklessQueue_Length() : _length(0) { }
     inline ST_ Length() const { return _length; }
+
+    i_LocklessQueue_Length& operator=(const i_LocklessQueue_Length& copy) { _length.store(copy._length.load(std::memory_order_relaxed), std::memory_order_relaxed); return *this; }
 
   protected:
     BSS_FORCEINLINE void _inclength() { _length.fetch_add(1); }
@@ -60,6 +62,7 @@ namespace bss_util {
       }
       return false;
     }
+    inline bool Peek() { return _div.load(std::memory_order_relaxed) != _last.load(std::memory_order_relaxed); }
 
     inline cLocklessQueue& operator=(cLocklessQueue&& mov)
     {
@@ -90,7 +93,7 @@ namespace bss_util {
       }
     }
 
-    cFixedAlloc<cLQ_QNode<T>> _alloc;
+    cBlockAlloc<cLQ_QNode<T>> _alloc;
     cLQ_QNode<T>* _first;
     BSS_ALIGN(64) std::atomic<cLQ_QNode<T>*> _div; // Align to try and get them on different cache lines
     BSS_ALIGN(64) std::atomic<cLQ_QNode<T>*> _last;
@@ -126,7 +129,7 @@ namespace bss_util {
       _cflag.clear(std::memory_order_release);
       return false; 
     }
-
+    inline bool Peek() { return _div->next != 0; }
     inline cMicroLockQueue& operator=(cMicroLockQueue&& mov)
     {
       _div=mov._div;
@@ -150,7 +153,7 @@ namespace bss_util {
       i_LocklessQueue_Length<LENGTH>::_inclength(); // If we are tracking length, atomically increment it
     }
 
-    cLocklessFixedAlloc<cLQ_QNode<T>> _alloc;
+    cLocklessBlockAlloc<cLQ_QNode<T>> _alloc;
     BSS_ALIGN(64) cLQ_QNode<T>* _div; // Align to try and get them on different cache lines
     BSS_ALIGN(64) cLQ_QNode<T>* _last;
     BSS_ALIGN(64) std::atomic_flag _cflag;
@@ -209,7 +212,7 @@ namespace bss_util {
       i_LocklessQueue_Length<LENGTH>::_inclength(); // If we are tracking length, atomically increment it
     }
 
-    cLocklessFixedAlloc<cLQ_QNode<T>> _alloc;
+    cLocklessBlockAlloc<cLQ_QNode<T>> _alloc;
     BSS_ALIGN(64) bss_PTag<cLQ_QNode<T>> _div; // Align to try and get them on different cache lines
     BSS_ALIGN(64) std::atomic<cLQ_QNode<T>*> _last;
   };*/

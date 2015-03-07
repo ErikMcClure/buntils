@@ -102,7 +102,7 @@ namespace bss_util {
   template<>
   BSS_EXPLICITSTATIC void bss_Serialize<const char*>(const char* d, std::ostream& s)
   {
-    uint len=strlen(d);
+    size_t len=strlen(d);
     bss_Serialize(len,s);
     s.write(d,len);
   }
@@ -118,7 +118,7 @@ namespace bss_util {
   template<>
   BSS_EXPLICITSTATIC void bss_Deserialize<std::string>(std::string& d, std::istream& s)
   {
-    uint len;
+    size_t len;
     bss_Deserialize(len,s);
     d.resize(len);
     s.read(const_cast<char*>(d.c_str()),len);

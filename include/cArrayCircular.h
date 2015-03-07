@@ -10,11 +10,11 @@
 namespace bss_util {
   // Simple circular array implementation. Unlike most data structures, SizeType must be signed instead of unsigned
   template<class T, typename SizeType=int, ARRAY_TYPE ArrayType = CARRAY_SIMPLE, typename Alloc=StaticAllocPolicy<T>>
-  class BSS_COMPILER_DLLEXPORT cArrayCircular : protected cArrayInternal<T, SizeType, ArrayType, Alloc>
+  class BSS_COMPILER_DLLEXPORT cArrayCircular : protected cArrayBase<T, SizeType, ArrayType, Alloc>
   {
   protected:
     typedef SizeType ST_;
-    typedef cArrayInternal<T, SizeType, ArrayType, Alloc> AT_;
+    typedef cArrayBase<T, SizeType, ArrayType, Alloc> AT_;
     using AT_::_size;
     using AT_::_array;
     static_assert(std::is_signed<SizeType>::value, "SizeType must be signed");

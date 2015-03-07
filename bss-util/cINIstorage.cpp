@@ -13,7 +13,7 @@
 using namespace bss_util;
 
 cINIsection cINIstorage::_sectionsentinel;
-cLocklessFixedAlloc<cINIstorage::_NODE> cINIstorage::_alloc;
+cLocklessBlockAlloc<cINIstorage::_NODE> cINIstorage::_alloc;
 
 template<typename T>
 const T* BSS_FASTCALL ltrimstr(const T* str)

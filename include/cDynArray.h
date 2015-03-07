@@ -9,10 +9,10 @@
 namespace bss_util {
   // Dynamic array implemented using ArrayType (should only be used when constructors could potentially not be needed)
   template<class T, typename SizeType=unsigned int, ARRAY_TYPE ArrayType = CARRAY_SIMPLE, typename Alloc=StaticAllocPolicy<T>>
-  class BSS_COMPILER_DLLEXPORT cDynArray : protected cArrayInternal<T, SizeType, ArrayType, Alloc>
+  class BSS_COMPILER_DLLEXPORT cDynArray : protected cArrayBase<T, SizeType, ArrayType, Alloc>
   {
   protected:
-    typedef cArrayInternal<T, SizeType, ArrayType, Alloc> AT_;
+    typedef cArrayBase<T, SizeType, ArrayType, Alloc> AT_;
     typedef typename AT_::ST_ ST_;
     typedef typename AT_::T_ T_;
     using AT_::_array;
@@ -67,10 +67,10 @@ namespace bss_util {
 
   // A dynamic array that can dynamically adjust the size of each element
   template<typename ST_, typename Alloc=StaticAllocPolicy<unsigned char>>
-  class BSS_COMPILER_DLLEXPORT cArbitraryArray : protected cArrayInternal<unsigned char, ST_, CARRAY_SIMPLE, Alloc>
+  class BSS_COMPILER_DLLEXPORT cArbitraryArray : protected cArrayBase<unsigned char, ST_, CARRAY_SIMPLE, Alloc>
   {
   protected:
-    typedef cArrayInternal<unsigned char, ST_, CARRAY_SIMPLE, Alloc> AT_;
+    typedef cArrayBase<unsigned char, ST_, CARRAY_SIMPLE, Alloc> AT_;
     using AT_::_array;
     using AT_::_size;
 

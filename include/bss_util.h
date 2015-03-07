@@ -102,7 +102,7 @@ namespace bss_util {
 	{
     static_assert(std::is_integral<T>::value,"T must be integral");
 		if(!string) return 0;
-		unsigned int curpos = (unsigned int)-1; //this will wrap around to 0 when we increment
+    size_t curpos = (size_t)-1; //this will wrap around to 0 when we increment
 
 		while(string[++curpos] != '\0') //replace until the null-terminator
 			if(string[curpos] == find)
@@ -118,21 +118,21 @@ namespace bss_util {
 
   // Counts number of occurences of character c in string, up to the null terminator
   template<typename T>
-  inline static unsigned int BSS_FASTCALL strccount(const T* string, T c)
+  inline static size_t BSS_FASTCALL strccount(const T* string, T c)
   {
     static_assert(std::is_integral<T>::value,"T must be integral");
-    unsigned int ret=0;
+    size_t ret=0;
     while(*string) { if(*string==c) ++ret; ++string; }
     return ret;
   }
   
   // Counts number of occurences of character c in string, up to length characters
   template<typename T>
-  inline static unsigned int BSS_FASTCALL strccount(const T* string, T c, unsigned int length)
+  inline static size_t BSS_FASTCALL strccount(const T* string, T c, size_t length)
   {
     static_assert(std::is_integral<T>::value,"T must be integral");
-    unsigned int ret=0;
-    for(unsigned int i = 0; (i < length) && ((*string)!=0); ++i)
+    size_t ret=0;
+    for(size_t i = 0; (i < length) && ((*string)!=0); ++i)
       if(string[i]==c) ++ret;
     return ret;
   }
@@ -176,13 +176,13 @@ namespace bss_util {
   }
   // Uses rswap to reverse the order of an array
   template<typename T>
-  inline static void BSS_FASTCALL bssreverse(T* src, unsigned int length)
+  inline static void BSS_FASTCALL bssreverse(T* src, size_t length)
   {
     assert(length>0);
-    for(unsigned int i = 0,j=(--length); i < j; j=length-(++i)) // Equivelent to: for(unsigned int i = 0,j=length-1; i < j; j=length-1-(++i))
+    for(size_t i = 0, j=(--length); i < j; j=length-(++i)) // Equivelent to: for(size_t i = 0,j=length-1; i < j; j=length-1-(++i))
       rswap(src[i],src[j]);
   }
-  template<typename T, unsigned int size>
+  template<typename T, size_t size>
   BSS_FORCEINLINE static void BSS_FASTCALL bssreverse(T (&p)[size]) { bssreverse(p,size); }
 
   /* Trims space from left end of string by returning a different pointer. It is possible to use const char or const wchar_t as a type
@@ -501,13 +501,13 @@ namespace bss_util {
   }
 
   // bit-twiddling based method of calculating an integral square root from Wilco Dijkstra - http://www.finesse.demon.co.uk/steven/sqrt.html
-  template<typename T, unsigned int bits> // WARNING: bits should be HALF the actual number of bits in (T)!
+  template<typename T, size_t bits> // WARNING: bits should be HALF the actual number of bits in (T)!
   inline static T BSS_FASTCALL IntFastSqrt(T n)
   {
     static_assert(std::is_integral<T>::value,"T must be integral");
     T root = 0, t;
 
-    for(unsigned int i = bits; i>0;)
+    for(size_t i = bits; i>0;)
     {
       --i;
       t = ((root + (((T)1) << (i))) << (i)); 
@@ -764,15 +764,11 @@ namespace bss_util {
   }
   
 #ifdef BSS_VARIADIC_TEMPLATES
-  // Generates a packed sequence of numbers
-  template<int N, int ...S> 
-  struct bssSeq : bssSeq<N-1, N-1, S...> { };
 
-  template<int ...> struct bssSeq_gen { };
-  template<int ...S>
-  struct bssSeq<0, S...> {
-    typedef bssSeq_gen<S...> type;
-  };
+  // Generates a packed sequence of numbers
+  template<int ...> struct bssSeq {};
+  template<int N, int ...S> struct bssSeq_gens : bssSeq_gens<N-1, N-1, S...> {};
+  template<int ...S> struct bssSeq_gens<0, S...>{ typedef bssSeq<S...> type; };
 #endif
 
   //unique_ptr deleter class that forces the deletion to occur in this DLL

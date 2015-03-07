@@ -21,9 +21,9 @@ namespace bss_util {
 
   // A static trie optimized for looking up small collections of words.
   template<typename T=unsigned char>
-  class BSS_COMPILER_DLLEXPORT cTrie : protected cArrayInternal<TRIE_NODE__<T>, T>
+  class BSS_COMPILER_DLLEXPORT cTrie : protected cArrayBase<TRIE_NODE__<T>, T>
   {
-    typedef cArrayInternal<TRIE_NODE__<T>, T> BASE;
+    typedef cArrayBase<TRIE_NODE__<T>, T> BASE;
     typedef TRIE_NODE__<T> TNODE;
     using BASE::_array;
     using BASE::_size;

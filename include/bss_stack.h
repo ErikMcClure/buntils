@@ -9,10 +9,10 @@
 namespace bss_util {
   // Fast, tiny array-based stack. Pop and Top are only valid if there is an item in the stack; this check must be done by the user.
   template<class T, typename SizeType=unsigned int, ARRAY_TYPE ArrayType = CARRAY_SIMPLE, typename Alloc=StaticAllocPolicy<T>>
-  class BSS_COMPILER_DLLEXPORT cStack : protected cArrayInternal<T, SizeType, ArrayType, Alloc>
+  class BSS_COMPILER_DLLEXPORT cStack : protected cArrayBase<T, SizeType, ArrayType, Alloc>
   {
   protected:
-    typedef cArrayInternal<T, SizeType, ArrayType, Alloc> AT_;
+    typedef cArrayBase<T, SizeType, ArrayType, Alloc> AT_;
     using AT_::_array;
     using AT_::_size;
 

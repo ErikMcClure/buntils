@@ -1,4 +1,4 @@
-﻿// Copyright ©2014 Black Sphere Studios
+﻿// Copyright ©2015 Black Sphere Studios
 // For conditions of distribution and use, see copyright notice in "bss_util.h"
 
 #define BSS_ENABLE_PROFILER
@@ -2606,7 +2606,7 @@ TESTDEF::RETPAIR test_VECTOR()
   //VECTOR_N_TEST<unsigned int, 5>(__testret);
   //VECTOR_N_TEST<__int64, 5>(__testret);
 
-  /*
+  
   shuffle(a);
   TEST(a[0]!=-5);
   TEST(a[14]!=35);

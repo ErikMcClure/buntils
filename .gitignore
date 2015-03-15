@@ -1,0 +1,9 @@
+*.sdf
+*.suo
+*.opensdf
+*.bak
+bin/
+bss-util/x64/
+bss-util/Win32/
+test/x64/
+test/Win32/

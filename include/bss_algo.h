@@ -1,4 +1,4 @@
-// Copyright ©2014 Black Sphere Studios
+// Copyright ©2015 Black Sphere Studios
 // For conditions of distribution and use, see copyright notice in "bss_util.h"
 
 #ifndef __BSS_ALGO_H__
@@ -499,7 +499,7 @@ namespace bss_util {
   inline static float BSS_FASTCALL GenericBSpline(float t, const float(&p)[4], const float(&m)[4][4])
   {
     float a[4] ={ t*t*t, t*t, t, 1 };
-    sseVec r = MatrixMultiply1x4(a, m);
+    sseVec r = MatrixMultiply1x4<float>(a, m);
     r *= sseVec(p);
     sseVec r2 = r;
     sseVec::Shuffle<0xB1>(r2);

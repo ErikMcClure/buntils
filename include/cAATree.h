@@ -16,6 +16,7 @@ namespace bss_util {
     AANODE* right;
     T data;
   };
+
   // An AA tree, similar to a left leaning red-black tree, except not completely stupid.
   template<typename T, char(*CFunc)(const T&, const T&) = CompT<T>, typename Alloc = BlockPolicy<AANODE<T>>>
   class cAATree : cAllocTracker<Alloc>
@@ -23,13 +24,14 @@ namespace bss_util {
   public:
     inline cAATree(Alloc* alloc = 0) : cAllocTracker<Alloc>(alloc), _sentinel(_allocate(1))
     {
-      _sentinel->level = -1;
+      _sentinel->level = 0;
       _sentinel->left = _sentinel->right = _sentinel;
       _root = _sentinel;
     }
     inline ~cAATree() { Clear(); _deallocate(_sentinel, 1); }
     inline void Insert(const T& data) { _insert(_root, data); }
     inline bool Remove(const T& data) { return _remove(_root, data); }
+    // Gets the node that belongs to the data or returns NULL if not found.
     inline AANODE<T>* Get(const T& data)
     {
       AANODE<T>* cur=_root;
@@ -46,8 +48,10 @@ namespace bss_util {
       return 0;
     }
     inline void Clear() { _clear(_root); }
+    // Gets the root, unless the tree is empty, in which case returns NULL
     inline AANODE<T>* GetRoot() { return _root == _sentinel ? 0 : _root; }
     inline bool IsEmpty() { return _root == _sentinel; }
+    // Does an in-order traversal of the tree, applying FACTION to each node's data object.
     template<void (BSS_FASTCALL *FACTION)(T&)>
     inline void Traverse() { _traverse<FACTION>(_root); }
     
@@ -120,6 +124,7 @@ namespace bss_util {
         _deleted = _sentinel;
         n = n->right;
         _deallocate(_last);
+        _last = _sentinel;
         b = true;
       } else if(n->left->level < n->level-1 || n->right->level < n->level-1) {
         n->level--;

@@ -13,7 +13,6 @@
 #include <math.h>
 #include <string>
 #include "bss_util.h"
-#include "bss_dual.h"
 
 std::complex<long double> operator "" UNDERSCORE(i)(long double d) { return std::complex<long double>(0, d); }
 std::string operator "" UNDERSCORE(s)(const char* str, size_t l) { return std::string(str,l); }

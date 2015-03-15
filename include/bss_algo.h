@@ -84,34 +84,8 @@ namespace bss_util {
   template<typename T, typename ST_, char(*CFunc)(const T&, const T&), ST_ I>
   BSS_FORCEINLINE static ST_ BSS_FASTCALL binsearch_exact(const T(&arr)[I], const T& data) { return binsearch_exact<T, T, ST_, CFunc>(arr, data, 0, I); }
 
-  inline static unsigned __int64 mersennerand64(unsigned __int64 seed=0) {
-    static std::mt19937_64 m;
-#ifdef BSS_COMPILER_MSC
-    if(seed) m.seed((unsigned long)seed); // VC++ doesn't implement the seed function properly, forcing the value to a ULONG, which is a flagrant violation of the standard.
-#else
-    if(seed) m.seed(seed);
-#endif
-    return m();
-  }
-  inline static unsigned int mersennerand(unsigned int seed=0) {
-    static std::mt19937 m;
-    if(seed) m.seed((unsigned long)seed);
-    return m();
-  }
-
-  template<class T>
-  BSS_FORCEINLINE T bss_randmersenne(T min, T max)
-  {
-#ifdef BSS_COMPILER_MSC
-    static const unsigned __int64 WMSK = ~((~(unsigned __int64)(0) << (64 - 1)) << 1); // Because Microsoft is full of illiterate morons, despite the standard defining max() as a static function, it's not in VC++, which means we can't use it.
-#else
-    static const unsigned __int64 WMSK = std::mt19937_64::max();
-#endif
-    return min+(T)((mersennerand64()/(WMSK + 1.0))*(max-min));
-  }
-
   // Implementation of an xorshift64star generator. x serves as the generator state, which should initially be set to the RNG seed.
-  unsigned __int64 xorshift64star(unsigned __int64& x)
+  unsigned __int64 static xorshift64star(unsigned __int64& x)
   {
     x ^= x >> 12;
     x ^= x << 25;
@@ -120,7 +94,7 @@ namespace bss_util {
   }
 
   // Implementation of 2^1024-1 period xorshift generator. x is the 16*64 bit state, plus 1 extra integer for counting indices.
-  unsigned __int64 xorshift1024star(unsigned __int64(&x)[17])
+  unsigned __int64 static xorshift1024star(unsigned __int64(&x)[17])
   {
     uint64_t x0 = x[x[16]];
     uint64_t x1 = x[x[16] = (x[16] + 1) & 15];
@@ -131,7 +105,7 @@ namespace bss_util {
   }
 
   // Generates a seed for xorshift1024star from a 64-bit value
-  void genxor1024seed(unsigned __int64 x, unsigned __int64(&seed)[17])
+  void static genxor1024seed(unsigned __int64 x, unsigned __int64(&seed)[17])
   {
     xorshift64star(x);
     for(unsigned char i = 0; i < 16; ++i)
@@ -139,53 +113,135 @@ namespace bss_util {
     seed[16]=0;
   }
 
+  template<typename T>
+  class xorshift_engine_base
+  {
+  public:
+    BSS_FORCEINLINE static T base_min() { return std::numeric_limits<T>::min(); }
+    BSS_FORCEINLINE static T base_max() { return std::numeric_limits<T>::max(); }
+    BSS_FORCEINLINE static T base_transform(unsigned __int64 x) { return (T)x; }
+  };
+
+  template<>
+  class xorshift_engine_base<float>
+  {
+  public:
+    BSS_FORCEINLINE static float base_min() { return base_transform(0xFFFFFFFFFFFFFFFF); }
+    BSS_FORCEINLINE static float base_max() { return base_transform(0x7FFFFFFFFFFFFFFF); }
+    BSS_FORCEINLINE static float base_transform(unsigned __int64 x)
+    { 
+      unsigned __int32 y=(unsigned __int32)x;
+      y = (y&0xBFFFFFFF)+0x1F800000; // Mask out the top exponent bit to force exponent to 0-127 range, then add 63 to the exponent to get it in [63,190] range ([-64,63] when biased)
+      return *(float*)(&y); // convert our integer into a float, assuming IEEE format
+    }
+  };
+
+  template<>
+  class BSS_COMPILER_DLLEXPORT xorshift_engine_base<double>
+  {
+  public:
+    BSS_FORCEINLINE static double base_min() { return base_transform(0xFFFFFFFFFFFFFFFF); }
+    BSS_FORCEINLINE static double base_max() { return base_transform(0x7FFFFFFFFFFFFFFF); }
+    BSS_FORCEINLINE static double base_transform(unsigned __int64 x)
+    {
+      x = (x&0xBFFFFFFFFFFFFFFF)+0x1FF0000000000000; // Mask out the top exponent bit to force exponent to 0-1023 range, then add 511 to the exponent to get it in [511,1534] range ([-512,511] when biased)
+      return *(double*)(&x); // convert our integer into a double, assuming IEEE format
+    }
+  };
+
+  template<typename T = unsigned __int64>
+  class BSS_COMPILER_DLLEXPORT xorshift_engine : protected xorshift_engine_base<T>
+  {
+  public:
+    xorshift_engine() { seed(); }
+    explicit xorshift_engine(unsigned __int64 s) { seed(s); }
+    explicit xorshift_engine(unsigned __int64 s[16]) { seed(s); }
+    void seed() { std::random_device rd; genxor1024seed(rd(), _state); }
+    void seed(unsigned __int64 s) { genxor1024seed(s, _state); }
+    void seed(unsigned __int64 s[16]) { for(int i = 0; i < 16; ++i) _state[i]=s[i]; _state[16]=0; }
+    void discard(unsigned long long z) { for(int i = 0; i < z; ++i) xorshift1024star(_state); }
+
+    inline static T min() { return base_min(); }
+    inline static T max() { return base_max(); }
+
+    inline T operator()() { return base_transform(xorshift1024star(_state)); } // Truncate to return_value size.
+    bool operator ==(const xorshift_engine& r) const { for(int i = 0; i < 17; ++i) if(_state[i]!=r._state[i]) return false; return true; }
+    bool operator !=(const xorshift_engine& r) const { return !operator==(r); }
+
+    typedef T result_type;
+
+  protected:
+    unsigned __int64 _state[17];
+  };
+
   inline static unsigned __int64 xorshiftrand(unsigned __int64 seed=0) {
     static unsigned __int64 state[17];
     if(seed) genxor1024seed(seed, state);
     return xorshift1024star(state);
   }
+  typedef xorshift_engine<unsigned __int64> xorshift_engine64;
 
-  template<class T>
-  BSS_FORCEINLINE T bss_randxorshift(T min, T max)
-  {
-#ifdef BSS_COMPILER_MSC
-    static const unsigned __int64 WMSK = ~((~(unsigned __int64)(0) << (64 - 1)) << 1); // Because Microsoft is full of illiterate morons, despite the standard defining max() as a static function, it's not in VC++, which means we can't use it.
-#else
-    static const unsigned __int64 WMSK = std::mt19937_64::max();
-#endif
-    return min+(T)((xorshiftrand()/(WMSK + 1.0))*(max-min));
+  template<typename T, class ENGINE, typename ET>
+  T __bss_gencanonical(ENGINE& e, ET _Emin)
+  {	// scale random value to [0, 1), integer engine
+      return ((e() - _Emin)
+        / ((T)e.max() - (T)_Emin + (T)1));
   }
 
-  // inline function wrapper around RANDINTGEN
-  template<class T>
-  BSS_FORCEINLINE T bss_randint(T min, T max)
-  {
-    static_assert(std::is_integral<T>::value, "T must be integral");
-    return !(max-min)?min:RANDINTGEN(min, max);
+  template<typename T, typename ENGINE>
+  T __bss_gencanonical(ENGINE& e, float _Emin)
+  {	// scale random value to [0, 1), float engine
+      return ((e() - _Emin) / (e.max() - _Emin));
   }
+
+  template<typename T, typename ENGINE>
+  T __bss_gencanonical(ENGINE& e, double _Emin)
+  {	// scale random value to [0, 1), double engine
+      return ((e() - _Emin) / (e.max() - _Emin));
+  }
+
+  // VC++ has a broken implementation of std::generate_canonical so we get to reimplement it ourselves.
+  template<typename T, typename ENGINE>
+  T bss_gencanonical(ENGINE& e)
+  {
+    return __bss_gencanonical<T,ENGINE>(e, (ENGINE::result_type)e.min());
+  }
+
+  inline static xorshift_engine<unsigned __int64>& bss_getdefaultengine()
+  {
+    static xorshift_engine<unsigned __int64> e;
+    return e;
+  }
+
+  // Generates a number in the range [min,max) using the given engine.
+  template<typename T, typename ENGINE = xorshift_engine<unsigned __int64>>
+  inline static T bssrand(T min, T max, ENGINE& e = bss_getdefaultengine())
+  {
+    return min+static_cast<T>(bss_gencanonical<double, ENGINE>(e)*static_cast<double>(max-min));
+  }
+  inline static double bssrandreal(double min, double max) { return bssrand<double>(min, max); }
+  inline static __int64 bssrandint(__int64 min, __int64 max) { return bssrand<__int64>(min, max); }
+  inline static void bssrandseed(unsigned __int64 s) { bss_getdefaultengine().seed(s); }
 
   // Shuffler using Fisher-Yates/Knuth Shuffle algorithm based on Durstenfeld's implementation.
-  // This is an in-place algorithm that works with any data type. Randfunc should be [min,max)
-  template<typename T, typename ST, ST(*RandFunc)(ST min, ST max)>
-  inline static void BSS_FASTCALL shuffle(T* p, ST size)
+  template<typename T, typename ST, typename ENGINE>
+  inline static void BSS_FASTCALL shuffle(T* p, ST size, ENGINE& e)
   {
     for(ST i=size; i>0; --i)
-      rswap<T>(p[i-1], p[RandFunc(0, i)]);
+      rswap<T>(p[i-1], p[bssrand<ST,ENGINE>(0, i, e)]);
   }
-  template<typename T, typename ST, ST size, ST(*RandFunc)(ST min, ST max)>
-  inline static void BSS_FASTCALL shuffle(T(&p)[size]) { shuffle<T, ST, RandFunc>(p, size); }
+  template<typename T, typename ST, typename ENGINE, ST size>
+  inline static void BSS_FASTCALL shuffle(T(&p)[size], ENGINE& e) { shuffle<T, ST, ENGINE>(p, size, e); }
 
   /* Shuffler using default random number generator.*/
   template<typename T>
   BSS_FORCEINLINE static void BSS_FASTCALL shuffle(T* p, int size)
   {
-    shuffle<T, int, &bss_randint<int>>(p, size);
+    xorshift_engine<unsigned __int64> e; 
+    shuffle<T, int, xorshift_engine<unsigned __int64>>(p, size, e);
   }
   template<typename T, int size>
-  BSS_FORCEINLINE static void BSS_FASTCALL shuffle(T(&p)[size])
-  {
-    shuffle<T, int, size, &bss_randint<int>>(p);
-  }
+  BSS_FORCEINLINE static void BSS_FASTCALL shuffle(T(&p)[size]) { shuffle<T>(p, size); }
 
   template<class F, typename T, size_t SIZE>
   BSS_FORCEINLINE static void transform(T(&t)[SIZE], T(&result)[SIZE], F func) { std::transform(std::begin(t), std::end(t), result, func); }
@@ -194,8 +250,8 @@ namespace bss_util {
   template<class F, typename T, size_t SIZE>
   BSS_FORCEINLINE static void for_each(T(&t)[SIZE], F func) { std::for_each(std::begin(t), std::end(t), func); }
 
-  // Random queue 
-  template<typename T, typename SizeType = unsigned int, SizeType(*RandFunc)(SizeType min, SizeType max)=&bss_randint, ARRAY_TYPE ArrayType = CARRAY_SIMPLE, typename Alloc = StaticAllocPolicy<T>>
+  // Random queue that pops a random item instead of the last item.
+  template<typename T, typename SizeType = unsigned int, typename ENGINE = xorshift_engine<unsigned __int64>, ARRAY_TYPE ArrayType = CARRAY_SIMPLE, typename Alloc = StaticAllocPolicy<T>>
   class BSS_COMPILER_DLLEXPORT cRandomQueue : protected cDynArray<T, SizeType, ArrayType, Alloc>
   {
   protected:
@@ -207,10 +263,10 @@ namespace bss_util {
   public:
     cRandomQueue(const cRandomQueue& copy) : AT_(copy) {}
     cRandomQueue(cRandomQueue&& mov) : AT_(std::move(mov)) {}
-    explicit cRandomQueue(ST_ size=0) : AT_(size) {}
+    explicit cRandomQueue(ST_ size = 0, ENGINE& e = bss_getdefaultengine()) : AT_(size), _e(e) {}
     inline void Push(const T& t) { AT_::Add(t); }
     inline void Push(T&& t) { AT_::Add(std::move(t)); }
-    inline T Pop() { ST_ i=RandFunc(0, _length); T r = std::move(_array[i]); Remove(i); return r; }
+    inline T Pop() { ST_ i=bssrand<ST_, ENGINE>(0, _length, _e); T r = std::move(_array[i]); Remove(i); return r; }
     inline void Remove(ST_ index) { _array[index]=std::move(_array[--_length]); }
     inline bool Empty() const { return !_length; }
     inline void Clear() { _length=0; }
@@ -227,17 +283,21 @@ namespace bss_util {
     inline cRandomQueue& operator=(cRandomQueue&& mov) { AT_::operator=(std::move(mov)); return *this; }
     inline cRandomQueue& operator +=(const cRandomQueue& add) { AT_::operator+=(add); return *this; }
     inline const cRandomQueue operator +(const cRandomQueue& add) const { cRandomQueue r(*this); return (r+=add); }
+
+  protected:
+    ENGINE& _e;
   };
 
   static const double ZIGNOR_R = 3.442619855899;
 
   // Instance for generating random samples from a normal distribution.
-  template<int ZIGNOR_C=128, typename T=double>
+  template<int ZIGNOR_C=128, typename T=double, typename ENGINE = xorshift_engine<unsigned __int64>>
   struct NormalZig
   {
     T s_adZigX[ZIGNOR_C + 1], s_adZigR[ZIGNOR_C];
 
-    NormalZig(int iC=ZIGNOR_C, T dV=9.91256303526217e-3, T dR=ZIGNOR_R) // (R * phi(R) + Pr(X>=R)) * sqrt(2\pi)
+    NormalZig(int iC=ZIGNOR_C, T dV=9.91256303526217e-3, T dR=ZIGNOR_R, ENGINE& e = bss_getdefaultengine()) :  // (R * phi(R) + Pr(X>=R)) * sqrt(2\pi)
+      _e(e), _dist(0, 0x7F), _rdist(0, 1.0)
     {
       int i; T f;
       f = exp(T(-0.5) * (dR * dR));
@@ -253,26 +313,26 @@ namespace bss_util {
         s_adZigR[i] = s_adZigX[i + 1] / s_adZigX[i];
     }
 
-    static T DRanNormalTail(T dMin, int iNegative)
+    T DRanNormalTail(T dMin, int iNegative)
     {
       T x, y;
       do
       {
-        x = log(RANDFLOATGEN(0, 1.0)) / dMin;
-        y = log(RANDFLOATGEN(0, 1.0));
+        x = log(_rdist(_e)) / dMin;
+        y = log(_rdist(_e));
       } while(-2 * y < x * x);
       return iNegative ? x - dMin : dMin - x;
     }
 
     // Returns a random normally distributed number using the ziggurat method
-    T Get() const
+    T Get()
     {
       unsigned int i;
       T x, u, f0, f1;
       for(;;)
       {
-        u = 2 * RANDFLOATGEN(0, 1.0) - 1;
-        i = ((unsigned int)rand()) & 0x7F;
+        u = 2 * _rdist(_e) - 1;
+        i = _dist(_e); // get random number between 0 and 0x7F
         /* first try the rectangular boxes */
         if(fabs(u) < s_adZigR[i])
           return u * s_adZigX[i];
@@ -283,19 +343,22 @@ namespace bss_util {
         x = u * s_adZigX[i];
         f0 = exp(T(-0.5) * (s_adZigX[i] * s_adZigX[i] - x * x));
         f1 = exp(T(-0.5) * (s_adZigX[i+1] * s_adZigX[i+1] - x * x));
-        if(f1 + RANDFLOATGEN(0, 1.0) * (f0 - f1) < 1.0)
+        if(f1 + _rdist(_e) * (f0 - f1) < 1.0)
           return x;
       }
     }
 
-    T operator()() const { return Get(); }
+    T operator()() { return Get(); }
+    ENGINE& _e;
+    std::uniform_int_distribution<unsigned int> _dist;
+    std::uniform_real_distribution<double> _rdist;
   };
 
   // Randomly subdivides a rectangular area into smaller rects of varying size. F1 takes (depth,rect) and returns how likely it is that a branch will terminate.
   template<typename T, typename F1, typename F2, typename F3> // F2 takes (const float (&rect)[4]) and is called when a branch terminates on a rect.
   static void StochasticSubdivider(const T(&rect)[4], const F1& f1, const F2& f2, const F3& f3, unsigned int depth=0) // F3 returns a random number from [0,1]
   {
-    if(RANDFLOATGEN(0, 1.0)<f1(depth, rect))
+    if(bssrandreal(0, 1.0)<f1(depth, rect))
     {
       f2(rect);
       return;
@@ -332,7 +395,7 @@ namespace bss_util {
     assert(!(~ig[0]));
 
     cRandomQueue<std::array<T, 2>> list;
-    std::array<T, 2> pt ={ (T)RANDFLOATGEN(rect[0], rect[2]), (T)RANDFLOATGEN(rect[1], rect[3]) };
+    std::array<T, 2> pt ={ (T)bssrandreal(rect[0], rect[2]), (T)bssrandreal(rect[1], rect[3]) };
 
     //update containers 
     list.Push(pt);
@@ -348,8 +411,8 @@ namespace bss_util {
       auto point = list.Pop();
       for(uint i = 0; i < pointsPerIteration; i++)
       {
-        radius = mindist*((T)RANDFLOATGEN(1, 2)); //random point between mindist and 2*mindist
-        angle = (T)RANDFLOATGEN(0, PI_DOUBLE);
+        radius = mindist*((T)bssrandreal(1, 2)); //random point between mindist and 2*mindist
+        angle = (T)bssrandreal(0, PI_DOUBLE);
         pt[0] = point[0] + radius * cos(angle); //the new point is generated around the point (x, y)
         pt[1] = point[1] + radius * sin(angle);
 

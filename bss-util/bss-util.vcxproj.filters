@@ -30,9 +30,6 @@
     <ClInclude Include="..\include\bss_defines.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="..\include\bss_literals.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
     <ClInclude Include="..\include\bss_sse.h">
       <Filter>Header Files</Filter>
     </ClInclude>

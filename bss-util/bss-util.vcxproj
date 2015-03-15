@@ -53,7 +53,6 @@
     <ClInclude Include="..\include\bss_compiler.h" />
     <ClInclude Include="..\include\bss_defines.h" />
     <ClInclude Include="..\include\bss_graph.h" />
-    <ClInclude Include="..\include\bss_literals.h" />
     <ClInclude Include="..\include\bss_log.h" />
     <ClInclude Include="..\include\bss_queue.h" />
     <ClInclude Include="..\include\bss_sse.h" />

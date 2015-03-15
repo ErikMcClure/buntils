@@ -90,6 +90,7 @@ namespace bss_util {
 
       return (_anibool&ANI_PLAYING)!=0;
     }
+    // Gets the abstract class of any TypeID at runtime, creating the attribute if necessary.
     inline AniAttribute* GetTypeID(unsigned char TypeID)
     {
       unsigned char index=_attributes.Get(TypeID);
@@ -98,8 +99,10 @@ namespace bss_util {
       if(retval!=0) _attributes.Insert(retval->typeID, retval);
       return retval;
     }
+    // Gets the actual type of a given attribute, but TypeID must be known at compile time. Also creates the attribute if it doesn't exist.
     template<unsigned char TypeID>
     inline AniAttributeT<TypeID, Alloc>* GetAttribute() { return static_cast<AniAttributeT<TypeID, Alloc>*>(GetTypeID(TypeID)); }
+    // Attaches the animation to an arbitrary object by calling f(attribute) on all attributes. An object doesn't need to accept all possible attributes of an animation.
     template<typename F> // F must be something resolving to void(AniAttribute* p) that calls p->Attach() if appropriate.
     inline void Attach(F f)
     {
@@ -110,6 +113,7 @@ namespace bss_util {
 
       _anibool+=ANI_ATTACHED;
     }
+    // Detaches the animation by detaching all of its attributes.
     inline void Detach()
     {
       unsigned char svar=_attributes.Length();
@@ -117,7 +121,9 @@ namespace bss_util {
         _attributes[i]->Detach();
       _anibool-=ANI_ATTACHED;
     }
+    // Returns true if the TypeID currently exists or false otherwise.
     inline bool HasTypeID(unsigned char TypeID) const { return _attributes.Get(TypeID)<_attributes.Length(); }
+    // Sets the animation length. If the animation length is set to 0, the total amount of time the attributes take is used as the animation length instead.
     inline void SetAnimationLength(double anilength = 0.0) {
       _anilength=anilength;
       _anicalc = 0.0;
@@ -127,9 +133,13 @@ namespace bss_util {
           _anicalc = length;
       }
     }
+    // Gets the animation length.
     inline double GetAnimationLength() const { return _anilength==0.0?_anicalc:_anilength; }
+    // Sets the time warp of the animation, which is simply a constant multiplied against the delta. 0.5 halves the animation speed, 2 doubles it.
     inline void SetTimeWarp(double aniwarp) { _aniwarp=aniwarp; }
+    // Gets the time warp.
     inline double GetTimeWarp() const { return _aniwarp; }
+    // Gets the amount of time passed in the animation. This is reset to zero every time the animation loops.
     inline double GetTimePassed() const { return _timepassed; }
     inline bool IsAttached() const { return (_anibool&ANI_ATTACHED)!=0; }
     inline bool IsPlaying() const { return (_anibool&ANI_PLAYING)!=0; }

@@ -16,12 +16,17 @@
 - cStr can now construct a substring from a larger string
 - Added xorshift random number generator
 - Fixed error in cHash Set() function definition
-- Added multithreaded circular allocator
+- Added multithreaded ring allocator, renamed Fixed to Block and Additive to Greedy
 - Fixed issue with integer constants that were assumed to be 32-bits long when they should have been 64-bits long.
 - Added AA tree
 - Fixed errant precision issues in some unit tests
 - Fixed some previously unused move constructors
 - cThreadPool was completely rewritten to be entirely threadsafe and more extensible, while also eliminating race conditions
+- All random number functions were completely overhauled to use C++ random number engines. bssrand() uses a default xorshift_engine to generate high quality random numbers.
+- Fixed regression in TRB_Tree that did not handle duplicate values properly (then adjusted the unit tests to catch it)
+- SetKeyFrame is no longer available on cAnimation. Use GetAttribute instead.
+- Animation attributes were refactored and are now declared directly.
+- Removed bss_literals
 
 0.4.3
 -----

@@ -206,7 +206,12 @@ namespace bss_util {
         else
         {
           parent->right = node;
-          LLInsertAfter(node, parent, _last);
+          if(parent->next!=0 && parent->next->color==-1) // This is required to support duplicate nodes
+          { // What can happen is you get here with a value greater than the parent, then try to insert after the parent... but any duplicate values would then be ahead of you.
+            if((parent=_treenextsub(parent))==0) _last=LLAddAfter(node, _last);
+            else LLInsert(node, parent, _first);
+          } else
+            LLInsertAfter(node, parent, _last); // If there aren't any duplicate values in front of you, it doesn't matter.
         }
 			  _fixinsert(node);
       }
@@ -384,6 +389,12 @@ namespace bss_util {
 		  while (node->left != pNIL) node = node->left;
 		  return node;
 	  }
+    inline static TRB_Node<T>* BSS_FASTCALL _treenextsub(TRB_Node<T>* node)
+    {
+      while(node->parent && node != node->parent->left)
+        node = node->parent;
+      return node->parent;
+    }
 
 		TRB_Node<T>*  _first;
 		TRB_Node<T>*  _last;

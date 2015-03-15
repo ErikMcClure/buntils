@@ -227,13 +227,13 @@ int getuniformint()
     samples[0] = 0;
     for(int i=1; i<NUM; ++i)
     {
-      int j = rand()%(i+1);
+      int j = bssrandint(0,i+1);
       samples[i]=samples[j];
       samples[j]=i;
     }
     if(last==samples[0])
     {
-      int j = 1+(rand()%(NUM-1));
+      int j = 1+bssrandint(0,NUM-1);
       samples[0]=samples[j];
       samples[j]=last;
     }
@@ -247,13 +247,11 @@ TESTDEF::RETPAIR test_bss_util_c()
 {
   BEGINTEST;
   //_MM_SET_DENORMALS_ZERO_MODE(_MM_DENORMALS_ZERO_ON);
-  //srand((int)time(0));
   //int a=0;
   //unsigned __int64 prof = cHighPrecisionTimer::OpenProfiler();
   //CPU_Barrier();
   //for(int i = 0; i < 1000000; ++i) {
-  //  //a+= 5+(rand()/(RAND_MAX + 1.0))*(15-5);
-  //  a+= RANDINTGEN(9,12);
+  //  a+= bssrandint(9,12);
   //}
   //CPU_Barrier();
   //std::cout << cHighPrecisionTimer::CloseProfiler(prof) << " :( " << a << std::endl;
@@ -619,9 +617,8 @@ TESTDEF::RETPAIR test_bss_util()
   //float b;
   //double sqrt_avg=0;
   //float NUMBERS[100000];
-  ////srand(984753948);
   //for(uint i = 0; i < 100000; ++i)
-  //  NUMBERS[i]=RANDFLOATGEN(2,4);
+  //  NUMBERS[i]=bssrandreal(2,4);
 
   //unsigned __int64 p=cHighPrecisionTimer::OpenProfiler();
   //CPU_Barrier();
@@ -665,7 +662,7 @@ TESTDEF::RETPAIR test_bss_util()
   //static const int NUM=100000;
   //float _numrand[NUM];
   //for(uint i = 0; i < NUM; ++i)
-  //  _numrand[i]=RANDFLOATGEN(0,100.0f);
+  //  _numrand[i]=bssrandreal(0,100.0f);
 
   //int add=0;
   //unsigned __int64 prof = cHighPrecisionTimer::OpenProfiler();
@@ -882,8 +879,6 @@ TESTDEF::RETPAIR test_bss_algo()
   TEST(xorshift1024star(state)==11245070064711388831ULL);
   
   xorshiftrand(234);
-  TEST(bss_randxorshift<double>(0.0, 1.0)==0.99387660223169794);
-  TEST(bss_randxorshift<char>(3, 23)==18);
 
   ENDTEST;
 }
@@ -896,16 +891,16 @@ void TEST_ALLOC_FUZZER_THREAD(TESTDEF::RETPAIR& __testret,T& _alloc, cDynArray<s
     bool pass=true;
     for(int i = 0; i < TRIALS; ++i)
     {
-      if(RANDINTGEN(0,10)<5 || plist.Length()<3)
+      if(bssrandint(0,10)<5 || plist.Length()<3)
       {
-        size_t sz = RANDINTGEN(1,MAXSIZE);
+        size_t sz = bssrandint(1,MAXSIZE);
         P* test=(P*)_alloc.alloc(sz);
         for(size_t i = 0; i<sz; ++i) *(char*)(test+i) = i+1;
         plist.Add(std::pair<P*,size_t>(test,sz));
       }
       else
       {
-        int index=RANDINTGEN(0,plist.Length());
+        int index=bssrandint(0,plist.Length());
         for(size_t i = 0; i<plist[index].second; ++i) {
           if(((char)(i+1) != *(char*)(plist[index].first+i)))
             pass = false;
@@ -2100,12 +2095,16 @@ TESTDEF::RETPAIR test_AA_TREE()
   BlockPolicy<AANODE<int>> fixedaa;
   cAATree<int, CompT<int>, BlockPolicy<AANODE<int>>> aat(&fixedaa);
 
+  xorshift_engine64 e;
+  
+  shuffle(testnums, TESTNUM, e);
+
   //unsigned __int64 prof=cHighPrecisionTimer::OpenProfiler();
   for(int i = 0; i<TESTNUM; ++i)
     aat.Insert(testnums[i]);
   //std::cout << cHighPrecisionTimer::CloseProfiler(prof) << std::endl;
 
-  shuffle(testnums);
+  shuffle(testnums, TESTNUM, e);
   //prof=cHighPrecisionTimer::OpenProfiler();
   uint c=0;
   for(int i = 0; i<TESTNUM; ++i)
@@ -2113,12 +2112,12 @@ TESTDEF::RETPAIR test_AA_TREE()
   TEST(c==TESTNUM);
   //std::cout << cHighPrecisionTimer::CloseProfiler(prof) << std::endl;
 
-  shuffle(testnums);
+  shuffle(testnums, TESTNUM, e);
   //prof=cHighPrecisionTimer::OpenProfiler();
   c=0;
   for(int i = 0; i<TESTNUM; ++i) {
-    if(testnums[i] == 20159)
-      std::cout << (aat.Get(testnums[i])!=0) << std::endl;
+    //if(testnums[i] == 20159)
+    //  std::cout << (aat.Get(testnums[i])!=0) << std::endl;
 
     if(!aat.Remove(testnums[i])) {
       std::cout << testnums[i] << std::endl;
@@ -2130,9 +2129,7 @@ TESTDEF::RETPAIR test_AA_TREE()
   }
   TEST(c==TESTNUM);
   //std::cout << cHighPrecisionTimer::CloseProfiler(prof) << std::endl;
-  std::cout << aat.Remove(20159) << std::endl;
-  std::cout << aat.Remove(aat.GetRoot()->data) << std::endl;
-  
+
   TEST(aat.GetRoot()==0);
   aat.Clear();
 
@@ -2420,27 +2417,26 @@ bool TESTVECTOR_EQUALITY(T l, T r)
 template<>
 bool TESTVECTOR_EQUALITY<float>(float l, float r)
 {
+  if(l == 0.0) return fsmall(r);
+  if(r == 0.0) return fsmall(l);
   return fcompare(l,r,1);
 }
 template<>
 bool TESTVECTOR_EQUALITY<double>(double l, double r)
 {
+  if(l == 0.0) return fsmall(r);
+  if(r == 0.0) return fsmall(l);
   return fcompare(l, r, 100i64);
 }
 
+#define TESTVECTOR(vec, arr, __testret) for(int i = 0; i < N; ++i) { TEST(TESTVECTOR_EQUALITY(vec.v[i],arr[i])); }
+
 template<typename T, int N>
-void TESTVECTOR(Vector<T, N> v, T(&a)[N], TESTDEF::RETPAIR& __testret)
-{
-  for(int i = 0; i < N; ++i) {
-    TEST(TESTVECTOR_EQUALITY(v.v[i],a[i]));
-  }
-}
-template<typename T, int N>
-void TESTVALUES_To(T(&out)[N], int c) {
-  for(int i = 0; i < N; ++i) out[i] = (T)(i+N*c+1);
+void TESTVALUES_To(T(&out)[N], T(&in)[N]) {
+  for(int i = 0; i < N; ++i) out[i] = in[i];
 }
 
-static const int NUMANSWERS=17;
+static const int NUMANSWERS=18;
 
 static const double Answers2[NUMANSWERS][2] ={
   {1,2},
@@ -2455,31 +2451,33 @@ static const double Answers2[NUMANSWERS][2] ={
   {1.0/3.0,1.0/2.0},
   {7, 7.0/2.0},
   {4,6},
-  {-3,-1},
-  {12,24},
-  {-3/12.0,-1/24.0},
   {3,1},
-  {FastSqrt(10.0),0}
+  {12,24},
+  {4,24},
+  {5,11},
+  { 530, 0 },
+  { 10, 0}
 };
 
 static const double Answers3[NUMANSWERS][3] ={
-  { 1, 2, 3 },
-  { 4, 5, 6 },
+  { 1, 2, 5 },
+  { 3, 4, 6 },
   { 7, 7, 7 },
-  { 4, 6,0 },
-  { 8, 9, 0 },
-  { -2, -2, 0 },
-  { 2, 2, 0 },
-  { 3, 8, 0 },
-  { 7, 14, 0 },
-  { 0.5f, 1, 0 },
-  { 7, 3.5f, 0 },
-  { 4, 6, 0 },
-  { -3, -1, 0 },
-  { 12, 24, 0 },
-  { -3/12.0f, -1/24.0f, 0 },
-  { 3, 1, 0 },
-  { FastSqrt(10.0f), 0, 0 }
+  { 4, 6, 11 },
+  { 8, 9, 12 },
+  { -2, -2, -1 },
+  { 2, 2, 1 },
+  { 3, 8, 30 },
+  { 7, 14, 35 },
+  { 1.0/3.0, 1.0/2.0, 5.0/6.0 },
+  { 7, 7.0/2.0, 7.0/5.0 },
+  { 4, 6, 11 },
+  { 3, 1, -4 },
+  { 12, 24, 66 },
+  { 4, 24, -66.0/4.0 },
+  { 5, 11, 26 },
+  { 2745.0/4.0, 0, 0 },
+  { 26, 0, 0 }
 };
 
 static const double Answers4[NUMANSWERS][4] ={
@@ -2499,6 +2497,7 @@ static const double Answers4[NUMANSWERS][4] ={
   { 12, 24, 0, 0 },
   { -3/12.0f, -1/24.0f, 0, 0 },
   { 3, 1, 0, 0 },
+  { FastSqrt(10.0f), 0, 0, 0 },
   { FastSqrt(10.0f), 0, 0, 0 }
 };
 
@@ -2519,6 +2518,7 @@ static const double Answers5[NUMANSWERS][5] ={
   { 12, 24, 0, 0, 0 },
   { -3/12.0f, -1/24.0f, 0, 0, 0 },
   { 3, 1, 0, 0, 0 },
+  { FastSqrt(10.0f), 0, 0, 0, 0 },
   { FastSqrt(10.0f), 0, 0, 0, 0 }
 };
 
@@ -2533,8 +2533,8 @@ template<typename T, int N> void VECTOR_N_TEST(TESTDEF::RETPAIR& __testret)
 
   T at[N];
   T bt[N];
-  TESTVALUES_To<T, N>(at, 0);
-  TESTVALUES_To<T, N>(bt, 1);
+  TESTVALUES_To<T, N>(at, ans[0]);
+  TESTVALUES_To<T, N>(bt, ans[1]);
   Vector<T, N> a(at);
   Vector<T, N> b(bt);
   Vector<T, N> c(7);
@@ -2566,16 +2566,20 @@ template<typename T, int N> void VECTOR_N_TEST(TESTDEF::RETPAIR& __testret)
   TESTVECTOR(c, ans[12], __testret);
   b *= a;
   TESTVECTOR(b, ans[13], __testret);
-  c /= b;
-  TESTVECTOR(c, ans[14], __testret);
-  //e = a.Normalize();
-  e = c.Abs();
+  b /= c;
+  TESTVECTOR(b, ans[14], __testret);
+  e = (c-(a*((T)2))).Abs();
   TESTVECTOR(e, ans[15], __testret);
-  T l = c.Length();
+  e = (c-(((T)2)*a)).Abs();
+  TESTVECTOR(e, ans[15], __testret);
+  T l = c.DistanceSq(b*(T)2);
   TEST(l == ans[16][0]);
-  l = c.Dot(a);
-  l = c.DistanceSq(b);
-  l = b.Distance(c);
+  l = c.Distance(b);
+  TEST(l == FastSqrt<T>(ans[16][0]));
+  l = c.Dot(c);
+  TEST(l == ans[17][0]);
+  l = c.Length();
+  TEST(l == FastSqrt<T>(ans[17][0]));
 }
 
 TESTDEF::RETPAIR test_VECTOR()
@@ -2586,11 +2590,11 @@ TESTDEF::RETPAIR test_VECTOR()
   VECTOR_N_TEST<int, 2>(__testret);
   VECTOR_N_TEST<unsigned int, 2>(__testret);
   VECTOR_N_TEST<__int64, 2>(__testret);
-  //VECTOR_N_TEST<float, 3>(__testret);
-  //VECTOR_N_TEST<double, 3>(__testret);
-  //VECTOR_N_TEST<int, 3>(__testret);
-  //VECTOR_N_TEST<unsigned int, 3>(__testret);
-  //VECTOR_N_TEST<__int64, 3>(__testret);
+  VECTOR_N_TEST<float, 3>(__testret);
+  VECTOR_N_TEST<double, 3>(__testret);
+  VECTOR_N_TEST<int, 3>(__testret);
+  VECTOR_N_TEST<unsigned int, 3>(__testret);
+  VECTOR_N_TEST<__int64, 3>(__testret);
   //VECTOR_N_TEST<float, 4>(__testret);
   //VECTOR_N_TEST<double, 4>(__testret);
   //VECTOR_N_TEST<int, 4>(__testret);
@@ -2603,8 +2607,6 @@ TESTDEF::RETPAIR test_VECTOR()
   //VECTOR_N_TEST<__int64, 5>(__testret);
 
   /*
-  srand(90);
-  rand();
   shuffle(a);
   TEST(a[0]!=-5);
   TEST(a[14]!=35);
@@ -3341,7 +3343,7 @@ void _locklessqueue_produce(void* p)
 {
   while(!startflag.load());
   T* q = (T*)p;
-  unsigned int c;
+  uint64 c;
   while((c = lq_c.fetch_add(1, std::memory_order_relaxed))<=TESTNUM) {
     q->Push(c);
   }
@@ -3534,16 +3536,66 @@ TESTDEF::RETPAIR test_RATIONAL()
   ENDTEST;
 }
 
+bool verifytree(TRB_Node<int>* front, uint& same)
+{
+  same=0;
+  uint pass=0;
+  int last=-1;
+  for(TRB_Node<int>* pnode=front; pnode!=0; pnode=pnode->next)
+  {
+    if(pnode->value==last)
+      same+=1;
+    if(pnode->value<last)
+      pass+=1;
+    last=pnode->value;
+  }
+  return !pass;
+}
+void serialize_testnum(const char* file)
+{
+  std::fstream f;
+  f.open(file, std::ios::trunc | std::ios::out);
+  for(int i = 0; i < TESTNUM; ++i)
+    f << testnums[i] << std::endl;
+  f.close();
+}
+void deserialize_testnum(const char* file)
+{
+  std::fstream f;
+  f.open(file, std::ios::in);
+  for(int i = 0; i < TESTNUM && !f.eof(); ++i) {
+    f >> testnums[i];
+    f.get();
+  }
+  f.close();
+}
+
+bool verify_unique_testnums()
+{
+  cHash<int, char, false> hash;
+
+  for(int i = 0; i<TESTNUM; ++i) {
+    if(hash.Exists(testnums[i]))
+      return false;
+    hash.Insert(testnums[i], 1);
+  }
+  return true;
+}
+
 TESTDEF::RETPAIR test_TRBTREE()
 {
   BEGINTEST;
   BlockPolicy<TRB_Node<int>> fixedalloc;
   cTRBtree<int, CompT<int>, BlockPolicy<TRB_Node<int>>> blah(&fixedalloc);
 
+  uint same = 0;
   shuffle(testnums);
+
+  blah.Clear();
   for(int i = 0; i<TESTNUM; ++i)
     blah.Insert(testnums[i]);
 
+  assert(verifytree(blah.Front(), same));
   TEST(!blah.Get(-1))
   TEST(!blah.Get(TESTNUM+1))
 
@@ -3556,28 +3608,17 @@ TESTDEF::RETPAIR test_TRBTREE()
       num+=(p->value==testnums[i]);
   }
   TEST(num==TESTNUM);
-  
-  blah.Insert(1);
-  blah.Insert(1);
-  blah.Insert(2);
-  int last=-1;
-  uint pass=0;
-  uint same=0;
-  for(TRB_Node<int>* pnode=blah.Front(); pnode!=0; pnode=pnode->next)
-  {
-    if(pnode->value==last)
-      same+=1;
-    if(pnode->value<last)
-      pass+=1;
-    last=pnode->value;
-  }
-  TEST(!pass);
-  TEST(same==3);
-  
-  blah.Remove(1);
-  blah.Remove(1);
-  blah.Remove(2);
 
+  shuffle(testnums);
+  for(int i = 0; i<TESTNUM; ++i)
+    blah.Insert(testnums[i]);
+  shuffle(testnums);
+  for(int i = 0; i<TESTNUM; ++i)
+    blah.Insert(testnums[i]);
+
+  TEST(verifytree(blah.Front(), same));
+  TEST(same==(TESTNUM*2));
+  
   shuffle(testnums);
   num=0;
   int n2=0;
@@ -3586,10 +3627,12 @@ TESTDEF::RETPAIR test_TRBTREE()
   {
     num+=(blah.Get(testnums[i])!=0);
     n2+=blah.Remove(testnums[i]);
+    n2+=blah.Remove(testnums[i]);
+    n2+=blah.Remove(testnums[i]);
     n3+=(!blah.Get(testnums[i]));
   }
   TEST(num==TESTNUM);
-  TEST(n2==TESTNUM);
+  TEST(n2==TESTNUM*3);
   TEST(n3==TESTNUM);
 
   //std::cout << cHighPrecisionTimer::CloseProfiler(prof) << std::endl;
@@ -3845,7 +3888,7 @@ TESTDEF::RETPAIR test_THREAD()
   //std::cout << "\n" << m << std::endl;
   //while(i > 0)
   //{
-  //  //for(int j = RANDINTGEN(50000,100000); j > 0; --j) { std::this_thread::sleep_for(0); useless.Update(); }
+  //  //for(int j = bssrandint(50000,100000); j > 0; --j) { std::this_thread::sleep_for(0); useless.Update(); }
   //  //timer.Update();
   //  apc.SendSignal(); // This doesn't work on linux
   //} 
@@ -3898,8 +3941,8 @@ TESTDEF::RETPAIR test_TRIE()
   //const char* randstr[200];
   //for(uint i = 0; i < 200; ++i)
   //{
-  //  for(uint j = RANDINTGEN(2,20); j>0; --j)
-  //    randcstr[i]+=(char)RANDINTGEN('a','z');
+  //  for(uint j = bssrandint(2,20); j>0; --j)
+  //    randcstr[i]+=(char)bssrandint('a','z');
   //  randstr[i]=randcstr[i];
   //}
   //cTrie<unsigned int> t(50,randstr);
@@ -4166,7 +4209,7 @@ TESTDEF::RETPAIR test_PROFILE()
       CPU_Barrier();
       __PROFILE_ZONE(control);
       CPU_Barrier();
-      testnums[rand()%TESTNUM] += 1;
+      testnums[bssrandint(0,TESTNUM)] += 1;
     }
 
     auto pr = cHighPrecisionTimer::OpenProfiler();
@@ -4175,7 +4218,7 @@ TESTDEF::RETPAIR test_PROFILE()
       PROFILE_BLOCK(outer);
       {
         PROFILE_BLOCK(inner);
-        testnums[rand()%TESTNUM] += 1;
+        testnums[bssrandint(0, TESTNUM)] += 1;
       }
     }
     //std::cout << cHighPrecisionTimer::CloseProfiler(pr)/100000.0 << std::endl;
@@ -4183,7 +4226,7 @@ TESTDEF::RETPAIR test_PROFILE()
     for(int i = 0; i < 100000; ++i)
     {
       PROFILE_BEGIN(beginend);
-      testnums[rand()%TESTNUM] += 1;
+      testnums[bssrandint(0, TESTNUM)] += 1;
       PROFILE_END(beginend);
     }
 
@@ -4228,9 +4271,9 @@ int main(int argc, char** argv)
 {
   ForceWin64Crash();
   SetWorkDirToCur();
-  unsigned int seed=(unsigned int)time(NULL);
-  seed = 1425459123;
-  srand(seed);
+  unsigned __int64 seed=(unsigned __int64)time(NULL);
+  //seed = 1425459123;
+  bssrandseed(seed);
 
   //profile_ring_alloc();
 
@@ -4240,7 +4283,7 @@ int main(int argc, char** argv)
   
   // For best results on windows, add the test application to Application Verifier before going through the tests.
   TESTDEF tests[] = {
-    { "bss_util_c.h", &test_bss_util_c },
+    /*{ "bss_util_c.h", &test_bss_util_c },
     { "bss_util.h", &test_bss_util },
     { "cLog.h", &test_bss_LOG },
     { "bss_algo.h", &test_bss_algo },
@@ -4252,7 +4295,7 @@ int main(int argc, char** argv)
     { "bss_dual.h", &test_bss_DUAL },
     { "bss_fixedpt.h", &test_bss_FIXEDPT },
     { "bss_graph.h", &test_bss_GRAPH },
-    { "bss_sse.h", &test_bss_SSE },
+    { "bss_sse.h", &test_bss_SSE },*/
     { "bss_vector.h", &test_VECTOR },
     { "cAliasTable.h", &test_ALIASTABLE },
     { "cAnimation.h", &test_ANIMATION },
@@ -4342,8 +4385,8 @@ int main(int argc, char** argv)
 template<class Alloc, int MAX, int SZ>
 void profile_push(Alloc& a, std::atomic<void*>* q)
 {
-  while(!startflag.load(std::memory_order_relaxed));
-  uint c;
+  while(!startflag.load(std::memory_order_acquire));
+  uint64 c;
   while((c=lq_c.fetch_add(1, std::memory_order_acquire))<MAX) {
     void* p=a.allocate((c<<3)%SZ);
     q[c].store((!p?(void*)1:p), std::memory_order_release);
@@ -4356,14 +4399,15 @@ std::atomic<size_t> lq_r;
 template<class Alloc, int MAX>
 void profile_pop(Alloc& a, std::atomic<void*>* q)
 {
-  while(!startflag.load(std::memory_order_relaxed));
+  while(!startflag.load(std::memory_order_acquire));
   void* p;
-  uint c;
+  uint64 c;
   while((c=lq_r.fetch_add(1, std::memory_order_acquire))<MAX)
   {
     while(!(p = q[c].load(std::memory_order_acquire)));
     a.deallocate((size_t*)p);
   }
+  startflag.store(false, std::memory_order_release);
 }
 
 template<class Alloc, int MAX, int SZ>
@@ -4382,8 +4426,7 @@ uint64 doprofile(Alloc& a)
   auto prof = cHighPrecisionTimer::OpenProfiler();
   startflag.store(true);
 
-  while(lq_r.load(std::memory_order_relaxed)<MAX);
-  void* p;
+  while(startflag.load(std::memory_order_acquire));
   uint64 diff = cHighPrecisionTimer::CloseProfiler(prof);
 
   for(int i = 0; i < NUM; ++i)

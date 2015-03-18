@@ -10,6 +10,7 @@ This is a collection of miscellaneous utility code used to simplify common tasks
 * Array-based linked list
 * Threaded red-black tree implementation
 * AVL tree implementation
+* AA tree implementation
 * DLL-friendly simplified dynamic array implementation
 * Array-based stack implementation
 * Array-based queue implementation
@@ -19,7 +20,8 @@ This is a collection of miscellaneous utility code used to simplify common tasks
 * Templatized implementations of cmpxchg,xchg,xadd, and other lockless primitives.
 * A template-base hash implementation based on khash
 * Command line parsing
-* Fixed-length and additive allocation schemes
+* Block, ring, and greedy allocation schemes
+* Multi-consumer multi-producer lockless block allocator
 * fixed-size and variable-sized bit-based flag manipulation
 * High precision timer
 * Binary heap implementation
@@ -32,6 +34,8 @@ This is a collection of miscellaneous utility code used to simplify common tasks
 * Automatic differentiation with dual numbers
 * Fixed-point arithmetic.
 * Template-based SSE2 objects for automatic SSE optimizations.
+* Vector and Matrix operations
+* Implementation of xorshift random number generator as a compatible C++ random number generator, including a substitute for rand() implementing xorshift and a random_device seed.
 * Alias table for random number generation
 * Generic animation system
 * Circular array implementation
@@ -41,12 +45,11 @@ This is a collection of miscellaneous utility code used to simplify common tasks
 * Integral rational data structure for precise fractions.
 * String table for localization, plus memory dumping and various construction methods.
 * High performance profiler with multiple output options
-* Multi-consumer multi-producer lockless fixed-size allocator
 * Generalized KD-tree implementation for querying how many rectangles are inside a given rectangle
 * Implementation of Robert Bridson's Fast Poisson Disk Sampling algorithm
 * An in-place compressed Trie data structure implementation
 * Arbitrary scheduler class for delaying actions
-* Thread pool implementation
+* Thread pool implementation and job queue
 * Implementation of a graph representation that implements the push-relabel algorithm, along with reductions from circulation and lower-bound circulation graph problems.
 * Implements efficient breadth-first traversal of a tree or graph
 * Includes an ID hash system that can be rebased at any time, including a reversal extension.

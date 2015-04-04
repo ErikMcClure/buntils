@@ -6,6 +6,7 @@
 
 #include "bss_alloc.h"
 #include <string.h>
+#include <initializer_list>
 
 namespace bss_util {
   enum ARRAY_TYPE : unsigned char { CARRAY_SIMPLE=0, CARRAY_CONSTRUCT=1, CARRAY_SAFE=2 };
@@ -29,8 +30,12 @@ namespace bss_util {
       mov._array=0;
       mov._size=0;
     }
-    inline explicit cArrayBase<T, ST_, ArrayType, Alloc>(ST_ size) : _array(!size?(T*)0:(T*)Alloc::allocate(size)), _size(size)
+    inline explicit cArrayBase<T, ST_, ArrayType, Alloc>(ST_ size) : _array(!size?(T*)0:(T*)Alloc::allocate(size)), _size(size) {}
+    inline cArrayBase<T, ST_, ArrayType, Alloc>(const std::initializer_list<T> list) : _array((T*)Alloc::allocate(list.size())), _size(list.size())
     {
+      auto end = list.end();
+      int c = 0;
+      for(auto i = list.begin(); i != end && c < _size; ++i) _array[c++] = *i;
     }
     inline ~cArrayBase<T, ST_, ArrayType, Alloc>()
     {
@@ -173,6 +178,13 @@ namespace bss_util {
     {
       for(SizeType i = 0; i < _size; ++i)
         new (_array+i) T();
+    }
+    inline cArrayBase(const std::initializer_list<T> list) : _array((T*)Alloc::allocate(list.size())), _size(list.size())
+    {
+      auto end = list.end();
+      int c = 0;
+      for(auto i = list.begin(); i != end && c < _size; ++i) new (_array+(c++)) T(*i); // Use copy constructors to initialize array elements
+      while(c < _size) new (_array+(c++)) T(); // If you didn't pass in enough parameters, ensure the array is still initialized
     }
     inline ~cArrayBase()
     {
@@ -317,6 +329,13 @@ namespace bss_util {
       for(SizeType i = 0; i < _size; ++i)
         new (_array+i) T();
     }
+    inline cArrayBase(const std::initializer_list<T> list) : _array((T*)Alloc::allocate(list.size())), _size(list.size())
+    {
+      auto end = list.end();
+      int c = 0;
+      for(auto i = list.begin(); i != end && c < _size; ++i) new (_array+(c++)) T(*i); // Use copy constructors to initialize array elements
+      while(c < _size) new (_array+(c++)) T(); // If you didn't pass in enough parameters, ensure the array is still initialized
+    }
     inline ~cArrayBase()
     {
       for(SizeType i = 0; i < _size; ++i)
@@ -449,6 +468,7 @@ namespace bss_util {
   public:
     inline cArray(const cArray& copy) : AT_(copy) {} // We have to declare this because otherwise its interpreted as deleted
     inline cArray(cArray&& mov) : AT_(std::move(mov)) {}
+    inline cArray(const std::initializer_list<T> list) : AT_(list) {}
     inline explicit cArray(ST_ size=0) : AT_(size) {}
 
     //inline void Add(T item) { AT_::Insert(item,_size); } // Not all cArrays implement Insert

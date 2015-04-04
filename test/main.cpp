@@ -124,7 +124,8 @@ struct TESTDEF
 #define TESTCOUNT(c,t) { for(uint i = 0; i < c; ++i) TEST(t) }
 #define TESTCOUNTALL(c,t) { bool __val=true; for(uint i = 0; i < c; ++i) __val=__val&&(t); TEST(__val); }
 #define TESTFOUR(s,a,b,c,d) TEST(((s)[0]==(a)) && ((s)[1]==(b)) && ((s)[2]==(c)) && ((s)[3]==(d)))
-#define TESTALLFOUR(s,a) TEST(((s)[0]==(a)) && ((s)[1]==(a)) && ((s)[2]==(a)) && ((s)[3]==(a)))
+#define TESTTWO(s,a,b) TEST(((s)[0]==(a)) && ((s)[1]==(b)))
+#define TESTALLFOUR(s,a) TESTFOUR(s,a,a,a,a)
 #define TESTRELFOUR(s,a,b,c,d) TEST(fcompare((s)[0],(a)) && fcompare((s)[1],(b)) && fcompare((s)[2],(c)) && fcompare((s)[3],(d)))
 
 template<class T, size_t SIZE, class F>
@@ -1361,100 +1362,184 @@ TESTDEF::RETPAIR test_bss_SSE()
 {
   BEGINTEST;
 
-  CPU_Barrier();
-  uint r=Interpolate(0xFF00FFAA,0x00FFAACC,0.5f);
-  sseVeci xr(r);
-  sseVeci xz(r);
-  xr+=xz;
-  xr-=xz;
-  xr&=xz;
-  xr|=xz;
-  xr^=xz;
-  xr>>=5;
-  xr<<=3;
-  xr<<=xz;
-  xr>>=xz;
-  sseVeci xw(r>>3);
-  xw= ((xz+xw)|(xz&xw))-(xw<<2)+((xz<<xw)^((xz>>xw)>>1));
-  sseVeci c1(xw==r);
-  sseVeci c2(xw!=r);
-  sseVeci c3(xw<r);
-  sseVeci c4(xw>r);
-  sseVeci c5(xw<=r);
-  sseVeci c6(xw>=r);
-  CPU_Barrier();
-  TEST(r==0x7F7FD4BB);
-  BSS_ALIGN(16) int rv[4] = { -1, -1, -1, -1 };
-  sseVeci::ZeroVector()>>rv;
-  TESTALLFOUR(rv,0);
-  xz >> rv;
-  TESTALLFOUR(rv,2139083963);
-  xw >> rv;
-  TESTALLFOUR(rv,1336931703);
-  c1 >> rv;
-  TESTALLFOUR(rv,0);
-  c2 >> rv;
-  TESTALLFOUR(rv,-1);
-  c3 >> rv;
-  TESTALLFOUR(rv,-1);
-  c4 >> rv;
-  TESTALLFOUR(rv,0);
-  c5 >> rv;
-  TESTALLFOUR(rv,-1);
-  c6 >> rv;
-  TESTALLFOUR(rv,0);
-  CPU_Barrier();
+  {
+    CPU_Barrier();
+    uint r=Interpolate(0xFF00FFAA, 0x00FFAACC, 0.5f);
+    sseVeci xr(r);
+    sseVeci xz(r);
+    xr+=xz;
+    xr-=xz;
+    xr&=xz;
+    xr|=xz;
+    xr^=xz;
+    xr>>=5;
+    sseVeci y = xr>>3;
+    xr<<=3;
+    xr<<=xz;
+    xr>>=xz;
+    sseVeci xw(r>>3);
+    xw= ((xz+xw)|(xz&xw))-(xw<<2)+((xz<<xw)^((xz>>xw)>>1));
+    sseVeci c1(xw==r);
+    sseVeci c2(xw!=r);
+    sseVeci c3(xw<r);
+    sseVeci c4(xw>r);
+    sseVeci c5(xw<=r);
+    sseVeci c6(xw>=r);
+    CPU_Barrier();
+    TEST(r==0x7F7FD4BB);
+    BSS_ALIGN(16) int rv[4] ={ -1, -1, -1, -1 };
+    sseVeci::ZeroVector()>>rv;
+    TESTALLFOUR(rv, 0);
+    xz >> rv;
+    TESTALLFOUR(rv, 2139083963);
+    xw >> rv;
+    TESTALLFOUR(rv, 1336931703);
+    c1 >> rv;
+    TESTALLFOUR(rv, 0);
+    c2 >> rv;
+    TESTALLFOUR(rv, -1);
+    c3 >> rv;
+    TESTALLFOUR(rv, -1);
+    c4 >> rv;
+    TESTALLFOUR(rv, 0);
+    c5 >> rv;
+    TESTALLFOUR(rv, -1);
+    c6 >> rv;
+    TESTALLFOUR(rv, 0);
+    CPU_Barrier();
 
-  BSS_ALIGN(16) short rw[8] = {0,1,2,3,4,5,6,7};
-  sseVeci16 w1(rw);
-  sseVeci16 w2(rw);
-  sseVeci16 w3(((w1+w2)&(sseVeci16(4)|sseVeci16(2)))-w2);
-  sseVeci16 w4(w3<w1);
+    sseVeci(1, 2, 3, 4).Shuffle<0, 1, 2, 3>() >> rv;
+    TESTFOUR(rv, 1, 2, 3, 4);
+    sseVeci(1, 2, 3, 4).Shuffle<3, 2, 1, 0>() >> rv;
+    TESTFOUR(rv, 4, 3, 2, 1);
+    TEST(sseVeci(1, 2, 3, 4).Sum() == 10);
 
-  BSS_ALIGN(16) float ch[4] = { 1.0f, 0.5f, 0.5f,1.0f };
-  uint chr=flttoint(ch);
-  TEST(chr==0xFF7F7FFF);
-  inttoflt(chr,ch);
-  TESTRELFOUR(ch,1.0f,0.49803922f,0.49803922f,1.0f);
-  CPU_Barrier();
+    BSS_ALIGN(16) short rw[8] ={ 0, 1, 2, 3, 4, 5, 6, 7 };
+    sseVeci16 w1(rw);
+    sseVeci16 w2(rw);
+    sseVeci16 w3(((w1+w2)&(sseVeci16(4)|sseVeci16(2)))-w2);
+    sseVeci16 w4(w3<w1);
 
-  BSS_ALIGN(16) float arr[4] = { -1,-2,-3,-5 };
-  float uarr[4] = { -1,-2,-3,-4 };
-  sseVec u(1,2,3,4);
-  sseVec v(5);
-  sseVec w(arr);
-  w >> arr;
-  TESTFOUR(arr,-1,-2,-3,-5)
-  w = sseVec(BSS_UNALIGNED<const float>(uarr));
-  w >> arr;
-  TESTFOUR(arr,-1,-2,-3,-4)
-  sseVec uw(u*w);
-  uw >> arr;
-  TESTFOUR(arr,-1,-4,-9,-16)
-  sseVec uv(u*v);
-  uv >> arr;
-  TESTFOUR(arr,5,10,15,20)
-  sseVec u_w(u/v);
-  u_w >> arr;
-  TESTFOUR(arr,0.2f,0.4f,0.6f,0.8f)
-  sseVec u_v(u/w);
-  u_v >> arr;
-  TESTFOUR(arr,-1,-1,-1,-1)
-  u_v = uw*w/v+u*v-v/w;
-  u_v >> arr;
-  TESTRELFOUR(arr,10.2f,14.1f,22.0666666f,34.05f)
-  (u/w + v - u) >> arr;
-  TESTFOUR(arr,3,2,1,0)
-  (u/w + v - u) >> BSS_UNALIGNED<float>(uarr);
-  TESTFOUR(uarr,3,2,1,0)
-  sseVec m3(1,3,-1,-2);
-  sseVec m4(0,4,-2,-1);
-  sseVec ab = m3.max(m4);
-  ab >> arr;
-  TESTFOUR(arr,1,4,-1,-1)
-  ab = m3.min(m4);
-  ab >> arr;
-  TESTFOUR(arr,0,3,-2,-2)
+    BSS_ALIGN(16) float ch[4] ={ 1.0f, 0.5f, 0.5f, 1.0f };
+    uint chr=flttoint(ch);
+    TEST(chr==0xFF7F7FFF);
+    inttoflt(chr, ch);
+    TESTRELFOUR(ch, 1.0f, 0.49803922f, 0.49803922f, 1.0f);
+    CPU_Barrier();
+  }
+
+  {
+    BSS_ALIGN(16) float arr[4] ={ -1, -2, -3, -5 };
+    float uarr[4] ={ -1, -2, -3, -4 };
+    sseVec u(1, 2, 3, 4);
+    sseVec v(5);
+    sseVec w(arr);
+    w >> arr;
+    TESTFOUR(arr, -1, -2, -3, -5);
+    w = sseVec(BSS_UNALIGNED<const float>(uarr));
+    w >> arr;
+    TESTFOUR(arr, -1, -2, -3, -4);
+    sseVec uw(u*w);
+    uw >> arr;
+    TESTFOUR(arr, -1, -4, -9, -16);
+    sseVec uv(u*v);
+    uv >> arr;
+    TESTFOUR(arr, 5, 10, 15, 20);
+    sseVec u_w(u/v);
+    u_w >> arr;
+    TESTFOUR(arr, 0.2f, 0.4f, 0.6f, 0.8f);
+    sseVec u_v(u/w);
+    u_v >> arr;
+    TESTFOUR(arr, -1, -1, -1, -1);
+    u_v = uw*w/v+u*v-v/w;
+    u_v >> arr;
+    TESTRELFOUR(arr, 10.2f, 14.1f, 22.0666666f, 34.05f);
+    (u/w + v - u) >> arr;
+    TESTFOUR(arr, 3, 2, 1, 0);
+    (u/w + v - u) >> BSS_UNALIGNED<float>(uarr);
+    TESTFOUR(uarr, 3, 2, 1, 0);
+    sseVec m3(1, 3, -1, -2);
+    sseVec m4(0, 4, -2, -1);
+    sseVec ab = m3.max(m4);
+    ab >> arr;
+    TESTFOUR(arr, 1, 4, -1, -1);
+    ab = m3.min(m4);
+    ab >> arr;
+    TESTFOUR(arr, 0, 3, -2, -2);
+    sseVec(1, 2, 3, 4).Shuffle<0, 1, 2, 3>() >> arr;
+    TESTFOUR(arr, 1, 2, 3, 4);
+    sseVec(1, 2, 3, 4).Shuffle<3, 2, 1, 0>() >> arr;
+    TESTFOUR(arr, 4, 3, 2, 1);
+    TEST(sseVec(1, 2, 3, 4).Sum() == 10);
+  }
+
+  {
+    BSS_ALIGN(16) double arr[2] ={ -1, -2 };
+    double uarr[2] ={ -1, -2 };
+    sseVecd u(1, 2);
+    sseVecd v(5);
+    sseVecd w(arr);
+    w >> arr;
+    TESTTWO(arr, -1, -2);
+    w = sseVecd(BSS_UNALIGNED<const double>(uarr));
+    w >> arr;
+    TESTTWO(arr, -1, -2);
+    sseVecd uw(u*w);
+    uw >> arr;
+    TESTTWO(arr, -1, -4);
+    sseVecd uv(u*v);
+    uv >> arr;
+    TESTTWO(arr, 5, 10);
+    sseVecd u_w(u/v);
+    u_w >> arr;
+    TESTTWO(arr, 0.2, 0.4);
+    sseVecd u_v(u/w);
+    u_v >> arr;
+    TESTTWO(arr, -1, -1);
+    u_v = uw*w/v+u*v-v/w;
+    u_v >> arr;
+    TEST(fcompare((arr)[0], (10.2)) && fcompare((arr)[1], (14.1)));
+    (u/w + v - u) >> arr;
+    TESTTWO(arr, 3, 2);
+    (u/w + v - u) >> BSS_UNALIGNED<double>(uarr);
+    TESTTWO(uarr, 3, 2);
+    sseVecd m3(1, 3);
+    sseVecd m4(0, 4);
+    sseVecd ab = m3.max(m4);
+    ab >> arr;
+    TESTTWO(arr, 1, 4);
+    ab = m3.min(m4);
+    ab >> arr;
+    TESTTWO(arr, 0, 3);
+    sseVecd(1, 2).Swap() >> arr;
+    TESTTWO(arr, 2, 1);
+    TEST(sseVecd(1, 2).Sum() == 3)
+  }
+
+  {
+    BSS_ALIGN(16) __int64 arr[2] ={ -1, -2 };
+    __int64 uarr[2] ={ -1, 2 };
+    sseVeci64 u(1, 2);
+    sseVeci64 v(5);
+    sseVeci64 w(arr);
+    w >> arr;
+    TESTTWO(arr, -1, -2);
+    w = sseVeci64(BSS_UNALIGNED<const __int64>(uarr));
+    w >> arr;
+    TESTTWO(arr, -1, 2);
+    sseVeci64 uw(u+w);
+    uw >> arr;
+    TESTTWO(arr, 0, 4);
+    sseVeci64 uv(u-v);
+    uv >> arr;
+    TESTTWO(arr, -4, -3);
+    sseVeci64 u_v(u+w);
+    u_v >> arr;
+    TESTTWO(arr, 0, 4);
+    sseVeci64(1, 2).Swap() >> arr;
+    TESTTWO(arr, 2, 1);
+    TEST(sseVeci64(1, 2).Sum() == 3)
+  }
 
   //int megatest[TESTNUM*10];
   //for(uint i = 0; i<TESTNUM*10; ++i)
@@ -1618,14 +1703,13 @@ struct DEBUG_CDT : DEBUG_CDT_SAFE<SAFE> {
 template<> int DEBUG_CDT<true>::count=0;
 template<> int DEBUG_CDT<false>::count=0;
 
-namespace bss_util { template<typename Alloc> struct AniAttributeT<0, Alloc> : public AniAttributeDiscrete<Alloc, cAutoRef<cRefCounter>, delegate<void, cRefCounter*>, CARRAY_SAFE>{ AniAttributeT() : AniAttributeDiscrete(0) {} }; }
+namespace bss_util { template<typename Alloc> struct AniAttributeT<0, Alloc> : public AniAttributeDiscrete<Alloc, cAutoRef<cRefCounter>,  0, delegate<void, cRefCounter*>, CARRAY_SAFE>{ }; }
 namespace bss_util {
   BSS_FORCEINLINE double interval_toduration(const std::pair<cAutoRef<cRefCounter>, double>& p) { return p.second; }
-  template<typename Alloc> struct AniAttributeT<1, Alloc> : public AniAttributeInterval<Alloc, std::pair<cAutoRef<cRefCounter>, double>, cRefCounter*, &interval_toduration, delegate<void, cRefCounter*>, delegate<cRefCounter*, std::pair<cAutoRef<cRefCounter>, double>>, CARRAY_SAFE>{ AniAttributeT() : AniAttributeInterval(1) {}
-  }; 
+  template<typename Alloc> struct AniAttributeT<1, Alloc> : public AniAttributeInterval<Alloc, std::pair<cAutoRef<cRefCounter>, double>, cRefCounter*, 1, &interval_toduration, delegate<void, cRefCounter*>, delegate<cRefCounter*, std::pair<cAutoRef<cRefCounter>, double>>, CARRAY_SAFE>{ }; 
 }
-namespace bss_util { template<typename Alloc> struct AniAttributeT<2, Alloc> : public AniAttributeSmooth<Alloc, float>{ AniAttributeT() : AniAttributeSmooth(2) {} }; }
-namespace bss_util { template<typename Alloc> struct AniAttributeT<3, Alloc> : public AniAttributeGeneric<Alloc, std::function<void(void)>> { AniAttributeT() : AniAttributeGeneric(3) {} }; }
+namespace bss_util { template<typename Alloc> struct AniAttributeT<2, Alloc> : public AniAttributeSmooth<Alloc, float, 2>{ }; }
+namespace bss_util { template<typename Alloc> struct AniAttributeT<3, Alloc> : public AniAttributeGeneric<Alloc, std::function<void(void)>, 3> { }; }
 
 #include <memory>
 
@@ -1686,15 +1770,15 @@ TESTDEF::RETPAIR test_ANIMATION()
   a.SetTimeWarp(1.0);
   TEST(a.IsPaused());
   a.GetAttribute<2>()->SetInterpolation(&AniAttributeT<2>::LerpInterpolate);
-  a.GetAttribute<0>()->AddKeyFrame(AniAttributeT<0>::KeyFrame(0.0, &c));
-  a.GetAttribute<0>()->AddKeyFrame(AniAttributeT<0>::KeyFrame(1.1, &c));
-  a.GetAttribute<0>()->AddKeyFrame(AniAttributeT<0>::KeyFrame(2.0, &c));
-  a.GetAttribute<1>()->AddKeyFrame(AniAttributeT<1>::KeyFrame(0.0, ANIOBJPAIR(&c,1.5)));
-  a.GetAttribute<1>()->AddKeyFrame(AniAttributeT<1>::KeyFrame(1.0, ANIOBJPAIR(&c, 0.5)));
-  a.GetAttribute<1>()->AddKeyFrame(AniAttributeT<1>::KeyFrame(1.5, ANIOBJPAIR(&c, 0.5)));
-  a.GetAttribute<2>()->AddKeyFrame(AniAttributeT<2>::KeyFrame(0.0, 0.0f));
-  a.GetAttribute<2>()->AddKeyFrame(AniAttributeT<2>::KeyFrame(1.0, 1.0f));
-  a.GetAttribute<2>()->AddKeyFrame(AniAttributeT<2>::KeyFrame(2.0, 2.0f));
+  a.GetAttribute<0>()->AddKeyFrame(KeyFrame<0>(0.0, &c));
+  a.GetAttribute<0>()->AddKeyFrame(KeyFrame<0>(1.1, &c));
+  a.GetAttribute<0>()->AddKeyFrame(KeyFrame<0>(2.0, &c));
+  a.GetAttribute<1>()->AddKeyFrame(KeyFrame<1>(0.0, ANIOBJPAIR(&c,1.5)));
+  a.GetAttribute<1>()->AddKeyFrame(KeyFrame<1>(1.0, ANIOBJPAIR(&c, 0.5)));
+  a.GetAttribute<1>()->AddKeyFrame(KeyFrame<1>(1.5, ANIOBJPAIR(&c, 0.5)));
+  a.GetAttribute<2>()->AddKeyFrame(KeyFrame<2>(0.0, 0.0f));
+  a.GetAttribute<2>()->AddKeyFrame(KeyFrame<2>(1.0, 1.0f));
+  a.GetAttribute<2>()->AddKeyFrame(KeyFrame<2>(2.0, 2.0f));
   a.Pause(false);
   TEST(!a.IsPaused());
   TEST(a.HasTypeID(0));
@@ -1713,8 +1797,8 @@ TESTDEF::RETPAIR test_ANIMATION()
   for(int i = 0; i<6; ++i) c.Grab(); // compensate for the pointer we just copied over
 
   cAnimObj obj;
-  a.GetAttribute<3>()->AddKeyFrame(AniAttributeT<3>::KeyFrame(0.0, [&](){ c.Grab(); obj.test++; }));
-  a.GetAttribute<3>()->AddKeyFrame(AniAttributeT<3>::KeyFrame(0.6, [&](){ c.Drop(); }));
+  a.GetAttribute<3>()->AddKeyFrame(KeyFrame<3>(0.0, [&](){ c.Grab(); obj.test++; }));
+  a.GetAttribute<3>()->AddKeyFrame(KeyFrame<3>(0.6, [&](){ c.Drop(); }));
   a.Attach(delegate<void,AniAttribute*>::From<cAnimObj,&cAnimObj::TypeIDRegFunc>(&obj));
   
   TEST(c.Grab()==14);
@@ -2455,8 +2539,8 @@ static const double Answers2[NUMANSWERS][2] ={
   {12,24},
   {4,24},
   {5,11},
-  { 530, 0 },
-  { 10, 0}
+  { 26, 0 },
+  { 10, 0 }
 };
 
 static const double Answers3[NUMANSWERS][3] ={
@@ -2476,50 +2560,50 @@ static const double Answers3[NUMANSWERS][3] ={
   { 12, 24, 66 },
   { 4, 24, -66.0/4.0 },
   { 5, 11, 26 },
-  { 2745.0/4.0, 0, 0 },
+  { 251, 0, 0 },
   { 26, 0, 0 }
 };
 
 static const double Answers4[NUMANSWERS][4] ={
-  { 1, 2, 3, 4 },
-  { 5, 6, 7, 8 },
+  { 1, 2, 5, 7 },
+  { 3, 4, 6, 8 },
   { 7, 7, 7, 7 },
-  { 4, 6, 0, 0 },
-  { 8, 9, 0, 0 },
-  { -2, -2, 0, 0 },
-  { 2, 2, 0, 0 },
-  { 3, 8, 0, 0 },
-  { 7, 14, 0, 0 },
-  { 0.5f, 1, 0, 0 },
-  { 7, 3.5f, 0, 0 },
-  { 4, 6, 0, 0 },
-  { -3, -1, 0, 0 },
-  { 12, 24, 0, 0 },
-  { -3/12.0f, -1/24.0f, 0, 0 },
-  { 3, 1, 0, 0 },
-  { FastSqrt(10.0f), 0, 0, 0 },
-  { FastSqrt(10.0f), 0, 0, 0 }
+  { 4, 6, 11, 15 },
+  { 8, 9, 12, 14 },
+  { -2, -2, -1, -1 },
+  { 2, 2, 1, 1 },
+  { 3, 8, 30, 56 },
+  { 7, 14, 35, 49 },
+  { 1.0/3.0, 1.0/2.0, 5.0/6.0, 7.0/8.0 },
+  { 7, 7.0/2.0, 7.0/5.0, 7.0/7.0 },
+  { 4, 6, 11, 15 },
+  { 3, 1, -4, -8 },
+  { 12, 24, 66, 120 },
+  { 4, 24, -66.0/4.0, -15 },
+  { 5, 11, 26, 38 },
+  { 780, 0, 0, 0 },
+  { 90, 0, 0, 0 }
 };
 
 static const double Answers5[NUMANSWERS][5] ={
-  { 1, 2, 3, 4, 5 },
-  { 6, 7, 8, 9, 10 },
+  { 1, 2, 5, 7, 9 },
+  { 3, 4, 6, 8, 10 },
   { 7, 7, 7, 7, 7 },
-  { 4, 6, 0, 0, 0 },
-  { 8, 9, 0, 0, 0 },
-  { -2, -2, 0, 0, 0 },
-  { 2, 2, 0, 0, 0 },
-  { 3, 8, 0, 0, 0 },
-  { 7, 14, 0, 0, 0 },
-  { 0.5f, 1, 0, 0, 0 },
-  { 7, 3.5f, 0, 0, 0 },
-  { 4, 6, 0, 0, 0 },
-  { -3, -1, 0, 0, 0 },
-  { 12, 24, 0, 0, 0 },
-  { -3/12.0f, -1/24.0f, 0, 0, 0 },
-  { 3, 1, 0, 0, 0 },
-  { FastSqrt(10.0f), 0, 0, 0, 0 },
-  { FastSqrt(10.0f), 0, 0, 0, 0 }
+  { 4, 6, 11, 15, 19 },
+  { 8, 9, 12, 14, 16 },
+  { -2, -2, -1, -1, -1 },
+  { 2, 2, 1, 1, 1 },
+  { 3, 8, 30, 56, 90 },
+  { 7, 14, 35, 49, 63 },
+  { 1.0/3.0, 1.0/2.0, 5.0/6.0, 7.0/8.0, 9.0/10.0 },
+  { 7, 7.0/2.0, 7.0/5.0, 7.0/7.0, 7.0/9.0 },
+  { 4, 6, 11, 15, 19 },
+  { 3, 1, -4, -8, -12 },
+  { 12, 24, 66, 120, 190 },
+  { 4, 24, -66.0/4.0, -15, -190.0/12.0 },
+  { 5, 11, 26, 38, 50 },
+  { 1741, 0, 0, 0, 0 },
+  { 234, 0, 0, 0, 0 }
 };
 
 static const double* VAnswers[6] ={ 0, 0, (const double*)Answers2, (const double*)Answers3, (const double*)Answers4, (const double*)Answers5 };
@@ -2567,20 +2651,238 @@ template<typename T, int N> void VECTOR_N_TEST(TESTDEF::RETPAIR& __testret)
   b *= a;
   TESTVECTOR(b, ans[13], __testret);
   b /= c;
-  TESTVECTOR(b, ans[14], __testret);
+  if(!std::is_unsigned<T>::value) TESTVECTOR(b, ans[14], __testret);
   e = (c-(a*((T)2))).Abs();
   TESTVECTOR(e, ans[15], __testret);
   e = (c-(((T)2)*a)).Abs();
   TESTVECTOR(e, ans[15], __testret);
-  T l = c.DistanceSq(b*(T)2);
+  T l = c.DistanceSq(a);
   TEST(l == ans[16][0]);
-  l = c.Distance(b);
+  l = c.Distance(a);
   TEST(l == FastSqrt<T>(ans[16][0]));
   l = c.Dot(c);
   TEST(l == ans[17][0]);
   l = c.Length();
   TEST(l == FastSqrt<T>(ans[17][0]));
+  if(!std::is_integral<T>::value)
+  {
+    e = c.Normalize();
+    for(int i = 0; i < N; ++i) { TEST(e.v[i] == (ans[12][i]/l)); }
+  }
 }
+template<typename T> void VECTOR2_CROSS_TEST(TESTDEF::RETPAIR& __testret)
+{
+  Vector<T, 2> v(4,3);
+  Vector<T, 2> v2(1,2);
+  T a = v.Cross(v2);
+  TEST(a == (T)5);
+}
+template<typename T> void VECTOR3_CROSS_TEST(TESTDEF::RETPAIR& __testret)
+{
+  Vector<T, 3> v(4, 5, 6);
+  Vector<T, 3> v2(1, 2, 3);
+  Vector<T, 3> a = v.Cross(v2);
+  T ans[3] ={ (T)3, (T)-6, (T)3 };
+  for(int i = 0; i < 3; ++i) { TEST(a.v[i] == ans[i]); }
+}
+
+template<typename T, int M, int N, T (*op)(const T& l, const T& r)>
+void BSS_FASTCALL MATRIX_COMPONENT_OP(const T(&l)[M][N], const T(&r)[M][N], T(&out)[M][N])
+{
+  for(int i = 0; i < M; ++i)
+    for(int j = 0; j < N; ++j)
+      out[i][j] = op(l[i][j], r[i][j]);
+}
+
+template<typename T> T MATRIX_OP_ADD(const T& l, const T& r) { return l+r; }
+template<typename T> T MATRIX_OP_SUB(const T& l, const T& r) { return l-r; }
+template<typename T> T MATRIX_OP_MUL(const T& l, const T& r) { return l*r; }
+template<typename T> T MATRIX_OP_DIV(const T& l, const T& r) { return l/r; }
+
+template<typename T, int M, int N, int P>
+void BSS_FASTCALL MATRIX_MULTIPLY(const T(&l)[M][N], const T(&r)[N][P], T(&out)[M][P])
+{
+  memset(out, 0, sizeof(T)*M*P);
+  for(int i = 0; i < M; ++i)
+  {
+    for(int j = 0; j < P; ++j)
+    {
+      for(int k = 0; k < N; ++k)
+        out[i][j] += l[i][k]*r[k][j];
+    }
+  }
+}
+template<typename T, int M, int N, T(*op)(const T& l, const T& r)>
+bool MATRIX_OP_TEST(const T(&x)[M][N], const T(&l)[M][N], const T scalar)
+{
+  T out[M][N];
+  T* set = (T*)out;
+  for(int i = 0; i < M*N; ++i) set[i] = scalar;
+  return MATRIX_OP_TEST<T, M, N, op>(x, l, out);
+}
+
+template<typename T, int M, int N, T(*op)(const T& l, const T& r)>
+bool MATRIX_OP_TEST(const T(&x)[M][N], const T(&l)[M][N], const T(&r)[M][N])
+{
+  T out[M][N];
+  MATRIX_COMPONENT_OP<T, M, N, op>(l, r, out);
+  
+  for(int i = 0; i < M; ++i)
+    for(int j = 0; j < N; ++j)
+      if(out[i][j] !=x[i][j])
+        return false;
+
+  return true;
+}
+template<typename T, int M, int N>
+BSS_FORCEINLINE static void MATRIX_DIAGONAL(const T(&v)[M<N?M:N], T(&out)[M][N])
+{
+  memset(out, 0, sizeof(T)*M*N);
+  for(int i = 0; i < M && i < N; ++i)
+    out[i][i] = v[i];
+}
+
+template<typename T, int M, int N>
+bool MATRIX_COMPARE(const T(&l)[M][N], const T(&r)[M][N], int diff=1)
+{
+  for(int i = 0; i < M; ++i)
+    for(int j = 0; j < N; ++j)
+      if(!fcompare(l[i][j], r[i][j], diff))
+        return false;
+  return true;
+}
+
+template<typename T, int M, int N>
+void BSS_FASTCALL MATRIX_M_N_TEST(TESTDEF::RETPAIR& __testret)
+{
+  Matrix<T, M, N> a;
+  Matrix<T, M, N> b;
+  Matrix<T, M, N> c;
+  Matrix<T, M, N> d;
+  Matrix<T, M, N> e;
+
+  for(int i = 0; i < M; ++i)
+    for(int j = 0; j < N; ++j)
+      a.v[i][j] = (i*M)+j+1;
+  for(int i = 0; i < M; ++i)
+    for(int j = 0; j < N; ++j)
+      b.v[i][j] = (i*M)+j+(M*N)+1;
+  for(int i = 0; i < M; ++i)
+    for(int j = 0; j < N; ++j)
+      c.v[i][j] = 7;
+
+  // Component operation tests
+  e = a+b;
+  TEST((MATRIX_OP_TEST<T, M, N, MATRIX_OP_ADD>(e.v, a.v, b.v)));
+  e = b+a;
+  TEST((MATRIX_OP_TEST<T, M, N, MATRIX_OP_ADD>(e.v, b.v, a.v)));
+  e = a-b;
+  TEST((MATRIX_OP_TEST<T, M, N, MATRIX_OP_SUB>(e.v, a.v, b.v)));
+  e = b-c;
+  TEST((MATRIX_OP_TEST<T, M, N, MATRIX_OP_SUB>(e.v, b.v, c.v)));
+  e = b^a;
+  TEST((MATRIX_OP_TEST<T, M, N, MATRIX_OP_MUL>(e.v, b.v, a.v)));
+  e = c^b;
+  TEST((MATRIX_OP_TEST<T, M, N, MATRIX_OP_MUL>(e.v, c.v, b.v)));
+  e = a/b;
+  TEST((MATRIX_OP_TEST<T, M, N, MATRIX_OP_DIV>(e.v, a.v, b.v)));
+  e = b/a;
+  TEST((MATRIX_OP_TEST<T, M, N, MATRIX_OP_DIV>(e.v, b.v, a.v)));
+  e = a*(T)2;
+  TEST(e == (a+a));
+  e = (T)2*a;
+  TEST(e == (a+a));
+  e = a+(T)2;
+  TEST((MATRIX_OP_TEST<T, M, N, MATRIX_OP_ADD>(e.v, a.v, (T)2)));
+  e = (T)2+a;
+  TEST((MATRIX_OP_TEST<T, M, N, MATRIX_OP_ADD>(e.v, a.v, (T)2)));
+  e = a-(T)2;
+  TEST((MATRIX_OP_TEST<T, M, N, MATRIX_OP_SUB>(e.v, a.v, (T)2)));
+  e = (T)2-a;
+  TEST(e == -(a-(T)2));
+  e = a/(T)2;
+  TEST((MATRIX_OP_TEST<T, M, N, MATRIX_OP_DIV>(e.v, a.v, (T)2)));
+  e = a+b;
+  e -= b;
+  TEST(e == a);
+  e += a;
+  TEST(e == (a*(T)2));
+  e *= (T)-1;
+  TEST(e == (a*((T)-2)));
+  e /= (T)2;
+  TEST(e == (-a));
+  d = a;
+  TEST(d == a);
+
+  // Function tests
+  Matrix<T, N, M> t1;
+  Matrix<T, N, M> t2;
+  a.Transpose(t1.v);
+  Matrix<T, M, N>::Transpose(a.v, t2.v);
+  TEST(t1 == t2);
+  Vector<T, (M<N?M:N)> diag;
+  for(int i = 0; i < (M<N?M:N); ++i)
+    diag.v[i] = i+1;
+  MATRIX_DIAGONAL<T, M, N>(diag.v, d.v);
+  Matrix<T, M, N>::Diagonal(diag.v, e.v);
+  if(d != e)
+  {
+    MATRIX_DIAGONAL<T, M, N>(diag.v, d.v);
+    Matrix<T, M, N>::Diagonal(diag.v, e.v);
+  }
+  TEST(d == e);
+
+  diag = Vector<T, (M<N?M:N)>(1);
+  MATRIX_DIAGONAL<T, M, N>(diag.v, d.v);
+  Matrix<T, M, N>::Identity(e.v);
+  TEST(d == e);
+
+  // Matrix Multiplication tests
+  Vector<T, N> r1;
+  Vector<T, M> rr1;
+  Vector<T, M> rrr1;
+  for(int i = 0; i < N; ++i) r1.v[i] = i+1;
+  Vector<T, M> r2;
+  Vector<T, N> rr2;
+  Vector<T, N> rrr2;
+  for(int i = 0; i < M; ++i) r2.v[i] = i+1;
+
+  Matrix<T, N, N> s1;
+  Matrix<T, N, N> ss1;
+  Matrix<T, M, M> s2;
+  Matrix<T, M, M> ss2;
+
+  s2 = a*t2;
+  MATRIX_MULTIPLY<T, M, N, M>(a.v, t2.v, ss2.v);
+  TEST(ss2 == s2);
+  s1 = t1*a;
+  MATRIX_MULTIPLY<T, N, M, N>(t1.v, a.v, ss1.v);
+  TEST(ss1 == s1);
+  rr2 = r2*b;
+  MATRIX_MULTIPLY<T, 1, M, N>(r2.v_row, b.v, rrr2.v_row);
+  TEST(rr2 == rrr2);
+  rr1 = b*r1;
+  MATRIX_MULTIPLY<T, M, N, 1>(b.v, r1.v_column, rrr1.v_column);
+  TEST(rr1 == rrr1);
+}
+
+template<int M, int N>
+struct VECTOR_DUPLICATE
+{
+  static void test(TESTDEF::RETPAIR& __testret)
+  {
+    MATRIX_M_N_TEST<float, M, N>(__testret);
+    MATRIX_M_N_TEST<double, M, N>(__testret);
+    MATRIX_M_N_TEST<int, M, N>(__testret);
+    MATRIX_M_N_TEST<__int64, M, N>(__testret);
+
+    VECTOR_DUPLICATE<M, N-1>::test(__testret);
+    VECTOR_DUPLICATE<M-1, N-1>::test(__testret);
+  }
+};
+template<int M> struct VECTOR_DUPLICATE<M, 0> { static void test(TESTDEF::RETPAIR& __testret) {} };
+template<int N> struct VECTOR_DUPLICATE<0, N> { static void test(TESTDEF::RETPAIR& __testret) {} };
+template<> struct VECTOR_DUPLICATE<0, 0> { static void test(TESTDEF::RETPAIR& __testret) {} };
 
 TESTDEF::RETPAIR test_VECTOR()
 {
@@ -2595,34 +2897,145 @@ TESTDEF::RETPAIR test_VECTOR()
   VECTOR_N_TEST<int, 3>(__testret);
   VECTOR_N_TEST<unsigned int, 3>(__testret);
   VECTOR_N_TEST<__int64, 3>(__testret);
-  //VECTOR_N_TEST<float, 4>(__testret);
-  //VECTOR_N_TEST<double, 4>(__testret);
-  //VECTOR_N_TEST<int, 4>(__testret);
-  //VECTOR_N_TEST<unsigned int, 4>(__testret);
-  //VECTOR_N_TEST<__int64, 4>(__testret);
-  //VECTOR_N_TEST<float, 5>(__testret);
-  //VECTOR_N_TEST<double, 5>(__testret);
-  //VECTOR_N_TEST<int, 5>(__testret);
-  //VECTOR_N_TEST<unsigned int, 5>(__testret);
-  //VECTOR_N_TEST<__int64, 5>(__testret);
+  VECTOR_N_TEST<float, 4>(__testret);
+  VECTOR_N_TEST<double, 4>(__testret);
+  VECTOR_N_TEST<int, 4>(__testret);
+  VECTOR_N_TEST<unsigned int, 4>(__testret);
+  VECTOR_N_TEST<__int64, 4>(__testret);
+  VECTOR_N_TEST<float, 5>(__testret);
+  VECTOR_N_TEST<double, 5>(__testret);
+  VECTOR_N_TEST<int, 5>(__testret);
+  VECTOR_N_TEST<unsigned int, 5>(__testret);
+  VECTOR_N_TEST<__int64, 5>(__testret);
 
-  
-  shuffle(a);
-  TEST(a[0]!=-5);
-  TEST(a[14]!=35);
+  VECTOR2_CROSS_TEST<float>(__testret);
+  VECTOR2_CROSS_TEST<double>(__testret);
+  VECTOR2_CROSS_TEST<int>(__testret);
+  VECTOR2_CROSS_TEST<unsigned int>(__testret);
+  VECTOR2_CROSS_TEST<__int64>(__testret);
+  VECTOR3_CROSS_TEST<float>(__testret);
+  VECTOR3_CROSS_TEST<double>(__testret);
+  VECTOR3_CROSS_TEST<int>(__testret);
+  VECTOR3_CROSS_TEST<unsigned int>(__testret);
+  VECTOR3_CROSS_TEST<__int64>(__testret);
 
+  { // Verify the validity of our testing functions
+    Matrix<int, 2, 3> u ={ 1, 2, 3, 4, 5, 6 };
+    Matrix<int, 3, 2> v ={ 1, 2, 3, 4, 5, 6 };
+    Matrix<int, 2, 3> w ={ 12, 11, 10, 9, 8, 7 };
+    Matrix<int, 2, 2> uv;
+    int uv_ans[4] ={ 22, 28, 49, 64 };
+    Matrix<int, 3, 3> vu;
+    int vu_ans[9] ={ 9, 12, 15, 19, 26, 33, 29, 40, 51 };
+    Matrix<int, 2, 3> w2;
+
+    MATRIX_MULTIPLY<int, 2, 3, 2>(u.v, v.v, uv.v);
+    TESTARRAY(uv_ans, return (((int*)&uv)[i]==uv_ans[i]););
+    MATRIX_MULTIPLY<int, 3, 2, 3>(v.v, u.v, vu.v);
+    TESTARRAY(vu_ans, return (((int*)&vu)[i]==vu_ans[i]););
+
+    int w_ans[6] ={ 11, 9, 7, 5, 3, 1 };
+    MATRIX_COMPONENT_OP<int, 2, 3, MATRIX_OP_SUB>(w.v, u.v, w2.v);
+    TESTARRAY(w_ans, return (((int*)&w2)[i]==w_ans[i]););
+    MATRIX_COMPONENT_OP<int, 2, 3, MATRIX_OP_SUB>(u.v, w.v, w.v);
+    TESTARRAY(w_ans, return (((int*)&w)[i]==(-w_ans[i])););
+    int w_ans2[6] ={ 1, 0, 0, 0, 1, 0 };
+    Vector<int, 2> diag ={ 1, 1 };
+    MATRIX_DIAGONAL<int, 2, 3>(diag.v, w.v);
+    TESTARRAY(w_ans2, return (((int*)&w)[i]==w_ans2[i]););
+  }
+
+  // Now that we know our test functions are valid, test all possible matrix configurations up to 4x4
+  VECTOR_DUPLICATE<4, 4>::test(__testret);
+
+  // Test matrix transform functions
+  {
+    Matrix<__int64, 2, 2> a ={ 1, 2, 3, 4 };
+    TEST(a.Determinant()==-2);
+    Matrix<double, 3, 3> b ={ 2, 2, 3, 4, 5, 6, 7, 8, 9 };
+    TEST(b.Determinant()==-3.0);
+    Matrix<float, 3, 3> bf = b;
+    TEST(bf.Determinant()==-3.0f);
+    Matrix<int, 4, 4> c ={ 2, 2, 3, 4, 5, 0, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16 };
+    TEST(c.Determinant()==24);
+    Matrix<float, 4, 4> cf(c);
+    TEST(cf.Determinant()==24.0f);
+
+    Matrix<float, 2, 2> d_ans ={ -2, 1, 1.5f, -0.5f };
+    Matrix<float, 2, 2> d(a);
+    d.Inverse(d.v);
+    TEST(MATRIX_COMPARE(d.v, d_ans.v, 1000));
+    Matrix<float, 3, 3> e_ans ={ 1, -2, 1, -2, 1, 0, 1, 2.0f/3.0f, -2.0f/3.0f };
+    Matrix<float, 3, 3> e = b;
+    e.Inverse(e.v);
+    TEST(MATRIX_COMPARE(e.v, e_ans.v, 1000));
+    Matrix<double, 4, 4> g_ans ={ 1, 0, -3, 2, 0, -1.0/6, 1.0/3, -1.0/6, -3, 1.0/3, 13.0/3, -8.0/3, 2, -1.0/6, -23.0/12, 13.0/12 };
+    Matrix<float, 4, 4> f_ans = g_ans;
+    Matrix<double, 4, 4> g = c;
+    Matrix<float, 4, 4> f = g;
+    g.Inverse(g.v);
+    f.Inverse(f.v);
+    TEST(MATRIX_COMPARE(f.v, f_ans.v, 1000));
+    f = g;
+    TEST(MATRIX_COMPARE(f.v, f_ans.v, 1000));
+
+    Matrix<float, 2, 2> af_ans ={ 0, -1, 0, 1 };
+    Matrix<float, 2, 2> af = a;
+    Matrix<float, 2, 2>::Rotation(PI_HALFf, d.v);
+    Matrix<float, 2, 2>::Rotation_T(PI_HALFf, af);
+    af.Transpose(af.v);
+    TEST(af == d);
+    TEST(MATRIX_COMPARE(af.v, af_ans.v, 10));
+
+    Matrix<float, 3, 3> f1_ans ={ 0, -1, 0, 0, 1, 0, 0, 0, 1};
+    Matrix<float, 3, 3> f1;
+    Matrix<float, 3, 3> f2;
+    Matrix<float, 3, 3> f3;
+    Matrix<float, 3, 3>::AffineRotation(PI_HALFf, f2.v);
+    Matrix<float, 3, 3>::AffineRotation_T(PI_HALFf, f3);
+    f3.Transpose(f1.v);
+    TEST(f2 == f1);
+    TEST(MATRIX_COMPARE(f1.v, f1_ans.v, 10));
+    Matrix<float, 3, 3>::AffineScaling(2, -1, f1);
+    Matrix<float, 3, 3>::Diagonal(2, -1, 1, f2);
+    TEST(f2 == f1);
+    Matrix<float, 3, 3> f2_ans ={ 1, 0, 0, 0, 1, 0, 0, 0, 1 };
+    Matrix<float, 3, 3>::Identity(f1);
+    TEST(f1 == f2_ans);
+    Matrix<float, 3, 3> f3_ans ={ 1, 0, 2, 0, 1, -3, 0, 0, 1 };
+    Matrix<float, 3, 3>::Translation(2, -3, f1.v);
+    Matrix<float, 3, 3>::Translation_T(2, -3, f2);
+    f2.Transpose(f3.v);
+    TEST(f1 == f3);
+    TEST(f1 == f3_ans);
+
+    Matrix<float, 3, 3>::Translation(4, 5, f1);
+    f1.Inverse(f2.v);
+    Matrix<float, 3, 3>::AffineRotation(3, f3);
+    f1 = f2 * f3 * f1;
+    Matrix<float, 3, 3>::Translation(1, 2, f2.v);
+    f1 *= f2;
+    Matrix<float, 3, 3>::AffineTransform(1, 2, 3, 4, 5, f3.v);
+    TEST(MATRIX_COMPARE(f1.v, f3.v, 100));
+    Matrix<float, 3, 3>::AffineTransform_T(1, 2, 3, 4, 5, f3.v);
+    f1.Transpose(f2.v);
+    TEST(MATRIX_COMPARE(f2.v, f3.v, 100));
+
+  }
+
+  // Test n-dimensional vector functions
   BSS_ALIGN(16) float v[4]={ 2, -3, 4, -5 };
   BSS_ALIGN(16) float u[4]={ 1, -2, -1, 2 };
   BSS_ALIGN(16) float w[4]={ 0, 0, 0, 0 };
-  TEST(fcompare(NVectDistSq(v, w), 54.0f));
-  TEST(fcompare(NVectDist(v, w), 7.34846922835f));
-  TEST(fcompare(NVectDist(u, v), NVectDist(v, u)));
-  TEST(fcompare(NVectDist(u, v), 8.717797887f));
+  TEST(fcompare(NVector_DistanceSq(v, w), 54.0f));
+  TEST(fcompare(NVector_Distance(v, w), 7.34846922835f));
+  TEST(fcompare(NVector_Distance(u, v), NVector_Distance(v, u)));
+  TEST(fcompare(NVector_Distance(u, v), 8.717797887f));
   TEST(fcompare(NTriangleArea(v, u, w), 11.22497216f, 100));
   TEST(fcompare(NTriangleArea(u, v, w), 11.22497216f, 100));
-  TEST(fsmall(NDot(u, w)));
-  TEST(fcompare(NDot(u, v), -6.0f));
-  NVectAdd(v, w, w);
+  TEST(fsmall(NVector_Dot(u, w)));
+  TEST(fcompare(NVector_Dot(u, v), -6.0f));
+  /*NVectAdd(v, w, w);
   TESTFOUR(w, v[0], v[1], v[2], v[3]);
   NVectAdd(v, 3.0f, w);
   TESTFOUR(w, 5, 0, 7, -2);
@@ -2639,9 +3052,9 @@ TESTDEF::RETPAIR test_VECTOR()
   NVectDiv(v, 2.5f, w);
   TESTRELFOUR(w, 0.8f, -1.2f, 1.6f, -2);
   NVectDiv(v, u, w);
-  TESTRELFOUR(w, 2, 1.5f, -4, -2.5f);
+  TESTRELFOUR(w, 2, 1.5f, -4, -2.5f);*/
 
-  BSS_ALIGN(16) float m1[4][4]={ { 1, 2, 4, 8 }, { 16, 32, 64, 128 }, { -1, -2, -4, -8 }, { -16, -32, -64, -128 } };
+  /*BSS_ALIGN(16) float m1[4][4]={ { 1, 2, 4, 8 }, { 16, 32, 64, 128 }, { -1, -2, -4, -8 }, { -16, -32, -64, -128 } };
   BSS_ALIGN(16) float m2[4][4]={ { 8, 4, 2, 1 }, { 16, 32, 64, 128 }, { -1, -32, -4, -16 }, { -8, -2, -64, -128 } };
   BSS_ALIGN(16) float m3[4][4]={ 0 };
   BSS_ALIGN(16) float m4[4][4]={ 0 };
@@ -4294,8 +4707,8 @@ int main(int argc, char** argv)
     { "bss_depracated.h", &test_bss_deprecated },
     { "bss_dual.h", &test_bss_DUAL },
     { "bss_fixedpt.h", &test_bss_FIXEDPT },
-    { "bss_graph.h", &test_bss_GRAPH },
-    { "bss_sse.h", &test_bss_SSE },*/
+    { "bss_graph.h", &test_bss_GRAPH },*/
+    { "bss_sse.h", &test_bss_SSE },
     { "bss_vector.h", &test_VECTOR },
     { "cAliasTable.h", &test_ALIASTABLE },
     { "cAnimation.h", &test_ANIMATION },

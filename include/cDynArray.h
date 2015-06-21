@@ -22,6 +22,7 @@ namespace bss_util {
     inline cDynArray(const cDynArray& copy) : AT_(copy), _length(copy._length) {}
     inline cDynArray(cDynArray&& mov) : AT_(std::move(mov)), _length(mov._length) {}
     inline explicit cDynArray(ST_ size=0) : AT_(size), _length(0) {}
+    inline cDynArray(const std::initializer_list<T> list) : AT_(list), _length(list.size()) {}
     BSS_FORCEINLINE ST_ Add(const T_& t) { return _add(t); }
     BSS_FORCEINLINE ST_ Add(T_&& t) { return _add(std::move(t)); }
     BSS_FORCEINLINE void Remove(ST_ index) { AT_::RemoveInternal(index); --_length; }

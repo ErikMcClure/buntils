@@ -27,6 +27,8 @@
 - SetKeyFrame is no longer available on cAnimation. Use GetAttribute instead.
 - Animation attributes were refactored and are now declared directly.
 - Removed bss_literals
+- Fixed Shuffle() in sseVec and added Sum()
+- Added std::initializer_list to cArray and cDynArray
 
 0.4.3
 -----

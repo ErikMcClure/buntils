@@ -425,6 +425,7 @@ namespace bss_util {
     __int32 v2 = maxDiff - diff;
     return (v1|v2) >= 0;
   }
+
   inline static bool BSS_FASTCALL fcompare(double af, double bf, __int64 maxDiff=1)
   { 
     assert(af!=0.0 && bf!=0.0); // Use fsmall for this
@@ -452,6 +453,20 @@ namespace bss_util {
     unsigned __int64 i=((*((unsigned __int64*)&f))&0x7FFFFFFFFFFFFFFF); //0x7FFFFFFFFFFFFFFF strips off the sign bit (which is always the highest bit)
     unsigned __int64 e=((*((unsigned __int64*)&eps)));
     return i<=e; 
+  }
+
+  inline static bool BSS_FASTCALL fcomparesmall(float af, float bf, __int32 maxDiff=1, float eps = FLT_EPS)
+  {
+    if(af==0.0) return fsmall(bf, eps);
+    if(bf==0.0) return fsmall(af, eps);
+    return fcompare(af, bf, maxDiff);
+  }
+
+  inline static bool BSS_FASTCALL fcomparesmall(double af, double bf, __int64 maxDiff=1, double eps = DBL_EPS)
+  {
+    if(af==0.0) return fsmall(bf, eps);
+    if(bf==0.0) return fsmall(af, eps);
+    return fcompare(af, bf, maxDiff);
   }
 
   // This is a super fast length approximation for 2D coordinates; See http://www.azillionmonkeys.com/qed/sqroot.html for details (Algorithm by Paul Hsieh)

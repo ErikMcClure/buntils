@@ -1703,14 +1703,13 @@ struct DEBUG_CDT : DEBUG_CDT_SAFE<SAFE> {
 template<> int DEBUG_CDT<true>::count=0;
 template<> int DEBUG_CDT<false>::count=0;
 
-namespace bss_util { template<typename Alloc> struct AniAttributeT<0, Alloc> : public AniAttributeDiscrete<Alloc, cAutoRef<cRefCounter>, delegate<void, cRefCounter*>, CARRAY_SAFE>{ AniAttributeT() : AniAttributeDiscrete(0) {} }; }
+namespace bss_util { template<typename Alloc> struct AniAttributeT<0, Alloc> : public AniAttributeDiscrete<Alloc, cAutoRef<cRefCounter>,  0, delegate<void, cRefCounter*>, CARRAY_SAFE>{ }; }
 namespace bss_util {
   BSS_FORCEINLINE double interval_toduration(const std::pair<cAutoRef<cRefCounter>, double>& p) { return p.second; }
-  template<typename Alloc> struct AniAttributeT<1, Alloc> : public AniAttributeInterval<Alloc, std::pair<cAutoRef<cRefCounter>, double>, cRefCounter*, &interval_toduration, delegate<void, cRefCounter*>, delegate<cRefCounter*, std::pair<cAutoRef<cRefCounter>, double>>, CARRAY_SAFE>{ AniAttributeT() : AniAttributeInterval(1) {}
-  }; 
+  template<typename Alloc> struct AniAttributeT<1, Alloc> : public AniAttributeInterval<Alloc, std::pair<cAutoRef<cRefCounter>, double>, cRefCounter*, 1, &interval_toduration, delegate<void, cRefCounter*>, delegate<cRefCounter*, std::pair<cAutoRef<cRefCounter>, double>>, CARRAY_SAFE>{ }; 
 }
-namespace bss_util { template<typename Alloc> struct AniAttributeT<2, Alloc> : public AniAttributeSmooth<Alloc, float>{ AniAttributeT() : AniAttributeSmooth(2) {} }; }
-namespace bss_util { template<typename Alloc> struct AniAttributeT<3, Alloc> : public AniAttributeGeneric<Alloc, std::function<void(void)>> { AniAttributeT() : AniAttributeGeneric(3) {} }; }
+namespace bss_util { template<typename Alloc> struct AniAttributeT<2, Alloc> : public AniAttributeSmooth<Alloc, float, 2>{ }; }
+namespace bss_util { template<typename Alloc> struct AniAttributeT<3, Alloc> : public AniAttributeGeneric<Alloc, std::function<void(void)>, 3> { }; }
 
 #include <memory>
 
@@ -1771,15 +1770,15 @@ TESTDEF::RETPAIR test_ANIMATION()
   a.SetTimeWarp(1.0);
   TEST(a.IsPaused());
   a.GetAttribute<2>()->SetInterpolation(&AniAttributeT<2>::LerpInterpolate);
-  a.GetAttribute<0>()->AddKeyFrame(AniAttributeT<0>::KeyFrame(0.0, &c));
-  a.GetAttribute<0>()->AddKeyFrame(AniAttributeT<0>::KeyFrame(1.1, &c));
-  a.GetAttribute<0>()->AddKeyFrame(AniAttributeT<0>::KeyFrame(2.0, &c));
-  a.GetAttribute<1>()->AddKeyFrame(AniAttributeT<1>::KeyFrame(0.0, ANIOBJPAIR(&c,1.5)));
-  a.GetAttribute<1>()->AddKeyFrame(AniAttributeT<1>::KeyFrame(1.0, ANIOBJPAIR(&c, 0.5)));
-  a.GetAttribute<1>()->AddKeyFrame(AniAttributeT<1>::KeyFrame(1.5, ANIOBJPAIR(&c, 0.5)));
-  a.GetAttribute<2>()->AddKeyFrame(AniAttributeT<2>::KeyFrame(0.0, 0.0f));
-  a.GetAttribute<2>()->AddKeyFrame(AniAttributeT<2>::KeyFrame(1.0, 1.0f));
-  a.GetAttribute<2>()->AddKeyFrame(AniAttributeT<2>::KeyFrame(2.0, 2.0f));
+  a.GetAttribute<0>()->AddKeyFrame(KeyFrame<0>(0.0, &c));
+  a.GetAttribute<0>()->AddKeyFrame(KeyFrame<0>(1.1, &c));
+  a.GetAttribute<0>()->AddKeyFrame(KeyFrame<0>(2.0, &c));
+  a.GetAttribute<1>()->AddKeyFrame(KeyFrame<1>(0.0, ANIOBJPAIR(&c,1.5)));
+  a.GetAttribute<1>()->AddKeyFrame(KeyFrame<1>(1.0, ANIOBJPAIR(&c, 0.5)));
+  a.GetAttribute<1>()->AddKeyFrame(KeyFrame<1>(1.5, ANIOBJPAIR(&c, 0.5)));
+  a.GetAttribute<2>()->AddKeyFrame(KeyFrame<2>(0.0, 0.0f));
+  a.GetAttribute<2>()->AddKeyFrame(KeyFrame<2>(1.0, 1.0f));
+  a.GetAttribute<2>()->AddKeyFrame(KeyFrame<2>(2.0, 2.0f));
   a.Pause(false);
   TEST(!a.IsPaused());
   TEST(a.HasTypeID(0));
@@ -1798,8 +1797,8 @@ TESTDEF::RETPAIR test_ANIMATION()
   for(int i = 0; i<6; ++i) c.Grab(); // compensate for the pointer we just copied over
 
   cAnimObj obj;
-  a.GetAttribute<3>()->AddKeyFrame(AniAttributeT<3>::KeyFrame(0.0, [&](){ c.Grab(); obj.test++; }));
-  a.GetAttribute<3>()->AddKeyFrame(AniAttributeT<3>::KeyFrame(0.6, [&](){ c.Drop(); }));
+  a.GetAttribute<3>()->AddKeyFrame(KeyFrame<3>(0.0, [&](){ c.Grab(); obj.test++; }));
+  a.GetAttribute<3>()->AddKeyFrame(KeyFrame<3>(0.6, [&](){ c.Drop(); }));
   a.Attach(delegate<void,AniAttribute*>::From<cAnimObj,&cAnimObj::TypeIDRegFunc>(&obj));
   
   TEST(c.Grab()==14);

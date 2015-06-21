@@ -415,7 +415,7 @@ namespace bss_util {
   // Highly optimized traditional tolerance based approach to comparing floating point numbers, found here: http://www.randydillon.org/Papers/2007/everfast.htm
   inline static bool BSS_FASTCALL fcompare(float af, float bf, __int32 maxDiff=1)
   { 
-    assert(af!=0.0f && bf!=0.0f); // Use fsmall for this
+    //assert(af!=0.0f && bf!=0.0f); // Use fsmall for this
     __int32 ai = *reinterpret_cast<__int32*>(&af);
     __int32 bi = *reinterpret_cast<__int32*>(&bf);
     __int32 test = (-(__int32)(((unsigned __int32)(ai^bi))>>31));
@@ -428,7 +428,7 @@ namespace bss_util {
 
   inline static bool BSS_FASTCALL fcompare(double af, double bf, __int64 maxDiff=1)
   { 
-    assert(af!=0.0 && bf!=0.0); // Use fsmall for this
+    //assert(af!=0.0 && bf!=0.0); // Use fsmall for this
     __int64 ai = *reinterpret_cast<__int64*>(&af);
     __int64 bi = *reinterpret_cast<__int64*>(&bf);
     __int64 test = (-(__int64)(((unsigned __int64)(ai^bi))>>63));

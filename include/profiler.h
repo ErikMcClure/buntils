@@ -7,6 +7,7 @@
 #include "cHighPrecisionTimer.h"
 #include "cArray.h"
 #include "bss_alloc_block.h"
+#include <cmath>
 
 #ifndef BSS_ENABLE_PROFILER
 #define PROFILE_BEGIN(name)
@@ -105,7 +106,7 @@ namespace bss_util {
     unsigned int _totalnodes;
   };
 
-  BSS_FORCEINLINE static bool BSS_FASTCALL __DEBUG_VERIFY(PROF_TRIENODE* node)
+  inline static bool BSS_FASTCALL __DEBUG_VERIFY(PROF_TRIENODE* node)
   {
     if(!node) return true;
     if(!std::isfinite(node->avg) || !std::isfinite(node->codeavg)) {

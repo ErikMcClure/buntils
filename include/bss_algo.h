@@ -10,6 +10,7 @@
 #include "bss_vector.h"
 #include "cDynArray.h"
 #include "cDisjointSet.h"
+#include "bss_graph.h"
 #include <algorithm>
 #include <random>
 #include <array>
@@ -161,10 +162,10 @@ namespace bss_util {
     void seed(unsigned __int64 s[16]) { for(int i = 0; i < 16; ++i) _state[i]=s[i]; _state[16]=0; }
     void discard(unsigned long long z) { for(int i = 0; i < z; ++i) xorshift1024star(_state); }
 
-    inline static T min() { return base_min(); }
-    inline static T max() { return base_max(); }
+    inline static T min() { return xorshift_engine_base<T>::base_min(); }
+    inline static T max() { return xorshift_engine_base<T>::base_max(); }
 
-    inline T operator()() { return base_transform(xorshift1024star(_state)); } // Truncate to return_value size.
+    inline T operator()() { return xorshift_engine_base<T>::base_transform(xorshift1024star(_state)); } // Truncate to return_value size.
     bool operator ==(const xorshift_engine& r) const { for(int i = 0; i < 17; ++i) if(_state[i]!=r._state[i]) return false; return true; }
     bool operator !=(const xorshift_engine& r) const { return !operator==(r); }
 
@@ -204,7 +205,7 @@ namespace bss_util {
   template<typename T, typename ENGINE>
   T bss_gencanonical(ENGINE& e)
   {
-    return __bss_gencanonical<T,ENGINE>(e, (ENGINE::result_type)e.min());
+    return __bss_gencanonical<T,ENGINE>(e, (typename ENGINE::result_type)e.min());
   }
 
   inline static xorshift_engine<unsigned __int64>& bss_getdefaultengine()
@@ -255,7 +256,7 @@ namespace bss_util {
   class BSS_COMPILER_DLLEXPORT cRandomQueue : protected cDynArray<T, SizeType, ArrayType, Alloc>
   {
   protected:
-    typedef typename SizeType ST_;
+    typedef SizeType ST_;
     typedef cDynArray<T, SizeType, ArrayType, Alloc> AT_;
     using AT_::_array;
     using AT_::_length;
@@ -556,7 +557,7 @@ namespace bss_util {
   {
     typedef typename G::ST_ ST;
     typedef typename std::make_signed<ST>::type SST;
-    typedef Edge<typename G::E_, ST> E;
+    typedef bss_util::Edge<typename G::E_, ST> E;
     auto& n = graph.GetNodes();
     if((*FACTION)(root)) return;
     DYNARRAY(ST, aset, graph.Capacity());

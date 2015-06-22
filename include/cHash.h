@@ -212,9 +212,9 @@ namespace bss_util {
   public:
     inline cKhash(const cKhash& copy) : KHTYPE(copy) { }
     inline cKhash(cKhash&& mov) : KHTYPE(std::move(mov)) { }
-    inline cKhash(unsigned int size=0) { kh_resize_template(size); };
+    inline cKhash(unsigned int size=0) { KHTYPE::kh_resize_template(size); };
     inline ~cKhash() { }
-    inline khiter_t Iterator(KHKEY key) const { return kh_get_template(key); }
+    inline khiter_t Iterator(KHKEY key) const { return KHTYPE::kh_get_template(key); }
     inline void Insert(KHKEY key, const KHVAL& value) { _insert<const KHVAL&>(key,value); }
     inline void Insert(KHKEY key, KHVAL&& value) { _insert<KHVAL&&>(key,std::move(value)); }
     //inline KHKEY GetIterKey(khiter_t iterator) { return kh_key(iterator); }
@@ -227,21 +227,21 @@ namespace bss_util {
     inline bool SetValue(khiter_t iterator, KHVAL&& newvalue) { return _setvalue<KHVAL&&>(iterator, std::move(newvalue)); }
     inline bool Set(KHKEY key, const KHVAL& newvalue) { return _setvalue<const KHVAL&>(Iterator(key), newvalue); }
     inline bool Set(KHKEY key, KHVAL&& newvalue) { return _setvalue<KHVAL&&>(Iterator(key), std::move(newvalue)); }
-    inline void SetSize(unsigned int size) { if(kh_end(this) < size) kh_resize_template(size); }
+    inline void SetSize(unsigned int size) { if(kh_end(this) < size) KHTYPE::kh_resize_template(size); }
 		inline bool Remove(KHKEY key)
     {
       khiter_t iterator = Iterator(key);
       if(kh_end(this) == iterator) return false; // This isn't ExistsIter because kh_get_template will return kh_end(this) if key doesn't exist
-		  kh_del_template(iterator);
+		  KHTYPE::kh_del_template(iterator);
 			return true;
     }
     inline bool RemoveIter(khiter_t iterator)
     {
       if(!ExistsIter(iterator)) return false;
-		  kh_del_template(iterator);
+		  KHTYPE::kh_del_template(iterator);
 			return true;
     }
-		inline void Clear() { kh_clear_template(); }
+		inline void Clear() { KHTYPE::kh_clear_template(); }
 		inline unsigned int Length() const { return kh_size(this); }
 		inline unsigned int Capacity() const { return kh_end(this); }
 		inline khiter_t Start() const { return kh_begin(this); }
@@ -296,7 +296,7 @@ namespace bss_util {
 		{
 			//if(kh_size(this) >= kh_end(this)) _resize(); // Not needed, kh_put_template resizes as necessary
 			int r;
-			khiter_t retval = kh_put_template(key,&r);
+			khiter_t retval = KHTYPE::kh_put_template(key,&r);
       if(kh_is_map) // only set value if this is actually a map
         kh_val(this,retval)=std::forward<U>(value);
 		}

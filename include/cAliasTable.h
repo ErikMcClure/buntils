@@ -18,8 +18,8 @@ namespace bss_util {
       memcpy(_alias, copy._alias, sizeof(UINT)*copy._count);
       memcpy(_prob, copy._prob, sizeof(UINT)*copy._count);
     }
-    cAliasTable(cAliasTable&& mov) : _alias(mov._alias), _prob(mov._prob), _count(mov._count), _dist(std::move(copy._dist))
-      _fdist(std::move(copy._fdist)), _engine(std::move(copy._engine))
+    cAliasTable(cAliasTable&& mov) : _alias(mov._alias), _prob(mov._prob), _count(mov._count), _dist(std::move(mov._dist)),
+      _fdist(std::move(mov._fdist)), _engine(std::move(mov._engine))
     {
         mov._alias=0;
         mov._prob=0;

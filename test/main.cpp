@@ -2510,7 +2510,7 @@ bool TESTVECTOR_EQUALITY<double>(double l, double r)
 {
   if(l == 0.0) return fsmall(r);
   if(r == 0.0) return fsmall(l);
-  return fcompare(l, r, 100i64);
+  return fcompare(l, r, 100LL);
 }
 
 #define TESTVECTOR(vec, arr, __testret) for(int i = 0; i < N; ++i) { TEST(TESTVECTOR_EQUALITY(vec.v[i],arr[i])); }

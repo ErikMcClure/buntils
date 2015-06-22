@@ -22,13 +22,13 @@ namespace bss_util {
   class cAATree : cAllocTracker<Alloc>
   {
   public:
-    inline cAATree(Alloc* alloc = 0) : cAllocTracker<Alloc>(alloc), _sentinel(_allocate(1))
+    inline cAATree(Alloc* alloc = 0) : cAllocTracker<Alloc>(alloc), _sentinel(cAllocTracker<Alloc>::_allocate(1))
     {
       _sentinel->level = 0;
       _sentinel->left = _sentinel->right = _sentinel;
       _root = _sentinel;
     }
-    inline ~cAATree() { Clear(); _deallocate(_sentinel, 1); }
+    inline ~cAATree() { Clear(); cAllocTracker<Alloc>::_deallocate(_sentinel, 1); }
     inline void Insert(const T& data) { _insert(_root, data); }
     inline bool Remove(const T& data) { return _remove(_root, data); }
     // Gets the node that belongs to the data or returns NULL if not found.
@@ -94,7 +94,7 @@ namespace bss_util {
     {
       if(n == _sentinel)
       {
-        n = _allocate(1);
+        n = cAllocTracker<Alloc>::_allocate(1);
         n->left = n->right = _sentinel;
         n->data = data;
         n->level = 1;
@@ -123,7 +123,7 @@ namespace bss_util {
         _deleted->data = n->data;
         _deleted = _sentinel;
         n = n->right;
-        _deallocate(_last);
+        cAllocTracker<Alloc>::_deallocate(_last);
         _last = _sentinel;
         b = true;
       } else if(n->left->level < n->level-1 || n->right->level < n->level-1) {

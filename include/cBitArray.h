@@ -94,7 +94,7 @@ namespace bss_util
   protected:
     BSS_FORCEINLINE static ST_ _maxchunks(ST_ numbits) { return T_NEXTMULTIPLE(numbits,MOD_AMT); }
 
-    typename cArray<STORE_,ST_> _bits;
+    cArray<STORE_,ST_> _bits;
     ST_ _numbits;
   };
 }

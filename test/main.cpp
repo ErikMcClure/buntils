@@ -2716,14 +2716,6 @@ void BSS_FASTCALL MATRIX_MULTIPLY(const T(&l)[M][N], const T(&r)[N][P], T(&out)[
     }
   }
 }
-template<typename T, int M, int N, T(*op)(const T& l, const T& r)>
-bool MATRIX_OP_TEST(const T(&x)[M][N], const T(&l)[M][N], const T scalar)
-{
-  T out[M][N];
-  T* set = (T*)out;
-  for(int i = 0; i < M*N; ++i) set[i] = scalar;
-  return MATRIX_OP_TEST<T, M, N, op>(x, l, out);
-}
 
 template<typename T, int M, int N, T(*op)(const T& l, const T& r)>
 bool MATRIX_OP_TEST(const T(&x)[M][N], const T(&l)[M][N], const T(&r)[M][N])
@@ -2738,6 +2730,16 @@ bool MATRIX_OP_TEST(const T(&x)[M][N], const T(&l)[M][N], const T(&r)[M][N])
 
   return true;
 }
+
+template<typename T, int M, int N, T(*op)(const T& l, const T& r)>
+bool MATRIX_OP_TEST(const T(&x)[M][N], const T(&l)[M][N], const T scalar)
+{
+  T out[M][N];
+  T* set = (T*)out;
+  for(int i = 0; i < M*N; ++i) set[i] = scalar;
+  return MATRIX_OP_TEST<T, M, N, op>(x, l, out);
+}
+
 template<typename T, int M, int N>
 BSS_FORCEINLINE static void MATRIX_DIAGONAL(const T(&v)[M<N?M:N], T(&out)[M][N])
 {

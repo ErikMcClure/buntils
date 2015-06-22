@@ -20,13 +20,13 @@ namespace bss_util {
   }
 
   template<>
-  BSS_FORCEINLINE static float BSS_FASTCALL NVector_Dot<float, 4>(const float(&l)[4], const float(&r)[4])
+  BSS_FORCEINLINE BSS_EXPLICITSTATIC float BSS_FASTCALL NVector_Dot<float, 4>(const float(&l)[4], const float(&r)[4])
   {
     return (sseVec(l)*sseVec(r)).Sum();
   }
 
   template<>
-  BSS_FORCEINLINE static int BSS_FASTCALL NVector_Dot<int, 4>(const int(&l)[4], const int(&r)[4])
+  BSS_FORCEINLINE BSS_EXPLICITSTATIC int BSS_FASTCALL NVector_Dot<int, 4>(const int(&l)[4], const int(&r)[4])
   {
     return (sseVeci(l)*sseVeci(r)).Sum();
   }
@@ -57,7 +57,7 @@ namespace bss_util {
   }
 
   template<>
-  BSS_FORCEINLINE static void NVector_Normalize<float, 4>(const float(&v)[4], float(&out)[4])
+  BSS_FORCEINLINE BSS_EXPLICITSTATIC void NVector_Normalize<float, 4>(const float(&v)[4], float(&out)[4])
   {
     float l = FastSqrt<float>(NVector_Dot<float, 4>(v, v));
     (sseVec(v)/sseVec(l, l, l, l)) >> out;
@@ -66,7 +66,7 @@ namespace bss_util {
   template<typename T>
   BSS_FORCEINLINE static T NVector_AbsCall(const T v)
   {
-      return abs((std::conditional<std::is_integral<T>::value, std::make_signed<std::conditional<std::is_integral<T>::value, T, int>::type>::type, T>::type)v);
+      return abs((typename std::conditional<std::is_integral<T>::value, typename std::make_signed<typename std::conditional<std::is_integral<T>::value, T, int>::type>::type, T>::type)v);
   }
 
   template<typename T, int N>
@@ -584,7 +584,7 @@ namespace bss_util {
   }
 
   template<>
-  static BSS_FORCEINLINE void BSS_FASTCALL FromQuaternion<float, 4>(float(&q)[4], float(&out)[4][4])
+  BSS_EXPLICITSTATIC BSS_FORCEINLINE void BSS_FASTCALL FromQuaternion<float, 4>(float(&q)[4], float(&out)[4][4])
   {
     sseVec x(q[0]);
     sseVec y(q[1]);
@@ -628,7 +628,7 @@ namespace bss_util {
     inline Vector(const Vector<U, N>& copy) { for(int i = 0; i < N; ++i) v[i] = (T)copy.v[i]; }
     inline explicit Vector(T scalar) { for(int i = 0; i < N; ++i) v[i] = scalar; }
     inline explicit Vector(const T(&e)[N]) { for(int i = 0; i < N; ++i) v[i] = e[i]; }
-    inline Vector(const std::initializer_list<T> e) { int k = 0; for(const T* i = e.begin(); i != eend() && k < N; ++i) v[k++] = *i; }
+    inline Vector(const std::initializer_list<T> e) { int k = 0; for(const T* i = e.begin(); i != e.end() && k < N; ++i) v[k++] = *i; }
     inline Vector() { }
     inline T Length() const { return FastSqrt<T>(Dot(*this)); }
     inline Vector<T, N> Normalize() const { Vector<T, N> ret(*this); NVector_Normalize(v, ret.v); return ret; }
@@ -670,7 +670,6 @@ namespace bss_util {
     inline T BSS_FASTCALL Cross(T X, T Y) const { return CrossProduct(X, Y, x, y); }
     template<int K> inline void Outer(const Vector<T, K>& r, T(&out)[2][K]) const { MatrixMultiply<T, 2, 1, K>(v_column, r.v_row, out); }
 
-    inline Vector<T, 2>& BSS_FASTCALL operator=(const Vector<T, 2>& r) { x = r.x; y = r.y; return *this; }
     template<typename U> inline Vector<T, 2>& BSS_FASTCALL operator=(const Vector<U, 2>& r) { x = (T)r.x; y = (T)r.y; return *this; }
 
     static BSS_FORCEINLINE void BSS_FASTCALL RotatePoint(T& x, T& y, T r, T cx, T cy) { T tx = x-cx; T ty = y-cy; T rcos = (T)cos(r); T rsin = (T)sin(r); x = (tx*rcos - ty*rsin)+cx; y = (ty*rcos + tx*rsin)+cy; }
@@ -711,7 +710,6 @@ namespace bss_util {
     inline Vector<T, 3> Cross(T X, T Y, T Z) const { return Vector<T, 3>(y*Z - z*Y, z*X - x*Z, x*Y - X*y); }
     template<int K> inline void Outer(const Vector<T, K>& r, T(&out)[3][K]) const { MatrixMultiply<T, 3, 1, K>(v_column, r.v_row, out); }
 
-    inline Vector<T, 3>& BSS_FASTCALL operator=(const Vector<T, 3>& r) { x = r.x; y = r.y; z = r.z; return *this; }
     template<typename U> inline Vector<T, 3>& BSS_FASTCALL operator=(const Vector<U, 3>& r) { x = (T)r.x; y = (T)r.y; z = (T)r.z; return *this; }
 
     inline Vector<T, 2> xz() const { return Vector<T, 2>(x, z); }
@@ -752,7 +750,6 @@ namespace bss_util {
     inline T BSS_FASTCALL DistanceSq(const Vector<T, 4>& r) const { T tz = (r.z - z); T ty = (r.y - y); T tx = (r.x - x); T tw = (r.w - w); return (T)((tx*tx)+(ty*ty)+(tz*tz)+(tw*tw)); }
     template<int K> inline void Outer(const Vector<T, K>& r, T(&out)[4][K]) const { MatrixMultiply<T, 4, 1, K>(v_column, r.v_row, out); }
 
-    inline Vector<T, 4>& BSS_FASTCALL operator=(const Vector<T, 4>& r) { x = r.x; y = r.y; z = r.z; w = r.w; return *this; }
     template<typename U> inline Vector<T, 4>& BSS_FASTCALL operator=(const Vector<U, 4>& r) { x = (T)r.x; y = (T)r.y; z = (T)r.z; w = (T)r.w; return *this; }
 
     // SWIZZLES!!!!
@@ -1176,14 +1173,14 @@ namespace bss_util {
     return l;
   }
 
-  template<> inline static Vector<float, 4>& BSS_FASTCALL operator +=<float, float, 4>(Vector<float, 4>& l, const Vector<float, 4>& r) { (sseVec(l.v)+sseVec(r.v)) >> l.v; return l; }
-  template<> inline static Vector<float, 4>& BSS_FASTCALL operator -=<float, float, 4>(Vector<float, 4>& l, const Vector<float, 4>& r) { (sseVec(l.v)-sseVec(r.v)) >> l.v; return l; }
-  template<> inline static Vector<float, 4>& BSS_FASTCALL operator *=<float, float, 4>(Vector<float, 4>& l, const Vector<float, 4>& r) { (sseVec(l.v)*sseVec(r.v)) >> l.v; return l; }
-  template<> inline static Vector<float, 4>& BSS_FASTCALL operator /=<float, float, 4>(Vector<float, 4>& l, const Vector<float, 4>& r) { (sseVec(l.v)/sseVec(r.v)) >> l.v; return l; }
-  template<> inline static Vector<float, 4>& BSS_FASTCALL operator +=<float, float, 4>(Vector<float, 4>& l, const float r) { (sseVec(l.v)+sseVec(r, r, r, r)) >> l.v; return l; }
-  template<> inline static Vector<float, 4>& BSS_FASTCALL operator -=<float, float, 4>(Vector<float, 4>& l, const float r) { (sseVec(l.v)-sseVec(r, r, r, r)) >> l.v; return l; }
-  template<> inline static Vector<float, 4>& BSS_FASTCALL operator *=<float, float, 4>(Vector<float, 4>& l, const float r) { (sseVec(l.v)*sseVec(r, r, r, r)) >> l.v; return l; }
-  template<> inline static Vector<float, 4>& BSS_FASTCALL operator /=<float, float, 4>(Vector<float, 4>& l, const float r) { (sseVec(l.v)/sseVec(r, r, r, r)) >> l.v; return l; }
+  template<> inline BSS_EXPLICITSTATIC Vector<float, 4>& BSS_FASTCALL operator +=<float, float, 4>(Vector<float, 4>& l, const Vector<float, 4>& r) { (sseVec(l.v)+sseVec(r.v)) >> l.v; return l; }
+  template<> inline BSS_EXPLICITSTATIC Vector<float, 4>& BSS_FASTCALL operator -=<float, float, 4>(Vector<float, 4>& l, const Vector<float, 4>& r) { (sseVec(l.v)-sseVec(r.v)) >> l.v; return l; }
+  template<> inline BSS_EXPLICITSTATIC Vector<float, 4>& BSS_FASTCALL operator *=<float, float, 4>(Vector<float, 4>& l, const Vector<float, 4>& r) { (sseVec(l.v)*sseVec(r.v)) >> l.v; return l; }
+  template<> inline BSS_EXPLICITSTATIC Vector<float, 4>& BSS_FASTCALL operator /=<float, float, 4>(Vector<float, 4>& l, const Vector<float, 4>& r) { (sseVec(l.v)/sseVec(r.v)) >> l.v; return l; }
+  template<> inline BSS_EXPLICITSTATIC Vector<float, 4>& BSS_FASTCALL operator +=<float, float, 4>(Vector<float, 4>& l, const float r) { (sseVec(l.v)+sseVec(r, r, r, r)) >> l.v; return l; }
+  template<> inline BSS_EXPLICITSTATIC Vector<float, 4>& BSS_FASTCALL operator -=<float, float, 4>(Vector<float, 4>& l, const float r) { (sseVec(l.v)-sseVec(r, r, r, r)) >> l.v; return l; }
+  template<> inline BSS_EXPLICITSTATIC Vector<float, 4>& BSS_FASTCALL operator *=<float, float, 4>(Vector<float, 4>& l, const float r) { (sseVec(l.v)*sseVec(r, r, r, r)) >> l.v; return l; }
+  template<> inline BSS_EXPLICITSTATIC Vector<float, 4>& BSS_FASTCALL operator /=<float, float, 4>(Vector<float, 4>& l, const float r) { (sseVec(l.v)/sseVec(r, r, r, r)) >> l.v; return l; }
 
 }
 

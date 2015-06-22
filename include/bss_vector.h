@@ -1055,20 +1055,20 @@ namespace bss_util {
     };
   };
 
-  template<typename T, typename U, int N> inline static const Vector<T, N> BSS_FASTCALL operator +(const Vector<T, N>& l, const Vector<U, N>& r) { return Vector<T, N>(l)+=r; }
-  template<typename T, typename U, int N> inline static const Vector<T, N> BSS_FASTCALL operator -(const Vector<T, N>& l, const Vector<U, N>& r) { return Vector<T, N>(l)-=r; }
-  template<typename T, typename U, int N> inline static const Vector<T, N> BSS_FASTCALL operator *(const Vector<T, N>& l, const Vector<U, N>& r) { return Vector<T, N>(l)*=r; }
-  template<typename T, typename U, int N> inline static const Vector<T, N> BSS_FASTCALL operator /(const Vector<T, N>& l, const Vector<U, N>& r) { return Vector<T, N>(l)/=r; }
-  template<typename T, typename U, int N> inline static const Vector<T, N> BSS_FASTCALL operator +(const Vector<T, N>& l, const U scalar) { return Vector<T, N>(l)+=scalar; }
-  template<typename T, typename U, int N> inline static const Vector<T, N> BSS_FASTCALL operator -(const Vector<T, N>& l, const U scalar) { return Vector<T, N>(l)-=scalar; }
-  template<typename T, typename U, int N> inline static const Vector<T, N> BSS_FASTCALL operator *(const Vector<T, N>& l, const U scalar) { return Vector<T, N>(l)*=scalar; }
-  template<typename T, typename U, int N> inline static const Vector<T, N> BSS_FASTCALL operator /(const Vector<T, N>& l, const U scalar) { return Vector<T, N>(l)/=scalar; }
-  template<typename T, typename U, int N> inline static const Vector<U, N> BSS_FASTCALL operator +(const T scalar, const Vector<U, N>& r) { return Vector<T, N>(r)+=scalar; }
-  template<typename T, typename U, int N> inline static const Vector<U, N> BSS_FASTCALL operator -(const T scalar, const Vector<U, N>& r) {
+  template<typename T, typename U, int N> inline static Vector<T, N> BSS_FASTCALL operator +(const Vector<T, N>& l, const Vector<U, N>& r) { Vector<T, N> n(l); n += r; return n; }
+  template<typename T, typename U, int N> inline static Vector<T, N> BSS_FASTCALL operator -(const Vector<T, N>& l, const Vector<U, N>& r) { Vector<T, N> n(l); n -= r; return n; }
+  template<typename T, typename U, int N> inline static Vector<T, N> BSS_FASTCALL operator *(const Vector<T, N>& l, const Vector<U, N>& r) { Vector<T, N> n(l); n *= r; return n; }
+  template<typename T, typename U, int N> inline static Vector<T, N> BSS_FASTCALL operator /(const Vector<T, N>& l, const Vector<U, N>& r) { Vector<T, N> n(l); n /= r; return n; }
+  template<typename T, typename U, int N> inline static Vector<T, N> BSS_FASTCALL operator +(const Vector<T, N>& l, const U scalar) { Vector<T, N> n(l); n += scalar; return n; }
+  template<typename T, typename U, int N> inline static Vector<T, N> BSS_FASTCALL operator -(const Vector<T, N>& l, const U scalar) { Vector<T, N> n(l); n -= scalar; return n; }
+  template<typename T, typename U, int N> inline static Vector<T, N> BSS_FASTCALL operator *(const Vector<T, N>& l, const U scalar) { Vector<T, N> n(l); n *= scalar; return n; }
+  template<typename T, typename U, int N> inline static Vector<T, N> BSS_FASTCALL operator /(const Vector<T, N>& l, const U scalar) { Vector<T, N> n(l); n /= scalar; return n; }
+  template<typename T, typename U, int N> inline static Vector<U, N> BSS_FASTCALL operator +(const T scalar, const Vector<U, N>& r) { Vector<T, N> n(r); n += scalar; return n; }
+  template<typename T, typename U, int N> inline static Vector<U, N> BSS_FASTCALL operator -(const T scalar, const Vector<U, N>& r) {
     Vector<U, N> ret(r); for(int i = 0; i < N; ++i) ret.v[i] = (U)scalar - r.v[i]; return ret;
   }
-  template<typename T, typename U, int N> inline static const Vector<U, N> BSS_FASTCALL operator *(const T scalar, const Vector<U, N>& r) { return Vector<T, N>(r)*=scalar; }
-  template<typename T, typename U, int N> inline static const Vector<U, N> BSS_FASTCALL operator /(const T scalar, const Vector<U, N>& r) {
+  template<typename T, typename U, int N> inline static Vector<U, N> BSS_FASTCALL operator *(const T scalar, const Vector<U, N>& r) { Vector<T, N> n(r); n *= scalar; return n; }
+  template<typename T, typename U, int N> inline static Vector<U, N> BSS_FASTCALL operator /(const T scalar, const Vector<U, N>& r) {
     Vector<U, N> ret(r); for(int i = 0; i < N; ++i) ret.v[i] = (U)scalar / r.v[i]; return ret;
   }
 
@@ -1097,24 +1097,24 @@ namespace bss_util {
   template<typename T, int N> inline static bool BSS_FASTCALL operator <=(Vector<T, N>& l, const T scalar) { bool ret = true; for(int i = 0; i < N; ++i) ret = ret && (l.v[i] <= scalar); return ret; }
 
   // Component-wise matrix operations. Note that component-wise matrix multiplication is ^
-  template<typename T, int M, int N> inline static const Matrix<T, M, N> BSS_FASTCALL operator +(const Matrix<T, M, N>& l, const Matrix<T, M, N>& r) { return Matrix<T, M, N>(l)+=r; }
-  template<typename T, int M, int N> inline static const Matrix<T, M, N> BSS_FASTCALL operator -(const Matrix<T, M, N>& l, const Matrix<T, M, N>& r) { return Matrix<T, M, N>(l)-=r; }
-  template<typename T, int M, int N> inline static const Matrix<T, M, N> BSS_FASTCALL operator ^(const Matrix<T, M, N>& l, const Matrix<T, M, N>& r) { return Matrix<T, M, N>(l)^=r; }
-  template<typename T, int M, int N> inline static const Matrix<T, M, N> BSS_FASTCALL operator /(const Matrix<T, M, N>& l, const Matrix<T, M, N>& r) { return Matrix<T, M, N>(l)/=r; }
-  template<typename T, int M, int N> inline static const Matrix<T, M, N> BSS_FASTCALL operator +(const Matrix<T, M, N>& l, const T scalar) { return Matrix<T, M, N>(l)+=scalar; }
-  template<typename T, int M, int N> inline static const Matrix<T, M, N> BSS_FASTCALL operator -(const Matrix<T, M, N>& l, const T scalar) { return Matrix<T, M, N>(l)-=scalar; }
-  template<typename T, int M, int N> inline static const Matrix<T, M, N> BSS_FASTCALL operator *(const Matrix<T, M, N>& l, const T scalar) { return Matrix<T, M, N>(l)*=scalar; }
-  template<typename T, int M, int N> inline static const Matrix<T, M, N> BSS_FASTCALL operator /(const Matrix<T, M, N>& l, const T scalar) { return Matrix<T, M, N>(l)/=scalar; }
-  template<typename T, int M, int N> inline static const Matrix<T, M, N> BSS_FASTCALL operator +(const T scalar, const Matrix<T, M, N>& r) { return Matrix<T, M, N>(r)+=scalar; }
-  template<typename T, int M, int N> inline static const Matrix<T, M, N> BSS_FASTCALL operator -(const T scalar, const Matrix<T, M, N>& r) {
+  template<typename T, int M, int N> inline static Matrix<T, M, N> BSS_FASTCALL operator +(const Matrix<T, M, N>& l, const Matrix<T, M, N>& r) { Matrix<T, M, N> n(l); n += r; return n; }
+  template<typename T, int M, int N> inline static Matrix<T, M, N> BSS_FASTCALL operator -(const Matrix<T, M, N>& l, const Matrix<T, M, N>& r) { Matrix<T, M, N> n(l); n -= r; return n; }
+  template<typename T, int M, int N> inline static Matrix<T, M, N> BSS_FASTCALL operator ^(const Matrix<T, M, N>& l, const Matrix<T, M, N>& r) { Matrix<T, M, N> n(l); n ^= r; return n; }
+  template<typename T, int M, int N> inline static Matrix<T, M, N> BSS_FASTCALL operator /(const Matrix<T, M, N>& l, const Matrix<T, M, N>& r) { Matrix<T, M, N> n(l); n /= r; return n; }
+  template<typename T, int M, int N> inline static Matrix<T, M, N> BSS_FASTCALL operator +(const Matrix<T, M, N>& l, const T scalar) { Matrix<T, M, N> n(l); n += scalar; return n; }
+  template<typename T, int M, int N> inline static Matrix<T, M, N> BSS_FASTCALL operator -(const Matrix<T, M, N>& l, const T scalar) { Matrix<T, M, N> n(l); n -= scalar; return n; }
+  template<typename T, int M, int N> inline static Matrix<T, M, N> BSS_FASTCALL operator *(const Matrix<T, M, N>& l, const T scalar) { Matrix<T, M, N> n(l); n *= scalar; return n; }
+  template<typename T, int M, int N> inline static Matrix<T, M, N> BSS_FASTCALL operator /(const Matrix<T, M, N>& l, const T scalar) { Matrix<T, M, N> n(l); n /= scalar; return n; }
+  template<typename T, int M, int N> inline static Matrix<T, M, N> BSS_FASTCALL operator +(const T scalar, const Matrix<T, M, N>& r) { Matrix<T, M, N> n(r); n += scalar; return n; }
+  template<typename T, int M, int N> inline static Matrix<T, M, N> BSS_FASTCALL operator -(const T scalar, const Matrix<T, M, N>& r) {
     Matrix<T, M, N> x;
     T* u = (T*)x.v;
     T* v = (T*)r.v;
     for(int i = 0; i < M*N; ++i) u[i] = scalar - v[i];
     return x;
   }
-  template<typename T, int M, int N> inline static const Matrix<T, M, N> BSS_FASTCALL operator *(const T scalar, const Matrix<T, M, N>& r) { return Matrix<T, M, N>(r)*=scalar; }
-  template<typename T, int M, int N> inline static const Matrix<T, M, N> BSS_FASTCALL operator /(const T scalar, const Matrix<T, M, N>& r) {
+  template<typename T, int M, int N> inline static Matrix<T, M, N> BSS_FASTCALL operator *(const T scalar, const Matrix<T, M, N>& r) { Matrix<T, M, N> n(r); n *= scalar; return n; }
+  template<typename T, int M, int N> inline static Matrix<T, M, N> BSS_FASTCALL operator /(const T scalar, const Matrix<T, M, N>& r) {
     Matrix<T, M, N> x;
     T* u = (T*)x.v;
     T* v = (T*)r.v;
@@ -1136,8 +1136,8 @@ namespace bss_util {
   template<typename T, int M, int N> inline static bool BSS_FASTCALL operator ==(const Matrix<T, M, N>& l, const T scalar) { for(int i = 0; i < M; ++i) for(int j = 0; j < N; ++j) if(l.v[i][j] != scalar) return false; return true; }
   template<typename T, int M, int N> inline static bool BSS_FASTCALL operator !=(const Matrix<T, M, N>& l, const T scalar) { return !operator==(l, scalar); }
 
-  template<typename T, int M, int N> inline static const Matrix<T, M, N> operator -(const Matrix<T, M, N>& l) { return l*((T)-1); }
-  template<typename T, int M, int N> inline static const Matrix<T, M, N> operator ~(const Matrix<T, M, N>& l) { Matrix<T, M, N> m; return l.Transpose(m.v); return m; }
+  template<typename T, int M, int N> inline static Matrix<T, M, N> operator -(const Matrix<T, M, N>& l) { return l*((T)-1); }
+  template<typename T, int M, int N> inline static Matrix<T, M, N> operator ~(const Matrix<T, M, N>& l) { Matrix<T, M, N> m; return l.Transpose(m.v); return m; }
 
   template<typename T, int M, int N>
   inline static const Vector<T, N> BSS_FASTCALL operator *(const Vector<T, M>& v, const Matrix<T, M, N>& m) // Does v * M and assumes v is a row vector

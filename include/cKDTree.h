@@ -42,6 +42,8 @@ namespace bss_util {
     inline void Clear() { if(_root) _destroynode(_root); _root=0; }
     void BSS_FASTCALL Traverse(float(&rect)[4]) const { if(_root) _traverse<0, 1>(_root, rect); }
     template<typename F>
+    void BSS_FASTCALL TraverseAction(float(&rect)[4], F && f) const { if(_root) _traverseaction<0, 1, F>(_root, rect, std::forward<F>(f)); }
+    template<typename F>
     void BSS_FASTCALL TraverseAll(F && f) { _traverseall(_root, std::forward<F>(f)); }
     void BSS_FASTCALL Insert(T* item)
     {
@@ -263,6 +265,24 @@ namespace bss_util {
         _traverse<next, cur>(node->left, rect);
       if(node->div <= rect[cur+2] && node->right!=0)
         _traverse<next, cur>(node->right, rect);
+    }
+    template<char cur, char next, typename F>
+    static void BSS_FASTCALL _traverseaction(const KDNode<T>* node, const float(&rect)[4], F && f)
+    {
+      T* item=node->items;
+      const float* r;
+      while(item)
+      {
+        r=FRECT(item);
+        if(r[0] <= rect[2] && r[1] <= rect[3] && r[2] >= rect[0] && r[3] >= rect[1])
+          f(item);
+        item=FLIST(item).next;
+      }
+
+      if(node->div >= rect[cur] && node->left!=0)
+        _traverseaction<next, cur>(node->left, rect, std::forward<F>(f));
+      if(node->div <= rect[cur+2] && node->right!=0)
+        _traverseaction<next, cur>(node->right, rect, std::forward<F>(f));
     }
     inline KDNode<T>* BSS_FASTCALL _allocnode(KDNode<T>* parent, char axis)
     {

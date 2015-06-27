@@ -36,14 +36,14 @@ namespace bss_util {
       } 
     }
     
-    inline const cRational operator+ (const cRational& r) const { return cRational(*this)+=r; }
-    inline const cRational operator- (const cRational& r) const { return cRational(*this)-=r; }
-    inline const cRational operator* (const cRational& r) const { return cRational(*this)*=r; }
-    inline const cRational operator/ (const cRational& r) const { return cRational(*this)/=r; }
-    inline const cRational operator+ (T i) const { return cRational(*this)+=i; }
-    inline const cRational operator- (T i) const { return cRational(*this)-=i; }
-    inline const cRational operator* (T i) const { return cRational(*this)*=i; }
-    inline const cRational operator/ (T i) const { return cRational(*this)/=i; }
+    inline cRational operator+ (const cRational& r) const { return cRational(*this)+=r; }
+    inline cRational operator- (const cRational& r) const { return cRational(*this)-=r; }
+    inline cRational operator* (const cRational& r) const { return cRational(*this)*=r; }
+    inline cRational operator/ (const cRational& r) const { return cRational(*this)/=r; }
+    inline cRational operator+ (T i) const { return cRational(*this)+=i; }
+    inline cRational operator- (T i) const { return cRational(*this)-=i; }
+    inline cRational operator* (T i) const { return cRational(*this)*=i; }
+    inline cRational operator/ (T i) const { return cRational(*this)/=i; }
     inline cRational& operator+= (const cRational& r) // Uses the operator += algorithm found here: http://www.boost.org/doc/libs/1_48_0/boost/rational.hpp
     {
       T r_n = r._n;
@@ -105,9 +105,9 @@ namespace bss_util {
     inline cRational& operator-= (T i) { _n -= i * _d; return *this; } // See above, for operator -=
     inline cRational& operator*= (T i) { T g = GCD<T>(i, _d); _n *= (i/g); _d /= g; return *this; } // See above, for operator *=
     inline cRational& operator/= (T i) { if(!_n) return *this; T g = GCD<T>(_n, i); _n /=g; _d *= (i/g); if (_d < 0) { _n=-_n; _d=-_d; } return *this; }  // See above, for operator /= (if you try to divide by zero, its going to crash with a divide by zero)
-    inline const cRational& operator++() { _n+=_d; }
-    inline const cRational& operator--() { _n-=_d; }
-    inline cRational& operator=(T n) { _n=n; _d=1; }
+    inline cRational& operator++() { _n+=_d; return *this; }
+    inline cRational& operator--() { _n-=_d; return *this; }
+    inline cRational& operator=(T n) { _n=n; _d=1; return *this;  }
     inline bool operator!() const { return !_n; }
     inline bool operator> (const cRational& r) const { return operator double() > ((double)r); } //This can potentially cause precision issues in pathalogical cases, but it should do the job most of the time and the alternative is not O(1) time.
     inline bool operator< (const cRational& r) const { return operator double() < ((double)r); }
@@ -117,7 +117,7 @@ namespace bss_util {
     inline bool operator> (T i) const { if(operator==(i)) return false; return !operator<(i); }
     inline bool operator== (T i) const { return _d==1 && i==_n; }
     inline bool operator!= (T i) const { return _d!=1 || i!=_n; }
-    inline const cRational Abs() const { return cRational(abs(_n), _d); }
+    inline cRational Abs() const { return cRational(abs(_n), _d); }
     inline operator float() const { return operator double(); } //We force this to happen with double precision because its highly likely floating point is going to choke on the division.
     inline operator double() const { return ((double)_n)/((double)_d); }
 

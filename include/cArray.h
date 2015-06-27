@@ -120,7 +120,7 @@ namespace bss_util {
         memcpy(_array+oldsize, add._array, add._size*sizeof(T));
       return *this;
     }
-    BSS_FORCEINLINE const cArrayBase<T, ST_, ArrayType, Alloc> operator +(const cArrayBase<T, ST_, ArrayType, Alloc>& add) const
+    BSS_FORCEINLINE cArrayBase<T, ST_, ArrayType, Alloc> operator +(const cArrayBase<T, ST_, ArrayType, Alloc>& add) const
     {
       cArrayBase<T, ST_, ArrayType, Alloc> retval(*this);
       retval+=add;
@@ -259,7 +259,7 @@ namespace bss_util {
       _size=nsize;
       return *this;
     }
-    BSS_FORCEINLINE const cArrayBase operator +(const cArrayBase& add) const
+    BSS_FORCEINLINE cArrayBase operator +(const cArrayBase& add) const
     {
       cArrayBase retval(*this);
       retval+=add;
@@ -413,7 +413,7 @@ namespace bss_util {
       _size=nsize;
       return *this;
     }
-    BSS_FORCEINLINE const cArrayBase operator +(const cArrayBase& add) const
+    BSS_FORCEINLINE cArrayBase operator +(const cArrayBase& add) const
     {
       cArrayBase retval(*this);
       retval+=add;
@@ -489,7 +489,7 @@ namespace bss_util {
     BSS_FORCEINLINE cArray& operator=(const AT_& copy) { AT_::operator=(copy); return *this; }
     BSS_FORCEINLINE cArray& operator=(AT_&& mov) { AT_::operator=(std::move(mov)); return *this; }
     BSS_FORCEINLINE cArray& operator +=(const AT_& add) { AT_::operator+=(add); return *this; }
-    BSS_FORCEINLINE const cArray operator +(const AT_& add) const { cArray r(*this); return (r+=add); }
+    BSS_FORCEINLINE cArray operator +(const AT_& add) const { cArray r(*this); return (r+=add); }
   };
 }
 

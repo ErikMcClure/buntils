@@ -2717,6 +2717,10 @@ void BSS_FASTCALL MATRIX_MULTIPLY(const T(&l)[M][N], const T(&r)[N][P], T(&out)[
   }
 }
 
+template<typename T> bool MAT_OP_COMPFUNC(const T& l, const T& r) { return l == r; }
+template<> bool MAT_OP_COMPFUNC<float>(const float &l, const float& r) { return fcomparesmall(l, r); }
+template<> bool MAT_OP_COMPFUNC<double>(const double& l, const double& r) { return fcomparesmall(l, r); }
+
 template<typename T, int M, int N, T(*op)(const T& l, const T& r)>
 bool MATRIX_OP_TEST(const T(&x)[M][N], const T(&l)[M][N], const T(&r)[M][N])
 {
@@ -2725,7 +2729,7 @@ bool MATRIX_OP_TEST(const T(&x)[M][N], const T(&l)[M][N], const T(&r)[M][N])
   
   for(int i = 0; i < M; ++i)
     for(int j = 0; j < N; ++j)
-      if(out[i][j] !=x[i][j])
+      if(!MAT_OP_COMPFUNC(out[i][j], x[i][j]))
         return false;
 
   return true;
@@ -4857,7 +4861,7 @@ int main(int argc, char** argv)
   
   // For best results on windows, add the test application to Application Verifier before going through the tests.
   TESTDEF tests[] = {
-    /*{ "bss_util_c.h", &test_bss_util_c },
+    { "bss_util_c.h", &test_bss_util_c },
     { "bss_util.h", &test_bss_util },
     { "cLog.h", &test_bss_LOG },
     { "bss_algo.h", &test_bss_algo },
@@ -4868,7 +4872,7 @@ int main(int argc, char** argv)
     { "bss_depracated.h", &test_bss_deprecated },
     { "bss_dual.h", &test_bss_DUAL },
     { "bss_fixedpt.h", &test_bss_FIXEDPT },
-    { "bss_graph.h", &test_bss_GRAPH },*/
+    { "bss_graph.h", &test_bss_GRAPH },
     { "bss_sse.h", &test_bss_SSE },
     { "bss_vector.h", &test_VECTOR },
     { "cAliasTable.h", &test_ALIASTABLE },

@@ -100,6 +100,7 @@
     <ClInclude Include="..\include\cStr.h" />
     <ClInclude Include="..\include\cStrTable.h" />
     <ClInclude Include="..\include\cTrie.h" />
+    <ClInclude Include="..\include\cXML.h" />
     <ClInclude Include="..\include\delegate.h" />
     <ClInclude Include="..\include\Dual.h" />
     <ClInclude Include="..\include\FixedPt.h" />
@@ -120,6 +121,7 @@
     <ClCompile Include="cINIentry.cpp" />
     <ClCompile Include="cINIsection.cpp" />
     <ClCompile Include="cINIstorage.cpp" />
+    <ClCompile Include="cXML.cpp" />
     <ClCompile Include="INIParser.c" />
     <ClCompile Include="profiler.cpp" />
   </ItemGroup>

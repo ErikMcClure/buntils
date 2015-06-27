@@ -68,7 +68,7 @@ namespace bss_util {
     BSS_FORCEINLINE const T& BSS_FASTCALL operator [](ST_ index) const { return GetItem(index); }
 
     // Iterator for cLinkedArray
-    template<bool CONST, typename U = typename std::conditional<CONST, typename std::add_const<T>::type, T>::type, typename D = typename std::conditional<CONST, typename std::add_const<cLinkedArray>::type, cLinkedArray>::type>
+    template<bool ISCONST, typename U = typename std::conditional<ISCONST, typename std::add_const<T>::type, T>::type, typename D = typename std::conditional<ISCONST, typename std::add_const<cLinkedArray>::type, cLinkedArray>::type>
     class BSS_COMPILER_DLLEXPORT cLAIter : public std::iterator<std::bidirectional_iterator_tag, typename D::value_type, ptrdiff_t, U*, U&>
     {
     public:

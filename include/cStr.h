@@ -129,12 +129,12 @@ public:
 
   inline operator const CHAR*() const { return _internal_ptr(); }
   
-  inline const cStrT operator +(const cStrT& right) const { return cStrT(*this)+=right; }
-  inline const cStrT operator +(cStrT&& right) const { right.insert(0, *this); return (std::move(right)); }
+  inline cStrT operator +(const cStrT& right) const { return cStrT(*this)+=right; }
+  inline cStrT operator +(cStrT&& right) const { right.insert(0, *this); return (std::move(right)); }
   template<class U> inline const cStrT operator +(const cStrT<T,U>& right) const { return cStrT(*this)+=right; }
   template<class U> inline const cStrT operator +(cStrT<T,U>&& right) const { right.insert(0, *this); return (std::move(right)); }
-  inline const cStrT operator +(const CHAR* right) const { return cStrT(*this)+=right; }
-  inline const cStrT operator +(const CHAR right) const { return cStrT(*this)+=right; }
+  inline cStrT operator +(const CHAR* right) const { return cStrT(*this)+=right; }
+  inline cStrT operator +(const CHAR right) const { return cStrT(*this)+=right; }
 
   inline cStrT& operator =(const cStrT& right) { BASE::operator =(right); return *this; }
   template<class U> inline cStrT& operator =(const cStrT<T,U>& right) { BASE::operator =(right); return *this; }

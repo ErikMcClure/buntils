@@ -30,6 +30,7 @@
 - Fixed Shuffle() in sseVec and added Sum()
 - Added std::initializer_list to cArray and cDynArray
 - Removed const modifier from operators to prevent breaking move semantics
+- Added cXML
 
 0.4.3
 -----

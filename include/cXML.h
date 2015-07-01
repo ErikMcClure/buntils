@@ -11,8 +11,10 @@
 
 namespace bss_util {
   // Represents an XML value converted to various forms.
-  struct cXMLValue
+  struct BSS_COMPILER_DLLEXPORT cXMLValue
   {
+    cXMLValue() : Float(0.0), Integer(0) {}
+    cStr Name;
     cStr String;
     double Float;
     unsigned __int64 Integer;
@@ -33,32 +35,53 @@ namespace bss_util {
     BSS_FORCEINLINE operator const char*() const { return String; }
   };
 
-  // Simple cXMLNode. Note that return values from GetNode and GetAttribute are invalid after adding a node or an attribute.
-  struct cXMLNode : LLBase<cXMLNode>
+  // Simple cXMLNode. Note that return values from GetAttribute are invalid after adding a node or an attribute.
+  struct BSS_DLLEXPORT cXMLNode : LLBase<cXMLNode>
   {
     cXMLNode(const cXMLNode& copy);
     cXMLNode(cXMLNode&& mov);
     explicit cXMLNode(const char* parse=0);
     explicit cXMLNode(std::istream& stream);
     BSS_FORCEINLINE const char* GetName() const { return _name; }
-    BSS_FORCEINLINE const cXMLNode* GetNode(unsigned int index) const { return index>=_nodes.Length()?0:(_nodes+index); }
-    BSS_FORCEINLINE const cXMLNode* GetNode(const char* name) const { return _nodehash[name]; }
-    BSS_FORCEINLINE const cXMLValue* GetAttribute(unsigned int index) const { return index>=_attributes.Length()?0:(_attributes+index); }
-    BSS_FORCEINLINE const cXMLValue* GetAttribute(const char* name) const { return _attrhash[name]; }
+    BSS_FORCEINLINE const cXMLNode* GetNode(size_t index) const { return index>=_nodes.Length()?0:_nodes[index].get(); }
+    BSS_FORCEINLINE const cXMLNode* GetNode(const char* name) const { return GetNode(_nodehash[name]); }
+    BSS_FORCEINLINE size_t GetNodes() const { return _nodes.Length(); }
+    BSS_FORCEINLINE const cXMLValue* GetAttribute(size_t index) const { return index>=_attributes.Length()?0:(_attributes+index); }
+    BSS_FORCEINLINE const cXMLValue* GetAttribute(const char* name) const { return GetAttribute(_attrhash[name]); }
+    BSS_FORCEINLINE size_t GetAttributes() const { return _attributes.Length(); }
     BSS_FORCEINLINE const cXMLValue& GetValue() const { return _value; }
+    BSS_FORCEINLINE void SetName(const char* name) { _name = name; }
+    void AddNode(const cXMLNode& node);
+    void AddNode(const char* name);
+    void AddAttribute(const cXMLValue& value);
+    void AddAttribute(const char* name);
+    bool RemoveNode(size_t index);
+    bool RemoveNode(const char* name);
+    bool RemoveAttribute(size_t index);
+    bool RemoveAttribute(const char* name);
+    void SetValue(double value);
+    void SetValue(unsigned __int64 value);
+    void SetValue(const char* value);
 
     cXMLNode& operator=(const cXMLNode& copy);
     cXMLNode& operator=(cXMLNode&& mov);
-    BSS_FORCEINLINE const cXMLNode* operator[](const char* node) const { return GetNode(node); }
+    BSS_FORCEINLINE const cXMLNode* operator[](size_t index) const { return GetNode(index); }
 
   protected:
-    void _parse(std::istream& stream, cStr& buf);
-    void _parseattribute(std::istream& stream, cStr& buf);
+    void _addnode(std::unique_ptr<cXMLNode> && n);
+    void _addattribute(cXMLValue && v);
+    static bool _match(std::istream& stream, cStr& out, const char* pattern, bool reset = false);
+    bool _parse(std::istream& stream, cStr& buf);
+    void _parseinner(std::istream& stream, cStr& buf);
+    void _parseattribute(cStr& buf);
+    static void _parseentity(std::istream& stream, cStr& target);
+    static void _outputunicode(cStr& buf, int c);
+    static void _evalvalue(cXMLValue& val);
 
-    cDynArray<cXMLNode, unsigned int, CARRAY_SAFE> _nodes;
-    cHash<const char*, cXMLNode*> _nodehash;
-    cDynArray<cXMLValue, unsigned int, CARRAY_SAFE> _attributes;
-    cHash<const char*, cXMLValue*> _attrhash;
+    cDynArray<std::unique_ptr<cXMLNode>, size_t, CARRAY_SAFE> _nodes;
+    cHash<const char*, size_t> _nodehash;
+    cDynArray<cXMLValue, size_t, CARRAY_SAFE> _attributes;
+    cHash<const char*, size_t> _attrhash;
     cXMLValue _value;
     cStr _name;
   };
@@ -66,6 +89,7 @@ namespace bss_util {
   // Tiny XML parser
   class BSS_DLLEXPORT cXML : public cXMLNode
   {
+  public:
     cXML(const cXML& copy);
     cXML(cXML&& mov);
     explicit cXML(const char* source=0);
@@ -73,7 +97,7 @@ namespace bss_util {
 
     inline cXML& operator=(const cXML& copy) { cXMLNode::operator=(copy); return *this; }
     inline cXML& operator=(cXML&& mov) { cXMLNode::operator=(mov); return *this; }
-    BSS_FORCEINLINE const cXMLNode* operator[](const char* node) const { return GetNode(node); }
+    BSS_FORCEINLINE const cXMLNode* operator[](size_t index) const { return GetNode(index); }
 
   protected:
     void _initialparse(std::istream& stream, cStr& buf);

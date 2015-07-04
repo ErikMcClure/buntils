@@ -3,6 +3,7 @@
 
 #include "cXML.h"
 #include <sstream>
+#include <fstream>
 #include <string>
 
 using namespace bss_util;
@@ -16,6 +17,24 @@ void cXML::_initialparse(std::istream& stream, cStr& buf)
 {
   if(_match(stream, buf, "<?*?>"))
     _parseattribute(buf);
+}
+
+void cXML::Write(const char* file, bool pretty) const
+{
+  std::ofstream fs(file, std::ios_base::out | std::ios_base::trunc | std::ios_base::binary);
+  Write(fs, pretty);
+  fs.close();
+}
+void cXML::Write(std::ostream& stream, bool pretty) const
+{
+  if(_attributes.Length()>0)
+  {
+    stream << "<?";
+    _writeattribute(stream);
+    stream << "?>";
+  }
+  for(int i = 0; i < _nodes.Length(); ++i)
+    _nodes[i]->_write(stream, pretty, 0);
 }
 
 cXMLNode::cXMLNode(const cXMLNode& copy) { next=0; prev=0; }
@@ -238,4 +257,64 @@ void cXMLNode::_evalvalue(cXMLValue& val)
   char* c;
   val.Integer = strtoull(val.String, &c, 10);
   val.Float = atof(val.String);
+}
+
+void cXMLNode::_writeattribute(std::ostream& stream) const
+{
+  stream << _name;
+
+  for(int i = 0; i < _attributes.Length(); ++i)
+  {
+    stream << ' ' << _attributes[i].Name << "=\"";
+    _writestring(stream, _attributes[i].String);
+    stream.put('"');
+  }
+}
+
+void cXMLNode::_writestring(std::ostream& stream, const char* s)
+{
+  while(*s)
+  {
+    switch(*s)
+    {
+    case '<': stream << "&lt;"; break;
+    case '>': stream << "&gt;"; break;
+    case '&': stream << "&amp;"; break;
+    case '\'': stream << "&apos;"; break;
+    case '"': stream << "&quot;"; break;
+    default: stream.put(*s); break;
+    }
+    ++s;
+  }
+}
+
+void cXMLNode::_write(std::ostream& stream, bool pretty, int depth) const
+{
+  if(pretty)
+  {
+    stream << std::endl;
+    for(int i = 0; i < depth; ++i) stream.put('\t');
+  }
+  stream.put('<');
+  _writeattribute(stream);
+  bool content = _value.String.Trim().length();
+  if(!content && !_nodes.Length()) // If there is no content and no nodes, assume this is a self-closing tag.
+  {
+    stream << "/>";
+    return;
+  }
+
+  stream.put('>');
+  if(content) _writestring(stream, _value.String);
+
+  for(int i = 0; i < _nodes.Length(); ++i)
+    _nodes[i]->_write(stream, pretty, depth+1);
+
+  if(_nodes.Length()>0 && pretty)
+  {
+    stream << std::endl;
+    for(int i = 0; i < depth; ++i) stream.put('\t');
+  }
+  
+  stream << "</" << _name << ">";
 }

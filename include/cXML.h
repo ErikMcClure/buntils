@@ -51,32 +51,37 @@ namespace bss_util {
     BSS_FORCEINLINE size_t GetAttributes() const { return _attributes.Length(); }
     BSS_FORCEINLINE const cXMLValue& GetValue() const { return _value; }
     BSS_FORCEINLINE void SetName(const char* name) { _name = name; }
-    void AddNode(const cXMLNode& node);
-    void AddNode(const char* name);
-    void AddAttribute(const cXMLValue& value);
-    void AddAttribute(const char* name);
-    bool RemoveNode(size_t index);
-    bool RemoveNode(const char* name);
-    bool RemoveAttribute(size_t index);
-    bool RemoveAttribute(const char* name);
-    void SetValue(double value);
-    void SetValue(unsigned __int64 value);
-    void SetValue(const char* value);
+    void BSS_FASTCALL AddNode(const cXMLNode& node);
+    void BSS_FASTCALL AddNode(const char* name);
+    void BSS_FASTCALL AddAttribute(const cXMLValue& value);
+    void BSS_FASTCALL AddAttribute(const char* name);
+    bool BSS_FASTCALL RemoveNode(size_t index);
+    bool BSS_FASTCALL RemoveNode(const char* name);
+    bool BSS_FASTCALL RemoveAttribute(size_t index);
+    bool BSS_FASTCALL RemoveAttribute(const char* name);
+    void BSS_FASTCALL SetValue(double value);
+    void BSS_FASTCALL SetValue(unsigned __int64 value);
+    void BSS_FASTCALL SetValue(const char* value);
 
     cXMLNode& operator=(const cXMLNode& copy);
     cXMLNode& operator=(cXMLNode&& mov);
     BSS_FORCEINLINE const cXMLNode* operator[](size_t index) const { return GetNode(index); }
 
   protected:
-    void _addnode(std::unique_ptr<cXMLNode> && n);
-    void _addattribute(cXMLValue && v);
-    static bool _match(std::istream& stream, cStr& out, const char* pattern, bool reset = false);
-    bool _parse(std::istream& stream, cStr& buf);
-    void _parseinner(std::istream& stream, cStr& buf);
-    void _parseattribute(cStr& buf);
-    static void _parseentity(std::istream& stream, cStr& target);
-    static void _outputunicode(cStr& buf, int c);
-    static void _evalvalue(cXMLValue& val);
+    void BSS_FASTCALL _addnode(std::unique_ptr<cXMLNode> && n);
+    void BSS_FASTCALL _addattribute(cXMLValue && v);
+    static bool BSS_FASTCALL _match(std::istream& stream, cStr& out, const char* pattern, bool reset = false);
+    bool BSS_FASTCALL _parse(std::istream& stream, cStr& buf);
+    void BSS_FASTCALL _parseinner(std::istream& stream, cStr& buf);
+    void BSS_FASTCALL _parseattribute(cStr& buf);
+    static void BSS_FASTCALL _parseentity(std::istream& stream, cStr& target);
+    static void BSS_FASTCALL _outputunicode(cStr& buf, int c);
+    static void BSS_FASTCALL _evalvalue(cXMLValue& val);
+    void BSS_FASTCALL _writeattribute(std::ostream& stream) const;
+    static void BSS_FASTCALL _writestring(std::ostream& stream, const char* s);
+    void BSS_FASTCALL _write(std::ostream& stream, bool pretty, int depth) const;
+
+    friend class cXML;
 
     cDynArray<std::unique_ptr<cXMLNode>, size_t, CARRAY_SAFE> _nodes;
     cHash<const char*, size_t> _nodehash;
@@ -94,6 +99,8 @@ namespace bss_util {
     cXML(cXML&& mov);
     explicit cXML(const char* source=0);
     explicit cXML(std::istream& stream);
+    void BSS_FASTCALL Write(const char* file, bool pretty=true) const;
+    void BSS_FASTCALL Write(std::ostream& stream, bool pretty=true) const;
 
     inline cXML& operator=(const cXML& copy) { cXMLNode::operator=(copy); return *this; }
     inline cXML& operator=(cXML&& mov) { cXMLNode::operator=(mov); return *this; }

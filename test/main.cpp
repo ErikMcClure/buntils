@@ -4592,6 +4592,8 @@ TESTDEF::RETPAIR test_XML()
   TEST(xml[3]->GetAttributes() == 1);
   TEST(xml[3]->GetNodes() == 0);
 
+  xml.Write("test.xml");
+
   // Ensure that, even if we can't recover from various errors, the parser does not crash or go into an infinite loop due to bad data
   for(int i = 1; i < XML.length(); ++i)
   {

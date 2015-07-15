@@ -50,7 +50,7 @@ namespace bss_util {
     inline cDynArray& operator=(const cDynArray& copy) { AT_::operator=(copy); _length=copy._length; return *this; }
     inline cDynArray& operator=(cDynArray&& mov) { AT_::operator=(std::move(mov)); _length=mov._length; return *this; }
     inline cDynArray& operator +=(const cDynArray& add) { AT_::SetSize(_length); AT_::operator+=(add); _length+=add._length; return *this; }
-    inline cDynArray operator +(const cDynArray& add) const { cDynArray r(*this); return (r+=add); }
+    inline cDynArray operator +(const cDynArray& add) const { cDynArray r(*this); r+=add; return r; }
 
   protected:
     template<typename U>

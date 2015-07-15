@@ -81,6 +81,7 @@
     <ClInclude Include="..\include\cINIentry.h" />
     <ClInclude Include="..\include\cINIsection.h" />
     <ClInclude Include="..\include\cINIstorage.h" />
+    <ClInclude Include="..\include\cJSON.h" />
     <ClInclude Include="..\include\cKDTree.h" />
     <ClInclude Include="..\include\cHash.h" />
     <ClInclude Include="..\include\cLinkedArray.h" />

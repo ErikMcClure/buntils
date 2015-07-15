@@ -31,7 +31,7 @@ namespace bss_util {
       mov._size=0;
     }
     inline explicit cArrayBase<T, ST_, ArrayType, Alloc>(ST_ size) : _array(!size?(T*)0:(T*)Alloc::allocate(size)), _size(size) {}
-    inline cArrayBase<T, ST_, ArrayType, Alloc>(const std::initializer_list<T> list) : _array((T*)Alloc::allocate(list.size())), _size(list.size())
+    inline cArrayBase<T, ST_, ArrayType, Alloc>(const std::initializer_list<T> list) : _array(!list.size()?(T*)0:(T*)Alloc::allocate(list.size())), _size(list.size())
     {
       auto end = list.end();
       int c = 0;

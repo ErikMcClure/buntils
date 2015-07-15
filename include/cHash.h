@@ -9,204 +9,234 @@
 #include <wchar.h>
 #include <iterator>
 
-template<typename T>
-inline khint_t khint_hashfunc(T in) { return (khint_t)in; }
-template<typename T>
-inline bool khint_equalfunc(T a, T b) { return a==b; }
+namespace bss_util {
+  template<typename T>
+  inline khint_t khint_hashfunc(T in) { return (khint_t)in; }
+  template<typename T>
+  inline bool khint_equalfunc(T a, T b) { return a==b; }
 
-template<typename khkey_t, typename khval_t, bool kh_is_map, khint_t (*__hash_func)(khkey_t), bool (*__hash_equal)(khkey_t, khkey_t)>
-class BSS_COMPILER_DLLEXPORT kh_template_t
-{
-public:
-  kh_template_t(const kh_template_t& copy) { memset(this, 0, sizeof(kh_template_t)); operator=(copy); }
-  kh_template_t(kh_template_t&& mov)
+  template<typename khkey_t, typename khval_t, bool kh_is_map, khint_t (*__hash_func)(khkey_t), bool (*__hash_equal)(khkey_t, khkey_t)>
+  class BSS_COMPILER_DLLEXPORT kh_template_t
   {
-    memcpy(this, &mov, sizeof(kh_template_t));
-    memset(&mov, 0, sizeof(kh_template_t));
-  }
-  kh_template_t() { memset(this, 0, sizeof(kh_template_t)); }
-  ~kh_template_t()
-  {
-    if(keys) free(keys);
-    if(flags) free(flags);
-    if(vals) free(vals);
-  }
-  kh_template_t& operator =(const kh_template_t& copy)
-  { 
-    kh_clear_template();
-    kh_resize_template(copy.n_buckets<4?copy.n_buckets:(copy.n_buckets-1));
-    memcpy(flags, copy.flags, ((copy.n_buckets>>4) + 1) * sizeof(khint32_t));
-    memcpy(keys, copy.keys, copy.n_buckets * sizeof(khkey_t));
-    memcpy(vals, copy.vals, copy.n_buckets * sizeof(khval_t));
-    return *this;
-  }
-  kh_template_t& operator =(kh_template_t&& mov)
-  {
-    this->~kh_template_t();
-    memcpy(this, &mov, sizeof(kh_template_t));
-    memset(&mov, 0, sizeof(kh_template_t));
-    return *this;
-  }
+  public:
+    khint_t n_buckets, size, n_occupied, upper_bound;
+    khint32_t *flags;
+    khkey_t *keys;
+    khval_t *vals;
 
-		khint_t n_buckets, size, n_occupied, upper_bound;	
-		khint32_t *flags;
-		khkey_t *keys;
-		khval_t *vals;
-
-    inline void kh_clear_template()
+    kh_template_t(const kh_template_t& copy) { memset(this, 0, sizeof(kh_template_t)); operator=(copy); }
+    kh_template_t(kh_template_t&& mov)
     {
-      if(flags) {
-        memset(flags, 0xaa, ((n_buckets>>4) + 1) * sizeof(khint32_t));
-        size = n_occupied = 0;
-      }
+      memcpy(this, &mov, sizeof(kh_template_t));
+      memset(&mov, 0, sizeof(kh_template_t));
     }
-    static inline kh_template_t* kh_init_template() {
-      return (kh_template_t*)calloc(1, sizeof(kh_template_t));
+    kh_template_t() { memset(this, 0, sizeof(kh_template_t)); }
+    ~kh_template_t()
+    {
+      if(keys) free(keys);
+      if(flags) free(flags);
+      if(vals) free(vals);
+    }
+    kh_template_t& operator =(const kh_template_t& copy)
+    { 
+      kh_clear_template();
+      kh_resize_template(copy.n_buckets<4?copy.n_buckets:(copy.n_buckets-1));
+      memcpy(flags, copy.flags, ((copy.n_buckets>>4) + 1) * sizeof(khint32_t));
+      memcpy(keys, copy.keys, copy.n_buckets * sizeof(khkey_t));
+      memcpy(vals, copy.vals, copy.n_buckets * sizeof(khval_t));
+      return *this;
+    }
+    kh_template_t& operator =(kh_template_t&& mov)
+    {
+      this->~kh_template_t();
+      memcpy(this, &mov, sizeof(kh_template_t));
+      memset(&mov, 0, sizeof(kh_template_t));
+      return *this;
     }
 
-    static inline void kh_destroy_template(kh_template_t* h)
-    {
-      if(h) {
-        free(h->keys); free(h->flags);
-        free(h->vals);
-        free(h);
-      }
-    }
-    khint_t kh_get_template(khkey_t key) const
-    {
-      if(n_buckets) {
-        khint_t inc, k, i, last;
-        k = __hash_func(key); i = k % n_buckets;
-        inc = 1 + k % (n_buckets - 1); last = i;
-        while(!__ac_isempty(flags, i) && (__ac_isdel(flags, i) || !__hash_equal(keys[i], key))) {
-          if(i + inc >= n_buckets) i = i + inc - n_buckets;
-          else i += inc;
-          if(i == last) return n_buckets;
-        }
-        return __ac_iseither(flags, i)? n_buckets : i;
-      } else return 0;
-    }
-    void kh_resize_template(khint_t new_n_buckets)
-    {
-      khint32_t *new_flags = 0;
-      khint_t j = 1;
+
+      inline void kh_clear_template()
       {
-        khint_t t = __ac_HASH_PRIME_SIZE - 1;
-        while(__ac_prime_list[t] > new_n_buckets) --t;
-        new_n_buckets = __ac_prime_list[t+1];
-        if(size >= (khint_t)(new_n_buckets * __ac_HASH_UPPER + 0.5)) j = 0;
-        else {
-          new_flags = (khint32_t*)malloc(((new_n_buckets>>4) + 1) * sizeof(khint32_t));
-          memset(new_flags, 0xaa, ((new_n_buckets>>4) + 1) * sizeof(khint32_t));
-          if(n_buckets < new_n_buckets) {
+        if(flags) {
+          memset(flags, 0xaa, ((n_buckets>>4) + 1) * sizeof(khint32_t));
+          size = n_occupied = 0;
+        }
+      }
+      static inline kh_template_t* kh_init_template() {
+        return (kh_template_t*)calloc(1, sizeof(kh_template_t));
+      }
+
+      static inline void kh_destroy_template(kh_template_t* h)
+      {
+        if(h) {
+          free(h->keys); free(h->flags);
+          free(h->vals);
+          free(h);
+        }
+      }
+      khint_t kh_get_template(khkey_t key) const
+      {
+        if(n_buckets) {
+          khint_t inc, k, i, last;
+          k = __hash_func(key); i = k % n_buckets;
+          inc = 1 + k % (n_buckets - 1); last = i;
+          while(!__ac_isempty(flags, i) && (__ac_isdel(flags, i) || !__hash_equal(keys[i], key))) {
+            if(i + inc >= n_buckets) i = i + inc - n_buckets;
+            else i += inc;
+            if(i == last) return n_buckets;
+          }
+          return __ac_iseither(flags, i)? n_buckets : i;
+        } else return 0;
+      }
+      void kh_resize_template(khint_t new_n_buckets)
+      {
+        khint32_t *new_flags = 0;
+        khint_t j = 1;
+        {
+          khint_t t = __ac_HASH_PRIME_SIZE - 1;
+          while(__ac_prime_list[t] > new_n_buckets) --t;
+          new_n_buckets = __ac_prime_list[t+1];
+          if(size >= (khint_t)(new_n_buckets * __ac_HASH_UPPER + 0.5)) j = 0;
+          else {
+            new_flags = (khint32_t*)malloc(((new_n_buckets>>4) + 1) * sizeof(khint32_t));
+            memset(new_flags, 0xaa, ((new_n_buckets>>4) + 1) * sizeof(khint32_t));
+            if(n_buckets < new_n_buckets) {
+              keys = (khkey_t*)realloc(keys, new_n_buckets * sizeof(khkey_t));
+              if(kh_is_map)
+                vals = (khval_t*)realloc(vals, new_n_buckets * sizeof(khval_t));
+            }
+          }
+        }
+        if(j) {
+          for(j = 0; j != n_buckets; ++j) {
+            if(__ac_iseither(flags, j) == 0) {
+              khkey_t key = keys[j];
+              khval_t val;
+              if(kh_is_map) val = vals[j];
+              __ac_set_isdel_true(flags, j);
+              while(1) {
+                khint_t inc, k, i;
+                k = __hash_func(key);
+                i = k % new_n_buckets;
+                inc = 1 + k % (new_n_buckets - 1);
+                while(!__ac_isempty(new_flags, i)) {
+                  if(i + inc >= new_n_buckets) i = i + inc - new_n_buckets;
+                  else i += inc;
+                }
+                __ac_set_isempty_false(new_flags, i);
+                if(i < n_buckets && __ac_iseither(flags, i) == 0) {
+                  { khkey_t tmp = keys[i]; keys[i] = key; key = tmp; }
+                  if(kh_is_map) { khval_t tmp = vals[i]; vals[i] = val; val = tmp; }
+                  __ac_set_isdel_true(flags, i);
+                } else {
+                  keys[i] = key;
+                  if(kh_is_map) vals[i] = val;
+                  break;
+                }
+              }
+            }
+          }
+          if(n_buckets > new_n_buckets) {
             keys = (khkey_t*)realloc(keys, new_n_buckets * sizeof(khkey_t));
             if(kh_is_map)
               vals = (khval_t*)realloc(vals, new_n_buckets * sizeof(khval_t));
           }
+          free(flags);
+          flags = new_flags;
+          n_buckets = new_n_buckets;
+          n_occupied = size;
+          upper_bound = (khint_t)(n_buckets * __ac_HASH_UPPER + 0.5);
         }
       }
-      if(j) {
-        for(j = 0; j != n_buckets; ++j) {
-          if(__ac_iseither(flags, j) == 0) {
-            khkey_t key = keys[j];
-            khval_t val;
-            if(kh_is_map) val = vals[j];
-            __ac_set_isdel_true(flags, j);
-            while(1) {
-              khint_t inc, k, i;
-              k = __hash_func(key);
-              i = k % new_n_buckets;
-              inc = 1 + k % (new_n_buckets - 1);
-              while(!__ac_isempty(new_flags, i)) {
-                if(i + inc >= new_n_buckets) i = i + inc - new_n_buckets;
-                else i += inc;
-              }
-              __ac_set_isempty_false(new_flags, i);
-              if(i < n_buckets && __ac_iseither(flags, i) == 0) {
-                { khkey_t tmp = keys[i]; keys[i] = key; key = tmp; }
-                if(kh_is_map) { khval_t tmp = vals[i]; vals[i] = val; val = tmp; }
-                __ac_set_isdel_true(flags, i);
-              } else {
-                keys[i] = key;
-                if(kh_is_map) vals[i] = val;
-                break;
-              }
+      khint_t kh_put_template(khkey_t key, int *ret)
+      {
+        khint_t x;
+        if(n_occupied >= upper_bound) {
+          if(n_buckets > (size<<1)) kh_resize_template(n_buckets - 1);
+          else kh_resize_template(n_buckets + 1);
+        }
+        {
+          khint_t inc, k, i, site, last;
+          x = site = n_buckets; k = __hash_func(key); i = k % n_buckets;
+          if(__ac_isempty(flags, i)) x = i;
+          else {
+            inc = 1 + k % (n_buckets - 1); last = i;
+            while(!__ac_isempty(flags, i) && (__ac_isdel(flags, i) || !__hash_equal(keys[i], key))) {
+              if(__ac_isdel(flags, i)) site = i;
+              if(i + inc >= n_buckets) i = i + inc - n_buckets;
+              else i += inc;
+              if(i == last) { x = site; break; }
+            }
+            if(x == n_buckets) {
+              if(__ac_isempty(flags, i) && site != n_buckets) x = site;
+              else x = i;
             }
           }
         }
-        if(n_buckets > new_n_buckets) {
-          keys = (khkey_t*)realloc(keys, new_n_buckets * sizeof(khkey_t));
-          if(kh_is_map)
-            vals = (khval_t*)realloc(vals, new_n_buckets * sizeof(khval_t));
-        }
-        free(flags);
-        flags = new_flags;
-        n_buckets = new_n_buckets;
-        n_occupied = size;
-        upper_bound = (khint_t)(n_buckets * __ac_HASH_UPPER + 0.5);
+        if(__ac_isempty(flags, x)) {
+          keys[x] = key;
+          __ac_set_isboth_false(flags, x);
+          ++size; ++n_occupied;
+          *ret = 1;
+        } else if(__ac_isdel(flags, x)) {
+          keys[x] = key;
+          __ac_set_isboth_false(flags, x);
+          ++size;
+          *ret = 2;
+        } else *ret = 0;
+        return x;
       }
-    }
-    khint_t kh_put_template(khkey_t key, int *ret)
-    {
-      khint_t x;
-      if(n_occupied >= upper_bound) {
-        if(n_buckets > (size<<1)) kh_resize_template(n_buckets - 1);
-        else kh_resize_template(n_buckets + 1);
-      }
+      inline void kh_del_template(khint_t x)
       {
-        khint_t inc, k, i, site, last;
-        x = site = n_buckets; k = __hash_func(key); i = k % n_buckets;
-        if(__ac_isempty(flags, i)) x = i;
-        else {
-          inc = 1 + k % (n_buckets - 1); last = i;
-          while(!__ac_isempty(flags, i) && (__ac_isdel(flags, i) || !__hash_equal(keys[i], key))) {
-            if(__ac_isdel(flags, i)) site = i;
-            if(i + inc >= n_buckets) i = i + inc - n_buckets;
-            else i += inc;
-            if(i == last) { x = site; break; }
-          }
-          if(x == n_buckets) {
-            if(__ac_isempty(flags, i) && site != n_buckets) x = site;
-            else x = i;
-          }
+        if(x != n_buckets && !__ac_iseither(flags, x)) {
+          __ac_set_isdel_true(flags, x);
+          --size;
         }
       }
-      if(__ac_isempty(flags, x)) {
-        keys[x] = key;
-        __ac_set_isboth_false(flags, x);
-        ++size; ++n_occupied;
-        *ret = 1;
-      } else if(__ac_isdel(flags, x)) {
-        keys[x] = key;
-        __ac_set_isboth_false(flags, x);
-        ++size;
-        *ret = 2;
-      } else *ret = 0;
-      return x;
-    }
-    inline void kh_del_template(khint_t x)
-    {
-      if(x != n_buckets && !__ac_iseither(flags, x)) {
-        __ac_set_isdel_true(flags, x);
-        --size;
-      }
-    }
-};
+  };
 
-namespace bss_util {
+  template<typename khkey_t, typename khval_t, bool kh_is_map, khint_t(*__hash_func)(khkey_t), bool(*__hash_equal)(khkey_t, khkey_t)>
+  class BSS_COMPILER_DLLEXPORT kh_insert_template_t : protected kh_template_t<khkey_t, khval_t, kh_is_map, __hash_func, __hash_equal>
+  {
+    template<bool CHK, typename KHGET, typename KHTYPE> friend struct __getval_KHASH;
+
+  public:
+    inline void Insert(khkey_t key, const khval_t& value) { _insert<const khval_t&>(key, value); }
+    inline void Insert(khkey_t key, khval_t&& value) { _insert<khval_t&&>(key, std::move(value)); }
+
+  protected:
+    template<typename U>
+    inline void _insert(khkey_t key, U && value)
+    {
+      //if(kh_size(this) >= kh_end(this)) _resize(); // Not needed, kh_put_template resizes as necessary
+      int r;
+      khiter_t retval = kh_template_t<khkey_t, khval_t, kh_is_map, __hash_func, __hash_equal>::kh_put_template(key, &r);
+      kh_val(this, retval)=std::forward<U>(value); // we can always assume this is a map because otherwise we'd use the specialization below
+    }
+  };
+
+  template<typename khkey_t, typename khval_t, khint_t(*__hash_func)(khkey_t), bool(*__hash_equal)(khkey_t, khkey_t)>
+  class BSS_COMPILER_DLLEXPORT kh_insert_template_t<khkey_t, khval_t, false, __hash_func, __hash_equal> : protected kh_template_t<khkey_t, khval_t, false, __hash_func, __hash_equal>
+  {
+    template<bool CHK, typename KHGET, typename KHTYPE> friend struct __getval_KHASH;
+
+  public:
+    inline void Insert(khkey_t key) { int r; kh_template_t<khkey_t, khval_t, false, __hash_func, __hash_equal>::kh_put_template(key, &r); }
+  };
+
   template<bool CHK, typename KHGET, typename KHTYPE> // GCC doesn't like it when you try to embed a templatized function inside a class
-  struct __getval_KHASH { static inline KHGET BSS_FASTCALL _getval(const KHTYPE* _h, khiter_t i) { return kh_val(_h,i); } };
+  struct __getval_KHASH { static inline KHGET BSS_FASTCALL _getval(const KHTYPE* _h, khiter_t i) { return kh_val(_h, i); } };
   template<typename KHGET, typename KHTYPE>
   struct __getval_KHASH<true, KHGET, KHTYPE> { static inline KHGET BSS_FASTCALL _getval(const KHTYPE* _h, khiter_t i) { return &kh_val(_h, i); } };
 
   // Base template for cKhash. If you want a set instead of a map, set khval_t to 'char' and kh_is_map to 'false'.
   template<typename khkey_t, typename khval_t, bool kh_is_map, khint_t(*__hash_func)(khkey_t), bool(*__hash_equal)(khkey_t, khkey_t), typename khget_t=khval_t*, khget_t INVALID=0>
-  class BSS_COMPILER_DLLEXPORT cKhash : protected kh_template_t<khkey_t, khval_t, kh_is_map, __hash_func, __hash_equal>
+  class BSS_COMPILER_DLLEXPORT cKhash : public kh_insert_template_t<khkey_t, khval_t, kh_is_map, __hash_func, __hash_equal>
   {
   protected:
     typedef khkey_t KHKEY;
     typedef khval_t KHVAL;
-    typedef kh_template_t<KHKEY,KHVAL,kh_is_map,__hash_func,__hash_equal> KHTYPE;
+    typedef kh_insert_template_t<KHKEY, KHVAL, kh_is_map, __hash_func, __hash_equal> KHTYPE;
     typedef khget_t KHGET;
 
   public:
@@ -215,8 +245,6 @@ namespace bss_util {
     inline cKhash(unsigned int size=0) { KHTYPE::kh_resize_template(size); };
     inline ~cKhash() { }
     inline khiter_t Iterator(KHKEY key) const { return KHTYPE::kh_get_template(key); }
-    inline void Insert(KHKEY key, const KHVAL& value) { _insert<const KHVAL&>(key,value); }
-    inline void Insert(KHKEY key, KHVAL&& value) { _insert<KHVAL&&>(key,std::move(value)); }
     //inline KHKEY GetIterKey(khiter_t iterator) { return kh_key(iterator); }
     inline KHKEY GetKey(khiter_t iterator) { return kh_key(this,iterator); }
     inline bool SetKey(khiter_t iterator, KHKEY key) { if(kh_end(this) == iterator) return false; kh_key(this,iterator)=key; return true; }
@@ -292,15 +320,6 @@ namespace bss_util {
 
 	protected:
     template<typename U>
-    inline void _insert(KHKEY key, U && value)
-		{
-			//if(kh_size(this) >= kh_end(this)) _resize(); // Not needed, kh_put_template resizes as necessary
-			int r;
-			khiter_t retval = KHTYPE::kh_put_template(key,&r);
-      if(kh_is_map) // only set value if this is actually a map
-        kh_val(this,retval)=std::forward<U>(value);
-		}
-    template<typename U>
     inline bool _setvalue(khiter_t i, U && newvalue) { if(i>=kh_end(this)) return false; kh_val(this, i)=std::forward<U>(newvalue); return true; }
   };
 
@@ -352,7 +371,8 @@ namespace bss_util {
 
   template<typename T,bool I> struct __cKh_KHGET { typedef typename std::remove_pointer<T>::type* KHGET; static const unsigned int INV=0; };
   template<typename T> struct __cKh_KHGET<T,true> { typedef T KHGET; static const KHGET INV=(KHGET)-1; };
-  template<typename T> struct KHGET_cKh : __cKh_KHGET<T,std::is_integral<T>::value> { typedef typename __cKh_KHGET<T,std::is_integral<T>::value>::KHGET KHGET; };
+  template<typename T> struct KHGET_cKh : __cKh_KHGET<T, std::is_integral<T>::value> { typedef typename __cKh_KHGET<T, std::is_integral<T>::value>::KHGET KHGET; };
+  template<> struct KHGET_cKh<void> { typedef char KHGET; static const KHGET INV=(KHGET)-1; };
   template<typename T, bool ins> struct CHASH_HELPER {
     BSS_FORCEINLINE static khint_t hash(T k) { return KH_AUTO_HASHFUNC<T>(k); }
     BSS_FORCEINLINE static bool equal(T a, T b) { return KH_AUTO_EQUALFUNC<T>(a,b); }
@@ -363,10 +383,10 @@ namespace bss_util {
   };
 
   // Generic hash definition
-  template<typename K, typename T, bool ismap=true, bool ins=false>
-  class BSS_COMPILER_DLLEXPORT cHash : public cKhash<K, T, ismap, &CHASH_HELPER<K, ins>::hash, &CHASH_HELPER<K, ins>::equal, typename KHGET_cKh<T>::KHGET, (typename KHGET_cKh<T>::KHGET)KHGET_cKh<T>::INV>
+  template<typename K, typename T=void, bool ins=false>
+  class BSS_COMPILER_DLLEXPORT cHash : public cKhash<K, typename std::conditional<std::is_void<T>::value, char, T>::type, !std::is_void<T>::value, &CHASH_HELPER<K, ins>::hash, &CHASH_HELPER<K, ins>::equal, typename KHGET_cKh<T>::KHGET, (typename KHGET_cKh<T>::KHGET)KHGET_cKh<T>::INV>
   {
-    typedef cKhash<K, T, ismap, &CHASH_HELPER<K, ins>::hash, &CHASH_HELPER<K, ins>::equal, typename KHGET_cKh<T>::KHGET, (typename KHGET_cKh<T>::KHGET)KHGET_cKh<T>::INV> BASE;
+    typedef cKhash<K, typename std::conditional<std::is_void<T>::value, char, T>::type, !std::is_void<T>::value, &CHASH_HELPER<K, ins>::hash, &CHASH_HELPER<K, ins>::equal, typename KHGET_cKh<T>::KHGET, (typename KHGET_cKh<T>::KHGET)KHGET_cKh<T>::INV> BASE;
 
   public:
     inline cHash(const cHash& copy) : BASE(copy) {}
@@ -381,10 +401,10 @@ namespace bss_util {
   template<typename _Ty>
   struct cDict
   {
-    typedef cHash<const char*, _Ty, true, false> T;
-    typedef cHash<const wchar_t*, _Ty, true, false> Tw;
-    typedef cHash<const char*, _Ty, true, true> INS;
-    typedef cHash<const wchar_t*, _Ty, true, true> INSw;
+    typedef cHash<const char*, _Ty, false> T;
+    typedef cHash<const wchar_t*, _Ty, false> Tw;
+    typedef cHash<const char*, _Ty, true> INS;
+    typedef cHash<const wchar_t*, _Ty, true> INSw;
   };
 }
 

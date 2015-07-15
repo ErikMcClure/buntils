@@ -65,7 +65,7 @@ namespace bss_util {
     static cINIsection _sectionsentinel;
     static cLocklessBlockAlloc<_NODE> _alloc;
 
-    cHash<const char*, _NODE*, true, true> _sections;
+    cHash<const char*, _NODE*, true> _sections;
     cStr _path; //holds path to INI
     cStr _filename; //holds INI filename;
     cStr* _ini; //holds entire INI file. Made a pointer so we can distinguish between an empty INI file and an unopened file.

@@ -2,6 +2,7 @@
 // For conditions of distribution and use, see copyright notice in "bss_util.h"
 
 #include "cXML.h"
+#include "bss_util.h"
 #include <sstream>
 #include <fstream>
 #include <string>
@@ -33,7 +34,7 @@ void cXML::Write(std::ostream& stream, bool pretty) const
     _writeattribute(stream);
     stream << "?>";
   }
-  for(int i = 0; i < _nodes.Length(); ++i)
+  for(size_t i = 0; i < _nodes.Length(); ++i)
     _nodes[i]->_write(stream, pretty, 0);
 }
 
@@ -95,8 +96,8 @@ bool cXMLNode::RemoveAttribute(size_t index)
   return true;
 }
 bool cXMLNode::RemoveAttribute(const char* name) { return RemoveAttribute(_attrhash[name]); }
-void cXMLNode::SetValue(double value) { _value.Float = value; _value.Integer = value; _value.String = std::to_string(value); }
-void cXMLNode::SetValue(unsigned __int64 value) { _value.Integer = value; _value.Float = value; _value.String = std::to_string(value); }
+void cXMLNode::SetValue(double value) { _value.Float = value; _value.Integer = (unsigned __int64)value; _value.String = std::to_string(value); }
+void cXMLNode::SetValue(unsigned __int64 value) { _value.Integer = value; _value.Float = (double)value; _value.String = std::to_string(value); }
 void cXMLNode::SetValue(const char* value) { _value.String = value; _evalvalue(_value); }
 
 void cXMLNode::_addnode(std::unique_ptr<cXMLNode> && n)
@@ -127,7 +128,7 @@ void cXMLNode::_addattribute(cXMLValue && v)
 bool cXMLNode::_match(std::istream& stream, cStr& out, const char* pattern, bool reset)
 {
   while(stream.peek() != -1 && stream && isspace(stream.peek())) stream.get(); //eat whitespace
-  size_t start = stream.tellg(); // get start of sequence
+  std::streamoff start = stream.tellg(); // get start of sequence
   int i;
   for(i = 0; stream.peek() != -1 && stream && (pattern[i] != 0) && (pattern[i] != '*'); ++i)
   {
@@ -141,7 +142,7 @@ bool cXMLNode::_match(std::istream& stream, cStr& out, const char* pattern, bool
   if(!pattern[i]) { if(reset) stream.seekg(start); return true; }
   if(stream.peek() == -1 || !stream) { stream.seekg(start); return false; }
   int end = ++i; // increment by 1 to skip past * marker
-  size_t mid = stream.tellg();
+  std::streamoff mid = stream.tellg();
   out.clear();
 
   while(stream.peek() != -1 && stream && pattern[end]!=0)
@@ -202,7 +203,7 @@ void cXMLNode::_parseinner(std::istream& stream, cStr& buf)
 void cXMLNode::_parseattribute(cStr& buf)
 {
   buf = buf.Trim();
-  int i;
+  size_t i;
   for(i = 0; i < buf.length() && !isspace(buf[i]); ++i);
   _name.assign(buf, 0, i);
   while(i < buf.length() && isspace(buf[i])) ++i;
@@ -229,15 +230,6 @@ void cXMLNode::_parseattribute(cStr& buf)
   }
 }
 
-void cXMLNode::_outputunicode(cStr& buf, int c)
-{
-  if(c < 0x0080) buf += c;
-  else if(c < 0x0800) { buf += (0xC0|c>>(6*1)); buf += (0x80|(c&0x3F)); }
-  else if(c < 0x10000) { buf += (0xE0|c>>(6*2)); buf += (0x80|(c&0x0FC0)>>(6*1)); buf += (0x80|(c&0x3F)); }
-  else if(c < 0x10FFFF) { buf += (0xF0|c>>(6*3)); buf += (0x80|(c&0x03F000)>>(6*2)); buf += (0x80|(c&0x0FC0)>>(6*1)); buf += (0x80|(c&0x3F)); }
-  // Otherwise this is an illegal codepoint so just ignore it
-}
-
 void cXMLNode::_parseentity(std::istream& stream, cStr& target)
 {
   cStr buf;
@@ -247,8 +239,8 @@ void cXMLNode::_parseentity(std::istream& stream, cStr& target)
   else if(_match(stream, buf, "&amp;")) target += '&';
   else if(_match(stream, buf, "&apos;")) target += '\'';
   else if(_match(stream, buf, "&quot;")) target += '"';
-  else if(_match(stream, buf, "&#x*;")) _outputunicode(target, strtol(buf, &c, 16));
-  else if(_match(stream, buf, "&#*;")) _outputunicode(target, strtol(buf, &c, 10));
+  else if(_match(stream, buf, "&#x*;")) OutputUnicode(target, strtol(buf, &c, 16));
+  else if(_match(stream, buf, "&#*;")) OutputUnicode(target, strtol(buf, &c, 10));
   else target += stream.get();
 }
 
@@ -263,7 +255,7 @@ void cXMLNode::_writeattribute(std::ostream& stream) const
 {
   stream << _name;
 
-  for(int i = 0; i < _attributes.Length(); ++i)
+  for(size_t i = 0; i < _attributes.Length(); ++i)
   {
     stream << ' ' << _attributes[i].Name << "=\"";
     _writestring(stream, _attributes[i].String);
@@ -297,7 +289,7 @@ void cXMLNode::_write(std::ostream& stream, bool pretty, int depth) const
   }
   stream.put('<');
   _writeattribute(stream);
-  bool content = _value.String.Trim().length();
+  bool content = _value.String.Trim().length() > 0;
   if(!content && !_nodes.Length()) // If there is no content and no nodes, assume this is a self-closing tag.
   {
     stream << "/>";
@@ -307,7 +299,7 @@ void cXMLNode::_write(std::ostream& stream, bool pretty, int depth) const
   stream.put('>');
   if(content) _writestring(stream, _value.String);
 
-  for(int i = 0; i < _nodes.Length(); ++i)
+  for(size_t i = 0; i < _nodes.Length(); ++i)
     _nodes[i]->_write(stream, pretty, depth+1);
 
   if(_nodes.Length()>0 && pretty)

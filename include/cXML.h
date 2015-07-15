@@ -75,7 +75,6 @@ namespace bss_util {
     void BSS_FASTCALL _parseinner(std::istream& stream, cStr& buf);
     void BSS_FASTCALL _parseattribute(cStr& buf);
     static void BSS_FASTCALL _parseentity(std::istream& stream, cStr& target);
-    static void BSS_FASTCALL _outputunicode(cStr& buf, int c);
     static void BSS_FASTCALL _evalvalue(cXMLValue& val);
     void BSS_FASTCALL _writeattribute(std::ostream& stream) const;
     static void BSS_FASTCALL _writestring(std::ostream& stream, const char* s);

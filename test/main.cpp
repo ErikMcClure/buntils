@@ -55,7 +55,7 @@
 #include "profiler.h"
 #include "StreamSplitter.h"
 #include "cXML.h"
-
+#include "cJSON.h"
 #include <fstream>
 #include <algorithm>
 #include <limits.h> // for INT_MIN, INT_MAX etc. on GCC
@@ -3749,7 +3749,102 @@ TESTDEF::RETPAIR test_KDTREE()
   TEST(tree.GetRoot()->num==0);
   ENDTEST;
 }
-TESTDEF::RETPAIR test_KHASH()
+
+struct JSONtest2
+{
+  cDynArray<JSONtest2, unsigned int, CARRAY_SAFE> value;
+  bool EvalJSON(const char* name, std::istream& s)
+  {
+    if(strcmp(name, "value") != 0) return false;
+    ParseJSON(value, s);
+    return true;
+  }
+};
+
+struct JSONtest
+{
+  __int64 a;
+  unsigned short b;
+  double c;
+  bool btrue;
+  bool bfalse;
+  cStr test;
+  JSONtest2 nested;
+  cDynArray<unsigned short> foo;
+  cDynArray<double> bar;
+  cDynArray<cStr, unsigned short, CARRAY_SAFE> foobar;
+  cDynArray<JSONtest, unsigned int, CARRAY_SAFE> nestarray;
+  JSONtest2 nested2;
+
+  bool EvalJSON(const char* name, std::istream& s)
+  {
+    static cTrie<unsigned char> t(12, "a", "b", "c", "test", "nested", "foo", "bar", "foobar", "nestarray", "nested2", "btrue", "bfalse");
+    switch(t[name])
+    {
+    case 0: ParseJSON(a, s); break;
+    case 1: ParseJSON(b, s); break;
+    case 2: ParseJSON(c, s); break;
+    case 3: ParseJSON(test, s); break;
+    case 4: ParseJSON(nested, s); break;
+    case 5: ParseJSON(foo, s); break;
+    case 6: ParseJSON(bar, s); break;
+    case 7: ParseJSON(foobar, s); break;
+    case 8: ParseJSON(nestarray, s); break;
+    case 9: ParseJSON(nested2, s); break;
+    case 10: ParseJSON(btrue, s); break;
+    case 11: ParseJSON(bfalse, s); break;
+    default: return false;
+    }
+    return true;
+  }
+};
+
+TESTDEF::RETPAIR test_JSON()
+{
+  BEGINTEST;
+  const char* json = "{ \"a\": -5, \"b\": 342  ,\"c\":23.7193 , \"btrue\": true, \"bfalse\": false, \"test\":\"\\u01A8string {,};[]\\\"st\\\"'\\\n\\\r\\/\\u0FA8nb\\\"\", \"nested\" : { \"value\": [ { }, { } ] }, \"foo\": [5 ,6, 4,2 ,  2,3,], \"bar\": [3.3,1.6543,0.49873,90, 4], \"foobar\":[\"moar\",\"\"], \"nestarray\": [null, { \"a\":, \"b\":34, }], \"nested2\": null }";
+  JSONtest o;
+  o.btrue = false;
+  o.bfalse = true;
+
+  ParseJSON(o, json);
+  TEST(o.a == -5);
+  TEST(o.b == 342);
+  TEST(o.c == 23.7193);
+  TEST(o.btrue);
+  TEST(!o.bfalse);
+  TEST(o.test.length() > 0);
+  TEST(o.nested.value.Length() == 2);
+  TEST(o.foo.Length() == 6);
+  TEST(o.foo[0] == 5);
+  TEST(o.foo[1] == 6);
+  TEST(o.foo[2] == 4);
+  TEST(o.foo[3] == 2);
+  TEST(o.foo[4] == 2);
+  TEST(o.foo[5] == 3);
+  TEST(o.bar.Length() == 5);
+  TEST(o.bar[0] == 3.3);
+  TEST(o.bar[1] == 1.6543);
+  TEST(o.bar[2] == 0.49873);
+  TEST(o.bar[3] == 90);
+  TEST(o.bar[4] == 4);
+  TEST(o.foobar.Length() == 2);
+  TEST(o.foobar[0] == "moar");
+  TEST(o.foobar[1] == "");
+  TEST(o.nestarray.Length() == 2);
+  TEST(o.nestarray[1].b == 34);
+  TEST(o.nested2.value.Length() == 0);
+
+  cStr s; // test to ensure that invalid data does not crash or lock up the parser
+  for(int i = strlen(json); i > 0; --i)
+  {
+    s.assign(json, i);
+    ParseJSON(o, s);
+  }
+  ENDTEST;
+}
+
+TESTDEF::RETPAIR test_HASH()
 {
   BEGINTEST;
   //cKhash<int, char,false,KH_INT_HASHFUNC,KH_INT_EQUALFUNC<int>,KH_INT_VALIDATEPTR<int>> hashtest;
@@ -3763,7 +3858,7 @@ TESTDEF::RETPAIR test_KHASH()
     hasherint.Insert(25, &_failedtests);
     hasherint.Get(25);
     hasherint.Remove(25);
-    cHash<const char*, cLog*, true, true> hasher;
+    cHash<const char*, cLog*, true> hasher;
     hasher.Insert("", &_failedtests);
     hasher.Insert("Video", (cLog*)5);
     hasher.SetSize(100);
@@ -3772,21 +3867,21 @@ TESTDEF::RETPAIR test_KHASH()
     TEST(check == (cLog*)5);
     check = hasher.Get("Video");
     TEST(check == (cLog*)5);
-    cHash<const char*, cLog*, true, true> hasher2(hasher);
+    cHash<const char*, cLog*, true> hasher2(hasher);
     check = hasher2.Get("Video");
     TEST(check == (cLog*)5);
-    cHash<const char*, cLog*, true, true> hasher3(std::move(hasher));
+    cHash<const char*, cLog*, true> hasher3(std::move(hasher));
     check = hasher2.Get("Video");
     TEST(check == (cLog*)5);
     //unsigned __int64 diff = cHighPrecisionTimer::CloseProfiler(ID);
 
     {
-      cHash<const void*, short, false> set;
-      set.Insert(0, 1);
-      set.Insert(&check, 1);
-      set.Insert(&hasher, 1);
-      set.Insert(&hasherint, 1);
-      set.Insert(&set, 1);
+      cHash<const void*> set;
+      set.Insert(0);
+      set.Insert(&check);
+      set.Insert(&hasher);
+      set.Insert(&hasherint);
+      set.Insert(&set);
       set.GetKey(0);
       TEST(set.Exists(0));
     }
@@ -4938,7 +5033,8 @@ int main(int argc, char** argv)
     //{ "INIparse.h", &test_INIPARSE },
     { "cINIstorage.h", &test_INISTORAGE },
     { "cKDTree.h", &test_KDTREE },
-    { "cHash.h", &test_KHASH },
+    { "cJSON.h", &test_JSON },
+    { "cHash.h", &test_HASH },
     { "cLinkedArray.h", &test_LINKEDARRAY },
     { "cLinkedList.h", &test_LINKEDLIST },
     { "lockless.h", &test_LOCKLESS },

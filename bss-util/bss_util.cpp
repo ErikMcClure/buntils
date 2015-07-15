@@ -259,6 +259,16 @@ extern long BSS_FASTCALL bss_util::GetTimeZoneMinutes()
   return stm.tm_gmtoff;
 #endif
 }
+
+extern void BSS_FASTCALL bss_util::OutputUnicode(std::string& s, int c)
+{
+  if(c < 0x0080) s += c;
+  else if(c < 0x0800) { s += (0xC0|c>>(6*1)); s += (0x80|(c&0x3F)); }
+  else if(c < 0x10000) { s += (0xE0|c>>(6*2)); s += (0x80|(c&0x0FC0)>>(6*1)); s += (0x80|(c&0x3F)); }
+  else if(c < 0x10FFFF) { s += (0xF0|c>>(6*3)); s += (0x80|(c&0x03F000)>>(6*2)); s += (0x80|(c&0x0FC0)>>(6*1)); s += (0x80|(c&0x3F)); }
+  // Otherwise this is an illegal codepoint so just ignore it
+}
+
 #ifdef BSS_PLATFORM_WIN32
 extern void BSS_FASTCALL bss_util::AlertBox(const char* text, const char* caption, int type)
 {

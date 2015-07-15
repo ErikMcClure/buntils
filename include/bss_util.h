@@ -24,6 +24,7 @@
 #include <cstring> // for memcmp
 #include <emmintrin.h> // for SSE intrinsics
 #include <float.h>
+#include <string>
 #ifdef BSS_COMPILER_GCC
 #include <stdlib.h> // For abs(int) on GCC
 #include <fpu_control.h> // for CPU control on GCC
@@ -37,6 +38,7 @@ namespace bss_util {
   BSS_COMPILER_DLLEXPORT extern unsigned long long BSS_FASTCALL bssFileSize(const char* path);
   BSS_COMPILER_DLLEXPORT extern unsigned long long BSS_FASTCALL bssFileSize(const wchar_t* path);
   BSS_COMPILER_DLLEXPORT extern long BSS_FASTCALL GetTimeZoneMinutes(); //Returns the current time zone difference from UTC in minutes
+  BSS_COMPILER_DLLEXPORT extern void BSS_FASTCALL OutputUnicode(std::string& s, int c);
 
   //Useful numbers
   const double PI = 3.141592653589793238462643383279;

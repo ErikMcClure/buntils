@@ -101,6 +101,24 @@ namespace bss_util {
       }
     }
   };
+  template<class T, int I, bool B> // For fixed-length arrays
+  struct ParseJSONInternal<T[I], B>
+  {
+    static void F(T(&obj)[I], std::istream& s)
+    {
+      ParseJSONEatWhitespace(s);
+      if(!s || s.get() != '[') return;
+      ParseJSONEatWhitespace(s);
+      int i = 0;
+      while(!!s && s.peek() != ']' && s.peek() != -1 && i < I)
+      {
+        ParseJSON(obj[i++], s);
+        while(!!s && s.peek() != ',' && s.peek() != ']' && s.peek() != -1) s.get(); // eat everything up to a , or ] character
+        if(!!s && s.peek() == ',' && s.peek() != -1) s.get(); // Only eat comma if it's there.
+        ParseJSONEatWhitespace(s);
+      }
+    }
+  };
 
   template<class T>
   inline void ParseJSON(T& obj, std::istream& s){ ParseJSONInternal<T, std::is_arithmetic<T>::value>::F(obj, s); }

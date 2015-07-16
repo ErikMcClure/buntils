@@ -3768,6 +3768,7 @@ struct JSONtest
   double c;
   bool btrue;
   bool bfalse;
+  float fixed[3];
   cStr test;
   JSONtest2 nested;
   cDynArray<unsigned short> foo;
@@ -3778,7 +3779,7 @@ struct JSONtest
 
   bool EvalJSON(const char* name, std::istream& s)
   {
-    static cTrie<unsigned char> t(12, "a", "b", "c", "test", "nested", "foo", "bar", "foobar", "nestarray", "nested2", "btrue", "bfalse");
+    static cTrie<unsigned char> t(13, "a", "b", "c", "test", "nested", "foo", "bar", "foobar", "nestarray", "nested2", "btrue", "bfalse", "fixed");
     switch(t[name])
     {
     case 0: ParseJSON(a, s); break;
@@ -3793,6 +3794,7 @@ struct JSONtest
     case 9: ParseJSON(nested2, s); break;
     case 10: ParseJSON(btrue, s); break;
     case 11: ParseJSON(bfalse, s); break;
+    case 12: ParseJSON(fixed, s); break;
     default: return false;
     }
     return true;
@@ -3802,7 +3804,7 @@ struct JSONtest
 TESTDEF::RETPAIR test_JSON()
 {
   BEGINTEST;
-  const char* json = "{ \"a\": -5, \"b\": 342  ,\"c\":23.7193 , \"btrue\": true, \"bfalse\": false, \"test\":\"\\u01A8string {,};[]\\\"st\\\"'\\\n\\\r\\/\\u0FA8nb\\\"\", \"nested\" : { \"value\": [ { }, { } ] }, \"foo\": [5 ,6, 4,2 ,  2,3,], \"bar\": [3.3,1.6543,0.49873,90, 4], \"foobar\":[\"moar\",\"\"], \"nestarray\": [null, { \"a\":, \"b\":34, }], \"nested2\": null }";
+  const char* json = "{ \"a\": -5, \"b\": 342  ,\"c\":23.7193 , \"btrue\": true, \"bfalse\": false, \"fixed\": [0.2, 23.1, -3], \"test\":\"\\u01A8string {,};[]\\\"st\\\"'\\\n\\\r\\/\\u0FA8nb\\\"\", \"nested\" : { \"value\": [ { }, { } ] }, \"foo\": [5 ,6, 4,2 ,  2,3,], \"bar\": [3.3,1.6543,0.49873,90, 4], \"foobar\":[\"moar\",\"\"], \"nestarray\": [null, { \"a\":, \"b\":34, }], \"nested2\": null }";
   JSONtest o;
   o.btrue = false;
   o.bfalse = true;
@@ -3813,6 +3815,9 @@ TESTDEF::RETPAIR test_JSON()
   TEST(o.c == 23.7193);
   TEST(o.btrue);
   TEST(!o.bfalse);
+  TEST(o.fixed[0] == 0.2f);
+  TEST(o.fixed[1] == 23.1f);
+  TEST(o.fixed[2] == -3.0f);
   TEST(o.test.length() > 0);
   TEST(o.nested.value.Length() == 2);
   TEST(o.foo.Length() == 6);

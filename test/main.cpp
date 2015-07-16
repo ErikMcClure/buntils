@@ -3753,11 +3753,14 @@ TESTDEF::RETPAIR test_KDTREE()
 struct JSONtest2
 {
   cDynArray<JSONtest2, unsigned int, CARRAY_SAFE> value;
-  bool EvalJSON(const char* name, std::istream& s)
+  void EvalJSON(const char* name, std::istream& s)
   {
-    if(strcmp(name, "value") != 0) return false;
-    ParseJSON(value, s);
-    return true;
+    if(!strcmp(name, "value"))
+      ParseJSON(value, s);
+  }
+  void SerializeJSON(std::ostream& s, unsigned int& pretty) const
+  {
+    WriteJSON("value", value, s, pretty);
   }
 };
 
@@ -3777,7 +3780,7 @@ struct JSONtest
   cDynArray<JSONtest, unsigned int, CARRAY_SAFE> nestarray;
   JSONtest2 nested2;
 
-  bool EvalJSON(const char* name, std::istream& s)
+  void EvalJSON(const char* name, std::istream& s)
   {
     static cTrie<unsigned char> t(13, "a", "b", "c", "test", "nested", "foo", "bar", "foobar", "nestarray", "nested2", "btrue", "bfalse", "fixed");
     switch(t[name])
@@ -3795,21 +3798,29 @@ struct JSONtest
     case 10: ParseJSON(btrue, s); break;
     case 11: ParseJSON(bfalse, s); break;
     case 12: ParseJSON(fixed, s); break;
-    default: return false;
     }
-    return true;
+  }
+
+  void SerializeJSON(std::ostream& s, unsigned int& pretty) const
+  {
+    WriteJSON("a", a, s, pretty);
+    WriteJSON("b", b, s, pretty);
+    WriteJSON("c", c, s, pretty);
+    WriteJSON("test", test, s, pretty);
+    WriteJSON("nested", nested, s, pretty);
+    WriteJSON("foo", foo, s, pretty);
+    WriteJSON("bar", bar, s, pretty);
+    WriteJSON("foobar", foobar, s, pretty);
+    WriteJSON("nestarray", nestarray, s, pretty);
+    WriteJSON("nested2", nested2, s, pretty);
+    WriteJSON("btrue", btrue, s, pretty);
+    WriteJSON("bfalse", bfalse, s, pretty);
+    WriteJSON("fixed", fixed, s, pretty);
   }
 };
 
-TESTDEF::RETPAIR test_JSON()
+void dotest_JSON(JSONtest& o, TESTDEF::RETPAIR& __testret)
 {
-  BEGINTEST;
-  const char* json = "{ \"a\": -5, \"b\": 342  ,\"c\":23.7193 , \"btrue\": true, \"bfalse\": false, \"fixed\": [0.2, 23.1, -3], \"test\":\"\\u01A8string {,};[]\\\"st\\\"'\\\n\\\r\\/\\u0FA8nb\\\"\", \"nested\" : { \"value\": [ { }, { } ] }, \"foo\": [5 ,6, 4,2 ,  2,3,], \"bar\": [3.3,1.6543,0.49873,90, 4], \"foobar\":[\"moar\",\"\"], \"nestarray\": [null, { \"a\":, \"b\":34, }], \"nested2\": null }";
-  JSONtest o;
-  o.btrue = false;
-  o.bfalse = true;
-
-  ParseJSON(o, json);
   TEST(o.a == -5);
   TEST(o.b == 342);
   TEST(o.c == 23.7193);
@@ -3839,6 +3850,36 @@ TESTDEF::RETPAIR test_JSON()
   TEST(o.nestarray.Length() == 2);
   TEST(o.nestarray[1].b == 34);
   TEST(o.nested2.value.Length() == 0);
+}
+
+TESTDEF::RETPAIR test_JSON()
+{
+  BEGINTEST;
+  const char* json = "{ \"a\": -5, \"b\": 342  ,\"c\":23.7193 , \"btrue\": true, \"bfalse\": false, \"fixed\": [0.2, 23.1, -3], \"test\":\"\\u01A8string {,};[]\\\"st\\\"'\\\n\\\r\\/\\u0FA8nb\\\"\", \"nested\" : { \"value\": [ { }, { } ] }, \"foo\": [5 ,6, 4,2 ,  2,3,], \"bar\": [3.3,1.6543,0.49873,90, 4], \"foobar\":[\"moar\",\"\"], \"nestarray\": [null, { \"a\":, \"b\":34, }], \"nested2\": null }";
+  JSONtest o;
+  o.btrue = false;
+  o.bfalse = true;
+
+  ParseJSON(o, json);
+  dotest_JSON(o, __testret);
+
+  WriteJSON(o, "out.json");
+  std::fstream fs("out.json");
+
+  JSONtest o2;
+  o2.btrue = false;
+  o2.bfalse = true;
+  ParseJSON(o2, fs);
+  dotest_JSON(o2, __testret);
+
+  WriteJSON(o, "pretty.json", 1);
+  std::fstream fs2("pretty.json");
+
+  JSONtest o3;
+  o3.btrue = false;
+  o3.bfalse = true;
+  ParseJSON(o3, fs2);
+  dotest_JSON(o3, __testret);
 
   cStr s; // test to ensure that invalid data does not crash or lock up the parser
   for(int i = strlen(json); i > 0; --i)
@@ -5003,7 +5044,7 @@ int main(int argc, char** argv)
   
   // For best results on windows, add the test application to Application Verifier before going through the tests.
   TESTDEF tests[] = {
-    { "bss_util_c.h", &test_bss_util_c },
+    /*{ "bss_util_c.h", &test_bss_util_c },
     { "bss_util.h", &test_bss_util },
     { "cLog.h", &test_bss_LOG },
     { "bss_algo.h", &test_bss_algo },
@@ -5035,7 +5076,7 @@ int main(int argc, char** argv)
     { "cHighPrecisionTimer.h", &test_HIGHPRECISIONTIMER },
     { "cIDHash.h", &test_IDHASH },
     { "cScheduler.h", &test_SCHEDULER },
-    //{ "INIparse.h", &test_INIPARSE },
+    //{ "INIparse.h", &test_INIPARSE },*/
     { "cINIstorage.h", &test_INISTORAGE },
     { "cKDTree.h", &test_KDTREE },
     { "cJSON.h", &test_JSON },

@@ -32,6 +32,7 @@ namespace bss_util {
     BSS_FORCEINLINE bool Empty() const { return !_length; }
     BSS_FORCEINLINE void Clear() { _length=0; }
     BSS_FORCEINLINE void SetLength(ST_ length) { if(length>_size) AT_::SetSize(length); _length=length; }
+    BSS_FORCEINLINE void Reserve(ST_ capacity) { if(capacity>_size) AT_::SetSize(capacity); }
     BSS_FORCEINLINE ST_ Length() const { return _length; }
     BSS_FORCEINLINE ST_ Capacity() const { return _size; }
     inline const T_& Front() const { assert(_length>0); return _array[0]; }

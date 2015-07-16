@@ -149,6 +149,13 @@ namespace bss_util {
   {
     static const char* val = "true";
     int pos = 0;
+    if(s.peek() >= '0' && s.peek() <= '9') 
+    {
+      unsigned __int64 num;
+      s >> num;
+      target = num != 0; // If it's numeric, record the value as false if 0 and true otherwise.
+      return;
+    }
     while(!!s && s.peek() != ',' && s.peek() != '}' && s.peek() != ']' && s.peek() != -1 && pos < 4)
     {
       if(s.get() != val[pos++])
@@ -160,6 +167,122 @@ namespace bss_util {
 
     target = true;
   }
+
+  static bool WriteJSONIsPretty(unsigned int pretty) { return (pretty&(~0x80000000))>0; }
+  static void WriteJSONTabs(std::ostream& s, unsigned int pretty) { unsigned int count = (pretty&(~0x80000000))-1; for(unsigned int i = 0; i < count; ++i) s << '\t'; }
+  static void WriteJSONId(const char* id, std::ostream& s, unsigned int pretty) { if(id) { if(WriteJSONIsPretty(pretty)) { s << std::endl; WriteJSONTabs(s, pretty); } s << '"' << id << '"' << ": "; } }
+  static void WriteJSONComma(std::ostream& s, unsigned int& pretty)
+  {
+    if(pretty&0x80000000) s << ',';
+    pretty|=0x80000000;
+  }
+  static unsigned int WriteJSONPretty(unsigned int pretty) { return (pretty&(~0x80000000)) + ((pretty&(~0x80000000))>0); }
+
+  template<class T, bool B>
+  struct WriteJSONInternal
+  {
+    static void F(const char* id, const T& obj, std::ostream& s, unsigned int& pretty)
+    {
+      WriteJSONComma(s, pretty);
+      if(!id && WriteJSONIsPretty(pretty)) s << std::endl;
+      WriteJSONId(id, s, pretty);
+      if(!id && WriteJSONIsPretty(pretty)) WriteJSONTabs(s, pretty);
+      s << '{';
+      unsigned int npretty = WriteJSONPretty(pretty);
+      obj.SerializeJSON(s, npretty);
+      if(WriteJSONIsPretty(pretty)) {
+        s << std::endl;
+        WriteJSONTabs(s, pretty);
+      }
+      s << '}';
+      s.flush();
+    }
+  };
+  
+  template<class T>
+  struct WriteJSONInternal<T, true>
+  {
+    static void F(const char* id, const T& obj, std::ostream& s, unsigned int& pretty)
+    {
+      WriteJSONComma(s, pretty);
+      WriteJSONId(id, s, pretty);
+      s << obj;
+    }
+  };
+  template<class T, int I, bool B>
+  struct WriteJSONInternal<T[I], B>
+  {
+    static void F(const char* id, const T(&obj)[I], std::ostream& s, unsigned int& pretty)
+    {
+      WriteJSONComma(s, pretty);
+      WriteJSONId(id, s, pretty);
+      unsigned int npretty = WriteJSONPretty(pretty);
+      s << '[';
+      for(int i = 0; i < I; ++i)
+        WriteJSON(0, obj[i], s, npretty);
+      s << ']';
+    }
+  };
+  template<class T, typename SizeType, ARRAY_TYPE ArrayType, typename Alloc>
+  struct WriteJSONInternal<cDynArray<T, SizeType, ArrayType, Alloc>, false>
+  {
+    static void F(const char* id, const cDynArray<T, SizeType, ArrayType, Alloc>& obj, std::ostream& s, unsigned int& pretty)
+    {
+      WriteJSONComma(s, pretty);
+      WriteJSONId(id, s, pretty);
+      unsigned int npretty = WriteJSONPretty(pretty);
+      s << '[';
+      for(int i = 0; i < obj.Length(); ++i)
+        WriteJSON(0, obj[i], s, npretty);
+      s << ']';
+    }
+  };
+
+  // To enable pretty output, set pretty to 1. The upper two bits are used as flags, so if you need more than 1073741823 levels of indentation... what the hell are you doing?!
+  template<class T> 
+  void WriteJSON(const char* id, const T& obj, std::ostream& s, unsigned int& pretty) { WriteJSONInternal<T, std::is_arithmetic<T>::value>::F(id, obj, s, pretty); }
+
+  template<>
+  void WriteJSON<std::string>(const char* id, const std::string& obj, std::ostream& s, unsigned int& pretty)
+  {
+    WriteJSONComma(s, pretty);
+    WriteJSONId(id, s, pretty);
+    s << '"';
+    for(int i = 0; i < obj.size(); ++i)
+    {
+      switch(obj[i])
+      {
+      case '"': s << "\\\""; break;
+      case '\\': s << "\\\\"; break;
+      case '/': s << "\\/"; break;
+      case '\b': s << "\\b"; break;
+      case '\f': s << "\\f"; break;
+      case '\n': s << "\\n"; break;
+      case '\r': s << "\\r"; break;
+      case '\t': s << "\\t"; break;
+      default: s << obj[i]; break;
+      }
+    }
+    s << '"';
+  }
+
+  template<>
+  void WriteJSON<cStr>(const char* id, const cStr& obj, std::ostream& s, unsigned int& pretty) { WriteJSON<std::string>(id, obj, s, pretty); }
+
+  template<>
+  void WriteJSON<bool>(const char* id, const bool& obj, std::ostream& s, unsigned int& pretty)
+  {
+    WriteJSONComma(s, pretty);
+    WriteJSONId(id, s, pretty);
+    s << (obj?"true":"false");
+  }
+
+  template<class T>
+  void WriteJSON(const T& obj, std::ostream& s, unsigned int pretty = 0) { WriteJSON<T>(0, obj, s, pretty); }
+
+  template<class T>
+  void WriteJSON(const T& obj, const char* file, unsigned int pretty = 0) { std::ofstream fs(file, std::ios_base::out | std::ios_base::trunc | std::ios_base::binary); WriteJSON<T>(0, obj, fs, pretty); }
+
 }
 
 #endif

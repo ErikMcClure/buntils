@@ -3855,7 +3855,7 @@ void dotest_JSON(JSONtest& o, TESTDEF::RETPAIR& __testret)
 TESTDEF::RETPAIR test_JSON()
 {
   BEGINTEST;
-  const char* json = "{ \"a\": -5, \"b\": 342  ,\"c\":23.7193 , \"btrue\": true, \"bfalse\": false, \"fixed\": [0.2, 23.1, -3], \"test\":\"\\u01A8string {,};[]\\\"st\\\"'\\\n\\\r\\/\\u0FA8nb\\\"\", \"nested\" : { \"value\": [ { }, { } ] }, \"foo\": [5 ,6, 4,2 ,  2,3,], \"bar\": [3.3,1.6543,0.49873,90, 4], \"foobar\":[\"moar\",\"\"], \"nestarray\": [null, { \"a\":, \"b\":34, }], \"nested2\": null }";
+  const char* json = "{ \"a\": -5, \"b\": 342  ,\"c\":23.7193 , \"btrue\": true, \"bfalse\": false, \"fixed\": [0.2, 23.1, -3, 4.0], \"test\":\"\\u01A8string {,};[]\\\"st\\\"'\\\n\\\r\\/\\u0FA8nb\\\"\", \"nested\" : { \"value\": [ { }, { } ] }, \"foo\": [5 ,6, 4,2 ,  2,3,], \"bar\": [3.3,1.6543,0.49873,90, 4], \"foobar\":[\"moar\",\"\"], \"nestarray\": [null, { \"a\":, \"b\":34, }], \"nested2\": null }";
   JSONtest o;
   o.btrue = false;
   o.bfalse = true;
@@ -3887,6 +3887,13 @@ TESTDEF::RETPAIR test_JSON()
     s.assign(json, i);
     ParseJSON(o, s);
   }
+  ENDTEST;
+}
+
+TESTDEF::RETPAIR test_UBJSON()
+{
+  BEGINTEST;
+
   ENDTEST;
 }
 

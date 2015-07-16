@@ -101,6 +101,7 @@
     <ClInclude Include="..\include\cStr.h" />
     <ClInclude Include="..\include\cStrTable.h" />
     <ClInclude Include="..\include\cTrie.h" />
+    <ClInclude Include="..\include\cUBJSON.h" />
     <ClInclude Include="..\include\cXML.h" />
     <ClInclude Include="..\include\delegate.h" />
     <ClInclude Include="..\include\Dual.h" />

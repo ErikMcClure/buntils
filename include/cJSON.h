@@ -58,7 +58,7 @@ namespace bss_util {
         ParseJSONEatWhitespace(s);
         if(s.get() != ':') continue;
         ParseJSONEatWhitespace(s);
-        obj.EvalJSON(buf, s);
+        obj.EvalJSON(buf.c_str(), s);
         while(!!s && s.peek() != ',' && s.peek() != '}' && s.peek() != -1) s.get(); // eat everything up to a , or } character
         if(!!s && s.peek() == ',') s.get(); // Only eat comma if it's there.
         ParseJSONEatWhitespace(s);
@@ -82,41 +82,53 @@ namespace bss_util {
         s >> obj;
     }
   };
+  template<class T>
+  void ParseJSONArray(T& obj, std::istream& s)
+  {
+    ParseJSONEatWhitespace(s);
+    if(!s || s.get() != '[') return;
+    ParseJSONEatWhitespace(s);
+    int n = 0;
+    while(!!s && s.peek() != ']' && s.peek() != -1)
+    {
+      ParseJSONInternal<T, false>::DoAddCall(obj, s, n);
+      while(!!s && s.peek() != ',' && s.peek() != ']' && s.peek() != -1) s.get(); // eat everything up to a , or ] character
+      if(!!s && s.peek() == ',' && s.peek() != -1) s.get(); // Only eat comma if it's there.
+      ParseJSONEatWhitespace(s);
+    }
+  }
   template<class T, typename SizeType, ARRAY_TYPE ArrayType, typename Alloc>
   struct ParseJSONInternal<cDynArray<T, SizeType, ArrayType, Alloc>, false>
   {
+    static inline void DoAddCall(cDynArray<T, SizeType, ArrayType, Alloc>& obj, std::istream& s, int& n)
+    {
+      obj.Add(T());
+      ParseJSON(obj.Back(), s);
+    }
     static void F(cDynArray<T, SizeType, ArrayType, Alloc>& obj, std::istream& s)
     {
       obj.Clear();
-      ParseJSONEatWhitespace(s);
-      if(!s || s.get() != '[') return;
-      ParseJSONEatWhitespace(s);
-      while(!!s && s.peek() != ']' && s.peek() != -1)
-      {
-        obj.Add(T());
-        ParseJSON(obj.Back(), s);
-        while(!!s && s.peek() != ',' && s.peek() != ']' && s.peek() != -1) s.get(); // eat everything up to a , or ] character
-        if(!!s && s.peek() == ',' && s.peek() != -1) s.get(); // Only eat comma if it's there.
-        ParseJSONEatWhitespace(s);
-      }
+      ParseJSONArray<cDynArray<T, SizeType, ArrayType, Alloc>>(obj, s);
     }
   };
   template<class T, int I, bool B> // For fixed-length arrays
   struct ParseJSONInternal<T[I], B>
   {
-    static void F(T(&obj)[I], std::istream& s)
+    static inline void DoAddCall(T(&obj)[I], std::istream& s, int& n) { if(n<I) ParseJSON(obj[n++], s); }
+    static void F(T(&obj)[I], std::istream& s) { ParseJSONArray<T[I]>(obj, s); }
+  };
+  template<class T, typename Alloc>
+  struct ParseJSONInternal<std::vector<T, Alloc>, false>
+  {
+    static inline void DoAddCall(std::vector<T, Alloc>& obj, std::istream& s, int& n)
     {
-      ParseJSONEatWhitespace(s);
-      if(!s || s.get() != '[') return;
-      ParseJSONEatWhitespace(s);
-      int i = 0;
-      while(!!s && s.peek() != ']' && s.peek() != -1 && i < I)
-      {
-        ParseJSON(obj[i++], s);
-        while(!!s && s.peek() != ',' && s.peek() != ']' && s.peek() != -1) s.get(); // eat everything up to a , or ] character
-        if(!!s && s.peek() == ',' && s.peek() != -1) s.get(); // Only eat comma if it's there.
-        ParseJSONEatWhitespace(s);
-      }
+      obj.push_back(T());
+      ParseJSON(obj.back(), s);
+    }
+    static void F(std::vector<T, Alloc>& obj, std::istream& s)
+    {
+      obj.clear();
+      ParseJSONArray<std::vector<T, Alloc>>(obj, s);
     }
   };
 
@@ -209,33 +221,33 @@ namespace bss_util {
       s << obj;
     }
   };
+
+  template<class T>
+  void WriteJSONArray(const char* id, const T* obj, size_t size, std::ostream& s, unsigned int& pretty)
+  {
+    WriteJSONComma(s, pretty);
+    WriteJSONId(id, s, pretty);
+    unsigned int npretty = WriteJSONPretty(pretty);
+    s << '[';
+    for(int i = 0; i < size; ++i)
+      WriteJSON(0, obj[i], s, npretty);
+    s << ']';
+  }
+
   template<class T, int I, bool B>
   struct WriteJSONInternal<T[I], B>
   {
-    static void F(const char* id, const T(&obj)[I], std::ostream& s, unsigned int& pretty)
-    {
-      WriteJSONComma(s, pretty);
-      WriteJSONId(id, s, pretty);
-      unsigned int npretty = WriteJSONPretty(pretty);
-      s << '[';
-      for(int i = 0; i < I; ++i)
-        WriteJSON(0, obj[i], s, npretty);
-      s << ']';
-    }
+    static void F(const char* id, const T(&obj)[I], std::ostream& s, unsigned int& pretty) { WriteJSONArray<T>(id, obj, I, s, pretty); }
   };
   template<class T, typename SizeType, ARRAY_TYPE ArrayType, typename Alloc>
   struct WriteJSONInternal<cDynArray<T, SizeType, ArrayType, Alloc>, false>
   {
-    static void F(const char* id, const cDynArray<T, SizeType, ArrayType, Alloc>& obj, std::ostream& s, unsigned int& pretty)
-    {
-      WriteJSONComma(s, pretty);
-      WriteJSONId(id, s, pretty);
-      unsigned int npretty = WriteJSONPretty(pretty);
-      s << '[';
-      for(int i = 0; i < obj.Length(); ++i)
-        WriteJSON(0, obj[i], s, npretty);
-      s << ']';
-    }
+    static void F(const char* id, const cDynArray<T, SizeType, ArrayType, Alloc>& obj, std::ostream& s, unsigned int& pretty) { WriteJSONArray<T>(id, obj, obj.Length(), s, pretty); }
+  };
+  template<class T, typename Alloc>
+  struct WriteJSONInternal<std::vector<T, Alloc>, false>
+  {
+    static void F(const char* id, const std::vector<T, Alloc>& obj, std::ostream& s, unsigned int& pretty) { WriteJSONArray<T>(id, obj, obj.size(), s, pretty); }
   };
 
   // To enable pretty output, set pretty to 1. The upper two bits are used as flags, so if you need more than 1073741823 levels of indentation... what the hell are you doing?!
@@ -282,7 +294,6 @@ namespace bss_util {
 
   template<class T>
   void WriteJSON(const T& obj, const char* file, unsigned int pretty = 0) { std::ofstream fs(file, std::ios_base::out | std::ios_base::trunc | std::ios_base::binary); WriteJSON<T>(0, obj, fs, pretty); }
-
 }
 
 #endif

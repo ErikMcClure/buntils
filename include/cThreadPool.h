@@ -22,8 +22,8 @@ namespace bss_util
     cThreadPool& operator=(const cThreadPool&) BSS_DELETEFUNCOP
 
   public:
-    cThreadPool(cThreadPool&& mov) : _length(mov._length), _threads(std::move(mov._threads)), _tasklist(std::move(mov._tasklist)),
-      _flag(mov._flag), _alloc(std::move(mov._alloc)), _circ(std::move(mov._circ))
+    cThreadPool(cThreadPool&& mov) : _length(mov._length.load(std::memory_order_relaxed)), _threads(std::move(mov._threads)), _tasklist(std::move(mov._tasklist)),
+      _flag(mov._flag.load(std::memory_order_relaxed)), _alloc(std::move(mov._alloc)), _circ(std::move(mov._circ))
     {
       mov._length.store(0, std::memory_order_relaxed);
     }

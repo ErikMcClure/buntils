@@ -99,6 +99,18 @@ typedef unsigned long ulong;
 #define BSS_DLLEXPORT
 #endif
 
+// This is used to implement a check to see if a given function exists in a class
+#define DEFINE_MEMBER_CHECKER(Member)   \
+  template<class T> class bss_has_member_##Member \
+{ \
+struct big { char a[2]; }; \
+  template<class C> static big  probe(decltype(&C::Member)); \
+  template<class C> static char probe(...); \
+public: \
+  static const bool value = sizeof(probe<T>(nullptr)) > 1; \
+}
+
+#define HAS_MEMBER(Class, Member)           bss_has_member_##Member<Class>::value
 
 #ifdef BSS_COMPILER_MSC
 #define TIME64(ptime) _time64(ptime)

@@ -40,9 +40,12 @@ namespace bss_util {
     }
   }
 
+  DEFINE_MEMBER_CHECKER(EvalJSON);
+
   template<class T, bool B>
   struct ParseJSONInternal
   {
+    static_assert(HAS_MEMBER(T, EvalJSON), "T must implement void EvalJSON(const char*, std::istream&)");
     static void F(T& obj, std::istream& s)
     {
       cStr buf;
@@ -180,6 +183,8 @@ namespace bss_util {
     target = true;
   }
 
+  DEFINE_MEMBER_CHECKER(SerializeJSON);
+
   static bool WriteJSONIsPretty(unsigned int pretty) { return (pretty&(~0x80000000))>0; }
   static void WriteJSONTabs(std::ostream& s, unsigned int pretty) { unsigned int count = (pretty&(~0x80000000))-1; for(unsigned int i = 0; i < count; ++i) s << '\t'; }
   static void WriteJSONId(const char* id, std::ostream& s, unsigned int pretty) { if(id) { if(WriteJSONIsPretty(pretty)) { s << std::endl; WriteJSONTabs(s, pretty); } s << '"' << id << '"' << ": "; } }
@@ -193,6 +198,7 @@ namespace bss_util {
   template<class T, bool B>
   struct WriteJSONInternal
   {
+    static_assert(HAS_MEMBER(T, SerializeJSON), "T must implement void SerializeJSON(std::istream&, unsigned int&) const");
     static void F(const char* id, const T& obj, std::ostream& s, unsigned int& pretty)
     {
       WriteJSONComma(s, pretty);

@@ -1989,6 +1989,9 @@ TESTDEF::RETPAIR test_ARRAY()
 }
 
 struct FWDTEST {
+  FWDTEST() {}
+  FWDTEST(const FWDTEST& copy) {}
+  FWDTEST(FWDTEST&& mov) {}
   FWDTEST& operator=(const FWDTEST& right) { return *this; }
   FWDTEST& operator=(FWDTEST&& right) { return *this; }
 };
@@ -5051,7 +5054,7 @@ int main(int argc, char** argv)
   
   // For best results on windows, add the test application to Application Verifier before going through the tests.
   TESTDEF tests[] = {
-    /*{ "bss_util_c.h", &test_bss_util_c },
+    { "bss_util_c.h", &test_bss_util_c },
     { "bss_util.h", &test_bss_util },
     { "cLog.h", &test_bss_LOG },
     { "bss_algo.h", &test_bss_algo },

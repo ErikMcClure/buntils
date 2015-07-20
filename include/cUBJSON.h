@@ -252,6 +252,9 @@ namespace bss_util {
 
   template<>
   inline void ParseUBJSON<cStr>(cStr& obj, std::istream& s, char type){ ParseUBJSON<std::string>(obj, s, type); }
+
+  template<class T>
+  inline void WriteUBJSON(T& obj, std::istream& s, char type){ ParseUBJSONInternal<T, std::is_arithmetic<T>::value>::F(obj, s); }
 }
 
 #endif

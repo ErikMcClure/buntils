@@ -276,8 +276,14 @@ namespace bss_util {
     }
   }
 
+  template<int I>
+  BSS_FORCEINLINE static void BSS_FASTCALL flipendian(char* target) { flipendian((char*)target, I); }
+  template<> BSS_FORCEINLINE static void BSS_FASTCALL flipendian<0>(char* target) { }
+  template<> BSS_FORCEINLINE static void BSS_FASTCALL flipendian<1>(char* target) { }
+  template<> BSS_FORCEINLINE static void BSS_FASTCALL flipendian<2>(char* target) { char t = target[0]; target[0] = target[1]; target[1] = t; }
+
   template<typename T>
-  BSS_FORCEINLINE static void BSS_FASTCALL flipendian(T* target) { flipendian((char*)target, sizeof(T)); }
+  BSS_FORCEINLINE static void BSS_FASTCALL flipendian(T* target) { flipendian<sizeof(T)>((char*)target); }
 
     // This is a bit-shift method of calculating the next number in the fibonacci sequence by approximating the golden ratio with 0.6171875 (1/2 + 1/8 - 1/128)
   template<typename T>

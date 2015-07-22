@@ -28,6 +28,7 @@
 #include "cDynArray.h"
 #include "cIDHash.h"
 #include "cINIstorage.h"
+#include "cJSON.h"
 #include "cKDTree.h"
 #include "cHash.h"
 #include "cLinkedArray.h"
@@ -47,6 +48,7 @@
 #include "cThreadPool.h"
 #include "cTRBtree.h"
 #include "cTrie.h"
+#include "cUBJSON.h"
 #include "delegate.h"
 #include "Dual.h"
 #include "FixedPt.h"
@@ -55,7 +57,6 @@
 #include "profiler.h"
 #include "StreamSplitter.h"
 #include "cXML.h"
-#include "cJSON.h"
 #include <fstream>
 #include <algorithm>
 #include <limits.h> // for INT_MIN, INT_MAX etc. on GCC
@@ -4746,7 +4747,7 @@ TESTDEF::RETPAIR test_XML()
   xml.Write("test.xml");
 
   // Ensure that, even if we can't recover from various errors, the parser does not crash or go into an infinite loop due to bad data
-  for(int i = 1; i < XML.length(); ++i)
+  for(unsigned int i = 1; i < XML.length(); ++i)
   {
     cXML x(XML.substr(0, i).c_str());
     TEST(xml.GetName() != 0); //keep this from getting optimized out

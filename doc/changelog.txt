@@ -33,6 +33,7 @@
 - Added cXML
 - cHash was simplified so that the value is now set to void by default, which implies a set, so you no longer have to explicitely state that it is or isn't a map. Insert() was specialized so that Sets can only insert keys, not values.
 - Added cJSON, a simple JSON parser
+- Added cUBJSON, a simple UBJSON parser
 
 0.4.3
 -----

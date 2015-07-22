@@ -106,7 +106,7 @@ namespace bss_util {
     static inline void DoAddCall(cDynArray<T, SizeType, ArrayType, Alloc>& obj, std::istream& s, int& n)
     {
       obj.Add(T());
-      ParseJSON(obj.Back(), s);
+      ParseJSON<T>(obj.Back(), s);
     }
     static void F(cDynArray<T, SizeType, ArrayType, Alloc>& obj, std::istream& s)
     {
@@ -117,7 +117,7 @@ namespace bss_util {
   template<class T, int I, bool B> // For fixed-length arrays
   struct ParseJSONInternal<T[I], B>
   {
-    static inline void DoAddCall(T(&obj)[I], std::istream& s, int& n) { if(n<I) ParseJSON(obj[n++], s); }
+    static inline void DoAddCall(T(&obj)[I], std::istream& s, int& n) { if(n<I) ParseJSON<T>(obj[n++], s); }
     static void F(T(&obj)[I], std::istream& s) { ParseJSONArray<T[I]>(obj, s); }
   };
   template<class T, typename Alloc>
@@ -126,7 +126,7 @@ namespace bss_util {
     static inline void DoAddCall(std::vector<T, Alloc>& obj, std::istream& s, int& n)
     {
       obj.push_back(T());
-      ParseJSON(obj.back(), s);
+      ParseJSON<T>(obj.back(), s);
     }
     static void F(std::vector<T, Alloc>& obj, std::istream& s)
     {
@@ -198,7 +198,7 @@ namespace bss_util {
   template<class T, bool B>
   struct WriteJSONInternal
   {
-    static_assert(HAS_MEMBER(T, SerializeJSON), "T must implement void SerializeJSON(std::istream&, unsigned int&) const");
+    static_assert(HAS_MEMBER(T, SerializeJSON), "T must implement void SerializeJSON(std::ostream&, unsigned int&) const");
     static void F(const char* id, const T& obj, std::ostream& s, unsigned int& pretty)
     {
       WriteJSONComma(s, pretty);
@@ -235,7 +235,7 @@ namespace bss_util {
     WriteJSONId(id, s, pretty);
     unsigned int npretty = WriteJSONPretty(pretty);
     s << '[';
-    for(int i = 0; i < size; ++i)
+    for(unsigned int i = 0; i < size; ++i)
       WriteJSON(0, obj[i], s, npretty);
     s << ']';
   }
@@ -266,7 +266,7 @@ namespace bss_util {
     WriteJSONComma(s, pretty);
     WriteJSONId(id, s, pretty);
     s << '"';
-    for(int i = 0; i < obj.size(); ++i)
+    for(unsigned int i = 0; i < obj.size(); ++i)
     {
       switch(obj[i])
       {

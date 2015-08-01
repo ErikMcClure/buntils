@@ -269,7 +269,7 @@ namespace bss_util {
     // copyright notice and this statement appear in all copies.  
     // Intel makes no representations about the suitability of this software for 
     // any purpose, and specifically disclaims all warranties. 
-    static const BSS_ALIGN(16) __int32 _Sign_PNNP[4] ={ 0x00000000, 0x80000000, 0x80000000, 0x00000000 };
+    static const BSS_ALIGN(16) unsigned __int32 _Sign_PNNP[4] ={ 0x00000000, 0x80000000, 0x80000000, 0x00000000 };
 
     // The inverse is calculated using "Divide and Conquer" technique. The 
     // original matrix is divide into four 2x2 sub-matrices. Since each 
@@ -864,7 +864,7 @@ namespace bss_util {
   struct Matrix<T, 2, 2>
   {
     template<typename U>
-    inline Matrix(const Matrix<U, 2, 2>& copy) : a(copy.a), b(copy.b), c(copy.c), d(copy.d) { }
+    inline Matrix(const Matrix<U, 2, 2>& copy) : a((T)copy.a), b((T)copy.b), c((T)copy.c), d((T)copy.d) { }
     inline Matrix(const std::initializer_list<T> l) { assert(l.size()==(2*2)); T* p = (T*)v; int k = 0; for(const T* i = l.begin(); i != l.end() && k < 2*2; ++i) p[k++] = *i; }
     inline explicit Matrix(const T(&m)[2][2]) : a(m[0][0]), b(m[0][1]), c(m[1][0]), d(m[1][1]) { }
     inline Matrix() { }
@@ -907,7 +907,7 @@ namespace bss_util {
   struct Matrix<T, 3, 3>
   {
     template<typename U>
-    inline Matrix(const Matrix<U, 3, 3>& copy) : a(copy.a), b(copy.b), c(copy.c), d(copy.d), e(copy.e), f(copy.f), g(copy.g), h(copy.h), i(copy.i) { }
+    inline Matrix(const Matrix<U, 3, 3>& copy) : a((T)copy.a), b((T)copy.b), c((T)copy.c), d((T)copy.d), e((T)copy.e), f((T)copy.f), g((T)copy.g), h((T)copy.h), i((T)copy.i) { }
     inline Matrix(const std::initializer_list<T> l) { assert(l.size()==(3*3)); T* p = (T*)v; int k = 0; for(const T* j = l.begin(); j != l.end() && k < 3*3; ++j) p[k++] = *j; }
     inline explicit Matrix(const T(&m)[3][3]) : a(m[0][0]), b(m[0][1]), c(m[0][2]), d(m[1][0]), e(m[1][1]), f(m[1][2]), g(m[2][0]), h(m[2][1]), i(m[2][2]) { }
     inline Matrix() { }

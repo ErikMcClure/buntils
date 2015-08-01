@@ -230,13 +230,13 @@ int getuniformint()
     samples[0] = 0;
     for(int i=1; i<NUM; ++i)
     {
-      int j = bssrandint(0,i+1);
+      __int64 j = bssrandint(0,i+1);
       samples[i]=samples[j];
       samples[j]=i;
     }
     if(last==samples[0])
     {
-      int j = 1+bssrandint(0,NUM-1);
+      __int64 j = 1+bssrandint(0,NUM-1);
       samples[0]=samples[j];
       samples[j]=last;
     }
@@ -2778,13 +2778,13 @@ void BSS_FASTCALL MATRIX_M_N_TEST(TESTDEF::RETPAIR& __testret)
 
   for(int i = 0; i < M; ++i)
     for(int j = 0; j < N; ++j)
-      a.v[i][j] = (i*M)+j+1;
+      a.v[i][j] = (T)((i*M)+j+1);
   for(int i = 0; i < M; ++i)
     for(int j = 0; j < N; ++j)
-      b.v[i][j] = (i*M)+j+(M*N)+1;
+      b.v[i][j] = (T)((i*M)+j+(M*N)+1);
   for(int i = 0; i < M; ++i)
     for(int j = 0; j < N; ++j)
-      c.v[i][j] = 7;
+      c.v[i][j] = (T)7;
 
   // Component operation tests
   e = a+b;
@@ -2837,7 +2837,7 @@ void BSS_FASTCALL MATRIX_M_N_TEST(TESTDEF::RETPAIR& __testret)
   TEST(t1 == t2);
   Vector<T, (M<N?M:N)> diag;
   for(int i = 0; i < (M<N?M:N); ++i)
-    diag.v[i] = i+1;
+    diag.v[i] = (T)(i+1);
   MATRIX_DIAGONAL<T, M, N>(diag.v, d.v);
   Matrix<T, M, N>::Diagonal(diag.v, e.v);
   if(d != e)
@@ -2856,11 +2856,11 @@ void BSS_FASTCALL MATRIX_M_N_TEST(TESTDEF::RETPAIR& __testret)
   Vector<T, N> r1;
   Vector<T, M> rr1;
   Vector<T, M> rrr1;
-  for(int i = 0; i < N; ++i) r1.v[i] = i+1;
+  for(int i = 0; i < N; ++i) r1.v[i] = (T)(i+1);
   Vector<T, M> r2;
   Vector<T, N> rr2;
   Vector<T, N> rrr2;
-  for(int i = 0; i < M; ++i) r2.v[i] = i+1;
+  for(int i = 0; i < M; ++i) r2.v[i] = (T)(i+1);
 
   Matrix<T, N, N> s1;
   Matrix<T, N, N> ss1;

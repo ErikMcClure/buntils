@@ -100,7 +100,10 @@ namespace bss_util {
       if(!_length) _array[_length++]=std::forward<U>(data);
       else
       {
-        ST_ loc = binsearch_after<T, ST_, CFunc>(_array, _length, std::forward<U>(data));
+        ST_ loc;
+        if((*CFunc)(data, _array[0]) < 0) loc = 0;
+        else if((*CFunc)(data, _array[_length - 1]) >= 0) loc = _length;
+        else loc = binsearch_after<T, ST_, CFunc>(_array, _length, std::forward<U>(data));
         AT_::_pushback(loc, (_length++)-loc, std::forward<U>(data));
         return loc;
       }

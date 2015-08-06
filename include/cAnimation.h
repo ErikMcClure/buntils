@@ -4,256 +4,312 @@
 #ifndef __C_ANIMATION_H__BSS__
 #define __C_ANIMATION_H__BSS__
 
-#include "AniAttribute.h"
-#include "cMap.h"
-#include "cDynArray.h"
+#include "cArraySort.h"
+#include "cRefCounter.h"
+#include "delegate.h"
+#include "cPriorityQueue.h"
 
 namespace bss_util {
-  template<typename Alloc, int TypeID>
-  struct cAnimation_GenAttribute {
-    BSS_FORCEINLINE static AniAttribute* f(unsigned char typeID)
-    {
-      if(TypeID==typeID)
-        return new(Alloc::template rebind<AniAttributeT<TypeID, Alloc>>::other::allocate(1)) AniAttributeT<TypeID, Alloc>();
-      else
-        return cAnimation_GenAttribute<Alloc, std::is_void<typename AniAttributeT<TypeID+1, Alloc>::IDTYPE>::value?-1:TypeID+1>::f(typeID);
-    }
-  };
-
-  template<typename Alloc>
-  struct cAnimation_GenAttribute<Alloc, -1> {
-    BSS_FORCEINLINE static AniAttribute* f(unsigned char typeID) { return 0; }
-  };
-
-  // A class representing a single animation comprised of various attributes (position, rotation, etc.)
-  template<typename Alloc = StaticAllocPolicy<char>>
-  class BSS_COMPILER_DLLEXPORT cAnimation
+  // Abstract base animation class
+  class BSS_COMPILER_DLLEXPORT cAniBase : public cRefCounter
   {
-  protected:
-    enum ANIBOOLS : unsigned char { ANI_PLAYING=1, ANI_PAUSED=2, ANI_ATTACHED=4 };
-    typedef std::pair<unsigned char, AniAttribute*> MAPPAIR; // VS2010 can't handle this being inside the rebind for some reason
-    typedef typename Alloc::template rebind<MAPPAIR>::other MAPALLOC;
-
   public:
-    inline cAnimation(const cAnimation& copy) { operator=(copy); }
-    inline cAnimation(cAnimation&& mov) { operator=(std::move(mov)); }
-    inline cAnimation() : _aniwarp(1.0), _anilength(0), _timepassed(0), _anicalc(0), _looppoint(-1.0) { }
-    inline ~cAnimation() { Clear(); }
-    // Allows you to skip forward by setting _timepassed to the specified value.
-    inline virtual void Start(double timepassed=0.0)
+    cAniBase(cAniBase&& mov) : _typesize(mov._typesize), _length(mov._length), _calc(mov._calc), _loop(mov._loop) { Grab(); }
+    cAniBase(size_t typesize) : _typesize(typesize), _length(0.0), _calc(0.0), _loop(-1.0) { Grab(); }
+    virtual ~cAniBase() {}
+    inline void SetLength(double length = 0.0) { _length = length; }
+    inline double GetLength() const { _length == 0.0 ? _calc : _length; }
+    inline void SetLoop(double loop = 0.0) { _loop = loop; }
+    inline double GetLoop() const { return _loop; }
+    inline size_t SizeOf() const { return _typesize; }
+    virtual unsigned int GetSize() const = 0;
+    virtual const void* GetArray() const = 0;
+    virtual void* GetFunc() const = 0;
+
+    cAniBase& operator=(cAniBase&& mov)
     {
-      if(!(_anibool&ANI_ATTACHED)) return; // Can't start if you aren't attached to something
-      _timepassed=timepassed;
-      _anibool+=ANI_PLAYING;
-
-      unsigned char svar=_attributes.Length();
-      double length;
-      _anicalc = 0.0;
-
-      for(unsigned char i = 0; i < svar; ++i) {
-        _attributes[i]->Start();
-        if((length = _attributes[i]->Length()) > _anicalc)
-          _anicalc = length;
-      }
-    }
-    // Stop animation
-    inline void Stop() { _anibool-=ANI_PLAYING; _timepassed=0.0; }
-    // Temporarily pauses or unpauses the animation
-    inline void Pause(bool pause) { _anibool[ANI_PAUSED]=pause; }
-    // Sets the loop point for the animation. If its negative, looping is disable. This change affects the animation even if its already started.
-    inline void SetLoopPoint(double looppoint=-1.0) { _looppoint=looppoint; }
-    // Starts the animation and sets the looppoint at the same time
-    inline void Loop(double timepassed=0.0, double looppoint=0.0) { SetLoopPoint(looppoint); Start(timepassed); }
-    // Interpolates the animation by moving it forward *delta* milliseconds
-    bool Interpolate(double delta)
-    {
-      if((_anibool&(ANI_PLAYING|ANI_ATTACHED))==0) return false; // If it isn't playing or it's not attached to anything, bail out.
-      if((_anibool&ANI_PAUSED)!=0) return true;
-      _timepassed += delta*_aniwarp;
-      double length = _anilength==0.0?_anicalc:_anilength;
-
-      if(IsLooping() && length>0.0 && _timepassed > length)
-        Start(fmod(_timepassed-length, length-_looppoint)+_looppoint);
-
-      bool notfinished=_timepassed<_anilength;
-
-      unsigned char svar=_attributes.Length();
-      for(unsigned char i = 0; i < svar; ++i)
-        if(_attributes[i]->Interpolate(_timepassed))
-          notfinished=true;
-
-      if(!notfinished) //in this case we're done, so reset
-      {
-        if(IsLooping()) Start(fmod(_timepassed-length, length-_looppoint)+_looppoint);
-        else Stop();
-      }
-
-      return (_anibool&ANI_PLAYING)!=0;
-    }
-    // Gets the abstract class of any TypeID at runtime, creating the attribute if necessary.
-    inline AniAttribute* GetTypeID(unsigned char TypeID)
-    {
-      unsigned char index=_attributes.Get(TypeID);
-      if(index<_attributes.Length()) return _attributes[index];
-      AniAttribute* retval=cAnimation_GenAttribute<Alloc, 0>::f(TypeID);
-      if(retval!=0) _attributes.Insert(retval->typeID, retval);
-      return retval;
-    }
-    // Gets the actual type of a given attribute, but TypeID must be known at compile time. Also creates the attribute if it doesn't exist.
-    template<unsigned char TypeID>
-    inline AniAttributeT<TypeID, Alloc>* GetAttribute() { return static_cast<AniAttributeT<TypeID, Alloc>*>(GetTypeID(TypeID)); }
-    // Attaches the animation to an arbitrary object by calling f(attribute) on all attributes. An object doesn't need to accept all possible attributes of an animation.
-    template<typename F> // F must be something resolving to void(AniAttribute* p) that calls p->Attach() if appropriate.
-    inline void Attach(F f)
-    {
-      Detach(); // Forces all attributes to assume they have no legal attachment (so when you don't call ->Attach() it works properly)
-      unsigned char svar=_attributes.Length();
-      for(unsigned char i = 0; i < svar; ++i)
-        f(_attributes[i]);
-
-      _anibool+=ANI_ATTACHED;
-    }
-    // Detaches the animation by detaching all of its attributes.
-    inline void Detach()
-    {
-      unsigned char svar=_attributes.Length();
-      for(unsigned char i = 0; i < svar; ++i)
-        _attributes[i]->Detach();
-      _anibool-=ANI_ATTACHED;
-    }
-    // Returns true if the TypeID currently exists or false otherwise.
-    inline bool HasTypeID(unsigned char TypeID) const { return _attributes.Get(TypeID)<_attributes.Length(); }
-    // Sets the animation length. If the animation length is set to 0, the total amount of time the attributes take is used as the animation length instead.
-    inline void SetAnimationLength(double anilength = 0.0) {
-      _anilength=anilength;
-      _anicalc = 0.0;
-      double length;
-      for(unsigned char i = 0; i < _attributes.Length(); ++i) {
-        if((length = _attributes[i]->Length()) > _anicalc)
-          _anicalc = length;
-      }
-    }
-    // Gets the animation length.
-    inline double GetAnimationLength() const { return _anilength==0.0?_anicalc:_anilength; }
-    // Sets the time warp of the animation, which is simply a constant multiplied against the delta. 0.5 halves the animation speed, 2 doubles it.
-    inline void SetTimeWarp(double aniwarp) { _aniwarp=aniwarp; }
-    // Gets the time warp.
-    inline double GetTimeWarp() const { return _aniwarp; }
-    // Gets the amount of time passed in the animation. This is reset to zero every time the animation loops.
-    inline double GetTimePassed() const { return _timepassed; }
-    inline bool IsAttached() const { return (_anibool&ANI_ATTACHED)!=0; }
-    inline bool IsPlaying() const { return (_anibool&ANI_PLAYING)!=0; }
-    inline bool IsLooping() const { return _looppoint>=0.0; }
-    inline bool IsPaused() const { return (_anibool&ANI_PAUSED)!=0; }
-
-    cAnimation& operator +=(const cAnimation& add)
-    {
-      unsigned char svar=_attributes.Length();
-      unsigned char rvar=add._attributes.Length();
-      unsigned char j=0;
-      for(unsigned char i = 0; i < rvar;)
-      {
-        if(j>=svar) { //We've run off the end of our existing IDs so simply append the rest
-          AniAttribute* p = add._attributes[i++];
-          GetTypeID(p->typeID)->CopyAnimation(p);
-        } else
-          switch(SGNCOMPARE(_attributes[j]->typeID, add._attributes[i]->typeID))
-        {
-          case -1:
-            ++j;
-            break;
-          case 0: // They are the same, so add them together
-            _attributes[j]->AddAnimation(add._attributes[i]);
-            break;
-          case 1: // If this happens, we skipped over one of the IDs in the right, so just append it.
-            AniAttribute* p = add._attributes[i++];
-            GetTypeID(p->typeID)->CopyAnimation(p);
-        }
-      }
+      _length = mov._length;
+      _calc = mov._calc;
+      _loop = mov._loop;
       return *this;
-    }
-    inline const cAnimation operator +(const cAnimation& add) const
-    {
-      cAnimation retval(*this);
-      retval+=add;
-      return retval;
-    }
-    cAnimation& operator=(const cAnimation& right)
-    {
-      Clear();
-      _aniwarp=right._aniwarp;
-      _anibool=right._anibool;
-      _timepassed=right._timepassed;
-      _anicalc=right._anicalc;
-      _anilength=right._anilength;
-      _looppoint=right._looppoint;
-      _attributes=right._attributes;
-
-      unsigned char svar=_attributes.Length();
-      for(unsigned char i = 0; i < svar; ++i)
-        _attributes[i]=_attributes[i]->Clone();
-
-      return *this;
-    }
-
-    cAnimation& operator=(cAnimation&& right)
-    {
-      Clear();
-      _aniwarp=right._aniwarp;
-      _anibool=right._anibool;
-      _timepassed=right._timepassed;
-      _anicalc=right._anicalc;
-      _anilength=right._anilength;
-      _looppoint=right._looppoint;
-      _attributes=std::move(right._attributes);
-      return *this;
-    }
-
-    inline void Serialize(std::ostream& s)
-    {
-      bss_Serialize(_anilength, s);
-      bss_Serialize(_aniwarp, s);
-      bss_Serialize(_looppoint, s);
-      bss_Serialize<unsigned char>(_attributes.Length(), s);
-
-      for(int i = 0; i < _attributes.Length(); ++i) {
-        bss_Serialize(_attributes[i]->typeID, s);
-        _attributes[i]->Serialize(s);
-      }
-    }
-    inline void Deserialize(std::istream& s)
-    {
-      bss_Deserialize(_anilength, s);
-      bss_Deserialize(_aniwarp, s);
-      bss_Deserialize(_looppoint, s);
-      unsigned char l;
-      bss_Deserialize<unsigned char>(l, s);
-
-      unsigned char id;
-      for(int i = 0; i < l; ++i) {
-        bss_Deserialize(id, s);
-        GetTypeID(id)->Deserialize(s);
-      }
-    }
-    inline void Clear()
-    {
-      for(unsigned char i = 0; i < _attributes.Length(); ++i)
-      {
-        _attributes[i]->~AniAttribute();
-        Alloc::deallocate((char*)_attributes[i]);
-      }
-      _attributes.Clear();
     }
 
   protected:
-    bss_util::cMap<unsigned char, AniAttribute*, bss_util::CompT<unsigned char>, unsigned char, CARRAY_SIMPLE, MAPALLOC> _attributes;
-    double _timepassed; //in milliseconds
-    double _anicalc; //Calculated effective length
-    double _anilength; //if zero, we automatically stop when all animations are exhausted
-    double _aniwarp; //Time warp factor
-    cBitField<unsigned char> _anibool;
-    double _looppoint;
+    double _length;
+    double _calc;
+    const size_t _typesize;
+    double _loop;
   };
+
+  // Animation class that stores an animation for a specific type.
+  template<typename T, ARRAY_TYPE ArrayType = CARRAY_SAFE, typename Alloc = StaticAllocPolicy<T>>
+  class BSS_COMPILER_DLLEXPORT cAnimation : public cAniBase
+  {
+  public:
+    typedef std::pair<double, T> PAIR;
+    typedef T(BSS_FASTCALL *FUNC)(const PAIR*, unsigned int, unsigned int, double, const T&);
+
+    explicit cAnimation(FUNC f = 0) : cAniBase(sizeof(T)), _f(f) { }
+    cAnimation(cAnimation&& mov) : cAniBase(std::move(mov)), _pairs(std::move(mov._pairs)), _f(std::move(mov._f)) {}
+    cAnimation(const PAIR* src, unsigned int len, FUNC f = 0) : cAniBase(sizeof(T)), _f(f) { Set(src, len); }
+    virtual ~cAnimation() {}
+    inline unsigned int Add(double time, const T& data) { unsigned int r = _pairs.Insert(std::pair(time, data)); _calc = _pairs.Back().first; return r; }
+    inline void Set(const PAIR* src, unsigned int len) { _pairs.SetArray(src, len); _calc = _pairs.Back().first; }
+    inline const PAIR& Get(unsigned int index) const { return _pairs[index]; }
+    inline bool Remove(unsigned int index) { return _pairs.Remove(index); }
+    virtual unsigned int GetSize() const { return _pairs.Length(); }
+    virtual const void* GetArray() const { return (const PAIR*)_pairs; }
+    void SetFunc(FUNC f) { _f = f; }
+    virtual void* GetFunc() const { return _f; }
+
+    cAnimation& operator=(cAnimation&& mov)
+    {
+      cAniBase::operator=(std::move(mov));
+      _pairs = std::move(_pairs);
+      _f = std::move(_f);
+      return *this;
+    }
+
+  protected:
+    cArraySort<PAIR, CompTFirst<PAIR>, unsigned int, ArrayType, Alloc> _pairs;
+    FUNC _f;
+  };
+
+  // Animation state object. References an animation that inherits cAniBase
+  struct BSS_COMPILER_DLLEXPORT cAniState
+  {
+    cAniState(const cAniState& copy) : _ani(copy._ani), _cur(copy._cur), _time(copy._time) { if(_ani) _ani->Grab(); }
+    cAniState(cAniState&& mov) : _ani(mov._ani), _cur(mov._cur), _time(mov._time) { mov._ani = 0; }
+    explicit cAniState(cAniBase* p) : _ani(p), _cur(0) { if(_ani) _ani->Grab(); }
+    virtual ~cAniState() { if(_ani) _ani->Drop(); }
+    virtual bool Interpolate(double delta)=0;
+    virtual void Reset() { _cur = 0; _time = 0.0; }
+
+    cAniState& operator=(const cAniState& copy)
+    {
+      if(_ani) _ani->Drop();
+      _ani = copy._ani;
+      _cur = copy._cur;
+      _time = copy._time;
+      if(_ani) _ani->Grab();
+      return *this;
+    }
+    cAniState& operator=(cAniState&& mov)
+    {
+      if(_ani) _ani->Drop();
+      _ani = mov._ani;
+      _cur = mov._cur;
+      _time = mov._time;
+      mov._ani = 0;
+      return *this;
+    }
+
+  protected:
+    cAniBase* _ani;
+    unsigned int _cur;
+    double _time;
+  };
+
+  template<typename T>
+  struct BSS_COMPILER_DLLEXPORT cAniStateDiscrete : public cAniState
+  {
+    cAniStateDiscrete(const cAniStateDiscrete& copy) : cAniState(copy), _set(copy._set) { }
+    cAniStateDiscrete(cAniStateDiscrete&& mov) : cAniState(std::move(mov)), _set(std::move(mov._set)) { }
+    cAniStateDiscrete(cAniBase* p, delegate<void, T> d) : cAniState(p), _set(d) { assert(_ani->SizeOf() == sizeof(T)); }
+    template<ARRAY_TYPE ArrayType, typename Alloc>
+    cAniStateDiscrete(cAnimation<T, ARRAY_TYPE, Alloc>* p, delegate<void, T> d) : cAniState(p), _set(d) {}
+    cAniStateDiscrete() : _set(0,0) {}
+
+    cAniStateDiscrete& operator=(const cAniStateDiscrete& copy) { cAniState::operator=(copy); _set = copy._set; return *this; }
+    cAniStateDiscrete& operator=(cAniStateDiscrete&& mov) { cAniState::operator=(std::move(mov)); _set = std::move(mov._set); return *this; }
+
+    virtual bool Interpolate(double delta)
+    {
+      _time += delta;
+      auto svar = _ani->GetSize();
+      auto v = (typename cAnimation<T>::PAIR*)_ani->GetArray();
+      double loop = _ani->GetLoop();
+      double length = _ani->GetLength();
+      while(_cur < svar && v[_cur].first <= _time)
+        _del(v[_cur++].second); // We call all the discrete values because many discrete values are interdependent on each other.
+      if(_time >= length && loop >= 0.0) // We do the loop check down here because we need to finish calling all the discrete values on the end of the animation before looping
+      {
+        _cur = 0; // We can't call Reset() here because _time contains information we need.
+        _time = fmod(_time - length, length - loop);// + loop; // instead of adding loop here we just pass loop into Interpolate, which adds it.
+        return Interpolate(loop); // because we used fmod, it is impossible for this to result in another loop.
+      }
+      return _time < length;
+    }
+
+  protected:
+    delegate<void, T> _set;
+  };
+
+  template<typename T>
+  struct BSS_COMPILER_DLLEXPORT cAniStateSmooth : public cAniStateDiscrete<T>
+  {
+    cAniStateSmooth(const cAniStateSmooth& copy) : cAniStateDiscrete<T>(copy), _init(copy._init) { }
+    cAniStateSmooth(cAniStateSmooth&& mov) : cAniStateDiscrete<T>(std::move(mov)), _init(std::move(mov._init)) { }
+    cAniStateSmooth(cAniBase* p, delegate<void, T> d, T init = T()) : cAniStateDiscrete(p, d), _init(init) { assert(_ani->GetFunc() != 0); }
+    template<ARRAY_TYPE ArrayType, typename Alloc>
+    cAniStateSmooth(cAnimation<T, ARRAY_TYPE, Alloc>* p, delegate<void, T> d, T init = T()) : cAniStateDiscrete(p, d), _init(init) {}
+    cAniStateSmooth() {}
+
+    cAniStateSmooth& operator=(const cAniStateSmooth& copy) { cAniStateDiscrete<T>::operator=(copy); _init = copy._init; return *this; }
+    cAniStateSmooth& operator=(cAniStateSmooth&& mov) { cAniStateDiscrete<T>::operator=(std::move(mov)); _init = std::move(mov._init); return *this; }
+
+    virtual bool Interpolate(double delta)
+    {
+      _time += delta;
+      auto svar = _ani->GetSize();
+      auto v = (typename cAnimation<T>::PAIR*)_ani->GetArray();
+      auto f = (typename cAnimation<T>::FUNC*)_ani->GetFunc();
+      double loop = _ani->GetLoop();
+      double length = _ani->GetLength();
+      if(_time >= length && loop >= 0.0)
+      {
+        _cur = 0;
+        _time = fmod(_time - length, length - loop) + loop;
+      }
+
+      while(_cur<svar && v[_cur].first <= _time) ++_cur;
+      if(_cur >= svar)
+      { //Resolve the animation, but only if there was more than 1 keyframe, otherwise we'll break it.
+        if(svar>1) _setval(_func(v, svar - 1, 1.0));
+      }
+      else
+      {
+        double hold = !_cur?0.0:v[_cur - 1].first;
+        _set(f(v, svar, _cur, (_time - hold) / (v[_cur].first - hold), _init));
+      }
+      return _time < length;
+    }
+
+    static inline T BSS_FASTCALL NoInterpolate(const typename cAnimation<T>::PAIR* v, unsigned int s, unsigned int cur, double t, const T& init) { unsigned int i = cur - (t != 1.0); return (i<0) ? init : a[i].value; }
+    static inline T BSS_FASTCALL NoInterpolateRel(const typename cAnimation<T>::PAIR* v, unsigned int s, unsigned int cur, double t, const T& init) { assert(i > 0); return init + a[i - (t != 1.0)].value; }
+    static inline T BSS_FASTCALL LerpInterpolate(const typename cAnimation<T>::PAIR* v, unsigned int s, unsigned int cur, double t, const T& init) { return lerp<VALUE>(!i ? init : a[i - 1].value, a[i].value, t); }
+    static inline T BSS_FASTCALL LerpInterpolateRel(const typename cAnimation<T>::PAIR* v, unsigned int s, unsigned int cur, double t, const T& init) { assert(i > 0); return init + lerp<VALUE>(a[i - 1].value, a[i].value, t); }
+    static inline T BSS_FASTCALL CubicInterpolateRel(const typename cAnimation<T>::PAIR* v, unsigned int s, unsigned int cur, double t, const T& init) { assert(i > 0); return init + CubicBSpline<VALUE>(t, a[i - 1 - (i != 1)].value, a[i - 1].value, a[i].value, a[i + ((i + 1) != a.Size())].value); }
+    //static inline T BSS_FASTCALL QuadInterpolate(const PAIR* v, unsigned int s, unsigned int cur, double t, const T& init) {}
+    //typedef T(BSS_FASTCALL *TIME_FNTYPE)(const TVT_ARRAY_T& a, IDTYPE i, double t); // VC++ 2010 can't handle this being in the template itself
+    //template<TIME_FNTYPE FN, double(*TIME)(DATA&)>
+    //static inline T BSS_FASTCALL TimeInterpolate(const TVT_ARRAY_T& a, IDTYPE i, double t) { return (*FN)(a, i, UniformQuadraticBSpline<double, double>(t, (*TIME)(a[i - 1 - (i>2)]), (*TIME)(a[i - 1]), (*TIME)(a[i]))); }
+
+  protected:
+    T _init; // This is referenced by an index of -1
+  };
+
+
+  /*
+  template<typename T, double(*TODURATION)(const T&), ARRAY_TYPE ArrayType = CARRAY_SAFE, typename Alloc = StaticAllocPolicy<T>>
+  class BSS_COMPILER_DLLEXPORT cAnimationInterval : public cAnimation
+  {
+    inline unsigned int Add(double time, const T& data) { unsigned int r = Add(time, data); return r; }
+    inline void Set(const PAIR* src, unsigned int len) { Set(src,len); }
+    inline bool Remove(unsigned int index) { return _pairs.Remove(index); }
+
+  };
+  
+  template<typename T, typename AUX>
+  struct BSS_COMPILER_DLLEXPORT cAniStateInterval : public cAniStateDiscrete<T>
+  {
+    cAniStateInterval(cAniBase* p, delegate<AUX, T> d, delegate<void, AUX> rm) : cAniState(p), _set(d) { assert(_ani->SizeOf() == sizeof(T)); }
+    template<ARRAY_TYPE ArrayType, typename Alloc>
+    cAniStateInterval(cAnimation<T, ARRAY_TYPE, Alloc>* p, delegate<void, T> d) : cAniState(p), _set(d) {}
+  inline ~cAniStateInterval() {
+  while(!_queue.Empty()) // Correctly remove everything currently on the queue
+  _rmdel(_queue.Pop().second);
+  }
+  virtual bool Interpolate(double timepassed)
+  {
+  IDTYPE svar=_timevalues.Size();
+  while(_curpair<svar && _timevalues[_curpair].time <= timepassed)
+  _addtoqueue(_timevalues[_curpair++].value); // We call all the discrete values because many discrete values are interdependent on each other.
+
+  while(!_queue.Empty() && _queue.Peek().first <= timepassed)
+  _rmdel(_queue.Pop().second);
+  return _curpair<svar && _queue.Empty();
+  }
+  protected:
+    double _length; // Actual length taking into account duration of intervals
+    RMDEL _rmdel; //delegate for removal
+    cPriorityQueue<double, AUX, CompT<double>, unsigned int, CARRAY_SIMPLE, QUEUEALLOC> _queue;
+  };*/
 }
 
 #endif
+
+/*
+// Discrete animation with an interval. After the interval has passed, the object is removed using a second delegate function.
+template<typename Alloc, typename T, typename AUX, unsigned char TypeID, double(*TODURATION)(const T&), typename RMDEL = delegate<void, AUX>, typename DEL = delegate<AUX, T>, ARRAY_TYPE ARRAY = CARRAY_SIMPLE>
+struct BSS_COMPILER_DLLEXPORT AniAttributeInterval : AniAttributeDiscrete<Alloc, T, TypeID, DEL, ARRAY>
+{
+typedef AttrDefInterval<DEL, RMDEL> ATTRDEF;
+typedef AniAttributeBase<Alloc, T, TypeID, ARRAY> ROOT;
+typedef AniAttributeDiscrete<Alloc, T, TypeID, DEL, ARRAY> BASE;
+typedef typename ROOT::IDTYPE IDTYPE;
+typedef std::pair<double, AUX> QUEUEPAIR; // VS2010 can't handle this being inside the rebind for some reason
+typedef typename Alloc::template rebind<QUEUEPAIR>::other QUEUEALLOC;
+typedef T DATA;
+using ROOT::_timevalues;
+using ROOT::_curpair;
+
+inline AniAttributeInterval(const AniAttributeInterval& copy) : BASE(copy), _rmdel(copy._rmdel) {}
+inline AniAttributeInterval() : BASE(), _rmdel(0, 0), _length(0) {}
+inline ~AniAttributeInterval() {
+while(!_queue.Empty()) // Correctly remove everything currently on the queue
+_rmdel(_queue.Pop().second);
+}
+virtual bool Interpolate(double timepassed)
+{
+IDTYPE svar=_timevalues.Size();
+while(_curpair<svar && _timevalues[_curpair].time <= timepassed)
+_addtoqueue(_timevalues[_curpair++].value); // We call all the discrete values because many discrete values are interdependent on each other.
+
+while(!_queue.Empty() && _queue.Peek().first <= timepassed)
+_rmdel(_queue.Pop().second);
+return _curpair<svar && _queue.Empty();
+}
+inline virtual double Length() { return _length; }
+virtual double SetKeyFrames(const KeyFrame<TypeID>* frames, IDTYPE num) { BASE::SetKeyFrames(frames, num); _recalclength(); return _length; }
+virtual IDTYPE AddKeyFrame(const KeyFrame<TypeID>& frame) //time is given in milliseconds
+{
+IDTYPE r = BASE::AddKeyFrame(frame);
+double t = frame.time+TODURATION(frame.value);
+if(t>_length) _length=t;
+return r;
+}
+virtual bool RemoveKeyFrame(IDTYPE ID)
+{
+if(ID<_timevalues.Size() && _length==_timevalues[ID].time+TODURATION(_timevalues[ID].value)) _recalclength();
+return BASE::RemoveKeyFrame(ID);
+}
+inline virtual void Start()
+{
+while(!_queue.Empty()) // Correctly remove everything currently on the queue
+_rmdel(_queue.Pop().second);
+if(!BASE::_attached()) return;
+_curpair=1;
+if(ROOT::_initzero())
+_addtoqueue(_timevalues[0].value);
+}
+inline virtual AniAttribute* BSS_FASTCALL Clone() const { return new(Alloc::template rebind<AniAttributeInterval>::other::allocate(1)) AniAttributeInterval(*this); }
+inline virtual void BSS_FASTCALL CopyAnimation(AniAttribute* ptr) { operator=(*static_cast<AniAttributeInterval*>(ptr)); }
+virtual void BSS_FASTCALL Attach(AttrDef* def) { _rmdel = static_cast<ATTRDEF*>(def)->rmdel; BASE::Attach(def); }
+inline AniAttributeInterval& operator=(const AniAttributeInterval& right) { BASE::operator=(right); _length=right._length; return *this; }
+
+protected:
+inline void _recalclength()
+{
+_length=0;
+double t;
+for(IDTYPE i = 0; i < _timevalues.Size(); ++i)
+if((t = _timevalues[i].time+TODURATION(_timevalues[i].value))>_length)
+_length=t;
+}
+inline void _addtoqueue(const T& v) { _queue.Push(TODURATION(v), BASE::_del(v)); }
+
+RMDEL _rmdel; //delegate for removal
+cPriorityQueue<double, AUX, CompT<double>, unsigned int, CARRAY_SIMPLE, QUEUEALLOC> _queue;
+double _length;
+};*/

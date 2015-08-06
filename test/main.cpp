@@ -1705,14 +1705,6 @@ struct DEBUG_CDT : DEBUG_CDT_SAFE<SAFE> {
 template<> int DEBUG_CDT<true>::count=0;
 template<> int DEBUG_CDT<false>::count=0;
 
-namespace bss_util { template<typename Alloc> struct AniAttributeT<0, Alloc> : public AniAttributeDiscrete<Alloc, cAutoRef<cRefCounter>,  0, delegate<void, cRefCounter*>, CARRAY_SAFE>{ }; }
-namespace bss_util {
-  BSS_FORCEINLINE double interval_toduration(const std::pair<cAutoRef<cRefCounter>, double>& p) { return p.second; }
-  template<typename Alloc> struct AniAttributeT<1, Alloc> : public AniAttributeInterval<Alloc, std::pair<cAutoRef<cRefCounter>, double>, cRefCounter*, 1, &interval_toduration, delegate<void, cRefCounter*>, delegate<cRefCounter*, std::pair<cAutoRef<cRefCounter>, double>>, CARRAY_SAFE>{ }; 
-}
-namespace bss_util { template<typename Alloc> struct AniAttributeT<2, Alloc> : public AniAttributeSmooth<Alloc, float, 2>{ }; }
-namespace bss_util { template<typename Alloc> struct AniAttributeT<3, Alloc> : public AniAttributeGeneric<Alloc, std::function<void(void)>, 3> { }; }
-
 #include <memory>
 
 typedef std::pair<cAutoRef<cRefCounter>, double> ANIOBJPAIR;
@@ -1767,36 +1759,28 @@ TESTDEF::RETPAIR test_ANIMATION()
   RCounter c;
   {
   c.Grab();
-  cAnimation<StaticAllocPolicy<char>> a;
-  a.Pause(true);
-  a.SetTimeWarp(1.0);
-  TEST(a.IsPaused());
-  a.GetAttribute<2>()->SetInterpolation(&AniAttributeT<2>::LerpInterpolate);
-  a.GetAttribute<0>()->AddKeyFrame(KeyFrame<0>(0.0, &c));
-  a.GetAttribute<0>()->AddKeyFrame(KeyFrame<0>(1.1, &c));
-  a.GetAttribute<0>()->AddKeyFrame(KeyFrame<0>(2.0, &c));
-  a.GetAttribute<1>()->AddKeyFrame(KeyFrame<1>(0.0, ANIOBJPAIR(&c,1.5)));
-  a.GetAttribute<1>()->AddKeyFrame(KeyFrame<1>(1.0, ANIOBJPAIR(&c, 0.5)));
-  a.GetAttribute<1>()->AddKeyFrame(KeyFrame<1>(1.5, ANIOBJPAIR(&c, 0.5)));
-  a.GetAttribute<2>()->AddKeyFrame(KeyFrame<2>(0.0, 0.0f));
-  a.GetAttribute<2>()->AddKeyFrame(KeyFrame<2>(1.0, 1.0f));
-  a.GetAttribute<2>()->AddKeyFrame(KeyFrame<2>(2.0, 2.0f));
-  a.Pause(false);
-  TEST(!a.IsPaused());
-  TEST(a.HasTypeID(0));
-  TEST(a.HasTypeID(1));
-  TEST(a.HasTypeID(2));
-  TEST(!a.HasTypeID(3));
-  TEST(a.GetTypeID(0)!=0);
+  cAnimation<cRefCounter*> a0;
+  a0.Add(0.0, &c);
+  a0.Add(1.1, &c);
+  a0.Add(2.0, &c);
+  /*cAnimation<cRefCounter*> a1;
+  a1.Add(0.0, ANIOBJPAIR(&c, 1.5));
+  a1.Add(1.0, ANIOBJPAIR(&c, 0.5));
+  a1.Add(1.5, ANIOBJPAIR(&c, 0.5));*/
+  cAnimation<float> a2(&cAniStateSmooth<float>::LerpInterpolate);
+  a2.Add(0.0, 0.0f);
+  a2.Add(1.0, 1.0f);
+  a2.Add(2.0, 2.0f);
+  
   a.SetAnimationLength(); // Forces a recalculation of the length from the attributes.
   TEST(a.GetAnimationLength()==2.0);
   
   std::stringstream ss;
   a.Serialize(ss);
   
-  cAnimation<StaticAllocPolicy<char>> aa;
-  aa.Deserialize(ss);
-  for(int i = 0; i<6; ++i) c.Grab(); // compensate for the pointer we just copied over
+  //cAnimation<StaticAllocPolicy<char>> aa;
+  //aa.Deserialize(ss);
+  //for(int i = 0; i<6; ++i) c.Grab(); // compensate for the pointer we just copied over
 
   cAnimObj obj;
   a.GetAttribute<3>()->AddKeyFrame(KeyFrame<3>(0.0, [&](){ c.Grab(); obj.test++; }));

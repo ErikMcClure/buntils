@@ -63,7 +63,6 @@
     <ClInclude Include="..\include\bss_win32_includes.h" />
     <ClInclude Include="..\include\cAATree.h" />
     <ClInclude Include="..\include\cAliasTable.h" />
-    <ClInclude Include="..\include\AniAttribute.h" />
     <ClInclude Include="..\include\cAnimation.h" />
     <ClInclude Include="..\include\cArrayCircular.h" />
     <ClInclude Include="..\include\cArray.h" />

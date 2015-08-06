@@ -135,9 +135,6 @@
     <ClInclude Include="..\include\cTRBtree.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="..\include\AniAttribute.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
     <ClInclude Include="..\include\delegate.h">
       <Filter>Header Files</Filter>
     </ClInclude>

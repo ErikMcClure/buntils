@@ -24,16 +24,16 @@
 - cThreadPool was completely rewritten to be entirely threadsafe and more extensible, while also eliminating race conditions
 - All random number functions were completely overhauled to use C++ random number engines. bssrand() uses a default xorshift_engine to generate high quality random numbers.
 - Fixed regression in TRB_Tree that did not handle duplicate values properly (then adjusted the unit tests to catch it)
-- SetKeyFrame is no longer available on cAnimation. Use GetAttribute instead.
-- Animation attributes were refactored and are now declared directly.
 - Removed bss_literals
 - Fixed Shuffle() in sseVec and added Sum()
 - Added std::initializer_list to cArray and cDynArray
 - Removed const modifier from operators to prevent breaking move semantics
 - Added cXML
-- cHash was simplified so that the value is now set to void by default, which implies a set, so you no longer have to explicitely state that it is or isn't a map. Insert() was specialized so that Sets can only insert keys, not values.
+- cHash was simplified so that the value is now set to void by default, which implies a set, so you no longer have to explicitly state that it is or isn't a map. Insert() was specialized so that Sets can only insert keys, not values.
 - Added cJSON, a simple JSON parser
 - Added cUBJSON, a simple UBJSON parser
+- Animations were completely refactored and AniAttribute has been removed. Animation data is now separate from animation state, which is managed on a higher level.
+- cRefCounter Grab() and Drop() now both return signed ints
 
 0.4.3
 -----

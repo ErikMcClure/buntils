@@ -1724,27 +1724,7 @@ struct cAnimObj
   void BSS_FASTCALL remnothing(cRefCounter* p) { p->Drop(); }
   void BSS_FASTCALL setfloat(float a) { fl = a; }
   const float& BSS_FASTCALL getfloat() { return fl; }
-  void BSS_FASTCALL TypeIDRegFunc(AniAttribute* p)
-  {
-    AniAttributeT<0>::ATTRDEF a(delegate<void, cRefCounter*>::From<cAnimObj, &cAnimObj::donothing>(this));
-    AniAttributeT<1>::ATTRDEF b(delegate<void, cRefCounter*>::From<cAnimObj, &cAnimObj::remnothing>(this), delegate<cRefCounter*, ANIOBJPAIR>::From<cAnimObj, &cAnimObj::retnothing>(this));
-    AniAttributeT<2>::ATTRDEF c(delegate<const float&>::From<cAnimObj, &cAnimObj::getfloat>(this), delegate<void, float>::From<cAnimObj, &cAnimObj::setfloat>(this));
-    switch(p->typeID)
-    {
-    case 0:
-      p->Attach(&a);
-      break;
-    case 1:
-      p->Attach(&b);
-      break;
-    case 2:
-      p->Attach(&c);
-      break;
-    case 3:
-      p->Attach(0);
-      break;
-    }
-  }
+  static inline double GetDuration(const ANIOBJPAIR& o) { return o.second; }
 };
 
 struct RCounter : cRefCounter
@@ -1763,71 +1743,97 @@ TESTDEF::RETPAIR test_ANIMATION()
   a0.Add(0.0, &c);
   a0.Add(1.1, &c);
   a0.Add(2.0, &c);
-  /*cAnimation<cRefCounter*> a1;
+  cAnimationInterval<ANIOBJPAIR, cAnimObj::GetDuration> a1;
   a1.Add(0.0, ANIOBJPAIR(&c, 1.5));
   a1.Add(1.0, ANIOBJPAIR(&c, 0.5));
-  a1.Add(1.5, ANIOBJPAIR(&c, 0.5));*/
+  a1.Add(1.5, ANIOBJPAIR(&c, 0.5));
   cAnimation<float> a2(&cAniStateSmooth<float>::LerpInterpolate);
   a2.Add(0.0, 0.0f);
   a2.Add(1.0, 1.0f);
   a2.Add(2.0, 2.0f);
   
-  a.SetAnimationLength(); // Forces a recalculation of the length from the attributes.
-  TEST(a.GetAnimationLength()==2.0);
+  TEST(a0.GetLength() == 2.0);
+  TEST(a1.GetLength() == 2.0);
+  TEST(a2.GetLength()==2.0);
   
-  std::stringstream ss;
-  a.Serialize(ss);
+  //std::stringstream ss;
+  //a.Serialize(ss);
   
   //cAnimation<StaticAllocPolicy<char>> aa;
   //aa.Deserialize(ss);
   //for(int i = 0; i<6; ++i) c.Grab(); // compensate for the pointer we just copied over
 
   cAnimObj obj;
-  a.GetAttribute<3>()->AddKeyFrame(KeyFrame<3>(0.0, [&](){ c.Grab(); obj.test++; }));
-  a.GetAttribute<3>()->AddKeyFrame(KeyFrame<3>(0.6, [&](){ c.Drop(); }));
-  a.Attach(delegate<void,AniAttribute*>::From<cAnimObj,&cAnimObj::TypeIDRegFunc>(&obj));
-  
+  //a.GetAttribute<3>()->AddKeyFrame(KeyFrame<3>(0.0, [&](){ c.Grab(); obj.test++; }));
+  //a.GetAttribute<3>()->AddKeyFrame(KeyFrame<3>(0.6, [&](){ c.Drop(); }));
+  //a.Attach(delegate<void,AniAttribute*>::From<cAnimObj,&cAnimObj::TypeIDRegFunc>(&obj));
+  cAniStateDiscrete<cRefCounter*> s0(&a0, delegate<void, cRefCounter*>::From<cAnimObj, &cAnimObj::donothing>(&obj));
+  cAniStateInterval<ANIOBJPAIR, cRefCounter*, cAnimObj::GetDuration> s1(&a1, delegate<cRefCounter*, ANIOBJPAIR>::From<cAnimObj, &cAnimObj::retnothing>(&obj), delegate<void, cRefCounter*>::From<cAnimObj, &cAnimObj::remnothing>(&obj));
+  cAniStateSmooth<float> s2(&a2, delegate<void, float>::From<cAnimObj, &cAnimObj::setfloat>(&obj));
+
+  auto interall = [&](double t) {
+    s0.Interpolate(t);
+    s1.Interpolate(t);
+    s2.Interpolate(t);
+  };
   TEST(c.Grab()==14);
   c.Drop();
   TEST(obj.test==0);
-  a.Start(0);
-  TEST(a.IsPlaying());
+  interall(0.0);
+  TEST(obj.test == 1);
+  TEST(obj.test2==1);
+  interall(0.5);
+  TEST(obj.test==1);
+  TEST(obj.test2 == 1);
+  interall(0.5);
+  TEST(obj.test==1);
+  TEST(obj.test2 == 2);
+  interall(0.5);
   TEST(obj.test==2);
-  a.Interpolate(0.5);
-  TEST(obj.test==2);
-  a.Interpolate(0.5);
-  TEST(obj.test==2);
-  a.Interpolate(0.5);
-  TEST(obj.test==3);
-  TEST(a.GetTimePassed()==1.5);
-  a.Interpolate(0.5);
-  TEST(a.GetTimePassed()==0.0);
+  TEST(obj.test2 == 3);
+  TEST(s0.GetTime()==1.5);
+  TEST(s1.GetTime() == 1.5);
+  TEST(s2.GetTime()==1.5);
+  interall(0.5);
+  TEST(s0.GetTime()==0.0);
   TEST(obj.test==4);
-  a.Interpolate(0.5);
+  interall(0.5);
   TEST(obj.test==4);
-  TEST(a.GetTimeWarp()==1.0);
   obj.test=0;
-  a.Stop();
-  TEST(!a.IsPlaying());
-  a.Start(0);
+  s0.Reset();
+  s1.Reset();
+  s2.Reset();
+  TEST(s0.GetTime() == 0.0);
+  TEST(s1.GetTime() == 0.0);
+  TEST(s2.GetTime() == 0.0);
+  interall(0.0);
   TEST(obj.test==2);
-  a.Interpolate(0.6);
+  interall(0.6);
   obj.test=0;
-  a.Stop();
+  s0.Reset();
+  s1.Reset();
+  s2.Reset();
   TEST(c.Grab()==15);
   c.Drop();
   c.Drop();
-  TEST(!a.IsLooping());
-  a.Loop(1.5,1.0);
-  a.Interpolate(0.0);
-  TEST(a.IsLooping());
+  TEST(a0.GetLoop() < 0.0);
+  a0.SetLoop(1.0);
+  a1.SetLoop(1.0);
+  a2.SetLoop(1.0);
+  s0.SetTime(1.5);
+  s1.SetTime(1.5);
+  s2.SetTime(1.5);
+  interall(0.0);
+  TEST(a0.GetLoop() == 1.0);
   TEST(obj.test==3);
-  a.Interpolate(3.0);
-  a.Stop();
+  interall(3.0);
+  s0.Reset();
+  s1.Reset();
+  s2.Reset();
   TEST(c.Grab()==13);
   c.Drop();
 
-  {
+  /*{
     cAnimation<StaticAllocPolicy<char>> b(a);
     obj.test=0;
     b.Attach(delegate<void, AniAttribute*>::From<cAnimObj, &cAnimObj::TypeIDRegFunc>(&obj));
@@ -1839,7 +1845,7 @@ TESTDEF::RETPAIR test_ANIMATION()
     b.Interpolate(10.0);
     TEST(c.Grab()==22);
     c.Drop();
-  }
+  }*/
   }
   TEST(c.Grab()==2);
   ENDTEST;
@@ -5039,7 +5045,7 @@ int main(int argc, char** argv)
   
   // For best results on windows, add the test application to Application Verifier before going through the tests.
   TESTDEF tests[] = {
-    { "bss_util_c.h", &test_bss_util_c },
+    /*{ "bss_util_c.h", &test_bss_util_c },
     { "bss_util.h", &test_bss_util },
     { "cLog.h", &test_bss_LOG },
     { "bss_algo.h", &test_bss_algo },
@@ -5053,7 +5059,7 @@ int main(int argc, char** argv)
     { "bss_graph.h", &test_bss_GRAPH },
     { "bss_sse.h", &test_bss_SSE },
     { "bss_vector.h", &test_VECTOR },
-    { "cAliasTable.h", &test_ALIASTABLE },
+    { "cAliasTable.h", &test_ALIASTABLE },*/
     { "cAnimation.h", &test_ANIMATION },
     { "cArrayCircular.h", &test_ARRAYCIRCULAR },
     { "cArray.h", &test_ARRAY },

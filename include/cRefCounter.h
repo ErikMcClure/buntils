@@ -12,9 +12,9 @@ namespace bss_util {
   {
   public:
     // Increments and returns the reference counter
-    BSS_FORCEINLINE unsigned int Grab() { return ++_refs; } const
+    BSS_FORCEINLINE int Grab() { return ++_refs; } const
     // Decrements the reference counter and calls delete this; if it is equal to or less then 0
-    BSS_FORCEINLINE void Drop() { if(--_refs <= 0) DestroyThis(); }
+    BSS_FORCEINLINE int Drop() { int r = --_refs; if(r <= 0) DestroyThis(); return r; }
 
   protected:
     // Constructor - Reference is set to 0 because you may or may not have a persistent reference to this, or something else will try to grab it or whatever

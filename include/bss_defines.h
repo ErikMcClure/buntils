@@ -141,7 +141,7 @@ public: \
 #define ITOA(v,buf,bufsize,r) _itoa_s(v,buf,bufsize,r)
 #define ATOLL(s) _atoi64(s)
 #define STRTOULL(s,e,r) _strtoui64(s,e,r)
-#define ALLOCA(x) _malloca(x)
+#define ALLOCA(x) _alloca(x) // _malloca requires using _freea so we can't use it
 #else
 #ifdef BSS_PLATFORM_MINGW
 #define TIME64(ptime) _time64(ptime)

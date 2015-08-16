@@ -7,10 +7,6 @@
 #include "bss_compiler.h"
 #include <memory> // for std::default_delete<_Ty>
 
-#ifndef __NO_UQP__
-#define UqP_ std::unique_ptr
-#endif
-
 namespace bss_util
 {  
   template<class _Ty> // Trick that uses implicit conversion that allows cUniquePtr below to take _Ty* pointers without confusing itself for them.

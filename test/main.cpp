@@ -2080,7 +2080,7 @@ TESTDEF::RETPAIR test_AVLTREE()
   {
     shuffle(testnums);
     cBlockAlloc<DEBUG_CDT<false>> dalloc(TESTNUM);
-    typedef UqP_<DEBUG_CDT<false>, std::function<void(DEBUG_CDT<false>*)>> AVL_D;
+    typedef std::unique_ptr<DEBUG_CDT<false>, std::function<void(DEBUG_CDT<false>*)>> AVL_D;
     cAVLtree<int, AVL_D, CompT<int>, BlockPolicy<AVL_Node<std::pair<int, AVL_D>>>> dtree;
     for(int i = 0; i<TESTNUM; ++i)
     {

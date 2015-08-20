@@ -34,6 +34,7 @@
 - Added cUBJSON, a simple UBJSON parser
 - Animations were completely refactored and AniAttribute has been removed. Animation data is now separate from animation state, which is managed on a higher level.
 - cRefCounter Grab() and Drop() now both return signed ints
+- Removed strhex(x) because it was just strtoul(x,0,16)
 
 0.4.3
 -----

@@ -120,6 +120,7 @@ namespace bss_util {
     inline cRational Abs() const { return cRational(abs(_n), _d); }
     inline operator float() const { return operator double(); } //We force this to happen with double precision because its highly likely floating point is going to choke on the division.
     inline operator double() const { return ((double)_n)/((double)_d); }
+    inline T Truncate() const { return _n / _d; }
 
     template<typename T2>
     static T2 GCD(T2 a, T2 b)

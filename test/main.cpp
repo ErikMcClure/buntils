@@ -281,24 +281,6 @@ TESTDEF::RETPAIR test_bss_util_c()
 #else
   TEST(info.flags&1); // You also have to support cmpxchg8b or lockless.h will explode
 #endif
-  TEST(!strhex("0"));
-  TEST(!strhex("z"));
-  TEST(strhex("a")==10);
-  TEST(strhex("8")==8);
-  TEST(strhex("abad1dea")==0xABAD1DEA);
-  TEST(strhex("ABAD1DEA")==0xABAD1DEA);
-  TEST(strhex("0xABAD1DEA")==0xABAD1DEA);
-  TEST(strhex("0xabad1dea")==0xABAD1DEA);
-#ifdef BSS_PLATFORM_WIN32
-  TEST(!wcshex(L"0"));
-  TEST(!wcshex(L"z"));
-  TEST(wcshex(L"a")==10);
-  TEST(wcshex(L"8")==8);
-  TEST(wcshex(L"abad1dea")==0xABAD1DEA);
-  TEST(wcshex(L"ABAD1DEA")==0xABAD1DEA);
-  TEST(wcshex(L"0xABAD1DEA")==0xABAD1DEA);
-  TEST(wcshex(L"0xabad1dea")==0xABAD1DEA);
-#endif
 
   char buf[6];
   TEST(itoa_r(238907,0,0,10)==22);

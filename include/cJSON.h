@@ -35,7 +35,7 @@ namespace bss_util {
       char buf[5];
       for(int i = 0; i < 4; ++i) buf[i] = src.get();
       buf[4] = 0;
-      OutputUnicode(str, strhex(buf));
+      OutputUnicode(str, strtoul(buf, 0, 16));
       break;
     }
   }
@@ -186,13 +186,32 @@ namespace bss_util {
   DEFINE_MEMBER_CHECKER(SerializeJSON);
 
   static bool WriteJSONIsPretty(unsigned int pretty) { return (pretty&(~0x80000000))>0; }
-  static void WriteJSONTabs(std::ostream& s, unsigned int pretty) { unsigned int count = (pretty&(~0x80000000))-1; for(unsigned int i = 0; i < count; ++i) s << '\t'; }
-  static void WriteJSONId(const char* id, std::ostream& s, unsigned int pretty) { if(id) { if(WriteJSONIsPretty(pretty)) { s << std::endl; WriteJSONTabs(s, pretty); } s << '"' << id << '"' << ": "; } }
+  static void WriteJSONTabs(std::ostream& s, unsigned int pretty)
+  { 
+    unsigned int count = (pretty&(~0x80000000))-1;
+    for(unsigned int i = 0; i < count; ++i)
+      s << '\t'; 
+  }
+
+  static void WriteJSONId(const char* id, std::ostream& s, unsigned int pretty)
+  { 
+    if(id)
+    { 
+      if(WriteJSONIsPretty(pretty))
+      { 
+        s << std::endl;
+        WriteJSONTabs(s, pretty); 
+      } 
+      s << '"' << id << '"' << ": "; 
+    } 
+  }
+
   static void WriteJSONComma(std::ostream& s, unsigned int& pretty)
   {
     if(pretty&0x80000000) s << ',';
     pretty|=0x80000000;
   }
+
   static unsigned int WriteJSONPretty(unsigned int pretty) { return (pretty&(~0x80000000)) + ((pretty&(~0x80000000))>0); }
 
   template<class T, bool B>

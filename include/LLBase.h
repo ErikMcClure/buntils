@@ -89,6 +89,16 @@ namespace bss_util {
     return node;
   }
 
+  template<typename T>
+  inline void BSS_FASTCALL LLAddAfter(T* node, T*& root, T*& last)
+  {
+    node->next = 0;
+    node->prev = last;
+    if(last) last->next = node;
+    else root = node;
+    last = node;
+  }
+
   // Removes a node from a list, re-assigning root and last as necessary. Does not zero values on node
   template<typename T>
   inline void BSS_FASTCALL LLRemove(T* node, T*& root, T*& last)

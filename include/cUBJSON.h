@@ -272,7 +272,7 @@ namespace bss_util {
     static void F(std::vector<T, Alloc>& obj, std::istream& s, char ty)
     {
       obj.clear();
-      ParseUBJSONArray<cDynArray<T, SizeType, ArrayType, Alloc>>(obj, s, ty);
+      ParseUBJSONArray<std::vector<T, Alloc>>(obj, s, ty);
     }
   };
 

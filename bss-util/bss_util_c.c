@@ -116,17 +116,6 @@ extern size_t GetPeakWorkingSet()
 #endif
 #endif
 }
-BSS_COMPILER_DLLEXPORT
-extern unsigned long BSS_FASTCALL strhex(const char* text)
-{
-  return strtoul(text,0,16);
-}
-
-BSS_COMPILER_DLLEXPORT
-extern unsigned long BSS_FASTCALL wcshex(const wchar_t* text)
-{
-  return wcstoul(text,0,16);
-}
 
 //Copyright (c) 2008-2009 Bjoern Hoehrmann <bjoern@hoehrmann.de>
 //

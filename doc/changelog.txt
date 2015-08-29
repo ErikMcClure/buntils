@@ -35,6 +35,7 @@
 - Animations were completely refactored and AniAttribute has been removed. Animation data is now separate from animation state, which is managed on a higher level.
 - cRefCounter Grab() and Drop() now both return signed ints
 - Removed strhex(x) because it was just strtoul(x,0,16)
+- delegate<T> can now accept a const T* pointer when referring to a constant member function.
 
 0.4.3
 -----

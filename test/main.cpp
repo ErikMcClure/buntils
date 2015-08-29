@@ -878,14 +878,14 @@ void TEST_ALLOC_FUZZER_THREAD(TESTDEF::RETPAIR& __testret,T& _alloc, cDynArray<s
     {
       if(bssrandint(0,10)<5 || plist.Length()<3)
       {
-        size_t sz = bssrandint(1,MAXSIZE);
+        size_t sz = (size_t)bssrandint(1,MAXSIZE);
         P* test=(P*)_alloc.alloc(sz);
-        for(size_t i = 0; i<sz; ++i) *(char*)(test+i) = i+1;
+        for(size_t i = 0; i<sz; ++i) *(char*)(test+i) = (char)(i+1);
         plist.Add(std::pair<P*,size_t>(test,sz));
       }
       else
       {
-        int index=bssrandint(0,plist.Length());
+        size_t index = (size_t)bssrandint(0,plist.Length());
         for(size_t i = 0; i<plist[index].second; ++i) {
           if(((char)(i+1) != *(char*)(plist[index].first+i)))
             pass = false;
@@ -1738,6 +1738,7 @@ TESTDEF::RETPAIR test_ANIMATION()
   TEST(a1.GetLength() == 2.0);
   TEST(a2.GetLength()==2.0);
   
+  a0.SetLoop(0.0);
   //std::stringstream ss;
   //a.Serialize(ss);
   
@@ -1758,7 +1759,7 @@ TESTDEF::RETPAIR test_ANIMATION()
     s1.Interpolate(t);
     s2.Interpolate(t);
   };
-  TEST(c.Grab()==14);
+  TEST(c.Grab()==5);
   c.Drop();
   TEST(obj.test==0);
   interall(0.0);
@@ -1777,7 +1778,9 @@ TESTDEF::RETPAIR test_ANIMATION()
   TEST(s1.GetTime() == 1.5);
   TEST(s2.GetTime()==1.5);
   interall(0.5);
-  TEST(s0.GetTime()==0.0);
+  TEST(s0.GetTime() == 0.0);
+  TEST(s1.GetTime() == 2.0);
+  TEST(s2.GetTime() == 2.0);
   TEST(obj.test==4);
   interall(0.5);
   TEST(obj.test==4);
@@ -1789,16 +1792,17 @@ TESTDEF::RETPAIR test_ANIMATION()
   TEST(s1.GetTime() == 0.0);
   TEST(s2.GetTime() == 0.0);
   interall(0.0);
-  TEST(obj.test==2);
+  TEST(obj.test==1);
   interall(0.6);
   obj.test=0;
   s0.Reset();
   s1.Reset();
   s2.Reset();
-  TEST(c.Grab()==15);
+  TEST(c.Grab()==5);
   c.Drop();
-  c.Drop();
-  TEST(a0.GetLoop() < 0.0);
+  TEST(a0.GetLoop() == 0.0);
+  TEST(a1.GetLoop() < 0.0);
+  TEST(a2.GetLoop() < 0.0);
   a0.SetLoop(1.0);
   a1.SetLoop(1.0);
   a2.SetLoop(1.0);
@@ -1807,12 +1811,12 @@ TESTDEF::RETPAIR test_ANIMATION()
   s2.SetTime(1.5);
   interall(0.0);
   TEST(a0.GetLoop() == 1.0);
-  TEST(obj.test==3);
+  TEST(obj.test==2);
   interall(3.0);
   s0.Reset();
   s1.Reset();
   s2.Reset();
-  TEST(c.Grab()==13);
+  TEST(c.Grab()==5);
   c.Drop();
 
   /*{

@@ -81,7 +81,8 @@ namespace bss_util {
         s >> obj; // grab whatever we can
         while(!!s && s.peek() != -1 && s.get() != '"'); // eat the rest of the string
         s.get(); // eat the " character
-      } else
+      }
+      else
         s >> obj;
     }
   };
@@ -114,6 +115,20 @@ namespace bss_util {
       ParseJSONArray<cDynArray<T, SizeType, ArrayType, Alloc>>(obj, s);
     }
   };
+  template<class T, typename SizeType, ARRAY_TYPE ArrayType, typename Alloc>
+  struct ParseJSONInternal<cArray<T, SizeType, ArrayType, Alloc>, false>
+  {
+    static inline void DoAddCall(cArray<T, SizeType, ArrayType, Alloc>& obj, std::istream& s, int& n)
+    {
+      obj.SetSize(obj.Size() + 1);
+      ParseJSON<T>(obj.Back(), s);
+    }
+    static void F(cArray<T, SizeType, ArrayType, Alloc>& obj, std::istream& s)
+    {
+      obj.SetSizeDiscard(0);
+      ParseJSONArray<cArray<T, SizeType, ArrayType, Alloc>>(obj, s);
+    }
+  };
   template<class T, int I, bool B> // For fixed-length arrays
   struct ParseJSONInternal<T[I], B>
   {
@@ -136,9 +151,9 @@ namespace bss_util {
   };
 
   template<class T>
-  inline void ParseJSON(T& obj, std::istream& s){ ParseJSONInternal<T, std::is_arithmetic<T>::value>::F(obj, s); }
+  inline void ParseJSON(T& obj, std::istream& s) { ParseJSONInternal<T, std::is_arithmetic<T>::value>::F(obj, s); }
   template<class T>
-  inline void ParseJSON(T& obj, const char* s){ std::istringstream ss(s); ParseJSON<T>(obj, ss); }
+  inline void ParseJSON(T& obj, const char* s) { std::istringstream ss(s); ParseJSON<T>(obj, ss); }
 
   template<>
   inline void ParseJSON<std::string>(std::string& target, std::istream& s)
@@ -149,10 +164,10 @@ namespace bss_util {
     if(c != '"')
     {
       target += c;
-      while(!!s && s.peek() != ',' && s.peek() != '}' && s.peek() != ']' && s.peek() != -1) target += s.get(); 
+      while(!!s && s.peek() != ',' && s.peek() != '}' && s.peek() != ']' && s.peek() != -1) target += s.get();
       return;
-    } 
-    
+    }
+
     while(!!s && s.peek() != '"' && s.peek() != -1)
       ParseJSONEatCharacter(target, s);
     s.get(); // eat last " character
@@ -164,7 +179,7 @@ namespace bss_util {
   {
     static const char* val = "true";
     int pos = 0;
-    if(s.peek() >= '0' && s.peek() <= '9') 
+    if(s.peek() >= '0' && s.peek() <= '9')
     {
       unsigned __int64 num;
       s >> num;
@@ -187,29 +202,29 @@ namespace bss_util {
 
   static bool WriteJSONIsPretty(unsigned int pretty) { return (pretty&(~0x80000000))>0; }
   static void WriteJSONTabs(std::ostream& s, unsigned int pretty)
-  { 
-    unsigned int count = (pretty&(~0x80000000))-1;
+  {
+    unsigned int count = (pretty&(~0x80000000)) - 1;
     for(unsigned int i = 0; i < count; ++i)
-      s << '\t'; 
+      s << '\t';
   }
 
   static void WriteJSONId(const char* id, std::ostream& s, unsigned int pretty)
-  { 
+  {
     if(id)
-    { 
+    {
       if(WriteJSONIsPretty(pretty))
-      { 
+      {
         s << std::endl;
-        WriteJSONTabs(s, pretty); 
-      } 
-      s << '"' << id << '"' << ": "; 
-    } 
+        WriteJSONTabs(s, pretty);
+      }
+      s << '"' << id << '"' << ": ";
+    }
   }
 
   static void WriteJSONComma(std::ostream& s, unsigned int& pretty)
   {
-    if(pretty&0x80000000) s << ',';
-    pretty|=0x80000000;
+    if(pretty & 0x80000000) s << ',';
+    pretty |= 0x80000000;
   }
 
   static unsigned int WriteJSONPretty(unsigned int pretty) { return (pretty&(~0x80000000)) + ((pretty&(~0x80000000))>0); }
@@ -235,7 +250,7 @@ namespace bss_util {
       s.flush();
     }
   };
-  
+
   template<class T>
   struct WriteJSONInternal<T, true>
   {
@@ -276,11 +291,11 @@ namespace bss_util {
   };
 
   // To enable pretty output, set pretty to 1. The upper two bits are used as flags, so if you need more than 1073741823 levels of indentation... what the hell are you doing?!
-  template<class T> 
-  void WriteJSON(const char* id, const T& obj, std::ostream& s, unsigned int& pretty) { WriteJSONInternal<T, std::is_arithmetic<T>::value>::F(id, obj, s, pretty); }
+  template<class T>
+  void static WriteJSON(const char* id, const T& obj, std::ostream& s, unsigned int& pretty) { WriteJSONInternal<T, std::is_arithmetic<T>::value>::F(id, obj, s, pretty); }
 
   template<>
-  void WriteJSON<std::string>(const char* id, const std::string& obj, std::ostream& s, unsigned int& pretty)
+  void BSS_EXPLICITSTATIC WriteJSON<std::string>(const char* id, const std::string& obj, std::ostream& s, unsigned int& pretty)
   {
     WriteJSONComma(s, pretty);
     WriteJSONId(id, s, pretty);
@@ -304,21 +319,21 @@ namespace bss_util {
   }
 
   template<>
-  void WriteJSON<cStr>(const char* id, const cStr& obj, std::ostream& s, unsigned int& pretty) { WriteJSON<std::string>(id, obj, s, pretty); }
+  void BSS_EXPLICITSTATIC WriteJSON<cStr>(const char* id, const cStr& obj, std::ostream& s, unsigned int& pretty) { WriteJSON<std::string>(id, obj, s, pretty); }
 
   template<>
-  void WriteJSON<bool>(const char* id, const bool& obj, std::ostream& s, unsigned int& pretty)
+  void BSS_EXPLICITSTATIC WriteJSON<bool>(const char* id, const bool& obj, std::ostream& s, unsigned int& pretty)
   {
     WriteJSONComma(s, pretty);
     WriteJSONId(id, s, pretty);
-    s << (obj?"true":"false");
+    s << (obj ? "true" : "false");
   }
 
   template<class T>
-  void WriteJSON(const T& obj, std::ostream& s, unsigned int pretty = 0) { WriteJSON<T>(0, obj, s, pretty); }
+  void static WriteJSON(const T& obj, std::ostream& s, unsigned int pretty = 0) { WriteJSON<T>(0, obj, s, pretty); }
 
   template<class T>
-  void WriteJSON(const T& obj, const char* file, unsigned int pretty = 0) { std::ofstream fs(file, std::ios_base::out | std::ios_base::trunc | std::ios_base::binary); WriteJSON<T>(0, obj, fs, pretty); }
+  void static WriteJSON(const T& obj, const char* file, unsigned int pretty = 0) { std::ofstream fs(file, std::ios_base::out | std::ios_base::trunc | std::ios_base::binary); WriteJSON<T>(0, obj, fs, pretty); }
 }
 
 #endif

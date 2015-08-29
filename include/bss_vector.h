@@ -366,7 +366,7 @@ namespace bss_util {
 
   // Multiply an MxN matrix with an NxP matrix to make an MxP matrix.
   template<typename T, int M, int N, int P>
-  struct __MatrixMultiply
+  struct BSS_COMPILER_DLLEXPORT __MatrixMultiply
   {
     static BSS_FORCEINLINE void BSS_FASTCALL MM(const T(&l)[M][N], const T(&r)[N][P], T(&out)[M][P])
     {
@@ -388,7 +388,7 @@ namespace bss_util {
 
   // Standard 4x4 matrix multiplication using SSE2. Intended for row-major matrices, so you'll end up with r*l instead of l*r if your matrices are column major instead.
   template<>
-  struct __MatrixMultiply<float, 4, 4, 4>
+  struct BSS_COMPILER_DLLEXPORT __MatrixMultiply<float, 4, 4, 4>
   {
     static BSS_FORCEINLINE void BSS_FASTCALL MM(const float(&l)[4][4], const float(&r)[4][4], float(&out)[4][4])
     {
@@ -407,7 +407,7 @@ namespace bss_util {
 
   // It turns out you can efficiently do SSE optimization when multiplying any Mx4 matrix with a 4x4 matrix to yield an Mx4 out matrix.
   template<int M>
-  struct __MatrixMultiply<float, M, 4, 4>
+  struct BSS_COMPILER_DLLEXPORT __MatrixMultiply<float, M, 4, 4>
   {
     static BSS_FORCEINLINE void BSS_FASTCALL MM(const float(&l)[M][4], const float(&r)[4][4], float(&out)[M][4])
     {
@@ -422,7 +422,7 @@ namespace bss_util {
   };
 
   template<int M> // We can't use sseVec<T> because only int32 and floats can fit 4 into a register.
-  struct __MatrixMultiply<__int32, M, 4, 4>
+  struct BSS_COMPILER_DLLEXPORT __MatrixMultiply<__int32, M, 4, 4>
   {
     static BSS_FORCEINLINE void BSS_FASTCALL MM(const __int32(&l)[M][4], const __int32(&r)[4][4], __int32(&out)[M][4])
     {
@@ -437,7 +437,7 @@ namespace bss_util {
   };
 
   template<>
-  struct __MatrixMultiply<float, 1, 4, 4>
+  struct BSS_COMPILER_DLLEXPORT __MatrixMultiply<float, 1, 4, 4>
   {
     static BSS_FORCEINLINE void BSS_FASTCALL MM(const float(&l)[1][4], const float(&r)[4][4], float(&out)[1][4])
     { // Note: It's ok if l, r, and out are all the same matrix because of the order they're accessed in.
@@ -472,24 +472,24 @@ namespace bss_util {
   }
 
   template<typename T, int N>
-  struct __MatrixDeterminant { };
+  struct BSS_COMPILER_DLLEXPORT __MatrixDeterminant { };
 
   template<typename T>
-  struct __MatrixDeterminant<T, 2>
+  struct BSS_COMPILER_DLLEXPORT __MatrixDeterminant<T, 2>
   {
     BSS_FORCEINLINE static T BSS_FASTCALL MD(const T(&x)[2][2]) { return D(x[0][0], x[0][1], x[1][0], x[1][1]); }
     BSS_FORCEINLINE static T D(T a, T b, T c, T d) { return (a*d) - (b*c); }
   };
 
   template<typename T>
-  struct __MatrixDeterminant<T, 3>
+  struct BSS_COMPILER_DLLEXPORT __MatrixDeterminant<T, 3>
   {
     BSS_FORCEINLINE static T BSS_FASTCALL MD(const T(&x)[3][3]) { return D(x[0][0], x[0][1], x[0][2], x[1][0], x[1][1], x[1][2], x[2][0], x[2][1], x[2][2]); }
     BSS_FORCEINLINE static T D(T a, T b, T c, T d, T e, T f, T g, T h, T i) { return a*(e*i - f*h) - b*(i*d - f*g) + c*(d*h - e*g); }
   };
 
   template<>
-  struct __MatrixDeterminant<float, 3>
+  struct BSS_COMPILER_DLLEXPORT __MatrixDeterminant<float, 3>
   {
     BSS_FORCEINLINE static float BSS_FASTCALL MD(const float(&x)[3][3]) { return D(x[0][0], x[0][1], x[0][2], x[1][0], x[1][1], x[1][2], x[2][0], x[2][1], x[2][2]); }
     BSS_FORCEINLINE static float D(float a, float b, float c, float d, float e, float f, float g, float h, float i) {
@@ -505,7 +505,7 @@ namespace bss_util {
   };
 
   template<typename T>
-  struct __MatrixDeterminant<T, 4>
+  struct BSS_COMPILER_DLLEXPORT __MatrixDeterminant<T, 4>
   {
     BSS_FORCEINLINE static T BSS_FASTCALL MD(const T(&x)[4][4]) {
       return x[0][0]*__MatrixDeterminant<T, 3>::D(x[1][1], x[1][2], x[1][3],
@@ -524,7 +524,7 @@ namespace bss_util {
   };
 
   template<>
-  struct __MatrixDeterminant<float, 4>
+  struct BSS_COMPILER_DLLEXPORT __MatrixDeterminant<float, 4>
   {
     template<unsigned char I>
     BSS_FORCEINLINE static __m128 _mm_ror_ps(__m128 vec) { return (((I)%4) ? (_mm_shuffle_ps(vec, vec, _MM_SHUFFLE((unsigned char)(I+3)%4, (unsigned char)(I+2)%4, (unsigned char)(I+1)%4, (unsigned char)(I+0)%4))) : vec); }
@@ -622,7 +622,7 @@ namespace bss_util {
 
   // N-element vector
   template<typename T, int N>
-  struct Vector
+  struct BSS_COMPILER_DLLEXPORT Vector
   {
     template<typename U>
     inline Vector(const Vector<U, N>& copy) { for(int i = 0; i < N; ++i) v[i] = (T)copy.v[i]; }
@@ -649,10 +649,10 @@ namespace bss_util {
   };
 
   template<typename T>
-  struct Vector<T, 2>
+  struct BSS_COMPILER_DLLEXPORT Vector<T, 2>
   {
     template<typename U>
-    inline Vector(const Vector<U, 2>& copy) : x((U)copy.v[0]), y((U)copy.v[1]) { }
+    inline Vector(const Vector<U, 2>& copy) : x((T)copy.v[0]), y((T)copy.v[1]) { }
     inline explicit Vector(T scalar) : x(scalar), y(scalar) { }
     inline explicit Vector(const T(&e)[2]) : x(e[0]), y(e[1]) { }
     inline Vector(const std::initializer_list<T> e) { int k = 0; for(const T* i = e.begin(); i != e.end() && k < 2; ++i) v[k++] = *i; }
@@ -691,10 +691,10 @@ namespace bss_util {
   };
 
   template<typename T>
-  struct Vector<T, 3>
+  struct BSS_COMPILER_DLLEXPORT Vector<T, 3>
   {
     template<typename U>
-    inline Vector(const Vector<U, 3>& copy) : x((U)copy.v[0]), y((U)copy.v[1]), z((U)copy.v[2]) { }
+    inline Vector(const Vector<U, 3>& copy) : x((T)copy.v[0]), y((T)copy.v[1]), z((T)copy.v[2]) { }
     inline explicit Vector(T scalar) : x(scalar), y(scalar), z(scalar){ }
     inline explicit Vector(const T(&e)[3]) : x(e[0]), y(e[1]), z(e[2]) { }
     inline Vector(const std::initializer_list<T> e) { int k = 0; for(const T* i = e.begin(); i != e.end() && k < 3; ++i) v[k++] = *i; }
@@ -733,10 +733,10 @@ namespace bss_util {
   };
 
   template<typename T>
-  struct Vector<T, 4>
+  struct BSS_COMPILER_DLLEXPORT Vector<T, 4>
   {
     template<typename U>
-    inline Vector(const Vector<U, 4>& copy) : x((U)copy.v[0]), y((U)copy.v[1]), z((U)copy.v[2]), w((U)copy.v[3]) { }
+    inline Vector(const Vector<U, 4>& copy) : x((T)copy.v[0]), y((T)copy.v[1]), z((T)copy.v[2]), w((T)copy.v[3]) { }
     inline explicit Vector(T scalar) : x(scalar), y(scalar), z(scalar), w(scalar) { }
     inline explicit Vector(const T(&e)[4]) : x(e[0]), y(e[1]), z(e[2]), w(e[3]) { }
     inline Vector(const std::initializer_list<T> e) { int k = 0; for(const T* i = e.begin(); i != e.end() && k < 4; ++i) v[k++] = *i; }
@@ -810,7 +810,7 @@ namespace bss_util {
 
   // MxN matrix (M rows and N columns)
   template<typename T, int M, int N>
-  struct Matrix
+  struct BSS_COMPILER_DLLEXPORT Matrix
   {
     static const int MIN = M<N?M:N;
 
@@ -861,7 +861,7 @@ namespace bss_util {
   };
 
   template<typename T>
-  struct Matrix<T, 2, 2>
+  struct BSS_COMPILER_DLLEXPORT Matrix<T, 2, 2>
   {
     template<typename U>
     inline Matrix(const Matrix<U, 2, 2>& copy) : a((T)copy.a), b((T)copy.b), c((T)copy.c), d((T)copy.d) { }
@@ -904,7 +904,7 @@ namespace bss_util {
   };
 
   template<typename T>
-  struct Matrix<T, 3, 3>
+  struct BSS_COMPILER_DLLEXPORT Matrix<T, 3, 3>
   {
     template<typename U>
     inline Matrix(const Matrix<U, 3, 3>& copy) : a((T)copy.a), b((T)copy.b), c((T)copy.c), d((T)copy.d), e((T)copy.e), f((T)copy.f), g((T)copy.g), h((T)copy.h), i((T)copy.i) { }
@@ -985,7 +985,7 @@ namespace bss_util {
   };
 
   template<typename T>
-  struct Matrix<T, 4, 4>
+  struct BSS_COMPILER_DLLEXPORT Matrix<T, 4, 4>
   {
     template<typename U>
     inline Matrix(const Matrix<U, 4, 4>& copy) : a((T)copy.a), b((T)copy.b), c((T)copy.c), d((T)copy.d), e((T)copy.e), f((T)copy.f), g((T)copy.g), h((T)copy.h), i((T)copy.i), j((T)copy.j), k((T)copy.k), l((T)copy.l), m((T)copy.m), n((T)copy.n), o((T)copy.o), p((T)copy.p) { }

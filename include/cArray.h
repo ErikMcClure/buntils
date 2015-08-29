@@ -212,6 +212,8 @@ namespace bss_util {
       _array=narray;
       _size=nsize;
     }
+
+    void BSS_FASTCALL SetSizeDiscard(SizeType nsize) { SetSize(nsize); }
     void BSS_FASTCALL RemoveInternal(SizeType index)
     {
       assert(_size>0 && index<_size);
@@ -361,6 +363,7 @@ namespace bss_util {
       _array=narray;
       _size=nsize;
     }
+    void BSS_FASTCALL SetSizeDiscard(SizeType nsize) { SetSize(nsize); }
     void BSS_FASTCALL RemoveInternal(SizeType index)
     {
       --_size; // Note that this _size decrease is reversed at the end of this function, so _size doesn't actually change, matching the behavior of cArrayBase

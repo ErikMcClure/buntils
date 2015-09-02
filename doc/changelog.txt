@@ -36,6 +36,8 @@
 - cRefCounter Grab() and Drop() now both return signed ints
 - Removed strhex(x) because it was just strtoul(x,0,16)
 - delegate<T> can now accept a const T* pointer when referring to a constant member function.
+- Added missing operations to cRational
+- Added cPriorityHeap, a variation of cPriorityQueue that uses the key to keep track of each item's place in the heap, allowing item values to be adjusted.
 
 0.4.3
 -----

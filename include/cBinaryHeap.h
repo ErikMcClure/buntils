@@ -10,9 +10,12 @@
 #include <limits>
 
 namespace bss_util {
+  template<class T, typename ST_>
+  struct MFUNC_DEFAULT { BSS_FORCEINLINE static void BSS_FASTCALL MFunc(const T&, ST_, MFUNC_DEFAULT*) {} };
+
   // This is a binary max-heap implemented using an array. Use CompTInv to change it into a min-heap, or to make it use pairs.
-  template<class T, typename ST_=unsigned int, char(*CFunc)(const T&, const T&)=CompT<T>, ARRAY_TYPE ArrayType = CARRAY_SIMPLE, typename Alloc=StaticAllocPolicy<T>>
-  class BSS_COMPILER_DLLEXPORT cBinaryHeap : protected cArrayBase<T, ST_, ArrayType, Alloc>
+  template<class T, typename ST_=unsigned int, char(*CFunc)(const T&, const T&)=CompT<T>, ARRAY_TYPE ArrayType = CARRAY_SIMPLE, typename Alloc=StaticAllocPolicy<T>, class MFUNC = MFUNC_DEFAULT<T, ST_>>
+  class BSS_COMPILER_DLLEXPORT cBinaryHeap : protected cArrayBase<T, ST_, ArrayType, Alloc>, protected MFUNC
   {
   protected:
     typedef cArrayBase<T, ST_, ArrayType, Alloc> AT_;
@@ -48,13 +51,13 @@ namespace bss_util {
       if(index>=_length) return false;
       --_length; //We don't have to copy _array[--_length] because it stays valid during the percolation
       if(_length>0) //We can't percolate down if there's nothing in the array! 
-        PercolateDown(_array, _length, index, _array[_length]);
+        PercolateDown(_array, _length, index, _array[_length], this);
       return true;
     }
 
     // Percolate up through the heap
     template<typename U>
-    static void PercolateUp(T* _array, ST_ _length, ST_ k, U && val)
+    static void PercolateUp(T* _array, ST_ _length, ST_ k, U && val, cBinaryHeap* p = 0)
     {
       assert(k<_length);
       unsigned int parent;
@@ -62,14 +65,16 @@ namespace bss_util {
       while(k > 0) {
         parent = CBH_PARENT(k);
         if(CFunc(_array[parent], std::forward<U>(val)) > 0) break;
-        _array[k] = _array[parent];
+        _array[k] = std::move(_array[parent]);
+        MFUNC::MFunc(_array[k], k, p);
         k = parent;
       }
       _array[k]=std::forward<U>(val);
+      MFUNC::MFunc(_array[k], k, p);
     }
     // Percolate down a heap
     template<typename U>
-    static void PercolateDown(T* _array, ST_ _length, ST_ k, U && val)
+    static void PercolateDown(T* _array, ST_ _length, ST_ k, U && val, cBinaryHeap* p = 0)
     {
       assert(k<_length);
       assert(k<(std::numeric_limits<ST_>::max()>>1));
@@ -82,15 +87,18 @@ namespace bss_util {
         if(CFunc(std::forward<U>(val), _array[i]) > 0)
           break;
         _array[k]=std::move(_array[i]);
+        MFUNC::MFunc(_array[k], k, p);
         k=i;
         assert(k<(std::numeric_limits<ST_>::max()>>1));
       }
       if(i >= _length && --i < _length && CFunc(std::forward<U>(val), _array[i])<=0) //Check if left child is also invalid (can only happen at the very end of the array)
       {
         _array[k]=std::move(_array[i]);
+        MFUNC::MFunc(_array[k], k, p);
         k=i;
       }
       _array[k]=std::forward<U>(val);
+      MFUNC::MFunc(_array[k], k, p);
     }
     operator T*() { return _array; }
     operator const T*() const { return _array; }
@@ -132,7 +140,7 @@ namespace bss_util {
     {
       int k = _length;
       if(_length >= _size) AT_::SetSize(fbnext(_size));
-      PercolateUp(_array, _length, _length++, std::forward<U>(val));
+      PercolateUp(_array, _length, _length++, std::forward<U>(val), this);
     }
 
     // Sets a key and percolates
@@ -141,9 +149,9 @@ namespace bss_util {
     {
       if(index>=_length) return false;
       if(CFunc(_array[index], std::forward<U>(val)) <= 0) //in this case we percolate up
-        PercolateUp(_array, _length, index, std::forward<U>(val));
+        PercolateUp(_array, _length, index, std::forward<U>(val), this);
       else
-        PercolateDown(_array, _length, index, std::forward<U>(val));
+        PercolateDown(_array, _length, index, std::forward<U>(val), this);
       return true;
     }
 

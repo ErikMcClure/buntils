@@ -452,15 +452,15 @@ namespace bss_util {
 
   // Implementation of a uniform quadratic B-spline interpolation
   template<typename T, typename D>
-  inline static T BSS_FASTCALL UniformQuadraticBSpline(D t, const T& prev, const T& cur, const T& next)
+  inline static T BSS_FASTCALL UniformQuadraticBSpline(D t, const T& p1, const T& p2, const T& p3)
   {
     D t2=t*t;
-    return (prev*(1 - 2*t + t2) + cur*(1 + 2*t - 2*t2) + next*t2)/((D)2.0);
+    return (p1*(1 - 2*t + t2) + p2*(1 + 2*t - 2*t2) + p3*t2)/((D)2.0);
   }
 
   // Implementation of a uniform cubic B-spline interpolation. A uniform cubic B-spline matrix is:
   //                / -1  3 -3  1 \         / p1 \
-    // [t^3,t²,t,1] * |  3 -6  3  0 | * 1/6 * | p2 |
+  // [t^3,t²,t,1] * |  3 -6  3  0 | * 1/6 * | p2 |
   //                | -3  0  3  0 |         | p3 |
   //                \  1  4  1  0 /         \ p4 /
   template<typename T, typename D>
@@ -473,7 +473,7 @@ namespace bss_util {
 
   // Implementation of a basic cubic interpolation. The B-spline matrix for this is
   //                / -1  3 -3  1 \       / p1 \
-    // [t^3,t²,t,1] * |  2 -5  4 -1 | * ½ * | p2 |
+  // [t^3,t²,t,1] * |  2 -5  4 -1 | * ½ * | p2 |
   //                | -1  0  1  0 |       | p3 |
   //                \  0  2  0  0 /       \ p4 /
   template<typename T, typename D>
@@ -579,6 +579,40 @@ namespace bss_util {
           queue[l++]=edge->to; // Doesn't need to be circular because we can only enqueue n-1 anyway.
       }
     }
+  }
+
+  // Find a quadratic curve (A,B,C) that passes through 3 points
+  template<typename T>
+  inline T QuadraticFit(T t, T x1, T y1, T x2, T y2, T x3, T y3)
+  {
+    T x1_2 = x1*x1;
+    T x2_2 = x2*x2;
+    T x3_2 = x3*x3;
+    T A = ((y2 - y1)(x1 - x3) + (y3 - y1)(x2 - x1)) / ((x1 - x3)(x2_2 - x1_2) + (x2 - x1)(x3_2 - x1_2));
+    T B = ((y2 - y1) - A(x2_2 - x1_2)) / (x2 - x1);
+    T C = y1 - A*x1_2 - B*x1;
+    return A*t*t + B*t + C;
+  }
+
+  // Find a quadratic curve (A,B,C) that passes through the points (x1, 0), (x2, 0.5), (x3, 1)
+  template<typename T>
+  inline T QuadraticCanonicalFit(T t, T x1, T x2, T x3)
+  {
+    t = (t - x1) / (x3 - x1); // We transform all points with (x - x1) / x3, which yields:
+    // x1 = (x1 - x1) / (x3 - x1) = 0
+    T x = (x2 - x1) / (x3 - x1);
+    // x3 = (x3 - x1) / (x3 - x1) = 1
+    //T x1_2 = 0;
+    //T x2_2 = x2*x2;
+    //T x3_2 = 1;
+    T H = ((T)1 / (T)2);
+    //T A = ((H - 0)(0 - 1) + (1 - 0)(x2 - 0)) / ((0 - 1)(x2_2 - 0) + (x2 - 0)(1 - 0));
+    T A = (x - H) / (x - (x*x));
+    //T B = ((H - 0) - A(x2_2 - 0)) / (x2 - 0);
+    T B = (H / x) - (A * x);
+    //T C = 0 - A*0 - B*0;
+
+    return (A*t*t + B*t)*(x3 - x1) + x1; // reverse our transformation
   }
 }
 

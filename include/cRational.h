@@ -4,7 +4,7 @@
 #ifndef __C_RATIONAL_H__BSS__ //These are used in case this header file is used by two different projects dependent on each other, resulting in duplicates which cannot be differentiated by #pragma once
 #define __C_RATIONAL_H__BSS__
 
-#include "bss_compiler.h"
+#include "bss_defines.h"
 #include <type_traits>
 
 namespace bss_util {  
@@ -111,10 +111,14 @@ namespace bss_util {
     inline bool operator!() const { return !_n; }
     inline bool operator> (const cRational& r) const { return operator double() > ((double)r); } //This can potentially cause precision issues in pathalogical cases, but it should do the job most of the time and the alternative is not O(1) time.
     inline bool operator< (const cRational& r) const { return operator double() < ((double)r); }
+    inline bool operator>= (const cRational& r) const { return !operator<(r); }
+    inline bool operator<= (const cRational& r) const { return !operator>(r); }
     inline bool operator== (const cRational& r) const { return _n==r._n && _d==r._d; }
     inline bool operator!= (const cRational& r) const { return _n!=r._n || _d!=r._d; }
     inline bool operator< (T i) const { T q = _n / _d, r = _n % _d; while ( r < 0 ) { r += _d; --q; } return q < i; } //While this isn't O(1) time, its fast enough to be used instead of conversion to doubles.
     inline bool operator> (T i) const { if(operator==(i)) return false; return !operator<(i); }
+    inline bool operator<= (T i) const { if(operator==(i)) return true; return !operator>(i); }
+    inline bool operator>= (T i) const { if(operator==(i)) return true; return !operator<(i); }
     inline bool operator== (T i) const { return _d==1 && i==_n; }
     inline bool operator!= (T i) const { return _d!=1 || i!=_n; }
     inline cRational Abs() const { return cRational(abs(_n), _d); }
@@ -138,6 +142,17 @@ namespace bss_util {
     T _n; //numerator
     T _d; //denominator
   };
+
+  template<typename T> inline static cRational<T> BSS_FASTCALL operator+(T l, const cRational<T>& r) { cRational<T> n(r); n += l; return n; } // this is reversed using associativity for efficiency.
+  template<typename T> inline static cRational<T> BSS_FASTCALL operator-(T l, const cRational<T>& r) { cRational<T> n(l); n -= r; return n; }
+  template<typename T> inline static cRational<T> BSS_FASTCALL operator*(T l, const cRational<T>& r) { cRational<T> n(r); n *= l; return n; } // this is reversed using associativity for efficiency.
+  template<typename T> inline static cRational<T> BSS_FASTCALL operator/(T l, const cRational<T>& r) { cRational<T> n(l); n /= r; return n; }
+  template<typename T> inline static bool BSS_FASTCALL operator<(T l, const cRational<T>& r) { return r > l; }
+  template<typename T> inline static bool BSS_FASTCALL operator>(T l, const cRational<T>& r) { return r < l; }
+  template<typename T> inline static bool BSS_FASTCALL operator<=(T l, const cRational<T>& r) { return r >= l; }
+  template<typename T> inline static bool BSS_FASTCALL operator>=(T l, const cRational<T>& r) { return r <= l; }
+  template<typename T> inline static bool BSS_FASTCALL operator==(T l, const cRational<T>& r) { return r == l; }
+  template<typename T> inline static bool BSS_FASTCALL operator!=(T l, const cRational<T>& r) { return r != l; }
 }
 
 #endif

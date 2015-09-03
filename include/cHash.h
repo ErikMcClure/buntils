@@ -41,9 +41,10 @@ namespace bss_util {
     {
       kh_clear_template();
       kh_resize_template(copy.n_buckets<4 ? copy.n_buckets : (copy.n_buckets - 1));
-      if(copy.flags) memcpy(flags, copy.flags, ((copy.n_buckets >> 4) + 1) * sizeof(khint32_t));
-      if(copy.keys) memcpy(keys, copy.keys, copy.n_buckets * sizeof(khkey_t));
+      memcpy(flags, copy.flags, ((copy.n_buckets >> 4) + 1) * sizeof(khint32_t));
+      memcpy(keys, copy.keys, copy.n_buckets * sizeof(khkey_t));
       if(copy.vals) memcpy(vals, copy.vals, copy.n_buckets * sizeof(khval_t));
+      else vals = 0;
       return *this;
     }
     kh_template_t& operator =(kh_template_t&& mov)
@@ -70,7 +71,7 @@ namespace bss_util {
     {
       if(h) {
         free(h->keys); free(h->flags);
-        free(h->vals);
+        if(h->vals) free(h->vals);
         free(h);
       }
     }

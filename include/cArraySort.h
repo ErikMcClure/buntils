@@ -6,38 +6,39 @@
 
 #include "bss_algo.h"
 #include "bss_compare.h"
-#include "cArray.h"
+#include "cDynArray.h"
 
 namespace bss_util {
   // A dynamic array that keeps its contents sorted using insertion sort and uses a binary search to retrieve items.
-  template<typename T, char(*CFunc)(const T&, const T&)=CompT<T>, typename SizeType = unsigned int, ARRAY_TYPE ArrayType = CARRAY_SIMPLE, typename Alloc=StaticAllocPolicy<T>>
-  class BSS_COMPILER_DLLEXPORT cArraySort : protected cArrayBase<T, SizeType, ArrayType, Alloc>
+  template<typename T, char(*CFunc)(const T&, const T&)=CompT<T>, typename CType = unsigned int, ARRAY_TYPE ArrayType = CARRAY_SIMPLE, typename Alloc=StaticAllocPolicy<T>>
+  class BSS_COMPILER_DLLEXPORT cArraySort
   {
   public:
-    typedef SizeType ST_;
+    typedef CType CT_;
     typedef const T& constref;
     typedef T&& moveref;
-    typedef cArrayBase<T, SizeType, ArrayType, Alloc> AT_;
-    using AT_::_array;
-    using AT_::_size;
 
-    inline cArraySort(const cArraySort& copy) : _length(copy._length), AT_(copy) {}
-    inline cArraySort(cArraySort&& mov) : _length(mov._length), AT_(std::move(mov)) {}
-    inline explicit cArraySort(ST_ size=0) : _length(0), AT_(size) {}
+    inline cArraySort(const cArraySort& copy) : _array(copy._array) {}
+    inline cArraySort(cArraySort&& mov) : _array(std::move(mov._array)) {}
+    inline explicit cArraySort(CT_ size=0) : _array(size) {}
     inline ~cArraySort() { }
-    BSS_FORCEINLINE ST_ BSS_FASTCALL Insert(constref data) { return _insert(data); }
-    BSS_FORCEINLINE ST_ BSS_FASTCALL Insert(moveref data) { return _insert(std::move(data)); }
-    inline void Clear() { _length=0; }
-    inline void BSS_FASTCALL Discard(unsigned int num) { _length-=((num>_length)?_length:num); }
-    inline const T& Front() const { assert(_length>0); return _array[0]; }
-    inline T& Front() { assert(_length>0); return _array[0]; }
-    inline const T& Back() const { assert(_length>0); return _array[_length-1]; }
-    inline T& Back() { assert(_length>0); return _array[_length-1]; }
-    inline const T* begin() const { return _array; }
-    inline const T* end() const { return _array+_length; }
-    inline T* begin() { return _array; }
-    inline T* end() { return _array+_length; }
-    ST_ BSS_FASTCALL ReplaceData(ST_ index, constref data)
+    BSS_FORCEINLINE CT_ BSS_FASTCALL Insert(constref data) { CT_ loc = _insert(data); _array.Insert(data, loc); return loc; }
+    BSS_FORCEINLINE CT_ BSS_FASTCALL Insert(moveref data) { CT_ loc = _insert(std::move(data)); _array.Insert(std::move(data), loc); return loc; }
+    inline void Clear() { _array.Clear(); }
+    inline void BSS_FASTCALL Discard(unsigned int num) { _array.SetLength((num>_array.Length())?0:(_array.Length() - num)); }
+    BSS_FORCEINLINE bool Empty() const { return _array.Empty(); }
+    BSS_FORCEINLINE void BSS_FASTCALL Reserve(CT_ capacity) { _array.Reserve(capacity); }
+    BSS_FORCEINLINE CT_ Length() const { return _array.Length(); }
+    BSS_FORCEINLINE CT_ Capacity() const { return _capacity; }
+    inline const T& Front() const { return _array.Front(); }
+    inline T& Front() { return _array.Front(); }
+    inline const T& Back() const { return _array.Back(); }
+    inline T& Back() { return _array.Back(); }
+    inline const T* begin() const { return _array.begin(); }
+    inline const T* end() const { return _array.end(); }
+    inline T* begin() { return _array.begin(); }
+    inline T* end() { return _array.end(); }
+    CT_ BSS_FASTCALL ReplaceData(CT_ index, constref data)
     {
       T swap;
       _array[index]=data;
@@ -47,7 +48,7 @@ namespace bss_util {
         _array[index]=_array[index-1];
         _array[--index]=swap;
       }
-      while(index<(_length-1) && CFunc(_array[index+1], _array[index])<0)
+      while(index<(_array.Length()-1) && CFunc(_array[index+1], _array[index])<0)
       { //we do a swap here and hope that the compiler is smart enough to optimize it
         swap=_array[index];
         _array[index]=_array[index+1];
@@ -55,62 +56,45 @@ namespace bss_util {
       }
       return index;
     }
-    inline bool BSS_FASTCALL Remove(ST_ index)
+    inline bool BSS_FASTCALL Remove(CT_ index)
     {
-      if(index<0||index>=_length) return false;
-      AT_::RemoveInternal(index);
-      --_length;
+      if(index >= _array.Length()) return false;
+      _array.Remove(index);
       return true;
     }
-    BSS_FORCEINLINE void BSS_FASTCALL Expand(ST_ newsize)
+    BSS_FORCEINLINE CT_ BSS_FASTCALL Find(constref data) const
     {
-      AT_::SetSize(newsize);
-    }
-    BSS_FORCEINLINE ST_ BSS_FASTCALL Find(constref data) const
-    {
-      return binsearch_exact<T, T, ST_, CFunc>(_array, data, 0, _length);
+      return binsearch_exact<T, T, CT_, CFunc>(_array, data, 0, _array.Length());
     }
     // Can actually return -1 if there isn't anything in the array
-    inline ST_ BSS_FASTCALL FindNear(constref data, bool before=true) const
+    inline CT_ BSS_FASTCALL FindNear(constref data, bool before=true) const
     {
-      ST_ retval=before?binsearch_before<T, ST_, CFunc>(_array, _length, data):binsearch_after<T, ST_, CFunc>(_array, _length, data);
-      return (retval<_length)?retval:(ST_)(-1); // This is only needed for before=false in case it returns a value outside the range.
-    }
-    BSS_FORCEINLINE bool Empty() const { return !_length; }
-    BSS_FORCEINLINE ST_ Length() const { return _length; }
-    BSS_FORCEINLINE constref operator [](ST_ index) const { return _array[index]; }
-    BSS_FORCEINLINE T& operator [](ST_ index) { return _array[index]; }
-    inline cArraySort& operator=(const cArraySort& right)
-    {
-      AT_::operator=(right);
-      _length=right._length;
-      return *this;
-    }
-    inline cArraySort& operator=(cArraySort&& mov)
-    {
-      AT_::operator=(std::move(mov));
-      _length=mov._length;
-      return *this;
-    }
-  protected:
-    template<typename U>
-    ST_ BSS_FASTCALL _insert(U && data)
-    {
-      if(_length>=_size) Expand(fbnext(_size));
-      if(!_length) _array[_length++]=std::forward<U>(data);
-      else
-      {
-        ST_ loc;
-        if((*CFunc)(data, _array[0]) < 0) loc = 0;
-        else if((*CFunc)(data, _array[_length - 1]) >= 0) loc = _length;
-        else loc = binsearch_after<T, ST_, CFunc>(_array, _length, std::forward<U>(data));
-        AT_::_pushback(loc, (_length++)-loc, std::forward<U>(data));
-        return loc;
-      }
-      return 0;
+      CT_ retval=before?binsearch_before<T, CT_, CFunc>(_array, _array.Length(), data):binsearch_after<T, CT_, CFunc>(_array, _array.Length(), data);
+      return (retval<_array.Length())?retval:(CT_)(-1); // This is only needed for before=false in case it returns a value outside the range.
     }
 
-    ST_ _length; //How many slots are used
+    BSS_FORCEINLINE constref operator [](CT_ index) const { return _array[index]; }
+    BSS_FORCEINLINE T& operator [](CT_ index) { return _array[index]; }
+    inline cArraySort& operator=(const cArraySort& right) { _array = right._array; return *this; }
+    inline cArraySort& operator=(cArraySort&& mov) { _array = std::move(mov._array); return *this; }
+
+  protected:
+    template<typename U>
+    CT_ BSS_FASTCALL _insert(U && data)
+    {
+      if(_array.Empty())
+        return 0;
+      else
+      {
+        CT_ loc;
+        if((*CFunc)(data, _array[0]) < 0) loc = 0;
+        else if((*CFunc)(data, _array.Back()) >= 0) loc = _array.Length();
+        else loc = binsearch_after<T, CT_, CFunc>(_array, _array.Length(), std::forward<U>(data));
+        return loc;
+      }
+    }
+
+    cDynArray<T, CType, ArrayType, Alloc> _array;
   };
 }
 

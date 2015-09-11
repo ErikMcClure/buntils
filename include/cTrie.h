@@ -26,7 +26,7 @@ namespace bss_util {
     typedef cArrayBase<TRIE_NODE__<T>, T> BASE;
     typedef TRIE_NODE__<T> TNODE;
     using BASE::_array;
-    using BASE::_size;
+    using BASE::_capacity;
     typedef std::pair<T, const char*> PAIR;
 
   public:
@@ -111,7 +111,7 @@ namespace bss_util {
         _array[i].chr=0;
       }
     }
-    BSS_FORCEINLINE void BSS_FASTCALL _checksize(T r) { assert(r<(std::numeric_limits<T>::max()-2)); if(r>=_size) { T s=_size; BASE::SetSize(_size<<1); _fill(s, _size); } }
+    BSS_FORCEINLINE void BSS_FASTCALL _checksize(T r) { assert(r<(std::numeric_limits<T>::max()-2)); if(r>=_capacity) { T s=_capacity; BASE::SetCapacity(_capacity<<1); _fill(s, _capacity); } }
     T BSS_FASTCALL _init(T len, PAIR const* str, T cnt, T level)
     {
       T r=cnt-1;

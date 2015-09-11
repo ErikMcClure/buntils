@@ -22,7 +22,7 @@ namespace bss_util {
     inline void SetLoop(double loop = 0.0) { _loop = loop; }
     inline double GetLoop() const { return _loop; }
     inline size_t SizeOf() const { return _typesize; }
-    virtual unsigned int GetSize() const = 0;
+    virtual unsigned int GetCapacity() const = 0;
     virtual const void* GetArray() const = 0;
     virtual void* GetFunc() const = 0;
 
@@ -57,7 +57,7 @@ namespace bss_util {
     inline void Set(const PAIR* src, unsigned int len) { _pairs.SetArray(src, len); _calc = _pairs.Back().first; }
     inline const PAIR& Get(unsigned int index) const { return _pairs[index]; }
     inline bool Remove(unsigned int index) { return _pairs.Remove(index); }
-    virtual unsigned int GetSize() const { return _pairs.Length(); }
+    virtual unsigned int GetCapacity() const { return _pairs.Length(); }
     virtual const void* GetArray() const { return _pairs.begin(); }
     void SetFunc(FUNC f) { _f = f; }
     virtual void* GetFunc() const { return _f; }
@@ -163,7 +163,7 @@ namespace bss_util {
     virtual bool Interpolate(double delta)
     {
       _time += delta;
-      auto svar = _ani->GetSize();
+      auto svar = _ani->GetCapacity();
       auto v = (typename cAnimation<T>::PAIR*)_ani->GetArray();
       double loop = _ani->GetLoop();
       double length = _ani->GetLength();
@@ -199,7 +199,7 @@ namespace bss_util {
     virtual bool Interpolate(double delta)
     {
       _time += delta;
-      auto svar = _ani->GetSize();
+      auto svar = _ani->GetCapacity();
       auto v = (typename cAnimation<T>::PAIR*)_ani->GetArray();
       auto f = (typename cAnimation<T>::FUNC)_ani->GetFunc();
       double loop = _ani->GetLoop();
@@ -228,7 +228,7 @@ namespace bss_util {
     static inline T BSS_FASTCALL NoInterpolateRel(const typename cAnimation<T>::PAIR* v, unsigned int s, unsigned int cur, double t, const T& init) { assert(cur > 0); return init + v[cur - (t != 1.0)].value; }
     static inline T BSS_FASTCALL LerpInterpolate(const typename cAnimation<T>::PAIR* v, unsigned int s, unsigned int cur, double t, const T& init) { return lerp<T>(!cur ? init : v[cur - 1].second, v[cur].second, t); }
     static inline T BSS_FASTCALL LerpInterpolateRel(const typename cAnimation<T>::PAIR* v, unsigned int s, unsigned int cur, double t, const T& init) { assert(cur > 0); return init + lerp<T>(v[cur - 1].second, v[cur].second, t); }
-    static inline T BSS_FASTCALL CubicInterpolateRel(const typename cAnimation<T>::PAIR* v, unsigned int s, unsigned int cur, double t, const T& init) { assert(cur > 0); return init + CubicBSpline<T>(t, v[cur - 1 - (cur != 1)].second, v[cur - 1].second, v[cur].second, v[cur + ((cur + 1) != v.Size())].second); }
+    static inline T BSS_FASTCALL CubicInterpolateRel(const typename cAnimation<T>::PAIR* v, unsigned int s, unsigned int cur, double t, const T& init) { assert(cur > 0); return init + CubicBSpline<T>(t, v[cur - 1 - (cur != 1)].second, v[cur - 1].second, v[cur].second, v[cur + ((cur + 1) != v.Capacity())].second); }
     //static inline T BSS_FASTCALL QuadInterpolate(const PAIR* v, unsigned int s, unsigned int cur, double t, const T& init) {}
     //typedef T(BSS_FASTCALL *TIME_FNTYPE)(const TVT_ARRAY_T& a, IDTYPE i, double t); // VC++ 2010 can't handle this being in the template itself
     //template<TIME_FNTYPE FN, double(*TIME)(DATA&)>
@@ -250,7 +250,7 @@ namespace bss_util {
     virtual bool Interpolate(double delta)
     {
       _time += delta;
-      auto svar = _ani->GetSize();
+      auto svar = _ani->GetCapacity();
       auto v = (typename cAnimation<T>::PAIR*)_ani->GetArray();
       double loop = _ani->GetLoop();
       double length = _ani->GetLength();

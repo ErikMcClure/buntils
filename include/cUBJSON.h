@@ -236,10 +236,10 @@ namespace bss_util {
     static void F(T(&obj)[I], std::istream& s, char ty) { ParseUBJSONArray<T[I]>(obj, s, ty); }
   };
 
-  template<class T, typename SizeType, ARRAY_TYPE ArrayType, typename Alloc>
-  struct ParseUBJSONInternal<cDynArray<T, SizeType, ArrayType, Alloc>, false>
+  template<class T, typename CType, ARRAY_TYPE ArrayType, typename Alloc>
+  struct ParseUBJSONInternal<cDynArray<T, CType, ArrayType, Alloc>, false>
   {
-    static inline bool DoBulkRead(cDynArray<T, SizeType, ArrayType, Alloc>& obj, std::istream& s, __int64 count, char ty)
+    static inline bool DoBulkRead(cDynArray<T, CType, ArrayType, Alloc>& obj, std::istream& s, __int64 count, char ty)
     { 
       if((type != UBJSONTuple::TYPE_CHAR && type != UBJSONTuple::TYPE_UINT8 && type != UBJSONTuple::TYPE_INT8) || count%sizeof(T) != 0)
         return false;
@@ -248,11 +248,11 @@ namespace bss_util {
       s.read((char*)(T*)obj, count);
       return true;
     }
-    static inline void DoAddCall(cDynArray<T, SizeType, ArrayType, Alloc>& obj, std::istream& s, int& n, char ty) { obj.Add(T()); ParseUBJSON<T>(obj.Back(), s, ty); }
-    static void F(cDynArray<T, SizeType, ArrayType, Alloc>& obj, std::istream& s, char ty)
+    static inline void DoAddCall(cDynArray<T, CType, ArrayType, Alloc>& obj, std::istream& s, int& n, char ty) { obj.Add(T()); ParseUBJSON<T>(obj.Back(), s, ty); }
+    static void F(cDynArray<T, CType, ArrayType, Alloc>& obj, std::istream& s, char ty)
     {
       obj.Clear();
-      ParseUBJSONArray<cDynArray<T, SizeType, ArrayType, Alloc>>(obj, s, ty);
+      ParseUBJSONArray<cDynArray<T, CType, ArrayType, Alloc>>(obj, s, ty);
     }
   };
 
@@ -376,8 +376,8 @@ namespace bss_util {
   template<> struct WriteUBJSONType<const char*> { static const char t = UBJSONTuple::TYPE_STRING; };
   template<> struct WriteUBJSONType<std::string> { static const char t = UBJSONTuple::TYPE_STRING; };
   template<> struct WriteUBJSONType<cStr> { static const char t = UBJSONTuple::TYPE_STRING; };
-  template<class T, typename SizeType, ARRAY_TYPE ArrayType, typename Alloc>
-  struct WriteUBJSONType<cDynArray<T, SizeType, ArrayType, Alloc>> { static const char t = UBJSONTuple::TYPE_ARRAY; };
+  template<class T, typename CType, ARRAY_TYPE ArrayType, typename Alloc>
+  struct WriteUBJSONType<cDynArray<T, CType, ArrayType, Alloc>> { static const char t = UBJSONTuple::TYPE_ARRAY; };
   template<class T, typename Alloc>
   struct WriteUBJSONType<std::vector<T, Alloc>> { static const char t = UBJSONTuple::TYPE_ARRAY; };
   template<class T, int I> struct WriteUBJSONType<T[I]> { static const char t = UBJSONTuple::TYPE_ARRAY; };
@@ -411,10 +411,10 @@ namespace bss_util {
     }
   };
 
-  template<class T, typename SizeType, ARRAY_TYPE ArrayType, typename Alloc>
-  struct WriteUBJSONInternal<cDynArray<T, SizeType, ArrayType, Alloc>, false>
+  template<class T, typename CType, ARRAY_TYPE ArrayType, typename Alloc>
+  struct WriteUBJSONInternal<cDynArray<T, CType, ArrayType, Alloc>, false>
   {
-    static void F(const cDynArray<T, SizeType, ArrayType, Alloc>& obj, std::ostream& s, char ty)
+    static void F(const cDynArray<T, CType, ArrayType, Alloc>& obj, std::ostream& s, char ty)
     {
       if(!ty) s.put(UBJSONTuple::TYPE_ARRAY);
       WriteUBJSONArray<T>(obj, obj.Length(), s, WriteUBJSONType<T>::t);

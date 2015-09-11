@@ -38,6 +38,9 @@
 - delegate<T> can now accept a const T* pointer when referring to a constant member function.
 - Added missing operations to cRational
 - Added cPriorityHeap, a variation of cPriorityQueue that uses the key to keep track of each item's place in the heap, allowing item values to be adjusted.
+- cArray now uses Capacity() instead of Size()
+- cDynArray no longer initializes all potential members. Instead, it only constructs objects that were actually added, and immediately destructs removed objects. cArraySort, cArrayCircular and cBinaryHeap have all adopted this convention.
+- the PROF_HEATNODE allocator now correctly performs a reallocation.
 
 0.4.3
 -----

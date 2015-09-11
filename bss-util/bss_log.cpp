@@ -87,8 +87,8 @@ void cLog::ClearTargets()
 
 void BSS_FASTCALL cLog::SetLevel(unsigned char level, const char* str)
 {
-  if(_levels.Size()>=level)
-    _levels.SetSize(level+1);
+  if(_levels.Capacity()>=level)
+    _levels.SetCapacity(level+1);
   _levels[level]=str;
 }
 bool BSS_FASTCALL cLog::_writedatetime(long timez, std::ostream& log, bool timeonly)

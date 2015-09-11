@@ -101,32 +101,32 @@ namespace bss_util {
       ParseJSONEatWhitespace(s);
     }
   }
-  template<class T, typename SizeType, ARRAY_TYPE ArrayType, typename Alloc>
-  struct ParseJSONInternal<cDynArray<T, SizeType, ArrayType, Alloc>, false>
+  template<class T, typename CType, ARRAY_TYPE ArrayType, typename Alloc>
+  struct ParseJSONInternal<cDynArray<T, CType, ArrayType, Alloc>, false>
   {
-    static inline void DoAddCall(cDynArray<T, SizeType, ArrayType, Alloc>& obj, std::istream& s, int& n)
+    static inline void DoAddCall(cDynArray<T, CType, ArrayType, Alloc>& obj, std::istream& s, int& n)
     {
       obj.Add(T());
       ParseJSON<T>(obj.Back(), s);
     }
-    static void F(cDynArray<T, SizeType, ArrayType, Alloc>& obj, std::istream& s)
+    static void F(cDynArray<T, CType, ArrayType, Alloc>& obj, std::istream& s)
     {
       obj.Clear();
-      ParseJSONArray<cDynArray<T, SizeType, ArrayType, Alloc>>(obj, s);
+      ParseJSONArray<cDynArray<T, CType, ArrayType, Alloc>>(obj, s);
     }
   };
-  template<class T, typename SizeType, ARRAY_TYPE ArrayType, typename Alloc>
-  struct ParseJSONInternal<cArray<T, SizeType, ArrayType, Alloc>, false>
+  template<class T, typename CType, ARRAY_TYPE ArrayType, typename Alloc>
+  struct ParseJSONInternal<cArray<T, CType, ArrayType, Alloc>, false>
   {
-    static inline void DoAddCall(cArray<T, SizeType, ArrayType, Alloc>& obj, std::istream& s, int& n)
+    static inline void DoAddCall(cArray<T, CType, ArrayType, Alloc>& obj, std::istream& s, int& n)
     {
-      obj.SetSize(obj.Size() + 1);
+      obj.SetCapacity(obj.Capacity() + 1);
       ParseJSON<T>(obj.Back(), s);
     }
-    static void F(cArray<T, SizeType, ArrayType, Alloc>& obj, std::istream& s)
+    static void F(cArray<T, CType, ArrayType, Alloc>& obj, std::istream& s)
     {
-      obj.SetSizeDiscard(0);
-      ParseJSONArray<cArray<T, SizeType, ArrayType, Alloc>>(obj, s);
+      obj.SetCapacity(0);
+      ParseJSONArray<cArray<T, CType, ArrayType, Alloc>>(obj, s);
     }
   };
   template<class T, int I, bool B> // For fixed-length arrays
@@ -279,10 +279,10 @@ namespace bss_util {
   {
     static void F(const char* id, const T(&obj)[I], std::ostream& s, unsigned int& pretty) { WriteJSONArray<T>(id, obj, I, s, pretty); }
   };
-  template<class T, typename SizeType, ARRAY_TYPE ArrayType, typename Alloc>
-  struct WriteJSONInternal<cDynArray<T, SizeType, ArrayType, Alloc>, false>
+  template<class T, typename CType, ARRAY_TYPE ArrayType, typename Alloc>
+  struct WriteJSONInternal<cDynArray<T, CType, ArrayType, Alloc>, false>
   {
-    static void F(const char* id, const cDynArray<T, SizeType, ArrayType, Alloc>& obj, std::ostream& s, unsigned int& pretty) { WriteJSONArray<T>(id, obj, obj.Length(), s, pretty); }
+    static void F(const char* id, const cDynArray<T, CType, ArrayType, Alloc>& obj, std::ostream& s, unsigned int& pretty) { WriteJSONArray<T>(id, obj, obj.Length(), s, pretty); }
   };
   template<class T, typename Alloc>
   struct WriteJSONInternal<std::vector<T, Alloc>, false>

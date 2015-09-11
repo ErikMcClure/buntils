@@ -12,16 +12,16 @@
 namespace bss_util {
   // This is a simple ID hash intended for pointers, which can optionally be compressed to eliminate holes.
   template<typename T, typename ST=unsigned int, typename Alloc=StaticAllocPolicy<T>, T INVALID=0>
-  class cIDHash : protected cArrayBase<T, ST, CARRAY_SIMPLE, Alloc>
+  class cIDHash : protected cArrayBase<T, ST, Alloc>
   {
   protected:
-    using cArrayBase<T, ST, CARRAY_SIMPLE, Alloc>::_array;
-    using cArrayBase<T, ST, CARRAY_SIMPLE, Alloc>::_size;
+    using cArrayBase<T, ST, Alloc>::_array;
+    using cArrayBase<T, ST, Alloc>::_capacity;
 
   public:
-    cIDHash(const cIDHash& copy) : cArrayBase<T, ST, CARRAY_SIMPLE, Alloc>(copy), _max(copy._max), _length(copy._length), _freelist(copy._freelist) {}
-    cIDHash(cIDHash&& mov) : cArrayBase<T, ST, CARRAY_SIMPLE, Alloc>(std::move(mov)), _max(mov._max), _length(mov._length), _freelist(mov._freelist) {}
-    explicit cIDHash(ST reserve = 0) : cArrayBase<T, ST, CARRAY_SIMPLE, Alloc>(reserve), _max(0), _length(0), _freelist((ST)-1) { _fixfreelist(0); }
+    cIDHash(const cIDHash& copy) : cArrayBase<T, ST, Alloc>(copy._capacity), _max(copy._max), _length(copy._length), _freelist(copy._freelist) { memcpy(_array, copy._array, _capacity*sizeof(T)); }
+    cIDHash(cIDHash&& mov) : cArrayBase<T, ST, Alloc>(std::move(mov)), _max(mov._max), _length(mov._length), _freelist(mov._freelist) { mov._max = 0; mov._length = 0; mov._freelist = (ST)-1; }
+    explicit cIDHash(ST reserve = 0) : cArrayBase<T, ST, Alloc>(reserve), _max(0), _length(0), _freelist((ST)-1) { _fixfreelist(0); }
     virtual ~cIDHash() {}
     virtual ST Add(T item)
     {
@@ -56,7 +56,7 @@ namespace bss_util {
         _array[t]=INVALID;
       }
 
-      t=_size; // Run forwards until we hit a hole, then run backwards until we don't hit a hole, and swap the two
+      t=_capacity; // Run forwards until we hit a hole, then run backwards until we don't hit a hole, and swap the two
       for(ST i = 0; i < _length; ++i)
       {
         if(_array[i]!=INVALID) continue;
@@ -68,21 +68,21 @@ namespace bss_util {
       _max=_length-1; // Reset max value to one less than _length
     }
 
-    inline cIDHash& operator=(const cIDHash& copy) { cArrayBase<T, ST, CARRAY_SIMPLE, Alloc>::operator=(copy); _max=copy._max; _length=copy._length; _freelist=copy._freelist; return *this; }
-    inline cIDHash& operator=(cIDHash&& mov) { cArrayBase<T, ST, CARRAY_SIMPLE, Alloc>::operator=(std::move(mov)); _max=mov._max; _length=mov._length; _freelist=mov._freelist; return *this; }
+    inline cIDHash& operator=(const cIDHash& copy) { cArrayBase<T, ST, Alloc>::operator=(copy); _max=copy._max; _length=copy._length; _freelist=copy._freelist; return *this; }
+    inline cIDHash& operator=(cIDHash&& mov) { cArrayBase<T, ST, Alloc>::operator=(std::move(mov)); _max=mov._max; _length=mov._length; _freelist=mov._freelist; return *this; }
     inline T& operator[](ST id) { return _array[id]; }
     inline const T& operator[](ST id) const { return _array[id]; }
 
   protected:
     BSS_FORCEINLINE void _grow()
     {
-      ST oldsize=_size;
-      cArrayBase<T, ST, CARRAY_SIMPLE, Alloc>::SetSize(fbnext(_size));
+      ST oldsize=_capacity;
+      cArrayBase<T, ST, Alloc>::SetCapacity(fbnext(_capacity));
       _fixfreelist(oldsize);
     }
     inline void _fixfreelist(ST start)
     {
-      for(ST i = _size; (i--) > start;) // Add all the new items to the freelist
+      for(ST i = _capacity; (i--) > start;) // Add all the new items to the freelist
       {
         *((ST*)&_array[i])=_freelist;
         _freelist=i;
@@ -101,7 +101,7 @@ namespace bss_util {
   protected:
     typedef cIDHash<T, ST, Alloc, INVALID> BASE;
     using BASE::_array;
-    using BASE::_size;
+    using BASE::_capacity;
 
   public:
     cIDReverse(const cIDReverse& copy) : BASE(copy), _hash(copy._freelist) {}

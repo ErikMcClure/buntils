@@ -1619,7 +1619,7 @@ TESTDEF::RETPAIR test_ARRAYCIRCULAR()
 {
   BEGINTEST;
   cArrayCircular<int> a;
-  a.SetSize(25);
+  a.SetCapacity(25);
   TEST(a.Capacity()==25);
   for(int i = 0; i < 25; ++i)
     a.Push(i);
@@ -1636,7 +1636,7 @@ TESTDEF::RETPAIR test_ARRAYCIRCULAR()
     TEST(a[i]==(24-(i%25)));
   for(int i = 1; i < 50; ++i)
     TEST(a[-i]==((i-1)%25));
-  a.SetSize(26);
+  a.SetCapacity(26);
   for(int i = 0; i < 25; ++i)
     TEST(a[i]==(24-(i%25)));
   a.Push(25); //This should overwrite 0
@@ -1841,53 +1841,53 @@ TESTDEF::RETPAIR test_ARRAY()
   BEGINTEST;
 
   cArray<int> a(5);
-  TEST(a.Size()==5);
+  TEST(a.Capacity()==5);
   a.Insert(5,2);
-  TEST(a.Size()==6);
+  TEST(a.Capacity()==6);
   TEST(a[2]==5);
   a.Remove(1);
   TEST(a[1]==5);
-  a.SetSize(10);
+  a.SetCapacity(10);
   TEST(a[1]==5);
-  TEST(a.Size()==10);
+  TEST(a.Capacity()==10);
 
   {
-  cArray<int> e(0);
-  cArray<int> b(e);
-  b=e;
-  e.Insert(5,0);
-  e.Insert(4,0);
-  e.Insert(2,0);
-  e.Insert(3,1);
-  TEST(e.Size()==4);
-  int sol[] = { 2,3,4,5 };
-  TESTARRAY(sol,return e[i]==sol[i];);
-  cArray<int> c(0);
-  c=e;
-  TESTARRAY(sol,return c[i]==sol[i];);
-  cArray<int> d(0);
-  e=d;
-  TEST(!e.Size());
-  e+=d;
-  TEST(!e.Size());
-  e=c;
-  TESTARRAY(sol,return e[i]==sol[i];);
-  e+=d;
-  TESTARRAY(sol,return e[i]==sol[i];);
-  d+=c;
-  TESTARRAY(sol,return d[i]==sol[i];);
-  e+=c;
-  int sol2[] = { 2,3,4,5,2,3,4,5 };
-  TESTARRAY(sol,return e[i]==sol[i];);
+    cArray<int> e(0);
+    cArray<int> b(e);
+    b=e;
+    e.Insert(5,0);
+    e.Insert(4,0);
+    e.Insert(2,0);
+    e.Insert(3,1);
+    TEST(e.Capacity()==4);
+    int sol[] = { 2,3,4,5 };
+    TESTARRAY(sol,return e[i]==sol[i];);
+    cArray<int> c(0);
+    c=e;
+    TESTARRAY(sol,return c[i]==sol[i];);
+    cArray<int> d(0);
+    e=d;
+    TEST(!e.Capacity());
+    e+=d;
+    TEST(!e.Capacity());
+    e=c;
+    TESTARRAY(sol,return e[i]==sol[i];);
+    e+=d;
+    TESTARRAY(sol,return e[i]==sol[i];);
+    d+=c;
+    TESTARRAY(sol,return d[i]==sol[i];);
+    e+=c;
+    int sol2[] = { 2,3,4,5,2,3,4,5 };
+    TESTARRAY(sol,return e[i]==sol[i];);
   }
 
   auto f = [](cArray<DEBUG_CDT<true>, unsigned int, CARRAY_SAFE>& arr)->bool{
-    for(unsigned int i = 0; i < arr.Size(); ++i) 
+    for(unsigned int i = 0; i < arr.Capacity(); ++i) 
       if(arr[i]._index!=i) 
         return false; 
     return true; 
   };
-  auto f2 = [](cArray<DEBUG_CDT<true>, unsigned int, CARRAY_SAFE>& arr, unsigned int s){ for(unsigned int i = s; i < arr.Size(); ++i) arr[i]._index=i; };
+  auto f2 = [](cArray<DEBUG_CDT<true>, unsigned int, CARRAY_SAFE>& arr, unsigned int s){ for(unsigned int i = s; i < arr.Capacity(); ++i) arr[i]._index=i; };
   {
     DEBUG_CDT_SAFE<true>::_testret=&__testret;
     DEBUG_CDT<true>::count=0;
@@ -1895,15 +1895,15 @@ TESTDEF::RETPAIR test_ARRAY()
     f2(b,0);
     b.Remove(5);
     for(unsigned int i = 0; i < 5; ++i) TEST(b[i]._index==i);
-    for(unsigned int i = 5; i < b.Size(); ++i) TEST(b[i]._index==(i+1));
-    TEST(b.Size()==9);
+    for(unsigned int i = 5; i < b.Capacity(); ++i) TEST(b[i]._index==(i+1));
+    TEST(b.Capacity()==9);
     TEST(DEBUG_CDT<true>::count == 9);
     f2(b,0);
-    b.SetSize(19);
+    b.SetCapacity(19);
     f2(b,9);
     TEST(f(b));
     TEST(DEBUG_CDT<true>::count == 19);
-    TEST(b.Size()==19);
+    TEST(b.Capacity()==19);
     cArray<DEBUG_CDT<true>, unsigned int, CARRAY_SAFE> c(b);
     TEST(f(c));
     TEST(DEBUG_CDT<true>::count == 38);
@@ -1915,35 +1915,35 @@ TESTDEF::RETPAIR test_ARRAY()
     f2(b,0);
     b.Insert(DEBUG_CDT<true>(), 5);
     for(unsigned int i = 0; i < 5; ++i) TEST(b[i]._index==i);
-    for(unsigned int i = 6; i < b.Size(); ++i) TEST(b[i]._index==(i-1));
+    for(unsigned int i = 6; i < b.Capacity(); ++i) TEST(b[i]._index==(i-1));
     TEST(DEBUG_CDT<true>::count == 58);
-    b.Insert(DEBUG_CDT<true>(), b.Size());
+    b.Insert(DEBUG_CDT<true>(), b.Capacity());
     TEST(DEBUG_CDT<true>::count == 59);
   }
   TEST(!DEBUG_CDT<true>::count);
-  
+
   auto f3 = [](cArray<DEBUG_CDT<false>, unsigned int, CARRAY_CONSTRUCT>& arr)->bool{
-    for(unsigned int i = 0; i < arr.Size(); ++i) 
+    for(unsigned int i = 0; i < arr.Capacity(); ++i) 
       if(arr[i]._index!=i) 
         return false; 
     return true; 
   };
-  auto f4 = [](cArray<DEBUG_CDT<false>, unsigned int, CARRAY_CONSTRUCT>& arr, unsigned int s){ for(unsigned int i = s; i < arr.Size(); ++i) arr[i]._index=i; };
+  auto f4 = [](cArray<DEBUG_CDT<false>, unsigned int, CARRAY_CONSTRUCT>& arr, unsigned int s){ for(unsigned int i = s; i < arr.Capacity(); ++i) arr[i]._index=i; };
   {
     DEBUG_CDT<false>::count=0;
     cArray<DEBUG_CDT<false>, unsigned int, CARRAY_CONSTRUCT> b(10);
     f4(b,0);
     b.Remove(5);
     for(unsigned int i = 0; i < 5; ++i) TEST(b[i]._index==i);
-    for(unsigned int i = 5; i < b.Size(); ++i) TEST(b[i]._index==(i+1));
-    TEST(b.Size()==9);
+    for(unsigned int i = 5; i < b.Capacity(); ++i) TEST(b[i]._index==(i+1));
+    TEST(b.Capacity()==9);
     TEST(DEBUG_CDT<false>::count == 9);
     f4(b,0);
-    b.SetSize(19);
+    b.SetCapacity(19);
     f4(b,9);
     TEST(f3(b));
     TEST(DEBUG_CDT<false>::count == 19);
-    TEST(b.Size()==19);
+    TEST(b.Capacity()==19);
     cArray<DEBUG_CDT<false>, unsigned int, CARRAY_CONSTRUCT> c(b);
     TEST(f3(c));
     TEST(DEBUG_CDT<false>::count == 38);
@@ -1955,9 +1955,9 @@ TESTDEF::RETPAIR test_ARRAY()
     f4(b,0);
     b.Insert(DEBUG_CDT<false>(), 5);
     for(unsigned int i = 0; i < 5; ++i) TEST(b[i]._index==i);
-    for(unsigned int i = 6; i < b.Size(); ++i) TEST(b[i]._index==(i-1));
+    for(unsigned int i = 6; i < b.Capacity(); ++i) TEST(b[i]._index==(i-1));
     TEST(DEBUG_CDT<false>::count == 58);
-    b.Insert(DEBUG_CDT<false>(), b.Size());
+    b.Insert(DEBUG_CDT<false>(), b.Capacity());
     TEST(DEBUG_CDT<false>::count == 59);
   }
   TEST(!DEBUG_CDT<false>::count);
@@ -2260,7 +2260,7 @@ TESTDEF::RETPAIR test_BITARRAY()
   BEGINTEST;
   cBitArray<unsigned char> bits;
   bits.Clear();
-  bits.SetSize(7);
+  bits.SetCapacity(7);
   bits.SetBit(5,true);
   TEST(bits.GetRaw()[0]==32);
   TEST(bits.GetBits(0,6)==1);
@@ -2283,7 +2283,7 @@ TESTDEF::RETPAIR test_BITARRAY()
   bits-=2;
   TEST(bits.GetRaw()[0]==9);
   TEST(bits.GetBits(0,6)==2);
-  bits.SetSize(31);
+  bits.SetCapacity(31);
   TEST(bits.GetRaw()[0]==9);
   bits[20]=true;
   TEST(bits.GetRaw()[0]==9);
@@ -2443,6 +2443,20 @@ TESTDEF::RETPAIR test_BSS_QUEUE()
   TEST(q2.Peek()==7);
   q2=q;
   TEST(q2.Peek()==6);
+  q.Push(7);
+  q.Push(8);
+  q.Push(9);
+  q.Push(10);
+  q.Push(11);
+  q2 = q;
+  TEST(q2.Peek() == 6);
+  TEST(q2.Pop() == 6);
+  TEST(q2.Pop() == 7);
+  TEST(q2.Pop() == 8);
+  TEST(q2.Pop() == 9);
+  TEST(q2.Pop() == 10);
+  TEST(q2.Pop() == 11);
+  TEST(q2.Empty());
 
   ENDTEST;
 }
@@ -3237,7 +3251,7 @@ TESTDEF::RETPAIR test_DISJOINTSET()
   E[9].second=3;
   shuffle(E); // shuffle our edges
   auto tree = cDisjointSet<uint>::MinSpanningTree(5,std::begin(E),std::end(E));
-  TEST(tree.Size()==4);
+  TEST(tree.Capacity()==4);
   
   cDisjointSet<uint> s(5);
   s.Union(2,3);
@@ -3894,7 +3908,7 @@ TESTDEF::RETPAIR test_HASH()
     cHash<const char*, cLog*, true> hasher;
     hasher.Insert("", &_failedtests);
     hasher.Insert("Video", (cLog*)5);
-    hasher.SetSize(100);
+    hasher.SetCapacity(100);
     hasher.Insert("Physics", 0);
     cLog* check = hasher.Get("Video");
     TEST(check == (cLog*)5);

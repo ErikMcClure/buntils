@@ -10,24 +10,24 @@
 namespace bss_util {
   // Represents a disjoint set data structure that uses path compression.
   template<typename T = unsigned int, typename ALLOC = StaticAllocPolicy<typename std::make_signed<T>::type>>
-  class BSS_COMPILER_DLLEXPORT cDisjointSet : protected cArrayBase<typename std::make_signed<T>::type, T, CARRAY_SIMPLE, ALLOC>
+  class BSS_COMPILER_DLLEXPORT cDisjointSet : protected cArrayBase<typename std::make_signed<T>::type, T, ALLOC>
   {
   protected:
-    typedef cArrayBase<typename std::make_signed<T>::type, T, CARRAY_SIMPLE, ALLOC> ARRAY;
+    typedef cArrayBase<typename std::make_signed<T>::type, T, ALLOC> ARRAY;
     typedef typename ARRAY::T_ T_;
     using ARRAY::_array;
-    using ARRAY::_size;
+    using ARRAY::_capacity;
 
   public:
     // Construct a disjoint set with num initial sets
-    inline cDisjointSet(const cDisjointSet& copy) : ARRAY(copy), _numsets(copy._numsets) {}
-    inline cDisjointSet(cDisjointSet&& mov) : ARRAY(std::move(mov)), _numsets(mov._numsets) {}
+    inline cDisjointSet(const cDisjointSet& copy) : ARRAY(copy.Capacity()), _numsets(copy._numsets) { memcpy(_array, copy._array, _capacity); }
+    inline cDisjointSet(cDisjointSet&& mov) : ARRAY(std::move(mov)), _numsets(mov._numsets) { mov._numsets = 0;  }
     inline explicit cDisjointSet(T num) : ARRAY(num) { Reset(); }
     inline cDisjointSet(T_* overload, T num) : ARRAY(0) { // This let's you use an outside array
       int v = std::is_same<ALLOC,StaticNullPolicy<T_>>::value;
       assert(v!=0); //You must use StaticNullPolicy if you overload the array pointer
       _array=overload; 
-      _size=num;
+      _capacity=num;
       Reset();
     } 
     // Union (combine) two disjoint sets into one set. Returns false if set1 or set2 aren't set names.
@@ -54,7 +54,7 @@ namespace bss_util {
     // Returns the set name that x belongs to.
     inline T_ BSS_FASTCALL Find(T x) 
     {
-      assert(x < _size);
+      assert(x < _capacity);
       
       T_ r = x;
       while(_array[r] >= 0) r = _array[r]; // Find set name x belongs to
@@ -72,24 +72,24 @@ namespace bss_util {
       return r;
     }
 
-    inline T Length() const { return _size; }
+    inline T Length() const { return _capacity; }
     inline T NumSets() const { return _numsets; }
     // Returns true if x is a valid set name
-    inline bool IsSetName(T x) { return x<_size && _array[x]<0; }
+    inline bool IsSetName(T x) { return x<_capacity && _array[x]<0; }
     // Returns the number of elements in a given set. Returns -1 on failure.
-    inline T NumElements(T set) { if(set>=_size) return -1; return -_array[Find(set)]; } // Number of elements is simply the weight of the root node
+    inline T NumElements(T set) { if(set>=_capacity) return -1; return -_array[Find(set)]; } // Number of elements is simply the weight of the root node
     // Adds n elements to the disjoint set.
     inline void AddSets(T n)
     {
-      T i=_size;
-      SetSize(_size+n);
-      for(;i<_size;++i) _array[i] = -1;
+      T i=_capacity;
+      SetCapacity(_capacity+n);
+      for(;i<_capacity;++i) _array[i] = -1;
     }
     // Resets the disjoint set
     inline void Reset()
     {
-      ARRAY::Scrub(-1); // Initialize all sets to be root nodes of trees of size 1
-      _numsets=_size;
+      memset(_array, -1, sizeof(T)*_capacity); // Initialize all sets to be root nodes of trees of size 1
+      _numsets=_capacity;
     }
 
     // Returns an array containing the elements in the given set.
@@ -110,7 +110,7 @@ namespace bss_util {
       set=Find(set); // Get the root element of our set
       T j = 0;
     
-      for(T i = 0; i < _size; ++i) 
+      for(T i = 0; i < _capacity; ++i) 
       {
         if(Find(i) == set) // Does this element belong to our set?
           target[j++] = i; // If so, add it
@@ -123,7 +123,7 @@ namespace bss_util {
     inline static cArray<std::pair<T,T>,T> BSS_FASTCALL MinSpanningTree(T numverts, ITER edges, ITER edgeslast)
     {
       cArray<std::pair<T, T>, T> ret(numverts-1); // A nice result in combinatorics tells us that all trees have exactly n-1 edges.
-      ret.SetSize(MinSpanningTree(numverts,edges,edgeslast,ret)); // This will always be <= n-1 so the SetSize is basically free.
+      ret.SetCapacity(MinSpanningTree(numverts,edges,edgeslast,ret)); // This will always be <= n-1 so the SetCapacity is basically free.
       return ret;
     }
 
@@ -149,8 +149,11 @@ namespace bss_util {
       return num; // If the edges are disconnected it'll return a forest of minimum spanning trees with a number of edges less than n-1.
     }
 
+    inline cDisjointSet& operator=(const cDisjointSet& copy) { SetCapacityDiscard(copy._capacity); memcpy(_array, copy._array, _capacity*sizeof(T)); _numsets = copy._numsets; return *this; }
+    inline cDisjointSet& operator=(cDisjointSet&& mov) { AT_::operator=(std::move(mov)); _numsets = copy._numsets; return *this; }
+
   protected:
-    BSS_FORCEINLINE bool _invalidindex(T s) const { return s >= _size || _array[s] >= 0; }
+    BSS_FORCEINLINE bool _invalidindex(T s) const { return s >= _capacity || _array[s] >= 0; }
 
     T _numsets;
   };

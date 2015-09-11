@@ -15,8 +15,19 @@ namespace bss_util {
   {
     struct BSS_COMPILER_DLLEXPORT HeatAllocPolicy {
       static cGreedyAlloc _alloc;
-      inline static PROF_HEATNODE* allocate(size_t cnt, const PROF_HEATNODE* p = 0) { return _alloc.allocT<PROF_HEATNODE>(cnt); }
-      inline static void deallocate(PROF_HEATNODE* p, size_t = 0) { _alloc.dealloc(p); }
+      inline static PROF_HEATNODE* allocate(size_t cnt, const PROF_HEATNODE* p = 0)
+      { 
+        auto n = _alloc.allocT<PROF_HEATNODE>(cnt + 1);
+        *((size_t*)n++) = cnt;
+        if(p)
+        {
+          size_t l = *((size_t*)(p - 1));
+          memcpy(n, p, l*sizeof(PROF_HEATNODE));
+          deallocate(const_cast<PROF_HEATNODE*>(p));
+        }
+
+        return n;
+      } static void deallocate(PROF_HEATNODE* p, size_t = 0) { _alloc.dealloc(p-1); }
     };
     static inline char COMP(const PROF_HEATNODE& l, const PROF_HEATNODE& r) { return SGNCOMPARE(r.avg, l.avg); }
 
@@ -42,8 +53,8 @@ Profiler::Profiler() : _alloc(32), _data(1), _totalnodes(0) { _trie=_cur=_allocn
 
 void Profiler::AddData(PROFILER_INT id, ProfilerData* p)
 {
-  if(_data.Size()<=id)
-    _data.SetSize(id+1);
+  if(_data.Capacity()<=id)
+    _data.SetCapacity(id+1);
   _data[id]=p;
 }
 void Profiler::WriteToFile(const char* s, unsigned char output)
@@ -70,10 +81,10 @@ void Profiler::WriteToStream(std::ostream& stream, unsigned char output)
   if(output|OUTPUT_FLAT)
   {
     stream << "BSS Profiler Flat Output: " << std::endl;
-    PROF_FLATOUT* avg = (PROF_FLATOUT*)calloc(_data.Size(), sizeof(PROF_FLATOUT));
+    PROF_FLATOUT* avg = (PROF_FLATOUT*)calloc(_data.Capacity(), sizeof(PROF_FLATOUT));
     _flatout(avg,  _trie, 0, 0);
-    std::sort(avg+1, avg+_data.Size(), [](const PROF_FLATOUT& l, const PROF_FLATOUT& r) -> bool { return l.avg>r.avg; });
-    for(PROFILER_INT i = 1; i < _data.Size(); ++i)
+    std::sort(avg+1, avg+_data.Capacity(), [](const PROF_FLATOUT& l, const PROF_FLATOUT& r) -> bool { return l.avg>r.avg; });
+    for(PROFILER_INT i = 1; i < _data.Capacity(); ++i)
     {
       stream << '[' << _trimpath(_data[i]->file) << ':' << _data[i]->line << "] " << _data[i]->name << ": ";
       _timeformat(stream, avg[i].avg, avg[i].var, avg[i].total);

@@ -8,17 +8,17 @@
 
 namespace bss_util {
   // Fast, tiny circular array-based queue. Pop and Peek are only valid if there is an item in the stack; this check must be done by the user.
-  template<class T, typename SizeType=int, ARRAY_TYPE ArrayType = CARRAY_SIMPLE, typename Alloc=StaticAllocPolicy<T>>
-  class BSS_COMPILER_DLLEXPORT cQueue : protected cArrayCircular<T, SizeType, ArrayType, Alloc>
+  template<class T, typename CType=int, ARRAY_TYPE ArrayType = CARRAY_SIMPLE, typename Alloc=StaticAllocPolicy<T>>
+  class BSS_COMPILER_DLLEXPORT cQueue : protected cArrayCircular<T, CType, ArrayType, Alloc>
   {
   protected:
-    typedef cArrayCircular<T, SizeType, ArrayType, Alloc> BASE;
+    typedef cArrayCircular<T, CType, ArrayType, Alloc> BASE;
     using BASE::_length;
 
   public:
     inline cQueue(const cQueue& copy) : BASE(copy) {}
     inline cQueue(cQueue&& mov) : BASE(std::move(mov)) {}
-    inline explicit cQueue(SizeType init=0) : BASE(init) {}
+    inline explicit cQueue(CType init=0) : BASE(init) {}
     inline ~cQueue() {}
     // Pushes a value into the queue in FIFO order.
     BSS_FORCEINLINE void BSS_FASTCALL Push(const T& value) { _push<const T&>(value); }
@@ -33,16 +33,16 @@ namespace bss_util {
     BSS_FORCEINLINE bool Empty() { return !_length; }
     BSS_FORCEINLINE void Clear() { BASE::Clear(); }
     // Returns the underlying capacity of the circular array
-    BSS_FORCEINLINE SizeType Capacity() const { return BASE::Capacity(); }
+    BSS_FORCEINLINE CType Capacity() const { return BASE::Capacity(); }
     // Returns how many items are currently in the queue. Calling Pop or Peek when this is 0 is illegal.
-    BSS_FORCEINLINE SizeType Length() const { return _length; }
+    BSS_FORCEINLINE CType Length() const { return _length; }
 
     inline cQueue& operator=(const cQueue& copy) { BASE::operator=(copy); return *this; }
     inline cQueue& operator=(cQueue&& mov) { BASE::operator=(std::move(mov)); return *this; }
 
   protected:
     template<typename U>
-    void BSS_FASTCALL _push(U && value) { if(_length>=BASE::_size) BASE::SetSize(T_FBNEXT(_length)); BASE::_push(std::forward<U>(value)); }
+    void BSS_FASTCALL _push(U && value) { if(_length>=BASE::_capacity) BASE::SetCapacity(T_FBNEXT(_length)); BASE::_push(std::forward<U>(value)); }
   };
 }
 

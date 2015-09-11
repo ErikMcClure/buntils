@@ -87,7 +87,7 @@ cINIstorage::_NODE* cINIstorage::GetSectionNode(const char* section, unsigned in
   _NODE* n = _sections[section];
   if(!n) return 0;
   if(!instance) return n;
-  return (instance>n->instances.Size())?0:(n->instances[instance-1]);
+  return (instance>n->instances.Capacity())?0:(n->instances[instance-1]);
 }
 cINIsection* cINIstorage::GetSection(const char* section, unsigned int instance) const
 {
@@ -98,7 +98,7 @@ unsigned int cINIstorage::GetNumSections(const char* section) const
 {
   _NODE* n = _sections[section];
   if(!n) return 0;
-  return n->instances.Size()+1;
+  return n->instances.Capacity()+1;
 }
 cINIentry* cINIstorage::GetEntryPtr(const char *section, const char* key, unsigned int keyinstance, unsigned int secinstance) const
 {
@@ -151,10 +151,10 @@ cINIsection* cINIstorage::_addsection(const char* name)
   } else {
     assert(_last!=0 && _root!=0);
     _NODE* r=_sections.UnsafeValue(iter);
-    _NODE* t=!r->instances.Size()?r:r->instances.Back();
+    _NODE* t=!r->instances.Capacity()?r:r->instances.Back();
     LLInsertAfter(p,t,_last);
-    r->instances.Insert(p,r->instances.Size());
-    new (&p->val) cINIsection(name,this,r->instances.Size()); // done down here because the index is actually where it is in the array + 1.
+    r->instances.Insert(p,r->instances.Capacity());
+    new (&p->val) cINIsection(name,this,r->instances.Capacity()); // done down here because the index is actually where it is in the array + 1.
   }
 
   return &p->val;
@@ -169,8 +169,8 @@ cINIsection* cINIstorage::_addsection(const char* name)
     return ((*arr)+0);
   } else {
     arr=_sections[iter];
-    unsigned int index=arr->Size();
-    arr->SetSize(index+1);
+    unsigned int index=arr->Capacity();
+    arr->SetCapacity(index+1);
     new ((*arr)+index) cINIsection(name,this,index);
     _sections.SetKey(iter,(*arr)[0].GetName()); //the key pointer gets corrupted when we resize the array
     return ((*arr)+index);
@@ -188,12 +188,12 @@ bool cINIstorage::RemoveSection(const char* name, unsigned int instance)
   {
     _NODE* secnode=_sections.UnsafeValue(iter);
     _NODE* secroot=secnode;
-    if(instance>secnode->instances.Size()) return false; //if keyinstance is not valid, fail
+    if(instance>secnode->instances.Capacity()) return false; //if keyinstance is not valid, fail
     if(instance!=0)
       secnode=secnode->instances[instance-1];
 
     // If you are deleting a root node that has danglers, we just replace the root with one of the danglers and transform it into a dangler case.
-    if(!instance && secnode->instances.Size()>0)
+    if(!instance && secnode->instances.Capacity()>0)
     {
       instance=1;
       secnode->val=std::move(secnode->next->val);
@@ -206,7 +206,7 @@ bool cINIstorage::RemoveSection(const char* name, unsigned int instance)
       _sections.RemoveIter(iter);
     else { // Otherwise you are a dangler, so all we have to do is remove you from the instances array
       secroot->instances.Remove(--instance); // we decrement instance here so its valid in the below for loop
-      for(;instance<secroot->instances.Size();++instance) --secroot->instances[instance]->val._index; //moves all the indices down
+      for(;instance<secroot->instances.Capacity();++instance) --secroot->instances[instance]->val._index; //moves all the indices down
     }
 
     secnode->~_NODE(); // Calling this destructor is important in case the node has an unused array that needs to be freed
@@ -214,10 +214,10 @@ bool cINIstorage::RemoveSection(const char* name, unsigned int instance)
     _ini->erase((const char*)chunk.start-_ini->c_str(),((const char*)chunk.end-(const char*)chunk.start)+1);
 
     /*arr=_sections[iter];
-    if(instance>=arr->Size()) return false;
+    if(instance>=arr->Capacity()) return false;
     _ini->erase((const char*)chunk.start-_ini->c_str(),((const char*)chunk.end-(const char*)chunk.start)+1);
     ((*arr)+instance)->~cINIsection();
-    if(arr->Size()==1) //this is the last one in the group
+    if(arr->Capacity()==1) //this is the last one in the group
     {
       delete arr;
       _sections.RemoveIterator(iter);
@@ -226,7 +226,7 @@ bool cINIstorage::RemoveSection(const char* name, unsigned int instance)
     {
       arr->Remove(instance);
       if(!instance) _sections.SetKey(iter,(*arr)[0].GetName());
-      unsigned int svar=arr->Size();
+      unsigned int svar=arr->Capacity();
       for(;instance<svar;++instance) --(*arr)[instance]._index; //moves all the indices down
     }*/
 
@@ -244,8 +244,8 @@ char cINIstorage::EditEntry(const char* section, const char* key, const char* nv
   khiter_t iter = _sections.Iterator(section);
   if(iter==_sections.End()) return -1; //if it doesn't exist at this point, fail
   _NODE* secnode=_sections.UnsafeValue(iter);
-  //if(secinstance==(unsigned int)-1) secinstance=secnode->instances.Size()-1; //This is now done at the start of the function
-  if(secinstance>secnode->instances.Size()) return -2; //if secinstance is not valid, fail
+  //if(secinstance==(unsigned int)-1) secinstance=secnode->instances.Capacity()-1; //This is now done at the start of the function
+  if(secinstance>secnode->instances.Capacity()) return -2; //if secinstance is not valid, fail
   if(secinstance>0)
     secnode=secnode->instances[secinstance-1];
 
@@ -276,7 +276,7 @@ char cINIstorage::EditEntry(const char* section, const char* key, const char* nv
   if(iter==psec->_entries.End()) return -4; //if key doesn't exist at this point, fail
   _SNODE* entnode=psec->_entries.UnsafeValue(iter);
   _SNODE* entroot=entnode;
-  if(keyinstance>entnode->instances.Size()) return -5; //if keyinstance is not valid, fail
+  if(keyinstance>entnode->instances.Capacity()) return -5; //if keyinstance is not valid, fail
   if(keyinstance!=0)
     entnode=entnode->instances[keyinstance-1];
   chunk=bss_findINIentry(chunk,key,keyinstance);
@@ -285,7 +285,7 @@ char cINIstorage::EditEntry(const char* section, const char* key, const char* nv
   if(!nvalue) //deletion
   {
     // If you are deleting a root node that has danglers, we just replace the root with one of the danglers and transform it into a dangler case.
-    if(!keyinstance && entnode->instances.Size()>0)
+    if(!keyinstance && entnode->instances.Capacity()>0)
     {
       keyinstance=1;
       entnode->val=std::move(entnode->next->val);
@@ -398,14 +398,14 @@ void cINIstorage::_copy(const cINIstorage& copy)
     else
       _last=LLAddAfter(p,_last);
 
-    if(t->instances.Size()!=0) {
+    if(t->instances.Capacity()!=0) {
       _sections.Insert(p->val.GetName(),p);
-      p->instances.SetSize(c=t->instances.Size());
+      p->instances.SetCapacity(c=t->instances.Capacity());
       last=t;
       --c;
     } else if(c>0) {
       assert(last!=0);
-      last->instances[last->instances.Size()-(c--)-1]=p; //This never goes negative because c>0 and is therefore at least 1
+      last->instances[last->instances.Capacity()-(c--)-1]=p; //This never goes negative because c>0 and is therefore at least 1
     } else
       _sections.Insert(p->val.GetName(),p);
 
@@ -463,7 +463,7 @@ void cINIstorage<wchar_t>::_openINI()
   _ini->resize(size);
   UTF8Decode2BytesUnicode(buf,_ini->UnsafeString());
   _ini->UnsafeString()[size]='\0';
-  _ini->RecalcSize();
+  _ini->RecalcCapacity();
   fclose(f);
 }*/
 

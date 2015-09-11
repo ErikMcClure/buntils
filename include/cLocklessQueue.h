@@ -17,19 +17,19 @@ namespace bss_util {
   };
 
   // Internal class used to toggle whether or not the queue stores and updates a length value.
-  template<typename ST_>
+  template<typename CT_>
   struct i_LocklessQueue_Length
   { 
     inline i_LocklessQueue_Length(const i_LocklessQueue_Length& copy) : _length(copy._length.load(std::memory_order_relaxed)) { }
     inline i_LocklessQueue_Length() : _length(0) { }
-    inline ST_ Length() const { return _length; }
+    inline CT_ Length() const { return _length; }
 
     i_LocklessQueue_Length& operator=(const i_LocklessQueue_Length& copy) { _length.store(copy._length.load(std::memory_order_relaxed), std::memory_order_relaxed); return *this; }
 
   protected:
     BSS_FORCEINLINE void _inclength() { _length.fetch_add(1); }
-    BSS_FORCEINLINE void _declength() { _length.fetch_add((ST_)-1); }
-    std::atomic<ST_> _length; 
+    BSS_FORCEINLINE void _declength() { _length.fetch_add((CT_)-1); }
+    std::atomic<CT_> _length; 
   };
   template<>
   struct i_LocklessQueue_Length<void>

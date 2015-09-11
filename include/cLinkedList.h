@@ -39,14 +39,14 @@ namespace bss_util {
   // Adaptive class template for Size usage
   template<bool size> struct cLList_SIZE {};
   template<> struct cLList_SIZE<true> { 
-    inline unsigned int Length() const { return _size; }
+    inline unsigned int Length() const { return _length; }
 
   protected:    
-    unsigned int _size;
-    inline void _incsize() { ++_size; }
-    inline void _decsize() { --_size; }
-    inline void _zerosize() { _size=0; } 
-    cLList_SIZE() : _size(0) {}
+    unsigned int _length;
+    inline void _incsize() { ++_length; }
+    inline void _decsize() { --_length; }
+    inline void _zerosize() { _length=0; } 
+    cLList_SIZE() : _length(0) {}
   };
   template<> struct cLList_SIZE<false> { inline void _incsize() { } inline void _decsize() { } inline void _zerosize() { } };
   
@@ -104,7 +104,7 @@ namespace bss_util {
     cLLNode<T>* _root;
   };
 
-  // Doubly linked list implementation with _root, optional _last and an optional _size
+  // Doubly linked list implementation with _root, optional _last and an optional _length
   template<typename T, typename Alloc = StandardAllocPolicy<cLLNode<T>>, bool useLast = false, bool useSize = false>
   class BSS_COMPILER_DLLEXPORT cLinkedList : protected cAllocTracker<Alloc>, public cLList_SIZE<useSize>, public cLList_LAST<T,useLast>
   {

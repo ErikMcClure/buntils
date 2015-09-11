@@ -57,14 +57,14 @@ void cINIsection::_copy(const cINIsection& copy)
     else
       _last=LLAddAfter(p,_last);
 
-    if(t->instances.Size()!=0) {
+    if(t->instances.Capacity()!=0) {
       _entries.Insert(p->val.GetKey(),p);
-      p->instances.SetSize(c=t->instances.Size());
+      p->instances.SetCapacity(c=t->instances.Capacity());
       last=t;
       --c;
     } else if(c>0) {
       assert(last!=0);
-      last->instances[last->instances.Size()-(c--)-1]=p; //This never goes negative because c>0 and is therefore at least 1
+      last->instances[last->instances.Capacity()-(c--)-1]=p; //This never goes negative because c>0 and is therefore at least 1
     } else
       _entries.Insert(p->val.GetKey(),p);
 
@@ -89,9 +89,9 @@ void cINIsection::_addentry(const char* key, const char* data)
   } else {
     assert(_last!=0 && _root!=0);
     _NODE* r=_entries.UnsafeValue(iter);
-    _NODE* t=!r->instances.Size()?r:r->instances.Back();
+    _NODE* t=!r->instances.Capacity()?r:r->instances.Back();
     LLInsertAfter(p,t,_last);
-    r->instances.Insert(p,r->instances.Size());
+    r->instances.Insert(p,r->instances.Capacity());
   }
 }
 
@@ -126,7 +126,7 @@ cINIsection::_NODE* cINIsection::GetEntryNode(const char* key, unsigned int inst
   _NODE* n = _entries[key];
   if(!n) return 0;
   if(!instance) return n;
-  return (instance>n->instances.Size())?0:(n->instances[instance-1]);
+  return (instance>n->instances.Capacity())?0:(n->instances[instance-1]);
 }
 
 cINIentry* cINIsection::GetEntryPtr(const char* key, unsigned int instance) const
@@ -139,7 +139,7 @@ unsigned int cINIsection::GetNumEntries(const char* key) const
 {
   _NODE* n = _entries[key];
   if(!n) return 0;
-  return n->instances.Size()+1;
+  return n->instances.Capacity()+1;
 }
 
 cINIentry& cINIsection::GetEntry(const char* key, unsigned int instance) const

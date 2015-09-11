@@ -577,19 +577,19 @@ namespace bss_util {
   }
 
   // Average aggregation without requiring a total variable that can overflow. Nextnum should be the current avg count incremented by 1.
-  template<typename T, typename ST_> // T must be float or double, ST_ must be integral
-  BSS_FORCEINLINE static T BSS_FASTCALL bssavg(T curavg, T nvalue, ST_ nextnum)
+  template<typename T, typename CT_> // T must be float or double, CT_ must be integral
+  BSS_FORCEINLINE static T BSS_FASTCALL bssavg(T curavg, T nvalue, CT_ nextnum)
   { // USAGE: avg = bssavg<double, int>(avg, value, ++total);
-    static_assert(std::is_integral<ST_>::value,"ST_ must be integral");
+    static_assert(std::is_integral<CT_>::value,"CT_ must be integral");
     static_assert(std::is_floating_point<T>::value,"T must be float, double, or long double");
     return curavg + ((nvalue-curavg)/(T)nextnum);
   }
 
   // Sum of squares of differences aggregation using an algorithm by Knuth. Nextnum should be the current avg count incremented by 1.
-  template<typename T, typename ST_> // T must be float or double, ST_ must be integral
-  BSS_FORCEINLINE static void BSS_FASTCALL bssvariance(T& curvariance, T& avg, T nvalue, ST_ nextnum)
+  template<typename T, typename CT_> // T must be float or double, CT_ must be integral
+  BSS_FORCEINLINE static void BSS_FASTCALL bssvariance(T& curvariance, T& avg, T nvalue, CT_ nextnum)
   { // USAGE: bssvariance<double, int>(variance, avg, value, ++total); Then use sqrt(variance/(n-1)) to get the actual standard deviation
-    static_assert(std::is_integral<ST_>::value, "ST_ must be integral");
+    static_assert(std::is_integral<CT_>::value, "CT_ must be integral");
     static_assert(std::is_floating_point<T>::value, "T must be float, double, or long double");
     T delta = nvalue - avg;
     avg += delta/(T)nvalue;

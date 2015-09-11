@@ -20,12 +20,12 @@
 
 namespace bss_util {
   // Performs a binary search on "arr" between first and last. if CEQ=NEQ and char CVAL=-1, uses an upper bound, otherwise uses lower bound.
-  template<typename T, typename D, typename ST_, char(*CFunc)(const D&, const T&), char(*CEQ)(const char&, const char&), char CVAL>
-  inline static ST_ BSS_FASTCALL binsearch_near(const T* arr, const D& data, ST_ first, ST_ last)
+  template<typename T, typename D, typename CT_, char(*CFunc)(const D&, const T&), char(*CEQ)(const char&, const char&), char CVAL>
+  inline static CT_ BSS_FASTCALL binsearch_near(const T* arr, const D& data, CT_ first, CT_ last)
   {
-    typename std::make_signed<ST_>::type c = last-first; // Must be a signed version of whatever ST_ is
-    ST_ c2; //No possible operation can make this negative so we leave it as possibly unsigned.
-    ST_ m;
+    typename std::make_signed<CT_>::type c = last-first; // Must be a signed version of whatever CT_ is
+    CT_ c2; //No possible operation can make this negative so we leave it as possibly unsigned.
+    CT_ m;
     while(c>0)
     {
       c2 = (c>>1);
@@ -42,31 +42,31 @@ namespace bss_util {
     return first;
   }
   // Either gets the element that matches the value in question or one immediately before the closest match. Could return an invalid -1 value.
-  template<typename T, typename ST_, char(*CFunc)(const T&, const T&)>
-  BSS_FORCEINLINE static ST_ BSS_FASTCALL binsearch_before(const T* arr, const T& data, ST_ first, ST_ last) { return binsearch_near<T, T, ST_, CFunc, CompT_NEQ<char>, -1>(arr, data, first, last)-1; }
+  template<typename T, typename CT_, char(*CFunc)(const T&, const T&)>
+  BSS_FORCEINLINE static CT_ BSS_FASTCALL binsearch_before(const T* arr, const T& data, CT_ first, CT_ last) { return binsearch_near<T, T, CT_, CFunc, CompT_NEQ<char>, -1>(arr, data, first, last)-1; }
 
-  template<typename T, typename ST_, char(*CFunc)(const T&, const T&)>
-  BSS_FORCEINLINE static ST_ BSS_FASTCALL binsearch_before(const T* arr, ST_ length, const T& data) { return binsearch_near<T, T, ST_, CFunc, CompT_NEQ<char>, -1>(arr, data, 0, length)-1; }
+  template<typename T, typename CT_, char(*CFunc)(const T&, const T&)>
+  BSS_FORCEINLINE static CT_ BSS_FASTCALL binsearch_before(const T* arr, CT_ length, const T& data) { return binsearch_near<T, T, CT_, CFunc, CompT_NEQ<char>, -1>(arr, data, 0, length)-1; }
 
-  template<typename T, typename ST_, char(*CFunc)(const T&, const T&), ST_ I>
-  BSS_FORCEINLINE static ST_ BSS_FASTCALL binsearch_before(const T(&arr)[I], const T& data) { return binsearch_before<T, ST_, CFunc>(arr, I, data); }
+  template<typename T, typename CT_, char(*CFunc)(const T&, const T&), CT_ I>
+  BSS_FORCEINLINE static CT_ BSS_FASTCALL binsearch_before(const T(&arr)[I], const T& data) { return binsearch_before<T, CT_, CFunc>(arr, I, data); }
 
   // Either gets the element that matches the value in question or one immediately after the closest match.
-  template<typename T, typename ST_, char(*CFunc)(const T&, const T&)>
-  BSS_FORCEINLINE static ST_ BSS_FASTCALL binsearch_after(const T* arr, const T& data, ST_ first, ST_ last) { return binsearch_near<T, T, ST_, CFunc, CompT_EQ<char>, 1>(arr, data, first, last); }
+  template<typename T, typename CT_, char(*CFunc)(const T&, const T&)>
+  BSS_FORCEINLINE static CT_ BSS_FASTCALL binsearch_after(const T* arr, const T& data, CT_ first, CT_ last) { return binsearch_near<T, T, CT_, CFunc, CompT_EQ<char>, 1>(arr, data, first, last); }
 
-  template<typename T, typename ST_, char(*CFunc)(const T&, const T&)>
-  BSS_FORCEINLINE static ST_ BSS_FASTCALL binsearch_after(const T* arr, ST_ length, const T& data) { return binsearch_near<T, T, ST_, CFunc, CompT_EQ<char>, 1>(arr, data, 0, length); }
+  template<typename T, typename CT_, char(*CFunc)(const T&, const T&)>
+  BSS_FORCEINLINE static CT_ BSS_FASTCALL binsearch_after(const T* arr, CT_ length, const T& data) { return binsearch_near<T, T, CT_, CFunc, CompT_EQ<char>, 1>(arr, data, 0, length); }
 
-  template<typename T, typename ST_, char(*CFunc)(const T&, const T&), ST_ I>
-  BSS_FORCEINLINE static ST_ BSS_FASTCALL binsearch_after(const T(&arr)[I], const T& data) { return binsearch_after<T, ST_, CFunc>(arr, I, data); }
+  template<typename T, typename CT_, char(*CFunc)(const T&, const T&), CT_ I>
+  BSS_FORCEINLINE static CT_ BSS_FASTCALL binsearch_after(const T(&arr)[I], const T& data) { return binsearch_after<T, CT_, CFunc>(arr, I, data); }
 
   // Returns index of the item, if it exists, or -1
-  template<typename T, typename D, typename ST_, char(*CFunc)(const T&, const D&)>
-  inline static ST_ BSS_FASTCALL binsearch_exact(const T* arr, const D& data, typename std::make_signed<ST_>::type f, typename std::make_signed<ST_>::type l)
+  template<typename T, typename D, typename CT_, char(*CFunc)(const T&, const D&)>
+  inline static CT_ BSS_FASTCALL binsearch_exact(const T* arr, const D& data, typename std::make_signed<CT_>::type f, typename std::make_signed<CT_>::type l)
   {
     --l; // Done so l can be an exclusive size parameter even though the algorithm is inclusive.
-    ST_ m; // While f and l must be signed ints or the algorithm breaks, m does not.
+    CT_ m; // While f and l must be signed ints or the algorithm breaks, m does not.
     char r;
     while(l>=f) // This only works when l is an inclusive max indice
     {
@@ -79,11 +79,11 @@ namespace bss_util {
       else
         return m;
     }
-    return (ST_)-1;
+    return (CT_)-1;
   }
 
-  template<typename T, typename ST_, char(*CFunc)(const T&, const T&), ST_ I>
-  BSS_FORCEINLINE static ST_ BSS_FASTCALL binsearch_exact(const T(&arr)[I], const T& data) { return binsearch_exact<T, T, ST_, CFunc>(arr, data, 0, I); }
+  template<typename T, typename CT_, char(*CFunc)(const T&, const T&), CT_ I>
+  BSS_FORCEINLINE static CT_ BSS_FASTCALL binsearch_exact(const T(&arr)[I], const T& data) { return binsearch_exact<T, T, CT_, CFunc>(arr, data, 0, I); }
 
   // Implementation of an xorshift64star generator. x serves as the generator state, which should initially be set to the RNG seed.
   unsigned __int64 static xorshift64star(unsigned __int64& x)
@@ -225,14 +225,14 @@ namespace bss_util {
   inline static void bssrandseed(unsigned __int64 s) { bss_getdefaultengine().seed(s); }
 
   // Shuffler using Fisher-Yates/Knuth Shuffle algorithm based on Durstenfeld's implementation.
-  template<typename T, typename ST, typename ENGINE>
-  inline static void BSS_FASTCALL shuffle(T* p, ST size, ENGINE& e)
+  template<typename T, typename CT, typename ENGINE>
+  inline static void BSS_FASTCALL shuffle(T* p, CT size, ENGINE& e)
   {
-    for(ST i=size; i>0; --i)
-      rswap<T>(p[i-1], p[bssrand<ST,ENGINE>(0, i, e)]);
+    for(CT i=size; i>0; --i)
+      rswap<T>(p[i-1], p[bssrand<CT,ENGINE>(0, i, e)]);
   }
-  template<typename T, typename ST, typename ENGINE, ST size>
-  inline static void BSS_FASTCALL shuffle(T(&p)[size], ENGINE& e) { shuffle<T, ST, ENGINE>(p, size, e); }
+  template<typename T, typename CT, typename ENGINE, CT size>
+  inline static void BSS_FASTCALL shuffle(T(&p)[size], ENGINE& e) { shuffle<T, CT, ENGINE>(p, size, e); }
 
   /* Shuffler using default random number generator.*/
   template<typename T>
@@ -252,27 +252,27 @@ namespace bss_util {
   BSS_FORCEINLINE static void for_each(T(&t)[SIZE], F func) { std::for_each(std::begin(t), std::end(t), func); }
 
   // Random queue that pops a random item instead of the last item.
-  template<typename T, typename SizeType = unsigned int, typename ENGINE = xorshift_engine<unsigned __int64>, ARRAY_TYPE ArrayType = CARRAY_SIMPLE, typename Alloc = StaticAllocPolicy<T>>
-  class BSS_COMPILER_DLLEXPORT cRandomQueue : protected cDynArray<T, SizeType, ArrayType, Alloc>
+  template<typename T, typename CType = unsigned int, typename ENGINE = xorshift_engine<unsigned __int64>, ARRAY_TYPE ArrayType = CARRAY_SIMPLE, typename Alloc = StaticAllocPolicy<T>>
+  class BSS_COMPILER_DLLEXPORT cRandomQueue : protected cDynArray<T, CType, ArrayType, Alloc>
   {
   protected:
-    typedef SizeType ST_;
-    typedef cDynArray<T, SizeType, ArrayType, Alloc> AT_;
+    typedef CType CT_;
+    typedef cDynArray<T, CType, ArrayType, Alloc> AT_;
     using AT_::_array;
     using AT_::_length;
 
   public:
     cRandomQueue(const cRandomQueue& copy) : AT_(copy) {}
     cRandomQueue(cRandomQueue&& mov) : AT_(std::move(mov)) {}
-    explicit cRandomQueue(ST_ size = 0, ENGINE& e = bss_getdefaultengine()) : AT_(size), _e(e) {}
+    explicit cRandomQueue(CT_ size = 0, ENGINE& e = bss_getdefaultengine()) : AT_(size), _e(e) {}
     inline void Push(const T& t) { AT_::Add(t); }
     inline void Push(T&& t) { AT_::Add(std::move(t)); }
-    inline T Pop() { ST_ i=bssrand<ST_, ENGINE>(0, _length, _e); T r = std::move(_array[i]); Remove(i); return r; }
-    inline void Remove(ST_ index) { _array[index]=std::move(_array[--_length]); }
+    inline T Pop() { CT_ i=bssrand<CT_, ENGINE>(0, _length, _e); T r = std::move(_array[i]); Remove(i); return r; }
+    inline void Remove(CT_ index) { _array[index]=std::move(_array[--_length]); }
     inline bool Empty() const { return !_length; }
     inline void Clear() { _length=0; }
-    inline void SetLength(ST_ length) { AT_::SetLength(length); }
-    inline ST_ Length() const { return _length; }
+    inline void SetLength(CT_ length) { AT_::SetLength(length); }
+    inline CT_ Length() const { return _length; }
     inline const T* begin() const { return _array; }
     inline const T* end() const { return _array+_length; }
     inline T* begin() { return _array; }
@@ -544,24 +544,24 @@ namespace bss_util {
     }
   }
   // Breadth-first search for any directed graph. If FACTION returns true, terminates.
-  template<typename G, bool(*FACTION)(typename G::ST_)>
-  inline static void BSS_FASTCALL BreadthFirstGraph(G& graph, typename G::ST_ root)
+  template<typename G, bool(*FACTION)(typename G::CT_)>
+  inline static void BSS_FASTCALL BreadthFirstGraph(G& graph, typename G::CT_ root)
   {
-    DYNARRAY(typename G::ST_, queue, graph.NumNodes());
+    DYNARRAY(typename G::CT_, queue, graph.NumNodes());
     BreadthFirstGraph<G, FACTION>(graph, root, queue);
   }
 
   // Breadth-first search for any directed graph. If FACTION returns true, terminates. queue must point to an array at least GetNodes() long.
-  template<typename G, bool(*FACTION)(typename G::ST_)>
-  static void BSS_FASTCALL BreadthFirstGraph(G& graph, typename G::ST_ root, typename G::ST_* queue)
+  template<typename G, bool(*FACTION)(typename G::CT_)>
+  static void BSS_FASTCALL BreadthFirstGraph(G& graph, typename G::CT_ root, typename G::CT_* queue)
   {
-    typedef typename G::ST_ ST;
-    typedef typename std::make_signed<ST>::type SST;
-    typedef bss_util::Edge<typename G::E_, ST> E;
+    typedef typename G::CT_ CT;
+    typedef typename std::make_signed<CT>::type SST;
+    typedef bss_util::Edge<typename G::E_, CT> E;
     auto& n = graph.GetNodes();
     if((*FACTION)(root)) return;
-    DYNARRAY(ST, aset, graph.Capacity());
-    cDisjointSet<ST, StaticNullPolicy<SST>> set((SST*)aset, graph.Capacity());
+    DYNARRAY(CT, aset, graph.Capacity());
+    cDisjointSet<CT, StaticNullPolicy<SST>> set((SST*)aset, graph.Capacity());
 
     // Queue up everything next to the root, checking only for edges that connect the root to itself
     size_t l=0;

@@ -260,7 +260,7 @@ namespace bss_util {
     inline bool SetValue(khiter_t iterator, KHVAL&& newvalue) { return _setvalue<KHVAL&&>(iterator, std::move(newvalue)); }
     inline bool Set(KHKEY key, const KHVAL& newvalue) { return _setvalue<const KHVAL&>(Iterator(key), newvalue); }
     inline bool Set(KHKEY key, KHVAL&& newvalue) { return _setvalue<KHVAL&&>(Iterator(key), std::move(newvalue)); }
-    inline void SetSize(unsigned int size) { if(kh_end(this) < size) KHTYPE::kh_resize_template(size); }
+    inline void SetCapacity(unsigned int size) { if(kh_end(this) < size) KHTYPE::kh_resize_template(size); }
     inline bool Remove(KHKEY key)
     {
       khiter_t iterator = Iterator(key);

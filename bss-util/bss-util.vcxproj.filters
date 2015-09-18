@@ -57,9 +57,6 @@
     <ClInclude Include="..\include\cBinaryHeap.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="..\include\cBitArray.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
     <ClInclude Include="..\include\cBitField.h">
       <Filter>Header Files</Filter>
     </ClInclude>

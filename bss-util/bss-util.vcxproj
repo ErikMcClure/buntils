@@ -69,7 +69,6 @@
     <ClInclude Include="..\include\cArraySort.h" />
     <ClInclude Include="..\include\cAVLtree.h" />
     <ClInclude Include="..\include\cBinaryHeap.h" />
-    <ClInclude Include="..\include\cBitArray.h" />
     <ClInclude Include="..\include\cBitField.h" />
     <ClInclude Include="..\include\cBitStream.h" />
     <ClInclude Include="..\include\cDef.h" />

@@ -6,7 +6,7 @@ C_SRCS := $(wildcard $(SRCDIR)/*.c)
 CXX_SRCS := $(wildcard $(SRCDIR)/*.cpp)
 INCLUDE_DIRS := include
 LIBRARY_DIRS := 
-LIBRARIES := bss_util rt pthread
+LIBRARIES := bss-util rt pthread
 
 CPPFLAGS += -w -std=gnu++0x
 LDFLAGS += -L./bin/

@@ -150,7 +150,7 @@ namespace bss_util {
     }
 
     inline cDisjointSet& operator=(const cDisjointSet& copy) { SetCapacityDiscard(copy._capacity); memcpy(_array, copy._array, _capacity*sizeof(T)); _numsets = copy._numsets; return *this; }
-    inline cDisjointSet& operator=(cDisjointSet&& mov) { AT_::operator=(std::move(mov)); _numsets = copy._numsets; return *this; }
+    inline cDisjointSet& operator=(cDisjointSet&& mov) { ARRAY::operator=(std::move(mov)); _numsets = mov._numsets; return *this; }
 
   protected:
     BSS_FORCEINLINE bool _invalidindex(T s) const { return s >= _capacity || _array[s] >= 0; }

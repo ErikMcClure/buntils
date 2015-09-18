@@ -40,6 +40,9 @@ namespace bss_util {
     }
   }
 
+  template<class T>
+  inline void ParseJSON(T& obj, std::istream& s);
+
   DEFINE_MEMBER_CHECKER(EvalJSON);
 
   template<class T, bool B>
@@ -261,6 +264,9 @@ namespace bss_util {
       s << obj;
     }
   };
+
+  template<class T>
+  void static WriteJSON(const char* id, const T& obj, std::ostream& s, unsigned int& pretty);
 
   template<class T>
   void WriteJSONArray(const char* id, const T* obj, size_t size, std::ostream& s, unsigned int& pretty)

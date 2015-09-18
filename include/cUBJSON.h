@@ -155,6 +155,10 @@ namespace bss_util {
     return -1;
   }
 
+
+  template<class T>
+  inline void ParseUBJSON(T& obj, std::istream& s, char type);
+
   DEFINE_MEMBER_CHECKER(EvalUBJSON);
 
   template<class T, bool B>
@@ -175,7 +179,7 @@ namespace bss_util {
         __int64 length = ParseUBJSONLength(s);
         --count;
         buf.reserve(length+1);
-        s.read(buf, length);
+        s.read(buf.UnsafeString(), length);
         buf[length] = 0;
         obj.EvalUBJSON(buf.c_str(), s, type);
       }
@@ -218,9 +222,9 @@ namespace bss_util {
     __int64 num = 0;
     char type = 0;
     __int64 count = ParseUBJSONTypeCount(s, type);
-    if(count <= 0 || !type || !ParseUBJSONInternal<T, false>::DoBulkRead(obj, std::istream& s, count, type)) // attempt mass read in if we have both a type and a count
+    if(count <= 0 || !type || !ParseUBJSONInternal<T, false>::DoBulkRead(obj, s, count, type)) // attempt mass read in if we have both a type and a count
     {
-      while(!!s && && (count > 0 || count < 0) && (count>0 || s.peek() != UBJSONTuple::TYPE_ARRAY_END) && s.peek() != -1)
+      while(!!s && (count > 0 || count < 0) && (count>0 || s.peek() != UBJSONTuple::TYPE_ARRAY_END) && s.peek() != -1)
       {
         ParseUBJSONInternal<T, false>::DoAddCall(obj, s, num, type);
         --count;
@@ -241,7 +245,7 @@ namespace bss_util {
   {
     static inline bool DoBulkRead(cDynArray<T, CType, ArrayType, Alloc>& obj, std::istream& s, __int64 count, char ty)
     { 
-      if((type != UBJSONTuple::TYPE_CHAR && type != UBJSONTuple::TYPE_UINT8 && type != UBJSONTuple::TYPE_INT8) || count%sizeof(T) != 0)
+      if((ty != UBJSONTuple::TYPE_CHAR && ty != UBJSONTuple::TYPE_UINT8 && ty != UBJSONTuple::TYPE_INT8) || count%sizeof(T) != 0)
         return false;
 
       obj.SetLength(count/sizeof(T)); // If the type is 1 byte and the count is divisible by the array element size, we can do an optimized read
@@ -261,7 +265,7 @@ namespace bss_util {
   {
     static inline bool DoBulkRead(std::vector<T, Alloc>& obj, std::istream& s, __int64 count, char ty)
     {
-      if((type != UBJSONTuple::TYPE_CHAR && type != UBJSONTuple::TYPE_UINT8 && type != UBJSONTuple::TYPE_INT8) || count%sizeof(T) != 0)
+      if((ty != UBJSONTuple::TYPE_CHAR && ty != UBJSONTuple::TYPE_UINT8 && ty != UBJSONTuple::TYPE_INT8) || count%sizeof(T) != 0)
         return false;
 
       obj.resize(count / sizeof(T)); // If the type is 1 byte and the count is divisible by the array element size, we can do an optimized read
@@ -305,6 +309,9 @@ namespace bss_util {
 
   template<>
   inline void ParseUBJSON<cStr>(cStr& obj, std::istream& s, char type){ ParseUBJSON<std::string>(obj, s, type); }
+
+  template<class T>
+  inline void WriteUBJSON(const T& obj, std::ostream& s, char type = 0);
 
   DEFINE_MEMBER_CHECKER(SerializeUBJSON);
 
@@ -430,13 +437,7 @@ namespace bss_util {
       WriteUBJSONArray<T>(obj, obj.size(), s, WriteUBJSONType<T>::t);
     }
   };
-
-  template<class T>
-  inline void WriteUBJSON(const char* id, const T& obj, std::ostream& s, char type){ WriteUBJSONId(id, s); WriteUBJSONInternal<T, std::is_integral<T>::value>::F(obj, s, type); }
-
-  template<class T>
-  inline void WriteUBJSON(const T& obj, std::ostream& s, char type = 0) { WriteUBJSON<T>(0, obj, s, type); }
-
+  
   inline static void WriteUBJSONString(const char* str, size_t len, std::ostream& s, char type)
   {
     if(!type)
@@ -449,6 +450,12 @@ namespace bss_util {
   {
     if(id) WriteUBJSONString(id, strlen(id), s, UBJSONTuple::TYPE_STRING);
   }
+
+  template<class T>
+  inline void WriteUBJSON(const char* id, const T& obj, std::ostream& s, char type){ WriteUBJSONId(id, s); WriteUBJSONInternal<T, std::is_integral<T>::value>::F(obj, s, type); }
+
+  template<class T>
+  inline void WriteUBJSON(const T& obj, std::ostream& s, char type) { WriteUBJSON<T>(0, obj, s, type); }
   
   template<>
   inline void WriteUBJSON<bool>(const char* id, const bool& obj, std::ostream& s, char type) { WriteUBJSONId(id, s); if(!type) s.put(obj ? UBJSONTuple::TYPE_TRUE : UBJSONTuple::TYPE_FALSE); }

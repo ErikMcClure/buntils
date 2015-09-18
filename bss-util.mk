@@ -1,16 +1,14 @@
-TARGET := libbss_util.so
+TARGET := libbss-util.so
 SRCDIR := bss-util
 BUILDDIR := bin
 OBJDIR := bin/obj
 C_SRCS := $(wildcard $(SRCDIR)/*.c)
-#C_SRCS := $(SRCDIR)/bss_util_c.c $(SRCDIR)/INIParser.c
 CXX_SRCS := $(wildcard $(SRCDIR)/*.cpp)
-#CXX_SRCS := bss_DebugInfo.cpp bss_Log.cpp bss_util.cpp cCmdLineArgs.cpp cHighPrecisionTimer.cpp cINIentry.cpp cINIsection.cpp cINIstorage.cpp
-INCLUDE_DIRS := include include/shiny
+INCLUDE_DIRS := include
 LIBRARY_DIRS := 
 LIBRARIES := rt
 
-CPPFLAGS += -fPIC -D BSS_UTIL_EXPORTS -Wall -Wno-attributes -Wno-unknown-pragmas -Wno-reorder -Wno-missing-braces -std=gnu++0x
+CPPFLAGS += -fPIC -D BSS_UTIL_EXPORTS -std=gnu++0x -Wall -Wno-attributes -Wno-unknown-pragmas -Wno-reorder -Wno-missing-braces -Wno-unused-function -Wno-comment -Wno-char-subscripts
 LDFLAGS += -shared
 
 include base.mk

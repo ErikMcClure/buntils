@@ -518,7 +518,7 @@ namespace bss_util {
   inline static T BSS_FASTCALL BezierCurve(D t, const T& p1, const T& p2, const T& p3, const T& p4)
   {
 #ifdef BSS_COMPILER_GCC
-    constexpr float m[4][4] ={-1, 3, -3, 1, 3, -6, 3, 0, -3, 3, 0, 0, 1, 0, 0, 0};
+    constexpr float m[4][4] ={-1.0f, 3.0f, -3.0f, 1.0f, 3.0f, -6.0f, 3.0f, 0, -3.0f, 3, 0, 0, 1.0f, 0, 0, 0};
 #else
     static const float m[4][4] ={ -1, 3, -3, 1, 3, -6, 3, 0, -3, 3, 0, 0, 1, 0, 0, 0 };
 #endif

@@ -198,6 +198,7 @@ const char* file, const char* filter, const char* initdir, const char* defext)
   //Handle the response:
   if(dialog.run() == Gtk::RESPONSE_OK)
   *out= dialog.get_filename();*/
+  return std::unique_ptr<char[], bss_util::bssdll_delete<char[]>>((char*)0);
 #endif
 }
 #ifdef BSS_PLATFORM_WIN32 //Windows function
@@ -272,7 +273,6 @@ extern void BSS_FASTCALL bss_util::AlertBoxW(const wchar_t* text, const wchar_t*
 #endif
 
 void bss_util::bssdll_delete_delfunc(void* p) { ::operator delete(p); } // operator delete[] simply calls operator delete when its void*
-
 
 #ifdef BSS_PLATFORM_WIN32
 extern int BSS_FASTCALL bss_util::CreateDir(const char* path)

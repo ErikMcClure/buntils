@@ -398,10 +398,10 @@ namespace bss_util {
       sseVec d(r[3]);
 
       // Note: It's ok if l, r, and out are all the same matrix because of the order they're accessed in.
-      (a*sseVec(l[0][0]))+(b*sseVec(l[0][1]))+(c*sseVec(l[0][2]))+(d*sseVec(l[0][3])) >> out[0];
-      (a*sseVec(l[1][0]))+(b*sseVec(l[1][1]))+(c*sseVec(l[1][2]))+(d*sseVec(l[1][3])) >> out[1];
-      (a*sseVec(l[2][0]))+(b*sseVec(l[2][1]))+(c*sseVec(l[2][2]))+(d*sseVec(l[2][3])) >> out[2];
-      (a*sseVec(l[3][0]))+(b*sseVec(l[3][1]))+(c*sseVec(l[3][2]))+(d*sseVec(l[3][3])) >> out[3];
+      ((a*sseVec(l[0][0]))+(b*sseVec(l[0][1]))+(c*sseVec(l[0][2]))+(d*sseVec(l[0][3]))) >> out[0];
+      ((a*sseVec(l[1][0]))+(b*sseVec(l[1][1]))+(c*sseVec(l[1][2]))+(d*sseVec(l[1][3]))) >> out[1];
+      ((a*sseVec(l[2][0]))+(b*sseVec(l[2][1]))+(c*sseVec(l[2][2]))+(d*sseVec(l[2][3]))) >> out[2];
+      ((a*sseVec(l[3][0]))+(b*sseVec(l[3][1]))+(c*sseVec(l[3][2]))+(d*sseVec(l[3][3]))) >> out[3];
     }
   };
 
@@ -417,7 +417,7 @@ namespace bss_util {
       sseVec d(r[3]);
 
       for(int i = 0; i < M; ++i) // Note: It's ok if l, r, and out are all the same matrix because of the order they're accessed in.
-        (a*sseVec(l[i][0]))+(b*sseVec(l[i][1]))+(c*sseVec(l[i][2]))+(d*sseVec(l[i][3])) >> out[i];
+        ((a*sseVec(l[i][0]))+(b*sseVec(l[i][1]))+(c*sseVec(l[i][2]))+(d*sseVec(l[i][3]))) >> out[i];
     }
   };
 
@@ -432,7 +432,7 @@ namespace bss_util {
       sseVeci d(r[3]);
 
       for(int i = 0; i < M; ++i) // Note: It's ok if l, r, and out are all the same matrix because of the order they're accessed in.
-        (a*sseVeci(l[i][0]))+(b*sseVeci(l[i][1]))+(c*sseVeci(l[i][2]))+(d*sseVeci(l[i][3])) >> out[i];
+        ((a*sseVeci(l[i][0]))+(b*sseVeci(l[i][1]))+(c*sseVeci(l[i][2]))+(d*sseVeci(l[i][3]))) >> out[i];
     }
   };
 
@@ -441,7 +441,7 @@ namespace bss_util {
   {
     static BSS_FORCEINLINE void BSS_FASTCALL MM(const float(&l)[1][4], const float(&r)[4][4], float(&out)[1][4])
     { // Note: It's ok if l, r, and out are all the same matrix because of the order they're accessed in.
-      (sseVec(r[0])*sseVec(l[0][0]))+(sseVec(r[1])*sseVec(l[0][1]))+(sseVec(r[2])*sseVec(l[0][2]))+(sseVec(r[3])*sseVec(l[0][3])) >> out[0];
+      ((sseVec(r[0])*sseVec(l[0][0]))+(sseVec(r[1])*sseVec(l[0][1]))+(sseVec(r[2])*sseVec(l[0][2]))+(sseVec(r[3])*sseVec(l[0][3]))) >> out[0];
     }
   };
 
@@ -596,9 +596,9 @@ namespace bss_util {
     const sseVec n100(-1, 1, 1, 0);
     const sseVec n001(1, 1, -1, 0);
 
-    y*yxw + z*zwx*n010 >> out[0];
-    x*yxw + z*wzy*n001 >> out[1];
-    x*zwx + y*wzy*n100 >> out[2];
+    (y*yxw + z*zwx*n010) >> out[0];
+    (x*yxw + z*wzy*n001) >> out[1];
+    (x*zwx + y*wzy*n100) >> out[2];
     sseVec::ZeroVector() >> out[3];
     out[3][3] = 1;
     out[1][2] = -out[1][2];
@@ -796,7 +796,7 @@ namespace bss_util {
     inline Vector<T, 4> wzxy() const { return Vector<T, 4>(w, z, x, y); }
     inline Vector<T, 4> wzyx() const { return Vector<T, 4>(w, z, y, x); }
 
-    BSS_ALIGN(16) union {
+    BSS_ALIGNED_UNION(16) {
       T v[4];
       T v_column[4][1];
       T v_row[1][4];
@@ -1049,7 +1049,7 @@ namespace bss_util {
     static BSS_FORCEINLINE void Identity(T(&m)[4][4]) { Diagonal(1, 1, 1, 1, m); }
     static BSS_FORCEINLINE Matrix Identity() { Matrix m; Identity(m); return m; }
 
-    BSS_ALIGN(16) union {
+    BSS_ALIGNED_UNION(16) {
       T v[4][4];
       struct { T a, b, c, d, e, f, g, h, i, j, k, l, m, n, o, p; };
     };

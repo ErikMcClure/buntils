@@ -29,7 +29,7 @@ namespace bss_util {
     BSS_FORCEINLINE bool Empty() const { return _array.Empty(); }
     BSS_FORCEINLINE void BSS_FASTCALL Reserve(CT_ capacity) { _array.Reserve(capacity); }
     BSS_FORCEINLINE CT_ Length() const { return _array.Length(); }
-    BSS_FORCEINLINE CT_ Capacity() const { return _capacity; }
+    BSS_FORCEINLINE CT_ Capacity() const { return _array.Capacity(); }
     inline const T& Front() const { return _array.Front(); }
     inline T& Front() { return _array.Front(); }
     inline const T& Back() const { return _array.Back(); }

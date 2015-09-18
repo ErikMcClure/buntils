@@ -287,9 +287,9 @@ namespace bss_util {
 
   template<int I>
   BSS_FORCEINLINE static void BSS_FASTCALL flipendian(char* target) { flipendian((char*)target, I); }
-  template<> BSS_FORCEINLINE static void BSS_FASTCALL flipendian<0>(char* target) { }
-  template<> BSS_FORCEINLINE static void BSS_FASTCALL flipendian<1>(char* target) { }
-  template<> BSS_FORCEINLINE static void BSS_FASTCALL flipendian<2>(char* target) { char t = target[0]; target[0] = target[1]; target[1] = t; }
+  template<> BSS_FORCEINLINE BSS_EXPLICITSTATIC void BSS_FASTCALL flipendian<0>(char* target) { }
+  template<> BSS_FORCEINLINE BSS_EXPLICITSTATIC void BSS_FASTCALL flipendian<1>(char* target) { }
+  template<> BSS_FORCEINLINE BSS_EXPLICITSTATIC void BSS_FASTCALL flipendian<2>(char* target) { char t = target[0]; target[0] = target[1]; target[1] = t; }
 
   template<typename T>
   BSS_FORCEINLINE static void BSS_FASTCALL flipendian(T* target) { flipendian<sizeof(T)>((char*)target); }
@@ -436,7 +436,7 @@ namespace bss_util {
     __int32 ai = *reinterpret_cast<__int32*>(&af);
     __int32 bi = *reinterpret_cast<__int32*>(&bf);
     __int32 test = (-(__int32)(((unsigned __int32)(ai^bi))>>31));
-    assert((0 == test) || (0xFFFFFFFF == test));
+    assert((0 == test) || (0xFFFFFFFF == (unsigned __int32)test));
     __int32 diff = ((ai + test) ^ (test & 0x7fffffff)) - bi;
     __int32 v1 = maxDiff + diff;
     __int32 v2 = maxDiff - diff;
@@ -449,7 +449,7 @@ namespace bss_util {
     __int64 ai = *reinterpret_cast<__int64*>(&af);
     __int64 bi = *reinterpret_cast<__int64*>(&bf);
     __int64 test = (-(__int64)(((unsigned __int64)(ai^bi))>>63));
-    assert((0 == test) || (0xFFFFFFFFFFFFFFFF == test));
+    assert((0 == test) || (0xFFFFFFFFFFFFFFFF == (unsigned __int64)test));
     __int64 diff = ((ai + test) ^ (test & 0x7fffffffffffffff)) - bi;
     __int64 v1 = maxDiff + diff;
     __int64 v2 = maxDiff - diff;
@@ -803,6 +803,8 @@ namespace bss_util {
   template<int ...S> struct bssSeq_gens<0, S...>{ typedef bssSeq<S...> type; };
 #endif
 
+  BSS_COMPILER_DLLEXPORT extern void bssdll_delete_delfunc(void* p);
+
   //unique_ptr deleter class that forces the deletion to occur in this DLL
   template<class _Ty>
 	struct bssdll_delete
@@ -829,8 +831,6 @@ namespace bss_util {
       }
 		}
 	};
-
-  BSS_COMPILER_DLLEXPORT extern void bssdll_delete_delfunc(void* p);
 } 
 
 #endif

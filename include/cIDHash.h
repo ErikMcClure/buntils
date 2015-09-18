@@ -123,8 +123,11 @@ namespace bss_util {
     inline ST Lookup(T item) { return _hash[item]; }
     inline ST Length() const { return BASE::_length; }
     inline ST MaxID() const { return BASE::_max; }
+
     // Compresses the IDs by eliminating holes. F is called on any ID before its changed so you can adjust it.
-    void Compress() { BASE::Compress(delegate<void, size_t, ST>::From<cIDReverse, &cIDReverse::_flip>(this)); } // GCC is broken and won't compile ST,ST, so we just replace it with size_t and force it to infer the template
+    void Compress() { // GCC is broken and won't compile ST at all, so we just replace it with size_t.
+      BASE::Compress(delegate<void, size_t, size_t>::From<cIDReverse, &cIDReverse::_flip>(this)); 
+    } 
 
     inline cIDReverse& operator=(const cIDReverse& copy) { BASE::operator=(copy); _hash=copy._hash; return *this; }
     inline cIDReverse& operator=(cIDReverse&& mov) { BASE::operator=(std::move(mov)); _hash=mov._hash; return *this; }
@@ -132,7 +135,7 @@ namespace bss_util {
     inline const T& operator[](ST id) const { return _array[id]; }
 
   protected:
-    inline void BSS_FASTCALL _flip(size_t id, ST nid) { _hash.Set(_array[id], nid); }
+    inline void BSS_FASTCALL _flip(size_t id, size_t nid) { _hash.Set(_array[id], nid); }
 
     cKhash<T, ST, true, __hash_func, __hash_equal, ST, -1> _hash;
   };

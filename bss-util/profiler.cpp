@@ -151,7 +151,7 @@ void BSS_FASTCALL Profiler::_heatwrite(std::ostream& stream, PROF_HEATNODE& node
 {
   static const int BARLENGTH=10;
 
-  if(level!=-1)
+  if(level!=(unsigned int)-1)
   {
     for(unsigned int i = 0; i < level*2; ++i) stream.put(' ');
     if(!node.id)
@@ -212,7 +212,7 @@ const char* BSS_FASTCALL Profiler::_trimpath(const char* path)
 }
 void BSS_FASTCALL Profiler::_timeformat(std::ostream& stream, double avg, double variance, unsigned __int64 num)
 {
-  double sd = bss_util::FastSqrt(variance/(double)(num-1));
+  //double sd = bss_util::FastSqrt(variance/(double)(num-1));
   if(avg>=1000000000000.0)
     stream << (avg/1000000000.0) << " s";
   else if(avg>=1000000000.0)

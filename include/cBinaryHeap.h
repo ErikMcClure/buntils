@@ -32,7 +32,7 @@ namespace bss_util {
     inline cBinaryHeap() : AT_(0) {}
     inline cBinaryHeap(const T* src, CT_ length) : AT_(length) { _copy(_array, src, sizeof(T)*length); _length = length; Heapify(_array, _length); }
     template<CT_ SIZE>
-    inline cBinaryHeap(const T(&src)[SIZE]) : AT_(SIZE) { _copy(_array, src, sizeof(T)*length); _length = SIZE; Heapify(_array, _length); }
+    inline cBinaryHeap(const T(&src)[SIZE]) : AT_(SIZE) { _copy(_array, src, sizeof(T)*SIZE); _length = SIZE; Heapify(_array, _length); }
     inline ~cBinaryHeap() {}
     inline const T& Peek() { return _array[0]; }
     inline const T& Get(CT_ index) { assert(index<_length); return _array[index]; }
@@ -52,7 +52,7 @@ namespace bss_util {
       if(index>=_length) return false; //We don't have to copy _array[_length - 1] because it stays valid during the percolation
       if(_length>1) //We can't percolate down if there's nothing in the array! 
         PercolateDown(_array, _length - 1, index, _array[_length - 1], this);
-      RemoveLast();
+      AT_::RemoveLast();
       return true;
     }
 
@@ -140,7 +140,7 @@ namespace bss_util {
     inline void _insert(U && val)
     {
       int k = _length;
-      _checksize();
+      AT_::_checksize();
       new(_array + _length) T();
       PercolateUp(_array, _length, _length++, std::forward<U>(val), this);
     }

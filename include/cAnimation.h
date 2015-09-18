@@ -60,7 +60,7 @@ namespace bss_util {
     virtual unsigned int GetCapacity() const { return _pairs.Length(); }
     virtual const void* GetArray() const { return _pairs.begin(); }
     void SetFunc(FUNC f) { _f = f; }
-    virtual void* GetFunc() const { return _f; }
+    virtual void* GetFunc() const { return (void*)_f; }
 
     cAnimation& operator=(cAnimation&& mov)
     {
@@ -78,17 +78,19 @@ namespace bss_util {
   template<typename T, double(*TODURATION)(const T&), ARRAY_TYPE ArrayType = CARRAY_SAFE, typename Alloc = StaticAllocPolicy<T>>
   class BSS_COMPILER_DLLEXPORT cAnimationInterval : public cAnimation<T>
   {
+    using cAnimation<T>::_calc;
+    using cAnimation<T>::_pairs;
   public:
-    explicit cAnimationInterval(cAnimation<T>::FUNC f = 0) : cAnimation(f) { }
-    cAnimationInterval(cAnimationInterval&& mov) : cAnimation(std::move(mov)) {}
-    cAnimationInterval(const cAnimation<T>::PAIR* src, unsigned int len, cAnimation<T>::FUNC f = 0) : cAnimation(src, len, f) { _recalclength(); }
+    explicit cAnimationInterval(typename cAnimation<T>::FUNC f = 0) : cAnimation<T>(f) { }
+    cAnimationInterval(cAnimationInterval&& mov) : cAnimation<T>(std::move(mov)) {}
+    cAnimationInterval(const typename cAnimation<T>::PAIR* src, unsigned int len, typename cAnimation<T>::FUNC f = 0) : cAnimation<T>(src, len, f) { _recalclength(); }
     virtual ~cAnimationInterval() {}
     inline unsigned int Add(double time, const T& data) { unsigned int r = cAnimation<T>::Add(time, data); _checkindex(r); return r; }
-    inline void Set(const cAnimation<T>::PAIR* src, unsigned int len) { cAnimation<T>::Set(src, len); _recalclength(); }
+    inline void Set(const typename cAnimation<T>::PAIR* src, unsigned int len) { cAnimation<T>::Set(src, len); _recalclength(); }
     inline bool Remove(unsigned int index) { bool r = cAnimation<T>::Remove(index); if(r) _recalclength(); return r; }
     BSS_FORCEINLINE static double ToDuration(const T& item) { return TODURATION(item); }
 
-    cAnimationInterval& operator=(cAnimationInterval&& mov) { cAnimated<T>::operator=(std::move(mov)); return *this; }
+    cAnimationInterval& operator=(cAnimationInterval&& mov) { cAnimation<T>::operator=(std::move(mov)); return *this; }
 
   protected:
     void _recalclength()
@@ -150,6 +152,9 @@ namespace bss_util {
   template<typename T, typename REF = T, typename AUX = void>
   struct BSS_COMPILER_DLLEXPORT cAniStateDiscrete : public cAniState
   {
+    using cAniState::_ani;
+    using cAniState::_cur;
+    using cAniState::_time;
     cAniStateDiscrete(const cAniStateDiscrete& copy) : cAniState(copy), _set(copy._set) { }
     cAniStateDiscrete(cAniStateDiscrete&& mov) : cAniState(std::move(mov)), _set(std::move(mov._set)) { }
     cAniStateDiscrete(cAniBase* p, delegate<AUX, REF> d) : cAniState(p), _set(d) { assert(_ani->SizeOf() == sizeof(T)); }
@@ -186,6 +191,9 @@ namespace bss_util {
   struct BSS_COMPILER_DLLEXPORT cAniStateSmooth : public cAniStateDiscrete<T, REF, AUX>
   {
     typedef cAniStateDiscrete<T, REF, AUX> BASE;
+    using BASE::_ani;
+    using BASE::_cur;
+    using BASE::_time;
     cAniStateSmooth(const cAniStateSmooth& copy) : BASE(copy), _init(copy._init) { }
     cAniStateSmooth(cAniStateSmooth&& mov) : BASE(std::move(mov)), _init(std::move(mov._init)) { }
     cAniStateSmooth(cAniBase* p, delegate<AUX, REF> d, T init = T()) : BASE(p, d), _init(init) { assert(_ani->GetFunc() != 0); }
@@ -214,12 +222,12 @@ namespace bss_util {
       if(_cur >= svar)
       { //Resolve the animation, but only if there was more than 1 keyframe, otherwise we'll break it.
         if(svar>1)
-          _set(f(v, svar, svar - 1, 1.0, _init));
+          BASE::_set(f(v, svar, svar - 1, 1.0, _init));
       }
       else
       {
         double hold = !_cur?0.0:v[_cur - 1].first;
-        _set(f(v, svar, _cur, (_time - hold) / (v[_cur].first - hold), _init));
+        BASE::_set(f(v, svar, _cur, (_time - hold) / (v[_cur].first - hold), _init));
       }
       return _time < length;
     }
@@ -242,6 +250,9 @@ namespace bss_util {
   struct BSS_COMPILER_DLLEXPORT cAniStateInterval : public cAniStateDiscrete<T, REF, AUX>
   {
     typedef cAniStateDiscrete<T, REF, AUX> BASE;
+    using BASE::_ani;
+    using BASE::_cur;
+    using BASE::_time;
     cAniStateInterval(cAniBase* p, delegate<AUX, REF> d, delegate<void, AUX> rm) : BASE(p, d), _remove(rm) { assert(_ani->SizeOf() == sizeof(T)); }
     template<ARRAY_TYPE ArrayType, typename Alloc>
     cAniStateInterval(cAnimationInterval<T, TODURATION, ArrayType, Alloc>* p, delegate<AUX, REF> d, delegate<void, AUX> rm) : BASE(p, d), _remove(rm) {}

@@ -5,6 +5,7 @@
 #define __C_DYN_ARRAY_H__BSS__
 
 #include "cArray.h"
+#include "cBitField.h"
 
 namespace bss_util {
   // Dynamic array implemented using ArrayType (should only be used when constructors could potentially not be needed)
@@ -82,7 +83,7 @@ namespace bss_util {
       _length = copy._length;
       return *this;
     }
-    inline cDynArray& operator=(cDynArray&& mov) { _setlength(_array, _length, 0); AT_::operator=(std::move(mov)); _length = mov._length; return *this; }
+    inline cDynArray& operator=(cDynArray&& mov) { _setlength(_array, _length, 0); AT_::operator=(std::move(mov)); _length = mov._length; mov._length = 0; return *this; }
     inline cDynArray& operator +=(const cDynArray& add)
     { 
       _setcapacity(*this, _length + add._length);
@@ -119,6 +120,204 @@ namespace bss_util {
       if(_length >= _capacity)
         _setcapacity(*this, T_FBNEXT(_capacity));
       assert(_length<_capacity);
+    }
+
+    CT_ _length;
+  };
+
+  template<typename CType, ARRAY_TYPE ArrayType, typename Alloc>
+  class BSS_COMPILER_DLLEXPORT cDynArray<bool, CType, ArrayType, Alloc> : protected cArrayBase<unsigned char, CType, typename Alloc::template rebind<unsigned char>::other>
+  {
+  protected:
+    typedef unsigned char STORE;
+    typedef cArrayBase<STORE, CType, typename Alloc::template rebind<STORE>::other> AT_;
+    typedef typename AT_::CT_ CT_;
+    typedef typename AT_::T_ T_;
+    using AT_::_array;
+    using AT_::_capacity;
+    static const CT_ DIV_AMT = (sizeof(STORE) << 3);
+    static const CT_ MOD_AMT = (sizeof(STORE) << 3) - 1;
+    static_assert(std::is_unsigned<CType>::value, "CType must be an unsigned integral type.");
+
+  public:
+    inline cDynArray(const cDynArray& copy) : AT_(copy._capacity), _length(copy._length) { memcpy(_array, copy._array, copy._capacity*sizeof(STORE)); }
+    inline cDynArray(cDynArray&& mov) : AT_(std::move(mov)), _length(mov._length) { mov._length = 0; }
+    inline explicit cDynArray(CT_ capacity = 0) : AT_(_maxchunks(capacity)/DIV_AMT), _length(0) {}
+    inline cDynArray(const std::initializer_list<bool> list) : AT_(_maxchunks(list.size())/DIV_AMT), _length(0)
+    {
+      auto end = list.end();
+      for(auto i = list.begin(); i != end && _length < (_capacity*DIV_AMT); ++i)
+        Add(*i);
+    }
+    inline ~cDynArray() { }
+    BSS_FORCEINLINE CT_ Add(bool t) { _checksize(); GetBit(_length++) = t; return _length - 1; }
+    inline void Remove(CT_ index)
+    {
+      assert(index < _length);
+      _shiftdel(index);
+      --_length;
+    }
+    BSS_FORCEINLINE void RemoveLast() { --_length; }
+    BSS_FORCEINLINE void Insert(bool t, CT_ index = 0)
+    {
+      _shiftins(index);
+      ++_length;
+      GetBit(index) = t;
+    }
+    BSS_FORCEINLINE bool Empty() const { return !_length; }
+    BSS_FORCEINLINE void Clear() { SetLength(0); }
+    inline void SetLength(CT_ length)
+    {
+      if(length > (_capacity*DIV_AMT)) SetCapacity(_maxchunks(length) / DIV_AMT);
+      for(CT_ i = _length; i < length; ++i) GetBit(i) = false;
+      _length = length;
+    }
+    inline void Reserve(CT_ capacity) { capacity = _maxchunks(capacity) / DIV_AMT; if(capacity > _capacity) SetCapacity(capacity); }
+    inline void Flip() { for(CT_ i = 0; i < _capacity; ++i) _array[i] = ~_array[i]; }
+    CT_ BSS_FASTCALL CountBits(CT_ bitindex, CT_ length) const
+    {
+      if(!length) return 0;
+      length += bitindex;
+      assert(length <= _length);
+      CT_ start = bitindex / DIV_AMT;
+      CT_ end = _maxchunks(length) / DIV_AMT;
+      STORE smask = ~((((STORE)1) << (bitindex - (start*DIV_AMT))) - 1);
+      STORE emask = (STORE)(~0) >> ((end*DIV_AMT) - length);
+
+      if(start == (--end))
+        return bitcount<STORE>((_array[start] & smask)&emask);
+
+      CT_ c = bitcount<STORE>(_array[start] & smask);
+      c += bitcount<STORE>(_array[end] & emask);
+
+      for(CT_ i = start + 1; i < end; ++i)
+        c += bitcount<STORE>(_array[i]);
+
+      return c;
+    }
+    BSS_FORCEINLINE CT_ Length() const { return _length; }
+    BSS_FORCEINLINE CT_ Capacity() const { return _capacity*DIV_AMT; }
+    BSS_FORCEINLINE bool Front() const { assert(_length>0); return _array[0]; }
+    BSS_FORCEINLINE bool Back() const { assert(_length>0); return _array[_length - 1]; }
+    BSS_FORCEINLINE _cBIT_REF<STORE> Front() { assert(_length>0); return GetBit(0); }
+    BSS_FORCEINLINE _cBIT_REF<STORE> Back() { assert(_length>0); return GetBit(_length - 1); }
+    BSS_FORCEINLINE bool operator[](CT_ index) const { assert(index < _length); return GetBitConst(index); }
+    BSS_FORCEINLINE _cBIT_REF<STORE> operator[](CT_ index) { assert(index < _length); return GetBit(index); }
+    // This gets the raw storage byte in such a way that unused bits are always set to zero. Useful for debugging.
+    inline STORE GetRawByte(CT_ index) const { assert(index < _capacity); return (index < (_capacity - 1)) ? _array[index] : (_array[index]&((STORE)(~0) >> ((_capacity*DIV_AMT) - _length))); }
+
+    class BSS_COMPILER_DLLEXPORT _cBIT_ITER : public std::iterator<std::bidirectional_iterator_tag, _cBIT_REF<STORE>>
+    {
+    public:
+      inline _cBIT_ITER(const _cBIT_REF<STORE>& src) : _bits(const_cast<STORE*>(&src.GetState().first)), _bit(src.GetState().second) { }
+      inline const _cBIT_REF<STORE> operator*() const { return _cBIT_REF<STORE>(_bit, *_bits); }
+      inline _cBIT_REF<STORE> operator*() { return _cBIT_REF<STORE>(_bit, *_bits); }
+      inline _cBIT_ITER& operator++() { _incthis(); return *this; } //prefix
+      inline _cBIT_ITER operator++(int) { _cBIT_ITER r(*this); ++*this; return r; } //postfix
+      inline _cBIT_ITER& operator--() { _decthis(); return *this; } //prefix
+      inline _cBIT_ITER operator--(int) { _cBIT_ITER r(*this); --*this; return r; } //postfix
+      inline const _cBIT_ITER& operator++() const { _incthis(); return *this; } //prefix
+      inline const _cBIT_ITER operator++(int) const { _cBIT_ITER r(*this); ++*this; return r; } //postfix
+      inline const _cBIT_ITER& operator--() const { _decthis(); return *this; } //prefix
+      inline const _cBIT_ITER operator--(int) const { _cBIT_ITER r(*this); --*this; return r; } //postfix
+      inline bool operator==(const _cBIT_ITER& _Right) const { return (_bits == _Right._bits) && (_bit == _Right._bit); }
+      inline bool operator!=(const _cBIT_ITER& _Right) const { return !operator==(_Right); }
+
+    protected:
+      void _incthis()
+      {
+        _bit = (_bit << 1);
+        if(!_bit)
+        { 
+          ++_bits;
+          _bit = 1;
+        }
+      }
+      void _decthis()
+      {
+        _bit = (_bit >> 1);
+        if(!_bit)
+        {
+          --_bits;
+          _bit = (1 << MOD_AMT);
+        }
+      }
+
+      STORE* _bits;
+      STORE _bit;
+    };
+
+    BSS_FORCEINLINE const _cBIT_ITER begin() const { return GetBitConst(0); }
+    BSS_FORCEINLINE const _cBIT_ITER end() const { return GetBitConst(_length); }
+    BSS_FORCEINLINE _cBIT_ITER begin() { return GetBit(0); }
+    BSS_FORCEINLINE _cBIT_ITER end() { return GetBit(_length); }
+
+    inline cDynArray& operator=(const cDynArray& copy)
+    {
+      if(copy._length > (_capacity*DIV_AMT))
+        AT_::SetCapacityDiscard(copy._capacity);
+      memcpy(_array, copy._array, _capacity * sizeof(STORE));
+      _length = copy._length;
+      return *this;
+    }
+    inline cDynArray& operator=(cDynArray&& mov) { AT_::operator=(std::move(mov)); _length = mov._length; mov._length = 0; return *this; }
+    /*inline cDynArray& operator +=(const cDynArray& add)
+    {
+      Reserve(*this, _length + add._length);
+      memcpybits(_array + (_length/DIV_AMT), _length&MOD_AMT, add._array, 0, add._length);
+      _length += add._length;
+      return *this;
+    }
+    inline cDynArray operator +(const cDynArray& add) const
+    {
+      cDynArray r(_length + add._length);
+      memcpy(r._array, _array, (_maxchunks(_length) / DIV_AMT)*sizeof(STORE));
+      memcpybits(r._array + (_length / DIV_AMT), _length&MOD_AMT, add._array, 0, add._length);
+      r._length = _length + add._length;
+      return r;
+    }*/
+
+  protected:
+    BSS_FORCEINLINE _cBIT_REF<STORE> GetBit(CT_ bitindex) { return _cBIT_REF<STORE>(((STORE)1) << (bitindex&MOD_AMT), *(_array + (bitindex / DIV_AMT))); }
+    BSS_FORCEINLINE bool GetBitConst(CT_ bitindex) const { return (_array[(bitindex / DIV_AMT)] & (((STORE)1) << (bitindex&MOD_AMT))) != 0; }
+    BSS_FORCEINLINE static CT_ _maxchunks(CT_ numbits) { return T_NEXTMULTIPLE(numbits, MOD_AMT); }
+    inline void _shiftdel(CT_ index)
+    {
+      CT_ ind = index / DIV_AMT;
+      CT_ off = index & MOD_AMT;
+      CT_ len = _maxchunks(_length)/DIV_AMT;
+      STORE mask = (STORE)(~0) << off;
+      _array[ind] = ((_array[ind] >> 1)&mask) | (_array[ind] & (~mask));
+
+      for(CT_ i = ind+1; i < len; ++i)
+      {
+        _array[i - 1] = (_array[i - 1] & ((STORE)(~0) >> 1)) | ((_array[i] & 1) << MOD_AMT);
+        _array[i] >>= 1;
+      }
+    }
+    inline void _shiftins(CT_ index)
+    {
+      _checksize();
+      CT_ ind = index / DIV_AMT;
+      CT_ off = index & MOD_AMT;
+      CT_ len = _maxchunks(_length + 1) / DIV_AMT;
+      STORE mask = (STORE)(~0) << off;
+      STORE store = _array[ind];
+      _array[ind] = ((_array[ind] & mask) << 1) | (_array[ind] & (~mask));
+      STORE test = _array[ind];
+
+      for(CT_ i = ind + 1; i < len; ++i)
+      {
+        _array[i] = (store >> MOD_AMT) | ((_array[i]<<1) & (STORE)(~1));
+        store = _array[i];
+      }
+    }
+
+    BSS_FORCEINLINE void _checksize()
+    {
+      if(_length >= (_capacity*DIV_AMT))
+        SetCapacity(T_FBNEXT(_capacity));
+      assert(_length<(_capacity*DIV_AMT));
     }
 
     CT_ _length;
@@ -172,7 +371,7 @@ namespace bss_util {
       unsigned char* narray = !_length?0:(unsigned char*)Alloc::allocate(_capacity);
       memset(narray, 0, _capacity);
       CT_ m=bssmin(element, _element);
-      for(unsigned int i = 0; i < _length; ++i)
+      for(CT_ i = 0; i < _length; ++i)
         memcpy(narray+(i*element), _array+(i*_element), m);
       _free(_array);
       _array=narray;

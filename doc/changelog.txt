@@ -41,6 +41,8 @@
 - cArray now uses Capacity() instead of Size()
 - cDynArray no longer initializes all potential members. Instead, it only constructs objects that were actually added, and immediately destructs removed objects. cArraySort, cArrayCircular and cBinaryHeap have all adopted this convention.
 - the PROF_HEATNODE allocator now correctly performs a reallocation.
+- Moved Graph into a ::graph namespace to reduce name collision problems.
+- cBitArray has been supplanted by cDynArray<bool>, which now specializes to an efficient bit array representation.
 
 0.4.3
 -----

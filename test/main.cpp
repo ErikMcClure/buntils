@@ -20,7 +20,6 @@
 #include "cAVLtree.h"
 #include "cAATree.h"
 #include "cBinaryHeap.h"
-#include "cBitArray.h"
 #include "cBitField.h"
 #include "cBitStream.h"
 #include "cDef.h"
@@ -98,6 +97,7 @@
 
 #pragma warning(disable:4566)
 using namespace bss_util;
+using namespace graph;
 
 // --- Define global variables ---
 
@@ -2258,51 +2258,51 @@ TESTDEF::RETPAIR test_BINARYHEAP()
 TESTDEF::RETPAIR test_BITARRAY()
 {
   BEGINTEST;
-  cBitArray<unsigned char> bits;
+  //cBitArray<unsigned char> bits;
+  cDynArray<bool> bits;
   bits.Clear();
-  bits.SetCapacity(7);
-  bits.SetBit(5,true);
-  TEST(bits.GetRaw()[0]==32);
-  TEST(bits.GetBits(0,6)==1);
-  TEST(bits.GetBits(0,5)==0);
-  bits+=5;
-  TEST(bits.GetBits(0,6)==1);
-  TEST(bits.GetBit(5));
-  bits.SetBit(5,false);
-  TEST(bits.GetRaw()[0]==0);
-  TEST(bits.GetBits(0,6)==0);
-  bits.SetBit(2,true);
-  TEST(bits.GetRaw()[0]==4);
-  TEST(bits.GetBit(2));
-  bits+=0;
-  TEST(bits.GetRaw()[0]==5);
+  bits.SetLength(7);
+  bits[5] = true;
+  TEST(bits.GetRawByte(0)==32);
+  TEST(bits.CountBits(0,6)==1);
+  TEST(bits.CountBits(0,5)==0);
+  bits[5] = true; //bits+=5;
+  TEST(bits.CountBits(0,6)==1);
+  TEST(bits[5]);
+  bits[5] = false;
+  TEST(bits.GetRawByte(0)==0);
+  TEST(bits.CountBits(0,6)==0);
+  bits[2] = true;
+  TEST(bits.GetRawByte(0)==4);
+  TEST(bits[2]);
+  bits[0] = true; //bits+=0;
+  TEST(bits.GetRawByte(0)==5);
   TEST(bits[0]);
-  bits.SetBit(3,true);
-  TEST(bits.GetRaw()[0]==13);
-  TEST(bits.GetBits(0,6)==3);
-  bits-=2;
-  TEST(bits.GetRaw()[0]==9);
-  TEST(bits.GetBits(0,6)==2);
-  bits.SetCapacity(31);
-  TEST(bits.GetRaw()[0]==9);
+  bits[3] = true;
+  TEST(bits.GetRawByte(0)==13);
+  TEST(bits.CountBits(0,6)==3);
+  bits[2] = false; //bits-=2;
+  TEST(bits.GetRawByte(0)==9);
+  TEST(bits.CountBits(0,6)==2);
+  bits.SetLength(31);
+  TEST(bits.GetRawByte(0)==9);
   bits[20]=true;
-  TEST(bits.GetRaw()[0]==9);
-  TEST(bits.GetRaw()[2]==16);
-  TEST(bits.SetBit(30,true));
+  TEST(bits.GetRawByte(0)==9);
+  TEST(bits.GetRawByte(2)==16);
+  bits[30] = true;
   TEST(bits[30]);
-  TEST(!bits[31]);
-  TEST(bits.GetRaw()[0]==9);
-  TEST(bits.GetRaw()[2]==16);
-  TEST(bits.GetRaw()[3]==64);
-  TEST(!bits.SetBit(32,true));
-  TEST(bits.GetBits(0,32)==4);
+  TEST(bits.GetRawByte(0)==9);
+  TEST(bits.GetRawByte(2)==16);
+  TEST(bits.GetRawByte(3)==64);
+  bits.SetLength(32);
+  TEST(bits.CountBits(0,32)==4);
   bits[21]=false;
-  TEST(bits.GetBits(0,32)==4);
-  bits.SetBit(20,false);
-  TEST(bits.GetRaw()[0]==9);
-  TEST(bits.GetRaw()[2]==0);
-  TEST(bits.GetRaw()[3]==64);
-  TEST(bits.GetBits(0,32)==3);
+  TEST(bits.CountBits(0,32)==4);
+  bits[20]=false;
+  TEST(bits.GetRawByte(0)==9);
+  TEST(bits.GetRawByte(2)==0);
+  TEST(bits.GetRawByte(3)==64);
+  TEST(bits.CountBits(0,32)==3);
 
   ENDTEST;
 }
@@ -3307,6 +3307,82 @@ TESTDEF::RETPAIR test_DYNARRAY()
   TEST(z[11]==9);
   TEST(z[12]==10);
   TEST(z[13]==11);
+
+  cDynArray<char> n(2);
+  cDynArray<bool> m(2);
+  auto fverify = [&__testret](cDynArray<bool>& m, cDynArray<char>& n) {
+    TEST(m.Length() == n.Length());
+    for(uint i = 0; i < n.Length(); ++i)
+      TEST(m[i] == (n[i] != 0));
+    
+    int c = 0;
+    for(auto v : m)
+      TEST(v == (n[c++] != 0));
+    TEST(c == n.Length());
+
+    for(auto v = m.end(); v != m.begin();)
+      TEST(*(--v) == (n[--c] != 0));
+  };
+  auto fadd = [&](bool v) { m.Add(v); n.Add(v); fverify(m,n); };
+  auto fremove = [&](size_t i) { m.Remove(i); n.Remove(i); fverify(m, n); };
+  auto fset = [&](size_t i, bool v) { m[i] = v; n[i] = v; fverify(m, n); };
+  auto finsert = [&](size_t i, bool v) { m.Insert(v, i); n.Insert(v, i); fverify(m, n); };
+
+  auto iter1 = m.begin();
+  auto iter2 = m.end();
+  TEST(iter1 == iter2);
+  fverify(m, n);
+  TEST(m.Capacity() == 8);
+  fadd(true);
+  fset(0, false);
+  fset(0, true);
+  TEST(m.Capacity() == 8);
+  fadd(false);
+  fadd(true);
+  fadd(false);
+  fadd(true);
+  fadd(true);
+  fset(5, false);
+  fset(5, true);
+  fset(5, false);
+  fadd(true);
+  fadd(false);
+  TEST(m.Capacity() == 8);
+  fadd(true);
+  TEST(m.Capacity() == 16);
+  fadd(false);
+  fadd(true);
+  fadd(false);
+
+  cDynArray<bool> mm = { true, false, true, false, false, true };
+  cDynArray<char> nn = { 1, 0, 1, 0, 0, 1 };
+  fverify(mm, nn);
+  mm = m;
+  nn = n;
+  fverify(mm, nn);
+
+  cDynArray<bool> mmm(m);
+  cDynArray<char> nnn(n);
+  fverify(mmm, nnn);
+
+  for(uint i = 0; i < m.Length(); ++i)
+  {
+    fset(i, false);
+    fset(i, true);
+    fset(i, false);
+  }
+
+  for(int i = 0; i < 10; ++i)
+    finsert(i, (i % 2)!=0);
+  
+  fremove(m.Length() - 1);
+  fremove(8);
+  fremove(7);
+  fremove(0);
+
+  while(m.Length() > 0) fremove((m.Length() * 3) % m.Length());
+
+  TEST(!m.Length());
 
   cArbitraryArray<unsigned int> u(0);
   int ua[5] = { 1,2,3,4,5 };

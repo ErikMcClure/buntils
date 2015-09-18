@@ -557,7 +557,7 @@ namespace bss_util {
   {
     typedef typename G::CT_ CT;
     typedef typename std::make_signed<CT>::type SST;
-    typedef bss_util::Edge<typename G::E_, CT> E;
+    typedef bss_util::graph::Edge<typename G::E_, CT> E;
     auto& n = graph.GetNodes();
     if((*FACTION)(root)) return;
     DYNARRAY(CT, aset, graph.Capacity());

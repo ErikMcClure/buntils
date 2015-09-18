@@ -14,8 +14,17 @@ namespace bss_util
     inline _cBIT_REF(T bit, T& bits) : _bit(bit), _bits(bits) {}
     inline _cBIT_REF& operator=(bool right) { _bits=T_SETBIT(_bits,_bit,(char)right); return *this; }
     BSS_FORCEINLINE _cBIT_REF& operator=(const _cBIT_REF& right) { return operator=((bool)right); }
-    BSS_FORCEINLINE operator bool() const { return (_bits&_bit)!=0; }
+    BSS_FORCEINLINE operator bool() const { return (_bits&_bit) != 0; }
     inline void flip() { _bits ^= _bit; }
+    BSS_FORCEINLINE bool operator!() const { return !operator bool(); }
+    BSS_FORCEINLINE bool operator==(bool right) const { return right == operator bool(); }
+    BSS_FORCEINLINE bool operator!=(bool right) const { return right != operator bool(); }
+    BSS_FORCEINLINE bool operator&&(bool right) const { return right && operator bool(); }
+    BSS_FORCEINLINE bool operator||(bool right) const { return right || operator bool(); }
+    BSS_FORCEINLINE char operator|(char right) const { return right | (char)operator bool(); }
+    BSS_FORCEINLINE char operator&(char right) const { return right & (char)operator bool(); }
+    BSS_FORCEINLINE char operator^(char right) const { return right ^ (char)operator bool(); }
+    BSS_FORCEINLINE std::pair<const T&, T> GetState() const { return std::pair<const T&, T>(_bits, _bit); }
 
   protected:
     T& _bits;

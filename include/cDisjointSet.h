@@ -9,7 +9,7 @@
 
 namespace bss_util {
   // Represents a disjoint set data structure that uses path compression.
-  template<typename T = unsigned int, typename ALLOC = StaticAllocPolicy<typename std::make_signed<T>::type>>
+  template<typename T = size_t, typename ALLOC = StaticAllocPolicy<typename std::make_signed<T>::type>>
   class BSS_COMPILER_DLLEXPORT cDisjointSet : protected cArrayBase<typename std::make_signed<T>::type, T, ALLOC>
   {
   protected:

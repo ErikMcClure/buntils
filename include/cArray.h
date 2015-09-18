@@ -12,7 +12,7 @@ namespace bss_util {
   enum ARRAY_TYPE : unsigned char { CARRAY_SIMPLE=0, CARRAY_CONSTRUCT=1, CARRAY_SAFE=2 };
 
   // Handles the very basic operations of an array. Constructor management is done by classes that inherit this class.
-  template<class T, typename CType = unsigned int, typename Alloc = StaticAllocPolicy<T>>
+  template<class T, typename CType = size_t, typename Alloc = StaticAllocPolicy<T>>
   class BSS_COMPILER_DLLEXPORT cArrayBase
   {
   public:
@@ -66,7 +66,7 @@ namespace bss_util {
     CType _capacity;
   };
 
-  template<class T, typename CType = unsigned int, ARRAY_TYPE ArrayType = CARRAY_SIMPLE, typename Alloc = StaticAllocPolicy<T>>
+  template<class T, typename CType = size_t, ARRAY_TYPE ArrayType = CARRAY_SIMPLE, typename Alloc = StaticAllocPolicy<T>>
   struct BSS_COMPILER_DLLEXPORT cArrayInternal
   {
     static void _copymove(T* dest, T* src, CType n) { _copy(dest, src, n); }
@@ -137,7 +137,7 @@ namespace bss_util {
   };
 
   // Wrapper for underlying arrays that expose the array, making them independently usable without blowing up everything that inherits them
-  template<class T, typename CType = unsigned int, ARRAY_TYPE ArrayType = CARRAY_SIMPLE, typename Alloc = StaticAllocPolicy<T>>
+  template<class T, typename CType = size_t, ARRAY_TYPE ArrayType = CARRAY_SIMPLE, typename Alloc = StaticAllocPolicy<T>>
   class BSS_COMPILER_DLLEXPORT cArray : protected cArrayBase<T, CType, Alloc>, protected cArrayInternal<T, CType, ArrayType, Alloc>
   {
   protected:

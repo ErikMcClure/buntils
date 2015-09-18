@@ -36,19 +36,19 @@ namespace bss_util {
     cINIsection(const cINIsection& copy);
     cINIsection(cINIsection&& mov);
     cINIsection();
-    cINIsection(const char* name, cINIstorage* parent,unsigned int index);
+    cINIsection(const char* name, cINIstorage* parent, size_t index);
     // Destructors
     ~cINIsection();
     // Gets the specified key with the given index. On failure returns an empty sentinel reference
-    cINIentry& GetEntry(const char* key, unsigned int instance=0) const;
+    cINIentry& GetEntry(const char* key, size_t instance=0) const;
     // Gets the specified key with the given index. Returns null on failure.
-    cINIentry* GetEntryPtr(const char* key, unsigned int instance=0) const;
+    cINIentry* GetEntryPtr(const char* key, size_t instance=0) const;
     // Gets number of entries with the given name
-    unsigned int GetNumEntries(const char* section) const;
+    size_t GetNumEntries(const char* section) const;
     // Gets the specified key node for iteration with the given index. Returns null on failure.
-    _NODE* GetEntryNode(const char* key, unsigned int instance=0) const;
+    _NODE* GetEntryNode(const char* key, size_t instance=0) const;
     // Changes the specified entry data with the given index, if data is NULL the entry is deleted. if instance is -1 the entry is inserted.
-    inline char EditEntry(const char* key, const char* data, unsigned int instance=0); 
+    inline char EditEntry(const char* key, const char* data, size_t instance=0);
     // Gets the root node of the section linked list
     inline const _NODE* Front() const { return _root; }
     // Gets the last node of the section linked list
@@ -59,7 +59,7 @@ namespace bss_util {
 
     BSS_FORCEINLINE cINIstorage* GetParent() const { return _parent; }
     BSS_FORCEINLINE const char* GetName() const { return _name; }
-    BSS_FORCEINLINE unsigned int GetIndex() const { return _index; }
+    BSS_FORCEINLINE size_t GetIndex() const { return _index; }
 
     BSS_FORCEINLINE cINIentry& operator[](const char* key) const { return GetEntry(key,0); }
     cINIsection& operator=(const cINIsection& right);
@@ -76,7 +76,7 @@ namespace bss_util {
     static cLocklessBlockAlloc<_NODE> _alloc;
 
     cStr _name;
-    unsigned int _index;
+    size_t _index;
     _NODE* _root;
     _NODE* _last;
     cHash<const char*, _NODE*, true> _entries;

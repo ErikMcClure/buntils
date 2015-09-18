@@ -226,14 +226,14 @@ int BSS_FASTCALL comparevalues(const char* start, const char* end, const char* c
   b = strlen(comp);
   return STRNICMP(start,comp,bssmin(a,b));
 }
-INICHUNK BSS_FASTCALL bss_findINIsection(const void* data, size_t length, const char* section, unsigned int instance)
+INICHUNK BSS_FASTCALL bss_findINIsection(const void* data, size_t length, const char* section, size_t instance)
 {
   const char* cur=(const char*)data;
   const char* end=cur+length;
   const char* line;
   const char* tc;
   const char* sec;
-  unsigned int curinstance=(unsigned int)-1;
+  size_t curinstance=(size_t)-1;
   INICHUNK retval;
   memset(&retval,0,sizeof(INICHUNK));
 
@@ -260,14 +260,14 @@ INICHUNK BSS_FASTCALL bss_findINIsection(const void* data, size_t length, const 
   return retval;
 }
 
-INICHUNK BSS_FASTCALL bss_findINIentry(INICHUNK section, const char* key, unsigned int instance)
+INICHUNK BSS_FASTCALL bss_findINIentry(INICHUNK section, const char* key, size_t instance)
 {
   const char* cur=(const char*)section.start;
   const char* end=(const char*)section.end;
   const char* line;
   const char* tc;
   const char* sec;
-  unsigned int curinstance=(unsigned int)-1;
+  size_t curinstance=(size_t)-1;
   INICHUNK retval;
   memset(&retval,0,sizeof(INICHUNK));
 

@@ -141,6 +141,7 @@ namespace bss_util {
   class BSS_COMPILER_DLLEXPORT cArray : protected cArrayBase<T, CType, Alloc>, protected cArrayInternal<T, CType, ArrayType, Alloc>
   {
   protected:
+    typedef cArrayInternal<T, CType, ArrayType, Alloc> BASE;
     typedef cArrayBase<T, CType, Alloc> AT_;
     typedef typename AT_::CT_ CT_;
     typedef typename AT_::T_ T_;
@@ -148,7 +149,7 @@ namespace bss_util {
     using AT_::_capacity;
 
   public:
-    inline cArray(const cArray& copy) : AT_(copy._capacity) { _copy(_array, copy._array, _capacity); } // We have to declare this because otherwise its interpreted as deleted
+    inline cArray(const cArray& copy) : AT_(copy._capacity) { BASE::_copy(_array, copy._array, _capacity); } // We have to declare this because otherwise its interpreted as deleted
     inline cArray(cArray&& mov) : AT_(std::move(mov)) {}
     inline cArray(const std::initializer_list<T> list) : AT_(list.size())
     {
@@ -158,13 +159,13 @@ namespace bss_util {
         new(_array + (c++)) T(*i);
       _capacity = c;
     }
-    inline explicit cArray(CT_ capacity = 0) : AT_(capacity) { _setlength(_array, 0, _capacity); }
-    inline ~cArray() { _setlength(_array, _capacity, 0); }
+    inline explicit cArray(CT_ capacity = 0) : AT_(capacity) { BASE::_setlength(_array, 0, _capacity); }
+    inline ~cArray() { BASE::_setlength(_array, _capacity, 0); }
     BSS_FORCEINLINE CT_ Add(const T_& t) { _insert(t, _capacity); return _capacity - 1; }
     BSS_FORCEINLINE CT_ Add(T_&& t) { _insert(std::move(t), _capacity); return _capacity - 1; }
     BSS_FORCEINLINE void Remove(CT_ index)
     {
-      _move(_array, index, index + 1, _capacity - index - 1);
+      BASE::_move(_array, index, index + 1, _capacity - index - 1);
       SetCapacity(_capacity - 1);
     }
     BSS_FORCEINLINE void RemoveLast() { Remove(_capacity - 1); }
@@ -176,16 +177,16 @@ namespace bss_util {
     { 
       if(capacity == _capacity) return;
       CT_ old = _capacity;
-      if(capacity < _capacity) _setlength(_array, _capacity, capacity);
-      _setcapacity(*this, capacity);
-      if(capacity > old) _setlength(_array, old, capacity);
+      if(capacity < _capacity) BASE::_setlength(_array, _capacity, capacity);
+      BASE::_setcapacity(*this, capacity);
+      if(capacity > old) BASE::_setlength(_array, old, capacity);
     }
     BSS_FORCEINLINE void SetCapacityDiscard(CT_ capacity)
     {
       if(capacity == _capacity) return;
-      _setlength(_array, _capacity, 0);
+      BASE::_setlength(_array, _capacity, 0);
       SetCapacityDiscard(capacity);
-      _setlength(_array, 0, _capacity);
+      BASE::_setlength(_array, 0, _capacity);
     }
     BSS_FORCEINLINE CT_ Capacity() const { return _capacity; }
     inline const T_& Front() const { assert(_capacity>0); return _array[0]; }
@@ -201,17 +202,17 @@ namespace bss_util {
 
     BSS_FORCEINLINE cArray& operator=(const cArray& copy)
     {
-      _setlength(_array, _capacity, 0);
+      BASE::_setlength(_array, _capacity, 0);
       AT_::SetCapacityDiscard(copy._capacity);
-      _copy(_array, copy._array, _capacity);
+      BASE::_copy(_array, copy._array, _capacity);
       return *this;
     }
-    BSS_FORCEINLINE cArray& operator=(cArray&& mov) { _setlength(_array, _capacity, 0); AT_::operator=(std::move(mov)); return *this; }
+    BSS_FORCEINLINE cArray& operator=(cArray&& mov) { BASE::_setlength(_array, _capacity, 0); AT_::operator=(std::move(mov)); return *this; }
     BSS_FORCEINLINE cArray& operator +=(const cArray& add)
     { 
       CType old = _capacity;
-      _setcapacity(*this, _capacity + add._capacity);
-      _copy(_array + old, add._array, add._capacity);
+      BASE::_setcapacity(*this, _capacity + add._capacity);
+      BASE::_copy(_array + old, add._array, add._capacity);
       return *this;
     }
     BSS_FORCEINLINE cArray operator +(const cArray& add) const { cArray r(*this); return (r += add); }
@@ -221,11 +222,11 @@ namespace bss_util {
     inline void _insert(U && data, CType index)
     {
       CType length = _capacity;
-      _setcapacity(*this, _capacity + 1);
+      BASE::_setcapacity(*this, _capacity + 1);
       if(index < length)
       {
         new(_array + length) T(std::forward<U>(_array[length - 1]));
-        _move(_array, index + 1, index, length - index - 1);
+        BASE::_move(_array, index + 1, index, length - index - 1);
         _array[index] = std::forward<U>(data);
       }
       else

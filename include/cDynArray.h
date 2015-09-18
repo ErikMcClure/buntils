@@ -6,6 +6,7 @@
 
 #include "cArray.h"
 #include "cBitField.h"
+#include "bss_util.h"
 
 namespace bss_util {
   // Dynamic array implemented using ArrayType (should only be used when constructors could potentially not be needed)
@@ -13,6 +14,7 @@ namespace bss_util {
   class BSS_COMPILER_DLLEXPORT cDynArray : protected cArrayBase<T, CType, Alloc>, protected cArrayInternal<T, CType, ArrayType, Alloc>
   {
   protected:
+    typedef cArrayInternal<T, CType, ArrayType, Alloc> BASE;
     typedef cArrayBase<T, CType, Alloc> AT_;
     typedef typename AT_::CT_ CT_;
     typedef typename AT_::T_ T_;
@@ -20,7 +22,7 @@ namespace bss_util {
     using AT_::_capacity;
 
   public:
-    inline cDynArray(const cDynArray& copy) : AT_(copy._capacity), _length(copy._length) { _copy(_array, copy._array, _length); }
+    inline cDynArray(const cDynArray& copy) : AT_(copy._capacity), _length(copy._length) { BASE::_copy(_array, copy._array, _length); }
     inline cDynArray(cDynArray&& mov) : AT_(std::move(mov)), _length(mov._length) { mov._length = 0; }
     inline explicit cDynArray(CT_ capacity=0) : AT_(capacity), _length(0) {}
     inline cDynArray(const std::initializer_list<T> list) : AT_(list.size()), _length(0)
@@ -29,13 +31,13 @@ namespace bss_util {
       for(auto i = list.begin(); i != end && _length < _capacity; ++i)
         new(_array + (_length++)) T(*i);
     }
-    inline ~cDynArray() { _setlength(_array, _length, 0); }
+    inline ~cDynArray() { BASE::_setlength(_array, _length, 0); }
     BSS_FORCEINLINE CT_ Add(const T_& t) { _checksize(); new(_array + _length) T(t); return _length++; }
     BSS_FORCEINLINE CT_ Add(T_&& t) { _checksize(); new(_array + _length) T(std::move(t)); return _length++; }
     inline void Remove(CT_ index)
     {
       assert(index < _length);
-      _move(_array, index, index + 1, _length - index - 1);
+      BASE::_move(_array, index, index + 1, _length - index - 1);
       _array[--_length].~T();
     }
     BSS_FORCEINLINE void RemoveLast() { Remove(_length - 1); }
@@ -45,12 +47,12 @@ namespace bss_util {
     BSS_FORCEINLINE void Clear() { SetLength(0); }
     inline void SetLength(CT_ length)
     { 
-      if(length < _length) _setlength(_array, _length, length);
-      if(length > _capacity) _setcapacity(*this, length);
-      if(length > _length) _setlength(_array, _length, length);
+      if(length < _length) BASE::_setlength(_array, _length, length);
+      if(length > _capacity) BASE::_setcapacity(*this, length);
+      if(length > _length) BASE::_setlength(_array, _length, length);
       _length = length;
     }
-    inline void Reserve(CT_ capacity) { if(capacity>_capacity) _setcapacity(*this, capacity); }
+    inline void Reserve(CT_ capacity) { if(capacity>_capacity) BASE::_setcapacity(*this, capacity); }
     BSS_FORCEINLINE CT_ Length() const { return _length; }
     BSS_FORCEINLINE CT_ Capacity() const { return _capacity; }
     BSS_FORCEINLINE const T_& Front() const { assert(_length>0); return _array[0]; }
@@ -66,36 +68,36 @@ namespace bss_util {
     BSS_FORCEINLINE operator const T_*() const { return _array; }
     inline cDynArray& operator=(const cArray<T, CType, ArrayType, Alloc>& copy)
     { 
-      _setlength(_array, _length, 0);
+      BASE::_setlength(_array, _length, 0);
       if(copy._capacity > _capacity) 
         AT_::SetCapacityDiscard(copy._capacity);
-      _copy(_array, copy._array, copy._capacity);
+      BASE::_copy(_array, copy._array, copy._capacity);
       _length = copy._capacity;
       return *this;
     }
-    inline cDynArray& operator=(cArray<T, CType, ArrayType, Alloc>&& mov) { _setlength(_array, _length, 0); AT_::operator=(std::move(mov)); _length = mov._capacity; return *this; }
+    inline cDynArray& operator=(cArray<T, CType, ArrayType, Alloc>&& mov) { BASE::_setlength(_array, _length, 0); AT_::operator=(std::move(mov)); _length = mov._capacity; return *this; }
     inline cDynArray& operator=(const cDynArray& copy)
     {
-      _setlength(_array, _length, 0);
+      BASE::_setlength(_array, _length, 0);
       if(copy._length > _capacity)
         AT_::SetCapacityDiscard(copy._capacity);
-      _copy(_array, copy._array, copy._length);
+      BASE::_copy(_array, copy._array, copy._length);
       _length = copy._length;
       return *this;
     }
-    inline cDynArray& operator=(cDynArray&& mov) { _setlength(_array, _length, 0); AT_::operator=(std::move(mov)); _length = mov._length; mov._length = 0; return *this; }
+    inline cDynArray& operator=(cDynArray&& mov) { BASE::_setlength(_array, _length, 0); AT_::operator=(std::move(mov)); _length = mov._length; mov._length = 0; return *this; }
     inline cDynArray& operator +=(const cDynArray& add)
     { 
-      _setcapacity(*this, _length + add._length);
-      _copy(_array + _length, add._array, add._length);
+      BASE::_setcapacity(*this, _length + add._length);
+      BASE::_copy(_array + _length, add._array, add._length);
       _length+=add._length;
       return *this;
     }
     inline cDynArray operator +(const cDynArray& add) const
     {
       cDynArray r(_length + add._length);
-      _copy(r._array, _array, _length);
-      _copy(r._array + _length, add._array, add._length);
+      BASE::_copy(r._array, _array, _length);
+      BASE::_copy(r._array + _length, add._array, add._length);
       r._length = _length + add._length;
       return r;
     }
@@ -108,7 +110,7 @@ namespace bss_util {
       if(index < _length)
       {
         new(_array + _length) T(std::forward<U>(_array[_length - 1]));
-        _move(_array, index + 1, index, _length - index - 1);
+        BASE::_move(_array, index + 1, index, _length - index - 1);
         _array[index] = std::forward<U>(data);
       }
       else
@@ -118,7 +120,7 @@ namespace bss_util {
     BSS_FORCEINLINE void _checksize()
     {
       if(_length >= _capacity)
-        _setcapacity(*this, T_FBNEXT(_capacity));
+        BASE::_setcapacity(*this, T_FBNEXT(_capacity));
       assert(_length<_capacity);
     }
 
@@ -168,7 +170,7 @@ namespace bss_util {
     BSS_FORCEINLINE void Clear() { SetLength(0); }
     inline void SetLength(CT_ length)
     {
-      if(length > (_capacity*DIV_AMT)) SetCapacity(_maxchunks(length) / DIV_AMT);
+      if(length > (_capacity*DIV_AMT)) AT_::SetCapacity(_maxchunks(length) / DIV_AMT);
       for(CT_ i = _length; i < length; ++i) GetBit(i) = false;
       _length = length;
     }
@@ -316,7 +318,7 @@ namespace bss_util {
     BSS_FORCEINLINE void _checksize()
     {
       if(_length >= (_capacity*DIV_AMT))
-        SetCapacity(T_FBNEXT(_capacity));
+        AT_::SetCapacity(T_FBNEXT(_capacity));
       assert(_length<(_capacity*DIV_AMT));
     }
 
@@ -373,7 +375,7 @@ namespace bss_util {
       CT_ m=bssmin(element, _element);
       for(CT_ i = 0; i < _length; ++i)
         memcpy(narray+(i*element), _array+(i*_element), m);
-      _free(_array);
+      AT_::_free(_array);
       _array=narray;
       _element=element;
       assert(element>0);
@@ -399,7 +401,7 @@ namespace bss_util {
 
     inline const void* operator[](CT_ index) const { return Get(index); }
     inline void* operator[](CT_ index) { return Get(index); }
-    inline cArbitraryArray& operator=(const cArbitraryArray& copy) { SetCapacityDiscard(copy._capacity); memcpy(_array, copy._array, _capacity); _length = mov._length; _element = mov._element; return *this; }
+    inline cArbitraryArray& operator=(const cArbitraryArray& copy) { SetCapacityDiscard(copy._capacity); memcpy(_array, copy._array, _capacity); _length = copy._length; _element = copy._element; return *this; }
     inline cArbitraryArray& operator=(cArbitraryArray&& mov) { AT_::operator=(std::move(mov)); _length = mov._length; _element = mov._element; return *this; }
 
   protected:

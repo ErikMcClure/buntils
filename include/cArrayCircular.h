@@ -14,6 +14,7 @@ namespace bss_util {
   {
   protected:
     typedef CType CT_;
+    typedef cArrayInternal<T, CType, ArrayType, Alloc> BASE;
     typedef cArrayBase<T, CType, Alloc> AT_;
     using AT_::_capacity;
     using AT_::_array;
@@ -53,14 +54,14 @@ namespace bss_util {
     inline void Clear()
     { 
       if(_length == _capacity) // Dump the whole thing
-        _setlength(_array, _length, 0);
+        BASE::_setlength(_array, _length, 0);
       else if(_cur - _length >= -1) // The current used chunk is contiguous
-        _setlength(_array + _cur - _length + 1, _length, 0);
+        BASE::_setlength(_array + _cur - _length + 1, _length, 0);
       else // We have two seperate chunks that must be dealt with
       {
         CType i = _modindex(_length - 1);
-        _setlength(_array + i, _capacity - i, 0);
-        _setlength(_array, _cur + 1, 0); // We can only have two seperate chunks if it crosses over the 0 mark at some point, so this always starts at 0
+        BASE::_setlength(_array + i, _capacity - i, 0);
+        BASE::_setlength(_array, _cur + 1, 0); // We can only have two seperate chunks if it crosses over the 0 mark at some point, so this always starts at 0
       }
 
       _length=0;
@@ -71,20 +72,20 @@ namespace bss_util {
       if(nsize < _capacity)
       {
         Clear(); // Getting the right destructors here is complicated and trying to preserve the array when it's shrinking is meaningless.
-        SetCapacityDiscard(nsize);
+        AT_::SetCapacityDiscard(nsize);
       }
       else if(nsize > _capacity)
       {
-        T* n = _getalloc(nsize);
+        T* n = AT_::_getalloc(nsize);
         if(_cur - _length >= -1) // If true the chunk is contiguous
-          _copymove(n + _cur - _length + 1, _array + _cur - _length + 1, _length);
+          BASE::_copymove(n + _cur - _length + 1, _array + _cur - _length + 1, _length);
         else
         {
           CType i = _modindex(_length - 1);
-          _copymove(n + bssmod<CType>(_cur - _length + 1, nsize), _array + i, _capacity - i);
-          _copymove(n, _array, _cur + 1);
+          BASE::_copymove(n + bssmod<CType>(_cur - _length + 1, nsize), _array + i, _capacity - i);
+          BASE::_copymove(n, _array, _cur + 1);
         }
-        _free(_array);
+        AT_::_free(_array);
         _array = n;
         _capacity = nsize;
       }
@@ -94,19 +95,19 @@ namespace bss_util {
     inline cArrayCircular& operator=(const cArrayCircular& right)
     {
       Clear();
-      SetCapacityDiscard(right._capacity);
+      AT_::SetCapacityDiscard(right._capacity);
       _cur = right._cur;
       _length = right._length;
 
       if(_length == _capacity) // Copy the whole thing
-        _copy(_array, right._array, _length);
+        BASE::_copy(_array, right._array, _length);
       else if(_cur - _length >= -1) // The current used chunk is contiguous
-        _copy(_array + _cur - _length + 1, right._array + _cur - _length + 1, _length);
+        BASE::_copy(_array + _cur - _length + 1, right._array + _cur - _length + 1, _length);
       else // We have two seperate chunks that must be dealt with
       {
         CType i = _modindex(_length - 1);
-        _copy(_array + i, right._array + i, _capacity - i);
-        _copy(_array, right._array, _cur + 1);
+        BASE::_copy(_array + i, right._array + i, _capacity - i);
+        BASE::_copy(_array, right._array, _cur + 1);
       }
 
       return *this;

@@ -19,10 +19,10 @@ cINIsection::cINIsection(cINIsection&& mov) : _name(std::move(mov._name)),_paren
   mov._root=0;
   mov._last=0;
 }
-cINIsection::cINIsection() : _parent(0), _index((unsigned int)-1), _root(0), _last(0)
+cINIsection::cINIsection() : _parent(0), _index((size_t)-1), _root(0), _last(0)
 {
 }
-cINIsection::cINIsection(const char* name, cINIstorage* parent, unsigned int index) : _name(name), _parent(parent), _index(index), _root(0),_last(0)
+cINIsection::cINIsection(const char* name, cINIstorage* parent, size_t index) : _name(name), _parent(parent), _index(index), _root(0),_last(0)
 {
 }
 cINIsection::~cINIsection()
@@ -46,7 +46,7 @@ void cINIsection::_copy(const cINIsection& copy)
   assert(!_root && !_last);
   _NODE* t=copy._root;
   _NODE* last=0;
-  unsigned int c=0;
+  size_t c=0;
   while(t)
   {
     _NODE* p=_alloc.alloc(1);
@@ -121,7 +121,7 @@ cINIsection& cINIsection::operator=(cINIsection&& mov)
   return *this;
 }
 
-cINIsection::_NODE* cINIsection::GetEntryNode(const char* key, unsigned int instance) const
+cINIsection::_NODE* cINIsection::GetEntryNode(const char* key, size_t instance) const
 {
   _NODE* n = _entries[key];
   if(!n) return 0;
@@ -129,26 +129,26 @@ cINIsection::_NODE* cINIsection::GetEntryNode(const char* key, unsigned int inst
   return (instance>n->instances.Capacity())?0:(n->instances[instance-1]);
 }
 
-cINIentry* cINIsection::GetEntryPtr(const char* key, unsigned int instance) const
+cINIentry* cINIsection::GetEntryPtr(const char* key, size_t instance) const
 { 
   _NODE* entry=GetEntryNode(key,instance);
   return !entry?0:&entry->val;
 }
 
-unsigned int cINIsection::GetNumEntries(const char* key) const
+size_t cINIsection::GetNumEntries(const char* key) const
 {
   _NODE* n = _entries[key];
   if(!n) return 0;
   return n->instances.Capacity()+1;
 }
 
-cINIentry& cINIsection::GetEntry(const char* key, unsigned int instance) const
+cINIentry& cINIsection::GetEntry(const char* key, size_t instance) const
 { 
   _NODE* entry=GetEntryNode(key,instance);
   return !entry?_entrysentinel:entry->val;
 }
 
-char cINIsection::EditEntry(const char* key, const char* data, unsigned int instance)
+char cINIsection::EditEntry(const char* key, const char* data, size_t instance)
 {  // We put this down here because the compiler never actually inlines it, so there's no point in going through hoops to keep it inline.
   return !_parent?-1:_parent->EditEntry(_name,key,data,instance,_index); 
 }

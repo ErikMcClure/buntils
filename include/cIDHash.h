@@ -11,9 +11,11 @@
 
 namespace bss_util {
   // This is a simple ID hash intended for pointers, which can optionally be compressed to eliminate holes.
-  template<typename T, typename ST=unsigned int, typename Alloc=StaticAllocPolicy<T>, T INVALID=0>
+  template<typename T, typename ST = unsigned int, typename Alloc=StaticAllocPolicy<T>, T INVALID=0>
   class cIDHash : protected cArrayBase<T, ST, Alloc>
   {
+    static_assert(sizeof(ST) <= sizeof(T), "T must not be smaller than ST");
+
   protected:
     using cArrayBase<T, ST, Alloc>::_array;
     using cArrayBase<T, ST, Alloc>::_capacity;

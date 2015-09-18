@@ -3,7 +3,7 @@ CXX_OBJS := ${CXX_SRCS:.cpp=.o}
 OBJS := $(addprefix $(OBJDIR)/c/,$(C_OBJS)) $(addprefix $(OBJDIR)/cxx/,$(CXX_OBJS))
 CPPFLAGS += $(foreach includedir,$(INCLUDE_DIRS),-I$(includedir)) -msse2 -mcx16 -Wl,-rpath -Wl,. 
 LDFLAGS += $(foreach librarydir,$(LIBRARY_DIRS),-L$(librarydir)) -msse2 -mcx16 
-LDFLAGS += $(foreach library,$(LIBRARIES),-l$(library)) 
+LDLIBS := $(foreach library,$(LIBRARIES),-l$(library)) 
 
 .PHONY: all clean distclean
 
@@ -23,7 +23,7 @@ $(OBJDIR)/cxx/%.o : %.cpp
 	
 $(BUILDDIR)/$(TARGET): $(OBJS)
 	+@[ -d $(BUILDDIR) ] || mkdir -p $(BUILDDIR)
-	$(LINK.cc) $(OBJS) -o $@
+	$(LINK.cc) $(OBJS) -o $@ $(LDLIBS)
 
 clean: distclean
 	@- $(RM) $(BUILDDIR)/$(TARGET)

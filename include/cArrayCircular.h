@@ -9,7 +9,7 @@
 
 namespace bss_util {
   // Simple circular array implementation. Unlike most data structures, CType must be signed instead of unsigned
-  template<class T, typename CType=int, ARRAY_TYPE ArrayType = CARRAY_SIMPLE, typename Alloc=StaticAllocPolicy<T>>
+  template<class T, typename CType = ptrdiff_t, ARRAY_TYPE ArrayType = CARRAY_SIMPLE, typename Alloc=StaticAllocPolicy<T>>
   class BSS_COMPILER_DLLEXPORT cArrayCircular : protected cArrayBase<T, CType, Alloc>, protected cArrayInternal<T, CType, ArrayType, Alloc>
   {
   protected:

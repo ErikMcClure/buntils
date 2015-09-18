@@ -187,7 +187,7 @@ BSS_COMPILER_DLLEXPORT
 extern size_t BSS_FASTCALL UTF8toUTF16(const char*BSS_RESTRICT input,wchar_t*BSS_RESTRICT output, size_t buflen)
 {
 #ifdef BSS_PLATFORM_WIN32
-  return (size_t)MultiByteToWideChar(CP_UTF8, 0, input, -1, output, !output?0:buflen);
+  return (size_t)MultiByteToWideChar(CP_UTF8, 0, input, -1, output, (int)(!output?0:buflen));
 #else
   static iconv_t iconv_utf8to16=0;
   size_t len = strlen(input);
@@ -364,7 +364,7 @@ BSS_COMPILER_DLLEXPORT
 extern size_t BSS_FASTCALL UTF16toUTF8(const wchar_t*BSS_RESTRICT input, char*BSS_RESTRICT output, size_t buflen)
 {
 #ifdef BSS_PLATFORM_WIN32
-  return (size_t)WideCharToMultiByte(CP_UTF8, 0, input, -1, output, !output?0:buflen, NULL, NULL);
+  return (size_t)WideCharToMultiByte(CP_UTF8, 0, input, -1, output, (int)(!output?0:buflen), NULL, NULL);
 #else
   static iconv_t iconv_utf16to8=0;
   size_t len = wcslen(input)*2;

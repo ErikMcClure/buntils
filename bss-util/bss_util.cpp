@@ -165,8 +165,8 @@ const char* file, const char* filter, const char* initdir, const char* defext)
   const char* i;
   for(i=filter; *((const short*)i) != 0; ++i);
   c=i-filter+1; //+1 to include null terminator
-  wfilter.reserve(MultiByteToWideChar(CP_UTF8, 0, filter, c, 0, 0));
-  MultiByteToWideChar(CP_UTF8, 0, filter, c, wfilter.UnsafeString(), wfilter.capacity());
+  wfilter.reserve(MultiByteToWideChar(CP_UTF8, 0, filter, (int)c, 0, 0));
+  MultiByteToWideChar(CP_UTF8, 0, filter, (int)c, wfilter.UnsafeString(), (int)wfilter.capacity());
   return FileDialog(open, flags, cStrW(file), wfilter, cStrW(initdir), cStrW(defext), 0);
 #else // BSS_PLATFORM_POSIX
   /*Gtk::FileChooserDialog dialog("Choose File", Gtk::FILE_CHOOSER_ACTION_OPEN);
@@ -231,7 +231,7 @@ const wchar_t* file, const wchar_t* filter, const wchar_t* initdir, const wchar_
   if(!res) buf[0]='\0';
   size_t len = WideCharToMultiByte(CP_UTF8, 0, buf, -1, 0, 0, 0, 0);
   std::unique_ptr<char[], bssdll_delete<char[]>> r(new char[len]);
-  WideCharToMultiByte(CP_UTF8, 0, buf, -1, r.get(), len, 0, 0);
+  WideCharToMultiByte(CP_UTF8, 0, buf, -1, r.get(), (int)len, 0, 0);
   return r;
 }
 #endif

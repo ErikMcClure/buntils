@@ -82,30 +82,30 @@ cINIstorage::~cINIstorage()
   if(_ini) delete _ini;
   _destroy(); //_destroyhash checks for nullification
 }
-cINIstorage::_NODE* cINIstorage::GetSectionNode(const char* section, unsigned int instance) const
+cINIstorage::_NODE* cINIstorage::GetSectionNode(const char* section, size_t instance) const
 {
   _NODE* n = _sections[section];
   if(!n) return 0;
   if(!instance) return n;
   return (instance>n->instances.Capacity())?0:(n->instances[instance-1]);
 }
-cINIsection* cINIstorage::GetSection(const char* section, unsigned int instance) const
+cINIsection* cINIstorage::GetSection(const char* section, size_t instance) const
 {
   _NODE* sec=GetSectionNode(section,instance);
   return !sec?0:&sec->val;
 }
-unsigned int cINIstorage::GetNumSections(const char* section) const
+size_t cINIstorage::GetNumSections(const char* section) const
 {
   _NODE* n = _sections[section];
   if(!n) return 0;
   return n->instances.Capacity()+1;
 }
-cINIentry* cINIstorage::GetEntryPtr(const char *section, const char* key, unsigned int keyinstance, unsigned int secinstance) const
+cINIentry* cINIstorage::GetEntryPtr(const char *section, const char* key, size_t keyinstance, size_t secinstance) const
 {
   cINIsection* s=GetSection(section,secinstance);
   return !s?0:s->GetEntryPtr(key,keyinstance);
 }
-cINIsection::_NODE* cINIstorage::GetEntryNode(const char *section, const char* key, unsigned int keyinstance, unsigned int secinstance) const
+cINIsection::_NODE* cINIstorage::GetEntryNode(const char *section, const char* key, size_t keyinstance, size_t secinstance) const
 {
   cINIsection* s=GetSection(section,secinstance);
   return !s?0:s->GetEntryNode(key,keyinstance);
@@ -169,7 +169,7 @@ cINIsection* cINIstorage::_addsection(const char* name)
     return ((*arr)+0);
   } else {
     arr=_sections[iter];
-    unsigned int index=arr->Capacity();
+    size_t index=arr->Capacity();
     arr->SetCapacity(index+1);
     new ((*arr)+index) cINIsection(name,this,index);
     _sections.SetKey(iter,(*arr)[0].GetName()); //the key pointer gets corrupted when we resize the array
@@ -178,10 +178,10 @@ cINIsection* cINIstorage::_addsection(const char* name)
 }
 
 //3 cases: removing something other then the beginning, removing the beginning, or removing the last one
-bool cINIstorage::RemoveSection(const char* name, unsigned int instance)
+bool cINIstorage::RemoveSection(const char* name, size_t instance)
 {
   if(!_ini) _openINI();
-  INICHUNK chunk = bss_findINIsection(*_ini,_ini->size(),name,instance);
+  INICHUNK chunk = bss_findINIsection(*_ini, _ini->size(), name, instance);
   khiter_t iter = _sections.Iterator(name);
 
   if(iter!=_sections.End() && chunk.start!=0)
@@ -226,7 +226,7 @@ bool cINIstorage::RemoveSection(const char* name, unsigned int instance)
     {
       arr->Remove(instance);
       if(!instance) _sections.SetKey(iter,(*arr)[0].GetName());
-      unsigned int svar=arr->Capacity();
+      size_t svar=arr->Capacity();
       for(;instance<svar;++instance) --(*arr)[instance]._index; //moves all the indices down
     }*/
 
@@ -235,16 +235,16 @@ bool cINIstorage::RemoveSection(const char* name, unsigned int instance)
   return false;
 }
 
-char cINIstorage::EditEntry(const char* section, const char* key, const char* nvalue, unsigned int keyinstance, unsigned int secinstance)
+char cINIstorage::EditEntry(const char* section, const char* key, const char* nvalue, size_t keyinstance, size_t secinstance)
 {
   if(!_ini) _openINI();
-  if(secinstance==(unsigned int)-1) 
+  if(secinstance==(size_t)-1)
     secinstance=AddSection(section)._index;
 
   khiter_t iter = _sections.Iterator(section);
   if(iter==_sections.End()) return -1; //if it doesn't exist at this point, fail
   _NODE* secnode=_sections.UnsafeValue(iter);
-  //if(secinstance==(unsigned int)-1) secinstance=secnode->instances.Capacity()-1; //This is now done at the start of the function
+  //if(secinstance==(size_t)-1) secinstance=secnode->instances.Capacity()-1; //This is now done at the start of the function
   if(secinstance>secnode->instances.Capacity()) return -2; //if secinstance is not valid, fail
   if(secinstance>0)
     secnode=secnode->instances[secinstance-1];
@@ -253,7 +253,7 @@ char cINIstorage::EditEntry(const char* section, const char* key, const char* nv
   INICHUNK chunk = bss_findINIsection(_ini->c_str(),_ini->size(),section,secinstance);
   if(!chunk.start) return -3; //if we can't find it in the INI, fail
 
-  if(keyinstance==(unsigned int)-1) //insertion
+  if(keyinstance==(size_t)-1) //insertion
   {
     psec->_addentry(key,nvalue);
     //_ini->reserve(_ini->size()+strlen(key)+strlen(nvalue)+2); // This is incredibly stupid. It invalidates all our pointers causing strange horrifying bugs.
@@ -387,7 +387,7 @@ void cINIstorage::_copy(const cINIstorage& copy)
   assert(!_root && !_last);
   _NODE* t=copy._root;
   _NODE* last=0;
-  unsigned int c=0;
+  size_t c=0;
   while(t)
   {
     _NODE* p=_alloc.alloc(1);

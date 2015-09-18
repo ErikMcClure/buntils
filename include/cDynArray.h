@@ -10,7 +10,7 @@
 
 namespace bss_util {
   // Dynamic array implemented using ArrayType (should only be used when constructors could potentially not be needed)
-  template<class T, typename CType=unsigned int, ARRAY_TYPE ArrayType = CARRAY_SIMPLE, typename Alloc=StaticAllocPolicy<T>>
+  template<class T, typename CType = size_t, ARRAY_TYPE ArrayType = CARRAY_SIMPLE, typename Alloc=StaticAllocPolicy<T>>
   class BSS_COMPILER_DLLEXPORT cDynArray : protected cArrayBase<T, CType, Alloc>, protected cArrayInternal<T, CType, ArrayType, Alloc>
   {
   protected:

@@ -8,7 +8,7 @@
 
 namespace bss_util {
   // Fast, tiny circular array-based queue. Pop and Peek are only valid if there is an item in the stack; this check must be done by the user.
-  template<class T, typename CType=int, ARRAY_TYPE ArrayType = CARRAY_SIMPLE, typename Alloc=StaticAllocPolicy<T>>
+  template<class T, typename CType = ptrdiff_t, ARRAY_TYPE ArrayType = CARRAY_SIMPLE, typename Alloc=StaticAllocPolicy<T>>
   class BSS_COMPILER_DLLEXPORT cQueue : protected cArrayCircular<T, CType, ArrayType, Alloc>
   {
   protected:

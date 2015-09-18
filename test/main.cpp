@@ -3453,10 +3453,10 @@ TESTDEF::RETPAIR test_IDHASH()
     cIDHash<int> hash(3);
     TEST(hash.Length()==0);
     TEST(hash.MaxID()==0);
-    int a = hash.Add(5);
-    int b = hash.Add(6);
-    int c = hash.Add(7);
-    int d = hash.Add(8);
+    unsigned int a = hash.Add(5);
+    unsigned int b = hash.Add(6);
+    unsigned int c = hash.Add(7);
+    unsigned int d = hash.Add(8);
     TEST(hash.Length()==4);
     TEST(hash.MaxID()==3);
     TEST(a==0);
@@ -3486,14 +3486,14 @@ TESTDEF::RETPAIR test_IDHASH()
 
   {
     cIDReverse<int,unsigned int, StaticAllocPolicy<int>,-1> hash;
-    int a = hash.Add(1);
-    int b = hash.Add(2);
-    int c = hash.Add(3);
-    int d = hash.Add(4);
-    int e = hash.Add(5);
-    int f = hash.Add(6);
-    int g = hash.Add(7);
-    int h = hash.Add(8);
+    unsigned int a = hash.Add(1);
+    unsigned int b = hash.Add(2);
+    unsigned int c = hash.Add(3);
+    unsigned int d = hash.Add(4);
+    unsigned int e = hash.Add(5);
+    unsigned int f = hash.Add(6);
+    unsigned int g = hash.Add(7);
+    unsigned int h = hash.Add(8);
     TEST(hash.Length()==8);
     TEST(hash.MaxID()==7);
     for(int i = 0; i<8; ++i) TEST(hash[i]==(i+1));

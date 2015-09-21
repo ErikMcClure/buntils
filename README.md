@@ -4,7 +4,7 @@ This is a collection of miscellaneous utility code used to simplify common tasks
 
 * Allocators with a state
 * Logging
-* INI parsing
+* INI parser and serializer
 * Reference counting
 * Generalized linked list manipulation
 * Array-based linked list
@@ -17,17 +17,18 @@ This is a collection of miscellaneous utility code used to simplify common tasks
 * A single-producer, single-consumer lockless queue
 * A multi-producer, multi-consumer microlock queue
 * Templatized implementations of cmpxchg,xchg,xadd, and other lockless primitives.
-* A template-base hash implementation based on khash
+* A template-based hash implementation based on khash
 * Command line parsing
-* Fixed-length and additive allocation schemes
-* fixed-size and variable-sized bit-based flag manipulation
+* Block, ring, and greedy allocation schemes
+* Fixed-size bit-based flag manipulation
 * High precision timer
 * Binary heap implementation
 * Priority queue based on binary heap
+* Priority heap based on Priority Queue that tracks entries to allow implementing Dijkstra's Algorithm
 * #defines to help deal with stupid windows.h conflicts and VC++ deprecated functions
 * Sorted array using a bisection algorithm
 * Map based on sorted array
-* program settings management (auto-INI and command line loading)
+* Program settings management (auto-INI and command line loading)
 * Frighteningly efficient delegate implementation
 * Automatic differentiation with dual numbers
 * Fixed-point arithmetic.
@@ -39,15 +40,21 @@ This is a collection of miscellaneous utility code used to simplify common tasks
 * Cross-platform extension to std::thread that allows signaling threads.
 * Stream splitting object using standard buffer implementation.
 * Integral rational data structure for precise fractions.
-* String table for localization, plus memory dumping and various construction methods.
-* High performance profiler with multiple output options
-* Multi-consumer multi-producer lockless fixed-size allocator
-* Generalized KD-tree implementation for querying how many rectangles are inside a given rectangle
-* Implementation of Robert Bridson's Fast Poisson Disk Sampling algorithm
-* An in-place compressed Trie data structure implementation
-* Arbitrary scheduler class for delaying actions
+* String table for localization.
+* High performance profiler with multiple output options.
+* Multi-consumer multi-producer lockless block allocator.
+* Generalized KD-tree implementation for querying how many rectangles are inside a given rectangle.
+* Implementation of Robert Bridson's Fast Poisson Disk Sampling algorithm.
+* An in-place compressed Trie data structure implementation.
+* Arbitrary scheduler class for delaying actions.
 * Thread pool implementation
 * Implementation of a graph representation that implements the push-relabel algorithm, along with reductions from circulation and lower-bound circulation graph problems.
 * Implements efficient breadth-first traversal of a tree or graph
 * Includes an ID hash system that can be rebased at any time, including a reversal extension.
 * Implements mathematically correct integer and float modulo
+* Includes an n-dimensional vector and matrix math library, with optimized 4x4, 3x3 and 2x2 operations.
+* Implementes the xorshift random number generation algorithm as a standards-compliant engine.
+* AA tree implementation
+* XML parser and serializer
+* JSON parser and serializer
+* UBJSON parser and serializer

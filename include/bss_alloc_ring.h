@@ -212,9 +212,12 @@ ALLOC_BEGIN:
     }
 
     BSS_ALIGN(16) bss_PTag<Bucket> _gc; // Contains a list of discarded buckets
+#pragma warning(push)
+#pragma warning(disable:4251)
     BSS_ALIGN(16) std::atomic<Bucket*> _root;
     BSS_ALIGN(64) std::atomic<size_t> _readers; // How many threads are currently depending on _root to not change
     BSS_ALIGN(64) std::atomic_bool _flag; // Blocking flag for when _root needs to change
+#pragma warning(pop)
     size_t _lastsize; // Last size used for a bucket.
     Bucket* _list; // root of permanent list of all active allocated buckets.
   };

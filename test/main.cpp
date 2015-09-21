@@ -4129,7 +4129,7 @@ void _locklessqueue_consume(void* p)
 {
   while(!startflag.load());
   T* q = (T*)p;
-  uint c;
+  unsigned short c;
   while((c = lq_pos.fetch_add(1, std::memory_order_relaxed))<TESTNUM) {
     while(!q->Pop(lq_end[c]));
   }
@@ -4140,7 +4140,7 @@ void _locklessqueue_produce(void* p)
 {
   while(!startflag.load());
   T* q = (T*)p;
-  uint64 c;
+  size_t c;
   while((c = lq_c.fetch_add(1, std::memory_order_relaxed))<=TESTNUM) {
     q->Push(c);
   }

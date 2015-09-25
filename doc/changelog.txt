@@ -2,6 +2,10 @@
 * Black Sphere Studios Utility Library Changelog *
 **************************************************
 
+0.4.5
+-----
+- Added variant class, an algebriac data type implemented in variant.h
+
 0.4.4
 -----
 - Fixed static keywords on explicit template specializations. 

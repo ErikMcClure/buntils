@@ -112,6 +112,7 @@
     <ClInclude Include="..\include\os.h" />
     <ClInclude Include="..\include\profiler.h" />
     <ClInclude Include="..\include\StreamSplitter.h" />
+    <ClInclude Include="..\include\variant.h" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="bss_log.cpp" />

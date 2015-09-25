@@ -48,6 +48,7 @@
 #include "cTRBtree.h"
 #include "cTrie.h"
 #include "cUBJSON.h"
+#include "cXML.h"
 #include "delegate.h"
 #include "Dual.h"
 #include "FixedPt.h"
@@ -55,7 +56,7 @@
 #include "os.h"
 #include "profiler.h"
 #include "StreamSplitter.h"
-#include "cXML.h"
+#include "variant.h"
 #include <fstream>
 #include <algorithm>
 #include <limits.h> // for INT_MIN, INT_MAX etc. on GCC
@@ -4898,6 +4899,62 @@ TESTDEF::RETPAIR test_DELEGATE()
   ENDTEST;
 }
 
+typedef variant<int, bool, variant<double, cStr>, cStr> VTYPE;
+
+int test_VTYPE(VTYPE& v)
+{
+  switch(v.tag())
+  {
+  case VTYPE::Type<int>::value: return 0;
+  case VTYPE::Type<bool>::value: return 1;
+  case VTYPE::Type<variant<double, cStr>>::value: return 2;
+  case VTYPE::Type<cStr>::value: return 3;
+  }
+  return -1;
+}
+
+TESTDEF::RETPAIR test_VARIANT()
+{
+  BEGINTEST;
+  VTYPE v(true);
+  VTYPE v2(cStr("string"));
+  VTYPE v3(variant<double, cStr>(0.5));
+
+  TEST(v.get<bool>());
+  TEST(v2.get<cStr>() == "string");
+  TEST((v3.get<variant<double, cStr>>().get<double>() == 0.5));
+  TEST(test_VTYPE(v) == 1);
+  TEST(test_VTYPE(v2) == 3);
+  TEST(test_VTYPE(v3) == 2);
+
+  VTYPE v4(v2);
+  TEST(v2.get<cStr>() == "string");
+  TEST(v4.get<cStr>() == "string");
+  VTYPE v5(std::move(v2));
+  TEST(v5.get<cStr>() == "string");
+  const VTYPE v6(3);
+  TEST(v6.get<int>() == 3);
+  v2 = v3;
+  TEST((v3.get<variant<double, cStr>>().get<double>() == 0.5));
+  TEST((v2.get<variant<double, cStr>>().get<double>() == 0.5));
+  v = std::move(v4);
+  TEST(v.get<cStr>() == "string");
+  v3 = cStr("string");
+  TEST(v3.get<cStr>() == "string");
+  v2 = v6;
+  TEST(v2.get<int>() == 3);
+  v4 = 10;
+  TEST(v4.get<int>() == 10);
+  v5 = -1;
+  TEST(v5.get<int>() == -1);
+  v4 = false;
+  TEST(!v4.get<bool>());
+
+  VTYPE v7(v6);
+
+  ENDTEST;
+}
+
 TESTDEF::RETPAIR test_LLBASE()
 {
   BEGINTEST;
@@ -5181,6 +5238,7 @@ int main(int argc, char** argv)
     { "os.h", &test_OS },
     { "profile.h", &test_PROFILE },
     { "cStreamSplitter.h", &test_STREAMSPLITTER },
+    { "variant.h", &test_VARIANT },
   };
 
   const size_t NUMTESTS=sizeof(tests)/sizeof(TESTDEF);

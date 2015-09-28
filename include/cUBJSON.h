@@ -105,10 +105,15 @@ namespace bss_util {
 
   static inline void ParseUBJSONValue(UBJSONTuple& tuple, std::istream& s, char type)
   {
-    do
+    if(type != 0)
+      tuple.type = (UBJSONTuple::TYPE)type;
+    else
     {
-      tuple.type = (UBJSONTuple::TYPE)((type != 0) ? type : s.get());
-    } while(tuple.type == UBJSONTuple::TYPE_NO_OP);
+      do
+        tuple.type = (UBJSONTuple::TYPE)s.get();
+      while(tuple.type == UBJSONTuple::TYPE_NO_OP);
+    }
+
     switch(tuple.type)
     {
     default:
@@ -132,7 +137,7 @@ namespace bss_util {
     case UBJSONTuple::TYPE_STRING:
       tuple.length = ParseUBJSONLength(s);
       tuple.String = new char[(size_t)tuple.length+1];
-      s.read(tuple.String, tuple.length);
+      if(tuple.length > 0) s.read(tuple.String, tuple.length);
       tuple.String[tuple.length] = 0;
       break;
     }
@@ -143,12 +148,12 @@ namespace bss_util {
     type = 0;
     if(!!s && s.peek() == UBJSONTuple::TYPE_TYPE)
     { 
-      s.get();
+      s.get(); // eat '$'
       type = s.get();
     }
     if(!!s && s.peek() == UBJSONTuple::TYPE_COUNT)
     { 
-      s.get();
+      s.get(); // eat '#'
       return ParseUBJSONLength(s);
     } else if(type != 0)
       throw std::runtime_error("A type was specified, but no count was given. A count MUST follow a type!");
@@ -180,9 +185,10 @@ namespace bss_util {
         --count;
         buf.reserve(length+1);
         s.read(buf.UnsafeString(), length);
-        buf[length] = 0;
+        buf.UnsafeString()[length] = 0;
         obj.EvalUBJSON(buf.c_str(), s, type);
       }
+      if(!!s && count<0 && s.peek() == UBJSONTuple::TYPE_OBJECT_END) s.get(); // If we were looking for the OBJECT_END symbol, eat it.
     }
   };
 
@@ -213,7 +219,7 @@ namespace bss_util {
   };
   
   template<class T>
-  static inline __int64 ParseUBJSONArray(T& obj, std::istream& s, char ty)
+  static inline void ParseUBJSONArray(T& obj, std::istream& s, char ty)
   {
     if(ty != 0 && ty != UBJSONTuple::TYPE_ARRAY) // Sanity check
       throw std::runtime_error("Expecting a type other than array in the array parsing function!");
@@ -229,14 +235,21 @@ namespace bss_util {
         ParseUBJSONInternal<T, false>::DoAddCall(obj, s, num, type);
         --count;
       }
+      if(!!s && count<0 && s.peek() == UBJSONTuple::TYPE_ARRAY_END) s.get(); // If we were looking for the ARRAY_END symbol, eat it.
     }
   }
 
   template<class T, int I, bool B>
   struct ParseUBJSONInternal<T[I], B>
   {
-    static inline bool DoBulkRead(T(&obj)[I], std::istream& s, __int64 count, char ty) { return false; }
-    static inline void DoAddCall(T(&obj)[I], std::istream& s, int& n, char ty) { if(n<I) ParseUBJSON<T>(obj[n++], s, ty); }
+    static inline bool DoBulkRead(T(&obj)[I], std::istream& s, __int64 count, char ty) {
+      if((ty != UBJSONTuple::TYPE_CHAR && ty != UBJSONTuple::TYPE_UINT8 && ty != UBJSONTuple::TYPE_INT8) || count != (I*sizeof(T)))
+        return false;
+
+      s.read((char*)obj, count);
+      return true;
+    }
+    static inline void DoAddCall(T(&obj)[I], std::istream& s, __int64& n, char ty) { if(n<I) ParseUBJSON<T>(obj[n++], s, ty); }
     static void F(T(&obj)[I], std::istream& s, char ty) { ParseUBJSONArray<T[I]>(obj, s, ty); }
   };
 
@@ -252,11 +265,23 @@ namespace bss_util {
       s.read((char*)(T*)obj, count);
       return true;
     }
-    static inline void DoAddCall(cDynArray<T, CType, ArrayType, Alloc>& obj, std::istream& s, int& n, char ty) { obj.Add(T()); ParseUBJSON<T>(obj.Back(), s, ty); }
+    static inline void DoAddCall(cDynArray<T, CType, ArrayType, Alloc>& obj, std::istream& s, __int64& n, char ty) { obj.Add(T()); ParseUBJSON<T>(obj.Back(), s, ty); }
     static void F(cDynArray<T, CType, ArrayType, Alloc>& obj, std::istream& s, char ty)
     {
       obj.Clear();
       ParseUBJSONArray<cDynArray<T, CType, ArrayType, Alloc>>(obj, s, ty);
+    }
+  };
+
+  template<typename CType, ARRAY_TYPE ArrayType, typename Alloc>
+  struct ParseUBJSONInternal<cDynArray<bool, CType, ArrayType, Alloc>, false>
+  {
+    static inline bool DoBulkRead(cDynArray<bool, CType, ArrayType, Alloc>& obj, std::istream& s, __int64 count, char ty) { return false; }
+    static inline void DoAddCall(cDynArray<bool, CType, ArrayType, Alloc>& obj, std::istream& s, __int64& n, char ty) { bool b; ParseUBJSON<bool>(b, s, ty); obj.Add(b); }
+    static void F(cDynArray<bool, CType, ArrayType, Alloc>& obj, std::istream& s, char ty)
+    {
+      obj.Clear();
+      ParseUBJSONArray<cDynArray<bool, CType, ArrayType, Alloc>>(obj, s, ty);
     }
   };
 
@@ -269,10 +294,10 @@ namespace bss_util {
         return false;
 
       obj.resize(count / sizeof(T)); // If the type is 1 byte and the count is divisible by the array element size, we can do an optimized read
-      s.read((char*)(T*)obj, count);
+      s.read((char*)obj.data(), count);
       return true;
     }
-    static inline void DoAddCall(std::vector<T, Alloc>& obj, std::istream& s, int& n, char ty) { obj.push_back(T()); ParseUBJSON<T>(obj.back(), s, ty); }
+    static inline void DoAddCall(std::vector<T, Alloc>& obj, std::istream& s, __int64& n, char ty) { obj.push_back(T()); ParseUBJSON<T>(obj.back(), s, ty); }
     static void F(std::vector<T, Alloc>& obj, std::istream& s, char ty)
     {
       obj.clear();
@@ -281,7 +306,7 @@ namespace bss_util {
   };
 
   template<class T>
-  inline void ParseUBJSON(T& obj, std::istream& s, char type){ ParseUBJSONInternal<T, std::is_arithmetic<T>::value>::F(obj, s); }
+  inline void ParseUBJSON(T& obj, std::istream& s, char type = 0){ ParseUBJSONInternal<T, std::is_arithmetic<T>::value>::F(obj, s, type); }
 
   template<>
   inline void ParseUBJSON<std::string>(std::string& obj, std::istream& s, char type)
@@ -389,8 +414,8 @@ namespace bss_util {
   struct WriteUBJSONType<std::vector<T, Alloc>> { static const char t = UBJSONTuple::TYPE_ARRAY; };
   template<class T, int I> struct WriteUBJSONType<T[I]> { static const char t = UBJSONTuple::TYPE_ARRAY; };
 
-  template<class T>
-  static inline __int64 WriteUBJSONArray(const T* obj, size_t size, std::ostream& s, char type)
+  template<class E, class T>
+  static inline void WriteUBJSONArray(T obj, const char* data, size_t size, std::ostream& s, char type)
   {
     if(type)
     {
@@ -399,12 +424,12 @@ namespace bss_util {
     }
     s.put(UBJSONTuple::TYPE_COUNT);
     WriteUBJSON<size_t>(size, s);
-    if(type == UBJSONTuple::TYPE_CHAR || type == UBJSONTuple::TYPE_UINT8 || type == UBJSONTuple::TYPE_INT8)
-      s.write((char*)obj, size*sizeof(T)); //sizeof(T) should be 1 here but we multiply it anyway
+    if(data != 0 && type == UBJSONTuple::TYPE_CHAR || type == UBJSONTuple::TYPE_UINT8 || type == UBJSONTuple::TYPE_INT8)
+      s.write(data, size*sizeof(T)); //sizeof(T) should be 1 here but we multiply it anyway
     else
     {
       for(unsigned int i = 0; i < size; ++i)
-        WriteUBJSON<T>(obj[i], s, type);
+        WriteUBJSON<E>(obj[i], s, type);
     }
   }
 
@@ -414,7 +439,7 @@ namespace bss_util {
     static void F(const T(&obj)[I], std::ostream& s, char ty)
     {
       if(!ty) s.put(UBJSONTuple::TYPE_ARRAY);
-      WriteUBJSONArray<T>(obj, I, s, WriteUBJSONType<T>::t);
+      WriteUBJSONArray<T, const T*>((const T*)obj, (const char*)obj, I, s, WriteUBJSONType<T>::t);
     }
   };
 
@@ -424,7 +449,17 @@ namespace bss_util {
     static void F(const cDynArray<T, CType, ArrayType, Alloc>& obj, std::ostream& s, char ty)
     {
       if(!ty) s.put(UBJSONTuple::TYPE_ARRAY);
-      WriteUBJSONArray<T>(obj, obj.Length(), s, WriteUBJSONType<T>::t);
+      WriteUBJSONArray<T>(obj, (const char*)obj.begin(), obj.Length(), s, WriteUBJSONType<T>::t);
+    }
+  };
+
+  template<typename CType, ARRAY_TYPE ArrayType, typename Alloc>
+  struct WriteUBJSONInternal<cDynArray<bool, CType, ArrayType, Alloc>, false>
+  {
+    static void F(const cDynArray<bool, CType, ArrayType, Alloc>& obj, std::ostream& s, char ty)
+    {
+      if(!ty) s.put(UBJSONTuple::TYPE_ARRAY);
+      WriteUBJSONArray<bool>(obj, 0, obj.Length(), s, 0);
     }
   };
 
@@ -434,7 +469,7 @@ namespace bss_util {
     static void F(const std::vector<T, Alloc>& obj, std::ostream& s, char ty)
     {
       if(!ty) s.put(UBJSONTuple::TYPE_ARRAY);
-      WriteUBJSONArray<T>(obj, obj.size(), s, WriteUBJSONType<T>::t);
+      WriteUBJSONArray<T>(obj, (const char*)obj.data(), obj.size(), s, WriteUBJSONType<T>::t);
     }
   };
   
@@ -452,7 +487,7 @@ namespace bss_util {
   }
 
   template<class T>
-  inline void WriteUBJSON(const char* id, const T& obj, std::ostream& s, char type){ WriteUBJSONId(id, s); WriteUBJSONInternal<T, std::is_integral<T>::value>::F(obj, s, type); }
+  inline void WriteUBJSON(const char* id, const T& obj, std::ostream& s, char type = 0){ WriteUBJSONId(id, s); WriteUBJSONInternal<T, std::is_integral<T>::value>::F(obj, s, type); }
 
   template<class T>
   inline void WriteUBJSON(const T& obj, std::ostream& s, char type) { WriteUBJSON<T>(0, obj, s, type); }

@@ -3961,9 +3961,160 @@ TESTDEF::RETPAIR test_JSON()
   ENDTEST;
 }
 
+struct ubjsontest2
+{
+  int a;
+  cStr c;
+  double d;
+
+  void EvalUBJSON(const char* id, std::istream& s, char ty)
+  {
+    static cTrie<unsigned char> t(3, "a", "c", "d");
+    switch(t[id])
+    {
+    case 0: ParseUBJSON(a, s, ty); break;
+    case 1: ParseUBJSON(c, s, ty); break;
+    case 2: ParseUBJSON(d, s, ty); break;
+    }
+  }
+  void SerializeUBJSON(std::ostream& s) const
+  {
+    WriteUBJSON("a", a, s);
+    WriteUBJSON("c", c, s);
+    WriteUBJSON("d", d, s);
+  }
+};
+
+struct ubjsontest
+{
+  char a;
+  short b;
+  int c;
+  __int64 d;
+  unsigned char e;
+  unsigned short f;
+  unsigned int g;
+  unsigned __int64 h;
+  ubjsontest2 i;
+  float x;
+  double y;
+  cStr p;
+  int m[3];
+  std::string n[2];
+  std::vector<int> u;
+  cDynArray<bool> v;
+  cDynArray<cStr, size_t, CARRAY_SAFE> w;
+  cDynArray<ubjsontest2, size_t, CARRAY_SAFE> z;
+
+  void EvalUBJSON(const char* id, std::istream& s, char ty)
+  {
+    static cTrie<unsigned char> t(18, "a", "b", "c", "d", "e", "f", "g", "h", "i", "x", "y", "p", "m", "n", "u", "v", "w", "z");
+    switch(t[id])
+    {
+    case 0: ParseUBJSON(a, s, ty); break;
+    case 1: ParseUBJSON(b, s, ty); break;
+    case 2: ParseUBJSON(c, s, ty); break;
+    case 3: ParseUBJSON(d, s, ty); break;
+    case 4: ParseUBJSON(e, s, ty); break;
+    case 5: ParseUBJSON(f, s, ty); break;
+    case 6: ParseUBJSON(g, s, ty); break;
+    case 7: ParseUBJSON(h, s, ty); break;
+    case 8: ParseUBJSON(i, s, ty); break;
+    case 9: ParseUBJSON(x, s, ty); break;
+    case 10: ParseUBJSON(y, s, ty); break;
+    case 11: ParseUBJSON(p, s, ty); break;
+    case 12: ParseUBJSON(m, s, ty); break;
+    case 13: ParseUBJSON(n, s, ty); break;
+    case 14: ParseUBJSON(u, s, ty); break;
+    case 15: ParseUBJSON(v, s, ty); break;
+    case 16: ParseUBJSON(w, s, ty); break;
+    case 17: ParseUBJSON(z, s, ty); break;
+    }
+  }
+  void SerializeUBJSON(std::ostream& s) const
+  {
+    WriteUBJSON("a", a, s);
+    WriteUBJSON("b", b, s);
+    WriteUBJSON("c", c, s);
+    WriteUBJSON("d", d, s);
+    WriteUBJSON("e", e, s);
+    WriteUBJSON("f", f, s);
+    WriteUBJSON("g", g, s);
+    WriteUBJSON("h", h, s);
+    WriteUBJSON("i", i, s);
+    WriteUBJSON("x", x, s);
+    WriteUBJSON("y", y, s);
+    WriteUBJSON("p", p, s);
+    WriteUBJSON("m", m, s);
+    WriteUBJSON("n", n, s);
+    WriteUBJSON("u", u, s);
+    WriteUBJSON("v", v, s);
+    WriteUBJSON("w", w, s);
+    WriteUBJSON("z", z, s);
+  }
+};
+
 TESTDEF::RETPAIR test_UBJSON()
 {
   BEGINTEST;
+  ubjsontest t1 = { 1, -2, 3, -4, 5, 6, 7, 8, 
+  {9, "foo", 10.0}, 11.0f, 12.0, "bar", 
+  {13, 14, 15}, 
+  {"fizz", "buzz"}, 
+  {16, 17, 18, 19, 20}, 
+  {true, false, true, false, false, true}, 
+  {"stuff", "crap", "things"}, 
+  { {21, "22", 23.0}, {24, "25", 26.0} } };
+
+  std::fstream fso("out.ubj", std::ios_base::out | std::ios_base::trunc | std::ios_base::binary);
+  WriteUBJSON<ubjsontest>(t1, fso);
+  fso.close();
+
+  ubjsontest t2;
+  memset(&t2, 0, sizeof(ubjsontest));
+  new(&t2.u) std::vector<int>(); // std::vector blows up if you try to zero all its bits.
+  std::fstream fsi("out.ubj", std::ios_base::in | std::ios_base::binary);
+  ParseUBJSON<ubjsontest>(t2, fsi);
+  fsi.close();
+
+  TEST(t1.a == t2.a);
+  TEST(t1.b == t2.b);
+  TEST(t1.c == t2.c);
+  TEST(t1.d == t2.d);
+  TEST(t1.e == t2.e);
+  TEST(t1.f == t2.f);
+  TEST(t1.g == t2.g);
+  TEST(t1.h == t2.h);
+  TEST(t1.i.a == t2.i.a);
+  TEST(t1.i.c == t2.i.c);
+  TEST(t1.i.d == t2.i.d);
+  TEST(t1.x == t2.x);
+  TEST(t1.y == t2.y);
+  TEST(t1.p == t2.p);
+  TEST(t1.m[0] == t2.m[0]);
+  TEST(t1.m[1] == t2.m[1]);
+  TEST(t1.m[2] == t2.m[2]);
+  TEST(t1.n[0] == t2.n[0]);
+  TEST(t1.n[1] == t2.n[1]);
+  TEST(t1.u.size() == t2.u.size());
+  for(size_t i = 0; i < t1.u.size(); ++i)
+    TEST(t1.u[i] == t2.u[i]);
+
+  TEST(t1.v.Length() == t2.v.Length());
+  for(size_t i = 0; i < t1.v.Length(); ++i)
+    TEST(t1.v[i] == t2.v[i]);
+
+  TEST(t1.w.Length() == t2.w.Length());
+  for(size_t i = 0; i < t1.w.Length(); ++i)
+    TEST(t1.w[i] == t2.w[i]);
+  
+  TEST(t1.z.Length() == t2.z.Length());
+  for(size_t i = 0; i < t1.z.Length(); ++i)
+  {
+    TEST(t1.z[i].a == t2.z[i].a);
+    TEST(t1.z[i].c == t2.z[i].c);
+    TEST(t1.z[i].d == t2.z[i].d);
+  }
 
   ENDTEST;
 }
@@ -5244,6 +5395,7 @@ int main(int argc, char** argv)
     { "cINIstorage.h", &test_INISTORAGE },
     { "cKDTree.h", &test_KDTREE },
     { "cJSON.h", &test_JSON },
+    { "cUBJSON.h", &test_UBJSON },
     { "cHash.h", &test_HASH },
     { "cLinkedArray.h", &test_LINKEDARRAY },
     { "cLinkedList.h", &test_LINKEDLIST },

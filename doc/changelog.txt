@@ -5,6 +5,8 @@
 0.4.5
 -----
 - Added variant class, an algebriac data type implemented in variant.h
+- Added bool array support and tests to UBJSON
+- Added support for variants in both UBJSON and JSON parsing and serialization.
 
 0.4.4
 -----

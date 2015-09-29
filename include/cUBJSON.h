@@ -72,11 +72,12 @@ namespace bss_util {
     };
   };
 
-  struct UBJSONValue : variant<cStr, bool, unsigned __int8, __int8, __int16, __int32, __int64, float, double, cDynArray<UBJSONValue, size_t, CARRAY_SAFE>, cDynArray<std::pair<cStr, UBJSONValue>, size_t, CARRAY_SAFE>>
+  struct UBJSONValue : variant<cStr, bool, unsigned __int8, __int8, __int16, __int32, __int64, float, double, cDynArray<UBJSONValue, size_t, CARRAY_SAFE>, cDynArray<std::pair<cStr, UBJSONValue>, size_t, CARRAY_SAFE>, cDynArray<unsigned char, size_t>>
   {
     typedef cDynArray<UBJSONValue, size_t, CARRAY_SAFE> UBJSONArray;
     typedef cDynArray<std::pair<cStr, UBJSONValue>, size_t, CARRAY_SAFE> UBJSONObject;
-    typedef variant<cStr, bool, unsigned __int8, __int8, __int16, __int32, __int64, float, double, UBJSONArray, UBJSONObject> BASE;
+    typedef cDynArray<unsigned char, size_t> UBJSONBinary;
+    typedef variant<cStr, bool, unsigned __int8, __int8, __int16, __int32, __int64, float, double, UBJSONArray, UBJSONObject, UBJSONBinary> BASE;
 
   private:
     template<class T>
@@ -581,8 +582,8 @@ namespace bss_util {
     }
     s.put(UBJSONTuple::TYPE_COUNT);
     WriteUBJSON<size_t>(size, s);
-    if(data != 0 && type == UBJSONTuple::TYPE_CHAR || type == UBJSONTuple::TYPE_UINT8 || type == UBJSONTuple::TYPE_INT8)
-      s.write(data, size*sizeof(T)); //sizeof(T) should be 1 here but we multiply it anyway
+    if(data != 0 && (type == UBJSONTuple::TYPE_CHAR || type == UBJSONTuple::TYPE_UINT8 || type == UBJSONTuple::TYPE_INT8))
+      s.write(data, size*sizeof(E)); //sizeof(E) should be 1 here but we multiply it anyway
     else
     {
       for(unsigned int i = 0; i < size; ++i)
@@ -673,6 +674,7 @@ namespace bss_util {
       case UBJSONValue::Type<__int64>::value: WriteUBJSON<__int64>(obj.get<__int64>(), s, ty); break;
       case UBJSONValue::Type<float>::value: WriteUBJSON<float>(obj.get<float>(), s, ty); break;
       case UBJSONValue::Type<double>::value: WriteUBJSON<double>(obj.get<double>(), s, ty); break;
+      case UBJSONValue::Type<UBJSONValue::UBJSONBinary>::value: WriteUBJSON<UBJSONValue::UBJSONBinary>(obj.get<UBJSONValue::UBJSONBinary>(), s, ty); break;
       case UBJSONValue::Type<UBJSONValue::UBJSONArray>::value:
       {
         auto& v = obj.get<UBJSONValue::UBJSONArray>();

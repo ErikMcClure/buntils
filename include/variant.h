@@ -94,11 +94,11 @@ namespace bss_util {
     template<>
     struct op<>
     {
-      inline static void destroy(int tag, char* store) { assert(false); }
+      inline static void destroy(int tag, char* store) { assert(tag == -1); }
       template<class U>
-      inline static void construct(int tag, char* store, const U& v) { assert(false); }
+      inline static void construct(int tag, char* store, const U& v) { assert(tag == -1); }
       template<class U>
-      inline static void construct(int tag, char* store, U && v) { assert(false); }
+      inline static void construct(int tag, char* store, U && v) { assert(tag == -1); }
       template<class U>
       inline static void assign(int tag, char* store, const U& v) { assert(false); }
       template<class U>
@@ -144,7 +144,7 @@ namespace bss_util {
     };
 
   public:
-    variant() = delete;
+    variant() : _tag(-1) {}
     variant(const variant& v) : _tag(v._tag) { op<Arg, Args...>::construct<variant>(_tag, _store, v); }
     variant(variant&& v) : _tag(v._tag) { op<Arg, Args...>::construct<variant>(_tag, _store, std::move(v)); }
     template<typename T>
@@ -177,7 +177,7 @@ namespace bss_util {
     template<typename T>
     inline static bool contains() { return getpos<T, Arg, Args...>::value != -1; }
     template<typename T>
-    inline bool is() const { getpos<T, Arg, Args...>::value == _tag; }
+    inline bool is() const { return getpos<T, Arg, Args...>::value == _tag; }
     inline int tag() const { return _tag; }
 
     template<typename T>

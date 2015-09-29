@@ -3942,6 +3942,7 @@ TESTDEF::RETPAIR test_JSON()
   o2.bfalse = true;
   ParseJSON(o2, fs);
   dotest_JSON(o2, __testret);
+  fs.close();
 
   WriteJSON(o, "pretty.json", 1);
   std::fstream fs2("pretty.json");
@@ -3951,12 +3952,93 @@ TESTDEF::RETPAIR test_JSON()
   o3.bfalse = true;
   ParseJSON(o3, fs2);
   dotest_JSON(o3, __testret);
+  fs2.close();
+
+  std::fstream fs3("pretty.json");
+  JSONValue var;
+  ParseJSON(var, fs3);
+  fs3.close();
+
+  auto& var1 = var.get<JSONValue::JSONObject>();
+  TEST(var1.Length() == 13);
+  TEST(var1[0].first == "a");
+  TEST(var1[0].second.is<__int64>());
+  TEST(var1[1].first == "b");
+  TEST(var1[1].second.is<__int64>());
+  TEST(var1[2].first == "c");
+  TEST(var1[2].second.is<double>());
+  TEST(var1[3].first == "test");
+  TEST(var1[3].second.is<cStr>());
+  TEST(var1[4].first == "nested");
+  TEST(var1[4].second.is<JSONValue::JSONObject>());
+  TEST(var1[4].second.get<JSONValue::JSONObject>()[0].first == "value");
+  TEST(var1[4].second.get<JSONValue::JSONObject>()[0].second.is<JSONValue::JSONArray>());
+  TEST(var1[4].second.get<JSONValue::JSONObject>()[0].second.get<JSONValue::JSONArray>()[0].is<JSONValue::JSONObject>());
+  TEST(var1[5].first == "foo");
+  TEST(var1[5].second.is<JSONValue::JSONArray>());
+
+  auto& var2 = var1[5].second.get<JSONValue::JSONArray>();
+  TEST(var2.Length() == 6);
+  TEST(var2[0].get<__int64>() == 5);
+  TEST(var2[1].get<__int64>() == 6);
+  TEST(var2[2].get<__int64>() == 4);
+  TEST(var2[3].get<__int64>() == 2);
+  TEST(var2[4].get<__int64>() == 2);
+  TEST(var2[5].get<__int64>() == 3);
+
+  TEST(var1[6].first == "bar");
+  TEST(var1[6].second.is<JSONValue::JSONArray>());
+
+  auto& var3 = var1[6].second.get<JSONValue::JSONArray>();
+  TEST(var3.Length() == 5);
+  TEST(var3[0].is<double>());
+  TEST(var3[0].get<double>() == 3.3);
+  TEST(var3[1].is<double>());
+  TEST(var3[1].get<double>() == 1.6543);
+  TEST(var3[2].is<double>());
+  TEST(var3[2].get<double>() == 0.49873);
+  TEST(var3[3].is<__int64>());
+  TEST(var3[3].get<__int64>() == 90);
+  TEST(var3[4].is<__int64>());
+  TEST(var3[4].get<__int64>() == 4);
+
+  TEST(var1[7].first == "foobar");
+  TEST(var1[7].second.is<JSONValue::JSONArray>());
+
+  auto& var4 = var1[7].second.get<JSONValue::JSONArray>();
+  TEST(var4.Length() == 2);
+  TEST(var4[0].is<cStr>());
+  TEST(var4[0].get<cStr>() == "moar");
+  TEST(var4[1].is<cStr>());
+  TEST(var4[1].get<cStr>() == "");
+
+  TEST(var1[8].first == "nestarray");
+  TEST(var1[8].second.is<JSONValue::JSONArray>());
+  TEST(var1[9].first == "nested2");
+  TEST(var1[9].second.is<JSONValue::JSONObject>());
+  TEST(var1[10].first == "btrue");
+  TEST(var1[10].second.is<bool>());
+  TEST(var1[11].first == "bfalse");
+  TEST(var1[11].second.is<bool>());
+  TEST(var1[12].first == "fixed");
+  TEST(var1[12].second.is<JSONValue::JSONArray>());
+
+  WriteJSON<JSONValue>(var, "out2.json", 0);
+
+  JSONtest o4;
+  o4.btrue = false;
+  o4.bfalse = true;
+  std::fstream fs4("out2.json");
+  ParseJSON(o4, fs4);
+  fs4.close();
+  dotest_JSON(o4, __testret);
 
   cStr s; // test to ensure that invalid data does not crash or lock up the parser
   for(int i = strlen(json); i > 0; --i)
   {
     s.assign(json, i);
     ParseJSON(o, s);
+    ParseJSON(var, s);
   }
   ENDTEST;
 }
@@ -3977,11 +4059,12 @@ struct ubjsontest2
     case 2: ParseUBJSON(d, s, ty); break;
     }
   }
-  void SerializeUBJSON(std::ostream& s) const
+  bool SerializeUBJSON(std::ostream& s) const
   {
     WriteUBJSON("a", a, s);
     WriteUBJSON("c", c, s);
     WriteUBJSON("d", d, s);
+    return true;
   }
 };
 
@@ -4031,7 +4114,7 @@ struct ubjsontest
     case 17: ParseUBJSON(z, s, ty); break;
     }
   }
-  void SerializeUBJSON(std::ostream& s) const
+  bool SerializeUBJSON(std::ostream& s) const
   {
     WriteUBJSON("a", a, s);
     WriteUBJSON("b", b, s);
@@ -4051,32 +4134,12 @@ struct ubjsontest
     WriteUBJSON("v", v, s);
     WriteUBJSON("w", w, s);
     WriteUBJSON("z", z, s);
+    return true;
   }
 };
 
-TESTDEF::RETPAIR test_UBJSON()
+void VerifyUBJSON(const ubjsontest& t1, const ubjsontest& t2, TESTDEF::RETPAIR& __testret)
 {
-  BEGINTEST;
-  ubjsontest t1 = { 1, -2, 3, -4, 5, 6, 7, 8, 
-  {9, "foo", 10.0}, 11.0f, 12.0, "bar", 
-  {13, 14, 15}, 
-  {"fizz", "buzz"}, 
-  {16, 17, 18, 19, 20}, 
-  {true, false, true, false, false, true}, 
-  {"stuff", "crap", "things"}, 
-  { {21, "22", 23.0}, {24, "25", 26.0} } };
-
-  std::fstream fso("out.ubj", std::ios_base::out | std::ios_base::trunc | std::ios_base::binary);
-  WriteUBJSON<ubjsontest>(t1, fso);
-  fso.close();
-
-  ubjsontest t2;
-  memset(&t2, 0, sizeof(ubjsontest));
-  new(&t2.u) std::vector<int>(); // std::vector blows up if you try to zero all its bits.
-  std::fstream fsi("out.ubj", std::ios_base::in | std::ios_base::binary);
-  ParseUBJSON<ubjsontest>(t2, fsi);
-  fsi.close();
-
   TEST(t1.a == t2.a);
   TEST(t1.b == t2.b);
   TEST(t1.c == t2.c);
@@ -4107,7 +4170,7 @@ TESTDEF::RETPAIR test_UBJSON()
   TEST(t1.w.Length() == t2.w.Length());
   for(size_t i = 0; i < t1.w.Length(); ++i)
     TEST(t1.w[i] == t2.w[i]);
-  
+
   TEST(t1.z.Length() == t2.z.Length());
   for(size_t i = 0; i < t1.z.Length(); ++i)
   {
@@ -4115,6 +4178,119 @@ TESTDEF::RETPAIR test_UBJSON()
     TEST(t1.z[i].c == t2.z[i].c);
     TEST(t1.z[i].d == t2.z[i].d);
   }
+}
+
+TESTDEF::RETPAIR test_UBJSON()
+{
+  BEGINTEST;
+  ubjsontest t1 = { 1, -2, 3, -4, 253, 30000, 7, 8,
+  {9, "foo", 10.0}, 11.0f, 12.0, "bar", 
+  {13, 14, 15}, 
+  {"fizz", "buzz"}, 
+  {16, 17, 18, 19, 20}, 
+  {true, false, true, false, false, true}, 
+  {"stuff", "crap", "things"}, 
+  { {21, "22", 23.0}, {24, "25", 26.0} } };
+
+  std::fstream fso("out.ubj", std::ios_base::out | std::ios_base::trunc | std::ios_base::binary);
+  WriteUBJSON<ubjsontest>(t1, fso);
+  fso.close();
+
+  ubjsontest t2;
+  memset(&t2, 0, sizeof(ubjsontest));
+  new(&t2.u) std::vector<int>(); // std::vector blows up if you try to zero all its bits.
+  std::fstream fsi("out.ubj", std::ios_base::in | std::ios_base::binary);
+  ParseUBJSON<ubjsontest>(t2, fsi);
+  fsi.close();
+
+  VerifyUBJSON(t1, t2, __testret);
+
+  /*char a;
+  short b;
+  int c;
+  __int64 d;
+  unsigned char e;
+  unsigned short f;
+  unsigned int g;
+  unsigned __int64 h;
+  ubjsontest2 i;
+  float x;
+  double y;
+  cStr p;
+  int m[3];
+  std::string n[2];
+  std::vector<int> u;
+  cDynArray<bool> v;
+  cDynArray<cStr, size_t, CARRAY_SAFE> w;
+  cDynArray<ubjsontest2, size_t, CARRAY_SAFE> z;*/
+
+  std::fstream fsi2("out.ubj", std::ios_base::in | std::ios_base::binary);
+  UBJSONValue val;
+  ParseUBJSON<UBJSONValue>(val, fsi2, 0);
+  fsi2.close();
+  TEST(val.is<UBJSONValue::UBJSONObject>());
+  auto& var1 = val.get<UBJSONValue::UBJSONObject>();
+  TEST(var1.Length() == 18);
+  TEST(var1[0].first == "a");
+  TEST(var1[0].second.is<uint8>());
+  TEST(var1[0].second.get<uint8>() == 1);
+  TEST(var1[1].first == "b");
+  TEST(var1[1].second.is<char>());
+  TEST(var1[1].second.get<char>() == -2);
+  TEST(var1[2].first == "c");
+  TEST(var1[2].second.is<uint8>());
+  TEST(var1[2].second.get<uint8>() == 3);
+  TEST(var1[3].first == "d");
+  TEST(var1[3].second.is<char>());
+  TEST(var1[3].second.get<char>() == -4);
+  TEST(var1[4].first == "e");
+  TEST(var1[4].second.is<uint8>());
+  TEST(var1[4].second.get<uint8>() == 253);
+  TEST(var1[5].first == "f");
+  TEST(var1[5].second.is<__int16>());
+  TEST(var1[5].second.get<__int16>() == 30000);
+  TEST(var1[6].first == "g");
+  TEST(var1[6].second.is<uint8>());
+  TEST(var1[7].first == "h");
+  TEST(var1[7].second.is<uint8>());
+  TEST(var1[8].first == "i");
+  TEST(var1[8].second.is<UBJSONValue::UBJSONObject>());
+  TEST(var1[8].second.get<UBJSONValue::UBJSONObject>()[0].first == "a");
+  TEST(var1[8].second.get<UBJSONValue::UBJSONObject>()[0].second.get<uint8>() == 9);
+  TEST(var1[8].second.get<UBJSONValue::UBJSONObject>()[1].first == "c");
+  TEST(var1[8].second.get<UBJSONValue::UBJSONObject>()[1].second.get<cStr>() == "foo");
+  TEST(var1[8].second.get<UBJSONValue::UBJSONObject>()[2].first == "d");
+  TEST(var1[8].second.get<UBJSONValue::UBJSONObject>()[2].second.get<double>() == 10.0);
+  TEST(var1[9].first == "x");
+  TEST(var1[9].second.is<float>());
+  TEST(var1[10].first == "y");
+  TEST(var1[10].second.is<double>());
+  TEST(var1[11].first == "p");
+  TEST(var1[11].second.is<cStr>());
+  TEST(var1[12].first == "m");
+  TEST(var1[12].second.is<UBJSONValue::UBJSONArray>());
+  TEST(var1[13].first == "n");
+  TEST(var1[13].second.is<UBJSONValue::UBJSONArray>());
+  TEST(var1[14].first == "u");
+  TEST(var1[14].second.is<UBJSONValue::UBJSONArray>());
+  TEST(var1[15].first == "v");
+  TEST(var1[15].second.is<UBJSONValue::UBJSONArray>());
+  TEST(var1[16].first == "w");
+  TEST(var1[16].second.is<UBJSONValue::UBJSONArray>());
+  TEST(var1[17].first == "z");
+  TEST(var1[17].second.is<UBJSONValue::UBJSONArray>());
+
+  std::fstream fso2("out2.ubj", std::ios_base::out | std::ios_base::trunc | std::ios_base::binary);
+  WriteUBJSON<UBJSONValue>(val, fso2);
+  fso2.close();
+
+  memset(&t2, 0, sizeof(ubjsontest));
+  new(&t2.u) std::vector<int>(); // std::vector blows up if you try to zero all its bits.
+  std::fstream fsi3("out2.ubj", std::ios_base::in | std::ios_base::binary);
+  ParseUBJSON<ubjsontest>(t2, fsi3);
+  fsi3.close();
+
+  VerifyUBJSON(t1, t2, __testret);
 
   ENDTEST;
 }
@@ -5129,6 +5305,22 @@ TESTDEF::RETPAIR test_VARIANT()
     vd4 = std::move(d6);
     vd6 = d8;
     vd8 = std::move(d8);
+  }
+
+  {
+    VTYPE v;
+  }
+
+  {
+    VTYPE v;
+    VTYPE v2(32);
+    v = v2;
+  }
+
+  {
+    VTYPE v;
+    VTYPE v3(cStr("test"));
+    v = std::move(v3);
   }
 
   TEST(!DEBUG_CDT<false>::count);

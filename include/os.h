@@ -13,19 +13,19 @@ struct HKEY__; //Include WinReg.h to get access to the root key handles (e.g. HK
 #endif
 
 namespace bss_util {
-  BSS_COMPILER_DLLEXPORT extern int BSS_FASTCALL DelDir(const char* dir);
-  BSS_COMPILER_DLLEXPORT extern int BSS_FASTCALL CreateDir(const char* dir);
+  BSS_COMPILER_DLLEXPORT extern int BSS_FASTCALL DelDir(const char* dir, bool recursive = true);
+  BSS_COMPILER_DLLEXPORT extern int BSS_FASTCALL CreateDir(const char* dir, bool recursive = true);
   BSS_COMPILER_DLLEXPORT extern bool BSS_FASTCALL FolderExists(const char* strpath); 
   BSS_COMPILER_DLLEXPORT extern bool BSS_FASTCALL FileExists(const char* strpath);
-  BSS_COMPILER_DLLEXPORT extern void BSS_FASTCALL AlertBox(const char* text, const char* caption, int type=0);
-  BSS_COMPILER_DLLEXPORT extern std::unique_ptr<char[],bssdll_delete<char[]>> BSS_FASTCALL FileDialog(bool open, unsigned long flags, const char* file, const char* filter="All Files (*.*)\0*.*\0", const char* initdir=0, const char* defext=0);
+  BSS_COMPILER_DLLEXPORT extern void BSS_FASTCALL AlertBox(const char* text, const char* caption, int type = 0);
+  BSS_COMPILER_DLLEXPORT extern std::unique_ptr<char[], bssdll_delete<char[]>> BSS_FASTCALL FileDialog(bool open, unsigned long flags, const char* file, const char* filter = "All Files (*.*)\0*.*\0", const char* initdir = 0, const char* defext = 0);
 
 #ifdef BSS_PLATFORM_WIN32
   BSS_COMPILER_DLLEXPORT extern bool BSS_FASTCALL FolderExistsW(const wchar_t* strpath);
   BSS_COMPILER_DLLEXPORT extern bool BSS_FASTCALL FileExistsW(const wchar_t* strpath);
   BSS_COMPILER_DLLEXPORT extern void BSS_FASTCALL AlertBoxW(const wchar_t* text, const wchar_t* caption, int type=0);
-  BSS_COMPILER_DLLEXPORT extern int BSS_FASTCALL DelDirW(const wchar_t* dir);
-  BSS_COMPILER_DLLEXPORT extern int BSS_FASTCALL CreateDirW(const wchar_t* dir);
+  BSS_COMPILER_DLLEXPORT extern int BSS_FASTCALL DelDirW(const wchar_t* dir, bool recursive = true);
+  BSS_COMPILER_DLLEXPORT extern int BSS_FASTCALL CreateDirW(const wchar_t* dir, bool recursive = true);
   BSS_COMPILER_DLLEXPORT extern int BSS_FASTCALL _listdir(const wchar_t* cdir, void(BSS_FASTCALL *fn)(const wchar_t*, std::vector<cStr>*), std::vector<cStr>* files, char flags);
   static void BSS_FASTCALL _listdir_r(const wchar_t* f, std::vector<cStr>* files) { files->push_back(f); } // a stupidly roundabout way of sidestepping the DLL boundary problem
   BSS_FORCEINLINE int BSS_FASTCALL ListDirW(const wchar_t* dir, std::vector<cStr>& files, char flags) { return _listdir(dir, &_listdir_r, &files, flags); } // Setting flags to 1 will do a recursive search. Setting flags to 2 will return directory+file names.

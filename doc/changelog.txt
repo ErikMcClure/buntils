@@ -7,6 +7,8 @@
 - Added variant class, an algebriac data type implemented in variant.h
 - Added bool array support and tests to UBJSON
 - Added support for variants in both UBJSON and JSON parsing and serialization.
+- Put bss_graph back in bss_util namespace but removed it from bss_algo.h
+- Added base64 encoder and decoder using url-safe convention, but no padding.
 
 0.4.4
 -----

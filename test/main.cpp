@@ -98,7 +98,6 @@
 
 #pragma warning(disable:4566)
 using namespace bss_util;
-using namespace graph;
 
 // --- Define global variables ---
 
@@ -865,7 +864,31 @@ TESTDEF::RETPAIR test_bss_algo()
   TEST(xorshift1024star(state)==11245070064711388831ULL);
   
   xorshiftrand(234);
+  
+  const char b64test[] = "Man is distinguished, not only by his reason, but by this singular passion from other animals, which is a lust of the mind, that by a perseverance of delight in the continued and indefatigable generation of knowledge, exceeds the short vehemence of any carnal pleasure.";
+  const char b64out[] = "TWFuIGlzIGRpc3Rpbmd1aXNoZWQsIG5vdCBvbmx5IGJ5IGhpcyByZWFzb24sIGJ1dCBieSB0aGlzIHNpbmd1bGFyIHBhc3Npb24gZnJvbSBvdGhlciBhbmltYWxzLCB3aGljaCBpcyBhIGx1c3Qgb2YgdGhlIG1pbmQsIHRoYXQgYnkgYSBwZXJzZXZlcmFuY2Ugb2YgZGVsaWdodCBpbiB0aGUgY29udGludWVkIGFuZCBpbmRlZmF0aWdhYmxlIGdlbmVyYXRpb24gb2Yga25vd2xlZGdlLCBleGNlZWRzIHRoZSBzaG9ydCB2ZWhlbWVuY2Ugb2YgYW55IGNhcm5hbCBwbGVhc3VyZS4";
+  
+  cStr b64s;
+  b64s.resize(Base64Encode((unsigned char*)b64test, sizeof(b64test) - 1, 0));
+  Base64Encode((unsigned char*)b64test, sizeof(b64test) - 1, b64s.UnsafeString());
+  TEST(!memcmp(b64out, b64s.c_str(), sizeof(b64out) - 1));
+  cStr b64sd;
+  b64sd.resize(Base64Decode(b64s.UnsafeString(), b64s.size(), 0));
+  Base64Decode(b64s.UnsafeString(), b64s.size(), (unsigned char*)b64sd.UnsafeString());
+  TEST(!memcmp(b64test, b64sd.c_str(), sizeof(b64test) - 1));
 
+  unsigned char b64[256];
+  unsigned char bout[256];
+  for(size_t max = 256; max > 1; --max)
+  {
+    for(int i = 0; i < max; ++i) b64[i] = i;
+    cStr str;
+    str.resize(Base64Encode(b64, max, 0));
+    Base64Encode(b64, max, str.UnsafeString());
+    TEST(Base64Decode(str.c_str(), str.size(), 0) == max);
+    Base64Decode(str.c_str(), str.size(), bout);
+    for(int i = 0; i < max; ++i) TEST(bout[i] == i);
+  }
   ENDTEST;
 }
 
@@ -5551,7 +5574,7 @@ int main(int argc, char** argv)
   
   // For best results on windows, add the test application to Application Verifier before going through the tests.
   TESTDEF tests[] = {
-    /*{ "bss_util_c.h", &test_bss_util_c },
+    { "bss_util_c.h", &test_bss_util_c },
     { "bss_util.h", &test_bss_util },
     { "cLog.h", &test_bss_LOG },
     { "bss_algo.h", &test_bss_algo },
@@ -5565,7 +5588,7 @@ int main(int argc, char** argv)
     { "bss_graph.h", &test_bss_GRAPH },
     { "bss_sse.h", &test_bss_SSE },
     { "bss_vector.h", &test_VECTOR },
-    { "cAliasTable.h", &test_ALIASTABLE },*/
+    { "cAliasTable.h", &test_ALIASTABLE },
     { "cAnimation.h", &test_ANIMATION },
     { "cArrayCircular.h", &test_ARRAYCIRCULAR },
     { "cArray.h", &test_ARRAY },

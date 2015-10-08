@@ -427,7 +427,7 @@ namespace bss_util {
   template<class T, typename Alloc>
   struct WriteJSONInternal<std::vector<T, Alloc>, false>
   {
-    static void F(const char* id, const std::vector<T, Alloc>& obj, std::ostream& s, unsigned int& pretty) { WriteJSONArray<T>(id, obj, obj.size(), s, pretty); }
+    static void F(const char* id, const std::vector<T, Alloc>& obj, std::ostream& s, unsigned int& pretty) { WriteJSONArray<T>(id, obj.data(), obj.size(), s, pretty); }
   };
 
   // To enable pretty output, set pretty to 1. The upper two bits are used as flags, so if you need more than 1073741823 levels of indentation... what the hell are you doing?!

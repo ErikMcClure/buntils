@@ -10,7 +10,6 @@
 #include "bss_vector.h"
 #include "cDynArray.h"
 #include "cDisjointSet.h"
-#include "bss_graph.h"
 #include <algorithm>
 #include <random>
 #include <array>
@@ -539,43 +538,6 @@ namespace bss_util {
       l=(l+(size_t)(queue[l]!=0))%n;
     }
   }
-  // Breadth-first search for any directed graph. If FACTION returns true, terminates.
-  template<typename G, bool(*FACTION)(typename G::CT_)>
-  inline static void BSS_FASTCALL BreadthFirstGraph(G& graph, typename G::CT_ root)
-  {
-    DYNARRAY(typename G::CT_, queue, graph.NumNodes());
-    BreadthFirstGraph<G, FACTION>(graph, root, queue);
-  }
-
-  // Breadth-first search for any directed graph. If FACTION returns true, terminates. queue must point to an array at least GetNodes() long.
-  template<typename G, bool(*FACTION)(typename G::CT_)>
-  static void BSS_FASTCALL BreadthFirstGraph(G& graph, typename G::CT_ root, typename G::CT_* queue)
-  {
-    typedef typename G::CT_ CT;
-    typedef typename std::make_signed<CT>::type SST;
-    typedef bss_util::graph::Edge<typename G::E_, CT> E;
-    auto& n = graph.GetNodes();
-    if((*FACTION)(root)) return;
-    DYNARRAY(CT, aset, graph.Capacity());
-    cDisjointSet<CT, StaticNullPolicy<SST>> set((SST*)aset, graph.Capacity());
-
-    // Queue up everything next to the root, checking only for edges that connect the root to itself
-    size_t l=0;
-    for(E* edge=n[root].to; edge!=0; edge=edge->next) {
-      if(edge->to!=root)
-        queue[l++]=edge->to;
-    }
-
-    for(size_t i=0; i!=l; ++i) // Go through the queue
-    {
-      if(FACTION(queue[i])) return;
-      set.Union(root, queue[i]);
-      for(E* edge=n[queue[i]].to; edge!=0; edge=edge->next) {
-        if(set.Find(edge->to)!=root) //Enqueue the children if they aren't already in the set.
-          queue[l++]=edge->to; // Doesn't need to be circular because we can only enqueue n-1 anyway.
-      }
-    }
-  }
 
   // Find a quadratic curve (A,B,C) that passes through 3 points
   template<typename T>
@@ -609,6 +571,86 @@ namespace bss_util {
     //T C = 0 - A*0 - B*0;
 
     return (A*t*t + B*t)*(x3 - x1) + x1; // reverse our transformation
+  }
+
+  inline static size_t BSS_FASTCALL Base64Encode(const unsigned char* src, size_t cnt, char* out)
+  {
+    size_t cn = ((cnt / 3) << 2) + (cnt % 3) + (cnt % 3 != 0);
+    if(!out) return cn;
+
+    /*const unsigned int* ints = (const unsigned int*)src;
+    size_t s = (cnt - (cnt % 12))/4;
+    size_t c = 0;
+    size_t i;
+    for(i = 0; i < s; i += 3)
+    {
+      sseVeci x(ints[i], ints[i], ints[i + 1], ints[i + 2]);
+      sseVeci y(ints[i], ints[i + 1], ints[i + 2], ints[i + 2]);
+      sseVeci a(0b00111111001111110011111100111111, 0b11000000110000001100000011000000, 0b11110000111100001111000011110000, 0b11111100111111001111110011111100);
+      sseVeci b(0b00000000000000000000000000000000, 0b00001111000011110000111100001111, 0b00000011000000110000001100000011, 0b00000000000000000000000000000000);
+      sseVeci n(0, 6, 4, 2);
+      sseVeci m(0, 2, 4, 0);
+
+      sseVeci res = (sseVeci(BSS_SSE_SR_EPI32((x&a), n)) | ((y&b) << m));
+      res += sseVeci('A')&(res < sseVeci(26));
+      res += sseVeci('a' - 26)&(res < sseVeci(52));
+      res += sseVeci('0' - 52)&(res < sseVeci(62)); // this works because up until this point, all previous blocks were moved past the 62 mark
+      res += sseVeci('-' - 62)&(res == sseVeci(62));
+      res += sseVeci('_' - 63)&(res == sseVeci(63));
+
+      BSS_SSE_STORE_USI128((BSS_SSE_M128i16*)(out + c), res);
+      c += 16;
+    }*/
+
+    static const char* code = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789-_";
+    size_t c = 0;
+    size_t s = cnt - (cnt % 3);
+    size_t i;
+    for(i = 0; i < s; i+=3)
+    {
+      out[c++] = code[((src[i + 0] & 0b11111100) >> 2)];
+      out[c++] = code[((src[i + 0] & 0b00000011) << 4) | ((src[i + 1] & 0b11110000) >> 4)];
+      out[c++] = code[((src[i + 1] & 0b00001111) << 2) | ((src[i + 2] & 0b11000000) >> 6)];
+      out[c++] = code[((src[i + 2] & 0b00111111))];
+      //out[c++] = code[src[i] & 0b00111111];
+      //out[c++] = code[((src[i] & 0b11000000) >> 6) | ((src[i + 1] & 0b00001111) << 2)];
+      //out[c++] = code[((src[i + 1] & 0b11110000) >> 4) | ((src[i + 2] & 0b00000011) << 4)];
+      //out[c++] = code[((src[i + 2] & 0b11111100) >> 2)];
+    }
+    if(i < cnt)
+    {
+      out[c++] = code[((src[i] & 0b11111100) >> 2)];
+      if((i + 1) >= cnt) out[c++] = code[((src[i + 0] & 0b00000011) << 4)];
+      else
+      {
+        out[c++] = code[((src[i + 0] & 0b00000011) << 4) | ((src[i + 1] & 0b11110000) >> 4)];
+        out[c++] = code[((src[i + 1] & 0b00001111) << 2)];
+      }
+    }
+    return c;
+  }
+
+  inline static size_t BSS_FASTCALL Base64Decode(const char* src, size_t cnt, unsigned char* out)
+  {
+    if((cnt & 0b11) == 1) return 0; // You cannot have a legal base64 encode of this length.
+    size_t cn = ((cnt >> 2) * 3) + (cnt & 0b11) - ((cnt & 0b11) != 0);
+    if(!out) return cn;
+
+    size_t i = 0;
+    size_t c = 0;
+    unsigned char map[78] = { 62,0,0,52,53,54,55,56,57,58,59,60,61,0,0,0,0,0,0,0,
+    0,1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20,21,22,23,24,25,0,0,0,0,63,0,
+    26,27,28,29,30,31,32,33,34,35,36,37,38,39,40,41,42,43,44,45,46,47,48,49,50,51 };
+    size_t s = cnt & (~0b11);
+    for(; i < s; i += 4)
+    {
+      out[c++] = (map[src[i + 0] - '-'] << 2) | (map[src[i + 1] - '-'] >> 4);
+      out[c++] = (map[src[i + 1] - '-'] << 4) | (map[src[i + 2] - '-'] >> 2);
+      out[c++] = (map[src[i + 2] - '-'] << 6) | (map[src[i + 3] - '-']);
+    }
+    if(++i < cnt) out[c++] = (map[src[i - 1] - '-'] << 2) | (map[src[i] - '-'] >> 4); // we do ++i here even though i was already valid because the first character requires TWO source characters, not 1.
+    if(++i < cnt) out[c++] = (map[src[i - 1] - '-'] << 4) | (map[src[i] - '-'] >> 2);
+    return c;
   }
 }
 

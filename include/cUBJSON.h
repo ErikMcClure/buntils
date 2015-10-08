@@ -11,6 +11,7 @@
 #include <istream>
 #include <ostream>
 #include <limits>
+#include "variant.h"
 
 namespace bss_util {
   template<class T>

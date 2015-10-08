@@ -275,12 +275,14 @@ extern void BSS_FASTCALL bss_util::AlertBoxW(const wchar_t* text, const wchar_t*
 void bss_util::bssdll_delete_delfunc(void* p) { ::operator delete(p); } // operator delete[] simply calls operator delete when its void*
 
 #ifdef BSS_PLATFORM_WIN32
-extern int BSS_FASTCALL bss_util::CreateDir(const char* path)
+extern int BSS_FASTCALL bss_util::CreateDir(const char* path, bool recursive)
 {
-  return CreateDirW(BSSPOSIX_WCHAR(path));
+  return CreateDirW(BSSPOSIX_WCHAR(path), recursive);
 }
-extern int BSS_FASTCALL bss_util::CreateDirW(const wchar_t* path)
+extern int BSS_FASTCALL bss_util::CreateDirW(const wchar_t* path, bool recursive)
 {
+  if(!recursive)
+    return -(CreateDirectoryW(path, 0) == 0);
   cStrW hold(path);
   hold.ReplaceChar('/', '\\');
   if(hold[hold.size()-1] != '\\') hold += '\\'; //Make sure we've got a trailing \\ on the path.
@@ -297,8 +299,10 @@ extern int BSS_FASTCALL bss_util::CreateDirW(const wchar_t* path)
   return 0;
 }
 #else
-extern int BSS_FASTCALL bss_util::CreateDir(const char* path)
+extern int BSS_FASTCALL bss_util::CreateDir(const char* path, bool recursive)
 {
+  if(!recursive)
+    return mkdir(path);
   struct stat st ={ 0 };
 
   cStr hold(path);
@@ -318,12 +322,15 @@ extern int BSS_FASTCALL bss_util::CreateDir(const char* path)
 #endif
 
 #ifdef BSS_PLATFORM_WIN32
-extern int BSS_FASTCALL bss_util::DelDir(const char* cdir)
+extern int BSS_FASTCALL bss_util::DelDir(const char* cdir, bool recursive)
 {
-  return bss_util::DelDirW(BSSPOSIX_WCHAR(cdir));
+  return bss_util::DelDirW(BSSPOSIX_WCHAR(cdir), recursive);
 }
-extern int BSS_FASTCALL bss_util::DelDirW(const wchar_t* cdir)
+extern int BSS_FASTCALL bss_util::DelDirW(const wchar_t* cdir, bool recursive)
 {
+  if(!recursive)
+    return -(RemoveDirectoryW(cdir) == 0);
+
   WIN32_FIND_DATAW ffd;
   HANDLE hdir = INVALID_HANDLE_VALUE;
 
@@ -337,7 +344,7 @@ extern int BSS_FASTCALL bss_util::DelDirW(const wchar_t* cdir)
     if(WCSICMP(ffd.cFileName, L".")!=0 && WCSICMP(ffd.cFileName, L"..")!=0)
     {
       if(ffd.dwFileAttributes & FILE_ATTRIBUTE_DIRECTORY) {
-        if(DelDirW(dir+ffd.cFileName)!=0)
+        if(DelDirW(dir+ffd.cFileName)!=0, true)
           return -3;
       } else if(_wremove(dir+ffd.cFileName)!=0)
         return -2;
@@ -363,8 +370,10 @@ int _deldir_func(const char *fpath, const struct stat *sb, int typeflag, struct 
   return remove(fpath);
 }
 
-extern int BSS_FASTCALL bss_util::DelDir(const char* cdir)
+extern int BSS_FASTCALL bss_util::DelDir(const char* cdir, bool recursive)
 {
+  if(!recursive)
+    return rmdir(cdir);
   return nftw(cdir,&_deldir_func, 20, FTW_DEPTH);
 }
 #endif

@@ -57,6 +57,7 @@
     <ClInclude Include="..\include\bss_queue.h" />
     <ClInclude Include="..\include\bss_sse.h" />
     <ClInclude Include="..\include\bss_stack.h" />
+    <ClInclude Include="..\include\bss_stream.h" />
     <ClInclude Include="..\include\bss_util.h" />
     <ClInclude Include="..\include\bss_util_c.h" />
     <ClInclude Include="..\include\bss_vector.h" />
@@ -111,7 +112,6 @@
     <ClInclude Include="..\include\lockless.h" />
     <ClInclude Include="..\include\os.h" />
     <ClInclude Include="..\include\profiler.h" />
-    <ClInclude Include="..\include\StreamSplitter.h" />
     <ClInclude Include="..\include\variant.h" />
   </ItemGroup>
   <ItemGroup>

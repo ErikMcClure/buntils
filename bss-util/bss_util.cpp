@@ -344,7 +344,7 @@ extern int BSS_FASTCALL bss_util::DelDirW(const wchar_t* cdir, bool recursive)
     if(WCSICMP(ffd.cFileName, L".")!=0 && WCSICMP(ffd.cFileName, L"..")!=0)
     {
       if(ffd.dwFileAttributes & FILE_ATTRIBUTE_DIRECTORY) {
-        if(DelDirW(dir+ffd.cFileName)!=0, true)
+        if(DelDirW(dir+ffd.cFileName, true)!=0)
           return -3;
       } else if(_wremove(dir+ffd.cFileName)!=0)
         return -2;

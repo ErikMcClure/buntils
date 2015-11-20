@@ -178,6 +178,14 @@ namespace bss_util {
     inline static bool contains() { return getpos<T, Arg, Args...>::value != -1; }
     template<typename T>
     inline bool is() const { return getpos<T, Arg, Args...>::value == _tag; }
+    template<typename T>
+    inline void typeset()
+    { 
+      static_assert(getpos<T, Arg, Args...>::value != -1, "Type does not exist in variant");
+      _destruct();
+      _tag = getpos<T, Arg, Args...>::value;
+      new(_store) T();
+    }
     inline int tag() const { return _tag; }
 
     template<typename T>

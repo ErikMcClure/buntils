@@ -9,6 +9,9 @@
 - Added support for variants in both UBJSON and JSON parsing and serialization.
 - Put bss_graph back in bss_util namespace but removed it from bss_algo.h
 - Added base64 encoder and decoder using url-safe convention, but no padding.
+- Added stream buffer for cDynArray, renamed StreamSplitter.h to bss_stream.h
+- Added option for non-recursive DelDir
+- Fixed comparison bug in bss_vector.h
 
 0.4.4
 -----

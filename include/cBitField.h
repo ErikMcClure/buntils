@@ -5,6 +5,7 @@
 #define __C_BITFIELD_H__BSS__
 
 #include "bss_defines.h"
+#include <utility>
 
 namespace bss_util
 {

@@ -55,7 +55,7 @@
 #define T_NEXTMULTIPLE(x,t) ((x+t)&(~t))
 #define T_SETBIT(w,b,f) (((w) & (~(b))) | ((-(char)f) & (b)))
 #define T_FBNEXT(x) (x + 1 + (x>>1) + (x>>3) - (x>>7))
-#define DYNARRAY(Type,Name,n) Type* Name = (Type*)ALLOCA(n*sizeof(Type))
+#define DYNARRAY(Type,Name,n) Type* Name = (Type*)ALLOCA((n)*sizeof(Type))
 #define ISPOW2(x) (x && !( (x-1) & x ))
 
 #if defined(BSS_PLATFORM_POSIX) || defined(BSS_PLATFORM_MINGW)

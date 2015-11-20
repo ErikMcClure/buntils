@@ -13,6 +13,7 @@
 #include "bss_queue.h"
 #include "bss_sse.h"
 #include "bss_stack.h"
+#include "bss_stream.h"
 #include "bss_graph.h"
 #include "cAliasTable.h"
 #include "cAnimation.h"
@@ -55,7 +56,6 @@
 #include "lockless.h"
 #include "os.h"
 #include "profiler.h"
-#include "StreamSplitter.h"
 #include "variant.h"
 #include <fstream>
 #include <algorithm>
@@ -3297,40 +3297,40 @@ TESTDEF::RETPAIR test_DYNARRAY()
   cDynArray<int> x(0);
   TEST(!(int*)x);
   x.SetLength(5);
-  x[0]=1;
-  x[1]=2;
-  x[2]=3;
-  x[3]=4;
-  x[4]=5;
+  x[0] = 1;
+  x[1] = 2;
+  x[2] = 3;
+  x[3] = 4;
+  x[4] = 5;
   x.Add(6);
-  TEST(x[5]==6);
+  TEST(x[5] == 6);
   x.Add(7);
-  TEST(x[5]==6);
-  TEST(x[6]==7);
+  TEST(x[5] == 6);
+  TEST(x[6] == 7);
   x.Add(8);
-  TEST(x[7]==8);
+  TEST(x[7] == 8);
   x.Remove(5);
-  TEST(x[5]==7);
-  TEST(x[6]==8);
-  x.Insert(6,5);
-  TEST(x[5]==6);
-  TEST(x[6]==7);
+  TEST(x[5] == 7);
+  TEST(x[6] == 8);
+  x.Insert(6, 5);
+  TEST(x[5] == 6);
+  TEST(x[6] == 7);
   cDynArray<int> y(3);
   y.Add(9);
   y.Add(10);
   y.Add(11);
-  auto z = x+y;
-  TEST(z.Length()==11);
-  TEST(z[3]==4);
-  TEST(z[8]==9);
-  TEST(z[9]==10);
-  TEST(z[10]==11);
-  z+=y;
-  TEST(z.Length()==14);
-  TEST(z[3]==4);
-  TEST(z[11]==9);
-  TEST(z[12]==10);
-  TEST(z[13]==11);
+  auto z = x + y;
+  TEST(z.Length() == 11);
+  TEST(z[3] == 4);
+  TEST(z[8] == 9);
+  TEST(z[9] == 10);
+  TEST(z[10] == 11);
+  z += y;
+  TEST(z.Length() == 14);
+  TEST(z[3] == 4);
+  TEST(z[11] == 9);
+  TEST(z[12] == 10);
+  TEST(z[13] == 11);
 
   cDynArray<char> n(2);
   cDynArray<bool> m(2);
@@ -3338,7 +3338,7 @@ TESTDEF::RETPAIR test_DYNARRAY()
     TEST(m.Length() == n.Length());
     for(uint i = 0; i < n.Length(); ++i)
       TEST(m[i] == (n[i] != 0));
-    
+
     int c = 0;
     for(auto v : m)
       TEST(v == (n[c++] != 0));
@@ -3347,7 +3347,7 @@ TESTDEF::RETPAIR test_DYNARRAY()
     for(auto v = m.end(); v != m.begin();)
       TEST(*(--v) == (n[--c] != 0));
   };
-  auto fadd = [&](bool v) { m.Add(v); n.Add(v); fverify(m,n); };
+  auto fadd = [&](bool v) { m.Add(v); n.Add(v); fverify(m, n); };
   auto fremove = [&](size_t i) { m.Remove(i); n.Remove(i); fverify(m, n); };
   auto fset = [&](size_t i, bool v) { m[i] = v; n[i] = v; fverify(m, n); };
   auto finsert = [&](size_t i, bool v) { m.Insert(v, i); n.Insert(v, i); fverify(m, n); };
@@ -3397,8 +3397,8 @@ TESTDEF::RETPAIR test_DYNARRAY()
   }
 
   for(int i = 0; i < 10; ++i)
-    finsert(i, (i % 2)!=0);
-  
+    finsert(i, (i % 2) != 0);
+
   fremove(m.Length() - 1);
   fremove(8);
   fremove(7);
@@ -3411,25 +3411,58 @@ TESTDEF::RETPAIR test_DYNARRAY()
   cArbitraryArray<unsigned int> u(0);
   int ua[5] = { 1,2,3,4,5 };
   u.SetElement(ua);
-  u.Get<int>(0)=1;
-  u.Get<int>(1)=2;
-  u.Get<int>(2)=3;
-  u.Get<int>(3)=4;
-  u.Get<int>(4)=5;
+  u.Get<int>(0) = 1;
+  u.Get<int>(1) = 2;
+  u.Get<int>(2) = 3;
+  u.Get<int>(3) = 4;
+  u.Get<int>(4) = 5;
   u.Add(6);
-  TEST(u.Get<int>(5)==6);
+  TEST(u.Get<int>(5) == 6);
   u.Add(7);
-  TEST(u.Get<int>(5)==6);
-  TEST(u.Get<int>(6)==7);
+  TEST(u.Get<int>(5) == 6);
+  TEST(u.Get<int>(6) == 7);
   u.Add(8);
-  TEST(u.Get<int>(7)==8);
+  TEST(u.Get<int>(7) == 8);
   u.Remove(5);
-  TEST(u.Get<int>(5)==7);
-  TEST(u.Get<int>(6)==8);
+  TEST(u.Get<int>(5) == 7);
+  TEST(u.Get<int>(6) == 8);
   u.SetElement(7);
-  TEST(u.Get<int>(5)==7);
-  TEST(u.Get<int>(6)==8);
+  TEST(u.Get<int>(5) == 7);
+  TEST(u.Get<int>(6) == 8);
 
+  cDynArray<unsigned char> dbuf;
+  {
+    DynArrayIBuf<unsigned char> dynbuf(dbuf);
+    std::istream dynstream(&dynbuf);
+    TEST(dynstream.get() == -1);
+    TEST(dynstream.eof());
+  }
+  dbuf.Add('h');
+  {
+    DynArrayIBuf<unsigned char> dynbuf(dbuf);
+    std::istream dynstream(&dynbuf);
+    TEST(dynstream.get() == 'h');
+    dynstream.unget();
+    TEST(dynstream.peek() == 'h');
+    TEST(dynstream.peek() == 'h');
+    TEST(dynstream.get() == 'h');
+    TEST(dynstream.get() == -1);
+    TEST(dynstream.eof());
+  }
+  dbuf.Add('e');
+  dbuf.Add('l');
+  dbuf.Add('l');
+  dbuf.Add('o');
+  {
+    DynArrayIBuf<unsigned char> dynbuf(dbuf);
+    std::istream dynstream(&dynbuf);
+    char buf[8] = { 0 };
+    dynstream.get(buf, 8);
+    TEST(dynstream.gcount() == 5);
+    TEST(!strcmp(buf, "hello"));
+    TEST(dynstream.peek() == -1);
+    TEST(dynstream.eof());
+  }
   ENDTEST;
 }
 
@@ -5301,6 +5334,8 @@ TESTDEF::RETPAIR test_VARIANT()
     v4 = false;
     TEST(!v4.get<bool>());
 
+    v3.typeset<int>();
+    TEST(v3.is<int>());
     VTYPE v7(v6);
   }
 
@@ -5451,9 +5486,16 @@ TESTDEF::RETPAIR test_OS()
     }
   });
 
+  TEST(CreateDir("testdir/recurse/recurseagain", false));
+  TEST(!FolderExists("testdir/recurse/recurseagain"));
+  TEST(!CreateDir("dontrecurse", false));
+  TEST(FolderExists("dontrecurse"));
   TEST(!CreateDir("testdir/recurse/recurseagain"));
   TEST(FolderExists("testdir/recurse/recurseagain"));
+  TEST(DelDir("testdir/recurse", false));
   TEST(!DelDir("testdir/recurse"));
+  TEST(!DelDir("dontrecurse", false));
+  TEST(!FolderExists("dontrecurse"));
   TEST(!FolderExists("testdir/recurse/recurseagain"));
   TEST(!FolderExists("testdir/recurse"));
   TEST(FolderExists("testdir"));
@@ -5567,11 +5609,11 @@ int main(int argc, char** argv)
   bssrandseed(seed);
 
   //profile_ring_alloc();
-
+  
   for(int i = 0; i<TESTNUM; ++i)
     testnums[i]=i;
   shuffle(testnums);
-  
+
   // For best results on windows, add the test application to Application Verifier before going through the tests.
   TESTDEF tests[] = {
     { "bss_util_c.h", &test_bss_util_c },
@@ -5585,8 +5627,9 @@ int main(int argc, char** argv)
     { "bss_depracated.h", &test_bss_deprecated },
     { "bss_dual.h", &test_bss_DUAL },
     { "bss_fixedpt.h", &test_bss_FIXEDPT },
-    { "bss_graph.h", &test_bss_GRAPH },
     { "bss_sse.h", &test_bss_SSE },
+    { "bss_stream.h", &test_STREAMSPLITTER },
+    { "bss_graph.h", &test_bss_GRAPH },
     { "bss_vector.h", &test_VECTOR },
     { "cAliasTable.h", &test_ALIASTABLE },
     { "cAnimation.h", &test_ANIMATION },
@@ -5634,7 +5677,6 @@ int main(int argc, char** argv)
     //{ "LLBase.h", &test_LLBASE },
     { "os.h", &test_OS },
     { "profile.h", &test_PROFILE },
-    { "cStreamSplitter.h", &test_STREAMSPLITTER },
     { "variant.h", &test_VARIANT },
   };
 

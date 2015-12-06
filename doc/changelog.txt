@@ -12,6 +12,7 @@
 - Added stream buffer for cDynArray, renamed StreamSplitter.h to bss_stream.h
 - Added option for non-recursive DelDir
 - Fixed comparison bug in bss_vector.h
+- Added AddConstruct function to cDynArray
 
 0.4.4
 -----

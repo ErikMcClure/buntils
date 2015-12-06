@@ -34,6 +34,10 @@ namespace bss_util {
     inline ~cDynArray() { BASE::_setlength(_array, _length, 0); }
     BSS_FORCEINLINE CT_ Add(const T_& t) { _checksize(); new(_array + _length) T(t); return _length++; }
     BSS_FORCEINLINE CT_ Add(T_&& t) { _checksize(); new(_array + _length) T(std::move(t)); return _length++; }
+#ifdef BSS_VARIADIC_TEMPLATES
+    template<typename... Args>
+    BSS_FORCEINLINE CT_ AddConstruct(Args... args) { _checksize(); new(_array + _length) T(args...); return _length++; }
+#endif
     inline void Remove(CT_ index)
     {
       assert(index < _length);

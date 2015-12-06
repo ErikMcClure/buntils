@@ -3317,7 +3317,7 @@ TESTDEF::RETPAIR test_DYNARRAY()
   TEST(x[6] == 7);
   cDynArray<int> y(3);
   y.Add(9);
-  y.Add(10);
+  y.AddConstruct<int>(10);
   y.Add(11);
   auto z = x + y;
   TEST(z.Length() == 11);

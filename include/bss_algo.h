@@ -10,6 +10,7 @@
 #include "bss_vector.h"
 #include "cDynArray.h"
 #include "cDisjointSet.h"
+#include "delegate.h"
 #include <algorithm>
 #include <random>
 #include <array>
@@ -571,6 +572,76 @@ namespace bss_util {
     //T C = 0 - A*0 - B*0;
 
     return (A*t*t + B*t)*(x3 - x1) + x1; // reverse our transformation
+  }
+
+  // Solves a normalized cubic equation of the form t^3 + at² + bt + c
+  // You can normalize an arbitrary cubic equation at^3 + bt² + ct + d by dividing everything by d.
+  template<typename T>
+  inline int solveCubic(T a, T b, T c, T (&r)[3])
+  {
+    T p = b - a*a / 3;
+    T q = a * (2 * a*a - 9 * b) / 27 + c;
+    T p3 = p*p*p;
+    T d = q*q + 4 * p3 / 27;
+    T offset = -a / 3;
+    if(d >= 0) { // Single solution
+      T z = FastSqrt<T>(d);
+      T u = (-q + z) / 2;
+      T v = (-q - z) / 2;
+      u = cbrt(u);
+      v = cbrt(v);
+      r[0] = offset + u + v;
+      return 1;
+    }
+    T u = FastSqrt<T>(-p / 3);
+    T v = acos(-FastSqrt<T>(-27 / p3) * q / 2) / 3;
+    T m = cos(v), n = sin(v)*((T)1.732050808);
+    r[0] = offset + u * (m + m);
+    r[1] = offset - u * (n + m);
+    r[2] = offset + u * (n - m);
+    return 3;
+  }
+
+  // Uses Newton's method to find the root of F given it's derivative dF. Returns false if it fails to converge within the given error range.
+  template<typename T, typename TF, typename TDF>
+  inline static bool NewtonRaphson(T& result, T estimate, TF F, TDF dF, T epsilon, unsigned int maxiterations = 20)
+  {
+    T x = estimate;
+    for(unsigned int i = 0; i < maxiterations; ++i)
+    {
+      T f = F(x);
+      if(fsmall(f, epsilon)) // If we're close enough to zero, return our value
+      {
+        result = x;
+        return true;
+      }
+      x = x - (f / dF(x));
+    }
+    return false; // We failed to converge to the required error bound within the given number of iterations
+  }
+
+  // A hybrid method that combines both Newton's method and the bisection method, using the bisection method to improve the guess until Newton's method finally starts to converge.
+  template<typename T, typename TF, typename TDF>
+  inline static T NewtonRaphsonBisection(T estimate, T min, T max, TF F, TDF dF, T epsilon, unsigned int maxiterations = 50)
+  {
+    T x = estimate;
+    for(unsigned int i = 0; i < maxiterations; ++i)
+    {
+      T f = F(x);
+      if(fsmall(f, epsilon)) // If we're close enough to zero, return x
+        return x;
+
+      if(f > 0)
+        max = x;
+      else
+        min = x;
+
+      x = x - f / dF(x);
+
+      if(x <= min || x >= max) // If candidate is out of range, use bisection instead
+        x = 0.5*(min + max);
+    }
+    return x; // Return a good-enough value. Because we're using bisection, it has to be at least reasonably close to the root.
   }
 
   inline static size_t BSS_FASTCALL Base64Encode(const unsigned char* src, size_t cnt, char* out)

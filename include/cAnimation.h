@@ -41,67 +41,87 @@ namespace bss_util {
     double _loop;
   };
 
+  // Represents a single animation frame
+  template<typename T, typename D>
+  struct cAniFrame
+  {
+    double time;
+    T value;
+    D data; // Additional data for animation specific operations, like interpolation
+  };
+
+  template<typename T>
+  struct cAniFrame<T, void>
+  {
+    double time;
+    T value;
+  };
+
   // Animation class that stores an animation for a specific type.
-  template<typename T, ARRAY_TYPE ArrayType = CARRAY_SAFE, typename Alloc = StaticAllocPolicy<std::pair<double, T>>>
+  template<typename T, typename D = void, ARRAY_TYPE ArrayType = CARRAY_SAFE, typename Alloc = StaticAllocPolicy<cAniFrame<T, D>>>
   class BSS_COMPILER_DLLEXPORT cAnimation : public cAniBase
   {
   public:
-    typedef std::pair<double, T> PAIR;
-    typedef T(BSS_FASTCALL *FUNC)(const PAIR*, unsigned int, unsigned int, double, const T&);
+    typedef cAniFrame<T, D> FRAME;
+    typedef T(BSS_FASTCALL *FUNC)(const FRAME*, unsigned int, unsigned int, double, const T&);
 
     explicit cAnimation(FUNC f = 0) : cAniBase(sizeof(T)), _f(f) { }
-    cAnimation(cAnimation&& mov) : cAniBase(std::move(mov)), _pairs(std::move(mov._pairs)), _f(std::move(mov._f)) {}
-    cAnimation(const PAIR* src, unsigned int len, FUNC f = 0) : cAniBase(sizeof(T)), _f(f) { Set(src, len); }
+    cAnimation(cAnimation&& mov) : cAniBase(std::move(mov)), _frames(std::move(mov._frames)), _f(std::move(mov._f)) {}
+    cAnimation(const FRAME* src, unsigned int len, FUNC f = 0) : cAniBase(sizeof(T)), _f(f) { Set(src, len); }
     virtual ~cAnimation() {}
-    inline unsigned int Add(double time, const T& data) { unsigned int r = _pairs.Insert(PAIR(time, data)); _calc = _pairs.Back().first; return r; }
-    inline void Set(const PAIR* src, unsigned int len) { _pairs.SetArray(src, len); _calc = _pairs.Back().first; }
-    inline const PAIR& Get(unsigned int index) const { return _pairs[index]; }
-    inline bool Remove(unsigned int index) { return _pairs.Remove(index); }
-    virtual unsigned int GetCapacity() const { return _pairs.Length(); }
-    virtual const void* GetArray() const { return _pairs.begin(); }
+    inline unsigned int Add(const FRAME& frame) { unsigned int r = _frames.Insert(frame); _calc = _frames.Back().time; return r; }
+    inline unsigned int Add(double time, const T& value) { FRAME f = { time, value }; return Add(f); }
+    inline void Set(const FRAME* src, unsigned int len) { _frames.SetArray(src, len); _calc = _frames.Back().time; }
+    inline const FRAME& Get(unsigned int index) const { return _frames[index]; }
+    inline bool Remove(unsigned int index) { return _frames.Remove(index); }
+    virtual unsigned int GetCapacity() const { return _frames.Length(); }
+    virtual const void* GetArray() const { return _frames.begin(); }
     void SetFunc(FUNC f) { _f = f; }
     virtual void* GetFunc() const { return (void*)_f; }
 
     cAnimation& operator=(cAnimation&& mov)
     {
       cAniBase::operator=(std::move(mov));
-      _pairs = std::move(_pairs);
+      _frames = std::move(_frames);
       _f = std::move(_f);
       return *this;
     }
 
+    BSS_FORCEINLINE static char CompAniFrame(const FRAME& left, const FRAME& right) { return SGNCOMPARE(left.time, right.time); }
+
   protected:
-    cArraySort<PAIR, CompTFirst<PAIR, CompT<double>>, unsigned int, ArrayType, Alloc> _pairs;
+    cArraySort<FRAME, CompAniFrame, unsigned int, ArrayType, Alloc> _frames;
     FUNC _f;
   };
 
-  template<typename T, double(*TODURATION)(const T&), ARRAY_TYPE ArrayType = CARRAY_SAFE, typename Alloc = StaticAllocPolicy<T>>
-  class BSS_COMPILER_DLLEXPORT cAnimationInterval : public cAnimation<T>
+  template<typename T, ARRAY_TYPE ArrayType = CARRAY_SAFE, typename Alloc = StaticAllocPolicy<cAniFrame<T, double>>>
+  class BSS_COMPILER_DLLEXPORT cAnimationInterval : public cAnimation<T, double, ArrayType, Alloc>
   {
-    using cAnimation<T>::_calc;
-    using cAnimation<T>::_pairs;
+    typedef cAnimation<T, double, ArrayType, Alloc> BASE;
+    using BASE::_calc;
+    using BASE::_frames;
   public:
-    explicit cAnimationInterval(typename cAnimation<T>::FUNC f = 0) : cAnimation<T>(f) { }
-    cAnimationInterval(cAnimationInterval&& mov) : cAnimation<T>(std::move(mov)) {}
-    cAnimationInterval(const typename cAnimation<T>::PAIR* src, unsigned int len, typename cAnimation<T>::FUNC f = 0) : cAnimation<T>(src, len, f) { _recalclength(); }
+    explicit cAnimationInterval(typename BASE::FUNC f = 0) : BASE(f) { }
+    cAnimationInterval(cAnimationInterval&& mov) : BASE(std::move(mov)) {}
+    cAnimationInterval(const typename BASE::FRAME* src, unsigned int len, typename BASE::FUNC f = 0) : BASE(src, len, f) { _recalclength(); }
     virtual ~cAnimationInterval() {}
-    inline unsigned int Add(double time, const T& data) { unsigned int r = cAnimation<T>::Add(time, data); _checkindex(r); return r; }
-    inline void Set(const typename cAnimation<T>::PAIR* src, unsigned int len) { cAnimation<T>::Set(src, len); _recalclength(); }
-    inline bool Remove(unsigned int index) { bool r = cAnimation<T>::Remove(index); if(r) _recalclength(); return r; }
-    BSS_FORCEINLINE static double ToDuration(const T& item) { return TODURATION(item); }
+    inline unsigned int Add(const BASE::FRAME& frame) { unsigned int r = BASE::Add(frame); _checkindex(r); return r; }
+    inline unsigned int Add(double time, const T& value, const double& data) { BASE::FRAME f = { time, value, data }; return Add(f); }
+    inline void Set(const typename BASE::FRAME* src, unsigned int len) { BASE::Set(src, len); _recalclength(); }
+    inline bool Remove(unsigned int index) { bool r = BASE::Remove(index); if(r) _recalclength(); return r; }
 
-    cAnimationInterval& operator=(cAnimationInterval&& mov) { cAnimation<T>::operator=(std::move(mov)); return *this; }
+    cAnimationInterval& operator=(cAnimationInterval&& mov) { BASE::operator=(std::move(mov)); return *this; }
 
   protected:
     void _recalclength()
     {
       _calc = 0.0;
-      for(unsigned int i = 0; i < _pairs.Length(); ++i)
+      for(unsigned int i = 0; i < _frames.Length(); ++i)
         _checkindex(i);
     }
     void _checkindex(unsigned int i)
     {
-      double t = _pairs[i].first + TODURATION(_pairs[i].second);
+      double t = _frames[i].time + _frames[i].data;
       if(t > _calc)
         _calc = t;
     }
@@ -149,7 +169,7 @@ namespace bss_util {
     double _time;
   };
 
-  template<typename T, typename REF = T, typename AUX = void>
+  template<typename T, typename D = void, typename REF = T, typename AUX = void>
   struct BSS_COMPILER_DLLEXPORT cAniStateDiscrete : public cAniState
   {
     using cAniState::_ani;
@@ -159,7 +179,7 @@ namespace bss_util {
     cAniStateDiscrete(cAniStateDiscrete&& mov) : cAniState(std::move(mov)), _set(std::move(mov._set)) { }
     cAniStateDiscrete(cAniBase* p, delegate<AUX, REF> d) : cAniState(p), _set(d) { assert(_ani->SizeOf() == sizeof(T)); }
     template<ARRAY_TYPE ArrayType, typename Alloc>
-    cAniStateDiscrete(cAnimation<T, ArrayType, Alloc>* p, delegate<AUX, REF> d) : cAniState(p), _set(d) {}
+    cAniStateDiscrete(cAnimation<T, D, ArrayType, Alloc>* p, delegate<AUX, REF> d) : cAniState(p), _set(d) {}
     cAniStateDiscrete() : _set(0,0) {}
 
     cAniStateDiscrete& operator=(const cAniStateDiscrete& copy) { cAniState::operator=(copy); _set = copy._set; return *this; }
@@ -169,11 +189,11 @@ namespace bss_util {
     {
       _time += delta;
       auto svar = _ani->GetCapacity();
-      auto v = (typename cAnimation<T>::PAIR*)_ani->GetArray();
+      auto v = (typename cAnimation<T, D>::FRAME*)_ani->GetArray();
       double loop = _ani->GetLoop();
       double length = _ani->GetLength();
-      while(_cur < svar && v[_cur].first <= _time)
-        _set(v[_cur++].second); // We call all the discrete values because many discrete values are interdependent on each other.
+      while(_cur < svar && v[_cur].time <= _time)
+        _set(v[_cur++].value); // We call all the discrete values because many discrete values are interdependent on each other.
       if(_time >= length && loop >= 0.0) // We do the loop check down here because we need to finish calling all the discrete values on the end of the animation before looping
       {
         _cur = 0; // We can't call Reset() here because _time contains information we need.
@@ -187,10 +207,10 @@ namespace bss_util {
     delegate<AUX, REF> _set;
   };
 
-  template<typename T, typename REF = T, typename AUX = void>
-  struct BSS_COMPILER_DLLEXPORT cAniStateSmooth : public cAniStateDiscrete<T, REF, AUX>
+  template<typename T, typename D = void, typename REF = T, typename AUX = void>
+  struct BSS_COMPILER_DLLEXPORT cAniStateSmooth : public cAniStateDiscrete<T, D, REF, AUX>
   {
-    typedef cAniStateDiscrete<T, REF, AUX> BASE;
+    typedef cAniStateDiscrete<T, D, REF, AUX> BASE;
     using BASE::_ani;
     using BASE::_cur;
     using BASE::_time;
@@ -198,7 +218,7 @@ namespace bss_util {
     cAniStateSmooth(cAniStateSmooth&& mov) : BASE(std::move(mov)), _init(std::move(mov._init)) { }
     cAniStateSmooth(cAniBase* p, delegate<AUX, REF> d, T init = T()) : BASE(p, d), _init(init) { assert(_ani->GetFunc() != 0); }
     template<ARRAY_TYPE ArrayType, typename Alloc>
-    cAniStateSmooth(cAnimation<T, ArrayType, Alloc>* p, delegate<AUX, REF> d, T init = T()) : BASE(p, d), _init(init) {}
+    cAniStateSmooth(cAnimation<T, D, ArrayType, Alloc>* p, delegate<AUX, REF> d, T init = T()) : BASE(p, d), _init(init) {}
     cAniStateSmooth() {}
 
     cAniStateSmooth& operator=(const cAniStateSmooth& copy) { BASE::operator=(copy); _init = copy._init; return *this; }
@@ -208,8 +228,8 @@ namespace bss_util {
     {
       _time += delta;
       auto svar = _ani->GetCapacity();
-      auto v = (typename cAnimation<T>::PAIR*)_ani->GetArray();
-      auto f = (typename cAnimation<T>::FUNC)_ani->GetFunc();
+      auto v = (typename cAnimation<T, D>::FRAME*)_ani->GetArray();
+      auto f = (typename cAnimation<T, D>::FUNC)_ani->GetFunc();
       double loop = _ani->GetLoop();
       double length = _ani->GetLength();
       if(_time >= length && loop >= 0.0)
@@ -218,7 +238,7 @@ namespace bss_util {
         _time = fmod(_time - length, length - loop) + loop;
       }
 
-      while(_cur<svar && v[_cur].first <= _time) ++_cur;
+      while(_cur<svar && v[_cur].time <= _time) ++_cur;
       if(_cur >= svar)
       { //Resolve the animation, but only if there was more than 1 keyframe, otherwise we'll break it.
         if(svar>1)
@@ -226,17 +246,17 @@ namespace bss_util {
       }
       else
       {
-        double hold = !_cur?0.0:v[_cur - 1].first;
-        BASE::_set(f(v, svar, _cur, (_time - hold) / (v[_cur].first - hold), _init));
+        double hold = !_cur?0.0:v[_cur - 1].time;
+        BASE::_set(f(v, svar, _cur, (_time - hold) / (v[_cur].time - hold), _init));
       }
       return _time < length;
     }
 
-    static inline T BSS_FASTCALL NoInterpolate(const typename cAnimation<T>::PAIR* v, unsigned int s, unsigned int cur, double t, const T& init) { unsigned int i = cur - (t != 1.0); return (i<0) ? init : v[i].second; }
-    static inline T BSS_FASTCALL NoInterpolateRel(const typename cAnimation<T>::PAIR* v, unsigned int s, unsigned int cur, double t, const T& init) { assert(cur > 0); return init + v[cur - (t != 1.0)].value; }
-    static inline T BSS_FASTCALL LerpInterpolate(const typename cAnimation<T>::PAIR* v, unsigned int s, unsigned int cur, double t, const T& init) { return lerp<T>(!cur ? init : v[cur - 1].second, v[cur].second, t); }
-    static inline T BSS_FASTCALL LerpInterpolateRel(const typename cAnimation<T>::PAIR* v, unsigned int s, unsigned int cur, double t, const T& init) { assert(cur > 0); return init + lerp<T>(v[cur - 1].second, v[cur].second, t); }
-    static inline T BSS_FASTCALL CubicInterpolateRel(const typename cAnimation<T>::PAIR* v, unsigned int s, unsigned int cur, double t, const T& init) { assert(cur > 0); return init + CubicBSpline<T>(t, v[cur - 1 - (cur != 1)].second, v[cur - 1].second, v[cur].second, v[cur + ((cur + 1) != v.Capacity())].second); }
+    static inline T BSS_FASTCALL NoInterpolate(const typename cAnimation<T, D>::FRAME* v, unsigned int s, unsigned int cur, double t, const T& init) { unsigned int i = cur - (t != 1.0); return (i<0) ? init : v[i].value; }
+    static inline T BSS_FASTCALL NoInterpolateRel(const typename cAnimation<T, D>::FRAME* v, unsigned int s, unsigned int cur, double t, const T& init) { assert(cur > 0); return init + v[cur - (t != 1.0)].value; }
+    static inline T BSS_FASTCALL LerpInterpolate(const typename cAnimation<T, D>::FRAME* v, unsigned int s, unsigned int cur, double t, const T& init) { return lerp<T>(!cur ? init : v[cur - 1].value, v[cur].value, t); }
+    static inline T BSS_FASTCALL LerpInterpolateRel(const typename cAnimation<T, D>::FRAME* v, unsigned int s, unsigned int cur, double t, const T& init) { assert(cur > 0); return init + lerp<T>(v[cur - 1].value, v[cur].value, t); }
+    static inline T BSS_FASTCALL CubicInterpolateRel(const typename cAnimation<T, D>::FRAME* v, unsigned int s, unsigned int cur, double t, const T& init) { assert(cur > 0); return init + CubicBSpline<T>(t, v[cur - 1 - (cur != 1)].value, v[cur - 1].value, v[cur].value, v[cur + ((cur + 1) != v.Capacity())].value); }
     //static inline T BSS_FASTCALL QuadInterpolate(const PAIR* v, unsigned int s, unsigned int cur, double t, const T& init) {}
     //typedef T(BSS_FASTCALL *TIME_FNTYPE)(const TVT_ARRAY_T& a, IDTYPE i, double t); // VC++ 2010 can't handle this being in the template itself
     //template<TIME_FNTYPE FN, double(*TIME)(DATA&)>
@@ -246,28 +266,28 @@ namespace bss_util {
     T _init; // This is referenced by an index of -1
   };
   
-  template<typename T, typename AUX, double(*TODURATION)(const T&), typename REF = T, typename QUEUEALLOC = StaticAllocPolicy<std::pair<double, AUX>>>
-  struct BSS_COMPILER_DLLEXPORT cAniStateInterval : public cAniStateDiscrete<T, REF, AUX>
+  template<typename T, typename AUX, typename REF = T, typename QUEUEALLOC = StaticAllocPolicy<std::pair<double, AUX>>>
+  struct BSS_COMPILER_DLLEXPORT cAniStateInterval : public cAniStateDiscrete<T, double, REF, AUX>
   {
-    typedef cAniStateDiscrete<T, REF, AUX> BASE;
+    typedef cAniStateDiscrete<T, double, REF, AUX> BASE;
     using BASE::_ani;
     using BASE::_cur;
     using BASE::_time;
     cAniStateInterval(cAniBase* p, delegate<AUX, REF> d, delegate<void, AUX> rm) : BASE(p, d), _remove(rm) { assert(_ani->SizeOf() == sizeof(T)); }
     template<ARRAY_TYPE ArrayType, typename Alloc>
-    cAniStateInterval(cAnimationInterval<T, TODURATION, ArrayType, Alloc>* p, delegate<AUX, REF> d, delegate<void, AUX> rm) : BASE(p, d), _remove(rm) {}
+    cAniStateInterval(cAnimationInterval<T, ArrayType, Alloc>* p, delegate<AUX, REF> d, delegate<void, AUX> rm) : BASE(p, d), _remove(rm) {}
     inline ~cAniStateInterval() { _clearqueue(); }
     virtual void Reset() { _clearqueue(); BASE::Reset(); }
     virtual bool Interpolate(double delta)
     {
       _time += delta;
       auto svar = _ani->GetCapacity();
-      auto v = (typename cAnimation<T>::PAIR*)_ani->GetArray();
+      auto v = (typename cAnimation<T, double>::FRAME*)_ani->GetArray();
       double loop = _ani->GetLoop();
       double length = _ani->GetLength();
 
-      while(_cur < svar && v[_cur].first <= _time)
-        _addtoqueue(v[_cur++].second); // We call all the discrete values because many discrete values are interdependent on each other.
+      while(_cur < svar && v[_cur].time <= _time)
+        _addtoqueue(v[_cur++]); // We call all the discrete values because many discrete values are interdependent on each other.
       if(_time >= length && loop >= 0.0) // We do the loop check down here because we need to finish calling all the discrete values on the end of the animation before looping
       {
         _cur = 0; // We can't call Reset() here because _time contains information we need.
@@ -280,7 +300,7 @@ namespace bss_util {
       return _time < length;
     }
   protected:
-    inline void _addtoqueue(const T& v) { _queue.Push(TODURATION(v), BASE::_set(v)); }
+    inline void _addtoqueue(const typename cAnimation<T, double>::FRAME& v) { _queue.Push(v.data, BASE::_set(v.value)); }
 
     void _clearqueue()
     {

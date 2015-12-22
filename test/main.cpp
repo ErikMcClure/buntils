@@ -881,14 +881,41 @@ TESTDEF::RETPAIR test_bss_algo()
   unsigned char bout[256];
   for(size_t max = 256; max > 1; --max)
   {
-    for(int i = 0; i < max; ++i) b64[i] = i;
+    for(size_t i = 0; i < max; ++i) b64[i] = i;
     cStr str;
     str.resize(Base64Encode(b64, max, 0));
     Base64Encode(b64, max, str.UnsafeString());
     TEST(Base64Decode(str.c_str(), str.size(), 0) == max);
     Base64Decode(str.c_str(), str.size(), bout);
-    for(int i = 0; i < max; ++i) TEST(bout[i] == i);
+    for(size_t i = 0; i < max; ++i) TEST(bout[i] == i);
   }
+
+  auto fn = [](double x) -> double { return x*x*x - 2*x*x - 11*x + 12; };
+  auto dfn = [](double x) -> double { return 3*x*x - 4*x - 11; };
+
+  double r = 0.0; // Test boundary basin behavior of newton raphson to ensure it's actually doing what we expect. Because this is an edge case, we require a lot more iterations than normal
+  NewtonRaphson<double>(r, 2.35287527, fn, dfn, DBL_EPS, 50);
+  TEST(r == 4.0);
+  NewtonRaphson<double>(r, 2.35284172, fn, dfn, DBL_EPS, 50);
+  TEST(r == -3.0);
+  NewtonRaphson<double>(r, 2.35283735, fn, dfn,  DBL_EPS, 50);
+  TEST(r == 4.0);
+  NewtonRaphson<double>(r, 2.352836327, fn, dfn,  DBL_EPS, 50);
+  TEST(r == -3.0);
+  NewtonRaphson<double>(r, 2.352836323, fn, dfn,  DBL_EPS, 50);
+  TEST(r == 1.0);
+
+  r = NewtonRaphsonBisection<double>(2.35287527, -10, 10, fn, dfn, DBL_EPS, 50);
+  TEST(r == 4.0); // These all converge on 4 because the bisection introduces stability to the algorithm.
+  r = NewtonRaphsonBisection<double>(2.35284172, -10, 10, fn, dfn, DBL_EPS, 50);
+  TEST(r == 4.0);
+  r = NewtonRaphsonBisection<double>(2.35283735, -10, 10, fn, dfn, DBL_EPS, 50);
+  TEST(r == 4.0);
+  r = NewtonRaphsonBisection<double>(2.352836327, -10, 10, fn, dfn, DBL_EPS, 50);
+  TEST(r == 4.0);
+  r = NewtonRaphsonBisection<double>(2.352836323, -10, 10, fn, dfn, DBL_EPS, 50);
+  TEST(r == 4.0);
+
   ENDTEST;
 }
 
@@ -1713,8 +1740,6 @@ template<> int DEBUG_CDT<false>::count=0;
 
 #include <memory>
 
-typedef std::pair<cAutoRef<cRefCounter>, double> ANIOBJPAIR;
-
 struct cAnimObj
 {
   cAnimObj() : test(0), test2(0) {}
@@ -1722,15 +1747,14 @@ struct cAnimObj
   int test2;
   float fl;
   void BSS_FASTCALL donothing(cRefCounter*) { ++test; }
-  cRefCounter* BSS_FASTCALL retnothing(ANIOBJPAIR p) {
+  cRefCounter* BSS_FASTCALL retnothing(cAutoRef<cRefCounter> p) {
     ++test2; 
-    p.first->Grab(); 
-    return (cRefCounter*)p.first; 
+    p->Grab(); 
+    return (cRefCounter*)p; 
   }
   void BSS_FASTCALL remnothing(cRefCounter* p) { p->Drop(); }
   void BSS_FASTCALL setfloat(float a) { fl = a; }
   const float& BSS_FASTCALL getfloat() { return fl; }
-  static inline double GetDuration(const ANIOBJPAIR& o) { return o.second; }
 };
 
 struct RCounter : cRefCounter
@@ -1749,10 +1773,10 @@ TESTDEF::RETPAIR test_ANIMATION()
   a0.Add(0.0, &c);
   a0.Add(1.1, &c);
   a0.Add(2.0, &c);
-  cAnimationInterval<ANIOBJPAIR, cAnimObj::GetDuration> a1;
-  a1.Add(0.0, ANIOBJPAIR(&c, 1.5));
-  a1.Add(1.0, ANIOBJPAIR(&c, 0.5));
-  a1.Add(1.5, ANIOBJPAIR(&c, 0.5));
+  cAnimationInterval<cAutoRef<cRefCounter>> a1;
+  a1.Add(0.0, &c, 1.5);
+  a1.Add(1.0, &c, 0.5);
+  a1.Add(1.5, &c, 0.5);
   cAnimation<float> a2(&cAniStateSmooth<float>::LerpInterpolate);
   a2.Add(0.0, 0.0f);
   a2.Add(1.0, 1.0f);
@@ -1775,7 +1799,7 @@ TESTDEF::RETPAIR test_ANIMATION()
   //a.GetAttribute<3>()->AddKeyFrame(KeyFrame<3>(0.6, [&](){ c.Drop(); }));
   //a.Attach(delegate<void,AniAttribute*>::From<cAnimObj,&cAnimObj::TypeIDRegFunc>(&obj));
   cAniStateDiscrete<cRefCounter*> s0(&a0, delegate<void, cRefCounter*>::From<cAnimObj, &cAnimObj::donothing>(&obj));
-  cAniStateInterval<ANIOBJPAIR, cRefCounter*, cAnimObj::GetDuration> s1(&a1, delegate<cRefCounter*, ANIOBJPAIR>::From<cAnimObj, &cAnimObj::retnothing>(&obj), delegate<void, cRefCounter*>::From<cAnimObj, &cAnimObj::remnothing>(&obj));
+  cAniStateInterval<cAutoRef<cRefCounter>, cRefCounter*> s1(&a1, delegate<cRefCounter*, cAutoRef<cRefCounter>>::From<cAnimObj, &cAnimObj::retnothing>(&obj), delegate<void, cRefCounter*>::From<cAnimObj, &cAnimObj::remnothing>(&obj));
   cAniStateSmooth<float> s2(&a2, delegate<void, float>::From<cAnimObj, &cAnimObj::setfloat>(&obj));
 
   auto interall = [&](double t) {

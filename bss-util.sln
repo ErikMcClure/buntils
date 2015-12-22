@@ -1,7 +1,7 @@
 ﻿
 Microsoft Visual Studio Solution File, Format Version 12.00
-# Visual Studio 2013
-VisualStudioVersion = 12.0.30110.0
+# Visual Studio 14
+VisualStudioVersion = 14.0.24720.0
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "test", "test\test.vcxproj", "{07854893-CF69-4467-AFCE-28D35B115D41}"
 	ProjectSection(ProjectDependencies) = postProject
@@ -16,6 +16,8 @@ Global
 		Debug Static|x64 = Debug Static|x64
 		Debug|Win32 = Debug|Win32
 		Debug|x64 = Debug|x64
+		Release Clang|Win32 = Release Clang|Win32
+		Release Clang|x64 = Release Clang|x64
 		Release Static|Win32 = Release Static|Win32
 		Release Static|x64 = Release Static|x64
 		Release STD|Win32 = Release STD|Win32
@@ -32,6 +34,10 @@ Global
 		{07854893-CF69-4467-AFCE-28D35B115D41}.Debug|Win32.Build.0 = Debug|Win32
 		{07854893-CF69-4467-AFCE-28D35B115D41}.Debug|x64.ActiveCfg = Debug|x64
 		{07854893-CF69-4467-AFCE-28D35B115D41}.Debug|x64.Build.0 = Debug|x64
+		{07854893-CF69-4467-AFCE-28D35B115D41}.Release Clang|Win32.ActiveCfg = Release Clang|Win32
+		{07854893-CF69-4467-AFCE-28D35B115D41}.Release Clang|Win32.Build.0 = Release Clang|Win32
+		{07854893-CF69-4467-AFCE-28D35B115D41}.Release Clang|x64.ActiveCfg = Release Clang|x64
+		{07854893-CF69-4467-AFCE-28D35B115D41}.Release Clang|x64.Build.0 = Release Clang|x64
 		{07854893-CF69-4467-AFCE-28D35B115D41}.Release Static|Win32.ActiveCfg = Release Static|Win32
 		{07854893-CF69-4467-AFCE-28D35B115D41}.Release Static|Win32.Build.0 = Release Static|Win32
 		{07854893-CF69-4467-AFCE-28D35B115D41}.Release Static|x64.ActiveCfg = Release STD|x64
@@ -52,6 +58,10 @@ Global
 		{4F702B9E-ADE1-41D3-AC1C-4059B557BE68}.Debug|Win32.Build.0 = Debug|Win32
 		{4F702B9E-ADE1-41D3-AC1C-4059B557BE68}.Debug|x64.ActiveCfg = Debug|x64
 		{4F702B9E-ADE1-41D3-AC1C-4059B557BE68}.Debug|x64.Build.0 = Debug|x64
+		{4F702B9E-ADE1-41D3-AC1C-4059B557BE68}.Release Clang|Win32.ActiveCfg = Release Clang|Win32
+		{4F702B9E-ADE1-41D3-AC1C-4059B557BE68}.Release Clang|Win32.Build.0 = Release Clang|Win32
+		{4F702B9E-ADE1-41D3-AC1C-4059B557BE68}.Release Clang|x64.ActiveCfg = Release Clang|x64
+		{4F702B9E-ADE1-41D3-AC1C-4059B557BE68}.Release Clang|x64.Build.0 = Release Clang|x64
 		{4F702B9E-ADE1-41D3-AC1C-4059B557BE68}.Release Static|Win32.ActiveCfg = Release Static|Win32
 		{4F702B9E-ADE1-41D3-AC1C-4059B557BE68}.Release Static|Win32.Build.0 = Release Static|Win32
 		{4F702B9E-ADE1-41D3-AC1C-4059B557BE68}.Release Static|x64.ActiveCfg = Release Static|x64

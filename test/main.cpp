@@ -5407,6 +5407,11 @@ TESTDEF::RETPAIR test_VARIANT()
 
   TEST(!DEBUG_CDT<false>::count);
   TEST(!DEBUG_CDT<true>::count);
+
+  {
+    variant<double, float, __int64> ctest(5.9);
+    TEST(ctest.convert<int>() == 5);
+  }
   ENDTEST;
 }
 

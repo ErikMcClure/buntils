@@ -15,6 +15,9 @@
 - Added AddConstruct function to cDynArray
 - Added FromC for stateless functions to delegate.h
 - Added a Newton-Raphson root finder method, and a Newton-Raphson Bisection hybrid algorithm that should converge for all well behaved functions.
+- Added cubic function solver
+- Added cubic curve and quadratic curve splitter
+- Added basic M4A container parser
 
 0.4.4
 -----

@@ -1,4 +1,4 @@
-// Copyright ©2015 Black Sphere Studios
+// Copyright ©2016 Black Sphere Studios
 // For conditions of distribution and use, see copyright notice in "bss_util.h"
 
 #ifndef __C_ANIMATION_H__BSS__
@@ -23,7 +23,7 @@ namespace bss_util {
     inline void SetLoop(double loop = 0.0) { _loop = loop; }
     inline double GetLoop() const { return _loop; }
     inline size_t SizeOf() const { return _typesize; }
-    virtual unsigned int GetCapacity() const = 0;
+    virtual unsigned int GetSize() const = 0;
     virtual const void* GetArray() const = 0;
     virtual void* GetFunc() const = 0;
     virtual cAniBase* Clone() const = 0;
@@ -77,7 +77,7 @@ namespace bss_util {
     inline void Set(const FRAME* src, unsigned int len) { _frames.SetArray(src, len); _calc = _frames.Back().time; }
     inline const FRAME& Get(unsigned int index) const { return _frames[index]; }
     inline bool Remove(unsigned int index) { return _frames.Remove(index); }
-    virtual unsigned int GetCapacity() const { return _frames.Length(); }
+    virtual unsigned int GetSize() const { return _frames.Length(); }
     virtual const void* GetArray() const { return _frames.begin(); }
     void SetFunc(FUNC f) { _f = f; }
     virtual void* GetFunc() const { return (void*)_f; }
@@ -194,7 +194,7 @@ namespace bss_util {
     virtual bool Interpolate(double delta)
     {
       _time += delta;
-      auto svar = _ani->GetCapacity();
+      auto svar = _ani->GetSize();
       auto v = (typename cAnimation<T, D>::FRAME*)_ani->GetArray();
       double loop = _ani->GetLoop();
       double length = _ani->GetLength();
@@ -233,7 +233,7 @@ namespace bss_util {
     virtual bool Interpolate(double delta)
     {
       _time += delta;
-      auto svar = _ani->GetCapacity();
+      auto svar = _ani->GetSize();
       auto v = (typename cAnimation<T, D>::FRAME*)_ani->GetArray();
       auto f = (typename cAnimation<T, D>::FUNC)_ani->GetFunc();
       double loop = _ani->GetLoop();
@@ -325,7 +325,7 @@ namespace bss_util {
       }
       return FastSqrt<U>(r);
     }
-    // Uses simpson's rule to approximate arc length over the interval [0, b]
+    // Uses simpson's rule to approximate arc length over the interval [0, b] (TODO: Upgrade to gaussian quadrature?)
     static inline double ArcLength(double b, const T& p0, const T& p1, const T& p2, double p0_cache)
     {
       return (b / 6.0)*(p0_cache + 4.0*LENGTH(b*0.5, p0, p1, p2) + LENGTH(b, p0, p1, p2));
@@ -373,7 +373,7 @@ namespace bss_util {
       return FastSqrt<U>(r);
     }
     static inline double ArcLength(double c, const T& p0, const T& p1, const T& p2, const T& p3, double p0_cache)
-    {
+    { // TODO: maybe upgrade to gaussain quadrature
       //return (b / 6.0)*(p0_cache + 4.0*LENGTH(b*0.5, p0, p1, p2) + LENGTH(b, p0, p1, p2));
       // Use simpson's rule twice, once for each half of the integral. We use the two invervals [0,b] and [b,c]: b/6 * [ f(0) + 4f(b/2) + f(b) ] + (b+c)/6 * [ f(b) + 4f((b+c)/2) + f(c) ]
       double b = c*0.5;
@@ -421,7 +421,7 @@ namespace bss_util {
     virtual bool Interpolate(double delta)
     {
       _time += delta;
-      auto svar = _ani->GetCapacity();
+      auto svar = _ani->GetSize();
       auto v = (typename cAnimation<T, double>::FRAME*)_ani->GetArray();
       double loop = _ani->GetLoop();
       double length = _ani->GetLength();

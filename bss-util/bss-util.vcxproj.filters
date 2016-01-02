@@ -225,7 +225,7 @@
     <ClInclude Include="..\include\bss_stream.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="..\include\cFXEngine.h">
+    <ClInclude Include="..\include\cFXAni.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>

@@ -1,4 +1,4 @@
-// Copyright ©2015 Black Sphere Studios
+// Copyright ©2016 Black Sphere Studios
 // For conditions of distribution and use, see copyright notice in "bss_util.h"
 
 #ifndef __BSS_ALGO_H__
@@ -540,6 +540,13 @@ namespace bss_util {
     }
   }
 
+  template<typename T, typename D>
+  inline T QuadraticBezierCurve(D t, const T& p0, const T& p1, const T& p2)
+  {
+    D inv = 1.0 - t;
+    return (inv*inv*p0) + (2 * inv*t*p1) + (t*t*p2);
+  }
+
   // Find a quadratic curve (A,B,C) that passes through 3 points
   template<typename T>
   inline T QuadraticFit(T t, T x1, T y1, T x2, T y2, T x3, T y3)
@@ -574,11 +581,134 @@ namespace bss_util {
     return (A*t*t + B*t)*(x3 - x1) + x1; // reverse our transformation
   }
 
-  // Solves a normalized cubic equation of the form t^3 + at² + bt + c
-  // You can normalize an arbitrary cubic equation at^3 + bt² + ct + d by dividing everything by d.
-  template<typename T>
-  inline int solveCubic(T a, T b, T c, T (&r)[3])
+  // Splits a cubic (P0,P1,P2,P3) into two cubics: (P0, N1, N2, N3) and (N3, R1, R2, P3) using De Casteljau's Algorithm
+  template<typename T, int I>
+  inline static void SplitCubic(T t, const T(&P0)[I], const T(&P1)[I], const T(&P2)[I], const T(&P3)[I], T(&N1)[I], T(&N2)[I], T(&N3)[I], T(&R1)[I], T(&R2)[I])
   {
+    T F[I]; // A = P0, B = P1, C = P2, D = P3, E = N1, F, G = R2, H = N2, J = R1, K = N3
+    for(int i = 0; i < I; ++i)
+    {
+      N1[i] = lerp<T>(P0[i], P1[i], t); // lerp(A+B)
+      F[i] = lerp<T>(P1[i], P2[i], t); // lerp(B+C)
+      R2[i] = lerp<T>(P2[i], P3[i], t); // lerp(C+D)
+      N2[i] = lerp<T>(N1[i], F[i], t); // lerp(E+F)
+      R1[i] = lerp<T>(F[i], R2[i], t); // lerp(F+G)
+      N3[i] = lerp<T>(N2[i], R1[i], t); // lerp(H+J)
+    }
+  }
+
+  // Splits a quadratic (P0, P1, P2) into two quadratics: (P0, N1, N2) and (N2, R1, P2) using De Casteljau's Algorithm
+  template<typename T, int I>
+  inline static void SplitQuadratic(T t, const T(&P0)[I], const T(&P1)[I], const T(&P2)[I], T(&N1)[I], T(&N2)[I], T(&R1)[I])
+  {
+    for(int i = 0; i < I; ++i)
+    {
+      N1[i] = lerp<T>(P0[i], P1[i], t);
+      R1[i] = lerp<T>(P1[i], P2[i], t);
+      N2[i] = lerp<T>(N1[i], R1[i], t);
+    }
+  }
+
+  // Solves a quadratic equation of the form at² + bt + c
+  template<typename T>
+  inline static void SolveQuadratic(T a, T b, T c, T(&r)[2])
+  {
+    T d = FastSqrt<T>(b*b - 4*a*c);
+    r[0] = (-b - d) / (2 * a);
+    r[1] = (-b + d) / (2 * a);
+  }
+
+  // See: http://www.caffeineowl.com/graphics/2d/vectorial/cubic-inflexion.html
+  template<typename T>
+  inline static void CubicInflectionPoints(const T(&P0)[2], const T(&P1)[2], const T(&P2)[2], const T(&P3)[2], T(&r)[2])
+  {
+    T a[2];
+    T b[2];
+    T c[2];
+    for(int i = 0; i < 2; ++i)
+    {
+      a[i] = P1[i] - P0[i];
+      b[i] = P2[i] - P1[i] - a[i];
+      c[i] = P3[i] - P2[i] - a[i] - 2 * b[i];
+    }
+    SolveQuadratic<T>(b[0] * c[1] - b[1] * c[0], a[0] * c[1] - a[1] * c[0], a[0] * b[1] - a[1] * b[0], r);
+  }
+
+  // Uses modified formulas from: http://www.caffeineowl.com/graphics/2d/vectorial/cubic2quad01.html
+  template<typename T, int I>
+  inline static T ApproxCubicError(const T(&P0)[I], const T(&P1)[I], const T(&P2)[I], const T(&P3)[I])
+  {
+    // The error for a quadratic approximating a cubic (sharing the anchor points) is: t·(1 - t)·|2·C - 3·C1 + P1 + 3·t·(P2 - 3·C2 + 3·C1 - P1)|    where |v| is the modulus: sqrt(v[0]² + v[1]²)
+    // If we choose C = (3·C2 - P2 + 3·C1 - P1)/4 we get f(t) = t·(1 - t)·½(6·t - 1)|(3·C_1 - 3·C_2 - P_1 + P_2)|
+    // f'(t) = -½(2·t(9·t - 7) + 1) |(3·C_1 - 3·C_2 - P_1 + P_2)| = 0 -> -½(2·t(9·t - 7) + 1) = 0 -> 2·t(9·t - 7) = -1
+    // Solving the derivative for 0 to maximize the error value, we get t = (1/18)(7±sqrt(31)). Only the + result is inside [0,1], so we plug that into t·(1 - t)·½(6·t - 1) = 77/486+(31 sqrt(31))/972 ~ 0.336008945728118
+    const double term = 0.336008945728118;
+
+    T r = 0;
+    T M; 
+    for(int i = 0; i < I; ++i) // 3·C_1 - 3·C_2 - P_1 + P_2
+    {
+      M = 3 * P1[i] - 3 * P2[i] - P0[i] + P3[i];
+      r += M*M;
+    }
+    return term * FastSqrt<T>(r);
+  }
+
+  template<typename T, typename FN>
+  inline static void ApproxCubicR(T(&t)[3], const T(&P0)[2], const T(&P1)[2], const T(&P2)[2], const T(&P3)[2], FN fn, T maxerror)
+  {
+    T N1[2];
+    T N2[2];
+    T N3[2];
+    T R1[2];
+    T R2[2];
+
+    SplitCubic(t[1], P0, P1, P2, P3, N1, N2, N3, R1, R2);
+
+    // Check first section: P0, N1, N2, N3
+    if(ApproxCubicError<T, 2>(P0, N1, N2, N3) > maxerror)
+    {
+      T tfirst[3] = { t[0], (t[1] + t[0]) / 2, t[1] };
+      ApproxCubicR<T, FN>(tfirst, P0, N1, N2, N3, fn, maxerror);
+    }
+    else
+    {
+      T C[2]; // (3·(P2 + P1) - P3 - P0) / 4
+      for(int i = 0; i < 2; ++i)
+        C[i] = (3*(N2[i] + N1[i]) - N3[i] - P0[i]) / 4;
+      fn(P0, C, N3);
+    }
+    // Check second section: N3, R1, R2, P3
+    if(ApproxCubicError<T, 2>(N3, R1, R2, P3) > maxerror)
+    {
+      T tsecond[3] = { t[1], (t[2] + t[1]) / 2, t[2] };
+      ApproxCubicR<T, FN>(tsecond, N3, R1, R2, P3, fn, maxerror);
+    }
+    else
+    {
+      T C[2]; // (3·(P2 + P1) - P3 - P0) / 4
+      for(int i = 0; i < 2; ++i)
+        C[i] = (3 * (R2[i] + R1[i]) - P3[i] - N3[i]) / 4;
+      fn(N3, C, P3);
+    }
+  }
+
+  template<typename T, typename FN>
+  inline static void ApproxCubic(const T(&P0)[2], const T(&P1)[2], const T(&P2)[2], const T(&P3)[2], FN fn, T maxerror = FLT_EPSILON)
+  {
+    T r[2];
+    CubicInflectionPoints<T>(P0, P1, P2, P3, r);
+    T t[3] = { 0.0, (r[0] >= 0.0 && r[0] <= 1.0) ? r[0] : ((r[1] >= 0.0 && r[1] <= 1.0) ? r[1] : 0.5), 1.0 };
+    ApproxCubicR<T, FN>(t, P0, P1, P2, P3, fn, maxerror); // Call recursive function that does the actual splitting
+  }
+
+  // Solves a cubic equation of the form at^3 + bt² + ct + d by normalizing it (dividing everything by a).
+  template<typename T>
+  inline int solveCubic(T at, T bt, T ct, T dt, T (&r)[3])
+  {
+    T a = bt / at;
+    T b = ct / at;
+    T c = dt / at;
     T p = b - a*a / 3;
     T q = a * (2 * a*a - 9 * b) / 27 + c;
     T p3 = p*p*p;

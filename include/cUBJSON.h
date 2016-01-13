@@ -15,7 +15,7 @@
 
 namespace bss_util {
   template<class T>
-  inline void ParseUBJSON(T& obj, std::istream& s, char type);
+  inline void ParseUBJSON(T& obj, std::istream& s, char type = 0);
 
   struct UBJSONValue;
   template<>
@@ -400,7 +400,7 @@ namespace bss_util {
   };
 
   template<class T>
-  inline void ParseUBJSON(T& obj, std::istream& s, char type = 0){ ParseUBJSONInternal<T, std::is_arithmetic<T>::value>::F(obj, s, type); }
+  inline void ParseUBJSON(T& obj, std::istream& s, char type){ ParseUBJSONInternal<T, std::is_arithmetic<T>::value>::F(obj, s, type); }
 
   template<>
   inline void ParseUBJSON<std::string>(std::string& obj, std::istream& s, char type)
@@ -492,8 +492,8 @@ namespace bss_util {
   template<class T, typename FROM>
   bool WriteUBJSONSpecificInt(const FROM& obj, std::ostream& s, UBJSONTuple::TYPE type)
   {
-    if(obj >= (FROM)std::numeric_limits<std::conditional<std::is_unsigned<FROM>::value && sizeof(FROM) == sizeof(T), FROM, T>::type>::min() &&
-      obj <= (FROM)std::numeric_limits<std::conditional<std::is_signed<FROM>::value && sizeof(FROM)==sizeof(T), FROM, T>::type>::max())
+    if(obj >= (FROM)std::numeric_limits<typename std::conditional<std::is_unsigned<FROM>::value && sizeof(FROM) == sizeof(T), FROM, T>::type>::min() &&
+      obj <= (FROM)std::numeric_limits<typename std::conditional<std::is_signed<FROM>::value && sizeof(FROM)==sizeof(T), FROM, T>::type>::max())
     {
       s.put(type);
       WriteUBJSONInteger<T>((T)obj, s);

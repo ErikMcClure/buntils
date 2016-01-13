@@ -41,7 +41,7 @@ namespace bss_util {
   {
     double avg;
     double var;
-    unsigned __int64 total;
+    uint64_t total;
   };
 }
 
@@ -105,7 +105,7 @@ void Profiler::WriteToStream(std::ostream& stream, unsigned char output)
 void BSS_FASTCALL Profiler::_treeout(std::ostream& stream, PROF_TRIENODE* node, PROFILER_INT id, unsigned int level, PROFILER_INT idlevel)
 {
   if(!node) return;
-  if(node->total != (unsigned __int64)-1)
+  if(node->total != (uint64_t)-1)
   {
     for(unsigned int i = 0; i < level*2; ++i) stream.put(' ');
     stream << '[' << _trimpath(_data[id]->file) << ':' << _data[id]->line << "] " << _data[id]->name << ": ";
@@ -120,7 +120,7 @@ void BSS_FASTCALL Profiler::_treeout(std::ostream& stream, PROF_TRIENODE* node, 
 void BSS_FASTCALL Profiler::_heatout(PROF_HEATNODE& heat, PROF_TRIENODE* node, PROFILER_INT id, PROFILER_INT idlevel)
 {
   if(!node) return;
-  if(node->total != (unsigned __int64)-1)
+  if(node->total != (uint64_t)-1)
   {
     auto k = heat._children.Insert(PROF_HEATNODE(id, node->avg));
     PROF_HEATNODE& nheat = heat._children[k];
@@ -187,7 +187,7 @@ void BSS_FASTCALL Profiler::_heatwrite(std::ostream& stream, PROF_HEATNODE& node
 void BSS_FASTCALL Profiler::_flatout(PROF_FLATOUT* avg, PROF_TRIENODE* node, PROFILER_INT id, PROFILER_INT idlevel)
 {
   if(!node) return;
-  if(node->total != (unsigned __int64)-1)
+  if(node->total != (uint64_t)-1)
   {
     if(node->total>0) // if node->total is zero the equation will detonate, and this can easily happen for any node that doesn't get run.
     { // Equation: new_avg = a1 * (N1/(N1+N2)) + a2 * (N2/(N1+N2))
@@ -210,7 +210,7 @@ const char* BSS_FASTCALL Profiler::_trimpath(const char* path)
   r=bssmax(r, r2);
   return (!r)?path:(r+1);
 }
-void BSS_FASTCALL Profiler::_timeformat(std::ostream& stream, double avg, double variance, unsigned __int64 num)
+void BSS_FASTCALL Profiler::_timeformat(std::ostream& stream, double avg, double variance, uint64_t num)
 {
   //double sd = bss_util::FastSqrt(variance/(double)(num-1));
   if(avg>=1000000000000.0)
@@ -226,7 +226,7 @@ PROF_TRIENODE* Profiler::_allocnode()
 {
   PROF_TRIENODE* r = _alloc.alloc(1);
   memset(r, 0, sizeof(PROF_TRIENODE));
-  r->total = (unsigned __int64)-1;
+  r->total = (uint64_t)-1;
   ++_totalnodes;
   return r;
 }

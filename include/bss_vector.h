@@ -269,7 +269,7 @@ namespace bss_util {
     // copyright notice and this statement appear in all copies.  
     // Intel makes no representations about the suitability of this software for 
     // any purpose, and specifically disclaims all warranties. 
-    static const BSS_ALIGN(16) unsigned __int32 _Sign_PNNP[4] ={ 0x00000000, 0x80000000, 0x80000000, 0x00000000 };
+    static const BSS_ALIGN(16) uint32_t _Sign_PNNP[4] ={ 0x00000000, 0x80000000, 0x80000000, 0x00000000 };
 
     // The inverse is calculated using "Divide and Conquer" technique. The 
     // original matrix is divide into four 2x2 sub-matrices. Since each 
@@ -422,9 +422,9 @@ namespace bss_util {
   };
 
   template<int M> // We can't use sseVec<T> because only int32 and floats can fit 4 into a register.
-  struct BSS_COMPILER_DLLEXPORT __MatrixMultiply<__int32, M, 4, 4>
+  struct BSS_COMPILER_DLLEXPORT __MatrixMultiply<int32_t, M, 4, 4>
   {
-    static BSS_FORCEINLINE void BSS_FASTCALL MM(const __int32(&l)[M][4], const __int32(&r)[4][4], __int32(&out)[M][4])
+    static BSS_FORCEINLINE void BSS_FASTCALL MM(const int32_t(&l)[M][4], const int32_t(&r)[4][4], int32_t(&out)[M][4])
     {
       sseVeci a(r[0]);
       sseVeci b(r[1]);

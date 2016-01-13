@@ -158,9 +158,9 @@ static const unsigned char utf8d[] = {
   12,36,12,12,12,12,12,12,12,12,12,12, 
 };
 
-unsigned __int32 decode(unsigned __int32* state, unsigned __int32* codep, unsigned __int32 byte)
+unsigned int decode(unsigned int* state, unsigned int* codep, unsigned int byte)
 {
-  unsigned __int32 type = utf8d[byte];
+  unsigned int type = utf8d[byte];
 
   *codep = (*state != UTF8_ACCEPT) ?
     (byte & 0x3fu) | (*codep << 6) :
@@ -173,8 +173,8 @@ unsigned __int32 decode(unsigned __int32* state, unsigned __int32* codep, unsign
 size_t countutf16(const unsigned char* s)
 {
   size_t count;
-  unsigned __int32 codepoint;
-  unsigned __int32 state = 0;
+  unsigned int codepoint;
+  unsigned int state = 0;
 
   for (count = 1; *s; ++s) //One for null terminator
     if(!decode(&state, &codepoint, *s))
@@ -201,8 +201,8 @@ extern size_t BSS_FASTCALL UTF8toUTF16(const char*BSS_RESTRICT input,wchar_t*BSS
 
   /*const unsigned char* s = src;
   wchar_t* d = dst;
-  unsigned __int32 codepoint;
-  unsigned __int32 state = 0;
+  unsigned int codepoint;
+  unsigned int state = 0;
 
   if(!dst) return countutf16(src);
 

@@ -480,28 +480,28 @@ int BSS_FASTCALL bss_util::SetRegistryValueW(HKEY__*	hOpenKey, const wchar_t* sz
   });
 }
 
-int BSS_FASTCALL bss_util::SetRegistryValue(HKEY__*	hOpenKey, const char* szKey, const char* szValue, __int32 szData)
+int BSS_FASTCALL bss_util::SetRegistryValue(HKEY__*	hOpenKey, const char* szKey, const char* szValue, int32_t szData)
 {
   return SetRegistryValueW(hOpenKey, cStrW(szKey), cStrW(szValue), szData);
 }
-int BSS_FASTCALL bss_util::SetRegistryValueW(HKEY__*	hOpenKey, const wchar_t* szKey, const wchar_t* szValue, __int32 szData)
+int BSS_FASTCALL bss_util::SetRegistryValueW(HKEY__*	hOpenKey, const wchar_t* szKey, const wchar_t* szValue, int32_t szData)
 {
   if(!hOpenKey || !szKey || !szKey[0] || !szValue) { ::SetLastError((DWORD)E_INVALIDARG); return FALSE; } // validate input
 
   return r_setregvalue(hOpenKey, szKey, [&](HKEY& hTempKey, DWORD& dwReserved) -> int {
-    return RegSetValueExW(hTempKey, (LPWSTR)szValue, dwReserved, REG_DWORD, (LPBYTE)&szData, sizeof(__int32));
+    return RegSetValueExW(hTempKey, (LPWSTR)szValue, dwReserved, REG_DWORD, (LPBYTE)&szData, sizeof(int32_t));
   });
 }
-int BSS_FASTCALL bss_util::SetRegistryValue64(HKEY__*	hOpenKey, const char* szKey, const char* szValue, __int64 szData)
+int BSS_FASTCALL bss_util::SetRegistryValue64(HKEY__*	hOpenKey, const char* szKey, const char* szValue, int64_t szData)
 {
   return SetRegistryValue64W(hOpenKey, cStrW(szKey), cStrW(szValue), szData);
 }
-int BSS_FASTCALL bss_util::SetRegistryValue64W(HKEY__*	hOpenKey, const wchar_t* szKey, const wchar_t* szValue, __int64 szData)
+int BSS_FASTCALL bss_util::SetRegistryValue64W(HKEY__*	hOpenKey, const wchar_t* szKey, const wchar_t* szValue, int64_t szData)
 {
   if(!hOpenKey || !szKey || !szKey[0] || !szValue) { ::SetLastError((DWORD)E_INVALIDARG); return FALSE; } // validate input
 
   return r_setregvalue(hOpenKey, szKey, [&](HKEY& hTempKey, DWORD& dwReserved) -> int {
-    return RegSetValueExW(hTempKey, (LPWSTR)szValue, dwReserved, REG_QWORD, (LPBYTE)&szData, sizeof(__int64));
+    return RegSetValueExW(hTempKey, (LPWSTR)szValue, dwReserved, REG_QWORD, (LPBYTE)&szData, sizeof(int64_t));
   });
 }
 

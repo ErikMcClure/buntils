@@ -27,11 +27,11 @@ namespace bss_util {
   template<>
   void BSS_EXPLICITSTATIC WriteJSON<JSONValue>(const char* id, const JSONValue& obj, std::ostream& s, unsigned int& pretty);
 
-  struct JSONValue : variant<cStr, double, __int64, bool, cDynArray<JSONValue, size_t, CARRAY_SAFE>, cDynArray<std::pair<cStr, JSONValue>, size_t, CARRAY_SAFE>>
+  struct JSONValue : variant<cStr, double, int64_t, bool, cDynArray<JSONValue, size_t, CARRAY_SAFE>, cDynArray<std::pair<cStr, JSONValue>, size_t, CARRAY_SAFE>>
   {
     typedef cDynArray<JSONValue, size_t, CARRAY_SAFE> JSONArray;
     typedef cDynArray<std::pair<cStr, JSONValue>, size_t, CARRAY_SAFE> JSONObject;
-    typedef variant<cStr, double, __int64, bool, JSONArray, JSONObject> BASE;
+    typedef variant<cStr, double, int64_t, bool, JSONArray, JSONObject> BASE;
 
   private:
     template<class T>
@@ -262,7 +262,7 @@ namespace bss_util {
     int pos = 0;
     if(s.peek() >= '0' && s.peek() <= '9')
     {
-      unsigned __int64 num;
+      uint64_t num;
       s >> num;
       target = num != 0; // If it's numeric, record the value as false if 0 and true otherwise.
       return;
@@ -316,7 +316,7 @@ namespace bss_util {
       if(dot)
         target = (double)strtod(buf.c_str(), 0);
       else
-        target = (__int64)strtoll(buf.c_str(), 0, 10);
+        target = (int64_t)strtoll(buf.c_str(), 0, 10);
     }
     break;
     default:
@@ -482,7 +482,7 @@ namespace bss_util {
     {
     case JSONValue::Type<cStr>::value: WriteJSON<cStr>(id, obj.get<cStr>(), s, pretty); break;
     case JSONValue::Type<double>::value: WriteJSON<double>(id, obj.get<double>(), s, pretty); break;
-    case JSONValue::Type<__int64>::value: WriteJSON<__int64>(id, obj.get<__int64>(), s, pretty); break;
+    case JSONValue::Type<int64_t>::value: WriteJSON<int64_t>(id, obj.get<int64_t>(), s, pretty); break;
     case JSONValue::Type<bool>::value: WriteJSON<bool>(id, obj.get<bool>(), s, pretty); break;
     case JSONValue::Type<JSONValue::JSONArray>::value:
       WriteJSON<JSONValue::JSONArray>(id, obj.get<JSONValue::JSONArray>(), s, pretty); break;

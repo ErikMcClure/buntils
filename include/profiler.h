@@ -18,7 +18,7 @@
 #else
 #define __PROFILE_STATBLOCK(name,str) static bss_util::Profiler::ProfilerData PROFDATA_##name(str,__FILE__,__LINE__)
 #define __PROFILE_ZONE(name) bss_util::ProfilerBlock BLOCK_##name(PROFDATA_##name .id, bss_util::Profiler::profiler.GetCur())
-#define PROFILE_BEGIN(name) __PROFILE_STATBLOCK(name, MAKESTRING(name)); PROF_TRIENODE* PROFCACHE_##name = bss_util::Profiler::profiler.GetCur(); unsigned __int64 PROFTIME_##name = bss_util::Profiler::profiler.StartProfile(PROFDATA_##name .id)
+#define PROFILE_BEGIN(name) __PROFILE_STATBLOCK(name, MAKESTRING(name)); PROF_TRIENODE* PROFCACHE_##name = bss_util::Profiler::profiler.GetCur(); uint64_t PROFTIME_##name = bss_util::Profiler::profiler.StartProfile(PROFDATA_##name .id)
 #define PROFILE_END(name) bss_util::Profiler::profiler.EndProfile(PROFTIME_##name, PROFCACHE_##name)
 #define PROFILE_BLOCK(name) __PROFILE_STATBLOCK(name, MAKESTRING(name)); __PROFILE_ZONE(name);
 #define PROFILE_FUNC() __PROFILE_STATBLOCK(func, __FUNCTION__); __PROFILE_ZONE(func)
@@ -37,8 +37,8 @@ namespace bss_util {
     double avg;
     double codeavg;
     //double variance; 
-    unsigned __int64 total; // If total is -1 this isn't a terminating node
-    unsigned __int64 inner;
+    uint64_t total; // If total is -1 this isn't a terminating node
+    uint64_t inner;
   };
   struct BSS_DLLEXPORT Profiler
   {
@@ -52,7 +52,7 @@ namespace bss_util {
       inline ProfilerData(const char* Name, const char* File, unsigned int Line) : name(Name), file(File), line(Line), id(++total) { Profiler::profiler.AddData(id, this); }
     };
 
-    BSS_FORCEINLINE unsigned __int64 BSS_FASTCALL StartProfile(PROFILER_INT id)
+    BSS_FORCEINLINE uint64_t BSS_FASTCALL StartProfile(PROFILER_INT id)
     {
       PROF_TRIENODE** r=&_cur;
       while(id>0)
@@ -63,17 +63,17 @@ namespace bss_util {
           *r = _allocnode();
       }
       _cur=*r;
-      if(_cur->total == (unsigned __int64)-1)
+      if(_cur->total == (uint64_t)-1)
         _cur->total = 0;
       _cur->inner=0;
       return cHighPrecisionTimer::OpenProfiler();
     }
-    BSS_FORCEINLINE void BSS_FASTCALL EndProfile(unsigned __int64 time, PROF_TRIENODE* old)
+    BSS_FORCEINLINE void BSS_FASTCALL EndProfile(uint64_t time, PROF_TRIENODE* old)
     {
       time = cHighPrecisionTimer::CloseProfiler(time);
-      //bssvariance<double, unsigned __int64>(_cur->variance, _cur->avg, (double)time, ++_cur->total);
-      _cur->avg = bssavg<double, unsigned __int64>(_cur->avg, (double)time, ++_cur->total);
-      _cur->codeavg = bssavg<double, unsigned __int64>(_cur->codeavg, (double)(time - _cur->inner), _cur->total);
+      //bssvariance<double, uint64_t>(_cur->variance, _cur->avg, (double)time, ++_cur->total);
+      _cur->avg = bssavg<double, uint64_t>(_cur->avg, (double)time, ++_cur->total);
+      _cur->codeavg = bssavg<double, uint64_t>(_cur->codeavg, (double)(time - _cur->inner), _cur->total);
       _cur=old;
       _cur->inner += time;
     }
@@ -96,7 +96,7 @@ namespace bss_util {
     double BSS_FASTCALL _heatfindmax(PROF_HEATNODE& heat);
     static void BSS_FASTCALL _flatout(PROF_FLATOUT* avg, PROF_TRIENODE* node, PROFILER_INT id, PROFILER_INT idlevel);
     static const char* BSS_FASTCALL _trimpath(const char* path);
-    static void BSS_FASTCALL _timeformat(std::ostream& stream, double avg, double variance, unsigned __int64 num);
+    static void BSS_FASTCALL _timeformat(std::ostream& stream, double avg, double variance, uint64_t num);
     static PROFILER_INT total;
 
     cArray<ProfilerData*, PROFILER_INT> _data;
@@ -123,7 +123,7 @@ namespace bss_util {
     BSS_FORCEINLINE ProfilerBlock(PROFILER_INT id, PROF_TRIENODE* cache) : _cache(cache), _time(Profiler::profiler.StartProfile(id)) { }
     BSS_FORCEINLINE ~ProfilerBlock() { Profiler::profiler.EndProfile(_time, _cache); }
     PROF_TRIENODE* _cache;
-    unsigned __int64 _time;
+    uint64_t _time;
   };
 }
 

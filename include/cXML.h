@@ -17,19 +17,19 @@ namespace bss_util {
     cStr Name;
     cStr String;
     double Float;
-    unsigned __int64 Integer;
+    uint64_t Integer;
 
     BSS_FORCEINLINE operator bool() const { return Integer!=0; } // If the string is "true" the integer gets set to 1 by the parser.
     BSS_FORCEINLINE operator char() const { return (char)Integer; }
     BSS_FORCEINLINE operator short() const { return (short)Integer; }
     BSS_FORCEINLINE operator int() const { return (int)Integer; }
     BSS_FORCEINLINE operator long() const { return (long)Integer; }
-    BSS_FORCEINLINE operator __int64() const { return (__int64)Integer; }
+    BSS_FORCEINLINE operator int64_t() const { return (int64_t)Integer; }
     BSS_FORCEINLINE operator unsigned char() const { return (unsigned char)Integer; }
     BSS_FORCEINLINE operator unsigned short() const { return (unsigned short)Integer; }
     BSS_FORCEINLINE operator unsigned int() const { return (unsigned int)Integer; }
     BSS_FORCEINLINE operator unsigned long() const { return (unsigned long)Integer; }
-    BSS_FORCEINLINE operator unsigned __int64() const { return (unsigned __int64)Integer; }
+    BSS_FORCEINLINE operator uint64_t() const { return (uint64_t)Integer; }
     BSS_FORCEINLINE operator float() const { return (float)Float; }
     BSS_FORCEINLINE operator double() const { return Float; }
     BSS_FORCEINLINE operator const char*() const { return String; }
@@ -60,7 +60,7 @@ namespace bss_util {
     bool BSS_FASTCALL RemoveAttribute(size_t index);
     bool BSS_FASTCALL RemoveAttribute(const char* name);
     void BSS_FASTCALL SetValue(double value);
-    void BSS_FASTCALL SetValue(unsigned __int64 value);
+    void BSS_FASTCALL SetValue(uint64_t value);
     void BSS_FASTCALL SetValue(const char* value);
 
     cXMLNode& operator=(const cXMLNode& copy);

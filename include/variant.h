@@ -97,6 +97,14 @@ namespace bss_util {
         else
           return op<Tx...>::convert<U>(tag, store);
       }
+      template<class U>
+      inline static U* convertP(int tag, char* store)
+      {
+        if(tag == getpos<T, Arg, Args...>::value)
+          return static_cast<U*>(reinterpret_cast<T*>(store));
+        else
+          return op<Tx...>::convertP<U>(tag, store);
+      }
     };
 
     template<>
@@ -113,6 +121,8 @@ namespace bss_util {
       inline static void assign(int tag, char* store, U && v) { assert(false); }
       template<class U>
       inline static U convert(int tag, char* store) { assert(false); return *reinterpret_cast<U*>(store); }
+      template<class U>
+      inline static U* convertP(int tag, char* store) { assert(false); return reinterpret_cast<U*>(store); }
     };
 
     template<typename T, typename U>
@@ -187,6 +197,8 @@ namespace bss_util {
     const T convert() const { return op<Arg, Args...>::convert<T>(_tag, _store); }
     template<typename T>
     T convert() { return op<Arg, Args...>::convert<T>(_tag, _store); }
+    template<typename T>
+    T* convertP() { return op<Arg, Args...>::convertP<T>(_tag, _store); }
     template<typename T>
     inline static bool contains() { return getpos<T, Arg, Args...>::value != -1; }
     template<typename T>

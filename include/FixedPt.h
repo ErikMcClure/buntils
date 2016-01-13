@@ -49,7 +49,7 @@ namespace bss_util {
   };
   
   // Adaptive template based class for doing fixed-point math
-  template<unsigned char DBITS=12, typename T=__int32, bool SATURATE=true>
+  template<unsigned char DBITS=12, typename T=int32_t, bool SATURATE=true>
   class FixedPt
   {
     static_assert(std::is_signed<T>::value, "T must be a signed integral type.");     

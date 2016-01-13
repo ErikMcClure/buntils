@@ -66,23 +66,6 @@
 #define BSS__L(x)      L ## x
 #endif
 
-//unsigned shortcuts
-#ifndef BSS_NOSHORTTYPES
-#ifdef  __cplusplus
-namespace bss_util { // This namespace can be inconvenient but its necessary because everything else on earth tries to define these too.
-#endif
-typedef unsigned char uint8;
-typedef unsigned short ushort;
-typedef unsigned short uint16;
-typedef unsigned int uint;
-typedef unsigned int uint32;
-typedef unsigned __int64 uint64;
-typedef unsigned long ulong;
-#ifdef  __cplusplus
-}
-#endif
-#endif
-
 #ifndef BSS_NO_FASTCALL
 #define BSS_FASTCALL BSS_COMPILER_FASTCALL
 #else

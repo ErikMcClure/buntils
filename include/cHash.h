@@ -328,7 +328,7 @@ namespace bss_util {
     inline bool _setvalue(khiter_t i, U && newvalue) { if(i >= kh_end(this)) return false; kh_val(this, i) = std::forward<U>(newvalue); return true; }
   };
 
-  inline static khint_t KH_INT64_HASHFUNC(__int64 key) { return (khint32_t)((key) >> 33 ^ (key) ^ (key) << 11); }
+  inline static khint_t KH_INT64_HASHFUNC(int64_t key) { return (khint32_t)((key) >> 33 ^ (key) ^ (key) << 11); }
   template<class T>
   BSS_FORCEINLINE khint_t KH_INT_HASHFUNC(T key) { return (khint32_t)key; }
   inline static khint_t KH_STR_HASHFUNC(const char * s) { khint_t h = *s; if(h) for(++s; *s; ++s) h = (h << 5) - h + *s; return h; }
@@ -338,15 +338,15 @@ namespace bss_util {
   template<class T>
   BSS_FORCEINLINE khint_t KH_POINTER_HASHFUNC(T p) {
 #ifdef BSS_64BIT
-    return KH_INT64_HASHFUNC((__int64)p);
+    return KH_INT64_HASHFUNC((int64_t)p);
 #else
     return (khint32_t)p;
 #endif
   }
   template<typename T, int I> struct KH_AUTO_HELPER { };
   template<typename T> struct KH_AUTO_HELPER<T, 1> { BSS_FORCEINLINE static khint_t hash(T k) { return KH_POINTER_HASHFUNC<T>(k); } };
-  template<typename T> struct KH_AUTO_HELPER<T, 2> { BSS_FORCEINLINE static khint_t hash(T k) { return KH_INT_HASHFUNC<T>((__int32)k); } };
-  template<typename T> struct KH_AUTO_HELPER<T, 4> { BSS_FORCEINLINE static khint_t hash(T k) { return KH_INT64_HASHFUNC((__int64)k); } };
+  template<typename T> struct KH_AUTO_HELPER<T, 2> { BSS_FORCEINLINE static khint_t hash(T k) { return KH_INT_HASHFUNC<T>((int32_t)k); } };
+  template<typename T> struct KH_AUTO_HELPER<T, 4> { BSS_FORCEINLINE static khint_t hash(T k) { return KH_INT64_HASHFUNC((int64_t)k); } };
 
 #ifdef BSS_COMPILER_GCC // GCC decides that "force inline" doesn't really mean "force inline" so we have to put static here to protect it from it's own idiocy.
 #define FIX_PISS_POOR_PROGRAMMING_IN_GCC static
@@ -360,7 +360,7 @@ namespace bss_util {
   template<> BSS_FORCEINLINE khint_t KH_AUTO_HASHFUNC<char*>(char* k) { return KH_STR_HASHFUNC(k); }
   template<> BSS_FORCEINLINE khint_t KH_AUTO_HASHFUNC<const wchar_t*>(const wchar_t* k) { return KH_STRW_HASHFUNC(k); }
   template<> BSS_FORCEINLINE khint_t KH_AUTO_HASHFUNC<wchar_t*>(wchar_t* k) { return KH_STRW_HASHFUNC(k); }
-  template<> BSS_FORCEINLINE khint_t KH_AUTO_HASHFUNC<double>(double k) { return KH_INT64_HASHFUNC(*(__int64*)&k); }
+  template<> BSS_FORCEINLINE khint_t KH_AUTO_HASHFUNC<double>(double k) { return KH_INT64_HASHFUNC(*(int64_t*)&k); }
   template<> BSS_FORCEINLINE khint_t KH_AUTO_HASHFUNC<float>(float k) { return *(khint32_t*)&k; }
   template<typename T> FIX_PISS_POOR_PROGRAMMING_IN_GCC BSS_FORCEINLINE khint_t KH_AUTOINS_HASHFUNC(T k) { return KH_STRINS_HASHFUNC(k); }
   template<> BSS_FORCEINLINE khint_t KH_AUTOINS_HASHFUNC<const wchar_t*>(const wchar_t* k) { return KH_STRWINS_HASHFUNC(k); }

@@ -51,7 +51,7 @@ namespace bss_util {
   }
   
   template<>
-  inline void cSetting_INILOAD<std::vector<__int64>>(cINIstorage& ini, std::vector<__int64>& v, const char* name, const char* section)
+  inline void cSetting_INILOAD<std::vector<int64_t>>(cINIstorage& ini, std::vector<int64_t>& v, const char* name, const char* section)
   { 
     cINIentry* p;
     v.clear();
@@ -98,8 +98,8 @@ namespace bss_util {
   inline void cSetting_INISAVE<std::vector<cStr>>(cINIstorage& ini, std::vector<cStr>& v, const char* name, const char* section)
   { if(name!=0) { for(unsigned int i = 0; i < v.size(); ++i) ini.EditAddEntry(section,name,v[i],i,0); } }
   template<>
-  inline void cSetting_INISAVE<std::vector<__int64>>(cINIstorage& ini, std::vector<__int64>& v, const char* name, const char* section)
-  { if(name!=0) { for(unsigned int i = 0; i < v.size(); ++i) ini.EditAddEntry(section,name,cSetting_tostring<__int64>(v[i]).c_str(),i,0); } }
+  inline void cSetting_INISAVE<std::vector<int64_t>>(cINIstorage& ini, std::vector<int64_t>& v, const char* name, const char* section)
+  { if(name!=0) { for(unsigned int i = 0; i < v.size(); ++i) ini.EditAddEntry(section,name,cSetting_tostring<int64_t>(v[i]).c_str(),i,0); } }
   template<>
   inline void cSetting_INISAVE<std::vector<int>>(cINIstorage& ini, std::vector<int>& v, const char* name, const char* section)
   { if(name!=0) { for(unsigned int i = 0; i < v.size(); ++i) ini.EditAddEntry(section,name,cSetting_tostring<int>(v[i]).c_str(),i,0); } }

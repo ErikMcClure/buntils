@@ -15,8 +15,8 @@ namespace bss_util
   {
     typedef void(*FUNC)(void*);
     typedef std::pair<FUNC, void*> TASK;
-    typedef cMicroLockQueue<cThread*, uint> THREADQUEUE;
-    typedef cMicroLockQueue<TASK, uint> TASKQUEUE;
+    typedef cMicroLockQueue<cThread*, uint32_t> THREADQUEUE;
+    typedef cMicroLockQueue<TASK, uint32_t> TASKQUEUE;
 
     cThreadPool(const cThreadPool&) BSS_DELETEFUNC
     cThreadPool& operator=(const cThreadPool&) BSS_DELETEFUNCOP
@@ -27,7 +27,7 @@ namespace bss_util
     {
       mov._length.store(0, std::memory_order_relaxed);
     }
-    explicit cThreadPool(uint count = 4)
+    explicit cThreadPool(uint32_t count = 4)
     { 
       _length.store(0, std::memory_order_relaxed);
       _flag.store(false, std::memory_order_relaxed);
@@ -73,16 +73,16 @@ namespace bss_util
     }
 #endif
 
-    void AddTask(FUNC f, void* args, uint instances = 1)
+    void AddTask(FUNC f, void* args, uint32_t instances = 1)
     {
       if(!instances) instances = _threads.Length();
       TASK task(f, args);
-      for(uint i = 0; i < instances; ++i)
+      for(uint32_t i = 0; i < instances; ++i)
         _tasklist.Push(task);
       
       _signalthreads(instances);
     }
-    void AddThreads(uint num=1) { for(uint i = 0; i < num; ++i) _addthread(); }
+    void AddThreads(uint32_t num=1) { for(uint32_t i = 0; i < num; ++i) _addthread(); }
     void Wait() { while((int)_threads.Length() < _length.load(std::memory_order_relaxed)); }
 
   protected:
@@ -93,10 +93,10 @@ namespace bss_util
       _length.fetch_add(1, std::memory_order_relaxed);
       return t;
     }
-    void _signalthreads(uint instances)
+    void _signalthreads(uint32_t instances)
     {
       cThread* t;
-      uint i;
+      uint32_t i;
       for(i = 0; i < instances; ++i)
       {
         if(!_threads.Pop(t))
@@ -157,7 +157,7 @@ namespace bss_util
   {
     typedef void(*FUNC)(const T&);
   public:
-    cThreadJob(cThreadPool& p, FUNC f, cMicroLockQueue<T>& q, uint instances = 1) : _f(f), _queue(q), _flag(false)
+    cThreadJob(cThreadPool& p, FUNC f, cMicroLockQueue<T>& q, uint32_t instances = 1) : _f(f), _queue(q), _flag(false)
     {
       p.AddTask(&_func, this, instances);
       while(_active.load(std::memory_order_relaxed) < instances); // If instances equals 0 we can't gaurantee that we'll get anything so this won't block.

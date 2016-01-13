@@ -20,6 +20,7 @@ namespace bss_util {
 
     inline cArraySort(const cArraySort& copy) : _array(copy._array) {}
     inline cArraySort(cArraySort&& mov) : _array(std::move(mov._array)) {}
+    inline cArraySort(const cArraySlice<const T, CType>& slice) : _array(slice) {}
     inline explicit cArraySort(CT_ size=0) : _array(size) {}
     inline ~cArraySort() { }
     BSS_FORCEINLINE CT_ BSS_FASTCALL Insert(constref data) { CT_ loc = _insert(data); _array.Insert(data, loc); return loc; }
@@ -77,6 +78,7 @@ namespace bss_util {
     BSS_FORCEINLINE T& operator [](CT_ index) { return _array[index]; }
     inline cArraySort& operator=(const cArraySort& right) { _array = right._array; return *this; }
     inline cArraySort& operator=(cArraySort&& mov) { _array = std::move(mov._array); return *this; }
+    inline cArraySort& operator=(const cArraySlice<const T, CType>& copy) { _array = copy; return *this; }
 
   protected:
     template<typename U>

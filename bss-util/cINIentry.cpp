@@ -17,7 +17,7 @@ cINIentry::cINIentry(cINIentry&& mov) : _key(std::move(mov._key)),_svalue(std::m
 cINIentry::cINIentry() : _ivalue(0),_dvalue(0.0)//,_index(0)
 {
 }
-cINIentry::cINIentry(const char *key, const char *svalue, __int64 ivalue, double dvalue) : _key(key),_svalue(svalue),
+cINIentry::cINIentry(const char *key, const char *svalue, int64_t ivalue, double dvalue) : _key(key),_svalue(svalue),
   _ivalue(ivalue),_dvalue(dvalue)//,_index(index)
 {
 }
@@ -52,8 +52,8 @@ void cINIentry::SetData(const char* data)
 
   if(_svalue[0] == '0' && (_svalue[1] == 'x' || _svalue[1] == 'X')) //If this is true its a hex number
   {
-    unsigned __int64 v = STRTOULL(_svalue,0,16); //We store the unsigned here so it gets properly stored in the double even if it overflows on the signed __int64
-    _ivalue = (__int64)v;
+    uint64_t v = STRTOULL(_svalue,0,16); //We store the unsigned here so it gets properly stored in the double even if it overflows on the signed int64_t
+    _ivalue = (int64_t)v;
     _dvalue = (double)v;
   }
   else if(!strchr(_svalue, '.')) //If there isn't a period in the sequence, its either a string (in which case we don't care) or an integer, so round _dvalue to the integer.
@@ -64,7 +64,7 @@ void cINIentry::SetData(const char* data)
   else //Ok its got a . in there so its either a double or a string, so we just round _ivalue
   {
     _dvalue = atof(_svalue);
-    _ivalue = (__int64)_dvalue;
+    _ivalue = (int64_t)_dvalue;
   }
 }
 

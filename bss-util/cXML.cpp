@@ -96,8 +96,8 @@ bool cXMLNode::RemoveAttribute(size_t index)
   return true;
 }
 bool cXMLNode::RemoveAttribute(const char* name) { return RemoveAttribute(_attrhash[name]); }
-void cXMLNode::SetValue(double value) { _value.Float = value; _value.Integer = (unsigned __int64)value; _value.String = std::to_string(value); }
-void cXMLNode::SetValue(unsigned __int64 value) { _value.Integer = value; _value.Float = (double)value; _value.String = std::to_string(value); }
+void cXMLNode::SetValue(double value) { _value.Float = value; _value.Integer = (uint64_t)value; _value.String = std::to_string(value); }
+void cXMLNode::SetValue(uint64_t value) { _value.Integer = value; _value.Float = (double)value; _value.String = std::to_string(value); }
 void cXMLNode::SetValue(const char* value) { _value.String = value; _evalvalue(_value); }
 
 void cXMLNode::_addnode(std::unique_ptr<cXMLNode> && n)

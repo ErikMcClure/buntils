@@ -18,7 +18,7 @@
 #endif
 
 BSS_COMPILER_DLLEXPORT 
-extern union bssCPUInfo BSS_FASTCALL bssGetCPUInfo()
+extern union bssCPUInfo bssGetCPUInfo()
 {
   union bssCPUInfo r={0};
   unsigned int info[4];

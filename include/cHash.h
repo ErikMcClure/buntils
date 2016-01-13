@@ -348,29 +348,29 @@ namespace bss_util {
   template<typename T> struct KH_AUTO_HELPER<T, 2> { BSS_FORCEINLINE static khint_t hash(T k) { return KH_INT_HASHFUNC<T>((int32_t)k); } };
   template<typename T> struct KH_AUTO_HELPER<T, 4> { BSS_FORCEINLINE static khint_t hash(T k) { return KH_INT64_HASHFUNC((int64_t)k); } };
 
-#ifdef BSS_COMPILER_GCC // GCC decides that "force inline" doesn't really mean "force inline" so we have to put static here to protect it from it's own idiocy.
-#define FIX_PISS_POOR_PROGRAMMING_IN_GCC static
+#ifndef BSS_COMPILER_MSC // GCC decides that "force inline" doesn't really mean "force inline" so we have to put static here to protect it from it's own idiocy.
+#define MSC_NOSTATIC static
 #else
-#define FIX_PISS_POOR_PROGRAMMING_IN_GCC 
+#define MSC_NOSTATIC 
 #endif
 
   template<typename T>
-  FIX_PISS_POOR_PROGRAMMING_IN_GCC BSS_FORCEINLINE khint_t KH_AUTO_HASHFUNC(T k) { return KH_AUTO_HELPER<T, std::is_pointer<T>::value + std::is_integral<T>::value * 2 * (1 + (sizeof(T) == 8))>::hash(k); }
+  MSC_NOSTATIC BSS_FORCEINLINE khint_t KH_AUTO_HASHFUNC(T k) { return KH_AUTO_HELPER<T, std::is_pointer<T>::value + std::is_integral<T>::value * 2 * (1 + (sizeof(T) == 8))>::hash(k); }
   template<> BSS_FORCEINLINE khint_t KH_AUTO_HASHFUNC<const char*>(const char* k) { return KH_STR_HASHFUNC(k); }
   template<> BSS_FORCEINLINE khint_t KH_AUTO_HASHFUNC<char*>(char* k) { return KH_STR_HASHFUNC(k); }
   template<> BSS_FORCEINLINE khint_t KH_AUTO_HASHFUNC<const wchar_t*>(const wchar_t* k) { return KH_STRW_HASHFUNC(k); }
   template<> BSS_FORCEINLINE khint_t KH_AUTO_HASHFUNC<wchar_t*>(wchar_t* k) { return KH_STRW_HASHFUNC(k); }
   template<> BSS_FORCEINLINE khint_t KH_AUTO_HASHFUNC<double>(double k) { return KH_INT64_HASHFUNC(*(int64_t*)&k); }
   template<> BSS_FORCEINLINE khint_t KH_AUTO_HASHFUNC<float>(float k) { return *(khint32_t*)&k; }
-  template<typename T> FIX_PISS_POOR_PROGRAMMING_IN_GCC BSS_FORCEINLINE khint_t KH_AUTOINS_HASHFUNC(T k) { return KH_STRINS_HASHFUNC(k); }
+  template<typename T> MSC_NOSTATIC BSS_FORCEINLINE khint_t KH_AUTOINS_HASHFUNC(T k) { return KH_STRINS_HASHFUNC(k); }
   template<> BSS_FORCEINLINE khint_t KH_AUTOINS_HASHFUNC<const wchar_t*>(const wchar_t* k) { return KH_STRWINS_HASHFUNC(k); }
   template<> BSS_FORCEINLINE khint_t KH_AUTOINS_HASHFUNC<wchar_t*>(wchar_t* k) { return KH_STRWINS_HASHFUNC(k); }
 
   template<typename T>
-  FIX_PISS_POOR_PROGRAMMING_IN_GCC BSS_FORCEINLINE bool KH_AUTO_EQUALFUNC(T a, T b) { return a == b; }
+  MSC_NOSTATIC BSS_FORCEINLINE bool KH_AUTO_EQUALFUNC(T a, T b) { return a == b; }
   template<> BSS_FORCEINLINE bool KH_AUTO_EQUALFUNC<const char*>(const char* a, const char* b) { return strcmp(a, b) == 0; }
   template<> BSS_FORCEINLINE bool KH_AUTO_EQUALFUNC<const wchar_t*>(const wchar_t* a, const wchar_t* b) { return wcscmp(a, b) == 0; }
-  template<typename T> FIX_PISS_POOR_PROGRAMMING_IN_GCC BSS_FORCEINLINE bool KH_AUTOINS_EQUALFUNC(T a, T b) { return STRICMP(a, b) == 0; }
+  template<typename T> MSC_NOSTATIC BSS_FORCEINLINE bool KH_AUTOINS_EQUALFUNC(T a, T b) { return STRICMP(a, b) == 0; }
   template<> BSS_FORCEINLINE bool KH_AUTOINS_EQUALFUNC<const wchar_t*>(const wchar_t* a, const wchar_t* b) { return WCSICMP(a, b) == 0; }
   template<> BSS_FORCEINLINE bool KH_AUTOINS_EQUALFUNC<wchar_t*>(wchar_t* a, wchar_t* b) { return WCSICMP(a, b) == 0; }
 

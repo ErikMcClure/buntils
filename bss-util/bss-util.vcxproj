@@ -203,7 +203,7 @@
     <ConfigurationType>DynamicLibrary</ConfigurationType>
     <CharacterSet>Unicode</CharacterSet>
     <WholeProgramOptimization>true</WholeProgramOptimization>
-    <PlatformToolset>v140_xp</PlatformToolset>
+    <PlatformToolset>v140_Clang_3_7</PlatformToolset>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'" Label="Configuration">
     <ConfigurationType>DynamicLibrary</ConfigurationType>
@@ -425,6 +425,7 @@
       <RuntimeTypeInfo>false</RuntimeTypeInfo>
       <StringPooling>true</StringPooling>
       <PrecompiledHeaderFile />
+      <AdditionalOptions>-Wno-ignored-attributes -Wno-unused-function</AdditionalOptions>
     </ClCompile>
     <Link>
       <AdditionalDependencies>psapi.lib;shlwapi.lib;%(AdditionalDependencies)</AdditionalDependencies>
@@ -497,6 +498,7 @@
       <ExceptionHandling>Sync</ExceptionHandling>
       <DisableLanguageExtensions>false</DisableLanguageExtensions>
       <RuntimeTypeInfo>false</RuntimeTypeInfo>
+      <AdditionalOptions>-Wno-ignored-attributes -Wno-unused-function</AdditionalOptions>
     </ClCompile>
     <Link>
       <AdditionalDependencies>psapi.lib;shlwapi.lib;%(AdditionalDependencies)</AdditionalDependencies>

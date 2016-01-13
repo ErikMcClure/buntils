@@ -139,7 +139,7 @@ namespace bss_util {
   protected:
     inline void BSS_FASTCALL _flip(size_t id, size_t nid) { _hash.Set(_array[id], nid); }
 
-    cKhash<T, ST, true, __hash_func, __hash_equal, ST, -1> _hash;
+    cKhash<T, ST, true, __hash_func, __hash_equal, ST, (ST)-1> _hash;
   };
 }
 

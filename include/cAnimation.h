@@ -110,8 +110,8 @@ namespace bss_util {
     cAnimationInterval(cAnimationInterval&& mov) : BASE(std::move(mov)) {}
     cAnimationInterval(const typename BASE::FRAME* src, unsigned int len, typename BASE::FUNC f = 0) : BASE(src, len, f) { _recalclength(); }
     virtual ~cAnimationInterval() {}
-    inline unsigned int Add(const BASE::FRAME& frame) { unsigned int r = BASE::Add(frame); _checkindex(r); return r; }
-    inline unsigned int Add(double time, const T& value, const double& data) { BASE::FRAME f = { time, value, data }; return Add(f); }
+    inline unsigned int Add(const typename BASE::FRAME& frame) { unsigned int r = BASE::Add(frame); _checkindex(r); return r; }
+    inline unsigned int Add(double time, const T& value, const double& data) { typename BASE::FRAME f = { time, value, data }; return Add(f); }
     inline void Set(const typename BASE::FRAME* src, unsigned int len) { BASE::Set(src, len); _recalclength(); }
     inline bool Remove(unsigned int index) { bool r = BASE::Remove(index); if(r) _recalclength(); return r; }
     virtual cAniBase* Clone() const { return new cAnimationInterval(*this); }

@@ -120,10 +120,10 @@ namespace bss_util {
     DynArrayBuf(DynArrayBuf&& mov) : BASE(std::move(mov)), _write(mov._write) { mov._write = (CType)-1; }
     DynArrayBuf(cDynArray<T, CType, ArrayType, Alloc>& ref, CType begin = (CType)-1) : BASE(ref), _write((begin == (CType)-1) ? ref.Length() : begin) {}
 
-    inline DynArrayBuf& operator =(DynArrayIBuf&& right) { BASE::operator=(std::move(right)); _write = right._write; right._write = (CType)-1; return *this; }
+    inline DynArrayBuf& operator =(BASE&& right) { BASE::operator=(std::move(right)); _write = right._write; right._write = (CType)-1; return *this; }
 
   protected:
-    int_type overflow(int_type ch) { const_cast<cDynArray<T, CType, ArrayType, Alloc>&>(BASE::_ref).Insert(ch, _write++); return ch; }
+    typename BASE::int_type overflow(typename BASE::int_type ch) { const_cast<cDynArray<T, CType, ArrayType, Alloc>&>(BASE::_ref).Insert(ch, _write++); return ch; }
 
     CType _write;
   };

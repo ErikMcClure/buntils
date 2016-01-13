@@ -192,7 +192,9 @@ inline void TEST_BitLimit()
 {
   static_assert(std::is_same<T, typename BitLimit<B>::SIGNED>::value, "BitLimit failure" MAKESTRING(B));
   static_assert(std::is_same<typename std::make_unsigned<T>::type, typename BitLimit<B>::UNSIGNED>::value, "BitLimit failure" MAKESTRING(B));
-  static_assert(BitLimit<B>::SIGNED_MIN==SMIN, "BitLimit failure" MAKESTRING(B));
+#ifndef BSS_COMPILER_CLANG // Clang refuses to recognize this as constant
+  static_assert(BitLimit<B>::SIGNED_MIN == SMIN, "BitLimit failure" MAKESTRING(B));
+#endif
   static_assert(BitLimit<B>::SIGNED_MAX==SMAX, "BitLimit failure" MAKESTRING(B));
   static_assert(BitLimit<B>::UNSIGNED_MIN==UMIN, "BitLimit failure" MAKESTRING(B));
   static_assert(BitLimit<B>::UNSIGNED_MAX==UMAX, "BitLimit failure" MAKESTRING(B));
@@ -5730,7 +5732,7 @@ int main(int argc, char** argv)
 
   // For best results on windows, add the test application to Application Verifier before going through the tests.
   TESTDEF tests[] = {
-    /*{ "bss_util_c.h", &test_bss_util_c },
+    { "bss_util_c.h", &test_bss_util_c },
     { "bss_util.h", &test_bss_util },
     { "cLog.h", &test_bss_LOG },
     { "bss_algo.h", &test_bss_algo },
@@ -5745,7 +5747,7 @@ int main(int argc, char** argv)
     { "bss_stream.h", &test_STREAMSPLITTER },
     { "bss_graph.h", &test_bss_GRAPH },
     { "bss_vector.h", &test_VECTOR },
-    { "cAliasTable.h", &test_ALIASTABLE },*/
+    { "cAliasTable.h", &test_ALIASTABLE },
     { "cAnimation.h", &test_ANIMATION },
     { "cArrayCircular.h", &test_ARRAYCIRCULAR },
     { "cArray.h", &test_ARRAY },

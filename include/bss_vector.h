@@ -325,10 +325,10 @@ namespace bss_util {
     d2 = _mm_mul_ss(dB, dC);
 
     //  iD = D*|A| - C*A#*B
-    iD = D*_mm_shuffle_ps(dA, dA, 0) - iD;
+    iD = D*sseVec(_mm_shuffle_ps(dA, dA, 0)) - iD;
 
     //  iA = A*|D| - B*D#*C;
-    iA = A*_mm_shuffle_ps(dD, dD, 0) - iA;
+    iA = A*sseVec(_mm_shuffle_ps(dD, dD, 0)) - iA;
 
     //  det = |A|*|D| + |B|*|C| - trace(A#*B*D#*C)
     det = _mm_sub_ss(_mm_add_ss(d1, d2), d);
@@ -347,10 +347,10 @@ namespace bss_util {
     rd = _mm_castsi128_ps(BSS_SSE_XOR(_mm_castps_si128(rd), BSS_SSE_LOAD_ASI128((const __m128i*)_Sign_PNNP)));
 
     //  iB = C*|B| - D*B#*A
-    iB = C*_mm_shuffle_ps(dB, dB, 0) - iB;
+    iB = C*sseVec(_mm_shuffle_ps(dB, dB, 0)) - iB;
 
     //  iC = B*|C| - A*C#*D;
-    iC = B*_mm_shuffle_ps(dC, dC, 0) - iC;
+    iC = B*sseVec(_mm_shuffle_ps(dC, dC, 0)) - iC;
 
     //  iX = iX / det
     iA *= rd;

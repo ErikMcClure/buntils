@@ -17,7 +17,7 @@ namespace bss_util {
   };
 
   // Linked list implemented as an array.
-  template<class T, typename CType=unsigned int, ARRAY_TYPE ArrayType = CARRAY_SIMPLE, typename Alloc=StaticAllocPolicy<LINKEDNODE<T, CType>>>
+  template<class T, typename CType = size_t, ARRAY_TYPE ArrayType = CARRAY_SIMPLE, typename Alloc=StaticAllocPolicy<LINKEDNODE<T, CType>>>
   class BSS_COMPILER_DLLEXPORT cLinkedArray
   {
   public:

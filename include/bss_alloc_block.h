@@ -25,7 +25,7 @@ namespace bss_util {
     cBlockAllocVoid& operator=(const cBlockAllocVoid& copy) BSS_DELETEFUNCOP
   public:
     inline cBlockAllocVoid(cBlockAllocVoid&& mov) : _freelist(mov._freelist), _root(mov._root), _sz(mov._sz) { mov._root=0; mov._freelist=0; }
-    inline explicit cBlockAllocVoid(size_t sz, size_t init=8) : _freelist(0), _root(0), _sz(sz)
+    inline explicit cBlockAllocVoid(size_t sz, size_t init=8) : _root(0), _freelist(0), _sz(sz)
     {
       assert(sz>=sizeof(void*));
       _allocchunk(init*_sz);

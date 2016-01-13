@@ -9,97 +9,6 @@
 #include <emmintrin.h>
 
 // Define compiler-specific intrinsics for working with SSE.
-/*#ifdef BSS_COMPILER_GCC
-#define BSS_SSE_LOAD_APS __builtin_ia32_loadaps
-#define BSS_SSE_LOAD_UPS __builtin_ia32_loadups
-#define BSS_SSE_SET_PS 
-#define BSS_SSE_SET1_PS 
-#define BSS_SSE_STORE_APS __builtin_ia32_storeaps
-#define BSS_SSE_STORE_UPS __builtin_ia32_storeups
-#define BSS_SSE_ADD_PS __builtin_ia32_addps
-#define BSS_SSE_SUB_PS __builtin_ia32_subps 
-#define BSS_SSE_MUL_PS __builtin_ia32_mulps
-#define BSS_SSE_DIV_PS __builtin_ia32_divps
-#define BSS_SSE_MIN_PS 
-#define BSS_SSE_MAX_PS 
-#define BSS_SSE_LOAD_APD 
-#define BSS_SSE_LOAD_UPD 
-#define BSS_SSE_SET_PD 
-#define BSS_SSE_SET1_PD 
-#define BSS_SSE_STORE_APD 
-#define BSS_SSE_STORE_UPD 
-#define BSS_SSE_ADD_PD 
-#define BSS_SSE_SUB_PD 
-#define BSS_SSE_MUL_PD 
-#define BSS_SSE_DIV_PD 
-#define BSS_SSE_MIN_PD 
-#define BSS_SSE_MAX_PD 
-
-#define BSS_SSE_LOAD_ASI128 
-#define BSS_SSE_LOAD_USI128  
-#define BSS_SSE_SET_EPI32 
-#define BSS_SSE_SET1_EPI32 
-#define BSS_SSE_STORE_ASI128  
-#define BSS_SSE_STORE_USI128  
-#define BSS_SSE_ADD_EPI32 __builtin_ia32_paddd128
-#define BSS_SSE_SUB_EPI32 __builtin_ia32_psubd128
-#define BSS_SSE_MIN_EPI32 
-#define BSS_SSE_MAX_EPI32 
-#define BSS_SSE_AND __builtin_ia32_pand
-#define BSS_SSE_OR __builtin_ia32_por
-#define BSS_SSE_XOR __builtin_ia32_pxor
-#define BSS_SSE_SL_EPI32 __builtin_ia32_pslld128
-#define BSS_SSE_SLI_EPI32 __builtin_ia32_pslldi128
-#define BSS_SSE_SR_EPI32 __builtin_ia32_psrld128
-#define BSS_SSE_SRI_EPI32 __builtin_ia32_psrldi128
-#define BSS_SSE_SAR_EPI32 __builtin_ia32_psrad128 //Arithmetic right shift
-#define BSS_SSE_SARI_EPI32 __builtin_ia32_psradi128
-#define BSS_SSE_CMPEQ_EPI32 __builtin_ia32_pcmpeqd128
-#define BSS_SSE_CMPLT_EPI32 
-#define BSS_SSE_CMPGT_EPI32 __builtin_ia32_pcmpgtd128
-#define BSS_SSE_CMPEQ_PS _mm_cmpeq_ps
-#define BSS_SSE_CMPNEQ_PS _mm_cmpneq_ps
-#define BSS_SSE_CMPLT_PS _mm_cmplt_ps
-#define BSS_SSE_CMPLTE_PS _mm_cmple_ps
-#define BSS_SSE_CMPGT_PS _mm_cmpgt_ps
-#define BSS_SSE_CMPGTE_PS _mm_cmpge_ps
-#define BSS_SSE_CMPEQ_PD _mm_cmpeq_pd
-#define BSS_SSE_CMPNEQ_PD _mm_cmpneq_pd
-#define BSS_SSE_CMPLT_PD _mm_cmplt_pd
-#define BSS_SSE_CMPLTE_PD _mm_cmple_pd
-#define BSS_SSE_CMPGT_PD _mm_cmpgt_pd
-#define BSS_SSE_CMPGTE_PD _mm_cmpge_pd
-
-#define BSS_SSE_SET_EPI64 
-#define BSS_SSE_SET1_EPI64 
-#define BSS_SSE_ADD_EPI64 __builtin_ia32_paddq128
-#define BSS_SSE_SUB_EPI64 __builtin_ia32_psubq128
-#define BSS_SSE_SL_EPI64 __builtin_ia32_psllq128
-#define BSS_SSE_SLI_EPI64 __builtin_ia32_psllqi128
-#define BSS_SSE_SR_EPI64 
-#define BSS_SSE_SRI_EPI64 
-
-#define BSS_SSE_SHUFFLE_EPI32 
-#define BSS_SSE_SHUFFLEHI_EPI16 __builtin_ia32_pshufhw
-#define BSS_SSE_SHUFFLELO_EPI16 __builtin_ia32_pshuflw
-#define BSS_SSE_SHUFFLE_PD 
-#define BSS_SSE_SHUFFLE_PS 
-#define BSS_SSE_SETZERO_PD 
-#define BSS_SSE_SETZERO_PS 
-#define BSS_SSE_SETZERO_SI128 
-
-#define BSS_SSE_TPS_EPI32 __builtin_ia32_cvttps2dq //converts using truncation
-#define BSS_SSE_TPD_EPI32 _mm_cvttpd_epi32 //converts using truncation
-#define BSS_SSE_PS_EPI32 __builtin_ia32_cvtps2dq
-#define BSS_SSE_PD_EPI32 _mm_cvtpd_epi32
-#define BSS_SSE_EPI32_PS __builtin_ia32_cvtdq2ps
-#define BSS_SSE_PD_PS _mm_cvtpd_ps 
-#define BSS_SSE_M128 v4sf
-#define BSS_SSE_M128i v4si
-#define BSS_SSE_M128i64 v2di
-#define BSS_SSE_M128d v2df*/
-
-//#elif defined(BSS_COMPILER_MSC) || defined(BSS_COMPILER_INTEL) // VC++ or intel
 #define BSS_SSE_LOAD_APS _mm_load_ps
 #define BSS_SSE_LOAD_UPS _mm_loadu_ps
 #define BSS_SSE_SET_PS _mm_set_ps
@@ -114,9 +23,17 @@
 #define BSS_SSE_MAX_PS bss_mm_max_ps
 #define BSS_SSE_CMPEQ_PS _mm_cmpeq_ps
 #define BSS_SSE_CMPNEQ_PS _mm_cmpneq_ps
+
+#ifdef BSS_COMPILER_CLANG
+#define BSS_SSE_CMPLT_PS
+#define BSS_SSE_CMPLTE_PS
+#define BSS_SSE_CMPGT_PS
+#else
 #define BSS_SSE_CMPLT_PS _mm_cmplt_ps
 #define BSS_SSE_CMPLTE_PS _mm_cmple_ps
 #define BSS_SSE_CMPGT_PS _mm_cmpgt_ps
+#endif
+
 #define BSS_SSE_CMPGTE_PS _mm_cmpge_ps
 #define BSS_SSE_SS_F32 _mm_cvtss_f32
 
@@ -220,8 +137,7 @@
 #define BSS_SSE_M128i16 __m128i
 #define BSS_SSE_M128i __m128i
 #define BSS_SSE_M128i64 __m128i
-#define BSS_SSE_M128d __m128d 
-//#endif
+#define BSS_SSE_M128d __m128d
 
 #define BSS_SSE_SHUFFLE(x,y,z,w) ((w<<6) | (z<<4) | (y<<2) | x)
 

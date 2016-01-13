@@ -18,6 +18,9 @@
 - Added cubic function solver
 - Added cubic curve and quadratic curve splitter
 - Added basic M4A container parser
+- Removed VC++ __int32 style types
+- Removed custom uint16, uint32, etc. types from bss_util namespace
+- Standardized all types to C++11 uint32_t format
 
 0.4.4
 -----

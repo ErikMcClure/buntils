@@ -34,10 +34,10 @@ namespace bss_util {
   BSS_COMPILER_DLLEXPORT extern std::unique_ptr<char[],bssdll_delete<char[]>> BSS_FASTCALL FileDialog(bool open, unsigned long flags, const wchar_t* file, const wchar_t* filter=L"All Files (*.*)\0*.*\0", const wchar_t* initdir=0, const wchar_t* defext=0, HWND__* owner=0);
   BSS_COMPILER_DLLEXPORT extern int BSS_FASTCALL SetRegistryValue(HKEY__*	hOpenKey, const char* szKey, const char* szValue, const char* szData);
   BSS_COMPILER_DLLEXPORT extern int BSS_FASTCALL SetRegistryValueW(HKEY__*	hOpenKey, const wchar_t* szKey, const wchar_t* szValue, const char* szData);
-  BSS_COMPILER_DLLEXPORT extern int BSS_FASTCALL SetRegistryValue(HKEY__*	hOpenKey, const char* szKey, const char* szValue, __int32 szData);
-  BSS_COMPILER_DLLEXPORT extern int BSS_FASTCALL SetRegistryValueW(HKEY__*	hOpenKey, const wchar_t* szKey, const wchar_t* szValue, __int32 szData);
-  BSS_COMPILER_DLLEXPORT extern int BSS_FASTCALL SetRegistryValue64(HKEY__*	hOpenKey, const char* szKey, const char* szValue, __int64 szData);
-  BSS_COMPILER_DLLEXPORT extern int BSS_FASTCALL SetRegistryValue64W(HKEY__*	hOpenKey, const wchar_t* szKey, const wchar_t* szValue, __int64 szData);
+  BSS_COMPILER_DLLEXPORT extern int BSS_FASTCALL SetRegistryValue(HKEY__*	hOpenKey, const char* szKey, const char* szValue, int32_t szData);
+  BSS_COMPILER_DLLEXPORT extern int BSS_FASTCALL SetRegistryValueW(HKEY__*	hOpenKey, const wchar_t* szKey, const wchar_t* szValue, int32_t szData);
+  BSS_COMPILER_DLLEXPORT extern int BSS_FASTCALL SetRegistryValue64(HKEY__*	hOpenKey, const char* szKey, const char* szValue, int64_t szData);
+  BSS_COMPILER_DLLEXPORT extern int BSS_FASTCALL SetRegistryValue64W(HKEY__*	hOpenKey, const wchar_t* szKey, const wchar_t* szValue, int64_t szData);
   BSS_COMPILER_DLLEXPORT extern int BSS_FASTCALL DelRegistryNode(HKEY__* hKeyRoot, const char* lpSubKey);
   BSS_COMPILER_DLLEXPORT extern int BSS_FASTCALL DelRegistryNodeW(HKEY__* hKeyRoot, const wchar_t* lpSubKey);
 #else

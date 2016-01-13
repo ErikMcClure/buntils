@@ -59,26 +59,26 @@ namespace bss_util {
       TYPE_COUNT = '#',
     } type;
 
-    __int64 length;
+    int64_t length;
     union
     {
       char Int8;
       unsigned char UInt8;
       short Int16;
-      __int32 Int32;
-      __int64 Int64;
+      int32_t Int32;
+      int64_t Int64;
       float Float;
       double Double;
       char* String;
     };
   };
 
-  struct UBJSONValue : variant<cStr, bool, unsigned __int8, __int8, __int16, __int32, __int64, float, double, cDynArray<UBJSONValue, size_t, CARRAY_SAFE>, cDynArray<std::pair<cStr, UBJSONValue>, size_t, CARRAY_SAFE>, cDynArray<unsigned char, size_t>>
+  struct UBJSONValue : variant<cStr, bool, uint8_t, char, int16_t, int32_t, int64_t, float, double, cDynArray<UBJSONValue, size_t, CARRAY_SAFE>, cDynArray<std::pair<cStr, UBJSONValue>, size_t, CARRAY_SAFE>, cDynArray<unsigned char, size_t>>
   {
     typedef cDynArray<UBJSONValue, size_t, CARRAY_SAFE> UBJSONArray;
     typedef cDynArray<std::pair<cStr, UBJSONValue>, size_t, CARRAY_SAFE> UBJSONObject;
     typedef cDynArray<unsigned char, size_t> UBJSONBinary;
-    typedef variant<cStr, bool, unsigned __int8, __int8, __int16, __int32, __int64, float, double, UBJSONArray, UBJSONObject, UBJSONBinary> BASE;
+    typedef variant<cStr, bool, uint8_t, char, int16_t, int32_t, int64_t, float, double, UBJSONArray, UBJSONObject, UBJSONBinary> BASE;
 
   private:
     template<class T>
@@ -169,9 +169,9 @@ namespace bss_util {
     s.write((char*)&v, sizeof(T));
   }
 
-  static inline __int64 ParseUBJSONLength(std::istream& s)
+  static inline int64_t ParseUBJSONLength(std::istream& s)
   {
-    __int64 ret = -1;
+    int64_t ret = -1;
     while(s)
     {
       switch(s.get())
@@ -180,8 +180,8 @@ namespace bss_util {
       case UBJSONTuple::TYPE_INT8: ret = ParseUBJSONInteger<char>(s); break;
       case UBJSONTuple::TYPE_UINT8: ret = ParseUBJSONInteger<unsigned char>(s); break;
       case UBJSONTuple::TYPE_INT16: ret = ParseUBJSONInteger<short>(s); break;
-      case UBJSONTuple::TYPE_INT32: ret = ParseUBJSONInteger<__int32>(s); break;
-      case UBJSONTuple::TYPE_INT64: ret = ParseUBJSONInteger<__int64>(s); break;
+      case UBJSONTuple::TYPE_INT32: ret = ParseUBJSONInteger<int32_t>(s); break;
+      case UBJSONTuple::TYPE_INT64: ret = ParseUBJSONInteger<int64_t>(s); break;
       case UBJSONTuple::TYPE_NO_OP: continue; // try again
       default:
         throw std::runtime_error("Invalid length type.");
@@ -219,8 +219,8 @@ namespace bss_util {
     case UBJSONTuple::TYPE_INT8: tuple.Int8 = ParseUBJSONInteger<char>(s); break;
     case UBJSONTuple::TYPE_UINT8: tuple.UInt8 = ParseUBJSONInteger<unsigned char>(s); break;
     case UBJSONTuple::TYPE_INT16: tuple.Int16 = ParseUBJSONInteger<short>(s); break;
-    case UBJSONTuple::TYPE_INT32: tuple.Int32 = ParseUBJSONInteger<__int32>(s); break;
-    case UBJSONTuple::TYPE_INT64: tuple.Int64 = ParseUBJSONInteger<__int64>(s); break;
+    case UBJSONTuple::TYPE_INT32: tuple.Int32 = ParseUBJSONInteger<int32_t>(s); break;
+    case UBJSONTuple::TYPE_INT64: tuple.Int64 = ParseUBJSONInteger<int64_t>(s); break;
     case UBJSONTuple::TYPE_FLOAT: tuple.Float = ParseUBJSONInteger<float>(s); break;
     case UBJSONTuple::TYPE_DOUBLE: tuple.Double = ParseUBJSONInteger<double>(s); break;
     case UBJSONTuple::TYPE_BIGNUM:
@@ -233,7 +233,7 @@ namespace bss_util {
     }
   }
   
-  static inline __int64 ParseUBJSONTypeCount(std::istream& s, char& type)
+  static inline int64_t ParseUBJSONTypeCount(std::istream& s, char& type)
   {
     type = 0;
     if(!!s && s.peek() == UBJSONTuple::TYPE_TYPE)
@@ -264,10 +264,10 @@ namespace bss_util {
         throw std::runtime_error("Expected object, found invalid character");
       cStr buf;
       char type = 0;
-      __int64 count = ParseUBJSONTypeCount(s, type);
+      int64_t count = ParseUBJSONTypeCount(s, type);
       while(!!s && (count<0 || count>0) && (count>0 || s.peek() != UBJSONTuple::TYPE_OBJECT_END) && s.peek() != -1)
       {
-        __int64 length = ParseUBJSONLength(s);
+        int64_t length = ParseUBJSONLength(s);
         --count;
         buf.reserve(length+1);
         s.read(buf.UnsafeString(), length);
@@ -311,9 +311,9 @@ namespace bss_util {
       throw std::runtime_error("Expecting a type other than array in the array parsing function!");
     if(!ty && (s.get() != UBJSONTuple::TYPE_ARRAY))
       throw std::runtime_error("Expected array, found invalid character");
-    __int64 num = 0;
+    int64_t num = 0;
     char type = 0;
-    __int64 count = ParseUBJSONTypeCount(s, type);
+    int64_t count = ParseUBJSONTypeCount(s, type);
     if(count <= 0 || !type || !ParseUBJSONInternal<T, false>::DoBulkRead(obj, s, count, type)) // attempt mass read in if we have both a type and a count
     {
       while(!!s && (count > 0 || count < 0) && (count>0 || s.peek() != UBJSONTuple::TYPE_ARRAY_END) && s.peek() != -1)
@@ -328,21 +328,21 @@ namespace bss_util {
   template<class T, int I, bool B>
   struct ParseUBJSONInternal<T[I], B>
   {
-    static inline bool DoBulkRead(T(&obj)[I], std::istream& s, __int64 count, char ty) {
+    static inline bool DoBulkRead(T(&obj)[I], std::istream& s, int64_t count, char ty) {
       if((ty != UBJSONTuple::TYPE_CHAR && ty != UBJSONTuple::TYPE_UINT8 && ty != UBJSONTuple::TYPE_INT8) || count != (I*sizeof(T)))
         return false;
 
       s.read((char*)obj, count);
       return true;
     }
-    static inline void DoAddCall(T(&obj)[I], std::istream& s, __int64& n, char ty) { if(n<I) ParseUBJSON<T>(obj[n++], s, ty); }
+    static inline void DoAddCall(T(&obj)[I], std::istream& s, int64_t& n, char ty) { if(n<I) ParseUBJSON<T>(obj[n++], s, ty); }
     static void F(T(&obj)[I], std::istream& s, char ty) { ParseUBJSONArray<T[I]>(obj, s, ty); }
   };
 
   template<class T, typename CType, ARRAY_TYPE ArrayType, typename Alloc>
   struct ParseUBJSONInternal<cDynArray<T, CType, ArrayType, Alloc>, false>
   {
-    static inline bool DoBulkRead(cDynArray<T, CType, ArrayType, Alloc>& obj, std::istream& s, __int64 count, char ty)
+    static inline bool DoBulkRead(cDynArray<T, CType, ArrayType, Alloc>& obj, std::istream& s, int64_t count, char ty)
     { 
       if((ty != UBJSONTuple::TYPE_CHAR && ty != UBJSONTuple::TYPE_UINT8 && ty != UBJSONTuple::TYPE_INT8) || count%sizeof(T) != 0)
         return false;
@@ -351,7 +351,7 @@ namespace bss_util {
       s.read((char*)(T*)obj, count);
       return true;
     }
-    static inline void DoAddCall(cDynArray<T, CType, ArrayType, Alloc>& obj, std::istream& s, __int64& n, char ty) { obj.Add(T()); ParseUBJSON<T>(obj.Back(), s, ty); }
+    static inline void DoAddCall(cDynArray<T, CType, ArrayType, Alloc>& obj, std::istream& s, int64_t& n, char ty) { obj.Add(T()); ParseUBJSON<T>(obj.Back(), s, ty); }
     static void F(cDynArray<T, CType, ArrayType, Alloc>& obj, std::istream& s, char ty)
     {
       obj.Clear();
@@ -362,8 +362,8 @@ namespace bss_util {
   template<typename CType, ARRAY_TYPE ArrayType, typename Alloc>
   struct ParseUBJSONInternal<cDynArray<bool, CType, ArrayType, Alloc>, false>
   {
-    static inline bool DoBulkRead(cDynArray<bool, CType, ArrayType, Alloc>& obj, std::istream& s, __int64 count, char ty) { return false; }
-    static inline void DoAddCall(cDynArray<bool, CType, ArrayType, Alloc>& obj, std::istream& s, __int64& n, char ty) { bool b; ParseUBJSON<bool>(b, s, ty); obj.Add(b); }
+    static inline bool DoBulkRead(cDynArray<bool, CType, ArrayType, Alloc>& obj, std::istream& s, int64_t count, char ty) { return false; }
+    static inline void DoAddCall(cDynArray<bool, CType, ArrayType, Alloc>& obj, std::istream& s, int64_t& n, char ty) { bool b; ParseUBJSON<bool>(b, s, ty); obj.Add(b); }
     static void F(cDynArray<bool, CType, ArrayType, Alloc>& obj, std::istream& s, char ty)
     {
       obj.Clear();
@@ -374,7 +374,7 @@ namespace bss_util {
   template<class T, typename Alloc>
   struct ParseUBJSONInternal<std::vector<T, Alloc>, false>
   {
-    static inline bool DoBulkRead(std::vector<T, Alloc>& obj, std::istream& s, __int64 count, char ty)
+    static inline bool DoBulkRead(std::vector<T, Alloc>& obj, std::istream& s, int64_t count, char ty)
     {
       if((ty != UBJSONTuple::TYPE_CHAR && ty != UBJSONTuple::TYPE_UINT8 && ty != UBJSONTuple::TYPE_INT8) || count%sizeof(T) != 0)
         return false;
@@ -383,7 +383,7 @@ namespace bss_util {
       s.read((char*)obj.data(), count);
       return true;
     }
-    static inline void DoAddCall(std::vector<T, Alloc>& obj, std::istream& s, __int64& n, char ty) { obj.push_back(T()); ParseUBJSON<T>(obj.back(), s, ty); }
+    static inline void DoAddCall(std::vector<T, Alloc>& obj, std::istream& s, int64_t& n, char ty) { obj.push_back(T()); ParseUBJSON<T>(obj.back(), s, ty); }
     static void F(std::vector<T, Alloc>& obj, std::istream& s, char ty)
     {
       obj.clear();
@@ -394,8 +394,8 @@ namespace bss_util {
   template<>
   struct ParseUBJSONInternal<UBJSONValue::UBJSONArray, false>
   {
-    static inline bool DoBulkRead(UBJSONValue::UBJSONArray& obj, std::istream& s, __int64 count, char ty) { return false; }
-    static inline void DoAddCall(UBJSONValue::UBJSONArray& obj, std::istream& s, __int64& n, char ty) { obj.SetLength(obj.Length() + 1); ParseUBJSON<UBJSONValue>(obj.Back(), s, ty); }
+    static inline bool DoBulkRead(UBJSONValue::UBJSONArray& obj, std::istream& s, int64_t count, char ty) { return false; }
+    static inline void DoAddCall(UBJSONValue::UBJSONArray& obj, std::istream& s, int64_t& n, char ty) { obj.SetLength(obj.Length() + 1); ParseUBJSON<UBJSONValue>(obj.Back(), s, ty); }
     static void F(UBJSONValue::UBJSONArray& obj, std::istream& s, char ty) { ParseUBJSONArray<UBJSONValue::UBJSONArray>(obj, s, ty); }
   };
 
@@ -513,8 +513,8 @@ namespace bss_util {
         if(!WriteUBJSONSpecificInt<unsigned char, T>(obj, s, UBJSONTuple::TYPE_UINT8) &&
           !WriteUBJSONSpecificInt<char, T>(obj, s, UBJSONTuple::TYPE_INT8) &&
           !WriteUBJSONSpecificInt<short, T>(obj, s, UBJSONTuple::TYPE_INT16) &&
-          !WriteUBJSONSpecificInt<__int32, T>(obj, s, UBJSONTuple::TYPE_INT32) &&
-          !WriteUBJSONSpecificInt<__int64, T>(obj, s, UBJSONTuple::TYPE_INT64))
+          !WriteUBJSONSpecificInt<int32_t, T>(obj, s, UBJSONTuple::TYPE_INT32) &&
+          !WriteUBJSONSpecificInt<int64_t, T>(obj, s, UBJSONTuple::TYPE_INT64))
         {
           s.put(UBJSONTuple::TYPE_BIGNUM);
           throw std::runtime_error("Unknown large integer type!");
@@ -524,8 +524,8 @@ namespace bss_util {
       case UBJSONTuple::TYPE_INT8: WriteUBJSONInteger<char>((char)obj, s); break;
       case UBJSONTuple::TYPE_UINT8: WriteUBJSONInteger<unsigned char>((unsigned char)obj, s); break;
       case UBJSONTuple::TYPE_INT16: WriteUBJSONInteger<short>((short)obj, s); break;
-      case UBJSONTuple::TYPE_INT32: WriteUBJSONInteger<__int32>((__int32)obj, s); break;
-      case UBJSONTuple::TYPE_INT64: WriteUBJSONInteger<__int64>((__int64)obj, s); break;
+      case UBJSONTuple::TYPE_INT32: WriteUBJSONInteger<int32_t>((int32_t)obj, s); break;
+      case UBJSONTuple::TYPE_INT64: WriteUBJSONInteger<int64_t>((int64_t)obj, s); break;
       case UBJSONTuple::TYPE_BIGNUM: break; // we can't deal with bignum
       }
     }
@@ -536,8 +536,8 @@ namespace bss_util {
   template<> struct WriteUBJSONType<char> { static const char t = UBJSONTuple::TYPE_INT8; };
   template<> struct WriteUBJSONType<bool> { static const char t = 0; };
   template<> struct WriteUBJSONType<short> { static const char t = UBJSONTuple::TYPE_INT16; };
-  template<> struct WriteUBJSONType<__int32> { static const char t = UBJSONTuple::TYPE_INT32; };
-  template<> struct WriteUBJSONType<__int64> { static const char t = UBJSONTuple::TYPE_INT64; };
+  template<> struct WriteUBJSONType<int32_t> { static const char t = UBJSONTuple::TYPE_INT32; };
+  template<> struct WriteUBJSONType<int64_t> { static const char t = UBJSONTuple::TYPE_INT64; };
   template<> struct WriteUBJSONType<float> { static const char t = UBJSONTuple::TYPE_FLOAT; };
   template<> struct WriteUBJSONType<double> { static const char t = UBJSONTuple::TYPE_DOUBLE; };
   template<> struct WriteUBJSONType<const char*> { static const char t = UBJSONTuple::TYPE_STRING; };
@@ -668,11 +668,11 @@ namespace bss_util {
       {
       case UBJSONValue::Type<cStr>::value: WriteUBJSON<cStr>(obj.get<cStr>(), s, ty); break;
       case UBJSONValue::Type<bool>::value: WriteUBJSON<bool>(obj.get<bool>(), s, ty); break;
-      case UBJSONValue::Type<unsigned __int8>::value: WriteUBJSON<unsigned __int8>(obj.get<unsigned __int8>(), s, ty); break;
-      case UBJSONValue::Type<__int8>::value: WriteUBJSON<__int8>(obj.get<__int8>(), s, ty); break;
-      case UBJSONValue::Type<__int16>::value: WriteUBJSON<__int16>(obj.get<__int16>(), s, ty); break;
-      case UBJSONValue::Type<__int32>::value: WriteUBJSON<__int32>(obj.get<__int32>(), s, ty); break;
-      case UBJSONValue::Type<__int64>::value: WriteUBJSON<__int64>(obj.get<__int64>(), s, ty); break;
+      case UBJSONValue::Type<uint8_t>::value: WriteUBJSON<uint8_t>(obj.get<uint8_t>(), s, ty); break;
+      case UBJSONValue::Type<char>::value: WriteUBJSON<char>(obj.get<char>(), s, ty); break;
+      case UBJSONValue::Type<int16_t>::value: WriteUBJSON<int16_t>(obj.get<int16_t>(), s, ty); break;
+      case UBJSONValue::Type<int32_t>::value: WriteUBJSON<int32_t>(obj.get<int32_t>(), s, ty); break;
+      case UBJSONValue::Type<int64_t>::value: WriteUBJSON<int64_t>(obj.get<int64_t>(), s, ty); break;
       case UBJSONValue::Type<float>::value: WriteUBJSON<float>(obj.get<float>(), s, ty); break;
       case UBJSONValue::Type<double>::value: WriteUBJSON<double>(obj.get<double>(), s, ty); break;
       case UBJSONValue::Type<UBJSONValue::UBJSONBinary>::value: WriteUBJSON<UBJSONValue::UBJSONBinary>(obj.get<UBJSONValue::UBJSONBinary>(), s, ty); break;

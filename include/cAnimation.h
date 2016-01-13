@@ -74,7 +74,7 @@ namespace bss_util {
     virtual ~cAnimation() {}
     inline unsigned int Add(const FRAME& frame) { unsigned int r = _frames.Insert(frame); _calc = _frames.Back().time; return r; }
     inline unsigned int Add(double time, const T& value) { FRAME f = { time, value }; return Add(f); }
-    inline void Set(const FRAME* src, unsigned int len) { _frames.SetArray(src, len); _calc = _frames.Back().time; }
+    inline void Set(const FRAME* src, unsigned int len) { _frames = cArraySlice<const FRAME, unsigned int>(src, len); _calc = _frames.Back().time; }
     inline const FRAME& Get(unsigned int index) const { return _frames[index]; }
     inline bool Remove(unsigned int index) { return _frames.Remove(index); }
     virtual unsigned int GetSize() const { return _frames.Length(); }
@@ -142,6 +142,7 @@ namespace bss_util {
     virtual ~cAniState() { if(_ani) _ani->Drop(); }
     virtual bool Interpolate(double delta)=0;
     virtual void Reset() { _cur = 0; _time = 0.0; }
+    inline cAniBase* GetAniBase() const { return _ani; }
     inline double GetTime() const { return _time; }
     inline void SetTime(double time)
     {

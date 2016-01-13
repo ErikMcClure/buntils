@@ -91,7 +91,7 @@ ALLOC_BEGIN:
       Node* ret = (Node*)(((char*)(root + 1)) + pos);
 #ifdef BSS_DEBUG
       unsigned char* check = (unsigned char*)ret;
-      for(uint i = 0; i < n; ++i) assert(check[i] == 0xfc);
+      for(uint32_t i = 0; i < n; ++i) assert(check[i] == 0xfc);
 #endif
       ret->sz = n;
       ret->root = root;

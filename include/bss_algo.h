@@ -86,7 +86,7 @@ namespace bss_util {
   BSS_FORCEINLINE static CT_ BSS_FASTCALL binsearch_exact(const T(&arr)[I], const T& data) { return binsearch_exact<T, T, CT_, CFunc>(arr, data, 0, I); }
 
   // Implementation of an xorshift64star generator. x serves as the generator state, which should initially be set to the RNG seed.
-  unsigned __int64 static xorshift64star(unsigned __int64& x)
+  uint64_t static xorshift64star(uint64_t& x)
   {
     x ^= x >> 12;
     x ^= x << 25;
@@ -95,7 +95,7 @@ namespace bss_util {
   }
 
   // Implementation of 2^1024-1 period xorshift generator. x is the 16*64 bit state, plus 1 extra integer for counting indices.
-  unsigned __int64 static xorshift1024star(unsigned __int64(&x)[17])
+  uint64_t static xorshift1024star(uint64_t(&x)[17])
   {
     uint64_t x0 = x[x[16]];
     uint64_t x1 = x[x[16] = (x[16] + 1) & 15];
@@ -106,7 +106,7 @@ namespace bss_util {
   }
 
   // Generates a seed for xorshift1024star from a 64-bit value
-  void static genxor1024seed(unsigned __int64 x, unsigned __int64(&seed)[17])
+  void static genxor1024seed(uint64_t x, uint64_t(&seed)[17])
   {
     xorshift64star(x);
     for(unsigned char i = 0; i < 16; ++i)
@@ -120,7 +120,7 @@ namespace bss_util {
   public:
     BSS_FORCEINLINE static T base_min() { return std::numeric_limits<T>::min(); }
     BSS_FORCEINLINE static T base_max() { return std::numeric_limits<T>::max(); }
-    BSS_FORCEINLINE static T base_transform(unsigned __int64 x) { return (T)x; }
+    BSS_FORCEINLINE static T base_transform(uint64_t x) { return (T)x; }
   };
 
   template<>
@@ -129,9 +129,9 @@ namespace bss_util {
   public:
     BSS_FORCEINLINE static float base_min() { return base_transform(0xFFFFFFFFFFFFFFFF); }
     BSS_FORCEINLINE static float base_max() { return base_transform(0x7FFFFFFFFFFFFFFF); }
-    BSS_FORCEINLINE static float base_transform(unsigned __int64 x)
+    BSS_FORCEINLINE static float base_transform(uint64_t x)
     { 
-      unsigned __int32 y=(unsigned __int32)x;
+      uint32_t y=(uint32_t)x;
       y = (y&0xBFFFFFFF)+0x1F800000; // Mask out the top exponent bit to force exponent to 0-127 range, then add 63 to the exponent to get it in [63,190] range ([-64,63] when biased)
       return *(float*)(&y); // convert our integer into a float, assuming IEEE format
     }
@@ -143,23 +143,23 @@ namespace bss_util {
   public:
     BSS_FORCEINLINE static double base_min() { return base_transform(0xFFFFFFFFFFFFFFFF); }
     BSS_FORCEINLINE static double base_max() { return base_transform(0x7FFFFFFFFFFFFFFF); }
-    BSS_FORCEINLINE static double base_transform(unsigned __int64 x)
+    BSS_FORCEINLINE static double base_transform(uint64_t x)
     {
       x = (x&0xBFFFFFFFFFFFFFFF)+0x1FF0000000000000; // Mask out the top exponent bit to force exponent to 0-1023 range, then add 511 to the exponent to get it in [511,1534] range ([-512,511] when biased)
       return *(double*)(&x); // convert our integer into a double, assuming IEEE format
     }
   };
 
-  template<typename T = unsigned __int64>
+  template<typename T = uint64_t>
   class BSS_COMPILER_DLLEXPORT xorshift_engine : protected xorshift_engine_base<T>
   {
   public:
     xorshift_engine() { seed(); }
-    explicit xorshift_engine(unsigned __int64 s) { seed(s); }
-    explicit xorshift_engine(unsigned __int64 s[16]) { seed(s); }
+    explicit xorshift_engine(uint64_t s) { seed(s); }
+    explicit xorshift_engine(uint64_t s[16]) { seed(s); }
     void seed() { std::random_device rd; genxor1024seed(rd(), _state); }
-    void seed(unsigned __int64 s) { genxor1024seed(s, _state); }
-    void seed(unsigned __int64 s[16]) { for(int i = 0; i < 16; ++i) _state[i]=s[i]; _state[16]=0; }
+    void seed(uint64_t s) { genxor1024seed(s, _state); }
+    void seed(uint64_t s[16]) { for(int i = 0; i < 16; ++i) _state[i]=s[i]; _state[16]=0; }
     void discard(unsigned long long z) { for(int i = 0; i < z; ++i) xorshift1024star(_state); }
 
     inline static T min() { return xorshift_engine_base<T>::base_min(); }
@@ -172,15 +172,15 @@ namespace bss_util {
     typedef T result_type;
 
   protected:
-    unsigned __int64 _state[17];
+    uint64_t _state[17];
   };
 
-  inline static unsigned __int64 xorshiftrand(unsigned __int64 seed=0) {
-    static unsigned __int64 state[17];
+  inline static uint64_t xorshiftrand(uint64_t seed=0) {
+    static uint64_t state[17];
     if(seed) genxor1024seed(seed, state);
     return xorshift1024star(state);
   }
-  typedef xorshift_engine<unsigned __int64> xorshift_engine64;
+  typedef xorshift_engine<uint64_t> xorshift_engine64;
 
   template<typename T, class ENGINE, typename ET>
   T __bss_gencanonical(ENGINE& e, ET _Emin)
@@ -208,21 +208,21 @@ namespace bss_util {
     return __bss_gencanonical<T,ENGINE>(e, (typename ENGINE::result_type)e.min());
   }
 
-  inline static xorshift_engine<unsigned __int64>& bss_getdefaultengine()
+  inline static xorshift_engine<uint64_t>& bss_getdefaultengine()
   {
-    static xorshift_engine<unsigned __int64> e;
+    static xorshift_engine<uint64_t> e;
     return e;
   }
 
   // Generates a number in the range [min,max) using the given engine.
-  template<typename T, typename ENGINE = xorshift_engine<unsigned __int64>>
+  template<typename T, typename ENGINE = xorshift_engine<uint64_t>>
   inline static T bssrand(T min, T max, ENGINE& e = bss_getdefaultengine())
   {
     return min+static_cast<T>(bss_gencanonical<double, ENGINE>(e)*static_cast<double>(max-min));
   }
   inline static double bssrandreal(double min, double max) { return bssrand<double>(min, max); }
-  inline static __int64 bssrandint(__int64 min, __int64 max) { return bssrand<__int64>(min, max); }
-  inline static void bssrandseed(unsigned __int64 s) { bss_getdefaultengine().seed(s); }
+  inline static int64_t bssrandint(int64_t min, int64_t max) { return bssrand<int64_t>(min, max); }
+  inline static void bssrandseed(uint64_t s) { bss_getdefaultengine().seed(s); }
 
   // Shuffler using Fisher-Yates/Knuth Shuffle algorithm based on Durstenfeld's implementation.
   template<typename T, typename CT, typename ENGINE>
@@ -238,8 +238,8 @@ namespace bss_util {
   template<typename T>
   BSS_FORCEINLINE static void BSS_FASTCALL shuffle(T* p, int size)
   {
-    xorshift_engine<unsigned __int64> e; 
-    shuffle<T, int, xorshift_engine<unsigned __int64>>(p, size, e);
+    xorshift_engine<uint64_t> e; 
+    shuffle<T, int, xorshift_engine<uint64_t>>(p, size, e);
   }
   template<typename T, int size>
   BSS_FORCEINLINE static void BSS_FASTCALL shuffle(T(&p)[size]) { shuffle<T>(p, size); }
@@ -252,7 +252,7 @@ namespace bss_util {
   BSS_FORCEINLINE static void for_each(T(&t)[SIZE], F func) { std::for_each(std::begin(t), std::end(t), func); }
 
   // Random queue that pops a random item instead of the last item.
-  template<typename T, typename CType = unsigned int, typename ENGINE = xorshift_engine<unsigned __int64>, ARRAY_TYPE ArrayType = CARRAY_SIMPLE, typename Alloc = StaticAllocPolicy<T>>
+  template<typename T, typename CType = unsigned int, typename ENGINE = xorshift_engine<uint64_t>, ARRAY_TYPE ArrayType = CARRAY_SIMPLE, typename Alloc = StaticAllocPolicy<T>>
   class BSS_COMPILER_DLLEXPORT cRandomQueue : protected cDynArray<T, CType, ArrayType, Alloc>
   {
   protected:
@@ -292,7 +292,7 @@ namespace bss_util {
   static const double ZIGNOR_R = 3.442619855899;
 
   // Instance for generating random samples from a normal distribution.
-  template<int ZIGNOR_C=128, typename T=double, typename ENGINE = xorshift_engine<unsigned __int64>>
+  template<int ZIGNOR_C=128, typename T=double, typename ENGINE = xorshift_engine<uint64_t>>
   struct NormalZig
   {
     T s_adZigX[ZIGNOR_C + 1], s_adZigR[ZIGNOR_C];
@@ -382,7 +382,7 @@ namespace bss_util {
 
   // Implementation of Fast Poisson Disk Sampling by Robert Bridson
   template<typename T, typename F>
-  static void PoissonDiskSample(T(&rect)[4], T mindist, F && f, uint pointsPerIteration=30)
+  static void PoissonDiskSample(T(&rect)[4], T mindist, F && f, uint32_t pointsPerIteration=30)
   {
     //Create the grid
     T cell = mindist/(T)SQRT_TWO;
@@ -391,7 +391,7 @@ namespace bss_util {
     size_t gw = ((size_t)ceil(w/cell))+4; //gives us buffer room so we don't have to worry about going outside the grid
     size_t gh = ((size_t)ceil(h/cell))+4;
     std::array<T, 2>* grid = new std::array<T, 2>[gw*gh];      //grid height
-    uint64* ig = (uint64*)grid;
+    uint64_t* ig = (uint64_t*)grid;
     memset(grid, 0xFFFFFFFF, gw*gh*sizeof(std::array<T, 2>));
     assert(!(~ig[0]));
 
@@ -410,7 +410,7 @@ namespace bss_util {
     while(!list.Empty())
     {
       auto point = list.Pop();
-      for(uint i = 0; i < pointsPerIteration; i++)
+      for(uint32_t i = 0; i < pointsPerIteration; i++)
       {
         radius = mindist*((T)bssrandreal(1, 2)); //random point between mindist and 2*mindist
         angle = (T)bssrandreal(0, PI_DOUBLE);
@@ -543,8 +543,8 @@ namespace bss_util {
   template<typename T, typename D>
   inline T QuadraticBezierCurve(D t, const T& p0, const T& p1, const T& p2)
   {
-    D inv = 1.0 - t;
-    return (inv*inv*p0) + (2 * inv*t*p1) + (t*t*p2);
+    D inv = D(1) - t;
+    return (inv*inv*p0) + (D(2) * inv*t*p1) + (t*t*p2);
   }
 
   // Find a quadratic curve (A,B,C) that passes through 3 points

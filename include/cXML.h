@@ -82,7 +82,7 @@ namespace bss_util {
 
     friend class cXML;
 
-    cDynArray<std::unique_ptr<cXMLNode>, size_t, CARRAY_SAFE> _nodes;
+    cDynArray<std::unique_ptr<cXMLNode>, size_t, CARRAY_MOVE> _nodes;
     cHash<const char*, size_t> _nodehash;
     cDynArray<cXMLValue, size_t, CARRAY_SAFE> _attributes;
     cHash<const char*, size_t> _attrhash;

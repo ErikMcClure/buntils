@@ -139,10 +139,10 @@ namespace bss_util {
     template<typename U>
     inline void _insert(U && val)
     {
-      int k = _length;
       AT_::_checksize();
       new(_array + _length) T();
-      PercolateUp(_array, _length, _length++, std::forward<U>(val), this);
+      int k = _length++;
+      PercolateUp(_array, _length, k, std::forward<U>(val), this);
     }
 
     // Sets a key and percolates

@@ -9,20 +9,20 @@ using namespace bss_util;
 cINIentry cINIsection::_entrysentinel;
 cLocklessBlockAlloc<cINIsection::_NODE> cINIsection::_alloc;
 
-cINIsection::cINIsection(const cINIsection& copy) : _name(copy._name),_parent(copy._parent),_index(copy._index),_root(0),_last(0)
+cINIsection::cINIsection(const cINIsection& copy) : _name(copy._name),_index(copy._index), _parent(copy._parent), _root(0),_last(0)
 {
   _copy(copy);
 }
-cINIsection::cINIsection(cINIsection&& mov) : _name(std::move(mov._name)),_parent(mov._parent),_index(mov._index),
+cINIsection::cINIsection(cINIsection&& mov) : _name(std::move(mov._name)),_index(mov._index), _parent(mov._parent),
   _entries(std::move(mov._entries)),_root(mov._root),_last(mov._last)
 {
   mov._root=0;
   mov._last=0;
 }
-cINIsection::cINIsection() : _parent(0), _index((size_t)-1), _root(0), _last(0)
+cINIsection::cINIsection() : _index((size_t)-1), _parent(0), _root(0), _last(0)
 {
 }
-cINIsection::cINIsection(const char* name, cINIstorage* parent, size_t index) : _name(name), _parent(parent), _index(index), _root(0),_last(0)
+cINIsection::cINIsection(const char* name, cINIstorage* parent, size_t index) : _name(name), _index(index), _parent(parent), _root(0),_last(0)
 {
 }
 cINIsection::~cINIsection()

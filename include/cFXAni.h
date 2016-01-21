@@ -43,7 +43,7 @@ namespace bss_util {
           else
           {
             p.var = _manager->SpawnState(_obj, *p.ani);
-            p.state = p.var->convertP<cAniState>();
+            p.state = p.var->template convertP<cAniState>();
             p.state->Interpolate(_time - p.delay);
           }
         }
@@ -243,7 +243,7 @@ namespace bss_util {
     typedef typename FXANI::Def Def;
     typedef typename FXANI::DEF_T DEF;
     typedef typename FXANI::OBJ_T OBJ;
-    typedef typename cFXObject<typename FXANI::FXMANAGER> FXOBJ;
+    typedef cFXObject<typename FXANI::FXMANAGER> FXOBJ;
 
     cFXAniState(cAniBase* base) : cAniState(base) {}
     virtual ~cFXAniState() { Reset(); }

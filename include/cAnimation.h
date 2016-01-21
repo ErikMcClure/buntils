@@ -14,9 +14,9 @@ namespace bss_util {
   class BSS_COMPILER_DLLEXPORT cAniBase : public cRefCounter
   {
   public:
-    cAniBase(const cAniBase& copy) : _typesize(copy._typesize), _length(copy._length), _calc(copy._calc), _loop(copy._loop) { Grab(); }
-    cAniBase(cAniBase&& mov) : _typesize(mov._typesize), _length(mov._length), _calc(mov._calc), _loop(mov._loop) { Grab(); }
-    cAniBase(size_t typesize) : _typesize(typesize), _length(0.0), _calc(0.0), _loop(-1.0) { Grab(); }
+    cAniBase(const cAniBase& copy) : _length(copy._length), _calc(copy._calc), _typesize(copy._typesize), _loop(copy._loop) { Grab(); }
+    cAniBase(cAniBase&& mov) : _length(mov._length), _calc(mov._calc), _typesize(mov._typesize), _loop(mov._loop) { Grab(); }
+    cAniBase(size_t typesize) : _length(0.0), _calc(0.0), _typesize(typesize), _loop(-1.0) { Grab(); }
     virtual ~cAniBase() {}
     inline void SetLength(double length = 0.0) { _length = length; }
     inline double GetLength() const { return _length == 0.0 ? _calc : _length; }

@@ -20,8 +20,8 @@ namespace bss_util {
     cGreedyAlloc(const cGreedyAlloc& copy) BSS_DELETEFUNC
       cGreedyAlloc& operator=(const cGreedyAlloc& copy) BSS_DELETEFUNCOP
   public:
-    inline cGreedyAlloc(cGreedyAlloc&& mov) : _curpos(mov._curpos), _root(mov._root) { mov._root=0; mov._curpos=0; }
-    inline explicit cGreedyAlloc(size_t init=64) : _curpos(0), _root(0)
+    inline cGreedyAlloc(cGreedyAlloc&& mov) : _root(mov._root), _curpos(mov._curpos) { mov._root=0; mov._curpos=0; }
+    inline explicit cGreedyAlloc(size_t init=64) : _root(0), _curpos(0)
     {
       _allocchunk(init);
     }

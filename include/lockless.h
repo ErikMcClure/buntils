@@ -76,7 +76,6 @@ namespace bss_util {
   ATOMIC_XADDPICK_MACRO("xaddq", 8);
 #endif
 #endif
- //#ifdef BSS_COMPILER_GCC
   
   template<typename T> // This performs an atomic addition, and returns the value of the variable BEFORE the addition. This is faster if p is 32-bit aligned.
   BSS_FORCEINLINE T BSS_FASTCALL atomic_xadd(volatile T* p, T val=1)

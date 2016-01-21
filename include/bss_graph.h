@@ -160,8 +160,8 @@ namespace bss_util {
       }
     }
 
-    CT _nedges;
     cLinkedArray<Node<E, V, CT>, CT, ArrayType, NODEALLOC> _nodes;
+    CT _nedges;
   };
 
   template<typename E>

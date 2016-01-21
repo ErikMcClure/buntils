@@ -21,6 +21,7 @@
 - Removed VC++ __int32 style types
 - Removed custom uint16, uint32, etc. types from bss_util namespace
 - Standardized all types to C++11 uint32_t format
+- Added ARRAY_MOVE so std::unique_ptr can be safely put into an array object so long as it isn't copied.
 
 0.4.4
 -----

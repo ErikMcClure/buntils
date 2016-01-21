@@ -242,15 +242,8 @@ public:
 
 private:
   void operator[](std::allocator<char>&) BSS_DELETEFUNC
-#if defined(BSS_COMPILER_GCC) || defined(BSS_COMPILER_CLANG)
-  BSS_FORCEINLINE CHAR* _internal_ptr() { return const_cast<CHAR*>(BASE::c_str()); }
-  BSS_FORCEINLINE const CHAR* _internal_ptr() const { return BASE::c_str(); }
-#elif defined(BSS_COMPILER_MSC)
-  BSS_FORCEINLINE CHAR* _internal_ptr() { return _Myptr(); }
-  BSS_FORCEINLINE const CHAR* _internal_ptr() const { return _Myptr(); }
-#else
-#error "cStr is not supported for this compiler"
-#endif
+  BSS_FORCEINLINE CHAR* _internal_ptr() { return const_cast<CHAR*>(BASE::data()); }
+  BSS_FORCEINLINE const CHAR* _internal_ptr() const { return BASE::data(); }
   BSS_FORCEINLINE void BSS_FASTCALL _convstr(const OTHER_C* src)
   {
     size_t r = CSTR_CT<T>::CONV(src,0,0);

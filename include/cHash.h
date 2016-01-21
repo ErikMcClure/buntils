@@ -16,7 +16,7 @@ namespace bss_util {
   inline bool khint_equalfunc(T a, T b) { return a == b; }
 
   template<typename khkey_t, typename khval_t, bool kh_is_map, khint_t(*__hash_func)(khkey_t), bool(*__hash_equal)(khkey_t, khkey_t)>
-  class BSS_COMPILER_DLLEXPORT kh_template_t
+  class BSS_TEMPLATE_DLLEXPORT kh_template_t
   {
   public:
     khint_t n_buckets, size, n_occupied, upper_bound;
@@ -201,7 +201,7 @@ namespace bss_util {
   };
 
   template<typename khkey_t, typename khval_t, bool kh_is_map, khint_t(*__hash_func)(khkey_t), bool(*__hash_equal)(khkey_t, khkey_t)>
-  class BSS_COMPILER_DLLEXPORT kh_insert_template_t : protected kh_template_t<khkey_t, khval_t, kh_is_map, __hash_func, __hash_equal>
+  class BSS_TEMPLATE_DLLEXPORT kh_insert_template_t : protected kh_template_t<khkey_t, khval_t, kh_is_map, __hash_func, __hash_equal>
   {
     template<bool CHK, typename KHGET, typename KHTYPE> friend struct __getval_KHASH;
 
@@ -221,7 +221,7 @@ namespace bss_util {
   };
 
   template<typename khkey_t, typename khval_t, khint_t(*__hash_func)(khkey_t), bool(*__hash_equal)(khkey_t, khkey_t)>
-  class BSS_COMPILER_DLLEXPORT kh_insert_template_t<khkey_t, khval_t, false, __hash_func, __hash_equal> : protected kh_template_t<khkey_t, khval_t, false, __hash_func, __hash_equal>
+  class BSS_TEMPLATE_DLLEXPORT kh_insert_template_t<khkey_t, khval_t, false, __hash_func, __hash_equal> : protected kh_template_t<khkey_t, khval_t, false, __hash_func, __hash_equal>
   {
     template<bool CHK, typename KHGET, typename KHTYPE> friend struct __getval_KHASH;
 
@@ -236,7 +236,7 @@ namespace bss_util {
 
   // Base template for cKhash. If you want a set instead of a map, set khval_t to 'char' and kh_is_map to 'false'.
   template<typename khkey_t, typename khval_t, bool kh_is_map, khint_t(*__hash_func)(khkey_t), bool(*__hash_equal)(khkey_t, khkey_t), typename khget_t = khval_t*, khget_t INVALID = 0>
-  class BSS_COMPILER_DLLEXPORT cKhash : public kh_insert_template_t<khkey_t, khval_t, kh_is_map, __hash_func, __hash_equal>
+  class BSS_TEMPLATE_DLLEXPORT cKhash : public kh_insert_template_t<khkey_t, khval_t, kh_is_map, __hash_func, __hash_equal>
   {
   protected:
     typedef khkey_t KHKEY;
@@ -297,7 +297,7 @@ namespace bss_util {
     //inline KHVAL& operator[](khiter_t iterator) { return kh_val(iterator); }
     //inline const KHVAL& operator[](khiter_t iterator) const { return kh_val(iterator); }
 
-    class BSS_COMPILER_DLLEXPORT cKhash_Iter : public std::iterator<std::bidirectional_iterator_tag, khiter_t>
+    class BSS_TEMPLATE_DLLEXPORT cKhash_Iter : public std::iterator<std::bidirectional_iterator_tag, khiter_t>
     {
     public:
       inline explicit cKhash_Iter(const cKhash& src) : _src(&src), cur(0) { _chknext(); }

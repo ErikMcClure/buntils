@@ -10,18 +10,18 @@
 using namespace bss_util;
 using namespace std;
 
-cLog::cLog(cLog&& mov) : _split(mov._split), _stream(_split), _backup(std::move(mov._backup)),
-  _tz(GetTimeZoneMinutes()), _files(std::move(mov._files)), _levels(std::move(mov._levels))
+cLog::cLog(cLog&& mov) : _levels(std::move(mov._levels)), _split(mov._split), _tz(GetTimeZoneMinutes()), _files(std::move(mov._files)), 
+  _backup(std::move(mov._backup)), _stream(_split)
 {
   mov._split=0;
 }
-cLog::cLog(std::ostream* log) : _split(new StreamSplitter()), _stream(_split), _tz(GetTimeZoneMinutes()), _levels(6)
+cLog::cLog(std::ostream* log) : _levels(6), _split(new StreamSplitter()), _tz(GetTimeZoneMinutes()), _stream(_split)
 {
   _leveldefaults();
   if(log!=0)
     AddTarget(*log);
 }
-cLog::cLog(const char* logfile, std::ostream* log) : _split(new StreamSplitter()), _stream(_split), _tz(GetTimeZoneMinutes()), _levels(6)
+cLog::cLog(const char* logfile, std::ostream* log) : _levels(6), _split(new StreamSplitter()), _tz(GetTimeZoneMinutes()), _stream(_split)
 {
   _leveldefaults();
   AddTarget(logfile);
@@ -29,7 +29,7 @@ cLog::cLog(const char* logfile, std::ostream* log) : _split(new StreamSplitter()
     AddTarget(*log);
 }
 #ifdef BSS_PLATFORM_WIN32
-cLog::cLog(const wchar_t* logfile, std::ostream* log) : _split(new StreamSplitter()), _stream(_split), _tz(GetTimeZoneMinutes()), _levels(6)
+cLog::cLog(const wchar_t* logfile, std::ostream* log) : _levels(6), _split(new StreamSplitter()), _tz(GetTimeZoneMinutes()), _stream(_split)
 {
   _leveldefaults();
   AddTarget(logfile);

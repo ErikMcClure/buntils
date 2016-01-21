@@ -556,7 +556,7 @@ namespace bss_util {
   {  
     static inline const char F(const T& v)
     {
-      if(v.is<Arg>()) return WriteUBJSONType<Arg>::t;
+      if(v.template is<Arg>()) return WriteUBJSONType<Arg>::t;
       return __UBJSONVariantType<T, Args...>::F(v);
     }
   };
@@ -565,7 +565,7 @@ namespace bss_util {
   {
     static inline const char F(const T& v)
     {
-      if(v.is<Arg>()) return WriteUBJSONType<Arg>::t;
+      if(v.template is<Arg>()) return WriteUBJSONType<Arg>::t;
       return 0;
     }
   };

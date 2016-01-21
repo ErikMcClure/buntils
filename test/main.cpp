@@ -383,8 +383,8 @@ TESTDEF::RETPAIR test_bss_util()
   TEST_BitLimit<15, -16384, 16383, 0, 32767, short>();
   TEST_BitLimit<sizeof(short)<<3, SHRT_MIN, SHRT_MAX, 0, USHRT_MAX, short>();
   TEST_BitLimit<17, -65536, 65535, 0, 131071, int>();
-  TEST_BitLimit<63, -4611686018427387904, 4611686018427387903, 0, 9223372036854775807, int64_t>();
-  TEST_BitLimit<64, -9223372036854775808LL, 9223372036854775807, 0, 18446744073709551615, int64_t>();
+  TEST_BitLimit<63, -4611686018427387904LL, 4611686018427387903LL, 0, 9223372036854775807ULL, int64_t>();
+  TEST_BitLimit<64, std::numeric_limits<int64_t>::min(), 9223372036854775807LL, 0, 18446744073709551615ULL, int64_t>();
   // For reference, the above strange bit values are used in fixed-point arithmetic found in bss_fixedpt.h
   
   TEST(GetBitMask<unsigned char>(4)==0x10); // 0001 0000

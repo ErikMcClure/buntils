@@ -27,31 +27,30 @@ namespace bss_util {
   template<>
   void BSS_EXPLICITSTATIC WriteJSON<JSONValue>(const char* id, const JSONValue& obj, std::ostream& s, unsigned int& pretty);
 
+  template<class T, class BASE>
+  struct __JSONValue__conv
+  {
+    inline static constexpr T&& f(typename std::remove_reference<T>::type& r) { return (static_cast<T&&>(r)); }
+    inline static constexpr T&& f(typename std::remove_reference<T>::type&& r) { return (static_cast<T&&>(r)); }
+  };
+  template<class BASE>
+  struct __JSONValue__conv<JSONValue, BASE>
+  {
+    inline static constexpr BASE&& f(std::remove_reference<JSONValue>::type& r) { return (static_cast<BASE&&>(r)); }
+    inline static constexpr BASE&& f(std::remove_reference<JSONValue>::type&& r) { return (static_cast<BASE&&>(r)); }
+  };
+  template<class BASE>
+  struct __JSONValue__conv<const JSONValue, BASE>
+  {
+    inline static constexpr const BASE&& f(std::remove_reference<const JSONValue>::type& r) { return (static_cast<const BASE&&>(r)); }
+    inline static constexpr const BASE&& f(std::remove_reference<const JSONValue>::type&& r) { return (static_cast<const BASE&&>(r)); }
+  };
+
   struct JSONValue : variant<cStr, double, int64_t, bool, cDynArray<JSONValue, size_t, CARRAY_SAFE>, cDynArray<std::pair<cStr, JSONValue>, size_t, CARRAY_SAFE>>
   {
     typedef cDynArray<JSONValue, size_t, CARRAY_SAFE> JSONArray;
     typedef cDynArray<std::pair<cStr, JSONValue>, size_t, CARRAY_SAFE> JSONObject;
     typedef variant<cStr, double, int64_t, bool, JSONArray, JSONObject> BASE;
-
-  private:
-    template<class T>
-    struct conv
-    {
-      inline static constexpr T&& f(typename std::remove_reference<T>::type& r) { return (static_cast<T&&>(r)); }
-      inline static constexpr T&& f(typename std::remove_reference<T>::type&& r) { return (static_cast<T&&>(r)); }
-    };
-    template<>
-    struct conv<JSONValue>
-    {
-      inline static constexpr BASE&& f(std::remove_reference<JSONValue>::type& r) { return (static_cast<BASE&&>(r)); }
-      inline static constexpr BASE&& f(std::remove_reference<JSONValue>::type&& r) { return (static_cast<BASE&&>(r)); }
-    };
-    template<>
-    struct conv<const JSONValue>
-    {
-      inline static constexpr const BASE&& f(std::remove_reference<const JSONValue>::type& r) { return (static_cast<const BASE&&>(r)); }
-      inline static constexpr const BASE&& f(std::remove_reference<const JSONValue>::type&& r) { return (static_cast<const BASE&&>(r)); }
-    };
 
   public:
     JSONValue() : BASE() {}
@@ -60,14 +59,14 @@ namespace bss_util {
     template<typename T>
     explicit JSONValue(const T& t) : BASE(t) {}
     template<typename T>
-    explicit JSONValue(T&& t) : BASE(conv<T>::f(t)) {}
+    explicit JSONValue(T&& t) : BASE(__JSONValue__conv<T, BASE>::f(t)) {}
     ~JSONValue() { }
     BASE& operator=(const BASE& right) { BASE::operator=(right); return *this; }
     BASE& operator=(BASE&& right) { BASE::operator=(std::move(right)); return *this; }
     template<typename T>
     BASE& operator=(const T& right) { BASE::operator=(right); return *this; }
     template<typename T>
-    BASE& operator=(T&& right) { BASE::operator=(conv<T>::f(right)); return *this; }
+    BASE& operator=(T&& right) { BASE::operator=(__JSONValue__conv<T, BASE>::f(right)); return *this; }
 
     void EvalJSON(const char* id, std::istream& s)
     {

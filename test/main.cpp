@@ -136,6 +136,46 @@ void _ITERFUNC(TESTDEF::RETPAIR& __testret, T (&t)[SIZE], F f) { for(uint32_t i 
 template<class T, size_t SIZE, class F>
 void _ITERALL(TESTDEF::RETPAIR& __testret, T (&t)[SIZE], F f) { bool __val=true; for(uint32_t i = 0; i < SIZE; ++i) __val=__val&&(f(i)); TEST(__val); }
 
+template<bool SAFE> struct DEBUG_CDT_SAFE {};
+template<> struct DEBUG_CDT_SAFE<false> {};
+template<> struct DEBUG_CDT_SAFE<true>
+{
+  DEBUG_CDT_SAFE(const DEBUG_CDT_SAFE& copy) : __testret(*_testret) { isdead = this; }
+  DEBUG_CDT_SAFE() : __testret(*_testret) { isdead = this; }
+  ~DEBUG_CDT_SAFE() { TEST(isdead == this) }
+
+  inline DEBUG_CDT_SAFE& operator=(const DEBUG_CDT_SAFE& right) { return *this; }
+
+  static TESTDEF::RETPAIR* _testret;
+  TESTDEF::RETPAIR& __testret;
+  DEBUG_CDT_SAFE* isdead;
+};
+TESTDEF::RETPAIR* DEBUG_CDT_SAFE<true>::_testret = 0;
+
+template<bool SAFE = true>
+struct DEBUG_CDT : DEBUG_CDT_SAFE<SAFE> {
+  inline DEBUG_CDT(const DEBUG_CDT& copy) : _index(copy._index) { ++count; isdead = this; }
+  inline DEBUG_CDT(int index = 0) : _index(index) { ++count; isdead = this; }
+  inline ~DEBUG_CDT() { //if(isdead!=this) throw "fail";
+    --count; isdead = 0;
+  }
+
+  inline DEBUG_CDT& operator=(const DEBUG_CDT& right) { _index = right._index; return *this; }
+  inline bool operator<(const DEBUG_CDT& other) const { return _index<other._index; }
+  inline bool operator>(const DEBUG_CDT& other) const { return _index>other._index; }
+  inline bool operator<=(const DEBUG_CDT& other) const { return _index <= other._index; }
+  inline bool operator>=(const DEBUG_CDT& other) const { return _index >= other._index; }
+  inline bool operator==(const DEBUG_CDT& other) const { return _index == other._index; }
+  inline bool operator!=(const DEBUG_CDT& other) const { return _index != other._index; }
+  void BSS_FASTCALL donothing(float f) {}
+
+  static int count;
+  DEBUG_CDT* isdead;
+  int _index;
+};
+template<> int DEBUG_CDT<true>::count = 0;
+template<> int DEBUG_CDT<false>::count = 0;
+
 template<class T>
 T naivebitcount(T v)
 {
@@ -1728,45 +1768,6 @@ TESTDEF::RETPAIR test_ARRAYCIRCULAR()
   ENDTEST;
 }
 
-template<bool SAFE> struct DEBUG_CDT_SAFE {};
-template<> struct DEBUG_CDT_SAFE<false> {};
-template<> struct DEBUG_CDT_SAFE<true>
-{
-  DEBUG_CDT_SAFE(const DEBUG_CDT_SAFE& copy) : __testret(*_testret) { isdead=this; }
-  DEBUG_CDT_SAFE() : __testret(*_testret) { isdead=this; }
-  ~DEBUG_CDT_SAFE() { TEST(isdead==this) }
-
-  inline DEBUG_CDT_SAFE& operator=(const DEBUG_CDT_SAFE& right) { return *this; }
-  
-  static TESTDEF::RETPAIR* _testret;
-  TESTDEF::RETPAIR& __testret;
-  DEBUG_CDT_SAFE* isdead;
-};
-TESTDEF::RETPAIR* DEBUG_CDT_SAFE<true>::_testret=0;
-
-template<bool SAFE=true>
-struct DEBUG_CDT : DEBUG_CDT_SAFE<SAFE> {
-  inline DEBUG_CDT(const DEBUG_CDT& copy) : _index(copy._index) { ++count; isdead=this; }
-  inline DEBUG_CDT(int index=0) : _index(index) { ++count; isdead=this; }
-  inline ~DEBUG_CDT() { //if(isdead!=this) throw "fail";
-    --count; isdead=0; }
-
-  inline DEBUG_CDT& operator=(const DEBUG_CDT& right) { _index=right._index; return *this; }
-  inline bool operator<(const DEBUG_CDT& other) const { return _index<other._index; }
-  inline bool operator>(const DEBUG_CDT& other) const { return _index>other._index; }
-  inline bool operator<=(const DEBUG_CDT& other) const { return _index<=other._index; }
-  inline bool operator>=(const DEBUG_CDT& other) const { return _index>=other._index; }
-  inline bool operator==(const DEBUG_CDT& other) const { return _index==other._index; }
-  inline bool operator!=(const DEBUG_CDT& other) const { return _index!=other._index; }
-  void BSS_FASTCALL donothing(float f) {}
-
-  static int count;
-  DEBUG_CDT* isdead;
-  int _index;
-};
-template<> int DEBUG_CDT<true>::count=0;
-template<> int DEBUG_CDT<false>::count=0;
-
 #include <memory>
 
 struct cAnimObj
@@ -1923,19 +1924,19 @@ TESTDEF::RETPAIR test_ANIMATION()
   TEST(c.Grab()==5);
   c.Drop();
 
-  /*{
-    cAnimation<StaticAllocPolicy<char>> b(a);
-    obj.test=0;
-    b.Attach(delegate<void, AniAttribute*>::From<cAnimObj, &cAnimObj::TypeIDRegFunc>(&obj));
-    TEST(obj.test==0);
-    b.Start(0);
-    TEST(obj.test==2);
-    TEST(c.Grab()==21);
-    c.Drop();
-    b.Interpolate(10.0);
-    TEST(c.Grab()==22);
-    c.Drop();
-  }*/
+  //{
+  //  cAnimation<StaticAllocPolicy<char>> b(a);
+  //  obj.test=0;
+  //  b.Attach(delegate<void, AniAttribute*>::From<cAnimObj, &cAnimObj::TypeIDRegFunc>(&obj));
+  //  TEST(obj.test==0);
+  //  b.Start(0);
+  //  TEST(obj.test==2);
+  //  TEST(c.Grab()==21);
+  //  c.Drop();
+  //  b.Interpolate(10.0);
+  //  TEST(c.Grab()==22);
+  //  c.Drop();
+  //}
   }
   TEST(c.Grab()==2);
 
@@ -3326,35 +3327,35 @@ TESTDEF::RETPAIR test_VECTOR()
   TEST(fcompare(NTriangleArea(u, v, w), 11.22497216f, 100));
   TEST(fsmall(NVector_Dot(u, w)));
   TEST(fcompare(NVector_Dot(u, v), -6.0f));
-  /*NVectAdd(v, w, w);
-  TESTFOUR(w, v[0], v[1], v[2], v[3]);
-  NVectAdd(v, 3.0f, w);
-  TESTFOUR(w, 5, 0, 7, -2);
-  NVectAdd(v, u, w);
-  TESTRELFOUR(w, 3, -5, 3, -3);
-  NVectSub(v, 3.0f, w);
-  TESTRELFOUR(w, -1, -6, 1, -8);
-  NVectSub(v, u, w);
-  TESTRELFOUR(w, 1, -1, 5, -7);
-  NVectMul(v, 2.5f, w);
-  TESTRELFOUR(w, 5, -7.5f, 10, -12.5f);
-  NVectMul(v, u, w);
-  TESTRELFOUR(w, 2, 6, -4, -10);
-  NVectDiv(v, 2.5f, w);
-  TESTRELFOUR(w, 0.8f, -1.2f, 1.6f, -2);
-  NVectDiv(v, u, w);
-  TESTRELFOUR(w, 2, 1.5f, -4, -2.5f);*/
+  //NVectAdd(v, w, w);
+  //TESTFOUR(w, v[0], v[1], v[2], v[3]);
+  //NVectAdd(v, 3.0f, w);
+  //TESTFOUR(w, 5, 0, 7, -2);
+  //NVectAdd(v, u, w);
+  //TESTRELFOUR(w, 3, -5, 3, -3);
+  //NVectSub(v, 3.0f, w);
+  //TESTRELFOUR(w, -1, -6, 1, -8);
+  //NVectSub(v, u, w);
+  //TESTRELFOUR(w, 1, -1, 5, -7);
+  //NVectMul(v, 2.5f, w);
+  //TESTRELFOUR(w, 5, -7.5f, 10, -12.5f);
+  //NVectMul(v, u, w);
+  //TESTRELFOUR(w, 2, 6, -4, -10);
+  //NVectDiv(v, 2.5f, w);
+  //TESTRELFOUR(w, 0.8f, -1.2f, 1.6f, -2);
+  //NVectDiv(v, u, w);
+  //TESTRELFOUR(w, 2, 1.5f, -4, -2.5f);
 
-  /*BSS_ALIGN(16) float m1[4][4]={ { 1, 2, 4, 8 }, { 16, 32, 64, 128 }, { -1, -2, -4, -8 }, { -16, -32, -64, -128 } };
-  BSS_ALIGN(16) float m2[4][4]={ { 8, 4, 2, 1 }, { 16, 32, 64, 128 }, { -1, -32, -4, -16 }, { -8, -2, -64, -128 } };
-  BSS_ALIGN(16) float m3[4][4]={ 0 };
-  BSS_ALIGN(16) float m4[4][4]={ 0 };
-  BSS_ALIGN(16) float m5[4][4]={ { -28, -76, -398, -831 }, { -448, -1216, -6368, -13296 }, { 28, 76, 398, 831 }, { 448, 1216, 6368, 13296 } };
-  BSS_ALIGN(16) float m6[4][4]={ { 54, 108, 216, 432 }, { -1584, -3168, -6336, -12672 }, { -253, -506, -1012, -2024 }, { 2072, 4144, 8288, 16576 } };
-  Mult4x4(m3, m1, m2);
-  Mult4x4(m4, m2, m1);
-  TEST(!memcmp(m3, m5, sizeof(float)*4*4));
-  TEST(!memcmp(m4, m6, sizeof(float)*4*4));*/
+  //BSS_ALIGN(16) float m1[4][4]={ { 1, 2, 4, 8 }, { 16, 32, 64, 128 }, { -1, -2, -4, -8 }, { -16, -32, -64, -128 } };
+  //BSS_ALIGN(16) float m2[4][4]={ { 8, 4, 2, 1 }, { 16, 32, 64, 128 }, { -1, -32, -4, -16 }, { -8, -2, -64, -128 } };
+  //BSS_ALIGN(16) float m3[4][4]={ 0 };
+  //BSS_ALIGN(16) float m4[4][4]={ 0 };
+  //BSS_ALIGN(16) float m5[4][4]={ { -28, -76, -398, -831 }, { -448, -1216, -6368, -13296 }, { 28, 76, 398, 831 }, { 448, 1216, 6368, 13296 } };
+  //BSS_ALIGN(16) float m6[4][4]={ { 54, 108, 216, 432 }, { -1584, -3168, -6336, -12672 }, { -253, -506, -1012, -2024 }, { 2072, 4144, 8288, 16576 } };
+  //Mult4x4(m3, m1, m2);
+  //Mult4x4(m4, m2, m1);
+  //TEST(!memcmp(m3, m5, sizeof(float)*4*4));
+  //TEST(!memcmp(m4, m6, sizeof(float)*4*4));
   ENDTEST;
 }
 
@@ -4372,25 +4373,6 @@ TESTDEF::RETPAIR test_UBJSON()
 
   VerifyUBJSON(t1, t2, __testret);
 
-  /*char a;
-  short b;
-  int c;
-  int64_t d;
-  unsigned char e;
-  unsigned short f;
-  unsigned int g;
-  uint64_t h;
-  ubjsontest2 i;
-  float x;
-  double y;
-  cStr p;
-  int m[3];
-  std::string n[2];
-  std::vector<int> u;
-  cDynArray<bool> v;
-  cDynArray<cStr, size_t, CARRAY_SAFE> w;
-  cDynArray<ubjsontest2, size_t, CARRAY_SAFE> z;*/
-
   std::fstream fsi2("out.ubj", std::ios_base::in | std::ios_base::binary);
   UBJSONValue val;
   ParseUBJSON<UBJSONValue>(val, fsi2, 0);
@@ -5393,6 +5375,216 @@ TESTDEF::RETPAIR test_DELEGATE()
   ENDTEST;
 }
 
+TESTDEF::RETPAIR test_LLBASE()
+{
+  BEGINTEST;
+  ENDTEST;
+}
+
+TESTDEF::RETPAIR test_LOCKLESS()
+{
+  BEGINTEST;
+  CPU_Barrier();
+
+  {//Sanity checks for atomic_inc
+  int a = 1;
+  atomic_xadd(&a);
+  TEST(a==2);
+  CPU_Barrier();
+  int* b=&a;
+  atomic_xadd(b);
+  CPU_Barrier();
+  TEST(a==3);
+  volatile int* c=&a;
+  atomic_xadd<int>(c);
+  atomic_xadd<int>(c=b);
+  CPU_Barrier();
+  TEST(a==5);
+  }
+  {//Sanity checks for atomic_xchg
+  int a = 1;
+  int b = 2;
+  b=atomic_xchg<int>(&a,b);
+  TEST(a==2);
+  TEST(b==1);
+  atomic_xchg<int>(&b,a);
+  TEST(a==2);
+  TEST(b==2);
+  int* c=&a;
+  atomic_xchg<int>(c,3);
+  TEST(a==3);
+  volatile int* d=&b;
+  a=atomic_xchg<int>(d,5);
+  TEST(a==2);
+  TEST(b==5);
+  }
+  ENDTEST;
+}
+
+//void tttest(float a[4][4], float** b)
+//{
+//  if(a!=0)
+//    a[0][0]=1.0f;
+//}
+
+TESTDEF::RETPAIR test_STREAMSPLITTER()
+{
+  BEGINTEST;
+  std::stringstream ss1;
+  std::stringstream ss2;
+  std::stringstream ss3;
+  ss1 << "1 ";
+  ss2 << "2 ";
+  ss3 << "3 ";
+
+  StreamSplitter splitter;
+  std::ostream split(&splitter);
+  splitter.AddTarget(&ss1);
+  split << "a ";
+  splitter.AddTarget(&ss2);
+  split << "b ";
+  splitter.AddTarget(&ss3);
+  split << "c " << std::flush;
+  splitter.ClearTargets();
+  split << "d " << std::flush;
+  splitter.AddTarget(&ss1);
+  split << "e " << std::flush;
+
+  TEST(ss1.str()=="1 a b c e ");
+  TEST(ss2.str()=="2 b c ");
+  TEST(ss3.str()=="3 c ");
+  ENDTEST;
+}//*/
+
+TESTDEF::RETPAIR test_OS()
+{
+  BEGINTEST;
+  TEST(FolderExists("../bin") || FolderExists("bin"));
+#ifdef BSS_PLATFORM_WIN32
+  TEST(FolderExistsW(BSS__L("C:/windows/")));
+#else
+  TEST(FolderExists(BSS__L("/usr/")));
+#endif
+  TEST(!FolderExists("abasdfwefs"));
+  FILE* f;
+  FOPEN(f, "blank.txt", "w+");
+  fclose(f);
+  TEST(FileExists("blank.txt"));
+  TEST(!FileExists("testaskdjlhfs.sdkj"));
+#ifdef BSS_PLATFORM_WIN32
+  TEST(!FolderExistsW(BSS__L("abasdfwefs/alkjsdfs/sdfjkd/alkjsdfs/sdfjkd/alkjsdfs/sdfjkd/")));
+  TEST(FileExistsW(BSS__L("blank.txt")));
+  TEST(!FileExistsW(BSS__L("testaskdjlhfs.sdkj")));
+#endif
+
+  //cStr cmd(GetCommandLineW());
+  cStr cmd("\"\"C:/fake/f\"\"ile/p\"ath.txt\"\" -r 2738 283.5 -a\"a\" 3 \"-no indice\"");
+  int argc = ToArgV<char>(0, cmd.UnsafeString());
+  DYNARRAY(char*, argv, argc);
+  ToArgV(argv, cmd.UnsafeString());
+  ProcessCmdArgs(argc, argv, [&__testret](const char* const* p, size_t n)
+  {
+    static cTrie<unsigned char> t(3, "-r", "-a\"a\"", "-no indice");
+    switch(t[p[0]])
+    {
+    case 0:
+      TEST(n == 3);
+      TEST(atof(p[1]) == 2738.0);
+      TEST(atof(p[2]) == 283.5);
+      break;
+    case 1:
+      TEST(n == 2);
+      TEST(atoi(p[1]) == 3);
+      break;
+    case 2:
+      TEST(n == 1);
+      break;
+    default:
+      TEST(!strcmp(p[0], "\"C:/fake/f\"\"ile/p\"ath.txt\""));
+    }
+  });
+
+  TEST(CreateDir("testdir/recurse/recurseagain", false));
+  TEST(!FolderExists("testdir/recurse/recurseagain"));
+  TEST(!CreateDir("dontrecurse", false));
+  TEST(FolderExists("dontrecurse"));
+  TEST(!CreateDir("testdir/recurse/recurseagain"));
+  TEST(FolderExists("testdir/recurse/recurseagain"));
+  TEST(DelDir("testdir/recurse", false));
+  TEST(!DelDir("testdir/recurse"));
+  TEST(!DelDir("dontrecurse", false));
+  TEST(!FolderExists("dontrecurse"));
+  TEST(!FolderExists("testdir/recurse/recurseagain"));
+  TEST(!FolderExists("testdir/recurse"));
+  TEST(FolderExists("testdir"));
+  TEST(!DelDir("testdir"));
+  TEST(!FolderExists("testdir"));
+  std::vector<cStr> files;
+  ListDir(".", files, 1);
+  TEST(files.size()>2); // There should be at least two files, test.exe and bss-util.dll
+
+                        //TEST(FileExists("testlink"));
+                        //TEST(FileExists(BSS__L("testlink")));
+                        //TEST(FolderExists("IGNORE/symlink/"));
+                        //TEST(FolderExists(BSS__L("IGNORE/symlink/")));
+                        //{
+                        //std::unique_ptr<char[],bssdll_delete<char[]>> p = FileDialog(true,0,BSS__L("test"));
+                        //}
+
+                        //#ifdef BSS_PLATFORM_WIN32
+                        //  SetRegistryValue(HKEY_LOCAL_MACHINE,"SOFTWARE\\test","valcheck","data");
+                        //  SetRegistryValue(HKEY_LOCAL_MACHINE,"SOFTWARE\\test\\test","valcheck","data");
+                        //  DelRegistryNode(HKEY_LOCAL_MACHINE,"SOFTWARE\\test");
+                        //#endif
+                        //AlertBox("test", "title", 0x00000010L);
+
+                        //float at[4][4];
+                        //at[0][0]=(float)(size_t)f;
+                        //CPU_Barrier();
+                        //tttest(0,&at);
+                        //CPU_Barrier();
+  ENDTEST;
+}
+
+TESTDEF::RETPAIR test_PROFILE()
+{
+  BEGINTEST;
+  { // If you don't scope the PROFILE_FUNC, it won't actually return until AFTER PROFILE_OUTPUT gets called.
+    PROFILE_FUNC();
+
+    for(int i = 0; i < 100000; ++i)
+    {
+      CPU_Barrier();
+      __PROFILE_STATBLOCK(control, MAKESTRING(control));
+      CPU_Barrier();
+      __PROFILE_ZONE(control);
+      CPU_Barrier();
+      testnums[bssrandint(0, TESTNUM)] += 1;
+    }
+
+    auto pr = cHighPrecisionTimer::OpenProfiler();
+    for(int i = 0; i < 100000; ++i)
+    {
+      PROFILE_BLOCK(outer);
+      {
+        PROFILE_BLOCK(inner);
+        testnums[bssrandint(0, TESTNUM)] += 1;
+      }
+    }
+    //std::cout << cHighPrecisionTimer::CloseProfiler(pr)/100000.0 << std::endl;
+
+    for(int i = 0; i < 100000; ++i)
+    {
+      PROFILE_BEGIN(beginend);
+      testnums[bssrandint(0, TESTNUM)] += 1;
+      PROFILE_END(beginend);
+    }
+
+  }
+  PROFILE_OUTPUT("testprofile.txt", 7);
+  ENDTEST;
+}
+
 typedef variant<int, bool, variant<double, cStr>, cStr> VTYPE;
 
 int test_VTYPE(VTYPE& v)
@@ -5502,217 +5694,6 @@ TESTDEF::RETPAIR test_VARIANT()
   ENDTEST;
 }
 
-TESTDEF::RETPAIR test_LLBASE()
-{
-  BEGINTEST;
-  ENDTEST;
-}//*/
-
-TESTDEF::RETPAIR test_LOCKLESS()
-{
-  BEGINTEST;
-  CPU_Barrier();
-
-  {//Sanity checks for atomic_inc
-  int a = 1;
-  atomic_xadd(&a);
-  TEST(a==2);
-  CPU_Barrier();
-  int* b=&a;
-  atomic_xadd(b);
-  CPU_Barrier();
-  TEST(a==3);
-  volatile int* c=&a;
-  atomic_xadd<int>(c);
-  atomic_xadd<int>(c=b);
-  CPU_Barrier();
-  TEST(a==5);
-  }
-  {//Sanity checks for atomic_xchg
-  int a = 1;
-  int b = 2;
-  b=atomic_xchg<int>(&a,b);
-  TEST(a==2);
-  TEST(b==1);
-  atomic_xchg<int>(&b,a);
-  TEST(a==2);
-  TEST(b==2);
-  int* c=&a;
-  atomic_xchg<int>(c,3);
-  TEST(a==3);
-  volatile int* d=&b;
-  a=atomic_xchg<int>(d,5);
-  TEST(a==2);
-  TEST(b==5);
-  }
-  ENDTEST;
-}
-
-//void tttest(float a[4][4], float** b)
-//{
-//  if(a!=0)
-//    a[0][0]=1.0f;
-//}
-
-TESTDEF::RETPAIR test_OS()
-{
-  BEGINTEST;
-  TEST(FolderExists("../bin")||FolderExists("bin"));
-#ifdef BSS_PLATFORM_WIN32
-  TEST(FolderExistsW(BSS__L("C:/windows/")));
-#else
-  TEST(FolderExists(BSS__L("/usr/")));
-#endif
-  TEST(!FolderExists("abasdfwefs"));
-  FILE* f;
-  FOPEN(f,"blank.txt","w+");
-  fclose(f);
-  TEST(FileExists("blank.txt"));
-  TEST(!FileExists("testaskdjlhfs.sdkj"));
-#ifdef BSS_PLATFORM_WIN32
-  TEST(!FolderExistsW(BSS__L("abasdfwefs/alkjsdfs/sdfjkd/alkjsdfs/sdfjkd/alkjsdfs/sdfjkd/")));
-  TEST(FileExistsW(BSS__L("blank.txt")));
-  TEST(!FileExistsW(BSS__L("testaskdjlhfs.sdkj")));
-#endif
-
-  //cStr cmd(GetCommandLineW());
-  cStr cmd("\"\"C:/fake/f\"\"ile/p\"ath.txt\"\" -r 2738 283.5 -a\"a\" 3 \"-no indice\"");
-  int argc = ToArgV<char>(0, cmd.UnsafeString());
-  DYNARRAY(char*, argv, argc);
-  ToArgV(argv, cmd.UnsafeString());
-  ProcessCmdArgs(argc, argv, [&__testret](const char* const* p, size_t n)
-  {
-    static cTrie<unsigned char> t(3, "-r", "-a\"a\"", "-no indice");
-    switch(t[p[0]])
-    {
-    case 0:
-      TEST(n==3);
-      TEST(atof(p[1])==2738.0);
-      TEST(atof(p[2])==283.5);
-      break;
-    case 1:
-      TEST(n==2);
-      TEST(atoi(p[1])==3);
-      break;
-    case 2:
-      TEST(n==1);
-      break;
-    default:
-      TEST(!strcmp(p[0], "\"C:/fake/f\"\"ile/p\"ath.txt\""));
-    }
-  });
-
-  TEST(CreateDir("testdir/recurse/recurseagain", false));
-  TEST(!FolderExists("testdir/recurse/recurseagain"));
-  TEST(!CreateDir("dontrecurse", false));
-  TEST(FolderExists("dontrecurse"));
-  TEST(!CreateDir("testdir/recurse/recurseagain"));
-  TEST(FolderExists("testdir/recurse/recurseagain"));
-  TEST(DelDir("testdir/recurse", false));
-  TEST(!DelDir("testdir/recurse"));
-  TEST(!DelDir("dontrecurse", false));
-  TEST(!FolderExists("dontrecurse"));
-  TEST(!FolderExists("testdir/recurse/recurseagain"));
-  TEST(!FolderExists("testdir/recurse"));
-  TEST(FolderExists("testdir"));
-  TEST(!DelDir("testdir"));
-  TEST(!FolderExists("testdir"));
-  std::vector<cStr> files;
-  ListDir(".", files, 1);
-  TEST(files.size()>2); // There should be at least two files, test.exe and bss-util.dll
-  
-  //TEST(FileExists("testlink"));
-  //TEST(FileExists(BSS__L("testlink")));
-  //TEST(FolderExists("IGNORE/symlink/"));
-  //TEST(FolderExists(BSS__L("IGNORE/symlink/")));
-  //{
-  //std::unique_ptr<char[],bssdll_delete<char[]>> p = FileDialog(true,0,BSS__L("test"));
-  //}
-
-//#ifdef BSS_PLATFORM_WIN32
-//  SetRegistryValue(HKEY_LOCAL_MACHINE,"SOFTWARE\\test","valcheck","data");
-//  SetRegistryValue(HKEY_LOCAL_MACHINE,"SOFTWARE\\test\\test","valcheck","data");
-//  DelRegistryNode(HKEY_LOCAL_MACHINE,"SOFTWARE\\test");
-//#endif
-  //AlertBox("test", "title", 0x00000010L);
-  
-  //float at[4][4];
-  //at[0][0]=(float)(size_t)f;
-  //CPU_Barrier();
-  //tttest(0,&at);
-  //CPU_Barrier();
-  ENDTEST;
-}
-
-
-TESTDEF::RETPAIR test_PROFILE()
-{
-  BEGINTEST;
-  { // If you don't scope the PROFILE_FUNC, it won't actually return until AFTER PROFILE_OUTPUT gets called.
-    PROFILE_FUNC(); 
-
-    for(int i = 0; i < 100000; ++i)
-    {
-      CPU_Barrier();
-      __PROFILE_STATBLOCK(control, MAKESTRING(control));
-      CPU_Barrier();
-      __PROFILE_ZONE(control);
-      CPU_Barrier();
-      testnums[bssrandint(0,TESTNUM)] += 1;
-    }
-
-    auto pr = cHighPrecisionTimer::OpenProfiler();
-    for(int i = 0; i < 100000; ++i)
-    {
-      PROFILE_BLOCK(outer);
-      {
-        PROFILE_BLOCK(inner);
-        testnums[bssrandint(0, TESTNUM)] += 1;
-      }
-    }
-    //std::cout << cHighPrecisionTimer::CloseProfiler(pr)/100000.0 << std::endl;
-
-    for(int i = 0; i < 100000; ++i)
-    {
-      PROFILE_BEGIN(beginend);
-      testnums[bssrandint(0, TESTNUM)] += 1;
-      PROFILE_END(beginend);
-    }
-
-  }
-  PROFILE_OUTPUT("testprofile.txt", 7);
-  ENDTEST;
-}
-
-TESTDEF::RETPAIR test_STREAMSPLITTER()
-{
-  BEGINTEST;
-  std::stringstream ss1;
-  std::stringstream ss2;
-  std::stringstream ss3;
-  ss1 << "1 ";
-  ss2 << "2 ";
-  ss3 << "3 ";
-
-  StreamSplitter splitter;
-  std::ostream split(&splitter);
-  splitter.AddTarget(&ss1);
-  split << "a ";
-  splitter.AddTarget(&ss2);
-  split << "b ";
-  splitter.AddTarget(&ss3);
-  split << "c " << std::flush;
-  splitter.ClearTargets();
-  split << "d " << std::flush;
-  splitter.AddTarget(&ss1);
-  split << "e " << std::flush;
-
-  TEST(ss1.str()=="1 a b c e ");
-  TEST(ss2.str()=="2 b c ");
-  TEST(ss3.str()=="3 c ");
-  ENDTEST;
-}
-
 void profile_ring_alloc();
 
 // --- Begin main testing function ---
@@ -5765,7 +5746,7 @@ int main(int argc, char** argv)
     { "cHighPrecisionTimer.h", &test_HIGHPRECISIONTIMER },
     { "cIDHash.h", &test_IDHASH },
     { "cScheduler.h", &test_SCHEDULER },
-    //{ "INIparse.h", &test_INIPARSE },*/
+    //{ "INIparse.h", &test_INIPARSE },
     { "cINIstorage.h", &test_INISTORAGE },
     { "cKDTree.h", &test_KDTREE },
     { "cJSON.h", &test_JSON },
@@ -5790,7 +5771,7 @@ int main(int argc, char** argv)
     { "cXML.h", &test_XML },
     { "cSmartPtr.h", &test_SMARTPTR },
     { "delegate.h", &test_DELEGATE },
-    //{ "LLBase.h", &test_LLBASE },
+    //{ "LLBase.h", &test_LLBASE },*/
     { "os.h", &test_OS },
     { "profile.h", &test_PROFILE },
     { "variant.h", &test_VARIANT },
@@ -5835,7 +5816,7 @@ int main(int argc, char** argv)
 }
 
 
-template<class Alloc, int MAX, int SZ>
+/*template<class Alloc, int MAX, int SZ>
 void profile_push(Alloc& a, std::atomic<void*>* q)
 {
   while(!startflag.load(std::memory_order_acquire));
@@ -5899,7 +5880,7 @@ void profile_ring_alloc()
   std::cout << doprofile<StandardAllocPolicy<size_t>, 500000, 100>(salloc) << std::endl;
   std::cout << doprofile<RingPolicy<size_t>, 500000, 100>(ralloc) << std::endl;
   std::cout << doprofile<NullAllocPolicy<size_t>, 500000, 100>(nalloc) << std::endl;
-}
+}*/
 
 /*void subleq_computer(int[] mem)
 {

@@ -81,7 +81,7 @@ namespace bss_util {
     }
     inline virtual std::streamsize showmanyc() { assert(_read <= _ref.Length()); return _read - _ref.Length(); }
 
-    virtual pos_type __CLR_OR_THIS_CALL seekoff(off_type off, std::ios_base::seekdir way, std::ios_base::openmode which_)
+    virtual pos_type seekoff(off_type off, std::ios_base::seekdir way, std::ios_base::openmode which_)
     {	// change position by offset, according to way and mode
       switch(way)
       {
@@ -99,7 +99,7 @@ namespace bss_util {
       return _read;
     }
 
-    virtual pos_type __CLR_OR_THIS_CALL seekpos(pos_type sp_, std::ios_base::openmode which_)
+    virtual pos_type seekpos(pos_type sp_, std::ios_base::openmode which_)
     {	// change to specified position, according to mode
       return seekoff(off_type(sp_), std::ios_base::beg, which_);
     }

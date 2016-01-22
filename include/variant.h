@@ -16,21 +16,21 @@ namespace bss_util {
   class BSS_COMPILER_DLLEXPORT variant
   {
     // Compile-time max sizeof
-    template<typename Arg, typename... Args>
-    struct max_sizeof { static constexpr size_t value = (max_sizeof<Args...>::value > sizeof(Arg)) ? max_sizeof<Args...>::value : sizeof(Arg); };
+    template<typename A, typename... Ax>
+    struct max_sizeof { static constexpr size_t value = (max_sizeof<Ax...>::value > sizeof(A)) ? max_sizeof<Ax...>::value : sizeof(A); };
 
-    template<typename Arg>
-    struct max_sizeof<Arg> { static constexpr size_t value = sizeof(Arg); };
+    template<typename A>
+    struct max_sizeof<A> { static constexpr size_t value = sizeof(A); };
 
     // Compile-time max alignment
-    template<typename Arg, typename... Args>
+    template<typename A, typename... Ax>
     struct max_alignof {
-      static constexpr size_t value = (max_alignof<Args...>::value > alignof(Arg)) ? max_alignof<Args...>::value : alignof(Arg);
-      typedef std::conditional<(max_alignof<Args...>::value > alignof(Arg)), Arg, typename max_alignof<Args...>::type> type;
+      static constexpr size_t value = (max_alignof<Ax...>::value > alignof(A)) ? max_alignof<Ax...>::value : alignof(A);
+      typedef std::conditional<(max_alignof<Ax...>::value > alignof(A)), A, typename max_alignof<Ax...>::type> type;
     };
 
-    template<typename Arg>
-    struct max_alignof<Arg> { static constexpr size_t value = alignof(Arg); typedef Arg type; };
+    template<typename A>
+    struct max_alignof<A> { static constexpr size_t value = alignof(A); typedef A type; };
 
     template<typename X, typename... Ts> struct getpos;
 

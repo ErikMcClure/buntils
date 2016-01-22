@@ -276,11 +276,11 @@ namespace bss_util {
     template<class T, class D>
     static inline double BSS_FASTCALL GetProgress(const typename cAnimation<T, D>::FRAME* v, unsigned int l, unsigned int cur, double t)
     {
-      cAniCubicEasing& data = v[_cur].data;
-      auto f = [](double s) -> double { return TimeBezier(s, data.t1, data.t2) - t; };
-      auto fd = [](double s) -> double { return TimeBezierD(s, data.t1, data.t2); };
+      cAniCubicEasing& data = v[cur].data;
+      auto f = [&](double s) -> double { return TimeBezier(s, data.t1, data.t2) - t; };
+      auto fd = [&](double s) -> double { return TimeBezierD(s, data.t1, data.t2); };
       double p = NewtonRaphsonBisection<double>(t, 0.0, 1.0, f, fd, FLT_EPS);
-      return TimeBezier(p, s1, s2);
+      return TimeBezier(p, data.s1, data.s2);
     }
     double t1;
     double s1;
@@ -331,25 +331,25 @@ namespace bss_util {
     {
       return (b / 6.0)*(p0_cache + 4.0*LENGTH(b*0.5, p0, p1, p2) + LENGTH(b, p0, p1, p2));
     }
-    static inline double BSS_FASTCALL QuadraticInterpolateBase(const typename cAnimation<T, cAniQuadData<T, LENGTH>>::FRAME* v, unsigned int l, unsigned int cur, double t, const T& init)
+    static inline T BSS_FASTCALL QuadraticInterpolateBase(const typename cAnimation<T, cAniQuadData<T, LENGTH>>::FRAME* v, unsigned int l, unsigned int cur, double t, const T& init)
     {
       double s = GetProgress<T, cAniQuadData<T, LENGTH>>(v, l, cur, t);
       const T& p0 = (!cur ? init : v[cur - 1].value);
       const T& p1 = v[cur].cp; // we store the control point in the end point, not the start point, which allows us to properly use the init value.
       const T& p2 = v[cur].value;
       double p0_cache = LENGTH(0.0, p0, p1, p2);
-      auto f = [](double s) -> double { return ArcLength(s, p0, p1, p2, p0_cache) - s; };
-      auto fd = [](double s) -> double { return LENGTH(s, p0, p1, p2); };
-      return NewtonRaphsonBisection<double>(s, 0.0, 1.0, f, fd, FLT_EPS);
+      auto f = [&](double s) -> double { return ArcLength(s, p0, p1, p2, p0_cache) - s; };
+      auto fd = [&](double s) -> double { return LENGTH(s, p0, p1, p2); };
+      return Bezier<T>(NewtonRaphsonBisection<double>(s, 0.0, 1.0, f, fd, FLT_EPS), p0, p1, p2);
     }
     static inline T BSS_FASTCALL QuadraticInterpolate(const typename cAnimation<T, cAniQuadData<T, LENGTH>>::FRAME* v, unsigned int l, unsigned int cur, double t, const T& init)
     {
-      return Bezier<T>(QuadraticInterpolateBase(v, l, cur, t, init), p0, p1, p2);
+      return QuadraticInterpolateBase(v, l, cur, t, init);
     }
     static inline T BSS_FASTCALL QuadraticInterpolateRel(const typename cAnimation<T, cAniQuadData<T, LENGTH>>::FRAME* v, unsigned int l, unsigned int cur, double t, const T& init)
     {
       assert(cur > 0);
-      return init + Bezier<T>(QuadraticInterpolateBase(v, l, cur, t, init), p0, p1, p2);
+      return init + QuadraticInterpolateBase(v, l, cur, t, init);
     }
     T cp;
   };
@@ -358,7 +358,8 @@ namespace bss_util {
   struct cAniCubicData : cAniCubicEasing
   {
     static inline T BSS_FASTCALL Bezier(double s, const T& p0, const T& p1, const T& p2, const T& p3) { double inv = 1.0 - s; return inv*inv*inv*p0 + 3.0*inv*inv*s*p1 + 3.0*inv*s*s*p2 + s*s*s*p3; }
-    static inline T BSS_FASTCALL BezierD(double s, const T& p0, const T& p1, const T& p2, const T& p3) { double inv = 1.0 - s; return 3.0*inv*inv*(p1 - p0) + 6.0*inv*s*(p2 - p1) + 3.0*inv*s*s*(p3 - p2); }
+    template<class U>
+    static inline U BSS_FASTCALL BezierD(double s, const U& p0, const U& p1, const U& p2, const U& p3) { double inv = 1.0 - s; return 3.0*inv*inv*(p1 - p0) + 6.0*inv*s*(p2 - p1) + 3.0*inv*s*s*(p3 - p2); }
 
     // Almost all points are really just arrays of floats or doubles. This provides a general length function to handle all those cases in any number of dimensions
     template<class U, int I>
@@ -378,10 +379,10 @@ namespace bss_util {
       //return (b / 6.0)*(p0_cache + 4.0*LENGTH(b*0.5, p0, p1, p2) + LENGTH(b, p0, p1, p2));
       // Use simpson's rule twice, once for each half of the integral. We use the two invervals [0,b] and [b,c]: b/6 * [ f(0) + 4f(b/2) + f(b) ] + (b+c)/6 * [ f(b) + 4f((b+c)/2) + f(c) ]
       double b = c*0.5;
-      double fb = LENGTH(b, p0, p1, p2, p3)
+      double fb = LENGTH(b, p0, p1, p2, p3);
       return (b / 6.0)*(p0_cache + 4.0*LENGTH(b*0.5, p0, p1, p2, p3) + fb) + ((c - b) / 6.0)*(fb + 4.0*LENGTH((b + c)*0.5, p0, p1, p2, p3) + LENGTH(c, p0, p1, p2, p3));
     }
-    static inline double BSS_FASTCALL CubicInterpolateBase(const typename cAnimation<T, cAniCubicData<T, LENGTH>>::FRAME* v, unsigned int l, unsigned int cur, double t, const T& init)
+    static inline T BSS_FASTCALL CubicInterpolateBase(const typename cAnimation<T, cAniCubicData<T, LENGTH>>::FRAME* v, unsigned int l, unsigned int cur, double t, const T& init)
     {
       double s = GetProgress<T, cAniCubicData<T, LENGTH>>(v, l, cur, t);
       const T& p0 = (!cur ? init : v[cur - 1].value);
@@ -389,18 +390,18 @@ namespace bss_util {
       const T& p2 = v[cur].p2;
       const T& p3 = v[cur].value;
       double p0_cache = LENGTH(0.0, p0, p1, p2, p3);
-      auto f = [](double s) -> double { return ArcLength(s, p0, p1, p2, p3, p0_cache) - s; };
-      auto fd = [](double s) -> double { return LENGTH(s, p0, p1, p2, p3); };
-      return NewtonRaphsonBisection<double>(s, 0.0, 1.0, f, fd, FLT_EPS);
+      auto f = [&](double s) -> double { return ArcLength(s, p0, p1, p2, p3, p0_cache) - s; };
+      auto fd = [&](double s) -> double { return LENGTH(s, p0, p1, p2, p3); };
+      return Bezier<T>(NewtonRaphsonBisection<double>(s, 0.0, 1.0, f, fd, FLT_EPS), p0, p1, p2, p3);
     }
     static inline double BSS_FASTCALL CubicInterpolate(const typename cAnimation<T, cAniCubicData<T, LENGTH>>::FRAME* v, unsigned int l, unsigned int cur, double t, const T& init)
     {
-      return Bezier<T>(CubicInterpolateBase(v, l, cur, t, init), p0, p1, p2, p3);
+      return CubicInterpolateBase(v, l, cur, t, init);
     }
     static inline double BSS_FASTCALL CubicInterpolateRel(const typename cAnimation<T, cAniCubicData<T, LENGTH>>::FRAME* v, unsigned int l, unsigned int cur, double t, const T& init)
     {
       assert(cur > 0);
-      return init + Bezier<T>(CubicInterpolateBase(v, l, cur, t, init), p0, p1, p2, p3);
+      return init + CubicInterpolateBase(v, l, cur, t, init);
     }
 
     T p1;

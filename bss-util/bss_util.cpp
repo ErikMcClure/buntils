@@ -302,7 +302,7 @@ extern int BSS_FASTCALL bss_util::CreateDirW(const wchar_t* path, bool recursive
 extern int BSS_FASTCALL bss_util::CreateDir(const char* path, bool recursive)
 {
   if(!recursive)
-    return mkdir(path);
+    return mkdir(path, 0700);
   struct stat st ={ 0 };
 
   cStr hold(path);

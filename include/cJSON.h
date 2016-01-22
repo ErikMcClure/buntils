@@ -46,7 +46,7 @@ namespace bss_util {
     inline static constexpr const BASE&& f(std::remove_reference<const JSONValue>::type&& r) { return (static_cast<const BASE&&>(r)); }
   };
 
-  struct JSONValue : variant<cStr, double, int64_t, bool, cDynArray<JSONValue, size_t, CARRAY_SAFE>, cDynArray<std::pair<cStr, JSONValue>, size_t, CARRAY_SAFE>>
+  struct JSONValue : public variant<cStr, double, int64_t, bool, cDynArray<JSONValue, size_t, CARRAY_SAFE>, cDynArray<std::pair<cStr, JSONValue>, size_t, CARRAY_SAFE>>
   {
     typedef cDynArray<JSONValue, size_t, CARRAY_SAFE> JSONArray;
     typedef cDynArray<std::pair<cStr, JSONValue>, size_t, CARRAY_SAFE> JSONObject;
@@ -70,17 +70,17 @@ namespace bss_util {
 
     void EvalJSON(const char* id, std::istream& s)
     {
-      assert(is<JSONObject>());
+      assert(BASE::template is<JSONObject>());
       std::pair<cStr, JSONValue> pair;
       pair.first = id;
       ParseJSON<JSONValue>(pair.second, s);
-      get<JSONObject>().Add(pair);
+      BASE::template get<JSONObject>().Add(pair);
     }
 
     void SerializeJSON(std::ostream& s, unsigned int& pretty) const
     {
-      assert(is<JSONObject>());
-      auto& v = get<JSONObject>();
+      assert(BASE::template is<JSONObject>());
+      auto& v = BASE::template get<JSONObject>();
       for(auto& e : v)
         WriteJSON<JSONValue>(e.first.c_str(), e.second, s, pretty);
     }

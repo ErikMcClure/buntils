@@ -73,32 +73,31 @@ namespace bss_util {
     };
   };
 
+  template<class T, class BASE>
+  struct __UBJSONValue_conv
+  {
+    inline static constexpr T&& f(typename std::remove_reference<T>::type& r) { return (static_cast<T&&>(r)); }
+    inline static constexpr T&& f(typename std::remove_reference<T>::type&& r) { return (static_cast<T&&>(r)); }
+  };
+  template<class BASE>
+  struct __UBJSONValue_conv<UBJSONValue, BASE>
+  {
+    inline static constexpr BASE&& f(std::remove_reference<UBJSONValue>::type& r) { return (static_cast<BASE&&>(r)); }
+    inline static constexpr BASE&& f(std::remove_reference<UBJSONValue>::type&& r) { return (static_cast<BASE&&>(r)); }
+  };
+  template<class BASE>
+  struct __UBJSONValue_conv<const UBJSONValue, BASE>
+  {
+    inline static constexpr const BASE&& f(std::remove_reference<const UBJSONValue>::type& r) { return (static_cast<const BASE&&>(r)); }
+    inline static constexpr const BASE&& f(std::remove_reference<const UBJSONValue>::type&& r) { return (static_cast<const BASE&&>(r)); }
+  };
+
   struct UBJSONValue : variant<cStr, bool, uint8_t, char, int16_t, int32_t, int64_t, float, double, cDynArray<UBJSONValue, size_t, CARRAY_SAFE>, cDynArray<std::pair<cStr, UBJSONValue>, size_t, CARRAY_SAFE>, cDynArray<unsigned char, size_t>>
   {
     typedef cDynArray<UBJSONValue, size_t, CARRAY_SAFE> UBJSONArray;
     typedef cDynArray<std::pair<cStr, UBJSONValue>, size_t, CARRAY_SAFE> UBJSONObject;
     typedef cDynArray<unsigned char, size_t> UBJSONBinary;
     typedef variant<cStr, bool, uint8_t, char, int16_t, int32_t, int64_t, float, double, UBJSONArray, UBJSONObject, UBJSONBinary> BASE;
-
-  private:
-    template<class T>
-    struct conv
-    {
-      inline static constexpr T&& f(typename std::remove_reference<T>::type& r) { return (static_cast<T&&>(r)); }
-      inline static constexpr T&& f(typename std::remove_reference<T>::type&& r) { return (static_cast<T&&>(r)); }
-    };
-    template<>
-    struct conv<UBJSONValue>
-    {
-      inline static constexpr BASE&& f(std::remove_reference<UBJSONValue>::type& r) { return (static_cast<BASE&&>(r)); }
-      inline static constexpr BASE&& f(std::remove_reference<UBJSONValue>::type&& r) { return (static_cast<BASE&&>(r)); }
-    };
-    template<>
-    struct conv<const UBJSONValue>
-    {
-      inline static constexpr const BASE&& f(std::remove_reference<const UBJSONValue>::type& r) { return (static_cast<const BASE&&>(r)); }
-      inline static constexpr const BASE&& f(std::remove_reference<const UBJSONValue>::type&& r) { return (static_cast<const BASE&&>(r)); }
-    };
 
   public:
     UBJSONValue() : BASE() {}
@@ -107,14 +106,14 @@ namespace bss_util {
     template<typename T>
     explicit UBJSONValue(const T& t) : BASE(t) {}
     template<typename T>
-    explicit UBJSONValue(T&& t) : BASE(conv<T>::f(t)) {}
+    explicit UBJSONValue(T&& t) : BASE(__UBJSONValue_conv<T, BASE>::f(t)) {}
     ~UBJSONValue() { }
     BASE& operator=(const BASE& right) { BASE::operator=(right); return *this; }
     BASE& operator=(BASE&& right) { BASE::operator=(std::move(right)); return *this; }
     template<typename T>
     BASE& operator=(const T& right) { BASE::operator=(right); return *this; }
     template<typename T>
-    BASE& operator=(T&& right) { BASE::operator=(conv<T>::f(right)); return *this; }
+    BASE& operator=(T&& right) { BASE::operator=(__UBJSONValue_conv<T, BASE>::f(right)); return *this; }
 
     void EvalUBJSON(const char* id, std::istream& s, char ty)
     {

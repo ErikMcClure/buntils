@@ -45,6 +45,7 @@ namespace bss_util {
     BSS_FORCEINLINE UINT operator()(void) { return Get(); }
     inline F* GetProb() const { return _prob; }
     inline UINT* GetAlias() const { return _alias; }
+    inline UINT GetCount() const { return _count; }
 
   protected:
     void _gentable(const F* problist, UINT count)

@@ -784,9 +784,10 @@ namespace bss_util {
 
   // Basic lerp function with no bounds checking
   template<class T>
-  BSS_FORCEINLINE static T BSS_FASTCALL lerp(T a, T b, double amt)
+  BSS_FORCEINLINE static T BSS_FASTCALL lerp(T a, T b, double t)
   {
-	  return a+((T)((b-a)*amt));
+    return T((1.0 - t)*a) + T(t*b);
+	  //return a+((T)((b-a)*t)); // This is susceptible to floating point errors when t = 1
   }
   
 #ifdef BSS_VARIADIC_TEMPLATES

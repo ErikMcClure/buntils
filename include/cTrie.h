@@ -53,7 +53,7 @@ namespace bss_util {
       TNODE* cur=_array; // root is always 0
       T r=0;
       char c;
-      while(c=*(word++))
+      while((c=*(word++)))
       {
         if(cur->clen>1) // This is faster than a switch statement
           r=binsearch_exact<TNODE, char, T, &cTrie::_CompTNode>(cur, c, 0, cur->clen);

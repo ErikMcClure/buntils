@@ -147,7 +147,7 @@ namespace bss_util {
       const float* r;
       T* item;
       T* next=node->items;
-      while(item=next)
+      while((item=next))
       {
         next=FLIST(item).next;
         r=FRECT(item);

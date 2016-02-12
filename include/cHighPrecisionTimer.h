@@ -12,7 +12,7 @@
 
 namespace bss_util
 {
-  // High precision timer class with nanosecond precision. All values are returned in milliseconds.
+  // High precision timer class with nanosecond precision.
   class BSS_DLLEXPORT cHighPrecisionTimer
   {
   public:
@@ -24,15 +24,23 @@ namespace bss_util
     // Resamples the timer, but warps the resulting increment by the timewarp argument
     double BSS_FASTCALL Update(double timewarp);
     // Updates the timer to prime it for the next update, but overrides the delta for this tick with a custom value.
+    void BSS_FASTCALL Override(uint64_t nsdelta);
     void BSS_FASTCALL Override(double delta);
-    // Gets the difference between the last call to Update() and the one before it. Does NOT resample the timer.
+    // Gets the difference in milliseconds between the last call to Update() and the one before it. Does NOT resample the timer.
     inline double BSS_FASTCALL GetDelta() const { return _delta; }
-    // Gets the current time that has elapsed since the creation of the timer, or a call to ResetTime.
+    // Gets the delta in nanoseconds
+    inline uint64_t BSS_FASTCALL GetDeltaNS() const { return _nsDelta; }
+    // Gets the current time in milliseconds that has elapsed since the creation of the timer, or a call to ResetTime.
     inline double BSS_FASTCALL GetTime() const { return _time; }
+    // Gets the current time that has elapsed in nanoseconds, as a precise 64-bit integer.
+    inline uint64_t BSS_FASTCALL GetTimeNS() const { return _nsTime; }
     // Resets the time to 0 (preserves delta)
-    inline void BSS_FASTCALL ResetTime() { _time = 0; }
+    inline void BSS_FASTCALL ResetTime() { _time = 0; _nsTime = 0; }
     // Resets the delta to 0, and resamples the timer.
-    inline void BSS_FASTCALL ResetDelta() { _querytime(&_curTime); _delta = 0; }
+    inline void BSS_FASTCALL ResetDelta() { _querytime(&_curTime); _delta = 0; _nsDelta = 0; }
+
+    // Converts two nanosecond counts to seconds and returns the difference as a double.
+    BSS_FORCEINLINE static double NanosecondDiff(uint64_t now, uint64_t old) { return (now - old) / 1000000000.0; }
 
     // Starts a profiler call
     BSS_FORCEINLINE static uint64_t OpenProfiler()
@@ -62,6 +70,8 @@ namespace bss_util
     double _delta; // milliseconds
     double _time; // milliseconds
     uint64_t _curTime;
+    uint64_t _nsTime; // total time passed in nanoseconds
+    uint64_t _nsDelta; // Delta in nanoseconds;
 
 #ifdef BSS_PLATFORM_WIN32
     static void BSS_FASTCALL _querytime(uint64_t* _pval);

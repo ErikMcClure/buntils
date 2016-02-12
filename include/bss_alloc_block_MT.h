@@ -35,7 +35,7 @@ namespace bss_util {
     inline ~cLocklessBlockAlloc()
     {
       FIXEDLIST_NODE* hold=_root;
-      while(_root=hold)
+      while((_root=hold))
       {
         hold=_root->next;
         free(_root);

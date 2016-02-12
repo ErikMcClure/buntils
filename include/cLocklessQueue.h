@@ -138,6 +138,7 @@ namespace bss_util {
       _cflag.clear(std::memory_order_release);
       mov._div=mov._last=0;
       i_LocklessQueue_Length<LENGTH>::operator=(std::move(mov));
+      return *this;
     }
   protected:
     template<typename U>

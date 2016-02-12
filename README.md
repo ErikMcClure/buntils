@@ -2,6 +2,7 @@
  
 This is a collection of miscellaneous utility code used to simplify common tasks in C/C++ programs.
 
+* Type safe variant object for algebriac types.
 * Allocators with a state
 * Logging
 * INI parser and serializer

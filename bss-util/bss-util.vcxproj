@@ -257,48 +257,48 @@
   <PropertyGroup Label="UserMacros" />
   <PropertyGroup>
     <_ProjectFileVersion>10.0.30319.1</_ProjectFileVersion>
-    <OutDir Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">$(SolutionDir)bin\</OutDir>
+    <OutDir Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">$(SolutionDir)bin32\</OutDir>
     <OutDir Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">$(SolutionDir)bin\</OutDir>
     <LinkIncremental Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">true</LinkIncremental>
     <LinkIncremental Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">true</LinkIncremental>
-    <OutDir Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">$(SolutionDir)bin\</OutDir>
-    <OutDir Condition="'$(Configuration)|$(Platform)'=='Release Clang|Win32'">$(SolutionDir)bin\</OutDir>
+    <OutDir Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">$(SolutionDir)bin32\</OutDir>
+    <OutDir Condition="'$(Configuration)|$(Platform)'=='Release Clang|Win32'">$(SolutionDir)bin32\</OutDir>
     <OutDir Condition="'$(Configuration)|$(Platform)'=='Release|x64'">$(SolutionDir)bin\</OutDir>
     <OutDir Condition="'$(Configuration)|$(Platform)'=='Release Clang|x64'">$(SolutionDir)bin\</OutDir>
     <LinkIncremental Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">false</LinkIncremental>
     <LinkIncremental Condition="'$(Configuration)|$(Platform)'=='Release Clang|Win32'">false</LinkIncremental>
     <LinkIncremental Condition="'$(Configuration)|$(Platform)'=='Release|x64'">false</LinkIncremental>
     <LinkIncremental Condition="'$(Configuration)|$(Platform)'=='Release Clang|x64'">false</LinkIncremental>
-    <OutDir Condition="'$(Configuration)|$(Platform)'=='Release Static|Win32'">$(SolutionDir)bin\</OutDir>
+    <OutDir Condition="'$(Configuration)|$(Platform)'=='Release Static|Win32'">$(SolutionDir)bin32\</OutDir>
     <OutDir Condition="'$(Configuration)|$(Platform)'=='Release Static|x64'">$(SolutionDir)bin\</OutDir>
-    <OutDir Condition="'$(Configuration)|$(Platform)'=='Debug Static|Win32'">$(SolutionDir)bin\</OutDir>
+    <OutDir Condition="'$(Configuration)|$(Platform)'=='Debug Static|Win32'">$(SolutionDir)bin32\</OutDir>
     <OutDir Condition="'$(Configuration)|$(Platform)'=='Debug Static|x64'">$(SolutionDir)bin\</OutDir>
-    <OutDir Condition="'$(Configuration)|$(Platform)'=='Release STD|Win32'">$(SolutionDir)bin\</OutDir>
+    <OutDir Condition="'$(Configuration)|$(Platform)'=='Release STD|Win32'">$(SolutionDir)bin32\</OutDir>
     <OutDir Condition="'$(Configuration)|$(Platform)'=='Release STD|x64'">$(SolutionDir)bin\</OutDir>
     <LinkIncremental Condition="'$(Configuration)|$(Platform)'=='Release STD|Win32'">false</LinkIncremental>
     <LinkIncremental Condition="'$(Configuration)|$(Platform)'=='Release STD|x64'">false</LinkIncremental>
-    <TargetName Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">$(ProjectName)_d</TargetName>
-    <TargetName Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">$(ProjectName)64_d</TargetName>
+    <TargetName Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">$(ProjectName)32_d</TargetName>
+    <TargetName Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">$(ProjectName)_d</TargetName>
     <IncludePath Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">D:\Erik Documents\Visual Studio 2010\Misc Projects\boost_1_47_0;$(IncludePath)</IncludePath>
     <IncludePath Condition="'$(Configuration)|$(Platform)'=='Release|x64'">D:\Erik Documents\Visual Studio 2010\Misc Projects\boost_1_47_0;$(IncludePath)</IncludePath>
     <IncludePath Condition="'$(Configuration)|$(Platform)'=='Release Clang|x64'">D:\Erik Documents\Visual Studio 2010\Misc Projects\boost_1_47_0;$(IncludePath)</IncludePath>
     <LibraryPath Condition="'$(Configuration)|$(Platform)'=='Release|x64'">D:\Erik Documents\Visual Studio 2010\Misc Projects\boost_1_47_0\stage\lib;$(LibraryPath)</LibraryPath>
     <LibraryPath Condition="'$(Configuration)|$(Platform)'=='Release Clang|x64'">D:\Erik Documents\Visual Studio 2010\Misc Projects\boost_1_47_0\stage\lib;$(LibraryPath)</LibraryPath>
     <LibraryPath Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">D:\Erik Documents\Visual Studio 2010\Misc Projects\boost_1_47_0\stage\lib;$(LibraryPath)</LibraryPath>
-    <TargetName Condition="'$(Configuration)|$(Platform)'=='Debug Static|Win32'">$(ProjectName)_s_d</TargetName>
-    <TargetName Condition="'$(Configuration)|$(Platform)'=='Debug Static|x64'">$(ProjectName)64_s_d</TargetName>
-    <TargetName Condition="'$(Configuration)|$(Platform)'=='Release Static|Win32'">$(ProjectName)_s</TargetName>
-    <TargetName Condition="'$(Configuration)|$(Platform)'=='Release Static|x64'">$(ProjectName)64_s</TargetName>
+    <TargetName Condition="'$(Configuration)|$(Platform)'=='Debug Static|Win32'">$(ProjectName)32_s_d</TargetName>
+    <TargetName Condition="'$(Configuration)|$(Platform)'=='Debug Static|x64'">$(ProjectName)_s_d</TargetName>
+    <TargetName Condition="'$(Configuration)|$(Platform)'=='Release Static|Win32'">$(ProjectName)32_s</TargetName>
+    <TargetName Condition="'$(Configuration)|$(Platform)'=='Release Static|x64'">$(ProjectName)_s</TargetName>
     <IncludePath Condition="'$(Configuration)|$(Platform)'=='Debug Static|x64'">D:\Erik Documents\Visual Studio 2010\Misc Projects\boost_1_47_0;$(IncludePath)</IncludePath>
     <IncludePath Condition="'$(Configuration)|$(Platform)'=='Release Static|x64'">D:\Erik Documents\Visual Studio 2010\Misc Projects\boost_1_47_0;$(IncludePath)</IncludePath>
     <IncludePath Condition="'$(Configuration)|$(Platform)'=='Release STD|x64'">D:\Erik Documents\Visual Studio 2010\Misc Projects\boost_1_47_0;$(IncludePath)</IncludePath>
     <LibraryPath Condition="'$(Configuration)|$(Platform)'=='Debug Static|x64'">D:\Erik Documents\Visual Studio 2010\Misc Projects\boost_1_47_0\stage\lib;$(LibraryPath)</LibraryPath>
     <LibraryPath Condition="'$(Configuration)|$(Platform)'=='Release STD|x64'">D:\Erik Documents\Visual Studio 2010\Misc Projects\boost_1_47_0\stage\lib;$(LibraryPath)</LibraryPath>
     <LibraryPath Condition="'$(Configuration)|$(Platform)'=='Release Static|x64'">D:\Erik Documents\Visual Studio 2010\Misc Projects\boost_1_47_0\stage\lib;$(LibraryPath)</LibraryPath>
-    <TargetName Condition="'$(Configuration)|$(Platform)'=='Release STD|Win32'">$(ProjectName)_std</TargetName>
-    <TargetName Condition="'$(Configuration)|$(Platform)'=='Release STD|x64'">$(ProjectName)64_std</TargetName>
-    <TargetName Condition="'$(Configuration)|$(Platform)'=='Release|x64'">$(ProjectName)64</TargetName>
-    <TargetName Condition="'$(Configuration)|$(Platform)'=='Release Clang|x64'">$(ProjectName)64</TargetName>
+    <TargetName Condition="'$(Configuration)|$(Platform)'=='Release STD|Win32'">$(ProjectName)32_std</TargetName>
+    <TargetName Condition="'$(Configuration)|$(Platform)'=='Release STD|x64'">$(ProjectName)_std</TargetName>
+    <TargetName Condition="'$(Configuration)|$(Platform)'=='Release|x64'">$(ProjectName)</TargetName>
+    <TargetName Condition="'$(Configuration)|$(Platform)'=='Release Clang|x64'">$(ProjectName)</TargetName>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
     <IntDir>$(Platform)\$(Configuration)\</IntDir>
@@ -311,9 +311,11 @@
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
     <IntDir>$(Platform)\$(Configuration)\</IntDir>
+    <TargetName>$(ProjectName)32</TargetName>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release Clang|Win32'">
     <IntDir>$(Platform)\$(Configuration)\</IntDir>
+    <TargetName>$(ProjectName)32</TargetName>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug Static|Win32'">
     <IntDir>$(Platform)\$(Configuration)\</IntDir>

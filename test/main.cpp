@@ -76,23 +76,23 @@
 #ifdef BSS_COMPILER_MSC
 #if defined(BSS_STATIC_LIB)
 #if defined(BSS_DEBUG) && defined(BSS_CPU_x86_64)
-#pragma comment(lib, "../bin/bss-util64_s_d.lib")
-#elif defined(BSS_CPU_x86_64)
-#pragma comment(lib, "../bin/bss-util64_s.lib")
-#elif defined(BSS_DEBUG)
 #pragma comment(lib, "../bin/bss-util_s_d.lib")
-#else
+#elif defined(BSS_CPU_x86_64)
 #pragma comment(lib, "../bin/bss-util_s.lib")
+#elif defined(BSS_DEBUG)
+#pragma comment(lib, "../bin32/bss-util32_s_d.lib")
+#else
+#pragma comment(lib, "../bin32/bss-util32_s.lib")
 #endif
 #else
 #if defined(BSS_DEBUG) && defined(BSS_CPU_x86_64)
-#pragma comment(lib, "../bin/bss-util64_d.lib")
-#elif defined(BSS_CPU_x86_64)
-#pragma comment(lib, "../bin/bss-util64.lib")
-#elif defined(BSS_DEBUG)
 #pragma comment(lib, "../bin/bss-util_d.lib")
-#else
+#elif defined(BSS_CPU_x86_64)
 #pragma comment(lib, "../bin/bss-util.lib")
+#elif defined(BSS_DEBUG)
+#pragma comment(lib, "../bin32/bss-util32_d.lib")
+#else
+#pragma comment(lib, "../bin32/bss-util32.lib")
 #endif
 #endif
 #endif

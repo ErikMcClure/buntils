@@ -3,6 +3,7 @@
 *.opensdf
 *.bak
 bin/
+bin32/
 bss-util/x64/
 bss-util/Win32/
 test/x64/

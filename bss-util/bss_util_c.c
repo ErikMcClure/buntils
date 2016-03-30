@@ -218,7 +218,7 @@ extern size_t BSS_FASTCALL UTF8toUTF16(const char*BSS_RESTRICT input,wchar_t*BSS
       *d++ = (wchar_t)codepoint;
   }
 
-  *d++ = 0; // We do this because the loop terminates on a NULL terminator so that won't have been copied over.
+  *d++ = 0; // We do this because the loop terminates on a nullptr terminator so that won't have been copied over.
 
   if (state != UTF8_ACCEPT)
     return (size_t)-1;
@@ -459,8 +459,8 @@ extern char* strtok_r(char* s, const char* delim, char** lasts)
 	register int c, sc;
 	char *tok;
 
-	if (s == NULL && (s = *lasts) == NULL)
-		return (NULL);
+	if (s == nullptr && (s = *lasts) == nullptr)
+		return (nullptr);
 
 cont: /* Skip (span) leading delimiters (s += strspn(s, delim), sort of). */
 	c = *s++;
@@ -470,8 +470,8 @@ cont: /* Skip (span) leading delimiters (s += strspn(s, delim), sort of). */
 	}
 
 	if (c == 0) {		/* no non-delimiter characters */
-		*lasts = NULL;
-		return (NULL);
+		*lasts = nullptr;
+		return (nullptr);
 	}
 	tok = s - 1;
 
@@ -481,7 +481,7 @@ cont: /* Skip (span) leading delimiters (s += strspn(s, delim), sort of). */
 		do {
 			if ((sc = *spanp++) == c) {
 				if (c == 0)
-					s = NULL;
+					s = nullptr;
 				else
 					s[-1] = 0;
 				*lasts = s;
@@ -499,8 +499,8 @@ extern wchar_t* wcstok_r(wchar_t* s, const wchar_t* delim, wchar_t** lasts)
 	register int c, sc;
 	wchar_t *tok;
 
-	if (s == NULL && (s = *lasts) == NULL)
-		return (NULL);
+	if (s == nullptr && (s = *lasts) == nullptr)
+		return (nullptr);
 
 cont: /* Skip (span) leading delimiters (s += strspn(s, delim), sort of). */
 	c = *s++;
@@ -510,8 +510,8 @@ cont: /* Skip (span) leading delimiters (s += strspn(s, delim), sort of). */
 	}
 
 	if (c == 0) {		/* no non-delimiter characters */
-		*lasts = NULL;
-		return (NULL);
+		*lasts = nullptr;
+		return (nullptr);
 	}
 	tok = s - 1;
 
@@ -521,7 +521,7 @@ cont: /* Skip (span) leading delimiters (s += strspn(s, delim), sort of). */
 		do {
 			if ((sc = *spanp++) == c) {
 				if (c == 0)
-					s = NULL;
+					s = nullptr;
 				else
 					s[-1] = 0;
 				*lasts = s;

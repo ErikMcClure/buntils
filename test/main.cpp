@@ -1129,7 +1129,7 @@ TESTDEF::RETPAIR test_bss_deprecated()
 {
   std::vector<bool> test;
   BEGINTEST;
-  time_t tmval=TIME64(NULL);
+  time_t tmval=TIME64(nullptr);
   TEST(tmval!=0);
   TIME64(&tmval);
   TEST(tmval!=0);
@@ -4485,6 +4485,20 @@ TESTDEF::RETPAIR test_HASH()
       set.GetKey(0);
       TEST(set.Exists(0));
     }
+    {
+      typedef std::pair<uint64_t, int32_t> HASHTESTPAIR;
+      cHash<HASHTESTPAIR> set;
+      set.Insert(HASHTESTPAIR(0, 0));
+      set.Insert(HASHTESTPAIR(1ULL<<34, 3));
+      set.Insert(HASHTESTPAIR(2, -5));
+      set.Insert(HASHTESTPAIR(0, 0));
+      set.GetKey(0);
+      TEST(set.Exists(HASHTESTPAIR(0, 0)));
+      TEST(set.Exists(HASHTESTPAIR(1ULL << 34, 3)));
+      TEST(set.Exists(HASHTESTPAIR(2, -5)));
+      TEST(!set.Exists(HASHTESTPAIR(0, -1)));
+      TEST(!set.Exists(HASHTESTPAIR(3, -1)));
+    }
   }
   ENDTEST;
 }
@@ -5701,7 +5715,7 @@ int main(int argc, char** argv)
 {
   ForceWin64Crash();
   SetWorkDirToCur();
-  uint64_t seed=(uint64_t)time(NULL);
+  uint64_t seed=(uint64_t)time(nullptr);
   //seed = 1425459123;
   bssrandseed(seed);
 

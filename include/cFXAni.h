@@ -180,7 +180,7 @@ namespace bss_util {
       AniMap map = { def, ani, delay };
       _mapping.Insert(map);
     }
-    virtual unsigned int GetSize() const { return _defs.Length(); }
+    virtual uint32_t GetSize() const { return _defs.Length(); }
     virtual const void* GetArray() const { return _defs.begin(); }
     virtual void* GetFunc() const { return 0; }
     virtual cAniBase* Clone() const { return new cFXAni(*this); }

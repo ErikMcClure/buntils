@@ -47,7 +47,7 @@ namespace bss_util {
     size_t GetNumEntries(const char* section) const;
     // Gets the specified key node for iteration with the given index. Returns null on failure.
     _NODE* GetEntryNode(const char* key, size_t instance=0) const;
-    // Changes the specified entry data with the given index, if data is NULL the entry is deleted. if instance is -1 the entry is inserted.
+    // Changes the specified entry data with the given index, if data is nullptr the entry is deleted. if instance is -1 the entry is inserted.
     inline char EditEntry(const char* key, const char* data, size_t instance=0);
     // Gets the root node of the section linked list
     inline const _NODE* Front() const { return _root; }

@@ -47,7 +47,7 @@ namespace bss_util {
     }
     ~cRingAllocVoid() { _clear(); }
 
-    inline void* BSS_FASTCALL alloc(size_t num)
+    inline void* BSS_FASTCALL alloc(size_t num) noexcept
     {
 ALLOC_BEGIN:
       for(;;)
@@ -98,7 +98,7 @@ ALLOC_BEGIN:
       _readers.fetch_sub(1, std::memory_order_release);
       return ret+1;
     }
-    inline void BSS_FASTCALL dealloc(void* p)
+    inline void BSS_FASTCALL dealloc(void* p) noexcept
     {
       Node* n = ((Node*)p)-1;
       n->root->free.fetch_add(n->sz, std::memory_order_release);
@@ -113,7 +113,7 @@ ALLOC_BEGIN:
       _root.store(_genbucket(_lastsize, 0), std::memory_order_relaxed);
     }
 
-    cRingAllocVoid& operator=(cRingAllocVoid&& mov)
+    cRingAllocVoid& operator=(cRingAllocVoid&& mov) noexcept
     {
       _clear();
       _gc = mov._gc;
@@ -128,7 +128,7 @@ ALLOC_BEGIN:
     }
 
   protected:
-    BSS_FORCEINLINE static LLBase<Bucket>& _getbucket(Bucket* b) { return b->list; }
+    BSS_FORCEINLINE static LLBase<Bucket>& _getbucket(Bucket* b) noexcept { return b->list; }
 
     void _clear() 
     {
@@ -143,7 +143,7 @@ ALLOC_BEGIN:
       _gc.tag = 0;
       _root.store(0, std::memory_order_relaxed);
     }
-    Bucket* _genbucket(size_t num, Bucket* next)
+    Bucket* _genbucket(size_t num, Bucket* next) noexcept
     {
       if(_lastsize < num) _lastsize = num;
 
@@ -160,7 +160,7 @@ ALLOC_BEGIN:
         _recycle(prev.p);
       }
 
-      if(!hold) // If hold is NULL we need a new bucket
+      if(!hold) // If hold is nullptr we need a new bucket
       {
         _lastsize = T_FBNEXT(_lastsize);
         hold = (Bucket*)malloc(sizeof(Bucket)+_lastsize);
@@ -185,7 +185,7 @@ ALLOC_BEGIN:
       return hold;
     }
 
-    void _checkrecycle(Bucket* b)
+    void _checkrecycle(Bucket* b) noexcept
     {
       if(b->used.load(std::memory_order_acquire) == b->free.load(std::memory_order_acquire)
         && b->reserved.load(std::memory_order_acquire) > b->sz
@@ -199,7 +199,7 @@ ALLOC_BEGIN:
       }
     }
 
-    void _recycle(Bucket* b)
+    void _recycle(Bucket* b) noexcept
     {
       bss_PTag<Bucket> prev ={ 0, 0 };
       bss_PTag<Bucket> nval ={ b, 0 };
@@ -231,8 +231,8 @@ ALLOC_BEGIN:
   public:
     inline cRingAlloc(cRingAlloc&& mov) : cRingAllocVoid(std::move(mov)) {}
     inline explicit cRingAlloc(size_t init=8) : cRingAllocVoid(init) { }
-    inline T* BSS_FASTCALL alloc(size_t num) { return (T*)cRingAllocVoid::alloc(num*sizeof(T)); }
-    inline cRingAlloc& operator=(cRingAlloc&& mov) { cRingAllocVoid::operator=(std::move(mov)); return *this; }
+    inline T* BSS_FASTCALL alloc(size_t num) noexcept { return (T*)cRingAllocVoid::alloc(num*sizeof(T)); }
+    inline cRingAlloc& operator=(cRingAlloc&& mov) noexcept { cRingAllocVoid::operator=(std::move(mov)); return *this; }
   };
 
   template<typename T>
@@ -251,10 +251,10 @@ ALLOC_BEGIN:
     inline RingPolicy() {}
     inline explicit RingPolicy(size_t init) : cRingAlloc<T>(init) {}
     inline ~RingPolicy() {}
-    inline RingPolicy& operator=(RingPolicy&& mov) { cRingAlloc<T>::operator=(std::move(mov)); return *this; }
+    inline RingPolicy& operator=(RingPolicy&& mov) noexcept { cRingAlloc<T>::operator=(std::move(mov)); return *this; }
 
-    inline pointer allocate(size_t cnt, const pointer = 0) { return cRingAlloc<T>::alloc(cnt); }
-    inline void deallocate(pointer p, size_t num = 0) { return cRingAlloc<T>::dealloc(p); }
+    inline pointer allocate(size_t cnt, const pointer = 0) noexcept { return cRingAlloc<T>::alloc(cnt); }
+    inline void deallocate(pointer p, size_t num = 0) noexcept { return cRingAlloc<T>::dealloc(p); }
   };
 }
 

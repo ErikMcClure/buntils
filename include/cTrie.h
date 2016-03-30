@@ -16,7 +16,7 @@ namespace bss_util {
     char chr; // letter that this node has
     T child; // Pointer to this node's child, if it has one
     T clen; // Number of siblings this node has
-    T word; // This stores the original index of the word that this node corresponds to, but only if chr is NULL (indicating the end of a word)
+    T word; // This stores the original index of the word that this node corresponds to, but only if chr is nullptr (indicating the end of a word)
   };
 
   // A static trie optimized for looking up small collections of words.

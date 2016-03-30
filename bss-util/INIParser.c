@@ -165,7 +165,7 @@ char BSS_FASTCALL bss_parseLine(INIParser* parse)
       }
       break;
     case 1: //section identifier
-      sec=_validatesection(tc); //if the validation function returns NULL its garbage
+      sec=_validatesection(tc); //if the validation function returns nullptr its garbage
       if(sec!=0 && sec!=(++tc)) { sec[0]='\0'; _newsection(parse,tc); return -1; }
       break;
     }
@@ -248,7 +248,7 @@ INICHUNK BSS_FASTCALL bss_findINIsection(const void* data, size_t length, const 
         retval.end=--cur;
         break;
       }
-      sec=_svalidatesection(tc,line); //if the validation function returns NULL its garbage
+      sec=_svalidatesection(tc,line); //if the validation function returns nullptr its garbage
       if(sec!=0 && sec!=(tc+1) && comparevalues(tc+1,sec,section)==0 && (++curinstance)==instance)
       {
         retval.start=tc; //this is safe because we already verified that there is at least one valid character in this string. Ok, it still isn't safe, but it won't explode.

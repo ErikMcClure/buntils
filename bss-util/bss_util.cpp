@@ -47,7 +47,7 @@ inline bool BSS_FASTCALL r_fexists(const wchar_t* path)
   return false;
   if(dat.dwReserved0 != IO_REPARSE_TAG_SYMLINK)
   return false;
-  HANDLE hf = CreateFileW(path,NULL,FILE_SHARE_READ|FILE_SHARE_WRITE|FILE_SHARE_DELETE,NULL,OPEN_EXISTING,FILE_FLAG_BACKUP_SEMANTICS,NULL);
+  HANDLE hf = CreateFileW(path,nullptr,FILE_SHARE_READ|FILE_SHARE_WRITE|FILE_SHARE_DELETE,nullptr,OPEN_EXISTING,FILE_FLAG_BACKUP_SEMANTICS,nullptr);
   if(hf == INVALID_HANDLE_VALUE)
   return false;
   size_t ln = bssdll_GetFinalNameByHandle(hf,0,0,VOLUME_NAME_DOS);
@@ -536,7 +536,7 @@ int BSS_FASTCALL r_delregnode(HKEY__* hKeyRoot, const wchar_t* lpSubKey)
     lpEnd += L'\\';
 
   dwSize = MAX_PATH;
-  lResult = RegEnumKeyExW(hKey, 0, szName, &dwSize, NULL, NULL, NULL, &ftWrite);
+  lResult = RegEnumKeyExW(hKey, 0, szName, &dwSize, nullptr, nullptr, nullptr, &ftWrite);
 
   if(lResult == ERROR_SUCCESS)
   {
@@ -546,7 +546,7 @@ int BSS_FASTCALL r_delregnode(HKEY__* hKeyRoot, const wchar_t* lpSubKey)
         break;
 
       dwSize = MAX_PATH;
-      lResult = RegEnumKeyExW(hKey, 0, szName, &dwSize, NULL, NULL, NULL, &ftWrite);
+      lResult = RegEnumKeyExW(hKey, 0, szName, &dwSize, nullptr, nullptr, nullptr, &ftWrite);
     } while(lResult == ERROR_SUCCESS);
   }
 

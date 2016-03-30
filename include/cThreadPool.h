@@ -38,7 +38,7 @@ namespace bss_util
     {
       Wait();
       _flag.store(true, std::memory_order_relaxed);
-      cThread* t = NULL;
+      cThread* t = nullptr;
       while(_threads.Length())
       {
         if(_threads.Pop(t))

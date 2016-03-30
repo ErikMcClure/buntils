@@ -178,13 +178,13 @@ namespace bss_util {
   };
 
   template<typename T>
-  BSS_FORCEINLINE void MatrixInvert4x4(const T* mat, T* dst)
+  BSS_FORCEINLINE void MatrixInvert4x4(const T* mat, T* dst) noexcept
   {
     T tmp[12]; /* temp array for pairs */
     T src[16]; /* array of transpose source matrix */
     T det;  /* determinant */
     /* transpose matrix */
-    for(int i = 0; i < 4; i++) {
+    for(int i = 0; i < 4; i++) { // because of this operation, mat and dst can be the same
       src[i] = mat[i*4];
       src[i + 4] = mat[i*4+ 1];
       src[i + 8] = mat[i*4+ 2];
@@ -260,7 +260,7 @@ namespace bss_util {
 
   // Standard 4x4 Matrix inversion using SSE, adapted from intel's implementation.
   template<>
-  BSS_FORCEINLINE void MatrixInvert4x4<float>(const float* src, float* dest)
+  BSS_FORCEINLINE void MatrixInvert4x4<float>(const float* src, float* dest) noexcept // no point in using __restrict because we load everything into SSE registers anyway
   {
     //   Copyright (c) 2001 Intel Corporation.
     //
@@ -368,7 +368,7 @@ namespace bss_util {
   template<typename T, int M, int N, int P>
   struct BSS_COMPILER_DLLEXPORT __MatrixMultiply
   {
-    static BSS_FORCEINLINE void BSS_FASTCALL MM(const T(&l)[M][N], const T(&r)[N][P], T(&out)[M][P])
+    static BSS_FORCEINLINE void BSS_FASTCALL MM(const T(&l)[M][N], const T(&r)[N][P], T(&out)[M][P]) noexcept
     {
       T m[M][P];
       for(int i = 0; i < M; ++i)
@@ -390,7 +390,7 @@ namespace bss_util {
   template<>
   struct BSS_COMPILER_DLLEXPORT __MatrixMultiply<float, 4, 4, 4>
   {
-    static BSS_FORCEINLINE void BSS_FASTCALL MM(const float(&l)[4][4], const float(&r)[4][4], float(&out)[4][4])
+    static BSS_FORCEINLINE void BSS_FASTCALL MM(const float(&l)[4][4], const float(&r)[4][4], float(&out)[4][4]) noexcept
     {
       sseVec a(r[0]);
       sseVec b(r[1]);

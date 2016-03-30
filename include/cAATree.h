@@ -31,7 +31,7 @@ namespace bss_util {
     inline ~cAATree() { Clear(); cAllocTracker<Alloc>::_deallocate(_sentinel, 1); }
     inline void Insert(const T& data) { _insert(_root, data); }
     inline bool Remove(const T& data) { return _remove(_root, data); }
-    // Gets the node that belongs to the data or returns NULL if not found.
+    // Gets the node that belongs to the data or returns nullptr if not found.
     inline AANODE<T>* Get(const T& data)
     {
       AANODE<T>* cur=_root;
@@ -48,7 +48,7 @@ namespace bss_util {
       return 0;
     }
     inline void Clear() { _clear(_root); }
-    // Gets the root, unless the tree is empty, in which case returns NULL
+    // Gets the root, unless the tree is empty, in which case returns nullptr
     inline AANODE<T>* GetRoot() { return _root == _sentinel ? 0 : _root; }
     inline bool IsEmpty() { return _root == _sentinel; }
     // Does an in-order traversal of the tree, applying FACTION to each node's data object.
@@ -199,13 +199,13 @@ return r;*/
 //struct node * inOrderSuccessor(struct node *root, struct node *n)
 //{
 //  // step 1 of the above algorithm
-//  if(n->right != NULL)
+//  if(n->right != nullptr)
 //    return minValue(n->right);
 //
-//  struct node *succ = NULL;
+//  struct node *succ = nullptr;
 //
 //  // Start from root and search for successor down the tree
-//  while(root != NULL)
+//  while(root != nullptr)
 //  {
 //    if(n->data < root->data)
 //    {

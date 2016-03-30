@@ -39,7 +39,7 @@ namespace bss_util {
         free(_root);
       }
     }
-    inline void* BSS_FASTCALL alloc(size_t num)
+    inline void* BSS_FASTCALL alloc(size_t num) noexcept
     {
       assert(num==1);
 #ifdef BSS_DISABLE_CUSTOM_ALLOCATORS
@@ -53,7 +53,7 @@ namespace bss_util {
       assert(_validpointer(ret));
       return ret;
     }
-    inline void BSS_FASTCALL dealloc(void* p)
+    inline void BSS_FASTCALL dealloc(void* p) noexcept
     {
 #ifdef BSS_DISABLE_CUSTOM_ALLOCATORS
       delete p; return;
@@ -94,7 +94,7 @@ namespace bss_util {
       return false;
     }
 #endif
-    inline void BSS_FASTCALL _allocchunk(size_t nsize)
+    inline void BSS_FASTCALL _allocchunk(size_t nsize) noexcept
     {
       FIXEDLIST_NODE* retval=(FIXEDLIST_NODE*)malloc(sizeof(FIXEDLIST_NODE)+nsize);
       retval->next=_root;
@@ -105,7 +105,7 @@ namespace bss_util {
       _root=retval;
     }
 
-    BSS_FORCEINLINE void BSS_FASTCALL _initchunk(const FIXEDLIST_NODE* chunk)
+    BSS_FORCEINLINE void BSS_FASTCALL _initchunk(const FIXEDLIST_NODE* chunk) noexcept
     {
       unsigned char* memend=((unsigned char*)(chunk+1))+chunk->size;
       for(unsigned char* memref=(((unsigned char*)(chunk+1))); memref<memend; memref+=_sz)
@@ -128,7 +128,7 @@ namespace bss_util {
   public:
     inline cBlockAlloc(cBlockAlloc&& mov) : cBlockAllocVoid(std::move(mov)) {}
     inline explicit cBlockAlloc(size_t init=8) : cBlockAllocVoid(sizeof(T), init) { static_assert((sizeof(T)>=sizeof(void*)), "T cannot be less than the size of a pointer"); }
-    inline T* BSS_FASTCALL alloc(size_t num) { return (T*)cBlockAllocVoid::alloc(num); }
+    inline T* BSS_FASTCALL alloc(size_t num) noexcept { return (T*)cBlockAllocVoid::alloc(num); }
   };
 
   template<typename T>
@@ -147,8 +147,8 @@ namespace bss_util {
     inline ~BlockPolicy() {}
 
 
-    inline pointer allocate(size_t cnt, const pointer = 0) { return cBlockAlloc<T>::alloc(cnt); }
-    inline void deallocate(pointer p, size_t num = 0) { return cBlockAlloc<T>::dealloc(p); }
+    inline pointer allocate(size_t cnt, const pointer = 0) noexcept { return cBlockAlloc<T>::alloc(cnt); }
+    inline void deallocate(pointer p, size_t num = 0) noexcept { return cBlockAlloc<T>::dealloc(p); }
   };
 }
 

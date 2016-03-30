@@ -16,19 +16,19 @@ namespace bss_util {
     inline delegate(std::function<R(Args...)>&& src) BSS_DELETEFUNC // Don't do delegate([&](){ return; }) or it'll go out of scope.
       typedef R RTYPE;
   public:
-    inline delegate(const delegate& copy) : _src(copy._src), _stub(copy._stub) {}
-    inline delegate(void* src, R(MSC_FASTCALL *GCC_FASTCALL stub)(void*, Args...)) : _src(src), _stub(stub) {}
-    inline delegate(std::function<R(Args...)>& src) : _src(&src), _stub(&stublambda) {}
+    inline delegate(const delegate& copy) noexcept : _src(copy._src), _stub(copy._stub) {}
+    inline delegate(void* src, R(MSC_FASTCALL *GCC_FASTCALL stub)(void*, Args...)) noexcept : _src(src), _stub(stub) {}
+    inline delegate(std::function<R(Args...)>& src) noexcept : _src(&src), _stub(&stublambda) {}
     inline R operator()(Args ... args) const { return (*_stub)(_src, args...); }
-    inline delegate& operator=(const delegate& right) { _src = right._src; _stub = right._stub; return *this; }
-    inline bool IsEmpty() const { return _src == 0 || _stub == 0; }
+    inline delegate& operator=(const delegate& right) noexcept { _src = right._src; _stub = right._stub; return *this; }
+    inline bool IsEmpty() const noexcept { return _src == 0 || _stub == 0; }
 
     template<class T, RTYPE(MSC_FASTCALL T::*GCC_FASTCALL F)(Args...)>
-    inline static delegate From(T* src) { return delegate(src, &stub<T, F>); }
+    inline static delegate From(T* src) noexcept { return delegate(src, &stub<T, F>); }
     template<class T, RTYPE(MSC_FASTCALL T::*GCC_FASTCALL F)(Args...) const>
-    inline static delegate From(const T* src) { return delegate(const_cast<T*>(src), &stubconst<T, F>); }
+    inline static delegate From(const T* src) noexcept { return delegate(const_cast<T*>(src), &stubconst<T, F>); }
     template<RTYPE(MSC_FASTCALL *GCC_FASTCALL F)(Args...)>
-    inline static delegate FromC() { return delegate(0, &stubstateless<F>); }
+    inline static delegate FromC() noexcept { return delegate(0, &stubstateless<F>); }
 
   protected:
     void* _src;

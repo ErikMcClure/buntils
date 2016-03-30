@@ -35,7 +35,7 @@ namespace bss_util {
       action.sa_handler=___catcher;
       action.sa_flags=0;
       sigfillset(&action.sa_mask);
-      sigaction(SIGUSR1, &action, NULL);
+      sigaction(SIGUSR1, &action, nullptr);
 #endif
     }
     inline cThread(cThread&& mov) : std::thread(std::move((std::thread&&)mov)) {} // Move constructor only
@@ -84,7 +84,7 @@ namespace bss_util {
     inline static int Wait() {
       sigset_t sigset;
       sigemptyset(&sigset);
-      pselect(0, NULL, NULL, NULL, NULL, &sigset);
+      pselect(0, nullptr, nullptr, nullptr, nullptr, &sigset);
     }
 
   protected:

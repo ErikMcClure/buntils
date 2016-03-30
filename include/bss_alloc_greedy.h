@@ -35,11 +35,11 @@ namespace bss_util {
       }
     }
     template<typename T>
-    inline T* BSS_FASTCALL allocT(size_t num)
+    inline T* BSS_FASTCALL allocT(size_t num) noexcept
     {
       return (T*)alloc(num*sizeof(T));
     }
-    inline void* BSS_FASTCALL alloc(size_t _sz)
+    inline void* BSS_FASTCALL alloc(size_t _sz) noexcept
     {
 #ifdef BSS_DISABLE_CUSTOM_ALLOCATORS
       return malloc(_sz);
@@ -50,7 +50,7 @@ namespace bss_util {
       _curpos+=_sz;
       return retval;
     }
-    void BSS_FASTCALL dealloc(void* p)
+    void BSS_FASTCALL dealloc(void* p) noexcept
     {
 #ifdef BSS_DISABLE_CUSTOM_ALLOCATORS
       delete p; return;
@@ -67,7 +67,7 @@ namespace bss_util {
       //memset(p,0xFEEEFEEE,sizeof(T)); //No way to know how big this is
 #endif
     }
-    void Clear()
+    void Clear() noexcept
     {
       _curpos=0;
       if(!_root->next) return;
@@ -83,7 +83,7 @@ namespace bss_util {
       _allocchunk(nsize); //consolidates all memory into one chunk to try and take advantage of data locality
     }
   protected:
-    BSS_FORCEINLINE void _allocchunk(size_t nsize)
+    BSS_FORCEINLINE void _allocchunk(size_t nsize) noexcept
     {
       AFLISTITEM* retval=(AFLISTITEM*)malloc(sizeof(AFLISTITEM)+nsize);
       retval->next=_root;
@@ -91,12 +91,14 @@ namespace bss_util {
       _root=retval;
       assert(_prepDEBUG());
     }
-    BSS_FORCEINLINE bool _prepDEBUG()
+#ifdef BSS_DEBUG
+    BSS_FORCEINLINE bool _prepDEBUG() noexcept
     {
       if(!_root) return false;
       memset(_root+1, 0xcdcdcdcd, _root->size);
       return true;
     }
+#endif
 
     AFLISTITEM* _root;
     size_t _curpos;
@@ -113,9 +115,9 @@ namespace bss_util {
     inline GreedyPolicy() {}
     inline ~GreedyPolicy() {}
 
-    inline pointer allocate(std::size_t cnt, const pointer = 0) { return cGreedyAlloc::allocT<T>(cnt); }
-    inline void deallocate(pointer p, std::size_t num = 0) { }
-    inline void BSS_FASTCALL clear() { cGreedyAlloc::Clear(); } //done for functor reasons, BSS_FASTCALL has no effect here
+    inline pointer allocate(std::size_t cnt, const pointer = 0) noexcept { return cGreedyAlloc::allocT<T>(cnt); }
+    inline void deallocate(pointer p, std::size_t num = 0) noexcept { }
+    inline void BSS_FASTCALL clear() noexcept { cGreedyAlloc::Clear(); } //done for functor reasons, BSS_FASTCALL has no effect here
   };
 }
 

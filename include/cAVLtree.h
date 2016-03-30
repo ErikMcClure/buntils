@@ -36,13 +36,14 @@ namespace bss_util {
     typedef Data DATAGET;
 
   protected:
-    BSS_FORCEINLINE static void BSS_FASTCALL _setdata(AVLNode* old,AVLNode* cur) { if(cur!=0) cur->_key.second=std::move(old->_key.second); }
+    BSS_FORCEINLINE static void BSS_FASTCALL _setdata(AVLNode* BSS_RESTRICT old, AVLNode* BSS_RESTRICT cur) { assert(old != cur); if(cur != 0) cur->_key.second = std::move(old->_key.second); }
     template<typename U>
     BSS_FORCEINLINE static void BSS_FASTCALL _setraw(U && data,AVLNode* cur) { if(cur!=0) cur->_key.second=std::forward<U>(data); }
     BSS_FORCEINLINE static KEYGET& BSS_FASTCALL _getdata(KeyData& cur) { return cur.second; }
     BSS_FORCEINLINE static Key& BSS_FASTCALL _getkey(KeyData& cur) { return cur.first; }
-    BSS_FORCEINLINE static void BSS_FASTCALL _swapdata(AVLNode* retval,AVLNode* root)
+    BSS_FORCEINLINE static void BSS_FASTCALL _swapdata(AVLNode* BSS_RESTRICT retval,AVLNode* BSS_RESTRICT root)
     {
+      assert(retval != root);
       if(retval!=0) // We have to actually swap the data so that retval returns the correct data so it can be used in ReplaceKey
       {
         Data h(std::move(retval->_key.second));
@@ -62,12 +63,12 @@ namespace bss_util {
     typedef char DATAGET;
     
   protected:
-    BSS_FORCEINLINE static void BSS_FASTCALL _setdata(AVLNode* old,AVLNode* cur) { }
+    BSS_FORCEINLINE static void BSS_FASTCALL _setdata(AVLNode* BSS_RESTRICT old,AVLNode* BSS_RESTRICT cur) { }
     template<typename U>
     BSS_FORCEINLINE static void BSS_FASTCALL _setraw(U && data,AVLNode* cur) { }
     BSS_FORCEINLINE static KEYGET& BSS_FASTCALL _getdata(KeyData& cur) { return cur; }
     BSS_FORCEINLINE static Key& BSS_FASTCALL _getkey(KeyData& cur) { return cur; }
-    BSS_FORCEINLINE static void BSS_FASTCALL _swapdata(AVLNode* retval,AVLNode* root) { }
+    BSS_FORCEINLINE static void BSS_FASTCALL _swapdata(AVLNode* BSS_RESTRICT retval,AVLNode* BSS_RESTRICT root) { }
   };
 
   // AVL Tree implementation

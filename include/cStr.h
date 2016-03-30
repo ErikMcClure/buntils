@@ -175,7 +175,7 @@ public:
     while(res)
     {
       dest.push_back(res);
-      res = CSTR_CT<T>::STOK(NULL,delimhold,&hold);
+      res = CSTR_CT<T>::STOK(nullptr,delimhold,&hold);
     }
   }
   static void ExplodeNull(std::vector<cStrT> &dest, const CHAR* text)

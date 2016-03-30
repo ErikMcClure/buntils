@@ -2,6 +2,7 @@
 *.suo
 *.opensdf
 *.bak
+*.VC.db
 bin/
 bin32/
 bss-util/x64/

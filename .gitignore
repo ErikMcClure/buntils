@@ -3,6 +3,7 @@
 *.opensdf
 *.bak
 *.VC.db
+*.VC.opendb
 bin/
 bin32/
 bss-util/x64/

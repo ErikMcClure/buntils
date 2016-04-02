@@ -9,7 +9,7 @@ clean:
 	make clean -f test.mk
 
 dist: all distclean
-	tar -czf bss_util-posix.tar.gz *
+	tar -czf bss-util-posix.tar.gz *
 
 distclean:
 	make distclean -f bss-util.mk

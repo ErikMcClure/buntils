@@ -636,8 +636,8 @@ namespace bss_util {
   {
     static void F(const T& obj, std::ostream& s, char ty)
     {
-      if(obj.is<Arg>())
-        WriteUBJSON<Arg>(obj.get<Arg>(), s, ty);
+      if(obj.template is<Arg>())
+        WriteUBJSON<Arg>(obj.template get<Arg>(), s, ty);
       else
         WriteUBJSONVariantInternal<T, Args...>::F(obj, s, ty);
     }
@@ -648,8 +648,8 @@ namespace bss_util {
   {
     static void F(const T& obj, std::ostream& s, char ty)
     {
-      if(obj.is<Arg>())
-        WriteUBJSON<Arg>(obj.get<Arg>(), s, ty);
+      if(obj.template is<Arg>())
+        WriteUBJSON<Arg>(obj.template get<Arg>(), s, ty);
       else
         assert(obj.tag() != -1);
     }

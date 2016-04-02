@@ -392,7 +392,7 @@ namespace bss_util {
       double p0_cache = LENGTH(0.0, p0, p1, p2, p3);
       auto f = [&](double s) -> double { return ArcLength(s, p0, p1, p2, p3, p0_cache) - s; };
       auto fd = [&](double s) -> double { return LENGTH(s, p0, p1, p2, p3); };
-      return Bezier<T>(NewtonRaphsonBisection<double>(s, 0.0, 1.0, f, fd, FLT_EPS), p0, p1, p2, p3);
+      return Bezier(NewtonRaphsonBisection<double>(s, 0.0, 1.0, f, fd, FLT_EPS), p0, p1, p2, p3);
     }
     static inline double BSS_FASTCALL CubicInterpolate(const typename cAnimation<T, cAniCubicData<T, LENGTH>>::FRAME* v, unsigned int l, unsigned int cur, double t, const T& init)
     {

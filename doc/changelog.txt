@@ -17,7 +17,6 @@
 - Added a Newton-Raphson root finder method, and a Newton-Raphson Bisection hybrid algorithm that should converge for all well behaved functions.
 - Added cubic function solver
 - Added cubic curve and quadratic curve splitter
-- Added basic M4A container parser
 - Removed VC++ __int32 style types
 - Removed custom uint16, uint32, etc. types from bss_util namespace
 - Standardized all types to C++11 uint32_t format

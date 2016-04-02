@@ -3925,11 +3925,7 @@ TESTDEF::RETPAIR test_INISTORAGE()
   }
   
   // Due to organizational optimizations these come out in a slightly different order than in the INI, depending on when they were added.
-#ifdef BSS_COMPILER_GCC
-  TEST(!strcmp(comp,"\n[1]\nb=2\nb=1\nc=4\na=1\na=2\na=3\na=4\nc=1\nc=2\nd=1\n[1]\n[2]\n[2]\na=1\na=2\nb=1\n[2]\na=1\na=2\nb=1\n[2]"));
-#else
   TEST(!strcmp(comp,"\n[1]\nb=2\nb=1\nc=4\nc=1\nc=2\na=1\na=2\na=3\na=4\nd=1\n[1]\n[2]\na=1\na=2\nb=1\n[2]\na=1\na=2\nb=1\n[2]\n[2]"));
-#endif
 
   TEST(!remove("inistorage.ini"));
   ENDTEST;

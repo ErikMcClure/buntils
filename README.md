@@ -5,7 +5,6 @@ This is a collection of miscellaneous utility code used to simplify common tasks
 * Type safe variant object for algebriac types.
 * Allocators with a state
 * Logging
-* INI parser and serializer
 * Reference counting
 * Generalized linked list manipulation
 * Array-based linked list
@@ -29,7 +28,6 @@ This is a collection of miscellaneous utility code used to simplify common tasks
 * #defines to help deal with stupid windows.h conflicts and VC++ deprecated functions
 * Sorted array using a bisection algorithm
 * Map based on sorted array
-* Program settings management (auto-INI and command line loading)
 * Frighteningly efficient delegate implementation
 * Automatic differentiation with dual numbers
 * Fixed-point arithmetic.
@@ -56,6 +54,8 @@ This is a collection of miscellaneous utility code used to simplify common tasks
 * Includes an n-dimensional vector and matrix math library, with optimized 4x4, 3x3 and 2x2 operations.
 * Implementes the xorshift random number generation algorithm as a standards-compliant engine.
 * AA tree implementation
+* Universal object serializer
 * XML parser and serializer
 * JSON parser and serializer
 * UBJSON parser and serializer
+* INI parser and serializer

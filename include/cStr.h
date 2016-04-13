@@ -111,9 +111,9 @@ public:
   inline cStrT(const CHAR* string) : BASE(!string?CSTR_CT<T>::STREMPTY():string) { }
   inline cStrT(const CHAR* string, size_t count) : BASE(!string?CSTR_CT<T>::STREMPTY():string, count) { }
   inline cStrT(const OTHER_C* text) : BASE() { if(text!=0) _convstr(text); }
-  cStrT(unsigned short index, const CHAR* text, const CHAR delim) : BASE() //Creates a new string from the specified chunk
+  cStrT(uint16_t index, const CHAR* text, const CHAR delim) : BASE() //Creates a new string from the specified chunk
   {
-    for(unsigned short i = 0; i < index; ++i)
+    for(uint16_t i = 0; i < index; ++i)
     {
       if(text) text = CSTR_CT<T>::SCHR(text,(int)delim);  
       if(text) text++;

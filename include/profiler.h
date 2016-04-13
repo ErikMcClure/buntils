@@ -25,7 +25,7 @@
 #define PROFILE_OUTPUT(file,output) bss_util::Profiler::profiler.WriteToFile(file,output)
 #endif
 
-typedef unsigned short PROFILER_INT;
+typedef uint16_t PROFILER_INT;
 
 namespace bss_util {
   struct PROF_HEATNODE;
@@ -46,10 +46,10 @@ namespace bss_util {
     {
       const char* name;
       const char* file;
-      unsigned int line;
+      uint32_t line;
       PROFILER_INT id;
 
-      inline ProfilerData(const char* Name, const char* File, unsigned int Line) : name(Name), file(File), line(Line), id(++total) { Profiler::profiler.AddData(id, this); }
+      inline ProfilerData(const char* Name, const char* File, uint32_t Line) : name(Name), file(File), line(Line), id(++total) { Profiler::profiler.AddData(id, this); }
     };
 
     BSS_FORCEINLINE uint64_t BSS_FASTCALL StartProfile(PROFILER_INT id)
@@ -80,9 +80,9 @@ namespace bss_util {
     BSS_FORCEINLINE PROF_TRIENODE* GetRoot() { return _trie; }
     BSS_FORCEINLINE PROF_TRIENODE* GetCur() { return _cur; }
     void AddData(PROFILER_INT id, ProfilerData* p);
-    enum OUTPUT_DATA : unsigned char { OUTPUT_FLAT=1, OUTPUT_TREE=2, OUTPUT_HEATMAP=4, OUTPUT_ALL=1|2|4 };
-    void WriteToFile(const char* s, unsigned char output);
-    void WriteToStream(std::ostream& stream, unsigned char output);
+    enum OUTPUT_DATA : uint8_t { OUTPUT_FLAT=1, OUTPUT_TREE=2, OUTPUT_HEATMAP=4, OUTPUT_ALL=1|2|4 };
+    void WriteToFile(const char* s, uint8_t output);
+    void WriteToStream(std::ostream& stream, uint8_t output);
 
     static Profiler profiler;
     static const PROFILER_INT BUFSIZE=4096;
@@ -90,9 +90,9 @@ namespace bss_util {
   private:
     Profiler();
     PROF_TRIENODE* _allocnode();
-    void BSS_FASTCALL _treeout(std::ostream& stream, PROF_TRIENODE* node, PROFILER_INT id, unsigned int level, PROFILER_INT idlevel);
+    void BSS_FASTCALL _treeout(std::ostream& stream, PROF_TRIENODE* node, PROFILER_INT id, uint32_t level, PROFILER_INT idlevel);
     void BSS_FASTCALL _heatout(PROF_HEATNODE& heat, PROF_TRIENODE* node, PROFILER_INT id, PROFILER_INT idlevel);
-    void BSS_FASTCALL _heatwrite(std::ostream& stream, PROF_HEATNODE& node, unsigned int level, double max);
+    void BSS_FASTCALL _heatwrite(std::ostream& stream, PROF_HEATNODE& node, uint32_t level, double max);
     double BSS_FASTCALL _heatfindmax(PROF_HEATNODE& heat);
     static void BSS_FASTCALL _flatout(PROF_FLATOUT* avg, PROF_TRIENODE* node, PROFILER_INT id, PROFILER_INT idlevel);
     static const char* BSS_FASTCALL _trimpath(const char* path);
@@ -103,7 +103,7 @@ namespace bss_util {
     PROF_TRIENODE* _trie;
     PROF_TRIENODE* _cur;
     cBlockAlloc<PROF_TRIENODE> _alloc;
-    unsigned int _totalnodes;
+    uint32_t _totalnodes;
   };
 
   inline static bool BSS_FASTCALL __DEBUG_VERIFY(PROF_TRIENODE* node)

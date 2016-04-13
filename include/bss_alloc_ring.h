@@ -90,7 +90,7 @@ ALLOC_BEGIN:
       size_t pos = root->used.fetch_add(n, std::memory_order_acq_rel); // The position returned here is our unique allocation.
       Node* ret = (Node*)(((char*)(root + 1)) + pos);
 #ifdef BSS_DEBUG
-      unsigned char* check = (unsigned char*)ret;
+      uint8_t* check = (uint8_t*)ret;
       for(uint32_t i = 0; i < n; ++i) assert(check[i] == 0xfc);
 #endif
       ret->sz = n;

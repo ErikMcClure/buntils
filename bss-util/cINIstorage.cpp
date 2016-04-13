@@ -469,8 +469,8 @@ void cINIstorage<wchar_t>::_openINI()
 
 /*void _futfwrite(const wchar_t* source, char discard, int size, FILE* f)
 {
-  unsigned char* buf = (unsigned char*)malloc(size*sizeof(wchar_t));
+  uint8_t* buf = (uint8_t*)malloc(size*sizeof(wchar_t));
   size=UTF8Encode2BytesUnicode(source,buf);
-  fwrite(buf,sizeof(unsigned char),size,f);
+  fwrite(buf,sizeof(uint8_t),size,f);
   free(buf);
 }*/

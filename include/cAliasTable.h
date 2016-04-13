@@ -8,7 +8,7 @@
 
 namespace bss_util {
   // Implementation of the Alias method, based off Keith Schwarz's code, found here: http://www.keithschwarz.com/darts-dice-coins/
-  template<typename UINT=unsigned int, typename F=double, typename ENGINE=xorshift_engine<uint64_t>>
+  template<typename UINT=uint32_t, typename F=double, typename ENGINE=xorshift_engine<uint64_t>>
   class cAliasTable
   {
   public:

@@ -26,7 +26,7 @@ namespace bss_util {
     cMap(cMap&& mov) : cArraySort_t(std::move(mov)) {}
     //~cMap() {}
     BSS_FORCEINLINE void BSS_FASTCALL Clear() { cArraySort_t::Clear(); }
-    BSS_FORCEINLINE void BSS_FASTCALL Discard(unsigned int num) { cArraySort_t::Discard(num); }
+    BSS_FORCEINLINE void BSS_FASTCALL Discard(uint32_t num) { cArraySort_t::Discard(num); }
     BSS_FORCEINLINE CT_ BSS_FASTCALL Insert(CKEYREF key, constref data) { return cArraySort_t::Insert(pair_t(key, data)); }
     BSS_FORCEINLINE CT_ BSS_FASTCALL Insert(CKEYREF key, Data&& data) { return cArraySort_t::Insert(pair_t(key, std::move(data))); }
     inline CT_ BSS_FASTCALL Get(CKEYREF key) const { CT_ retval=GetNear(key, true); return (retval!=(CT_)(-1)&&!CompT(_array[retval].first, key))?retval:(CT_)(-1); }

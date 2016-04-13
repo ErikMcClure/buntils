@@ -85,7 +85,7 @@ void cLog::ClearTargets()
   _files.clear();
 }
 
-void BSS_FASTCALL cLog::SetLevel(unsigned char level, const char* str)
+void BSS_FASTCALL cLog::SetLevel(uint8_t level, const char* str)
 {
   if(_levels.Capacity()>=level)
     _levels.SetCapacity(level+1);

@@ -14,7 +14,7 @@ namespace bss_util {
   struct MFUNC_DEFAULT { BSS_FORCEINLINE static void BSS_FASTCALL MFunc(const T&, CT_, MFUNC_DEFAULT*) {} };
 
   // This is a binary max-heap implemented using an array. Use CompTInv to change it into a min-heap, or to make it use pairs.
-  template<class T, typename CT_=unsigned int, char(*CFunc)(const T&, const T&)=CompT<T>, ARRAY_TYPE ArrayType = CARRAY_SIMPLE, typename Alloc=StaticAllocPolicy<T>, class MFUNC = MFUNC_DEFAULT<T, CT_>>
+  template<class T, typename CT_=uint32_t, char(*CFunc)(const T&, const T&)=CompT<T>, ARRAY_TYPE ArrayType = CARRAY_SIMPLE, typename Alloc=StaticAllocPolicy<T>, class MFUNC = MFUNC_DEFAULT<T, CT_>>
   class BSS_COMPILER_DLLEXPORT cBinaryHeap : protected cDynArray<T, CT_, ArrayType, Alloc>, protected MFUNC
   {
   protected:
@@ -61,7 +61,7 @@ namespace bss_util {
     static void PercolateUp(T* _array, CT_ _length, CT_ k, U && val, cBinaryHeap* p = 0)
     {
       assert(k<_length);
-      unsigned int parent;
+      uint32_t parent;
 
       while(k > 0) {
         parent = CBH_PARENT(k);

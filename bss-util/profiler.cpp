@@ -33,7 +33,7 @@ namespace bss_util {
 
     inline PROF_HEATNODE() : avg(0.0), id(0) {}
     inline PROF_HEATNODE(PROFILER_INT ID, double Avg) : avg(Avg), id(ID) {}
-    cArraySort<PROF_HEATNODE, COMP, unsigned int, CARRAY_CONSTRUCT, HeatAllocPolicy> _children;
+    cArraySort<PROF_HEATNODE, COMP, uint32_t, CARRAY_CONSTRUCT, HeatAllocPolicy> _children;
     double avg;
     PROFILER_INT id;
   };
@@ -57,12 +57,12 @@ void Profiler::AddData(PROFILER_INT id, ProfilerData* p)
     _data.SetCapacity(id+1);
   _data[id]=p;
 }
-void Profiler::WriteToFile(const char* s, unsigned char output)
+void Profiler::WriteToFile(const char* s, uint8_t output)
 {
   std::ofstream stream(BSSPOSIX_WCHAR(s), std::ios_base::out|std::ios_base::binary|std::ios_base::trunc);
   WriteToStream(stream, output);
 }
-void Profiler::WriteToStream(std::ostream& stream, unsigned char output)
+void Profiler::WriteToStream(std::ostream& stream, uint8_t output)
 {
 #ifdef BSS_DEBUG
   if(!__DEBUG_VERIFY(_trie))
@@ -102,12 +102,12 @@ void Profiler::WriteToStream(std::ostream& stream, unsigned char output)
     _heatwrite(stream, root, -1, _heatfindmax(root));
   }
 }
-void BSS_FASTCALL Profiler::_treeout(std::ostream& stream, PROF_TRIENODE* node, PROFILER_INT id, unsigned int level, PROFILER_INT idlevel)
+void BSS_FASTCALL Profiler::_treeout(std::ostream& stream, PROF_TRIENODE* node, PROFILER_INT id, uint32_t level, PROFILER_INT idlevel)
 {
   if(!node) return;
   if(node->total != (uint64_t)-1)
   {
-    for(unsigned int i = 0; i < level*2; ++i) stream.put(' ');
+    for(uint32_t i = 0; i < level*2; ++i) stream.put(' ');
     stream << '[' << _trimpath(_data[id]->file) << ':' << _data[id]->line << "] " << _data[id]->name << ": ";
     _timeformat(stream, node->avg, 0.0, node->total);
     stream << std::endl;
@@ -147,13 +147,13 @@ double BSS_FASTCALL Profiler::_heatfindmax(PROF_HEATNODE& heat)
     max = std::max(_heatfindmax(heat._children[i]), max);
   return max;
 }
-void BSS_FASTCALL Profiler::_heatwrite(std::ostream& stream, PROF_HEATNODE& node, unsigned int level, double max)
+void BSS_FASTCALL Profiler::_heatwrite(std::ostream& stream, PROF_HEATNODE& node, uint32_t level, double max)
 {
   static const int BARLENGTH=10;
 
-  if(level!=(unsigned int)-1)
+  if(level!=(uint32_t)-1)
   {
-    for(unsigned int i = 0; i < level*2; ++i) stream.put(' ');
+    for(uint32_t i = 0; i < level*2; ++i) stream.put(' ');
     if(!node.id)
       stream << "[code]: ";
     else
@@ -163,12 +163,12 @@ void BSS_FASTCALL Profiler::_heatwrite(std::ostream& stream, PROF_HEATNODE& node
     double mag1 = pow(max, 1.0/4.0);
     double mag2 = pow(max, 2.0/4.0);
     double mag3 = pow(max, 3.0/4.0);
-    unsigned int num = fFastTruncate(std::min(node.avg/mag1, 10.0));
+    uint32_t num = fFastTruncate(std::min(node.avg/mag1, 10.0));
     num += fFastTruncate(std::min(node.avg/mag2, 10.0));
     num += fFastTruncate(std::min(node.avg/mag3, 10.0));
     char bar[BARLENGTH+1] ={};
     memset(bar, ' ', BARLENGTH);
-    for(unsigned int i = 0; i < num; ++i)
+    for(uint32_t i = 0; i < num; ++i)
     {
       switch(i/BARLENGTH)
       {

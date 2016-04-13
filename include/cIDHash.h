@@ -11,7 +11,7 @@
 
 namespace bss_util {
   // This is a simple ID hash intended for pointers, which can optionally be compressed to eliminate holes.
-  template<typename T, typename ST = unsigned int, typename Alloc=StaticAllocPolicy<T>, T INVALID=0>
+  template<typename T, typename ST = uint32_t, typename Alloc=StaticAllocPolicy<T>, T INVALID=0>
   class cIDHash : protected cArrayBase<T, ST, Alloc>
   {
     static_assert(sizeof(ST) <= sizeof(T), "T must not be smaller than ST");
@@ -97,7 +97,7 @@ namespace bss_util {
   };
 
   // This is a reversible wrapper around cIDhash that allows for two-way lookups.
-  template<typename T, typename ST = unsigned int, typename Alloc = StaticAllocPolicy<T>, T INVALID = 0, khint_t(*__hash_func)(T) = &CHASH_HELPER<T, false>::hash, bool(*__hash_equal)(T, T) = &CHASH_HELPER<T, false>::equal>
+  template<typename T, typename ST = uint32_t, typename Alloc = StaticAllocPolicy<T>, T INVALID = 0, khint_t(*__hash_func)(T) = &CHASH_HELPER<T, false>::hash, bool(*__hash_equal)(T, T) = &CHASH_HELPER<T, false>::equal>
   class cIDReverse : protected cIDHash<T, ST, Alloc, INVALID>
   {
   protected:

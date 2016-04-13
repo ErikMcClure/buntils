@@ -109,7 +109,7 @@ namespace bss_util {
   void static genxor1024seed(uint64_t x, uint64_t(&seed)[17])
   {
     xorshift64star(x);
-    for(unsigned char i = 0; i < 16; ++i)
+    for(uint8_t i = 0; i < 16; ++i)
       seed[i] = xorshift64star(x);
     seed[16]=0;
   }
@@ -252,7 +252,7 @@ namespace bss_util {
   BSS_FORCEINLINE static void for_each(T(&t)[SIZE], F func) { std::for_each(std::begin(t), std::end(t), func); }
 
   // Random queue that pops a random item instead of the last item.
-  template<typename T, typename CType = unsigned int, typename ENGINE = xorshift_engine<uint64_t>, ARRAY_TYPE ArrayType = CARRAY_SIMPLE, typename Alloc = StaticAllocPolicy<T>>
+  template<typename T, typename CType = uint32_t, typename ENGINE = xorshift_engine<uint64_t>, ARRAY_TYPE ArrayType = CARRAY_SIMPLE, typename Alloc = StaticAllocPolicy<T>>
   class BSS_COMPILER_DLLEXPORT cRandomQueue : protected cDynArray<T, CType, ArrayType, Alloc>
   {
   protected:
@@ -328,7 +328,7 @@ namespace bss_util {
     // Returns a random normally distributed number using the ziggurat method
     T Get()
     {
-      unsigned int i;
+      uint32_t i;
       T x, u, f0, f1;
       for(;;)
       {
@@ -351,20 +351,20 @@ namespace bss_util {
 
     T operator()() { return Get(); }
     ENGINE& _e;
-    std::uniform_int_distribution<unsigned int> _dist;
+    std::uniform_int_distribution<uint32_t> _dist;
     std::uniform_real_distribution<double> _rdist;
   };
 
   // Randomly subdivides a rectangular area into smaller rects of varying size. F1 takes (depth,rect) and returns how likely it is that a branch will terminate.
   template<typename T, typename F1, typename F2, typename F3> // F2 takes (const float (&rect)[4]) and is called when a branch terminates on a rect.
-  static void StochasticSubdivider(const T(&rect)[4], const F1& f1, const F2& f2, const F3& f3, unsigned int depth=0) // F3 returns a random number from [0,1]
+  static void StochasticSubdivider(const T(&rect)[4], const F1& f1, const F2& f2, const F3& f3, uint32_t depth=0) // F3 returns a random number from [0,1]
   {
     if(bssrandreal(0, 1.0)<f1(depth, rect))
     {
       f2(rect);
       return;
     }
-    unsigned char axis=depth%2;
+    uint8_t axis=depth%2;
     T div=lerp(rect[axis], rect[2+axis], f3(depth, rect));
     T r1[4] ={ rect[0], rect[1], rect[2], rect[3] };
     T r2[4] ={ rect[0], rect[1], rect[2], rect[3] };
@@ -734,10 +734,10 @@ namespace bss_util {
 
   // Uses Newton's method to find the root of F given it's derivative dF. Returns false if it fails to converge within the given error range.
   template<typename T, typename TF, typename TDF>
-  inline static bool NewtonRaphson(T& result, T estimate, TF F, TDF dF, T epsilon, unsigned int maxiterations = 20)
+  inline static bool NewtonRaphson(T& result, T estimate, TF F, TDF dF, T epsilon, uint32_t maxiterations = 20)
   {
     T x = estimate;
-    for(unsigned int i = 0; i < maxiterations; ++i)
+    for(uint32_t i = 0; i < maxiterations; ++i)
     {
       T f = F(x);
       if(fsmall(f, epsilon)) // If we're close enough to zero, return our value
@@ -752,10 +752,10 @@ namespace bss_util {
 
   // A hybrid method that combines both Newton's method and the bisection method, using the bisection method to improve the guess until Newton's method finally starts to converge.
   template<typename T, typename TF, typename TDF>
-  inline static T NewtonRaphsonBisection(T estimate, T min, T max, TF F, TDF dF, T epsilon, unsigned int maxiterations = 50)
+  inline static T NewtonRaphsonBisection(T estimate, T min, T max, TF F, TDF dF, T epsilon, uint32_t maxiterations = 50)
   {
     T x = estimate;
-    for(unsigned int i = 0; i < maxiterations; ++i)
+    for(uint32_t i = 0; i < maxiterations; ++i)
     {
       T f = F(x);
       if(fsmall(f, epsilon)) // If we're close enough to zero, return x
@@ -774,12 +774,12 @@ namespace bss_util {
     return x; // Return a good-enough value. Because we're using bisection, it has to be at least reasonably close to the root.
   }
 
-  inline static size_t BSS_FASTCALL Base64Encode(const unsigned char* src, size_t cnt, char* out)
+  inline static size_t BSS_FASTCALL Base64Encode(const uint8_t* src, size_t cnt, char* out)
   {
     size_t cn = ((cnt / 3) << 2) + (cnt % 3) + (cnt % 3 != 0);
     if(!out) return cn;
 
-    /*const unsigned int* ints = (const unsigned int*)src;
+    /*const uint32_t* ints = (const uint32_t*)src;
     size_t s = (cnt - (cnt % 12))/4;
     size_t c = 0;
     size_t i;
@@ -831,7 +831,7 @@ namespace bss_util {
     return c;
   }
 
-  inline static size_t BSS_FASTCALL Base64Decode(const char* src, size_t cnt, unsigned char* out)
+  inline static size_t BSS_FASTCALL Base64Decode(const char* src, size_t cnt, uint8_t* out)
   {
     if((cnt & 0b11) == 1) return 0; // You cannot have a legal base64 encode of this length.
     size_t cn = ((cnt >> 2) * 3) + (cnt & 0b11) - ((cnt & 0b11) != 0);
@@ -839,7 +839,7 @@ namespace bss_util {
 
     size_t i = 0;
     size_t c = 0;
-    unsigned char map[78] = { 62,0,0,52,53,54,55,56,57,58,59,60,61,0,0,0,0,0,0,0,
+    uint8_t map[78] = { 62,0,0,52,53,54,55,56,57,58,59,60,61,0,0,0,0,0,0,0,
     0,1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20,21,22,23,24,25,0,0,0,0,63,0,
     26,27,28,29,30,31,32,33,34,35,36,37,38,39,40,41,42,43,44,45,46,47,48,49,50,51 };
     size_t s = cnt & (~0b11);

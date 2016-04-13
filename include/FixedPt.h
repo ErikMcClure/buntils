@@ -8,8 +8,8 @@
 
 namespace bss_util {
   // Internal class specializations
-  template<typename T, unsigned char D, bool SATURATE> struct i_FIXED_PT_FUNC {};
-  template<typename T, unsigned char D> struct i_FIXED_PT_FUNC<T,D,false>
+  template<typename T, uint8_t D, bool SATURATE> struct i_FIXED_PT_FUNC {};
+  template<typename T, uint8_t D> struct i_FIXED_PT_FUNC<T,D,false>
   {
     static BSS_FORCEINLINE T BSS_FASTCALL fixedpt_add(T x, T y) { return x+y; }
     static BSS_FORCEINLINE T BSS_FASTCALL fixedpt_mul(T x, T y) { 
@@ -17,7 +17,7 @@ namespace bss_util {
     }
     static BSS_FORCEINLINE T BSS_FASTCALL fixedpt_div(T x, T y) { return (T)((((typename BitLimit<(sizeof(T)<<4)>::SIGNED)x)<<D)/y); }
   };
-  template<typename T, unsigned char D> struct i_FIXED_PT_FUNC<T,D,true>
+  template<typename T, uint8_t D> struct i_FIXED_PT_FUNC<T,D,true>
   {
     static const T SMIN=((BitLimit<((sizeof(T)<<3)-D)>::SIGNED_MIN_RAW)<<D);
     static const T SMAX=((BitLimit<((sizeof(T)<<3)-D)>::SIGNED_MAX)<<D);
@@ -49,7 +49,7 @@ namespace bss_util {
   };
   
   // Adaptive template based class for doing fixed-point math
-  template<unsigned char DBITS=12, typename T=int32_t, bool SATURATE=true>
+  template<uint8_t DBITS=12, typename T=int32_t, bool SATURATE=true>
   class FixedPt
   {
     static_assert(std::is_signed<T>::value, "T must be a signed integral type.");     
@@ -57,7 +57,7 @@ namespace bss_util {
   public:
     template<bool S>
     inline FixedPt(const FixedPt<DBITS,T,S>& copy) : _bits(copy._bits) {}
-    template<unsigned char D, typename U, bool S>
+    template<uint8_t D, typename U, bool S>
     inline FixedPt(const FixedPt<D,U,S>& copy) : _bits((T)SAFESHIFT(copy._bits,DBITS-D)) {}
     inline FixedPt(const T v) : _bits(v<<DBITS) {}
 		inline FixedPt(const float v) : _bits((T)(v*((float)(1<<DBITS)))) {}
@@ -69,7 +69,7 @@ namespace bss_util {
 
     template<bool S>
     inline FixedPt& BSS_FASTCALL operator=(const FixedPt<DBITS,T,S>& right) { _bits=right._bits; return *this; }
-    template<unsigned char D, typename U, bool S>
+    template<uint8_t D, typename U, bool S>
     inline FixedPt& BSS_FASTCALL operator=(const FixedPt<D,U,S>& right) { _bits=(T)SAFESHIFT(right._bits,DBITS-D); return *this; }
 
     inline const FixedPt operator -(void) const { FixedPt r(*this); r._bits=-r._bits; return r; }
@@ -95,38 +95,38 @@ namespace bss_util {
     T _bits;
   };
   
-  template<unsigned char D, typename T, bool S>
+  template<uint8_t D, typename T, bool S>
   inline float operator+(const float l,const FixedPt<D,T,S>& r) { return l+(float)r; }
-  template<unsigned char D, typename T, bool S>
+  template<uint8_t D, typename T, bool S>
   inline double operator+(const double l,const FixedPt<D,T,S>& r) { return l+(double)r; }
-  template<unsigned char D, typename T, bool S>
+  template<uint8_t D, typename T, bool S>
   inline float operator-(const float l,const FixedPt<D,T,S>& r) { return l-(float)r; }
-  template<unsigned char D, typename T, bool S>
+  template<uint8_t D, typename T, bool S>
   inline double operator-(const double l,const FixedPt<D,T,S>& r) { return l-(double)r; }
-  template<unsigned char D, typename T, bool S>
+  template<uint8_t D, typename T, bool S>
   inline float operator*(const float l,const FixedPt<D,T,S>& r) { return l*(float)r; }
-  template<unsigned char D, typename T, bool S>
+  template<uint8_t D, typename T, bool S>
   inline double operator*(const double l,const FixedPt<D,T,S>& r) { return l*(double)r; }
-  template<unsigned char D, typename T, bool S>
+  template<uint8_t D, typename T, bool S>
   inline float operator/(const float l,const FixedPt<D,T,S>& r) { return l/(float)r; }
-  template<unsigned char D, typename T, bool S>
+  template<uint8_t D, typename T, bool S>
   inline double operator/(const double l,const FixedPt<D,T,S>& r) { return l/(double)r; }
   
-  template<unsigned char D, typename T, bool S>
+  template<uint8_t D, typename T, bool S>
   inline float& operator+=(float& l,const FixedPt<D,T,S>& r) { return l+=(float)r; }
-  template<unsigned char D, typename T, bool S>
+  template<uint8_t D, typename T, bool S>
   inline double& operator+=(double& l,const FixedPt<D,T,S>& r) { return l+=(double)r; }
-  template<unsigned char D, typename T, bool S>
+  template<uint8_t D, typename T, bool S>
   inline float& operator-=(float& l,const FixedPt<D,T,S>& r) { return l-=(float)r; }
-  template<unsigned char D, typename T, bool S>
+  template<uint8_t D, typename T, bool S>
   inline double& operator-=(double& l,const FixedPt<D,T,S>& r) { return l-=(double)r; }
-  template<unsigned char D, typename T, bool S>
+  template<uint8_t D, typename T, bool S>
   inline float& operator*=(float& l,const FixedPt<D,T,S>& r) { return l*=(float)r; }
-  template<unsigned char D, typename T, bool S>
+  template<uint8_t D, typename T, bool S>
   inline double& operator*=(double& l,const FixedPt<D,T,S>& r) { return l*=(double)r; }
-  template<unsigned char D, typename T, bool S>
+  template<uint8_t D, typename T, bool S>
   inline float& operator/=(float& l,const FixedPt<D,T,S>& r) { return l/=(float)r; }
-  template<unsigned char D, typename T, bool S>
+  template<uint8_t D, typename T, bool S>
   inline double& operator/=(double& l,const FixedPt<D,T,S>& r) { return l/=(double)r; }
 }
 

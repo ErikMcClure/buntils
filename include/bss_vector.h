@@ -526,8 +526,8 @@ namespace bss_util {
   template<>
   struct BSS_COMPILER_DLLEXPORT __MatrixDeterminant<float, 4>
   {
-    template<unsigned char I>
-    BSS_FORCEINLINE static __m128 _mm_ror_ps(__m128 vec) { return (((I)%4) ? (_mm_shuffle_ps(vec, vec, _MM_SHUFFLE((unsigned char)(I+3)%4, (unsigned char)(I+2)%4, (unsigned char)(I+1)%4, (unsigned char)(I+0)%4))) : vec); }
+    template<uint8_t I>
+    BSS_FORCEINLINE static __m128 _mm_ror_ps(__m128 vec) { return (((I)%4) ? (_mm_shuffle_ps(vec, vec, _MM_SHUFFLE((uint8_t)(I+3)%4, (uint8_t)(I+2)%4, (uint8_t)(I+1)%4, (uint8_t)(I+0)%4))) : vec); }
     BSS_FORCEINLINE static float BSS_FASTCALL MD(const float(&x)[4][4]) {
       //   Copyright (c) 2001 Intel Corporation.
       //

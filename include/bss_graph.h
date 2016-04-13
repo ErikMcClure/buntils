@@ -19,11 +19,11 @@ namespace bss_util {
   struct BSS_COMPILER_DLLEXPORT VoidData<void> {};
 
   // DAG edge
-  template<typename E, typename CT = unsigned short>
+  template<typename E, typename CT = uint16_t>
   struct BSS_COMPILER_DLLEXPORT Edge : LLBase<Edge<E, CT>>, VoidData<E> { CT to; CT from; LLBase<Edge<E, CT>> alt; };
 
   // Node for a DAG.
-  template<typename E, typename V, typename CT = unsigned short>
+  template<typename E, typename V, typename CT = uint16_t>
   struct BSS_COMPILER_DLLEXPORT Node : VoidData<V> { Edge<E, CT>* to; Edge<E, CT>* from; };
 
   template<typename E> struct __Graph__InternalEdge {
@@ -49,7 +49,7 @@ namespace bss_util {
   };
 
   // Represents a graph using an adjacency list. Converts to and from an adjacency matrix representation.
-  template<typename E, typename V, typename CT = unsigned short, typename ALLOC = BlockPolicy<Edge<E, CT>>, typename NODEALLOC = StaticAllocPolicy<LINKEDNODE<Node<E, V, CT>, CT>>, ARRAY_TYPE ArrayType = CARRAY_SIMPLE>
+  template<typename E, typename V, typename CT = uint16_t, typename ALLOC = BlockPolicy<Edge<E, CT>>, typename NODEALLOC = StaticAllocPolicy<LINKEDNODE<Node<E, V, CT>, CT>>, ARRAY_TYPE ArrayType = CARRAY_SIMPLE>
   class Graph : public cAllocTracker<ALLOC>, protected __Graph__InternalEdge<E>, protected __Graph__InternalVertex<V, CT>
   {
     static BSS_FORCEINLINE bool _basecheck(const char* b) { return (*b) != 0; }

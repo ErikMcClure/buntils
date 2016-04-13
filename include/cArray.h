@@ -12,12 +12,12 @@ namespace bss_util {
   template<class T, typename CType = size_t>
   struct BSS_COMPILER_DLLEXPORT cArraySlice
   {
-    cArraySlice(const cArraySlice& copy) : begin(copy.begin), length(copy.length) {}
-    cArraySlice(T* b, CType l) : begin(b), length(l) { }
+    cArraySlice(const cArraySlice& copy) : start(copy.start), length(copy.length) {}
+    cArraySlice(T* s, CType l) : start(s), length(l) { }
     cArraySlice() {}
-    inline cArraySlice& operator=(const cArraySlice& right) { begin = right.begin; length = right.length; return *this; }
-    inline cArraySlice& operator++() { assert(length > 0); ++begin; --length; return *this; }
-    inline cArraySlice operator++(int) { assert(length > 0); return cArraySlice(begin + 1, length - 1); }
+    inline cArraySlice& operator=(const cArraySlice& right) { start = right.start; length = right.length; return *this; }
+    inline cArraySlice& operator++() { assert(length > 0); ++start; --length; return *this; }
+    inline cArraySlice operator++(int) { assert(length > 0); return cArraySlice(start + 1, length - 1); }
     inline cArraySlice operator()(CType start) { return operator()(start, length); }
     inline cArraySlice operator()(CType start, CType end)
     { 
@@ -26,12 +26,24 @@ namespace bss_util {
       start = bssmod(start, length);
       if(end <= 0) end = length - end;
       assert(end >= start);
-      return cArraySlice(begin + start, end - start);
+      return cArraySlice(start + start, end - start);
     }
+    inline bool operator!() const { return !start || !length; }
+    inline operator bool() const { return Valid(); }
 
-    inline operator cArraySlice<const T, CType>() const { return cArraySlice<const T, CType>(begin, length); }
+    BSS_FORCEINLINE bool Valid() const { return start != 0 && length != 0; }
+    BSS_FORCEINLINE const T& Front() const { assert(_length>0); return start[0]; }
+    BSS_FORCEINLINE const T& Back() const { assert(_length>0); return start[length - 1]; }
+    BSS_FORCEINLINE T& Front() { assert(_length>0); return start[0]; }
+    BSS_FORCEINLINE T& Back() { assert(_length>0); return start[length - 1]; }
+    BSS_FORCEINLINE const T* begin() const noexcept { return start; }
+    BSS_FORCEINLINE const T* end() const noexcept { return start + length; }
+    BSS_FORCEINLINE T* begin() noexcept { return start; }
+    BSS_FORCEINLINE T* end() noexcept { return start + length; }
 
-    T* begin;
+    inline operator cArraySlice<const T, CType>() const { return cArraySlice<const T, CType>(start, length); }
+
+    T* start;
     CType length;
   };
 

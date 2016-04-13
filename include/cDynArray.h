@@ -24,7 +24,7 @@ namespace bss_util {
   public:
     inline cDynArray(const cDynArray& copy) : AT_(copy._capacity), _length(copy._length) { BASE::_copy(_array, copy._array, _length); }
     inline cDynArray(cDynArray&& mov) : AT_(std::move(mov)), _length(mov._length) { mov._length = 0; }
-    inline cDynArray(const cArraySlice<const T, CType>& slice) : AT_(slice.length), _length(slice.length) { BASE::_copy(_array, slice.begin, slice.length); }
+    inline cDynArray(const cArraySlice<const T, CType>& slice) : AT_(slice.length), _length(slice.length) { BASE::_copy(_array, slice.start, slice.length); }
     inline explicit cDynArray(CT_ capacity=0) : AT_(capacity), _length(0) {}
     inline cDynArray(const std::initializer_list<T> list) : AT_(list.size()), _length(0)
     {
@@ -64,11 +64,11 @@ namespace bss_util {
     BSS_FORCEINLINE const T_& Back() const { assert(_length>0); return _array[_length-1]; }
     BSS_FORCEINLINE T_& Front() { assert(_length>0); return _array[0]; }
     BSS_FORCEINLINE T_& Back() { assert(_length>0); return _array[_length-1]; }
-    BSS_FORCEINLINE const T_* begin() const { return _array; }
-    BSS_FORCEINLINE const T_* end() const { return _array+_length; }
-    BSS_FORCEINLINE T_* begin() { return _array; }
-    BSS_FORCEINLINE T_* end() { return _array+_length; }
-
+    BSS_FORCEINLINE const T_* begin() const noexcept { return _array; }
+    BSS_FORCEINLINE const T_* end() const noexcept { return _array+_length; }
+    BSS_FORCEINLINE T_* begin() noexcept { return _array; }
+    BSS_FORCEINLINE T_* end() noexcept { return _array+_length; }
+    BSS_FORCEINLINE cArraySlice<T_, CT_> GetSlice() const noexcept { return AT_::GetSlice(); }
     BSS_FORCEINLINE operator T_*() { return _array; }
     BSS_FORCEINLINE operator const T_*() const { return _array; }
     inline cDynArray& operator=(const cArray<T, CType, ArrayType, Alloc>& copy)
@@ -96,7 +96,7 @@ namespace bss_util {
       BASE::_setlength(_array, _length, 0);
       if(copy.length > _capacity)
         AT_::SetCapacityDiscard(copy.length);
-      BASE::_copy(_array, copy.begin, copy.length);
+      BASE::_copy(_array, copy.start, copy.length);
       _length = copy.length;
       return *this;
     }

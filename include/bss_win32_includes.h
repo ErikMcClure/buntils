@@ -7,7 +7,7 @@
 #pragma pack(8)
 #define WINVER 0x0501 //_WIN32_WINNT_WINXP   
 #define _WIN32_WINNT 0x0501
-#define NTDDI_VERSION 0x05010000 //NTDDI_WINXP
+#define NTDDI_VERSION 0x05010300 //NTDDI_WINXPSP3 
 #define WIN32_LEAN_AND_MEAN
 #ifndef NOMINMAX // Some compilers enable this by default
 #define NOMINMAX

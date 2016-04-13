@@ -35,10 +35,12 @@ namespace bss_util {
     inline T& Front() { return _array.Front(); }
     inline const T& Back() const { return _array.Back(); }
     inline T& Back() { return _array.Back(); }
-    inline const T* begin() const { return _array.begin(); }
-    inline const T* end() const { return _array.end(); }
-    inline T* begin() { return _array.begin(); }
-    inline T* end() { return _array.end(); }
+    inline const T* begin() const noexcept { return _array.begin(); }
+    inline const T* end() const noexcept { return _array.end(); }
+    inline T* begin() noexcept { return _array.begin(); }
+    inline T* end() noexcept { return _array.end(); }
+    BSS_FORCEINLINE cArraySlice<T, CT_> GetSlice() const noexcept { return _array.GetSlice(); }
+
     CT_ BSS_FASTCALL ReplaceData(CT_ index, constref data)
     {
       T swap;
@@ -57,16 +59,19 @@ namespace bss_util {
       }
       return index;
     }
+
     inline bool BSS_FASTCALL Remove(CT_ index)
     {
       if(index >= _array.Length()) return false;
       _array.Remove(index);
       return true;
     }
+
     BSS_FORCEINLINE CT_ BSS_FASTCALL Find(constref data) const
     {
       return binsearch_exact<T, T, CT_, CFunc>(_array, data, 0, _array.Length());
     }
+
     // Can actually return -1 if there isn't anything in the array
     inline CT_ BSS_FASTCALL FindNear(constref data, bool before=true) const
     {

@@ -23,7 +23,6 @@
 #include "cBinaryHeap.h"
 #include "cBitField.h"
 #include "cBitStream.h"
-#include "cDef.h"
 #include "cDisjointSet.h"
 #include "cDynArray.h"
 #include "cFXAni.h"
@@ -40,7 +39,7 @@
 #include "cRational.h"
 #include "cRefCounter.h"
 #include "cScheduler.h"
-//#include "cSettings.h"
+#include "cSerializer.h"
 #include "cSingleton.h"
 #include "cSmartPtr.h"
 #include "cStr.h"
@@ -3985,17 +3984,41 @@ TESTDEF::RETPAIR test_KDTREE()
   ENDTEST;
 }
 
+struct SerializerTest
+{
+  int a;
+  float b;
+  const char* c;
+
+  template<typename Engine>
+  void Serialize(cSerializer<Engine>& e)
+  {
+    e.EvaluateType<SerializerTest>(
+      GenPair("a", a),
+      GenPair("b", b),
+      GenPair("c", c)
+      );
+  }
+};
+
+TESTDEF::RETPAIR test_Serializer()
+{
+  BEGINTEST;
+  cSerializer<EmptyEngine> s;
+  SerializerTest test;
+  s.Serialize(test, std::cout, "");
+  s.Parse(test, std::cin, "");
+  ENDTEST;
+}
+
 struct JSONtest2
 {
   cDynArray<JSONtest2, unsigned int, CARRAY_SAFE> value;
-  void EvalJSON(const char* name, std::istream& s)
+
+  template<typename Engine>
+  void Serialize(cSerializer<Engine>& s)
   {
-    if(!strcmp(name, "value"))
-      ParseJSON(value, s);
-  }
-  void SerializeJSON(std::ostream& s, unsigned int& pretty) const
-  {
-    WriteJSON("value", value, s, pretty);
+    s.EvaluateType<JSONtest2>(GenPair("value", value));
   }
 };
 
@@ -4004,9 +4027,6 @@ struct JSONtest
   int64_t a;
   unsigned short b;
   double c;
-  bool btrue;
-  bool bfalse;
-  float fixed[3];
   cStr test;
   JSONtest2 nested;
   cDynArray<unsigned short> foo;
@@ -4014,43 +4034,28 @@ struct JSONtest
   cDynArray<cStr, unsigned short, CARRAY_SAFE> foobar;
   cDynArray<JSONtest, unsigned int, CARRAY_SAFE> nestarray;
   JSONtest2 nested2;
+  bool btrue;
+  bool bfalse;
+  float fixed[3];
 
-  void EvalJSON(const char* name, std::istream& s)
+  template<typename Engine>
+  void Serialize(cSerializer<Engine>& s)
   {
-    static cTrie<unsigned char> t(13, "a", "b", "c", "test", "nested", "foo", "bar", "foobar", "nestarray", "nested2", "btrue", "bfalse", "fixed");
-    switch(t[name])
-    {
-    case 0: ParseJSON(a, s); break;
-    case 1: ParseJSON(b, s); break;
-    case 2: ParseJSON(c, s); break;
-    case 3: ParseJSON(test, s); break;
-    case 4: ParseJSON(nested, s); break;
-    case 5: ParseJSON(foo, s); break;
-    case 6: ParseJSON(bar, s); break;
-    case 7: ParseJSON(foobar, s); break;
-    case 8: ParseJSON(nestarray, s); break;
-    case 9: ParseJSON(nested2, s); break;
-    case 10: ParseJSON(btrue, s); break;
-    case 11: ParseJSON(bfalse, s); break;
-    case 12: ParseJSON(fixed, s); break;
-    }
-  }
-
-  void SerializeJSON(std::ostream& s, unsigned int& pretty) const
-  {
-    WriteJSON("a", a, s, pretty);
-    WriteJSON("b", b, s, pretty);
-    WriteJSON("c", c, s, pretty);
-    WriteJSON("test", test, s, pretty);
-    WriteJSON("nested", nested, s, pretty);
-    WriteJSON("foo", foo, s, pretty);
-    WriteJSON("bar", bar, s, pretty);
-    WriteJSON("foobar", foobar, s, pretty);
-    WriteJSON("nestarray", nestarray, s, pretty);
-    WriteJSON("nested2", nested2, s, pretty);
-    WriteJSON("btrue", btrue, s, pretty);
-    WriteJSON("bfalse", bfalse, s, pretty);
-    WriteJSON("fixed", fixed, s, pretty);
+    s.EvaluateType<JSONtest>(
+      GenPair("a", a),
+      GenPair("b", b),
+      GenPair("c", c),
+      GenPair("test", test),
+      GenPair("nested", nested),
+      GenPair("foo", foo),
+      GenPair("bar", bar),
+      GenPair("foobar", foobar),
+      GenPair("nestarray", nestarray),
+      GenPair("nested2", nested2),
+      GenPair("btrue", btrue),
+      GenPair("bfalse", bfalse),
+      GenPair("fixed", fixed)
+      );
   }
 };
 
@@ -4213,28 +4218,24 @@ struct ubjsontest2
   cStr c;
   double d;
 
-  void EvalUBJSON(const char* id, std::istream& s, char ty)
+  template<typename Engine>
+  void Serialize(cSerializer<Engine>& e)
   {
-    static cTrie<unsigned char> t(3, "a", "c", "d");
-    switch(t[id])
-    {
-    case 0: ParseUBJSON(a, s, ty); break;
-    case 1: ParseUBJSON(c, s, ty); break;
-    case 2: ParseUBJSON(d, s, ty); break;
-    }
+    e.EvaluateType<ubjsontest2>(
+      GenPair("a", a),
+      GenPair("c", c),
+      GenPair("d", d)
+      );
   }
-  bool SerializeUBJSON(std::ostream& s) const
-  {
-    WriteUBJSON("a", a, s);
-    WriteUBJSON("c", c, s);
-    WriteUBJSON("d", d, s);
-    return true;
-  }
+};
+
+enum TEST_ENUM : char {
+  TEST_ENUM_VALUE = 1
 };
 
 struct ubjsontest
 {
-  char a;
+  TEST_ENUM a;
   short b;
   int c;
   int64_t d;
@@ -4253,52 +4254,29 @@ struct ubjsontest
   cDynArray<cStr, size_t, CARRAY_SAFE> w;
   cDynArray<ubjsontest2, size_t, CARRAY_SAFE> z;
 
-  void EvalUBJSON(const char* id, std::istream& s, char ty)
+  template<typename Engine>
+  void Serialize(cSerializer<Engine>& engine)
   {
-    static cTrie<unsigned char> t(18, "a", "b", "c", "d", "e", "f", "g", "h", "i", "x", "y", "p", "m", "n", "u", "v", "w", "z");
-    switch(t[id])
-    {
-    case 0: ParseUBJSON(a, s, ty); break;
-    case 1: ParseUBJSON(b, s, ty); break;
-    case 2: ParseUBJSON(c, s, ty); break;
-    case 3: ParseUBJSON(d, s, ty); break;
-    case 4: ParseUBJSON(e, s, ty); break;
-    case 5: ParseUBJSON(f, s, ty); break;
-    case 6: ParseUBJSON(g, s, ty); break;
-    case 7: ParseUBJSON(h, s, ty); break;
-    case 8: ParseUBJSON(i, s, ty); break;
-    case 9: ParseUBJSON(x, s, ty); break;
-    case 10: ParseUBJSON(y, s, ty); break;
-    case 11: ParseUBJSON(p, s, ty); break;
-    case 12: ParseUBJSON(m, s, ty); break;
-    case 13: ParseUBJSON(n, s, ty); break;
-    case 14: ParseUBJSON(u, s, ty); break;
-    case 15: ParseUBJSON(v, s, ty); break;
-    case 16: ParseUBJSON(w, s, ty); break;
-    case 17: ParseUBJSON(z, s, ty); break;
-    }
-  }
-  bool SerializeUBJSON(std::ostream& s) const
-  {
-    WriteUBJSON("a", a, s);
-    WriteUBJSON("b", b, s);
-    WriteUBJSON("c", c, s);
-    WriteUBJSON("d", d, s);
-    WriteUBJSON("e", e, s);
-    WriteUBJSON("f", f, s);
-    WriteUBJSON("g", g, s);
-    WriteUBJSON("h", h, s);
-    WriteUBJSON("i", i, s);
-    WriteUBJSON("x", x, s);
-    WriteUBJSON("y", y, s);
-    WriteUBJSON("p", p, s);
-    WriteUBJSON("m", m, s);
-    WriteUBJSON("n", n, s);
-    WriteUBJSON("u", u, s);
-    WriteUBJSON("v", v, s);
-    WriteUBJSON("w", w, s);
-    WriteUBJSON("z", z, s);
-    return true;
+    engine.EvaluateType<ubjsontest>(
+      GenPair("a", (char&)a),
+      GenPair("b", b),
+      GenPair("c", c),
+      GenPair("d", d),
+      GenPair("e", e),
+      GenPair("f", f),
+      GenPair("g", g),
+      GenPair("h", h),
+      GenPair("i", i),
+      GenPair("x", x),
+      GenPair("y", y),
+      GenPair("p", p),
+      GenPair("m", m),
+      GenPair("n", n),
+      GenPair("u", u),
+      GenPair("v", v),
+      GenPair("w", w),
+      GenPair("z", z)
+      );
   }
 };
 
@@ -4347,7 +4325,7 @@ void VerifyUBJSON(const ubjsontest& t1, const ubjsontest& t2, TESTDEF::RETPAIR& 
 TESTDEF::RETPAIR test_UBJSON()
 {
   BEGINTEST;
-  ubjsontest t1 = { 1, -2, 3, -4, 253, 30000, 7, 8,
+  ubjsontest t1 = { TEST_ENUM_VALUE, -2, 3, -4, 253, 30000, 7, 8,
   {9, "foo", 10.0}, 11.0f, 12.0, "bar", 
   {13, 14, 15}, 
   {"fizz", "buzz"}, 
@@ -4371,7 +4349,7 @@ TESTDEF::RETPAIR test_UBJSON()
 
   std::fstream fsi2("out.ubj", std::ios_base::in | std::ios_base::binary);
   UBJSONValue val;
-  ParseUBJSON<UBJSONValue>(val, fsi2, 0);
+  ParseUBJSON<UBJSONValue>(val, fsi2);
   fsi2.close();
   TEST(val.is<UBJSONValue::UBJSONObject>());
   auto& var1 = val.get<UBJSONValue::UBJSONObject>();
@@ -4942,27 +4920,6 @@ TESTDEF::RETPAIR test_REFCOUNTER()
   REF_TEST* c = new REF_TEST(__testret);
   c->Grab();
   c->Drop();
-  ENDTEST;
-}
-
-#define INSTANTIATE_SETTINGS
-#include "cSettings.h"
-
-DECL_SETGROUP(0,"main");
-DECL_SETTING(0,0,float,0.0f,"ANIME");
-DECL_SETTING(0,1,int,0,"MANGA");
-DECL_SETTING(0,2,double,0.0,"pow");
-DECL_SETGROUP(1,"submain");
-DECL_SETTING(1,0,float,15.0f,"zip");
-DECL_SETTING(1,1,int,5,"poofers");
-DECL_SETTING(1,2,std::vector<cStr>,std::vector<cStr>(),"lots");
-DECL_SETTING(1,3,std::vector<int64_t>,std::vector<int64_t>(),"intlots");
-
-TESTDEF::RETPAIR test_SETTINGS()
-{
-  BEGINTEST;
-  cSettingManage<1,0>::LoadAllFromINI(cINIstorage("test.ini"));
-  cSettingManage<1,0>::SaveAllToINI(cINIstorage("test.ini"));
   ENDTEST;
 }
 
@@ -5770,7 +5727,6 @@ int main(int argc, char** argv)
     { "cPriorityQueue.h", &test_PRIORITYQUEUE },
     { "cRational.h", &test_RATIONAL },
     { "cRefCounter.h", &test_REFCOUNTER },
-    { "cSettings.h", &test_SETTINGS },
     { "cSingleton.h", &test_SINGLETON },
     { "cStr.h", &test_STR },
     { "cStrTable.h", &test_STRTABLE },

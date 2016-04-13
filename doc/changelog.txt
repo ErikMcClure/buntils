@@ -2,6 +2,14 @@
 * Black Sphere Studios Utility Library Changelog *
 **************************************************
 
+0.4.6
+-----
+- Added override specifiers whenever possible
+- Removed cDef.h
+- Added iteration to cArraySlice, added more GetSlice methods
+- Removed cSettings.h
+- Added a universal serializer as cSerializer.h, and changed JSON and UBJSON to serializer engines
+
 0.4.5
 -----
 - Added variant class, an algebriac data type implemented in variant.h

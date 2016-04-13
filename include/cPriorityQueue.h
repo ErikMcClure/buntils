@@ -8,7 +8,7 @@
 
 namespace bss_util {
   // PriorityQueue that can be implemented as either a maxheap or a minheap
-  template<typename K, typename D, char(*CFunc)(const K&, const K&)=CompT<K>, typename CT_=unsigned int, ARRAY_TYPE ArrayType = CARRAY_SIMPLE, typename Alloc=StaticAllocPolicy<std::pair<K, D>>>
+  template<typename K, typename D, char(*CFunc)(const K&, const K&)=CompT<K>, typename CT_=uint32_t, ARRAY_TYPE ArrayType = CARRAY_SIMPLE, typename Alloc=StaticAllocPolicy<std::pair<K, D>>>
   class BSS_COMPILER_DLLEXPORT cPriorityQueue : protected cBinaryHeap<std::pair<K, D>, CT_, CompTFirst<std::pair<K, D>, CFunc>, ArrayType, Alloc>
   {
     typedef std::pair<K, D> PAIR;
@@ -40,7 +40,7 @@ namespace bss_util {
     cArray<CT_, CT_> _subarray;
   };
 
-  template<typename D, typename CT_ = unsigned int, char(*CFunc)(const D&, const D&) = CompT<D>,  ARRAY_TYPE ArrayType = CARRAY_SIMPLE, typename Alloc = StaticAllocPolicy<std::pair<CT_, D>>>
+  template<typename D, typename CT_ = uint32_t, char(*CFunc)(const D&, const D&) = CompT<D>,  ARRAY_TYPE ArrayType = CARRAY_SIMPLE, typename Alloc = StaticAllocPolicy<std::pair<CT_, D>>>
   class BSS_COMPILER_DLLEXPORT cPriorityHeap : protected cBinaryHeap<std::pair<CT_, D>, CT_, CompTSecond<std::pair<CT_, D>, CFunc>, ArrayType, Alloc, MFUNC_PRIORITY<std::pair<CT_, D>, CT_>>
   {
     typedef std::pair<CT_, D> PAIR;

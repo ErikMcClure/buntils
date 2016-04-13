@@ -111,7 +111,7 @@ namespace bss_util {
     union
     {
       char Int8;
-      unsigned char UInt8;
+      uint8_t UInt8;
       short Int16;
       int32_t Int32;
       int64_t Int64;
@@ -140,11 +140,11 @@ namespace bss_util {
     inline static constexpr const BASE&& f(std::remove_reference<const UBJSONValue>::type&& r) { return (static_cast<const BASE&&>(r)); }
   };
 
-  struct UBJSONValue : variant<cStr, bool, uint8_t, char, int16_t, int32_t, int64_t, float, double, cDynArray<UBJSONValue, size_t, CARRAY_SAFE>, cDynArray<std::pair<cStr, UBJSONValue>, size_t, CARRAY_SAFE>, cDynArray<unsigned char, size_t>>
+  struct UBJSONValue : variant<cStr, bool, uint8_t, char, int16_t, int32_t, int64_t, float, double, cDynArray<UBJSONValue, size_t, CARRAY_SAFE>, cDynArray<std::pair<cStr, UBJSONValue>, size_t, CARRAY_SAFE>, cDynArray<uint8_t, size_t>>
   {
     typedef cDynArray<UBJSONValue, size_t, CARRAY_SAFE> UBJSONArray;
     typedef cDynArray<std::pair<cStr, UBJSONValue>, size_t, CARRAY_SAFE> UBJSONObject;
-    typedef cDynArray<unsigned char, size_t> UBJSONBinary;
+    typedef cDynArray<uint8_t, size_t> UBJSONBinary;
     typedef variant<cStr, bool, uint8_t, char, int16_t, int32_t, int64_t, float, double, UBJSONArray, UBJSONObject, UBJSONBinary> BASE;
 
   public:
@@ -222,7 +222,7 @@ namespace bss_util {
       {
       case UBJSONTuple::TYPE_CHAR: // you aren't supposed to do this but we'll deal with it anyway
       case UBJSONTuple::TYPE_INT8: ret = ParseUBJSONInteger<char>(s); break;
-      case UBJSONTuple::TYPE_UINT8: ret = ParseUBJSONInteger<unsigned char>(s); break;
+      case UBJSONTuple::TYPE_UINT8: ret = ParseUBJSONInteger<uint8_t>(s); break;
       case UBJSONTuple::TYPE_INT16: ret = ParseUBJSONInteger<short>(s); break;
       case UBJSONTuple::TYPE_INT32: ret = ParseUBJSONInteger<int32_t>(s); break;
       case UBJSONTuple::TYPE_INT64: ret = ParseUBJSONInteger<int64_t>(s); break;
@@ -261,7 +261,7 @@ namespace bss_util {
       return;
     case UBJSONTuple::TYPE_CHAR:
     case UBJSONTuple::TYPE_INT8: tuple.Int8 = ParseUBJSONInteger<char>(s); break;
-    case UBJSONTuple::TYPE_UINT8: tuple.UInt8 = ParseUBJSONInteger<unsigned char>(s); break;
+    case UBJSONTuple::TYPE_UINT8: tuple.UInt8 = ParseUBJSONInteger<uint8_t>(s); break;
     case UBJSONTuple::TYPE_INT16: tuple.Int16 = ParseUBJSONInteger<short>(s); break;
     case UBJSONTuple::TYPE_INT32: tuple.Int32 = ParseUBJSONInteger<int32_t>(s); break;
     case UBJSONTuple::TYPE_INT64: tuple.Int64 = ParseUBJSONInteger<int64_t>(s); break;
@@ -551,7 +551,7 @@ namespace bss_util {
       switch(type)
       {
       case 0:
-        if(!WriteUBJSONSpecificInt<unsigned char, T>(obj, s, UBJSONTuple::TYPE_UINT8) &&
+        if(!WriteUBJSONSpecificInt<uint8_t, T>(obj, s, UBJSONTuple::TYPE_UINT8) &&
           !WriteUBJSONSpecificInt<char, T>(obj, s, UBJSONTuple::TYPE_INT8) &&
           !WriteUBJSONSpecificInt<short, T>(obj, s, UBJSONTuple::TYPE_INT16) &&
           !WriteUBJSONSpecificInt<int32_t, T>(obj, s, UBJSONTuple::TYPE_INT32) &&
@@ -563,7 +563,7 @@ namespace bss_util {
         break;
       case UBJSONTuple::TYPE_CHAR:
       case UBJSONTuple::TYPE_INT8: WriteUBJSONInteger<char>((char)obj, s); break;
-      case UBJSONTuple::TYPE_UINT8: WriteUBJSONInteger<unsigned char>((unsigned char)obj, s); break;
+      case UBJSONTuple::TYPE_UINT8: WriteUBJSONInteger<uint8_t>((uint8_t)obj, s); break;
       case UBJSONTuple::TYPE_INT16: WriteUBJSONInteger<short>((short)obj, s); break;
       case UBJSONTuple::TYPE_INT32: WriteUBJSONInteger<int32_t>((int32_t)obj, s); break;
       case UBJSONTuple::TYPE_INT64: WriteUBJSONInteger<int64_t>((int64_t)obj, s); break;
@@ -573,7 +573,7 @@ namespace bss_util {
   };
 
   template<class T> struct WriteUBJSONType { static const char t = UBJSONTuple::TYPE_OBJECT; };
-  template<> struct WriteUBJSONType<unsigned char> { static const char t = UBJSONTuple::TYPE_UINT8; };
+  template<> struct WriteUBJSONType<uint8_t> { static const char t = UBJSONTuple::TYPE_UINT8; };
   template<> struct WriteUBJSONType<char> { static const char t = UBJSONTuple::TYPE_INT8; };
   template<> struct WriteUBJSONType<bool> { static const char t = 0; };
   template<> struct WriteUBJSONType<short> { static const char t = UBJSONTuple::TYPE_INT16; };
@@ -628,7 +628,7 @@ namespace bss_util {
       s.write(data, size*sizeof(E)); //sizeof(E) should be 1 here but we multiply it anyway
     else
     {
-      for(unsigned int i = 0; i < size; ++i)
+      for(uint32_t i = 0; i < size; ++i)
         WriteUBJSONBase<E>(e, obj[i], s, type);
     }
   }

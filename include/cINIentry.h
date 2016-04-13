@@ -18,7 +18,7 @@ namespace bss_util {
     ~cINIentry();
     void SetData(const char* data);
     BSS_FORCEINLINE const char* GetKey() const { return _key; }
-    //BSS_FORCEINLINE unsigned int GetIndex() const { return _index; }
+    //BSS_FORCEINLINE uint32_t GetIndex() const { return _index; }
     BSS_FORCEINLINE const char* GetString() const { return _svalue; }
     BSS_FORCEINLINE int64_t GetInt() const { return _ivalue; }
     BSS_FORCEINLINE double GetDouble() const { return _dvalue; }
@@ -30,9 +30,9 @@ namespace bss_util {
     BSS_FORCEINLINE operator int() const { return (int)_ivalue; }
     BSS_FORCEINLINE operator long() const { return (long)_ivalue; }
     BSS_FORCEINLINE operator int64_t() const { return (int64_t)_ivalue; }
-    BSS_FORCEINLINE operator unsigned char() const { return (unsigned char)_ivalue; }
-    BSS_FORCEINLINE operator unsigned short() const { return (unsigned short)_ivalue; }
-    BSS_FORCEINLINE operator unsigned int() const { return (unsigned int)_ivalue; }
+    BSS_FORCEINLINE operator uint8_t() const { return (uint8_t)_ivalue; }
+    BSS_FORCEINLINE operator uint16_t() const { return (uint16_t)_ivalue; }
+    BSS_FORCEINLINE operator uint32_t() const { return (uint32_t)_ivalue; }
     BSS_FORCEINLINE operator unsigned long() const { return (unsigned long)_ivalue; }
     BSS_FORCEINLINE operator uint64_t() const { return (uint64_t)_ivalue; }
     BSS_FORCEINLINE operator float() const { return (float)_dvalue; }

@@ -10,7 +10,7 @@
 
 namespace bss_util {
   // Trie node
-  template<typename T=unsigned char>
+  template<typename T=uint8_t>
   struct BSS_COMPILER_DLLEXPORT TRIE_NODE__
   {
     char chr; // letter that this node has
@@ -20,7 +20,7 @@ namespace bss_util {
   };
 
   // A static trie optimized for looking up small collections of words.
-  template<typename T=unsigned char>
+  template<typename T=uint8_t>
   class BSS_COMPILER_DLLEXPORT cTrie : protected cArrayBase<TRIE_NODE__<T>, T>
   {
     typedef cArrayBase<TRIE_NODE__<T>, T> BASE;

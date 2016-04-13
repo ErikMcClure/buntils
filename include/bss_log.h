@@ -50,23 +50,23 @@ namespace bss_util {
     // Gets the stream for this log
     inline std::ostream& GetStream() { return _stream; }
     // Sets a level string (which should be a constant, not something that will get deallocated)
-    void BSS_FASTCALL SetLevel(unsigned char level, const char* str);
+    void BSS_FASTCALL SetLevel(uint8_t level, const char* str);
 
     cLog& operator=(cLog&& right);
     inline operator std::ostream&() { return _stream; }
 
 #ifdef BSS_VARIADIC_TEMPLATES
     template<typename... Args>
-    BSS_FORCEINLINE void BSS_FASTCALL WriteLog(unsigned char level, const char* file, unsigned int line, Args... args) { _writelog(FORMATLOGLEVEL(_levels[level], file, line), args...); }
+    BSS_FORCEINLINE void BSS_FASTCALL WriteLog(uint8_t level, const char* file, uint32_t line, Args... args) { _writelog(FORMATLOGLEVEL(_levels[level], file, line), args...); }
 #else // For VS2010, we get to do this the messy way...
-    template<class A1> BSS_FORCEINLINE void BSS_FASTCALL WriteLog(unsigned char level, const char* file, unsigned int line, A1 a1) { FORMATLOGLEVEL(_levels[level], file, line) << a1 << std::endl; }
-    template<class A1, class A2> BSS_FORCEINLINE void BSS_FASTCALL WriteLog(unsigned char level, const char* file, unsigned int line, A1 a1, A2 a2) { FORMATLOGLEVEL(_levels[level], file, line) << a1 << a2 << std::endl; }
-    template<class A1, class A2, class A3> BSS_FORCEINLINE void BSS_FASTCALL WriteLog(unsigned char level, const char* file, unsigned int line, A1 a1, A2 a2, A3 a3) { FORMATLOGLEVEL(_levels[level], file, line) << a1 << a2 << a3 << std::endl; }
-    template<class A1, class A2, class A3, class A4> BSS_FORCEINLINE void BSS_FASTCALL WriteLog(unsigned char level, const char* file, unsigned int line, A1 a1, A2 a2, A3 a3, A4 a4) { FORMATLOGLEVEL(_levels[level], file, line) << a1 << a2 << a3 << a4 << std::endl; }
-    template<class A1, class A2, class A3, class A4, class A5> BSS_FORCEINLINE void BSS_FASTCALL WriteLog(unsigned char level, const char* file, unsigned int line, A1 a1, A2 a2, A3 a3, A4 a4, A5 a5) { FORMATLOGLEVEL(_levels[level], file, line) << a1 << a2 << a3 << a4 << a5 << std::endl; }
+    template<class A1> BSS_FORCEINLINE void BSS_FASTCALL WriteLog(uint8_t level, const char* file, uint32_t line, A1 a1) { FORMATLOGLEVEL(_levels[level], file, line) << a1 << std::endl; }
+    template<class A1, class A2> BSS_FORCEINLINE void BSS_FASTCALL WriteLog(uint8_t level, const char* file, uint32_t line, A1 a1, A2 a2) { FORMATLOGLEVEL(_levels[level], file, line) << a1 << a2 << std::endl; }
+    template<class A1, class A2, class A3> BSS_FORCEINLINE void BSS_FASTCALL WriteLog(uint8_t level, const char* file, uint32_t line, A1 a1, A2 a2, A3 a3) { FORMATLOGLEVEL(_levels[level], file, line) << a1 << a2 << a3 << std::endl; }
+    template<class A1, class A2, class A3, class A4> BSS_FORCEINLINE void BSS_FASTCALL WriteLog(uint8_t level, const char* file, uint32_t line, A1 a1, A2 a2, A3 a3, A4 a4) { FORMATLOGLEVEL(_levels[level], file, line) << a1 << a2 << a3 << a4 << std::endl; }
+    template<class A1, class A2, class A3, class A4, class A5> BSS_FORCEINLINE void BSS_FASTCALL WriteLog(uint8_t level, const char* file, uint32_t line, A1 a1, A2 a2, A3 a3, A4 a4, A5 a5) { FORMATLOGLEVEL(_levels[level], file, line) << a1 << a2 << a3 << a4 << a5 << std::endl; }
 #endif
-    BSS_FORCEINLINE std::ostream& BSS_FASTCALL FORMATLOG(unsigned char level, const char* file, unsigned int line) { return FORMATLOGLEVEL(_levels[level], file, line); }
-    inline std::ostream& BSS_FASTCALL FORMATLOGLEVEL(const char* level, const char* file, unsigned int line)
+    BSS_FORCEINLINE std::ostream& BSS_FASTCALL FORMATLOG(uint8_t level, const char* file, uint32_t line) { return FORMATLOGLEVEL(_levels[level], file, line); }
+    inline std::ostream& BSS_FASTCALL FORMATLOGLEVEL(const char* level, const char* file, uint32_t line)
     {
       _stream << '[';
       _writedatetime(_tz, _stream, true);
@@ -84,7 +84,7 @@ namespace bss_util {
     static const char* BSS_FASTCALL _trimpath(const char* path);
     void _leveldefaults();
 
-    cArray<const char*, unsigned char> _levels;
+    cArray<const char*, uint8_t> _levels;
     StreamSplitter* _split;
     long _tz;
 #pragma warning(push)

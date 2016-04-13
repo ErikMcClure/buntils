@@ -86,8 +86,8 @@ namespace bss_util {
       const FIXEDLIST_NODE* hold=_root;
       while(hold)
       {
-        if(p>=(hold+1) && p<(((unsigned char*)(hold+1))+hold->size))
-          return ((((unsigned char*)p)-((unsigned char*)(hold+1)))%_sz)==0; //the pointer should be an exact multiple of _sz
+        if(p>=(hold+1) && p<(((uint8_t*)(hold+1))+hold->size))
+          return ((((uint8_t*)p)-((uint8_t*)(hold+1)))%_sz)==0; //the pointer should be an exact multiple of _sz
 
         hold=hold->next;
       }
@@ -107,8 +107,8 @@ namespace bss_util {
 
     BSS_FORCEINLINE void BSS_FASTCALL _initchunk(const FIXEDLIST_NODE* chunk) noexcept
     {
-      unsigned char* memend=((unsigned char*)(chunk+1))+chunk->size;
-      for(unsigned char* memref=(((unsigned char*)(chunk+1))); memref<memend; memref+=_sz)
+      uint8_t* memend=((uint8_t*)(chunk+1))+chunk->size;
+      for(uint8_t* memref=(((uint8_t*)(chunk+1))); memref<memend; memref+=_sz)
       {
         *((void**)(memref))=_freelist;
         _freelist=memref;

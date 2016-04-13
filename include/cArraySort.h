@@ -26,7 +26,7 @@ namespace bss_util {
     BSS_FORCEINLINE CT_ BSS_FASTCALL Insert(constref data) { CT_ loc = _insert(data); _array.Insert(data, loc); return loc; }
     BSS_FORCEINLINE CT_ BSS_FASTCALL Insert(moveref data) { CT_ loc = _insert(std::move(data)); _array.Insert(std::move(data), loc); return loc; }
     inline void Clear() { _array.Clear(); }
-    inline void BSS_FASTCALL Discard(unsigned int num) { _array.SetLength((num>_array.Length())?0:(_array.Length() - num)); }
+    inline void BSS_FASTCALL Discard(uint32_t num) { _array.SetLength((num>_array.Length())?0:(_array.Length() - num)); }
     BSS_FORCEINLINE bool Empty() const { return _array.Empty(); }
     BSS_FORCEINLINE void BSS_FASTCALL Reserve(CT_ capacity) { _array.Reserve(capacity); }
     BSS_FORCEINLINE CT_ Length() const { return _array.Length(); }

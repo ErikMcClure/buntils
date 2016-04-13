@@ -147,7 +147,7 @@ namespace bss_util {
 
   protected:
     inline static void BSS_COMPILER_STDCALL _APCactivate(ULONG_PTR) {}
-    inline static unsigned int __stdcall _threadwrap(void* arg) { std::function<void(void)> fn = *(std::function<void(void)>*)arg; fn(); return 0; }
+    inline static uint32_t __stdcall _threadwrap(void* arg) { std::function<void(void)> fn = *(std::function<void(void)>*)arg; fn(); return 0; }
     BSS_FORCEINLINE void BSS_FASTCALL _start(void* arg)
     {
       _started.test_and_set();

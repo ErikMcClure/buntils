@@ -13,7 +13,7 @@ namespace bss_util {
   // Node for the KD-tree 
   template<typename T>
   struct KDNode {
-    unsigned int num;
+    uint32_t num;
     float div;
     union {
       struct {
@@ -36,7 +36,7 @@ namespace bss_util {
     inline cKDTree(const cKDTree&) BSS_DELETEFUNC
       inline cKDTree& operator=(const cKDTree&)BSS_DELETEFUNCOP
   public:
-    inline explicit cKDTree(unsigned int rb=RBTHRESHOLD, Alloc* alloc=0) : cAllocTracker<Alloc>(alloc), _root(0), _rbthreshold(rb) {}
+    inline explicit cKDTree(uint32_t rb=RBTHRESHOLD, Alloc* alloc=0) : cAllocTracker<Alloc>(alloc), _root(0), _rbthreshold(rb) {}
     inline cKDTree(cKDTree&& mov) : cAllocTracker<Alloc>(std::move(mov)), _root(mov._root), _rbthreshold(mov._rbthreshold) { mov._root=0; }
     inline ~cKDTree() { Clear(); }
     inline void Clear() { if(_root) _destroynode(_root); _root=0; }
@@ -130,10 +130,10 @@ namespace bss_util {
     }
     inline void Solve() { if(_root) _solve(&_root); }
     inline KDNode<T>* GetRoot() { return _root; }
-    inline unsigned int GetRBThreshold() const { return _rbthreshold; }
-    inline void SetRBThreshold(unsigned int rbthreshold) { _rbthreshold=rbthreshold; }
+    inline uint32_t GetRBThreshold() const { return _rbthreshold; }
+    inline void SetRBThreshold(uint32_t rbthreshold) { _rbthreshold=rbthreshold; }
 
-    const static unsigned int RBTHRESHOLD=20; //default threshold
+    const static uint32_t RBTHRESHOLD=20; //default threshold
 
   protected:
     void BSS_FASTCALL _solve(KDNode<T>** pnode)
@@ -311,7 +311,7 @@ namespace bss_util {
     }
 
     KDNode<T>* _root;
-    unsigned int _rbthreshold;
+    uint32_t _rbthreshold;
   };
 }
 

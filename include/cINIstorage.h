@@ -41,7 +41,7 @@ namespace bss_util {
     cINIsection& BSS_FASTCALL AddSection(const char* name);
     bool RemoveSection(const char* name, size_t instance=0);
     char EditEntry(const char* section, const char* key, const char* nvalue=0, size_t keyinstance=0, size_t secinstance=0); //if nvalue is 0 the entry is deleted. if either instance is -1 it triggers an insert
-    inline char EditAddEntry(const char* section, const char* key, const char* nvalue=0, unsigned int keyinstance=0,unsigned int secinstance=0) { return EditEntry(section,key,nvalue,GetEntryPtr(section,key,keyinstance,secinstance)==0?-1:keyinstance,GetSection(section,secinstance)==0?-1:secinstance); }
+    inline char EditAddEntry(const char* section, const char* key, const char* nvalue=0, uint32_t keyinstance=0,uint32_t secinstance=0) { return EditEntry(section,key,nvalue,GetEntryPtr(section,key,keyinstance,secinstance)==0?-1:keyinstance,GetSection(section,secinstance)==0?-1:secinstance); }
     void EndINIEdit(const char* overridepath=0); //Saves changes to file (INI files are automatically opened when an edit operation is done)
     void DiscardINIEdit();
 
@@ -49,7 +49,7 @@ namespace bss_util {
     cINIstorage& operator=(const cINIstorage& right);
     cINIstorage& operator=(cINIstorage&& mov);
     inline const char* GetPath() const { return _path; } //gets path to folder this INI was in
-    inline cINIentry& BSS_FASTCALL GetEntry(const char *section, const char* key, unsigned int keyinstance=0, unsigned int secinstance=0) const { cINIentry* ret=GetEntryPtr(section,key,keyinstance,secinstance); return !ret?cINIsection::_entrysentinel:*ret; }
+    inline cINIentry& BSS_FASTCALL GetEntry(const char *section, const char* key, uint32_t keyinstance=0, uint32_t secinstance=0) const { cINIentry* ret=GetEntryPtr(section,key,keyinstance,secinstance); return !ret?cINIsection::_entrysentinel:*ret; }
     
   protected:
     friend class cINIsection;

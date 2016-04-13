@@ -161,7 +161,7 @@ namespace bss_util {
 
     cFXAni(FXMANAGER* manager) : _manager(manager), cAniBase(sizeof(Def)) {}
     template<typename T, typename D, ARRAY_TYPE ArrayType = CARRAY_SAFE>
-    size_t AddAnimation(const cAniFrame<T, D>* src, unsigned int len, typename cAnimation<T, D>::FUNC f = 0)
+    size_t AddAnimation(const cAniFrame<T, D>* src, uint32_t len, typename cAnimation<T, D>::FUNC f = 0)
     {
       return _animations.AddConstruct(cAnimation<T, D, ArrayType>(src, len, f));
     }

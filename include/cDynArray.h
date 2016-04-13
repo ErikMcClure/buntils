@@ -142,10 +142,10 @@ namespace bss_util {
   };
 
   template<typename CType, ARRAY_TYPE ArrayType, typename Alloc>
-  class BSS_COMPILER_DLLEXPORT cDynArray<bool, CType, ArrayType, Alloc> : protected cArrayBase<unsigned char, CType, typename Alloc::template rebind<unsigned char>::other>
+  class BSS_COMPILER_DLLEXPORT cDynArray<bool, CType, ArrayType, Alloc> : protected cArrayBase<uint8_t, CType, typename Alloc::template rebind<uint8_t>::other>
   {
   protected:
-    typedef unsigned char STORE;
+    typedef uint8_t STORE;
     typedef cArrayBase<STORE, CType, typename Alloc::template rebind<STORE>::other> AT_;
     typedef typename AT_::CT_ CT_;
     typedef typename AT_::T_ T_;
@@ -340,11 +340,11 @@ namespace bss_util {
   };
 
   // A dynamic array that can dynamically adjust the size of each element
-  template<typename CT_, typename Alloc=StaticAllocPolicy<unsigned char>>
-  class BSS_COMPILER_DLLEXPORT cArbitraryArray : protected cArrayBase<unsigned char, CT_, Alloc>
+  template<typename CT_, typename Alloc=StaticAllocPolicy<uint8_t>>
+  class BSS_COMPILER_DLLEXPORT cArbitraryArray : protected cArrayBase<uint8_t, CT_, Alloc>
   {
   protected:
-    typedef cArrayBase<unsigned char, CT_, Alloc> AT_;
+    typedef cArrayBase<uint8_t, CT_, Alloc> AT_;
     using AT_::_array;
     using AT_::_capacity;
 
@@ -369,7 +369,7 @@ namespace bss_util {
     inline void RemoveLast() { --_length; }
     inline void SetElement(const void* newarray, CT_ element, CT_ num) // num is a count of how many elements are in the array
     {
-      if(((unsigned char*)newarray)==_array) return;
+      if(((uint8_t*)newarray)==_array) return;
       _element=element;
       _length=num;
       if((_length*_element)>_capacity) AT_::SetCapacityDiscard(_length*_element);
@@ -378,13 +378,13 @@ namespace bss_util {
     }
     template<typename T> // num is a count of how many elements are in the array
     BSS_FORCEINLINE void SetElement(const T* newarray, CT_ num) { SetElement(newarray, sizeof(T), num); }
-    template<typename T, unsigned int NUM>
+    template<typename T, uint32_t NUM>
     BSS_FORCEINLINE void SetElement(const T(&newarray)[NUM]) { SetElement(newarray, sizeof(T), NUM); }
     void SetElement(CT_ element)
     {
       if(element==_element) return;
       _capacity=element*_length;
-      unsigned char* narray = !_length?0:(unsigned char*)Alloc::allocate(_capacity);
+      uint8_t* narray = !_length?0:(uint8_t*)Alloc::allocate(_capacity);
       memset(narray, 0, _capacity);
       CT_ m=bssmin(element, _element);
       for(CT_ i = 0; i < _length; ++i)

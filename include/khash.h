@@ -98,7 +98,7 @@ int main() {
 /* compipler specific configuration */
 
 #if UINT_MAX == 0xffffffffu
-typedef uint32_t khint32_t;
+typedef unsigned int khint32_t;
 #elif ULONG_MAX == 0xffffffffu
 typedef unsigned long khint32_t;
 #endif
@@ -139,7 +139,7 @@ static const khint32_t __ac_prime_list[__ac_HASH_PRIME_SIZE] =
 static const double __ac_HASH_UPPER = 0.77;
 
 #define KHASH_INIT(name, khkey_t, khval_t, kh_is_map, __hash_func, __hash_equal) \
-	typedef struct {													\
+	typedef struct __kh_##name##_t {													\
 		khint_t n_buckets, size, n_occupied, upper_bound;				\
 		khint32_t *flags;												\
 		khkey_t *keys;													\

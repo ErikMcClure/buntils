@@ -104,9 +104,9 @@ namespace bss_util {
   inline void BSS_FASTCALL LLRemove(T* node, T*& root, T*& last) noexcept
   {
 		if(node->prev != 0) node->prev->next = node->next;
-		else root = node->next;
+		else if(root == node) root = node->next;
 		if(node->next != 0) node->next->prev = node->prev;
-		else last = node->prev;
+		else if(last == node) last = node->prev;
   }
 
   // Removes a node from a list, re-assigning root as necessary. Does not zero values on node
@@ -114,7 +114,7 @@ namespace bss_util {
   inline void BSS_FASTCALL LLRemove(T* node, T*& root) noexcept
   {
 		if(node->prev != 0) node->prev->next = node->next;
-		else root = node->next;
+		else if(root == node) root = node->next;
 		if(node->next != 0) node->next->prev = node->prev;
   }
 
@@ -139,7 +139,7 @@ namespace bss_util {
   inline void BSS_FASTCALL AltLLRemove(T* node, T*& root) noexcept
   {
 		if(GETNODES(node).prev != 0) GETNODES(GETNODES(node).prev).next = GETNODES(node).next;
-		else root = static_cast<T*>(GETNODES(node).next);
+		else if(root == node) root = static_cast<T*>(GETNODES(node).next);
 		if(GETNODES(node).next != 0) GETNODES(GETNODES(node).next).prev = GETNODES(node).prev;
   }
 

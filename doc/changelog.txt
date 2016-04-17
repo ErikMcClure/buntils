@@ -9,6 +9,7 @@
 - Added iteration to cArraySlice, added more GetSlice methods
 - Removed cSettings.h
 - Added a universal serializer as cSerializer.h, and changed JSON and UBJSON to serializer engines
+- Made linked list operations move safe
 
 0.4.5
 -----

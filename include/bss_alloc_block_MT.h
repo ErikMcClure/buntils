@@ -77,7 +77,7 @@ namespace bss_util {
 #endif
       assert(_validpointer(p));
 #ifdef BSS_DEBUG
-      memset(p, 0xDEADBEEF, sizeof(T));
+      memset(p, 0xfd, sizeof(T));
 #endif
       _setfreelist(p, p);
       //*((void**)p)=(void*)_freelist;

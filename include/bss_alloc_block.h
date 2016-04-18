@@ -60,7 +60,7 @@ namespace bss_util {
 #endif
       assert(_validpointer(p));
 #ifdef BSS_DEBUG
-      memset(p, 0xDEADBEEF, _sz);
+      memset(p, 0xfd, _sz);
 #endif
       *((void**)p)=_freelist;
       _freelist=p;

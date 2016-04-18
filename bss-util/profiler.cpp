@@ -30,10 +30,21 @@ namespace bss_util {
       } static void deallocate(PROF_HEATNODE* p, size_t = 0) { _alloc.dealloc(p-1); }
     };
     static inline char COMP(const PROF_HEATNODE& l, const PROF_HEATNODE& r) { return SGNCOMPARE(r.avg, l.avg); }
-
+    inline bool DEBUGCHECK()
+    {
+      uint8_t buf[sizeof(PROF_HEATNODE)];
+      memset(buf, 0xfd, sizeof(PROF_HEATNODE));
+      for(PROF_HEATNODE* p = _children.begin(); p != _children.end(); ++p)
+        if(!memcmp(p, buf, sizeof(PROF_HEATNODE)) || !p->DEBUGCHECK())
+        {
+          assert(false);
+          return false;
+        }
+      return true;
+    }
     inline PROF_HEATNODE() : avg(0.0), id(0) {}
     inline PROF_HEATNODE(PROFILER_INT ID, double Avg) : avg(Avg), id(ID) {}
-    cArraySort<PROF_HEATNODE, COMP, uint32_t, CARRAY_CONSTRUCT, HeatAllocPolicy> _children;
+    cArraySort<PROF_HEATNODE, COMP, uint32_t, CARRAY_SAFE, HeatAllocPolicy> _children;
     double avg;
     PROFILER_INT id;
   };
@@ -136,6 +147,7 @@ void BSS_FASTCALL Profiler::_heatout(PROF_HEATNODE& heat, PROF_TRIENODE* node, P
 
     if(nheat._children.Length() > 0)
       nheat._children.Insert(PROF_HEATNODE(0, node->codeavg));
+    assert(heat.DEBUGCHECK());
   } else
     for(PROFILER_INT i = 0; i < 16; ++i)
       _heatout(heat, node->_children[i], id|(i<<(4*idlevel)), idlevel+1);

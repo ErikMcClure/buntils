@@ -18,6 +18,8 @@ namespace bss_util {
     inline cArraySlice& operator=(const cArraySlice& right) { start = right.start; length = right.length; return *this; }
     inline cArraySlice& operator++() { assert(length > 0); ++start; --length; return *this; }
     inline cArraySlice operator++(int) { assert(length > 0); return cArraySlice(start + 1, length - 1); }
+    inline const cArraySlice operator()(CType start) const { return operator()(start, length); }
+    inline const cArraySlice operator()(CType start, CType end) const { return operator()(start, length); }
     inline cArraySlice operator()(CType start) { return operator()(start, length); }
     inline cArraySlice operator()(CType start, CType end)
     { 
@@ -40,6 +42,8 @@ namespace bss_util {
     BSS_FORCEINLINE const T* end() const noexcept { return start + length; }
     BSS_FORCEINLINE T* begin() noexcept { return start; }
     BSS_FORCEINLINE T* end() noexcept { return start + length; }
+    BSS_FORCEINLINE T& operator [](CType i) noexcept { assert(i < length); return start[i]; }
+    BSS_FORCEINLINE const T& operator [](CType i) const noexcept { assert(i < length); return start[i]; }
 
     inline operator cArraySlice<const T, CType>() const { return cArraySlice<const T, CType>(start, length); }
 
@@ -105,13 +109,19 @@ namespace bss_util {
     CType _capacity;
   };
 
+#ifdef BSS_DEBUG
+#define BSS_DEBUGFILL(p, old, n, Ty) memset(p + bssmin(n, old), 0xfd, ((n > old)?(n - old):(old - n))*sizeof(Ty))
+#else
+#define BSS_DEBUGFILL(p, old, n, Ty)  
+#endif
+
   template<class T, typename CType = size_t, ARRAY_TYPE ArrayType = CARRAY_SIMPLE, typename Alloc = StaticAllocPolicy<T>>
   struct BSS_COMPILER_DLLEXPORT cArrayInternal
   {
     static void _copymove(T* BSS_RESTRICT dest, T* BSS_RESTRICT src, CType n) noexcept { if(dest == nullptr) return; assert(dest != src); _copy(dest, src, n); }
     static void _copy(T* BSS_RESTRICT dest, const T* BSS_RESTRICT src, CType n) noexcept { if(dest == nullptr) return; assert(dest != src); memcpy(dest, src, sizeof(T)*n); }
     static void _move(T* a, CType dest, CType src, CType n) noexcept { memmove(a + dest, a + src, sizeof(T)*n); }
-    static void _setlength(T* a, CType old, CType n) noexcept {}
+    static void _setlength(T* a, CType old, CType n) noexcept { BSS_DEBUGFILL(a, old, n, T); }
     static void _setcapacity(cArrayBase<T, CType, Alloc>& a, CType capacity) noexcept
     {
       if(capacity <= a._capacity)
@@ -134,10 +144,11 @@ namespace bss_util {
     static void _move(T* a, CType dest, CType src, CType n) noexcept { memmove(a + dest, a + src, sizeof(T)*n); }
     static void _setlength(T* a, CType old, CType n) noexcept
     {
-      for(CType i = old; i < n; ++i)
-        new(a + i) T();
       for(CType i = n; i < old; ++i)
         a[i].~T();
+      BSS_DEBUGFILL(a, old, n, T);
+      for(CType i = old; i < n; ++i)
+        new(a + i) T();
     }
     static void _setcapacity(cArrayBase<T, CType, Alloc>& a, CType capacity) noexcept
     {
@@ -253,6 +264,10 @@ namespace bss_util {
     inline T_& Back() noexcept { assert(_capacity>0); return _array[_capacity - 1]; }
     BSS_FORCEINLINE operator T_*() noexcept { return _array; }
     BSS_FORCEINLINE operator const T_*() const noexcept { return _array; }
+#if defined(BSS_64BIT) && defined(BSS_DEBUG) 
+    BSS_FORCEINLINE T_& operator [](uint64_t i) { assert(i < _capacity); return _array[i]; } // for some insane reason, this works on 64-bit, but not on 32-bit
+    BSS_FORCEINLINE const T_& operator [](uint64_t i) const { assert(i < _capacity); return _array[i]; }
+#endif
     inline const T_* begin() const noexcept { return _array; }
     inline const T_* end() const noexcept { return _array + _capacity; }
     inline T_* begin() noexcept { return _array; }

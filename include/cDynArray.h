@@ -69,6 +69,10 @@ namespace bss_util {
     BSS_FORCEINLINE T_* begin() noexcept { return _array; }
     BSS_FORCEINLINE T_* end() noexcept { return _array+_length; }
     BSS_FORCEINLINE cArraySlice<T_, CT_> GetSlice() const noexcept { return AT_::GetSlice(); }
+#if defined(BSS_64BIT) && defined(BSS_DEBUG) 
+    BSS_FORCEINLINE T_& operator [](uint64_t i) { assert(i < _length); return _array[i]; } // for some insane reason, this works on 64-bit, but not on 32-bit
+    BSS_FORCEINLINE const T_& operator [](uint64_t i) const { assert(i < _length); return _array[i]; }
+#endif
     BSS_FORCEINLINE operator T_*() { return _array; }
     BSS_FORCEINLINE operator const T_*() const { return _array; }
     inline cDynArray& operator=(const cArray<T, CType, ArrayType, Alloc>& copy)

@@ -95,7 +95,7 @@ namespace bss_util {
     BSS_FORCEINLINE bool _prepDEBUG() noexcept
     {
       if(!_root) return false;
-      memset(_root+1, 0xcdcdcdcd, _root->size);
+      memset(_root+1, 0xfd, _root->size);
       return true;
     }
 #endif

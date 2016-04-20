@@ -93,6 +93,9 @@ namespace bss_util {
   template<class T>
   inline static T BSS_FASTCALL bssSetBit(T word, T bit, bool value) noexcept { return T_SETBIT(word,bit,value); }
 
+  template<class T>
+  BSS_FORCEINLINE static bool BSS_FASTCALL bssGetBit(T* p, size_t index) { return (p[index / (sizeof(T) << 3)] & (1 << (index % (sizeof(T) << 3)))) != 0; }
+
   // Replaces one character with another in a string
   template<typename T>
   inline static T* BSS_FASTCALL strreplace(T* string, const T find, const T replace) noexcept

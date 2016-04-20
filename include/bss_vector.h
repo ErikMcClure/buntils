@@ -628,7 +628,7 @@ namespace bss_util {
     inline Vector(const Vector<U, N>& copy) { for(int i = 0; i < N; ++i) v[i] = (T)copy.v[i]; }
     inline explicit Vector(T scalar) { for(int i = 0; i < N; ++i) v[i] = scalar; }
     inline explicit Vector(const T(&e)[N]) { for(int i = 0; i < N; ++i) v[i] = e[i]; }
-    inline Vector(const std::initializer_list<T> e) { int k = 0; for(const T* i = e.begin(); i != e.end() && k < N; ++i) v[k++] = *i; }
+    inline Vector(const std::initializer_list<T>& e) { int k = 0; for(const T* i = e.begin(); i != e.end() && k < N; ++i) v[k++] = *i; }
     inline Vector() { }
     inline T Length() const { return FastSqrt<T>(Dot(*this)); }
     inline Vector<T, N> Normalize() const { Vector<T, N> ret(*this); NVector_Normalize(v, ret.v); return ret; }
@@ -655,7 +655,7 @@ namespace bss_util {
     inline Vector(const Vector<U, 2>& copy) : x((T)copy.v[0]), y((T)copy.v[1]) { }
     inline explicit Vector(T scalar) : x(scalar), y(scalar) { }
     inline explicit Vector(const T(&e)[2]) : x(e[0]), y(e[1]) { }
-    inline Vector(const std::initializer_list<T> e) { int k = 0; for(const T* i = e.begin(); i != e.end() && k < 2; ++i) v[k++] = *i; }
+    inline Vector(const std::initializer_list<T>& e) { int k = 0; for(const T* i = e.begin(); i != e.end() && k < 2; ++i) v[k++] = *i; }
     inline Vector(T X, T Y) : x(X), y(Y) { }
     inline Vector() { }
     inline T Length() const { return FastSqrt<T>(Dot(*this)); }
@@ -697,7 +697,7 @@ namespace bss_util {
     inline Vector(const Vector<U, 3>& copy) : x((T)copy.v[0]), y((T)copy.v[1]), z((T)copy.v[2]) { }
     inline explicit Vector(T scalar) : x(scalar), y(scalar), z(scalar){ }
     inline explicit Vector(const T(&e)[3]) : x(e[0]), y(e[1]), z(e[2]) { }
-    inline Vector(const std::initializer_list<T> e) { int k = 0; for(const T* i = e.begin(); i != e.end() && k < 3; ++i) v[k++] = *i; }
+    inline Vector(const std::initializer_list<T>& e) { int k = 0; for(const T* i = e.begin(); i != e.end() && k < 3; ++i) v[k++] = *i; }
     inline Vector(T X, T Y, T Z) : x(X), y(Y), z(Z) { }
     inline Vector() { }
     inline T Length() const { return FastSqrt((x*x)+(y*y)+(z*z)); }
@@ -739,7 +739,7 @@ namespace bss_util {
     inline Vector(const Vector<U, 4>& copy) : x((T)copy.v[0]), y((T)copy.v[1]), z((T)copy.v[2]), w((T)copy.v[3]) { }
     inline explicit Vector(T scalar) : x(scalar), y(scalar), z(scalar), w(scalar) { }
     inline explicit Vector(const T(&e)[4]) : x(e[0]), y(e[1]), z(e[2]), w(e[3]) { }
-    inline Vector(const std::initializer_list<T> e) { int k = 0; for(const T* i = e.begin(); i != e.end() && k < 4; ++i) v[k++] = *i; }
+    inline Vector(const std::initializer_list<T>& e) { int k = 0; for(const T* i = e.begin(); i != e.end() && k < 4; ++i) v[k++] = *i; }
     inline Vector(T X, T Y, T Z, T W) : x(X), y(Y), z(Z), w(W) { }
     inline Vector() { }
     inline T Length() const { return FastSqrt<T>(Dot(*this)); }
@@ -816,7 +816,7 @@ namespace bss_util {
 
     template<typename U>
     inline Matrix(const Matrix<U, M, N>& copy) { T* p = v; U* cp = copy.v; for(int i = 0; i < M*N; ++i) p[i]=(T)cp[i]; }
-    inline Matrix(const std::initializer_list<T> l) { assert(l.size()==(M*N)); T* p = (T*)v; int k = 0; for(const T* i = l.begin(); i != l.end() && k < M*N; ++i) p[k++] = *i; }
+    inline Matrix(const std::initializer_list<T>& l) { assert(l.size()==(M*N)); T* p = (T*)v; int k = 0; for(const T* i = l.begin(); i != l.end() && k < M*N; ++i) p[k++] = *i; }
     inline explicit Matrix(const T(&m)[M][N]) { memcpy(v, m, sizeof(T)*M*N); }
     inline Matrix() { }
     inline void Transpose(T(&out)[N][M]) const { Transpose(v, out); }
@@ -865,7 +865,7 @@ namespace bss_util {
   {
     template<typename U>
     inline Matrix(const Matrix<U, 2, 2>& copy) : a((T)copy.a), b((T)copy.b), c((T)copy.c), d((T)copy.d) { }
-    inline Matrix(const std::initializer_list<T> l) { assert(l.size()==(2*2)); T* p = (T*)v; int k = 0; for(const T* i = l.begin(); i != l.end() && k < 2*2; ++i) p[k++] = *i; }
+    inline Matrix(const std::initializer_list<T>& l) { assert(l.size()==(2*2)); T* p = (T*)v; int k = 0; for(const T* i = l.begin(); i != l.end() && k < 2*2; ++i) p[k++] = *i; }
     inline explicit Matrix(const T(&m)[2][2]) : a(m[0][0]), b(m[0][1]), c(m[1][0]), d(m[1][1]) { }
     inline Matrix() { }
     inline void Transpose(Matrix& mat) const { Transpose(mat.v); }
@@ -908,7 +908,7 @@ namespace bss_util {
   {
     template<typename U>
     inline Matrix(const Matrix<U, 3, 3>& copy) : a((T)copy.a), b((T)copy.b), c((T)copy.c), d((T)copy.d), e((T)copy.e), f((T)copy.f), g((T)copy.g), h((T)copy.h), i((T)copy.i) { }
-    inline Matrix(const std::initializer_list<T> l) { assert(l.size()==(3*3)); T* p = (T*)v; int k = 0; for(const T* j = l.begin(); j != l.end() && k < 3*3; ++j) p[k++] = *j; }
+    inline Matrix(const std::initializer_list<T>& l) { assert(l.size()==(3*3)); T* p = (T*)v; int k = 0; for(const T* j = l.begin(); j != l.end() && k < 3*3; ++j) p[k++] = *j; }
     inline explicit Matrix(const T(&m)[3][3]) : a(m[0][0]), b(m[0][1]), c(m[0][2]), d(m[1][0]), e(m[1][1]), f(m[1][2]), g(m[2][0]), h(m[2][1]), i(m[2][2]) { }
     inline Matrix() { }
     inline void Transpose(Matrix& mat) const { Transpose(mat.v); }
@@ -989,7 +989,7 @@ namespace bss_util {
   {
     template<typename U>
     inline Matrix(const Matrix<U, 4, 4>& copy) : a((T)copy.a), b((T)copy.b), c((T)copy.c), d((T)copy.d), e((T)copy.e), f((T)copy.f), g((T)copy.g), h((T)copy.h), i((T)copy.i), j((T)copy.j), k((T)copy.k), l((T)copy.l), m((T)copy.m), n((T)copy.n), o((T)copy.o), p((T)copy.p) { }
-    inline Matrix(const std::initializer_list<T> l) { assert(l.size()==(4*4)); T* p = (T*)v; int k = 0; for(const T* u = l.begin(); u != l.end() && k < 4*4; ++u) p[k++] = *u; }
+    inline Matrix(const std::initializer_list<T>& l) { assert(l.size()==(4*4)); T* p = (T*)v; int k = 0; for(const T* u = l.begin(); u != l.end() && k < 4*4; ++u) p[k++] = *u; }
     inline explicit Matrix(const T(&m)[4][4]) { memcpy(v, m, sizeof(T)*4*4); }
     inline Matrix() { }
     inline void Transpose(Matrix& mat) const { Transpose(mat.v); }

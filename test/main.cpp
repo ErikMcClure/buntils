@@ -767,13 +767,13 @@ TESTDEF::RETPAIR test_bss_util()
   auto flog = [](int i) -> int { int r = 0; while(i >>= 1) ++r; return r; };
   for(nmatch = 1; nmatch < 200000; ++nmatch)
   {
-    if(log2(nmatch)!=flog(nmatch))
+    if(bsslog2(nmatch)!=flog(nmatch))
       break;
   }
   TEST(nmatch==200000);
   for(nmatch = 2; nmatch < INT_MAX; nmatch <<= 1) // You have to do INT_MAX here even though its unsigned, because 10000... is actually less than 1111... and you overflow.
   {
-    if(log2_p2(nmatch)!=flog(nmatch))
+    if(bsslog2_p2(nmatch)!=flog(nmatch))
       break;
   }
   TEST(nmatch==(1<<31));

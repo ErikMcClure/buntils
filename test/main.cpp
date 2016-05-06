@@ -114,7 +114,7 @@ struct TESTDEF
   RETPAIR (*FUNC)();
 };
 
-#define BEGINTEST TESTDEF::RETPAIR __testret(0,0)
+#define BEGINTEST TESTDEF::RETPAIR __testret(0,0); DEBUG_CDT_SAFE::_testret = &__testret; DEBUG_CDT_SAFE::Tracker.Clear();
 #define ENDTEST return __testret
 #define FAILEDTEST(t) BSSLOG(_failedtests,1) << "Test #" << __testret.first << " Failed  < " << MAKESTRING(t) << " >" << std::endl
 #define TEST(t) { atomic_xadd(&__testret.first); try { if(t) atomic_xadd(&__testret.second); else FAILEDTEST(t); } catch(...) { FAILEDTEST(t); } }
@@ -135,30 +135,42 @@ void _ITERFUNC(TESTDEF::RETPAIR& __testret, T (&t)[SIZE], F f) { for(uint32_t i 
 template<class T, size_t SIZE, class F>
 void _ITERALL(TESTDEF::RETPAIR& __testret, T (&t)[SIZE], F f) { bool __val=true; for(uint32_t i = 0; i < SIZE; ++i) __val=__val&&(f(i)); TEST(__val); }
 
-template<bool SAFE> struct DEBUG_CDT_SAFE {};
-template<> struct DEBUG_CDT_SAFE<false> {};
-template<> struct DEBUG_CDT_SAFE<true>
+struct DEBUG_CDT_SAFE
 {
-  DEBUG_CDT_SAFE(const DEBUG_CDT_SAFE& copy) : __testret(*_testret) { isdead = this; }
-  DEBUG_CDT_SAFE() : __testret(*_testret) { isdead = this; }
-  ~DEBUG_CDT_SAFE() { TEST(isdead == this) }
+  DEBUG_CDT_SAFE(const DEBUG_CDT_SAFE& copy) : _safe(copy._safe), __testret(*_testret) { isdead = this; }
+  explicit DEBUG_CDT_SAFE(bool safe) : _safe(safe), __testret(*_testret) { isdead = this; }
+  ~DEBUG_CDT_SAFE() { if(_safe) TEST(isdead == this) }
 
   inline DEBUG_CDT_SAFE& operator=(const DEBUG_CDT_SAFE& right) { return *this; }
 
   static TESTDEF::RETPAIR* _testret;
+  static int count;
+  static cHash<int> Tracker;
+  static int ID;
   TESTDEF::RETPAIR& __testret;
   DEBUG_CDT_SAFE* isdead;
+  const bool _safe;
 };
-TESTDEF::RETPAIR* DEBUG_CDT_SAFE<true>::_testret = 0;
+TESTDEF::RETPAIR* DEBUG_CDT_SAFE::_testret = 0;
+int DEBUG_CDT_SAFE::count = 0;
+int DEBUG_CDT_SAFE::ID = 0;
+cHash<int> DEBUG_CDT_SAFE::Tracker;
 
 template<bool SAFE = true>
-struct DEBUG_CDT : DEBUG_CDT_SAFE<SAFE> {
-  inline DEBUG_CDT(const DEBUG_CDT& copy) : _index(copy._index) { ++count; isdead = this; }
-  inline DEBUG_CDT(int index = 0) : _index(index) { ++count; isdead = this; }
-  inline ~DEBUG_CDT() { //if(isdead!=this) throw "fail";
-    --count; isdead = 0;
+struct DEBUG_CDT : DEBUG_CDT_SAFE {
+  inline DEBUG_CDT(const DEBUG_CDT& copy) : DEBUG_CDT_SAFE(copy), _index(copy._index), _id(++ID) { ++count; assert(!Tracker.Exists(_id)); Tracker.Insert(_id); }
+  inline DEBUG_CDT(DEBUG_CDT&& mov) : DEBUG_CDT_SAFE(mov), _index(mov._index), _id(mov._id){ mov._id = 0; ++count; }
+  inline DEBUG_CDT(int index = 0) : DEBUG_CDT_SAFE(SAFE), _index(index), _id(++ID) { ++count; assert(!Tracker.Exists(_id)); Tracker.Insert(_id); }
+  inline ~DEBUG_CDT() {
+    if(_id != 0) //if id is zero a successful move was performed
+    {
+      TEST(Tracker.Exists(_id));
+      DEBUG_CDT_SAFE::Tracker.Remove(_id);
+    }
+    --count;
   }
 
+  inline DEBUG_CDT& operator=(DEBUG_CDT&& right) { _index = right._index; this->~DEBUG_CDT(); ++count; _id = right._id; right._id = 0; return *this; }
   inline DEBUG_CDT& operator=(const DEBUG_CDT& right) { _index = right._index; return *this; }
   inline bool operator<(const DEBUG_CDT& other) const { return _index<other._index; }
   inline bool operator>(const DEBUG_CDT& other) const { return _index>other._index; }
@@ -168,12 +180,9 @@ struct DEBUG_CDT : DEBUG_CDT_SAFE<SAFE> {
   inline bool operator!=(const DEBUG_CDT& other) const { return _index != other._index; }
   void BSS_FASTCALL donothing(float f) {}
 
-  static int count;
-  DEBUG_CDT* isdead;
+  int _id;
   int _index;
 };
-template<> int DEBUG_CDT<true>::count = 0;
-template<> int DEBUG_CDT<false>::count = 0;
 
 template<class T>
 T naivebitcount(T v)
@@ -1939,7 +1948,6 @@ TESTDEF::RETPAIR test_ANIMATION()
   }
   TEST(c.Grab()==2);
 
-  DEBUG_CDT_SAFE<true>::_testret = &__testret; //If you don't do this it smashes the stack, but only sometimes, so it can create amazingly weird bugs.
   DEBUG_CDT<true>::count = 0;
 
   {
@@ -1963,6 +1971,7 @@ TESTDEF::RETPAIR test_ANIMATION()
   }
   ENDTEST;
 }
+
 TESTDEF::RETPAIR test_ARRAY()
 {
   BEGINTEST;
@@ -2015,8 +2024,9 @@ TESTDEF::RETPAIR test_ARRAY()
     return true; 
   };
   auto f2 = [](cArray<DEBUG_CDT<true>, uint32_t, CARRAY_SAFE>& arr, uint32_t s){ for(uint32_t i = s; i < arr.Capacity(); ++i) arr[i]._index=i; };
+
+  assert(!DEBUG_CDT_SAFE::Tracker.Length());
   {
-    DEBUG_CDT_SAFE<true>::_testret=&__testret;
     DEBUG_CDT<true>::count=0;
     cArray<DEBUG_CDT<true>, uint32_t, CARRAY_SAFE> b(10);
     f2(b,0);
@@ -2048,6 +2058,7 @@ TESTDEF::RETPAIR test_ARRAY()
     TEST(DEBUG_CDT<true>::count == 59);
   }
   TEST(!DEBUG_CDT<true>::count);
+  TEST(!DEBUG_CDT_SAFE::Tracker.Length());
 
   auto f3 = [](cArray<DEBUG_CDT<false>, uint32_t, CARRAY_CONSTRUCT>& arr)->bool{
     for(uint32_t i = 0; i < arr.Capacity(); ++i) 
@@ -2088,6 +2099,7 @@ TESTDEF::RETPAIR test_ARRAY()
     TEST(DEBUG_CDT<false>::count == 59);
   }
   TEST(!DEBUG_CDT<false>::count);
+  TEST(!DEBUG_CDT_SAFE::Tracker.Length());
 
   ENDTEST;
 }
@@ -2104,7 +2116,6 @@ TESTDEF::RETPAIR test_ARRAYSORT()
 {
   BEGINTEST;
 
-  DEBUG_CDT_SAFE<true>::_testret=&__testret; //If you don't do this it smashes the stack, but only sometimes, so it can create amazingly weird bugs.
   DEBUG_CDT<true>::count=0;
 
   {
@@ -3518,6 +3529,96 @@ TESTDEF::RETPAIR test_DYNARRAY()
   while(m.Length() > 0) fremove((m.Length() * 3) % m.Length());
 
   TEST(!m.Length());
+
+  auto f = [](cDynArray<DEBUG_CDT<true>, uint32_t, CARRAY_SAFE>& arr)->bool {
+    for(uint32_t i = 0; i < arr.Length(); ++i)
+      if(arr[i]._index != i)
+        return false;
+    return true;
+  };
+  auto f2 = [](cDynArray<DEBUG_CDT<true>, uint32_t, CARRAY_SAFE>& arr, uint32_t s) { for(uint32_t i = s; i < arr.Length(); ++i) { arr[i]._index = i; } };
+  int peek;
+
+  assert(!DEBUG_CDT_SAFE::Tracker.Length());
+  {
+    DEBUG_CDT<true>::count = 0;
+    cDynArray<DEBUG_CDT<true>, uint32_t, CARRAY_SAFE> b(10);
+    b.SetLength(10);
+    f2(b, 0);
+    b.Remove(5);
+    for(uint32_t i = 0; i < 5; ++i) TEST(b[i]._index == i);
+    for(uint32_t i = 5; i < b.Length(); ++i) TEST(b[i]._index == (i + 1));
+    TEST(b.Length() == 9);
+    TEST(DEBUG_CDT<true>::count == 9);
+    f2(b, 0);
+    peek = DEBUG_CDT<true>::count;
+    b.SetLength(19);
+    f2(b, 9);
+    peek = DEBUG_CDT<true>::count;
+    TEST(f(b));
+    peek = DEBUG_CDT<true>::count;
+    TEST(DEBUG_CDT<true>::count == 19);
+    TEST(b.Length() == 19);
+    cDynArray<DEBUG_CDT<true>, uint32_t, CARRAY_SAFE> c(b);
+    TEST(f(c));
+    TEST(DEBUG_CDT<true>::count == 38);
+    b += c;
+    for(uint32_t i = 0; i < 19; ++i) TEST(b[i]._index == i);
+    for(uint32_t i = 19; i < 38; ++i) TEST(b[i]._index == (i - 19));
+    TEST(DEBUG_CDT<true>::count == 57);
+    b + c;
+    f2(b, 0);
+    b.Insert(DEBUG_CDT<true>(), 5);
+    for(uint32_t i = 0; i < 5; ++i) TEST(b[i]._index == i);
+    for(uint32_t i = 6; i < b.Length(); ++i) TEST(b[i]._index == (i - 1));
+    TEST(DEBUG_CDT<true>::count == 58);
+    b.Insert(DEBUG_CDT<true>(), b.Length());
+    TEST(DEBUG_CDT<true>::count == 59);
+  }
+  TEST(!DEBUG_CDT<true>::count);
+  TEST(!DEBUG_CDT_SAFE::Tracker.Length());
+
+  auto f3 = [](cDynArray<DEBUG_CDT<false>, uint32_t, CARRAY_CONSTRUCT>& arr)->bool {
+    for(uint32_t i = 0; i < arr.Length(); ++i)
+      if(arr[i]._index != i)
+        return false;
+    return true;
+  };
+  auto f4 = [](cDynArray<DEBUG_CDT<false>, uint32_t, CARRAY_CONSTRUCT>& arr, uint32_t s) { for(uint32_t i = s; i < arr.Length(); ++i) { arr[i]._index = i; } };
+  {
+    DEBUG_CDT<false>::count = 0;
+    cDynArray<DEBUG_CDT<false>, uint32_t, CARRAY_CONSTRUCT> b(10);
+    b.SetLength(10);
+    f4(b, 0);
+    b.Remove(5);
+    for(uint32_t i = 0; i < 5; ++i) TEST(b[i]._index == i);
+    for(uint32_t i = 5; i < b.Length(); ++i) TEST(b[i]._index == (i + 1));
+    TEST(b.Length() == 9);
+    TEST(DEBUG_CDT<false>::count == 9);
+    f4(b, 0);
+    b.SetLength(19);
+    f4(b, 9);
+    TEST(f3(b));
+    TEST(DEBUG_CDT<false>::count == 19);
+    TEST(b.Length() == 19);
+    cDynArray<DEBUG_CDT<false>, uint32_t, CARRAY_CONSTRUCT> c(b);
+    TEST(f3(c));
+    TEST(DEBUG_CDT<false>::count == 38);
+    b += c;
+    for(uint32_t i = 0; i < 19; ++i) TEST(b[i]._index == i);
+    for(uint32_t i = 19; i < 38; ++i) TEST(b[i]._index == (i - 19));
+    TEST(DEBUG_CDT<false>::count == 57);
+    b + c;
+    f4(b, 0);
+    b.Insert(DEBUG_CDT<false>(), 5);
+    for(uint32_t i = 0; i < 5; ++i) TEST(b[i]._index == i);
+    for(uint32_t i = 6; i < b.Length(); ++i) TEST(b[i]._index == (i - 1));
+    TEST(DEBUG_CDT<false>::count == 58);
+    b.Insert(DEBUG_CDT<false>(), b.Length());
+    TEST(DEBUG_CDT<false>::count == 59);
+  }
+  TEST(!DEBUG_CDT<false>::count);
+  TEST(!DEBUG_CDT_SAFE::Tracker.Length());
 
   cArbitraryArray<uint32_t> u(0);
   int ua[5] = { 1,2,3,4,5 };

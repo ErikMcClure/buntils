@@ -44,9 +44,11 @@ namespace bss_util {
     }
     inline PROF_HEATNODE() : avg(0.0), id(0) {}
     inline PROF_HEATNODE(PROFILER_INT ID, double Avg) : avg(Avg), id(ID) {}
-    cArraySort<PROF_HEATNODE, COMP, uint32_t, CARRAY_SAFE, HeatAllocPolicy> _children; // must be CARRAY_SAFE because if you copy the array during a move, the array pointer gets destroyed by the old array.
+    inline PROF_HEATNODE(PROF_HEATNODE&& mov) : _children(std::move(mov._children)), avg(mov.avg), id(mov.id) {}
+    cArraySort<PROF_HEATNODE, COMP, uint32_t, CARRAY_CONSTRUCT, HeatAllocPolicy> _children;
     double avg;
     PROFILER_INT id;
+    PROF_HEATNODE& operator=(PROF_HEATNODE&& mov) { _children = std::move(mov._children); avg = mov.avg; id = mov.id; return *this; }
   };
   struct PROF_FLATOUT
   {

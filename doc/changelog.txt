@@ -12,6 +12,8 @@
 - Made linked list operations move safe
 - Fixed CARRAY_CONSTRUCT in cDynArray and cArray and added more vigorous testing to detect similar errors
 - Fixed const bug in bss_vector.h
+- added bssmalloc function
+- Added missing UTF conversion functions and standardized them
 
 0.4.5
 -----

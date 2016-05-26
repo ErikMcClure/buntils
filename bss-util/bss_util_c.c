@@ -117,72 +117,6 @@ extern size_t GetPeakWorkingSet()
 #endif
 }
 
-//Copyright (c) 2008-2009 Bjoern Hoehrmann <bjoern@hoehrmann.de>
-//
-//Permission is hereby granted, free of charge, to any person obtaining a copy of this software and associated
-//documentation files (the "Software"), to deal in the Software without restriction, including without
-//limitation the rights to use, copy, modify, merge, publish, distribute, sublicense, and/or sell copies of
-//the Software, and to permit persons to whom the Software is furnished to do so, subject to the following
-//conditions:
-//
-//The above copyright notice and this permission notice shall be included in all copies or substantial
-//portions of the Software.
-//
-//THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED
-//TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL
-//THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF
-//CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
-//DEALINGS IN THE SOFTWARE.
-
-#define UTF8_ACCEPT 0
-#define UTF8_REJECT 12
-
-static const unsigned char utf8d[] = {
-  // The first part of the table maps bytes to character classes that
-  // to reduce the size of the transition table and create bitmasks.
-   0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,  0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
-   0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,  0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
-   0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,  0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
-   0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,  0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
-   1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,  9,9,9,9,9,9,9,9,9,9,9,9,9,9,9,9,
-   7,7,7,7,7,7,7,7,7,7,7,7,7,7,7,7,  7,7,7,7,7,7,7,7,7,7,7,7,7,7,7,7,
-   8,8,2,2,2,2,2,2,2,2,2,2,2,2,2,2,  2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,
-  10,3,3,3,3,3,3,3,3,3,3,3,3,4,3,3, 11,6,6,6,5,8,8,8,8,8,8,8,8,8,8,8,
-
-  // The second part is a transition table that maps a combination
-  // of a state of the automaton and a character class to a state.
-   0,12,24,36,60,96,84,12,12,12,48,72, 12,12,12,12,12,12,12,12,12,12,12,12,
-  12, 0,12,12,12,12,12, 0,12, 0,12,12, 12,24,12,12,12,12,12,24,12,24,12,12,
-  12,12,12,12,12,12,12,24,12,12,12,12, 12,24,12,12,12,12,12,12,12,24,12,12,
-  12,12,12,12,12,12,12,36,12,36,12,12, 12,36,12,12,12,12,12,36,12,36,12,12,
-  12,36,12,12,12,12,12,12,12,12,12,12, 
-};
-
-unsigned int decode(unsigned int* state, unsigned int* codep, unsigned int byte)
-{
-  unsigned int type = utf8d[byte];
-
-  *codep = (*state != UTF8_ACCEPT) ?
-    (byte & 0x3fu) | (*codep << 6) :
-    (0xff >> type) & (byte);
-
-  *state = utf8d[256 + *state + type];
-  return *state;
-}
-
-size_t countutf16(const unsigned char* s)
-{
-  size_t count;
-  unsigned int codepoint;
-  unsigned int state = 0;
-
-  for (count = 1; *s; ++s) //One for null terminator
-    if(!decode(&state, &codepoint, *s))
-      count += (1+(codepoint > 0xffff)); //If the codepoint is above 0xffff, two utf16 characters will be printed.
-
-  return (state == UTF8_ACCEPT)?count:(size_t)-1;
-}
-
 BSS_COMPILER_DLLEXPORT
 extern size_t BSS_FASTCALL UTF8toUTF16(const char*BSS_RESTRICT input,wchar_t*BSS_RESTRICT output, size_t buflen)
 {
@@ -198,32 +132,22 @@ extern size_t BSS_FASTCALL UTF8toUTF16(const char*BSS_RESTRICT input,wchar_t*BSS
   char* in = (char*)input; // Linux is stupid
   return iconv(iconv_utf8to16, &in, &len, &out, &buflen);
 #endif
+}
 
-  /*const unsigned char* s = src;
-  wchar_t* d = dst;
-  unsigned int codepoint;
-  unsigned int state = 0;
-
-  if(!dst) return countutf16(src);
-
-  while (*s)
-  {
-    if(decode(&state, &codepoint, *s++))
-      continue;
-
-    if(codepoint > 0xffff) {
-      *d++ = (wchar_t)(0xD7C0 + (codepoint >> 10));
-      *d++ = (wchar_t)(0xDC00 + (codepoint & 0x3FF));
-    } else
-      *d++ = (wchar_t)codepoint;
-  }
-
-  *d++ = 0; // We do this because the loop terminates on a nullptr terminator so that won't have been copied over.
-
-  if (state != UTF8_ACCEPT)
-    return (size_t)-1;
-  
-  return (size_t)(d - dst);*/
+BSS_COMPILER_DLLEXPORT
+extern size_t BSS_FASTCALL UTF16toUTF8(const wchar_t*BSS_RESTRICT input, char*BSS_RESTRICT output, size_t buflen)
+{
+#ifdef BSS_PLATFORM_WIN32
+  return (size_t)WideCharToMultiByte(CP_UTF8, 0, input, -1, output, (int)(!output ? 0 : buflen), NULL, NULL);
+#else
+  static iconv_t iconv_utf16to8 = 0;
+  size_t len = wcslen(input) * 2;
+  char* in = (char*)input;
+  if(!output) return (len * 2) + 1;
+  len += 2; // include null terminator (which is 2 bytes wide here)
+  if(!iconv_utf16to8) iconv_utf16to8 = iconv_open("UTF-16", "UTF-8");
+  return iconv(iconv_utf16to8, &in, &len, &output, &buflen);
+#endif
 }
 
 /*
@@ -294,86 +218,6 @@ static char isLegalUTF8(const unsigned char *source, int length) {
   }
   if (*source > 0xF4) return 0;
   return 1;
-}
-
-BSS_COMPILER_DLLEXPORT
-extern size_t BSS_FASTCALL UTF8toUTF32(const char*BSS_RESTRICT input, int*BSS_RESTRICT output, size_t buflen) 
-{
-  char result = 0;
-  const unsigned char* source = (unsigned char*)input;
-  const unsigned char* sourceEnd = source;
-  unsigned int* target = (unsigned int*)output;
-  unsigned int* targetEnd = target+buflen;
-  size_t srclen=strlen(input)+1;
-  if(!output) return srclen;
-  sourceEnd+=srclen;
-
-  while(source < sourceEnd) {
-      unsigned int ch = 0;
-      unsigned short extraBytesToRead = trailingBytesForUTF8[*source];
-      if (extraBytesToRead >= sourceEnd - source) {
-          result = -2; break;
-      }
-      /* Do this check whether lenient or strict */
-      if (!isLegalUTF8(source, extraBytesToRead+1)) {
-          result = -1;
-          break;
-      }
-      /*
-        * The cases all fall through. See "Note A" below.
-        */
-      switch (extraBytesToRead) {
-          case 5: ch += *source++; ch <<= 6;
-          case 4: ch += *source++; ch <<= 6;
-          case 3: ch += *source++; ch <<= 6;
-          case 2: ch += *source++; ch <<= 6;
-          case 1: ch += *source++; ch <<= 6;
-          case 0: ch += *source++;
-      }
-      ch -= offsetsFromUTF8[extraBytesToRead];
-
-      if (target >= targetEnd) {
-          source -= (extraBytesToRead+1); /* Back up the source pointer! */
-          result = -3; break;
-      }
-      if (ch <= UNI_MAX_LEGAL_UTF32) {
-          /*
-            * UTF-16 surrogate values are illegal in UTF-32, and anything
-            * over Plane 17 (> 0x10FFFF) is illegal.
-            */
-          if (ch >= UNI_SUR_HIGH_START && ch <= UNI_SUR_LOW_END) {
-              //if (flags == strictConversion) {
-              //    source -= (extraBytesToRead+1); /* return to the illegal value itself */
-              //    result = sourceIllegal;
-              //    break;
-              //} else {
-                  *target++ = UNI_REPLACEMENT_CHAR;
-              //}
-          } else {
-              *target++ = ch;
-          }
-      } else { /* i.e., ch > UNI_MAX_LEGAL_UTF32 */
-          result = -1;
-          *target++ = UNI_REPLACEMENT_CHAR;
-      }
-  }
-  return (size_t)(((int*)target)-output);
-}
-
-BSS_COMPILER_DLLEXPORT
-extern size_t BSS_FASTCALL UTF16toUTF8(const wchar_t*BSS_RESTRICT input, char*BSS_RESTRICT output, size_t buflen)
-{
-#ifdef BSS_PLATFORM_WIN32
-  return (size_t)WideCharToMultiByte(CP_UTF8, 0, input, -1, output, (int)(!output?0:buflen), NULL, NULL);
-#else
-  static iconv_t iconv_utf16to8=0;
-  size_t len = wcslen(input)*2;
-  char* in = (char*)input;
-  if(!output) return (len*2) + 1;
-  len+=2; // include null terminator (which is 2 bytes wide here)
-  if(!iconv_utf16to8) iconv_utf16to8=iconv_open("UTF-16", "UTF-8");
-  return iconv(iconv_utf16to8, &in, &len, &output, &buflen);
-#endif
 }
 
 BSS_COMPILER_DLLEXPORT

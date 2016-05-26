@@ -45,7 +45,7 @@ namespace bss_util {
     {
       assert(num==1);
 #ifdef BSS_DISABLE_CUSTOM_ALLOCATORS
-      return (T*)malloc(num*sizeof(T));
+      return bssmalloc<T>(num);
 #endif
       bss_PTag<void> ret={ 0, 0 };
       bss_PTag<void> nval;

@@ -370,31 +370,31 @@ TESTDEF::RETPAIR test_bss_util_c()
   for(int i = 0; i < 1023; ++i) instr[i] = (char)bssrandint(0, 256);
   instr[1023] = 0;
 
-  size_t len = UTF8toUTF32(instr, 0, 0);
+  size_t len = UTF8toUTF32(instr, -1, 0, 0);
   TEST(len < 1024);
-  TEST(UTF8toUTF32(instr, outstr, len) <= len);
+  TEST(UTF8toUTF32(instr, -1, outstr, len) <= len);
 
   for(int i = 0; i < 255; ++i) outstr[i] = (int)bssrandint(0, 0xFFFFFFFF);
   outstr[255] = 0;
 
-  len = UTF32toUTF8(outstr, 0, 0);
+  len = UTF32toUTF8(outstr, -1, 0, 0);
   TEST(len < 1024);
-  TEST(UTF32toUTF8(outstr, instr, len) <= len);
+  TEST(UTF32toUTF8(outstr, -1, instr, len) <= len);
 
   for(int i = 0; i < sizeof(PANGRAMS) / sizeof(const bsschar*); ++i)
   {
-    size_t l = UTF16toUTF32(PANGRAMS[i], 0, 0);
+    size_t l = UTF16toUTF32(PANGRAMS[i], -1, 0, 0);
     assert(l < 1024);
-    UTF16toUTF32(PANGRAMS[i], outstr, l);
-    l = UTF32toUTF8(outstr, 0, 0);
+    UTF16toUTF32(PANGRAMS[i], -1, outstr, l);
+    l = UTF32toUTF8(outstr, -1, 0, 0);
     assert(l < 1024);
-    UTF32toUTF8(outstr, instr, l);
-    l = UTF8toUTF32(instr, 0, 0);
+    UTF32toUTF8(outstr, -1, instr, l);
+    l = UTF8toUTF32(instr, -1, 0, 0);
     assert(l < 1024);
-    UTF8toUTF32(instr, outstr, l);
-    l = UTF32toUTF16(outstr, 0, 0);
+    UTF8toUTF32(instr, -1, outstr, l);
+    l = UTF32toUTF16(outstr, -1, 0, 0);
     assert(l < 1024);
-    UTF32toUTF16(outstr, wstr, l);
+    UTF32toUTF16(outstr, -1, wstr, l);
     TEST(!wcscmp(wstr, PANGRAMS[i]));
   }
   ENDTEST;

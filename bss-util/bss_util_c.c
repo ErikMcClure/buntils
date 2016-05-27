@@ -16,8 +16,7 @@
 #include <stdio.h>
 #include <sys/resource.h>
 #endif
-
-BSS_COMPILER_DLLEXPORT 
+ 
 extern union bssCPUInfo bssGetCPUInfo()
 {
   union bssCPUInfo r={0};
@@ -65,8 +64,7 @@ extern union bssCPUInfo bssGetCPUInfo()
   r.flags|=(((info[2]&T_GETBIT(unsigned int, 23))!=0)<<5); // POPCNT support
   return r;
 }
-
-BSS_COMPILER_DLLEXPORT 
+ 
 extern const char* GetProgramPath()
 {
 #ifdef BSS_PLATFORM_WIN32
@@ -74,14 +72,13 @@ extern const char* GetProgramPath()
   wchar_t wbuf[MAX_PATH];
   GetModuleFileNameExW(GetCurrentProcess(), 0, wbuf, MAX_PATH);
   wbuf[MAX_PATH-1]=0; //XP doesn't ensure this is null terminated
-  UTF16toUTF8(wbuf, buf, MAX_PATH);
+  UTF16toUTF8(wbuf, -1, buf, MAX_PATH);
   return buf;
 #else
   return 0;
 #endif
 }
 
-BSS_COMPILER_DLLEXPORT
 extern size_t GetWorkingSet()
 {
 #ifdef BSS_PLATFORM_WIN32
@@ -99,7 +96,6 @@ extern size_t GetWorkingSet()
 #endif
 }
 
-BSS_COMPILER_DLLEXPORT
 extern size_t GetPeakWorkingSet()
 {
 #ifdef BSS_PLATFORM_WIN32
@@ -117,14 +113,13 @@ extern size_t GetPeakWorkingSet()
 #endif
 }
 
-BSS_COMPILER_DLLEXPORT
-extern size_t BSS_FASTCALL UTF8toUTF16(const char*BSS_RESTRICT input,wchar_t*BSS_RESTRICT output, size_t buflen)
+extern size_t BSS_FASTCALL UTF8toUTF16(const char*BSS_RESTRICT input, ptrdiff_t srclen, wchar_t*BSS_RESTRICT output, size_t buflen)
 {
 #ifdef BSS_PLATFORM_WIN32
-  return (size_t)MultiByteToWideChar(CP_UTF8, 0, input, -1, output, (int)(!output?0:buflen));
+  return (size_t)MultiByteToWideChar(CP_UTF8, 0, input, (int)srclen, output, (int)(!output?0:buflen));
 #else
   static iconv_t iconv_utf8to16=0;
-  size_t len = strlen(input);
+  size_t len = srclen < 0 ? strlen(input) : srclen;
   char* out = (char*)output;
   if(!output) return (len*4) + 1;
   len+=1; // include null terminator
@@ -134,14 +129,14 @@ extern size_t BSS_FASTCALL UTF8toUTF16(const char*BSS_RESTRICT input,wchar_t*BSS
 #endif
 }
 
-BSS_COMPILER_DLLEXPORT
-extern size_t BSS_FASTCALL UTF16toUTF8(const wchar_t*BSS_RESTRICT input, char*BSS_RESTRICT output, size_t buflen)
+
+extern size_t BSS_FASTCALL UTF16toUTF8(const wchar_t*BSS_RESTRICT input, ptrdiff_t srclen, char*BSS_RESTRICT output, size_t buflen)
 {
 #ifdef BSS_PLATFORM_WIN32
-  return (size_t)WideCharToMultiByte(CP_UTF8, 0, input, -1, output, (int)(!output ? 0 : buflen), NULL, NULL);
+  return (size_t)WideCharToMultiByte(CP_UTF8, 0, input, (int)srclen, output, (int)(!output ? 0 : buflen), NULL, NULL);
 #else
   static iconv_t iconv_utf16to8 = 0;
-  size_t len = wcslen(input) * 2;
+  size_t len = (srclen < 0 ? wcslen(input) : srclen) * 2;
   char* in = (char*)input;
   if(!output) return (len * 2) + 1;
   len += 2; // include null terminator (which is 2 bytes wide here)

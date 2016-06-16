@@ -532,7 +532,74 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
-    <ClCompile Include="main.cpp" />
+    <ClCompile Include="test.cpp" />
+    <ClCompile Include="test_aatree.cpp" />
+    <ClCompile Include="test_aliastable.cpp" />
+    <ClCompile Include="test_animation.cpp" />
+    <ClCompile Include="test_array.cpp" />
+    <ClCompile Include="test_arraycircular.cpp" />
+    <ClCompile Include="test_arraysort.cpp" />
+    <ClCompile Include="test_avltree.cpp" />
+    <ClCompile Include="test_binaryheap.cpp" />
+    <ClCompile Include="test_bitfield.cpp" />
+    <ClCompile Include="test_bitstream.cpp" />
+    <ClCompile Include="test_bss_algo.cpp" />
+    <ClCompile Include="test_bss_alloc_block.cpp" />
+    <ClCompile Include="test_bss_alloc_block_mt.cpp" />
+    <ClCompile Include="test_bss_alloc_circular.cpp" />
+    <ClCompile Include="test_bss_alloc_greedy.cpp" />
+    <ClCompile Include="test_bss_defines.cpp" />
+    <ClCompile Include="test_bss_graph.cpp" />
+    <ClCompile Include="test_bss_log.cpp" />
+    <ClCompile Include="test_bss_sse.cpp" />
+    <ClCompile Include="test_bss_util.cpp" />
+    <ClCompile Include="test_bss_util_c.cpp" />
+    <ClCompile Include="test_bss_vector.cpp" />
+    <ClCompile Include="test_delegate.cpp" />
+    <ClCompile Include="test_disjointset.cpp" />
+    <ClCompile Include="test_dual.cpp" />
+    <ClCompile Include="test_dynarray.cpp" />
+    <ClCompile Include="test_fixedpt.cpp" />
+    <ClCompile Include="test_hash.cpp" />
+    <ClCompile Include="test_highprecisiontimer.cpp" />
+    <ClCompile Include="test_idhash.cpp" />
+    <ClCompile Include="test_inistorage.cpp" />
+    <ClCompile Include="test_json.cpp" />
+    <ClCompile Include="test_kdtree.cpp" />
+    <ClCompile Include="test_linkedarray.cpp" />
+    <ClCompile Include="test_linkedlist.cpp" />
+    <ClCompile Include="test_lockless.cpp" />
+    <ClCompile Include="test_locklessqueue.cpp" />
+    <ClCompile Include="test_map.cpp" />
+    <ClCompile Include="test_os.cpp" />
+    <ClCompile Include="test_priorityqueue.cpp" />
+    <ClCompile Include="test_profile.cpp" />
+    <ClCompile Include="test_queue.cpp" />
+    <ClCompile Include="test_rational.cpp" />
+    <ClCompile Include="test_refcounter.cpp" />
+    <ClCompile Include="test_scheduler.cpp" />
+    <ClCompile Include="test_serializer.cpp" />
+    <ClCompile Include="test_singleton.cpp" />
+    <ClCompile Include="test_smartptr.cpp" />
+    <ClCompile Include="test_stack.cpp" />
+    <ClCompile Include="test_str.cpp" />
+    <ClCompile Include="test_streamsplitter.cpp" />
+    <ClCompile Include="test_strtable.cpp" />
+    <ClCompile Include="test_thread.cpp" />
+    <ClCompile Include="test_threadpool.cpp" />
+    <ClCompile Include="test_trbtree.cpp" />
+    <ClCompile Include="test_trie.cpp" />
+    <ClCompile Include="test_ubjson.cpp" />
+    <ClCompile Include="test_variant.cpp" />
+    <ClCompile Include="test_xml.cpp" />
+    <ClCompile Include="util.cpp" />
+  </ItemGroup>
+  <ItemGroup>
+    <ResourceCompile Include="test.rc" />
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="test.h" />
+    <ClInclude Include="test_alloc.h" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

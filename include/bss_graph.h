@@ -6,6 +6,7 @@
 
 #include "cLinkedArray.h"
 #include "bss_alloc_block.h"
+#include "cDisjointSet.h"
 #include "LLBase.h"
 #include <limits.h>
 #ifdef BSS_COMPILER_GCC

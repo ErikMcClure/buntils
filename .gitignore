@@ -2,6 +2,7 @@
 *.suo
 *.opensdf
 *.bak
+*.aps
 *.VC.db
 *.VC.opendb
 bin/

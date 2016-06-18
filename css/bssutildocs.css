@@ -22,7 +22,7 @@ header {
   color: #FDFDFE;
   padding: 0.5em 0.5em 0.1em 0.5em;
   background: linear-gradient( 0deg, #191919, #393939 );
-  border-radius: 0 0 1em 1em;
+  border-radius: 0 0 0.35em 0.35em;
   cursor: default;
   text-align: center;
   text-shadow: -1px -1px #000;
@@ -161,18 +161,17 @@ aside h4 {
 aside .button_green {
   margin-bottom: 0.6em;
 }
+article {
+  display: flex;
+}
 article nav {
-  position:absolute;
+  flex: none;
   color:#FFFDFD;
-  background: #333;
-  border-right: 1px #111 solid;
   width: 260px;
-  top: 275px;
-  left: 0;
-  bottom: 0;
   font-size: 22px;
   font-weight: 700;
   letter-spacing: 1px;
+  z-index:1;
 }
 article nav ul {
   list-style-type: none;
@@ -185,9 +184,6 @@ article nav li a {
   color: #FFF;
   text-decoration: none;
 }
-nav~section {
-  margin-left: 260px;
-}
 article h1 {
   margin: 0;
   font-size: 24px;
@@ -196,7 +192,7 @@ article h2 {
   position: relative;
   font-size: 22px;
   background:linear-gradient( 90deg, #aacfdf, #FFF );
-  border-radius: 0.5em;
+  border-radius: 0.3em;
   padding: 0 0 0.15em 0.25em;
 }
 article h3 {
@@ -262,9 +258,11 @@ section a:visited {
 .sidebarbg {
   position:absolute;
   background: #333;
-  height: 275px;
-  width: 200px;
+  width: 260px;
   top: 0;
+  bottom: 0;
+  border-right: 1px #111 solid;
+  z-index:0;
 }
 .button_green {
 	background-color: #34901a;	

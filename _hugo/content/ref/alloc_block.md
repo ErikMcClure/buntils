@@ -1,10 +1,10 @@
 +++
-title = "bss-util"
-description = "bss_util.h Reference"
+title = "Block Allocator"
+description = "bss_alloc_block.h Reference"
 tags = [
     "bssutil",
-    "bss_util.h",
-    "util",
+    "bss_alloc_block.h",
+    "alloc",
     "ref",
 ]
 date = "2016-04-02"

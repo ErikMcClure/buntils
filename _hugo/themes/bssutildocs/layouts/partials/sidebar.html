@@ -1,9 +1,10 @@
 {{ $baseUrl := .Site.BaseURL }}
+{{ $Site := . }}
 <nav>
 <ul>
 {{ range $name, $taxonomy := .Site.Taxonomies.categories }}
 {{ range $taxonomy.Pages }}
-  <li><a href="{{ .RelPermalink }}"><span>{{ .Title }}</span></a></li>
+  <li{{if eq $Site.Title .Title }} class="selected"{{end}}><a href="{{ .RelPermalink }}"><span>{{ .Title }}</span></a></li>
 {{ end }}
 {{ end }}
 </ul>

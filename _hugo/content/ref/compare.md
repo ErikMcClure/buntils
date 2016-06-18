@@ -1,11 +1,11 @@
 +++
-title = "bss-util"
-description = "bss_util.h Reference"
+title = "Compare Functions"
+description = "bss_compare.h Reference"
 tags = [
     "bssutil",
-    "bss_util.h",
-    "util",
+    "bss_compare.h",
     "ref",
+    "util",
 ]
 date = "2016-04-02"
 categories = [

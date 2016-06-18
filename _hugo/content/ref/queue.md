@@ -1,10 +1,9 @@
 +++
-title = "bss-util"
-description = "bss_util.h Reference"
+title = "Queue"
+description = "bss_queue.h Reference"
 tags = [
     "bssutil",
-    "bss_util.h",
-    "util",
+    "bss_queue.h",
     "ref",
 ]
 date = "2016-04-02"

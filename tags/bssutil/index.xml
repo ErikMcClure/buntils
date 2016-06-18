@@ -1,0 +1,131 @@
+<?xml version="1.0" encoding="utf-8" standalone="yes" ?>
+<rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom">
+  <channel>
+    <title>Bssutil on Black Sphere Studios Utility Library</title>
+    <link>/bss-util/tags/bssutil/</link>
+    <description>Recent content in Bssutil on Black Sphere Studios Utility Library</description>
+    <generator>Hugo -- gohugo.io</generator>
+    <language>en-us</language>
+    <copyright>Black Sphere Studios. All rights reserved.</copyright>
+    <lastBuildDate>Sat, 02 Apr 2016 00:00:00 +0000</lastBuildDate>
+    <atom:link href="/bss-util/tags/bssutil/index.xml" rel="self" type="application/rss+xml" />
+    
+    <item>
+      <title>Array</title>
+      <link>/bss-util/ref/array/</link>
+      <pubDate>Sat, 02 Apr 2016 00:00:00 +0000</pubDate>
+      
+      <guid>/bss-util/ref/array/</guid>
+      <description>
+
+&lt;p&gt;The basis for all of the arrays in bss-util is in cArray.h, which contains two helper classes and two public classes. &lt;a href=&#34;#carray:8177e845bec4a15c29be1b787e514e77&#34;&gt;cArray&lt;/a&gt; is a standalone non-resizable array, whereas &lt;a href=&#34;#carraybase:8177e845bec4a15c29be1b787e514e77&#34;&gt;cArrayBase&lt;/a&gt; is intended to be inherited by a more complex data structure. Everything else is mostly for convenience.&lt;/p&gt;
+
+&lt;p&gt;The &lt;code&gt;ARRAY_TYPE&lt;/code&gt; enumeration defines the four fundamental types of data management used by the underlying array implementation, which are consequently used in most of the data structures that &lt;a href=&#34;#&#34;&gt;inherit cArrayInternal&lt;/a&gt;.&lt;/p&gt;
+
+&lt;h3 id=&#34;enum-array-type:8177e845bec4a15c29be1b787e514e77&#34;&gt;enum ARRAY_TYPE&lt;/h3&gt;
+
+&lt;ul&gt;
+&lt;li&gt;&lt;code&gt;CARRAY_SIMPLE = 0&lt;/code&gt;
+&lt;p&gt;This is for &lt;strong&gt;POD&lt;/strong&gt;, or Plain Old Data, which does not own any pointers or anything that needs special attention, so the underlying array can simply copy the bytes around without bothering with constructors or destructors. More complex data structures like the &lt;a href=&#34;#&#34;&gt;dynamic array&lt;/a&gt; can see significant performance boosts when moving large numbers of small objects around. It is crucial that the underlying type of the array &lt;strong&gt;has no constructors or destructors&lt;/strong&gt; when using this management scheme. At the very least, the constructors should be for convenience only.&lt;/p&gt;&lt;/li&gt;
+&lt;li&gt;&lt;code&gt;CARRAY_CONSTRUCT = 1&lt;/code&gt;
+&lt;p&gt;This is for types that must be constructed or destructed, but &lt;strong&gt;do not have any external references&lt;/strong&gt;. This means that nothing else in the program has a pointer to an element in the array, even indirectly. This is a situation that comes up fairly often, as many types will have internal pointers to manage, but since nothing cares about where those types are in memory, the bytes can be moved around freely after construction, so long as the destructor is eventually called on them.&lt;/p&gt;&lt;/li&gt;
+&lt;li&gt;&lt;code&gt;CARRAY_SAFE = 2&lt;/code&gt;
+&lt;p&gt;This behaves the same as an &lt;code&gt;std::vector&lt;/code&gt; does, by carefully preserving the contents of the type by always calling the constructors and using move semantics where appropriate. While this management form can take a big hit on performance during resizing (because realloc cannot be called, and all the move constructors will have to be run), you can safely put any type into the array using this management scheme, provided it has a copy constructor.&lt;/p&gt;&lt;/li&gt;
+&lt;li&gt;&lt;code&gt;CARRAY_MOVE = 3&lt;/code&gt;
+&lt;p&gt;This is a special variant on the &lt;code&gt;SAFE&lt;/code&gt; management scheme that removes the &lt;code&gt;copy&lt;/code&gt; helper function from &lt;a href=&#34;#carrayinternal:8177e845bec4a15c29be1b787e514e77&#34;&gt;cArrayInternal&lt;/a&gt;. While this prevents you from ever copying an array or data structure, it will still permit resizing the array using only move semantics. This management structure is crucial, because it allows for putting move-only types into arrays and data structures, such as &lt;code&gt;std::unique_ptr&lt;/code&gt;.&lt;/p&gt;&lt;/li&gt;
+&lt;/ul&gt;
+
+&lt;h2 id=&#34;carray-hugoshortcode-4-hugoshortcode-5:8177e845bec4a15c29be1b787e514e77&#34;&gt;cArray &lt;span class=&#34;badge code&#34;&gt;cArray.h&lt;/span&gt; &lt;span class=&#34;badge green&#34;&gt;14/14 Test Coverage&lt;/span&gt;&lt;/h2&gt;
+
+&lt;pre&gt;&lt;code&gt;template&amp;lt;class T,
+  typename CType = size_t,
+  ARRAY_TYPE ArrayType = CARRAY_SIMPLE,
+  typename Alloc = StaticAllocPolicy&amp;lt;T&amp;gt;&amp;gt;
+class BSS_COMPILER_DLLEXPORT cArray :
+  protected cArrayBase&amp;lt;T, CType, Alloc&amp;gt;,
+  protected cArrayInternal&amp;lt;T, CType, ArrayType, Alloc&amp;gt;
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;p&gt;Standalone array that is not resizable, which means that all elements are always constructed or destructed when the capacity changes. Useful for situations where the array size almost never changes. Subclasses &lt;strong&gt;should not&lt;/strong&gt; inherit this class, instead they should inherit &lt;a href=&#34;#carraybase:8177e845bec4a15c29be1b787e514e77&#34;&gt;cArrayBase&lt;/a&gt; instead and use the &lt;a href=&#34;#carrayinternal:8177e845bec4a15c29be1b787e514e77&#34;&gt;cArrayInternal&lt;/a&gt; helper functions.&lt;/p&gt;
+
+&lt;h3 id=&#34;template-arguments:8177e845bec4a15c29be1b787e514e77&#34;&gt;Template Arguments&lt;/h3&gt;
+
+&lt;ul&gt;
+&lt;li&gt;&lt;strong&gt;&lt;code&gt;class T&lt;/code&gt;&lt;/strong&gt;: Determines the underlying type used for this array. No special handling is done for pointers, so if you have an array of &lt;code&gt;type*&lt;/code&gt;, functions that return &lt;code&gt;T*&lt;/code&gt; will return &lt;code&gt;type**&lt;/code&gt;. Any type can be used here, but remember that you should use the correct management scheme for it.&lt;/li&gt;
+&lt;li&gt;&lt;strong&gt;&lt;code&gt;typename CType&lt;/code&gt;&lt;/strong&gt;: Sets the &lt;em&gt;index type&lt;/em&gt; of this array. Must be an integral type. This defaults to &lt;code&gt;size_t&lt;/code&gt;, but can be a signed integer. Making this smaller than &lt;code&gt;size_t&lt;/code&gt; is usually pointless, but certain data structures use a special index type, and ensuring the array uses the same type for its indexes helps cohesion and type safety.&lt;/li&gt;
+&lt;li&gt;&lt;strong&gt;&lt;code&gt;ARRAY_TYPE ArrayType&lt;/code&gt;&lt;/strong&gt;: Determines the &lt;a href=&#34;#enum-array_type:8177e845bec4a15c29be1b787e514e77&#34;&gt;management scheme&lt;/a&gt; used by the array. Make sure this is appropriate for the type you&amp;rsquo;re using for &lt;code&gt;T&lt;/code&gt;!&lt;/li&gt;
+&lt;li&gt;&lt;strong&gt;&lt;code&gt;typename Alloc&lt;/code&gt;&lt;/strong&gt;: Arrays accept purely static custom allocators that follow the &lt;a href=&#34;#&#34;&gt;bss-alloc&lt;/a&gt; standards. Stateful allocators are not supported. By default, the standard static allocator is used, which simply calls &lt;code&gt;realloc&lt;/code&gt; and &lt;code&gt;free&lt;/code&gt;.&lt;/li&gt;
+&lt;/ul&gt;
+
+&lt;h2 id=&#34;carrayinternal-hugoshortcode-9-hugoshortcode-10:8177e845bec4a15c29be1b787e514e77&#34;&gt;cArrayInternal &lt;span class=&#34;badge code&#34;&gt;cArray.h&lt;/span&gt; &lt;span class=&#34;badge cyan&#34;&gt;Indirect Coverage&lt;/span&gt;&lt;/h2&gt;
+
+&lt;h2 id=&#34;carraybase-hugoshortcode-11-hugoshortcode-12:8177e845bec4a15c29be1b787e514e77&#34;&gt;cArrayBase &lt;span class=&#34;badge code&#34;&gt;cArray.h&lt;/span&gt; &lt;span class=&#34;badge cyan&#34;&gt;Indirect Coverage&lt;/span&gt;&lt;/h2&gt;
+
+&lt;pre&gt;&lt;code&gt;template&amp;lt;class T,
+  typename CType = size_t,
+  typename Alloc = StaticAllocPolicy&amp;lt;T&amp;gt;&amp;gt;
+class BSS_COMPILER_DLLEXPORT cArrayBase
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;p&gt;This class provides only the most basic array management operations and is intended to be inherited by more complex classes. Data structures that inherit this class should use &lt;a href=&#34;#carrayinternal:8177e845bec4a15c29be1b787e514e77&#34;&gt;cArrayInternal&lt;/a&gt; with the appropriate management scheme to manipulate the array. It&amp;rsquo;s template arguments are the same as &lt;a href=&#34;#carray:8177e845bec4a15c29be1b787e514e77&#34;&gt;cArray&lt;/a&gt;, except that it has no &lt;code&gt;ARRAY_TYPE&lt;/code&gt; argument.&lt;/p&gt;
+
+&lt;h4 id=&#34;carraybase-mov:8177e845bec4a15c29be1b787e514e77&#34;&gt;&lt;code&gt;cArrayBase(mov)&lt;/code&gt;&lt;/h4&gt;
+
+&lt;pre&gt;&lt;code&gt;inline cArrayBase(cArrayBase&amp;amp;&amp;amp; mov)
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;h4 id=&#34;carraybase-ctype-capacity:8177e845bec4a15c29be1b787e514e77&#34;&gt;&lt;code&gt;cArrayBase(CType capacity)&lt;/code&gt;&lt;/h4&gt;
+
+&lt;pre&gt;&lt;code&gt;inline explicit cArrayBase(CT_ capacity = 0)
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;h4 id=&#34;carraybase:8177e845bec4a15c29be1b787e514e77&#34;&gt;&lt;code&gt;~cArrayBase()&lt;/code&gt;&lt;/h4&gt;
+
+&lt;pre&gt;&lt;code&gt;inline ~cArrayBase()
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;h4 id=&#34;capacity:8177e845bec4a15c29be1b787e514e77&#34;&gt;&lt;code&gt;Capacity()&lt;/code&gt;&lt;/h4&gt;
+
+&lt;pre&gt;&lt;code&gt;inline CT_ Capacity() const noexcept
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;h4 id=&#34;setcapacity-ct-capacity:8177e845bec4a15c29be1b787e514e77&#34;&gt;&lt;code&gt;SetCapacity(CT_ capacity)&lt;/code&gt;&lt;/h4&gt;
+
+&lt;pre&gt;&lt;code&gt;BSS_FORCEINLINE void SetCapacity(CT_ capacity) noexcept
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;h4 id=&#34;setcapacitydiscard-ct-capacity:8177e845bec4a15c29be1b787e514e77&#34;&gt;&lt;code&gt;SetCapacityDiscard(CT_ capacity)&lt;/code&gt;&lt;/h4&gt;
+
+&lt;pre&gt;&lt;code&gt;BSS_FORCEINLINE void SetCapacityDiscard(CT_ capacity) noexcept
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;h4 id=&#34;operator-mov:8177e845bec4a15c29be1b787e514e77&#34;&gt;&lt;code&gt;operator=(mov)&lt;/code&gt;&lt;/h4&gt;
+
+&lt;pre&gt;&lt;code&gt;cArrayBase&amp;amp; operator=(cArrayBase&amp;amp;&amp;amp; mov) noexcept
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;h4 id=&#34;getslice:8177e845bec4a15c29be1b787e514e77&#34;&gt;&lt;code&gt;GetSlice()&lt;/code&gt;&lt;/h4&gt;
+
+&lt;pre&gt;&lt;code&gt;inline cArraySlice&amp;lt;T, CType&amp;gt; GetSlice()
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;h2 id=&#34;carrayslice-hugoshortcode-15-hugoshortcode-16:8177e845bec4a15c29be1b787e514e77&#34;&gt;cArraySlice &lt;span class=&#34;badge code&#34;&gt;cArray.h&lt;/span&gt; &lt;span class=&#34;badge red&#34;&gt;0/6 Test Coverage&lt;/span&gt;&lt;/h2&gt;
+</description>
+    </item>
+    
+    <item>
+      <title>bss-util.h</title>
+      <link>/bss-util/ref/bss-util/</link>
+      <pubDate>Sat, 02 Apr 2016 00:00:00 +0000</pubDate>
+      
+      <guid>/bss-util/ref/bss-util/</guid>
+      <description>
+
+&lt;h2 id=&#34;bss-util:6c3ea56039882a0da694cbdfabed558a&#34;&gt;bss-util&lt;/h2&gt;
+
+&lt;p&gt;Test page&lt;/p&gt;
+</description>
+    </item>
+    
+  </channel>
+</rss>

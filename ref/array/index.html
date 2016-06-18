@@ -1,0 +1,167 @@
+<!DOCTYPE html>
+
+
+<html lang="en">
+	<head>
+  <meta http-equiv="X-UA-Compatible" content="IE=Edge" />
+  <meta charset="utf-8" />
+  <meta name="description" content="Black Sphere Studios Utility Library Downloads and Documentation" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <link href='http://fonts.googleapis.com/css?family=Open+Sans:400,600,700,800' rel='stylesheet' type='text/css'>
+  <link href='/bss-util/main.css' rel='stylesheet' type='text/css'>
+  <link rel="alternate" href="/bss-util/index.xml" type="application/rss+xml" title="Black Sphere Studios Utility Library">
+  <link rel="icon" href="/bss-util/favicon.ico">
+	<title>Black Sphere Studios Utility Library - Array</title>
+  <link rel="stylesheet" href="/bss-util/css/bssutildocs.css">
+	</head>
+
+<body role="document">
+<main>
+
+  
+
+  
+
+  <div class="sidebarbg" ></div>
+
+<header>
+<img class="logo" src="/bss-util/bss_util_white.png" alt=""/>
+<h1>Black Sphere Studios</h1>
+<h2>Utility Library</h2>
+<nav>
+  <ul>
+    <li><a href="/bss-util/">Home</a></li><li><a href="/bss-util/dl/">Download</a></li><li><a href="/bss-util/ref/">Reference</a></li><li><a href="https://github.com/Black-Sphere-Studios/bss-util">Github</a></li><li><a href="http://www.blackspherestudios.com"><img src="/bss-util/bss_back.png" alt="Back" title="Back to Black Sphere Studios" />&nbsp;&nbsp;&nbsp;&nbsp;</a></li>
+  </ul>
+</nav>
+</header>
+
+<article>
+  
+    
+  
+    
+  
+    
+<nav>
+<ul>
+
+
+  <li><a href="/bss-util/ref/array/"><span>Array</span></a></li>
+
+  <li><a href="/bss-util/ref/bss-util/"><span>bss-util.h</span></a></li>
+
+
+</ul>
+
+</nav>
+  
+<section>
+<h1>Array</h1>
+
+
+<p>The basis for all of the arrays in bss-util is in cArray.h, which contains two helper classes and two public classes. <a href="#carray:8177e845bec4a15c29be1b787e514e77">cArray</a> is a standalone non-resizable array, whereas <a href="#carraybase:8177e845bec4a15c29be1b787e514e77">cArrayBase</a> is intended to be inherited by a more complex data structure. Everything else is mostly for convenience.</p>
+
+<p>The <code>ARRAY_TYPE</code> enumeration defines the four fundamental types of data management used by the underlying array implementation, which are consequently used in most of the data structures that <a href="#">inherit cArrayInternal</a>.</p>
+
+<h3 id="enum-array-type:8177e845bec4a15c29be1b787e514e77">enum ARRAY_TYPE</h3>
+
+<ul>
+<li><code>CARRAY_SIMPLE = 0</code>
+<p>This is for <strong>POD</strong>, or Plain Old Data, which does not own any pointers or anything that needs special attention, so the underlying array can simply copy the bytes around without bothering with constructors or destructors. More complex data structures like the <a href="#">dynamic array</a> can see significant performance boosts when moving large numbers of small objects around. It is crucial that the underlying type of the array <strong>has no constructors or destructors</strong> when using this management scheme. At the very least, the constructors should be for convenience only.</p></li>
+<li><code>CARRAY_CONSTRUCT = 1</code>
+<p>This is for types that must be constructed or destructed, but <strong>do not have any external references</strong>. This means that nothing else in the program has a pointer to an element in the array, even indirectly. This is a situation that comes up fairly often, as many types will have internal pointers to manage, but since nothing cares about where those types are in memory, the bytes can be moved around freely after construction, so long as the destructor is eventually called on them.</p></li>
+<li><code>CARRAY_SAFE = 2</code>
+<p>This behaves the same as an <code>std::vector</code> does, by carefully preserving the contents of the type by always calling the constructors and using move semantics where appropriate. While this management form can take a big hit on performance during resizing (because realloc cannot be called, and all the move constructors will have to be run), you can safely put any type into the array using this management scheme, provided it has a copy constructor.</p></li>
+<li><code>CARRAY_MOVE = 3</code>
+<p>This is a special variant on the <code>SAFE</code> management scheme that removes the <code>copy</code> helper function from <a href="#carrayinternal:8177e845bec4a15c29be1b787e514e77">cArrayInternal</a>. While this prevents you from ever copying an array or data structure, it will still permit resizing the array using only move semantics. This management structure is crucial, because it allows for putting move-only types into arrays and data structures, such as <code>std::unique_ptr</code>.</p></li>
+</ul>
+
+<h2 id="carray-hugoshortcode-4-hugoshortcode-5:8177e845bec4a15c29be1b787e514e77">cArray <span class="badge code">cArray.h</span> <span class="badge green">14/14 Test Coverage</span></h2>
+
+<pre><code>template&lt;class T,
+  typename CType = size_t,
+  ARRAY_TYPE ArrayType = CARRAY_SIMPLE,
+  typename Alloc = StaticAllocPolicy&lt;T&gt;&gt;
+class BSS_COMPILER_DLLEXPORT cArray :
+  protected cArrayBase&lt;T, CType, Alloc&gt;,
+  protected cArrayInternal&lt;T, CType, ArrayType, Alloc&gt;
+</code></pre>
+
+<p>Standalone array that is not resizable, which means that all elements are always constructed or destructed when the capacity changes. Useful for situations where the array size almost never changes. Subclasses <strong>should not</strong> inherit this class, instead they should inherit <a href="#carraybase:8177e845bec4a15c29be1b787e514e77">cArrayBase</a> instead and use the <a href="#carrayinternal:8177e845bec4a15c29be1b787e514e77">cArrayInternal</a> helper functions.</p>
+
+<h3 id="template-arguments:8177e845bec4a15c29be1b787e514e77">Template Arguments</h3>
+
+<ul>
+<li><strong><code>class T</code></strong>: Determines the underlying type used for this array. No special handling is done for pointers, so if you have an array of <code>type*</code>, functions that return <code>T*</code> will return <code>type**</code>. Any type can be used here, but remember that you should use the correct management scheme for it.</li>
+<li><strong><code>typename CType</code></strong>: Sets the <em>index type</em> of this array. Must be an integral type. This defaults to <code>size_t</code>, but can be a signed integer. Making this smaller than <code>size_t</code> is usually pointless, but certain data structures use a special index type, and ensuring the array uses the same type for its indexes helps cohesion and type safety.</li>
+<li><strong><code>ARRAY_TYPE ArrayType</code></strong>: Determines the <a href="#enum-array_type:8177e845bec4a15c29be1b787e514e77">management scheme</a> used by the array. Make sure this is appropriate for the type you&rsquo;re using for <code>T</code>!</li>
+<li><strong><code>typename Alloc</code></strong>: Arrays accept purely static custom allocators that follow the <a href="#">bss-alloc</a> standards. Stateful allocators are not supported. By default, the standard static allocator is used, which simply calls <code>realloc</code> and <code>free</code>.</li>
+</ul>
+
+<h2 id="carrayinternal-hugoshortcode-9-hugoshortcode-10:8177e845bec4a15c29be1b787e514e77">cArrayInternal <span class="badge code">cArray.h</span> <span class="badge cyan">Indirect Coverage</span></h2>
+
+<h2 id="carraybase-hugoshortcode-11-hugoshortcode-12:8177e845bec4a15c29be1b787e514e77">cArrayBase <span class="badge code">cArray.h</span> <span class="badge cyan">Indirect Coverage</span></h2>
+
+<pre><code>template&lt;class T,
+  typename CType = size_t,
+  typename Alloc = StaticAllocPolicy&lt;T&gt;&gt;
+class BSS_COMPILER_DLLEXPORT cArrayBase
+</code></pre>
+
+<p>This class provides only the most basic array management operations and is intended to be inherited by more complex classes. Data structures that inherit this class should use <a href="#carrayinternal:8177e845bec4a15c29be1b787e514e77">cArrayInternal</a> with the appropriate management scheme to manipulate the array. It&rsquo;s template arguments are the same as <a href="#carray:8177e845bec4a15c29be1b787e514e77">cArray</a>, except that it has no <code>ARRAY_TYPE</code> argument.</p>
+
+<h4 id="carraybase-mov:8177e845bec4a15c29be1b787e514e77"><code>cArrayBase(mov)</code></h4>
+
+<pre><code>inline cArrayBase(cArrayBase&amp;&amp; mov)
+</code></pre>
+
+<h4 id="carraybase-ctype-capacity:8177e845bec4a15c29be1b787e514e77"><code>cArrayBase(CType capacity)</code></h4>
+
+<pre><code>inline explicit cArrayBase(CT_ capacity = 0)
+</code></pre>
+
+<h4 id="carraybase:8177e845bec4a15c29be1b787e514e77"><code>~cArrayBase()</code></h4>
+
+<pre><code>inline ~cArrayBase()
+</code></pre>
+
+<h4 id="capacity:8177e845bec4a15c29be1b787e514e77"><code>Capacity()</code></h4>
+
+<pre><code>inline CT_ Capacity() const noexcept
+</code></pre>
+
+<h4 id="setcapacity-ct-capacity:8177e845bec4a15c29be1b787e514e77"><code>SetCapacity(CT_ capacity)</code></h4>
+
+<pre><code>BSS_FORCEINLINE void SetCapacity(CT_ capacity) noexcept
+</code></pre>
+
+<h4 id="setcapacitydiscard-ct-capacity:8177e845bec4a15c29be1b787e514e77"><code>SetCapacityDiscard(CT_ capacity)</code></h4>
+
+<pre><code>BSS_FORCEINLINE void SetCapacityDiscard(CT_ capacity) noexcept
+</code></pre>
+
+<h4 id="operator-mov:8177e845bec4a15c29be1b787e514e77"><code>operator=(mov)</code></h4>
+
+<pre><code>cArrayBase&amp; operator=(cArrayBase&amp;&amp; mov) noexcept
+</code></pre>
+
+<h4 id="getslice:8177e845bec4a15c29be1b787e514e77"><code>GetSlice()</code></h4>
+
+<pre><code>inline cArraySlice&lt;T, CType&gt; GetSlice()
+</code></pre>
+
+<h2 id="carrayslice-hugoshortcode-15-hugoshortcode-16:8177e845bec4a15c29be1b787e514e77">cArraySlice <span class="badge code">cArray.h</span> <span class="badge red">0/6 Test Coverage</span></h2>
+
+<section>
+</article>
+
+
+<footer>
+	<p>Copyright &copy;2016 Black Sphere Studios. All rights reserved.</p>
+</footer>
+</main>
+
+
+
+</body>
+</html>

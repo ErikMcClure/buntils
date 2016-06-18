@@ -1,13 +1,23 @@
 {{ partial "header.html" . }}
 {{ $site := . }}
 <article>
-  {{ range .Params.tags }}
-    {{if eq . "ref" }}{{ partial "sidebar.html" $site }}{{end}}
-  {{ end }}
+  {{ if in .Params.tags "ref" }}{{ partial "sidebar.html" $site }}{{end}}
 <section>
 <h1>{{ .Title }}</h1>
 {{ .Content }}
-{{if eq .Title "Reference" }}INSERT TEST{{end}}
+{{if eq .Title "Reference" }}
+<ul>
+  {{ range $key, $taxonomy := .Site.Taxonomies.tags }}
+    <li>{{$key}}
+    <ul>
+    {{ range $taxonomy.Pages }}
+      <li hugo-nav="{{ .RelPermalink}}"><a href="{{ .Permalink}}">{{ .LinkTitle }}</a></li>
+    {{ end }}
+    </ul>
+    </li>
+  {{ end }}
+</ul>
+{{end}}
 <section>
 </article>
 

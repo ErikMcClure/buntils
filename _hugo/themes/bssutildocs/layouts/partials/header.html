@@ -17,7 +17,7 @@
 
 <body role="document">
 <main>
-{{ range .Params.tags }}{{if eq . "ref" }}<div class="sidebarbg" ></div>{{end}}{{ end }}
+{{ if in .Params.tags "ref" }}<div class="sidebarbg" ></div>{{end}}
 <header>
 <img class="logo" src="{{ $baseUrl }}/bss_util_white.png" alt=""/>
 <h1>Black Sphere Studios</h1>

@@ -1,13 +1,9 @@
 +++
 title = "Reference"
 date = "2016-04-09"
-sidemenu = "true"
 description = "bss-util Reference"
 tags = [ "ref" ]
 +++
 
-The FeatherGUI documentation is organized primarily by class, but because featherGUI is message-driven, most of the documentation for a specific class will focus on the message function's response to certain messages and any assumptions that are made. Specialty functions will be documented where appropriate.
+The Black Sphere Studios Utility Library is primarily organized through header files, but the documentation has occasionally broken up discrete classes that exist in the same header file to make navigation easier. Some header files consist entirely of functions, and won't have any classes listed. Each page is tagged with the header file that it is from, allowing you to quickly navigate to any other classes in the same header file.
 
-## Table of Contents
-
-* TBD

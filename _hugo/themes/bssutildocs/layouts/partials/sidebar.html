@@ -1,0 +1,11 @@
+{{ $baseUrl := .Site.BaseURL }}
+<nav>
+<ul>
+{{ range $name, $taxonomy := .Site.Taxonomies.categories }}
+{{ range $taxonomy.Pages }}
+  <li><a href="{{ .RelPermalink }}"><span>{{ .Title }}</span></a></li>
+{{ end }}
+{{ end }}
+</ul>
+
+</nav>

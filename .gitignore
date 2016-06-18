@@ -13,3 +13,4 @@ test/x64/
 test/Win32/
 ATOMIC.H
 bss-util.VC.opendb
+*.exe

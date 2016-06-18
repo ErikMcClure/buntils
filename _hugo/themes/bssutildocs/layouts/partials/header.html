@@ -1,0 +1,32 @@
+<!DOCTYPE html>
+{{ $baseUrl := .Site.BaseURL }}
+{{ $isHomePage := eq .Title .Site.Title }}
+<html lang="en">
+	<head>
+  <meta http-equiv="X-UA-Compatible" content="IE=Edge" />
+  <meta charset="utf-8" />
+  <meta name="description" content="Black Sphere Studios Utility Library Downloads and Documentation" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <link href='http://fonts.googleapis.com/css?family=Open+Sans:400,600,700,800' rel='stylesheet' type='text/css'>
+  <link href='{{ $baseUrl }}/main.css' rel='stylesheet' type='text/css'>
+  <link rel="alternate" href="{{ $baseUrl }}/index.xml" type="application/rss+xml" title="{{ .Site.Title }}">
+  <link rel="icon" href="{{ $baseUrl }}/favicon.ico">
+	<title>{{ .Site.Title }}{{if not $isHomePage }} - {{ .Title }}{{end}}</title>
+  <link rel="stylesheet" href="{{ $baseUrl }}/css/bssutildocs.css">
+	</head>
+
+<body role="document">
+<main>
+{{ range .Params.tags }}
+  {{if eq . "ref" }}<div class="sidebarbg" ></div>{{end}}
+{{ end }}
+<header>
+<img class="logo" src="{{ $baseUrl }}/bss_util_white.png" alt=""/>
+<h1>Black Sphere Studios</h1>
+<h2>Utility Library</h2>
+<nav>
+  <ul>
+    {{ range .Site.Menus.main }}<li><a href="{{ .URL }}">{{ .Pre }}{{ .Name }}</a></li>{{end}}<li><a href="http://www.blackspherestudios.com"><img src="{{ $baseUrl }}/bss_back.png" alt="Back" title="Back to Black Sphere Studios" />&nbsp;&nbsp;&nbsp;&nbsp;</a></li>
+  </ul>
+</nav>
+</header>

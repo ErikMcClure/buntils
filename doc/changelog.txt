@@ -14,6 +14,8 @@
 - Fixed const bug in bss_vector.h
 - added bssmalloc function
 - Added missing UTF conversion functions and standardized them
+- Added STRUPR and fixed cDisjoinSet.h include in bss_Graph
+- Refactored tests into individual cpp files
 
 0.4.5
 -----

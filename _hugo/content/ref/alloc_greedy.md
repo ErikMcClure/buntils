@@ -1,10 +1,10 @@
 +++
-title = "bss-util"
-description = "bss_util.h Reference"
+title = "Greedy Allocator"
+description = "alloc_greedy.h Reference"
 tags = [
     "bssutil",
-    "bss_util.h",
-    "util",
+    "alloc_greedy.h",
+    "alloc",
     "ref",
 ]
 date = "2016-04-02"

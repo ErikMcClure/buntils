@@ -1,10 +1,9 @@
 +++
-title = "bss-util"
-description = "bss_util.h Reference"
+title = "Dynamic Array Buf"
+description = "bss_stream.h Reference"
 tags = [
     "bssutil",
-    "bss_util.h",
-    "util",
+    "bss_stream.h",
     "ref",
 ]
 date = "2016-04-02"

@@ -26,6 +26,20 @@ The `ARRAY_TYPE` enumeration defines the four fundamental types of data manageme
 * `CARRAY_MOVE = 3`
 <p>This is a special variant on the `SAFE` management scheme that removes the `copy` helper function from [cArrayInternal]({{< relref "#carrayinternal" >}}). While this prevents you from ever copying an array or data structure, it will still permit resizing the array using only move semantics. This management structure is crucial, because it allows for putting move-only types into arrays and data structures, such as `std::unique_ptr`.</p>
 
+#### `InsertRangeSimple(T* a, CType length, CType index, const T* t, CType tsize)`
+    template<class T, typename CType = size_t>
+    static inline void InsertRangeSimple(T* a, CType length, CType index, const T* t, CType tsize) noexcept
+    
+**Preconditions:** The capacity of `a` must be equal to or greater than `length` + `tsize`.
+
+This is a low level helper function for inserting ranges of objects using `memmove()` and `memcpy()`. It takes a target array, which must be large enough to hold all the data, the current length of the target array, the index in the target array to insert the data into, the source array to insert, and the size of the source array.
+
+#### `RemoveRangeSimple(T* a, CType length, CType index, CType range)`
+    template<class T, typename CType = size_t>
+    static inline void RemoveRangeSimple(T* a, CType length, CType index, CType range) noexcept
+
+Similar to [InsertRangeSimple]({{< relref "#insertrangesimple" >}}), this _removes_ a range of data from the given array using `memmove()`. The first three arguments are the same as [InsertRangeSimple]({{< relref "#insertrangesimple" >}}), but the fourth argument is instead the length of data that should be removed. `index` + `range` should not exceed `length`.
+
 ## cArray {{<badge code>}}cArray.h{{</badge>}} {{<badge green>}}14/14 Test Coverage{{</badge>}}
     template<class T,
       typename CType = size_t,
@@ -44,7 +58,38 @@ Standalone array that is not resizable, which means that all elements are always
 
     
 ## cArrayInternal {{<badge code>}}cArray.h{{</badge>}} {{<badge cyan>}}Indirect Coverage{{</badge>}}
+This is an internal class used by classes that inherit [cArrayBase]({{< relref "#carraybase" >}}). It has the same template arguments as [cArray]({{< relref "#carray" >}}), but is specialized on the `ARRAY_TYPE` template argument.
 
+#### `_copymove(T* dest, T* src, CType n)`
+    static void _copymove(T* BSS_RESTRICT dest, T* BSS_RESTRICT src, CType n) noexcept
+**Preconditions**: `dest` should not have had any constructors called on it. `src` must point to valid memory. Both `dest` and `src` must be at least `n` long.
+
+*Moves* the contents of `src` into `dest` using the appropriate [management scheme]({{< relref "#enum-array-type" >}}). Both `SIMPLE` and `CONSTRUCT will just use `memcpy`. `SAFE` and `MOVE` go through `dest` and call the move constructor, passing the corresponding element from `src` in using `std::move`. It then calls the destructors on all elements in `src` to deal with any remaining cleanup.
+    
+#### `_copy(T* BSS_RESTRICT dest, const T* BSS_RESTRICT src, CType n)`
+    static void _copy(T* BSS_RESTRICT dest, const T* BSS_RESTRICT src, CType n) noexcept
+**Preconditions**: `dest` should not have had any constructors called on it. `src` must point to valid memory. Both `dest` and `src` must be at least `n` long.
+    
+*Copies* the contents of `src` into `dest`. Both `SIMPLE` and `CONSTRUCT` will just use `memcpy`. `SAFE` will call the copy constructor on each element of `dest`, passing in a constant reference to the corresponding `src` element. It does **not** call any destructors. `MOVE` will throw an assertion failure if this function is called.
+
+#### `_insert(T* a, CType length, CType index, U && t)`
+    template<typename U> static void _insert(T* a, CType length, CType index, U && t) noexcept
+**Preconditions**: `a` must have a capacity of at least `length + 1`.
+
+Inserts the element `t` into `a` using `std::forward` to enforce perfect forwarding. While `SIMPLE` and `CONSTRUCT` both use memmove to shift elements around, **all** management schemes will call the constructor on the item to enforce perfect forwarding. This should be optimized into a memory copy by the compiler if there is no constructor provided. 
+    
+#### `_remove(T* a, CType length, CType index)`
+    static void _remove(T* a, CType length, CType index) noexcept
+Removes an element from the specified index. `SIMPLE` uses `memmove` to accomplish this, but `CONSTRUCT` calls the destructor on the item to be removed *first*, then uses `memmove` to shift the other elements over by one. `SAFE` (and `MOVE`) calls `operator=` using move semantics, setting each item past the index equal to the contents of the item to its right, then calls the destructor of the *last* item, which is the opposite of what `CONSTRUCT` does.
+
+#### `_setlength(T* a, CType old, CType n)`
+    static void _setlength(T* a, CType old, CType n) noexcept
+**Preconditions**: T must have a default constructor. `a` must be as large or larger than **both** `old` and `n`.
+
+This deals with a change in length in `a`. If the new length `n` is greater than `old`, constructors will be called on the new elements. If `n` is less than `old`, all elements above `n` will have their destructors called, up to `old`. This function does nothing for `SIMPLE`.
+    
+#### `_setcapacity(cArrayBase<T, CType, Alloc>& a, CType length, CType capacity)`
+    static void _setcapacity(cArrayBase<T, CType, Alloc>& a, CType length, CType capacity) noexcept
 
 ## cArrayBase {{<badge code>}}cArray.h{{</badge>}} {{<badge cyan>}}Indirect Coverage{{</badge>}}
     template<class T,
@@ -55,22 +100,36 @@ This class provides only the most basic array management operations and is inten
   
 #### `cArrayBase(mov)`
     inline cArrayBase(cArrayBase&& mov)
-    
+
+Steals the array pointer from `mov` and sets `mov`'s array pointer and capacity to 0.
+
 #### `cArrayBase(CType capacity)`
     inline explicit cArrayBase(CT_ capacity = 0)
-    
+Constructs a new array with the given capacity. If the capacity is zero, the array pointer is set to `null` and no allocation is attempted.
+
 #### `~cArrayBase()`
     inline ~cArrayBase()
+Frees the array pointer, if it exists.
+
 #### `Capacity()`
     inline CT_ Capacity() const noexcept
+Gets the capacity of the array.
+
 #### `SetCapacity(CT_ capacity)`
     BSS_FORCEINLINE void SetCapacity(CT_ capacity) noexcept
+Sets the capacity and uses realloc to preserve the existing contents.    
+
 #### `SetCapacityDiscard(CT_ capacity)`
     BSS_FORCEINLINE void SetCapacityDiscard(CT_ capacity) noexcept
+Sets the capacity, but simply allocates an entirely new block of memory, discarding any contents currently in the array.
+
 #### `operator=(mov)`
     cArrayBase& operator=(cArrayBase&& mov) noexcept
+Destroys the array currently being held, if it exists, and then steals the array pointer from `mov` and sets `mov`'s array pointer and capacity to 0.
+
 #### `GetSlice()`
     inline cArraySlice<T, CType> GetSlice()
+Returns an [cArraySlice]({{< relref "#carrayslice" >}}) that covers this entire array, starting at the first element and setting the length equal to the current capacity.
 
 ## cArraySlice {{<badge code>}}cArray.h{{</badge>}} {{<badge red>}}0/6 Test Coverage{{</badge>}}
 

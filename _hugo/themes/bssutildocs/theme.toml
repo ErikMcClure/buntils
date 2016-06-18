@@ -1,0 +1,18 @@
+name = "bssutildocs"
+license = "MIT"
+licenselink = "https://github.com/Black-Sphere-Studios/bss-util/blob/master/doc/bss-util-LICENSE.txt"
+description = "A theme for bss-util documentation based on Bootie Docs"
+homepage = "https://github.com/Black-Sphere-Studios/bss-util"
+tags = ["document", ""]
+features = ["document", ""]
+min_version = 0.15
+
+[author]
+  name = "Erik McClure"
+  homepage = "https://github.com/blackhole12"
+
+# If porting an existing theme
+[original]
+  name = "Hugo Theme Bootie Docs"
+  homepage = "http://key-amb.github.io/bootie-docs-demo/"
+  repo = "https://github.com/key-amb/hugo-theme-bootie-docs/"

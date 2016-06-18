@@ -1,0 +1,83 @@
+{{ $baseUrl := .Site.BaseURL }}
+{{ partial "header.html" . }}
+
+<section>
+<aside style="text-align:center;"><h4>Download</h4>
+<div class="button_green"><a href="#"><i class='fa fa-windows fa-fw'></i> Windows SDK<p>v{{ .Site.Social.version }}</p></a></div>
+<br/><div class="button_green"><a href="#"><i class='fa fa-windows fa-fw'></i> Linux SDK<p>v{{ .Site.Social.version }}</p></a></div>
+<br/><a href="#">Other Releases</a>
+</aside>
+<h3>A lightweight utility library for C/C++</h3>
+<p>The Black Sphere Studios Utility Library is a simple, high-performance utility library designed to be independent, allowing you to drop in whichever header files you happen to need for your project. Internal dependencies are kept to a minimum, and only a few pieces of the library (usually ones that rely on OS calls) require linking to a static library or DLL. The library has no external dependencies and supports both Windows and any POSIX compatible system.</p>
+
+<h3>Features</h3>
+<ul>
+<li>Type safe variant object for algebriac types.</li>
+<li>Allocators with a state</li>
+<li>Logging</li>
+<li>Reference counting</li>
+<li>Generalized linked list manipulation</li>
+<li>Array-based linked list</li>
+<li>Threaded red-black tree implementation</li>
+<li>AVL tree implementation</li>
+<li>DLL-friendly simplified dynamic array implementation</li>
+<li>Array-based stack implementation</li>
+<li>Array-based queue implementation</li>
+<li>cStr, an extension of the standard std::string object that supports UTF8 conversions and other operations.</li>
+<li>A single-producer, single-consumer lockless queue</li>
+<li>A multi-producer, multi-consumer microlock queue</li>
+<li>Templatized implementations of cmpxchg,xchg,xadd, and other lockless primitives.</li>
+<li>A template-based hash implementation based on khash</li>
+<li>Command line parsing</li>
+<li>Block, ring, and greedy allocation schemes</li>
+<li>Fixed-size bit-based flag manipulation</li>
+<li>High precision timer</li>
+<li>Binary heap implementation</li>
+<li>Priority queue based on binary heap</li>
+<li>Priority heap based on Priority Queue that tracks entries to allow implementing Dijkstra's Algorithm</li>
+<li>#defines to help deal with stupid windows.h conflicts and VC++ deprecated functions</li>
+<li>Sorted array using a bisection algorithm</li>
+<li>Map based on sorted array</li>
+<li>Frighteningly efficient delegate implementation</li>
+<li>Automatic differentiation with dual numbers</li>
+<li>Fixed-point arithmetic.</li>
+<li>Template-based SSE2 objects for automatic SSE optimizations.</li>
+<li>Alias table for random number generation</li>
+<li>Generic animation system</li>
+<li>Circular array implementation</li>
+<li>Disjoint Set Data Structure that implements Kruskal's minimum spanning tree algorithm.</li>
+<li>Cross-platform extension to std::thread that allows signaling threads.</li>
+<li>Stream splitting object using standard buffer implementation.</li>
+<li>Integral rational data structure for precise fractions.</li>
+<li>String table for localization.</li>
+<li>High performance profiler with multiple output options.</li>
+<li>Multi-consumer multi-producer lockless block allocator.</li>
+<li>Generalized KD-tree implementation for querying how many rectangles are inside a given rectangle.</li>
+<li>Implementation of Robert Bridson's Fast Poisson Disk Sampling algorithm.</li>
+<li>An in-place compressed Trie data structure implementation.</li>
+<li>Arbitrary scheduler class for delaying actions.</li>
+<li>Thread pool implementation</li>
+<li>Implementation of a graph representation that implements the push-relabel algorithm, along with reductions from circulation and lower-bound circulation graph problems.</li>
+<li>Implements efficient breadth-first traversal of a tree or graph</li>
+<li>Includes an ID hash system that can be rebased at any time, including a reversal extension.</li>
+<li>Implements mathematically correct integer and float modulo</li>
+<li>Includes an n-dimensional vector and matrix math library, with optimized 4x4, 3x3 and 2x2 operations.</li>
+<li>Implementes the xorshift random number generation algorithm as a standards-compliant engine.</li>
+<li>AA tree implementation</li>
+<li>Universal object serializer</li>
+<li>XML parser and serializer</li>
+<li>JSON parser and serializer</li>
+<li>UBJSON parser and serializer</li>
+<li>INI parser and serializer</li>
+</ul>
+</section>
+
+<!--{{ range where .Site.Pages "Title" "_index" }}
+	<div class="row doc-main">
+		<p class="doc-entry-meta"><time datetime="{{ .Date.Format "2006-01-02" }}">{{ .Date.Format "January 02, 2006" }}</time></p>
+		{{ .Content }}
+	</div>
+{{ end }}
+-->
+
+{{ partial "footer.html" . }}

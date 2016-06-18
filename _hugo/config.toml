@@ -1,0 +1,41 @@
+baseurl = "/bss-util"
+languageCode = "en-us"
+title = "Black Sphere Studios Utility Library"
+theme = "bssutildocs"
+author = "Erik McClure"
+copyright = "Black Sphere Studios. All rights reserved."
+publishdir = "../"
+  
+[menu]
+  # Shown in the side menu.
+  [[menu.main]]
+    name = "Home"
+    pre = ""
+    weight = 0
+    identifier = "home"
+    url = "/"
+  [[menu.main]]
+    name = "Download"
+    pre = ""
+    weight = 2
+    identifier = "dl"
+    url = "/dl/"
+  [[menu.main]]
+    name = "Reference"
+    pre = ""
+    weight = 3
+    identifier = "ref"
+    url = "/ref/"
+  [[menu.main]]
+    name = "Github"
+    pre = ""
+    weight = 4
+    identifier = "github"
+    url = "https://github.com/Black-Sphere-Studios/bss-util"
+    
+[social]
+  twitter = "bspherestudios"
+  facebook = "BlackSphereStudios"
+  github = "Black-Sphere-Studios/bss-util"
+  linkedin = "company/black-sphere-studios"
+  version = "0.4.6"

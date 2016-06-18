@@ -1,0 +1,13 @@
+{{ partial "header.html" . }}
+{{ $site := . }}
+<article>
+  {{ range .Params.tags }}
+    {{if eq . "ref" }}{{ partial "sidebar.html" $site }}{{end}}
+  {{ end }}
+<section>
+<h1>{{ .Title }}</h1>
+{{ .Content }}
+<section>
+</article>
+
+{{ partial "footer.html" . }}

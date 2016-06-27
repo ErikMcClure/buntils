@@ -8,53 +8,347 @@
   <meta name="description" content="Black Sphere Studios Utility Library Downloads and Documentation" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <link href='http://fonts.googleapis.com/css?family=Open+Sans:400,600,700,800' rel='stylesheet' type='text/css'>
-  <link href='/bss-util/main.css' rel='stylesheet' type='text/css'>
-  <link rel="alternate" href="/bss-util/index.xml" type="application/rss+xml" title="Black Sphere Studios Utility Library">
-  <link rel="icon" href="/bss-util/favicon.ico">
+  <link href='//main.css' rel='stylesheet' type='text/css'>
+  <link rel="alternate" href="//index.xml" type="application/rss+xml" title="Black Sphere Studios Utility Library">
+  <link rel="icon" href="//favicon.ico">
 	<title>Black Sphere Studios Utility Library - Reference</title>
-  <link rel="stylesheet" href="/bss-util/css/bssutildocs.css">
+  <link rel="stylesheet" href="//css/bssutildocs.css">
 	</head>
 
 <body role="document">
 <main>
 <div class="sidebarbg" ></div>
 <header>
-<img class="logo" src="/bss-util/bss_util_white.png" alt=""/>
+<img class="logo" src="//bss_util_white.png" alt=""/>
 <h1>Black Sphere Studios</h1>
 <h2>Utility Library</h2>
 <nav>
   <ul>
-    <li><a href="/bss-util/">Home</a></li><li><a href="/bss-util/dl/">Download</a></li><li><a href="/bss-util/ref/">Reference</a></li><li><a href="https://github.com/Black-Sphere-Studios/bss-util">Github</a></li><li><a href="http://www.blackspherestudios.com"><img src="/bss-util/bss_back.png" alt="Back" title="Back to Black Sphere Studios" />&nbsp;&nbsp;&nbsp;&nbsp;</a></li>
+    <li><a href="/">Home</a></li><li><a href="/dl/">Download</a></li><li><a href="/ref/">Reference</a></li><li><a href="https://github.com/Black-Sphere-Studios/bss-util">Github</a></li><li><a href="http://www.blackspherestudios.com"><img src="//bss_back.png" alt="Back" title="Back to Black Sphere Studios" />&nbsp;&nbsp;&nbsp;&nbsp;</a></li>
   </ul>
 </nav>
 </header>
 
 <article>
   
-    
+
 <nav>
 <ul>
 
 
-  <li><a href="/bss-util/ref/array/"><span>Array</span></a></li>
+  <li><a href="/ref/alloc/"><span>Allocator</span></a></li>
 
-  <li><a href="/bss-util/ref/bss-util/"><span>bss-util.h</span></a></li>
+  <li><a href="/ref/array/"><span>Array</span></a></li>
+
+  <li><a href="/ref/alloc_block/"><span>Block Allocator</span></a></li>
+
+  <li><a href="/ref/compare/"><span>Compare Functions</span></a></li>
+
+  <li><a href="/ref/dynarraybuf/"><span>Dynamic Array Buf</span></a></li>
+
+  <li><a href="/ref/graph/"><span>Graph</span></a></li>
+
+  <li><a href="/ref/alloc_greedy/"><span>Greedy Allocator</span></a></li>
+
+  <li><a href="/ref/log/"><span>Log</span></a></li>
+
+  <li><a href="/ref/alloc_block_mt/"><span>MT Block Allocator</span></a></li>
+
+  <li><a href="/ref/defines/"><span>Macros</span></a></li>
+
+  <li><a href="/ref/queue/"><span>Queue</span></a></li>
+
+  <li><a href="/ref/alloc_ring/"><span>Ring Allocator</span></a></li>
+
+  <li><a href="/ref/sse/"><span>SSE</span></a></li>
+
+  <li><a href="/ref/stack/"><span>Stack</span></a></li>
+
+  <li><a href="/ref/streamsplitter/"><span>StreamSplitter</span></a></li>
+
+  <li><a href="/ref/vector/"><span>Vector</span></a></li>
+
+  <li><a href="/ref/algorithm/"><span>algorithm</span></a></li>
+
+  <li><a href="/ref/bss-util/"><span>bss-util</span></a></li>
+
+  <li><a href="/ref/bss-util-c/"><span>bss-util [Extern C]</span></a></li>
 
 
 </ul>
 
 </nav>
-  
 <section>
 <h1>Reference</h1>
+<p>The Black Sphere Studios Utility Library is primarily organized through header files, but the documentation has occasionally broken up discrete classes that exist in the same header file to make navigation easier. Some header files consist entirely of functions, and won&rsquo;t have any classes listed. Each page is tagged with the header file that it is from, allowing you to quickly navigate to any other classes in the same header file.</p>
 
-
-<p>The FeatherGUI documentation is organized primarily by class, but because featherGUI is message-driven, most of the documentation for a specific class will focus on the message function&rsquo;s response to certain messages and any assumptions that are made. Specialty functions will be documented where appropriate.</p>
-
-<h2 id="table-of-contents:e797f235527bb1062ff091a8cc277237">Table of Contents</h2>
 
 <ul>
-<li>TBD</li>
+  
+    <li>alloc
+    <ul>
+    
+      <li hugo-nav="/ref/alloc/"><a href="/ref/alloc/">Allocator</a></li>
+    
+      <li hugo-nav="/ref/alloc_block/"><a href="/ref/alloc_block/">Block Allocator</a></li>
+    
+      <li hugo-nav="/ref/alloc_greedy/"><a href="/ref/alloc_greedy/">Greedy Allocator</a></li>
+    
+      <li hugo-nav="/ref/alloc_block_mt/"><a href="/ref/alloc_block_mt/">MT Block Allocator</a></li>
+    
+      <li hugo-nav="/ref/alloc_ring/"><a href="/ref/alloc_ring/">Ring Allocator</a></li>
+    
+    </ul>
+    </li>
+  
+    <li>alloc_greedy.h
+    <ul>
+    
+      <li hugo-nav="/ref/alloc_greedy/"><a href="/ref/alloc_greedy/">Greedy Allocator</a></li>
+    
+    </ul>
+    </li>
+  
+    <li>alloc_ring.h
+    <ul>
+    
+      <li hugo-nav="/ref/alloc_ring/"><a href="/ref/alloc_ring/">Ring Allocator</a></li>
+    
+    </ul>
+    </li>
+  
+    <li>bss-algo.h
+    <ul>
+    
+      <li hugo-nav="/ref/algorithm/"><a href="/ref/algorithm/">algorithm</a></li>
+    
+    </ul>
+    </li>
+  
+    <li>bss-alloc.h
+    <ul>
+    
+      <li hugo-nav="/ref/alloc/"><a href="/ref/alloc/">Allocator</a></li>
+    
+    </ul>
+    </li>
+  
+    <li>bss_alloc_block.h
+    <ul>
+    
+      <li hugo-nav="/ref/alloc_block/"><a href="/ref/alloc_block/">Block Allocator</a></li>
+    
+    </ul>
+    </li>
+  
+    <li>bss_alloc_block_mt.h
+    <ul>
+    
+      <li hugo-nav="/ref/alloc_block_mt/"><a href="/ref/alloc_block_mt/">MT Block Allocator</a></li>
+    
+    </ul>
+    </li>
+  
+    <li>bss_compare.h
+    <ul>
+    
+      <li hugo-nav="/ref/compare/"><a href="/ref/compare/">Compare Functions</a></li>
+    
+    </ul>
+    </li>
+  
+    <li>bss_defines.h
+    <ul>
+    
+      <li hugo-nav="/ref/defines/"><a href="/ref/defines/">Macros</a></li>
+    
+    </ul>
+    </li>
+  
+    <li>bss_graph.h
+    <ul>
+    
+      <li hugo-nav="/ref/graph/"><a href="/ref/graph/">Graph</a></li>
+    
+    </ul>
+    </li>
+  
+    <li>bss_log.h
+    <ul>
+    
+      <li hugo-nav="/ref/log/"><a href="/ref/log/">Log</a></li>
+    
+    </ul>
+    </li>
+  
+    <li>bss_queue.h
+    <ul>
+    
+      <li hugo-nav="/ref/queue/"><a href="/ref/queue/">Queue</a></li>
+    
+    </ul>
+    </li>
+  
+    <li>bss_sse.h
+    <ul>
+    
+      <li hugo-nav="/ref/sse/"><a href="/ref/sse/">SSE</a></li>
+    
+    </ul>
+    </li>
+  
+    <li>bss_stack.h
+    <ul>
+    
+      <li hugo-nav="/ref/stack/"><a href="/ref/stack/">Stack</a></li>
+    
+    </ul>
+    </li>
+  
+    <li>bss_stream.h
+    <ul>
+    
+      <li hugo-nav="/ref/dynarraybuf/"><a href="/ref/dynarraybuf/">Dynamic Array Buf</a></li>
+    
+      <li hugo-nav="/ref/streamsplitter/"><a href="/ref/streamsplitter/">StreamSplitter</a></li>
+    
+    </ul>
+    </li>
+  
+    <li>bss_util.h
+    <ul>
+    
+      <li hugo-nav="/ref/bss-util/"><a href="/ref/bss-util/">bss-util</a></li>
+    
+    </ul>
+    </li>
+  
+    <li>bss_util_c.h
+    <ul>
+    
+      <li hugo-nav="/ref/bss-util-c/"><a href="/ref/bss-util-c/">bss-util [Extern C]</a></li>
+    
+    </ul>
+    </li>
+  
+    <li>bss_vector.h
+    <ul>
+    
+      <li hugo-nav="/ref/vector/"><a href="/ref/vector/">Vector</a></li>
+    
+    </ul>
+    </li>
+  
+    <li>bssutil
+    <ul>
+    
+      <li hugo-nav="/ref/alloc/"><a href="/ref/alloc/">Allocator</a></li>
+    
+      <li hugo-nav="/ref/array/"><a href="/ref/array/">Array</a></li>
+    
+      <li hugo-nav="/ref/alloc_block/"><a href="/ref/alloc_block/">Block Allocator</a></li>
+    
+      <li hugo-nav="/ref/compare/"><a href="/ref/compare/">Compare Functions</a></li>
+    
+      <li hugo-nav="/ref/dynarraybuf/"><a href="/ref/dynarraybuf/">Dynamic Array Buf</a></li>
+    
+      <li hugo-nav="/ref/graph/"><a href="/ref/graph/">Graph</a></li>
+    
+      <li hugo-nav="/ref/alloc_greedy/"><a href="/ref/alloc_greedy/">Greedy Allocator</a></li>
+    
+      <li hugo-nav="/ref/log/"><a href="/ref/log/">Log</a></li>
+    
+      <li hugo-nav="/ref/alloc_block_mt/"><a href="/ref/alloc_block_mt/">MT Block Allocator</a></li>
+    
+      <li hugo-nav="/ref/defines/"><a href="/ref/defines/">Macros</a></li>
+    
+      <li hugo-nav="/ref/queue/"><a href="/ref/queue/">Queue</a></li>
+    
+      <li hugo-nav="/ref/alloc_ring/"><a href="/ref/alloc_ring/">Ring Allocator</a></li>
+    
+      <li hugo-nav="/ref/sse/"><a href="/ref/sse/">SSE</a></li>
+    
+      <li hugo-nav="/ref/stack/"><a href="/ref/stack/">Stack</a></li>
+    
+      <li hugo-nav="/ref/streamsplitter/"><a href="/ref/streamsplitter/">StreamSplitter</a></li>
+    
+      <li hugo-nav="/ref/vector/"><a href="/ref/vector/">Vector</a></li>
+    
+      <li hugo-nav="/ref/algorithm/"><a href="/ref/algorithm/">algorithm</a></li>
+    
+      <li hugo-nav="/ref/bss-util/"><a href="/ref/bss-util/">bss-util</a></li>
+    
+      <li hugo-nav="/ref/bss-util-c/"><a href="/ref/bss-util-c/">bss-util [Extern C]</a></li>
+    
+    </ul>
+    </li>
+  
+    <li>carray.h
+    <ul>
+    
+      <li hugo-nav="/ref/array/"><a href="/ref/array/">Array</a></li>
+    
+    </ul>
+    </li>
+  
+    <li>ref
+    <ul>
+    
+      <li hugo-nav="/ref/"><a href="/ref/">Reference</a></li>
+    
+      <li hugo-nav="/ref/alloc/"><a href="/ref/alloc/">Allocator</a></li>
+    
+      <li hugo-nav="/ref/array/"><a href="/ref/array/">Array</a></li>
+    
+      <li hugo-nav="/ref/alloc_block/"><a href="/ref/alloc_block/">Block Allocator</a></li>
+    
+      <li hugo-nav="/ref/compare/"><a href="/ref/compare/">Compare Functions</a></li>
+    
+      <li hugo-nav="/ref/dynarraybuf/"><a href="/ref/dynarraybuf/">Dynamic Array Buf</a></li>
+    
+      <li hugo-nav="/ref/graph/"><a href="/ref/graph/">Graph</a></li>
+    
+      <li hugo-nav="/ref/alloc_greedy/"><a href="/ref/alloc_greedy/">Greedy Allocator</a></li>
+    
+      <li hugo-nav="/ref/log/"><a href="/ref/log/">Log</a></li>
+    
+      <li hugo-nav="/ref/alloc_block_mt/"><a href="/ref/alloc_block_mt/">MT Block Allocator</a></li>
+    
+      <li hugo-nav="/ref/defines/"><a href="/ref/defines/">Macros</a></li>
+    
+      <li hugo-nav="/ref/queue/"><a href="/ref/queue/">Queue</a></li>
+    
+      <li hugo-nav="/ref/alloc_ring/"><a href="/ref/alloc_ring/">Ring Allocator</a></li>
+    
+      <li hugo-nav="/ref/sse/"><a href="/ref/sse/">SSE</a></li>
+    
+      <li hugo-nav="/ref/stack/"><a href="/ref/stack/">Stack</a></li>
+    
+      <li hugo-nav="/ref/streamsplitter/"><a href="/ref/streamsplitter/">StreamSplitter</a></li>
+    
+      <li hugo-nav="/ref/vector/"><a href="/ref/vector/">Vector</a></li>
+    
+      <li hugo-nav="/ref/algorithm/"><a href="/ref/algorithm/">algorithm</a></li>
+    
+      <li hugo-nav="/ref/bss-util/"><a href="/ref/bss-util/">bss-util</a></li>
+    
+      <li hugo-nav="/ref/bss-util-c/"><a href="/ref/bss-util-c/">bss-util [Extern C]</a></li>
+    
+    </ul>
+    </li>
+  
+    <li>util
+    <ul>
+    
+      <li hugo-nav="/ref/compare/"><a href="/ref/compare/">Compare Functions</a></li>
+    
+      <li hugo-nav="/ref/defines/"><a href="/ref/defines/">Macros</a></li>
+    
+      <li hugo-nav="/ref/bss-util/"><a href="/ref/bss-util/">bss-util</a></li>
+    
+    </ul>
+    </li>
+  
 </ul>
 
 <section>

@@ -1,0 +1,28 @@
+<?xml version="1.0" encoding="utf-8" standalone="yes" ?>
+<rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom">
+  <channel>
+    <title>Bss_vector.H on Black Sphere Studios Utility Library</title>
+    <link>/tags/bss_vector/index.h/</link>
+    <description>Recent content in Bss_vector.H on Black Sphere Studios Utility Library</description>
+    <generator>Hugo -- gohugo.io</generator>
+    <language>en-us</language>
+    <copyright>Black Sphere Studios. All rights reserved.</copyright>
+    <lastBuildDate>Sat, 02 Apr 2016 00:00:00 +0000</lastBuildDate>
+    <atom:link href="/tags/bss_vector.h/index.xml" rel="self" type="application/rss+xml" />
+    
+    <item>
+      <title>Vector</title>
+      <link>/ref/vector/</link>
+      <pubDate>Sat, 02 Apr 2016 00:00:00 +0000</pubDate>
+      
+      <guid>/ref/vector/</guid>
+      <description>
+
+&lt;h2 id=&#34;bss-util:03052ad2570f4289ed6f4451e6795e9e&#34;&gt;bss-util&lt;/h2&gt;
+
+&lt;p&gt;Test page&lt;/p&gt;
+</description>
+    </item>
+    
+  </channel>
+</rss>

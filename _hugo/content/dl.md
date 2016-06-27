@@ -20,6 +20,6 @@ Older releases, including source dumps for past versions, are available <a href=
 
 The latest development build is available from github, or you can grab the git repo:
 
-``` git clone https://github.com/Black-Sphere-Studios/bss-util.git ```
+    git clone https://github.com/Black-Sphere-Studios/bss-util.git
 
 If you would like to clone the repo at a specific point in time, such as the snapshot of the latest release, clone the <a href="https://github.com/Black-Sphere-Studios/bss-util/tree/v0.4.5">appropriate tagged commit</a>. 

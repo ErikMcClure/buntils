@@ -8,47 +8,76 @@
   <meta name="description" content="Black Sphere Studios Utility Library Downloads and Documentation" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <link href='http://fonts.googleapis.com/css?family=Open+Sans:400,600,700,800' rel='stylesheet' type='text/css'>
-  <link href='/bss-util/main.css' rel='stylesheet' type='text/css'>
-  <link rel="alternate" href="/bss-util/index.xml" type="application/rss+xml" title="Black Sphere Studios Utility Library">
-  <link rel="icon" href="/bss-util/favicon.ico">
+  <link href='//main.css' rel='stylesheet' type='text/css'>
+  <link rel="alternate" href="//index.xml" type="application/rss+xml" title="Black Sphere Studios Utility Library">
+  <link rel="icon" href="//favicon.ico">
 	<title>Black Sphere Studios Utility Library - Array</title>
-  <link rel="stylesheet" href="/bss-util/css/bssutildocs.css">
+  <link rel="stylesheet" href="//css/bssutildocs.css">
 	</head>
 
 <body role="document">
 <main>
 <div class="sidebarbg" ></div>
 <header>
-<img class="logo" src="/bss-util/bss_util_white.png" alt=""/>
+<img class="logo" src="//bss_util_white.png" alt=""/>
 <h1>Black Sphere Studios</h1>
 <h2>Utility Library</h2>
 <nav>
   <ul>
-    <li><a href="/bss-util/">Home</a></li><li><a href="/bss-util/dl/">Download</a></li><li><a href="/bss-util/ref/">Reference</a></li><li><a href="https://github.com/Black-Sphere-Studios/bss-util">Github</a></li><li><a href="http://www.blackspherestudios.com"><img src="/bss-util/bss_back.png" alt="Back" title="Back to Black Sphere Studios" />&nbsp;&nbsp;&nbsp;&nbsp;</a></li>
+    <li><a href="/">Home</a></li><li><a href="/dl/">Download</a></li><li><a href="/ref/">Reference</a></li><li><a href="https://github.com/Black-Sphere-Studios/bss-util">Github</a></li><li><a href="http://www.blackspherestudios.com"><img src="//bss_back.png" alt="Back" title="Back to Black Sphere Studios" />&nbsp;&nbsp;&nbsp;&nbsp;</a></li>
   </ul>
 </nav>
 </header>
 
 <article>
   
-    
-  
-    
-  
-    
+
 <nav>
 <ul>
 
 
-  <li><a href="/bss-util/ref/array/"><span>Array</span></a></li>
+  <li><a href="/ref/alloc/"><span>Allocator</span></a></li>
 
-  <li><a href="/bss-util/ref/bss-util/"><span>bss-util.h</span></a></li>
+  <li class="selected"><a href="/ref/array/"><span>Array</span></a></li>
+
+  <li><a href="/ref/alloc_block/"><span>Block Allocator</span></a></li>
+
+  <li><a href="/ref/compare/"><span>Compare Functions</span></a></li>
+
+  <li><a href="/ref/dynarraybuf/"><span>Dynamic Array Buf</span></a></li>
+
+  <li><a href="/ref/graph/"><span>Graph</span></a></li>
+
+  <li><a href="/ref/alloc_greedy/"><span>Greedy Allocator</span></a></li>
+
+  <li><a href="/ref/log/"><span>Log</span></a></li>
+
+  <li><a href="/ref/alloc_block_mt/"><span>MT Block Allocator</span></a></li>
+
+  <li><a href="/ref/defines/"><span>Macros</span></a></li>
+
+  <li><a href="/ref/queue/"><span>Queue</span></a></li>
+
+  <li><a href="/ref/alloc_ring/"><span>Ring Allocator</span></a></li>
+
+  <li><a href="/ref/sse/"><span>SSE</span></a></li>
+
+  <li><a href="/ref/stack/"><span>Stack</span></a></li>
+
+  <li><a href="/ref/streamsplitter/"><span>StreamSplitter</span></a></li>
+
+  <li><a href="/ref/vector/"><span>Vector</span></a></li>
+
+  <li><a href="/ref/algorithm/"><span>algorithm</span></a></li>
+
+  <li><a href="/ref/bss-util/"><span>bss-util</span></a></li>
+
+  <li><a href="/ref/bss-util-c/"><span>bss-util [Extern C]</span></a></li>
 
 
 </ul>
 
 </nav>
-  
 <section>
 <h1>Array</h1>
 
@@ -70,7 +99,25 @@
 <p>This is a special variant on the <code>SAFE</code> management scheme that removes the <code>copy</code> helper function from <a href="#carrayinternal:8177e845bec4a15c29be1b787e514e77">cArrayInternal</a>. While this prevents you from ever copying an array or data structure, it will still permit resizing the array using only move semantics. This management structure is crucial, because it allows for putting move-only types into arrays and data structures, such as <code>std::unique_ptr</code>.</p></li>
 </ul>
 
-<h2 id="carray-hugoshortcode-4-hugoshortcode-5:8177e845bec4a15c29be1b787e514e77">cArray <span class="badge code">cArray.h</span> <span class="badge green">14/14 Test Coverage</span></h2>
+<h4 id="insertrangesimple-t-a-ctype-length-ctype-index-const-t-t-ctype-tsize:8177e845bec4a15c29be1b787e514e77"><code>InsertRangeSimple(T* a, CType length, CType index, const T* t, CType tsize)</code></h4>
+
+<pre><code>template&lt;class T, typename CType = size_t&gt;
+static inline void InsertRangeSimple(T* a, CType length, CType index, const T* t, CType tsize) noexcept
+</code></pre>
+
+<p><strong>Preconditions:</strong> The capacity of <code>a</code> must be equal to or greater than <code>length</code> + <code>tsize</code>.</p>
+
+<p>This is a low level helper function for inserting ranges of objects using <code>memmove()</code> and <code>memcpy()</code>. It takes a target array, which must be large enough to hold all the data, the current length of the target array, the index in the target array to insert the data into, the source array to insert, and the size of the source array.</p>
+
+<h4 id="removerangesimple-t-a-ctype-length-ctype-index-ctype-range:8177e845bec4a15c29be1b787e514e77"><code>RemoveRangeSimple(T* a, CType length, CType index, CType range)</code></h4>
+
+<pre><code>template&lt;class T, typename CType = size_t&gt;
+static inline void RemoveRangeSimple(T* a, CType length, CType index, CType range) noexcept
+</code></pre>
+
+<p>Similar to <a href="#insertrangesimple:8177e845bec4a15c29be1b787e514e77">InsertRangeSimple</a>, this <em>removes</em> a range of data from the given array using <code>memmove()</code>. The first three arguments are the same as <a href="#insertrangesimple:8177e845bec4a15c29be1b787e514e77">InsertRangeSimple</a>, but the fourth argument is instead the length of data that should be removed. <code>index</code> + <code>range</code> should not exceed <code>length</code>.</p>
+
+<h2 id="carray:8177e845bec4a15c29be1b787e514e77">cArray <span class="badge code">cArray.h</span> <span class="badge green">14/14 Test Coverage</span></h2>
 
 <pre><code>template&lt;class T,
   typename CType = size_t,
@@ -92,9 +139,61 @@ class BSS_COMPILER_DLLEXPORT cArray :
 <li><strong><code>typename Alloc</code></strong>: Arrays accept purely static custom allocators that follow the <a href="#">bss-alloc</a> standards. Stateful allocators are not supported. By default, the standard static allocator is used, which simply calls <code>realloc</code> and <code>free</code>.</li>
 </ul>
 
-<h2 id="carrayinternal-hugoshortcode-9-hugoshortcode-10:8177e845bec4a15c29be1b787e514e77">cArrayInternal <span class="badge code">cArray.h</span> <span class="badge cyan">Indirect Coverage</span></h2>
+<h2 id="carrayinternal:8177e845bec4a15c29be1b787e514e77">cArrayInternal <span class="badge code">cArray.h</span> <span class="badge cyan">Indirect Coverage</span></h2>
 
-<h2 id="carraybase-hugoshortcode-11-hugoshortcode-12:8177e845bec4a15c29be1b787e514e77">cArrayBase <span class="badge code">cArray.h</span> <span class="badge cyan">Indirect Coverage</span></h2>
+<p>This is an internal class used by classes that inherit <a href="#carraybase:8177e845bec4a15c29be1b787e514e77">cArrayBase</a>. It has the same template arguments as <a href="#carray:8177e845bec4a15c29be1b787e514e77">cArray</a>, but is specialized on the <code>ARRAY_TYPE</code> template argument.</p>
+
+<h4 id="copymove-t-dest-t-src-ctype-n:8177e845bec4a15c29be1b787e514e77"><code>_copymove(T* dest, T* src, CType n)</code></h4>
+
+<pre><code>static void _copymove(T* BSS_RESTRICT dest, T* BSS_RESTRICT src, CType n) noexcept
+</code></pre>
+
+<p><strong>Preconditions</strong>: <code>dest</code> should not have had any constructors called on it. <code>src</code> must point to valid memory. Both <code>dest</code> and <code>src</code> must be at least <code>n</code> long.</p>
+
+<p><em>Moves</em> the contents of <code>src</code> into <code>dest</code> using the appropriate <a href="#enum-array-type:8177e845bec4a15c29be1b787e514e77">management scheme</a>. Both <code>SIMPLE</code> and <code>CONSTRUCT will just use</code>memcpy<code>.</code>SAFE<code>and</code>MOVE<code>go through</code>dest<code>and call the move constructor, passing the corresponding element from</code>src<code>in using</code>std::move<code>. It then calls the destructors on all elements in</code>src` to deal with any remaining cleanup.</p>
+
+<h4 id="copy-t-bss-restrict-dest-const-t-bss-restrict-src-ctype-n:8177e845bec4a15c29be1b787e514e77"><code>_copy(T* BSS_RESTRICT dest, const T* BSS_RESTRICT src, CType n)</code></h4>
+
+<pre><code>static void _copy(T* BSS_RESTRICT dest, const T* BSS_RESTRICT src, CType n) noexcept
+</code></pre>
+
+<p><strong>Preconditions</strong>: <code>dest</code> should not have had any constructors called on it. <code>src</code> must point to valid memory. Both <code>dest</code> and <code>src</code> must be at least <code>n</code> long.</p>
+
+<p><em>Copies</em> the contents of <code>src</code> into <code>dest</code>. Both <code>SIMPLE</code> and <code>CONSTRUCT</code> will just use <code>memcpy</code>. <code>SAFE</code> will call the copy constructor on each element of <code>dest</code>, passing in a constant reference to the corresponding <code>src</code> element. It does <strong>not</strong> call any destructors. <code>MOVE</code> will throw an assertion failure if this function is called.</p>
+
+<h4 id="insert-t-a-ctype-length-ctype-index-u-t:8177e845bec4a15c29be1b787e514e77"><code>_insert(T* a, CType length, CType index, U &amp;&amp; t)</code></h4>
+
+<pre><code>template&lt;typename U&gt; static void _insert(T* a, CType length, CType index, U &amp;&amp; t) noexcept
+</code></pre>
+
+<p><strong>Preconditions</strong>: <code>a</code> must have a capacity of at least <code>length + 1</code>.</p>
+
+<p>Inserts the element <code>t</code> into <code>a</code> using <code>std::forward</code> to enforce perfect forwarding. While <code>SIMPLE</code> and <code>CONSTRUCT</code> both use memmove to shift elements around, <strong>all</strong> management schemes will call the constructor on the item to enforce perfect forwarding. This should be optimized into a memory copy by the compiler if there is no constructor provided.</p>
+
+<h4 id="remove-t-a-ctype-length-ctype-index:8177e845bec4a15c29be1b787e514e77"><code>_remove(T* a, CType length, CType index)</code></h4>
+
+<pre><code>static void _remove(T* a, CType length, CType index) noexcept
+</code></pre>
+
+<p>Removes an element from the specified index. <code>SIMPLE</code> uses <code>memmove</code> to accomplish this, but <code>CONSTRUCT</code> calls the destructor on the item to be removed <em>first</em>, then uses <code>memmove</code> to shift the other elements over by one. <code>SAFE</code> (and <code>MOVE</code>) calls <code>operator=</code> using move semantics, setting each item past the index equal to the contents of the item to its right, then calls the destructor of the <em>last</em> item, which is the opposite of what <code>CONSTRUCT</code> does.</p>
+
+<h4 id="setlength-t-a-ctype-old-ctype-n:8177e845bec4a15c29be1b787e514e77"><code>_setlength(T* a, CType old, CType n)</code></h4>
+
+<pre><code>static void _setlength(T* a, CType old, CType n) noexcept
+</code></pre>
+
+<p><strong>Preconditions</strong>: T must have a default constructor. <code>a</code> must be as large or larger than <strong>both</strong> <code>old</code> and <code>n</code>.</p>
+
+<p>This deals with a change in length in <code>a</code>. If the new length <code>n</code> is greater than <code>old</code>, constructors will be called on the new elements. If <code>n</code> is less than <code>old</code>, all elements above <code>n</code> will have their destructors called, up to <code>old</code>. This function does nothing for <code>SIMPLE</code>.</p>
+
+<h4 id="setcapacity-carraybase-t-ctype-alloc-a-ctype-length-ctype-capacity:8177e845bec4a15c29be1b787e514e77"><code>_setcapacity(cArrayBase&lt;T, CType, Alloc&gt;&amp; a, CType length, CType capacity)</code></h4>
+
+<pre><code>static void _setcapacity(cArrayBase&lt;T, CType, Alloc&gt;&amp; a, CType length, CType capacity) noexcept
+</code></pre>
+
+<p>This calls the <a href="#carraybase-setcapacity:8177e845bec4a15c29be1b787e514e77"><code>SetCapacity()</code></a> function on <code>a</code> if a reallocation is needed. Otherwise, if the new capacity is <em>smaller</em>, it simply sets the capacity to the new amount without doing a reallocation.</p>
+
+<h2 id="carraybase:8177e845bec4a15c29be1b787e514e77">cArrayBase <span class="badge code">cArray.h</span> <span class="badge cyan">Indirect Coverage</span></h2>
 
 <pre><code>template&lt;class T,
   typename CType = size_t,
@@ -109,42 +208,59 @@ class BSS_COMPILER_DLLEXPORT cArrayBase
 <pre><code>inline cArrayBase(cArrayBase&amp;&amp; mov)
 </code></pre>
 
+<p>Steals the array pointer from <code>mov</code> and sets <code>mov</code>&rsquo;s array pointer and capacity to 0.</p>
+
 <h4 id="carraybase-ctype-capacity:8177e845bec4a15c29be1b787e514e77"><code>cArrayBase(CType capacity)</code></h4>
 
 <pre><code>inline explicit cArrayBase(CT_ capacity = 0)
 </code></pre>
 
-<h4 id="carraybase:8177e845bec4a15c29be1b787e514e77"><code>~cArrayBase()</code></h4>
+<p>Constructs a new array with the given capacity. If the capacity is zero, the array pointer is set to <code>null</code> and no allocation is attempted.</p>
+
+<h4 id="carraybase-1:8177e845bec4a15c29be1b787e514e77"><code>~cArrayBase()</code></h4>
 
 <pre><code>inline ~cArrayBase()
 </code></pre>
+
+<p>Frees the array pointer, if it exists.</p>
 
 <h4 id="capacity:8177e845bec4a15c29be1b787e514e77"><code>Capacity()</code></h4>
 
 <pre><code>inline CT_ Capacity() const noexcept
 </code></pre>
 
-<h4 id="setcapacity-ct-capacity:8177e845bec4a15c29be1b787e514e77"><code>SetCapacity(CT_ capacity)</code></h4>
+<p>Gets the capacity of the array.</p>
+
+<h4 id="carraybase-setcapacity:8177e845bec4a15c29be1b787e514e77"><code>SetCapacity(CT_ capacity)</code></h4>
 
 <pre><code>BSS_FORCEINLINE void SetCapacity(CT_ capacity) noexcept
 </code></pre>
 
-<h4 id="setcapacitydiscard-ct-capacity:8177e845bec4a15c29be1b787e514e77"><code>SetCapacityDiscard(CT_ capacity)</code></h4>
+<p>Sets the capacity and uses realloc to preserve the existing contents.</p>
+
+<h4 id="carraybase-setcapacitydiscard:8177e845bec4a15c29be1b787e514e77"><code>SetCapacityDiscard(CT_ capacity)</code></h4>
 
 <pre><code>BSS_FORCEINLINE void SetCapacityDiscard(CT_ capacity) noexcept
 </code></pre>
+
+<p>Sets the capacity, but simply allocates an entirely new block of memory, discarding any contents currently in the array.</p>
 
 <h4 id="operator-mov:8177e845bec4a15c29be1b787e514e77"><code>operator=(mov)</code></h4>
 
 <pre><code>cArrayBase&amp; operator=(cArrayBase&amp;&amp; mov) noexcept
 </code></pre>
 
+<p>Destroys the array currently being held, if it exists, and then steals the array pointer from <code>mov</code> and sets <code>mov</code>&rsquo;s array pointer and capacity to 0.</p>
+
 <h4 id="getslice:8177e845bec4a15c29be1b787e514e77"><code>GetSlice()</code></h4>
 
 <pre><code>inline cArraySlice&lt;T, CType&gt; GetSlice()
 </code></pre>
 
-<h2 id="carrayslice-hugoshortcode-15-hugoshortcode-16:8177e845bec4a15c29be1b787e514e77">cArraySlice <span class="badge code">cArray.h</span> <span class="badge red">0/6 Test Coverage</span></h2>
+<p>Returns an <a href="#carrayslice:8177e845bec4a15c29be1b787e514e77">cArraySlice</a> that covers this entire array, starting at the first element and setting the length equal to the current capacity.</p>
+
+<h2 id="carrayslice:8177e845bec4a15c29be1b787e514e77">cArraySlice <span class="badge code">cArray.h</span> <span class="badge red">0/6 Test Coverage</span></h2>
+
 
 <section>
 </article>

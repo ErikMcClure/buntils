@@ -13,6 +13,7 @@ main {
 	border-right: 1px #999 solid;
 	border-bottom: 1px #999 solid;
   border-radius: 0 0 1em 1em;
+  margin-bottom: 1em;
 }
 
 header {
@@ -20,7 +21,7 @@ header {
   font-size:72px;
   letter-spacing: 4px;
   color: #FDFDFE;
-  padding: 0.5em 0.5em 0.1em 0.5em;
+  padding: 0.2em 0.5em 0.1em 0.5em;
   background: linear-gradient( 0deg, #191919, #393939 );
   border-radius: 0 0 0.35em 0.35em;
   cursor: default;
@@ -168,25 +169,48 @@ article nav {
   flex: none;
   color:#FFFDFD;
   width: 260px;
-  font-size: 22px;
+  font-size: 20px;
   font-weight: 700;
-  letter-spacing: 1px;
+  letter-spacing: 0;
   z-index:1;
 }
 article nav ul {
   list-style-type: none;
-  padding: 0 1em;
+  padding: 0 0;
 }
 article nav li {
   list-style: none;
 }
 article nav li a {
-  color: #FFF;
+  display: block;
+  color: #EEE;
   text-decoration: none;
+  padding: 0.2em 0 0.2em 20px;
+}
+article nav li a:hover {
+  color: #FFF;
+  border-left: 4px #999 solid;
+  padding-left: 16px;
+  background: #444;
+}
+article nav li a:active {
+  border-left: 1px #999 solid;
+  padding-left: 19px;
+  background: #3f3f3f;
+}
+
+article nav .selected a, article nav .selected a:hover, article nav .selected a:active {
+  color:#FFF;
+  border-left: 4px #DDD solid;
+  padding: 0.2em 0 0.2em 16px;
+  background: #3f3f3f;
 }
 article h1 {
   margin: 0;
   font-size: 24px;
+  background: #DFDFDF;
+  border-radius: 0.3em;
+  padding: 0 0 0.2em 0.3em;
 }
 article h2 {
   position: relative;
@@ -200,10 +224,19 @@ article h3 {
   padding-left: 0.2em;
 }
 article h4 {
-  margin: 0.5em 0 0.5em 0;
+  font-size: 18px;
+  margin: 1.1em 0 0.5em 0;
+}
+:target {
+  background:linear-gradient( 90deg, #FbFbC0, #FFF );
+  border-radius: 0.5em;
+  margin-left: -0.5em;
+  padding-left: 0.5em;
+}
+article p {
+  padding-left: 1em;
 }
 h4~pre {
-  display: inline;
   margin: 0 0 0 3em;
 }
 .badge {

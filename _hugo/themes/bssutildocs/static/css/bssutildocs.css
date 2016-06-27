@@ -208,6 +208,9 @@ article nav .selected a, article nav .selected a:hover, article nav .selected a:
 article h1 {
   margin: 0;
   font-size: 24px;
+  background: #DFDFDF;
+  border-radius: 0.3em;
+  padding: 0 0 0.2em 0.3em;
 }
 article h2 {
   position: relative;
@@ -223,6 +226,12 @@ article h3 {
 article h4 {
   font-size: 18px;
   margin: 1.1em 0 0.5em 0;
+}
+:target {
+  background:linear-gradient( 90deg, #FbFbC0, #FFF );
+  border-radius: 0.5em;
+  margin-left: -0.5em;
+  padding-left: 0.5em;
 }
 article p {
   padding-left: 1em;

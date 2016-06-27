@@ -4,6 +4,7 @@
 #include "test.h"
 #include "os.h"
 #include "cTrie.h"
+#include "bss_win32_includes.h"
 
 using namespace bss_util;
 
@@ -72,27 +73,50 @@ TESTDEF::RETPAIR test_OS()
   TEST(!FolderExists("testdir"));
   std::vector<cStr> files;
   ListDir(".", files, 1);
-  TEST(files.size()>2); // There should be at least two files, test.exe and bss-util.dll
+  // There should be at least two files, test.exe and bss-util.dll
+  TEST(files.size()>2);
 
-                        //TEST(FileExists("testlink"));
-                        //TEST(FileExists(BSS__L("testlink")));
-                        //TEST(FolderExists("IGNORE/symlink/"));
-                        //TEST(FolderExists(BSS__L("IGNORE/symlink/")));
-                        //{
-                        //std::unique_ptr<char[],bssdll_delete<char[]>> p = FileDialog(true,0,BSS__L("test"));
-                        //}
+  //TEST(FileExists("testlink"));
+  //TEST(FileExists(BSS__L("testlink")));
+  //TEST(FolderExists("IGNORE/symlink/"));
+  //TEST(FolderExists(BSS__L("IGNORE/symlink/")));
+  //{
+  //std::unique_ptr<char[],bssdll_delete<char[]>> p = FileDialog(true,0,BSS__L("test"));
+  //}
 
-                        //#ifdef BSS_PLATFORM_WIN32
-                        //  SetRegistryValue(HKEY_LOCAL_MACHINE,"SOFTWARE\\test","valcheck","data");
-                        //  SetRegistryValue(HKEY_LOCAL_MACHINE,"SOFTWARE\\test\\test","valcheck","data");
-                        //  DelRegistryNode(HKEY_LOCAL_MACHINE,"SOFTWARE\\test");
-                        //#endif
-                        //AlertBox("test", "title", 0x00000010L);
+#ifdef BSS_PLATFORM_WIN32
+  int64_t sz = GetRegistryValue(HKEY_CURRENT_USER, "Control Panel\\Desktop", "CursorBlinkRate", 0, 0);
+  TEST(sz > 0);
+  if(sz > 0)
+  {
+    DYNARRAY(wchar_t, buf, (sz / 2) + 1);
+    buf[sz / 2] = 0;
+    sz = GetRegistryValue(HKEY_CURRENT_USER, "Control Panel\\Desktop", "CursorBlinkRate", (unsigned char*)buf, sz);
+    TEST(sz >= 0);
+    int blinkrate = atoi(cStr(buf));
+    TEST(blinkrate > 0);
+  }
 
-                        //float at[4][4];
-                        //at[0][0]=(float)(size_t)f;
-                        //CPU_Barrier();
-                        //tttest(0,&at);
-                        //CPU_Barrier();
+  //SetRegistryValue(HKEY_LOCAL_MACHINE,"SOFTWARE\\test","valcheck","data");
+  //SetRegistryValue(HKEY_LOCAL_MACHINE,"SOFTWARE\\test\\test","valcheck","data");
+  //sz = GetRegistryValue(HKEY_LOCAL_MACHINE, "SOFTWARE\\test\\test", "valcheck", 0, 0);
+  //TEST(sz > 0);
+  //if(sz > 0)
+  //{
+  //  DYNARRAY(unsigned char, buf, sz+1);
+  //  buf[sz] = 0;
+  //  sz = GetRegistryValue(HKEY_LOCAL_MACHINE, "SOFTWARE\\test\\test", "valcheck", buf, sz);
+  //  TEST(!sz);
+  //  TEST(!strcmp((char*)buf, "data"));
+  //}
+  //DelRegistryNode(HKEY_LOCAL_MACHINE,"SOFTWARE\\test");
+  #endif
+  //AlertBox("test", "title", 0x00000010L);
+
+  //float at[4][4];
+  //at[0][0]=(float)(size_t)f;
+  //CPU_Barrier();
+  //tttest(0,&at);
+  //CPU_Barrier();
   ENDTEST;
 }

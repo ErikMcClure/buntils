@@ -16,6 +16,7 @@
 - Added missing UTF conversion functions and standardized them
 - Added STRUPR and fixed cDisjoinSet.h include in bss_Graph
 - Refactored tests into individual cpp files
+- Added GetRegistryValue for windows platforms only
 
 0.4.5
 -----

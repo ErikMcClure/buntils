@@ -505,6 +505,57 @@ int BSS_FASTCALL bss_util::SetRegistryValue64W(HKEY__*	hOpenKey, const wchar_t* 
   });
 }
 
+int64_t BSS_FASTCALL bss_util::GetRegistryValueW(HKEY__* hKeyRoot, const wchar_t* szKey, const wchar_t* szValue, unsigned char* data, unsigned long sz)
+{
+  HKEY__* hKey;
+  LRESULT e = RegOpenKeyExW(hKeyRoot, szKey, 0, KEY_READ, &hKey);
+  if(!hKey) return -2;
+  LSTATUS r = RegQueryValueExW(hKey, szValue, 0, 0, data, &sz);
+  RegCloseKey(hKey);
+  if(r == ERROR_SUCCESS)
+    return sz;
+  return (r == ERROR_MORE_DATA) ? sz : -1;
+}
+int64_t BSS_FASTCALL bss_util::GetRegistryValue(HKEY__* hKeyRoot, const char* szKey, const char* szValue, unsigned char* data, unsigned long sz)
+{
+  return GetRegistryValueW(hKeyRoot, cStrW(szKey), cStrW(szValue), data, sz);
+}
+int BSS_FASTCALL bss_util::GetRegistryValueDWORDW(HKEY__* hKeyRoot, const wchar_t* szKey, const wchar_t* szValue, DWORD* data)
+{
+  HKEY__* hKey;
+  RegOpenKeyExW(hKeyRoot, szKey, 0, KEY_READ, &hKey);
+  if(!hKey) return -2;
+  DWORD type = 0;
+  DWORD sz = sizeof(DWORD);
+  LSTATUS r = RegQueryValueExW(hKey, szValue, 0, &type, (LPBYTE)data, &sz);
+  RegCloseKey(hKey);
+  if(type != REG_DWORD)
+    return -3;
+  return (r == ERROR_SUCCESS) ? 0 : -1;
+}
+int BSS_FASTCALL bss_util::GetRegistryValueDWORD(HKEY__* hKeyRoot, const char* szKey, const char* szValue, DWORD* data)
+{
+  return GetRegistryValueDWORDW(hKeyRoot, cStrW(szKey), cStrW(szValue), data);
+}
+int BSS_FASTCALL bss_util::GetRegistryValueQWORDW(HKEY__* hKeyRoot, const wchar_t* szKey, const wchar_t* szValue, unsigned long long* data)
+{
+  HKEY__* hKey;
+  RegOpenKeyExW(hKeyRoot, szKey, 0, KEY_READ, &hKey);
+  if(!hKey) return -2;
+  DWORD type = 0;
+  DWORD sz = sizeof(unsigned long long);
+  LSTATUS r = RegQueryValueExW(hKey, szValue, 0, &type, (LPBYTE)data, &sz);
+  RegCloseKey(hKey);
+  if(type != REG_QWORD)
+    return -3;
+  return (r == ERROR_SUCCESS) ? 0 : -1;
+}
+int BSS_FASTCALL bss_util::GetRegistryValueQWORD(HKEY__* hKeyRoot, const char* szKey, const char* szValue, unsigned long long* data)
+{
+  return GetRegistryValueQWORDW(hKeyRoot, cStrW(szKey), cStrW(szValue), data);
+}
+
+
 int BSS_FASTCALL r_delregnode(HKEY__* hKeyRoot, const wchar_t* lpSubKey)
 {
   LONG lResult;

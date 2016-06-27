@@ -1,4 +1,4 @@
-baseurl = "/"
+baseurl = ""
 languageCode = "en-us"
 title = "Black Sphere Studios Utility Library"
 theme = "bssutildocs"

@@ -40,7 +40,7 @@ This is a low level helper function for inserting ranges of objects using `memmo
 
 Similar to [InsertRangeSimple]({{< relref "#insertrangesimple" >}}), this _removes_ a range of data from the given array using `memmove()`. The first three arguments are the same as [InsertRangeSimple]({{< relref "#insertrangesimple" >}}), but the fourth argument is instead the length of data that should be removed. `index` + `range` should not exceed `length`.
 
-## cArray {{<badge code>}}cArray.h{{</badge>}} {{<badge green>}}14/14 Test Coverage{{</badge>}}
+## cArray {{<badge code>}}cArray.h{{</badge>}} {{<badge green>}}14/14 Test Coverage{{</badge>}} {#carray}
     template<class T,
       typename CType = size_t,
       ARRAY_TYPE ArrayType = CARRAY_SIMPLE,
@@ -57,7 +57,7 @@ Standalone array that is not resizable, which means that all elements are always
 * **`typename Alloc`**: Arrays accept purely static custom allocators that follow the [bss-alloc](#) standards. Stateful allocators are not supported. By default, the standard static allocator is used, which simply calls `realloc` and `free`.
 
     
-## cArrayInternal {{<badge code>}}cArray.h{{</badge>}} {{<badge cyan>}}Indirect Coverage{{</badge>}}
+## cArrayInternal {{<badge code>}}cArray.h{{</badge>}} {{<badge cyan>}}Indirect Coverage{{</badge>}} {#carrayinternal}
 This is an internal class used by classes that inherit [cArrayBase]({{< relref "#carraybase" >}}). It has the same template arguments as [cArray]({{< relref "#carray" >}}), but is specialized on the `ARRAY_TYPE` template argument.
 
 #### `_copymove(T* dest, T* src, CType n)`
@@ -90,8 +90,8 @@ This deals with a change in length in `a`. If the new length `n` is greater than
     
 #### `_setcapacity(cArrayBase<T, CType, Alloc>& a, CType length, CType capacity)`
     static void _setcapacity(cArrayBase<T, CType, Alloc>& a, CType length, CType capacity) noexcept
-
-## cArrayBase {{<badge code>}}cArray.h{{</badge>}} {{<badge cyan>}}Indirect Coverage{{</badge>}}
+This calls the [`SetCapacity()`]({{< relref "#carraybase-setcapacity" >}}) function on `a` if a reallocation is needed. Otherwise, if the new capacity is *smaller*, it simply sets the capacity to the new amount without doing a reallocation.
+## cArrayBase {{<badge code>}}cArray.h{{</badge>}} {{<badge cyan>}}Indirect Coverage{{</badge>}} {#carraybase}
     template<class T,
       typename CType = size_t,
       typename Alloc = StaticAllocPolicy<T>>
@@ -115,11 +115,11 @@ Frees the array pointer, if it exists.
     inline CT_ Capacity() const noexcept
 Gets the capacity of the array.
 
-#### `SetCapacity(CT_ capacity)`
+#### `SetCapacity(CT_ capacity)` {#carraybase-setcapacity}
     BSS_FORCEINLINE void SetCapacity(CT_ capacity) noexcept
 Sets the capacity and uses realloc to preserve the existing contents.    
 
-#### `SetCapacityDiscard(CT_ capacity)`
+#### `SetCapacityDiscard(CT_ capacity)` {#carraybase-setcapacitydiscard}
     BSS_FORCEINLINE void SetCapacityDiscard(CT_ capacity) noexcept
 Sets the capacity, but simply allocates an entirely new block of memory, discarding any contents currently in the array.
 
@@ -131,6 +131,6 @@ Destroys the array currently being held, if it exists, and then steals the array
     inline cArraySlice<T, CType> GetSlice()
 Returns an [cArraySlice]({{< relref "#carrayslice" >}}) that covers this entire array, starting at the first element and setting the length equal to the current capacity.
 
-## cArraySlice {{<badge code>}}cArray.h{{</badge>}} {{<badge red>}}0/6 Test Coverage{{</badge>}}
+## cArraySlice {{<badge code>}}cArray.h{{</badge>}} {{<badge red>}}0/6 Test Coverage{{</badge>}} {#carrayslice}
 
 

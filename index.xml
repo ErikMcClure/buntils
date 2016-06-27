@@ -2,20 +2,20 @@
 <rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom">
   <channel>
     <title>Black Sphere Studios Utility Library</title>
-    <link>/bss-util/</link>
+    <link>/</link>
     <description>Recent content on Black Sphere Studios Utility Library</description>
     <generator>Hugo -- gohugo.io</generator>
     <language>en-us</language>
     <copyright>Black Sphere Studios. All rights reserved.</copyright>
     <lastBuildDate>Sat, 09 Apr 2016 00:00:00 +0000</lastBuildDate>
-    <atom:link href="/bss-util/index.xml" rel="self" type="application/rss+xml" />
+    <atom:link href="/index.xml" rel="self" type="application/rss+xml" />
     
     <item>
       <title>Download bss-util</title>
-      <link>/bss-util/dl/</link>
+      <link>/dl/</link>
       <pubDate>Sat, 09 Apr 2016 00:00:00 +0000</pubDate>
       
-      <guid>/bss-util/dl/</guid>
+      <guid>/dl/</guid>
       <description>
 
 &lt;p&gt;All releases for the latest version of bss-util are listed below as a zip file or a tar file, depending on platform. The SDK contains both the source code for bss-util, and precompiled versions of the library as both a DLL and a static lib file. On Windows, bss-util requires at least Visual Studio 2015, which can be &lt;a href=&#34;https://www.visualstudio.com/en-us/downloads/download-visual-studio-vs.aspx&#34;&gt;downloaded for free&lt;/a&gt;. On any POSIX based system, a make file is included that will compile both the library and the test suite.&lt;/p&gt;
@@ -62,7 +62,8 @@
 
 &lt;p&gt;The latest development build is available from github, or you can grab the git repo:&lt;/p&gt;
 
-&lt;p&gt;&lt;code&gt;git clone https://github.com/Black-Sphere-Studios/bss-util.git&lt;/code&gt;&lt;/p&gt;
+&lt;pre&gt;&lt;code&gt;git clone https://github.com/Black-Sphere-Studios/bss-util.git
+&lt;/code&gt;&lt;/pre&gt;
 
 &lt;p&gt;If you would like to clone the repo at a specific point in time, such as the snapshot of the latest release, clone the &lt;a href=&#34;https://github.com/Black-Sphere-Studios/bss-util/tree/v0.4.5&#34;&gt;appropriate tagged commit&lt;/a&gt;.&lt;/p&gt;
 </description>
@@ -70,28 +71,34 @@
     
     <item>
       <title>Reference</title>
-      <link>/bss-util/ref/</link>
+      <link>/ref/</link>
       <pubDate>Sat, 09 Apr 2016 00:00:00 +0000</pubDate>
       
-      <guid>/bss-util/ref/</guid>
+      <guid>/ref/</guid>
+      <description>&lt;p&gt;The Black Sphere Studios Utility Library is primarily organized through header files, but the documentation has occasionally broken up discrete classes that exist in the same header file to make navigation easier. Some header files consist entirely of functions, and won&amp;rsquo;t have any classes listed. Each page is tagged with the header file that it is from, allowing you to quickly navigate to any other classes in the same header file.&lt;/p&gt;
+</description>
+    </item>
+    
+    <item>
+      <title>Allocator</title>
+      <link>/ref/alloc/</link>
+      <pubDate>Sat, 02 Apr 2016 00:00:00 +0000</pubDate>
+      
+      <guid>/ref/alloc/</guid>
       <description>
 
-&lt;p&gt;The FeatherGUI documentation is organized primarily by class, but because featherGUI is message-driven, most of the documentation for a specific class will focus on the message function&amp;rsquo;s response to certain messages and any assumptions that are made. Specialty functions will be documented where appropriate.&lt;/p&gt;
+&lt;h2 id=&#34;bss-util:6130d8d0db335e179072eea883b56719&#34;&gt;bss-util&lt;/h2&gt;
 
-&lt;h2 id=&#34;table-of-contents:e797f235527bb1062ff091a8cc277237&#34;&gt;Table of Contents&lt;/h2&gt;
-
-&lt;ul&gt;
-&lt;li&gt;TBD&lt;/li&gt;
-&lt;/ul&gt;
+&lt;p&gt;Test page&lt;/p&gt;
 </description>
     </item>
     
     <item>
       <title>Array</title>
-      <link>/bss-util/ref/array/</link>
+      <link>/ref/array/</link>
       <pubDate>Sat, 02 Apr 2016 00:00:00 +0000</pubDate>
       
-      <guid>/bss-util/ref/array/</guid>
+      <guid>/ref/array/</guid>
       <description>
 
 &lt;p&gt;The basis for all of the arrays in bss-util is in cArray.h, which contains two helper classes and two public classes. &lt;a href=&#34;#carray:8177e845bec4a15c29be1b787e514e77&#34;&gt;cArray&lt;/a&gt; is a standalone non-resizable array, whereas &lt;a href=&#34;#carraybase:8177e845bec4a15c29be1b787e514e77&#34;&gt;cArrayBase&lt;/a&gt; is intended to be inherited by a more complex data structure. Everything else is mostly for convenience.&lt;/p&gt;
@@ -111,7 +118,25 @@
 &lt;p&gt;This is a special variant on the &lt;code&gt;SAFE&lt;/code&gt; management scheme that removes the &lt;code&gt;copy&lt;/code&gt; helper function from &lt;a href=&#34;#carrayinternal:8177e845bec4a15c29be1b787e514e77&#34;&gt;cArrayInternal&lt;/a&gt;. While this prevents you from ever copying an array or data structure, it will still permit resizing the array using only move semantics. This management structure is crucial, because it allows for putting move-only types into arrays and data structures, such as &lt;code&gt;std::unique_ptr&lt;/code&gt;.&lt;/p&gt;&lt;/li&gt;
 &lt;/ul&gt;
 
-&lt;h2 id=&#34;carray-hugoshortcode-4-hugoshortcode-5:8177e845bec4a15c29be1b787e514e77&#34;&gt;cArray &lt;span class=&#34;badge code&#34;&gt;cArray.h&lt;/span&gt; &lt;span class=&#34;badge green&#34;&gt;14/14 Test Coverage&lt;/span&gt;&lt;/h2&gt;
+&lt;h4 id=&#34;insertrangesimple-t-a-ctype-length-ctype-index-const-t-t-ctype-tsize:8177e845bec4a15c29be1b787e514e77&#34;&gt;&lt;code&gt;InsertRangeSimple(T* a, CType length, CType index, const T* t, CType tsize)&lt;/code&gt;&lt;/h4&gt;
+
+&lt;pre&gt;&lt;code&gt;template&amp;lt;class T, typename CType = size_t&amp;gt;
+static inline void InsertRangeSimple(T* a, CType length, CType index, const T* t, CType tsize) noexcept
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;p&gt;&lt;strong&gt;Preconditions:&lt;/strong&gt; The capacity of &lt;code&gt;a&lt;/code&gt; must be equal to or greater than &lt;code&gt;length&lt;/code&gt; + &lt;code&gt;tsize&lt;/code&gt;.&lt;/p&gt;
+
+&lt;p&gt;This is a low level helper function for inserting ranges of objects using &lt;code&gt;memmove()&lt;/code&gt; and &lt;code&gt;memcpy()&lt;/code&gt;. It takes a target array, which must be large enough to hold all the data, the current length of the target array, the index in the target array to insert the data into, the source array to insert, and the size of the source array.&lt;/p&gt;
+
+&lt;h4 id=&#34;removerangesimple-t-a-ctype-length-ctype-index-ctype-range:8177e845bec4a15c29be1b787e514e77&#34;&gt;&lt;code&gt;RemoveRangeSimple(T* a, CType length, CType index, CType range)&lt;/code&gt;&lt;/h4&gt;
+
+&lt;pre&gt;&lt;code&gt;template&amp;lt;class T, typename CType = size_t&amp;gt;
+static inline void RemoveRangeSimple(T* a, CType length, CType index, CType range) noexcept
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;p&gt;Similar to &lt;a href=&#34;#insertrangesimple:8177e845bec4a15c29be1b787e514e77&#34;&gt;InsertRangeSimple&lt;/a&gt;, this &lt;em&gt;removes&lt;/em&gt; a range of data from the given array using &lt;code&gt;memmove()&lt;/code&gt;. The first three arguments are the same as &lt;a href=&#34;#insertrangesimple:8177e845bec4a15c29be1b787e514e77&#34;&gt;InsertRangeSimple&lt;/a&gt;, but the fourth argument is instead the length of data that should be removed. &lt;code&gt;index&lt;/code&gt; + &lt;code&gt;range&lt;/code&gt; should not exceed &lt;code&gt;length&lt;/code&gt;.&lt;/p&gt;
+
+&lt;h2 id=&#34;carray:8177e845bec4a15c29be1b787e514e77&#34;&gt;cArray &lt;span class=&#34;badge code&#34;&gt;cArray.h&lt;/span&gt; &lt;span class=&#34;badge green&#34;&gt;14/14 Test Coverage&lt;/span&gt;&lt;/h2&gt;
 
 &lt;pre&gt;&lt;code&gt;template&amp;lt;class T,
   typename CType = size_t,
@@ -133,9 +158,61 @@ class BSS_COMPILER_DLLEXPORT cArray :
 &lt;li&gt;&lt;strong&gt;&lt;code&gt;typename Alloc&lt;/code&gt;&lt;/strong&gt;: Arrays accept purely static custom allocators that follow the &lt;a href=&#34;#&#34;&gt;bss-alloc&lt;/a&gt; standards. Stateful allocators are not supported. By default, the standard static allocator is used, which simply calls &lt;code&gt;realloc&lt;/code&gt; and &lt;code&gt;free&lt;/code&gt;.&lt;/li&gt;
 &lt;/ul&gt;
 
-&lt;h2 id=&#34;carrayinternal-hugoshortcode-9-hugoshortcode-10:8177e845bec4a15c29be1b787e514e77&#34;&gt;cArrayInternal &lt;span class=&#34;badge code&#34;&gt;cArray.h&lt;/span&gt; &lt;span class=&#34;badge cyan&#34;&gt;Indirect Coverage&lt;/span&gt;&lt;/h2&gt;
+&lt;h2 id=&#34;carrayinternal:8177e845bec4a15c29be1b787e514e77&#34;&gt;cArrayInternal &lt;span class=&#34;badge code&#34;&gt;cArray.h&lt;/span&gt; &lt;span class=&#34;badge cyan&#34;&gt;Indirect Coverage&lt;/span&gt;&lt;/h2&gt;
 
-&lt;h2 id=&#34;carraybase-hugoshortcode-11-hugoshortcode-12:8177e845bec4a15c29be1b787e514e77&#34;&gt;cArrayBase &lt;span class=&#34;badge code&#34;&gt;cArray.h&lt;/span&gt; &lt;span class=&#34;badge cyan&#34;&gt;Indirect Coverage&lt;/span&gt;&lt;/h2&gt;
+&lt;p&gt;This is an internal class used by classes that inherit &lt;a href=&#34;#carraybase:8177e845bec4a15c29be1b787e514e77&#34;&gt;cArrayBase&lt;/a&gt;. It has the same template arguments as &lt;a href=&#34;#carray:8177e845bec4a15c29be1b787e514e77&#34;&gt;cArray&lt;/a&gt;, but is specialized on the &lt;code&gt;ARRAY_TYPE&lt;/code&gt; template argument.&lt;/p&gt;
+
+&lt;h4 id=&#34;copymove-t-dest-t-src-ctype-n:8177e845bec4a15c29be1b787e514e77&#34;&gt;&lt;code&gt;_copymove(T* dest, T* src, CType n)&lt;/code&gt;&lt;/h4&gt;
+
+&lt;pre&gt;&lt;code&gt;static void _copymove(T* BSS_RESTRICT dest, T* BSS_RESTRICT src, CType n) noexcept
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;p&gt;&lt;strong&gt;Preconditions&lt;/strong&gt;: &lt;code&gt;dest&lt;/code&gt; should not have had any constructors called on it. &lt;code&gt;src&lt;/code&gt; must point to valid memory. Both &lt;code&gt;dest&lt;/code&gt; and &lt;code&gt;src&lt;/code&gt; must be at least &lt;code&gt;n&lt;/code&gt; long.&lt;/p&gt;
+
+&lt;p&gt;&lt;em&gt;Moves&lt;/em&gt; the contents of &lt;code&gt;src&lt;/code&gt; into &lt;code&gt;dest&lt;/code&gt; using the appropriate &lt;a href=&#34;#enum-array-type:8177e845bec4a15c29be1b787e514e77&#34;&gt;management scheme&lt;/a&gt;. Both &lt;code&gt;SIMPLE&lt;/code&gt; and &lt;code&gt;CONSTRUCT will just use&lt;/code&gt;memcpy&lt;code&gt;.&lt;/code&gt;SAFE&lt;code&gt;and&lt;/code&gt;MOVE&lt;code&gt;go through&lt;/code&gt;dest&lt;code&gt;and call the move constructor, passing the corresponding element from&lt;/code&gt;src&lt;code&gt;in using&lt;/code&gt;std::move&lt;code&gt;. It then calls the destructors on all elements in&lt;/code&gt;src` to deal with any remaining cleanup.&lt;/p&gt;
+
+&lt;h4 id=&#34;copy-t-bss-restrict-dest-const-t-bss-restrict-src-ctype-n:8177e845bec4a15c29be1b787e514e77&#34;&gt;&lt;code&gt;_copy(T* BSS_RESTRICT dest, const T* BSS_RESTRICT src, CType n)&lt;/code&gt;&lt;/h4&gt;
+
+&lt;pre&gt;&lt;code&gt;static void _copy(T* BSS_RESTRICT dest, const T* BSS_RESTRICT src, CType n) noexcept
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;p&gt;&lt;strong&gt;Preconditions&lt;/strong&gt;: &lt;code&gt;dest&lt;/code&gt; should not have had any constructors called on it. &lt;code&gt;src&lt;/code&gt; must point to valid memory. Both &lt;code&gt;dest&lt;/code&gt; and &lt;code&gt;src&lt;/code&gt; must be at least &lt;code&gt;n&lt;/code&gt; long.&lt;/p&gt;
+
+&lt;p&gt;&lt;em&gt;Copies&lt;/em&gt; the contents of &lt;code&gt;src&lt;/code&gt; into &lt;code&gt;dest&lt;/code&gt;. Both &lt;code&gt;SIMPLE&lt;/code&gt; and &lt;code&gt;CONSTRUCT&lt;/code&gt; will just use &lt;code&gt;memcpy&lt;/code&gt;. &lt;code&gt;SAFE&lt;/code&gt; will call the copy constructor on each element of &lt;code&gt;dest&lt;/code&gt;, passing in a constant reference to the corresponding &lt;code&gt;src&lt;/code&gt; element. It does &lt;strong&gt;not&lt;/strong&gt; call any destructors. &lt;code&gt;MOVE&lt;/code&gt; will throw an assertion failure if this function is called.&lt;/p&gt;
+
+&lt;h4 id=&#34;insert-t-a-ctype-length-ctype-index-u-t:8177e845bec4a15c29be1b787e514e77&#34;&gt;&lt;code&gt;_insert(T* a, CType length, CType index, U &amp;amp;&amp;amp; t)&lt;/code&gt;&lt;/h4&gt;
+
+&lt;pre&gt;&lt;code&gt;template&amp;lt;typename U&amp;gt; static void _insert(T* a, CType length, CType index, U &amp;amp;&amp;amp; t) noexcept
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;p&gt;&lt;strong&gt;Preconditions&lt;/strong&gt;: &lt;code&gt;a&lt;/code&gt; must have a capacity of at least &lt;code&gt;length + 1&lt;/code&gt;.&lt;/p&gt;
+
+&lt;p&gt;Inserts the element &lt;code&gt;t&lt;/code&gt; into &lt;code&gt;a&lt;/code&gt; using &lt;code&gt;std::forward&lt;/code&gt; to enforce perfect forwarding. While &lt;code&gt;SIMPLE&lt;/code&gt; and &lt;code&gt;CONSTRUCT&lt;/code&gt; both use memmove to shift elements around, &lt;strong&gt;all&lt;/strong&gt; management schemes will call the constructor on the item to enforce perfect forwarding. This should be optimized into a memory copy by the compiler if there is no constructor provided.&lt;/p&gt;
+
+&lt;h4 id=&#34;remove-t-a-ctype-length-ctype-index:8177e845bec4a15c29be1b787e514e77&#34;&gt;&lt;code&gt;_remove(T* a, CType length, CType index)&lt;/code&gt;&lt;/h4&gt;
+
+&lt;pre&gt;&lt;code&gt;static void _remove(T* a, CType length, CType index) noexcept
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;p&gt;Removes an element from the specified index. &lt;code&gt;SIMPLE&lt;/code&gt; uses &lt;code&gt;memmove&lt;/code&gt; to accomplish this, but &lt;code&gt;CONSTRUCT&lt;/code&gt; calls the destructor on the item to be removed &lt;em&gt;first&lt;/em&gt;, then uses &lt;code&gt;memmove&lt;/code&gt; to shift the other elements over by one. &lt;code&gt;SAFE&lt;/code&gt; (and &lt;code&gt;MOVE&lt;/code&gt;) calls &lt;code&gt;operator=&lt;/code&gt; using move semantics, setting each item past the index equal to the contents of the item to its right, then calls the destructor of the &lt;em&gt;last&lt;/em&gt; item, which is the opposite of what &lt;code&gt;CONSTRUCT&lt;/code&gt; does.&lt;/p&gt;
+
+&lt;h4 id=&#34;setlength-t-a-ctype-old-ctype-n:8177e845bec4a15c29be1b787e514e77&#34;&gt;&lt;code&gt;_setlength(T* a, CType old, CType n)&lt;/code&gt;&lt;/h4&gt;
+
+&lt;pre&gt;&lt;code&gt;static void _setlength(T* a, CType old, CType n) noexcept
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;p&gt;&lt;strong&gt;Preconditions&lt;/strong&gt;: T must have a default constructor. &lt;code&gt;a&lt;/code&gt; must be as large or larger than &lt;strong&gt;both&lt;/strong&gt; &lt;code&gt;old&lt;/code&gt; and &lt;code&gt;n&lt;/code&gt;.&lt;/p&gt;
+
+&lt;p&gt;This deals with a change in length in &lt;code&gt;a&lt;/code&gt;. If the new length &lt;code&gt;n&lt;/code&gt; is greater than &lt;code&gt;old&lt;/code&gt;, constructors will be called on the new elements. If &lt;code&gt;n&lt;/code&gt; is less than &lt;code&gt;old&lt;/code&gt;, all elements above &lt;code&gt;n&lt;/code&gt; will have their destructors called, up to &lt;code&gt;old&lt;/code&gt;. This function does nothing for &lt;code&gt;SIMPLE&lt;/code&gt;.&lt;/p&gt;
+
+&lt;h4 id=&#34;setcapacity-carraybase-t-ctype-alloc-a-ctype-length-ctype-capacity:8177e845bec4a15c29be1b787e514e77&#34;&gt;&lt;code&gt;_setcapacity(cArrayBase&amp;lt;T, CType, Alloc&amp;gt;&amp;amp; a, CType length, CType capacity)&lt;/code&gt;&lt;/h4&gt;
+
+&lt;pre&gt;&lt;code&gt;static void _setcapacity(cArrayBase&amp;lt;T, CType, Alloc&amp;gt;&amp;amp; a, CType length, CType capacity) noexcept
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;p&gt;This calls the &lt;a href=&#34;#carraybase-setcapacity:8177e845bec4a15c29be1b787e514e77&#34;&gt;&lt;code&gt;SetCapacity()&lt;/code&gt;&lt;/a&gt; function on &lt;code&gt;a&lt;/code&gt; if a reallocation is needed. Otherwise, if the new capacity is &lt;em&gt;smaller&lt;/em&gt;, it simply sets the capacity to the new amount without doing a reallocation.&lt;/p&gt;
+
+&lt;h2 id=&#34;carraybase:8177e845bec4a15c29be1b787e514e77&#34;&gt;cArrayBase &lt;span class=&#34;badge code&#34;&gt;cArray.h&lt;/span&gt; &lt;span class=&#34;badge cyan&#34;&gt;Indirect Coverage&lt;/span&gt;&lt;/h2&gt;
 
 &lt;pre&gt;&lt;code&gt;template&amp;lt;class T,
   typename CType = size_t,
@@ -150,54 +227,210 @@ class BSS_COMPILER_DLLEXPORT cArrayBase
 &lt;pre&gt;&lt;code&gt;inline cArrayBase(cArrayBase&amp;amp;&amp;amp; mov)
 &lt;/code&gt;&lt;/pre&gt;
 
+&lt;p&gt;Steals the array pointer from &lt;code&gt;mov&lt;/code&gt; and sets &lt;code&gt;mov&lt;/code&gt;&amp;rsquo;s array pointer and capacity to 0.&lt;/p&gt;
+
 &lt;h4 id=&#34;carraybase-ctype-capacity:8177e845bec4a15c29be1b787e514e77&#34;&gt;&lt;code&gt;cArrayBase(CType capacity)&lt;/code&gt;&lt;/h4&gt;
 
 &lt;pre&gt;&lt;code&gt;inline explicit cArrayBase(CT_ capacity = 0)
 &lt;/code&gt;&lt;/pre&gt;
 
-&lt;h4 id=&#34;carraybase:8177e845bec4a15c29be1b787e514e77&#34;&gt;&lt;code&gt;~cArrayBase()&lt;/code&gt;&lt;/h4&gt;
+&lt;p&gt;Constructs a new array with the given capacity. If the capacity is zero, the array pointer is set to &lt;code&gt;null&lt;/code&gt; and no allocation is attempted.&lt;/p&gt;
+
+&lt;h4 id=&#34;carraybase-1:8177e845bec4a15c29be1b787e514e77&#34;&gt;&lt;code&gt;~cArrayBase()&lt;/code&gt;&lt;/h4&gt;
 
 &lt;pre&gt;&lt;code&gt;inline ~cArrayBase()
 &lt;/code&gt;&lt;/pre&gt;
+
+&lt;p&gt;Frees the array pointer, if it exists.&lt;/p&gt;
 
 &lt;h4 id=&#34;capacity:8177e845bec4a15c29be1b787e514e77&#34;&gt;&lt;code&gt;Capacity()&lt;/code&gt;&lt;/h4&gt;
 
 &lt;pre&gt;&lt;code&gt;inline CT_ Capacity() const noexcept
 &lt;/code&gt;&lt;/pre&gt;
 
-&lt;h4 id=&#34;setcapacity-ct-capacity:8177e845bec4a15c29be1b787e514e77&#34;&gt;&lt;code&gt;SetCapacity(CT_ capacity)&lt;/code&gt;&lt;/h4&gt;
+&lt;p&gt;Gets the capacity of the array.&lt;/p&gt;
+
+&lt;h4 id=&#34;carraybase-setcapacity:8177e845bec4a15c29be1b787e514e77&#34;&gt;&lt;code&gt;SetCapacity(CT_ capacity)&lt;/code&gt;&lt;/h4&gt;
 
 &lt;pre&gt;&lt;code&gt;BSS_FORCEINLINE void SetCapacity(CT_ capacity) noexcept
 &lt;/code&gt;&lt;/pre&gt;
 
-&lt;h4 id=&#34;setcapacitydiscard-ct-capacity:8177e845bec4a15c29be1b787e514e77&#34;&gt;&lt;code&gt;SetCapacityDiscard(CT_ capacity)&lt;/code&gt;&lt;/h4&gt;
+&lt;p&gt;Sets the capacity and uses realloc to preserve the existing contents.&lt;/p&gt;
+
+&lt;h4 id=&#34;carraybase-setcapacitydiscard:8177e845bec4a15c29be1b787e514e77&#34;&gt;&lt;code&gt;SetCapacityDiscard(CT_ capacity)&lt;/code&gt;&lt;/h4&gt;
 
 &lt;pre&gt;&lt;code&gt;BSS_FORCEINLINE void SetCapacityDiscard(CT_ capacity) noexcept
 &lt;/code&gt;&lt;/pre&gt;
+
+&lt;p&gt;Sets the capacity, but simply allocates an entirely new block of memory, discarding any contents currently in the array.&lt;/p&gt;
 
 &lt;h4 id=&#34;operator-mov:8177e845bec4a15c29be1b787e514e77&#34;&gt;&lt;code&gt;operator=(mov)&lt;/code&gt;&lt;/h4&gt;
 
 &lt;pre&gt;&lt;code&gt;cArrayBase&amp;amp; operator=(cArrayBase&amp;amp;&amp;amp; mov) noexcept
 &lt;/code&gt;&lt;/pre&gt;
 
+&lt;p&gt;Destroys the array currently being held, if it exists, and then steals the array pointer from &lt;code&gt;mov&lt;/code&gt; and sets &lt;code&gt;mov&lt;/code&gt;&amp;rsquo;s array pointer and capacity to 0.&lt;/p&gt;
+
 &lt;h4 id=&#34;getslice:8177e845bec4a15c29be1b787e514e77&#34;&gt;&lt;code&gt;GetSlice()&lt;/code&gt;&lt;/h4&gt;
 
 &lt;pre&gt;&lt;code&gt;inline cArraySlice&amp;lt;T, CType&amp;gt; GetSlice()
 &lt;/code&gt;&lt;/pre&gt;
 
-&lt;h2 id=&#34;carrayslice-hugoshortcode-15-hugoshortcode-16:8177e845bec4a15c29be1b787e514e77&#34;&gt;cArraySlice &lt;span class=&#34;badge code&#34;&gt;cArray.h&lt;/span&gt; &lt;span class=&#34;badge red&#34;&gt;0/6 Test Coverage&lt;/span&gt;&lt;/h2&gt;
+&lt;p&gt;Returns an &lt;a href=&#34;#carrayslice:8177e845bec4a15c29be1b787e514e77&#34;&gt;cArraySlice&lt;/a&gt; that covers this entire array, starting at the first element and setting the length equal to the current capacity.&lt;/p&gt;
+
+&lt;h2 id=&#34;carrayslice:8177e845bec4a15c29be1b787e514e77&#34;&gt;cArraySlice &lt;span class=&#34;badge code&#34;&gt;cArray.h&lt;/span&gt; &lt;span class=&#34;badge red&#34;&gt;0/6 Test Coverage&lt;/span&gt;&lt;/h2&gt;
 </description>
     </item>
     
     <item>
-      <title>bss-util.h</title>
-      <link>/bss-util/ref/bss-util/</link>
+      <title>Block Allocator</title>
+      <link>/ref/alloc_block/</link>
       <pubDate>Sat, 02 Apr 2016 00:00:00 +0000</pubDate>
       
-      <guid>/bss-util/ref/bss-util/</guid>
+      <guid>/ref/alloc_block/</guid>
       <description>
 
-&lt;h2 id=&#34;bss-util:6c3ea56039882a0da694cbdfabed558a&#34;&gt;bss-util&lt;/h2&gt;
+&lt;h2 id=&#34;bss-util:6e53ea6095a1438a8b63a5c43a323070&#34;&gt;bss-util&lt;/h2&gt;
+
+&lt;p&gt;Test page&lt;/p&gt;
+</description>
+    </item>
+    
+    <item>
+      <title>Compare Functions</title>
+      <link>/ref/compare/</link>
+      <pubDate>Sat, 02 Apr 2016 00:00:00 +0000</pubDate>
+      
+      <guid>/ref/compare/</guid>
+      <description>
+
+&lt;h2 id=&#34;bss-util:8d989502a880d78d175e25ad72371529&#34;&gt;bss-util&lt;/h2&gt;
+
+&lt;p&gt;Test page&lt;/p&gt;
+</description>
+    </item>
+    
+    <item>
+      <title>Dynamic Array Buf</title>
+      <link>/ref/dynarraybuf/</link>
+      <pubDate>Sat, 02 Apr 2016 00:00:00 +0000</pubDate>
+      
+      <guid>/ref/dynarraybuf/</guid>
+      <description>
+
+&lt;h2 id=&#34;bss-util:e82257456301d18d1570f4c39a7fdc0b&#34;&gt;bss-util&lt;/h2&gt;
+
+&lt;p&gt;Test page&lt;/p&gt;
+</description>
+    </item>
+    
+    <item>
+      <title>Graph</title>
+      <link>/ref/graph/</link>
+      <pubDate>Sat, 02 Apr 2016 00:00:00 +0000</pubDate>
+      
+      <guid>/ref/graph/</guid>
+      <description>
+
+&lt;h2 id=&#34;bss-util:a19daf9fc78b45c9ed76d76b3768d270&#34;&gt;bss-util&lt;/h2&gt;
+
+&lt;p&gt;Test page&lt;/p&gt;
+</description>
+    </item>
+    
+    <item>
+      <title>Greedy Allocator</title>
+      <link>/ref/alloc_greedy/</link>
+      <pubDate>Sat, 02 Apr 2016 00:00:00 +0000</pubDate>
+      
+      <guid>/ref/alloc_greedy/</guid>
+      <description>
+
+&lt;h2 id=&#34;bss-util:1ae754fb970d2fc2244df4069e0123da&#34;&gt;bss-util&lt;/h2&gt;
+
+&lt;p&gt;Test page&lt;/p&gt;
+</description>
+    </item>
+    
+    <item>
+      <title>Log</title>
+      <link>/ref/log/</link>
+      <pubDate>Sat, 02 Apr 2016 00:00:00 +0000</pubDate>
+      
+      <guid>/ref/log/</guid>
+      <description>
+
+&lt;h2 id=&#34;bss-util:bb28f84a7337d98ffe7b8b79b2e70a8b&#34;&gt;bss-util&lt;/h2&gt;
+
+&lt;p&gt;Test page&lt;/p&gt;
+</description>
+    </item>
+    
+    <item>
+      <title>MT Block Allocator</title>
+      <link>/ref/alloc_block_mt/</link>
+      <pubDate>Sat, 02 Apr 2016 00:00:00 +0000</pubDate>
+      
+      <guid>/ref/alloc_block_mt/</guid>
+      <description>
+
+&lt;h2 id=&#34;bss-util:e812b00355bbd2d77ff32cf2893657c6&#34;&gt;bss-util&lt;/h2&gt;
+
+&lt;p&gt;Test page&lt;/p&gt;
+</description>
+    </item>
+    
+    <item>
+      <title>Macros</title>
+      <link>/ref/defines/</link>
+      <pubDate>Sat, 02 Apr 2016 00:00:00 +0000</pubDate>
+      
+      <guid>/ref/defines/</guid>
+      <description>
+
+&lt;h2 id=&#34;bss-util:e958d276c38a72aa85f474d46da97522&#34;&gt;bss-util&lt;/h2&gt;
+
+&lt;p&gt;Test page&lt;/p&gt;
+</description>
+    </item>
+    
+    <item>
+      <title>Queue</title>
+      <link>/ref/queue/</link>
+      <pubDate>Sat, 02 Apr 2016 00:00:00 +0000</pubDate>
+      
+      <guid>/ref/queue/</guid>
+      <description>
+
+&lt;h2 id=&#34;bss-util:a064e0801a0aed21b8b1af86d077fb3c&#34;&gt;bss-util&lt;/h2&gt;
+
+&lt;p&gt;Test page&lt;/p&gt;
+</description>
+    </item>
+    
+    <item>
+      <title>Ring Allocator</title>
+      <link>/ref/alloc_ring/</link>
+      <pubDate>Sat, 02 Apr 2016 00:00:00 +0000</pubDate>
+      
+      <guid>/ref/alloc_ring/</guid>
+      <description>
+
+&lt;h2 id=&#34;bss-util:c4924041167513f5609c5010338a6640&#34;&gt;bss-util&lt;/h2&gt;
+
+&lt;p&gt;Test page&lt;/p&gt;
+</description>
+    </item>
+    
+    <item>
+      <title>SSE</title>
+      <link>/ref/sse/</link>
+      <pubDate>Sat, 02 Apr 2016 00:00:00 +0000</pubDate>
+      
+      <guid>/ref/sse/</guid>
+      <description>
+
+&lt;h2 id=&#34;bss-util:ace03fefbbfd151140420ce36f2450d8&#34;&gt;bss-util&lt;/h2&gt;
 
 &lt;p&gt;Test page&lt;/p&gt;
 </description>

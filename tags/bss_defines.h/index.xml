@@ -1,0 +1,28 @@
+<?xml version="1.0" encoding="utf-8" standalone="yes" ?>
+<rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom">
+  <channel>
+    <title>Bss_defines.H on Black Sphere Studios Utility Library</title>
+    <link>/tags/bss_defines/index.h/</link>
+    <description>Recent content in Bss_defines.H on Black Sphere Studios Utility Library</description>
+    <generator>Hugo -- gohugo.io</generator>
+    <language>en-us</language>
+    <copyright>Black Sphere Studios. All rights reserved.</copyright>
+    <lastBuildDate>Sat, 02 Apr 2016 00:00:00 +0000</lastBuildDate>
+    <atom:link href="/tags/bss_defines.h/index.xml" rel="self" type="application/rss+xml" />
+    
+    <item>
+      <title>Macros</title>
+      <link>/ref/defines/</link>
+      <pubDate>Sat, 02 Apr 2016 00:00:00 +0000</pubDate>
+      
+      <guid>/ref/defines/</guid>
+      <description>
+
+&lt;h2 id=&#34;bss-util:e958d276c38a72aa85f474d46da97522&#34;&gt;bss-util&lt;/h2&gt;
+
+&lt;p&gt;Test page&lt;/p&gt;
+</description>
+    </item>
+    
+  </channel>
+</rss>

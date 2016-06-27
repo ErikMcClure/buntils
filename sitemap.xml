@@ -2,28 +2,113 @@
 <urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
   
   <url>
-    <loc>/bss-util/</loc>
+    <loc>/</loc>
     <lastmod>2016-04-09T00:00:00+00:00</lastmod>
     <priority>0</priority>
   </url>
   
   <url>
-    <loc>/bss-util/dl/</loc>
+    <loc>/dl/</loc>
     <lastmod>2016-04-09T00:00:00+00:00</lastmod>
   </url>
   
   <url>
-    <loc>/bss-util/ref/</loc>
+    <loc>/ref/</loc>
     <lastmod>2016-04-09T00:00:00+00:00</lastmod>
   </url>
   
   <url>
-    <loc>/bss-util/ref/array/</loc>
+    <loc>/ref/alloc/</loc>
     <lastmod>2016-04-02T00:00:00+00:00</lastmod>
   </url>
   
   <url>
-    <loc>/bss-util/ref/bss-util/</loc>
+    <loc>/ref/array/</loc>
+    <lastmod>2016-04-02T00:00:00+00:00</lastmod>
+  </url>
+  
+  <url>
+    <loc>/ref/alloc_block/</loc>
+    <lastmod>2016-04-02T00:00:00+00:00</lastmod>
+  </url>
+  
+  <url>
+    <loc>/ref/compare/</loc>
+    <lastmod>2016-04-02T00:00:00+00:00</lastmod>
+  </url>
+  
+  <url>
+    <loc>/ref/dynarraybuf/</loc>
+    <lastmod>2016-04-02T00:00:00+00:00</lastmod>
+  </url>
+  
+  <url>
+    <loc>/ref/graph/</loc>
+    <lastmod>2016-04-02T00:00:00+00:00</lastmod>
+  </url>
+  
+  <url>
+    <loc>/ref/alloc_greedy/</loc>
+    <lastmod>2016-04-02T00:00:00+00:00</lastmod>
+  </url>
+  
+  <url>
+    <loc>/ref/log/</loc>
+    <lastmod>2016-04-02T00:00:00+00:00</lastmod>
+  </url>
+  
+  <url>
+    <loc>/ref/alloc_block_mt/</loc>
+    <lastmod>2016-04-02T00:00:00+00:00</lastmod>
+  </url>
+  
+  <url>
+    <loc>/ref/defines/</loc>
+    <lastmod>2016-04-02T00:00:00+00:00</lastmod>
+  </url>
+  
+  <url>
+    <loc>/ref/queue/</loc>
+    <lastmod>2016-04-02T00:00:00+00:00</lastmod>
+  </url>
+  
+  <url>
+    <loc>/ref/alloc_ring/</loc>
+    <lastmod>2016-04-02T00:00:00+00:00</lastmod>
+  </url>
+  
+  <url>
+    <loc>/ref/sse/</loc>
+    <lastmod>2016-04-02T00:00:00+00:00</lastmod>
+  </url>
+  
+  <url>
+    <loc>/ref/stack/</loc>
+    <lastmod>2016-04-02T00:00:00+00:00</lastmod>
+  </url>
+  
+  <url>
+    <loc>/ref/streamsplitter/</loc>
+    <lastmod>2016-04-02T00:00:00+00:00</lastmod>
+  </url>
+  
+  <url>
+    <loc>/ref/vector/</loc>
+    <lastmod>2016-04-02T00:00:00+00:00</lastmod>
+  </url>
+  
+  <url>
+    <loc>/ref/algorithm/</loc>
+    <lastmod>2016-04-02T00:00:00+00:00</lastmod>
+  </url>
+  
+  <url>
+    <loc>/ref/bss-util/</loc>
+    <lastmod>2016-04-02T00:00:00+00:00</lastmod>
+  </url>
+  
+  <url>
+    <loc>/ref/bss-util-c/</loc>
     <lastmod>2016-04-02T00:00:00+00:00</lastmod>
   </url>
   

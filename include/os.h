@@ -40,6 +40,12 @@ namespace bss_util {
   BSS_COMPILER_DLLEXPORT extern int BSS_FASTCALL SetRegistryValue64W(HKEY__*	hOpenKey, const wchar_t* szKey, const wchar_t* szValue, int64_t szData);
   BSS_COMPILER_DLLEXPORT extern int BSS_FASTCALL DelRegistryNode(HKEY__* hKeyRoot, const char* lpSubKey);
   BSS_COMPILER_DLLEXPORT extern int BSS_FASTCALL DelRegistryNodeW(HKEY__* hKeyRoot, const wchar_t* lpSubKey);
+  BSS_COMPILER_DLLEXPORT extern int64_t BSS_FASTCALL GetRegistryValue(HKEY__* hKeyRoot, const char* szKey, const char* szValue, unsigned char* data, unsigned long sz);
+  BSS_COMPILER_DLLEXPORT extern int64_t BSS_FASTCALL GetRegistryValueW(HKEY__* hKeyRoot, const wchar_t* szKey, const wchar_t* szValue, unsigned char* data, unsigned long sz);
+  BSS_COMPILER_DLLEXPORT extern int BSS_FASTCALL GetRegistryValueDWORD(HKEY__* hKeyRoot, const char* szKey, const char* szValue, unsigned long* data);
+  BSS_COMPILER_DLLEXPORT extern int BSS_FASTCALL GetRegistryValueDWORDW(HKEY__* hKeyRoot, const wchar_t* szKey, const wchar_t* szValue, unsigned long* data);
+  BSS_COMPILER_DLLEXPORT extern int BSS_FASTCALL GetRegistryValueQWORD(HKEY__* hKeyRoot, const char* szKey, const char* szValue, unsigned long long* data);
+  BSS_COMPILER_DLLEXPORT extern int BSS_FASTCALL GetRegistryValueQWORDW(HKEY__* hKeyRoot, const wchar_t* szKey, const wchar_t* szValue, unsigned long long* data);
 #else
   BSS_COMPILER_DLLEXPORT extern int BSS_FASTCALL ListDir(const char* dir, std::vector<cStr>& files, char flags); // Setting flags to 1 will do a recursive search. Setting flags to 2 will return directory+file names. Setting flags to 3 will both be recursive and return directory names.
 #endif

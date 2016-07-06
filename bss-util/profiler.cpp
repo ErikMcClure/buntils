@@ -44,11 +44,13 @@ namespace bss_util {
     }
     inline PROF_HEATNODE() : avg(0.0), id(0) {}
     inline PROF_HEATNODE(PROFILER_INT ID, double Avg) : avg(Avg), id(ID) {}
-    inline PROF_HEATNODE(PROF_HEATNODE&& mov) : _children(std::move(mov._children)), avg(mov.avg), id(mov.id) {}
+	inline PROF_HEATNODE(const PROF_HEATNODE& copy) : _children(copy._children), avg(copy.avg), id(copy.id) {}
+	inline PROF_HEATNODE(PROF_HEATNODE&& mov) : _children(std::move(mov._children)), avg(mov.avg), id(mov.id) {}
     cArraySort<PROF_HEATNODE, COMP, uint32_t, CARRAY_CONSTRUCT, HeatAllocPolicy> _children;
     double avg;
     PROFILER_INT id;
-    PROF_HEATNODE& operator=(PROF_HEATNODE&& mov) { _children = std::move(mov._children); avg = mov.avg; id = mov.id; return *this; }
+	PROF_HEATNODE& operator=(PROF_HEATNODE&& mov) { _children = std::move(mov._children); avg = mov.avg; id = mov.id; return *this; }
+	PROF_HEATNODE& operator=(const PROF_HEATNODE& copy) { _children = copy._children; avg = copy.avg; id = copy.id; return *this; }
   };
   struct PROF_FLATOUT
   {
@@ -232,7 +234,7 @@ void BSS_FASTCALL Profiler::_timeformat(std::ostream& stream, double avg, double
   else if(avg>=1000000000.0)
     stream << (avg/1000000.0) << " ms";
   else if(avg>=1000000.0)
-    stream << (avg/1000.0) << " µs";
+    stream << (avg/1000.0) << L" \x039Cs";
   else
     stream << avg << " ns";
 }

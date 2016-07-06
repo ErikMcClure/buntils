@@ -103,7 +103,7 @@ public: \
 #define VSCPRINTF(format,args) _vscprintf(format,args)
 #define VSCWPRINTF(format,args) _vscwprintf(format,args)
 #define FOPEN(f, path, mode) fopen_s(&f, path, mode)
-#define WFOPEN(f, path, mode) _wfopen_s(&f, path, mode)
+#define WFOPEN(f, path, mode) _wfopen_s(&f, cStrW(path).c_str(), cStrW(mode).c_str())
 #define MEMCPY(dst,size,src,count) memcpy_s(dst,size,src,count)
 #define STRNCPY(dst,size,src,count) strncpy_s(dst,size,src,count)
 #define WCSNCPY(dst,size,src,count) wcsncpy_s(dst,size,src,count)

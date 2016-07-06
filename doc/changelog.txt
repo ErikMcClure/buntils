@@ -17,6 +17,7 @@
 - Added STRUPR and fixed cDisjoinSet.h include in bss_Graph
 - Refactored tests into individual cpp files
 - Added GetRegistryValue for windows platforms only
+- Added bssloadfile for quickly loading files into memory
 
 0.4.5
 -----

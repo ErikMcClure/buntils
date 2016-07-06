@@ -294,8 +294,8 @@ extern int itoa_r(int val, char* buf, int size, unsigned int radix)
 BSS_COMPILER_DLLEXPORT
 extern char* strtok_r(char* s, const char* delim, char** lasts)
 {
-	register char *spanp;
-	register int c, sc;
+	char *spanp;
+	int c, sc;
 	char *tok;
 
 	if (s == nullptr && (s = *lasts) == nullptr)
@@ -334,8 +334,8 @@ cont: /* Skip (span) leading delimiters (s += strspn(s, delim), sort of). */
 BSS_COMPILER_DLLEXPORT
 extern wchar_t* wcstok_r(wchar_t* s, const wchar_t* delim, wchar_t** lasts)
 {
-	register wchar_t *spanp;
-	register int c, sc;
+	wchar_t *spanp;
+	int c, sc;
 	wchar_t *tok;
 
 	if (s == nullptr && (s = *lasts) == nullptr)

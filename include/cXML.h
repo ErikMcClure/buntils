@@ -62,6 +62,8 @@ namespace bss_util {
     void BSS_FASTCALL SetValue(double value);
     void BSS_FASTCALL SetValue(uint64_t value);
     void BSS_FASTCALL SetValue(const char* value);
+    BSS_FORCEINLINE const std::unique_ptr<cXMLNode>* begin() const noexcept { return _nodes.begin(); }
+    BSS_FORCEINLINE const std::unique_ptr<cXMLNode>* end() const noexcept { return _nodes.end(); }
 
     cXMLNode& operator=(const cXMLNode& copy);
     cXMLNode& operator=(cXMLNode&& mov);

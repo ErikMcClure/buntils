@@ -482,5 +482,20 @@ TESTDEF::RETPAIR test_bss_util()
   flipendian(&a);
   TEST(a == 552432498);
 
+  FILE* f;
+  FOPEN(f, "testwrite.txt", "w");
+  fwrite("test", 1, 4, f);
+  fclose(f);
+
+  {
+    auto g = bssloadfile<char, false>("testwrite.txt");
+    TEST(g.second == 4);
+    TEST(!strncmp(g.first.get(), "test", 4));
+    g = bssloadfile<char, true>("testwrite.txt");
+    TEST(g.second == 5);
+    TEST(!strncmp(g.first.get(), "test", 5));
+  }
+
+
   ENDTEST;
 }

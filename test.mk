@@ -18,3 +18,7 @@ distclean:
 	@- $(RM) -r $(OBJDIR)
 	@- $(RM) bin/*.txt
 	@- $(RM) bin/*.ini
+	@- $(RM) bin/*.json
+	@- $(RM) bin/*.ubj
+	@- $(RM) bin/*.xml
+

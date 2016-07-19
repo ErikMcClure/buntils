@@ -4,7 +4,9 @@
 #include "test.h"
 #include "os.h"
 #include "cTrie.h"
+#ifdef BSS_PLATFORM_WIN32
 #include "bss_win32_includes.h"
+#endif
 
 using namespace bss_util;
 

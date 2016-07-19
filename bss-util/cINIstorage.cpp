@@ -158,23 +158,6 @@ cINIsection* cINIstorage::_addsection(const char* name)
   }
 
   return &p->val;
-
-  /*khiter_t iter=_sections.GetIterator(name);
-  __ARR* arr;
-  if(iter==_sections.End()) //need to add in an array for this
-  {
-    arr= new __ARR(1);
-    new ((*arr)+0) cINIsection(name,this,0);
-    _sections.Insert((*arr)[0].GetName(),arr);
-    return ((*arr)+0);
-  } else {
-    arr=_sections[iter];
-    size_t index=arr->Capacity();
-    arr->SetCapacity(index+1);
-    new ((*arr)+index) cINIsection(name,this,index);
-    _sections.SetKey(iter,(*arr)[0].GetName()); //the key pointer gets corrupted when we resize the array
-    return ((*arr)+index);
-  }*/
 }
 
 //3 cases: removing something other then the beginning, removing the beginning, or removing the last one
@@ -212,24 +195,6 @@ bool cINIstorage::RemoveSection(const char* name, size_t instance)
     secnode->~_NODE(); // Calling this destructor is important in case the node has an unused array that needs to be freed
     _alloc.dealloc(secnode);
     _ini->erase((const char*)chunk.start-_ini->c_str(),((const char*)chunk.end-(const char*)chunk.start)+1);
-
-    /*arr=_sections[iter];
-    if(instance>=arr->Capacity()) return false;
-    _ini->erase((const char*)chunk.start-_ini->c_str(),((const char*)chunk.end-(const char*)chunk.start)+1);
-    ((*arr)+instance)->~cINIsection();
-    if(arr->Capacity()==1) //this is the last one in the group
-    {
-      delete arr;
-      _sections.RemoveIterator(iter);
-    }
-    else
-    {
-      arr->Remove(instance);
-      if(!instance) _sections.SetKey(iter,(*arr)[0].GetName());
-      size_t svar=arr->Capacity();
-      for(;instance<svar;++instance) --(*arr)[instance]._index; //moves all the indices down
-    }*/
-
     return true;
   }
   return false;

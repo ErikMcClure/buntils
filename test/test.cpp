@@ -69,7 +69,7 @@ const bsschar* PANGRAMS[29] = {
 const wchar_t* TESTUNICODESTR = L"الرِضَءَجيعُ بِهءَرِا نَجلاءَرِ رِمِعطارِ";
 
 uint16_t testnums[TESTNUM];
-cLog _failedtests("../bin/failedtests.txt"); //This is spawned too early for us to save it with SetWorkDirToCur();
+cLog _failedtests;
 volatile std::atomic<bool> startflag;
 
 TESTDEF::RETPAIR* DEBUG_CDT_SAFE::_testret = 0;
@@ -77,13 +77,14 @@ int DEBUG_CDT_SAFE::count = 0;
 int DEBUG_CDT_SAFE::ID = 0;
 bss_util::cHash<int> DEBUG_CDT_SAFE::Tracker;
 
-//#define BSS_ISOLATE_TEST 56
+//#define BSS_ISOLATE_TEST 53
 
 // --- Begin main testing function ---
 int main(int argc, char** argv)
 {
   ForceWin64Crash();
   SetWorkDirToCur();
+  _failedtests.AddTarget("failedtests.txt");
   uint64_t seed = (uint64_t)time(nullptr);
   //seed = 1425459123;
   bssrandseed(seed);

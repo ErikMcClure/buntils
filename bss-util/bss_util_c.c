@@ -113,7 +113,7 @@ extern size_t GetPeakWorkingSet()
 #endif
 }
 
-extern size_t BSS_FASTCALL UTF8toUTF16(const char*BSS_RESTRICT input, ptrdiff_t srclen, wchar_t*BSS_RESTRICT output, size_t buflen)
+extern size_t BSS_FASTCALL UTF8toUTF16(const char*BSS_RESTRICT input, long srclen, wchar_t*BSS_RESTRICT output, size_t buflen)
 {
 #ifdef BSS_PLATFORM_WIN32
   return (size_t)MultiByteToWideChar(CP_UTF8, 0, input, (int)srclen, output, (int)(!output?0:buflen));
@@ -130,7 +130,7 @@ extern size_t BSS_FASTCALL UTF8toUTF16(const char*BSS_RESTRICT input, ptrdiff_t 
 }
 
 
-extern size_t BSS_FASTCALL UTF16toUTF8(const wchar_t*BSS_RESTRICT input, ptrdiff_t srclen, char*BSS_RESTRICT output, size_t buflen)
+extern size_t BSS_FASTCALL UTF16toUTF8(const wchar_t*BSS_RESTRICT input, long srclen, char*BSS_RESTRICT output, size_t buflen)
 {
 #ifdef BSS_PLATFORM_WIN32
   return (size_t)WideCharToMultiByte(CP_UTF8, 0, input, (int)srclen, output, (int)(!output ? 0 : buflen), NULL, NULL);

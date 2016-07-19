@@ -41,6 +41,7 @@ See the header file "ConvertUTF.h" for complete documentation.
 
 #include "bss_util_c.h"
 #include <stdint.h>
+#include <limits.h>
 
 static const int halfShift = 10; /* used for shifting by 10 bits */
 
@@ -112,14 +113,14 @@ static const UTF8 firstByteMark[7] = { 0x00, 0x00, 0xC0, 0xE0, 0xF0, 0xF8, 0xFC 
 
 
 BSS_COMPILER_DLLEXPORT
-extern size_t BSS_FASTCALL UTF32toUTF16(const int*BSS_RESTRICT input, ptrdiff_t srclen, wchar_t*BSS_RESTRICT output, size_t buflen)
+extern size_t BSS_FASTCALL UTF32toUTF16(const int*BSS_RESTRICT input, long srclen, wchar_t*BSS_RESTRICT output, size_t buflen)
 {
   char result = 0;
   const UTF32* source = (unsigned int*)input;
   const UTF32* sourceEnd = source;
   UTF16* target = (unsigned short*)output;
   UTF16* targetEnd = target + buflen;
-  if(srclen < 0) srclen = PTRDIFF_MAX;
+  if(srclen < 0) srclen = LONG_MAX;
   buflen = 1;
   while(*input && (input - (const int*)source) < srclen)
   {
@@ -186,7 +187,7 @@ extern size_t BSS_FASTCALL UTF32toUTF16(const int*BSS_RESTRICT input, ptrdiff_t 
 }
 
 BSS_COMPILER_DLLEXPORT
-extern size_t BSS_FASTCALL UTF16toUTF32(const wchar_t*BSS_RESTRICT input, ptrdiff_t srclen, int*BSS_RESTRICT output, size_t buflen)
+extern size_t BSS_FASTCALL UTF16toUTF32(const wchar_t*BSS_RESTRICT input, long srclen, int*BSS_RESTRICT output, size_t buflen)
 {
   char result = 0;
   const UTF16* source = (unsigned short*)input;
@@ -252,14 +253,14 @@ extern size_t BSS_FASTCALL UTF16toUTF32(const wchar_t*BSS_RESTRICT input, ptrdif
 /* --------------------------------------------------------------------- */
 
 BSS_COMPILER_DLLEXPORT
-extern size_t BSS_FASTCALL UTF32toUTF8(const int*BSS_RESTRICT input, ptrdiff_t srclen, char*BSS_RESTRICT output, size_t buflen)
+extern size_t BSS_FASTCALL UTF32toUTF8(const int*BSS_RESTRICT input, long srclen, char*BSS_RESTRICT output, size_t buflen)
 {
   char result = 0;
   const UTF32* source = (unsigned int*)input;
   const UTF32* sourceEnd = source;
   UTF8* target = (unsigned char*)output;
   UTF8* targetEnd = target + buflen;
-  if(srclen < 0) srclen = PTRDIFF_MAX;
+  if(srclen < 0) srclen = LONG_MAX;
   buflen = 1;
   while(*input && (input - (const int*)source) < srclen)
   {
@@ -399,14 +400,14 @@ char isLegalUTF8Sequence(const UTF8 *source, const UTF8 *sourceEnd) {
 /* --------------------------------------------------------------------- */
 
 BSS_COMPILER_DLLEXPORT
-extern size_t BSS_FASTCALL UTF8toUTF32(const char*BSS_RESTRICT input, ptrdiff_t srclen, int*BSS_RESTRICT output, size_t buflen)
+extern size_t BSS_FASTCALL UTF8toUTF32(const char*BSS_RESTRICT input, long srclen, int*BSS_RESTRICT output, size_t buflen)
 {
   char result = 0;
   const UTF8* source = (UTF8*)input;
   const UTF8* sourceEnd = source;
   UTF32* target = (UTF32*)output;
   UTF32* targetEnd = target + buflen;
-  if(srclen < 0) srclen = PTRDIFF_MAX;
+  if(srclen < 0) srclen = LONG_MAX;
   buflen = 1;
   while(*input && (input - (const char*)source) < srclen) {
     buflen += (((*input) & 0b11000000) != 0b10000000);

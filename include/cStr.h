@@ -30,8 +30,8 @@ public:
   static BSS_FORCEINLINE CHAR* STOK(CHAR* str, const CHAR* delim, CHAR** context) { return STRTOK(str, delim, context); }
   static BSS_FORCEINLINE int VPF(CHAR *dest, size_t size, const CHAR *format, va_list args) { return VSNPRINTF(dest, size, format, args); }
   static BSS_FORCEINLINE int VPCF(const CHAR* str, va_list args) { return VSCPRINTF(str, args); }
-  static BSS_FORCEINLINE size_t CONV(const OTHER_C* src, ptrdiff_t srclen, CHAR* dest, size_t len) { return UTF16toUTF8(src, srclen, dest, len); }
-  static BSS_FORCEINLINE size_t CONV2(const OTHER_C2* src, ptrdiff_t srclen, CHAR* dest, size_t len) { return UTF32toUTF8(src, srclen, dest, len); }
+  static BSS_FORCEINLINE size_t CONV(const OTHER_C* src, ptrdiff_t srclen, CHAR* dest, size_t len) { return UTF16toUTF8(src, (long)srclen, dest, len); }
+  static BSS_FORCEINLINE size_t CONV2(const OTHER_C2* src, ptrdiff_t srclen, CHAR* dest, size_t len) { return UTF32toUTF8(src, (long)srclen, dest, len); }
 
   static BSS_FORCEINLINE size_t O_SLEN(const OTHER_C* str) { return wcslen(str); }
   static BSS_FORCEINLINE const CHAR* STREMPTY() { return ""; }
@@ -60,8 +60,8 @@ public:
   static BSS_FORCEINLINE int VPF(CHAR *dest, size_t size, const CHAR *format, va_list args) { return VSNWPRINTF(dest, size, format, args); }
   static BSS_FORCEINLINE int VPCF(const CHAR* str, va_list args) { return VSCWPRINTF(str, args); }
 #endif
-  static BSS_FORCEINLINE size_t CONV(const OTHER_C* src, ptrdiff_t srclen, CHAR* dest, size_t len) { return UTF8toUTF16(src, srclen, dest, len); }
-  static BSS_FORCEINLINE size_t CONV2(const OTHER_C2* src, ptrdiff_t srclen, CHAR* dest, size_t len) { return UTF32toUTF16(src, srclen, dest, len); }
+  static BSS_FORCEINLINE size_t CONV(const OTHER_C* src, ptrdiff_t srclen, CHAR* dest, size_t len) { return UTF8toUTF16(src, (long)srclen, dest, len); }
+  static BSS_FORCEINLINE size_t CONV2(const OTHER_C2* src, ptrdiff_t srclen, CHAR* dest, size_t len) { return UTF32toUTF16(src, (long)srclen, dest, len); }
 
   static BSS_FORCEINLINE size_t O_SLEN(const OTHER_C* str) { return strlen(str); }
   static BSS_FORCEINLINE const CHAR* STREMPTY() { return L""; }
@@ -89,8 +89,8 @@ public:
     *context = str;
     return r;
   }
-  static BSS_FORCEINLINE size_t CONV(const OTHER_C* src, ptrdiff_t srclen, CHAR* dest, size_t len) { return UTF8toUTF32(src, srclen, dest, len); }
-  static BSS_FORCEINLINE size_t CONV2(const OTHER_C2* src, ptrdiff_t srclen, CHAR* dest, size_t len) { return UTF16toUTF32(src, srclen, dest, len); }
+  static BSS_FORCEINLINE size_t CONV(const OTHER_C* src, ptrdiff_t srclen, CHAR* dest, size_t len) { return UTF8toUTF32(src, (long)srclen, dest, len); }
+  static BSS_FORCEINLINE size_t CONV2(const OTHER_C2* src, ptrdiff_t srclen, CHAR* dest, size_t len) { return UTF16toUTF32(src, (long)srclen, dest, len); }
 
   static BSS_FORCEINLINE size_t O_SLEN(const OTHER_C* str) { return strlen(str); }
   static BSS_FORCEINLINE const CHAR* STREMPTY() { return (const CHAR*)"\0\0\0"; }

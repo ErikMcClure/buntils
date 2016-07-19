@@ -34,10 +34,10 @@ namespace bss_util {
     inline operator bool() const { return Valid(); }
 
     BSS_FORCEINLINE bool Valid() const { return start != 0 && length != 0; }
-    BSS_FORCEINLINE const T& Front() const { assert(_length>0); return start[0]; }
-    BSS_FORCEINLINE const T& Back() const { assert(_length>0); return start[length - 1]; }
-    BSS_FORCEINLINE T& Front() { assert(_length>0); return start[0]; }
-    BSS_FORCEINLINE T& Back() { assert(_length>0); return start[length - 1]; }
+    BSS_FORCEINLINE const T& Front() const { assert(length>0); return start[0]; }
+    BSS_FORCEINLINE const T& Back() const { assert(length>0); return start[length - 1]; }
+    BSS_FORCEINLINE T& Front() { assert(length>0); return start[0]; }
+    BSS_FORCEINLINE T& Back() { assert(length>0); return start[length - 1]; }
     BSS_FORCEINLINE const T* begin() const noexcept { return start; }
     BSS_FORCEINLINE const T* end() const noexcept { return start + length; }
     BSS_FORCEINLINE T* begin() noexcept { return start; }

@@ -420,7 +420,6 @@ namespace bss_util {
   template<typename T>
   static BSS_FORCEINLINE khint_t KH_AUTO_HASHFUNC(const T& k) { return KH_AUTO_HELPER<T, std::is_pointer<T>::value + (std::is_integral<T>::value * 2 * (1 + (sizeof(T) == 8)))>::hash(k); }
   template<> BSS_EXPLICITSTATIC BSS_FORCEINLINE khint_t KH_AUTO_HASHFUNC<cStr>(const cStr& k) { return KH_STR_HASHFUNC(k); }
-  template<> BSS_EXPLICITSTATIC BSS_FORCEINLINE khint_t KH_AUTO_HASHFUNC<cStrW>(const cStrW& k) { return KH_STRW_HASHFUNC(k); }
   template<> BSS_EXPLICITSTATIC BSS_FORCEINLINE khint_t KH_AUTO_HASHFUNC<const char*>(const char* const& k) { return KH_STR_HASHFUNC(k); }
   template<> BSS_EXPLICITSTATIC BSS_FORCEINLINE khint_t KH_AUTO_HASHFUNC<char*>(char* const& k) { return KH_STR_HASHFUNC(k); }
   template<> BSS_EXPLICITSTATIC BSS_FORCEINLINE khint_t KH_AUTO_HASHFUNC<const wchar_t*>(const wchar_t* const& k) { return KH_STRW_HASHFUNC(k); }
@@ -429,7 +428,6 @@ namespace bss_util {
   template<> BSS_EXPLICITSTATIC BSS_FORCEINLINE khint_t KH_AUTO_HASHFUNC<float>(const float& k) { return *(khint32_t*)&k; }
   template<typename T> static BSS_FORCEINLINE khint_t KH_AUTOINS_HASHFUNC(const T& k) { return KH_STRINS_HASHFUNC(k); }
   template<> BSS_EXPLICITSTATIC BSS_FORCEINLINE khint_t KH_AUTOINS_HASHFUNC<cStr>(const cStr& k) { return KH_STRINS_HASHFUNC(k); }
-  template<> BSS_EXPLICITSTATIC BSS_FORCEINLINE khint_t KH_AUTOINS_HASHFUNC<cStrW>(const cStrW& k) { return KH_STRWINS_HASHFUNC(k); }
   template<> BSS_EXPLICITSTATIC BSS_FORCEINLINE khint_t KH_AUTOINS_HASHFUNC<const wchar_t*>(const wchar_t* const& k) { return KH_STRWINS_HASHFUNC(k); }
   template<> BSS_EXPLICITSTATIC BSS_FORCEINLINE khint_t KH_AUTOINS_HASHFUNC<wchar_t*>(wchar_t* const& k) { return KH_STRWINS_HASHFUNC(k); }
 
@@ -438,14 +436,19 @@ namespace bss_util {
   template<typename T>
   static BSS_FORCEINLINE bool KH_AUTO_EQUALFUNC(T const& a, T const& b) { return a == b; }
   template<> BSS_EXPLICITSTATIC BSS_FORCEINLINE bool KH_AUTO_EQUALFUNC<cStr>(cStr const& a, cStr const& b) { return strcmp(a, b) == 0; }
-  template<> BSS_EXPLICITSTATIC BSS_FORCEINLINE bool KH_AUTO_EQUALFUNC<cStrW>(cStrW const& a, cStrW const& b) { return wcscmp(a, b) == 0; }
   template<> BSS_EXPLICITSTATIC BSS_FORCEINLINE bool KH_AUTO_EQUALFUNC<const char*>(const char* const& a, const char* const& b) { return strcmp(a, b) == 0; }
   template<> BSS_EXPLICITSTATIC BSS_FORCEINLINE bool KH_AUTO_EQUALFUNC<const wchar_t*>(const wchar_t* const& a, const wchar_t* const& b) { return wcscmp(a, b) == 0; }
   template<typename T> static BSS_FORCEINLINE bool KH_AUTOINS_EQUALFUNC(T const& a, T const& b) { return STRICMP(a, b) == 0; }
   template<> BSS_EXPLICITSTATIC BSS_FORCEINLINE bool KH_AUTOINS_EQUALFUNC<cStr>(cStr const& a, cStr const& b) { return STRICMP(a, b) == 0; }
-  template<> BSS_EXPLICITSTATIC BSS_FORCEINLINE bool KH_AUTOINS_EQUALFUNC<cStrW>(cStrW const& a, cStrW const& b) { return WCSICMP(a, b) == 0; }
   template<> BSS_EXPLICITSTATIC BSS_FORCEINLINE bool KH_AUTOINS_EQUALFUNC<const wchar_t*>(const wchar_t* const& a, const wchar_t* const& b) { return WCSICMP(a, b) == 0; }
   template<> BSS_EXPLICITSTATIC BSS_FORCEINLINE bool KH_AUTOINS_EQUALFUNC<wchar_t*>(wchar_t* const& a, wchar_t* const& b) { return WCSICMP(a, b) == 0; }
+
+#ifdef BSS_PLATFORM_WIN32
+  template<> BSS_EXPLICITSTATIC BSS_FORCEINLINE khint_t KH_AUTO_HASHFUNC<cStrW>(const cStrW& k) { return KH_STRW_HASHFUNC(k); }
+  template<> BSS_EXPLICITSTATIC BSS_FORCEINLINE khint_t KH_AUTOINS_HASHFUNC<cStrW>(const cStrW& k) { return KH_STRWINS_HASHFUNC(k); }
+  template<> BSS_EXPLICITSTATIC BSS_FORCEINLINE bool KH_AUTO_EQUALFUNC<cStrW>(cStrW const& a, cStrW const& b) { return wcscmp(a, b) == 0; }
+  template<> BSS_EXPLICITSTATIC BSS_FORCEINLINE bool KH_AUTOINS_EQUALFUNC<cStrW>(cStrW const& a, cStrW const& b) { return WCSICMP(a, b) == 0; }
+#endif
 
   template<typename T, bool I> struct __cKh_KHGET { typedef typename std::remove_pointer<T>::type* KHGET; static const uint32_t INV = 0; };
   template<typename T> struct __cKh_KHGET<T, true> { typedef T KHGET; static const KHGET INV = (KHGET)-1; };

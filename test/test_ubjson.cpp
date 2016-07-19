@@ -16,7 +16,7 @@ struct ubjsontest2
   template<typename Engine>
   void Serialize(cSerializer<Engine>& e)
   {
-    e.EvaluateType<ubjsontest2>(
+    e.template EvaluateType<ubjsontest2>(
       GenPair("a", a),
       GenPair("c", c),
       GenPair("d", d)
@@ -52,7 +52,7 @@ struct ubjsontest
   template<typename Engine>
   void Serialize(cSerializer<Engine>& engine)
   {
-    engine.EvaluateType<ubjsontest>(
+    engine.template EvaluateType<ubjsontest>(
       GenPair("a", (char&)a),
       GenPair("b", b),
       GenPair("c", c),

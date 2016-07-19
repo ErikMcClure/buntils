@@ -14,7 +14,7 @@ struct JSONtest2
   template<typename Engine>
   void Serialize(cSerializer<Engine>& s)
   {
-    s.EvaluateType<JSONtest2>(GenPair("value", value));
+    s.template EvaluateType<JSONtest2>(GenPair("value", value));
   }
 };
 
@@ -37,7 +37,7 @@ struct JSONtest
   template<typename Engine>
   void Serialize(cSerializer<Engine>& s)
   {
-    s.EvaluateType<JSONtest>(
+    s.template EvaluateType<JSONtest>(
       GenPair("a", a),
       GenPair("b", b),
       GenPair("c", c),

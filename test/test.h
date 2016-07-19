@@ -46,7 +46,7 @@ extern volatile std::atomic<bool> startflag;
 #define TESTFOUR(s,a,b,c,d) TEST(((s)[0]==(a)) && ((s)[1]==(b)) && ((s)[2]==(c)) && ((s)[3]==(d)))
 #define TESTTWO(s,a,b) TEST(((s)[0]==(a)) && ((s)[1]==(b)))
 #define TESTALLFOUR(s,a) TESTFOUR(s,a,a,a,a)
-#define TESTRELFOUR(s,a,b,c,d) TEST(fcompare((s)[0],(a)) && fcompare((s)[1],(b)) && fcompare((s)[2],(c)) && fcompare((s)[3],(d)))
+#define TESTRELFOUR(s,a,b,c,d) TEST(bss_util::fcompare((s)[0],(a)) && bss_util::fcompare((s)[1],(b)) && bss_util::fcompare((s)[2],(c)) && bss_util::fcompare((s)[3],(d)))
 
 template<class T, size_t SIZE, class F>
 void _ITERFUNC(TESTDEF::RETPAIR& __testret, T(&t)[SIZE], F f) { for(uint32_t i = 0; i < SIZE; ++i) TEST(f(i)) }

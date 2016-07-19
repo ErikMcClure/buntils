@@ -61,6 +61,66 @@ TESTDEF::RETPAIR test_HASH()
       TEST(!set.Exists(HASHTESTPAIR(0, -1)));
       TEST(!set.Exists(HASHTESTPAIR(3, -1)));
     }
+    {
+      cHash<int, DEBUG_CDT<true>, false, CARRAY_SAFE> safe;
+      safe.Insert(0, DEBUG_CDT<true>());
+      safe.Insert(2, DEBUG_CDT<true>());
+      safe.Insert(-3, DEBUG_CDT<true>());
+      safe.Insert(1234, DEBUG_CDT<true>());
+      safe.Insert(2874984, DEBUG_CDT<true>());
+      safe.Insert(-28383, DEBUG_CDT<true>());
+      safe.Insert(8, DEBUG_CDT<true>());
+      TEST(safe(0));
+      TEST(safe(2));
+      TEST(safe(-3));
+      TEST(safe(1234));
+      TEST(safe(2874984));
+      TEST(safe(-28383));
+      TEST(safe(8));
+      safe.Insert(9, DEBUG_CDT<true>());
+      safe.Insert(10, DEBUG_CDT<true>());
+      TEST(safe(0));
+      TEST(safe(2));
+      TEST(safe(10));
+      TEST(safe(9));
+      TEST(safe(2874984));
+      TEST(safe(-28383));
+      TEST(safe(8));
+      safe.Remove(8);
+      TEST(!safe(8));
+      TEST(safe(2));
+      TEST(safe(10));
+      TEST(safe(9));
+
+      auto safe2 = safe;
+      safe2.Insert(4, DEBUG_CDT<true>());
+      TEST(!safe2(8));
+      TEST(safe2(2));
+      TEST(safe2(10));
+      TEST(safe2(9));
+      TEST(safe2(4));
+      safe.Remove(10);
+      TEST(!safe(8));
+      TEST(safe(2));
+      TEST(!safe(10));
+      TEST(safe(9));
+
+      auto safe3(std::move(safe));
+      TEST(!safe(2));
+      TEST(!safe3(8));
+      TEST(safe3(2));
+      TEST(!safe3(10));
+      TEST(safe3(9));
+      TEST(safe3(-3));
+      safe3.Remove(-3);
+      TEST(!safe3(8));
+      TEST(safe3(2));
+      TEST(!safe3(10));
+      TEST(safe3(9));
+      TEST(!safe3(-3));
+    }
+    int count = DEBUG_CDT<true>::count;
+    TEST(DEBUG_CDT<true>::count == 0);
   }
   ENDTEST;
 }

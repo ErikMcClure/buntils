@@ -73,18 +73,18 @@ struct DEBUG_CDT_SAFE
 template<bool SAFE = true>
 struct DEBUG_CDT : DEBUG_CDT_SAFE {
   inline DEBUG_CDT(const DEBUG_CDT& copy) : DEBUG_CDT_SAFE(copy), _index(copy._index), _id(++ID) { ++count; assert(!Tracker.Exists(_id)); Tracker.Insert(_id); }
-  inline DEBUG_CDT(DEBUG_CDT&& mov) : DEBUG_CDT_SAFE(mov), _index(mov._index), _id(mov._id) { mov._id = 0; ++count; }
+  inline DEBUG_CDT(DEBUG_CDT&& mov) : DEBUG_CDT_SAFE(mov), _index(mov._index), _id(mov._id) { mov._id = 0; }
   inline DEBUG_CDT(int index = 0) : DEBUG_CDT_SAFE(SAFE), _index(index), _id(++ID) { ++count; assert(!Tracker.Exists(_id)); Tracker.Insert(_id); }
   inline ~DEBUG_CDT() {
     if(_id != 0) //if id is zero a successful move was performed
     {
       TEST(Tracker.Exists(_id));
       DEBUG_CDT_SAFE::Tracker.Remove(_id);
+      --count;
     }
-    --count;
   }
 
-  inline DEBUG_CDT& operator=(DEBUG_CDT&& right) { _index = right._index; this->~DEBUG_CDT(); ++count; _id = right._id; right._id = 0; return *this; }
+  inline DEBUG_CDT& operator=(DEBUG_CDT&& right) { _index = right._index; this->~DEBUG_CDT(); _id = right._id; right._id = 0; return *this; }
   inline DEBUG_CDT& operator=(const DEBUG_CDT& right) { _index = right._index; return *this; }
   inline bool operator<(const DEBUG_CDT& other) const { return _index<other._index; }
   inline bool operator>(const DEBUG_CDT& other) const { return _index>other._index; }

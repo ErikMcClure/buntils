@@ -15,7 +15,7 @@ struct SerializerTest
   template<typename Engine>
   void Serialize(cSerializer<Engine>& e)
   {
-    e.EvaluateType<SerializerTest>(
+    e.template EvaluateType<SerializerTest>(
       GenPair("a", a),
       GenPair("b", b),
       GenPair("c", c)

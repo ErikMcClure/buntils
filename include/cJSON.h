@@ -15,7 +15,20 @@
 #include <utility>
 
 namespace bss_util {
-  class JSONEngine;
+  class JSONEngine
+  {
+  public:
+    JSONEngine() : pretty(0) {}
+    static constexpr bool Ordered() { return false; }
+    template<typename T>
+    static void Serialize(cSerializer<JSONEngine>& e, const T& t, const char* id);
+    template<typename T>
+    static void Parse(cSerializer<JSONEngine>& e, T& t, const char* id);
+    template<typename... Args>
+    static void ParseMany(cSerializer<JSONEngine>& e, const cTrie<uint16_t>& t, std::tuple<Args...>& args);
+
+    uint32_t pretty;
+  };
 
   template<class T>
   void static ParseJSONBase(cSerializer<JSONEngine>& e, T& obj, std::istream& s);
@@ -136,28 +149,18 @@ namespace bss_util {
     }
     if(s.peek() == '}') s.get(); // eat the closing brace
   }
-    
-  class JSONEngine
-  {
-  public:
-    JSONEngine() : pretty(0) {}
-    static constexpr bool Ordered() { return false; }
-    template<typename T>
-    static void Serialize(cSerializer<JSONEngine>& e, const T& t, const char* id);
-    template<typename T>
-    static void Parse(cSerializer<JSONEngine>& e, T& t, const char* id) { ParseJSONBase<T>(e, t, *e.in); }
-    template<typename... Args>
-    static void ParseMany(cSerializer<JSONEngine>& e, const cTrie<uint16_t>& t, std::tuple<Args...>& args) {
-      ParseJSONObject(e, [&t, &args](cSerializer<JSONEngine>& e, const char* id) { cSerializer<JSONEngine>::_findparse(e, id, t, args); });
-    }
-
-    uint32_t pretty;
-  };
+  
+  template<typename T>
+  void JSONEngine::Parse(cSerializer<JSONEngine>& e, T& t, const char* id) { ParseJSONBase<T>(e, t, *e.in); }
+  template<typename... Args>
+  void JSONEngine::ParseMany(cSerializer<JSONEngine>& e, const cTrie<uint16_t>& t, std::tuple<Args...>& args) {
+    ParseJSONObject(e, [&t, &args](cSerializer<JSONEngine>& e, const char* id) { cSerializer<JSONEngine>::_findparse(e, id, t, args); });
+  }
 
   template<class T, bool B>
   struct ParseJSONInternal
   {
-    static void F(cSerializer<JSONEngine>& e, T& obj, std::istream& s) { obj.Serialize<JSONEngine>(e); }
+    static void F(cSerializer<JSONEngine>& e, T& obj, std::istream& s) { obj.template Serialize<JSONEngine>(e); }
   };
   template<>
   struct ParseJSONInternal<JSONValue::JSONObject, false>
@@ -225,7 +228,7 @@ namespace bss_util {
       obj.SetCapacity(obj.Capacity() + 1);
       ParseJSONBase<T>(e, obj.Back(), s);
     }
-    static void F(cArray<T, CType, ArrayType, Alloc>& obj, std::istream& s)
+    static void F(cSerializer<JSONEngine>& e, cArray<T, CType, ArrayType, Alloc>& obj, std::istream& s)
     {
       obj.SetCapacity(0);
       ParseJSONArray<cArray<T, CType, ArrayType, Alloc>>(e, obj, s);
@@ -245,7 +248,7 @@ namespace bss_util {
       obj.push_back(T());
       ParseJSONBase<T>(e, obj.back(), s);
     }
-    static void F(std::vector<T, Alloc>& obj, std::istream& s)
+    static void F(cSerializer<JSONEngine>& e, std::vector<T, Alloc>& obj, std::istream& s)
     {
       obj.clear();
       ParseJSONArray<std::vector<T, Alloc>>(e, obj, s);
@@ -401,7 +404,7 @@ namespace bss_util {
     s << '{';
     uint32_t oldpretty = pretty;
     e.engine.pretty = WriteJSONPretty(pretty);
-    const_cast<T&>(obj).Serialize<JSONEngine>(e);
+    const_cast<T&>(obj).template Serialize<JSONEngine>(e);
     e.engine.pretty = oldpretty;
     if(WriteJSONIsPretty(pretty)) {
       s << std::endl;

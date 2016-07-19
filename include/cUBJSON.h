@@ -15,65 +15,21 @@
 #include <limits>
 
 namespace bss_util {
-  class UBJSONEngine;
-
-  template<class T>
-  inline static void ParseUBJSONBase(cSerializer<UBJSONEngine>& e, T& obj, std::istream& s, char type);
-
-  struct UBJSONValue;
-  template<>
-  inline BSS_EXPLICITSTATIC void ParseUBJSONBase<UBJSONValue>(cSerializer<UBJSONEngine>& e, UBJSONValue& obj, std::istream& s, char type);
-
-  template<class T>
-  inline static void WriteUBJSONBase(cSerializer<UBJSONEngine>& e, const char* id, const T& obj, std::ostream& s, char type);
-
-  template<class F>
-  inline static void ParseUBJSONObj(cSerializer<UBJSONEngine>& e, char ty, F f)
-  {
-    std::istream& s = *e.in;
-    if(ty != 0 && ty != UBJSONTuple::TYPE_OBJECT) // Sanity check
-      throw std::runtime_error("Expecting a type other than object in the object parsing function!");
-    if(!ty && (s.get() != UBJSONTuple::TYPE_OBJECT))
-      throw std::runtime_error("Expected object, found invalid character");
-    cStr buf;
-    char backup = e.engine.type;
-    e.engine.type = 0;
-    int64_t count = ParseUBJSONTypeCount(s, e.engine.type);
-    while(!!s && (count<0 || count>0) && (count>0 || s.peek() != UBJSONTuple::TYPE_OBJECT_END) && s.peek() != -1)
-    {
-      int64_t length = ParseUBJSONLength(s);
-      --count;
-      buf.reserve(length + 1);
-      s.read(buf.UnsafeString(), length);
-      buf.UnsafeString()[length] = 0;
-      f(e, buf.c_str());
-    }
-    e.engine.type = backup;
-    if(!!s && count<0 && s.peek() == UBJSONTuple::TYPE_OBJECT_END) s.get(); // If we were looking for the OBJECT_END symbol, eat it.
-  }
-
   class UBJSONEngine
   {
   public:
     UBJSONEngine() : type(0), endobject(false) {}
     static constexpr bool Ordered() { return false; }
     template<typename T>
-    static void Serialize(cSerializer<UBJSONEngine>& e, const T& t, const char* id) { e.engine.endobject = true; WriteUBJSONBase<T>(e, id, t, *e.out, 0); }
+    static void Serialize(cSerializer<UBJSONEngine>& e, const T& t, const char* id);
     template<typename T>
-    static void Parse(cSerializer<UBJSONEngine>& e, T& t, const char* id) { ParseUBJSONBase<T>(e, t, *e.in, e.engine.type); }
+    static void Parse(cSerializer<UBJSONEngine>& e, T& t, const char* id);
     template<typename... Args>
-    static void ParseMany(cSerializer<UBJSONEngine>& e, const cTrie<uint16_t>& t, std::tuple<Args...>& args) {
-      ParseUBJSONObj(e, e.engine.type, [&t, &args](cSerializer<UBJSONEngine>& e, const char* id) {
-        cSerializer<UBJSONEngine>::_findparse(e, id, t, args);
-      });
-    }
+    static void ParseMany(cSerializer<UBJSONEngine>& e, const cTrie<uint16_t>& t, std::tuple<Args...>& args);
 
     char type;
     bool endobject;
   };
-
-  template<typename... Args>
-  static inline const char GetUBJSONVariantType(const variant<Args...>& v);
 
   struct UBJSONTuple
   {
@@ -120,6 +76,97 @@ namespace bss_util {
       char* String;
     };
   };
+
+  template<class T>
+  inline static void ParseUBJSONBase(cSerializer<UBJSONEngine>& e, T& obj, std::istream& s, char type);
+
+  struct UBJSONValue;
+  template<>
+  inline BSS_EXPLICITSTATIC void ParseUBJSONBase<UBJSONValue>(cSerializer<UBJSONEngine>& e, UBJSONValue& obj, std::istream& s, char type);
+
+  template<class T>
+  inline static void WriteUBJSONBase(cSerializer<UBJSONEngine>& e, const char* id, const T& obj, std::ostream& s, char type);
+
+  template<class T>
+  inline T ParseUBJSONInteger(std::istream& s)
+  {
+    T v;
+    s.read((char*)&v, sizeof(T));
+#ifdef BSS_ENDIAN_LITTLE
+    flipendian<T>(&v);
+#endif
+    return v;
+  }
+
+  static inline int64_t ParseUBJSONLength(std::istream& s)
+  {
+    int64_t ret = -1;
+    while(s)
+    {
+      switch(s.get())
+      {
+      case UBJSONTuple::TYPE_CHAR: // you aren't supposed to do this but we'll deal with it anyway
+      case UBJSONTuple::TYPE_INT8: ret = ParseUBJSONInteger<char>(s); break;
+      case UBJSONTuple::TYPE_UINT8: ret = ParseUBJSONInteger<uint8_t>(s); break;
+      case UBJSONTuple::TYPE_INT16: ret = ParseUBJSONInteger<short>(s); break;
+      case UBJSONTuple::TYPE_INT32: ret = ParseUBJSONInteger<int32_t>(s); break;
+      case UBJSONTuple::TYPE_INT64: ret = ParseUBJSONInteger<int64_t>(s); break;
+      case UBJSONTuple::TYPE_NO_OP: continue; // try again
+      default:
+        throw std::runtime_error("Invalid length type");
+      }
+      break;
+    }
+    if(ret < 0)
+      throw std::runtime_error("Negative length is not allowed.");
+    return ret;
+  }
+
+  static inline int64_t ParseUBJSONTypeCount(std::istream& s, char& type)
+  {
+    type = 0;
+    if(!!s && s.peek() == UBJSONTuple::TYPE_TYPE)
+    {
+      s.get(); // eat '$'
+      type = s.get();
+    }
+    if(!!s && s.peek() == UBJSONTuple::TYPE_COUNT)
+    {
+      s.get(); // eat '#'
+      return ParseUBJSONLength(s);
+    }
+    else if(type != 0)
+      throw std::runtime_error("A type was specified, but no count was given. A count MUST follow a type!");
+    return -1;
+  }
+
+  template<class F>
+  inline static void ParseUBJSONObj(cSerializer<UBJSONEngine>& e, char ty, F f)
+  {
+    std::istream& s = *e.in;
+    if(ty != 0 && ty != UBJSONTuple::TYPE_OBJECT) // Sanity check
+      throw std::runtime_error("Expecting a type other than object in the object parsing function!");
+    if(!ty && (s.get() != UBJSONTuple::TYPE_OBJECT))
+      throw std::runtime_error("Expected object, found invalid character");
+    cStr buf;
+    char backup = e.engine.type;
+    e.engine.type = 0;
+    int64_t count = ParseUBJSONTypeCount(s, e.engine.type);
+    while(!!s && (count<0 || count>0) && (count>0 || s.peek() != UBJSONTuple::TYPE_OBJECT_END) && s.peek() != -1)
+    {
+      int64_t length = ParseUBJSONLength(s);
+      --count;
+      buf.reserve(length + 1);
+      s.read(buf.UnsafeString(), length);
+      buf.UnsafeString()[length] = 0;
+      f(e, buf.c_str());
+    }
+    e.engine.type = backup;
+    if(!!s && count<0 && s.peek() == UBJSONTuple::TYPE_OBJECT_END) s.get(); // If we were looking for the OBJECT_END symbol, eat it.
+  }
+
+  template<typename... Args>
+  static inline const char GetUBJSONVariantType(const variant<Args...>& v);
 
   template<class T, class BASE>
   struct __UBJSONValue_conv
@@ -194,47 +241,12 @@ namespace bss_util {
   };
 
   template<class T>
-  inline T ParseUBJSONInteger(std::istream& s)
-  {
-    T v;
-    s.read((char*)&v, sizeof(T));
-#ifdef BSS_ENDIAN_LITTLE
-    flipendian<T>(&v);
-#endif
-    return v;
-  }
-
-  template<class T>
   inline void WriteUBJSONInteger(T v, std::ostream& s)
   {
 #ifdef BSS_ENDIAN_LITTLE
     flipendian<T>(&v);
 #endif
     s.write((char*)&v, sizeof(T));
-  }
-
-  static inline int64_t ParseUBJSONLength(std::istream& s)
-  {
-    int64_t ret = -1;
-    while(s)
-    {
-      switch(s.get())
-      {
-      case UBJSONTuple::TYPE_CHAR: // you aren't supposed to do this but we'll deal with it anyway
-      case UBJSONTuple::TYPE_INT8: ret = ParseUBJSONInteger<char>(s); break;
-      case UBJSONTuple::TYPE_UINT8: ret = ParseUBJSONInteger<uint8_t>(s); break;
-      case UBJSONTuple::TYPE_INT16: ret = ParseUBJSONInteger<short>(s); break;
-      case UBJSONTuple::TYPE_INT32: ret = ParseUBJSONInteger<int32_t>(s); break;
-      case UBJSONTuple::TYPE_INT64: ret = ParseUBJSONInteger<int64_t>(s); break;
-      case UBJSONTuple::TYPE_NO_OP: continue; // try again
-      default:
-        throw std::runtime_error("Invalid length type");
-      }
-      break;
-    }
-    if(ret < 0)
-      throw std::runtime_error("Negative length is not allowed.");
-    return ret;
   }
 
   static inline void ParseUBJSONValue(UBJSONTuple& tuple, std::istream& s, char type)
@@ -276,29 +288,12 @@ namespace bss_util {
       break;
     }
   }
-  
-  static inline int64_t ParseUBJSONTypeCount(std::istream& s, char& type)
-  {
-    type = 0;
-    if(!!s && s.peek() == UBJSONTuple::TYPE_TYPE)
-    { 
-      s.get(); // eat '$'
-      type = s.get();
-    }
-    if(!!s && s.peek() == UBJSONTuple::TYPE_COUNT)
-    { 
-      s.get(); // eat '#'
-      return ParseUBJSONLength(s);
-    } else if(type != 0)
-      throw std::runtime_error("A type was specified, but no count was given. A count MUST follow a type!");
-    return -1;
-  }
 
 
   template<class T, bool B>
   struct ParseUBJSONInternal
   {
-    static void F(cSerializer<UBJSONEngine>& e, T& obj, std::istream& s, char ty) { char backup = e.engine.type; e.engine.type = ty; obj.Serialize<UBJSONEngine>(e); e.engine.type = backup; }
+    static void F(cSerializer<UBJSONEngine>& e, T& obj, std::istream& s, char ty) { char backup = e.engine.type; e.engine.type = ty; obj.template Serialize<UBJSONEngine>(e); e.engine.type = backup; }
   };
 
   template<class T>
@@ -518,7 +513,7 @@ namespace bss_util {
       throw std::runtime_error("Expecting a type other than object in the object serializing function!");
     if(!ty)
       s.put(UBJSONTuple::TYPE_OBJECT);
-    const_cast<T&>(obj).Serialize<UBJSONEngine>(e);
+    const_cast<T&>(obj).template Serialize<UBJSONEngine>(e);
     if(e.engine.endobject)
     //if(obj.SerializeUBJSON(s))
       s.put(UBJSONTuple::TYPE_OBJECT_END);
@@ -774,6 +769,17 @@ namespace bss_util {
 
   template<class T>
   inline static void WriteUBJSON(const T& obj, std::ostream& s) { cSerializer<UBJSONEngine> e; e.Serialize(obj, s); }
+
+  template<typename T>
+  void UBJSONEngine::Serialize(cSerializer<UBJSONEngine>& e, const T& t, const char* id) { e.engine.endobject = true; WriteUBJSONBase<T>(e, id, t, *e.out, 0); }
+  template<typename T>
+  void UBJSONEngine::Parse(cSerializer<UBJSONEngine>& e, T& t, const char* id) { ParseUBJSONBase<T>(e, t, *e.in, e.engine.type); }
+  template<typename... Args>
+  void UBJSONEngine::ParseMany(cSerializer<UBJSONEngine>& e, const cTrie<uint16_t>& t, std::tuple<Args...>& args) {
+    ParseUBJSONObj(e, e.engine.type, [&t, &args](cSerializer<UBJSONEngine>& e, const char* id) {
+      cSerializer<UBJSONEngine>::_findparse(e, id, t, args);
+    });
+  }
 }
 
 #endif

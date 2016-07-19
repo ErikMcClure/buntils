@@ -92,6 +92,7 @@ TESTDEF::RETPAIR test_bss_util_c()
   TEST(len < 1024);
   TEST(UTF32toUTF8(outstr, -1, instr, len) <= len);
 
+#ifdef BSS_PLATFORM_WIN32
   for(int i = 0; i < sizeof(PANGRAMS) / sizeof(const bsschar*); ++i)
   {
     size_t l = UTF16toUTF32(PANGRAMS[i], -1, 0, 0);
@@ -108,5 +109,6 @@ TESTDEF::RETPAIR test_bss_util_c()
     UTF32toUTF16(outstr, -1, wstr, l);
     TEST(!wcscmp(wstr, PANGRAMS[i]));
   }
+#endif
   ENDTEST;
 }

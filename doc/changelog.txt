@@ -18,6 +18,8 @@
 - Refactored tests into individual cpp files
 - Added GetRegistryValue for windows platforms only
 - Added bssloadfile for quickly loading files into memory
+- Rewrote cHash to support ARRAY_TYPE and proper safe types, and added hash support for cStr.
+- Fixed parsing bug in cXML and added more tests
 
 0.4.5
 -----

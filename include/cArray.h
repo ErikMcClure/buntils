@@ -115,7 +115,7 @@ namespace bss_util {
         _free(prev);
         return 0;
       }
-      return (T*)Alloc::allocate(n, prev);
+      return (T*)Alloc::allocate((size_t)n, prev);
     }
     static inline void _free(T* p) noexcept { if(p) Alloc::deallocate(p); }
     template<class U, typename UType, ARRAY_TYPE ArrayType, typename V>
@@ -126,7 +126,7 @@ namespace bss_util {
   };
 
 #ifdef BSS_DEBUG
-#define BSS_DEBUGFILL(p, old, n, Ty) memset(p + bssmin(n, old), 0xfd, ((n > old)?(n - old):(old - n))*sizeof(Ty))
+#define BSS_DEBUGFILL(p, old, n, Ty) memset(p + bssmin(n, old), 0xfd, (size_t)(((n > old)?(n - old):(old - n))*sizeof(Ty)))
 #else
 #define BSS_DEBUGFILL(p, old, n, Ty)  
 #endif

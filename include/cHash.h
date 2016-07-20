@@ -50,16 +50,24 @@ namespace bss_util {
   };
 
   template<class T, bool integral>
-  struct __cHashBaseInvalid
-  {
-    static const T INVALID() { return (T)0; }
-  };
+  struct __cHashBaseInvalid { static const T INVALID() { return (T)0; } };
 
   template<class T>
-  struct __cHashBaseInvalid<T, true>
-  {
-    static const T INVALID() { return (T)~0; }
-  };
+  struct __cHashBaseInvalid<T, true> { static const T INVALID() { return (T)~0; } };
+
+  template<class T, bool value>
+  struct __cHashBaseGET { typedef T GET; static BSS_FORCEINLINE GET F(T& s) { return s; } };
+
+  template<class T>
+  struct __cHashBaseGET<T, false> { typedef T* GET; static BSS_FORCEINLINE GET F(T& s) { return &s; } };
+
+  template<>
+  struct __cHashBaseGET<cStr, false> { typedef const char* GET; static BSS_FORCEINLINE GET F(cStr& s) { return s.c_str(); } };
+
+#ifdef BSS_PLATFORM_WIN32
+  template<>
+  struct __cHashBaseGET<cStrW, false> { typedef const wchar_t* GET; static BSS_FORCEINLINE GET F(cStrW& s) { return s.c_str(); } };
+#endif
 
   template<class Key, class Data, bool IsMap, khint_t(*__hash_func)(const Key&), bool(*__hash_equal)(const Key&, const Key&), ARRAY_TYPE ArrayType = CARRAY_SIMPLE, typename Alloc = StaticAllocPolicy<char>>
   class cHashBase
@@ -67,6 +75,7 @@ namespace bss_util {
   public:
     typedef Key KEY;
     typedef Data DATA;
+    typedef typename __cHashBaseGET<Data, std::is_integral<Data>::value | std::is_pointer<Data>::value>::GET GET;
 
     cHashBase(const cHashBase& copy)
     {
@@ -125,16 +134,16 @@ namespace bss_util {
     inline khiter_t Iterator(const Key& key) const { return _get(key); }
     inline const Key& GetKey(khiter_t i) { return keys[i]; }
     template<bool U = IsMap>
-    inline typename std::enable_if<U, const Data&>::type GetValue(khiter_t i) const {
-      static const Data INVALID = __cHashBaseInvalid<Data, std::is_integral<Data>::value>::INVALID();
+    inline typename std::enable_if<U, GET>::type GetValue(khiter_t i) const {
+      static const GET INVALID = __cHashBaseInvalid<GET, std::is_integral<GET>::value>::INVALID();
       if(!ExistsIter(i))
         return INVALID;
-      return vals[i];
+      return __cHashBaseGET<Data, std::is_integral<Data>::value | std::is_pointer<Data>::value>::F(vals[i]);
     }
     template<bool U = IsMap>
-    inline typename std::enable_if<U, const Data&>::type Get(const Key& key) const { return GetValue(Iterator(key)); }
+    inline typename std::enable_if<U, GET>::type Get(const Key& key) const { return GetValue(Iterator(key)); }
     template<bool U = IsMap>
-    inline typename std::enable_if<U, const Data&>::type UnsafeValue(khiter_t i) const { return vals[i]; }
+    inline typename std::enable_if<U, Data&>::type UnsafeValue(khiter_t i) const { return vals[i]; }
     inline bool SetValue(khiter_t iterator, const Data& newvalue) { return _setvalue<const Data&>(iterator, newvalue); }
     inline bool SetValue(khiter_t iterator, Data&& newvalue) { return _setvalue<Data&&>(iterator, std::move(newvalue)); }
     inline bool Set(const Key& key, const Data& newvalue) { return _setvalue<const Data&>(Iterator(key), newvalue); }
@@ -160,7 +169,7 @@ namespace bss_util {
     inline bool ExistsIter(khiter_t iterator) const { return (iterator < n_buckets) && !__ac_iseither(flags, iterator); }
     inline bool Exists(const Key& key) const { return ExistsIter(Iterator(key)); }
     template<bool U = IsMap>
-    inline typename std::enable_if<U, const Data&>::type operator[](const Key& key) const { return Get(key); }
+    inline typename std::enable_if<U, GET>::type operator[](const Key& key) const { return Get(key); }
     inline bool operator()(const Key& key) const { return Exists(key); }
     template<bool U = IsMap>
     inline typename std::enable_if<U, bool>::type operator()(const Key& key, Data& v) const { khiter_t i = Iterator(key); if(!ExistsIter(i)) return false; v = vals[i]; return true; }
@@ -480,7 +489,7 @@ namespace bss_util {
     template<bool U = !std::is_void<T>::value>
     inline typename std::enable_if<U, bool>::type operator()(const K& key, typename BASE::DATA& v) const { return BASE::operator()(key, v); }
     template<bool U = !std::is_void<T>::value>
-    inline typename std::enable_if<U, const typename BASE::DATA&>::type operator[](const K& key) const { return BASE::operator[](key); }
+    inline typename std::enable_if<U, typename BASE::GET>::type operator[](const K& key) const { return BASE::operator[](key); }
   };
 }
 

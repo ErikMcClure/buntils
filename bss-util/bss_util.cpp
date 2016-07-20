@@ -622,6 +622,7 @@ int BSS_FASTCALL bss_util::DelRegistryNodeW(HKEY__* hKeyRoot, const wchar_t* lpS
 
 #ifdef BSS_DEBUG
 #include "delegate.h"
+#include "cHash.h"
 
 struct testclass
 {
@@ -630,4 +631,7 @@ struct testclass
 void BSS_FASTCALL ffff() {}
 
 bss_util::delegate<void> rrrrr = bss_util::delegate<void>::From<testclass, &testclass::f>(0);
+
+bss_util::cHash<int, testclass, false, bss_util::CARRAY_SAFE> hashtest;
+static bool testhash = !hashtest[2];
 #endif

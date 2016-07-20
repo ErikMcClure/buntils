@@ -21,6 +21,7 @@ TESTDEF::RETPAIR test_HASH()
     hasherint.Get(25);
     hasherint.Remove(25);
     cHash<const char*, cLog*, true> hasher;
+    TEST(!hasher[""]);
     hasher.Insert("", &_failedtests);
     hasher.Insert("Video", (cLog*)5);
     hasher.SetCapacity(100);
@@ -39,6 +40,7 @@ TESTDEF::RETPAIR test_HASH()
 
     {
       cHash<const void*> set;
+      TEST(!set.Exists(0));
       set.Insert(0);
       set.Insert(&check);
       set.Insert(&hasher);
@@ -46,6 +48,20 @@ TESTDEF::RETPAIR test_HASH()
       set.Insert(&set);
       set.GetKey(0);
       TEST(set.Exists(0));
+    }
+    {
+      cHash<int, int> val;
+      TEST(val[0] == -1);
+      val.Insert(0, 1);
+      TEST(val[0] == 1);
+      TEST(val[-3] == -1);
+      val.Insert(-3, 2);
+      TEST(val[-3] == 2);
+      TEST(val[4] == -1);
+      val.Insert(4, -2);
+      TEST(val[4] == -2);
+      val.Remove(-3);
+      TEST(val[-3] == -1);
     }
     {
       typedef std::pair<uint64_t, int32_t> HASHTESTPAIR;
@@ -63,6 +79,7 @@ TESTDEF::RETPAIR test_HASH()
     }
     {
       cHash<int, DEBUG_CDT<true>, false, CARRAY_SAFE> safe;
+      TEST(!safe[2]);
       safe.Insert(0, DEBUG_CDT<true>());
       safe.Insert(2, DEBUG_CDT<true>());
       safe.Insert(-3, DEBUG_CDT<true>());
@@ -70,6 +87,7 @@ TESTDEF::RETPAIR test_HASH()
       safe.Insert(2874984, DEBUG_CDT<true>());
       safe.Insert(-28383, DEBUG_CDT<true>());
       safe.Insert(8, DEBUG_CDT<true>());
+      TEST(safe[2] != 0);
       TEST(safe(0));
       TEST(safe(2));
       TEST(safe(-3));

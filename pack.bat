@@ -4,6 +4,9 @@ md "..\Packages\bss-util"
 :: So, uh, apparently XCOPY deletes empty subdirectories in your destination.
 XCOPY "*.cpp" "..\Packages\bss-util" /S /C /I /R /Y
 XCOPY "*.c" "..\Packages\bss-util" /S /C /I /R /Y
+XCOPY "test\*.h" "..\Packages\bss-util\test" /S /C /I /R /Y
+XCOPY "test\*.rc" "..\Packages\bss-util\test" /S /C /I /R /Y
+XCOPY "test\*.ico" "..\Packages\bss-util\test" /S /C /I /R /Y
 XCOPY "*.vcxproj" "..\Packages\bss-util" /S /C /I /R /Y
 XCOPY "*.filters" "..\Packages\bss-util" /S /C /I /R /Y
 XCOPY "*.sln" "..\Packages\bss-util" /S /C /I /R /Y

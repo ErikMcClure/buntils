@@ -1,10 +1,14 @@
-**************************************************
+﻿**************************************************
 * Black Sphere Studios Utility Library Changelog *
 **************************************************
 
 0.4.7
 -----
 - AVL tree Insert now returns a pointer on success or null on failure
+- Added Gauss–Legendre quadrature for approximating integrals
+- Added C-style object functions to delegate.h
+- Added Set() to DynArray and Array
+- Fixed up headers and #defines so bss-util builds and runs under Linux Subsystem for Windows
 
 0.4.6
 -----

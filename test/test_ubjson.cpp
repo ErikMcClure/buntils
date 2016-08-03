@@ -128,14 +128,12 @@ TESTDEF::RETPAIR test_UBJSON()
   { true, false, true, false, false, true },
   { "stuff", "crap", "things" },
   { { 21, "22", 23.0 }, { 24, "25", 26.0 } } };
-
+  
   std::fstream fso("out.ubj", std::ios_base::out | std::ios_base::trunc | std::ios_base::binary);
   WriteUBJSON<ubjsontest>(t1, fso);
   fso.close();
 
-  ubjsontest t2;
-  memset(&t2, 0, sizeof(ubjsontest));
-  new(&t2.u) std::vector<int>(); // std::vector blows up if you try to zero all its bits.
+  ubjsontest t2 = { TEST_ENUM_VALUE, 0 };
   std::fstream fsi("out.ubj", std::ios_base::in | std::ios_base::binary);
   ParseUBJSON<ubjsontest>(t2, fsi);
   fsi.close();
@@ -202,13 +200,12 @@ TESTDEF::RETPAIR test_UBJSON()
   WriteUBJSON<UBJSONValue>(val, fso2);
   fso2.close();
 
-  memset(&t2, 0, sizeof(ubjsontest));
-  new(&t2.u) std::vector<int>(); // std::vector blows up if you try to zero all its bits.
+  ubjsontest t3 = { TEST_ENUM_VALUE, 0 };
   std::fstream fsi3("out2.ubj", std::ios_base::in | std::ios_base::binary);
-  ParseUBJSON<ubjsontest>(t2, fsi3);
+  ParseUBJSON<ubjsontest>(t3, fsi3);
   fsi3.close();
 
-  VerifyUBJSON(t1, t2, __testret);
+  VerifyUBJSON(t1, t3, __testret);
 
   ENDTEST;
 }

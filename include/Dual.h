@@ -5,7 +5,7 @@
 #define __BSS_DUAL_H__
 
 #include "bss_compare.h"
-#include <math.h>
+#include <cmath>
 
 namespace bss_util {
   // Represents a dual number that can be used for (very inefficient) automatic differentiation.

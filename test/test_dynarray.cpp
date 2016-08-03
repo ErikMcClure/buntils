@@ -49,6 +49,12 @@ TESTDEF::RETPAIR test_DYNARRAY()
   TEST(z[13] == 11);
 
   int zvars[5] = { 4, 3, 2, 1, 5 };
+  y.Set(zvars, 3);
+  TEST(y.Length() == 3);
+  TEST(y[0] == 4);
+  TEST(y[1] == 3);
+  TEST(y[2] == 2);
+
   z = cArraySlice<int>(zvars, 5);
   TEST(z.Length() == 5);
   TEST(z[3] == 1);

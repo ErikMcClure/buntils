@@ -225,6 +225,9 @@
     <ClInclude Include="..\include\cSerializer.h">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="..\include\bss_data.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="bss_util.cpp">

@@ -19,7 +19,7 @@
 
 #include "bss_util_c.h"
 #include <assert.h>
-#include <math.h>
+#include <cmath>
 #include <memory>
 #include <cstring> // for memcmp
 #include <emmintrin.h> // for SSE intrinsics

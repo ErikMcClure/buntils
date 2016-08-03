@@ -8,6 +8,22 @@
 #include <cstdint>
 #ifndef BSS_PLATFORM_WIN32
 #include <time.h>
+
+#ifdef _POSIX_MONOTONIC_CLOCK
+#ifdef CLOCK_MONOTONIC_RAW
+#define BSS_POSIX_CLOCK CLOCK_MONOTONIC_RAW
+#else
+#define BSS_POSIX_CLOCK CLOCK_MONOTONIC
+#endif
+#else
+#define BSS_POSIX_CLOCK CLOCK_REALTIME
+#endif
+
+#ifdef _POSIX_CPUTIME
+#define BSS_POSIX_CLOCK_PROFILER CLOCK_PROCESS_CPUTIME_ID
+#else
+#define BSS_POSIX_CLOCK_PROFILER BSS_POSIX_CLOCK
+#endif
 #endif
 
 namespace bss_util
@@ -49,7 +65,7 @@ namespace bss_util
 #ifdef BSS_PLATFORM_WIN32
       _querytime(&ret);
 #else
-      _querytime(&ret, CLOCK_PROCESS_CPUTIME_ID);
+      _querytime(&ret, BSS_POSIX_CLOCK_PROFILER);
 #endif
       return ret;
     }
@@ -61,7 +77,7 @@ namespace bss_util
       _querytime(&compare);
       return ((compare-begin)*1000000000)/_getfreq(); //convert to nanoseconds
 #else
-      _querytime(&compare, CLOCK_PROCESS_CPUTIME_ID);
+      _querytime(&compare, BSS_POSIX_CLOCK_PROFILER);
       return compare-begin;
 #endif
     }
@@ -77,7 +93,7 @@ namespace bss_util
     static void BSS_FASTCALL _querytime(uint64_t* _pval);
     static uint64_t _getfreq();
 #else
-    static void BSS_FASTCALL _querytime(uint64_t* _pval, clockid_t clock=CLOCK_MONOTONIC_RAW);
+    static void BSS_FASTCALL _querytime(uint64_t* _pval, clockid_t clock = BSS_POSIX_CLOCK);
 #endif
   };
 }

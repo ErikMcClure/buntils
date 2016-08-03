@@ -123,7 +123,9 @@ namespace bss_util {
     BSS_FORCEINLINE static T base_transform(uint64_t x) { return (T)x; }
   };
 
-  template<>
+  // DISABLED: There is no nice way of mapping randomly generated values to floating point values because floating point has a log2 distribution and denormals.
+  // Instead, use gencanonical to map generated random integers to a [0.0,1.0) range.
+  /*template<>
   class xorshift_engine_base<float>
   {
   public:
@@ -148,7 +150,7 @@ namespace bss_util {
       x = (x&0xBFFFFFFFFFFFFFFF)+0x1FF0000000000000; // Mask out the top exponent bit to force exponent to 0-1023 range, then add 511 to the exponent to get it in [511,1534] range ([-512,511] when biased)
       return *(double*)(&x); // convert our integer into a double, assuming IEEE format
     }
-  };
+  };*/
 
   template<typename T = uint64_t>
   class BSS_COMPILER_DLLEXPORT xorshift_engine : protected xorshift_engine_base<T>
@@ -773,6 +775,37 @@ namespace bss_util {
     }
     return x; // Return a good-enough value. Because we're using bisection, it has to be at least reasonably close to the root.
   }
+
+  // Performs Gauss–Legendre quadrature for simple polynomials, using 1-5 sampling points on the interval [a, b] with optional supplemental arguments.
+  template<typename T, int N, typename... D>
+  inline static T GaussianQuadrature(T a, T b, T(*f)(T, D...), D... args)
+  {
+    static_assert(N <= 5, "Too many points for Guassian Quadrature!");
+    static_assert(N < 1, "Too few points for Guassian Quadrature!");
+    static const T points[5][5] = {
+      0, 0, 0, 0, 0,
+      -sqrt(1.0 / 3.0), sqrt(1.0 / 3.0), 0, 0, 0,
+      0, -sqrt(3.0 / 5.0), sqrt(3.0 / 5.0), 0, 0,
+      -sqrt((3.0/7.0) - ((2.0/7.0)*sqrt(6.0/5.0))), sqrt((3.0 / 7.0) - ((2.0 / 7.0)*sqrt(6.0 / 5.0))), -sqrt((3.0 / 7.0) + ((2.0 / 7.0)*sqrt(6.0 / 5.0))), sqrt((3.0 / 7.0) + ((2.0 / 7.0)*sqrt(6.0 / 5.0))), 0,
+      0, -sqrt(5.0 - 2.0*sqrt(10.0/7.0))/3.0, sqrt(5.0 - 2.0*sqrt(10.0 / 7.0)) / 3.0, -sqrt(5.0 + 2.0*sqrt(10.0 / 7.0)) / 3.0, sqrt(5.0 + 2.0*sqrt(10.0 / 7.0)) / 3.0,
+    };
+    static const T weights[5][5] = {
+      2.0, 0, 0, 0, 0,
+      1.0, 1.0, 0, 0, 0,
+      8.0 / 9.0, 5.0/9.0, 5.0 / 9.0, 0, 0,
+      (18 + sqrt(30)) / 36, (18 + sqrt(30)) / 36, (18 - sqrt(30)) / 36, (18 - sqrt(30)) / 36, 0,
+      128/225, (322 + 13 * sqrt(70))/900, (322 + 13 * sqrt(70)) / 900, (322 - 13 * sqrt(70)) / 900, (322 - 13 * sqrt(70)) / 900,
+    };
+
+    T scale = (b - a) / 2.0;
+    T avg = (a + b) / 2.0;
+    T r = weights[N - 1][0] * f(scale * points[N-1][0] + avg, args...);
+    for(int i = 1; i < N; ++i)
+      r += weights[N - 1][i] * f(scale * points[N - 1][i] + avg, args...);
+
+    return scale * r;
+  }
+
 
   inline static size_t BSS_FASTCALL Base64Encode(const uint8_t* src, size_t cnt, char* out)
   {

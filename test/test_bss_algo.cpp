@@ -133,5 +133,37 @@ TESTDEF::RETPAIR test_bss_algo()
     TEST(r[0] == 0.5);
   }
 
+  // This can be used to test the distribution of a random engine to verify it is uniform
+  //xorshift_engine<double> dtest;
+  /*double vals[10000];
+  for(int i = 0; i < sizeof(vals) / sizeof(double); ++i)
+    vals[i] = bssrandreal(0.0, 1.0);
+    //vals[i] = dtest();
+
+  double vmin = vals[0];
+  double vmax = vals[0];
+  double vavg = vals[0];
+  for(int i = 1; i < sizeof(vals) / sizeof(double); ++i)
+  {
+    vmin = std::min(vmin, vals[i]);
+    vmax = std::max(vmax, vals[i]);
+    vavg = bssavg(vavg, vals[i], i);
+  }
+
+  double chunk = vmax / 25.0 - vmin / 25.0;
+  int buckets[25] = { 0 };
+
+  for(int i = 0; i < sizeof(vals) / sizeof(double); ++i)
+  {
+    int k = (int)floor((vals[i] / chunk) - (vmin / chunk));
+    if(k < 0) k = 0;
+    if(k > 24) k = 24;
+    buckets[k]++;
+  }
+
+  std::cout << std::endl;
+  for(int i = 0; i < sizeof(buckets) / sizeof(int); ++i)
+    std::cout << buckets[i] << std::endl;*/
+
   ENDTEST;
 }

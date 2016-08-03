@@ -280,6 +280,13 @@ namespace bss_util {
     BSS_FORCEINLINE void RemoveLast() { Remove(_capacity - 1); }
     BSS_FORCEINLINE void Insert(const T_& t, CT_ index = 0) { _insert(t, index); }
     BSS_FORCEINLINE void Insert(T_&& t, CT_ index = 0) { _insert(std::move(t), index); }
+    BSS_FORCEINLINE void Set(const cArraySlice<const T, CType>& slice) { Set(slice.start, slice.length); }
+    BSS_FORCEINLINE void Set(const T_* p, CT_ n)
+    {
+      BASE::_setlength(_array, _capacity, 0);
+      AT_::SetCapacityDiscard(n);
+      BASE::_copy(_array, p, _capacity);
+    }
     BSS_FORCEINLINE bool Empty() const noexcept { return !_capacity; }
     BSS_FORCEINLINE void Clear() noexcept { SetCapacity(0); }
     inline cArraySlice<T, CType> GetSlice() const noexcept { return cArraySlice<T, CType>(_array, _capacity); }
@@ -322,13 +329,7 @@ namespace bss_util {
       return *this;
     }
     BSS_FORCEINLINE cArray& operator=(cArray&& mov) noexcept { BASE::_setlength(_array, _capacity, 0); AT_::operator=(std::move(mov)); return *this; }
-    BSS_FORCEINLINE cArray& operator=(const cArraySlice<const T, CType>& copy) noexcept
-    {
-      BASE::_setlength(_array, _capacity, 0);
-      AT_::SetCapacityDiscard(copy.length);
-      BASE::_copy(_array, copy.begin, _capacity);
-      return *this;
-    }
+    BSS_FORCEINLINE cArray& operator=(const cArraySlice<const T, CType>& copy) noexcept { Set(copy); return *this; }
     BSS_FORCEINLINE cArray& operator +=(const cArray& add) noexcept
     { 
       CType old = _capacity;

@@ -59,6 +59,7 @@
     <ClInclude Include="..\include\bss_alloc_block_MT.h" />
     <ClInclude Include="..\include\bss_compare.h" />
     <ClInclude Include="..\include\bss_compiler.h" />
+    <ClInclude Include="..\include\bss_data.h" />
     <ClInclude Include="..\include\bss_defines.h" />
     <ClInclude Include="..\include\bss_graph.h" />
     <ClInclude Include="..\include\bss_log.h" />

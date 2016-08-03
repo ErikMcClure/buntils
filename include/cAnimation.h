@@ -16,10 +16,10 @@ namespace bss_util {
   public:
     cAniBase(const cAniBase& copy) : _length(copy._length), _calc(copy._calc), _typesize(copy._typesize), _loop(copy._loop) { Grab(); }
     cAniBase(cAniBase&& mov) : _length(mov._length), _calc(mov._calc), _typesize(mov._typesize), _loop(mov._loop) { Grab(); }
-    cAniBase(size_t typesize) : _length(0.0), _calc(0.0), _typesize(typesize), _loop(-1.0) { Grab(); }
+    cAniBase(size_t typesize) : _length(-1.0), _calc(0.0), _typesize(typesize), _loop(-1.0) { Grab(); }
     virtual ~cAniBase() {}
-    inline void SetLength(double length = 0.0) { _length = length; }
-    inline double GetLength() const { return _length == 0.0 ? _calc : _length; }
+    inline void SetLength(double length = -1.0) { _length = length; }
+    inline double GetLength() const { return _length < 0.0 ? _calc : _length; }
     inline void SetLoop(double loop = 0.0) { _loop = loop; }
     inline double GetLoop() const { return _loop; }
     inline size_t SizeOf() const { return _typesize; }
@@ -302,7 +302,6 @@ namespace bss_util {
       double s = GetProgress<T, cAniLinearData<T>>(v, l, cur, t);
       return init + lerp<T>(v[cur - 1].value, v[cur].value, s);
     }
-    T cp;
   };
 
   template<class T, double (*LENGTH)(const T&, const T&, const T&)>
@@ -326,19 +325,13 @@ namespace bss_util {
       }
       return FastSqrt<U>(r);
     }
-    // Uses simpson's rule to approximate arc length over the interval [0, b] (TODO: Upgrade to gaussian quadrature?)
-    static inline double ArcLength(double b, const T& p0, const T& p1, const T& p2, double p0_cache)
-    {
-      return (b / 6.0)*(p0_cache + 4.0*LENGTH(b*0.5, p0, p1, p2) + LENGTH(b, p0, p1, p2));
-    }
     static inline T BSS_FASTCALL QuadraticInterpolateBase(const typename cAnimation<T, cAniQuadData<T, LENGTH>>::FRAME* v, uint32_t l, uint32_t cur, double t, const T& init)
     {
       double s = GetProgress<T, cAniQuadData<T, LENGTH>>(v, l, cur, t);
       const T& p0 = (!cur ? init : v[cur - 1].value);
       const T& p1 = v[cur].cp; // we store the control point in the end point, not the start point, which allows us to properly use the init value.
       const T& p2 = v[cur].value;
-      double p0_cache = LENGTH(0.0, p0, p1, p2);
-      auto f = [&](double s) -> double { return ArcLength(s, p0, p1, p2, p0_cache) - s; };
+      auto f = [&](double s) -> double { return GaussianQuadrature<double, 3>(0.0, s, &LENGTH, p0, p1, p2) - s; };
       auto fd = [&](double s) -> double { return LENGTH(s, p0, p1, p2); };
       return Bezier<T>(NewtonRaphsonBisection<double>(s, 0.0, 1.0, f, fd, FLT_EPS), p0, p1, p2);
     }
@@ -374,14 +367,6 @@ namespace bss_util {
       }
       return FastSqrt<U>(r);
     }
-    static inline double ArcLength(double c, const T& p0, const T& p1, const T& p2, const T& p3, double p0_cache)
-    { // TODO: maybe upgrade to gaussain quadrature
-      //return (b / 6.0)*(p0_cache + 4.0*LENGTH(b*0.5, p0, p1, p2) + LENGTH(b, p0, p1, p2));
-      // Use simpson's rule twice, once for each half of the integral. We use the two invervals [0,b] and [b,c]: b/6 * [ f(0) + 4f(b/2) + f(b) ] + (b+c)/6 * [ f(b) + 4f((b+c)/2) + f(c) ]
-      double b = c*0.5;
-      double fb = LENGTH(b, p0, p1, p2, p3);
-      return (b / 6.0)*(p0_cache + 4.0*LENGTH(b*0.5, p0, p1, p2, p3) + fb) + ((c - b) / 6.0)*(fb + 4.0*LENGTH((b + c)*0.5, p0, p1, p2, p3) + LENGTH(c, p0, p1, p2, p3));
-    }
     static inline T BSS_FASTCALL CubicInterpolateBase(const typename cAnimation<T, cAniCubicData<T, LENGTH>>::FRAME* v, uint32_t l, uint32_t cur, double t, const T& init)
     {
       double s = GetProgress<T, cAniCubicData<T, LENGTH>>(v, l, cur, t);
@@ -390,7 +375,7 @@ namespace bss_util {
       const T& p2 = v[cur].p2;
       const T& p3 = v[cur].value;
       double p0_cache = LENGTH(0.0, p0, p1, p2, p3);
-      auto f = [&](double s) -> double { return ArcLength(s, p0, p1, p2, p3, p0_cache) - s; };
+      auto f = [&](double s) -> double { return GaussianQuadrature<double, 5>(0.0, s, &LENGTH, p0, p1, p2, p3) - s; };
       auto fd = [&](double s) -> double { return LENGTH(s, p0, p1, p2, p3); };
       return Bezier(NewtonRaphsonBisection<double>(s, 0.0, 1.0, f, fd, FLT_EPS), p0, p1, p2, p3);
     }

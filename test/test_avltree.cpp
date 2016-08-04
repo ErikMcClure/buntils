@@ -49,6 +49,9 @@ TESTDEF::RETPAIR test_AVLTREE()
   std::pair<int, int> test(5, 5);
   tree->Insert(test.first, &test);
   tree->Get(test.first, 0);
+  TEST(tree->Near(-1) != 0);
+  TEST(tree->Near(4) != 0);
+  TEST(tree->Near(6) != 0);
   tree->ReplaceKey(5, 2);
   tree->Remove(test.first);
   tree->Clear();
@@ -142,6 +145,5 @@ TESTDEF::RETPAIR test_AVLTREE()
   TEST(avltestnum[5] == -2);
   TEST(avltestnum[6] == -1);
   TEST(avltestnum[7] == -3);
-
   ENDTEST;
 }

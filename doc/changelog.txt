@@ -9,6 +9,7 @@
 - Added C-style object functions to delegate.h
 - Added Set() to DynArray and Array
 - Fixed up headers and #defines so bss-util builds and runs under Linux Subsystem for Windows
+- Fixed GetNear on TRBTree
 
 0.4.6
 -----

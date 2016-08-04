@@ -111,6 +111,7 @@ namespace bss_util {
       char change = 0;
       return _insert(key, &_root, change);
     }
+    BSS_FORCEINLINE AVLNode* BSS_FASTCALL Near(const Key key) const { return _near(key); }
     BSS_FORCEINLINE KEYGET BSS_FASTCALL Get(const Key key, const KEYGET& INVALID) const
     {
       AVLNode* retval = _find(key);
@@ -237,6 +238,24 @@ namespace bss_util {
       }
 
       return 0;
+    }
+
+    inline AVLNode* BSS_FASTCALL _near(const Key& key) const
+    {
+      AVLNode* prev = 0;
+      AVLNode* cur = _root;
+      while(cur)
+      {
+        prev = cur;
+        switch(CFunc(BASE::_getkey(cur->_key), key)) //This is faster then if/else statements because FUCK IF I KNOW!
+        {
+        case -1: cur = cur->_left; break;
+        case 1: cur = cur->_right; break;
+        default: return cur;
+        }
+      }
+
+      return prev;
     }
     inline static char BSS_FASTCALL _rebalance(AVLNode** root)
     {

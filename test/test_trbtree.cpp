@@ -84,6 +84,11 @@ TESTDEF::RETPAIR test_TRBTREE()
   }
   TEST(num == TESTNUM);
 
+  blah.Remove(4);
+  TEST(blah.GetNear(4)->value == 3);
+  TEST(blah.GetNear(4, false)->value == 5);
+  blah.Insert(4);
+
   shuffle(testnums);
   for(int i = 0; i<TESTNUM; ++i)
     blah.Insert(testnums[i]);

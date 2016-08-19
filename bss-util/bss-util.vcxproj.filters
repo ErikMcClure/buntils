@@ -171,9 +171,6 @@
     <ClInclude Include="..\include\Dual.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="..\include\FixedPt.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
     <ClInclude Include="..\include\bss_log.h">
       <Filter>Header Files</Filter>
     </ClInclude>
@@ -226,6 +223,9 @@
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="..\include\bss_data.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="..\include\FixedPt.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>

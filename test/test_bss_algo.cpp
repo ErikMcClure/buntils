@@ -3,6 +3,7 @@
 
 #include "test.h"
 #include "bss_algo.h"
+#include <functional>
 
 using namespace bss_util;
 
@@ -132,6 +133,12 @@ TESTDEF::RETPAIR test_bss_algo()
     int n = solveCubic<float>(a, b, c, d, r);
     TEST(r[0] == 0.5);
   }
+
+  //int testmap = { 1, 2, 3, 4, 5, 6, 7, 8, 9, -1 };
+  //cDynArray<int> array;
+  //filter(std::begin(testmap), std::end(testmap), array);
+  //cDynArray<int*> array2;
+  //filter(std::begin(testmap), std::end(testmap), array2);
 
   // This can be used to test the distribution of a random engine to verify it is uniform
   //xorshift_engine<double> dtest;

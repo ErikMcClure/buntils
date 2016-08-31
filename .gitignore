@@ -5,6 +5,7 @@
 *.aps
 *.VC.db
 *.VC.opendb
+*.log
 bin/
 bin32/
 bss-util/x64/

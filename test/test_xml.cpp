@@ -12,21 +12,27 @@ TESTDEF::RETPAIR test_XML()
   BEGINTEST;
 
   cXML test2("<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n \
-    <room fancyname=\"Space\" desc=\"This is space.\" startroom=\"true\" north=\"TESTROOMNORTH\" roomid=\"TESTROOM\" /> \
-    <room roomid = \"TESTROOMNORTH\" nm:fancyname = \"Canada 2\" desc = \"This is the room to the north.\" south = \"TESTROOM\" />");
+    <room fancyname=\"Space\" desc=\"This is space.\" startroom=\"0xFFFFFFFFFFFFFFFF\" north=\"TESTROOMNORTH\" roomid=\"TESTROOM\" /> \
+    <room roomid = \"TESTROOMNORTH\" nm:fancyname = \"-200000\" desc = \"This is the room to the north.\" south = \"TESTROOM\" />");
 
   TEST(!strcmp(test2[(size_t)0]->GetAttribute("roomid")->String, "TESTROOM"));
   TEST(!strcmp(test2[(size_t)0]->GetAttribute((size_t)0)->String, "Space"));
   TEST(!strcmp(test2[(size_t)0]->GetAttribute(1)->String, "This is space."));
-  TEST(!strcmp(test2[(size_t)0]->GetAttribute(2)->String, "true"));
+  TEST(!strcmp(test2[(size_t)0]->GetAttribute(2)->String, "0xFFFFFFFFFFFFFFFF"));
+  TEST(((uint64_t)test2[(size_t)0]->GetAttribute(2)->Integer) == 0xFFFFFFFFFFFFFFFF);
   TEST(!strcmp(test2[(size_t)0]->GetAttribute(3)->String, "TESTROOMNORTH"));
   TEST(!strcmp(test2[(size_t)0]->GetAttribute(4)->Name, "roomid"));
   TEST(!strcmp((*test2[1])("roomid")->String, "TESTROOMNORTH"));
   TEST(!strcmp(test2[1]->GetAttribute((size_t)0)->Name, "roomid"));
-  TEST(!strcmp(test2[1]->GetAttribute(1)->String, "Canada 2"));
+  TEST(!strcmp(test2[1]->GetAttribute(1)->String, "-200000"));
+  TEST(test2[1]->GetAttribute(1)->Integer == -200000);
   TEST(!strcmp(test2[1]->GetAttribute(1)->Name, "nm:fancyname"));
   TEST(!strcmp(test2[1]->GetAttribute(2)->String, "This is the room to the north."));
   TEST(!strcmp(test2[1]->GetAttribute(3)->String, "TESTROOM"));
+  TEST(!strcmp(test2[1]->GetAttributeString("south"), "TESTROOM"));
+  TEST(!test2[1]->GetAttributeInt("roomid"));
+  TEST(!test2[1]->GetAttributeString(0));
+  TEST(!test2[1]->GetAttributeInt(0));
 
 
   cStr XML = "<?xml version=\"1.0\" encoding=\"UTF-8\"?><foo>abc&amp;<bar></bar>zxy<bar2><!-- comment --></bar2  ><   bar/> <  test    />  <!-- comment --><test test=\"attr\" /><!-- comment --></foo> <foo again=\"true\" fail></foo> <bobasdfghqwertyuiopasdfzcvxnm></bobasdfghqwertyuiopasdfzcvxnm><!-- comment --><foo test=\"test\" test=\"success\" /><!-- comment -->";

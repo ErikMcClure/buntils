@@ -69,5 +69,70 @@ TESTDEF::RETPAIR test_TRIE()
   }
   TEST(t[strs[9]] == 0);
 
+  const char* casestr[] = { "tIck", "On", "tEX", "ROT", "RO", "ti", "ONtick", "ONdestROY", "te", "tick", "fail" };
+  cTrie<uint8_t, false> tcase(10, casestr);
+  cTrie<uint8_t, true> tins(10, "tIck", "On", "tEX", "ROT", "RO", "ti", "ONtick", "ONdestROY", "te", "tick");
+
+  for(uint32_t i = 0; i < 11; ++i)
+  {
+    switch(tcase[casestr[i]]) // Deliberatly meant to test for one failure
+    {
+    case 0:
+      TEST(i == 0); break;
+    case 1:
+      TEST(i == 1); break;
+    case 2:
+      TEST(i == 2); break;
+    case 3:
+      TEST(i == 3); break;
+    case 4:
+      TEST(i == 4); break;
+    case 5:
+      TEST(i == 5); break;
+    case 6:
+      TEST(i == 6); break;
+    case 7:
+      TEST(i == 7); break;
+    case 8:
+      TEST(i == 8); break;
+    case 9:
+      TEST(i == 9); break;
+    default:
+      TEST(i == 10); break;
+    case 10:
+      TEST(false); break;
+    }
+  }
+  TEST(tcase[strs[9]] == 9);
+  TEST(tins["rot"] == 3);
+
+  for(uint32_t i = 0; i < 9; ++i)
+  {
+    switch(tins[strs[i]]) // Deliberatly meant to test for one failure
+    {
+    case 0:
+      TEST(false); break;
+    case 1:
+      TEST(i == 1); break;
+    case 2:
+      TEST(i == 2); break;
+    case 3:
+      TEST(i == 3); break;
+    case 4:
+      TEST(i == 4); break;
+    case 5:
+      TEST(i == 5); break;
+    case 6:
+      TEST(i == 6); break;
+    case 7:
+      TEST(i == 7); break;
+    case 8:
+      TEST(i == 8); break;
+    default:
+      TEST(i == 0);
+    }
+  }
+  TEST(tins[strs[9]] == 0);
+
   ENDTEST;
 }

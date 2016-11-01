@@ -612,6 +612,11 @@ namespace bss_util {
   template<class E, class T>
   static inline void WriteUBJSONArray(cSerializer<UBJSONEngine>& e, T obj, const char* data, size_t size, std::ostream& s, char type)
   {
+    if(!size) // It's more efficient to skip type/length information for zero length arrays.
+    {
+      s.put(UBJSONTuple::TYPE_ARRAY_END);
+      return;
+    }
     if(type)
     {
       s.put(UBJSONTuple::TYPE_TYPE);

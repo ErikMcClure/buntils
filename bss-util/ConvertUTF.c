@@ -414,6 +414,7 @@ extern size_t BSS_FASTCALL UTF8toUTF32(const char*BSS_RESTRICT input, ptrdiff_t 
   }
   if(!output) return buflen;
   if((input - (const char*)source) < srclen) sourceEnd = ++input;
+  else sourceEnd = source + srclen;
 
   while(source < sourceEnd)
   {

@@ -10,6 +10,11 @@
 - Added Set() to DynArray and Array
 - Fixed up headers and #defines so bss-util builds and runs under Linux Subsystem for Windows
 - Fixed GetNear on TRBTree
+- Add GetAttribute<TYPE>() helper functions to cXML.h
+- Improve FixedPt class to work on 64-bits with minimal precision loss
+- Added case-insensitive Trie implementation
+- Optimized zero length arrays for UBJSON
+- Fixed bug in UTF8 to UTF32 conversion
 
 0.4.6
 -----

@@ -116,7 +116,6 @@
     <ClInclude Include="..\include\FixedPt.h" />
     <ClInclude Include="..\include\INIparse.h" />
     <ClInclude Include="..\include\khash.h" />
-    <ClInclude Include="..\include\leaktest.h" />
     <ClInclude Include="..\include\LLBase.h" />
     <ClInclude Include="..\include\lockless.h" />
     <ClInclude Include="..\include\os.h" />

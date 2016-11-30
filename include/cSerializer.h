@@ -46,11 +46,11 @@ namespace bss_util {
       //static_assert(HAS_MEMBER(T, Serialize), "T must implement template<class E> void Serialize(cSerializer<E>&)");
       static cTrie<uint16_t> t(sizeof...(Args), (args.first)...);
       if(out) // Serializing
-        int X[] = { (engine.Serialize<Args>(*this, args.second, args.first), 0)... };
+        int X[] = { (engine.template Serialize<Args>(*this, args.second, args.first), 0)... };
       if(in) // Parsing
       {
         if(Engine::Ordered())
-          int X[] = { (engine.Parse<Args>(*this, args.second, args.first), 0)... };
+          int X[] = { (engine.template Parse<Args>(*this, args.second, args.first), 0)... };
         else
         {
           auto tmp = std::make_tuple<std::pair<const char*, Args&>...>(std::move(args)...);
@@ -85,11 +85,11 @@ namespace bss_util {
   public:
     static constexpr bool Ordered() { return false; }
     template<typename T>
-    static typename std::enable_if<std::is_class<T>::value>::type Serialize(cSerializer<EmptyEngine>& e, T& t, const char* id) { t.Serialize<EmptyEngine>(e); }
+    static typename std::enable_if<std::is_class<T>::value>::type Serialize(cSerializer<EmptyEngine>& e, T& t, const char* id) { t.template Serialize<EmptyEngine>(e); }
     template<typename T>
     static typename std::enable_if<!std::is_class<T>::value>::type Serialize(cSerializer<EmptyEngine>& e, T& t, const char* id) {}
     template<typename T>
-    static typename std::enable_if<std::is_class<T>::value>::type Parse(cSerializer<EmptyEngine>& e, T& t, const char* id) { t.Serialize<EmptyEngine>(e); }
+    static typename std::enable_if<std::is_class<T>::value>::type Parse(cSerializer<EmptyEngine>& e, T& t, const char* id) { t.template Serialize<EmptyEngine>(e); }
     template<typename T>
     static typename std::enable_if<!std::is_class<T>::value>::type Parse(cSerializer<EmptyEngine>& e, T& t, const char* id) {}
     template<typename... Args>

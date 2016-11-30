@@ -369,6 +369,7 @@
       <TargetMachine>MachineX86</TargetMachine>
       <StackReserveSize>1000000</StackReserveSize>
       <AssemblyDebug>true</AssemblyDebug>
+      <AdditionalDependencies>../bin32/bss-util32.lib;%(AdditionalDependencies)</AdditionalDependencies>
     </Link>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release Static|Win32'">
@@ -459,6 +460,7 @@
       <OptimizeReferences>true</OptimizeReferences>
       <EnableCOMDATFolding>true</EnableCOMDATFolding>
       <StackReserveSize>10000000</StackReserveSize>
+      <AdditionalDependencies>../bin/bss-util.lib;%(AdditionalDependencies)</AdditionalDependencies>
     </Link>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release Static|x64'">

@@ -15,6 +15,9 @@
 - Added case-insensitive Trie implementation
 - Optimized zero length arrays for UBJSON
 - Fixed bug in UTF8 to UTF32 conversion
+- Removed outdated leaktest.h
+- Added SSE fallback for dealing with compilers or architectures that don't support SSE
+- Project now compiles using clang under visual studio
 
 0.4.6
 -----

@@ -38,7 +38,7 @@ TESTDEF::RETPAIR test_STR()
   TEST(!strcmp(cStr(1, "1 2", ' '), "2"));
   TEST(!strcmp(cStrF("%s2", "place"), "place2"));
   TEST(!strcmp(cStrF("2", "place"), "2"));
-#ifdef BSS_PLATFORM_WIN32 // We can only run this test meaningfully on windows, because its the only one where it actually makes a difference.
+#ifdef BSS_COMPILER_MSVC // We can only run this test meaningfully on windows, because its the only one where it actually makes a difference.
   TEST(!strcmp(cStr(BSS__L("Törkylempijävongahdus")), "TÃ¶rkylempijÃ¤vongahdus"));
 #endif
 

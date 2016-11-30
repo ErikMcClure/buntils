@@ -555,7 +555,6 @@ int BSS_FASTCALL bss_util::GetRegistryValueQWORD(HKEY__* hKeyRoot, const char* s
   return GetRegistryValueQWORDW(hKeyRoot, cStrW(szKey), cStrW(szValue), data);
 }
 
-
 int BSS_FASTCALL r_delregnode(HKEY__* hKeyRoot, const wchar_t* lpSubKey)
 {
   LONG lResult;

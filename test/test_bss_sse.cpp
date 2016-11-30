@@ -20,8 +20,8 @@ inline int PriCompare(const int(&li)[4], const int(&ri)[4])
   sseVeci t = ((l>r)&m) + ((l<r)&n);
   l = BSS_SSE_SHUFFLE_EPI32(t, 0x1B); // Assign t to l, but reversed
   l += t;
-  t = _mm_castps_si128(_mm_movehl_ps(_mm_castsi128_ps(t), _mm_castsi128_ps(l))); // Move upper 2 ints to bottom 2 ints
-  return _mm_cvtsi128_si32(t + l); // return bottom 32bit result
+  t = BSS_SSE_CAST_PS_SI128(BSS_SSE_MOVEHL_PS(BSS_SSE_CAST_SI128_PS(t), BSS_SSE_CAST_SI128_PS(l))); // Move upper 2 ints to bottom 2 ints
+  return BSS_SSE_SI128_SI32(t + l); // return bottom 32bit result
 }
 
 BSS_FORCEINLINE int PriComp(int l1, int l2, int l3, int l4, int r1, int r2, int r3, int r4)
@@ -59,7 +59,7 @@ inline static uint32_t Interpolate(uint32_t l, uint32_t r, float c)
   //xr = xl;
   //xr = _mm_shuffle_epi32(xr,0x1B); // Reverses the order of xr so we now have (d,c,b,a)
   //xl = _mm_or_si128(xl,xr); // Or xl and xr so we get (d|a,c|b,b|c,a|d) in xl
-  //xr = _mm_castps_si128(_mm_movehl_ps(_mm_castsi128_ps(xr),_mm_castsi128_ps(xl))); // Move upper 2 ints to bottom 2 ints in xr so xr = (d,c,d|a,c|b)
+  //xr = _mm_castps_si128(_mm_movehl_ps(BSS_SSE_CAST_SI128_PS(xr),BSS_SSE_CAST_SI128_PS(xl))); // Move upper 2 ints to bottom 2 ints in xr so xr = (d,c,d|a,c|b)
   //xl = _mm_or_si128(xl,xr); // Now or them again so we get (d|a,c|b,b|c | d|a,a|d | c|b) which lets us take out the bottom integer as our result
 
   sseVeci xl(l); // duplicate l 4 times in the 128-bit register (l,l,l,l)
@@ -73,19 +73,19 @@ inline static uint32_t Interpolate(uint32_t l, uint32_t r, float c)
   xl &= xm; // mask l with m again.
   xr = sseVeci::Shuffle<0x1B>(xl); // assign the values of xl to xr, but reversed, so we have (d,c,b,a)
   xl |= xr; // OR xl and xr so we get (d|a,c|b,b|c,a|d) in xl
-  xr = _mm_castps_si128(_mm_movehl_ps(_mm_castsi128_ps(xr), _mm_castsi128_ps(xl))); // Move upper 2 ints to bottom 2 ints in xr so xr = (d,c,d|a,c|b)
-  return (uint32_t)_mm_cvtsi128_si32(xl | xr); // Now OR them again so we get (d|a,c|b,b|c | d|a,a|d | c|b), then store the bottom 32-bit integer. What kind of fucked up name is _mm_cvtsi128_si32 anyway?
+  xr = BSS_SSE_CAST_PS_SI128(BSS_SSE_MOVEHL_PS(BSS_SSE_CAST_SI128_PS(xr), BSS_SSE_CAST_SI128_PS(xl))); // Move upper 2 ints to bottom 2 ints in xr so xr = (d,c,d|a,c|b)
+  return (uint32_t)BSS_SSE_SI128_SI32(xl | xr); // Now OR them again so we get (d|a,c|b,b|c | d|a,a|d | c|b), then store the bottom 32-bit integer. What kind of fucked up name is _mm_cvtsi128_si32 anyway?
 }
 
 static uint32_t flttoint(const float(&ch)[4])
 {
   //return (((uint32_t)(ch[0]*255.0f))<<24)|(((uint32_t)(ch[1]*255.0f))<<16)|(((uint32_t)(ch[2]*255.0f))<<8)|(((uint32_t)(ch[3]*255.0f)));
-  sseVeci xch = (BSS_SSE_SHUFFLEHI_EPI16(sseVeci(sseVec(ch)*sseVec(255.0f, 65280.0f, 255.0f, 65280.0f)), 0xB1));
+  sseVeci xch = ((BSS_SSE_M128i)BSS_SSE_SHUFFLEHI_EPI16(sseVeci(sseVec(ch)*sseVec(255.0f, 65280.0f, 255.0f, 65280.0f)), 0xB1));
   xch &= sseVeci(0x000000FF, 0x0000FF00, 0x00FF0000, 0xFF000000);
-  sseVeci xh = BSS_SSE_SHUFFLE_EPI32(xch, 0x1B); // assign the values of xl to xr, but reversed, so we have (d,c,b,a)
+  sseVeci xh = (BSS_SSE_M128i)BSS_SSE_SHUFFLE_EPI32((BSS_SSE_M128i)xch, 0x1B); // assign the values of xl to xr, but reversed, so we have (d,c,b,a)
   xch |= xh; // OR xl and xr so we get (d|a,c|b,b|c,a|d) in xl
-  xh = _mm_castps_si128(_mm_movehl_ps(_mm_castsi128_ps(xh), _mm_castsi128_ps(xch))); // Move upper 2 ints to bottom 2 ints in xr so xr = (d,c,d|a,c|b)
-  return (uint32_t)_mm_cvtsi128_si32(xch | xh);
+  xh = BSS_SSE_CAST_PS_SI128(BSS_SSE_MOVEHL_PS(BSS_SSE_CAST_SI128_PS(xh), BSS_SSE_CAST_SI128_PS(xch))); // Move upper 2 ints to bottom 2 ints in xr so xr = (d,c,d|a,c|b)
+  return (uint32_t)BSS_SSE_SI128_SI32(xch | xh);
 }
 
 static void inttoflt(uint32_t from, float(&ch)[4])
@@ -101,20 +101,30 @@ TESTDEF::RETPAIR test_bss_SSE()
   {
     CPU_Barrier();
     uint32_t r = Interpolate(0xFF00FFAA, 0x00FFAACC, 0.5f);
+    TEST(r == 0x7F7FD4BB);
     sseVeci xr(r);
     sseVeci xz(r);
     xr += xz;
+    sseVeci xa0 = xr;
     xr -= xz;
+    sseVeci xa1 = xr;
     xr &= xz;
+    sseVeci xa2 = xr;
     xr |= xz;
+    sseVeci xa3 = xr;
     xr ^= xz;
+    sseVeci xa4 = xr;
     xr >>= 5;
+    sseVeci xa5 = xr;
     sseVeci y = xr >> 3;
     xr <<= 3;
+    sseVeci xa6 = xr;
     xr <<= xz;
+    sseVeci xa7 = xr;
     xr >>= xz;
-    sseVeci xw(r >> 3);
-    xw = ((xz + xw) | (xz&xw)) - (xw << 2) + ((xz << xw) ^ ((xz >> xw) >> 1));
+    sseVeci xa8 = xr;
+    sseVeci xa(r >> 3);
+    sseVeci xw = ((xz + xa) | (xz&xa)) - (xa << 2) + ((xz << 4) ^ ((xz >> 5) >> 1));
     sseVeci c1(xw == r);
     sseVeci c2(xw != r);
     sseVeci c3(xw<r);
@@ -129,7 +139,7 @@ TESTDEF::RETPAIR test_bss_SSE()
     xz >> rv;
     TESTALLFOUR(rv, 2139083963);
     xw >> rv;
-    TESTALLFOUR(rv, 1336931703);
+    TESTALLFOUR(rv, 1169205849);
     c1 >> rv;
     TESTALLFOUR(rv, 0);
     c2 >> rv;
@@ -142,7 +152,27 @@ TESTDEF::RETPAIR test_bss_SSE()
     TESTALLFOUR(rv, -1);
     c6 >> rv;
     TESTALLFOUR(rv, 0);
+    c6 >> rv;
     CPU_Barrier();
+
+    xa0 >> rv;
+    TESTALLFOUR(rv, 0xFEFFA976);
+    xa1 >> rv;
+    TESTALLFOUR(rv, 0x7F7FD4BB);
+    xa2 >> rv;
+    TESTALLFOUR(rv, 0x7F7FD4BB);
+    xa3 >> rv;
+    TESTALLFOUR(rv, 0x7F7FD4BB);
+    xa4 >> rv;
+    TESTALLFOUR(rv, 0);
+    xa5 >> rv;
+    TESTALLFOUR(rv, 0);
+    xa6 >> rv;
+    TESTALLFOUR(rv, 0);
+    xa7 >> rv;
+    TESTALLFOUR(rv, 0);
+    xa8 >> rv;
+    TESTALLFOUR(rv, 0);
 
     sseVeci(1, 2, 3, 4).Shuffle<0, 1, 2, 3>() >> rv;
     TESTFOUR(rv, 1, 2, 3, 4);

@@ -99,9 +99,6 @@
     <ClInclude Include="..\include\khash.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="..\include\leaktest.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
     <ClInclude Include="..\include\LLBase.h">
       <Filter>Header Files</Filter>
     </ClInclude>

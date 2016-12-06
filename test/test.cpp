@@ -77,7 +77,8 @@ int DEBUG_CDT_SAFE::count = 0;
 int DEBUG_CDT_SAFE::ID = 0;
 bss_util::cHash<int> DEBUG_CDT_SAFE::Tracker;
 
-//#define BSS_ISOLATE_TEST 11
+#define BSS_ISOLATE_TEST 51
+//#define BSS_ISOLATE_TEST 35
 
 // --- Begin main testing function ---
 int main(int argc, char** argv)
@@ -148,6 +149,7 @@ int main(int argc, char** argv)
     { "cStrTable.h", &test_STRTABLE },
     { "cThread.h", &test_THREAD },
     { "cThreadPool.h", &test_THREADPOOL },
+    { "cTOML.h", &test_TOML },
     { "cTRBtree.h", &test_TRBTREE },
     { "cTrie.h", &test_TRIE },
     { "cXML.h", &test_XML },

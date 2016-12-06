@@ -211,7 +211,7 @@ namespace bss_util {
   {
     static inline void DoAddCall(cSerializer<JSONEngine>& e, cDynArray<T, CType, ArrayType, Alloc>& obj, std::istream& s, int& n)
     {
-      obj.Add(T());
+      obj.AddConstruct();
       ParseJSONBase<T>(e, obj.Back(), s);
     }
     static void F(cSerializer<JSONEngine>& e, cDynArray<T, CType, ArrayType, Alloc>& obj, std::istream& s)
@@ -239,6 +239,12 @@ namespace bss_util {
   {
     static inline void DoAddCall(cSerializer<JSONEngine>& e, T(&obj)[I], std::istream& s, int& n) { if(n<I) ParseJSONBase<T>(e, obj[n++], s); }
     static void F(cSerializer<JSONEngine>& e, T(&obj)[I], std::istream& s) { ParseJSONArray<T[I]>(e, obj, s); }
+  };
+  template<class T, int I, bool B> // For fixed-length arrays
+  struct ParseJSONInternal<std::array<T,I>, B>
+  {
+    static inline void DoAddCall(cSerializer<JSONEngine>& e, std::array<T, I>& obj, std::istream& s, int& n) { if(n<I) ParseJSONBase<T>(e, obj[n++], s); }
+    static void F(cSerializer<JSONEngine>& e, std::array<T, I>& obj, std::istream& s) { ParseJSONArray<std::array<T, I>>(e, obj, s); }
   };
   template<class T, typename Alloc>
   struct ParseJSONInternal<std::vector<T, Alloc>, false>
@@ -341,6 +347,7 @@ namespace bss_util {
     case '9':
     case '.':
     case '-':
+    case '+':
     {
       cStr buf;
       ParseJSONBase<cStr>(e, buf, s);
@@ -450,6 +457,11 @@ namespace bss_util {
   struct WriteJSONInternal<T[I], B>
   {
     static void F(cSerializer<JSONEngine>& e, const char* id, const T(&obj)[I], std::ostream& s, uint32_t& pretty) { WriteJSONArray<T>(e, id, obj, I, s, pretty); }
+  };
+  template<class T, int I, bool B>
+  struct WriteJSONInternal<std::array<T,I>, B>
+  {
+    static void F(cSerializer<JSONEngine>& e, const char* id, const std::array<T, I>& obj, std::ostream& s, uint32_t& pretty) { WriteJSONArray<T>(e, id, obj.data(), I, s, pretty); }
   };
   template<class T, typename CType, ARRAY_TYPE ArrayType, typename Alloc>
   struct WriteJSONInternal<cDynArray<T, CType, ArrayType, Alloc>, false>

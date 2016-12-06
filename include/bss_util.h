@@ -824,7 +824,7 @@ namespace bss_util {
   }
 
   template<class T>
-  inline static typename std::make_unsigned<T>::type bssabs(T x)
+  inline static typename std::make_unsigned<T>::type bssabs(T x) noexcept
   {
     static_assert(std::is_signed<T>::value, "T must be signed for this to work properly.");
     T const mask = x >> ((sizeof(T) << 3) - 1); // Uses a bit twiddling hack to take absolute value without branching: https://graphics.stanford.edu/~seander/bithacks.html#IntegerAbs
@@ -832,7 +832,7 @@ namespace bss_util {
   }
 
   template<class T>
-  inline static typename std::make_signed<T>::type bssnegate(T x, char negate)
+  inline static typename std::make_signed<T>::type bssnegate(T x, char negate) noexcept
   {
     static_assert(std::is_unsigned<T>::value, "T must be unsigned for this to work properly.");
     return (x ^ -negate) + negate;
@@ -859,7 +859,7 @@ namespace bss_util {
 
   // Double width multiplication followed by a right shift and truncation.
   template<class T>
-  inline static T BSS_FASTCALL __bssmultiplyextract__h(T xs, T ys, T shift)
+  inline static T BSS_FASTCALL __bssmultiplyextract__h(T xs, T ys, T shift) noexcept
   {
     typedef typename std::make_unsigned<T>::type U;
     U x = __bssabsnegate_h<std::is_signed<T>::value, T>::_bssabs(xs);
@@ -887,21 +887,34 @@ namespace bss_util {
     return (T)(low | high);
   }
   template<class T>
-  BSS_FORCEINLINE static T BSS_FASTCALL bssmultiplyextract(T x, T y, T shift)
+  BSS_FORCEINLINE static T BSS_FASTCALL bssmultiplyextract(T x, T y, T shift) noexcept
   {
     typedef typename std::conditional<std::is_signed<T>::value, typename BitLimit<sizeof(T) << 4>::SIGNED, typename BitLimit<sizeof(T) << 4>::UNSIGNED>::type U;
     return (T)(((U)x * (U)y) >> shift);
   }
 #ifndef BSS_HASINT128
   template<>
-  BSS_FORCEINLINE BSS_EXPLICITSTATIC int64_t BSS_FASTCALL bssmultiplyextract<int64_t>(int64_t x, int64_t y, int64_t shift) { return __bssmultiplyextract__h<int64_t>(x, y, shift); }
+  BSS_FORCEINLINE BSS_EXPLICITSTATIC int64_t BSS_FASTCALL bssmultiplyextract<int64_t>(int64_t x, int64_t y, int64_t shift) noexcept { return __bssmultiplyextract__h<int64_t>(x, y, shift); }
   template<>
-  BSS_FORCEINLINE BSS_EXPLICITSTATIC uint64_t BSS_FASTCALL bssmultiplyextract<uint64_t>(uint64_t x, uint64_t y, uint64_t shift) { return __bssmultiplyextract__h<uint64_t>(x, y, shift); }
+  BSS_FORCEINLINE BSS_EXPLICITSTATIC uint64_t BSS_FASTCALL bssmultiplyextract<uint64_t>(uint64_t x, uint64_t y, uint64_t shift) noexcept { return __bssmultiplyextract__h<uint64_t>(x, y, shift); }
 #endif
+
+  template<class I>
+  inline static I days_from_civil(I y, unsigned m, unsigned d) noexcept
+  {
+    static_assert(std::numeric_limits<unsigned>::digits >= 18, "This algorithm has not been ported to a 16 bit unsigned integer");
+    static_assert(std::numeric_limits<I>::digits >= 20, "This algorithm has not been ported to a 16 bit signed integer");
+    y -= m <= 2;
+    const I era = (y >= 0 ? y : y - 399) / 400;
+    const unsigned yoe = static_cast<unsigned>(y - era * 400);      // [0, 399]
+    const unsigned doy = (153 * (m + (m > 2 ? -3 : 9)) + 2) / 5 + d - 1;  // [0, 365]
+    const unsigned doe = yoe * 365 + yoe / 4 - yoe / 100 + doy;         // [0, 146096]
+    return era * 146097 + static_cast<I>(doe) - 719468;
+  }
 
   // Generic function application to an array
   template<class T, size_t I, T (*F)(T,T)>
-  BSS_FORCEINLINE static std::array<T, I> BSS_FASTCALL arraymap(const std::array<T, I>& l, const std::array<T, I>& r)
+  BSS_FORCEINLINE static std::array<T, I> BSS_FASTCALL arraymap(const std::array<T, I>& l, const std::array<T, I>& r) noexcept
   {
     std::array<T, I> x;
     for(size_t i = 0; i < I; ++i)

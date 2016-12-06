@@ -14,11 +14,14 @@ namespace bss_util {
   template<class T>
   std::pair<const char*, T&> GenPair(const char* l, T& r) { return std::pair<const char*, T&>(l, r); }
 
+  // Defines a universal serializer using an arbitrary serialization engine for types that implement "template<typename Engine> void Serialize(cSerializer<Engine>& e)"
   template<class Engine>
   class cSerializer
   {
   public:
     cSerializer() {}
+    explicit cSerializer(std::ostream& s) : out(&s), in(0) {}
+    explicit cSerializer(std::istream& s) : out(0), in(&s) {}
     ~cSerializer() { if(out) out->flush(); }
     Engine engine;
     std::ostream* out;

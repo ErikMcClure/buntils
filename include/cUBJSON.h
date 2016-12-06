@@ -369,7 +369,7 @@ namespace bss_util {
       s.read((char*)(T*)obj, count);
       return true;
     }
-    static inline void DoAddCall(cSerializer<UBJSONEngine>& e, cDynArray<T, CType, ArrayType, Alloc>& obj, std::istream& s, int64_t& n, char ty) { obj.Add(T()); ParseUBJSONBase<T>(e, obj.Back(), s, ty); }
+    static inline void DoAddCall(cSerializer<UBJSONEngine>& e, cDynArray<T, CType, ArrayType, Alloc>& obj, std::istream& s, int64_t& n, char ty) { obj.AddConstruct(); ParseUBJSONBase<T>(e, obj.Back(), s, ty); }
     static void F(cSerializer<UBJSONEngine>& e, cDynArray<T, CType, ArrayType, Alloc>& obj, std::istream& s, char ty)
     {
       obj.Clear();

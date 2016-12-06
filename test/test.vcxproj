@@ -589,6 +589,7 @@
     <ClCompile Include="test_strtable.cpp" />
     <ClCompile Include="test_thread.cpp" />
     <ClCompile Include="test_threadpool.cpp" />
+    <ClCompile Include="test_toml.cpp" />
     <ClCompile Include="test_trbtree.cpp" />
     <ClCompile Include="test_trie.cpp" />
     <ClCompile Include="test_ubjson.cpp" />

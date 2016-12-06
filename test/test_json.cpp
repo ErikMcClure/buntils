@@ -10,11 +10,12 @@ using namespace bss_util;
 struct JSONtest2
 {
   cDynArray<JSONtest2, uint32_t, CARRAY_SAFE> value;
+  std::array<int, 2> ia;
 
   template<typename Engine>
   void Serialize(cSerializer<Engine>& s)
   {
-    s.template EvaluateType<JSONtest2>(GenPair("value", value));
+    s.template EvaluateType<JSONtest2>(GenPair("value", value), GenPair("ia", ia));
   }
 };
 
@@ -26,7 +27,7 @@ struct JSONtest
   cStr test;
   JSONtest2 nested;
   cDynArray<uint16_t> foo;
-  cDynArray<double> bar;
+  std::vector<double> bar;
   cDynArray<cStr, uint16_t, CARRAY_SAFE> foobar;
   cDynArray<JSONtest, uint32_t, CARRAY_SAFE> nestarray;
   JSONtest2 nested2;
@@ -67,6 +68,8 @@ void dotest_JSON(JSONtest& o, TESTDEF::RETPAIR& __testret)
   TEST(o.fixed[2] == -3.0f);
   TEST(o.test.length() > 0);
   TEST(o.nested.value.Length() == 2);
+  TEST(o.nested.ia[0] == -1);
+  TEST(o.nested.ia[1] == 2);
   TEST(o.foo.Length() == 6);
   TEST(o.foo[0] == 5);
   TEST(o.foo[1] == 6);
@@ -74,7 +77,7 @@ void dotest_JSON(JSONtest& o, TESTDEF::RETPAIR& __testret)
   TEST(o.foo[3] == 2);
   TEST(o.foo[4] == 2);
   TEST(o.foo[5] == 3);
-  TEST(o.bar.Length() == 5);
+  TEST(o.bar.size() == 5);
   TEST(o.bar[0] == 3.3);
   TEST(o.bar[1] == 1.6543);
   TEST(o.bar[2] == 0.49873);
@@ -91,7 +94,7 @@ void dotest_JSON(JSONtest& o, TESTDEF::RETPAIR& __testret)
 TESTDEF::RETPAIR test_JSON()
 {
   BEGINTEST;
-  const char* json = "{ \"a\": -5, \"b\": 342  ,\"c\":23.7193 , \"btrue\": true, \"bfalse\": false, \"fixed\": [0.2, 23.1, -3, 4.0], \"test\":\"\\u01A8string {,};[]\\\"st\\\"'\\\n\\\r\\/\\u0FA8nb\\\"\", \"nested\" : { \"value\": [ { }, { } ] }, \"foo\": [5 ,6, 4,2 ,  2,3,], \"bar\": [3.3,1.6543,0.49873,90, 4], \"foobar\":[\"moar\",\"\"], \"nestarray\": [null, { \"a\":, \"b\":34, }], \"nested2\": null }";
+  const char* json = "{ \"a\": -5, \"b\": 342  ,\"c\":23.7193 , \"btrue\": true, \"bfalse\": false, \"fixed\": [0.2, 23.1, -3, 4.0], \"test\":\"\\u01A8string {,};[]\\\"st\\\"'\\\n\\\r\\/\\u0FA8nb\\\"\", \"nested\" : { \"value\": [ { }, { } ], \"ia\":[  -1,2 ] }, \"foo\": [5 ,6, 4,2 ,  2,3,], \"bar\": [3.3,1.6543,0.49873,90, 4], \"foobar\":[\"moar\",\"\"], \"nestarray\": [null, { \"a\":, \"b\":34, }], \"nested2\": null }";
   JSONtest o;
   o.btrue = false;
   o.bfalse = true;

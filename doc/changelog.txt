@@ -18,6 +18,8 @@
 - Removed outdated leaktest.h
 - Added SSE fallback for dealing with compilers or architectures that don't support SSE
 - Project now compiles using clang under visual studio
+- Added TOML parser/serializer under cTOML.h
+- Made a few minor improvements to JSON parsing/serializing
 
 0.4.6
 -----

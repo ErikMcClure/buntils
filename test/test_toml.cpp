@@ -3,6 +3,7 @@
 
 #include "test.h"
 #include "cTOML.h"
+#include <fstream>
 
 using namespace bss_util;
 
@@ -98,7 +99,9 @@ void dotest_TOML(TOMLtest& o, TESTDEF::RETPAIR& __testret)
   TEST(o.test2.test.f == -3.5f);
   TEST(o.nested.Length() == 2);
   TEST(o.nested[0].a == 2);
+  TEST(o.nested[0].test.f == 80.9f);
   TEST(o.nested[1].a == 3);
+  TEST(o.nested[1].test.f == -12.21f);
 }
 
 TESTDEF::RETPAIR test_TOML()
@@ -126,9 +129,13 @@ a = 5 \n\
 \n\
 [[nested]]\n\
 a = 2\n\
+[nested.test]\n\
+f = 80.9\n\
 \n\
 [[nested]]\n\
 a = 3\n\
+[nested.test]\n\
+f = -12.21\n\
 \n\
 [test2.test] \n\
 f = -3.5";
@@ -136,6 +143,47 @@ f = -3.5";
   TOMLtest tomltest;
   ParseTOML(tomltest, tomlfile);
   dotest_TOML(tomltest, __testret);
+
+  WriteTOML(tomltest, "out.toml");
+
+  std::ifstream fs("out.toml", std::ios_base::in | std::ios_base::binary);
+  TOMLtest tomltest2;
+  ParseTOML(tomltest2, fs);
+  dotest_TOML(tomltest2, __testret);
+
+  TOMLValue tomltest3;
+  ParseTOML(tomltest3, tomlfile);
+  auto& t3 = tomltest3.get<TOMLValue::TOMLTable>();
+  TEST(t3["a"]->get<int64_t>() == -1);
+  TEST(t3["b"]->get<int64_t>() == 2);
+  TEST(t3["c"]->get<double>() == 0.28);
+  TEST(t3["btrue"]->get<bool>() == true);
+  TEST(t3["bfalse"]->get<bool>() == false);
+  auto& t3d = t3["d"]->get<TOMLValue::TOMLArray>();
+  TEST(t3d[0].get<double>() == 1e-6);
+  TEST(t3d[1].get<int64_t>() == -2);
+  TEST(t3d[2].get<double>() == 0.3);
+  TEST(t3d[3].get<double>() == 0.1);
+  TEST(t3d[4].get<int64_t>() == 1);
+  TEST(t3d[5].get<int64_t>() == -2);
+  auto& t3e = t3["e"]->get<TOMLValue::TOMLArray>();
+  TEST(t3e[0].get<int64_t>() == -2);
+  TEST(t3e[1].get<int64_t>() == 100);
+  TEST(t3e[2].get<int64_t>() == 8);
+  auto& t3f = t3["f"]->get<TOMLValue::TOMLArray>();
+  TEST(!strcmp(t3f[0].get<cStr>(), "first"));
+  TEST(!strcmp(t3f[1].get<cStr>(), "SECOND"));
+  TEST(!strcmp(t3f[2].get<cStr>(), "ThirD"));
+  TEST(!strcmp(t3f[3].get<cStr>(), "fOURTh"));
+  auto& t3g = t3["g"]->get<TOMLValue::TOMLArray>();
+  TEST(!t3g[0].get<bool>());
+  TEST(t3g[1].get<bool>());
+  auto& t3inline = t3["inlinetest"]->get<TOMLValue::TOMLTable>();
+  TEST(t3inline["a"]->get<int64_t>() == 6);
+  auto& t3t2 = t3["test2"]->get<TOMLValue::TOMLTable>();
+  auto p = t3t2["a"];
+  TEST(t3t2["a"]->get<int64_t>() == 5);
+
 
   ENDTEST;
 }

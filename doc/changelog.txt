@@ -20,6 +20,7 @@
 - Project now compiles using clang under visual studio
 - Added TOML parser/serializer under cTOML.h
 - Made a few minor improvements to JSON parsing/serializing
+- Added auxiliary binsearch function
 
 0.4.6
 -----

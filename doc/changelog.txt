@@ -21,6 +21,7 @@
 - Added TOML parser/serializer under cTOML.h
 - Made a few minor improvements to JSON parsing/serializing
 - Added auxiliary binsearch function
+- Added Capacity()/Length() to cTrie
 
 0.4.6
 -----

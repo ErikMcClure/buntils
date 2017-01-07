@@ -112,8 +112,9 @@ static const UTF8 firstByteMark[7] = { 0x00, 0x00, 0xC0, 0xE0, 0xF0, 0xF8, 0xFC 
 
 
 BSS_COMPILER_DLLEXPORT
-extern size_t BSS_FASTCALL UTF32toUTF16(const int*BSS_RESTRICT input, ptrdiff_t srclen, wchar_t*BSS_RESTRICT output, size_t buflen)
+extern size_t UTF32toUTF16(const int*BSS_RESTRICT input, ptrdiff_t srclen, wchar_t*BSS_RESTRICT output, size_t buflen)
 {
+  if(!srclen) return 0;
   char result = 0;
   const UTF32* source = (unsigned int*)input;
   UTF16* target = (unsigned short*)output;
@@ -185,8 +186,9 @@ extern size_t BSS_FASTCALL UTF32toUTF16(const int*BSS_RESTRICT input, ptrdiff_t 
 }
 
 BSS_COMPILER_DLLEXPORT
-extern size_t BSS_FASTCALL UTF16toUTF32(const wchar_t*BSS_RESTRICT input, ptrdiff_t srclen, int*BSS_RESTRICT output, size_t buflen)
+extern size_t UTF16toUTF32(const wchar_t*BSS_RESTRICT input, ptrdiff_t srclen, int*BSS_RESTRICT output, size_t buflen)
 {
+  if(!srclen) return 0;
   char result = 0;
   const UTF16* source = (unsigned short*)input;
   const UTF16* sourceEnd = source;
@@ -251,8 +253,9 @@ extern size_t BSS_FASTCALL UTF16toUTF32(const wchar_t*BSS_RESTRICT input, ptrdif
 /* --------------------------------------------------------------------- */
 
 BSS_COMPILER_DLLEXPORT
-extern size_t BSS_FASTCALL UTF32toUTF8(const int*BSS_RESTRICT input, ptrdiff_t srclen, char*BSS_RESTRICT output, size_t buflen)
+extern size_t UTF32toUTF8(const int*BSS_RESTRICT input, ptrdiff_t srclen, char*BSS_RESTRICT output, size_t buflen)
 {
+  if(!srclen) return 0;
   char result = 0;
   const UTF32* source = (unsigned int*)input;
   const UTF32* sourceEnd = source + srclen;
@@ -398,8 +401,9 @@ char isLegalUTF8Sequence(const UTF8 *source, const UTF8 *sourceEnd) {
 /* --------------------------------------------------------------------- */
 
 BSS_COMPILER_DLLEXPORT
-extern size_t BSS_FASTCALL UTF8toUTF32(const char*BSS_RESTRICT input, ptrdiff_t srclen, int*BSS_RESTRICT output, size_t buflen)
+extern size_t UTF8toUTF32(const char*BSS_RESTRICT input, ptrdiff_t srclen, int*BSS_RESTRICT output, size_t buflen)
 {
+  if(!srclen) return 0;
   char result = 0;
   const UTF8* source = (UTF8*)input;
   UTF32* target = (UTF32*)output;

@@ -11,9 +11,7 @@ TESTDEF::RETPAIR test_XML()
 {
   BEGINTEST;
 
-  cXML test2("<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n \
-    <room fancyname=\"Space\" desc=\"This is space.\" startroom=\"0xFFFFFFFFFFFFFFFF\" north=\"TESTROOMNORTH\" roomid=\"TESTROOM\" /> \
-    <room roomid = \"TESTROOMNORTH\" nm:fancyname = \"-200000\" desc = \"This is the room to the north.\" south = \"TESTROOM\" />");
+  cXML test2("<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n<room fancyname=\"Space\" desc=\"This is space.\" startroom=\"0xFFFFFFFFFFFFFFFF\" north=\"TESTROOMNORTH\" roomid=\"TESTROOM\" />\n<room roomid = \"TESTROOMNORTH\" nm:fancyname = \"-200000\" desc = \"This is the room to the north.\" south = \"TESTROOM\" />");
 
   TEST(!strcmp(test2[(size_t)0]->GetAttribute("roomid")->String, "TESTROOM"));
   TEST(!strcmp(test2[(size_t)0]->GetAttribute((size_t)0)->String, "Space"));

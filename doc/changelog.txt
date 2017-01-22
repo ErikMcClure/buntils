@@ -22,6 +22,7 @@
 - Made a few minor improvements to JSON parsing/serializing
 - Added auxiliary binsearch function
 - Added Capacity()/Length() to cTrie
+- Added helper functions to cHash
 
 0.4.6
 -----

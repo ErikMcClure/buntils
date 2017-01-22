@@ -60,6 +60,8 @@ TESTDEF::RETPAIR test_HASH()
       TEST(val[4] == -1);
       val.Insert(4, -2);
       TEST(val[4] == -2);
+      val.MutableValue(val.Iterator(4)) -= 1;
+      TEST(val[4] == -3);
       val.Remove(-3);
       TEST(val[-3] == -1);
     }

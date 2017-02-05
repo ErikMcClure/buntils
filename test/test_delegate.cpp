@@ -52,5 +52,11 @@ TESTDEF::RETPAIR test_DELEGATE()
   TEST(fcalled);
   five();
   TEST(foo.count == 2);
+
+  {
+    defer(&external_zoidberg, &foo);
+    defer(four, -6, 0, true);
+  }
+  TEST(foo.count == 3);
   ENDTEST;
 }

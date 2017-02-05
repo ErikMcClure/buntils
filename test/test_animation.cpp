@@ -3,7 +3,6 @@
 
 #include "test.h"
 #include "cFXAni.h"
-#include "cSmartPtr.h"
 #include "variant.h"
 #include <memory>
 
@@ -16,7 +15,7 @@ struct cAnimObj
   int test2;
   float fl;
   void BSS_FASTCALL donothing(cRefCounter*) { ++test; }
-  cRefCounter* BSS_FASTCALL retnothing(cAutoRef<cRefCounter> p) {
+  cRefCounter* BSS_FASTCALL retnothing(ref_ptr<cRefCounter> p) {
     ++test2;
     p->Grab();
     return (cRefCounter*)p;
@@ -63,7 +62,7 @@ TESTDEF::RETPAIR test_ANIMATION()
     a0.Add(0.0, &c);
     a0.Add(1.1, &c);
     a0.Add(2.0, &c);
-    cAnimationInterval<cAutoRef<cRefCounter>> a1;
+    cAnimationInterval<ref_ptr<cRefCounter>> a1;
     a1.Add(0.0, &c, 1.5);
     a1.Add(1.0, &c, 0.5);
     a1.Add(1.5, &c, 0.5);
@@ -89,7 +88,7 @@ TESTDEF::RETPAIR test_ANIMATION()
     //a.GetAttribute<3>()->AddKeyFrame(KeyFrame<3>(0.6, [&](){ c.Drop(); }));
     //a.Attach(delegate<void,AniAttribute*>::From<cAnimObj,&cAnimObj::TypeIDRegFunc>(&obj));
     cAniStateDiscrete<cRefCounter*> s0(&a0, delegate<void, cRefCounter*>::From<cAnimObj, &cAnimObj::donothing>(&obj));
-    cAniStateInterval<cAutoRef<cRefCounter>, cRefCounter*> s1(&a1, delegate<cRefCounter*, cAutoRef<cRefCounter>>::From<cAnimObj, &cAnimObj::retnothing>(&obj), delegate<void, cRefCounter*>::From<cAnimObj, &cAnimObj::remnothing>(&obj));
+    cAniStateInterval<ref_ptr<cRefCounter>, cRefCounter*> s1(&a1, delegate<cRefCounter*, ref_ptr<cRefCounter>>::From<cAnimObj, &cAnimObj::retnothing>(&obj), delegate<void, cRefCounter*>::From<cAnimObj, &cAnimObj::remnothing>(&obj));
     cAniStateSmooth<float> s2(&a2, delegate<void, float>::From<cAnimObj, &cAnimObj::setfloat>(&obj));
 
     auto interall = [&](double t) {

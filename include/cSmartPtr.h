@@ -48,33 +48,6 @@ namespace bss_util
     _Ty* _p;
     bool _owner;
   };
-
-  // Implementation of an automatic reference tracker for use in conjunction with cRefCounter. Mimics a pointer.
-  template<class T>
-  class BSS_COMPILER_DLLEXPORT cAutoRef
-  {
-  public:
-    inline cAutoRef(const cAutoRef& copy) : _p(copy._p) { if(_p!=0) _p->Grab(); }
-    inline cAutoRef(cAutoRef&& mov) : _p(mov._p) { mov._p=0; }
-    inline cAutoRef(T* p=0) : _p(p) { if(_p!=0) _p->Grab(); }
-    inline ~cAutoRef() { if(_p!=0) _p->Drop(); }
-
-    inline bool operator !() { return !_p; }
-    inline bool operator ==(const T* right) { return _p==right; }
-    inline bool operator !=(const T* right) { return _p!=right; }
-    inline operator T*() { return _p; }
-    inline operator const T*() const { return _p; }
-    inline T* operator->() { return _p; }
-    inline const T* operator->() const { return _p; }
-    inline T& operator*() { return *_p; }
-    inline const T& operator*() const { return *_p; }
-    inline cAutoRef& operator=(const cAutoRef& right) { return operator=(right._p); }
-    inline cAutoRef& operator=(cAutoRef&& right) { if(_p!=0) _p->Drop(); _p=right._p; right._p=0; return *this; }
-    inline cAutoRef& operator=(T* right) { if(_p!=0) _p->Drop(); _p=right; if(_p!=0) _p->Grab(); return *this; }
-
-  protected:
-    T* _p;
-  };
 }
 
 #endif

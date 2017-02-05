@@ -77,7 +77,7 @@ int DEBUG_CDT_SAFE::count = 0;
 int DEBUG_CDT_SAFE::ID = 0;
 bss_util::cHash<int> DEBUG_CDT_SAFE::Tracker;
 
-//#define BSS_ISOLATE_TEST 54
+#define BSS_ISOLATE_TEST 46
 
 // --- Begin main testing function ---
 int main(int argc, char** argv)
@@ -143,6 +143,7 @@ int main(int argc, char** argv)
     { "cPriorityQueue.h", &test_PRIORITYQUEUE },
     { "cRational.h", &test_RATIONAL },
     { "cRefCounter.h", &test_REFCOUNTER },
+    { "rwlock.h", &test_RWLOCK },
     { "cSingleton.h", &test_SINGLETON },
     { "cStr.h", &test_STR },
     { "cStrTable.h", &test_STRTABLE },

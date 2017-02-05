@@ -35,7 +35,7 @@ TESTDEF::RETPAIR test_RWLOCK()
 
   {
     lock.RLock();
-    std::atomic<size_t> steps = 0;
+    std::atomic<size_t> steps(0);
     cThread t([&]() {
       steps.fetch_add(1, std::memory_order_relaxed);
       lock.Lock();
@@ -53,7 +53,7 @@ TESTDEF::RETPAIR test_RWLOCK()
 
   {
     lock.Lock();
-    std::atomic<size_t> steps = 0;
+    std::atomic<size_t> steps(0);
     cThread t([&]() {
       steps.fetch_add(1, std::memory_order_relaxed);
       lock.RLock();

@@ -18,15 +18,5 @@ TESTDEF::RETPAIR test_SMARTPTR()
   cOwnerPtr<char> p3(std::move(p));
   TEST(pp == p3);
 
-  {
-    DEBUG_CDT<false>::count = 0;
-    cAutoRef<fooref> p4(new fooref());
-    cAutoRef<fooref> p5(p4);
-    cAutoRef<fooref> p6(std::move(p5));
-    p5 = p6;
-    p6 = std::move(p4);
-  }
-  TEST(!DEBUG_CDT<false>::count);
-
   ENDTEST;
 }

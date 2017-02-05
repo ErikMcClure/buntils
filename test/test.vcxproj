@@ -579,6 +579,7 @@
     <ClCompile Include="test_queue.cpp" />
     <ClCompile Include="test_rational.cpp" />
     <ClCompile Include="test_refcounter.cpp" />
+    <ClCompile Include="test_rwlock.cpp" />
     <ClCompile Include="test_scheduler.cpp" />
     <ClCompile Include="test_serializer.cpp" />
     <ClCompile Include="test_singleton.cpp" />

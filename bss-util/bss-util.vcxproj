@@ -121,6 +121,7 @@
     <ClInclude Include="..\include\lockless.h" />
     <ClInclude Include="..\include\os.h" />
     <ClInclude Include="..\include\profiler.h" />
+    <ClInclude Include="..\include\rwlock.h" />
     <ClInclude Include="..\include\variant.h" />
   </ItemGroup>
   <ItemGroup>

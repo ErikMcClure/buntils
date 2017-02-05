@@ -82,14 +82,14 @@ namespace bss_util {
   struct DeferFunction : StoreFunction<R, Args...>
   {
     inline DeferFunction(R(MSC_FASTCALL *GCC_FASTCALL f)(Args...), Args&&... args) : StoreFunction<R, Args...>(f, std::forward<Args>(args)...) {}
-    inline ~DeferFunction() { Call(); }
+    inline ~DeferFunction() { this->Call(); }
   };
 
   template<typename R, typename... Args>
   struct DeferDelegate : StoreDelegate<R, Args...>
   {
     inline DeferDelegate(delegate<R, Args...> fn, Args&&... args) : StoreDelegate<R, Args...>(fn, std::forward<Args>(args)...) {}
-    inline ~DeferDelegate() { Call(); }
+    inline ~DeferDelegate() { this->Call(); }
   };
 
   template<typename R, typename... Args>

@@ -219,6 +219,87 @@ namespace bss_util {
   {
     return ASMCAS_REGPICK_READ<T,sizeof(T)>::asmcas(pval,newval,oldval,retval);
   }
+
+  template<typename T, int size>
+  struct ASMBTS_PICK { };
+
+#ifdef BSS_PLATFORM_WIN32
+    template<typename T> struct ASMBTS_PICK<T, 4> {
+    BSS_FORCEINLINE static bool BSS_FASTCALL asmbts(T* pval, T bit) { return _interlockedbittestandset((long*)pval, (long)bit) != 0; }
+  };
+  template<typename T> struct ASMBTS_PICK<T, 8> {
+    BSS_FORCEINLINE static bool BSS_FASTCALL asmbts(T* pval, T bit) { return _interlockedbittestandset64((long long*)pval, (long long)bit) != 0; }
+  };
+#else
+  template<typename T> struct ASMBTS_PICK<T, 4> {
+    BSS_FORCEINLINE static bool BSS_FASTCALL asmbts(T* pval, T bit) {
+      uint8_t retval;
+      __asm__ __volatile__(
+          "lock bts %[bit], %[x]\n\t"
+          "setc     %b[rv]\n\t"
+          : [x] "+m" (*pval), [rv] "=rm"(retval)
+          : [bit] "ri" (bit));
+      return retval != 0;
+    }
+  };
+  template<typename T> struct ASMBTS_PICK<T, 8> {
+    BSS_FORCEINLINE static bool BSS_FASTCALL asmbts(T* pval, T bit) {
+      uint8_t retval;
+      __asm__ __volatile__(
+        "lock bts %[bit], %[x]\n\t"
+        "setc     %b[rv]\n\t"
+        : [x] "+m" (*pval), [rv] "=rm"(retval)
+        : [bit] "ri" (bit));
+      return retval != 0;
+    }
+  };
+#endif
+
+  template<typename T>
+  inline bool BSS_FASTCALL asmbts(T* pval, T bit)
+  {
+    return ASMBTS_PICK<T, sizeof(T)>::asmbts(pval, bit);
+  }
+
+  template<typename T, int size>
+  struct ASMBTR_PICK { };
+
+#ifdef BSS_PLATFORM_WIN32
+  template<typename T> struct ASMBTR_PICK<T, 4> {
+    BSS_FORCEINLINE static bool BSS_FASTCALL asmbtr(T* pval, T bit) { return _interlockedbittestandreset((long*)pval, (long)bit) != 0; }
+  };
+  template<typename T> struct ASMBTR_PICK<T, 8> {
+    BSS_FORCEINLINE static bool BSS_FASTCALL asmbtr(T* pval, T bit) { return _interlockedbittestandreset64((long long*)pval, (long long)bit) != 0; }
+  };
+#else
+  template<typename T> struct ASMBTR_PICK<T, 4> {
+    BSS_FORCEINLINE static bool BSS_FASTCALL asmbtr(T* pval, T bit) {
+      uint8_t retval;
+      __asm__ __volatile__(
+        "lock btr %[bit], %[x]\n\t"
+        "setc     %b[rv]\n\t"
+        : [x] "+m" (*pval), [rv] "=rm"(retval)
+        : [bit] "ri" (bit));
+      return retval != 0;
+    }
+  };
+  template<typename T> struct ASMBTR_PICK<T, 8> {
+    BSS_FORCEINLINE static bool BSS_FASTCALL asmbtr(T* pval, T bit) {
+      uint8_t retval;
+      __asm__ __volatile__(
+        "lock btr %[bit], %[x]\n\t"
+        "setc     %b[rv]\n\t"
+        : [x] "+m" (*pval), [rv] "=rm"(retval)
+        : [bit] "ri" (bit));
+      return retval != 0;
+    }
+  };
+#endif
+  template<typename T>
+  inline bool BSS_FASTCALL asmbtr(T* pval, T bit)
+  {
+    return ASMBTR_PICK<T, sizeof(T)>::asmbtr(pval, bit);
+  }
     
 //  
 //#ifdef BSS_CPU_x86_64

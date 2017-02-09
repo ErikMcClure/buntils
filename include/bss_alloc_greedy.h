@@ -4,8 +4,10 @@
 #ifndef __BSS_ALLOC_GREEDY_H__
 #define __BSS_ALLOC_GREEDY_H__
 
+#include <atomic>
 #include "bss_alloc.h"
 #include "bss_util.h"
+#include "rwlock.h"
 
 namespace bss_util {
   struct AFLISTITEM
@@ -14,24 +16,26 @@ namespace bss_util {
     size_t size;
   };
 
-  // Dynamic greedy allocator that can allocate any number of bytes
+  // Lockless dynamic greedy allocator that can allocate any number of bytes
   class BSS_COMPILER_DLLEXPORT cGreedyAlloc
   {
     cGreedyAlloc(const cGreedyAlloc& copy) BSS_DELETEFUNC
-      cGreedyAlloc& operator=(const cGreedyAlloc& copy) BSS_DELETEFUNCOP
+    cGreedyAlloc& operator=(const cGreedyAlloc& copy) BSS_DELETEFUNCOP
+
   public:
-    inline cGreedyAlloc(cGreedyAlloc&& mov) : _root(mov._root), _curpos(mov._curpos) { mov._root=0; mov._curpos=0; }
+    inline cGreedyAlloc(cGreedyAlloc&& mov) : _root(mov._root.load(std::memory_order_relaxed)), _curpos(mov._curpos.load(std::memory_order_relaxed)) { mov._root.store(nullptr, std::memory_order_relaxed); mov._curpos=0; }
     inline explicit cGreedyAlloc(size_t init=64) : _root(0), _curpos(0)
     {
       _allocchunk(init);
     }
     inline ~cGreedyAlloc()
     {
-      AFLISTITEM* hold=_root;
+      _lock.Lock();
+      AFLISTITEM* hold=_root.load(std::memory_order_relaxed);
       while((_root=hold))
       {
-        hold=_root->next;
-        free(_root);
+        hold=hold->next;
+        free(_root.load(std::memory_order_relaxed));
       }
     }
     template<typename T>
@@ -44,10 +48,33 @@ namespace bss_util {
 #ifdef BSS_DISABLE_CUSTOM_ALLOCATORS
       return malloc(_sz);
 #endif
-      if((_curpos+_sz)>=_root->size) { _allocchunk(fbnext(bssmax(_root->size, _sz))); _curpos=0; }
+      size_t r;
+      AFLISTITEM* root;
+      for(;;)
+      {
+        _lock.RLock();
+        r = _curpos.fetch_add(_sz, std::memory_order_relaxed);
+        size_t rend = r + _sz;
+        root = _root.load(std::memory_order_relaxed);
+        if(rend >= root->size)
+        {
+          if(_lock.AttemptUpgrade())
+          {
+            if(rend >= root->size) // We do another check in here to ensure another thread didn't already resize the root for us.
+            {
+              _allocchunk(fbnext(rend));
+              _curpos.store(0, std::memory_order_relaxed);
+            }
+            _lock.Downgrade();
+          }
+          _lock.RUnlock();
+        }
+        else
+          break;
+      }
 
-      void* retval= ((char*)(_root+1))+_curpos;
-      _curpos+=_sz;
+      void* retval= ((char*)(root+1))+r;
+      _lock.RUnlock();
       return retval;
     }
     void BSS_FASTCALL dealloc(void* p) noexcept
@@ -56,52 +83,59 @@ namespace bss_util {
       delete p; return;
 #endif
 #ifdef BSS_DEBUG
-      AFLISTITEM* cur=_root;
+      _lock.RLock();
+      AFLISTITEM* cur= _root.load(std::memory_order_relaxed);
       bool found=false;
       while(cur)
       {
         if(p>=(cur+1) && p<(((char*)(cur+1))+cur->size)) { found=true; break; }
         cur=cur->next;
       }
+      _lock.RUnlock();
       assert(found);
       //memset(p,0xFEEEFEEE,sizeof(T)); //No way to know how big this is
 #endif
     }
     void Clear() noexcept
     {
-      _curpos=0;
-      if(!_root->next) return;
+      _lock.Lock();
+      AFLISTITEM* root = _root.load(std::memory_order_acquire);
+      if(!root->next) return _lock.Unlock();
       size_t nsize=0;
       AFLISTITEM* hold;
-      while(_root)
+      while(root)
       {
-        hold=_root->next;
-        nsize+=_root->size;
-        free(_root);
-        _root=hold;
+        hold= root->next;
+        nsize+= root->size;
+        free(root);
+        root =hold;
       }
+      _root.store(nullptr, std::memory_order_release);
       _allocchunk(nsize); //consolidates all memory into one chunk to try and take advantage of data locality
+      _curpos.store(0, std::memory_order_relaxed);
+      _lock.Unlock();
     }
   protected:
     BSS_FORCEINLINE void _allocchunk(size_t nsize) noexcept
     {
       AFLISTITEM* retval=(AFLISTITEM*)malloc(sizeof(AFLISTITEM)+nsize);
-      retval->next=_root;
+      retval->next=_root.load(std::memory_order_acquire);
       retval->size=nsize;
-      _root=retval;
-      assert(_prepDEBUG());
+      assert(_prepDEBUG(retval));
+      _root.store(retval, std::memory_order_release);
     }
 #ifdef BSS_DEBUG
-    BSS_FORCEINLINE bool _prepDEBUG() noexcept
+    BSS_FORCEINLINE static bool _prepDEBUG(AFLISTITEM* root) noexcept
     {
-      if(!_root) return false;
-      memset(_root+1, 0xfd, _root->size);
+      if(!root) return false;
+      memset(root +1, 0xfd, root->size);
       return true;
     }
 #endif
 
-    AFLISTITEM* _root;
-    size_t _curpos;
+    std::atomic<AFLISTITEM*> _root;
+    std::atomic<size_t> _curpos;
+    RWLock _lock;
   };
 
   template<typename T>

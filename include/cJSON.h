@@ -234,13 +234,13 @@ namespace bss_util {
       ParseJSONArray<cArray<T, CType, ArrayType, Alloc>>(e, obj, s);
     }
   };
-  template<class T, int I, bool B> // For fixed-length arrays
+  template<class T, size_t I, bool B> // For fixed-length arrays
   struct ParseJSONInternal<T[I], B>
   {
     static inline void DoAddCall(cSerializer<JSONEngine>& e, T(&obj)[I], std::istream& s, int& n) { if(n<I) ParseJSONBase<T>(e, obj[n++], s); }
     static void F(cSerializer<JSONEngine>& e, T(&obj)[I], std::istream& s) { ParseJSONArray<T[I]>(e, obj, s); }
   };
-  template<class T, int I, bool B> // For fixed-length arrays
+  template<class T, size_t I, bool B> // For fixed-length arrays
   struct ParseJSONInternal<std::array<T,I>, B>
   {
     static inline void DoAddCall(cSerializer<JSONEngine>& e, std::array<T, I>& obj, std::istream& s, int& n) { if(n<I) ParseJSONBase<T>(e, obj[n++], s); }
@@ -453,12 +453,12 @@ namespace bss_util {
     s << ']';
   }
 
-  template<class T, int I, bool B>
+  template<class T, size_t I, bool B>
   struct WriteJSONInternal<T[I], B>
   {
     static void F(cSerializer<JSONEngine>& e, const char* id, const T(&obj)[I], std::ostream& s, uint32_t& pretty) { WriteJSONArray<T>(e, id, obj, I, s, pretty); }
   };
-  template<class T, int I, bool B>
+  template<class T, size_t I, bool B>
   struct WriteJSONInternal<std::array<T,I>, B>
   {
     static void F(cSerializer<JSONEngine>& e, const char* id, const std::array<T, I>& obj, std::ostream& s, uint32_t& pretty) { WriteJSONArray<T>(e, id, obj.data(), I, s, pretty); }

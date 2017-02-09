@@ -43,5 +43,29 @@ TESTDEF::RETPAIR test_LOCKLESS()
     TEST(a == 2);
     TEST(b == 5);
   }
+  {
+    size_t test = 0;
+    TEST(asmbts<size_t>(&test, 1) == false);
+    TEST(asmbts<size_t>(&test, 1) == true);
+    TEST(asmbts<size_t>(&test, 2) == false);
+    TEST(asmbts<size_t>(&test, 2) == true);
+    TEST(asmbtr<size_t>(&test, 2) == true);
+    TEST(asmbtr<size_t>(&test, 2) == false);
+    TEST(asmbtr<size_t>(&test, 1) == true);
+    TEST(asmbtr<size_t>(&test, 1) == false);
+  }
+
+  {
+    std::atomic<size_t> test(0);
+    const int MBITS = (sizeof(size_t) << 3) - 1;
+    TEST(asmbts<size_t>((size_t*)&test, MBITS) == false);
+    TEST(asmbts<size_t>((size_t*)&test, MBITS) == true);
+    TEST(asmbts<size_t>((size_t*)&test, MBITS - 1) == false);
+    TEST(asmbts<size_t>((size_t*)&test, MBITS - 1) == true);
+    TEST(asmbtr<size_t>((size_t*)&test, MBITS - 1) == true);
+    TEST(asmbtr<size_t>((size_t*)&test, MBITS - 1) == false);
+    TEST(asmbtr<size_t>((size_t*)&test, MBITS) == true);
+    TEST(asmbtr<size_t>((size_t*)&test, MBITS) == false);
+  }
   ENDTEST;
 }

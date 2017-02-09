@@ -26,6 +26,8 @@
 - Added RWlock, a readers-writer lock.
 - Added defer(), a function that defers another function or delegate until the end of the block
 - Moved cAutoRef to cRefCounter.h and renamed to ref_ptr<>
+- Made greedy allocator threadsafe
+- Replaced Ring Allocator's reader writer lock with RWLock
 
 0.4.6
 -----

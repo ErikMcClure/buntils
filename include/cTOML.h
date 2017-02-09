@@ -11,6 +11,7 @@
 #include <chrono>
 #include <sstream>
 #include <locale>
+#include <iomanip>
 
 namespace bss_util {
   class TOMLEngine
@@ -386,14 +387,14 @@ namespace bss_util {
       ParseTOMLArray<cArray<T, CType, ArrayType, Alloc>>(e, obj, s);
     }
   };
-  template<class T, int I, bool B> // For fixed-length arrays
+  template<class T, size_t I, bool B> // For fixed-length arrays
   struct ParseTOMLInternal<T[I], B>
   {
     static inline T& GetLast(T(&obj)[I]) { return obj[0]; }
     static inline void DoAddCall(cSerializer<TOMLEngine>& e, T(&obj)[I], std::istream& s, int& n) { if(n<I) ParseTOMLBase<T>(e, obj[n++], s); }
     static void F(cSerializer<TOMLEngine>& e, T(&obj)[I], std::istream& s) { ParseTOMLArray<T[I]>(e, obj, s); }
   };
-  template<class T, int I, bool B> // For fixed-length arrays
+  template<class T, size_t I, bool B> // For fixed-length arrays
   struct ParseTOMLInternal<std::array<T,I>, B>
   {
     static inline T& GetLast(std::array<T, I>& obj) { return obj[0]; }
@@ -448,6 +449,7 @@ namespace bss_util {
     target = true;
   }
 
+#ifdef BSS_COMPILER_HAS_TIME_GET
   template<>
   inline void BSS_EXPLICITSTATIC ParseTOMLBase<std::chrono::system_clock::time_point>(cSerializer<TOMLEngine>& e, std::chrono::system_clock::time_point& target, std::istream& s)
   {
@@ -492,6 +494,7 @@ namespace bss_util {
       target = std::chrono::system_clock::time_point { days { days_from_civil(t.tm_year + 1900, t.tm_mon + 1, t.tm_mday) } };
     }
   }
+#endif
 
   // This function parses values and is recursive, allowing for nested inline tables or arrays, etc.
   template<>
@@ -740,12 +743,12 @@ namespace bss_util {
     }
   };
 
-  template<class T, int I, bool B>
+  template<class T, size_t I, bool B>
   struct WriteTOMLInternal<T[I], B>
   {
     static void F(cSerializer<TOMLEngine>& e, const char* id, const T(&obj)[I], std::ostream& s) { WriteTOMLArray<T>(e, id, obj, I, s); }
   };
-  template<class T, int I, bool B>
+  template<class T, size_t I, bool B>
   struct WriteTOMLInternal<std::array<T, I>, B>
   {
     static void F(cSerializer<TOMLEngine>& e, const char* id, const std::array<T, I>& obj, std::ostream& s) { WriteTOMLArray<T>(e, id, obj.data(), I, s); }
@@ -798,14 +801,17 @@ namespace bss_util {
     s << (obj ? "true" : "false");
     if(e.engine.state != 2 && id) s << std::endl;
   }
+#ifdef BSS_COMPILER_HAS_TIME_GET
   template<>
   BSS_EXPLICITSTATIC void WriteTOMLBase<std::chrono::system_clock::time_point>(cSerializer<TOMLEngine>& e, const char* id, const std::chrono::system_clock::time_point& obj, std::ostream& s)
   {
     if(e.engine.state == 1) return;
     WriteTOMLId(e, id, s);
-    //s << obj;
+    time_t time = std::chrono::system_clock::to_time_t(obj);
+    s << std::put_time(gmtime(&time), "%Y-%m-%dT%H:%M:%S+00:00");
     if(e.engine.state != 2 && id) s << std::endl;
   }
+#endif
 
   template<class T>
   inline static void WriteTOML(const T& obj, std::ostream& s) { cSerializer<TOMLEngine> e; e.engine.state = 1; e.Serialize<T>(obj, s, 0); }

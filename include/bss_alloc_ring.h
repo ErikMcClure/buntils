@@ -6,6 +6,7 @@
 
 #include "lockless.h"
 #include "LLBase.h"
+#include "rwlock.h"
 
 namespace bss_util {
   // Primary implementation of a multi-consumer multi-producer lockless ring allocator
@@ -32,43 +33,30 @@ namespace bss_util {
     cRingAllocVoid(cRingAllocVoid&& mov) : _gc(mov._gc), _lastsize(mov._lastsize), _list(mov._list)
     {
       _root.store(mov._root.load(std::memory_order_relaxed), std::memory_order_relaxed);
-      _readers.store(mov._readers.load(std::memory_order_relaxed), std::memory_order_relaxed);
-      _flag.store(mov._flag.load(std::memory_order_relaxed), std::memory_order_relaxed);
+      mov._lock.Lock();
       mov._root = 0;
       mov._list = 0;
+      mov._lock.Unlock();
     }
     explicit cRingAllocVoid(size_t sz) : _lastsize(sz), _list(0)
     {
       _gc.p = 0;
       _gc.tag = 0;
       _root.store(_genbucket(sz, 0), std::memory_order_relaxed);
-      _readers.store(0, std::memory_order_relaxed);
-      _flag.store(false, std::memory_order_relaxed);
     }
     ~cRingAllocVoid() { _clear(); }
 
     inline void* BSS_FASTCALL alloc(size_t num) noexcept
     {
 ALLOC_BEGIN:
-      for(;;)
-      {
-        while(_flag.load(std::memory_order_acquire));
-        _readers.fetch_add(1, std::memory_order_release);
-        if(!_flag.load(std::memory_order_acquire))
-          break;
-        _readers.fetch_sub(1, std::memory_order_release);
-        continue;
-      }
-
+      _lock.RLock();
       size_t n = num + sizeof(Node);
       Bucket* root = _root.load(std::memory_order_acquire);
       size_t r = root->reserved.fetch_add(n, std::memory_order_acquire) + n; // Add num here because fetch_add returns the PREVIOUS value
       if(r > root->sz) // If we went over the limit, we'll have to grab another bucket
       {
-        _readers.fetch_sub(1, std::memory_order_release);
-        if(!_flag.exchange(true, std::memory_order_acq_rel))
+        if(_lock.AttemptUpgrade())
         {
-          while(_readers.load(std::memory_order_acquire)>0);
           root = _root.load(std::memory_order_acquire);
           if(root->reserved.load(std::memory_order_relaxed) > root->sz) // Ensure the root actually still needs to be swapped out to avoid race conditions.
           { 
@@ -81,8 +69,9 @@ ALLOC_BEGIN:
             _root.store(root, std::memory_order_release);
             _checkrecycle(oldroot);
           }
-          _flag.store(false, std::memory_order_release);
+          _lock.Downgrade();
         }
+        _lock.RUnlock();
         goto ALLOC_BEGIN; // Restart the entire function (a goto is used here instead of a break out of an infinite for loop because that's arguably even harder to understand)
       }
 
@@ -95,7 +84,7 @@ ALLOC_BEGIN:
 #endif
       ret->sz = n;
       ret->root = root;
-      _readers.fetch_sub(1, std::memory_order_release);
+      _lock.RUnlock();
       return ret+1;
     }
     inline void BSS_FASTCALL dealloc(void* p) noexcept
@@ -109,21 +98,25 @@ ALLOC_BEGIN:
     }
     inline void Clear()
     {
+      _lock.Lock();
       _clear();
       _root.store(_genbucket(_lastsize, 0), std::memory_order_relaxed);
+      _lock.Unlock();
     }
 
     cRingAllocVoid& operator=(cRingAllocVoid&& mov) noexcept
     {
+      _lock.Lock();
       _clear();
+      mov._lock.Lock();
       _gc = mov._gc;
       _lastsize = mov._lastsize;
       _list = mov._list;
       _root.store(mov._root.load(std::memory_order_relaxed), std::memory_order_relaxed);
-      _readers.store(mov._readers.load(std::memory_order_relaxed), std::memory_order_relaxed);
-      _flag.store(mov._flag.load(std::memory_order_relaxed), std::memory_order_relaxed);
       mov._root = 0;
       mov._list = 0;
+      mov._lock.Unlock();
+      _lock.Unlock();
       return *this;
     }
 
@@ -215,8 +208,7 @@ ALLOC_BEGIN:
 #pragma warning(push)
 #pragma warning(disable:4251)
     BSS_ALIGN(16) std::atomic<Bucket*> _root;
-    BSS_ALIGN(64) std::atomic<size_t> _readers; // How many threads are currently depending on _root to not change
-    BSS_ALIGN(64) std::atomic_bool _flag; // Blocking flag for when _root needs to change
+    BSS_ALIGN(64) RWLock _lock; // Readers-Writer lock
 #pragma warning(pop)
     size_t _lastsize; // Last size used for a bucket.
     Bucket* _list; // root of permanent list of all active allocated buckets.

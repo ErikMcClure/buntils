@@ -123,7 +123,7 @@ namespace bss_util {
         _cflag.clear(std::memory_order_release);
         ref->~cLQ_QNode<T>(); // We have to let item clean itself up
         _alloc.dealloc(ref);
-        i_LocklessQueue_Length<LENGTH>::_declength(); // If we are tracking length, atomically increment it
+        i_LocklessQueue_Length<LENGTH>::_declength(); // If we are tracking length, atomically decrement it
         return true;
       }
       _cflag.clear(std::memory_order_release);

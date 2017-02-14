@@ -145,9 +145,9 @@ namespace bss_util {
       } while(!asmcasr<bss_PTag<void>>(&_freelist, nval, prev, prev));
     }
 
-    FIXEDLIST_NODE* _root;
     BSS_ALIGN(16) volatile bss_PTag<void> _freelist;
     BSS_ALIGN(4) std::atomic_flag _flag;
+    FIXEDLIST_NODE* _root;
   };
 
   template<typename T>

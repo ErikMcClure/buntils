@@ -2,6 +2,14 @@
 * Black Sphere Studios Utility Library Changelog *
 **************************************************
 
+0.4.8
+-----
+- Added AttemptRLock(), AttemptStrictLock() to RWLock
+- Removed thread-specific debug assertions in RWLock to allow complex usage
+- Rewrote ring allocator with a per-bucket RWLock
+- Rewrote cThreadPool to actually work properly
+- Added Future class that utilizes cThreadPool
+
 0.4.7
 -----
 - AVL tree Insert now returns a pointer on success or null on failure

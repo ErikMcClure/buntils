@@ -32,6 +32,7 @@ TESTDEF::RETPAIR test_THREADPOOL()
   pool.Wait();
 
   TEST(pq_c == TESTNUM);
+
   std::sort(std::begin(pq_end), std::end(pq_end));
   bool check = true;
   for(int i = 0; i < TESTNUM; ++i)

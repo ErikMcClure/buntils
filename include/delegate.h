@@ -4,7 +4,7 @@
 #ifndef __DELEGATE_H__BSS__
 #define __DELEGATE_H__BSS__
 
-#include "bss_defines.h"
+#include "bss_util.h"
 #include <functional>
 
 namespace bss_util {

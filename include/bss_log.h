@@ -6,11 +6,11 @@
 
 #include <ostream>
 #include <vector>
+#include <stdarg.h>
 #include "bss_util.h"
 #include "cArray.h"
 
-#define BSSLOG(logger,level) ((logger).FORMATLOG(level,__FILE__,__LINE__))
-#define BSSLOGV(logger,level,...) ((logger).WriteLog(level,__FILE__,__LINE__,__VA_ARGS__))
+#define BSSLOG(logger,level,...) ((logger).Log(0,__FILE__,__LINE__,(level),__VA_ARGS__))
 
 namespace bss_util {
   class StreamSplitter;
@@ -37,7 +37,7 @@ namespace bss_util {
     // Destructor - destroys any file streams
     ~cLog();
     // Redirects an existing stream to write to this log's buffer
-    void BSS_FASTCALL Assimilate(std::ostream& stream); // Resistance is futile
+    void BSS_FASTCALL Assimilate(std::ostream& stream);
     // Adds a target stream to post logs to
     void BSS_FASTCALL AddTarget(std::ostream& stream);
     //void BSS_FASTCALL AddTarget(std::wostream& stream);
@@ -45,57 +45,86 @@ namespace bss_util {
 #ifdef BSS_PLATFORM_WIN32
     void BSS_FASTCALL AddTarget(const wchar_t* file);
 #endif
+    // Sets the format for the beginning of the log entry. Defaults to "[{4}] {0} ({1}:{2}) {3}"
+    void BSS_FASTCALL SetFormat(const char* format);
+    // An optional format for log entries with a null source. Defaults to "[{4}] ({1}:{2}) {3}"
+    void BSS_FASTCALL SetNullFormat(const char* format);
     // Clears all targets and closes all files
     void ClearTargets();
     // Gets the stream for this log
     inline std::ostream& GetStream() { return _stream; }
     // Sets a level string (which should be a constant, not something that will get deallocated)
     void BSS_FASTCALL SetLevel(uint8_t level, const char* str);
+    // Sets the maximum level that will be logged. Useful for excluding unnecessary debug logs from release builds
+    void BSS_FASTCALL SetMaxLevel(uint8_t level);
 
     cLog& operator=(cLog&& right);
     inline operator std::ostream&() { return _stream; }
 
+    BSS_FORCEINLINE int BSS_FASTCALL PrintLog(const char* source, const char* file, uint32_t line, int8_t level, const char* format, ...)
+    {
+      va_list vl;
+      va_start(vl, format);
+      int r = PrintLogV(source, file, line, level, format, vl);
+      va_end(vl);
+      return r;
+    }
+    BSS_FORCEINLINE int BSS_FASTCALL PrintLogV(const char* source, const char* file, uint32_t line, int8_t level, const char* format, va_list args);
+
 #ifdef BSS_VARIADIC_TEMPLATES
     template<typename... Args>
-    BSS_FORCEINLINE void BSS_FASTCALL WriteLog(uint8_t level, const char* file, uint32_t line, Args... args) { _writelog(FORMATLOGLEVEL(_levels[level], file, line), args...); }
-#else // For VS2010, we get to do this the messy way...
-    template<class A1> BSS_FORCEINLINE void BSS_FASTCALL WriteLog(uint8_t level, const char* file, uint32_t line, A1 a1) { FORMATLOGLEVEL(_levels[level], file, line) << a1 << std::endl; }
-    template<class A1, class A2> BSS_FORCEINLINE void BSS_FASTCALL WriteLog(uint8_t level, const char* file, uint32_t line, A1 a1, A2 a2) { FORMATLOGLEVEL(_levels[level], file, line) << a1 << a2 << std::endl; }
-    template<class A1, class A2, class A3> BSS_FORCEINLINE void BSS_FASTCALL WriteLog(uint8_t level, const char* file, uint32_t line, A1 a1, A2 a2, A3 a3) { FORMATLOGLEVEL(_levels[level], file, line) << a1 << a2 << a3 << std::endl; }
-    template<class A1, class A2, class A3, class A4> BSS_FORCEINLINE void BSS_FASTCALL WriteLog(uint8_t level, const char* file, uint32_t line, A1 a1, A2 a2, A3 a3, A4 a4) { FORMATLOGLEVEL(_levels[level], file, line) << a1 << a2 << a3 << a4 << std::endl; }
-    template<class A1, class A2, class A3, class A4, class A5> BSS_FORCEINLINE void BSS_FASTCALL WriteLog(uint8_t level, const char* file, uint32_t line, A1 a1, A2 a2, A3 a3, A4 a4, A5 a5) { FORMATLOGLEVEL(_levels[level], file, line) << a1 << a2 << a3 << a4 << a5 << std::endl; }
-#endif
-    BSS_FORCEINLINE std::ostream& BSS_FASTCALL FORMATLOG(uint8_t level, const char* file, uint32_t line) { return FORMATLOGLEVEL(_levels[level], file, line); }
-    inline std::ostream& BSS_FASTCALL FORMATLOGLEVEL(const char* level, const char* file, uint32_t line)
+    BSS_FORCEINLINE void BSS_FASTCALL Log(const char* source, const char* file, uint32_t line, int8_t level, Args... args)
     {
-      _stream << '[';
-      _writedatetime(_tz, _stream, true);
-      _stream << "] (" << _trimpath(file) << ':' << line << ") " << level;
-      return _stream;
+      if(level >= _maxlevel)
+        return;
+      _writelog(LogHeader(source, file, line, level), args...);
     }
+    template<typename... Args>
+    BSS_FORCEINLINE void BSS_FASTCALL LogFormat(const char* source, const char* file, uint32_t line, int8_t level, const char* format, Args... args)
+    {
+      if(level >= _maxlevel)
+        return;
+      SafeFormat<Args...>(LogHeader(source, file, line, level), format, args...);
+      _stream << std::endl;
+    }
+#endif
+    BSS_FORCEINLINE std::ostream& BSS_FASTCALL LogHeader(const char* source, const char* file, uint32_t line, int8_t level)
+    {
+      assert(level < _levels.Capacity());
+      return _logheader(source, file, line, (level < 0) ? "" : _levels[level]);
+    }
+
+    static const char* DEFAULTFORMAT;
+    static const char* DEFAULTNULLFORMAT;
 
   protected:
 #ifdef BSS_VARIADIC_TEMPLATES
     template<typename Arg, typename... Args>
-    static inline void _writelog(std::ostream& s, Arg arg, Args... args) { s << arg; _writelog(s, args...); }
-    static inline void _writelog(std::ostream& s) { s << std::endl; }
+    static inline void _writelog(std::ostream& o, Arg arg, Args... args) { o << arg; _writelog(o, args...); }
+    static inline void _writelog(std::ostream& o) { o << std::endl; }
 #endif
+    std::ostream& BSS_FASTCALL _logheader(const char* source, const char* file, uint32_t line, const char* level);
+    static void _header(std::ostream& o, int n, const char* source, const char* file, uint32_t line, const char* level, long tz);
     static bool BSS_FASTCALL _writedatetime(long timezone, std::ostream& log, bool timeonly);
     static const char* BSS_FASTCALL _trimpath(const char* path);
     void _leveldefaults();
 
     cArray<const char*, uint8_t> _levels;
+    int8_t _maxlevel;
     StreamSplitter* _split;
+    const char* _format;
+    const char* _nullformat;
     long _tz;
 #pragma warning(push)
 #pragma warning(disable:4251)
+    std::vector<std::pair<std::ostream&, std::streambuf*>> _backup;
+    std::ostream _stream;
+
 #ifdef BSS_COMPILER_GCC // Until GCC fixes its fucking broken standard implementation, we're going to have to do this the hard way.
     std::vector<std::unique_ptr<std::ofstream>> _files;
 #else
     std::vector<std::ofstream> _files;
 #endif
-    std::vector<std::pair<std::ostream&, std::streambuf*>> _backup;
-    std::ostream _stream;
 #pragma warning(pop)
   };
 }

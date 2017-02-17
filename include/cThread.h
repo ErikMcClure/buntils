@@ -21,9 +21,12 @@
 
 namespace bss_util {
 #ifndef BSS_COMPILER_MSC2010
+#pragma warning(push)
+#pragma warning(disable:4275)
   // This extends std::thread and adds support for joining with a timeout and signaled state
   class BSS_COMPILER_DLLEXPORT cThread : public std::thread
   {
+#pragma warning(pop)
     inline cThread(const cThread&) BSS_DELETEFUNC
     cThread& operator=(const cThread&) BSS_DELETEFUNCOP
   public:

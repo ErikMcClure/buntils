@@ -11,7 +11,7 @@ std::atomic<size_t> pq_c;
 uint16_t pq_end[TESTNUM];
 std::atomic<uint16_t> pq_pos;
 
-void pooltest(int i) {
+void BSS_FASTCALL pooltest(int i) {
   while(!startflag.load(std::memory_order_relaxed));
   pq_end[pq_c.fetch_add(1, std::memory_order_relaxed)] = i;
 }

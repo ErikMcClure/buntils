@@ -4,6 +4,7 @@
 #include "test.h"
 #include "bss_util.h"
 #include "bss_algo.h"
+#include <sstream>
 
 using namespace bss_util;
 
@@ -554,5 +555,29 @@ TESTDEF::RETPAIR test_bss_util()
   TEST(__bssmultiplyextract__h<int64_t>(0x8000000000000000, 1, 64) == -1);
   TEST(__bssmultiplyextract__h<int64_t>(0x8000000000000000, 0, 0) == 0);
   TEST(__bssmultiplyextract__h<int64_t>(0x8000000000000000, 0, 64) == 0);
+
+  std::stringstream ss;
+  SafeFormat(ss, "{10} {0}{1} {2}{3}{4}{{5}}{6}0{7}00{8} {9}", 0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10);
+  std::string s = ss.str();
+  TEST(s == "10 01 234{5}607008 9");
+  ss.str("");
+  SafeFormat(ss, "{00");
+  TEST(ss.str() == "{00");
+  ss.str("");
+  SafeFormat(ss, " {0");
+  TEST(ss.str() == " {0");
+  ss.str("");
+  SafeFormat(ss, "0{");
+  TEST(ss.str() == "0{");
+  ss.str("");
+  SafeFormat(ss, "{");
+  TEST(ss.str() == "{");
+  ss.str("");
+  SafeFormat(ss, "");
+  TEST(ss.str() == "");
+  ss.str("");
+  SafeFormat(ss, "0{000} {%}{s0}");
+  TEST(ss.str() == "0{000} {%}{s0}");
+
   ENDTEST;
 }

@@ -10,18 +10,23 @@
 using namespace bss_util;
 using namespace std;
 
+const char* cLog::DEFAULTFORMAT = "{4} [{0}] ({1}:{2}) {3}";
+const char* cLog::DEFAULTNULLFORMAT = "{4} ({1}:{2}) {3}";
+
 cLog::cLog(cLog&& mov) : _levels(std::move(mov._levels)), _split(mov._split), _tz(GetTimeZoneMinutes()), _files(std::move(mov._files)), 
-  _backup(std::move(mov._backup)), _stream(_split)
+  _backup(std::move(mov._backup)), _stream(_split), _maxlevel(mov._maxlevel), _format(mov._format), _nullformat(mov._nullformat)
 {
   mov._split=0;
 }
-cLog::cLog(std::ostream* log) : _levels(6), _split(new StreamSplitter()), _tz(GetTimeZoneMinutes()), _stream(_split)
+cLog::cLog(std::ostream* log) : _levels(6), _split(new StreamSplitter()), _tz(GetTimeZoneMinutes()), _stream(_split), _maxlevel(127),
+  _format(DEFAULTFORMAT), _nullformat(DEFAULTNULLFORMAT)
 {
   _leveldefaults();
   if(log!=0)
     AddTarget(*log);
 }
-cLog::cLog(const char* logfile, std::ostream* log) : _levels(6), _split(new StreamSplitter()), _tz(GetTimeZoneMinutes()), _stream(_split)
+cLog::cLog(const char* logfile, std::ostream* log) : _levels(6), _split(new StreamSplitter()), _tz(GetTimeZoneMinutes()), _stream(_split),
+  _maxlevel(127), _format(DEFAULTFORMAT), _nullformat(DEFAULTNULLFORMAT)
 {
   _leveldefaults();
   AddTarget(logfile);
@@ -29,7 +34,8 @@ cLog::cLog(const char* logfile, std::ostream* log) : _levels(6), _split(new Stre
     AddTarget(*log);
 }
 #ifdef BSS_PLATFORM_WIN32
-cLog::cLog(const wchar_t* logfile, std::ostream* log) : _levels(6), _split(new StreamSplitter()), _tz(GetTimeZoneMinutes()), _stream(_split)
+cLog::cLog(const wchar_t* logfile, std::ostream* log) : _levels(6), _split(new StreamSplitter()), _tz(GetTimeZoneMinutes()), _stream(_split),
+  _maxlevel(127), _format(DEFAULTFORMAT), _nullformat(DEFAULTNULLFORMAT)
 {
   _leveldefaults();
   AddTarget(logfile);
@@ -40,7 +46,7 @@ cLog::cLog(const wchar_t* logfile, std::ostream* log) : _levels(6), _split(new S
 cLog::~cLog()
 {
   ClearTargets();
-  for(size_t i = 0; i < _backup.size(); ++i) //restore stream buffer backups so we don't blow up someone else's stream when destroying ourselves (suicide bombing is bad for your health)
+  for(size_t i = 0; i < _backup.size(); ++i) //restore stream buffer backups so we don't blow up someone else's stream when destroying ourselves
     _backup[i].first.rdbuf(_backup[i].second);
   if(_split!=0) delete _split;
 }
@@ -85,12 +91,27 @@ void cLog::ClearTargets()
   _files.clear();
 }
 
+void BSS_FASTCALL cLog::SetFormat(const char* format)
+{
+  _format = format;
+}
+
+void BSS_FASTCALL cLog::SetNullFormat(const char* format)
+{
+  _nullformat = format;
+}
+
 void BSS_FASTCALL cLog::SetLevel(uint8_t level, const char* str)
 {
   if(_levels.Capacity()>=level)
     _levels.SetCapacity(level+1);
   _levels[level]=str;
 }
+void BSS_FASTCALL cLog::SetMaxLevel(uint8_t level)
+{
+  _maxlevel = level;
+}
+
 bool BSS_FASTCALL cLog::_writedatetime(long timez, std::ostream& log, bool timeonly)
 {
   time_t rawtime;
@@ -137,10 +158,47 @@ const char* BSS_FASTCALL cLog::_trimpath(const char* path)
 }
 void cLog::_leveldefaults()
 {
-  SetLevel(0, "FATAL ERROR: ");
+  SetLevel(0, "FATAL: ");
   SetLevel(1, "ERROR: ");
   SetLevel(2, "WARNING: ");
   SetLevel(3, "NOTICE: ");
   SetLevel(4, "INFO: ");
   SetLevel(5, "DEBUG: ");
+}
+int BSS_FASTCALL cLog::PrintLogV(const char* source, const char* file, uint32_t line, int8_t level, const char* format, va_list args)
+{
+  if(level >= _maxlevel)
+    return 0;
+  LogHeader(source, file, line, level);
+
+#ifdef BSS_COMPILER_GCC // GCC implements va_list in such a way that we actually have to copy it before using it anywhere
+  va_list vltemp;
+  va_copy(vltemp, args);
+  size_t _length = (size_t)CSTR_CT<char>::VPCF(string, vltemp) + 1; // If we didn't copy vl here, it would get modified by vsnprintf and blow up.
+#else
+  size_t _length = (size_t)CSTR_CT<char>::VPCF(format, args) + 1; // This ensures VPCF doesn't modify our original va_list
+#endif
+  DYNARRAY(char, buf, _length);
+  int r = CSTR_CT<char>::VPF(buf, _length, format, args);
+  _stream << buf << std::endl;
+  return r;
+}
+void cLog::_header(std::ostream& o, int n, const char* source, const char* file, uint32_t line, const char* level, long tz)
+{
+  switch(n)
+  {
+  case 0: o << source; break;
+  case 1: o << file; break;
+  case 2: o << line; break;
+  case 3: o << level; break;
+  case 4: _writedatetime(tz, o, true); break;
+  case 5: _writedatetime(tz, o, false); break;
+  }
+}
+
+std::ostream& BSS_FASTCALL cLog::_logheader(const char* source, const char* file, uint32_t line, const char* level)
+{
+  file = _trimpath(file);
+  __safeFormat<const char*, const char*, uint32_t, const char*, long>::F<&_header>(_stream, ((!source && _nullformat != 0) ? _nullformat : _format), source, file, line, level, _tz);
+  return _stream;
 }

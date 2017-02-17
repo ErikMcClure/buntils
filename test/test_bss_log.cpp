@@ -36,24 +36,23 @@ TESTDEF::RETPAIR test_bss_LOG()
   cLog d(std::move(a));
 
   cLog lg("logtest2.txt");
-  lg.FORMATLOG(0, "main.cpp", -1) << std::endl;
-  lg.FORMATLOG(0, "main.cpp", 0) << std::endl;
-  lg.FORMATLOG(0, __FILE__, 0) << std::endl;
-  lg.FORMATLOG(0, __FILE__, __LINE__) << std::endl;
-  lg.FORMATLOG(1, "main.cpp", __LINE__) << std::endl;
-  lg.FORMATLOG(2, "\\main.cpp", __LINE__) << std::endl;
-  lg.FORMATLOG(3, "/main.cpp", __LINE__) << std::endl;
-  lg.FORMATLOG(4, "a\\main.cpp", __LINE__) << std::endl;
-  lg.FORMATLOG(5, "a/main.cpp", __LINE__) << std::endl;
-  lg.FORMATLOG(1, "asfsdbs dsfs ds/main.cpp", __LINE__) << std::endl;
-  lg.FORMATLOG(0, "asfsdbs dsfs ds\\main.cpp", __LINE__) << std::endl;
-  lg.FORMATLOG(0, "asfsdbs\\dsfs/ds/main.cpp", __LINE__) << std::endl;
-  lg.FORMATLOG(0, "\\asfsdbs\\dsfs/ds/main.cpp", __LINE__) << std::endl;
-  lg.FORMATLOG(0, "\\asfsdbs/dsfs\\ds/main.cpp", __LINE__) << std::endl;
-  lg.FORMATLOG(0, "\\asfsdbs/dsfs\\ds/main.cpp\\", __LINE__) << std::endl;
-  lg.FORMATLOG(0, "\\asfsdbs/dsfs\\ds/main.cpp/", __LINE__) << std::endl;
-  lg.WriteLog(0, "main.cpp", __LINE__, 0, "string", 1.0f, 35);
-  BSSLOGV(lg, 3, 0, "string", 1.0f, 35);
-
+  lg.LogHeader(0, "main.cpp", -1, 0) << std::endl;
+  lg.LogHeader(0, "main.cpp", 0, 0) << std::endl;
+  lg.LogHeader(0, __FILE__, 0, 0) << std::endl;
+  lg.LogHeader(0, __FILE__, __LINE__, 0) << std::endl;
+  lg.LogHeader(":::::", "main.cpp", __LINE__, 1) << std::endl;
+  lg.LogHeader("a", "\\main.cpp", __LINE__, 2) << std::endl;
+  lg.LogHeader("\\asfsdbs\\dsfs/ds/", "/main.cpp", __LINE__, 3) << std::endl;
+  lg.LogHeader(0, "a\\main.cpp", __LINE__, 4) << std::endl;
+  lg.LogHeader("", "a/main.cpp", __LINE__, 5) << std::endl;
+  lg.LogHeader("source", "asfsdbs dsfs ds/main.cpp", __LINE__, 1) << std::endl;
+  lg.LogHeader(nullptr, "asfsdbs dsfs ds\\main.cpp", __LINE__, -1) << std::endl;
+  lg.LogHeader(0, "asfsdbs\\dsfs/ds/main.cpp", __LINE__, -2) << std::endl;
+  lg.LogHeader(0, "\\asfsdbs\\dsfs/ds/main.cpp", __LINE__, 0) << std::endl;
+  lg.LogHeader(0, "\\asfsdbs/dsfs\\ds/main.cpp", __LINE__, 0) << std::endl;
+  lg.Log(0, "main.cpp", __LINE__, 0, 4, "string", 1.0f, 35);
+  BSSLOG(lg, 3, 0, "string", 1.0f, 35);
+  lg.LogFormat("bss", "\\asfsdbs/dsfs\\ds/main.cpp/", __LINE__, 1, "{1}{0}{4}{{2}} {3}", 0, 1, 2, 3, 4);
+  lg.PrintLog("bss2", "\\asfsdbs/dsfs\\ds/main.cpp\\", __LINE__, 0, "%s%i", "test", -28);
   ENDTEST;
 }

@@ -28,6 +28,7 @@
 #include <stdio.h>
 #include <array>
 #include <limits>
+#include <ostream>
 #ifdef BSS_PLATFORM_POSIX
 #include <stdlib.h> // For abs(int) on POSIX systems
 #include <fpu_control.h> // for FPU control on POSIX systems
@@ -269,6 +270,61 @@ namespace bss_util {
     }
     fn(cur, len);
   }
+
+#ifdef BSS_VARIADIC_TEMPLATES
+  template<typename... A>
+  struct __safeFormat
+  {
+    template<int N, typename Arg, typename... Args>
+    BSS_FORCEINLINE static void helper(std::ostream& o, int n, Arg arg, Args... args)
+    {
+      if(sizeof...(Args) == (N - n)) // This works because Args is actually 1 less than the total argument count already.
+        o << arg;
+      else
+        helper<N, Args...>(o, n, args...);
+    }
+    template<int N>
+    BSS_FORCEINLINE static void helper(std::ostream& o, int n) { o << "{INVALID PARAMETER " << n << "}"; }
+
+    template<void(*FN)(std::ostream&, int, A...)>
+    BSS_FORCEINLINE static void F(std::ostream& o, const char* format, A... args)
+    {
+      const char* pos = format;
+      while(format[0])
+      {
+        if(format[0] == '{' && format[1] >= '0' && format[1] <= '9' && (format[2] == '}' || (format[2] >= '0' && format[2] <= '9' && format[3] == '}')))
+        {
+          if(format - pos > 0)
+            o.write(pos, format - pos);
+          int n = 0;
+          if(format[2] == '}')
+          {
+            n = format[1] - '0';
+            format += 3;
+          }
+          else
+          {
+            n = format[2] - '0';
+            n = (format[1] - '0') * 10;
+            format += 4;
+          }
+          pos = format;
+          FN(o, n, args...);
+        }
+        else
+          ++format;
+      }
+      if(format - pos > 0)
+        o.write(pos, format - pos);
+    }
+  };
+
+  template<typename... Args>
+  inline static void SafeFormat(std::ostream& o, const char* format, Args... args)
+  {
+    __safeFormat<Args...>::F<&__safeFormat<Args...>::helper<sizeof...(Args) - 1, Args...>>(o, format, args...);
+  }
+#endif
 
   // Converts 32-bit unicode int to a series of utf8 encoded characters, appending them to the string
   inline static void BSS_FASTCALL OutputUnicode(std::string& s, int c) noexcept

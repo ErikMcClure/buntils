@@ -9,6 +9,8 @@
 - Rewrote ring allocator with a per-bucket RWLock
 - Rewrote cThreadPool to actually work properly
 - Added Future class that utilizes cThreadPool
+- Added SafeFormat() function which allows you to format output to an std::ostream via "{0}{1}" notation
+- Rewrote cLog class for more customizability, adding source parameter, maximum error level, and formatting.
 
 0.4.7
 -----

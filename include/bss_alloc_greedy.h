@@ -39,11 +39,11 @@ namespace bss_util {
       }
     }
     template<typename T>
-    inline T* BSS_FASTCALL allocT(size_t num) noexcept
+    inline T* allocT(size_t num) noexcept
     {
       return (T*)alloc(num*sizeof(T));
     }
-    inline void* BSS_FASTCALL alloc(size_t _sz) noexcept
+    inline void* alloc(size_t _sz) noexcept
     {
 #ifdef BSS_DISABLE_CUSTOM_ALLOCATORS
       return malloc(_sz);
@@ -77,7 +77,7 @@ namespace bss_util {
       _lock.RUnlock();
       return retval;
     }
-    void BSS_FASTCALL dealloc(void* p) noexcept
+    void dealloc(void* p) noexcept
     {
 #ifdef BSS_DISABLE_CUSTOM_ALLOCATORS
       delete p; return;
@@ -151,7 +151,7 @@ namespace bss_util {
 
     inline pointer allocate(std::size_t cnt, const pointer = 0) noexcept { return cGreedyAlloc::allocT<T>(cnt); }
     inline void deallocate(pointer p, std::size_t num = 0) noexcept { }
-    inline void BSS_FASTCALL clear() noexcept { cGreedyAlloc::Clear(); } //done for functor reasons, BSS_FASTCALL has no effect here
+    inline void clear() noexcept { cGreedyAlloc::Clear(); } //done for functor reasons, has no effect here
   };
 }
 

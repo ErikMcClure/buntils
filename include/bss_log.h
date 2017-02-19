@@ -37,31 +37,31 @@ namespace bss_util {
     // Destructor - destroys any file streams
     ~cLog();
     // Redirects an existing stream to write to this log's buffer
-    void BSS_FASTCALL Assimilate(std::ostream& stream);
+    void Assimilate(std::ostream& stream);
     // Adds a target stream to post logs to
-    void BSS_FASTCALL AddTarget(std::ostream& stream);
-    //void BSS_FASTCALL AddTarget(std::wostream& stream);
-    void BSS_FASTCALL AddTarget(const char* file);
+    void AddTarget(std::ostream& stream);
+    //void AddTarget(std::wostream& stream);
+    void AddTarget(const char* file);
 #ifdef BSS_PLATFORM_WIN32
-    void BSS_FASTCALL AddTarget(const wchar_t* file);
+    void AddTarget(const wchar_t* file);
 #endif
     // Sets the format for the beginning of the log entry. Defaults to "[{4}] {0} ({1}:{2}) {3}"
-    void BSS_FASTCALL SetFormat(const char* format);
+    void SetFormat(const char* format);
     // An optional format for log entries with a null source. Defaults to "[{4}] ({1}:{2}) {3}"
-    void BSS_FASTCALL SetNullFormat(const char* format);
+    void SetNullFormat(const char* format);
     // Clears all targets and closes all files
     void ClearTargets();
     // Gets the stream for this log
     inline std::ostream& GetStream() { return _stream; }
     // Sets a level string (which should be a constant, not something that will get deallocated)
-    void BSS_FASTCALL SetLevel(uint8_t level, const char* str);
+    void SetLevel(uint8_t level, const char* str);
     // Sets the maximum level that will be logged. Useful for excluding unnecessary debug logs from release builds
-    void BSS_FASTCALL SetMaxLevel(uint8_t level);
+    void SetMaxLevel(uint8_t level);
 
     cLog& operator=(cLog&& right);
     inline operator std::ostream&() { return _stream; }
 
-    BSS_FORCEINLINE int BSS_FASTCALL PrintLog(const char* source, const char* file, uint32_t line, int8_t level, const char* format, ...)
+    inline int PrintLog(const char* source, const char* file, uint32_t line, int8_t level, const char* format, ...)
     {
       va_list vl;
       va_start(vl, format);
@@ -69,18 +69,18 @@ namespace bss_util {
       va_end(vl);
       return r;
     }
-    BSS_FORCEINLINE int BSS_FASTCALL PrintLogV(const char* source, const char* file, uint32_t line, int8_t level, const char* format, va_list args);
+    int PrintLogV(const char* source, const char* file, uint32_t line, int8_t level, const char* format, va_list args);
 
 #ifdef BSS_VARIADIC_TEMPLATES
     template<typename... Args>
-    BSS_FORCEINLINE void BSS_FASTCALL Log(const char* source, const char* file, uint32_t line, int8_t level, Args... args)
+    BSS_FORCEINLINE void Log(const char* source, const char* file, uint32_t line, int8_t level, Args... args)
     {
       if(level >= _maxlevel)
         return;
       _writelog(LogHeader(source, file, line, level), args...);
     }
     template<typename... Args>
-    BSS_FORCEINLINE void BSS_FASTCALL LogFormat(const char* source, const char* file, uint32_t line, int8_t level, const char* format, Args... args)
+    BSS_FORCEINLINE void LogFormat(const char* source, const char* file, uint32_t line, int8_t level, const char* format, Args... args)
     {
       if(level >= _maxlevel)
         return;
@@ -88,7 +88,7 @@ namespace bss_util {
       _stream << std::endl;
     }
 #endif
-    BSS_FORCEINLINE std::ostream& BSS_FASTCALL LogHeader(const char* source, const char* file, uint32_t line, int8_t level)
+    BSS_FORCEINLINE std::ostream& LogHeader(const char* source, const char* file, uint32_t line, int8_t level)
     {
       assert(level < _levels.Capacity());
       return _logheader(source, file, line, (level < 0) ? "" : _levels[level]);
@@ -103,10 +103,10 @@ namespace bss_util {
     static inline void _writelog(std::ostream& o, Arg arg, Args... args) { o << arg; _writelog(o, args...); }
     static inline void _writelog(std::ostream& o) { o << std::endl; }
 #endif
-    std::ostream& BSS_FASTCALL _logheader(const char* source, const char* file, uint32_t line, const char* level);
+    std::ostream& _logheader(const char* source, const char* file, uint32_t line, const char* level);
     static void _header(std::ostream& o, int n, const char* source, const char* file, uint32_t line, const char* level, long tz);
-    static bool BSS_FASTCALL _writedatetime(long timezone, std::ostream& log, bool timeonly);
-    static const char* BSS_FASTCALL _trimpath(const char* path);
+    static bool _writedatetime(long timezone, std::ostream& log, bool timeonly);
+    static const char* _trimpath(const char* path);
     void _leveldefaults();
 
     cArray<const char*, uint8_t> _levels;

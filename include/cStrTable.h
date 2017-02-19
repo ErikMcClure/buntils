@@ -99,7 +99,7 @@ namespace bss_util {
     inline cStrTable& operator+=(const char* right) { AppendString(right); return *this; }
 
   protected:
-    void BSS_FASTCALL _construct(const T* const* strings, CT_ size)
+    void _construct(const T* const* strings, CT_ size)
     {
       if(!strings || !size) //special handling for empty case
         return;

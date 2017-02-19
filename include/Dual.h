@@ -16,16 +16,16 @@ namespace bss_util {
     inline Dual(const Dual<U,O>& copy) : _x((T)copy._x), _dx(copy._dx) {}
     inline Dual(T x=0, const Dual<T,O-1>& dx=0) : _x(x), _dx(dx) {}
     
-    inline Dual BSS_FASTCALL operator+(T r) const { return operator+(Dual(r)); }
-    inline Dual BSS_FASTCALL operator-(T r) const { return operator-(Dual(r)); }
-    inline Dual BSS_FASTCALL operator*(T r) const { return operator*(Dual(r)); }
-    inline Dual BSS_FASTCALL operator/(T r) const { return operator/(Dual(r)); }
-    inline Dual BSS_FASTCALL operator+(const Dual& r) const { return Dual(_x+r._x,_dx+r._dx); }
-    inline Dual BSS_FASTCALL operator-(const Dual& r) const { return Dual(_x-r._x,_dx-r._dx); }
-    inline Dual BSS_FASTCALL operator*(const Dual& r) const { return Dual(_x*r._x,_dx*r._low() + r._dx*_low()); }
-    inline Dual BSS_FASTCALL operator/(const Dual& r) const { return Dual(_x/r._x,(_dx*r._low() - r._dx*_low())/(r._low()*r._low())); }
-    inline Dual BSS_FASTCALL operator^(double k) const { return Dual(std::pow(_x,(T)k),_dx*Dual<T,O-1>(k)*(_low()^((T)(k-1)))); }
-    inline Dual BSS_FASTCALL operator^(const Dual& r) const { return Dual(std::pow(_x,r._x),(_low()^(r._low()-Dual<T,O-1>(1)))*((r._low()*_dx) + (_low()*r._dx*Dual<T,O-1>::log(_low())))); }
+    inline Dual operator+(T r) const { return operator+(Dual(r)); }
+    inline Dual operator-(T r) const { return operator-(Dual(r)); }
+    inline Dual operator*(T r) const { return operator*(Dual(r)); }
+    inline Dual operator/(T r) const { return operator/(Dual(r)); }
+    inline Dual operator+(const Dual& r) const { return Dual(_x+r._x,_dx+r._dx); }
+    inline Dual operator-(const Dual& r) const { return Dual(_x-r._x,_dx-r._dx); }
+    inline Dual operator*(const Dual& r) const { return Dual(_x*r._x,_dx*r._low() + r._dx*_low()); }
+    inline Dual operator/(const Dual& r) const { return Dual(_x/r._x,(_dx*r._low() - r._dx*_low())/(r._low()*r._low())); }
+    inline Dual operator^(double k) const { return Dual(std::pow(_x,(T)k),_dx*Dual<T,O-1>(k)*(_low()^((T)(k-1)))); }
+    inline Dual operator^(const Dual& r) const { return Dual(std::pow(_x,r._x),(_low()^(r._low()-Dual<T,O-1>(1)))*((r._low()*_dx) + (_low()*r._dx*Dual<T,O-1>::log(_low())))); }
     inline Dual operator -(void) const { return Dual(-_x,-_dx); }
     inline Dual Abs() const { return Dual(std::abs(_x),_dx*SGNCOMPARE(_x,0)); }
     inline Dual<T,O-1> _low() const { return Dual<T,O-1>(_x,_dx._low()); }
@@ -56,12 +56,12 @@ namespace bss_util {
   {
     inline Dual(T x, T dx) : _x(x) {}
     inline Dual(T x=0) : _x(x) {}
-    inline Dual BSS_FASTCALL operator+(const Dual& r) const { return Dual(_x+r._x); }
-    inline Dual BSS_FASTCALL operator-(const Dual& r) const { return Dual(_x-r._x); }
-    inline Dual BSS_FASTCALL operator*(const Dual& r) const { return Dual(_x*r._x); }
-    inline Dual BSS_FASTCALL operator/(const Dual& r) const { return Dual(_x/r._x); }
-    inline Dual BSS_FASTCALL operator^(double k) const { return Dual(std::pow(_x,(T)k)); }
-    inline Dual BSS_FASTCALL operator^(const Dual& r) const { return Dual(std::pow(_x,r._x)); }
+    inline Dual operator+(const Dual& r) const { return Dual(_x+r._x); }
+    inline Dual operator-(const Dual& r) const { return Dual(_x-r._x); }
+    inline Dual operator*(const Dual& r) const { return Dual(_x*r._x); }
+    inline Dual operator/(const Dual& r) const { return Dual(_x/r._x); }
+    inline Dual operator^(double k) const { return Dual(std::pow(_x,(T)k)); }
+    inline Dual operator^(const Dual& r) const { return Dual(std::pow(_x,r._x)); }
     inline Dual operator -(void) const { return Dual(-_x); }
 
     inline T operator()(int derivative) const { assert(!derivative); return _x;  }

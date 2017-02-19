@@ -23,7 +23,7 @@ const char VALIDASCII=33; //technically this works for unicode too
 //}
 
 
-char BSS_FASTCALL bss_initINI(INIParser* init, FILE* stream)
+char bss_initINI(INIParser* init, FILE* stream)
 {
   if(!init) return 0;
   init->file=stream;
@@ -38,7 +38,7 @@ char BSS_FASTCALL bss_initINI(INIParser* init, FILE* stream)
   *init->cursection=0;
   return 1;
 }
-char BSS_FASTCALL bss_destroyINI(INIParser* destroy)
+char bss_destroyINI(INIParser* destroy)
 {
   if(!destroy) return 0;
   destroy->file=0;
@@ -51,12 +51,12 @@ char BSS_FASTCALL bss_destroyINI(INIParser* destroy)
   return 1;
 }
 
-const char* BSS_FASTCALL _trimlstr(const char* str)
+const char* _trimlstr(const char* str)
 {
   for(;*str>0 && *str<33;++str);
   return str;
 }
-char* BSS_FASTCALL _trimrstr(char* str)
+char* _trimrstr(char* str)
 {
   char* inter=str+strlen(str);
 
@@ -66,7 +66,7 @@ char* BSS_FASTCALL _trimrstr(char* str)
 }
 
 
-char BSS_FASTCALL _nextkeychar(const char** output, const char* line)
+char _nextkeychar(const char** output, const char* line)
 {
   for(;*line;++line)
   {
@@ -85,7 +85,7 @@ char BSS_FASTCALL _nextkeychar(const char** output, const char* line)
   return -1;
 }
 
-char* BSS_FASTCALL _validatesection(char* start)
+char* _validatesection(char* start)
 {
   char valid=0; //checks to make sure there's at least one valid character in the string
 
@@ -99,7 +99,7 @@ char* BSS_FASTCALL _validatesection(char* start)
 }
 
 
-char BSS_FASTCALL _validatekey(const char* start, const char* end)
+char _validatekey(const char* start, const char* end)
 {
   for(;start<end;++start)
     if(*start>=VALIDASCII) return 1; //32 is space and everything below is just crap.
@@ -107,14 +107,14 @@ char BSS_FASTCALL _validatekey(const char* start, const char* end)
 }
 
 // Finds the end of a value line (before a comment starts) but doesn't care about whether the value has valid characters or not.
-char* BSS_FASTCALL _validatevalue(char* str)
+char* _validatevalue(char* str)
 {
   for(;*str;++str)
     if(*str==';') break;
   return str;
 }
 
-char* BSS_FASTCALL _savestr(char* orig, const char* str)
+char* _savestr(char* orig, const char* str)
 {
   size_t olength=strlen(orig);
   size_t nlength;
@@ -129,7 +129,7 @@ char* BSS_FASTCALL _savestr(char* orig, const char* str)
   return orig;
 }
 
-void BSS_FASTCALL _newsection(INIParser* parse, const char* str)
+void _newsection(INIParser* parse, const char* str)
 {
   parse->cursection=_savestr(parse->cursection,str);
   parse->newsection=1;
@@ -141,7 +141,7 @@ void _newkeyvaluepair(INIParser* parse, const char* start, char* mid)
   parse->curvalue=_savestr(parse->curvalue,mid+1);
 }
 
-char BSS_FASTCALL bss_parseLine(INIParser* parse)
+char bss_parseLine(INIParser* parse)
 {
   //const char* line;
   char* tc;
@@ -173,7 +173,7 @@ char BSS_FASTCALL bss_parseLine(INIParser* parse)
   return 0;
 }
 
-char BSS_FASTCALL _snextkeychar(const char** output, const char* start, const char* end)
+char _snextkeychar(const char** output, const char* start, const char* end)
 {
   for(;start<end;++start)
   {
@@ -192,7 +192,7 @@ char BSS_FASTCALL _snextkeychar(const char** output, const char* start, const ch
   return -1;
 }
 
-const char* BSS_FASTCALL _svalidatesection(const char* start, const char* end)
+const char* _svalidatesection(const char* start, const char* end)
 {
   char valid=0; //checks to make sure there's at least one valid character in the string
 
@@ -204,20 +204,20 @@ const char* BSS_FASTCALL _svalidatesection(const char* start, const char* end)
   }
   return valid==0?0:start;
 }
-const char* BSS_FASTCALL _svalidatevalue(const char* start, const char* end)
+const char* _svalidatevalue(const char* start, const char* end)
 {
   for(;start<end;++start)
     if(*start==';') break; //a comment started
   return start;
 }
 
-const char* BSS_FASTCALL _trimrstralt(const char* end,const char* begin)
+const char* _trimrstralt(const char* end,const char* begin)
 {
   for(;end>begin && *end<33;--end);
   return end;
 }
 
-int BSS_FASTCALL comparevalues(const char* start, const char* end, const char* comp)
+int comparevalues(const char* start, const char* end, const char* comp)
 {
   ptrdiff_t a,b;
   start=_trimlstr(start);
@@ -226,7 +226,7 @@ int BSS_FASTCALL comparevalues(const char* start, const char* end, const char* c
   b = strlen(comp);
   return STRNICMP(start,comp,bssmin(a,b));
 }
-INICHUNK BSS_FASTCALL bss_findINIsection(const void* data, size_t length, const char* section, size_t instance)
+INICHUNK bss_findINIsection(const void* data, size_t length, const char* section, size_t instance)
 {
   const char* cur=(const char*)data;
   const char* end=cur+length;
@@ -260,7 +260,7 @@ INICHUNK BSS_FASTCALL bss_findINIsection(const void* data, size_t length, const 
   return retval;
 }
 
-INICHUNK BSS_FASTCALL bss_findINIentry(INICHUNK section, const char* key, size_t instance)
+INICHUNK bss_findINIentry(INICHUNK section, const char* key, size_t instance)
 {
   const char* cur=(const char*)section.start;
   const char* end=(const char*)section.end;

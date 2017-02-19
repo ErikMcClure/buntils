@@ -55,7 +55,7 @@ namespace bss_util
 
 #ifdef BSS_VARIADIC_TEMPLATES
     template<typename R, typename ...Args>
-    void AddFunc(R(MSC_FASTCALL *GCC_FASTCALL f)(Args...), Args... args)
+    void AddFunc(R(*f)(Args...), Args... args)
     {
       std::pair<StoreFunction<R, Args...>, cRingAllocVoid*>* fn = _falloc.allocT<std::pair<StoreFunction<R, Args...>, cRingAllocVoid*>>();
       new (&fn->first) StoreFunction<R, Args...>(f, std::forward<Args>(args)...);
@@ -154,7 +154,7 @@ namespace bss_util
   template<typename R, typename ...Args>
   class Future : StoreFunction<R, Args...>
   {
-    inline Future(cThreadPool& pool, R(MSC_FASTCALL *GCC_FASTCALL f)(Args...), Args&&... args) : StoreFunction<R, Args...>(f, std::forward<Args>(args)...) { pool.AddTask(_eval, this); }
+    inline Future(cThreadPool& pool, R(*f)(Args...), Args&&... args) : StoreFunction<R, Args...>(f, std::forward<Args>(args)...) { pool.AddTask(_eval, this); }
     ~Future() { assert(_finished.load(std::memory_order_acquire)); }
     R* Result() { return _finished.load(std::memory_order_acquire) ? &result : 0; }
 

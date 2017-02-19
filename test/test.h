@@ -92,7 +92,7 @@ struct DEBUG_CDT : DEBUG_CDT_SAFE {
   inline bool operator>=(const DEBUG_CDT& other) const { return _index >= other._index; }
   inline bool operator==(const DEBUG_CDT& other) const { return _index == other._index; }
   inline bool operator!=(const DEBUG_CDT& other) const { return _index != other._index; }
-  void BSS_FASTCALL donothing(float f) {}
+  void donothing(float f) {}
 
   int _id;
   int _index;

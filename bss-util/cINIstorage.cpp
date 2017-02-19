@@ -16,14 +16,14 @@ cINIsection cINIstorage::_sectionsentinel;
 cLocklessBlockAlloc<cINIstorage::_NODE> cINIstorage::_alloc;
 
 template<typename T>
-const T* BSS_FASTCALL ltrimstr(const T* str)
+const T* ltrimstr(const T* str)
 {
   for(;*str>0 && *str<33;++str);
   return str;
 }
 
 template<typename T>
-const T* BSS_FASTCALL rtrimstr(const T* end,const T* begin)
+const T* rtrimstr(const T* end,const T* begin)
 {
   for(;end>begin && *end<33;--end);
   return end;
@@ -111,7 +111,7 @@ cINIsection::_NODE* cINIstorage::GetEntryNode(const char *section, const char* k
   return !s?0:s->GetEntryNode(key,keyinstance);
 }
 
-cINIsection& BSS_FASTCALL cINIstorage::AddSection(const char* name)
+cINIsection& cINIstorage::AddSection(const char* name)
 {
   if(!_ini) _openINI();
   _ini->reserve(_ini->size()+strlen(name)+4);

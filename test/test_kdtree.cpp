@@ -14,10 +14,10 @@ struct KDtest {
   static int hits;
 };
 int KDtest::hits = 0;
-BSS_FORCEINLINE const float* BSS_FASTCALL KDtest_RECT(KDtest* t) { return t->rect; }
-BSS_FORCEINLINE LLBase<KDtest>& BSS_FASTCALL KDtest_LIST(KDtest* t) { return *(LLBase<KDtest>*)&t->list; }
-BSS_FORCEINLINE void BSS_FASTCALL KDtest_ACTION(KDtest* t) { ++KDtest::hits; }
-BSS_FORCEINLINE KDNode<KDtest>*& BSS_FASTCALL KDtest_NODE(KDtest* t) { return t->node; }
+BSS_FORCEINLINE const float* KDtest_RECT(KDtest* t) { return t->rect; }
+BSS_FORCEINLINE LLBase<KDtest>& KDtest_LIST(KDtest* t) { return *(LLBase<KDtest>*)&t->list; }
+BSS_FORCEINLINE void KDtest_ACTION(KDtest* t) { ++KDtest::hits; }
+BSS_FORCEINLINE KDNode<KDtest>*& KDtest_NODE(KDtest* t) { return t->node; }
 
 TESTDEF::RETPAIR test_KDTREE()
 {

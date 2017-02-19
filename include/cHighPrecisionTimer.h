@@ -36,24 +36,24 @@ namespace bss_util
     cHighPrecisionTimer(const cHighPrecisionTimer& copy);
     cHighPrecisionTimer();
     // Resamples the timer, updating the current time and setting the delta to the difference between the last time and the current time.
-    double BSS_FASTCALL Update();
+    double Update();
     // Resamples the timer, but warps the resulting increment by the timewarp argument
-    double BSS_FASTCALL Update(double timewarp);
+    double Update(double timewarp);
     // Updates the timer to prime it for the next update, but overrides the delta for this tick with a custom value.
-    void BSS_FASTCALL Override(uint64_t nsdelta);
-    void BSS_FASTCALL Override(double delta);
+    void Override(uint64_t nsdelta);
+    void Override(double delta);
     // Gets the difference in milliseconds between the last call to Update() and the one before it. Does NOT resample the timer.
-    inline double BSS_FASTCALL GetDelta() const { return _delta; }
+    inline double GetDelta() const { return _delta; }
     // Gets the delta in nanoseconds
-    inline uint64_t BSS_FASTCALL GetDeltaNS() const { return _nsDelta; }
+    inline uint64_t GetDeltaNS() const { return _nsDelta; }
     // Gets the current time in milliseconds that has elapsed since the creation of the timer, or a call to ResetTime.
-    inline double BSS_FASTCALL GetTime() const { return _time; }
+    inline double GetTime() const { return _time; }
     // Gets the current time that has elapsed in nanoseconds, as a precise 64-bit integer.
-    inline uint64_t BSS_FASTCALL GetTimeNS() const { return _nsTime; }
+    inline uint64_t GetTimeNS() const { return _nsTime; }
     // Resets the time to 0 (preserves delta)
-    inline void BSS_FASTCALL ResetTime() { _time = 0; _nsTime = 0; }
+    inline void ResetTime() { _time = 0; _nsTime = 0; }
     // Resets the delta to 0, and resamples the timer.
-    inline void BSS_FASTCALL ResetDelta() { _querytime(&_curTime); _delta = 0; _nsDelta = 0; }
+    inline void ResetDelta() { _querytime(&_curTime); _delta = 0; _nsDelta = 0; }
 
     // Converts two nanosecond counts to seconds and returns the difference as a double.
     BSS_FORCEINLINE static double NanosecondDiff(uint64_t now, uint64_t old) { return (now - old) / 1000000000.0; }
@@ -70,7 +70,7 @@ namespace bss_util
       return ret;
     }
     // Closes a profiler and returns the number of nanoseconds that elapsed between the open and close function calls.
-    BSS_FORCEINLINE static uint64_t BSS_FASTCALL CloseProfiler(uint64_t begin)
+    BSS_FORCEINLINE static uint64_t CloseProfiler(uint64_t begin)
     {
       uint64_t compare;
 #ifdef BSS_PLATFORM_WIN32
@@ -90,10 +90,10 @@ namespace bss_util
     uint64_t _nsDelta; // Delta in nanoseconds;
 
 #ifdef BSS_PLATFORM_WIN32
-    static void BSS_FASTCALL _querytime(uint64_t* _pval);
+    static void _querytime(uint64_t* _pval);
     static uint64_t _getfreq();
 #else
-    static void BSS_FASTCALL _querytime(uint64_t* _pval, clockid_t clock = BSS_POSIX_CLOCK);
+    static void _querytime(uint64_t* _pval, clockid_t clock = BSS_POSIX_CLOCK);
 #endif
   };
 }

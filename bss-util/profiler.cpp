@@ -117,7 +117,7 @@ void Profiler::WriteToStream(std::ostream& stream, uint8_t output)
     _heatwrite(stream, root, -1, _heatfindmax(root));
   }
 }
-void BSS_FASTCALL Profiler::_treeout(std::ostream& stream, PROF_TRIENODE* node, PROFILER_INT id, uint32_t level, PROFILER_INT idlevel)
+void Profiler::_treeout(std::ostream& stream, PROF_TRIENODE* node, PROFILER_INT id, uint32_t level, PROFILER_INT idlevel)
 {
   if(!node) return;
   if(node->total != (uint64_t)-1)
@@ -132,7 +132,7 @@ void BSS_FASTCALL Profiler::_treeout(std::ostream& stream, PROF_TRIENODE* node, 
   for(PROFILER_INT i = 0; i < 16; ++i)
     _treeout(stream, node->_children[i], id|(i<<(4*idlevel)), level + !id, idlevel+1);
 }
-void BSS_FASTCALL Profiler::_heatout(PROF_HEATNODE& heat, PROF_TRIENODE* node, PROFILER_INT id, PROFILER_INT idlevel)
+void Profiler::_heatout(PROF_HEATNODE& heat, PROF_TRIENODE* node, PROFILER_INT id, PROFILER_INT idlevel)
 {
   if(!node) return;
   if(node->total != (uint64_t)-1)
@@ -156,14 +156,14 @@ void BSS_FASTCALL Profiler::_heatout(PROF_HEATNODE& heat, PROF_TRIENODE* node, P
     for(PROFILER_INT i = 0; i < 16; ++i)
       _heatout(heat, node->_children[i], id|(i<<(4*idlevel)), idlevel+1);
 }
-double BSS_FASTCALL Profiler::_heatfindmax(PROF_HEATNODE& heat)
+double Profiler::_heatfindmax(PROF_HEATNODE& heat)
 {
   double max = heat.avg;
   for(PROFILER_INT i = 0; i < heat._children.Length(); ++i)
     max = std::max(_heatfindmax(heat._children[i]), max);
   return max;
 }
-void BSS_FASTCALL Profiler::_heatwrite(std::ostream& stream, PROF_HEATNODE& node, uint32_t level, double max)
+void Profiler::_heatwrite(std::ostream& stream, PROF_HEATNODE& node, uint32_t level, double max)
 {
   static const int BARLENGTH=10;
 
@@ -200,7 +200,7 @@ void BSS_FASTCALL Profiler::_heatwrite(std::ostream& stream, PROF_HEATNODE& node
   for(PROFILER_INT i = 0; i < node._children.Length(); ++i)
     _heatwrite(stream, node._children[i], level+1, max);
 }
-void BSS_FASTCALL Profiler::_flatout(PROF_FLATOUT* avg, PROF_TRIENODE* node, PROFILER_INT id, PROFILER_INT idlevel)
+void Profiler::_flatout(PROF_FLATOUT* avg, PROF_TRIENODE* node, PROFILER_INT id, PROFILER_INT idlevel)
 {
   if(!node) return;
   if(node->total != (uint64_t)-1)
@@ -219,14 +219,14 @@ void BSS_FASTCALL Profiler::_flatout(PROF_FLATOUT* avg, PROF_TRIENODE* node, PRO
     _flatout(avg, node->_children[i], id|(i<<(4*idlevel)), idlevel+1);
 
 }
-const char* BSS_FASTCALL Profiler::_trimpath(const char* path)
+const char* Profiler::_trimpath(const char* path)
 {
   const char* r=strrchr(path, '/');
   const char* r2=strrchr(path, '\\');
   r=bssmax(r, r2);
   return (!r)?path:(r+1);
 }
-void BSS_FASTCALL Profiler::_timeformat(std::ostream& stream, double avg, double variance, uint64_t num)
+void Profiler::_timeformat(std::ostream& stream, double avg, double variance, uint64_t num)
 {
   //double sd = bss_util::FastSqrt(variance/(double)(num-1));
   if(avg>=1000000000000.0)

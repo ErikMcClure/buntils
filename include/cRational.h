@@ -143,16 +143,16 @@ namespace bss_util {
     T _d; //denominator
   };
 
-  template<typename T> inline static cRational<T> BSS_FASTCALL operator+(T l, const cRational<T>& r) { cRational<T> n(r); n += l; return n; } // this is reversed using associativity for efficiency.
-  template<typename T> inline static cRational<T> BSS_FASTCALL operator-(T l, const cRational<T>& r) { cRational<T> n(l); n -= r; return n; }
-  template<typename T> inline static cRational<T> BSS_FASTCALL operator*(T l, const cRational<T>& r) { cRational<T> n(r); n *= l; return n; } // this is reversed using associativity for efficiency.
-  template<typename T> inline static cRational<T> BSS_FASTCALL operator/(T l, const cRational<T>& r) { cRational<T> n(l); n /= r; return n; }
-  template<typename T> inline static bool BSS_FASTCALL operator<(T l, const cRational<T>& r) { return r > l; }
-  template<typename T> inline static bool BSS_FASTCALL operator>(T l, const cRational<T>& r) { return r < l; }
-  template<typename T> inline static bool BSS_FASTCALL operator<=(T l, const cRational<T>& r) { return r >= l; }
-  template<typename T> inline static bool BSS_FASTCALL operator>=(T l, const cRational<T>& r) { return r <= l; }
-  template<typename T> inline static bool BSS_FASTCALL operator==(T l, const cRational<T>& r) { return r == l; }
-  template<typename T> inline static bool BSS_FASTCALL operator!=(T l, const cRational<T>& r) { return r != l; }
+  template<typename T> inline static cRational<T> operator+(T l, const cRational<T>& r) { cRational<T> n(r); n += l; return n; } // this is reversed using associativity for efficiency.
+  template<typename T> inline static cRational<T> operator-(T l, const cRational<T>& r) { cRational<T> n(l); n -= r; return n; }
+  template<typename T> inline static cRational<T> operator*(T l, const cRational<T>& r) { cRational<T> n(r); n *= l; return n; } // this is reversed using associativity for efficiency.
+  template<typename T> inline static cRational<T> operator/(T l, const cRational<T>& r) { cRational<T> n(l); n /= r; return n; }
+  template<typename T> inline static bool operator<(T l, const cRational<T>& r) { return r > l; }
+  template<typename T> inline static bool operator>(T l, const cRational<T>& r) { return r < l; }
+  template<typename T> inline static bool operator<=(T l, const cRational<T>& r) { return r >= l; }
+  template<typename T> inline static bool operator>=(T l, const cRational<T>& r) { return r <= l; }
+  template<typename T> inline static bool operator==(T l, const cRational<T>& r) { return r == l; }
+  template<typename T> inline static bool operator!=(T l, const cRational<T>& r) { return r != l; }
 }
 
 #endif

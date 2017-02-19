@@ -44,7 +44,7 @@ namespace bss_util {
     }
     ~cRingAllocVoid() { _clear(); }
 
-    inline void* BSS_FASTCALL alloc(size_t num) noexcept
+    inline void* alloc(size_t num) noexcept
     {
       size_t n = num + sizeof(Node);
       Bucket* cur;
@@ -82,9 +82,9 @@ namespace bss_util {
       return ret + 1;
     }
     template<class T>
-    inline T* BSS_FASTCALL allocT(size_t count = 1) noexcept { return (T*)alloc(sizeof(T)*count); }
+    inline T* allocT(size_t count = 1) noexcept { return (T*)alloc(sizeof(T)*count); }
 
-    inline void BSS_FASTCALL dealloc(void* p) noexcept
+    inline void dealloc(void* p) noexcept
     {
       Node* n = ((Node*)p)-1;
       Bucket* b = n->p; // grab bucket pointer before we annihilate the node
@@ -231,7 +231,7 @@ namespace bss_util {
   public:
     inline cRingAlloc(cRingAlloc&& mov) : cRingAllocVoid(std::move(mov)) {}
     inline explicit cRingAlloc(size_t init=8) : cRingAllocVoid(init) { }
-    inline T* BSS_FASTCALL alloc(size_t num) noexcept { return (T*)cRingAllocVoid::alloc(num*sizeof(T)); }
+    inline T* alloc(size_t num) noexcept { return (T*)cRingAllocVoid::alloc(num*sizeof(T)); }
     inline cRingAlloc& operator=(cRingAlloc&& mov) noexcept { cRingAllocVoid::operator=(std::move(mov)); return *this; }
   };
 

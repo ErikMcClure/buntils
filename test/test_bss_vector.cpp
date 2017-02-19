@@ -200,7 +200,7 @@ template<typename T> void VECTOR3_CROSS_TEST(TESTDEF::RETPAIR& __testret)
 }
 
 template<typename T, int M, int N, T(*op)(const T& l, const T& r)>
-void BSS_FASTCALL MATRIX_COMPONENT_OP(const T(&l)[M][N], const T(&r)[M][N], T(&out)[M][N])
+void MATRIX_COMPONENT_OP(const T(&l)[M][N], const T(&r)[M][N], T(&out)[M][N])
 {
   for(int i = 0; i < M; ++i)
     for(int j = 0; j < N; ++j)
@@ -213,7 +213,7 @@ template<typename T> T MATRIX_OP_MUL(const T& l, const T& r) { return l*r; }
 template<typename T> T MATRIX_OP_DIV(const T& l, const T& r) { return l / r; }
 
 template<typename T, int M, int N, int P>
-void BSS_FASTCALL MATRIX_MULTIPLY(const T(&l)[M][N], const T(&r)[N][P], T(&out)[M][P])
+void MATRIX_MULTIPLY(const T(&l)[M][N], const T(&r)[N][P], T(&out)[M][P])
 {
   T a[M][N];
   T b[N][P];
@@ -276,7 +276,7 @@ bool MATRIX_COMPARE(const T(&l)[M][N], const T(&r)[M][N], int diff = 1)
 }
 
 template<typename T, int M, int N>
-void BSS_FASTCALL MATRIX_M_N_TEST(TESTDEF::RETPAIR& __testret)
+void MATRIX_M_N_TEST(TESTDEF::RETPAIR& __testret)
 {
   Matrix<T, M, N> a;
   Matrix<T, M, N> b;

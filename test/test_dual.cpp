@@ -6,7 +6,7 @@
 
 using namespace bss_util;
 
-BSS_FORCEINLINE bool BSS_FASTCALL fsmallcomp(double af, double bf, int64_t maxDiff = 1)
+BSS_FORCEINLINE bool fsmallcomp(double af, double bf, int64_t maxDiff = 1)
 {
   if(af == 0.0)
     return fsmall(bf);

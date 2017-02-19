@@ -8,10 +8,10 @@ using namespace bss_util;
 
 struct foobar
 {
-  void BSS_FASTCALL nyan(uint32_t cat) { TEST(cat == 5); }
-  void BSS_FASTCALL nyannyan(int cat, int kitty) { TEST(cat == 2); TEST(kitty == -3); }
-  void BSS_FASTCALL nyannyannyan(int cat, int kitty, bool fluffy) { TEST(cat == -6); TEST(kitty == 0); TEST(fluffy); }
-  void BSS_FASTCALL zoidberg() { TEST(true); ++count; }
+  void nyan(uint32_t cat) { TEST(cat == 5); }
+  void nyannyan(int cat, int kitty) { TEST(cat == 2); TEST(kitty == -3); }
+  void nyannyannyan(int cat, int kitty, bool fluffy) { TEST(cat == -6); TEST(kitty == 0); TEST(fluffy); }
+  void zoidberg() { TEST(true); ++count; }
   void nothing() {}
   void nothing2() {}
   void nothing3() {}
@@ -20,7 +20,7 @@ struct foobar
   int count;
 };
 
-void BSS_FASTCALL external_zoidberg(foobar* obj) { obj->zoidberg(); }
+void external_zoidberg(foobar* obj) { obj->zoidberg(); }
 
 TESTDEF::RETPAIR test_DELEGATE()
 {

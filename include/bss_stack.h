@@ -17,13 +17,13 @@ namespace bss_util {
     inline explicit cStack(CType init=0) : _array(init) {}
     inline ~cStack() {}
     // Pushes an item on to the stack in LIFO order.
-    BSS_FORCEINLINE void BSS_FASTCALL Push(const T& value) { _array.Add(value); }
-    BSS_FORCEINLINE void BSS_FASTCALL Push(T&& value) { _array.Add(std::move(value)); }
+    BSS_FORCEINLINE void Push(const T& value) { _array.Add(value); }
+    BSS_FORCEINLINE void Push(T&& value) { _array.Add(std::move(value)); }
     // Pops an item off the stack in LIFO order. If there is no item to pop, this call is illegal and will crash.
-    BSS_FORCEINLINE T BSS_FASTCALL Pop() { T r(std::move(_array.Back())); _array.RemoveLast(); return std::move(r); }
+    BSS_FORCEINLINE T Pop() { T r(std::move(_array.Back())); _array.RemoveLast(); return std::move(r); }
     // Peeks at the item on top of the stack, but does not remove it. If there is no item to look at, this is illegal.
-    BSS_FORCEINLINE T& BSS_FASTCALL Peek() { return _array.Back(); }
-    BSS_FORCEINLINE const T& BSS_FASTCALL Peek() const { return _array.Back(); }
+    BSS_FORCEINLINE T& Peek() { return _array.Back(); }
+    BSS_FORCEINLINE const T& Peek() const { return _array.Back(); }
     // Throws away the item on top of the stack.
     BSS_FORCEINLINE void Discard() { _array.RemoveLast(); }
     BSS_FORCEINLINE void Clear() { _array.Clear(); }

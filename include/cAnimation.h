@@ -65,7 +65,7 @@ namespace bss_util {
   {
   public:
     typedef cAniFrame<T, D> FRAME;
-    typedef T(BSS_FASTCALL *FUNC)(const FRAME*, uint32_t, uint32_t, double, const T&);
+    typedef T(*FUNC)(const FRAME*, uint32_t, uint32_t, double, const T&);
 
     explicit cAnimation(FUNC f = 0) : cAniBase(sizeof(T)), _f(f) { }
     cAnimation(cAnimation&& mov) : cAniBase(std::move(mov)), _frames(std::move(mov._frames)), _f(std::move(mov._f)) {}
@@ -259,10 +259,10 @@ namespace bss_util {
       return _time < length;
     }
 
-    static inline T BSS_FASTCALL NoInterpolate(const typename cAnimation<T, D>::FRAME* v, uint32_t s, uint32_t cur, double t, const T& init) { uint32_t i = cur - (t != 1.0); return (i<0) ? init : v[i].value; }
-    static inline T BSS_FASTCALL NoInterpolateRel(const typename cAnimation<T, D>::FRAME* v, uint32_t s, uint32_t cur, double t, const T& init) { assert(cur > 0); return init + v[cur - (t != 1.0)].value; }
-    static inline T BSS_FASTCALL LerpInterpolate(const typename cAnimation<T, D>::FRAME* v, uint32_t s, uint32_t cur, double t, const T& init) { return lerp<T>(!cur ? init : v[cur - 1].value, v[cur].value, t); }
-    static inline T BSS_FASTCALL LerpInterpolateRel(const typename cAnimation<T, D>::FRAME* v, uint32_t s, uint32_t cur, double t, const T& init) { assert(cur > 0); return init + lerp<T>(v[cur - 1].value, v[cur].value, t); }
+    static inline T NoInterpolate(const typename cAnimation<T, D>::FRAME* v, uint32_t s, uint32_t cur, double t, const T& init) { uint32_t i = cur - (t != 1.0); return (i<0) ? init : v[i].value; }
+    static inline T NoInterpolateRel(const typename cAnimation<T, D>::FRAME* v, uint32_t s, uint32_t cur, double t, const T& init) { assert(cur > 0); return init + v[cur - (t != 1.0)].value; }
+    static inline T LerpInterpolate(const typename cAnimation<T, D>::FRAME* v, uint32_t s, uint32_t cur, double t, const T& init) { return lerp<T>(!cur ? init : v[cur - 1].value, v[cur].value, t); }
+    static inline T LerpInterpolateRel(const typename cAnimation<T, D>::FRAME* v, uint32_t s, uint32_t cur, double t, const T& init) { assert(cur > 0); return init + lerp<T>(v[cur - 1].value, v[cur].value, t); }
 
   protected:
     T _init; // This is referenced by an index of -1
@@ -270,11 +270,11 @@ namespace bss_util {
 
   struct cAniCubicEasing
   {
-    static inline double BSS_FASTCALL TimeBezier(double s, double p1, double p2) { double inv = 1.0 - s; return 3.0*inv*inv*s*p1 + 3.0*inv*s*s*p2 + s*s*s; }
-    static inline double BSS_FASTCALL TimeBezierD(double s, double p1, double p2) { double inv = 1.0 - s; return 3.0*inv*inv*(p1)+6.0*inv*s*(p2 - p1) + inv*s*s*p2 + 3.0*s*s*(1.0 - p2); }
+    static inline double TimeBezier(double s, double p1, double p2) { double inv = 1.0 - s; return 3.0*inv*inv*s*p1 + 3.0*inv*s*s*p2 + s*s*s; }
+    static inline double TimeBezierD(double s, double p1, double p2) { double inv = 1.0 - s; return 3.0*inv*inv*(p1)+6.0*inv*s*(p2 - p1) + inv*s*s*p2 + 3.0*s*s*(1.0 - p2); }
 
     template<class T, class D>
-    static inline double BSS_FASTCALL GetProgress(const typename cAnimation<T, D>::FRAME* v, uint32_t l, uint32_t cur, double t)
+    static inline double GetProgress(const typename cAnimation<T, D>::FRAME* v, uint32_t l, uint32_t cur, double t)
     {
       cAniCubicEasing& data = v[cur].data;
       auto f = [&](double s) -> double { return TimeBezier(s, data.t1, data.t2) - t; };
@@ -291,12 +291,12 @@ namespace bss_util {
   template<class T>
   struct cAniLinearData : cAniCubicEasing
   {
-    static inline T BSS_FASTCALL LinearInterpolate(const typename cAnimation<T, cAniLinearData<T>>::FRAME* v, uint32_t l, uint32_t cur, double t, const T& init)
+    static inline T LinearInterpolate(const typename cAnimation<T, cAniLinearData<T>>::FRAME* v, uint32_t l, uint32_t cur, double t, const T& init)
     {
       double s = GetProgress<T, cAniLinearData<T>>(v, l, cur, t);
       return lerp<T>(!cur ? init : v[cur - 1].value, v[cur].value, s);
     }
-    static inline T BSS_FASTCALL LinearInterpolateRel(const typename cAnimation<T, cAniLinearData<T>>::FRAME* v, uint32_t l, uint32_t cur, double t, const T& init)
+    static inline T LinearInterpolateRel(const typename cAnimation<T, cAniLinearData<T>>::FRAME* v, uint32_t l, uint32_t cur, double t, const T& init)
     {
       assert(cur > 0);
       double s = GetProgress<T, cAniLinearData<T>>(v, l, cur, t);
@@ -308,9 +308,9 @@ namespace bss_util {
   struct cAniQuadData : cAniCubicEasing
   {
     template<class U>
-    static inline U BSS_FASTCALL Bezier(double s, const U& p0, const U& p1, const U& p2) { double inv = 1.0 - s; return inv*inv*p0 + 2.0*inv*s*p1 + s*s*p2; }
+    static inline U Bezier(double s, const U& p0, const U& p1, const U& p2) { double inv = 1.0 - s; return inv*inv*p0 + 2.0*inv*s*p1 + s*s*p2; }
     template<class U>
-    static inline U BSS_FASTCALL BezierD(double s, const U& p0, const U& p1, const U& p2) { double inv = 1.0 - s; return 2.0*inv*(p1 - p0) + 2.0*s*(p2 - p1); }
+    static inline U BezierD(double s, const U& p0, const U& p1, const U& p2) { double inv = 1.0 - s; return 2.0*inv*(p1 - p0) + 2.0*s*(p2 - p1); }
 
     // Almost all points are really just arrays of floats or doubles. This provides a general length function to handle all those cases in any number of dimensions
     template<class U, int I>
@@ -325,7 +325,7 @@ namespace bss_util {
       }
       return FastSqrt<U>(r);
     }
-    static inline T BSS_FASTCALL QuadraticInterpolateBase(const typename cAnimation<T, cAniQuadData<T, LENGTH>>::FRAME* v, uint32_t l, uint32_t cur, double t, const T& init)
+    static inline T QuadraticInterpolateBase(const typename cAnimation<T, cAniQuadData<T, LENGTH>>::FRAME* v, uint32_t l, uint32_t cur, double t, const T& init)
     {
       double s = GetProgress<T, cAniQuadData<T, LENGTH>>(v, l, cur, t);
       const T& p0 = (!cur ? init : v[cur - 1].value);
@@ -335,11 +335,11 @@ namespace bss_util {
       auto fd = [&](double s) -> double { return LENGTH(s, p0, p1, p2); };
       return Bezier<T>(NewtonRaphsonBisection<double>(s, 0.0, 1.0, f, fd, FLT_EPS), p0, p1, p2);
     }
-    static inline T BSS_FASTCALL QuadraticInterpolate(const typename cAnimation<T, cAniQuadData<T, LENGTH>>::FRAME* v, uint32_t l, uint32_t cur, double t, const T& init)
+    static inline T QuadraticInterpolate(const typename cAnimation<T, cAniQuadData<T, LENGTH>>::FRAME* v, uint32_t l, uint32_t cur, double t, const T& init)
     {
       return QuadraticInterpolateBase(v, l, cur, t, init);
     }
-    static inline T BSS_FASTCALL QuadraticInterpolateRel(const typename cAnimation<T, cAniQuadData<T, LENGTH>>::FRAME* v, uint32_t l, uint32_t cur, double t, const T& init)
+    static inline T QuadraticInterpolateRel(const typename cAnimation<T, cAniQuadData<T, LENGTH>>::FRAME* v, uint32_t l, uint32_t cur, double t, const T& init)
     {
       assert(cur > 0);
       return init + QuadraticInterpolateBase(v, l, cur, t, init);
@@ -350,9 +350,9 @@ namespace bss_util {
   template<class T, double(*LENGTH)(const T&, const T&, const T&, const T&)>
   struct cAniCubicData : cAniCubicEasing
   {
-    static inline T BSS_FASTCALL Bezier(double s, const T& p0, const T& p1, const T& p2, const T& p3) { double inv = 1.0 - s; return inv*inv*inv*p0 + 3.0*inv*inv*s*p1 + 3.0*inv*s*s*p2 + s*s*s*p3; }
+    static inline T Bezier(double s, const T& p0, const T& p1, const T& p2, const T& p3) { double inv = 1.0 - s; return inv*inv*inv*p0 + 3.0*inv*inv*s*p1 + 3.0*inv*s*s*p2 + s*s*s*p3; }
     template<class U>
-    static inline U BSS_FASTCALL BezierD(double s, const U& p0, const U& p1, const U& p2, const U& p3) { double inv = 1.0 - s; return 3.0*inv*inv*(p1 - p0) + 6.0*inv*s*(p2 - p1) + 3.0*inv*s*s*(p3 - p2); }
+    static inline U BezierD(double s, const U& p0, const U& p1, const U& p2, const U& p3) { double inv = 1.0 - s; return 3.0*inv*inv*(p1 - p0) + 6.0*inv*s*(p2 - p1) + 3.0*inv*s*s*(p3 - p2); }
 
     // Almost all points are really just arrays of floats or doubles. This provides a general length function to handle all those cases in any number of dimensions
     template<class U, int I>
@@ -367,7 +367,7 @@ namespace bss_util {
       }
       return FastSqrt<U>(r);
     }
-    static inline T BSS_FASTCALL CubicInterpolateBase(const typename cAnimation<T, cAniCubicData<T, LENGTH>>::FRAME* v, uint32_t l, uint32_t cur, double t, const T& init)
+    static inline T CubicInterpolateBase(const typename cAnimation<T, cAniCubicData<T, LENGTH>>::FRAME* v, uint32_t l, uint32_t cur, double t, const T& init)
     {
       double s = GetProgress<T, cAniCubicData<T, LENGTH>>(v, l, cur, t);
       const T& p0 = (!cur ? init : v[cur - 1].value);
@@ -379,11 +379,11 @@ namespace bss_util {
       auto fd = [&](double s) -> double { return LENGTH(s, p0, p1, p2, p3); };
       return Bezier(NewtonRaphsonBisection<double>(s, 0.0, 1.0, f, fd, FLT_EPS), p0, p1, p2, p3);
     }
-    static inline double BSS_FASTCALL CubicInterpolate(const typename cAnimation<T, cAniCubicData<T, LENGTH>>::FRAME* v, uint32_t l, uint32_t cur, double t, const T& init)
+    static inline double CubicInterpolate(const typename cAnimation<T, cAniCubicData<T, LENGTH>>::FRAME* v, uint32_t l, uint32_t cur, double t, const T& init)
     {
       return CubicInterpolateBase(v, l, cur, t, init);
     }
-    static inline double BSS_FASTCALL CubicInterpolateRel(const typename cAnimation<T, cAniCubicData<T, LENGTH>>::FRAME* v, uint32_t l, uint32_t cur, double t, const T& init)
+    static inline double CubicInterpolateRel(const typename cAnimation<T, cAniCubicData<T, LENGTH>>::FRAME* v, uint32_t l, uint32_t cur, double t, const T& init)
     {
       assert(cur > 0);
       return init + CubicInterpolateBase(v, l, cur, t, init);

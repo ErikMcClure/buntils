@@ -23,7 +23,7 @@
 
 #ifdef BSS_PLATFORM_WIN32
 template<DWORD T_FLAG>
-inline bool BSS_FASTCALL r_fexists(const wchar_t* path)
+inline bool r_fexists(const wchar_t* path)
 {
   assert(path!=0);
   cStrW s(L"\\\\?\\"); //You must append \\?\ to the beginning of the string to allow paths up to 32767 characters long
@@ -65,20 +65,20 @@ inline bool BSS_FASTCALL r_fexists(const wchar_t* path)
 }
 
 BSS_COMPILER_DLLEXPORT
-extern bool BSS_FASTCALL bss_util::FileExistsW(const wchar_t* strpath)
+extern bool bss_util::FileExistsW(const wchar_t* strpath)
 {
   return r_fexists<1>(strpath);
 }
 
 BSS_COMPILER_DLLEXPORT
-extern bool BSS_FASTCALL bss_util::FolderExistsW(const wchar_t* strpath)
+extern bool bss_util::FolderExistsW(const wchar_t* strpath)
 {
   return r_fexists<0>(strpath);
 }
 
 #else // BSS_PLATFORM_POSIX
 template<int T_FLAG>
-inline bool BSS_FASTCALL r_fexists(const char* path)
+inline bool r_fexists(const char* path)
 {
   struct stat st;
   if(stat(path, &st)!=0)
@@ -88,19 +88,19 @@ inline bool BSS_FASTCALL r_fexists(const char* path)
 #endif
 
 BSS_COMPILER_DLLEXPORT
-extern bool BSS_FASTCALL bss_util::FolderExists(const char* strpath)
+extern bool bss_util::FolderExists(const char* strpath)
 {
   return r_fexists<0>(BSSPOSIX_WCHAR(strpath));
 }
 
 BSS_COMPILER_DLLEXPORT
-extern bool BSS_FASTCALL bss_util::FileExists(const char* strpath)
+extern bool bss_util::FileExists(const char* strpath)
 {
   return r_fexists<1>(BSSPOSIX_WCHAR(strpath));
 }
 
 BSS_COMPILER_DLLEXPORT
-extern void BSS_FASTCALL bss_util::SetWorkDirToCur()
+extern void bss_util::SetWorkDirToCur()
 {
 #ifdef BSS_PLATFORM_WIN32
   cStrW commands(MAX_PATH);
@@ -111,7 +111,7 @@ extern void BSS_FASTCALL bss_util::SetWorkDirToCur()
 }
 
 BSS_COMPILER_DLLEXPORT
-extern void BSS_FASTCALL bss_util::ForceWin64Crash()
+extern void bss_util::ForceWin64Crash()
 {
 #ifdef BSS_PLATFORM_WIN32
   typedef BOOL(WINAPI *tGetPolicy)(LPDWORD lpFlags);
@@ -129,7 +129,7 @@ extern void BSS_FASTCALL bss_util::ForceWin64Crash()
   // Obviously in linux this function does nothing becuase linux isn't a BROKEN PIECE OF SHIT
 }
 
-BSS_COMPILER_DLLEXPORT extern unsigned long long BSS_FASTCALL bss_util::bssFileSize(const char* path)
+BSS_COMPILER_DLLEXPORT extern unsigned long long bss_util::bssFileSize(const char* path)
 {
 #ifdef BSS_PLATFORM_WIN32
   return bssFileSize(cStrW(path).c_str());
@@ -141,7 +141,7 @@ BSS_COMPILER_DLLEXPORT extern unsigned long long BSS_FASTCALL bss_util::bssFileS
   return (unsigned long long)path_stat.st_size;
 #endif
 }
-BSS_COMPILER_DLLEXPORT extern unsigned long long BSS_FASTCALL bss_util::bssFileSize(const wchar_t* path)
+BSS_COMPILER_DLLEXPORT extern unsigned long long bss_util::bssFileSize(const wchar_t* path)
 {
 #ifdef BSS_PLATFORM_WIN32
   WIN32_FILE_ATTRIBUTE_DATA fad;
@@ -156,7 +156,7 @@ BSS_COMPILER_DLLEXPORT extern unsigned long long BSS_FASTCALL bss_util::bssFileS
 }
 
 BSS_COMPILER_DLLEXPORT
-extern std::unique_ptr<char[], bss_util::bssdll_delete<char[]>> BSS_FASTCALL bss_util::FileDialog(bool open, unsigned long flags,
+extern std::unique_ptr<char[], bss_util::bssdll_delete<char[]>> bss_util::FileDialog(bool open, unsigned long flags,
 const char* file, const char* filter, const char* initdir, const char* defext)
 {
 #ifdef BSS_PLATFORM_WIN32 //Windows function
@@ -203,7 +203,7 @@ const char* file, const char* filter, const char* initdir, const char* defext)
 }
 #ifdef BSS_PLATFORM_WIN32 //Windows function
 BSS_COMPILER_DLLEXPORT
-extern std::unique_ptr<char[], bss_util::bssdll_delete<char[]>> BSS_FASTCALL bss_util::FileDialog(bool open, unsigned long flags,
+extern std::unique_ptr<char[], bss_util::bssdll_delete<char[]>> bss_util::FileDialog(bool open, unsigned long flags,
 const wchar_t* file, const wchar_t* filter, const wchar_t* initdir, const wchar_t* defext, HWND__* owner)
 {
   wchar_t buf[MAX_PATH];
@@ -236,7 +236,7 @@ const wchar_t* file, const wchar_t* filter, const wchar_t* initdir, const wchar_
 }
 #endif
 
-extern long BSS_FASTCALL bss_util::GetTimeZoneMinutes()
+extern long bss_util::GetTimeZoneMinutes()
 {
 #ifdef BSS_PLATFORM_WIN32
   TIME_ZONE_INFORMATION dtime;
@@ -262,11 +262,11 @@ extern long BSS_FASTCALL bss_util::GetTimeZoneMinutes()
 }
 
 #ifdef BSS_PLATFORM_WIN32
-extern void BSS_FASTCALL bss_util::AlertBox(const char* text, const char* caption, int type)
+extern void bss_util::AlertBox(const char* text, const char* caption, int type)
 {
   AlertBoxW(cStrW(text), cStrW(caption), type);
 }
-extern void BSS_FASTCALL bss_util::AlertBoxW(const wchar_t* text, const wchar_t* caption, int type)
+extern void bss_util::AlertBoxW(const wchar_t* text, const wchar_t* caption, int type)
 {
   MessageBoxW(0, text, caption, type);
 }
@@ -275,11 +275,11 @@ extern void BSS_FASTCALL bss_util::AlertBoxW(const wchar_t* text, const wchar_t*
 void bss_util::bssdll_delete_delfunc(void* p) { ::operator delete(p); } // operator delete[] simply calls operator delete when its void*
 
 #ifdef BSS_PLATFORM_WIN32
-extern int BSS_FASTCALL bss_util::CreateDir(const char* path, bool recursive)
+extern int bss_util::CreateDir(const char* path, bool recursive)
 {
   return CreateDirW(BSSPOSIX_WCHAR(path), recursive);
 }
-extern int BSS_FASTCALL bss_util::CreateDirW(const wchar_t* path, bool recursive)
+extern int bss_util::CreateDirW(const wchar_t* path, bool recursive)
 {
   if(!recursive)
     return -(CreateDirectoryW(path, 0) == 0);
@@ -299,7 +299,7 @@ extern int BSS_FASTCALL bss_util::CreateDirW(const wchar_t* path, bool recursive
   return 0;
 }
 #else
-extern int BSS_FASTCALL bss_util::CreateDir(const char* path, bool recursive)
+extern int bss_util::CreateDir(const char* path, bool recursive)
 {
   if(!recursive)
     return mkdir(path, 0700);
@@ -322,11 +322,11 @@ extern int BSS_FASTCALL bss_util::CreateDir(const char* path, bool recursive)
 #endif
 
 #ifdef BSS_PLATFORM_WIN32
-extern int BSS_FASTCALL bss_util::DelDir(const char* cdir, bool recursive)
+extern int bss_util::DelDir(const char* cdir, bool recursive)
 {
   return bss_util::DelDirW(BSSPOSIX_WCHAR(cdir), recursive);
 }
-extern int BSS_FASTCALL bss_util::DelDirW(const wchar_t* cdir, bool recursive)
+extern int bss_util::DelDirW(const wchar_t* cdir, bool recursive)
 {
   if(!recursive)
     return -(RemoveDirectoryW(cdir) == 0);
@@ -370,7 +370,7 @@ int _deldir_func(const char *fpath, const struct stat *sb, int typeflag, struct 
   return remove(fpath);
 }
 
-extern int BSS_FASTCALL bss_util::DelDir(const char* cdir, bool recursive)
+extern int bss_util::DelDir(const char* cdir, bool recursive)
 {
   if(!recursive)
     return rmdir(cdir);
@@ -379,7 +379,7 @@ extern int BSS_FASTCALL bss_util::DelDir(const char* cdir, bool recursive)
 #endif
 
 #ifdef BSS_PLATFORM_WIN32 //Windows function
-BSS_COMPILER_DLLEXPORT extern int BSS_FASTCALL bss_util::_listdir(const wchar_t* cdir, void(BSS_FASTCALL *fn)(const wchar_t*, std::vector<cStr>*), std::vector<cStr>* files, char flags)
+BSS_COMPILER_DLLEXPORT extern int bss_util::_listdir(const wchar_t* cdir, void(*fn)(const wchar_t*, std::vector<cStr>*), std::vector<cStr>* files, char flags)
 {
   WIN32_FIND_DATAW ffd;
   HANDLE hdir = INVALID_HANDLE_VALUE;
@@ -407,7 +407,7 @@ BSS_COMPILER_DLLEXPORT extern int BSS_FASTCALL bss_util::_listdir(const wchar_t*
   return 0;
 }
 #else //Linux function
-BSS_COMPILER_DLLEXPORT extern int BSS_FASTCALL bss_util::ListDir(const char* path, std::vector<cStr>& files, char flags) // Setting flags to 1 will do a recursive search. Setting flags to 2 will return directory+file names. Setting flags to 3 will both be recursive and return directory names.
+BSS_COMPILER_DLLEXPORT extern int bss_util::ListDir(const char* path, std::vector<cStr>& files, char flags) // Setting flags to 1 will do a recursive search. Setting flags to 2 will return directory+file names. Setting flags to 3 will both be recursive and return directory names.
 {
   DIR* srcdir = opendir(path);
 
@@ -442,7 +442,7 @@ BSS_COMPILER_DLLEXPORT extern int BSS_FASTCALL bss_util::ListDir(const char* pat
 
 #ifdef BSS_PLATFORM_WIN32
 template<class _Fn>
-inline int BSS_FASTCALL r_setregvalue(HKEY__*	hOpenKey, const wchar_t* szKey, _Fn fn)
+inline int r_setregvalue(HKEY__*	hOpenKey, const wchar_t* szKey, _Fn fn)
 {
   BOOL 	bRetVal = FALSE;
   DWORD	dwDisposition;
@@ -466,12 +466,12 @@ inline int BSS_FASTCALL r_setregvalue(HKEY__*	hOpenKey, const wchar_t* szKey, _F
   return bRetVal;
 }
 
-int BSS_FASTCALL bss_util::SetRegistryValue(HKEY__*	hOpenKey, const char* szKey, const char* szValue, const char* szData)
+int bss_util::SetRegistryValue(HKEY__*	hOpenKey, const char* szKey, const char* szValue, const char* szData)
 {
   return SetRegistryValueW(hOpenKey, cStrW(szKey), cStrW(szValue), szData);
 }
 
-int BSS_FASTCALL bss_util::SetRegistryValueW(HKEY__*	hOpenKey, const wchar_t* szKey, const wchar_t* szValue, const char* szData)
+int bss_util::SetRegistryValueW(HKEY__*	hOpenKey, const wchar_t* szKey, const wchar_t* szValue, const char* szData)
 {
   if(!hOpenKey || !szKey || !szKey[0] || !szValue || !szData) { ::SetLastError((DWORD)E_INVALIDARG); return FALSE; } // validate input
 
@@ -480,11 +480,11 @@ int BSS_FASTCALL bss_util::SetRegistryValueW(HKEY__*	hOpenKey, const wchar_t* sz
   });
 }
 
-int BSS_FASTCALL bss_util::SetRegistryValue(HKEY__*	hOpenKey, const char* szKey, const char* szValue, int32_t szData)
+int bss_util::SetRegistryValue(HKEY__*	hOpenKey, const char* szKey, const char* szValue, int32_t szData)
 {
   return SetRegistryValueW(hOpenKey, cStrW(szKey), cStrW(szValue), szData);
 }
-int BSS_FASTCALL bss_util::SetRegistryValueW(HKEY__*	hOpenKey, const wchar_t* szKey, const wchar_t* szValue, int32_t szData)
+int bss_util::SetRegistryValueW(HKEY__*	hOpenKey, const wchar_t* szKey, const wchar_t* szValue, int32_t szData)
 {
   if(!hOpenKey || !szKey || !szKey[0] || !szValue) { ::SetLastError((DWORD)E_INVALIDARG); return FALSE; } // validate input
 
@@ -492,11 +492,11 @@ int BSS_FASTCALL bss_util::SetRegistryValueW(HKEY__*	hOpenKey, const wchar_t* sz
     return RegSetValueExW(hTempKey, (LPWSTR)szValue, dwReserved, REG_DWORD, (LPBYTE)&szData, sizeof(int32_t));
   });
 }
-int BSS_FASTCALL bss_util::SetRegistryValue64(HKEY__*	hOpenKey, const char* szKey, const char* szValue, int64_t szData)
+int bss_util::SetRegistryValue64(HKEY__*	hOpenKey, const char* szKey, const char* szValue, int64_t szData)
 {
   return SetRegistryValue64W(hOpenKey, cStrW(szKey), cStrW(szValue), szData);
 }
-int BSS_FASTCALL bss_util::SetRegistryValue64W(HKEY__*	hOpenKey, const wchar_t* szKey, const wchar_t* szValue, int64_t szData)
+int bss_util::SetRegistryValue64W(HKEY__*	hOpenKey, const wchar_t* szKey, const wchar_t* szValue, int64_t szData)
 {
   if(!hOpenKey || !szKey || !szKey[0] || !szValue) { ::SetLastError((DWORD)E_INVALIDARG); return FALSE; } // validate input
 
@@ -505,7 +505,7 @@ int BSS_FASTCALL bss_util::SetRegistryValue64W(HKEY__*	hOpenKey, const wchar_t* 
   });
 }
 
-int64_t BSS_FASTCALL bss_util::GetRegistryValueW(HKEY__* hKeyRoot, const wchar_t* szKey, const wchar_t* szValue, unsigned char* data, unsigned long sz)
+int64_t bss_util::GetRegistryValueW(HKEY__* hKeyRoot, const wchar_t* szKey, const wchar_t* szValue, unsigned char* data, unsigned long sz)
 {
   HKEY__* hKey;
   LRESULT e = RegOpenKeyExW(hKeyRoot, szKey, 0, KEY_READ, &hKey);
@@ -516,11 +516,11 @@ int64_t BSS_FASTCALL bss_util::GetRegistryValueW(HKEY__* hKeyRoot, const wchar_t
     return sz;
   return (r == ERROR_MORE_DATA) ? sz : -1;
 }
-int64_t BSS_FASTCALL bss_util::GetRegistryValue(HKEY__* hKeyRoot, const char* szKey, const char* szValue, unsigned char* data, unsigned long sz)
+int64_t bss_util::GetRegistryValue(HKEY__* hKeyRoot, const char* szKey, const char* szValue, unsigned char* data, unsigned long sz)
 {
   return GetRegistryValueW(hKeyRoot, cStrW(szKey), cStrW(szValue), data, sz);
 }
-int BSS_FASTCALL bss_util::GetRegistryValueDWORDW(HKEY__* hKeyRoot, const wchar_t* szKey, const wchar_t* szValue, DWORD* data)
+int bss_util::GetRegistryValueDWORDW(HKEY__* hKeyRoot, const wchar_t* szKey, const wchar_t* szValue, DWORD* data)
 {
   HKEY__* hKey;
   RegOpenKeyExW(hKeyRoot, szKey, 0, KEY_READ, &hKey);
@@ -533,11 +533,11 @@ int BSS_FASTCALL bss_util::GetRegistryValueDWORDW(HKEY__* hKeyRoot, const wchar_
     return -3;
   return (r == ERROR_SUCCESS) ? 0 : -1;
 }
-int BSS_FASTCALL bss_util::GetRegistryValueDWORD(HKEY__* hKeyRoot, const char* szKey, const char* szValue, DWORD* data)
+int bss_util::GetRegistryValueDWORD(HKEY__* hKeyRoot, const char* szKey, const char* szValue, DWORD* data)
 {
   return GetRegistryValueDWORDW(hKeyRoot, cStrW(szKey), cStrW(szValue), data);
 }
-int BSS_FASTCALL bss_util::GetRegistryValueQWORDW(HKEY__* hKeyRoot, const wchar_t* szKey, const wchar_t* szValue, unsigned long long* data)
+int bss_util::GetRegistryValueQWORDW(HKEY__* hKeyRoot, const wchar_t* szKey, const wchar_t* szValue, unsigned long long* data)
 {
   HKEY__* hKey;
   RegOpenKeyExW(hKeyRoot, szKey, 0, KEY_READ, &hKey);
@@ -550,12 +550,12 @@ int BSS_FASTCALL bss_util::GetRegistryValueQWORDW(HKEY__* hKeyRoot, const wchar_
     return -3;
   return (r == ERROR_SUCCESS) ? 0 : -1;
 }
-int BSS_FASTCALL bss_util::GetRegistryValueQWORD(HKEY__* hKeyRoot, const char* szKey, const char* szValue, unsigned long long* data)
+int bss_util::GetRegistryValueQWORD(HKEY__* hKeyRoot, const char* szKey, const char* szValue, unsigned long long* data)
 {
   return GetRegistryValueQWORDW(hKeyRoot, cStrW(szKey), cStrW(szValue), data);
 }
 
-int BSS_FASTCALL r_delregnode(HKEY__* hKeyRoot, const wchar_t* lpSubKey)
+int r_delregnode(HKEY__* hKeyRoot, const wchar_t* lpSubKey)
 {
   LONG lResult;
   DWORD dwSize;
@@ -607,12 +607,12 @@ int BSS_FASTCALL r_delregnode(HKEY__* hKeyRoot, const wchar_t* lpSubKey)
   return lResult == ERROR_SUCCESS?TRUE:FALSE;
 }
 
-int BSS_FASTCALL bss_util::DelRegistryNode(HKEY__* hKeyRoot, const char* lpSubKey)
+int bss_util::DelRegistryNode(HKEY__* hKeyRoot, const char* lpSubKey)
 {
   return r_delregnode(hKeyRoot, cStrW(lpSubKey).c_str());
 }
 
-int BSS_FASTCALL bss_util::DelRegistryNodeW(HKEY__* hKeyRoot, const wchar_t* lpSubKey)
+int bss_util::DelRegistryNodeW(HKEY__* hKeyRoot, const wchar_t* lpSubKey)
 {
   return r_delregnode(hKeyRoot, lpSubKey);
 }
@@ -625,9 +625,9 @@ int BSS_FASTCALL bss_util::DelRegistryNodeW(HKEY__* hKeyRoot, const wchar_t* lpS
 
 struct testclass
 {
-  void BSS_FASTCALL f() {}
+  void f() {}
 };
-void BSS_FASTCALL ffff() {}
+void ffff() {}
 
 bss_util::delegate<void> rrrrr = bss_util::delegate<void>::From<testclass, &testclass::f>(0);
 

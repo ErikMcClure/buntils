@@ -50,16 +50,16 @@ cLog::~cLog()
     _backup[i].first.rdbuf(_backup[i].second);
   if(_split!=0) delete _split;
 }
-void BSS_FASTCALL cLog::Assimilate(std::ostream& stream)
+void cLog::Assimilate(std::ostream& stream)
 {
   _backup.push_back(std::pair<std::ostream&, std::streambuf*>(stream,stream.rdbuf()));
   if(_split!=0) stream.rdbuf(_split);
 }
-void BSS_FASTCALL cLog::AddTarget(std::ostream& stream)
+void cLog::AddTarget(std::ostream& stream)
 {
   if(_split!=0) _split->AddTarget(&stream);
 }
-void BSS_FASTCALL cLog::AddTarget(const char* file)
+void cLog::AddTarget(const char* file)
 {
   if(!file) return;
 #ifdef BSS_COMPILER_GCC 
@@ -71,7 +71,7 @@ void BSS_FASTCALL cLog::AddTarget(const char* file)
 #endif
 }
 #ifdef BSS_PLATFORM_WIN32
-void BSS_FASTCALL cLog::AddTarget(const wchar_t* file)
+void cLog::AddTarget(const wchar_t* file)
 {
   if(!file) return;
   _files.push_back(ofstream(file,ios_base::out|ios_base::trunc));
@@ -91,28 +91,28 @@ void cLog::ClearTargets()
   _files.clear();
 }
 
-void BSS_FASTCALL cLog::SetFormat(const char* format)
+void cLog::SetFormat(const char* format)
 {
   _format = format;
 }
 
-void BSS_FASTCALL cLog::SetNullFormat(const char* format)
+void cLog::SetNullFormat(const char* format)
 {
   _nullformat = format;
 }
 
-void BSS_FASTCALL cLog::SetLevel(uint8_t level, const char* str)
+void cLog::SetLevel(uint8_t level, const char* str)
 {
   if(_levels.Capacity()>=level)
     _levels.SetCapacity(level+1);
   _levels[level]=str;
 }
-void BSS_FASTCALL cLog::SetMaxLevel(uint8_t level)
+void cLog::SetMaxLevel(uint8_t level)
 {
   _maxlevel = level;
 }
 
-bool BSS_FASTCALL cLog::_writedatetime(long timez, std::ostream& log, bool timeonly)
+bool cLog::_writedatetime(long timez, std::ostream& log, bool timeonly)
 {
   time_t rawtime;
   TIME64(&rawtime);
@@ -149,7 +149,7 @@ cLog& cLog::operator=(cLog&& right)
   _stream.rdbuf(_split);
   return *this;
 }
-const char* BSS_FASTCALL cLog::_trimpath(const char* path)
+const char* cLog::_trimpath(const char* path)
 {
 	const char* r=strrchr(path,'/');
 	const char* r2=strrchr(path,'\\');
@@ -165,19 +165,15 @@ void cLog::_leveldefaults()
   SetLevel(4, "INFO: ");
   SetLevel(5, "DEBUG: ");
 }
-int BSS_FASTCALL cLog::PrintLogV(const char* source, const char* file, uint32_t line, int8_t level, const char* format, va_list args)
+int cLog::PrintLogV(const char* source, const char* file, uint32_t line, int8_t level, const char* format, va_list args)
 {
   if(level >= _maxlevel)
     return 0;
   LogHeader(source, file, line, level);
 
-#ifdef BSS_COMPILER_GCC // GCC implements va_list in such a way that we actually have to copy it before using it anywhere
   va_list vltemp;
   va_copy(vltemp, args);
-  size_t _length = (size_t)CSTR_CT<char>::VPCF(string, vltemp) + 1; // If we didn't copy vl here, it would get modified by vsnprintf and blow up.
-#else
-  size_t _length = (size_t)CSTR_CT<char>::VPCF(format, args) + 1; // This ensures VPCF doesn't modify our original va_list
-#endif
+  size_t _length = (size_t)CSTR_CT<char>::VPCF(format, vltemp) + 1; // If we didn't copy vl here, it would get modified by vsnprintf and blow up.
   DYNARRAY(char, buf, _length);
   int r = CSTR_CT<char>::VPF(buf, _length, format, args);
   _stream << buf << std::endl;
@@ -196,7 +192,7 @@ void cLog::_header(std::ostream& o, int n, const char* source, const char* file,
   }
 }
 
-std::ostream& BSS_FASTCALL cLog::_logheader(const char* source, const char* file, uint32_t line, const char* level)
+std::ostream& cLog::_logheader(const char* source, const char* file, uint32_t line, const char* level)
 {
   file = _trimpath(file);
   __safeFormat<const char*, const char*, uint32_t, const char*, long>::F<&_header>(_stream, ((!source && _nullformat != 0) ? _nullformat : _format), source, file, line, level, _tz);

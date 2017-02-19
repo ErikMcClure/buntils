@@ -32,11 +32,11 @@ typedef struct {
   const void* end;
 } INICHUNK;
 
-extern char BSS_FASTCALL bss_initINI(INIParser* init, FILE* stream);
-extern char BSS_FASTCALL bss_destroyINI(INIParser* destroy);
-extern char BSS_FASTCALL bss_parseLine(INIParser* parse);
-extern INICHUNK BSS_FASTCALL bss_findINIsection(const void* data, size_t length, const char* section, size_t instance);
-extern INICHUNK BSS_FASTCALL bss_findINIentry(INICHUNK section, const char* key, size_t instance);
+extern char bss_initINI(INIParser* init, FILE* stream);
+extern char bss_destroyINI(INIParser* destroy);
+extern char bss_parseLine(INIParser* parse);
+extern INICHUNK bss_findINIsection(const void* data, size_t length, const char* section, size_t instance);
+extern INICHUNK bss_findINIentry(INICHUNK section, const char* key, size_t instance);
 
 #ifdef  __cplusplus
 }

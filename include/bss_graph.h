@@ -339,7 +339,7 @@ namespace bss_util {
 
   // Breadth-first search for any directed graph. If FACTION returns true, terminates.
   template<typename G, bool(*FACTION)(typename G::CT_)>
-  inline static void BSS_FASTCALL BreadthFirstGraph(G& graph, typename G::CT_ root)
+  inline static void BreadthFirstGraph(G& graph, typename G::CT_ root)
   {
     DYNARRAY(typename G::CT_, queue, graph.NumNodes());
     BreadthFirstGraph<G, FACTION>(graph, root, queue);
@@ -347,7 +347,7 @@ namespace bss_util {
 
   // Breadth-first search for any directed graph. If FACTION returns true, terminates. queue must point to an array at least GetNodes() long.
   template<typename G, bool(*FACTION)(typename G::CT_)>
-  static void BSS_FASTCALL BreadthFirstGraph(G& graph, typename G::CT_ root, typename G::CT_* queue)
+  static void BreadthFirstGraph(G& graph, typename G::CT_ root, typename G::CT_* queue)
   {
     typedef typename G::CT_ CT;
     typedef typename std::make_signed<CT>::type SST;

@@ -25,22 +25,22 @@ namespace bss_util {
     cMap(const cMap& copy) : cArraySort_t(copy) {}
     cMap(cMap&& mov) : cArraySort_t(std::move(mov)) {}
     //~cMap() {}
-    BSS_FORCEINLINE void BSS_FASTCALL Clear() { cArraySort_t::Clear(); }
-    BSS_FORCEINLINE void BSS_FASTCALL Discard(uint32_t num) { cArraySort_t::Discard(num); }
-    BSS_FORCEINLINE CT_ BSS_FASTCALL Insert(CKEYREF key, constref data) { return cArraySort_t::Insert(pair_t(key, data)); }
-    BSS_FORCEINLINE CT_ BSS_FASTCALL Insert(CKEYREF key, Data&& data) { return cArraySort_t::Insert(pair_t(key, std::move(data))); }
-    inline CT_ BSS_FASTCALL Get(CKEYREF key) const { CT_ retval=GetNear(key, true); return (retval!=(CT_)(-1)&&!CompT(_array[retval].first, key))?retval:(CT_)(-1); }
-    inline constref BSS_FASTCALL GetData(CKEYREF key) const { return cArraySort_t::operator [](GetNear(key, true)).second; } //this has no checking
-    inline CT_ BSS_FASTCALL Remove(CKEYREF key) { CT_ retval=Get(key); cArraySort_t::Remove(retval); return retval; }
-    BSS_FORCEINLINE CT_ BSS_FASTCALL RemoveIndex(CT_ index) { return cArraySort_t::Remove(index); }
-    BSS_FORCEINLINE CT_ BSS_FASTCALL Replace(CT_ index, CKEYREF key, constref data) { return cArraySort_t::ReplaceData(index, pair_t(key, data)); }
-    BSS_FORCEINLINE CT_ BSS_FASTCALL Replace(CT_ index, CKEYREF key, Data&& data) { return cArraySort_t::ReplaceData(index, pair_t(key, std::move(data))); }
-    inline CT_ BSS_FASTCALL ReplaceKey(CT_ index, CKEYREF key) { if(index<0 || index >= Length()) return (CT_)(-1); return cArraySort_t::ReplaceData(index, pair_t(key, _array[index].second)); }
-    BSS_FORCEINLINE CKEYREF BSS_FASTCALL KeyIndex(CT_ index) const { return cArraySort_t::operator [](index).first; }
-    BSS_FORCEINLINE const Data& BSS_FASTCALL DataIndex(CT_ index) const { return cArraySort_t::operator [](index).second; }
-    BSS_FORCEINLINE CT_ BSS_FASTCALL Length() const { return cArraySort_t::Length(); }
-    BSS_FORCEINLINE void BSS_FASTCALL Expand(CT_ size) { cArraySort_t::Expand(size); }
-    inline CT_ BSS_FASTCALL Set(CKEYREF key, constref data)
+    BSS_FORCEINLINE void Clear() { cArraySort_t::Clear(); }
+    BSS_FORCEINLINE void Discard(uint32_t num) { cArraySort_t::Discard(num); }
+    BSS_FORCEINLINE CT_ Insert(CKEYREF key, constref data) { return cArraySort_t::Insert(pair_t(key, data)); }
+    BSS_FORCEINLINE CT_ Insert(CKEYREF key, Data&& data) { return cArraySort_t::Insert(pair_t(key, std::move(data))); }
+    inline CT_ Get(CKEYREF key) const { CT_ retval=GetNear(key, true); return (retval!=(CT_)(-1)&&!CompT(_array[retval].first, key))?retval:(CT_)(-1); }
+    inline constref GetData(CKEYREF key) const { return cArraySort_t::operator [](GetNear(key, true)).second; } //this has no checking
+    inline CT_ Remove(CKEYREF key) { CT_ retval=Get(key); cArraySort_t::Remove(retval); return retval; }
+    BSS_FORCEINLINE CT_ RemoveIndex(CT_ index) { return cArraySort_t::Remove(index); }
+    BSS_FORCEINLINE CT_ Replace(CT_ index, CKEYREF key, constref data) { return cArraySort_t::ReplaceData(index, pair_t(key, data)); }
+    BSS_FORCEINLINE CT_ Replace(CT_ index, CKEYREF key, Data&& data) { return cArraySort_t::ReplaceData(index, pair_t(key, std::move(data))); }
+    inline CT_ ReplaceKey(CT_ index, CKEYREF key) { if(index<0 || index >= Length()) return (CT_)(-1); return cArraySort_t::ReplaceData(index, pair_t(key, _array[index].second)); }
+    BSS_FORCEINLINE CKEYREF KeyIndex(CT_ index) const { return cArraySort_t::operator [](index).first; }
+    BSS_FORCEINLINE const Data& DataIndex(CT_ index) const { return cArraySort_t::operator [](index).second; }
+    BSS_FORCEINLINE CT_ Length() const { return cArraySort_t::Length(); }
+    BSS_FORCEINLINE void Expand(CT_ size) { cArraySort_t::Expand(size); }
+    inline CT_ Set(CKEYREF key, constref data)
     {
       CT_ retval=GetNear(key, true);
       if(retval==(CT_)(-1) || CompT(_array[retval].first, key)!=0) return (CT_)(-1);
@@ -49,7 +49,7 @@ namespace bss_util {
       return retval;
     }
     BSS_FORCEINLINE static char mapComp(const Key& a, const pair_t& b) { return CFunc(a, b.first); }
-    CT_ BSS_FASTCALL GetNear(CKEYREF key, bool before) const {
+    CT_ GetNear(CKEYREF key, bool before) const {
       CT_ retval=before?(binsearch_near<pair_t, Key, CT_, mapComp, CompT_NEQ<char>, -1>(_array.begin(), key, 0, Length())-1):binsearch_near<pair_t, Key, CT_, mapComp, CompT_EQ<char>, 1>(_array.begin(), key, 0, Length());
       return (retval<Length())?retval:(CT_)(-1); // This is only needed for before=false in case it returns a value outside the range.
     }

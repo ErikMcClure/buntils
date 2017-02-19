@@ -70,63 +70,63 @@ namespace bss_util {
     inline operator float() const { return convf_fixedpt<T, D>(_bits); }
     inline operator double() const { return convd_fixedpt<T, D>(_bits); }
 
-    inline Fixed& BSS_FASTCALL operator=(const Fixed& right) { _bits = right._bits; return *this; }
+    inline Fixed& operator=(const Fixed& right) { _bits = right._bits; return *this; }
     template<uint8_t B, typename U, bool S>
-    inline Fixed& BSS_FASTCALL operator=(const Fixed<B, U, S>& right) { _bits = (T)SAFESHIFT(right.Bits(), B - D); return *this; }
+    inline Fixed& operator=(const Fixed<B, U, S>& right) { _bits = (T)SAFESHIFT(right.Bits(), B - D); return *this; }
 
     inline Fixed<(sizeof(T) << 3) - D, T, SATURATE> Reciprocal() const { return Fixed<(sizeof(T) << 3) - D, T, SATURATE>(__FixedBits<T> {fixedpt_recip(_bits) << 2 }); } // Shift to the right because the actual resulting decimal bits is (sizeof(T) << 3) - 2 - B
     inline Fixed operator -(void) const { return __FixedBits<T> { -_bits }; }
 
-    inline Fixed& BSS_FASTCALL operator%=(const Fixed& r) { _bits %= r._bits; return *this; }
-    inline Fixed& BSS_FASTCALL operator>>=(T r) { _bits >>= r; return *this; }
-    inline Fixed& BSS_FASTCALL operator<<=(T r) { _bits <<= r; return *this; }
-    inline Fixed& BSS_FASTCALL operator+=(const Fixed& r) { _bits += r._bits; return *this; }
-    inline Fixed& BSS_FASTCALL operator-=(const Fixed& r) { _bits -= r._bits; return *this; }
+    inline Fixed& operator%=(const Fixed& r) { _bits %= r._bits; return *this; }
+    inline Fixed& operator>>=(T r) { _bits >>= r; return *this; }
+    inline Fixed& operator<<=(T r) { _bits <<= r; return *this; }
+    inline Fixed& operator+=(const Fixed& r) { _bits += r._bits; return *this; }
+    inline Fixed& operator-=(const Fixed& r) { _bits -= r._bits; return *this; }
     template<uint8_t B, bool S>
-    inline Fixed& BSS_FASTCALL operator+=(const Fixed<B, T, S>& r) { _bits = fixedpt_add<T, D, B>(_bits, r.Bits()); return *this; }
+    inline Fixed& operator+=(const Fixed<B, T, S>& r) { _bits = fixedpt_add<T, D, B>(_bits, r.Bits()); return *this; }
     template<uint8_t B, bool S>
-    inline Fixed& BSS_FASTCALL operator-=(const Fixed<B, T, S>& r) { _bits = fixedpt_add<T, D, B>(_bits, -r.Bits()); return *this; }
+    inline Fixed& operator-=(const Fixed<B, T, S>& r) { _bits = fixedpt_add<T, D, B>(_bits, -r.Bits()); return *this; }
     template<uint8_t B, bool S>
-    inline Fixed& BSS_FASTCALL operator*=(const Fixed<B, T, S>& r) { _bits = fixedpt_mul<T>(_bits, r.Bits(), B); return *this; }
+    inline Fixed& operator*=(const Fixed<B, T, S>& r) { _bits = fixedpt_mul<T>(_bits, r.Bits(), B); return *this; }
     template<uint8_t B, bool S>
-    inline Fixed& BSS_FASTCALL operator/=(const Fixed<B, T, S>& r) { _bits = fixedpt_div<T>(_bits, r.Bits(), B); return *this; }
-    inline Fixed& BSS_FASTCALL operator+=(float r) { _bits += fixedpt_conv<T, D, float>(r); return *this; }
-    inline Fixed& BSS_FASTCALL operator-=(float r) { _bits -= fixedpt_conv<T, D, float>(r); return *this; }
-    inline Fixed& BSS_FASTCALL operator*=(float r) { _bits = fixedpt_mul<T>(_bits, fixedpt_conv<T, D, float>(r), D); return *this; }
-    inline Fixed& BSS_FASTCALL operator/=(float r) { _bits = fixedpt_div<T>(_bits, fixedpt_conv<T, D, float>(r), D); return *this; }
-    inline Fixed& BSS_FASTCALL operator+=(double r) { _bits += fixedpt_conv<T, D, double>(r); return *this; }
-    inline Fixed& BSS_FASTCALL operator-=(double r) { _bits -= fixedpt_conv<T, D, double>(r); return *this; }
-    inline Fixed& BSS_FASTCALL operator*=(double r) { _bits = fixedpt_mul<T>(_bits, fixedpt_conv<T, D, double>(r), D); return *this; }
-    inline Fixed& BSS_FASTCALL operator/=(double r) { _bits = fixedpt_div<T>(_bits, fixedpt_conv<T, D, double>(r), D); return *this; }
+    inline Fixed& operator/=(const Fixed<B, T, S>& r) { _bits = fixedpt_div<T>(_bits, r.Bits(), B); return *this; }
+    inline Fixed& operator+=(float r) { _bits += fixedpt_conv<T, D, float>(r); return *this; }
+    inline Fixed& operator-=(float r) { _bits -= fixedpt_conv<T, D, float>(r); return *this; }
+    inline Fixed& operator*=(float r) { _bits = fixedpt_mul<T>(_bits, fixedpt_conv<T, D, float>(r), D); return *this; }
+    inline Fixed& operator/=(float r) { _bits = fixedpt_div<T>(_bits, fixedpt_conv<T, D, float>(r), D); return *this; }
+    inline Fixed& operator+=(double r) { _bits += fixedpt_conv<T, D, double>(r); return *this; }
+    inline Fixed& operator-=(double r) { _bits -= fixedpt_conv<T, D, double>(r); return *this; }
+    inline Fixed& operator*=(double r) { _bits = fixedpt_mul<T>(_bits, fixedpt_conv<T, D, double>(r), D); return *this; }
+    inline Fixed& operator/=(double r) { _bits = fixedpt_div<T>(_bits, fixedpt_conv<T, D, double>(r), D); return *this; }
 
-    inline Fixed BSS_FASTCALL operator %(const Fixed& r) const { return __FixedBits<T> { _bits % r._bits }; }
-    inline Fixed BSS_FASTCALL operator <<(T r) const { return __FixedBits<T> { _bits << r }; }
-    inline Fixed BSS_FASTCALL operator >> (T r) const { return __FixedBits<T> { _bits >> r }; }
-    inline Fixed BSS_FASTCALL operator+(const Fixed& r) const { return __FixedBits<T> { _bits + r._bits }; }
-    inline Fixed BSS_FASTCALL operator-(const Fixed& r) const { return __FixedBits<T> { _bits - r._bits }; }
+    inline Fixed operator %(const Fixed& r) const { return __FixedBits<T> { _bits % r._bits }; }
+    inline Fixed operator <<(T r) const { return __FixedBits<T> { _bits << r }; }
+    inline Fixed operator >> (T r) const { return __FixedBits<T> { _bits >> r }; }
+    inline Fixed operator+(const Fixed& r) const { return __FixedBits<T> { _bits + r._bits }; }
+    inline Fixed operator-(const Fixed& r) const { return __FixedBits<T> { _bits - r._bits }; }
     template<uint8_t B, bool S>
-    inline Fixed BSS_FASTCALL operator+(const Fixed<B, T, S>& r) const { return __FixedBits<T> { fixedpt_add<T, D, B>(_bits, r.Bits()) }; }
+    inline Fixed operator+(const Fixed<B, T, S>& r) const { return __FixedBits<T> { fixedpt_add<T, D, B>(_bits, r.Bits()) }; }
     template<uint8_t B, bool S>
-    inline Fixed BSS_FASTCALL operator-(const Fixed<B, T, S>& r) const { return __FixedBits<T> { fixedpt_add<T, D, B>(_bits, -r.Bits()) }; }
+    inline Fixed operator-(const Fixed<B, T, S>& r) const { return __FixedBits<T> { fixedpt_add<T, D, B>(_bits, -r.Bits()) }; }
     template<uint8_t B, bool S>
-    inline Fixed BSS_FASTCALL operator*(const Fixed<B, T, S>& r) const { return __FixedBits<T> { fixedpt_mul<T>(_bits, r.Bits(), B) }; }
+    inline Fixed operator*(const Fixed<B, T, S>& r) const { return __FixedBits<T> { fixedpt_mul<T>(_bits, r.Bits(), B) }; }
     template<uint8_t B, bool S>
-    inline Fixed BSS_FASTCALL operator/(const Fixed<B, T, S>& r) const { return __FixedBits<T> { fixedpt_div<T>(_bits, r.Bits(), B) }; }
-    inline Fixed BSS_FASTCALL operator+(float r) const { return __FixedBits<T> { _bits + fixedpt_conv<T, D, float>(r) }; }
-    inline Fixed BSS_FASTCALL operator-(float r) const { return __FixedBits<T> { _bits - fixedpt_conv<T, D, float>(r) }; }
-    inline Fixed BSS_FASTCALL operator*(float r) const { return __FixedBits<T> { fixedpt_mul<T>(_bits, fixedpt_conv<T, D, float>(r), D) }; }
-    inline Fixed BSS_FASTCALL operator/(float r) const { return __FixedBits<T> { fixedpt_div<T>(_bits, fixedpt_conv<T, D, float>(r), D) }; }
-    inline Fixed BSS_FASTCALL operator+(double r) const { return __FixedBits<T> { _bits + fixedpt_conv<T, D, double>(r) }; }
-    inline Fixed BSS_FASTCALL operator-(double r) const { return __FixedBits<T> { _bits - fixedpt_conv<T, D, double>(r) }; }
-    inline Fixed BSS_FASTCALL operator*(double r) const { return __FixedBits<T> { fixedpt_mul<T>(_bits, fixedpt_conv<T, D, double>(r), D) }; }
-    inline Fixed BSS_FASTCALL operator/(double r) const { return __FixedBits<T> { fixedpt_div<T>(_bits, fixedpt_conv<T, D, double>(r), D) }; }
+    inline Fixed operator/(const Fixed<B, T, S>& r) const { return __FixedBits<T> { fixedpt_div<T>(_bits, r.Bits(), B) }; }
+    inline Fixed operator+(float r) const { return __FixedBits<T> { _bits + fixedpt_conv<T, D, float>(r) }; }
+    inline Fixed operator-(float r) const { return __FixedBits<T> { _bits - fixedpt_conv<T, D, float>(r) }; }
+    inline Fixed operator*(float r) const { return __FixedBits<T> { fixedpt_mul<T>(_bits, fixedpt_conv<T, D, float>(r), D) }; }
+    inline Fixed operator/(float r) const { return __FixedBits<T> { fixedpt_div<T>(_bits, fixedpt_conv<T, D, float>(r), D) }; }
+    inline Fixed operator+(double r) const { return __FixedBits<T> { _bits + fixedpt_conv<T, D, double>(r) }; }
+    inline Fixed operator-(double r) const { return __FixedBits<T> { _bits - fixedpt_conv<T, D, double>(r) }; }
+    inline Fixed operator*(double r) const { return __FixedBits<T> { fixedpt_mul<T>(_bits, fixedpt_conv<T, D, double>(r), D) }; }
+    inline Fixed operator/(double r) const { return __FixedBits<T> { fixedpt_div<T>(_bits, fixedpt_conv<T, D, double>(r), D) }; }
 
-    BSS_FORCEINLINE bool BSS_FASTCALL operator !=(const Fixed& r) const { return _bits != r._bits; }
-    BSS_FORCEINLINE bool BSS_FASTCALL operator ==(const Fixed& r) const { return _bits == r._bits; }
-    BSS_FORCEINLINE bool BSS_FASTCALL operator >=(const Fixed& r) const { return _bits >= r._bits; }
-    BSS_FORCEINLINE bool BSS_FASTCALL operator <=(const Fixed& r) const { return _bits <= r._bits; }
-    BSS_FORCEINLINE bool BSS_FASTCALL operator >(const Fixed& r) const { return _bits > r._bits; }
-    BSS_FORCEINLINE bool BSS_FASTCALL operator <(const Fixed& r) const { return _bits < r._bits; }
+    BSS_FORCEINLINE bool operator !=(const Fixed& r) const { return _bits != r._bits; }
+    BSS_FORCEINLINE bool operator ==(const Fixed& r) const { return _bits == r._bits; }
+    BSS_FORCEINLINE bool operator >=(const Fixed& r) const { return _bits >= r._bits; }
+    BSS_FORCEINLINE bool operator <=(const Fixed& r) const { return _bits <= r._bits; }
+    BSS_FORCEINLINE bool operator >(const Fixed& r) const { return _bits > r._bits; }
+    BSS_FORCEINLINE bool operator <(const Fixed& r) const { return _bits < r._bits; }
 
   protected:
     T _bits;

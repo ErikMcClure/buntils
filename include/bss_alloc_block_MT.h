@@ -41,7 +41,7 @@ namespace bss_util {
         free(_root);
       }
     }
-    inline T* BSS_FASTCALL alloc(size_t num) noexcept
+    inline T* alloc(size_t num) noexcept
     {
       assert(num==1);
 #ifdef BSS_DISABLE_CUSTOM_ALLOCATORS
@@ -70,7 +70,7 @@ namespace bss_util {
       //assert(_validpointer(ret));
       return (T*)ret.p;
     }
-    inline void BSS_FASTCALL dealloc(void* p) noexcept
+    inline void dealloc(void* p) noexcept
     {
 #ifdef BSS_DISABLE_CUSTOM_ALLOCATORS
       free(p); return;
@@ -112,7 +112,7 @@ namespace bss_util {
       return false;
     }
 #endif
-    inline void BSS_FASTCALL _allocchunk(size_t nsize) noexcept
+    inline void _allocchunk(size_t nsize) noexcept
     {
       FIXEDLIST_NODE* retval=(FIXEDLIST_NODE*)malloc(sizeof(FIXEDLIST_NODE)+nsize);
       retval->next=_root;
@@ -121,7 +121,7 @@ namespace bss_util {
       _initchunk(retval);
     }
 
-    inline void BSS_FASTCALL _initchunk(const FIXEDLIST_NODE* chunk) noexcept
+    inline void _initchunk(const FIXEDLIST_NODE* chunk) noexcept
     {
       void* hold=0;
       uint8_t* memend=((uint8_t*)(chunk+1))+chunk->size;
@@ -133,7 +133,7 @@ namespace bss_util {
       _setfreelist(hold, (void*)(chunk+1)); // The target here is different because normally, the first block (at chunk+1) would point to whatever _freelist used to be. However, since we are lockless, _freelist could not be 0 at the time we insert this, so we have to essentially go backwards and set the first one to whatever freelist is NOW, before setting freelist to the one on the end.
     }
 
-    inline void BSS_FASTCALL _setfreelist(void* p, void* target) noexcept {
+    inline void _setfreelist(void* p, void* target) noexcept {
       bss_PTag<void> prev ={ 0, 0 };
       bss_PTag<void> nval ={ p, 0 };
       asmcasr<bss_PTag<void>>(&_freelist, prev, prev, prev);

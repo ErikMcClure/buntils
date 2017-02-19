@@ -59,11 +59,11 @@ namespace bss_util {
       _root = pNIL;
     }
     // Retrieves a given node by key if it exists
-    BSS_FORCEINLINE TRB_Node<T>* BSS_FASTCALL Get(const T& value) const { return _get(value); }
+    BSS_FORCEINLINE TRB_Node<T>* Get(const T& value) const { return _get(value); }
     // Retrieves the node closest to the given key.
-    BSS_FORCEINLINE TRB_Node<T>* BSS_FASTCALL GetNear(const T& value, bool before = true) const { return _getnear(value, before); }
+    BSS_FORCEINLINE TRB_Node<T>* GetNear(const T& value, bool before = true) const { return _getnear(value, before); }
     // Inserts a key with the associated data
-    BSS_FORCEINLINE TRB_Node<T>* BSS_FASTCALL Insert(const T& value)
+    BSS_FORCEINLINE TRB_Node<T>* Insert(const T& value)
     {
       TRB_Node<T>* node = cAllocTracker<Alloc>::_allocate(1);
       new(node) TRB_Node<T>(value, pNIL);
@@ -71,9 +71,9 @@ namespace bss_util {
       return node;
     }
     // Searches for a node with the given key and removes it if found, otherwise returns false.
-    BSS_FORCEINLINE bool BSS_FASTCALL Remove(const T& value) { return Remove(_get(value)); }
+    BSS_FORCEINLINE bool Remove(const T& value) { return Remove(_get(value)); }
     // Removes the given node. Returns false if node is null
-    BSS_FORCEINLINE bool BSS_FASTCALL Remove(TRB_Node<T>* node)
+    BSS_FORCEINLINE bool Remove(TRB_Node<T>* node)
     {
       if(!node) return false;
       _remove(node);
@@ -104,7 +104,7 @@ namespace bss_util {
     }
 
   protected:
-    TRB_Node<T>* BSS_FASTCALL _get(const T& x) const
+    TRB_Node<T>* _get(const T& x) const
     {
       TRB_Node<T>* cur = _root;
 
@@ -120,7 +120,7 @@ namespace bss_util {
 
       return 0;
     }
-    TRB_Node<T>* BSS_FASTCALL _getnear(const T& x, bool before) const
+    TRB_Node<T>* _getnear(const T& x, bool before) const
     {
       TRB_Node<T>* cur = _root;
       TRB_Node<T>* parent = pNIL;
@@ -142,7 +142,7 @@ namespace bss_util {
       else
         return (res > 0 && parent->next) ? parent->next : parent;
     }
-    void BSS_FASTCALL _leftrotate(TRB_Node<T>* node)
+    void _leftrotate(TRB_Node<T>* node)
     {
       TRB_Node<T>* r = node->right;
 
@@ -158,7 +158,7 @@ namespace bss_util {
       r->left = node;
       if(node != pNIL) node->parent = r;
     }
-    void BSS_FASTCALL _rightrotate(TRB_Node<T>* node)
+    void _rightrotate(TRB_Node<T>* node)
     {
       TRB_Node<T>* r = node->left;
 
@@ -174,7 +174,7 @@ namespace bss_util {
       r->right = node;
       if(node != pNIL) node->parent = r;
     }
-    void BSS_FASTCALL _insert(TRB_Node<T>* node)
+    void _insert(TRB_Node<T>* node)
     {
       TRB_Node<T>* cur = _root;
       TRB_Node<T>* parent = 0;
@@ -222,7 +222,7 @@ namespace bss_util {
         _root->color = 0; //root is always black (done below)
       }
     }
-    inline void BSS_FASTCALL _fixinsert(TRB_Node<T>* node)
+    inline void _fixinsert(TRB_Node<T>* node)
     {
       while(node != _root && node->parent->color == 1)
       {
@@ -275,7 +275,7 @@ namespace bss_util {
 
       _root->color = 0;
     }
-    void BSS_FASTCALL _remove(TRB_Node<T>* node)
+    void _remove(TRB_Node<T>* node)
     {
       if(node->color == -1) { LLRemove(node, _first, _last); return; }
       if(node->next && node->next->color == -1) { _replacenode(node, node->next); LLRemove(node, _first, _last); return; }
@@ -302,7 +302,7 @@ namespace bss_util {
       if(y != node) _replacenode(node, y);
       if(balance) _fixdelete(z);
     }
-    inline void BSS_FASTCALL _fixdelete(TRB_Node<T>* node)
+    inline void _fixdelete(TRB_Node<T>* node)
     {
       while(node != _root && node->color == 0)
       {
@@ -371,7 +371,7 @@ namespace bss_util {
       }
       node->color = 0;
     }
-    inline void BSS_FASTCALL _replacenode(TRB_Node<T>* node, TRB_Node<T>* y)
+    inline void _replacenode(TRB_Node<T>* node, TRB_Node<T>* y)
     {
       y->color = node->color;
       y->left = node->left;
@@ -386,12 +386,12 @@ namespace bss_util {
       y->left->parent = y;
       y->right->parent = y;
     }
-    BSS_FORCEINLINE static TRB_Node<T>* BSS_FASTCALL _findmin(TRB_Node<T>* node)
+    BSS_FORCEINLINE static TRB_Node<T>* _findmin(TRB_Node<T>* node)
     {
       while(node->left != pNIL) node = node->left;
       return node;
     }
-    inline static TRB_Node<T>* BSS_FASTCALL _treenextsub(TRB_Node<T>* node)
+    inline static TRB_Node<T>* _treenextsub(TRB_Node<T>* node)
     {
       while(node->parent && node != node->parent->left)
         node = node->parent;

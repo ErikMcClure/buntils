@@ -55,7 +55,7 @@ namespace bss_util {
   struct cLList_LAST
   { 
     inline cLLNode<T>* Back() const { return _last; }
-    inline cLLNode<T>* BSS_FASTCALL Item(T item, cLLNode<T>* from=0, bool backwards=false) const 
+    inline cLLNode<T>* Item(T item, cLLNode<T>* from=0, bool backwards=false) const 
     { //if target is 0 we start from the root
       if(!from) from=_root;
       cLLNode<T>* cur=from;
@@ -82,7 +82,7 @@ namespace bss_util {
   template<typename T>
   struct cLList_LAST<T,false>
   {
-    inline cLLNode<T>* BSS_FASTCALL Item(T item, cLLNode<T>* from=0) const 
+    inline cLLNode<T>* Item(T item, cLLNode<T>* from=0) const 
     { //if target is 0 we start from the root
       if(!from) from=_root;
       cLLNode<T>* cur=from;
@@ -127,7 +127,7 @@ namespace bss_util {
     // Destructor
     inline ~cLinkedList() { Clear(); }
     // Appends the item to the end of the list
-    inline cLLNode<T>* BSS_FASTCALL Add(T item)
+    inline cLLNode<T>* Add(T item)
     {
       cLLNode<T>* node = cAllocTracker<Alloc>::_allocate(1);
       node->item=item;
@@ -136,9 +136,9 @@ namespace bss_util {
       return node;
     }
     // Inserts the item in the front of the list
-    inline cLLNode<T>* BSS_FASTCALL Insert(T item) { return Insert(item,_root); }
+    inline cLLNode<T>* Insert(T item) { return Insert(item,_root); }
     // Inserts the item before the given node. If the given node is null, appends the item to the end of the list
-    inline cLLNode<T>* BSS_FASTCALL Insert(T item, cLLNode<T>* target)
+    inline cLLNode<T>* Insert(T item, cLLNode<T>* target)
     {
       if(!target) return Add(item);
 
@@ -150,15 +150,15 @@ namespace bss_util {
       _incsize(); //increment size by one
       return hold;
     }
-    inline void BSS_FASTCALL Remove(cLLIter<T>& iter) { Remove(iter.cur); }
-    inline void BSS_FASTCALL Remove(cLLNode<T>* node)
+    inline void Remove(cLLIter<T>& iter) { Remove(iter.cur); }
+    inline void Remove(cLLNode<T>* node)
     {
       _remove(node);
 
       _delnode(node); //We don't need our linkedlist wrapper struct anymore so we destroy it
       cLList_SIZE<useSize>::_decsize(); //our size is now down one
     }
-    inline cLLNode<T>* BSS_FASTCALL Remove(cLLNode<T>* node, bool backwards)
+    inline cLLNode<T>* Remove(cLLNode<T>* node, bool backwards)
     {
       if(!node) return 0;
 
@@ -213,7 +213,7 @@ namespace bss_util {
     }
     
   protected:
-    inline cLLNode<T>* BSS_FASTCALL _createnode(T _item, cLLNode<T>* _prev=0, cLLNode<T>* _next=0)
+    inline cLLNode<T>* _createnode(T _item, cLLNode<T>* _prev=0, cLLNode<T>* _next=0)
     {
 			cLLNode<T>* retval = cAllocTracker<Alloc>::_allocate(1);
 			retval->item=_item;
@@ -222,7 +222,7 @@ namespace bss_util {
 			return retval;
     }
 
-    inline void BSS_FASTCALL _delnode(cLLNode<T>* target) { cAllocTracker<Alloc>::_deallocate(target, 1); }
+    inline void _delnode(cLLNode<T>* target) { cAllocTracker<Alloc>::_deallocate(target, 1); }
   };
 }
 

@@ -21,13 +21,13 @@ namespace bss_util {
     inline explicit cQueue(CType init=0) : BASE(init) {}
     inline ~cQueue() {}
     // Pushes a value into the queue in FIFO order.
-    BSS_FORCEINLINE void BSS_FASTCALL Push(const T& value) { _push<const T&>(value); }
-    BSS_FORCEINLINE void BSS_FASTCALL Push(T&& value) { _push<T&&>(std::move(value)); }
+    BSS_FORCEINLINE void Push(const T& value) { _push<const T&>(value); }
+    BSS_FORCEINLINE void Push(T&& value) { _push<T&&>(std::move(value)); }
     // Pops a value out of the queue in FIFO order. If there is no value to pop, calling this is illegal and will crash.
-    BSS_FORCEINLINE T BSS_FASTCALL Pop() { assert(_length!=0); return BASE::PopBack(); }
+    BSS_FORCEINLINE T Pop() { assert(_length!=0); return BASE::PopBack(); }
     // Peeks at the value at the top of the queue but does not remove it. If there is no value, this is an illegal call.
-    BSS_FORCEINLINE T& BSS_FASTCALL Peek() { assert(_length!=0); return BASE::Back(); }
-    BSS_FORCEINLINE const T& BSS_FASTCALL Peek() const { assert(_length!=0); return BASE::Back(); }
+    BSS_FORCEINLINE T& Peek() { assert(_length!=0); return BASE::Back(); }
+    BSS_FORCEINLINE const T& Peek() const { assert(_length!=0); return BASE::Back(); }
     BSS_FORCEINLINE void Discard() { --_length; }
     // Returns true if there are no values in the queue (indicating that Pop() and Peek() cannot be called)
     BSS_FORCEINLINE bool Empty() { return !_length; }
@@ -42,7 +42,7 @@ namespace bss_util {
 
   protected:
     template<typename U>
-    void BSS_FASTCALL _push(U && value) { if(_length>=BASE::_capacity) BASE::SetCapacity(T_FBNEXT(_length)); BASE::_push(std::forward<U>(value)); }
+    void _push(U && value) { if(_length>=BASE::_capacity) BASE::SetCapacity(T_FBNEXT(_length)); BASE::_push(std::forward<U>(value)); }
   };
 }
 

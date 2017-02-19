@@ -52,11 +52,11 @@ namespace bss_util {
     inline AANODE<T>* GetRoot() { return _root == _sentinel ? 0 : _root; }
     inline bool IsEmpty() { return _root == _sentinel; }
     // Does an in-order traversal of the tree, applying FACTION to each node's data object.
-    template<void (BSS_FASTCALL *FACTION)(T&)>
+    template<void (*FACTION)(T&)>
     inline void Traverse() { _traverse<FACTION>(_root); }
     
   protected:
-    void BSS_FASTCALL _clear(AANODE<T>* n)
+    void _clear(AANODE<T>* n)
     {
       if(n == _sentinel) return;
       _clear(n->left);
@@ -64,7 +64,7 @@ namespace bss_util {
       n->~AANODE<T>();
       cAllocTracker<Alloc>::_deallocate(n, 1);
     }
-    template<void (BSS_FASTCALL *FACTION)(T&)>
+    template<void (*FACTION)(T&)>
     inline void _traverse(AANODE<T>* n)
     {
       _traverse(n->left);
@@ -108,7 +108,7 @@ namespace bss_util {
       _skew(n);
       _split(n);
     }
-    inline bool BSS_FASTCALL _remove(AANODE<T>*& n, const T& data)
+    inline bool _remove(AANODE<T>*& n, const T& data)
     {
       if(n == _sentinel) return false;
       _last = n;

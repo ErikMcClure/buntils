@@ -64,7 +64,7 @@ namespace bss_util {
 
     template<int I, typename... Args>
     struct r_findparse {
-      inline static void BSS_FASTCALL f(cSerializer<Engine>& e, uint16_t index, const std::tuple<Args...>& args)
+      inline static void f(cSerializer<Engine>& e, uint16_t index, const std::tuple<Args...>& args)
       {
         if(index != I)
           return r_findparse<I - 1, Args...>::f(e, index, args);
@@ -73,10 +73,10 @@ namespace bss_util {
     };
     template<typename... Args>
     struct r_findparse<-1, Args...> {
-      inline static void BSS_FASTCALL f(cSerializer<Engine>& e, uint16_t index, const std::tuple<Args...>& args) {}
+      inline static void f(cSerializer<Engine>& e, uint16_t index, const std::tuple<Args...>& args) {}
     };
     template<typename... Args> // This function must be static due to some corner cases on certain parsers
-    inline static void BSS_FASTCALL _findparse(cSerializer<Engine>& e, const char* key, const cTrie<uint16_t>& t, const std::tuple<Args...>& args)
+    inline static void _findparse(cSerializer<Engine>& e, const char* key, const cTrie<uint16_t>& t, const std::tuple<Args...>& args)
     {
       r_findparse<sizeof...(Args)-1, Args...>::f(e, t[key], args);
     }

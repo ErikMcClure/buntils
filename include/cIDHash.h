@@ -137,7 +137,7 @@ namespace bss_util {
     inline const T& operator[](ST id) const { return _array[id]; }
 
   protected:
-    inline void BSS_FASTCALL _flip(size_t id, size_t nid) { _hash.Set(_array[id], nid); }
+    inline void _flip(size_t id, size_t nid) { _hash.Set(_array[id], nid); }
 
     cHashBase<T, ST, true, __hash_func, __hash_equal> _hash;
   };

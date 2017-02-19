@@ -14,15 +14,15 @@ struct cAnimObj
   int test;
   int test2;
   float fl;
-  void BSS_FASTCALL donothing(cRefCounter*) { ++test; }
-  cRefCounter* BSS_FASTCALL retnothing(ref_ptr<cRefCounter> p) {
+  void donothing(cRefCounter*) { ++test; }
+  cRefCounter* retnothing(ref_ptr<cRefCounter> p) {
     ++test2;
     p->Grab();
     return (cRefCounter*)p;
   }
-  void BSS_FASTCALL remnothing(cRefCounter* p) { p->Drop(); }
-  void BSS_FASTCALL setfloat(float a) { fl = a; }
-  const float& BSS_FASTCALL getfloat() { return fl; }
+  void remnothing(cRefCounter* p) { p->Drop(); }
+  void setfloat(float a) { fl = a; }
+  const float& getfloat() { return fl; }
 };
 
 typedef variant<double> FX_DEF;

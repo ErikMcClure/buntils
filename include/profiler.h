@@ -52,7 +52,7 @@ namespace bss_util {
       inline ProfilerData(const char* Name, const char* File, uint32_t Line) : name(Name), file(File), line(Line), id(++total) { Profiler::profiler.AddData(id, this); }
     };
 
-    BSS_FORCEINLINE uint64_t BSS_FASTCALL StartProfile(PROFILER_INT id)
+    BSS_FORCEINLINE uint64_t StartProfile(PROFILER_INT id)
     {
       PROF_TRIENODE** r=&_cur;
       while(id>0)
@@ -68,7 +68,7 @@ namespace bss_util {
       _cur->inner=0;
       return cHighPrecisionTimer::OpenProfiler();
     }
-    BSS_FORCEINLINE void BSS_FASTCALL EndProfile(uint64_t time, PROF_TRIENODE* old)
+    BSS_FORCEINLINE void EndProfile(uint64_t time, PROF_TRIENODE* old)
     {
       time = cHighPrecisionTimer::CloseProfiler(time);
       //bssvariance<double, uint64_t>(_cur->variance, _cur->avg, (double)time, ++_cur->total);
@@ -90,13 +90,13 @@ namespace bss_util {
   private:
     Profiler();
     PROF_TRIENODE* _allocnode();
-    void BSS_FASTCALL _treeout(std::ostream& stream, PROF_TRIENODE* node, PROFILER_INT id, uint32_t level, PROFILER_INT idlevel);
-    void BSS_FASTCALL _heatout(PROF_HEATNODE& heat, PROF_TRIENODE* node, PROFILER_INT id, PROFILER_INT idlevel);
-    void BSS_FASTCALL _heatwrite(std::ostream& stream, PROF_HEATNODE& node, uint32_t level, double max);
-    double BSS_FASTCALL _heatfindmax(PROF_HEATNODE& heat);
-    static void BSS_FASTCALL _flatout(PROF_FLATOUT* avg, PROF_TRIENODE* node, PROFILER_INT id, PROFILER_INT idlevel);
-    static const char* BSS_FASTCALL _trimpath(const char* path);
-    static void BSS_FASTCALL _timeformat(std::ostream& stream, double avg, double variance, uint64_t num);
+    void _treeout(std::ostream& stream, PROF_TRIENODE* node, PROFILER_INT id, uint32_t level, PROFILER_INT idlevel);
+    void _heatout(PROF_HEATNODE& heat, PROF_TRIENODE* node, PROFILER_INT id, PROFILER_INT idlevel);
+    void _heatwrite(std::ostream& stream, PROF_HEATNODE& node, uint32_t level, double max);
+    double _heatfindmax(PROF_HEATNODE& heat);
+    static void _flatout(PROF_FLATOUT* avg, PROF_TRIENODE* node, PROFILER_INT id, PROFILER_INT idlevel);
+    static const char* _trimpath(const char* path);
+    static void _timeformat(std::ostream& stream, double avg, double variance, uint64_t num);
     static PROFILER_INT total;
 
     cArray<ProfilerData*, PROFILER_INT> _data;
@@ -106,7 +106,7 @@ namespace bss_util {
     uint32_t _totalnodes;
   };
 
-  inline static bool BSS_FASTCALL __DEBUG_VERIFY(PROF_TRIENODE* node)
+  inline static bool __DEBUG_VERIFY(PROF_TRIENODE* node)
   {
     if(!node) return true;
     if(!std::isfinite(node->avg) || !std::isfinite(node->codeavg)) {

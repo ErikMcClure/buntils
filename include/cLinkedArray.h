@@ -30,13 +30,13 @@ namespace bss_util {
     inline cLinkedArray(cLinkedArray&& mov) : _ref(std::move(mov._ref)), _length(mov._length), _start(mov._start), _end(mov._end), _freelist(mov._freelist) { mov._ref=1; mov._length=0; mov._start=mov._end=-1=mov._freelist=-1; }
     inline explicit cLinkedArray(CT_ size) : _ref(size), _length(0), _start(-1), _end(-1), _freelist(-1) { _setupchunk(0); }
     inline ~cLinkedArray() {}
-    BSS_FORCEINLINE CT_ BSS_FASTCALL Add(const T& item) { return InsertAfter(item, _end); }
-    BSS_FORCEINLINE CT_ BSS_FASTCALL Add(T&& item) { return InsertAfter(std::move(item), _end); }
-    BSS_FORCEINLINE CT_ BSS_FASTCALL InsertBefore(const T& item, CT_ index) { return _insertbefore<const T&>(item, index); }
-    BSS_FORCEINLINE CT_ BSS_FASTCALL InsertBefore(T&& item, CT_ index) { return _insertbefore<T&&>(std::move(item), index); }
-    BSS_FORCEINLINE CT_ BSS_FASTCALL InsertAfter(const T& item, CT_ index) { return _insertafter<const T&>(item, index); }
-    BSS_FORCEINLINE CT_ BSS_FASTCALL InsertAfter(T&& item, CT_ index) { return _insertafter<T&&>(std::move(item), index); }
-    T BSS_FASTCALL Remove(CT_ index)
+    BSS_FORCEINLINE CT_ Add(const T& item) { return InsertAfter(item, _end); }
+    BSS_FORCEINLINE CT_ Add(T&& item) { return InsertAfter(std::move(item), _end); }
+    BSS_FORCEINLINE CT_ InsertBefore(const T& item, CT_ index) { return _insertbefore<const T&>(item, index); }
+    BSS_FORCEINLINE CT_ InsertBefore(T&& item, CT_ index) { return _insertbefore<T&&>(std::move(item), index); }
+    BSS_FORCEINLINE CT_ InsertAfter(const T& item, CT_ index) { return _insertafter<const T&>(item, index); }
+    BSS_FORCEINLINE CT_ InsertAfter(T&& item, CT_ index) { return _insertafter<T&&>(std::move(item), index); }
+    T Remove(CT_ index)
     {
       assert(index<_ref.Capacity());
       TLNODE& pcur=_ref[index];
@@ -51,21 +51,21 @@ namespace bss_util {
     }
     inline CT_ Length() const { return _length; }
     inline CT_ Capacity() const { return _ref.Capacity(); }
-    inline void BSS_FASTCALL Reserve(CT_ size) { if(size<_ref.Capacity()) return; CT_ hold=_ref.Capacity(); _ref.SetCapacity(size); _setupchunk(hold); }
+    inline void Reserve(CT_ size) { if(size<_ref.Capacity()) return; CT_ hold=_ref.Capacity(); _ref.SetCapacity(size); _setupchunk(hold); }
     inline void Clear() { _freelist=_start=_end=-1; _length=0; _setupchunk(0); }
     BSS_FORCEINLINE void Next(CT_& ref) const { ref=_ref[ref].next; }
     BSS_FORCEINLINE void Prev(CT_& ref) const { ref=_ref[ref].prev; }
     BSS_FORCEINLINE CT_ Front() const { return _start; }
     BSS_FORCEINLINE CT_ Back() const { return _end; }
-    //inline cLinkedArray& BSS_FASTCALL operator +=(const cLinkedArray& right);
-    //inline cLinkedArray BSS_FASTCALL operator +(const cLinkedArray& right) const { cLinkedArray retval(*this); retval+=right; return retval; }
-    inline cLinkedArray& BSS_FASTCALL operator =(const cLinkedArray& right) { _ref=right._ref; _length=right._length; _start=right._start; _end=right._end; _freelist=right._freelist; return *this; }
-    inline cLinkedArray& BSS_FASTCALL operator =(cLinkedArray&& mov) { _ref=std::move(mov._ref); _length=mov._length; _start=mov._start; _end=mov._end; _freelist=mov._freelist; return *this; }
-    BSS_FORCEINLINE T& BSS_FASTCALL GetItem(CT_ index) { return _ref[index].val; }
-    BSS_FORCEINLINE const T& BSS_FASTCALL GetItem(CT_ index) const { return _ref[index].val; }
-    BSS_FORCEINLINE T* BSS_FASTCALL GetItemPtr(CT_ index) { return &_ref[index].val; }
-    BSS_FORCEINLINE T& BSS_FASTCALL operator [](CT_ index) { return GetItem(index); }
-    BSS_FORCEINLINE const T& BSS_FASTCALL operator [](CT_ index) const { return GetItem(index); }
+    //inline cLinkedArray& operator +=(const cLinkedArray& right);
+    //inline cLinkedArray operator +(const cLinkedArray& right) const { cLinkedArray retval(*this); retval+=right; return retval; }
+    inline cLinkedArray& operator =(const cLinkedArray& right) { _ref=right._ref; _length=right._length; _start=right._start; _end=right._end; _freelist=right._freelist; return *this; }
+    inline cLinkedArray& operator =(cLinkedArray&& mov) { _ref=std::move(mov._ref); _length=mov._length; _start=mov._start; _end=mov._end; _freelist=mov._freelist; return *this; }
+    BSS_FORCEINLINE T& GetItem(CT_ index) { return _ref[index].val; }
+    BSS_FORCEINLINE const T& GetItem(CT_ index) const { return _ref[index].val; }
+    BSS_FORCEINLINE T* GetItemPtr(CT_ index) { return &_ref[index].val; }
+    BSS_FORCEINLINE T& operator [](CT_ index) { return GetItem(index); }
+    BSS_FORCEINLINE const T& operator [](CT_ index) const { return GetItem(index); }
 
     // Iterator for cLinkedArray
     template<bool ISCONST, typename U = typename std::conditional<ISCONST, typename std::add_const<T>::type, T>::type, typename D = typename std::conditional<ISCONST, typename std::add_const<cLinkedArray>::type, cLinkedArray>::type>
@@ -100,7 +100,7 @@ namespace bss_util {
 
   protected:
     template<typename U>
-    CT_ BSS_FASTCALL _insertafter(U && item, CT_ index)
+    CT_ _insertafter(U && item, CT_ index)
     {
       CT_ cur=_insprep();
 
@@ -118,7 +118,7 @@ namespace bss_util {
       return cur;
     }
     template<typename U>
-    CT_ BSS_FASTCALL _insertbefore(U && item, CT_ index)
+    CT_ _insertbefore(U && item, CT_ index)
     {
       CT_ cur=_insprep();
 
@@ -135,12 +135,12 @@ namespace bss_util {
       ++_length;
       return cur;
     }
-    inline void BSS_FASTCALL _addfreelist(CT_ index)
+    inline void _addfreelist(CT_ index)
     {
       _ref[index].next=_freelist;
       _freelist=index;
     }
-    inline void BSS_FASTCALL _setupchunk(CT_ start)
+    inline void _setupchunk(CT_ start)
     {
       CT_ i=_ref.Capacity();
       while(i>start) //this trick lets us run backwards without worrying about the unsigned problem.

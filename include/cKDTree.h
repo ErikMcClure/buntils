@@ -30,7 +30,7 @@ namespace bss_util {
   };
 
   // KD-tree storing arbitrary rectangles. Requires a function turning T into a float[4] reference, LLBASE<T> list, and an action.
-  template<typename T, typename Alloc, const float* (BSS_FASTCALL *FRECT)(T*), LLBase<T>& (BSS_FASTCALL *FLIST)(T*), void (BSS_FASTCALL *FACTION)(T*), KDNode<T>*& (BSS_FASTCALL *FNODE)(T*)>
+  template<typename T, typename Alloc, const float* (*FRECT)(T*), LLBase<T>& (*FLIST)(T*), void (*FACTION)(T*), KDNode<T>*& (*FNODE)(T*)>
   class cKDTree : protected cAllocTracker<Alloc>
   {
     inline cKDTree(const cKDTree&) BSS_DELETEFUNC
@@ -40,12 +40,12 @@ namespace bss_util {
     inline cKDTree(cKDTree&& mov) : cAllocTracker<Alloc>(std::move(mov)), _root(mov._root), _rbthreshold(mov._rbthreshold) { mov._root=0; }
     inline ~cKDTree() { Clear(); }
     inline void Clear() { if(_root) _destroynode(_root); _root=0; }
-    void BSS_FASTCALL Traverse(float(&rect)[4]) const { if(_root) _traverse<0, 1>(_root, rect); }
+    void Traverse(float(&rect)[4]) const { if(_root) _traverse<0, 1>(_root, rect); }
     template<typename F>
-    void BSS_FASTCALL TraverseAction(float(&rect)[4], F && f) const { if(_root) _traverseaction<0, 1, F>(_root, rect, std::forward<F>(f)); }
+    void TraverseAction(float(&rect)[4], F && f) const { if(_root) _traverseaction<0, 1, F>(_root, rect, std::forward<F>(f)); }
     template<typename F>
-    void BSS_FASTCALL TraverseAll(F && f) { _traverseall(_root, std::forward<F>(f)); }
-    void BSS_FASTCALL Insert(T* item)
+    void TraverseAll(F && f) { _traverseall(_root, std::forward<F>(f)); }
+    void Insert(T* item)
     {
       KDNode<T>** p=&_root;
       KDNode<T>* h;
@@ -82,7 +82,7 @@ namespace bss_util {
       _insertitem(h, item);
       if(rb) Rebalance(rb);
     }
-    void BSS_FASTCALL Remove(T* item)
+    void Remove(T* item)
     { // run up tree, adjust balance and check for rebalancing
       KDNode<T>* node=FNODE(item);
       KDNode<T>* rb=0;
@@ -136,7 +136,7 @@ namespace bss_util {
     const static uint32_t RBTHRESHOLD=20; //default threshold
 
   protected:
-    void BSS_FASTCALL _solve(KDNode<T>** pnode)
+    void _solve(KDNode<T>** pnode)
     {
       KDNode<T>* node=*pnode;
       if(!node->num) { _destroynode(node); *pnode=0; return; }
@@ -167,7 +167,7 @@ namespace bss_util {
       if(node->right) _solve(&node->right);
     }
 
-    void BSS_FASTCALL _rebalance(KDNode<T>* node, const float(&r)[4], KDNode<T>* const* p, float(&total)[2])
+    void _rebalance(KDNode<T>* node, const float(&r)[4], KDNode<T>* const* p, float(&total)[2])
     {
       node->div=node->total[node->axis]/(node->num*2);
       node->balance=0;
@@ -241,7 +241,7 @@ namespace bss_util {
       cAllocTracker<Alloc>::_deallocate(node); //Deallocate node
     }
     template<typename F>
-    static void BSS_FASTCALL _traverseall(KDNode<T>* node, F && f)
+    static void _traverseall(KDNode<T>* node, F && f)
     {
       if(!node) return;
       f(node->items);
@@ -249,7 +249,7 @@ namespace bss_util {
       _traverseall(node->right, std::forward<F>(f));
     }
     template<char cur, char next>
-    static void BSS_FASTCALL _traverse(const KDNode<T>* node, const float(&rect)[4])
+    static void _traverse(const KDNode<T>* node, const float(&rect)[4])
     {
       T* item=node->items;
       const float* r;
@@ -267,7 +267,7 @@ namespace bss_util {
         _traverse<next, cur>(node->right, rect);
     }
     template<char cur, char next, typename F>
-    static void BSS_FASTCALL _traverseaction(const KDNode<T>* node, const float(&rect)[4], F && f)
+    static void _traverseaction(const KDNode<T>* node, const float(&rect)[4], F && f)
     {
       T* item=node->items;
       const float* r;
@@ -284,7 +284,7 @@ namespace bss_util {
       if(node->div <= rect[cur+2] && node->right!=0)
         _traverseaction<next, cur>(node->right, rect, std::forward<F>(f));
     }
-    inline KDNode<T>* BSS_FASTCALL _allocnode(KDNode<T>* parent, char axis)
+    inline KDNode<T>* _allocnode(KDNode<T>* parent, char axis)
     {
       KDNode<T>* r=cAllocTracker<Alloc>::_allocate(1);
       memset(r, 0, sizeof(KDNode<T>));
@@ -292,7 +292,7 @@ namespace bss_util {
       r->axis=axis;
       return r;
     }
-    inline void BSS_FASTCALL _insertitem(KDNode<T>* node, T* item)
+    inline void _insertitem(KDNode<T>* node, T* item)
     {
       LLBase<T>& l=FLIST(item);
       l.next=node->items;
@@ -301,7 +301,7 @@ namespace bss_util {
       node->items=item;
       FNODE(item)=node;
     }
-    inline void BSS_FASTCALL _removeitem(KDNode<T>* node, T* item)
+    inline void _removeitem(KDNode<T>* node, T* item)
     {
       FNODE(item)=0;
       LLBase<T>& l=FLIST(item);

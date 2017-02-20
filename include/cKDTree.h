@@ -241,12 +241,12 @@ namespace bss_util {
       cAllocTracker<Alloc>::_deallocate(node); //Deallocate node
     }
     template<typename F>
-    static void _traverseall(KDNode<T>* node, F && f)
+    static void _traverseall(KDNode<T>* node, const F& f)
     {
       if(!node) return;
       f(node->items);
-      _traverseall(node->left, std::forward<F>(f));
-      _traverseall(node->right, std::forward<F>(f));
+      _traverseall(node->left, f);
+      _traverseall(node->right, f);
     }
     template<char cur, char next>
     static void _traverse(const KDNode<T>* node, const float(&rect)[4])

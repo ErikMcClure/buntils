@@ -96,7 +96,7 @@ namespace bss_util {
 #endif
     inline void _allocchunk(size_t nsize) noexcept
     {
-      FIXEDLIST_NODE* retval=(FIXEDLIST_NODE*)malloc(sizeof(FIXEDLIST_NODE)+nsize);
+      FIXEDLIST_NODE* retval=reinterpret_cast<FIXEDLIST_NODE*>(malloc(sizeof(FIXEDLIST_NODE)+nsize));
       retval->next=_root;
       retval->size=nsize;
       //#pragma message(TODO "DEBUG REMOVE")

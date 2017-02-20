@@ -189,7 +189,7 @@ int main(int argc, char** argv)
       std::cout << "\nThe following tests failed (seed = " << seed << "): " << std::endl;
       for(uint32_t i = 0; i < failures.size(); i++)
         std::cout << "  " << tests[failures[i]].NAME << std::endl;
-      std::cout << "\nThese failures indicate either a misconfiguration on your system, or a potential bug. Please report all bugs to http://code.google.com/p/bss-util/issues/list\n\nA detailed list of failed tests was written to failedtests.txt" << std::endl;
+      std::cout << "\nThese failures indicate either a misconfiguration on your system, or a potential bug.\n\nA detailed list of failed tests was written to failedtests.txt" << std::endl;
     }
 
     std::cout << "\nPress Enter to exit the program." << std::endl;

@@ -114,7 +114,7 @@ namespace bss_util {
 #endif
     inline void _allocchunk(size_t nsize) noexcept
     {
-      FIXEDLIST_NODE* retval=(FIXEDLIST_NODE*)malloc(sizeof(FIXEDLIST_NODE)+nsize);
+      FIXEDLIST_NODE* retval=reinterpret_cast<FIXEDLIST_NODE*>(malloc(sizeof(FIXEDLIST_NODE)+nsize));
       retval->next=_root;
       retval->size=nsize;
       _root = retval; // There's a potential race condition on DEBUG mode only where failing to set this first would allow a thread to allocate a new pointer and then delete it before _root got changed, which would then be mistaken for an invalid pointer

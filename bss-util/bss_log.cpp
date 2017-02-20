@@ -174,6 +174,7 @@ int cLog::PrintLogV(const char* source, const char* file, uint32_t line, int8_t 
   va_list vltemp;
   va_copy(vltemp, args);
   size_t _length = (size_t)CSTR_CT<char>::VPCF(format, vltemp) + 1; // If we didn't copy vl here, it would get modified by vsnprintf and blow up.
+  va_end(vltemp);
   DYNARRAY(char, buf, _length);
   int r = CSTR_CT<char>::VPF(buf, _length, format, args);
   _stream << buf << std::endl;

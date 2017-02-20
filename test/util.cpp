@@ -314,7 +314,7 @@ std::cout<<std::endl;
 int rometoint(std::string roman) {
   int total = 0;
   int ascii = 0;
-  int* cache = new int[roman.length()];
+  std::unique_ptr<int[]> cache(new int[roman.length()]);
 
   for(uint32_t i = 0; i < roman.length(); i++)
   {
@@ -367,7 +367,6 @@ int rometoint(std::string roman) {
   }
 
   total += cache[roman.length() - 1];
-  delete[] cache;
   return (total);
 }
 

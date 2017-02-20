@@ -72,6 +72,7 @@ namespace bss_util {
       _alloc=std::move(mov._alloc);
       mov._div=mov._last=mov._first=0;
       i_LocklessQueue_Length<LENGTH>::operator=(std::move(mov));
+      return *this;
     }
 
   protected:

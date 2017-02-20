@@ -38,8 +38,21 @@ void cXML::Write(std::ostream& stream, bool pretty) const
     _nodes[i]->_write(stream, pretty, 0);
 }
 
-cXMLNode::cXMLNode(const cXMLNode& copy) { next=0; prev=0; }
-cXMLNode::cXMLNode(cXMLNode&& mov) { next=mov.next; prev=mov.prev; mov.next=0; mov.prev=0; }
+cXMLNode::cXMLNode(const cXMLNode& copy) : _nodes(copy._nodes), _nodehash(copy._nodehash), _attributes(copy._attributes), _attrhash(copy._attrhash),
+  _value(copy._value), _name(copy._name)
+{
+  next=0;
+  prev=0;
+}
+cXMLNode::cXMLNode(cXMLNode&& mov) : _nodes(std::move(mov._nodes)), _nodehash(std::move(mov._nodehash)), _attributes(std::move(mov._attributes)),
+_attrhash(std::move(mov._attrhash)), _value(std::move(mov._value)), _name(std::move(mov._name))
+{ 
+  next=mov.next; 
+  prev=mov.prev; 
+  mov.next=0; 
+  mov.prev=0; 
+}
+
 cXMLNode::cXMLNode(const char* parse) { if(parse) { cStr buf; std::istringstream ss(parse); _parse(ss, buf); } next=0; prev=0; }
 cXMLNode::cXMLNode(std::istream& stream) { cStr buf; _parse(stream, buf); next=0; prev=0; }
 

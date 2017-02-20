@@ -118,7 +118,7 @@ namespace bss_util {
   protected:
     BSS_FORCEINLINE void _allocchunk(size_t nsize) noexcept
     {
-      AFLISTITEM* retval=(AFLISTITEM*)malloc(sizeof(AFLISTITEM)+nsize);
+      AFLISTITEM* retval=reinterpret_cast<AFLISTITEM*>(malloc(sizeof(AFLISTITEM)+nsize));
       retval->next=_root.load(std::memory_order_acquire);
       retval->size=nsize;
       assert(_prepDEBUG(retval));

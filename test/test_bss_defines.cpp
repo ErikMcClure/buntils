@@ -24,9 +24,13 @@ TESTDEF::RETPAIR test_bss_deprecated()
     FILE* f = 0;
   FOPEN(f, "__valtest.txt", "wb");
   TEST(f != 0);
+  if(f != 0)
+    fclose(f);
   f = 0;
   WFOPEN(f, BSS__L("石石石石shi.txt"), BSS__L("wb"));
   TEST(f != 0);
+  if(f != 0)
+    fclose(f);
   size_t a = 0;
   size_t b = -1;
   MEMCPY(&a, sizeof(size_t), &b, sizeof(size_t));
@@ -55,5 +59,6 @@ TESTDEF::RETPAIR test_bss_deprecated()
   //#define STRTOK(str,delim,context) strtok_s(str,delim,context)
   //#define WCSTOK(str,delim,context) wcstok_s(str,delim,context)
   //#define SSCANF sscanf_s
+
   ENDTEST;
 }

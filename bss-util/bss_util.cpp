@@ -339,15 +339,22 @@ extern int bss_util::DelDirW(const wchar_t* cdir, bool recursive)
   if(dir[dir.length()-1] != L'\\') dir += L'\\';
   hdir = FindFirstFileW(dir+L"*", &ffd);
 
-  while(hdir > 0 && hdir != INVALID_HANDLE_VALUE)
+  while(hdir != 0 && hdir != INVALID_HANDLE_VALUE)
   {
     if(WCSICMP(ffd.cFileName, L".")!=0 && WCSICMP(ffd.cFileName, L"..")!=0)
     {
       if(ffd.dwFileAttributes & FILE_ATTRIBUTE_DIRECTORY) {
-        if(DelDirW(dir+ffd.cFileName, true)!=0)
+        if(DelDirW(dir + ffd.cFileName, true) != 0)
+        {
+          FindClose(hdir);
           return -3;
-      } else if(_wremove(dir+ffd.cFileName)!=0)
+        }
+      }
+      else if(_wremove(dir + ffd.cFileName) != 0)
+      {
+        FindClose(hdir);
         return -2;
+      }
     }
     if(FindNextFileW(hdir, &ffd) <= 0) break; //either we're done or it failed
   }
@@ -389,7 +396,7 @@ BSS_COMPILER_DLLEXPORT extern int bss_util::_listdir(const wchar_t* cdir, void(*
   if(dir[dir.length()-1] != '\\') dir += '\\';
   hdir = FindFirstFileW(dir+"*", &ffd);
 
-  while(hdir > 0 && hdir !=INVALID_HANDLE_VALUE)
+  while(hdir != 0 && hdir !=INVALID_HANDLE_VALUE)
   {
     if(WCSICMP(ffd.cFileName, L".")!=0 && WCSICMP(ffd.cFileName, L"..")!=0)
     {

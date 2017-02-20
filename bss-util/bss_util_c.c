@@ -20,7 +20,7 @@
 extern union bssCPUInfo bssGetCPUInfo()
 {
   union bssCPUInfo r={0};
-  unsigned int info[4];
+  unsigned int info[4] = { 0 };
 #ifdef BSS_COMPILER_MSC
   SYSTEM_INFO sysinfo;
   GetSystemInfo(&sysinfo);

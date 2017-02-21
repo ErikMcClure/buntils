@@ -19,6 +19,7 @@ namespace bss_util {
   BSS_COMPILER_DLLEXPORT extern bool FileExists(const char* strpath);
   BSS_COMPILER_DLLEXPORT extern void AlertBox(const char* text, const char* caption, int type = 0);
   BSS_COMPILER_DLLEXPORT extern std::unique_ptr<char[], bssdll_delete<char[]>> FileDialog(bool open, unsigned long flags, const char* file, const char* filter = "All Files (*.*)\0*.*\0", const char* initdir = 0, const char* defext = 0);
+  BSS_COMPILER_DLLEXPORT extern std::unique_ptr<char[], bssdll_delete<char[]>> GetFontPath(const char* family, int weight, bool italic);
 
 #ifdef BSS_PLATFORM_WIN32
   BSS_COMPILER_DLLEXPORT extern bool FolderExistsW(const wchar_t* strpath);

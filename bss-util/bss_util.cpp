@@ -5,15 +5,18 @@
 #include "bss_util.h"
 #include "cStr.h"
 #include "os.h"
+#include "cArraySort.h"
 #ifdef BSS_PLATFORM_WIN32
 #include "bss_win32_includes.h"
 #include <Commdlg.h>
 #include <Shlwapi.h>
+#include <Shlobj.h>
 #else
 #include <sys/types.h>  // stat().
 #include <sys/stat.h>   // stat().
 #include <dirent.h>
 #include <unistd.h> // rmdir()
+#include "fontconfig/fontconfig.h"
 //#include <gtkmm.h> // file dialog
 #endif
 
@@ -624,9 +627,136 @@ int bss_util::DelRegistryNodeW(HKEY__* hKeyRoot, const wchar_t* lpSubKey)
   return r_delregnode(hKeyRoot, lpSubKey);
 }
 
-#endif
+struct BSSFONT
+{
+  BSSFONT(const ENUMLOGFONTEX* fontex, DWORD elftype) : weight(fontex->elfLogFont.lfWeight), italic(fontex->elfLogFont.lfItalic != 0), type((char)elftype)
+  { 
+    memcpy_s(elfFullName, sizeof(wchar_t)*LF_FULLFACESIZE, fontex->elfFullName, sizeof(wchar_t)*LF_FULLFACESIZE);
+  }
 
-double tfloatval = bss_util::dFastSqrt(5.0);
+  static char Comp(const BSSFONT& l, const BSSFONT& r)
+  {
+    char ret = SGNCOMPARE(l.italic, r.italic);
+    return !ret ? SGNCOMPARE(l.weight, r.weight) : ret;
+  }
+
+  WCHAR elfFullName[LF_FULLFACESIZE];
+  short weight;
+  char type;
+  bool italic;
+};
+
+typedef bss_util::cArraySort<BSSFONT, &BSSFONT::Comp> BSSFONTARRAY;
+
+int CALLBACK EnumFont_GetFontPath(const LOGFONT *lpelfe,const TEXTMETRIC *lpntme,DWORD FontType,LPARAM lParam)
+{
+  const ENUMLOGFONTEX* info = reinterpret_cast<const ENUMLOGFONTEX*>(lpelfe);
+  BSSFONTARRAY* fonts = reinterpret_cast<BSSFONTARRAY*>(lParam);
+  BSSFONT font(info, FontType);
+  if(fonts->Find(font) == (size_t)~0)
+    fonts->Insert(font);
+  return 1;
+}
+
+// This function tries to match the closest possible weight to the desired weight, using a hueristic based on Firefox's method: https://developer.mozilla.org/en-US/docs/Web/CSS/font-weight
+bool weightbiascheck(short weight, short target, short cur)
+{
+  if(weight > 500) // bold bias
+  {
+    if(target < 500 && cur >= 500) // If the target is less than 500 and cur isn't, always choose cur
+      return true;
+    if(cur < 500) // If cur is less than 500, always use cur if it's greater than target
+      return cur > target;
+  }
+  else // thin bias
+  {
+    if(target >= 500 && cur < 500) // If the target is greater than 500 and cur isn't, always choose cur
+      return true;
+    if(cur >= 500) // If cur is greater than or equals 500, always use cur if it's less than target
+      return cur < target;
+  }
+  return abs(cur - weight) < abs(target - weight); // Otherwise, just minimize the difference to the desired weight
+}
+
+std::unique_ptr<char[], bss_util::bssdll_delete<char[]>> bss_util::GetFontPath(const char* family, int weight, bool italic)
+{
+  HDC hdc = GetDC(0);
+  LOGFONT font = { 0 };
+  font.lfCharSet = DEFAULT_CHARSET;
+  UTF8toUTF16(family, -1, font.lfFaceName, LF_FACESIZE - 1);
+  BSSFONTARRAY fonts;
+  EnumFontFamiliesExW(hdc, &font, &EnumFont_GetFontPath, reinterpret_cast<LPARAM>(&fonts), 0);
+  
+  size_t target = 0;
+  std::unique_ptr<char[], bss_util::bssdll_delete<char[]>> p(nullptr);
+  if(fonts.Length() > 0) // Make sure we have at least one result
+  {
+    for(size_t i = 1; i < fonts.Length(); ++i)
+    {
+      if(fonts[i].italic == italic) // First check to match italic. This overrides everything else
+      {
+        if((fonts[target].italic != italic) || // If our current target doesn't match italic, immediately substitute this one.
+          (fonts[i].weight == weight) || // Check for an exact weight match
+           (weight == 500 && fonts[i].weight == 400 && fonts[target].weight != 500) || // If the requested weight is exactly 500 and we haven't matched it, use 400 instead
+           (weight == 400 && fonts[i].weight == 500 && fonts[target].weight != 400) || // If the requested weight is exactly 400 and we haven't matched it, use 500 instead
+           weightbiascheck(weight, fonts[target].weight, fonts[i].weight))
+          target = i;
+      }
+    }
+    wchar_t name[LF_FULLFACESIZE + 12] = { 0 };
+    memcpy_s(name, sizeof(wchar_t)*LF_FULLFACESIZE, fonts[target].elfFullName, sizeof(wchar_t)*LF_FULLFACESIZE);
+    if(fonts[target].type & DEVICE_FONTTYPE)
+      wcscat_s(name, L" (OpenType)");
+    else if(fonts[target].type & TRUETYPE_FONTTYPE)
+      wcscat_s(name, L" (TrueType)");
+
+    unsigned char path[MAX_PATH] = { 0 };
+    if(GetRegistryValueW(HKEY_LOCAL_MACHINE, L"SOFTWARE\\Microsoft\\Windows NT\\CurrentVersion\\Fonts", name, path, MAX_PATH) >= 0)
+    {
+      wchar_t buf[MAX_PATH] = { 0 };
+      HRESULT res = SHGetFolderPathW(0, CSIDL_FONTS, 0, SHGFP_TYPE_CURRENT, buf);
+      if(res != E_FAIL)
+      {
+        wcscat_s(buf, L"\\");
+        wcscat_s(buf, (wchar_t*)path);
+        p = std::move(std::unique_ptr<char[], bss_util::bssdll_delete<char[]>>(new char[MAX_PATH*2]));
+        UTF16toUTF8(buf, MAX_PATH, p.get(), MAX_PATH * 2);
+      }
+    }
+  }
+
+  return std::move(p);
+}
+
+#else
+
+std::unique_ptr<char[], bss_util::bssdll_delete<char[]>> bss_util::GetFontPath(const char* family, int weight, bool italic)
+{
+  FcConfig* config = FcInitLoadConfigAndFonts();
+  FcPattern* pat = FcNameParse(reinterpret_cast<const FcChar8*>(family));
+  FcConfigSubstitute(config, pat, FcMatchPattern);
+  FcDefaultSubstitute(pat);
+
+  // find the font
+  std::unique_ptr<char[], bss_util::bssdll_delete<char[]>> p(nullptr);
+  FcPattern* font = FcFontMatch(config, pat, NULL);
+  if(font)
+  {
+    FcChar8* file = NULL;
+    if(FcPatternGetString(font, FC_FILE, 0, &file) == FcResultMatch)
+    {
+      size_t len = strlen((char*)file);
+      p = std::move(std::unique_ptr<char[], bss_util::bssdll_delete<char[]>>(new char[len]));
+      memcpy(p.get(), file, len);
+    }
+    FcPatternDestroy(font);
+  }
+
+  FcPatternDestroy(pat);
+  return std::move(p);
+}
+
+#endif
 
 #ifdef BSS_DEBUG
 #include "delegate.h"

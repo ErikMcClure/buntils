@@ -13,6 +13,7 @@
 - Rewrote cLog class for more customizability, adding source parameter, maximum error level, and formatting.
 - Removed fastcall because it doesn't do anything on 64-bit platforms
 - Removed BSS_EXPLICITSTATIC by fixing BSS_FORCEINLINE on clang/GCC, and removing spurious static keywords
+- Added GetFontPath() for windows
 
 0.4.7
 -----

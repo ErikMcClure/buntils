@@ -199,5 +199,3 @@ std::ostream& cLog::_logheader(const char* source, const char* file, uint32_t li
   __safeFormat<const char*, const char*, uint32_t, const char*, long>::F<&_header>(_stream, ((!source && _nullformat != 0) ? _nullformat : _format), source, file, line, level, _tz);
   return _stream;
 }
-
-double tfloatval2 = bss_util::dFastSqrt(5.0);

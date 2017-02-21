@@ -93,6 +93,7 @@ namespace bss_util {
       assert(level < _levels.Capacity());
       return _logheader(source, file, line, (level < 0) ? "" : _levels[level]);
     }
+    static const char* _trimpath(const char* path);
 
     static const char* DEFAULTFORMAT;
     static const char* DEFAULTNULLFORMAT;
@@ -106,7 +107,6 @@ namespace bss_util {
     std::ostream& _logheader(const char* source, const char* file, uint32_t line, const char* level);
     static void _header(std::ostream& o, int n, const char* source, const char* file, uint32_t line, const char* level, long tz);
     static bool _writedatetime(long timezone, std::ostream& log, bool timeonly);
-    static const char* _trimpath(const char* path);
     void _leveldefaults();
 
     cArray<const char*, uint8_t> _levels;

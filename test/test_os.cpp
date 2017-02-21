@@ -4,6 +4,7 @@
 #include "test.h"
 #include "os.h"
 #include "cTrie.h"
+#include <string.h>
 #ifdef BSS_PLATFORM_WIN32
 #include "bss_win32_includes.h"
 #endif
@@ -113,6 +114,7 @@ TESTDEF::RETPAIR test_OS()
   //}
   //DelRegistryNode(HKEY_LOCAL_MACHINE,"SOFTWARE\\test");
   #endif
+
   //AlertBox("test", "title", 0x00000010L);
 
   //float at[4][4];
@@ -120,5 +122,23 @@ TESTDEF::RETPAIR test_OS()
   //CPU_Barrier();
   //tttest(0,&at);
   //CPU_Barrier();
+
+  auto p = GetFontPath("Arial", 400, false);
+  TEST(!STRICMP(cLog::_trimpath(p.get()), "arial.ttf"));
+  p = GetFontPath("Arial", 500, false);
+  TEST(!STRICMP(cLog::_trimpath(p.get()), "arial.ttf"));
+  p = GetFontPath("Arial", 501, false);
+  TEST(!STRICMP(cLog::_trimpath(p.get()), "arialbd.ttf"));
+  p = GetFontPath("Arial", 399, false);
+  TEST(!STRICMP(cLog::_trimpath(p.get()), "arial.ttf"));
+  p = GetFontPath("Arial", 1, false);
+  TEST(!STRICMP(cLog::_trimpath(p.get()), "arial.ttf"));
+  p = GetFontPath("Arial", 600, false);
+  TEST(!STRICMP(cLog::_trimpath(p.get()), "arialbd.ttf"));
+  p = GetFontPath("Arial", 600, true);
+  TEST(!STRICMP(cLog::_trimpath(p.get()), "arialbi.ttf"));
+  p = GetFontPath("Arial", 500, true);
+  TEST(!STRICMP(cLog::_trimpath(p.get()), "ariali.ttf"));
+
   ENDTEST;
 }

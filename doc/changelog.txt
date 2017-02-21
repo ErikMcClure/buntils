@@ -12,6 +12,7 @@
 - Added SafeFormat() function which allows you to format output to an std::ostream via "{0}{1}" notation
 - Rewrote cLog class for more customizability, adding source parameter, maximum error level, and formatting.
 - Removed fastcall because it doesn't do anything on 64-bit platforms
+- Removed BSS_EXPLICITSTATIC by fixing BSS_FORCEINLINE on clang/GCC, and removing spurious static keywords
 
 0.4.7
 -----

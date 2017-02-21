@@ -31,17 +31,17 @@ namespace bss_util {
   };
 
   template<class T>
-  void static ParseJSONBase(cSerializer<JSONEngine>& e, T& obj, std::istream& s);
+  void ParseJSONBase(cSerializer<JSONEngine>& e, T& obj, std::istream& s);
 
   struct JSONValue;
   template<>
-  void BSS_EXPLICITSTATIC ParseJSONBase<JSONValue>(cSerializer<JSONEngine>& e, JSONValue& target, std::istream& s);
+  void ParseJSONBase<JSONValue>(cSerializer<JSONEngine>& e, JSONValue& target, std::istream& s);
 
   template<class T>
-  void static WriteJSONBase(cSerializer<JSONEngine>& e, const char* id, const T& obj, std::ostream& s, uint32_t& pretty);
+  void WriteJSONBase(cSerializer<JSONEngine>& e, const char* id, const T& obj, std::ostream& s, uint32_t& pretty);
 
   template<>
-  void BSS_EXPLICITSTATIC WriteJSONBase<JSONValue>(cSerializer<JSONEngine>& e, const char* id, const JSONValue& obj, std::ostream& s, uint32_t& pretty);
+  void WriteJSONBase<JSONValue>(cSerializer<JSONEngine>& e, const char* id, const JSONValue& obj, std::ostream& s, uint32_t& pretty);
 
   template<class T, class BASE>
   struct __JSONValue__conv
@@ -97,8 +97,8 @@ namespace bss_util {
     }
   };
 
-  static inline void ParseJSONEatWhitespace(std::istream& s) { while(!!s && isspace(s.peek())) s.get(); }
-  static inline void ParseJSONEatCharacter(std::string& str, std::istream& src) // this processes escape characters when reading through strings
+  inline void ParseJSONEatWhitespace(std::istream& s) { while(!!s && isspace(s.peek())) s.get(); }
+  inline void ParseJSONEatCharacter(std::string& str, std::istream& src) // this processes escape characters when reading through strings
   {
     char c = src.get();
     if(c != '\\')
@@ -126,7 +126,7 @@ namespace bss_util {
   }
 
   template<typename F>
-  static void ParseJSONObject(cSerializer<JSONEngine>& e, F f) {
+  void ParseJSONObject(cSerializer<JSONEngine>& e, F f) {
     std::istream& s = *e.in;
     cStr buf;
     ParseJSONEatWhitespace(s);
@@ -268,14 +268,14 @@ namespace bss_util {
   };
 
   template<class T>
-  inline void static ParseJSONBase(cSerializer<JSONEngine>& e, T& obj, std::istream& s) { ParseJSONInternal<T, std::is_arithmetic<T>::value>::F(e, obj, s); }
+  inline void ParseJSONBase(cSerializer<JSONEngine>& e, T& obj, std::istream& s) { ParseJSONInternal<T, std::is_arithmetic<T>::value>::F(e, obj, s); }
   template<class T>
-  inline static void ParseJSON(T& obj, std::istream& s) { cSerializer<JSONEngine> e; e.Parse<T>(obj, s, 0); }
+  inline void ParseJSON(T& obj, std::istream& s) { cSerializer<JSONEngine> e; e.Parse<T>(obj, s, 0); }
   template<class T>
-  inline static void ParseJSON(T& obj, const char* s) { std::istringstream ss(s); ParseJSON<T>(obj, ss); }
+  inline void ParseJSON(T& obj, const char* s) { std::istringstream ss(s); ParseJSON<T>(obj, ss); }
 
   template<>
-  inline void BSS_EXPLICITSTATIC ParseJSONBase<std::string>(cSerializer<JSONEngine>& e, std::string& target, std::istream& s)
+  inline void ParseJSONBase<std::string>(cSerializer<JSONEngine>& e, std::string& target, std::istream& s)
   {
     target.clear();
     if(s.peek() == ',' || s.peek() == ']' || s.peek() == '}') return;
@@ -292,9 +292,9 @@ namespace bss_util {
     s.get(); // eat last " character
   }
   template<>
-  inline void BSS_EXPLICITSTATIC ParseJSONBase<cStr>(cSerializer<JSONEngine>& e, cStr& target, std::istream& s) { ParseJSONBase<std::string>(e, target, s); }
+  inline void ParseJSONBase<cStr>(cSerializer<JSONEngine>& e, cStr& target, std::istream& s) { ParseJSONBase<std::string>(e, target, s); }
   template<>
-  inline void BSS_EXPLICITSTATIC ParseJSONBase<bool>(cSerializer<JSONEngine>& e, bool& target, std::istream& s)
+  inline void ParseJSONBase<bool>(cSerializer<JSONEngine>& e, bool& target, std::istream& s)
   {
     static const char* val = "true";
     int pos = 0;
@@ -318,7 +318,7 @@ namespace bss_util {
   }
 
   template<>
-  inline void BSS_EXPLICITSTATIC ParseJSONBase<JSONValue>(cSerializer<JSONEngine>& e, JSONValue& target, std::istream& s)
+  inline void ParseJSONBase<JSONValue>(cSerializer<JSONEngine>& e, JSONValue& target, std::istream& s)
   {
     ParseJSONEatWhitespace(s);
     switch(s.peek())
@@ -479,7 +479,7 @@ namespace bss_util {
   void static WriteJSONBase(cSerializer<JSONEngine>& e, const char* id, const T& obj, std::ostream& s, uint32_t& pretty) { WriteJSONInternal<T, std::is_arithmetic<T>::value>::F(e, id, obj, s, pretty); }
 
   template<>
-  BSS_EXPLICITSTATIC void WriteJSONBase<std::string>(cSerializer<JSONEngine>& e, const char* id, const std::string& obj, std::ostream& s, uint32_t& pretty)
+  void WriteJSONBase<std::string>(cSerializer<JSONEngine>& e, const char* id, const std::string& obj, std::ostream& s, uint32_t& pretty)
   {
     WriteJSONComma(s, pretty);
     WriteJSONId(id, s, pretty);
@@ -503,10 +503,10 @@ namespace bss_util {
   }
 
   template<>
-  BSS_EXPLICITSTATIC void WriteJSONBase<cStr>(cSerializer<JSONEngine>& e, const char* id, const cStr& obj, std::ostream& s, uint32_t& pretty) { WriteJSONBase<std::string>(e, id, obj, s, pretty); }
+  void WriteJSONBase<cStr>(cSerializer<JSONEngine>& e, const char* id, const cStr& obj, std::ostream& s, uint32_t& pretty) { WriteJSONBase<std::string>(e, id, obj, s, pretty); }
 
   template<>
-  BSS_EXPLICITSTATIC void WriteJSONBase<bool>(cSerializer<JSONEngine>& e, const char* id, const bool& obj, std::ostream& s, uint32_t& pretty)
+  void WriteJSONBase<bool>(cSerializer<JSONEngine>& e, const char* id, const bool& obj, std::ostream& s, uint32_t& pretty)
   {
     WriteJSONComma(s, pretty);
     WriteJSONId(id, s, pretty);
@@ -514,13 +514,13 @@ namespace bss_util {
   }
 
   template<class T>
-  inline static void WriteJSON(const T& obj, std::ostream& s, uint32_t pretty = 0) { cSerializer<JSONEngine> e; e.engine.pretty = pretty; e.Serialize<T>(obj, s, 0); }
+  inline void WriteJSON(const T& obj, std::ostream& s, uint32_t pretty = 0) { cSerializer<JSONEngine> e; e.engine.pretty = pretty; e.Serialize<T>(obj, s, 0); }
 
   template<class T>
-  inline static void WriteJSON(const T& obj, const char* file, uint32_t pretty = 0) { std::ofstream fs(file, std::ios_base::out | std::ios_base::trunc | std::ios_base::binary); WriteJSON<T>(obj, fs, pretty); }
+  inline void WriteJSON(const T& obj, const char* file, uint32_t pretty = 0) { std::ofstream fs(file, std::ios_base::out | std::ios_base::trunc | std::ios_base::binary); WriteJSON<T>(obj, fs, pretty); }
 
   template<>
-  BSS_EXPLICITSTATIC void WriteJSONBase<JSONValue>(cSerializer<JSONEngine>& e, const char* id, const JSONValue& obj, std::ostream& s, uint32_t& pretty)
+  void WriteJSONBase<JSONValue>(cSerializer<JSONEngine>& e, const char* id, const JSONValue& obj, std::ostream& s, uint32_t& pretty)
   {
     switch(obj.tag())
     {

@@ -146,7 +146,6 @@ namespace bss_util {
     typedef Edge<E, CT> EDGE_;
 
   protected:
-
     template<typename D, bool(*ISEDGE)(const D*)>
     void _construct(CT n, const D* M, const V* nodes)
     {
@@ -174,7 +173,7 @@ namespace bss_util {
 
   // Implementation of the FIFO push-relabel algorithm for solving a maximum-flow graph in O(V^3) time
   template<typename E, typename V, typename CT, typename ALLOC, typename NODEALLOC, ARRAY_TYPE ArrayType>
-  static void MaxFlow_PushRelabel(Graph<__edge_MaxFlow<E>, V, CT, ALLOC, NODEALLOC, ArrayType>& graph, CT s, CT t)
+  inline void MaxFlow_PushRelabel(Graph<__edge_MaxFlow<E>, V, CT, ALLOC, NODEALLOC, ArrayType>& graph, CT s, CT t)
   {
     typedef Edge<__edge_MaxFlow<E>, CT>* PEDGE;
     typedef std::pair<CT, CT> PAIR;
@@ -283,7 +282,7 @@ namespace bss_util {
 
   // Reduces a circulation problem to a maximum-flow graph in O(V) time. Returns nonzero if infeasible.
   template<typename E, typename V, typename CT, typename ALLOC, typename NODEALLOC, ARRAY_TYPE ArrayType>
-  static int Circulation_MaxFlow(Graph<__edge_MaxFlow<E>, __vertex_Demand<V>, CT, ALLOC, NODEALLOC, ArrayType>& g, CT& s, CT& t)
+  inline int Circulation_MaxFlow(Graph<__edge_MaxFlow<E>, __vertex_Demand<V>, CT, ALLOC, NODEALLOC, ArrayType>& g, CT& s, CT& t)
   {
     int total = 0; // The total demand must be 0
 
@@ -320,7 +319,7 @@ namespace bss_util {
 
   // Reduces a lower-bound circulation problem to a basic circulation problem in O(E) time.
   template<typename E, typename V, typename CT, typename ALLOC, typename NODEALLOC, ARRAY_TYPE ArrayType>
-  static void LowerBound_Circulation(Graph<__edge_MaxFlow<__edge_LowerBound<E>>, __vertex_Demand<V>, CT, ALLOC, NODEALLOC, ArrayType>& g)
+  inline void LowerBound_Circulation(Graph<__edge_MaxFlow<__edge_LowerBound<E>>, __vertex_Demand<V>, CT, ALLOC, NODEALLOC, ArrayType>& g)
   {
     Edge<__edge_MaxFlow<__edge_LowerBound<E>>, CT>* e;
     auto& n = g.GetNodes();
@@ -339,7 +338,7 @@ namespace bss_util {
 
   // Breadth-first search for any directed graph. If FACTION returns true, terminates.
   template<typename G, bool(*FACTION)(typename G::CT_)>
-  inline static void BreadthFirstGraph(G& graph, typename G::CT_ root)
+  inline void BreadthFirstGraph(G& graph, typename G::CT_ root)
   {
     DYNARRAY(typename G::CT_, queue, graph.NumNodes());
     BreadthFirstGraph<G, FACTION>(graph, root, queue);
@@ -347,7 +346,7 @@ namespace bss_util {
 
   // Breadth-first search for any directed graph. If FACTION returns true, terminates. queue must point to an array at least GetNodes() long.
   template<typename G, bool(*FACTION)(typename G::CT_)>
-  static void BreadthFirstGraph(G& graph, typename G::CT_ root, typename G::CT_* queue)
+  inline void BreadthFirstGraph(G& graph, typename G::CT_ root, typename G::CT_* queue)
   {
     typedef typename G::CT_ CT;
     typedef typename std::make_signed<CT>::type SST;

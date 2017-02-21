@@ -94,9 +94,9 @@ namespace bss_util {
   template<class T>
   void static ParseTOMLBase(cSerializer<TOMLEngine>& e, T& obj, std::istream& s);
 
-  static inline void ParseTOMLEatWhitespace(std::istream& s) { while(!!s && (s.peek() == ' ' || s.peek() == '\t')) s.get(); }
+  inline void ParseTOMLEatWhitespace(std::istream& s) { while(!!s && (s.peek() == ' ' || s.peek() == '\t')) s.get(); }
 
-  static inline void ParseTOMLEatAllspace(std::istream& s)
+  inline void ParseTOMLEatAllspace(std::istream& s)
   {
     while(!!s && (isspace(s.peek()) || s.peek() == '#'))
       if(s.peek() == '#')
@@ -106,7 +106,7 @@ namespace bss_util {
         s.get();
   }
 
-  inline void static ParseTOMLEatNewline(std::istream& s)
+  inline void ParseTOMLEatNewline(std::istream& s)
   {
     if(s.peek() == '\n')
       s.get();
@@ -119,7 +119,7 @@ namespace bss_util {
   }
 
   template<bool MULTILINE>
-  inline void static ParseTOMLCharacter(std::string& out, std::istream& s)
+  inline void ParseTOMLCharacter(std::string& out, std::istream& s)
   {
     if(s.peek() == '\'')
     {
@@ -162,7 +162,7 @@ namespace bss_util {
   }
 
   template<bool MULTILINE, char END, char END2>
-  inline void static ParseTOMLString(std::string& buf, std::istream& s)
+  inline void ParseTOMLString(std::string& buf, std::istream& s)
   {
     buf.clear();
     ParseTOMLEatWhitespace(s);
@@ -295,7 +295,7 @@ namespace bss_util {
   }
 
   template<typename F>
-  inline void BSS_EXPLICITSTATIC ParseTOMLTable(cSerializer<TOMLEngine>& e, std::istream& s, F f)
+  inline void ParseTOMLTable(cSerializer<TOMLEngine>& e, std::istream& s, F f)
   {
     ParseTOMLEatAllspace(s);
     cStr buf;
@@ -317,7 +317,7 @@ namespace bss_util {
   }
 
   template<typename F>
-  inline void BSS_EXPLICITSTATIC ParseTOMLPairs(cSerializer<TOMLEngine>& e, std::istream& s, F f)
+  inline void ParseTOMLPairs(cSerializer<TOMLEngine>& e, std::istream& s, F f)
   {
     ParseTOMLEatAllspace(s);
     cStr buf;
@@ -338,7 +338,7 @@ namespace bss_util {
 
   // This is the primary parsing function valid only for the root of the document. It only parses [tables] and [[table arrays]].
   template<typename F>
-  inline void BSS_EXPLICITSTATIC ParseTOMLRoot(cSerializer<TOMLEngine>& e, std::istream& s, F f)
+  inline void ParseTOMLRoot(cSerializer<TOMLEngine>& e, std::istream& s, F f)
   {
     cStr buf;
     ParseTOMLPairs(e, s, f); // First we parse any root-level key value pairs directly into our target object
@@ -421,11 +421,11 @@ namespace bss_util {
     ParseTOMLInternal<T, std::is_arithmetic<T>::value>::F(e, obj, s);
   }
   template<>
-  inline void BSS_EXPLICITSTATIC ParseTOMLBase<std::string>(cSerializer<TOMLEngine>& e, std::string& target, std::istream& s) { ParseTOMLString<true, 0, 0>(target, s); }
+  inline void ParseTOMLBase<std::string>(cSerializer<TOMLEngine>& e, std::string& target, std::istream& s) { ParseTOMLString<true, 0, 0>(target, s); }
   template<>
-  inline void BSS_EXPLICITSTATIC ParseTOMLBase<cStr>(cSerializer<TOMLEngine>& e, cStr& target, std::istream& s) { ParseTOMLBase<std::string>(e, target, s); }
+  inline void ParseTOMLBase<cStr>(cSerializer<TOMLEngine>& e, cStr& target, std::istream& s) { ParseTOMLBase<std::string>(e, target, s); }
   template<>
-  inline void BSS_EXPLICITSTATIC ParseTOMLBase<bool>(cSerializer<TOMLEngine>& e, bool& target, std::istream& s)
+  inline void ParseTOMLBase<bool>(cSerializer<TOMLEngine>& e, bool& target, std::istream& s)
   {
     static const char* val = "true";
     ParseTOMLEatWhitespace(s);
@@ -451,7 +451,7 @@ namespace bss_util {
 
 #ifdef BSS_COMPILER_HAS_TIME_GET
   template<>
-  inline void BSS_EXPLICITSTATIC ParseTOMLBase<std::chrono::system_clock::time_point>(cSerializer<TOMLEngine>& e, std::chrono::system_clock::time_point& target, std::istream& s)
+  inline void ParseTOMLBase<std::chrono::system_clock::time_point>(cSerializer<TOMLEngine>& e, std::chrono::system_clock::time_point& target, std::istream& s)
   {
     using days = std::chrono::duration<int, std::ratio_multiply<std::ratio<24>, std::chrono::hours::period>>;
     static const char DATE[] = "%Y-%m-%d";
@@ -498,7 +498,7 @@ namespace bss_util {
 
   // This function parses values and is recursive, allowing for nested inline tables or arrays, etc.
   template<>
-  inline void BSS_EXPLICITSTATIC ParseTOMLBase<TOMLValue>(cSerializer<TOMLEngine>& e, TOMLValue& target, std::istream& s)
+  inline void ParseTOMLBase<TOMLValue>(cSerializer<TOMLEngine>& e, TOMLValue& target, std::istream& s)
   {
     auto f = [&target](cSerializer<TOMLEngine>& e, const char* id) {
       auto& table = target.get<TOMLValue::TOMLTable>();
@@ -592,9 +592,9 @@ namespace bss_util {
   }
 
   template<class T>
-  inline static void ParseTOML(T& obj, std::istream& s) { cSerializer<TOMLEngine> e; e.Parse(obj, s, 0); }
+  inline void ParseTOML(T& obj, std::istream& s) { cSerializer<TOMLEngine> e; e.Parse(obj, s, 0); }
   template<class T>
-  inline static void ParseTOML(T& obj, const char* s) { std::istringstream ss(s); ParseTOML<T>(obj, ss); }
+  inline void ParseTOML(T& obj, const char* s) { std::istringstream ss(s); ParseTOML<T>(obj, ss); }
 
   template<typename T>
   void TOMLEngine::Parse(cSerializer<TOMLEngine>& e, T& t, const char* id) {
@@ -648,7 +648,7 @@ namespace bss_util {
     }
   }
 
-  static void WriteTOMLId(cSerializer<TOMLEngine>& e, const char* id, std::ostream& s) {
+  inline void WriteTOMLId(cSerializer<TOMLEngine>& e, const char* id, std::ostream& s) {
     if(!id || e.engine.state == 2)
     {
       if(e.engine.first)
@@ -660,7 +660,7 @@ namespace bss_util {
   }
 
   template<class T>
-  inline static void WriteTOMLTables(cSerializer<TOMLEngine>& e, const char* id, const T& obj, std::ostream& s)
+  inline void WriteTOMLTables(cSerializer<TOMLEngine>& e, const char* id, const T& obj, std::ostream& s)
   {
     cStr last = e.engine.id;
     if(e.engine.id.size())
@@ -671,7 +671,7 @@ namespace bss_util {
   }
 
   template<class T>
-  inline static void WriteTOMLArray(cSerializer<TOMLEngine>& e, const char* id, const T* obj, size_t size, std::ostream& s)
+  inline void WriteTOMLArray(cSerializer<TOMLEngine>& e, const char* id, const T* obj, size_t size, std::ostream& s)
   {
     if(e.engine.state == 1) return;
     WriteTOMLId(e, id, s);
@@ -684,7 +684,7 @@ namespace bss_util {
   }
 
   template<class T>
-  inline static void WriteTOMLPairs(cSerializer<TOMLEngine>& e, const char* id, const T& obj, std::ostream& s)
+  inline void WriteTOMLPairs(cSerializer<TOMLEngine>& e, const char* id, const T& obj, std::ostream& s)
   {
     if(e.engine.state == 2) // if we're in state 2 we're writing an inline table
     {
@@ -765,10 +765,10 @@ namespace bss_util {
   };
 
   template<class T>
-  void static WriteTOMLBase(cSerializer<TOMLEngine>& e, const char* id, const T& obj, std::ostream& s) { WriteTOMLInternal<T, std::is_arithmetic<T>::value>::F(e, id, obj, s); }
+  inline void WriteTOMLBase(cSerializer<TOMLEngine>& e, const char* id, const T& obj, std::ostream& s) { WriteTOMLInternal<T, std::is_arithmetic<T>::value>::F(e, id, obj, s); }
 
   template<>
-  BSS_EXPLICITSTATIC void WriteTOMLBase<std::string>(cSerializer<TOMLEngine>& e, const char* id, const std::string& obj, std::ostream& s)
+  void WriteTOMLBase<std::string>(cSerializer<TOMLEngine>& e, const char* id, const std::string& obj, std::ostream& s)
   {
     if(e.engine.state == 1) return;
     WriteTOMLId(e, id, s);
@@ -792,9 +792,9 @@ namespace bss_util {
   }
 
   template<>
-  BSS_EXPLICITSTATIC void WriteTOMLBase<cStr>(cSerializer<TOMLEngine>& e, const char* id, const cStr& obj, std::ostream& s) { WriteTOMLBase<std::string>(e, id, obj, s); }
+  void WriteTOMLBase<cStr>(cSerializer<TOMLEngine>& e, const char* id, const cStr& obj, std::ostream& s) { WriteTOMLBase<std::string>(e, id, obj, s); }
   template<>
-  BSS_EXPLICITSTATIC void WriteTOMLBase<bool>(cSerializer<TOMLEngine>& e, const char* id, const bool& obj, std::ostream& s)
+  void WriteTOMLBase<bool>(cSerializer<TOMLEngine>& e, const char* id, const bool& obj, std::ostream& s)
   { 
     if(e.engine.state == 1) return;
     WriteTOMLId(e, id, s);
@@ -803,7 +803,7 @@ namespace bss_util {
   }
 #ifdef BSS_COMPILER_HAS_TIME_GET
   template<>
-  BSS_EXPLICITSTATIC void WriteTOMLBase<std::chrono::system_clock::time_point>(cSerializer<TOMLEngine>& e, const char* id, const std::chrono::system_clock::time_point& obj, std::ostream& s)
+  void WriteTOMLBase<std::chrono::system_clock::time_point>(cSerializer<TOMLEngine>& e, const char* id, const std::chrono::system_clock::time_point& obj, std::ostream& s)
   {
     if(e.engine.state == 1) return;
     WriteTOMLId(e, id, s);
@@ -814,9 +814,9 @@ namespace bss_util {
 #endif
 
   template<class T>
-  inline static void WriteTOML(const T& obj, std::ostream& s) { cSerializer<TOMLEngine> e; e.engine.state = 1; e.Serialize<T>(obj, s, 0); }
+  inline void WriteTOML(const T& obj, std::ostream& s) { cSerializer<TOMLEngine> e; e.engine.state = 1; e.Serialize<T>(obj, s, 0); }
   template<class T>
-  inline static void WriteTOML(const T& obj, const char* file) { std::ofstream fs(file, std::ios_base::out | std::ios_base::trunc | std::ios_base::binary); WriteTOML<T>(obj, fs); }
+  inline void WriteTOML(const T& obj, const char* file) { std::ofstream fs(file, std::ios_base::out | std::ios_base::trunc | std::ios_base::binary); WriteTOML<T>(obj, fs); }
 
   template<typename T>
   void TOMLEngine::Serialize(cSerializer<TOMLEngine>& e, const T& t, const char* id) {

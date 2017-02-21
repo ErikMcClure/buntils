@@ -626,13 +626,18 @@ int bss_util::DelRegistryNodeW(HKEY__* hKeyRoot, const wchar_t* lpSubKey)
 
 #endif
 
+double tfloatval = bss_util::dFastSqrt(5.0);
+
 #ifdef BSS_DEBUG
 #include "delegate.h"
 #include "cHash.h"
 
 struct testclass
 {
-  void f() {}
+  void f() {
+
+  
+  }
 };
 void ffff() {}
 

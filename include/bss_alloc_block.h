@@ -32,11 +32,12 @@ namespace bss_util {
     }
     inline ~cBlockAllocVoid()
     {
-      FIXEDLIST_NODE* hold=_root;
-      while((_root=hold)!=0)
+      FIXEDLIST_NODE* hold;
+      while(_root != nullptr)
       {
-        hold=_root->next;
-        free(_root);
+        hold = _root;
+        _root = _root->next;
+        free(hold);
       }
     }
     inline void* alloc(size_t num) noexcept
@@ -45,8 +46,13 @@ namespace bss_util {
 #ifdef BSS_DISABLE_CUSTOM_ALLOCATORS
       return malloc(num*_sz);
 #endif
-      if(!_freelist) _allocchunk(fbnext(_root->size/_sz)*_sz);
-      assert(_freelist!=0);
+      if(!_freelist)
+      {
+        _allocchunk(fbnext(_root->size / _sz)*_sz);
+        assert(_freelist != 0);
+        if(!_freelist)
+          return nullptr;
+      }
 
       void* ret=_freelist;
       _freelist=*((void**)_freelist);
@@ -97,6 +103,7 @@ namespace bss_util {
     inline void _allocchunk(size_t nsize) noexcept
     {
       FIXEDLIST_NODE* retval=reinterpret_cast<FIXEDLIST_NODE*>(malloc(sizeof(FIXEDLIST_NODE)+nsize));
+      if(!retval) return;
       retval->next=_root;
       retval->size=nsize;
       //#pragma message(TODO "DEBUG REMOVE")

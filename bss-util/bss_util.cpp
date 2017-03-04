@@ -362,7 +362,8 @@ extern int bss_util::DelDirW(const wchar_t* cdir, bool recursive)
     if(FindNextFileW(hdir, &ffd) <= 0) break; //either we're done or it failed
   }
 
-  FindClose(hdir);
+  if(hdir != 0)
+    FindClose(hdir);
   if(RemoveDirectoryW(dir.substr(0, dir.size()-1).c_str())==0)
     return -1;
   return 0;
@@ -413,7 +414,8 @@ BSS_COMPILER_DLLEXPORT extern int bss_util::_listdir(const wchar_t* cdir, void(*
     if(FindNextFileW(hdir, &ffd) <= 0) break; //either we're done or it failed
   }
 
-  FindClose(hdir);
+  if(hdir != 0)
+    FindClose(hdir);
   return 0;
 }
 #else //Linux function
@@ -456,16 +458,15 @@ inline int r_setregvalue(HKEY__*	hOpenKey, const wchar_t* szKey, _Fn fn)
 {
   BOOL 	bRetVal = FALSE;
   DWORD	dwDisposition;
-  DWORD	dwReserved = 0;
   HKEY  	hTempKey = (HKEY)0;
 
   // Open key of interest
   // Assume all access is okay and that all keys will be stored to file
   // Utilize the default security attributes
-  //if( ERROR_SUCCESS == ::RegCreateKeyEx(hOpenKey, szKey, dwReserved,(LPTSTR)0, REG_OPTION_NON_VOLATILE, KEY_SET_VALUE, 0,&hTempKey, &dwDisposition))
-  if(ERROR_SUCCESS == RegCreateKeyExW(hOpenKey, szKey, dwReserved, 0, REG_OPTION_NON_VOLATILE, KEY_SET_VALUE, 0, &hTempKey, &dwDisposition))
+  //if( ERROR_SUCCESS == ::RegCreateKeyEx(hOpenKey, szKey, 0,(LPTSTR)0, REG_OPTION_NON_VOLATILE, KEY_SET_VALUE, 0,&hTempKey, &dwDisposition))
+  if(ERROR_SUCCESS == RegCreateKeyExW(hOpenKey, szKey, 0, 0, REG_OPTION_NON_VOLATILE, KEY_SET_VALUE, 0, &hTempKey, &dwDisposition))
   {
-    if(fn(hTempKey, dwReserved) == ERROR_SUCCESS)
+    if(fn(hTempKey) == ERROR_SUCCESS)
       bRetVal = TRUE;
   }
 
@@ -485,8 +486,8 @@ int bss_util::SetRegistryValueW(HKEY__*	hOpenKey, const wchar_t* szKey, const wc
 {
   if(!hOpenKey || !szKey || !szKey[0] || !szValue || !szData) { ::SetLastError((DWORD)E_INVALIDARG); return FALSE; } // validate input
 
-  return r_setregvalue(hOpenKey, szKey, [&](HKEY& hTempKey, DWORD& dwReserved) -> int {
-    return RegSetValueExW(hTempKey, (LPWSTR)szValue, dwReserved, REG_SZ, (LPBYTE)szData, ((DWORD)strlen(szData)+1)*sizeof(wchar_t));
+  return r_setregvalue(hOpenKey, szKey, [&](HKEY& hTempKey) -> int {
+    return RegSetValueExW(hTempKey, (LPWSTR)szValue, 0, REG_SZ, (LPBYTE)szData, ((DWORD)strlen(szData)+1)*sizeof(wchar_t));
   });
 }
 
@@ -498,8 +499,8 @@ int bss_util::SetRegistryValueW(HKEY__*	hOpenKey, const wchar_t* szKey, const wc
 {
   if(!hOpenKey || !szKey || !szKey[0] || !szValue) { ::SetLastError((DWORD)E_INVALIDARG); return FALSE; } // validate input
 
-  return r_setregvalue(hOpenKey, szKey, [&](HKEY& hTempKey, DWORD& dwReserved) -> int {
-    return RegSetValueExW(hTempKey, (LPWSTR)szValue, dwReserved, REG_DWORD, (LPBYTE)&szData, sizeof(int32_t));
+  return r_setregvalue(hOpenKey, szKey, [&](HKEY& hTempKey) -> int {
+    return RegSetValueExW(hTempKey, (LPWSTR)szValue, 0, REG_DWORD, (LPBYTE)&szData, sizeof(int32_t));
   });
 }
 int bss_util::SetRegistryValue64(HKEY__*	hOpenKey, const char* szKey, const char* szValue, int64_t szData)
@@ -510,8 +511,8 @@ int bss_util::SetRegistryValue64W(HKEY__*	hOpenKey, const wchar_t* szKey, const 
 {
   if(!hOpenKey || !szKey || !szKey[0] || !szValue) { ::SetLastError((DWORD)E_INVALIDARG); return FALSE; } // validate input
 
-  return r_setregvalue(hOpenKey, szKey, [&](HKEY& hTempKey, DWORD& dwReserved) -> int {
-    return RegSetValueExW(hTempKey, (LPWSTR)szValue, dwReserved, REG_QWORD, (LPBYTE)&szData, sizeof(int64_t));
+  return r_setregvalue(hOpenKey, szKey, [&](HKEY& hTempKey) -> int {
+    return RegSetValueExW(hTempKey, (LPWSTR)szValue, 0, REG_QWORD, (LPBYTE)&szData, sizeof(int64_t));
   });
 }
 

@@ -120,8 +120,13 @@ char* _savestr(char* orig, const char* str)
   size_t nlength;
   str=_trimlstr(str);
   nlength=strlen(str);
-  if(olength<nlength)
-    orig=(char*)realloc(orig,(nlength+1)*sizeof(char));
+  if(olength < nlength)
+  {
+    char* norig = (char*)realloc(orig, (nlength + 1) * sizeof(char));
+    if(!norig)
+      free(orig);
+    orig = norig;
+  }
   if(!orig) return 0;
   memcpy(orig,str,nlength*sizeof(char));
   orig[nlength]='\0';

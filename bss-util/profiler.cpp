@@ -97,6 +97,7 @@ void Profiler::WriteToStream(std::ostream& stream, uint8_t output)
   {
     stream << "BSS Profiler Flat Output: " << std::endl;
     PROF_FLATOUT* avg = (PROF_FLATOUT*)calloc(_data.Capacity(), sizeof(PROF_FLATOUT));
+    if(!avg) return;
     _flatout(avg,  _trie, 0, 0);
     std::sort(avg+1, avg+_data.Capacity(), [](const PROF_FLATOUT& l, const PROF_FLATOUT& r) -> bool { return l.avg>r.avg; });
     for(PROFILER_INT i = 1; i < _data.Capacity(); ++i)

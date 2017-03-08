@@ -15,3 +15,4 @@ test/Win32/
 ATOMIC.H
 bss-util.VC.opendb
 _hugo/
+.vs/

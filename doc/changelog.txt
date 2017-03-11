@@ -15,6 +15,7 @@
 - Removed BSS_EXPLICITSTATIC by fixing BSS_FORCEINLINE on clang/GCC, and removing spurious static keywords
 - Added GetFontPath() for windows
 - Updated khash.h and the corresponding cHash templatized version of it.
+- Added cCompactArray for creating simplistic arrays that avoid heap allocation as much as possible
 
 0.4.7
 -----

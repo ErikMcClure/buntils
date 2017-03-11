@@ -77,7 +77,7 @@ int DEBUG_CDT_SAFE::count = 0;
 int DEBUG_CDT_SAFE::ID = 0;
 bss_util::cHash<int> DEBUG_CDT_SAFE::Tracker;
 
-//#define BSS_ISOLATE_TEST 58
+#define BSS_ISOLATE_TEST 26
 
 // --- Begin main testing function ---
 int main(int argc, char** argv)
@@ -123,6 +123,7 @@ int main(int argc, char** argv)
     { "cBinaryHeap.h", &test_BINARYHEAP },
     { "cBitField.h", &test_BITFIELD },
     { "cBitStream.h", &test_BITSTREAM },
+    { "cCompactArray.h", &test_COMPACTARRAY },
     { "cQueue.h", &test_BSS_QUEUE },
     { "cStack.h", &test_BSS_STACK },
     { "cDisjointSet.h", &test_DISJOINTSET },

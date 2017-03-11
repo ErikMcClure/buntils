@@ -64,6 +64,7 @@
     <ClInclude Include="..\include\bss_graph.h" />
     <ClInclude Include="..\include\bss_log.h" />
     <ClInclude Include="..\include\bss_queue.h" />
+    <ClInclude Include="..\include\cCompactArray.h" />
     <ClInclude Include="..\include\cSerializer.h" />
     <ClInclude Include="..\include\bss_sse.h" />
     <ClInclude Include="..\include\bss_stack.h" />

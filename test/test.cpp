@@ -77,7 +77,7 @@ int DEBUG_CDT_SAFE::count = 0;
 int DEBUG_CDT_SAFE::ID = 0;
 bss_util::cHash<int> DEBUG_CDT_SAFE::Tracker;
 
-#define BSS_ISOLATE_TEST 26
+//#define BSS_ISOLATE_TEST 35
 
 // --- Begin main testing function ---
 int main(int argc, char** argv)

@@ -23,7 +23,7 @@ TESTDEF::RETPAIR test_KDTREE()
 {
   BEGINTEST;
   BlockPolicy<KDNode<KDtest>> alloc;
-  cKDTree<KDtest, BlockPolicy<KDNode<KDtest>>, &KDtest_RECT, &KDtest_LIST, &KDtest_ACTION, &KDtest_NODE> tree;
+  cKDTree<KDtest, BlockPolicy<KDNode<KDtest>>, &KDtest_RECT, &KDtest_LIST, &KDtest_NODE> tree;
   KDtest r1 = { 0,0,1,1,0,0 };
   KDtest r2 = { 1,1,2,2,0,0 };
   KDtest r3 = { 0,0,2,2,0,0 };
@@ -46,17 +46,17 @@ TESTDEF::RETPAIR test_KDTREE()
   tree.InsertRoot(&r5);
   tree.Solve();
   float c1[4] = { -1,-1,-0.5,-0.5 };
-  tree.Traverse(c1);
+  tree.Traverse<&KDtest_ACTION>(c1);
   TEST(KDtest::hits == 0);
   float c2[4] = { -1,-1,0,0 };
-  tree.Traverse(c2);
+  tree.Traverse<&KDtest_ACTION>(c2);
   TEST(KDtest::hits == 2);
   tree.Remove(&r1);
   tree.Remove(&r2);
   tree.Remove(&r3);
   tree.Remove(&r4);
   tree.Remove(&r5);
-  tree.Traverse(c1);
+  tree.Traverse<&KDtest_ACTION>(c1);
   TEST(tree.GetRoot()->num == 0);
   ENDTEST;
 }

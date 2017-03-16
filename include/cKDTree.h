@@ -30,7 +30,7 @@ namespace bss_util {
   };
 
   // KD-tree storing arbitrary rectangles. Requires a function turning T into a float[4] reference, LLBASE<T> list, and an action.
-  template<typename T, typename Alloc, const float* (*FRECT)(T*), LLBase<T>& (*FLIST)(T*), void (*FACTION)(T*), KDNode<T>*& (*FNODE)(T*)>
+  template<typename T, typename Alloc, const float* (*FRECT)(T*), LLBase<T>& (*FLIST)(T*), KDNode<T>*& (*FNODE)(T*)>
   class cKDTree : protected cAllocTracker<Alloc>
   {
     inline cKDTree(const cKDTree&) BSS_DELETEFUNC
@@ -40,7 +40,8 @@ namespace bss_util {
     inline cKDTree(cKDTree&& mov) : cAllocTracker<Alloc>(std::move(mov)), _root(mov._root), _rbthreshold(mov._rbthreshold) { mov._root=0; }
     inline ~cKDTree() { Clear(); }
     inline void Clear() { if(_root) _destroynode(_root); _root=0; }
-    void Traverse(float(&rect)[4]) const { if(_root) _traverse<0, 1>(_root, rect); }
+    template<void(*F)(T*)>
+    void Traverse(float(&rect)[4]) const { if(_root) _traverse<0, 1, F>(_root, rect); }
     template<typename F>
     void TraverseAction(float(&rect)[4], F && f) const { if(_root) _traverseaction<0, 1, F>(_root, rect, std::forward<F>(f)); }
     template<typename F>
@@ -248,7 +249,7 @@ namespace bss_util {
       _traverseall(node->left, f);
       _traverseall(node->right, f);
     }
-    template<char cur, char next>
+    template<char cur, char next, void(*FACTION)(T*)>
     static void _traverse(const KDNode<T>* node, const float(&rect)[4])
     {
       T* item=node->items;
@@ -262,9 +263,9 @@ namespace bss_util {
       }
 
       if(node->div >= rect[cur] && node->left!=0)
-        _traverse<next, cur>(node->left, rect);
+        _traverse<next, cur, FACTION>(node->left, rect);
       if(node->div <= rect[cur+2] && node->right!=0)
-        _traverse<next, cur>(node->right, rect);
+        _traverse<next, cur, FACTION>(node->right, rect);
     }
     template<char cur, char next, typename F>
     static void _traverseaction(const KDNode<T>* node, const float(&rect)[4], F && f)

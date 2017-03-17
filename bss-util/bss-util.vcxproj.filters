@@ -15,223 +15,223 @@
     </Filter>
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="..\include\bss_algo.h">
+    <ClInclude Include="..\include\bss-util\bss_algo.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="..\include\bss_alloc.h">
+    <ClInclude Include="..\include\bss-util\bss_alloc.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="..\include\bss_compare.h">
+    <ClInclude Include="..\include\bss-util\bss_compare.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="..\include\bss_compiler.h">
+    <ClInclude Include="..\include\bss-util\bss_compiler.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="..\include\bss_defines.h">
+    <ClInclude Include="..\include\bss-util\bss_defines.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="..\include\bss_sse.h">
+    <ClInclude Include="..\include\bss-util\bss_sse.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="..\include\bss_util.h">
+    <ClInclude Include="..\include\bss-util\bss_util.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="..\include\bss_util_c.h">
+    <ClInclude Include="..\include\bss-util\bss_util_c.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="..\include\bss_win32_includes.h">
+    <ClInclude Include="..\include\bss-util\bss_win32_includes.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="..\include\cAliasTable.h">
+    <ClInclude Include="..\include\bss-util\cAliasTable.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="..\include\cArrayCircular.h">
+    <ClInclude Include="..\include\bss-util\cArrayCircular.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="..\include\cArraySort.h">
+    <ClInclude Include="..\include\bss-util\cArraySort.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="..\include\cAVLtree.h">
+    <ClInclude Include="..\include\bss-util\cAVLtree.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="..\include\cBinaryHeap.h">
+    <ClInclude Include="..\include\bss-util\cBinaryHeap.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="..\include\cBitField.h">
+    <ClInclude Include="..\include\bss-util\cBitField.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="..\include\cDynArray.h">
+    <ClInclude Include="..\include\bss-util\cDynArray.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="..\include\cHighPrecisionTimer.h">
+    <ClInclude Include="..\include\bss-util\cHighPrecisionTimer.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="..\include\cINIstorage.h">
+    <ClInclude Include="..\include\bss-util\cINIstorage.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="..\include\cLinkedArray.h">
+    <ClInclude Include="..\include\bss-util\cLinkedArray.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="..\include\cMap.h">
+    <ClInclude Include="..\include\bss-util\cMap.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="..\include\cPriorityQueue.h">
+    <ClInclude Include="..\include\bss-util\cPriorityQueue.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="..\include\cRational.h">
+    <ClInclude Include="..\include\bss-util\cRational.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="..\include\cRefCounter.h">
+    <ClInclude Include="..\include\bss-util\cRefCounter.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="..\include\cSingleton.h">
+    <ClInclude Include="..\include\bss-util\cSingleton.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="..\include\cStr.h">
+    <ClInclude Include="..\include\bss-util\cStr.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="..\include\cStrTable.h">
+    <ClInclude Include="..\include\bss-util\cStrTable.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="..\include\INIparse.h">
+    <ClInclude Include="..\include\bss-util\INIparse.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="..\include\khash.h">
+    <ClInclude Include="..\include\bss-util\khash.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="..\include\LLBase.h">
+    <ClInclude Include="..\include\bss-util\LLBase.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="..\include\lockless.h">
+    <ClInclude Include="..\include\bss-util\lockless.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="..\include\os.h">
+    <ClInclude Include="..\include\bss-util\os.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="..\include\cINIentry.h">
+    <ClInclude Include="..\include\bss-util\cINIentry.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="..\include\cINIsection.h">
+    <ClInclude Include="..\include\bss-util\cINIsection.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="..\include\cLocklessQueue.h">
+    <ClInclude Include="..\include\bss-util\cLocklessQueue.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="..\include\cTRBtree.h">
+    <ClInclude Include="..\include\bss-util\cTRBtree.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="..\include\delegate.h">
+    <ClInclude Include="..\include\bss-util\delegate.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="..\include\cAnimation.h">
+    <ClInclude Include="..\include\bss-util\cAnimation.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="..\include\cDisjointSet.h">
+    <ClInclude Include="..\include\bss-util\cDisjointSet.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="..\include\cLinkedList.h">
+    <ClInclude Include="..\include\bss-util\cLinkedList.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="..\include\cScheduler.h">
+    <ClInclude Include="..\include\bss-util\cScheduler.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="..\include\cKDTree.h">
+    <ClInclude Include="..\include\bss-util\cKDTree.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="..\include\cTrie.h">
+    <ClInclude Include="..\include\bss-util\cTrie.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="..\include\cSmartPtr.h">
+    <ClInclude Include="..\include\bss-util\cSmartPtr.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="..\include\bss_graph.h">
+    <ClInclude Include="..\include\bss-util\bss_graph.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="..\include\cBitStream.h">
+    <ClInclude Include="..\include\bss-util\cBitStream.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="..\include\cIDHash.h">
+    <ClInclude Include="..\include\bss-util\cIDHash.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="..\include\cThread.h">
+    <ClInclude Include="..\include\bss-util\cThread.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="..\include\cThreadPool.h">
+    <ClInclude Include="..\include\bss-util\cThreadPool.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="..\include\bss_queue.h">
+    <ClInclude Include="..\include\bss-util\bss_queue.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="..\include\bss_stack.h">
+    <ClInclude Include="..\include\bss-util\bss_stack.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="..\include\Dual.h">
+    <ClInclude Include="..\include\bss-util\Dual.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="..\include\bss_log.h">
+    <ClInclude Include="..\include\bss-util\bss_log.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="..\include\cHash.h">
+    <ClInclude Include="..\include\bss-util\cHash.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="..\include\cArray.h">
+    <ClInclude Include="..\include\bss-util\cArray.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="..\include\profiler.h">
+    <ClInclude Include="..\include\bss-util\profiler.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="..\include\bss_vector.h">
+    <ClInclude Include="..\include\bss-util\bss_vector.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="..\include\cAATree.h">
+    <ClInclude Include="..\include\bss-util\cAATree.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="..\include\bss_alloc_ring.h">
+    <ClInclude Include="..\include\bss-util\bss_alloc_ring.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="..\include\bss_alloc_greedy.h">
+    <ClInclude Include="..\include\bss-util\bss_alloc_greedy.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="..\include\bss_alloc_block.h">
+    <ClInclude Include="..\include\bss-util\bss_alloc_block.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="..\include\bss_alloc_block_MT.h">
+    <ClInclude Include="..\include\bss-util\bss_alloc_block_MT.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="..\include\cXML.h">
+    <ClInclude Include="..\include\bss-util\cXML.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="..\include\cJSON.h">
+    <ClInclude Include="..\include\bss-util\cJSON.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="..\include\cUBJSON.h">
+    <ClInclude Include="..\include\bss-util\cUBJSON.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="..\include\variant.h">
+    <ClInclude Include="..\include\bss-util\variant.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="..\include\bss_stream.h">
+    <ClInclude Include="..\include\bss-util\bss_stream.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="..\include\cFXAni.h">
+    <ClInclude Include="..\include\bss-util\cFXAni.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="..\include\cSerializer.h">
+    <ClInclude Include="..\include\bss-util\cSerializer.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="..\include\bss_data.h">
+    <ClInclude Include="..\include\bss-util\bss_data.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="..\include\FixedPt.h">
+    <ClInclude Include="..\include\bss-util\FixedPt.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="..\include\cTOML.h">
+    <ClInclude Include="..\include\bss-util\cTOML.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="..\include\rwlock.h">
+    <ClInclude Include="..\include\bss-util\rwlock.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="..\include\cCompactArray.h">
+    <ClInclude Include="..\include\bss-util\cCompactArray.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>

@@ -17,6 +17,8 @@
 - Updated khash.h and the corresponding cHash templatized version of it.
 - Added cCompactArray for creating simplistic arrays that avoid heap allocation as much as possible
 - Moved FACTION to Traverse() in cKDtree
+- cTRBTree can now be used statically, and properly calls destructors
+- changed include folder structure for vcpkg compatibility
 
 0.4.7
 -----

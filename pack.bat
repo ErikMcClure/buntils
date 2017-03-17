@@ -18,6 +18,8 @@ md "..\Packages\bss-util\bin"
 md "..\Packages\bss-util\bin32"
 md "..\Packages\bss-util\test"
 
+XCOPY "LICENSE.txt" "..\Packages\bss-util" /C /I /R /Y
+XCOPY "README.md" "..\Packages\bss-util" /C /I /R /Y
 XCOPY "include\*.h" "..\Packages\bss-util\include" /S /C /I /R /Y
 XCOPY "doc\*.txt" "..\Packages\bss-util\doc" /S /C /I /R /Y
 XCOPY "bin\bss-util*.dll" "..\Packages\bss-util\bin" /C /I /Y

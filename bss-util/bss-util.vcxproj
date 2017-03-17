@@ -51,79 +51,79 @@
     </ProjectConfiguration>
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="..\include\bss_algo.h" />
-    <ClInclude Include="..\include\bss_alloc.h" />
-    <ClInclude Include="..\include\bss_alloc_greedy.h" />
-    <ClInclude Include="..\include\bss_alloc_ring.h" />
-    <ClInclude Include="..\include\bss_alloc_block.h" />
-    <ClInclude Include="..\include\bss_alloc_block_MT.h" />
-    <ClInclude Include="..\include\bss_compare.h" />
-    <ClInclude Include="..\include\bss_compiler.h" />
-    <ClInclude Include="..\include\bss_data.h" />
-    <ClInclude Include="..\include\bss_defines.h" />
-    <ClInclude Include="..\include\bss_graph.h" />
-    <ClInclude Include="..\include\bss_log.h" />
-    <ClInclude Include="..\include\bss_queue.h" />
-    <ClInclude Include="..\include\cCompactArray.h" />
-    <ClInclude Include="..\include\cSerializer.h" />
-    <ClInclude Include="..\include\bss_sse.h" />
-    <ClInclude Include="..\include\bss_stack.h" />
-    <ClInclude Include="..\include\bss_stream.h" />
-    <ClInclude Include="..\include\bss_util.h" />
-    <ClInclude Include="..\include\bss_util_c.h" />
-    <ClInclude Include="..\include\bss_vector.h" />
-    <ClInclude Include="..\include\bss_win32_includes.h" />
-    <ClInclude Include="..\include\cAATree.h" />
-    <ClInclude Include="..\include\cAliasTable.h" />
-    <ClInclude Include="..\include\cAnimation.h" />
-    <ClInclude Include="..\include\cArrayCircular.h" />
-    <ClInclude Include="..\include\cArray.h" />
-    <ClInclude Include="..\include\cArraySort.h" />
-    <ClInclude Include="..\include\cAVLtree.h" />
-    <ClInclude Include="..\include\cBinaryHeap.h" />
-    <ClInclude Include="..\include\cBitField.h" />
-    <ClInclude Include="..\include\cBitStream.h" />
-    <ClInclude Include="..\include\cDisjointSet.h" />
-    <ClInclude Include="..\include\cDynArray.h" />
-    <ClInclude Include="..\include\cFXAni.h" />
-    <ClInclude Include="..\include\cHighPrecisionTimer.h" />
-    <ClInclude Include="..\include\cIDHash.h" />
-    <ClInclude Include="..\include\cINIentry.h" />
-    <ClInclude Include="..\include\cINIsection.h" />
-    <ClInclude Include="..\include\cINIstorage.h" />
-    <ClInclude Include="..\include\cJSON.h" />
-    <ClInclude Include="..\include\cKDTree.h" />
-    <ClInclude Include="..\include\cHash.h" />
-    <ClInclude Include="..\include\cLinkedArray.h" />
-    <ClInclude Include="..\include\cLinkedList.h" />
-    <ClInclude Include="..\include\cLocklessQueue.h" />
-    <ClInclude Include="..\include\cMap.h" />
-    <ClInclude Include="..\include\cPriorityQueue.h" />
-    <ClInclude Include="..\include\cRational.h" />
-    <ClInclude Include="..\include\cScheduler.h" />
-    <ClInclude Include="..\include\cSmartPtr.h" />
-    <ClInclude Include="..\include\cThread.h" />
-    <ClInclude Include="..\include\cThreadPool.h" />
-    <ClInclude Include="..\include\cTOML.h" />
-    <ClInclude Include="..\include\cTRBtree.h" />
-    <ClInclude Include="..\include\cRefCounter.h" />
-    <ClInclude Include="..\include\cSingleton.h" />
-    <ClInclude Include="..\include\cStr.h" />
-    <ClInclude Include="..\include\cStrTable.h" />
-    <ClInclude Include="..\include\cTrie.h" />
-    <ClInclude Include="..\include\cUBJSON.h" />
-    <ClInclude Include="..\include\cXML.h" />
-    <ClInclude Include="..\include\delegate.h" />
-    <ClInclude Include="..\include\Dual.h" />
-    <ClInclude Include="..\include\FixedPt.h" />
-    <ClInclude Include="..\include\INIparse.h" />
-    <ClInclude Include="..\include\khash.h" />
-    <ClInclude Include="..\include\LLBase.h" />
-    <ClInclude Include="..\include\lockless.h" />
-    <ClInclude Include="..\include\os.h" />
-    <ClInclude Include="..\include\profiler.h" />
-    <ClInclude Include="..\include\rwlock.h" />
-    <ClInclude Include="..\include\variant.h" />
+    <ClInclude Include="..\include\bss-util\bss_algo.h" />
+    <ClInclude Include="..\include\bss-util\bss_alloc.h" />
+    <ClInclude Include="..\include\bss-util\bss_alloc_greedy.h" />
+    <ClInclude Include="..\include\bss-util\bss_alloc_ring.h" />
+    <ClInclude Include="..\include\bss-util\bss_alloc_block.h" />
+    <ClInclude Include="..\include\bss-util\bss_alloc_block_MT.h" />
+    <ClInclude Include="..\include\bss-util\bss_compare.h" />
+    <ClInclude Include="..\include\bss-util\bss_compiler.h" />
+    <ClInclude Include="..\include\bss-util\bss_data.h" />
+    <ClInclude Include="..\include\bss-util\bss_defines.h" />
+    <ClInclude Include="..\include\bss-util\bss_graph.h" />
+    <ClInclude Include="..\include\bss-util\bss_log.h" />
+    <ClInclude Include="..\include\bss-util\bss_queue.h" />
+    <ClInclude Include="..\include\bss-util\cCompactArray.h" />
+    <ClInclude Include="..\include\bss-util\cSerializer.h" />
+    <ClInclude Include="..\include\bss-util\bss_sse.h" />
+    <ClInclude Include="..\include\bss-util\bss_stack.h" />
+    <ClInclude Include="..\include\bss-util\bss_stream.h" />
+    <ClInclude Include="..\include\bss-util\bss_util.h" />
+    <ClInclude Include="..\include\bss-util\bss_util_c.h" />
+    <ClInclude Include="..\include\bss-util\bss_vector.h" />
+    <ClInclude Include="..\include\bss-util\bss_win32_includes.h" />
+    <ClInclude Include="..\include\bss-util\cAATree.h" />
+    <ClInclude Include="..\include\bss-util\cAliasTable.h" />
+    <ClInclude Include="..\include\bss-util\cAnimation.h" />
+    <ClInclude Include="..\include\bss-util\cArrayCircular.h" />
+    <ClInclude Include="..\include\bss-util\cArray.h" />
+    <ClInclude Include="..\include\bss-util\cArraySort.h" />
+    <ClInclude Include="..\include\bss-util\cAVLtree.h" />
+    <ClInclude Include="..\include\bss-util\cBinaryHeap.h" />
+    <ClInclude Include="..\include\bss-util\cBitField.h" />
+    <ClInclude Include="..\include\bss-util\cBitStream.h" />
+    <ClInclude Include="..\include\bss-util\cDisjointSet.h" />
+    <ClInclude Include="..\include\bss-util\cDynArray.h" />
+    <ClInclude Include="..\include\bss-util\cFXAni.h" />
+    <ClInclude Include="..\include\bss-util\cHighPrecisionTimer.h" />
+    <ClInclude Include="..\include\bss-util\cIDHash.h" />
+    <ClInclude Include="..\include\bss-util\cINIentry.h" />
+    <ClInclude Include="..\include\bss-util\cINIsection.h" />
+    <ClInclude Include="..\include\bss-util\cINIstorage.h" />
+    <ClInclude Include="..\include\bss-util\cJSON.h" />
+    <ClInclude Include="..\include\bss-util\cKDTree.h" />
+    <ClInclude Include="..\include\bss-util\cHash.h" />
+    <ClInclude Include="..\include\bss-util\cLinkedArray.h" />
+    <ClInclude Include="..\include\bss-util\cLinkedList.h" />
+    <ClInclude Include="..\include\bss-util\cLocklessQueue.h" />
+    <ClInclude Include="..\include\bss-util\cMap.h" />
+    <ClInclude Include="..\include\bss-util\cPriorityQueue.h" />
+    <ClInclude Include="..\include\bss-util\cRational.h" />
+    <ClInclude Include="..\include\bss-util\cScheduler.h" />
+    <ClInclude Include="..\include\bss-util\cSmartPtr.h" />
+    <ClInclude Include="..\include\bss-util\cThread.h" />
+    <ClInclude Include="..\include\bss-util\cThreadPool.h" />
+    <ClInclude Include="..\include\bss-util\cTOML.h" />
+    <ClInclude Include="..\include\bss-util\cTRBtree.h" />
+    <ClInclude Include="..\include\bss-util\cRefCounter.h" />
+    <ClInclude Include="..\include\bss-util\cSingleton.h" />
+    <ClInclude Include="..\include\bss-util\cStr.h" />
+    <ClInclude Include="..\include\bss-util\cStrTable.h" />
+    <ClInclude Include="..\include\bss-util\cTrie.h" />
+    <ClInclude Include="..\include\bss-util\cUBJSON.h" />
+    <ClInclude Include="..\include\bss-util\cXML.h" />
+    <ClInclude Include="..\include\bss-util\delegate.h" />
+    <ClInclude Include="..\include\bss-util\Dual.h" />
+    <ClInclude Include="..\include\bss-util\FixedPt.h" />
+    <ClInclude Include="..\include\bss-util\INIparse.h" />
+    <ClInclude Include="..\include\bss-util\khash.h" />
+    <ClInclude Include="..\include\bss-util\LLBase.h" />
+    <ClInclude Include="..\include\bss-util\lockless.h" />
+    <ClInclude Include="..\include\bss-util\os.h" />
+    <ClInclude Include="..\include\bss-util\profiler.h" />
+    <ClInclude Include="..\include\bss-util\rwlock.h" />
+    <ClInclude Include="..\include\bss-util\variant.h" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="bss_log.cpp" />
@@ -145,7 +145,7 @@
     <ProjectGuid>{4F702B9E-ADE1-41D3-AC1C-4059B557BE68}</ProjectGuid>
     <RootNamespace>bss_util</RootNamespace>
     <Keyword>Win32Proj</Keyword>
-    <WindowsTargetPlatformVersion>8.1</WindowsTargetPlatformVersion>
+    <WindowsTargetPlatformVersion>7.0</WindowsTargetPlatformVersion>
   </PropertyGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.Default.props" />
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release STD|Win32'" Label="Configuration">
@@ -260,24 +260,24 @@
   <PropertyGroup Label="UserMacros" />
   <PropertyGroup>
     <_ProjectFileVersion>10.0.30319.1</_ProjectFileVersion>
-    <OutDir Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">$(SolutionDir)bin32\</OutDir>
-    <OutDir Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">$(SolutionDir)bin\</OutDir>
+    <OutDir Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">$(ProjectDir)..\bin32\</OutDir>
+    <OutDir Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">$(ProjectDir)..\bin\</OutDir>
     <LinkIncremental Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">true</LinkIncremental>
     <LinkIncremental Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">true</LinkIncremental>
-    <OutDir Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">$(SolutionDir)bin32\</OutDir>
-    <OutDir Condition="'$(Configuration)|$(Platform)'=='Release Clang|Win32'">$(SolutionDir)bin32\</OutDir>
-    <OutDir Condition="'$(Configuration)|$(Platform)'=='Release|x64'">$(SolutionDir)bin\</OutDir>
-    <OutDir Condition="'$(Configuration)|$(Platform)'=='Release Clang|x64'">$(SolutionDir)bin\</OutDir>
+    <OutDir Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">$(ProjectDir)..\bin32\</OutDir>
+    <OutDir Condition="'$(Configuration)|$(Platform)'=='Release Clang|Win32'">$(ProjectDir)..\bin32\</OutDir>
+    <OutDir Condition="'$(Configuration)|$(Platform)'=='Release|x64'">$(ProjectDir)..\bin\</OutDir>
+    <OutDir Condition="'$(Configuration)|$(Platform)'=='Release Clang|x64'">$(ProjectDir)..\bin\</OutDir>
     <LinkIncremental Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">false</LinkIncremental>
     <LinkIncremental Condition="'$(Configuration)|$(Platform)'=='Release Clang|Win32'">false</LinkIncremental>
     <LinkIncremental Condition="'$(Configuration)|$(Platform)'=='Release|x64'">false</LinkIncremental>
     <LinkIncremental Condition="'$(Configuration)|$(Platform)'=='Release Clang|x64'">false</LinkIncremental>
-    <OutDir Condition="'$(Configuration)|$(Platform)'=='Release Static|Win32'">$(SolutionDir)bin32\</OutDir>
-    <OutDir Condition="'$(Configuration)|$(Platform)'=='Release Static|x64'">$(SolutionDir)bin\</OutDir>
-    <OutDir Condition="'$(Configuration)|$(Platform)'=='Debug Static|Win32'">$(SolutionDir)bin32\</OutDir>
-    <OutDir Condition="'$(Configuration)|$(Platform)'=='Debug Static|x64'">$(SolutionDir)bin\</OutDir>
-    <OutDir Condition="'$(Configuration)|$(Platform)'=='Release STD|Win32'">$(SolutionDir)bin32\</OutDir>
-    <OutDir Condition="'$(Configuration)|$(Platform)'=='Release STD|x64'">$(SolutionDir)bin\</OutDir>
+    <OutDir Condition="'$(Configuration)|$(Platform)'=='Release Static|Win32'">$(ProjectDir)..\bin32\</OutDir>
+    <OutDir Condition="'$(Configuration)|$(Platform)'=='Release Static|x64'">$(ProjectDir)..\bin\</OutDir>
+    <OutDir Condition="'$(Configuration)|$(Platform)'=='Debug Static|Win32'">$(ProjectDir)..\bin32\</OutDir>
+    <OutDir Condition="'$(Configuration)|$(Platform)'=='Debug Static|x64'">$(ProjectDir)..\bin\</OutDir>
+    <OutDir Condition="'$(Configuration)|$(Platform)'=='Release STD|Win32'">$(ProjectDir)..\bin32\</OutDir>
+    <OutDir Condition="'$(Configuration)|$(Platform)'=='Release STD|x64'">$(ProjectDir)..\bin\</OutDir>
     <LinkIncremental Condition="'$(Configuration)|$(Platform)'=='Release STD|Win32'">false</LinkIncremental>
     <LinkIncremental Condition="'$(Configuration)|$(Platform)'=='Release STD|x64'">false</LinkIncremental>
     <TargetName Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">$(ProjectName)32_d</TargetName>
@@ -314,7 +314,7 @@
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
     <ClCompile>
       <Optimization>Disabled</Optimization>
-      <AdditionalIncludeDirectories>../include;../include/shiny;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>../include/bss-util;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <PreprocessorDefinitions>WIN32;_SCL_SECURE_NO_WARNINGS;_DEBUG;_WINDOWS;_USRDLL;BSS_UTIL_EXPORTS;_ALLOW_RTCc_IN_STL;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <BasicRuntimeChecks>EnableFastChecks</BasicRuntimeChecks>
       <RuntimeLibrary>MultiThreadedDebug</RuntimeLibrary>
@@ -337,11 +337,17 @@
       </StackReserveSize>
       <LargeAddressAware>true</LargeAddressAware>
     </Link>
+    <PostBuildEvent>
+      <Command>xcopy /c /y /q</Command>
+    </PostBuildEvent>
+    <PostBuildEvent>
+      <Message>Update vcpkg files</Message>
+    </PostBuildEvent>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
     <ClCompile>
       <Optimization>Disabled</Optimization>
-      <AdditionalIncludeDirectories>../include;../include/shiny;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>../include/bss-util;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <PreprocessorDefinitions>WIN32;_SCL_SECURE_NO_WARNINGS;_DEBUG;_WINDOWS;_USRDLL;BSS_UTIL_EXPORTS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <RuntimeLibrary>MultiThreadedDebug</RuntimeLibrary>
       <PrecompiledHeader>
@@ -363,6 +369,12 @@
       </StackReserveSize>
       <LargeAddressAware>true</LargeAddressAware>
     </Link>
+    <PostBuildEvent>
+      <Command>xcopy /c /y /q</Command>
+    </PostBuildEvent>
+    <PostBuildEvent>
+      <Message>Update vcpkg files</Message>
+    </PostBuildEvent>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
     <ClCompile>
@@ -372,7 +384,7 @@
       <FavorSizeOrSpeed>Speed</FavorSizeOrSpeed>
       <OmitFramePointers>true</OmitFramePointers>
       <EnableFiberSafeOptimizations>true</EnableFiberSafeOptimizations>
-      <AdditionalIncludeDirectories>../include;../include/shiny;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>../include/bss-util;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <PreprocessorDefinitions>WIN32;_SCL_SECURE_NO_WARNINGS;NDEBUG;_WINDOWS;_USRDLL;BSS_UTIL_EXPORTS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <RuntimeLibrary>MultiThreaded</RuntimeLibrary>
       <FunctionLevelLinking>false</FunctionLevelLinking>
@@ -397,6 +409,12 @@
       </StackReserveSize>
       <LargeAddressAware>true</LargeAddressAware>
     </Link>
+    <PostBuildEvent>
+      <Command>xcopy /c /y /q</Command>
+    </PostBuildEvent>
+    <PostBuildEvent>
+      <Message>Update vcpkg files</Message>
+    </PostBuildEvent>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release Clang|Win32'">
     <ClCompile>
@@ -406,7 +424,7 @@
       <FavorSizeOrSpeed>Speed</FavorSizeOrSpeed>
       <OmitFramePointers>true</OmitFramePointers>
       <EnableFiberSafeOptimizations>true</EnableFiberSafeOptimizations>
-      <AdditionalIncludeDirectories>../include;../include/shiny;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>../include/bss-util;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <PreprocessorDefinitions>WIN32;_SCL_SECURE_NO_WARNINGS;NDEBUG;_WINDOWS;_USRDLL;BSS_UTIL_EXPORTS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <RuntimeLibrary>MultiThreaded</RuntimeLibrary>
       <FunctionLevelLinking>false</FunctionLevelLinking>
@@ -432,6 +450,12 @@
       </StackReserveSize>
       <LargeAddressAware>true</LargeAddressAware>
     </Link>
+    <PostBuildEvent>
+      <Command>xcopy /c /y /q</Command>
+    </PostBuildEvent>
+    <PostBuildEvent>
+      <Message>Update vcpkg files</Message>
+    </PostBuildEvent>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
     <ClCompile>
@@ -441,7 +465,7 @@
       <FavorSizeOrSpeed>Speed</FavorSizeOrSpeed>
       <OmitFramePointers>true</OmitFramePointers>
       <EnableFiberSafeOptimizations>true</EnableFiberSafeOptimizations>
-      <AdditionalIncludeDirectories>../include;../include/shiny;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>../include/bss-util;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <PreprocessorDefinitions>WIN32;_SCL_SECURE_NO_WARNINGS;NDEBUG;_WINDOWS;_USRDLL;BSS_UTIL_EXPORTS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <RuntimeLibrary>MultiThreaded</RuntimeLibrary>
       <FunctionLevelLinking>false</FunctionLevelLinking>
@@ -468,6 +492,12 @@
       </StackReserveSize>
       <LargeAddressAware>true</LargeAddressAware>
     </Link>
+    <PostBuildEvent>
+      <Command>xcopy /c /y /q</Command>
+    </PostBuildEvent>
+    <PostBuildEvent>
+      <Message>Update vcpkg files</Message>
+    </PostBuildEvent>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release Clang|x64'">
     <ClCompile>
@@ -477,7 +507,7 @@
       <FavorSizeOrSpeed>Speed</FavorSizeOrSpeed>
       <OmitFramePointers>true</OmitFramePointers>
       <EnableFiberSafeOptimizations>true</EnableFiberSafeOptimizations>
-      <AdditionalIncludeDirectories>../include;../include/shiny;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>../include/bss-util;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <PreprocessorDefinitions>WIN32;_SCL_SECURE_NO_WARNINGS;NDEBUG;_WINDOWS;_USRDLL;BSS_UTIL_EXPORTS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <RuntimeLibrary>MultiThreaded</RuntimeLibrary>
       <FunctionLevelLinking>false</FunctionLevelLinking>
@@ -505,6 +535,12 @@
       </StackReserveSize>
       <LargeAddressAware>true</LargeAddressAware>
     </Link>
+    <PostBuildEvent>
+      <Command>xcopy /c /y /q</Command>
+    </PostBuildEvent>
+    <PostBuildEvent>
+      <Message>Update vcpkg files</Message>
+    </PostBuildEvent>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release Static|Win32'">
     <ClCompile>
@@ -514,7 +550,7 @@
       <FavorSizeOrSpeed>Speed</FavorSizeOrSpeed>
       <OmitFramePointers>true</OmitFramePointers>
       <EnableFiberSafeOptimizations>true</EnableFiberSafeOptimizations>
-      <AdditionalIncludeDirectories>../include;../include/shiny;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>../include/bss-util;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <PreprocessorDefinitions>WIN32;_SCL_SECURE_NO_WARNINGS;NDEBUG;_WINDOWS;BSS_STATIC_LIB;BSS_UTIL_EXPORTS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <RuntimeLibrary>MultiThreaded</RuntimeLibrary>
       <FunctionLevelLinking>true</FunctionLevelLinking>
@@ -528,6 +564,12 @@
       <AdditionalDependencies>psapi.lib;Shlwapi.lib;%(AdditionalDependencies)</AdditionalDependencies>
       <TargetMachine>MachineX86</TargetMachine>
     </Lib>
+    <PostBuildEvent>
+      <Command>xcopy /c /y /q</Command>
+    </PostBuildEvent>
+    <PostBuildEvent>
+      <Message>Update vcpkg files</Message>
+    </PostBuildEvent>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release Static|x64'">
     <ClCompile>
@@ -537,7 +579,7 @@
       <FavorSizeOrSpeed>Speed</FavorSizeOrSpeed>
       <OmitFramePointers>true</OmitFramePointers>
       <EnableFiberSafeOptimizations>true</EnableFiberSafeOptimizations>
-      <AdditionalIncludeDirectories>../include;../include/shiny;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>../include/bss-util;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <PreprocessorDefinitions>WIN32;_SCL_SECURE_NO_WARNINGS;NDEBUG;_WINDOWS;BSS_STATIC_LIB;BSS_UTIL_EXPORTS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <RuntimeLibrary>MultiThreaded</RuntimeLibrary>
       <FunctionLevelLinking>true</FunctionLevelLinking>
@@ -551,12 +593,18 @@
       <AdditionalDependencies>psapi.lib;Shlwapi.lib;%(AdditionalDependencies)</AdditionalDependencies>
       <TargetMachine>MachineX64</TargetMachine>
     </Lib>
+    <PostBuildEvent>
+      <Command>xcopy /c /y /q</Command>
+    </PostBuildEvent>
+    <PostBuildEvent>
+      <Message>Update vcpkg files</Message>
+    </PostBuildEvent>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug Static|Win32'">
     <ClCompile>
       <Optimization>Disabled</Optimization>
       <FavorSizeOrSpeed>Neither</FavorSizeOrSpeed>
-      <AdditionalIncludeDirectories>../include;../include/shiny;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>../include/bss-util;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <PreprocessorDefinitions>WIN32;_SCL_SECURE_NO_WARNINGS;_DEBUG;_WINDOWS;BSS_STATIC_LIB;BSS_UTIL_EXPORTS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <RuntimeLibrary>MultiThreadedDebug</RuntimeLibrary>
       <FunctionLevelLinking>true</FunctionLevelLinking>
@@ -575,7 +623,7 @@
     <ClCompile>
       <Optimization>Disabled</Optimization>
       <FavorSizeOrSpeed>Neither</FavorSizeOrSpeed>
-      <AdditionalIncludeDirectories>../include;../include/shiny;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>../include/bss-util;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <PreprocessorDefinitions>WIN32;_SCL_SECURE_NO_WARNINGS;_DEBUG;_WINDOWS;BSS_STATIC_LIB;BSS_UTIL_EXPORTS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <RuntimeLibrary>MultiThreadedDebug</RuntimeLibrary>
       <FunctionLevelLinking>true</FunctionLevelLinking>
@@ -589,6 +637,12 @@
       <AdditionalDependencies>psapi.lib;Shlwapi.lib;%(AdditionalDependencies)</AdditionalDependencies>
       <TargetMachine>MachineX64</TargetMachine>
     </Lib>
+    <PostBuildEvent>
+      <Command>xcopy /c /y /q</Command>
+    </PostBuildEvent>
+    <PostBuildEvent>
+      <Message>Update vcpkg files</Message>
+    </PostBuildEvent>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release STD|Win32'">
     <ClCompile>
@@ -598,7 +652,7 @@
       <FavorSizeOrSpeed>Speed</FavorSizeOrSpeed>
       <OmitFramePointers>true</OmitFramePointers>
       <EnableFiberSafeOptimizations>true</EnableFiberSafeOptimizations>
-      <AdditionalIncludeDirectories>../include;../include/shiny;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>../include/bss-util;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <PreprocessorDefinitions>WIN32;_SCL_SECURE_NO_WARNINGS;NDEBUG;_WINDOWS;_USRDLL;BSS_UTIL_EXPORTS;BSS_NO_FASTCALL;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <RuntimeLibrary>MultiThreaded</RuntimeLibrary>
       <FunctionLevelLinking>true</FunctionLevelLinking>
@@ -618,6 +672,12 @@
       <TargetMachine>MachineX86</TargetMachine>
       <LargeAddressAware>true</LargeAddressAware>
     </Link>
+    <PostBuildEvent>
+      <Command>xcopy /c /y /q</Command>
+    </PostBuildEvent>
+    <PostBuildEvent>
+      <Message>Update vcpkg files</Message>
+    </PostBuildEvent>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release STD|x64'">
     <ClCompile>
@@ -627,7 +687,7 @@
       <FavorSizeOrSpeed>Speed</FavorSizeOrSpeed>
       <OmitFramePointers>true</OmitFramePointers>
       <EnableFiberSafeOptimizations>true</EnableFiberSafeOptimizations>
-      <AdditionalIncludeDirectories>../include;../include/shiny;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>../include/bss-util;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <PreprocessorDefinitions>WIN32;_SCL_SECURE_NO_WARNINGS;NDEBUG;_WINDOWS;_USRDLL;BSS_UTIL_EXPORTS;BSS_NO_FASTCALL;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <RuntimeLibrary>MultiThreaded</RuntimeLibrary>
       <FunctionLevelLinking>true</FunctionLevelLinking>
@@ -646,7 +706,59 @@
       <ImportLibrary>$(TargetDir)$(TargetName).lib</ImportLibrary>
       <LargeAddressAware>true</LargeAddressAware>
     </Link>
+    <PostBuildEvent>
+      <Command>xcopy /c /y /q</Command>
+    </PostBuildEvent>
+    <PostBuildEvent>
+      <Message>Update vcpkg files</Message>
+    </PostBuildEvent>
   </ItemDefinitionGroup>
+  <ItemDefinitionGroup Condition="'$(VcpkgEnabled)' == 'true'">
+    <PostBuildEvent>
+      <Message>Copy include files to vcpkg folder</Message>
+    </PostBuildEvent>
+  </ItemDefinitionGroup>
+  <ItemDefinitionGroup Condition="'$(Configuration)|$(VcpkgEnabled)'=='Release|true'">
+    <PostBuildEvent>
+      <Command>xcopy "$(TargetDir)$(TargetName).lib" "$(VcpkgRoot)lib" /c /y /q /i
+xcopy "$(TargetDir)$(TargetName).dll" "$(VcpkgRoot)bin" /c /y /q /i
+xcopy "$(TargetDir)$(TargetName).pdb" "$(VcpkgRoot)bin" /c /y /q /i
+xcopy "..\include\*.h" "$(VcpkgRoot)include" /c /y /q /i /s</Command>
+    </PostBuildEvent>
+  </ItemDefinitionGroup>
+  <ItemDefinitionGroup Condition="'$(Configuration)|$(VcpkgEnabled)'=='Release Static|true'">
+    <PostBuildEvent>
+      <Command>xcopy "$(TargetDir)$(TargetName).lib" "$(VcpkgRoot)lib" /c /y /q /i
+xcopy "$(TargetDir)$(TargetName).pdb" "$(VcpkgRoot)lib" /c /y /q /i
+xcopy "..\include\*.h" "$(VcpkgRoot)include" /c /y /q /i /s</Command>
+    </PostBuildEvent>
+  </ItemDefinitionGroup>
+  <ItemDefinitionGroup Condition="'$(Configuration)|$(VcpkgEnabled)'=='Debug|true'">
+    <PostBuildEvent>
+      <Command>xcopy "$(TargetDir)$(TargetName).lib" "$(VcpkgRoot)debug\lib" /c /y /q /i
+xcopy "$(TargetDir)$(TargetName).dll" "$(VcpkgRoot)debug\bin" /c /y /q /i
+xcopy "$(TargetDir)$(TargetName).pdb" "$(VcpkgRoot)debug\bin" /c /y /q /i
+xcopy "..\include\*.h" "$(VcpkgRoot)include" /c /y /q /i /s</Command>
+    </PostBuildEvent>
+  </ItemDefinitionGroup>
+  <ItemDefinitionGroup Condition="'$(Configuration)|$(VcpkgEnabled)'=='Debug Static|true'">
+    <PostBuildEvent>
+      <Command>xcopy "$(TargetDir)$(TargetName).lib" "$(VcpkgRoot)debug\lib" /c /y /q /i
+xcopy "$(TargetDir)$(TargetName).pdb" "$(VcpkgRoot)debug\lib" /c /y /q /i
+xcopy "..\include\*.h" "$(VcpkgRoot)include" /c /y /q /i /s</Command>
+    </PostBuildEvent>
+  </ItemDefinitionGroup>
+  <!--<ItemDefinitionGroup Condition="'$(VcpkgEnabled)' == 'true'">
+    <Link>
+      <AdditionalDependencies Condition="'$(VcpkgConfiguration)' == 'Debug' and '$(VcpkgAutoLink)' != 'false'">%(AdditionalDependencies);$(VcpkgRoot)debug\lib\*.lib</AdditionalDependencies>
+      <AdditionalDependencies Condition="'$(VcpkgConfiguration)' == 'Release' and '$(VcpkgAutoLink)' != 'false'">%(AdditionalDependencies);$(VcpkgRoot)lib\*.lib</AdditionalDependencies>
+      <AdditionalLibraryDirectories Condition="'$(VcpkgConfiguration)' == 'Release'">%(AdditionalLibraryDirectories);$(VcpkgRoot)lib;$(VcpkgRoot)lib\manual-link</AdditionalLibraryDirectories>
+      <AdditionalLibraryDirectories Condition="'$(VcpkgConfiguration)' == 'Debug'">%(AdditionalLibraryDirectories);$(VcpkgRoot)debug\lib;$(VcpkgRoot)debug\lib\manual-link</AdditionalLibraryDirectories>
+    </Link>
+    <ClCompile>
+      <AdditionalIncludeDirectories>%(AdditionalIncludeDirectories);$(VcpkgRoot)include</AdditionalIncludeDirectories>
+    </ClCompile>
+  </ItemDefinitionGroup>-->
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">
   </ImportGroup>

@@ -29,7 +29,9 @@
 #include <array>
 #include <limits>
 #include <ostream>
+#ifdef BSS_PLATFORM_WIN32
 #include <intrin.h>
+#endif
 #ifdef BSS_PLATFORM_POSIX
 #include <stdlib.h> // For abs(int) on POSIX systems
 #include <fpu_control.h> // for FPU control on POSIX systems
@@ -784,7 +786,7 @@ namespace bss_util {
 	  return v + 1;
   }
 
-#ifdef BSS_PLATFORM_WIN32
+#ifdef BSS_COMPILER_MSC
   inline uint32_t bsslog2(uint32_t v) noexcept
   {
     if(!v) return 0;

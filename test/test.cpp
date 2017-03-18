@@ -86,7 +86,7 @@ int main(int argc, char** argv)
   SetWorkDirToCur();
   _failedtests.AddTarget("failedtests.txt");
   uint64_t seed = (uint64_t)time(nullptr);
-  //seed = 1425459123;
+  //seed = 1489803649;
   bssrandseed(seed);
 
   //profile_ring_alloc();

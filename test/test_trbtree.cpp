@@ -57,6 +57,9 @@ bool verify_unique_testnums()
   return true;
 }
 
+//TRB_NodeBase<TRB_Node<int>> TRB_NodeBase<TRB_Node<int>>::NIL(static_cast<TRB_Node<int>*>(&TRB_NodeBase<TRB_Node<int>>::NIL));
+//TRB_Node<int>* TRB_NodeBase<TRB_Node<int>>::pNIL = static_cast<TRB_Node<int>*>(&TRB_NodeBase<TRB_Node<int>>::NIL);
+
 TESTDEF::RETPAIR test_TRBTREE()
 {
   BEGINTEST;
@@ -71,8 +74,8 @@ TESTDEF::RETPAIR test_TRBTREE()
     blah.Insert(testnums[i]);
 
   assert(verifytree(blah.Front(), same));
-  TEST(!blah.Get(-1))
-    TEST(!blah.Get(TESTNUM + 1))
+  TEST(!blah.Get(-1));
+  TEST(!blah.Get(TESTNUM + 1));
 
     shuffle(testnums);
   int num = 0;
@@ -84,7 +87,7 @@ TESTDEF::RETPAIR test_TRBTREE()
   }
   TEST(num == TESTNUM);
 
-  blah.Remove(4);
+  TEST(blah.Remove(4));
   TEST(blah.GetNear(4)->value == 3);
   TEST(blah.GetNear(4, false)->value == 5);
   blah.Insert(4);

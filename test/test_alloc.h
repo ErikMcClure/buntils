@@ -4,9 +4,9 @@
 #ifndef __BSS_TEST_ALLOC_H__
 #define __BSS_TEST_ALLOC_H__
 
-#include "test.h"
 #include "cDynArray.h"
 #include "bss_algo.h"
+#include "test.h"
 
 template<class T, typename P, int MAXSIZE, int TRIALS>
 void TEST_ALLOC_FUZZER_THREAD(TESTDEF::RETPAIR& __testret, T& _alloc, bss_util::cDynArray<std::pair<P*, size_t>>& plist)

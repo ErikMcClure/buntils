@@ -4,6 +4,7 @@
 #include "test.h"
 #include "bss_algo.h"
 #include <time.h>
+#include <iostream>
 
 #ifdef BSS_COMPILER_MSC
 #if defined(BSS_STATIC_LIB)

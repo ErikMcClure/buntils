@@ -7,6 +7,7 @@
 #include "bss_defines.h"
 #include <assert.h>
 #include <emmintrin.h>
+#include <stdint.h>
 
 #ifndef BSS_SSE_ENABLED
 #include "bss_util.h"

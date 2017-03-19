@@ -156,7 +156,7 @@ char bss_parseLine(INIParser* parse)
   while(!feof(parse->file))
   {
     fgets(parse->buf,MAXLINELENGTH,parse->file);
-    switch(_nextkeychar(&tc,parse->buf))
+    switch(_nextkeychar((const char**)&tc,parse->buf))
     {
     //case -1: //Garbage line
     //  break;

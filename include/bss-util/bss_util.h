@@ -21,7 +21,7 @@
 #include <assert.h>
 #include <cmath>
 #include <memory>
-#include <cstring> // for memcmp
+#include <string.h> // for memcmp
 #include <emmintrin.h> // for SSE intrinsics
 #include <float.h>
 #include <string>

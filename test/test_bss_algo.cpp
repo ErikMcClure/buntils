@@ -1,9 +1,9 @@
 // Copyright ©2017 Black Sphere Studios
 // For conditions of distribution and use, see copyright notice in "bss_util.h"
 
-#include "test.h"
 #include "bss_algo.h"
 #include <functional>
+#include "test.h"
 
 using namespace bss_util;
 
@@ -133,6 +133,11 @@ TESTDEF::RETPAIR test_bss_algo()
     int n = solveCubic<float>(a, b, c, d, r);
     TEST(r[0] == 0.5);
   }
+
+  uint32_t nsrc[] = { 0,1,2,3,4,5,10,13,21,2873,3829847,2654435766 };
+  uint32_t num[] = { 1,2,4,5,7,8,17,21,34,4647,6193581,4292720341 };
+  transform(nsrc, &fbnext<uint32_t>);
+  TESTARRAY(nsrc, return nsrc[i] == num[i];)
 
   //int testmap = { 1, 2, 3, 4, 5, 6, 7, 8, 9, -1 };
   //cDynArray<int> array;

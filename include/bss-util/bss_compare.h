@@ -5,6 +5,7 @@
 #define __BSS_COMPARE_H__
 
 #include "bss_defines.h"
+#include <string.h>
 
 #define SGNCOMPARE(left,right) (((left)>(right))-((left)<(right)))
 #define PRICOMPARE(left,right,p) (SGNCOMPARE(left,right)<<p)

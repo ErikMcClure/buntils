@@ -18,7 +18,36 @@ namespace bss_util {
     using LLBase<T>::next;
     using LLBase<T>::prev;
 
-    inline explicit TRB_NodeBase(T* pNIL, char c = 0) : left(pNIL), right(pNIL), color(c), parent(0) { next = 0; prev = 0; }
+    inline explicit TRB_NodeBase(T* pNIL, char c = 1) : left(pNIL), right(pNIL), color(c), parent(0) { next = 0; prev = 0; }
+    inline TRB_NodeBase(TRB_NodeBase&& mov, T*& root, T*& first, T*& last, T* pNIL)
+    {
+      parent = mov.parent;
+      if(parent)
+      {
+        if(parent->left == &mov) parent->left = this;
+        else if(parent->right == &mov) parent->right = this;
+        else assert(false);
+      }
+      else
+        root = this;
+
+      left = mov.left;
+      if(left != pNIL) { assert(left->parent == &mov); left->parent = this; }
+      right = mov.right;
+      if(right != pNIL) { assert(right->parent == &mov); right->parent = this; }
+      next = mov.next;
+      if(next) { assert(next->prev == &mov); next->prev = this; }
+      else { assert(last == &mov); last = this; }
+      prev = mov.prev;
+      if(prev) { assert(prev->next == &mov); prev->next = this; }
+      else { assert(root == &mov); root = this; }
+      color = mov.color;
+      mov.left = pNIL;
+      mov.right = pNIL;
+      mov.next = 0;
+      mov.prev = 0;
+      mov.parent = 0;
+    }
     T* parent;
     union {
       struct {
@@ -305,8 +334,8 @@ namespace bss_util {
   template<class T>
   struct BSS_COMPILER_DLLEXPORT TRB_Node : TRB_NodeBase<TRB_Node<T>>
   {
-    inline explicit TRB_Node(TRB_Node* pNIL) : TRB_NodeBase(pNIL) {}
-    inline TRB_Node(T v, TRB_Node<T>* pNIL) : value(v), TRB_NodeBase(pNIL, 1) {}
+    inline explicit TRB_Node(TRB_Node* pNIL) : TRB_NodeBase<TRB_Node<T>>(pNIL, 0) {}
+    inline TRB_Node(T v, TRB_Node* pNIL) : value(v), TRB_NodeBase<TRB_Node<T>>(pNIL) {}
     T value;
   };
 
@@ -315,7 +344,10 @@ namespace bss_util {
   class BSS_COMPILER_DLLEXPORT cTRBtree : protected cAllocTracker<Alloc>
   {
     inline cTRBtree(const cTRBtree&) BSS_DELETEFUNC
-      inline cTRBtree& operator=(const cTRBtree&) BSS_DELETEFUNCOP
+    inline cTRBtree& operator=(const cTRBtree&) BSS_DELETEFUNCOP
+
+    BSS_FORCEINLINE static char CompNode(const TRB_Node<T>& l, const TRB_Node<T>& r) { return CFunc(l.value, r.value); }
+
   public:
     inline explicit cTRBtree(Alloc* allocator = 0) : cAllocTracker<Alloc>(allocator), _first(0), _last(0), _root(&NIL), NIL(&NIL) {}
     // Destructor
@@ -342,7 +374,7 @@ namespace bss_util {
     {
       TRB_Node<T>* node = cAllocTracker<Alloc>::_allocate(1);
       new(node) TRB_Node<T>(value, &NIL);
-      TRB_Node<T>::InsertNode<CompNode>(node, _root, _first, _last, &NIL);
+      TRB_Node<T>::template InsertNode<CompNode>(node, _root, _first, _last, &NIL);
       return node;
     }
     // Searches for a node with the given key and removes it if found, otherwise returns false.
@@ -365,19 +397,6 @@ namespace bss_util {
     inline LLIterator<const TRB_Node<T>> end() const { return LLIterator<const TRB_Node<T>>(0); }
     inline LLIterator<TRB_Node<T>> begin() { return LLIterator<TRB_Node<T>>(_first); }
     inline LLIterator<TRB_Node<T>> end() { return LLIterator<TRB_Node<T>>(0); }
-
-    inline cTRBtree& operator=(cTRBtree&& mov) // Move assignment operator
-    {
-      Clear();
-      cAllocTracker<Alloc>::operator=(std::move(mov));
-      _first = mov._first;
-      _last = mov._last;
-      _root = mov._root;
-      mov._first = 0;
-      mov._last = 0;
-      mov._root = pNIL;
-      return *this;
-    }
 
     static TRB_Node<T>* GetNode(const T& x, TRB_Node<T>* const& root, TRB_Node<T>* pNIL)
     {
@@ -419,8 +438,6 @@ namespace bss_util {
     }
 
   protected:
-    BSS_FORCEINLINE static char CompNode(const TRB_Node<T>& l, const TRB_Node<T>& r) { return CFunc(l.value, r.value); }
-
     TRB_Node<T>*  _first;
     TRB_Node<T>*  _last;
     TRB_Node<T>*  _root;

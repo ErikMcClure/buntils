@@ -6,6 +6,7 @@
 
 #include "bss_defines.h"
 #include <utility>
+#include <stdint.h>
 
 namespace bss_util
 {

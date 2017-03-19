@@ -6,6 +6,7 @@
 
 #include "bss_compare.h"
 #include <cmath>
+#include <assert.h>
 
 namespace bss_util {
   // Represents a dual number that can be used for (very inefficient) automatic differentiation.

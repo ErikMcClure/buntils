@@ -5,6 +5,8 @@
 #define __LOCKLESS_H__BSS__
 
 #include "bss_defines.h"
+#include <assert.h>
+#include <stddef.h>
 #ifdef BSS_COMPILER_MSC
 #include <intrin.h>
 #endif

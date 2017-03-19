@@ -1,10 +1,10 @@
 // Copyright ©2017 Black Sphere Studios
 // For conditions of distribution and use, see copyright notice in "bss_util.h"
 
-#include "test.h"
 #include "os.h"
 #include "cTrie.h"
 #include <string.h>
+#include "test.h"
 #ifdef BSS_PLATFORM_WIN32
 #include "bss_win32_includes.h"
 #endif

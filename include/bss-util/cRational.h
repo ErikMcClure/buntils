@@ -5,6 +5,7 @@
 #define __C_RATIONAL_H__BSS__
 
 #include "bss_defines.h"
+#include <stdlib.h>
 #include <type_traits>
 
 namespace bss_util {  

@@ -7,6 +7,8 @@
 #include "bss_defines.h"
 #include <type_traits>
 #include <assert.h>
+#include <stddef.h>
+#include <utility>
 
 #ifdef BSS_VARIADIC_TEMPLATES
 

@@ -7,6 +7,7 @@
 #include "lockless.h"
 #include "LLBase.h"
 #include "rwlock.h"
+#include <string.h>
 
 namespace bss_util {
   // Primary implementation of a multi-consumer multi-producer lockless ring allocator

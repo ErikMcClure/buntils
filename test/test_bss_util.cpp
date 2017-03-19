@@ -1,10 +1,10 @@
 ﻿// Copyright ©2017 Black Sphere Studios
 // For conditions of distribution and use, see copyright notice in "bss_util.h"
 
-#include "test.h"
 #include "bss_util.h"
-#include "bss_algo.h"
 #include <sstream>
+#include <algorithm>
+#include "test.h"
 
 using namespace bss_util;
 
@@ -225,7 +225,7 @@ TESTDEF::RETPAIR test_bss_util()
 
   uint32_t nsrc[] = { 0,1,2,3,4,5,10,13,21,2873,3829847,2654435766 };
   uint32_t num[] = { 1,2,4,5,7,8,17,21,34,4647,6193581,4292720341 };
-  transform(nsrc, &fbnext<uint32_t>);
+  std::transform(std::begin(nsrc), std::end(nsrc), nsrc, &fbnext<uint32_t>);
   TESTARRAY(nsrc, return nsrc[i] == num[i];)
 
     int value = 8;

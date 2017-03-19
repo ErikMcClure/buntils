@@ -19,6 +19,7 @@
 - Moved FACTION to Traverse() in cKDtree
 - cTRBTree can now be used statically, and properly calls destructors
 - changed include folder structure for vcpkg compatibility
+- inverted include order on tests to catch header file mistakes
 
 0.4.7
 -----

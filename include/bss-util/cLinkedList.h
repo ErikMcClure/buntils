@@ -6,6 +6,7 @@
 
 #include "LLBase.h"
 #include "bss_alloc.h"
+#include <string.h>
 
 namespace bss_util {
   // Default node for internal use

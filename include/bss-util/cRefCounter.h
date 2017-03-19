@@ -5,6 +5,7 @@
 #define __C_REFCOUNTER_H__BSS__
 
 #include "bss_compiler.h"
+#include <assert.h>
 
 namespace bss_util {  
   // A reference counter class that is entirely inline

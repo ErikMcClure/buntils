@@ -4,8 +4,6 @@
 #ifndef __BSS_TEST_H__
 #define __BSS_TEST_H__
 
-#include <utility>
-#include <iostream>
 #include "cHash.h"
 #include "bss_log.h"
 #include "lockless.h"

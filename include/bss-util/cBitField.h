@@ -14,7 +14,7 @@ namespace bss_util
   struct BSS_COMPILER_DLLEXPORT _cBIT_REF
   {
     inline _cBIT_REF(T bit, T& bits) : _bit(bit), _bits(bits) {}
-    inline _cBIT_REF& operator=(bool right) { _bits=T_SETBIT(_bits,_bit,(char)right); return *this; }
+    inline _cBIT_REF& operator=(bool right) { _bits=T_SETBIT(_bits,_bit,right,std::make_signed<T>::type); return *this; }
     BSS_FORCEINLINE _cBIT_REF& operator=(const _cBIT_REF& right) { return operator=((bool)right); }
     BSS_FORCEINLINE operator bool() const { return (_bits&_bit) != 0; }
     inline void flip() { _bits ^= _bit; }

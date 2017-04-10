@@ -90,6 +90,15 @@ BSS_FORCEINLINE std::array<T, 8> _sse_array_shuffle8(const std::array<T, 8>& a, 
   return r;
 }
 
+template<class T, int I, T(*F)(T)> 
+BSS_FORCEINLINE std::array<T, I> _sse_array_unaryop(const std::array<T, I>& a)
+{
+  std::array<T, I> r;
+  for(size_t i = 0; i < I; ++i)
+    r[i] = F(a[i]);
+  return r;
+}
+
 template<class T> BSS_FORCEINLINE T _sse_array_add(T l, T r) { return l + r; }
 template<class T> BSS_FORCEINLINE T _sse_array_sub(T l, T r) { return l - r; }
 template<class T> BSS_FORCEINLINE T _sse_array_mul(T l, T r) { return l * r; }
@@ -126,6 +135,8 @@ template<class T> BSS_FORCEINLINE bool _sse_array_shuffle(T l, T r) { return l >
 #define BSS_SSE_DIV_PS bss_util::arraymap<float, 4, _sse_array_div<float>>
 #define BSS_SSE_MIN_PS bss_util::arraymap<float, 4, _sse_array_min<float>>
 #define BSS_SSE_MAX_PS bss_util::arraymap<float, 4, _sse_array_max<float>>
+#define BSS_SSE_FLOOR_PS _sse_array_unaryop<float, 4, floorf>
+#define BSS_SSE_CEIL_PS _sse_array_unaryop<float, 4, ceilf>
 #define BSS_SSE_CMPEQ_PS bss_util::arraymap<float, 4, _sse_array_cmp<float, _sse_array_cmpeq<float>>>
 #define BSS_SSE_CMPNEQ_PS bss_util::arraymap<float, 4, _sse_array_cmp<float, _sse_array_cmpneq<float>>>
 #define BSS_SSE_CMPLT_PS bss_util::arraymap<float, 4, _sse_array_cmp<float, _sse_array_cmplt<float>>>
@@ -154,6 +165,8 @@ BSS_FORCEINLINE float BSS_SSE_SS_F32(BSS_SSE_M128 x) { return x[0]; }
 #define BSS_SSE_DIV_PD bss_util::arraymap<double, 2, _sse_array_div<double>>
 #define BSS_SSE_MIN_PD bss_util::arraymap<double, 2, _sse_array_min<double>>
 #define BSS_SSE_MAX_PD bss_util::arraymap<double, 2, _sse_array_max<double>>
+#define BSS_SSE_FLOOR_PD _sse_array_unaryop<double, 2, floor>
+#define BSS_SSE_CEIL_PD _sse_array_unaryop<double, 2, ceil>
 #define BSS_SSE_CMPEQ_PD bss_util::arraymap<double, 2, _sse_array_cmp<double, _sse_array_cmpeq<double>>>
 #define BSS_SSE_CMPNEQ_PD bss_util::arraymap<double, 2, _sse_array_cmp<double, _sse_array_cmpneq<double>>>
 #define BSS_SSE_CMPLT_PD bss_util::arraymap<double, 2, _sse_array_cmp<double, _sse_array_cmplt<double>>>
@@ -263,6 +276,8 @@ BSS_FORCEINLINE BSS_SSE_M128 BSS_SSE_CAST_SI128_PS(BSS_SSE_M128i x) { return *re
 #define BSS_SSE_DIV_PS _mm_div_ps
 #define BSS_SSE_MIN_PS bss_mm_min_ps
 #define BSS_SSE_MAX_PS bss_mm_max_ps
+#define BSS_SSE_FLOOR_PS bss_mm_floor_ps
+#define BSS_SSE_CEIL_PS bss_mm_ceil_ps
 #define BSS_SSE_CMPEQ_PS _mm_cmpeq_ps
 #define BSS_SSE_CMPNEQ_PS _mm_cmpneq_ps
 #define BSS_SSE_CMPLT_PS _mm_cmplt_ps
@@ -386,7 +401,7 @@ BSS_FORCEINLINE __m128i BSS_SSE_SET_EPI64(int64_t y, int64_t x) { BSS_ALIGN(16) 
 #define BSS_SSE_CAST_SI128_PS _mm_castsi128_ps
 
 // SSE2 does not have min or max, so we use this manual implementation of the instruction
-static BSS_FORCEINLINE BSS_SSE_M128i bss_mm_min_epi32(BSS_SSE_M128i a, BSS_SSE_M128i b)
+BSS_FORCEINLINE BSS_SSE_M128i bss_mm_min_epi32(BSS_SSE_M128i a, BSS_SSE_M128i b)
 {
   BSS_SSE_M128i mask = BSS_SSE_CMPLT_EPI32(a, b);
   a = BSS_SSE_AND(a, mask);
@@ -394,7 +409,7 @@ static BSS_FORCEINLINE BSS_SSE_M128i bss_mm_min_epi32(BSS_SSE_M128i a, BSS_SSE_M
   return BSS_SSE_OR(a, b);
 }
  
-static BSS_FORCEINLINE BSS_SSE_M128i bss_mm_max_epi32(BSS_SSE_M128i a, BSS_SSE_M128i b)
+BSS_FORCEINLINE BSS_SSE_M128i bss_mm_max_epi32(BSS_SSE_M128i a, BSS_SSE_M128i b)
 {
   BSS_SSE_M128i mask = BSS_SSE_CMPGT_EPI32(a, b);
   a = BSS_SSE_AND(a, mask);
@@ -402,7 +417,7 @@ static BSS_FORCEINLINE BSS_SSE_M128i bss_mm_max_epi32(BSS_SSE_M128i a, BSS_SSE_M
   return BSS_SSE_OR(a, b);
 }
 
-static BSS_FORCEINLINE BSS_SSE_M128 bss_mm_min_ps(BSS_SSE_M128 a, BSS_SSE_M128 b)
+BSS_FORCEINLINE BSS_SSE_M128 bss_mm_min_ps(BSS_SSE_M128 a, BSS_SSE_M128 b)
 {
   BSS_SSE_M128i mask = _mm_castps_si128(BSS_SSE_CMPLT_PS(a, b));
   BSS_SSE_M128i c = BSS_SSE_AND(_mm_castps_si128(a), mask);
@@ -410,7 +425,7 @@ static BSS_FORCEINLINE BSS_SSE_M128 bss_mm_min_ps(BSS_SSE_M128 a, BSS_SSE_M128 b
   return _mm_castsi128_ps(BSS_SSE_OR(c, d));
 }
  
-static BSS_FORCEINLINE BSS_SSE_M128 bss_mm_max_ps(BSS_SSE_M128 a, BSS_SSE_M128 b)
+BSS_FORCEINLINE BSS_SSE_M128 bss_mm_max_ps(BSS_SSE_M128 a, BSS_SSE_M128 b)
 {
   BSS_SSE_M128i mask = _mm_castps_si128(BSS_SSE_CMPGT_PS(a, b));
   BSS_SSE_M128i c = BSS_SSE_AND(_mm_castps_si128(a), mask);
@@ -418,7 +433,7 @@ static BSS_FORCEINLINE BSS_SSE_M128 bss_mm_max_ps(BSS_SSE_M128 a, BSS_SSE_M128 b
   return _mm_castsi128_ps(BSS_SSE_OR(c, d));
 }
 
-static BSS_FORCEINLINE BSS_SSE_M128d bss_mm_min_pd(BSS_SSE_M128d a, BSS_SSE_M128d b)
+BSS_FORCEINLINE BSS_SSE_M128d bss_mm_min_pd(BSS_SSE_M128d a, BSS_SSE_M128d b)
 {
   BSS_SSE_M128i mask = _mm_castpd_si128(BSS_SSE_CMPLT_PD(a, b));
   BSS_SSE_M128i c = BSS_SSE_AND(_mm_castpd_si128(a), mask);
@@ -426,7 +441,7 @@ static BSS_FORCEINLINE BSS_SSE_M128d bss_mm_min_pd(BSS_SSE_M128d a, BSS_SSE_M128
   return _mm_castsi128_pd(BSS_SSE_OR(c, d));
 }
  
-static BSS_FORCEINLINE BSS_SSE_M128d bss_mm_max_pd(BSS_SSE_M128d a, BSS_SSE_M128d b)
+BSS_FORCEINLINE BSS_SSE_M128d bss_mm_max_pd(BSS_SSE_M128d a, BSS_SSE_M128d b)
 {
   BSS_SSE_M128i mask = _mm_castpd_si128(BSS_SSE_CMPGT_PD(a, b));
   BSS_SSE_M128i c = BSS_SSE_AND(_mm_castpd_si128(a), mask);
@@ -434,8 +449,34 @@ static BSS_FORCEINLINE BSS_SSE_M128d bss_mm_max_pd(BSS_SSE_M128d a, BSS_SSE_M128
   return _mm_castsi128_pd(BSS_SSE_OR(c, d));
 }
 
+BSS_FORCEINLINE BSS_SSE_M128 bss_mm_floor_ps(BSS_SSE_M128 x)
+{
+  __m128i v0 = _mm_setzero_si128();
+  __m128i v1 = _mm_cmpeq_epi32(v0, v0);
+  __m128i ji = _mm_srli_epi32(v1, 25);
+  __m128 j = *(__m128*)&_mm_slli_epi32(ji, 23); //create vector 1.0f
+  __m128i i = _mm_cvttps_epi32(x);
+  __m128 fi = _mm_cvtepi32_ps(i);
+  __m128 igx = _mm_cmpgt_ps(fi, x);
+  j = _mm_and_ps(igx, j);
+  return _mm_sub_ps(fi, j);
+}
+
+BSS_FORCEINLINE BSS_SSE_M128 bss_mm_ceil_ps(BSS_SSE_M128 x)
+{
+  __m128i v0 = _mm_setzero_si128();
+  __m128i v1 = _mm_cmpeq_epi32(v0, v0);
+  __m128i ji = _mm_srli_epi32(v1, 25);
+  __m128 j = *(__m128*)&_mm_slli_epi32(ji, 23); //create vector 1.0f
+  __m128i i = _mm_cvttps_epi32(x);
+  __m128 fi = _mm_cvtepi32_ps(i);
+  __m128 igx = _mm_cmplt_ps(fi, x);
+  j = _mm_and_ps(igx, j);
+  return _mm_add_ps(fi, j);
+}
+
 // SSE2 does not have any way to multiply all four 32bit integer components
-static BSS_FORCEINLINE BSS_SSE_M128i bss_mm_mul_epi32(BSS_SSE_M128i a, BSS_SSE_M128i b)
+BSS_FORCEINLINE BSS_SSE_M128i bss_mm_mul_epi32(BSS_SSE_M128i a, BSS_SSE_M128i b)
 {
   __m128i tmp1 = _mm_mul_epu32(a, b); /* mul 2,0*/
   __m128i tmp2 = _mm_mul_epu32(_mm_srli_si128(a, 4), _mm_srli_si128(b, 4)); /* mul 3,1 */
@@ -482,6 +523,8 @@ BSS_ALIGNED_STRUCT(16) sseVecT<float>
   BSS_FORCEINLINE void operator>>(BSS_UNALIGNED<float> v) const { BSS_SSE_STORE_UPS(v._p, xmm); }
   BSS_FORCEINLINE void operator>>(float& v) const { v = BSS_SSE_SS_F32(xmm); }
   
+  BSS_FORCEINLINE sseVecT<float> floor() const { return sseVecT<float>(BSS_SSE_FLOOR_PS(xmm)); }
+  BSS_FORCEINLINE sseVecT<float> ceil() const { return sseVecT<float>(BSS_SSE_CEIL_PS(xmm)); }
   BSS_FORCEINLINE sseVecT<float> min(const sseVecT<float>& r) const { return sseVecT<float>(BSS_SSE_MIN_PS(xmm, r.xmm)); }
   BSS_FORCEINLINE sseVecT<float> max(const sseVecT<float>& r) const { return sseVecT<float>(BSS_SSE_MAX_PS(xmm, r.xmm)); }
   BSS_FORCEINLINE sseVecT<float> operator==(const sseVecT<float>& r) const { return sseVecT<float>(BSS_SSE_CMPEQ_PS(xmm, r.xmm)); }

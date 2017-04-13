@@ -100,7 +100,7 @@ namespace bss_util {
   template<class T>
   inline T GetBitMask(int low, int high) noexcept { return T_GETBITRANGE(T,low,high); }
   template<class T>
-  BSS_FORCEINLINE T bssSetBit(T word, T bit, bool v) noexcept { return (((word) & (~(bit))) | ((T)(-(std::make_signed<T>::type)v) & (bit))); }
+  BSS_FORCEINLINE T bssSetBit(T word, T bit, bool v) noexcept { return (((word) & (~(bit))) | ((T)(-(typename std::make_signed<T>::type)v) & (bit))); }
 
   template<class T>
   BSS_FORCEINLINE bool bssGetBit(T* p, size_t index) { return (p[index / (sizeof(T) << 3)] & (1 << (index % (sizeof(T) << 3)))) != 0; }

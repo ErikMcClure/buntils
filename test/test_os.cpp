@@ -94,7 +94,7 @@ TESTDEF::RETPAIR test_OS()
   {
     DYNARRAY(wchar_t, buf, (sz / 2) + 1);
     buf[sz / 2] = 0;
-    sz = GetRegistryValue(HKEY_CURRENT_USER, "Control Panel\\Desktop", "CursorBlinkRate", (unsigned char*)buf, sz);
+    sz = GetRegistryValue(HKEY_CURRENT_USER, "Control Panel\\Desktop", "CursorBlinkRate", (unsigned char*)buf, (unsigned long)sz);
     TEST(sz >= 0);
     int blinkrate = atoi(cStr(buf));
     TEST(blinkrate > 0);

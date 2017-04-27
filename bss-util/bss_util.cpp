@@ -1,6 +1,5 @@
 // Copyright ©2017 Black Sphere Studios
 // For conditions of distribution and use, see copyright notice in "bss_util.h"
-// WINDOWS ONLY (right now)
 
 #include "bss_util.h"
 #include "cStr.h"
@@ -630,7 +629,7 @@ int bss_util::DelRegistryNodeW(HKEY__* hKeyRoot, const wchar_t* lpSubKey)
 
 struct BSSFONT
 {
-  BSSFONT(const ENUMLOGFONTEX* fontex, DWORD elftype) : weight(fontex->elfLogFont.lfWeight), italic(fontex->elfLogFont.lfItalic != 0), type((char)elftype)
+  BSSFONT(const ENUMLOGFONTEX* fontex, DWORD elftype) : weight((short)fontex->elfLogFont.lfWeight), italic(fontex->elfLogFont.lfItalic != 0), type((char)elftype)
   { 
     memcpy_s(elfFullName, sizeof(wchar_t)*LF_FULLFACESIZE, fontex->elfFullName, sizeof(wchar_t)*LF_FULLFACESIZE);
   }

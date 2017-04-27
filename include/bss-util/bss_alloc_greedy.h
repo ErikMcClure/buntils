@@ -133,8 +133,11 @@ namespace bss_util {
     }
 #endif
 
+#pragma warning(push)
+#pragma warning(disable:4251)
     std::atomic<AFLISTITEM*> _root;
     std::atomic<size_t> _curpos;
+#pragma warning(pop)
     RWLock _lock;
   };
 

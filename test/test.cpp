@@ -78,7 +78,7 @@ int DEBUG_CDT_SAFE::count = 0;
 int DEBUG_CDT_SAFE::ID = 0;
 bss_util::cHash<int> DEBUG_CDT_SAFE::Tracker;
 
-#define BSS_ISOLATE_TEST 54
+//#define BSS_ISOLATE_TEST 55
 
 // --- Begin main testing function ---
 int main(int argc, char** argv)
@@ -89,7 +89,6 @@ int main(int argc, char** argv)
   uint64_t seed = (uint64_t)time(nullptr);
   //seed = 1489803649;
   bssrandseed(seed);
-
   //profile_ring_alloc();
 
   for(int i = 0; i<TESTNUM; ++i)

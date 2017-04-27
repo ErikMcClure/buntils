@@ -44,7 +44,7 @@ namespace bss_util
     }
     void AddTask(FN f, void* arg, uint32_t instances = 1)
     {
-      if(!instances) instances = _threads.Capacity();
+      if(!instances) instances = (uint32_t)_threads.Capacity();
       TASK task(f, arg);
       _tasks.fetch_add(instances, std::memory_order_release);
       for(uint32_t i = 0; i < instances; ++i)
@@ -145,7 +145,7 @@ namespace bss_util
 
     cMicroLockQueue<TASK, uint32_t> _tasklist;
     std::atomic<uint32_t> _tasks; // Count of tasks still being processed (this includes tasks that have been removed from the queue, but haven't finished yet)
-    cArray<std::unique_ptr<std::pair<cThread, std::atomic_bool>>, size_t, CARRAY_MOVE> _threads;
+    cArray<std::unique_ptr<std::pair<cThread, std::atomic_bool>>, uint32_t, CARRAY_MOVE> _threads;
     std::atomic<uint32_t> _inactive;
     std::atomic<int32_t> _run;
     cRingAllocVoid _falloc;

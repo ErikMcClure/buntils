@@ -510,17 +510,17 @@ TESTDEF::RETPAIR test_bss_util()
 
   for(uint16_t i = 0; i <= 255; ++i)
     for(uint16_t j = 0; j <= 255; ++j)
-      for(uint16_t k = 0; k <= 16; ++k)
+      for(uint8_t k = 0; k <= 16; ++k)
       {
-        TEST(__bssmultiplyextract__h<uint8_t>(i, j, k) == bssmultiplyextract<uint8_t>(i, j, k));
+        TEST(__bssmultiplyextract__h<uint8_t>((uint8_t)i, (uint8_t)j, k) == bssmultiplyextract<uint8_t>((uint8_t)i, (uint8_t)j, k));
       }
 
 
   for(int16_t i = -128; i <= 127; ++i)
     for(int16_t j = -128; j <= 127; ++j)
-      for(int16_t k = 0; k <= 16; ++k)
+      for(int8_t k = 0; k <= 16; ++k)
       {
-        TEST(__bssmultiplyextract__h<int8_t>(i, j, k) == bssmultiplyextract<int8_t>(i, j, k));
+        TEST(__bssmultiplyextract__h<int8_t>((int8_t)i, (int8_t)j, k) == bssmultiplyextract<int8_t>((int8_t)i, (int8_t)j, k));
       }
   
   TEST(__bssmultiplyextract__h<uint64_t>(0, 0, 0) == 0);

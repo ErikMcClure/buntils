@@ -79,7 +79,7 @@ TESTDEF::RETPAIR test_bss_algo()
     uint8_t bout[256];
     for(size_t max = 256; max > 1; --max)
     {
-      for(size_t i = 0; i < max; ++i) b64[i] = i;
+      for(size_t i = 0; i < max; ++i) b64[i] = (uint8_t)i;
       cStr str;
       str.resize(Base64Encode(b64, max, 0));
       Base64Encode(b64, max, str.UnsafeString());

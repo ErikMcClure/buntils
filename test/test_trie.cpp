@@ -17,29 +17,31 @@ TESTDEF::RETPAIR test_TRIE()
   TEST(t3["fail"] == 0);
   TEST(t3["tick"] == 9);
 
-  //cStr randcstr[200];
-  //const char* randstr[200];
-  //for(uint32_t i = 0; i < 200; ++i)
-  //{
-  //  for(uint32_t j = bssrandint(2,20); j>0; --j)
-  //    randcstr[i]+=(char)bssrandint('a','z');
-  //  randstr[i]=randcstr[i];
-  //}
-  //cTrie<uint32_t> t(50,randstr);
-  //cKhash_String<uint8_t> hashtest;
-  //for(uint32_t i = 0; i < 50; ++i)
-  //  hashtest.Insert(randstr[i],i);
-  //uint32_t dm;
-  //shuffle(testnums);
-  //auto prof = cHighPrecisionTimer::OpenProfiler();
-  //CPU_Barrier();
-  //for(uint32_t i = 0; i < TESTNUM; ++i)
-  //  //dm=hashtest[randstr[testnums[i]%200]];
-  //  dm=t[randstr[testnums[i]%200]];
-  //  //dm=t[strs[testnums[i]%10]];
-  //CPU_Barrier();
-  //auto res = cHighPrecisionTimer::CloseProfiler(prof);
-  //std::cout << dm << "\nTIME:" << res << std::endl;
+  /*
+  cStr randcstr[200];
+  const char* randstr[200];
+  for(uint32_t i = 0; i < 200; ++i)
+  {
+    for(uint32_t j = bssrandint(2,20); j>0; --j)
+      randcstr[i]+=(char)bssrandint('a','z');
+    randstr[i]=randcstr[i];
+  }
+  cTrie<uint32_t> t0(50,randstr);
+  cHash<const char*,uint8_t> hashtest;
+  for(uint32_t i = 0; i < 50; ++i)
+    hashtest.Insert(randstr[i],i);
+  uint32_t dm;
+  shuffle(testnums);
+  auto prof = cHighPrecisionTimer::OpenProfiler();
+  CPU_Barrier();
+  for(uint32_t i = 0; i < TESTNUM; ++i)
+    dm=hashtest[randstr[testnums[i]%200]];
+    //dm= t0[randstr[testnums[i]%200]];
+    //dm=t[strs[testnums[i]%10]];
+  CPU_Barrier();
+  auto res = cHighPrecisionTimer::CloseProfiler(prof);
+  std::cout << dm << "\nTIME:" << res << std::endl;
+  */
 
   for(uint32_t i = 0; i < 9; ++i)
   {

@@ -47,26 +47,24 @@ namespace bss_util {
   BSS_COMPILER_DLLEXPORT extern long GetTimeZoneMinutes(); //Returns the current time zone difference from UTC in minutes
 
   //Useful numbers
-  const double PI = 3.141592653589793238462643383279;
-  const double PI_HALF = PI*0.5;
-  const double PI_DOUBLE = PI*2.0;  
-  const double E_CONST = 2.718281828459045235360287471352;
-  const double SQRT_TWO = 1.414213562373095048801688724209;
-  const float PIf = 3.141592653589793238462643383279f; // Convenience definitions
-  const float PI_HALFf = PIf*0.5f;
-  const float PI_DOUBLEf = PIf*2.0f;  
-  const float E_CONSTf = 2.718281828459045235360287471352f;
-  const float SQRT_TWOf = 1.414213562373095048801688724209f;
-  const float FLT_EPS = 1.192092896e-07F;
-  const double DBL_EPS = 2.2204460492503131e-016;
-  const int32_t FLT_INTEPS = *(int32_t*)(&FLT_EPS);
-  const int64_t DBL_INTEPS = *(int64_t*)(&DBL_EPS);
+  constexpr double PI = 3.141592653589793238462643383279;
+  constexpr double PI_HALF = PI*0.5;
+  constexpr double PI_DOUBLE = PI*2.0;
+  constexpr double E_CONST = 2.718281828459045235360287471352;
+  constexpr double SQRT_TWO = 1.414213562373095048801688724209;
+  constexpr float PIf = 3.141592653589793238462643383279f; // Convenience definitions
+  constexpr float PI_HALFf = PIf*0.5f;
+  constexpr float PI_DOUBLEf = PIf*2.0f;
+  constexpr float E_CONSTf = 2.718281828459045235360287471352f;
+  constexpr float SQRT_TWOf = 1.414213562373095048801688724209f;
+  constexpr float FLT_EPS = 1.192092896e-07F;
+  constexpr double DBL_EPS = 2.2204460492503131e-016;
 
   // Get max size of an arbitrary number of bits, either signed or unsigned (assuming one's or two's complement implementation)
   template<uint8_t BITS>
   struct BitLimit
   {
-    static const uint16_t BYTES = ((T_CHARGETMSB(BITS)>>3) << (0+((BITS%8)>0))) + (BITS<8);
+    static constexpr uint16_t BYTES = ((T_CHARGETMSB(BITS)>>3) << (0+((BITS%8)>0))) + (BITS<8);
     typedef typename std::conditional<sizeof(char) == BYTES, char,  //rounds the type up if necessary.
       typename std::conditional<sizeof(short) == BYTES, short,
       typename std::conditional<sizeof(int) == BYTES, int,
@@ -78,12 +76,12 @@ namespace bss_util {
 #endif
     typedef typename std::make_unsigned<SIGNED>::type UNSIGNED;
 
-    static const UNSIGNED UNSIGNED_MIN = 0;
-    static const UNSIGNED UNSIGNED_MAX = (((UNSIGNED)2) << (BITS - 1)) - ((UNSIGNED)1); //these are all done carefully to ensure no overflow is ever utilized unless appropriate and it respects an arbitrary bit limit. We use 2<<(BITS-1) here to avoid shifting more bits than there are bits in the type.
-    static const SIGNED SIGNED_MIN_RAW = (SIGNED)(((UNSIGNED)1) << (BITS - 1)); // When we have normal bit lengths (8,16, etc) this will correctly result in a negative value in two's complement.
-    static const UNSIGNED SIGNED_MIN_HELPER = (((UNSIGNED)~0) << (BITS - 1)); // However if we have unusual bit lengths (3,19, etc) the raw bit representation will be technically correct in the context of that sized integer, but since we have to round to a real integer size to represent the number, the literal interpretation will be wrong. This yields the proper minimum value.
-    static const SIGNED SIGNED_MIN = (SIGNED)SIGNED_MIN_HELPER;
-    static const SIGNED SIGNED_MAX = ((~SIGNED_MIN_RAW)&UNSIGNED_MAX);
+    static constexpr UNSIGNED UNSIGNED_MIN = 0;
+    static constexpr UNSIGNED UNSIGNED_MAX = (((UNSIGNED)2) << (BITS - 1)) - ((UNSIGNED)1); //these are all done carefully to ensure no overflow is ever utilized unless appropriate and it respects an arbitrary bit limit. We use 2<<(BITS-1) here to avoid shifting more bits than there are bits in the type.
+    static constexpr SIGNED SIGNED_MIN_RAW = (SIGNED)(((UNSIGNED)1) << (BITS - 1)); // When we have normal bit lengths (8,16, etc) this will correctly result in a negative value in two's complement.
+    static constexpr UNSIGNED SIGNED_MIN_HELPER = (UNSIGNED)(((UNSIGNED)~0) << (BITS - 1)); // However if we have unusual bit lengths (3,19, etc) the raw bit representation will be technically correct in the context of that sized integer, but since we have to round to a real integer size to represent the number, the literal interpretation will be wrong. This yields the proper minimum value.
+    static constexpr SIGNED SIGNED_MIN = (SIGNED)SIGNED_MIN_HELPER;
+    static constexpr SIGNED SIGNED_MAX = ((~SIGNED_MIN_RAW)&UNSIGNED_MAX);
   };
   template<typename T>
   struct TBitLimit : public BitLimit<sizeof(T)<<3> {};

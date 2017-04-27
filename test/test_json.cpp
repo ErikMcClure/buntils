@@ -202,7 +202,7 @@ TESTDEF::RETPAIR test_JSON()
   dotest_JSON(o4, __testret);
 
   cStr s; // test to ensure that invalid data does not crash or lock up the parser
-  for(int i = strlen(json); i > 0; --i)
+  for(int i = (int)strlen(json); i > 0; --i)
   {
     s.assign(json, i);
     ParseJSON(o, s);

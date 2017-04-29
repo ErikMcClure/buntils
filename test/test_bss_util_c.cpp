@@ -8,6 +8,61 @@
 
 using namespace bss_util;
 
+template<typename CHAR>
+bool arbitrarycomp(const CHAR* l, const CHAR* r, ptrdiff_t n = -1)
+{
+  assert(l && r);
+  while(*l && *r && --n)
+  {
+    if(*l != *r)
+      return false;
+    ++l;
+    ++r;
+  }
+
+  return *l == *r;
+}
+
+template<typename CHAR>
+std::string arbitraryview(const CHAR* src, size_t len)
+{
+  std::string r;
+  for(size_t i = 0; i < len; ++i)
+    r += (char)src[i];
+  return r;
+}
+template<typename FROM, typename TO>
+void testconvfunc(const FROM* from, size_t szfrom, const TO* to, size_t(f)(const FROM*BSS_RESTRICT, ptrdiff_t, TO*BSS_RESTRICT, size_t), TESTDEF::RETPAIR& __testret)
+{
+  size_t len = f(from, -1, 0, 0);
+  DYNARRAY(TO, target1, len);
+  len = f(from, -1, target1, len);
+  TEST(len == szfrom + 1);
+  TEST(target1[len - 1] == 0);
+  TEST(arbitrarycomp<TO>(target1, to));
+
+  len = f(from, szfrom + 1, 0, 0);
+  DYNARRAY(TO, target2, len);
+  len = f(from, szfrom + 1, target2, len);
+  TEST(len == szfrom + 1);
+  TEST(target2[len - 1] == 0);
+  TEST(arbitrarycomp<TO>(target2, to));
+
+  len = f(from, szfrom, 0, 0);
+  DYNARRAY(TO, target3, len);
+  len = f(from, szfrom, target3, len);
+  TEST(len == szfrom);
+  TEST(target3[len - 1] != 0);
+  TEST(arbitrarycomp<TO>(target3, to, len));
+
+  len = f(from, szfrom - 1, 0, 0);
+  DYNARRAY(TO, target4, len);
+  len = f(from, szfrom - 1, target4, len);
+  TEST(len == szfrom - 1);
+  TEST(target4[len - 1] != 0);
+  TEST(arbitrarycomp<TO>(target4, to, len));
+}
+
 TESTDEF::RETPAIR test_bss_util_c()
 {
   BEGINTEST;
@@ -110,5 +165,21 @@ TESTDEF::RETPAIR test_bss_util_c()
     TEST(!wcscmp(wstr, PANGRAMS[i]));
   }
 #endif
+
+  const char* conversion1 = "conversion";
+  const int conversion3[] = { 'c', 'o', 'n','v','e','r','s','i','o','n',0 };
+
+  testconvfunc<char, int>(conversion1, 10, conversion3, &UTF8toUTF32, __testret);
+  testconvfunc<int, char>(conversion3, 10, conversion1, &UTF32toUTF8, __testret);
+
+#ifdef BSS_PLATFORM_WIN32
+  const wchar_t* conversion2 = L"conversion";
+
+  testconvfunc<wchar_t, int>(conversion2, 10, conversion3, &UTF16toUTF32, __testret);
+  testconvfunc<int, wchar_t>(conversion3, 10, conversion2, &UTF32toUTF16, __testret);
+  testconvfunc<wchar_t, char>(conversion2, 10, conversion1, &UTF16toUTF8, __testret);
+  testconvfunc<char, wchar_t>(conversion1, 10, conversion2, &UTF8toUTF16, __testret);
+#endif
+
   ENDTEST;
 }

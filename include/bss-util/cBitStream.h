@@ -4,11 +4,11 @@
 #ifndef __C_BITSTREAM_H__BSS__
 #define __C_BITSTREAM_H__BSS__
 
-#include "bss_util.h"
-#include "cStr.h"
+#include "bss-util/bss_util.h"
+#include "bss-util/Str.h"
 #include <iostream>
 
-namespace bss_util {
+namespace bss {
   template<typename STREAM, bool ISOUT>
   struct __bitstream_internal { BSS_FORCEINLINE static void _flush(STREAM* s, uint8_t buf) { s->write((char*)&buf, 1); } };
 
@@ -17,15 +17,15 @@ namespace bss_util {
 
   // This wraps around an existing stream and flushes to it. Capable of writing and reading with single-bit precision.
   template<typename STREAM = std::iostream>
-  class BSS_COMPILER_DLLEXPORT cBitStream : protected __bitstream_internal<STREAM, std::is_base_of<std::ostream, STREAM>::value>
+  class BSS_COMPILER_DLLEXPORT BitStream : protected __bitstream_internal<STREAM, std::is_base_of<std::ostream, STREAM>::value>
   {
     using __bitstream_internal<STREAM, std::is_base_of<std::ostream, STREAM>::value>::_flush;
 
   public:
-    cBitStream(const cBitStream& copy) : _base(copy._base), _roffset(copy._roffset), _woffset(copy._woffset), _buf(copy._buf) {}
-    cBitStream(cBitStream&& mov) : _base(mov._base), _roffset(mov._roffset), _woffset(mov._woffset), _buf(mov._buf) { mov._base = 0; }
-    explicit cBitStream(STREAM& base) : _base(&base), _roffset(0), _woffset(0), _buf(0) {}
-    ~cBitStream() { if(_base) Flush(); }
+    BitStream(const BitStream& copy) : _base(copy._base), _roffset(copy._roffset), _woffset(copy._woffset), _buf(copy._buf) {}
+    BitStream(BitStream&& mov) : _base(mov._base), _roffset(mov._roffset), _woffset(mov._woffset), _buf(mov._buf) { mov._base = 0; }
+    explicit BitStream(STREAM& base) : _base(&base), _roffset(0), _woffset(0), _buf(0) {}
+    ~BitStream() { if(_base) Flush(); }
     void Write(const void* source, int bits)
     {
       const uint8_t* d = (const uint8_t*)source;
@@ -76,12 +76,12 @@ namespace bss_util {
     void Read(T& dest) { Read(&dest, std::conditional<std::is_same<T, bool>::value, std::integral_constant<int, 1>, std::integral_constant<int, (sizeof(T) << 3)>>::type::value); }
     void Flush() { if(_woffset) _flush(_base, _buf); }
 
-    cBitStream& operator=(const cBitStream& copy) { _base = copy._base; return *this; }
-    cBitStream& operator=(cBitStream&& mov) { _base = mov._base; mov._base = 0; return *this; }
+    BitStream& operator=(const BitStream& copy) { _base = copy._base; return *this; }
+    BitStream& operator=(BitStream&& mov) { _base = mov._base; mov._base = 0; return *this; }
     template<typename T>
-    cBitStream& operator<<(const T& v) { Write<T>(v); return *this; }
+    BitStream& operator<<(const T& v) { Write<T>(v); return *this; }
     template<typename T>
-    cBitStream& operator>>(T& v) { Read<T>(v); return *this; }
+    BitStream& operator>>(T& v) { Read<T>(v); return *this; }
 
   protected:
     STREAM* _base;
@@ -92,39 +92,39 @@ namespace bss_util {
 
   // This is a function that takes a basic type and serializes it, converting it to little-endian format if necessary
   template<class T>
-  void bss_Serialize(T d, std::ostream& s)
+  void bssSerialize(T d, std::ostream& s)
   {
 #ifdef BSS_ENDIAN_BIG
-    flipendian((char*)&d, sizeof(T));
+    FlipEndian((char*)&d, sizeof(T));
 #endif
     s.write((const char*)&d, sizeof(T));
   }
   template<>
-  void bss_Serialize<const char*>(const char* d, std::ostream& s)
+  void bssSerialize<const char*>(const char* d, std::ostream& s)
   {
     size_t len = strlen(d);
-    bss_Serialize(len, s);
+    bssSerialize(len, s);
     s.write(d, len);
   }
 
   template<class T>
-  void bss_Deserialize(T& d, std::istream& s)
+  void bssDeserialize(T& d, std::istream& s)
   {
     s.read((char*)&d, sizeof(T));
 #ifdef BSS_ENDIAN_BIG
-    flipendian((char*)&d, sizeof(T));
+    FlipEndian((char*)&d, sizeof(T));
 #endif
   }
   template<>
-  void bss_Deserialize<std::string>(std::string& d, std::istream& s)
+  void bssDeserialize<std::string>(std::string& d, std::istream& s)
   {
     size_t len;
-    bss_Deserialize(len, s);
+    bssDeserialize(len, s);
     d.resize(len);
     s.read(const_cast<char*>(d.c_str()), len);
   }
   template<>
-  void bss_Deserialize<cStr>(cStr& d, std::istream& s) { bss_Deserialize<std::string>(d, s); }
+  void bssDeserialize<Str>(Str& d, std::istream& s) { bssDeserialize<std::string>(d, s); }
 }
 
 #endif

@@ -4,11 +4,11 @@
 #ifndef __BSS_VECTOR_H__
 #define __BSS_VECTOR_H__
 
-#include "bss_util.h"
-#include "bss_sse.h"
+#include "bss-util/bss_util.h"
+#include "bss-util/bss_sse.h"
 #include <initializer_list>
 
-namespace bss_util {
+namespace bss {
   // Find the dot product of two n-dimensional vectors
   template<typename T, int N>
   BSS_FORCEINLINE T NVector_Dot(const T(&l)[N], const T(&r)[N])
@@ -672,7 +672,7 @@ namespace bss_util {
     inline Vector<T, 2> Abs() const { return Vector<T, 2>(NVector_AbsCall(x), NVector_AbsCall(y)); }
     inline T Dot(const Vector<T, 2>& r) const { return DotProduct(r.x, r.y, x, y); }
     inline T Distance(const Vector<T, 2>& r) const { return FastSqrt<T>(DistanceSq(r)); }
-    inline T DistanceSq(const Vector<T, 2>& r) const { return bss_util::distsqr<T>(r.x, r.y, x, y); }
+    inline T DistanceSq(const Vector<T, 2>& r) const { return bss::DistSqr<T>(r.x, r.y, x, y); }
     inline Vector<T, 2> Rotate(T R, const Vector<T, 2>& center) const { return Rotate(R, center.x, center.y); }
     inline Vector<T, 2> Rotate(T R, T X, T Y) const { T tx = x; T ty = y; RotatePoint(tx, ty, R, X, Y); return Vector<T, 2>(tx, ty); }
     inline T Cross(const Vector<T, 2>& r) const { return CrossProduct(r.x, r.y, x, y); }
@@ -687,7 +687,7 @@ namespace bss_util {
     static BSS_FORCEINLINE Vector<T, 2> FromPolar(const Vector<T, 2>& v) { return FromPolar(v.x, v.y); }
     static BSS_FORCEINLINE Vector<T, 2> FromPolar(T r, T angle) { return Vector<T, 2>((T)r*cos(angle), (T)r*sin(angle)); }
     static BSS_FORCEINLINE Vector<T, 2> ToPolar(const Vector<T, 2>& v) { return ToPolar(v.x, v.y); }
-    static BSS_FORCEINLINE Vector<T, 2> ToPolar(T x, T y) { return Vector<T, 2>(bss_util::FastSqrt<T>((x*x) + (y*y)), (T)atan2(y, x)); } //x - r, y - theta
+    static BSS_FORCEINLINE Vector<T, 2> ToPolar(T x, T y) { return Vector<T, 2>(bss::FastSqrt<T>((x*x) + (y*y)), (T)atan2(y, x)); } //x - r, y - theta
 
     inline Vector<T, 2> yx() const { return Vector<T, 2>(y, x); }
 

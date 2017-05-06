@@ -1,15 +1,15 @@
 // Copyright ©2017 Black Sphere Studios
 // For conditions of distribution and use, see copyright notice in "bss_util.h"
 
-#include "bss_queue.h"
+#include "bss-util/bss_queue.h"
 #include "test.h"
 
-using namespace bss_util;
+using namespace bss;
 
 TESTDEF::RETPAIR test_BSS_QUEUE()
 {
   BEGINTEST;
-  cQueue<int> q(0);
+  Queue<int> q(0);
   q.Clear();
   TEST(q.Capacity() == 0);
   TEST(q.Empty());
@@ -39,7 +39,7 @@ TESTDEF::RETPAIR test_BSS_QUEUE()
   q.Discard();
   TEST(q.Length() == 1);
   TEST(q.Peek() == 6);
-  cQueue<int> q2(3);
+  Queue<int> q2(3);
   q2.Push(7);
   TEST(q2.Peek() == 7);
   q2 = q;

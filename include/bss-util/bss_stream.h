@@ -6,18 +6,18 @@
 
 #include <sstream>
 #include <streambuf>
-#include "cStr.h"
-#include "cDynArray.h"
+#include "bss-util/Str.h"
+#include "bss-util/DynArray.h"
 
 /* modifies the basic_ostream so it takes wchar_t and converts it into UTF */
 template<class _Traits>
 inline std::basic_ostream<char, _Traits>& operator<<(std::basic_ostream<char, _Traits>& _Ostr, const wchar_t *_Val)
 {
-  _Ostr << cStr(_Val).c_str();
+  _Ostr << Str(_Val).c_str();
   return _Ostr;
 }
 
-namespace bss_util {
+namespace bss {
   /* Stream buffer that can output to any number of possible external streams, and auto-converts all wchar_t* input to UTF-8 */
 #pragma warning(push)
 #pragma warning(disable:4251)
@@ -61,7 +61,7 @@ namespace bss_util {
 
   public:
     DynArrayIBuf(DynArrayIBuf&& mov) : std::streambuf(std::move(mov)), _ref(mov._ref), _read(mov._read) { mov._read = (CType)-1; }
-    DynArrayIBuf(const cDynArray<T, CType, ArrayType, Alloc>& ref) : _ref(ref), _read(0) {}
+    DynArrayIBuf(const DynArray<T, CType, ArrayType, Alloc>& ref) : _ref(ref), _read(0) {}
 
     inline DynArrayIBuf& operator =(DynArrayIBuf&& right)
     {
@@ -106,7 +106,7 @@ namespace bss_util {
       return seekoff(off_type(sp_), std::ios_base::beg, which_);
     }
 
-    const cDynArray<T, CType, ArrayType, Alloc>& _ref;
+    const DynArray<T, CType, ArrayType, Alloc>& _ref;
     CType _read;
   };
 
@@ -120,12 +120,12 @@ namespace bss_util {
 
   public:
     DynArrayBuf(DynArrayBuf&& mov) : BASE(std::move(mov)), _write(mov._write) { mov._write = (CType)-1; }
-    DynArrayBuf(cDynArray<T, CType, ArrayType, Alloc>& ref, CType begin = (CType)-1) : BASE(ref), _write((begin == (CType)-1) ? ref.Length() : begin) {}
+    DynArrayBuf(DynArray<T, CType, ArrayType, Alloc>& ref, CType begin = (CType)-1) : BASE(ref), _write((begin == (CType)-1) ? ref.Length() : begin) {}
 
     inline DynArrayBuf& operator =(BASE&& right) { BASE::operator=(std::move(right)); _write = right._write; right._write = (CType)-1; return *this; }
 
   protected:
-    typename BASE::int_type overflow(typename BASE::int_type ch) { const_cast<cDynArray<T, CType, ArrayType, Alloc>&>(BASE::_ref).Insert(ch, _write++); return ch; }
+    typename BASE::int_type overflow(typename BASE::int_type ch) { const_cast<DynArray<T, CType, ArrayType, Alloc>&>(BASE::_ref).Insert(ch, _write++); return ch; }
 
     CType _write;
   };

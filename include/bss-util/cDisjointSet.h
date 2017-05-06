@@ -4,26 +4,26 @@
 #ifndef __C_DISJOINT_SET_H__BSS__
 #define __C_DISJOINT_SET_H__BSS__
 
-#include "cArray.h"
-#include "bss_util.h"
+#include "bss-util/Array.h"
+#include "bss-util/bss_util.h"
 
-namespace bss_util {
+namespace bss {
   // Represents a disjoint set data structure that uses path compression.
   template<typename T = size_t, typename ALLOC = StaticAllocPolicy<typename std::make_signed<T>::type>>
-  class BSS_COMPILER_DLLEXPORT cDisjointSet : protected cArrayBase<typename std::make_signed<T>::type, T, ALLOC>
+  class BSS_COMPILER_DLLEXPORT DisjointSet : protected ArrayBase<typename std::make_signed<T>::type, T, ALLOC>
   {
   protected:
-    typedef cArrayBase<typename std::make_signed<T>::type, T, ALLOC> ARRAY;
+    typedef ArrayBase<typename std::make_signed<T>::type, T, ALLOC> ARRAY;
     typedef typename ARRAY::T_ T_;
     using ARRAY::_array;
     using ARRAY::_capacity;
 
   public:
     // Construct a disjoint set with num initial sets
-    inline cDisjointSet(const cDisjointSet& copy) : ARRAY(copy.Capacity()), _numsets(copy._numsets) { memcpy(_array, copy._array, _capacity); }
-    inline cDisjointSet(cDisjointSet&& mov) : ARRAY(std::move(mov)), _numsets(mov._numsets) { mov._numsets = 0; }
-    inline explicit cDisjointSet(T num) : ARRAY(num) { Reset(); }
-    inline cDisjointSet(T_* overload, T num) : ARRAY(0)
+    inline DisjointSet(const DisjointSet& copy) : ARRAY(copy.Capacity()), _numsets(copy._numsets) { memcpy(_array, copy._array, _capacity); }
+    inline DisjointSet(DisjointSet&& mov) : ARRAY(std::move(mov)), _numsets(mov._numsets) { mov._numsets = 0; }
+    inline explicit DisjointSet(T num) : ARRAY(num) { Reset(); }
+    inline DisjointSet(T_* overload, T num) : ARRAY(0)
     { // This let's you use an outside array
       int v = std::is_same<ALLOC, StaticNullPolicy<T_>>::value;
       assert(v != 0); //You must use StaticNullPolicy if you overload the array pointer
@@ -34,7 +34,7 @@ namespace bss_util {
     // Union (combine) two disjoint sets into one set. Returns false if set1 or set2 aren't set names.
     inline bool Union(T set1, T set2)
     {
-      if(_invalidindex(set1) || _invalidindex(set2))
+      if(_invalidIndex(set1) || _invalidIndex(set2))
         return false;
 
       T_ w1 = _array[set1];
@@ -126,9 +126,9 @@ namespace bss_util {
 
     // Constructs a minimum spanning tree using Kruskal's algorithm, given a sorted list of edges (smallest first).
     template<class ITER>
-    inline static cArray<std::pair<T, T>, T> MinSpanningTree(T numverts, ITER edges, ITER edgeslast)
+    inline static Array<std::pair<T, T>, T> MinSpanningTree(T numverts, ITER edges, ITER edgeslast)
     {
-      cArray<std::pair<T, T>, T> ret(numverts - 1); // A nice result in combinatorics tells us that all trees have exactly n-1 edges.
+      Array<std::pair<T, T>, T> ret(numverts - 1); // A nice result in combinatorics tells us that all trees have exactly n-1 edges.
       ret.SetCapacity(MinSpanningTree(numverts, edges, edgeslast, ret)); // This will always be <= n-1 so the SetCapacity is basically free.
       return ret;
     }
@@ -138,7 +138,7 @@ namespace bss_util {
     static T MinSpanningTree(T numverts, ITER edges, ITER edgeslast, std::pair<T, T>* out)
     {
       DYNARRAY(T_, arr, numverts); // Allocate everything on the stack
-      cDisjointSet<T, StaticNullPolicy<T_>> set(arr, numverts);
+      DisjointSet<T, StaticNullPolicy<T_>> set(arr, numverts);
       T num = 0;
       for(; edges != edgeslast; ++edges)
       {
@@ -155,11 +155,11 @@ namespace bss_util {
       return num; // If the edges are disconnected it'll return a forest of minimum spanning trees with a number of edges less than n-1.
     }
 
-    inline cDisjointSet& operator=(const cDisjointSet& copy) { SetCapacityDiscard(copy._capacity); memcpy(_array, copy._array, _capacity * sizeof(T)); _numsets = copy._numsets; return *this; }
-    inline cDisjointSet& operator=(cDisjointSet&& mov) { ARRAY::operator=(std::move(mov)); _numsets = mov._numsets; return *this; }
+    inline DisjointSet& operator=(const DisjointSet& copy) { SetCapacityDiscard(copy._capacity); memcpy(_array, copy._array, _capacity * sizeof(T)); _numsets = copy._numsets; return *this; }
+    inline DisjointSet& operator=(DisjointSet&& mov) { ARRAY::operator=(std::move(mov)); _numsets = mov._numsets; return *this; }
 
   protected:
-    BSS_FORCEINLINE bool _invalidindex(T s) const { return s >= _capacity || _array[s] >= 0; }
+    BSS_FORCEINLINE bool _invalidIndex(T s) const { return s >= _capacity || _array[s] >= 0; }
 
     T _numsets;
   };

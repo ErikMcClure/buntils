@@ -4,7 +4,7 @@
 #ifndef __C_HIGHPRECISIONTIMER_H__BSS__
 #define __C_HIGHPRECISIONTIMER_H__BSS__
 
-#include "bss_defines.h"
+#include "bss-util/bss_defines.h"
 #include <stdint.h>
 #ifndef BSS_PLATFORM_WIN32
 #include <time.h>
@@ -26,14 +26,14 @@
 #endif
 #endif
 
-namespace bss_util {
+namespace bss {
   // High precision timer class with nanosecond precision.
-  class BSS_DLLEXPORT cHighPrecisionTimer
+  class BSS_DLLEXPORT HighPrecisionTimer
   {
   public:
     // Starts the timer and takes an initial sample. If you want to reset the time or delta to zero later, call ResetTime() or ResetDelta()
-    cHighPrecisionTimer(const cHighPrecisionTimer& copy);
-    cHighPrecisionTimer();
+    HighPrecisionTimer(const HighPrecisionTimer& copy);
+    HighPrecisionTimer();
     // Resamples the timer, updating the current time and setting the delta to the difference between the last time and the current time.
     double Update();
     // Resamples the timer, but warps the resulting increment by the timewarp argument

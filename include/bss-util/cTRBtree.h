@@ -6,11 +6,11 @@
 #ifndef __C_TRB_TREE_H__BSS__
 #define __C_TRB_TREE_H__BSS__
 
-#include "bss_compare.h"
-#include "bss_alloc.h"
+#include "bss-util/bss_compare.h"
+#include "bss-util/bss_alloc.h"
 #include "LLBase.h"
 
-namespace bss_util {
+namespace bss {
   // Generic Threaded Red-black tree node
   template<class T>
   struct BSS_COMPILER_DLLEXPORT TRB_NodeBase : LLBase<T>
@@ -146,7 +146,7 @@ namespace bss_util {
     }
 
   protected:
-    static void _leftrotate(T* node, T*& root, T* pNIL)
+    static void _leftRotate(T* node, T*& root, T* pNIL)
     {
       T* r = node->right;
 
@@ -162,7 +162,7 @@ namespace bss_util {
       r->left = node;
       if(node != pNIL) node->parent = r;
     }
-    static void _rightrotate(T* node, T*& root, T* pNIL)
+    static void _rightRotate(T* node, T*& root, T* pNIL)
     {
       T* r = node->left;
 
@@ -197,12 +197,12 @@ namespace bss_util {
             if(node == node->parent->right)
             {
               node = node->parent;
-              _leftrotate(node, root, pNIL);
+              _leftRotate(node, root, pNIL);
             }
 
             node->parent->color = 0;
             node->parent->parent->color = 1;
-            _rightrotate(node->parent->parent, root, pNIL);
+            _rightRotate(node->parent->parent, root, pNIL);
           }
         }
         else
@@ -220,11 +220,11 @@ namespace bss_util {
             if(node == node->parent->left)
             {
               node = node->parent;
-              _rightrotate(node, root, pNIL);
+              _rightRotate(node, root, pNIL);
             }
             node->parent->color = 0;
             node->parent->parent->color = 1;
-            _leftrotate(node->parent->parent, root, pNIL);
+            _leftRotate(node->parent->parent, root, pNIL);
           }
         }
       }
@@ -243,7 +243,7 @@ namespace bss_util {
           {
             w->color = 0;
             node->parent->color = 1;
-            _leftrotate(node->parent, root, pNIL);
+            _leftRotate(node->parent, root, pNIL);
             w = node->parent->right;
           }
           if(w->left->color == 0 && w->right->color == 0)
@@ -257,13 +257,13 @@ namespace bss_util {
             {
               w->left->color = 0;
               w->color = 1;
-              _rightrotate(w, root, pNIL);
+              _rightRotate(w, root, pNIL);
               w = node->parent->right;
             }
             w->color = node->parent->color;
             node->parent->color = 0;
             w->right->color = 0;
-            _leftrotate(node->parent, root, pNIL);
+            _leftRotate(node->parent, root, pNIL);
             node = root;
           }
         }
@@ -275,7 +275,7 @@ namespace bss_util {
           {
             w->color = 0;
             node->parent->color = 1;
-            _rightrotate(node->parent, root, pNIL);
+            _rightRotate(node->parent, root, pNIL);
             w = node->parent->left;
           }
           if(w->right->color == 0 && w->left->color == 0)
@@ -289,13 +289,13 @@ namespace bss_util {
             {
               w->right->color = 0;
               w->color = 1;
-              _leftrotate(w, root, pNIL);
+              _leftRotate(w, root, pNIL);
               w = node->parent->left;
             }
             w->color = node->parent->color;
             node->parent->color = 0;
             w->left->color = 0;
-            _rightrotate(node->parent, root, pNIL);
+            _rightRotate(node->parent, root, pNIL);
             node = root;
           }
         }
@@ -341,24 +341,24 @@ namespace bss_util {
 
   // Threaded Red-black tree implementation
   template<typename T, char(*CFunc)(const T&, const T&) = CompT<T>, typename Alloc = StandardAllocPolicy<TRB_Node<T>>>
-  class BSS_COMPILER_DLLEXPORT cTRBtree : protected cAllocTracker<Alloc>
+  class BSS_COMPILER_DLLEXPORT TRBtree : protected AllocTracker<Alloc>
   {
-    inline cTRBtree(const cTRBtree&) BSS_DELETEFUNC
-      inline cTRBtree& operator=(const cTRBtree&) BSS_DELETEFUNCOP
+    inline TRBtree(const TRBtree&) BSS_DELETEFUNC
+      inline TRBtree& operator=(const TRBtree&) BSS_DELETEFUNCOP
 
       BSS_FORCEINLINE static char CompNode(const TRB_Node<T>& l, const TRB_Node<T>& r) { return CFunc(l.value, r.value); }
 
   public:
-    inline explicit cTRBtree(Alloc* allocator = 0) : cAllocTracker<Alloc>(allocator), _first(0), _last(0), _root(&NIL), NIL(&NIL) {}
+    inline explicit TRBtree(Alloc* allocator = 0) : AllocTracker<Alloc>(allocator), _first(0), _last(0), _root(&NIL), NIL(&NIL) {}
     // Destructor
-    inline ~cTRBtree() { Clear(); }
+    inline ~TRBtree() { Clear(); }
     // Clears the tree
     inline void Clear()
     {
       for(auto i = begin(); i.IsValid();) // Walk through the tree using the linked list and deallocate everything
       {
         (*i)->~TRB_Node();
-        cAllocTracker<Alloc>::_deallocate(*(i++), 1);
+        AllocTracker<Alloc>::_deallocate(*(i++), 1);
       }
 
       _first = 0;
@@ -372,7 +372,7 @@ namespace bss_util {
     // Inserts a key with the associated data
     BSS_FORCEINLINE TRB_Node<T>* Insert(const T& value)
     {
-      TRB_Node<T>* node = cAllocTracker<Alloc>::_allocate(1);
+      TRB_Node<T>* node = AllocTracker<Alloc>::_allocate(1);
       new(node) TRB_Node<T>(value, &NIL);
       TRB_Node<T>::template InsertNode<CompNode>(node, _root, _first, _last, &NIL);
       return node;
@@ -385,7 +385,7 @@ namespace bss_util {
       if(!node) return false;
       TRB_Node<T>::RemoveNode(node, _root, _first, _last, &NIL);
       node->~TRB_Node();
-      cAllocTracker<Alloc>::_deallocate(node, 1);
+      AllocTracker<Alloc>::_deallocate(node, 1);
       return true;
     }
     // Returns first element

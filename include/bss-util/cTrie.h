@@ -4,11 +4,11 @@
 #ifndef __C_TRIE_H__
 #define __C_TRIE_H__
 
-#include "cBinaryHeap.h"
-#include "bss_algo.h"
+#include "bss-util/BinaryHeap.h"
+#include "bss-util/bss_algo.h"
 #include <stdarg.h>
 
-namespace bss_util {
+namespace bss {
   // Trie node
   template<typename T = uint8_t>
   struct BSS_COMPILER_DLLEXPORT TRIE_NODE__
@@ -26,19 +26,19 @@ namespace bss_util {
 
   // A static trie optimized for looking up small collections of words.
   template<typename T = uint8_t, bool IGNORECASE = false>
-  class BSS_COMPILER_DLLEXPORT cTrie : protected cArrayBase<TRIE_NODE__<T>, T>
+  class BSS_COMPILER_DLLEXPORT Trie : protected ArrayBase<TRIE_NODE__<T>, T>
   {
-    typedef cArrayBase<TRIE_NODE__<T>, T> BASE;
+    typedef ArrayBase<TRIE_NODE__<T>, T> BASE;
     typedef TRIE_NODE__<T> TNODE;
     using BASE::_array;
     using BASE::_capacity;
     typedef std::pair<T, const char*> PAIR;
-    typedef typename std::conditional<IGNORECASE, cBinaryHeap<PAIR, T, CompTSecond<PAIR, CompIStr<const char*>>>, cBinaryHeap<PAIR, T, CompTSecond<PAIR, CompStr<const char*>>>>::type SORTING_HEAP;
+    typedef typename std::conditional<IGNORECASE, BinaryHeap<PAIR, T, CompTSecond<PAIR, CompIStr<const char*>>>, BinaryHeap<PAIR, T, CompTSecond<PAIR, CompStr<const char*>>>>::type SORTING_HEAP;
 
   public:
-    inline cTrie(cTrie&& mov) : BASE(std::move(mov)), _length(mov._length) { mov._length = 0; }
-    inline cTrie(const cTrie& copy) : BASE(copy), _length(copy._length) {}
-    inline cTrie(T num, ...) : BASE(num), _length(num)
+    inline Trie(Trie&& mov) : BASE(std::move(mov)), _length(mov._length) { mov._length = 0; }
+    inline Trie(const Trie& copy) : BASE(copy), _length(copy._length) {}
+    inline Trie(T num, ...) : BASE(num), _length(num)
     {
       _fill(0, num);
       DYNARRAY(PAIR, s, num);
@@ -49,10 +49,10 @@ namespace bss_util {
       SORTING_HEAP::HeapSort(s, num); // sort into alphabetical order
       _init(num, s, 0, 0); // Put into our recursive initializer
     }
-    inline cTrie(T num, const char* const* initstr) : BASE(num), _length(num) { _construct(num, initstr); }
+    inline Trie(T num, const char* const* initstr) : BASE(num), _length(num) { _construct(num, initstr); }
     template<int SZ>
-    inline cTrie(const char* const (&initstr)[SZ]) : BASE(SZ), _length(SZ) { _construct(SZ, initstr); }
-    inline ~cTrie() {}
+    inline Trie(const char* const (&initstr)[SZ]) : BASE(SZ), _length(SZ) { _construct(SZ, initstr); }
+    inline ~Trie() {}
     T Get(const char* word) const
     {
       assert(word != 0);
@@ -63,7 +63,7 @@ namespace bss_util {
       {
         __cTrie_ToLower<char, IGNORECASE>::F(c);
         if(cur->clen > 1) // This is faster than a switch statement
-          r = BinarySearchExact<TNODE, char, T, &cTrie::_CompTNode>(cur, c, 0, cur->clen);
+          r = BinarySearchExact<TNODE, char, T, &Trie::_CompTNode>(cur, c, 0, cur->clen);
         else if(cur->clen == 1)
           r = (T)-(cur->chr != c);
         else
@@ -84,7 +84,7 @@ namespace bss_util {
         c = *(word++);
         __cTrie_ToLower<char, IGNORECASE>::F(c);
         if(cur->clen > 1) // This is faster than a switch statement
-          r = BinarySearchExact<TNODE, char, T, &cTrie::_CompTNode>(cur, c, 0, cur->clen);
+          r = BinarySearchExact<TNODE, char, T, &Trie::_CompTNode>(cur, c, 0, cur->clen);
         else if(cur->clen == 1)
           r = (T)-(cur->chr != c);
         else
@@ -98,8 +98,8 @@ namespace bss_util {
     inline T Length() { return _length; }
     inline T Capacity() { return BASE::Capacity(); }
     inline T operator[](const char* word) const { return Get(word); }
-    inline cTrie& operator=(const cTrie& copy) { BASE::operator=(copy); _length = copy._length; return *this; }
-    inline cTrie& operator=(cTrie&& mov) { BASE::operator=(std::move(mov)); _length = mov._length; mov._length = 0; return *this; }
+    inline Trie& operator=(const Trie& copy) { BASE::operator=(copy); _length = copy._length; return *this; }
+    inline Trie& operator=(Trie&& mov) { BASE::operator=(std::move(mov)); _length = mov._length; mov._length = 0; return *this; }
     static inline char _CompTNode(const TNODE& t, const char& c) { return SGNCOMPARE(t.chr, c); }
 
   protected:
@@ -121,20 +121,20 @@ namespace bss_util {
         _array[i].chr = 0;
       }
     }
-    BSS_FORCEINLINE void _checksize(T r) { assert(r < (std::numeric_limits<T>::max() - 2)); if(r >= _capacity) { T s = _capacity; BASE::SetCapacity(_capacity << 1); _fill(s, _capacity); } }
+    BSS_FORCEINLINE void _checkSize(T r) { assert(r < (std::numeric_limits<T>::max() - 2)); if(r >= _capacity) { T s = _capacity; BASE::SetCapacity(_capacity << 1); _fill(s, _capacity); } }
     T _init(T len, PAIR const* str, T cnt, T level)
     {
       T r = cnt - 1;
       char c = str[0].second[level];
       if(IGNORECASE) c = tolower(c);
-      if(!c) { _checksize(r + 1); _array[r + 1].word = str[0].first; ++str; --len; } // The only place we'll recieve the end of the word is in our starting position due to alphabetical order
+      if(!c) { _checkSize(r + 1); _array[r + 1].word = str[0].first; ++str; --len; } // The only place we'll recieve the end of the word is in our starting position due to alphabetical order
 
       char l = 0;
       for(T i = 0; i < len; ++i) //first pass so we can assemble top level nodes here
       {
         c = str[i].second[level];
         if(IGNORECASE) c = tolower(c);
-        if(l != c) { _checksize(++r); _array[r].chr = (l = c); }
+        if(l != c) { _checkSize(++r); _array[r].chr = (l = c); }
         assert(_array[r].clen < (std::numeric_limits<T>::max() - 2));
         ++_array[r].clen;
       }

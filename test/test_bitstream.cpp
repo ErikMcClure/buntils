@@ -1,11 +1,11 @@
 // Copyright ©2017 Black Sphere Studios
 // For conditions of distribution and use, see copyright notice in "bss_util.h"
 
-#include "cBitStream.h"
+#include "bss-util/BitStream.h"
 #include <sstream>
 #include "test.h"
 
-using namespace bss_util;
+using namespace bss;
 
 TESTDEF::RETPAIR test_BITSTREAM()
 {
@@ -17,7 +17,7 @@ TESTDEF::RETPAIR test_BITSTREAM()
     short b = 8199;
     char c = 31;
     char d = -63;
-    cBitStream<std::ostream> so(s);
+    BitStream<std::ostream> so(s);
     so << a;
     so << b;
     so.Write(true);
@@ -31,7 +31,7 @@ TESTDEF::RETPAIR test_BITSTREAM()
     so << c;
   }
   {
-    cBitStream<std::istream> si(s);
+    BitStream<std::istream> si(s);
     int a;
     short b;
     char c;

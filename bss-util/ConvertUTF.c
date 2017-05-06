@@ -39,7 +39,7 @@ See the header file "ConvertUTF.h" for complete documentation.
 ------------------------------------------------------------------------ */
 
 
-#include "bss_util_c.h"
+#include "bss-util/bss_util_c.h"
 #include <stdint.h>
 
 static const int halfShift = 10; /* used for shifting by 10 bits */

@@ -4,11 +4,11 @@
 #ifndef __LL_BASE_H__BSS__
 #define __LL_BASE_H__BSS__
 
-#include "bss_defines.h"
+#include "bss-util/bss_defines.h"
 #include <iterator>
 #include <stddef.h>
 
-namespace bss_util {
+namespace bss {
   // A base node for a doubly-linked list. The given parameter T may be any class that publically inherits LLBase
   template<typename T>
   struct BSS_COMPILER_DLLEXPORT LLBase

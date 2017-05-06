@@ -1,12 +1,12 @@
 // Copyright ©2017 Black Sphere Studios
 // For conditions of distribution and use, see copyright notice in "bss_util.h"
 
-#include "bss_util_c.h"
+#include "bss-util/bss_util_c.h"
 #include <functional>
-#include "bss_algo.h"
+#include "bss-util/bss_algo.h"
 #include "test.h"
 
-using namespace bss_util;
+using namespace bss;
 
 template<typename CHAR>
 bool arbitrarycomp(const CHAR* l, const CHAR* r, ptrdiff_t n = -1)
@@ -68,22 +68,22 @@ TESTDEF::RETPAIR test_bss_util_c()
   BEGINTEST;
   //_MM_SET_DENORMALS_ZERO_MODE(_MM_DENORMALS_ZERO_ON);
   //int a=0;
-  //uint64_t prof = cHighPrecisionTimer::OpenProfiler();
+  //uint64_t prof = HighPrecisionTimer::OpenProfiler();
   //CPU_Barrier();
   //for(int i = 0; i < 1000000; ++i) {
   //  a+= bssRandInt(9,12);
   //}
   //CPU_Barrier();
-  //std::cout << cHighPrecisionTimer::CloseProfiler(prof) << " :( " << a << std::endl;
+  //std::cout << HighPrecisionTimer::CloseProfiler(prof) << " :( " << a << std::endl;
 
   //{
   //  float aaaa = 0;
-  //  uint64_t prof = cHighPrecisionTimer::OpenProfiler();
+  //  uint64_t prof = HighPrecisionTimer::OpenProfiler();
   //  CPU_Barrier();
   //  for(int i = 0; i < TESTNUM; ++i)
-  //    aaaa += bssfmod<float>(-1.0f, testnums[i]+PIf);
+  //    aaaa += bssFMod<float>(-1.0f, testnums[i]+PIf);
   //  CPU_Barrier();
-  //  std::cout << cHighPrecisionTimer::CloseProfiler(prof) << std::endl;
+  //  std::cout << HighPrecisionTimer::CloseProfiler(prof) << std::endl;
   //  std::cout << aaaa;
   //}
 

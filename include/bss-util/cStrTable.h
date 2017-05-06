@@ -4,30 +4,30 @@
 #ifndef __C_STR_TABLE_H__BSS__
 #define __C_STR_TABLE_H__BSS__
 
-//#include "bss_alloc.h"
-#include "bss_util.h"
-#include "cArray.h"
-#include "cStr.h"
+//#include "bss-util/bss_alloc.h"
+#include "bss-util/bss_util.h"
+#include "bss-util/Array.h"
+#include "bss-util/Str.h"
 #include <stdlib.h>
 #include <ostream>
 #include <istream>
 
-namespace bss_util {
+namespace bss {
   // Given a large array of strings (or a memory dump), assembles a single chunk of memory into a series of strings that can be accessed by index instantly
   template<typename T, typename CT_ = size_t>
-  class BSS_COMPILER_DLLEXPORT cStrTable
+  class BSS_COMPILER_DLLEXPORT StringTable
   {
   public:
     // Default Copy Constructor
-    inline cStrTable(const cStrTable& copy) : _strings(copy._strings), _indices(copy._indices) {}
-    inline cStrTable(cStrTable&& mov) : _strings(std::move(mov._strings)), _indices(std::move(mov._indices)) {}
+    inline StringTable(const StringTable& copy) : _strings(copy._strings), _indices(copy._indices) {}
+    inline StringTable(StringTable&& mov) : _strings(std::move(mov._strings)), _indices(std::move(mov._indices)) {}
     // Constructor for array with compile-time determined size
     template<CT_ N>
-    inline cStrTable(const T* (&strings)[N]) : _strings(0), _indices(0) { _construct(strings, N); }
+    inline StringTable(const T* (&strings)[N]) : _strings(0), _indices(0) { _construct(strings, N); }
     // Constructor with a null-terminated array of strings.
-    inline cStrTable(const T* const* strings, CT_ size) : _strings(0), _indices(0) { _construct(strings, size); }
+    inline StringTable(const T* const* strings, CT_ size) : _strings(0), _indices(0) { _construct(strings, size); }
     // Constructor from a stream that's a series of null terminated strings.
-    cStrTable(std::istream* stream, CT_ bytes) : _strings(0), _indices(0)
+    StringTable(std::istream* stream, CT_ bytes) : _strings(0), _indices(0)
     {
       if(!stream || !bytes)
         return;
@@ -47,7 +47,7 @@ namespace bss_util {
       }
     }
     // Destructor
-    inline ~cStrTable() {}
+    inline ~StringTable() {}
     // Gets number of strings in table (index cannot be greater then this)
     inline CT_ Length() const { return _indices.Capacity(); }
     // Gets total length of all strings
@@ -71,20 +71,20 @@ namespace bss_util {
     inline void DumpToStream(std::ostream* stream) { stream->write((const char*)_strings, _strings.Capacity() * sizeof(T)); }
 
     inline const T* operator[](CT_ index) { return GetString(index); }
-    inline cStrTable& operator=(const cStrTable& right)
+    inline StringTable& operator=(const StringTable& right)
     {
       _strings = right._strings;
       _indices = right._indices;
       return *this;
     }
-    inline cStrTable& operator=(cStrTable&& right)
+    inline StringTable& operator=(StringTable&& right)
     {
       _strings = std::move(right._strings);
       _indices = std::move(right._indices);
       return *this;
     }
 
-    inline cStrTable& operator+=(const cStrTable& right)
+    inline StringTable& operator+=(const StringTable& right)
     {
       CT_ byteadd = _strings.Capacity();
       CT_ i = _indices.Capacity(); //start at old value
@@ -95,8 +95,8 @@ namespace bss_util {
 
       return *this;
     }
-    inline cStrTable operator+(const cStrTable& right) { cStrTable retval(*this); return retval += right; }
-    inline cStrTable& operator+=(const char* right) { AppendString(right); return *this; }
+    inline StringTable operator+(const StringTable& right) { StringTable retval(*this); return retval += right; }
+    inline StringTable& operator+=(const char* right) { AppendString(right); return *this; }
 
   protected:
     void _construct(const T* const* strings, CT_ size)
@@ -124,8 +124,8 @@ namespace bss_util {
       }
     }
 
-    cArray<T, CT_> _strings;
-    cArray<CT_, CT_> _indices;
+    Array<T, CT_> _strings;
+    Array<CT_, CT_> _indices;
   };
 }
 

@@ -4,9 +4,9 @@
 #ifndef __BSS_FIXED_H__
 #define __BSS_FIXED_H__
 
-#include "bss_util.h"
+#include "bss-util/bss_util.h"
 
-namespace bss_util {
+namespace bss {
   template<typename T, T S, typename F>
   inline T fixedpt_conv(F f) { return (T)(f * ((T)1 << S)); }
   template<typename T, T S>
@@ -17,7 +17,7 @@ namespace bss_util {
   template<typename T, T S_X, T S_Y>
   inline T fixedpt_add(T x, T y) { return x + SAFESHIFT(y, S_X - S_Y); }
   template<typename T>
-  inline T fixedpt_mul(T x, T y, T S_Y) { return bssmultiplyextract<T>(x, y, S_Y); } // The result has a scaling factor of 2^S_X * 2^S_Y = 2^(S_X + S_Y). To convert this back into 2^S_X, we divide by 2^S_Y, which is equivilent to shifting right by S_Y
+  inline T fixedpt_mul(T x, T y, T S_Y) { return bssMultiplyExtract<T>(x, y, S_Y); } // The result has a scaling factor of 2^S_X * 2^S_Y = 2^(S_X + S_Y). To convert this back into 2^S_X, we divide by 2^S_Y, which is equivilent to shifting right by S_Y
   //inline T fixedpt_mul(T x, T y) { typedef typename BitLimit<sizeof(T) << 4>::SIGNED U; return ((U)x * (U)y) >> S_Y; }
   template<typename T> // Resulting decimal bits after this when T is a 32-bit int is 30 - S
   inline T fixedpt_recip(T x) { return ((T)1 << ((sizeof(T) << 3) - 2)) / x; }

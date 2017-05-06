@@ -1,17 +1,17 @@
 // Copyright ©2017 Black Sphere Studios
 // For conditions of distribution and use, see copyright notice in "bss_util.h"
 
-#include "cIDHash.h"
+#include "bss-util/IDHash.h"
 #include "test.h"
 
-using namespace bss_util;
+using namespace bss;
 
 TESTDEF::RETPAIR test_IDHASH()
 {
   BEGINTEST;
 
   {
-    cIDHash<int> hash(3);
+    IDHash<int> hash(3);
     TEST(hash.Length() == 0);
     TEST(hash.MaxID() == 0);
     uint32_t a = hash.Add(5);
@@ -35,18 +35,18 @@ TESTDEF::RETPAIR test_IDHASH()
     TEST(hash.MaxID() == 3);
     TEST(b == 1);
     TEST(hash[b] == 9);
-    cIDHash<int> hash2(hash);
+    IDHash<int> hash2(hash);
     TEST(hash2.Length() == 4);
     TEST(hash2.MaxID() == 3);
     TEST(hash2[b] == 9);
-    cIDHash<int> hash3(std::move(hash));
+    IDHash<int> hash3(std::move(hash));
     TEST(hash3.Length() == 4);
     TEST(hash3.MaxID() == 3);
     TEST(hash3[b] == 9);
   }
 
   {
-    cIDReverse<int, uint32_t, StaticAllocPolicy<int>, -1> hash;
+    IDReverse<int, uint32_t, StaticAllocPolicy<int>, -1> hash;
     uint32_t a = hash.Add(1);
     uint32_t b = hash.Add(2);
     uint32_t c = hash.Add(3);

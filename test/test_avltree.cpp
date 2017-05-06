@@ -1,12 +1,12 @@
 // Copyright ©2017 Black Sphere Studios
 // For conditions of distribution and use, see copyright notice in "bss_util.h"
 
-#include "cAVLtree.h"
-#include "bss_alloc_block.h"
-#include "bss_algo.h"
+#include "bss-util/cAVLtree.h"
+#include "bss-util/bss_alloc_block.h"
+#include "bss-util/bss_algo.h"
 #include "test.h"
 
-using namespace bss_util;
+using namespace bss;
 
 int avltestnum[8];
 BSS_FORCEINLINE bool AVLACTION(AVL_Node<int>* n) { static int c = 0; avltestnum[c++] = n->_key; return false; }
@@ -20,24 +20,24 @@ TESTDEF::RETPAIR test_AVLTREE()
   BlockPolicy<AVL_Node<std::pair<int, int>>> fixedavl;
   cAVLtree<int, int, CompT<int>, BlockPolicy<AVL_Node<std::pair<int, int>>>> avlblah(&fixedavl);
 
-  //uint64_t prof=cHighPrecisionTimer::OpenProfiler();
+  //uint64_t prof=HighPrecisionTimer::OpenProfiler();
   for(int i = 0; i<TESTNUM; ++i)
     avlblah.Insert(testnums[i], testnums[i]);
-  //std::cout << cHighPrecisionTimer::CloseProfiler(prof) << std::endl;
+  //std::cout << HighPrecisionTimer::CloseProfiler(prof) << std::endl;
 
   Shuffle(testnums);
-  //prof=cHighPrecisionTimer::OpenProfiler();
+  //prof=HighPrecisionTimer::OpenProfiler();
   uint32_t c = 0;
   for(int i = 0; i<TESTNUM; ++i)
     c += (avlblah.GetRef(testnums[i]) != 0);
   TEST(c == TESTNUM);
-  //std::cout << cHighPrecisionTimer::CloseProfiler(prof) << std::endl;
+  //std::cout << HighPrecisionTimer::CloseProfiler(prof) << std::endl;
 
   Shuffle(testnums);
-  //prof=cHighPrecisionTimer::OpenProfiler();
+  //prof=HighPrecisionTimer::OpenProfiler();
   for(int i = 0; i<TESTNUM; ++i)
     avlblah.Remove(testnums[i]);
-  //std::cout << cHighPrecisionTimer::CloseProfiler(prof) << std::endl;
+  //std::cout << HighPrecisionTimer::CloseProfiler(prof) << std::endl;
   avlblah.Clear();
 
   c = 0;
@@ -57,12 +57,12 @@ TESTDEF::RETPAIR test_AVLTREE()
   tree->Clear();
   delete tree;
 
-  //DEBUG_CDT_SAFE<false>::_testret=&__testret; // Set things up so we can ensure cAVLTree handles constructors/destructors properly.
+  //DEBUG_CDT_SAFE<false>::_testret=&__testret; // Set things up so we can ensure AVLTree handles constructors/destructors properly.
   DEBUG_CDT<false>::count = 0;
 
   {
     Shuffle(testnums);
-    cBlockAlloc<DEBUG_CDT<false>> dalloc(TESTNUM);
+    BlockAlloc<DEBUG_CDT<false>> dalloc(TESTNUM);
     typedef std::unique_ptr<DEBUG_CDT<false>, std::function<void(DEBUG_CDT<false>*)>> AVL_D;
     cAVLtree<int, AVL_D, CompT<int>, BlockPolicy<AVL_Node<std::pair<int, AVL_D>>>> dtree;
     for(int i = 0; i<TESTNUM; ++i)
@@ -108,24 +108,24 @@ TESTDEF::RETPAIR test_AVLTREE()
 
     cAVLtree<int, void, CompT<int>, BlockPolicy<AVL_Node<int>>> avlblah2;
 
-  //uint64_t prof=cHighPrecisionTimer::OpenProfiler();
+  //uint64_t prof=HighPrecisionTimer::OpenProfiler();
   for(int i = 0; i<TESTNUM; ++i)
     avlblah2.Insert(testnums[i]);
-  //std::cout << cHighPrecisionTimer::CloseProfiler(prof) << std::endl;
+  //std::cout << HighPrecisionTimer::CloseProfiler(prof) << std::endl;
 
   Shuffle(testnums);
-  //prof=cHighPrecisionTimer::OpenProfiler();
+  //prof=HighPrecisionTimer::OpenProfiler();
   c = 0;
   for(int i = 0; i<TESTNUM; ++i)
     c += ((avlblah2.GetRef(testnums[i]) != 0)&(avlblah2.Get(testnums[i], -1) == testnums[i]));
   TEST(c == TESTNUM);
-  //std::cout << cHighPrecisionTimer::CloseProfiler(prof) << std::endl;
+  //std::cout << HighPrecisionTimer::CloseProfiler(prof) << std::endl;
 
   Shuffle(testnums);
-  //prof=cHighPrecisionTimer::OpenProfiler();
+  //prof=HighPrecisionTimer::OpenProfiler();
   for(int i = 0; i<TESTNUM; ++i)
     avlblah2.Remove(testnums[i]);
-  //std::cout << cHighPrecisionTimer::CloseProfiler(prof) << std::endl;
+  //std::cout << HighPrecisionTimer::CloseProfiler(prof) << std::endl;
   avlblah2.Clear();
 
   avlblah2.Insert(1);

@@ -4,15 +4,15 @@
 #ifndef __C_FX_ENGINE_H__BSS__
 #define __C_FX_ENGINE_H__BSS__
 
-#include "cAnimation.h"
-#include "variant.h"
-#include "bss_alloc_block.h"
-#include "cLinkedArray.h"
+#include "bss-util/Animation.h"
+#include "Variant.h"
+#include "bss-util/bss_alloc_block.h"
+#include "bss-util/LinkedArray.h"
 
-namespace bss_util {
+namespace bss {
   // Holds an object instantiation and all the anistates that belong to it.
   template<typename FXMANAGER>
-  class cFXObject : public cAniState
+  class FXObject : public AniState
   {
     typedef typename FXMANAGER::OBJ_T OBJ;
     typedef typename FXMANAGER::ANI_T ANI;
@@ -22,13 +22,13 @@ namespace bss_util {
     {
       ANI* ani;
       double delay;
-      cAniState* state;
+      AniState* state;
       STATE* var;
     };
 
   public:
-    cFXObject(FXMANAGER* manager) : cAniState(0), _anistates(0), _length(0), _manager(manager) {}
-    virtual ~cFXObject() { Reset(); }
+    FXObject(FXMANAGER* manager) : AniState(0), _anistates(0), _length(0), _manager(manager) {}
+    virtual ~FXObject() { Reset(); }
 
     virtual bool Interpolate(double delta)
     {
@@ -43,7 +43,7 @@ namespace bss_util {
           else
           {
             p.var = _manager->SpawnState(_obj, *p.ani);
-            p.state = p.var->template convertP<cAniState>();
+            p.state = p.var->template convertP<AniState>();
             p.state->Interpolate(_time - p.delay);
           }
         }
@@ -59,11 +59,11 @@ namespace bss_util {
       {
         if(p.state != 0) // We HAVE to delete all of these even if they start at 0 because of the initialization value.
         {
-          p.state->~cAniState();
+          p.state->~AniState();
           _manager->DestroyState(p.var);
         }
       }
-      cAniState::Reset();
+      AniState::Reset();
     }
 
     OBJ& GetObject() { return _obj; }
@@ -87,16 +87,16 @@ namespace bss_util {
 
   protected:
     OBJ _obj;
-    cDynArray<AniRef> _anistates; // TODO: make this into a linked list so you can use a fixed-allocator for it.
+    DynArray<AniRef> _anistates; // TODO: make this into a linked list so you can use a fixed-allocator for it.
     FXMANAGER* _manager;
     double _length;
   };
 
   // Keeps track of persistant objects outside of their parent FX containers.
   template<typename OBJ, typename ANI, typename STATE, void MAP(ANI& ani, STATE& state, OBJ& obj)>
-  class cFXManager
+  class FXManager
   {
-    typedef BlockPolicy<cFXObject<cFXManager>> ALLOCOBJ;
+    typedef BlockPolicy<FXObject<FXManager>> ALLOCOBJ;
     typedef BlockPolicy<STATE> ALLOCSTATE;
 
   public:
@@ -105,7 +105,7 @@ namespace bss_util {
       InterpolateObjects(delta, _objs, _allocobj, _allocstate);
     }
 
-    static bool InterpolateObjects(double delta, cLinkedArray<cFXObject<cFXManager>*>& objs, ALLOCOBJ& allocobj, ALLOCSTATE& allocstate)
+    static bool InterpolateObjects(double delta, LinkedArray<FXObject<FXManager>*>& objs, ALLOCOBJ& allocobj, ALLOCSTATE& allocstate)
     {
       bool finish = true;
       for(size_t i = objs.Front(); i != -1; )
@@ -114,7 +114,7 @@ namespace bss_util {
         objs.Next(i);
         if(objs[hold]->Interpolate(delta))
         {
-          objs[hold]->~cFXObject<cFXManager>();
+          objs[hold]->~FXObject<FXManager>();
           allocobj.deallocate(objs[hold]);
           objs.Remove(hold);
         }
@@ -144,26 +144,26 @@ namespace bss_util {
   protected:
     ALLOCOBJ _allocobj;
     ALLOCSTATE _allocstate;
-    cLinkedArray<cFXObject<cFXManager>*> _objs; // A linked array is used to keep track of the objects in O(1) time.
+    LinkedArray<FXObject<FXManager>*> _objs; // A linked array is used to keep track of the objects in O(1) time.
   };
 
-  // DEF is a variant of object definitions (can be more than the objects, because multiple definitions can spawn the same object)
-  // OBJ is a variant of all instantiated objects
+  // DEF is a Variant of object definitions (can be more than the objects, because multiple definitions can spawn the same object)
+  // OBJ is a Variant of all instantiated objects
   // Use CREATE to spawn an object from a definition
-  // Ani is a variant of all possible animations used
-  // MAP maps from all animations to all object types and is used to create the delegate needed to create the state object.
+  // Ani is a Variant of all possible animations used
+  // MAP maps from all animations to all object types and is used to create the Delegate needed to create the state object.
   // TODO: Use an actual linked list object spawned via a fixed-size allocator for animation objects to avoid memory allocation
   template<typename DEF, typename OBJ, double CREATE(const DEF& def, OBJ& obj), typename ANI, typename STATE, void MAP(ANI& ani, STATE& state, OBJ& obj)>
-  class cFXAni : public cAniBase
+  class FXAni : public AniBase
   {
   public:
-    typedef cFXManager<OBJ, ANI, STATE, MAP> FXMANAGER;
+    typedef FXManager<OBJ, ANI, STATE, MAP> FXMANAGER;
 
-    cFXAni(FXMANAGER* manager) : _manager(manager), cAniBase(sizeof(Def)) {}
+    FXAni(FXMANAGER* manager) : _manager(manager), AniBase(sizeof(Def)) {}
     template<typename T, typename D, ARRAY_TYPE ArrayType = CARRAY_SAFE>
-    size_t AddAnimation(const cAniFrame<T, D>* src, uint32_t len, typename cAnimation<T, D>::FUNC f = 0)
+    size_t AddAnimation(const AniFrame<T, D>* src, uint32_t len, typename Animation<T, D>::FUNC f = 0)
     {
-      return _animations.AddConstruct(cAnimation<T, D, ArrayType>(src, len, f));
+      return _animations.AddConstruct(Animation<T, D, ArrayType>(src, len, f));
     }
     template<typename T>
     size_t AddAnimation(T && ani)
@@ -183,14 +183,14 @@ namespace bss_util {
     virtual uint32_t GetSize() const { return (uint32_t)_defs.Length(); }
     virtual const void* GetArray() const { return _defs.begin(); }
     virtual void* GetFunc() const { return 0; }
-    virtual cAniBase* Clone() const { return new cFXAni(*this); }
+    virtual AniBase* Clone() const { return new FXAni(*this); }
     FXMANAGER* GetManager() const { return _manager; }
 
-    cFXObject<FXMANAGER>* CreateFXObj(size_t def, double time)
+    FXObject<FXMANAGER>* CreateFXObj(size_t def, double time)
     {
       Def& d = _defs[def];
-      cFXObject<FXMANAGER>* r = _manager->GetAllocObj().allocate(1);
-      new (r) cFXObject<FXMANAGER>(_manager); // since OBJ is a variant it doesn't matter that it gets instantiated here
+      FXObject<FXMANAGER>* r = _manager->GetAllocObj().allocate(1);
+      new (r) FXObject<FXMANAGER>(_manager); // since OBJ is a Variant it doesn't matter that it gets instantiated here
       r->SetLength(CREATE(d.def, r->GetObject()));
 
       AniMap* p = std::lower_bound<AniMap*, size_t>(_mapping.begin(), _mapping.end(), def, &AniMap::CompL);
@@ -229,24 +229,24 @@ namespace bss_util {
       static BSS_FORCEINLINE bool CompL(const AniMap& left, size_t right) { return left.objID < right; }
     };
 
-    cDynArray<Def, size_t, CARRAY_SAFE> _defs;
-    cDynArray<ANI, size_t, CARRAY_SAFE> _animations;
-    cArraySort<AniMap, &AniMap::Comp> _mapping;
+    DynArray<Def, size_t, CARRAY_SAFE> _defs;
+    DynArray<ANI, size_t, CARRAY_SAFE> _animations;
+    ArraySort<AniMap, &AniMap::Comp> _mapping;
     FXMANAGER* _manager;
   };
 
   // If objects are not set to persist, they will be destroyed upon restarting.
   template<typename FXANI>
-  class cFXAniState : public cAniState
+  class FXAniState : public AniState
   {
   public:
     typedef typename FXANI::Def Def;
     typedef typename FXANI::DEF_T DEF;
     typedef typename FXANI::OBJ_T OBJ;
-    typedef cFXObject<typename FXANI::FXMANAGER> FXOBJ;
+    typedef FXObject<typename FXANI::FXMANAGER> FXOBJ;
 
-    cFXAniState(cAniBase* base) : cAniState(base) {}
-    virtual ~cFXAniState() { Reset(); }
+    FXAniState(AniBase* base) : AniState(base) {}
+    virtual ~FXAniState() { Reset(); }
     virtual bool Interpolate(double delta)
     {
       FXANI* fxani = static_cast<FXANI*>(_ani);
@@ -269,11 +269,11 @@ namespace bss_util {
         p->~FXOBJ();
         ((FXANI*)_ani)->GetManager()->GetAllocObj().deallocate(p);
       }
-      cAniState::Reset();
+      AniState::Reset();
     }
 
   protected:
-    cLinkedArray<FXOBJ*> _objs;
+    LinkedArray<FXOBJ*> _objs;
   };
 }
 

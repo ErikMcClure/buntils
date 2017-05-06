@@ -4,9 +4,9 @@
 #ifndef __PROFILER_H__BSS__
 #define __PROFILER_H__BSS__
 
-#include "cHighPrecisionTimer.h"
-#include "cArray.h"
-#include "bss_alloc_block.h"
+#include "bss-util/HighPrecisionTimer.h"
+#include "bss-util/Array.h"
+#include "bss-util/bss_alloc_block.h"
 #include <cmath>
 
 #ifndef BSS_ENABLE_PROFILER
@@ -16,18 +16,18 @@
 #define PROFILE_FUNC()
 #define PROFILE_OUTPUT(file,output)
 #else
-#define __PROFILE_STATBLOCK(name,str) static bss_util::Profiler::ProfilerData PROFDATA_##name(str,__FILE__,__LINE__)
-#define __PROFILE_ZONE(name) bss_util::ProfilerBlock BLOCK_##name(PROFDATA_##name .id, bss_util::Profiler::profiler.GetCur())
-#define PROFILE_BEGIN(name) __PROFILE_STATBLOCK(name, MAKESTRING(name)); PROF_TRIENODE* PROFCACHE_##name = bss_util::Profiler::profiler.GetCur(); uint64_t PROFTIME_##name = bss_util::Profiler::profiler.StartProfile(PROFDATA_##name .id)
-#define PROFILE_END(name) bss_util::Profiler::profiler.EndProfile(PROFTIME_##name, PROFCACHE_##name)
+#define __PROFILE_STATBLOCK(name,str) static bss::Profiler::ProfilerData PROFDATA_##name(str,__FILE__,__LINE__)
+#define __PROFILE_ZONE(name) bss::ProfilerBlock BLOCK_##name(PROFDATA_##name .id, bss::Profiler::profiler.GetCur())
+#define PROFILE_BEGIN(name) __PROFILE_STATBLOCK(name, MAKESTRING(name)); PROF_TRIENODE* PROFCACHE_##name = bss::Profiler::profiler.GetCur(); uint64_t PROFTIME_##name = bss::Profiler::profiler.StartProfile(PROFDATA_##name .id)
+#define PROFILE_END(name) bss::Profiler::profiler.EndProfile(PROFTIME_##name, PROFCACHE_##name)
 #define PROFILE_BLOCK(name) __PROFILE_STATBLOCK(name, MAKESTRING(name)); __PROFILE_ZONE(name);
 #define PROFILE_FUNC() __PROFILE_STATBLOCK(func, __FUNCTION__); __PROFILE_ZONE(func)
-#define PROFILE_OUTPUT(file,output) bss_util::Profiler::profiler.WriteToFile(file,output)
+#define PROFILE_OUTPUT(file,output) bss::Profiler::profiler.WriteToFile(file,output)
 #endif
 
 typedef uint16_t PROFILER_INT;
 
-namespace bss_util {
+namespace bss {
   struct PROF_HEATNODE;
   struct PROF_FLATOUT;
 
@@ -60,20 +60,20 @@ namespace bss_util {
         r = &(*r)->_children[id % 16];
         id = (id >> 4);
         if(!*r)
-          *r = _allocnode();
+          *r = _allocNode();
       }
       _cur = *r;
       if(_cur->total == (uint64_t)-1)
         _cur->total = 0;
       _cur->inner = 0;
-      return cHighPrecisionTimer::OpenProfiler();
+      return HighPrecisionTimer::OpenProfiler();
     }
     BSS_FORCEINLINE void EndProfile(uint64_t time, PROF_TRIENODE* old)
     {
-      time = cHighPrecisionTimer::CloseProfiler(time);
-      //bssvariance<double, uint64_t>(_cur->variance, _cur->avg, (double)time, ++_cur->total);
-      _cur->avg = bssavg<double, uint64_t>(_cur->avg, (double)time, ++_cur->total);
-      _cur->codeavg = bssavg<double, uint64_t>(_cur->codeavg, (double)(time - _cur->inner), _cur->total);
+      time = HighPrecisionTimer::CloseProfiler(time);
+      //bssVariance<double, uint64_t>(_cur->variance, _cur->avg, (double)time, ++_cur->total);
+      _cur->avg = bssAvg<double, uint64_t>(_cur->avg, (double)time, ++_cur->total);
+      _cur->codeavg = bssAvg<double, uint64_t>(_cur->codeavg, (double)(time - _cur->inner), _cur->total);
       _cur = old;
       _cur->inner += time;
     }
@@ -89,7 +89,7 @@ namespace bss_util {
 
   private:
     Profiler();
-    PROF_TRIENODE* _allocnode();
+    PROF_TRIENODE* _allocNode();
     void _treeout(std::ostream& stream, PROF_TRIENODE* node, PROFILER_INT id, uint32_t level, PROFILER_INT idlevel);
     void _heatout(PROF_HEATNODE& heat, PROF_TRIENODE* node, PROFILER_INT id, PROFILER_INT idlevel);
     void _heatwrite(std::ostream& stream, PROF_HEATNODE& node, uint32_t level, double max);
@@ -99,10 +99,10 @@ namespace bss_util {
     static void _timeformat(std::ostream& stream, double avg, double variance, uint64_t num);
     static PROFILER_INT total;
 
-    cArray<ProfilerData*, PROFILER_INT> _data;
+    Array<ProfilerData*, PROFILER_INT> _data;
     PROF_TRIENODE* _trie;
     PROF_TRIENODE* _cur;
-    cBlockAlloc<PROF_TRIENODE> _alloc;
+    BlockAlloc<PROF_TRIENODE> _alloc;
     uint32_t _totalnodes;
   };
 

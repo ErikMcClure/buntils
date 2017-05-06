@@ -4,28 +4,28 @@
 #ifndef __C_UBJSON_H__BSS__
 #define __C_UBJSON_H__BSS__
 
-#include "cDynArray.h"
-#include "cStr.h"
-#include "bss_util.h"
-#include "variant.h"
-#include "cSerializer.h"
+#include "bss-util/DynArray.h"
+#include "bss-util/Str.h"
+#include "bss-util/bss_util.h"
+#include "Variant.h"
+#include "bss-util/Serializer.h"
 #include <sstream>
 #include <istream>
 #include <ostream>
 #include <limits>
 
-namespace bss_util {
+namespace bss {
   class UBJSONEngine
   {
   public:
     UBJSONEngine() : type(0), endobject(false) {}
     static constexpr bool Ordered() { return false; }
     template<typename T>
-    static void Serialize(cSerializer<UBJSONEngine>& e, const T& t, const char* id);
+    static void Serialize(Serializer<UBJSONEngine>& e, const T& t, const char* id);
     template<typename T>
-    static void Parse(cSerializer<UBJSONEngine>& e, T& t, const char* id);
+    static void Parse(Serializer<UBJSONEngine>& e, T& t, const char* id);
     template<typename... Args>
-    static void ParseMany(cSerializer<UBJSONEngine>& e, const cTrie<uint16_t>& t, std::tuple<Args...>& args);
+    static void ParseMany(Serializer<UBJSONEngine>& e, const Trie<uint16_t>& t, std::tuple<Args...>& args);
 
     char type;
     bool endobject;
@@ -78,14 +78,14 @@ namespace bss_util {
   };
 
   template<class T>
-  inline void ParseUBJSONBase(cSerializer<UBJSONEngine>& e, T& obj, std::istream& s, char type);
+  inline void ParseUBJSONBase(Serializer<UBJSONEngine>& e, T& obj, std::istream& s, char type);
 
   struct UBJSONValue;
   template<>
-  inline void ParseUBJSONBase<UBJSONValue>(cSerializer<UBJSONEngine>& e, UBJSONValue& obj, std::istream& s, char type);
+  inline void ParseUBJSONBase<UBJSONValue>(Serializer<UBJSONEngine>& e, UBJSONValue& obj, std::istream& s, char type);
 
   template<class T>
-  inline void WriteUBJSONBase(cSerializer<UBJSONEngine>& e, const char* id, const T& obj, std::ostream& s, char type);
+  inline void WriteUBJSONBase(Serializer<UBJSONEngine>& e, const char* id, const T& obj, std::ostream& s, char type);
 
   template<class T>
   inline T ParseUBJSONInteger(std::istream& s)
@@ -93,7 +93,7 @@ namespace bss_util {
     T v;
     s.read((char*)&v, sizeof(T));
 #ifdef BSS_ENDIAN_LITTLE
-    flipendian<T>(&v);
+    FlipEndian<T>(&v);
 #endif
     return v;
   }
@@ -141,14 +141,14 @@ namespace bss_util {
   }
 
   template<class F>
-  inline void ParseUBJSONObj(cSerializer<UBJSONEngine>& e, char ty, F f)
+  inline void ParseUBJSONObj(Serializer<UBJSONEngine>& e, char ty, F f)
   {
     std::istream& s = *e.in;
     if(ty != 0 && ty != UBJSONTuple::TYPE_OBJECT) // Sanity check
       throw std::runtime_error("Expecting a type other than object in the object parsing function!");
     if(!ty && (s.get() != UBJSONTuple::TYPE_OBJECT))
       throw std::runtime_error("Expected object, found invalid character");
-    cStr buf;
+    Str buf;
     char backup = e.engine.type;
     e.engine.type = 0;
     int64_t count = ParseUBJSONTypeCount(s, e.engine.type);
@@ -166,7 +166,7 @@ namespace bss_util {
   }
 
   template<typename... Args>
-  inline const char GetUBJSONVariantType(const variant<Args...>& v);
+  inline const char GetUBJSONVariantType(const Variant<Args...>& v);
 
   template<class T, class BASE>
   struct __UBJSONValue_conv
@@ -187,12 +187,12 @@ namespace bss_util {
     inline static constexpr const BASE&& f(std::remove_reference<const UBJSONValue>::type&& r) { return (static_cast<const BASE&&>(r)); }
   };
 
-  struct UBJSONValue : variant<cStr, bool, uint8_t, char, int16_t, int32_t, int64_t, float, double, cDynArray<UBJSONValue, size_t, CARRAY_SAFE>, cDynArray<std::pair<cStr, UBJSONValue>, size_t, CARRAY_SAFE>, cDynArray<uint8_t, size_t>>
+  struct UBJSONValue : Variant<Str, bool, uint8_t, char, int16_t, int32_t, int64_t, float, double, DynArray<UBJSONValue, size_t, CARRAY_SAFE>, DynArray<std::pair<Str, UBJSONValue>, size_t, CARRAY_SAFE>, DynArray<uint8_t, size_t>>
   {
-    typedef cDynArray<UBJSONValue, size_t, CARRAY_SAFE> UBJSONArray;
-    typedef cDynArray<std::pair<cStr, UBJSONValue>, size_t, CARRAY_SAFE> UBJSONObject;
-    typedef cDynArray<uint8_t, size_t> UBJSONBinary;
-    typedef variant<cStr, bool, uint8_t, char, int16_t, int32_t, int64_t, float, double, UBJSONArray, UBJSONObject, UBJSONBinary> BASE;
+    typedef DynArray<UBJSONValue, size_t, CARRAY_SAFE> UBJSONArray;
+    typedef DynArray<std::pair<Str, UBJSONValue>, size_t, CARRAY_SAFE> UBJSONObject;
+    typedef DynArray<uint8_t, size_t> UBJSONBinary;
+    typedef Variant<Str, bool, uint8_t, char, int16_t, int32_t, int64_t, float, double, UBJSONArray, UBJSONObject, UBJSONBinary> BASE;
 
   public:
     UBJSONValue() : BASE() {}
@@ -211,7 +211,7 @@ namespace bss_util {
     BASE& operator=(T&& right) { BASE::operator=(__UBJSONValue_conv<T, BASE>::f(right)); return *this; }
 
     template<typename Engine>
-    void Serialize(cSerializer<Engine>& e)
+    void Serialize(Serializer<Engine>& e)
     {
       assert(is<UBJSONObject>());
       if(e.out)
@@ -244,7 +244,7 @@ namespace bss_util {
   inline void WriteUBJSONInteger(T v, std::ostream& s)
   {
 #ifdef BSS_ENDIAN_LITTLE
-    flipendian<T>(&v);
+    FlipEndian<T>(&v);
 #endif
     s.write((char*)&v, sizeof(T));
   }
@@ -293,13 +293,13 @@ namespace bss_util {
   template<class T, bool B>
   struct ParseUBJSONInternal
   {
-    static void F(cSerializer<UBJSONEngine>& e, T& obj, std::istream& s, char ty) { char backup = e.engine.type; e.engine.type = ty; obj.template Serialize<UBJSONEngine>(e); e.engine.type = backup; }
+    static void F(Serializer<UBJSONEngine>& e, T& obj, std::istream& s, char ty) { char backup = e.engine.type; e.engine.type = ty; obj.template Serialize<UBJSONEngine>(e); e.engine.type = backup; }
   };
 
   template<class T>
   struct ParseUBJSONInternal<T, true>
   {
-    static void F(cSerializer<UBJSONEngine>& e, T& obj, std::istream& s, char type)
+    static void F(Serializer<UBJSONEngine>& e, T& obj, std::istream& s, char type)
     {
       UBJSONTuple tuple;
       ParseUBJSONValue(tuple, s, type);
@@ -323,7 +323,7 @@ namespace bss_util {
   };
 
   template<class T>
-  inline void ParseUBJSONArray(cSerializer<UBJSONEngine>& e, T& obj, std::istream& s, char ty)
+  inline void ParseUBJSONArray(Serializer<UBJSONEngine>& e, T& obj, std::istream& s, char ty)
   {
     if(ty != 0 && ty != UBJSONTuple::TYPE_ARRAY) // Sanity check
       throw std::runtime_error("Expecting a type other than array in the array parsing function!");
@@ -346,7 +346,7 @@ namespace bss_util {
   template<class T, int I, bool B>
   struct ParseUBJSONInternal<T[I], B>
   {
-    static inline bool DoBulkRead(cSerializer<UBJSONEngine>& e, T(&obj)[I], std::istream& s, int64_t count, char ty)
+    static inline bool DoBulkRead(Serializer<UBJSONEngine>& e, T(&obj)[I], std::istream& s, int64_t count, char ty)
     {
       if((ty != UBJSONTuple::TYPE_CHAR && ty != UBJSONTuple::TYPE_UINT8 && ty != UBJSONTuple::TYPE_INT8) || count != (I * sizeof(T)))
         return false;
@@ -354,14 +354,14 @@ namespace bss_util {
       s.read((char*)obj, count);
       return true;
     }
-    static inline void DoAddCall(cSerializer<UBJSONEngine>& e, T(&obj)[I], std::istream& s, int64_t& n, char ty) { if(n < I) ParseUBJSONBase<T>(e, obj[n++], s, ty); }
-    static void F(cSerializer<UBJSONEngine>& e, T(&obj)[I], std::istream& s, char ty) { ParseUBJSONArray<T[I]>(e, obj, s, ty); }
+    static inline void DoAddCall(Serializer<UBJSONEngine>& e, T(&obj)[I], std::istream& s, int64_t& n, char ty) { if(n < I) ParseUBJSONBase<T>(e, obj[n++], s, ty); }
+    static void F(Serializer<UBJSONEngine>& e, T(&obj)[I], std::istream& s, char ty) { ParseUBJSONArray<T[I]>(e, obj, s, ty); }
   };
 
   template<class T, typename CType, ARRAY_TYPE ArrayType, typename Alloc>
-  struct ParseUBJSONInternal<cDynArray<T, CType, ArrayType, Alloc>, false>
+  struct ParseUBJSONInternal<DynArray<T, CType, ArrayType, Alloc>, false>
   {
-    static inline bool DoBulkRead(cSerializer<UBJSONEngine>& e, cDynArray<T, CType, ArrayType, Alloc>& obj, std::istream& s, int64_t count, char ty)
+    static inline bool DoBulkRead(Serializer<UBJSONEngine>& e, DynArray<T, CType, ArrayType, Alloc>& obj, std::istream& s, int64_t count, char ty)
     {
       if((ty != UBJSONTuple::TYPE_CHAR && ty != UBJSONTuple::TYPE_UINT8 && ty != UBJSONTuple::TYPE_INT8) || count % sizeof(T) != 0)
         return false;
@@ -370,30 +370,30 @@ namespace bss_util {
       s.read((char*)(T*)obj, count);
       return true;
     }
-    static inline void DoAddCall(cSerializer<UBJSONEngine>& e, cDynArray<T, CType, ArrayType, Alloc>& obj, std::istream& s, int64_t& n, char ty) { obj.AddConstruct(); ParseUBJSONBase<T>(e, obj.Back(), s, ty); }
-    static void F(cSerializer<UBJSONEngine>& e, cDynArray<T, CType, ArrayType, Alloc>& obj, std::istream& s, char ty)
+    static inline void DoAddCall(Serializer<UBJSONEngine>& e, DynArray<T, CType, ArrayType, Alloc>& obj, std::istream& s, int64_t& n, char ty) { obj.AddConstruct(); ParseUBJSONBase<T>(e, obj.Back(), s, ty); }
+    static void F(Serializer<UBJSONEngine>& e, DynArray<T, CType, ArrayType, Alloc>& obj, std::istream& s, char ty)
     {
       obj.Clear();
-      ParseUBJSONArray<cDynArray<T, CType, ArrayType, Alloc>>(e, obj, s, ty);
+      ParseUBJSONArray<DynArray<T, CType, ArrayType, Alloc>>(e, obj, s, ty);
     }
   };
 
   template<typename CType, ARRAY_TYPE ArrayType, typename Alloc>
-  struct ParseUBJSONInternal<cDynArray<bool, CType, ArrayType, Alloc>, false>
+  struct ParseUBJSONInternal<DynArray<bool, CType, ArrayType, Alloc>, false>
   {
-    static inline bool DoBulkRead(cSerializer<UBJSONEngine>& e, cDynArray<bool, CType, ArrayType, Alloc>& obj, std::istream& s, int64_t count, char ty) { return false; }
-    static inline void DoAddCall(cSerializer<UBJSONEngine>& e, cDynArray<bool, CType, ArrayType, Alloc>& obj, std::istream& s, int64_t& n, char ty) { bool b; ParseUBJSONBase<bool>(e, b, s, ty); obj.Add(b); }
-    static void F(cSerializer<UBJSONEngine>& e, cDynArray<bool, CType, ArrayType, Alloc>& obj, std::istream& s, char ty)
+    static inline bool DoBulkRead(Serializer<UBJSONEngine>& e, DynArray<bool, CType, ArrayType, Alloc>& obj, std::istream& s, int64_t count, char ty) { return false; }
+    static inline void DoAddCall(Serializer<UBJSONEngine>& e, DynArray<bool, CType, ArrayType, Alloc>& obj, std::istream& s, int64_t& n, char ty) { bool b; ParseUBJSONBase<bool>(e, b, s, ty); obj.Add(b); }
+    static void F(Serializer<UBJSONEngine>& e, DynArray<bool, CType, ArrayType, Alloc>& obj, std::istream& s, char ty)
     {
       obj.Clear();
-      ParseUBJSONArray<cDynArray<bool, CType, ArrayType, Alloc>>(e, obj, s, ty);
+      ParseUBJSONArray<DynArray<bool, CType, ArrayType, Alloc>>(e, obj, s, ty);
     }
   };
 
   template<class T, typename Alloc>
   struct ParseUBJSONInternal<std::vector<T, Alloc>, false>
   {
-    static inline bool DoBulkRead(cSerializer<UBJSONEngine>& e, std::vector<T, Alloc>& obj, std::istream& s, int64_t count, char ty)
+    static inline bool DoBulkRead(Serializer<UBJSONEngine>& e, std::vector<T, Alloc>& obj, std::istream& s, int64_t count, char ty)
     {
       if((ty != UBJSONTuple::TYPE_CHAR && ty != UBJSONTuple::TYPE_UINT8 && ty != UBJSONTuple::TYPE_INT8) || count % sizeof(T) != 0)
         return false;
@@ -402,8 +402,8 @@ namespace bss_util {
       s.read((char*)obj.data(), count);
       return true;
     }
-    static inline void DoAddCall(cSerializer<UBJSONEngine>& e, std::vector<T, Alloc>& obj, std::istream& s, int64_t& n, char ty) { obj.push_back(T()); ParseUBJSONBase<T>(e, obj.back(), s, ty); }
-    static void F(cSerializer<UBJSONEngine>& e, std::vector<T, Alloc>& obj, std::istream& s, char ty)
+    static inline void DoAddCall(Serializer<UBJSONEngine>& e, std::vector<T, Alloc>& obj, std::istream& s, int64_t& n, char ty) { obj.push_back(T()); ParseUBJSONBase<T>(e, obj.back(), s, ty); }
+    static void F(Serializer<UBJSONEngine>& e, std::vector<T, Alloc>& obj, std::istream& s, char ty)
     {
       obj.clear();
       ParseUBJSONArray<std::vector<T, Alloc>>(e, obj, s, ty);
@@ -413,19 +413,19 @@ namespace bss_util {
   template<>
   struct ParseUBJSONInternal<UBJSONValue::UBJSONArray, false>
   {
-    static inline bool DoBulkRead(cSerializer<UBJSONEngine>& e, UBJSONValue::UBJSONArray& obj, std::istream& s, int64_t count, char ty) { return false; }
-    static inline void DoAddCall(cSerializer<UBJSONEngine>& e, UBJSONValue::UBJSONArray& obj, std::istream& s, int64_t& n, char ty) { obj.SetLength(obj.Length() + 1); ParseUBJSONBase<UBJSONValue>(e, obj.Back(), s, ty); }
-    static void F(cSerializer<UBJSONEngine>& e, UBJSONValue::UBJSONArray& obj, std::istream& s, char ty) { ParseUBJSONArray<UBJSONValue::UBJSONArray>(e, obj, s, ty); }
+    static inline bool DoBulkRead(Serializer<UBJSONEngine>& e, UBJSONValue::UBJSONArray& obj, std::istream& s, int64_t count, char ty) { return false; }
+    static inline void DoAddCall(Serializer<UBJSONEngine>& e, UBJSONValue::UBJSONArray& obj, std::istream& s, int64_t& n, char ty) { obj.SetLength(obj.Length() + 1); ParseUBJSONBase<UBJSONValue>(e, obj.Back(), s, ty); }
+    static void F(Serializer<UBJSONEngine>& e, UBJSONValue::UBJSONArray& obj, std::istream& s, char ty) { ParseUBJSONArray<UBJSONValue::UBJSONArray>(e, obj, s, ty); }
   };
 
   template<>
   struct ParseUBJSONInternal<UBJSONValue::UBJSONObject, false>
   {
-    static void F(cSerializer<UBJSONEngine>& e, UBJSONValue::UBJSONObject& obj, std::istream& s, char ty)
+    static void F(Serializer<UBJSONEngine>& e, UBJSONValue::UBJSONObject& obj, std::istream& s, char ty)
     {
       ty = ty;
-      ParseUBJSONObj(e, ty, [&obj, &s](cSerializer<UBJSONEngine>& e, const char* id) {
-        std::pair<cStr, UBJSONValue> pair;
+      ParseUBJSONObj(e, ty, [&obj, &s](Serializer<UBJSONEngine>& e, const char* id) {
+        std::pair<Str, UBJSONValue> pair;
         pair.first = id;
         ParseUBJSONBase<UBJSONValue>(e, pair.second, s, e.engine.type);
         obj.Add(pair);
@@ -434,10 +434,10 @@ namespace bss_util {
   };
 
   template<class T>
-  inline void ParseUBJSONBase(cSerializer<UBJSONEngine>& e, T& obj, std::istream& s, char type) { ParseUBJSONInternal<T, std::is_arithmetic<T>::value>::F(e, obj, s, type); }
+  inline void ParseUBJSONBase(Serializer<UBJSONEngine>& e, T& obj, std::istream& s, char type) { ParseUBJSONInternal<T, std::is_arithmetic<T>::value>::F(e, obj, s, type); }
 
   template<>
-  inline void ParseUBJSONBase<std::string>(cSerializer<UBJSONEngine>& e, std::string& obj, std::istream& s, char type)
+  inline void ParseUBJSONBase<std::string>(Serializer<UBJSONEngine>& e, std::string& obj, std::istream& s, char type)
   {
     UBJSONTuple tuple;
     ParseUBJSONValue(tuple, s, type);
@@ -461,10 +461,10 @@ namespace bss_util {
   }
 
   template<>
-  inline void ParseUBJSONBase<cStr>(cSerializer<UBJSONEngine>& e, cStr& obj, std::istream& s, char type) { ParseUBJSONBase<std::string>(e, obj, s, type); }
+  inline void ParseUBJSONBase<Str>(Serializer<UBJSONEngine>& e, Str& obj, std::istream& s, char type) { ParseUBJSONBase<std::string>(e, obj, s, type); }
 
   template<>
-  inline void ParseUBJSONBase<UBJSONValue>(cSerializer<UBJSONEngine>& e, UBJSONValue& obj, std::istream& s, char type)
+  inline void ParseUBJSONBase<UBJSONValue>(Serializer<UBJSONEngine>& e, UBJSONValue& obj, std::istream& s, char type)
   {
     UBJSONTuple tuple;
     ParseUBJSONValue(tuple, s, type);
@@ -493,7 +493,7 @@ namespace bss_util {
     case UBJSONTuple::TYPE_DOUBLE: obj = tuple.Double; break;
     case UBJSONTuple::TYPE_BIGNUM:
     case UBJSONTuple::TYPE_STRING:
-      obj = cStr(tuple.String);
+      obj = Str(tuple.String);
       break;
     }
   }
@@ -501,15 +501,15 @@ namespace bss_util {
   template<class T>
   inline void ParseUBJSON(T& obj, std::istream& s)
   {
-    cSerializer<UBJSONEngine> e;
+    Serializer<UBJSONEngine> e;
     e.Parse<T>(obj, s);
   }
 
   template<class T>
-  inline void WriteUBJSONBase(cSerializer<UBJSONEngine>& e, const T& obj, std::ostream& s, char type = 0);
+  inline void WriteUBJSONBase(Serializer<UBJSONEngine>& e, const T& obj, std::ostream& s, char type = 0);
 
   template<class T>
-  void WriteUBJSONObject(cSerializer<UBJSONEngine>& e, const T& obj, std::ostream& s, char ty)
+  void WriteUBJSONObject(Serializer<UBJSONEngine>& e, const T& obj, std::ostream& s, char ty)
   {
     if(ty != 0 && ty != UBJSONTuple::TYPE_OBJECT) // Sanity check
       throw std::runtime_error("Expecting a type other than object in the object serializing function!");
@@ -524,7 +524,7 @@ namespace bss_util {
   template<class T, bool B>
   struct WriteUBJSONInternal
   {
-    static void F(cSerializer<UBJSONEngine>& e, const T& obj, std::ostream& s, char ty) { WriteUBJSONObject<T>(e, obj, s, ty); }
+    static void F(Serializer<UBJSONEngine>& e, const T& obj, std::ostream& s, char ty) { WriteUBJSONObject<T>(e, obj, s, ty); }
   };
 
   template<class T, typename FROM>
@@ -543,7 +543,7 @@ namespace bss_util {
   template<class T>
   struct WriteUBJSONInternal<T, true>
   {
-    static void F(cSerializer<UBJSONEngine>& e, const T& obj, std::ostream& s, char type)
+    static void F(Serializer<UBJSONEngine>& e, const T& obj, std::ostream& s, char type)
     {
       switch(type)
       {
@@ -580,9 +580,9 @@ namespace bss_util {
   template<> struct WriteUBJSONType<double> { static const char t = UBJSONTuple::TYPE_DOUBLE; };
   template<> struct WriteUBJSONType<const char*> { static const char t = UBJSONTuple::TYPE_STRING; };
   template<> struct WriteUBJSONType<std::string> { static const char t = UBJSONTuple::TYPE_STRING; };
-  template<> struct WriteUBJSONType<cStr> { static const char t = UBJSONTuple::TYPE_STRING; };
+  template<> struct WriteUBJSONType<Str> { static const char t = UBJSONTuple::TYPE_STRING; };
   template<class T, typename CType, ARRAY_TYPE ArrayType, typename Alloc>
-  struct WriteUBJSONType<cDynArray<T, CType, ArrayType, Alloc>> { static const char t = UBJSONTuple::TYPE_ARRAY; };
+  struct WriteUBJSONType<DynArray<T, CType, ArrayType, Alloc>> { static const char t = UBJSONTuple::TYPE_ARRAY; };
   template<class T, typename Alloc>
   struct WriteUBJSONType<std::vector<T, Alloc>> { static const char t = UBJSONTuple::TYPE_ARRAY; };
   template<class T, int I> struct WriteUBJSONType<T[I]> { static const char t = UBJSONTuple::TYPE_ARRAY; };
@@ -609,10 +609,10 @@ namespace bss_util {
   };
 
   template<typename... Args>
-  inline const char GetUBJSONVariantType(const variant<Args...>& v) { return __UBJSONVariantType<variant<Args...>, Args...>::F(v); }
+  inline const char GetUBJSONVariantType(const Variant<Args...>& v) { return __UBJSONVariantType<Variant<Args...>, Args...>::F(v); }
 
   template<class E, class T>
-  inline void WriteUBJSONArray(cSerializer<UBJSONEngine>& e, T obj, const char* data, size_t size, std::ostream& s, char type)
+  inline void WriteUBJSONArray(Serializer<UBJSONEngine>& e, T obj, const char* data, size_t size, std::ostream& s, char type)
   {
     if(!size) // It's more efficient to skip type/length information for zero length arrays.
     {
@@ -638,7 +638,7 @@ namespace bss_util {
   template<class T, int I>
   struct WriteUBJSONInternal<T[I], false>
   {
-    static void F(cSerializer<UBJSONEngine>& e, const T(&obj)[I], std::ostream& s, char ty)
+    static void F(Serializer<UBJSONEngine>& e, const T(&obj)[I], std::ostream& s, char ty)
     {
       if(!ty) s.put(UBJSONTuple::TYPE_ARRAY);
       WriteUBJSONArray<T, const T*>(e, (const T*)obj, (const char*)obj, I, s, WriteUBJSONType<T>::t);
@@ -646,9 +646,9 @@ namespace bss_util {
   };
 
   template<class T, typename CType, ARRAY_TYPE ArrayType, typename Alloc>
-  struct WriteUBJSONInternal<cDynArray<T, CType, ArrayType, Alloc>, false>
+  struct WriteUBJSONInternal<DynArray<T, CType, ArrayType, Alloc>, false>
   {
-    static void F(cSerializer<UBJSONEngine>& e, const cDynArray<T, CType, ArrayType, Alloc>& obj, std::ostream& s, char ty)
+    static void F(Serializer<UBJSONEngine>& e, const DynArray<T, CType, ArrayType, Alloc>& obj, std::ostream& s, char ty)
     {
       if(!ty) s.put(UBJSONTuple::TYPE_ARRAY);
       WriteUBJSONArray<T>(e, obj, (const char*)obj.begin(), obj.Length(), s, WriteUBJSONType<T>::t);
@@ -656,9 +656,9 @@ namespace bss_util {
   };
 
   template<typename CType, ARRAY_TYPE ArrayType, typename Alloc>
-  struct WriteUBJSONInternal<cDynArray<bool, CType, ArrayType, Alloc>, false>
+  struct WriteUBJSONInternal<DynArray<bool, CType, ArrayType, Alloc>, false>
   {
-    static void F(cSerializer<UBJSONEngine>& e, const cDynArray<bool, CType, ArrayType, Alloc>& obj, std::ostream& s, char ty)
+    static void F(Serializer<UBJSONEngine>& e, const DynArray<bool, CType, ArrayType, Alloc>& obj, std::ostream& s, char ty)
     {
       if(!ty) s.put(UBJSONTuple::TYPE_ARRAY);
       WriteUBJSONArray<bool>(e, obj, 0, obj.Length(), s, 0);
@@ -668,7 +668,7 @@ namespace bss_util {
   template<class T, typename Alloc>
   struct WriteUBJSONInternal<std::vector<T, Alloc>, false>
   {
-    static void F(cSerializer<UBJSONEngine>& e, const std::vector<T, Alloc>& obj, std::ostream& s, char ty)
+    static void F(Serializer<UBJSONEngine>& e, const std::vector<T, Alloc>& obj, std::ostream& s, char ty)
     {
       if(!ty) s.put(UBJSONTuple::TYPE_ARRAY);
       WriteUBJSONArray<T>(e, obj, (const char*)obj.data(), obj.size(), s, WriteUBJSONType<T>::t);
@@ -678,7 +678,7 @@ namespace bss_util {
   template<typename T, typename Arg, typename... Args>
   struct WriteUBJSONVariantInternal
   {
-    static void F(cSerializer<UBJSONEngine>& e, const T& obj, std::ostream& s, char ty)
+    static void F(Serializer<UBJSONEngine>& e, const T& obj, std::ostream& s, char ty)
     {
       if(obj.template is<Arg>())
         WriteUBJSONBase<Arg>(e, obj.template get<Arg>(), s, ty);
@@ -690,7 +690,7 @@ namespace bss_util {
   template<typename T, typename Arg>
   struct WriteUBJSONVariantInternal<T, Arg>
   {
-    static void F(cSerializer<UBJSONEngine>& e, const T& obj, std::ostream& s, char ty)
+    static void F(Serializer<UBJSONEngine>& e, const T& obj, std::ostream& s, char ty)
     {
       if(obj.template is<Arg>())
         WriteUBJSONBase<Arg>(e, obj.template get<Arg>(), s, ty);
@@ -700,16 +700,16 @@ namespace bss_util {
   };
 
   template<typename... Args>
-  void WriteUBJSONVariant(cSerializer<UBJSONEngine>& e, const variant<Args...>& obj, std::ostream& s, char ty) { WriteUBJSONVariantInternal<variant<Args...>, Args...>::F(e, obj, s, ty); }
+  void WriteUBJSONVariant(Serializer<UBJSONEngine>& e, const Variant<Args...>& obj, std::ostream& s, char ty) { WriteUBJSONVariantInternal<Variant<Args...>, Args...>::F(e, obj, s, ty); }
 
   template<>
   struct WriteUBJSONInternal<UBJSONValue, false>
   {
-    static void F(cSerializer<UBJSONEngine>& e, const UBJSONValue& obj, std::ostream& s, char ty)
+    static void F(Serializer<UBJSONEngine>& e, const UBJSONValue& obj, std::ostream& s, char ty)
     {
       switch(obj.tag())
       {
-      case UBJSONValue::Type<cStr>::value: WriteUBJSONBase<cStr>(e, obj.get<cStr>(), s, ty); break;
+      case UBJSONValue::Type<Str>::value: WriteUBJSONBase<Str>(e, obj.get<Str>(), s, ty); break;
       case UBJSONValue::Type<bool>::value: WriteUBJSONBase<bool>(e, obj.get<bool>(), s, ty); break;
       case UBJSONValue::Type<uint8_t>::value: WriteUBJSONBase<uint8_t>(e, obj.get<uint8_t>(), s, ty); break;
       case UBJSONValue::Type<char>::value: WriteUBJSONBase<char>(e, obj.get<char>(), s, ty); break;
@@ -740,7 +740,7 @@ namespace bss_util {
     }
   };
 
-  inline void WriteUBJSONString(cSerializer<UBJSONEngine>& e, const char* str, size_t len, std::ostream& s, char type)
+  inline void WriteUBJSONString(Serializer<UBJSONEngine>& e, const char* str, size_t len, std::ostream& s, char type)
   {
     if(!type)
       s.put(UBJSONTuple::TYPE_STRING);
@@ -748,44 +748,44 @@ namespace bss_util {
     s.write(str, len);
   }
 
-  inline void WriteUBJSONId(cSerializer<UBJSONEngine>& e, const char* id, std::ostream& s)
+  inline void WriteUBJSONId(Serializer<UBJSONEngine>& e, const char* id, std::ostream& s)
   {
     if(id) WriteUBJSONString(e, id, strlen(id), s, UBJSONTuple::TYPE_STRING);
   }
 
   template<class T>
-  inline void WriteUBJSONBase(cSerializer<UBJSONEngine>& e, const char* id, const T& obj, std::ostream& s, char type) { WriteUBJSONId(e, id, s); WriteUBJSONInternal<T, std::is_integral<T>::value>::F(e, obj, s, type); }
+  inline void WriteUBJSONBase(Serializer<UBJSONEngine>& e, const char* id, const T& obj, std::ostream& s, char type) { WriteUBJSONId(e, id, s); WriteUBJSONInternal<T, std::is_integral<T>::value>::F(e, obj, s, type); }
 
   template<class T>
-  inline void WriteUBJSONBase(cSerializer<UBJSONEngine>& e, const T& obj, std::ostream& s, char type) { WriteUBJSONBase<T>(e, 0, obj, s, type); }
+  inline void WriteUBJSONBase(Serializer<UBJSONEngine>& e, const T& obj, std::ostream& s, char type) { WriteUBJSONBase<T>(e, 0, obj, s, type); }
 
   template<>
-  inline void WriteUBJSONBase<bool>(cSerializer<UBJSONEngine>& e, const char* id, const bool& obj, std::ostream& s, char type) { WriteUBJSONId(e, id, s); if(!type) s.put(obj ? UBJSONTuple::TYPE_TRUE : UBJSONTuple::TYPE_FALSE); }
+  inline void WriteUBJSONBase<bool>(Serializer<UBJSONEngine>& e, const char* id, const bool& obj, std::ostream& s, char type) { WriteUBJSONId(e, id, s); if(!type) s.put(obj ? UBJSONTuple::TYPE_TRUE : UBJSONTuple::TYPE_FALSE); }
 
   template<>
-  inline void WriteUBJSONBase<float>(cSerializer<UBJSONEngine>& e, const char* id, const float& obj, std::ostream& s, char type) { WriteUBJSONId(e, id, s); if(!type) s.put(UBJSONTuple::TYPE_FLOAT); WriteUBJSONInteger<float>(obj, s); }
+  inline void WriteUBJSONBase<float>(Serializer<UBJSONEngine>& e, const char* id, const float& obj, std::ostream& s, char type) { WriteUBJSONId(e, id, s); if(!type) s.put(UBJSONTuple::TYPE_FLOAT); WriteUBJSONInteger<float>(obj, s); }
 
   template<>
-  inline void WriteUBJSONBase<double>(cSerializer<UBJSONEngine>& e, const char* id, const double& obj, std::ostream& s, char type) { WriteUBJSONId(e, id, s); if(!type) s.put(UBJSONTuple::TYPE_DOUBLE); WriteUBJSONInteger<double>(obj, s); }
+  inline void WriteUBJSONBase<double>(Serializer<UBJSONEngine>& e, const char* id, const double& obj, std::ostream& s, char type) { WriteUBJSONId(e, id, s); if(!type) s.put(UBJSONTuple::TYPE_DOUBLE); WriteUBJSONInteger<double>(obj, s); }
 
   template<>
-  inline void WriteUBJSONBase<std::string>(cSerializer<UBJSONEngine>& e, const char* id, const std::string& obj, std::ostream& s, char type) { WriteUBJSONId(e, id, s); WriteUBJSONString(e, obj.c_str(), obj.length(), s, type); }
+  inline void WriteUBJSONBase<std::string>(Serializer<UBJSONEngine>& e, const char* id, const std::string& obj, std::ostream& s, char type) { WriteUBJSONId(e, id, s); WriteUBJSONString(e, obj.c_str(), obj.length(), s, type); }
 
   template<>
-  inline void WriteUBJSONBase<cStr>(cSerializer<UBJSONEngine>& e, const char* id, const cStr& obj, std::ostream& s, char type) { WriteUBJSONBase<std::string>(e, id, obj, s, type); }
+  inline void WriteUBJSONBase<Str>(Serializer<UBJSONEngine>& e, const char* id, const Str& obj, std::ostream& s, char type) { WriteUBJSONBase<std::string>(e, id, obj, s, type); }
 
   template<class T>
-  inline void WriteUBJSON(const T& obj, std::ostream& s) { cSerializer<UBJSONEngine> e; e.Serialize(obj, s); }
+  inline void WriteUBJSON(const T& obj, std::ostream& s) { Serializer<UBJSONEngine> e; e.Serialize(obj, s); }
 
   template<typename T>
-  void UBJSONEngine::Serialize(cSerializer<UBJSONEngine>& e, const T& t, const char* id) { e.engine.endobject = true; WriteUBJSONBase<T>(e, id, t, *e.out, 0); }
+  void UBJSONEngine::Serialize(Serializer<UBJSONEngine>& e, const T& t, const char* id) { e.engine.endobject = true; WriteUBJSONBase<T>(e, id, t, *e.out, 0); }
   template<typename T>
-  void UBJSONEngine::Parse(cSerializer<UBJSONEngine>& e, T& t, const char* id) { ParseUBJSONBase<T>(e, t, *e.in, e.engine.type); }
+  void UBJSONEngine::Parse(Serializer<UBJSONEngine>& e, T& t, const char* id) { ParseUBJSONBase<T>(e, t, *e.in, e.engine.type); }
   template<typename... Args>
-  void UBJSONEngine::ParseMany(cSerializer<UBJSONEngine>& e, const cTrie<uint16_t>& t, std::tuple<Args...>& args)
+  void UBJSONEngine::ParseMany(Serializer<UBJSONEngine>& e, const Trie<uint16_t>& t, std::tuple<Args...>& args)
   {
-    ParseUBJSONObj(e, e.engine.type, [&t, &args](cSerializer<UBJSONEngine>& e, const char* id) {
-      cSerializer<UBJSONEngine>::_findparse(e, id, t, args);
+    ParseUBJSONObj(e, e.engine.type, [&t, &args](Serializer<UBJSONEngine>& e, const char* id) {
+      Serializer<UBJSONEngine>::_findparse(e, id, t, args);
     });
   }
 }

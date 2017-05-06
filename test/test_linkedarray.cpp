@@ -1,15 +1,15 @@
 // Copyright ©2017 Black Sphere Studios
 // For conditions of distribution and use, see copyright notice in "bss_util.h"
 
-#include "cLinkedArray.h"
+#include "bss-util/LinkedArray.h"
 #include "test.h"
 
-using namespace bss_util;
+using namespace bss;
 
 TESTDEF::RETPAIR test_LINKEDARRAY()
 {
   BEGINTEST;
-  cLinkedArray<int> _arr;
+  LinkedArray<int> _arr;
   size_t a = _arr.Add(4);
   _arr.Reserve(2);
   size_t b = _arr.InsertAfter(6, a);

@@ -9,9 +9,9 @@
 #include "rwlock.h"
 #include <string.h>
 
-namespace bss_util {
+namespace bss {
   // Primary implementation of a multi-consumer multi-producer lockless ring allocator
-  class BSS_COMPILER_DLLEXPORT cRingAllocVoid
+  class BSS_COMPILER_DLLEXPORT RingAllocVoid
   {
     struct Bucket
     {
@@ -29,21 +29,21 @@ namespace bss_util {
     };
 
   public:
-    cRingAllocVoid(cRingAllocVoid&& mov) : _gc(mov._gc), _lastsize(mov._lastsize), _list(mov._list)
+    RingAllocVoid(RingAllocVoid&& mov) : _gc(mov._gc), _lastsize(mov._lastsize), _list(mov._list)
     {
       _lock.clear(std::memory_order_release);
       _cur.store(mov._cur.load(std::memory_order_acquire), std::memory_order_release);
       mov._cur.store(0, std::memory_order_release);
       mov._list = 0;
     }
-    explicit cRingAllocVoid(size_t sz) : _lastsize(sz), _list(0)
+    explicit RingAllocVoid(size_t sz) : _lastsize(sz), _list(0)
     {
       _lock.clear(std::memory_order_release);
       _gc.p = 0;
       _gc.tag = 0;
-      _cur.store(_genbucket(sz), std::memory_order_release);
+      _cur.store(_genBucket(sz), std::memory_order_release);
     }
-    ~cRingAllocVoid() { _clear(); }
+    ~RingAllocVoid() { _clear(); }
 
     inline void* alloc(size_t num) noexcept
     {
@@ -61,11 +61,11 @@ namespace bss_util {
         {
           cur->reserved.fetch_sub(n, std::memory_order_release);
           cur->lock.RUnlock();
-          if(!r) // If r was zero, it's theoretically possible for this bucket to get orphaned, so we send it into the _checkrecycle function
-            _checkrecycle(cur); // Even if someone else acquires the lock before this runs, either the allocation will succeed or this check will
+          if(!r) // If r was zero, it's theoretically possible for this bucket to get orphaned, so we send it into the _checkRecycle function
+            _checkRecycle(cur); // Even if someone else acquires the lock before this runs, either the allocation will succeed or this check will
           if(!_lock.test_and_set(std::memory_order_acq_rel))
           {
-            _cur.store(_genbucket(n), std::memory_order_release);
+            _cur.store(_genBucket(n), std::memory_order_release);
             _lock.clear(std::memory_order_release);
           }
         }
@@ -93,15 +93,15 @@ namespace bss_util {
       memset(n, 0xfc, n->sz); // n->sz is the entire size of the node, including the node itself.
 #endif
       b->lock.RUnlock();
-      _checkrecycle(b);
+      _checkRecycle(b);
     }
     inline void Clear()
     {
       _clear();
-      _cur.store(_genbucket(_lastsize), std::memory_order_release);
+      _cur.store(_genBucket(_lastsize), std::memory_order_release);
     }
 
-    cRingAllocVoid& operator=(cRingAllocVoid&& mov) noexcept
+    RingAllocVoid& operator=(RingAllocVoid&& mov) noexcept
     {
       _clear();
       _gc = mov._gc;
@@ -114,7 +114,7 @@ namespace bss_util {
     }
 
   protected:
-    BSS_FORCEINLINE static LLBase<Bucket>& _getbucket(Bucket* b) noexcept { return b->list; }
+    BSS_FORCEINLINE static LLBase<Bucket>& _getBucket(Bucket* b) noexcept { return b->list; }
 
     void _clear()
     {
@@ -131,7 +131,7 @@ namespace bss_util {
       _cur.store(0, std::memory_order_release);
     }
     // It is crucial that only allocation sizes are passed into this, or the ring allocator will simply keep allocating larger and larger buckets forever
-    Bucket* _genbucket(size_t num) noexcept
+    Bucket* _genBucket(size_t num) noexcept
     {
       if(_lastsize < num) _lastsize = num;
 
@@ -148,7 +148,7 @@ namespace bss_util {
           continue;
         if(hold->sz < num) // If a bucket is too small for this allocation, destroy it
         {
-          AltLLRemove<Bucket, &_getbucket>(hold, _list);
+          AltLLRemove<Bucket, &_getBucket>(hold, _list);
           assert(!hold->lock.ReaderCount()); // verify no memory is being held
           free(hold);
         }
@@ -162,7 +162,7 @@ namespace bss_util {
         hold = (Bucket*)calloc(1, sizeof(Bucket) + _lastsize);
         new (&hold->lock) RWLock();
         hold->sz = _lastsize;
-        AltLLAdd<Bucket, &_getbucket>(hold, _list);
+        AltLLAdd<Bucket, &_getBucket>(hold, _list);
 #ifdef BSS_DEBUG
         memset(hold + 1, 0xfc, hold->sz);
 #endif
@@ -179,7 +179,7 @@ namespace bss_util {
       return hold;
     }
 
-    void _checkrecycle(Bucket* b) noexcept
+    void _checkRecycle(Bucket* b) noexcept
     {
       if(b->lock.AttemptStrictLock())
       {
@@ -224,16 +224,16 @@ namespace bss_util {
   };
 
   template<class T>
-  class BSS_COMPILER_DLLEXPORT cRingAlloc : public cRingAllocVoid
+  class BSS_COMPILER_DLLEXPORT cRingAlloc : public RingAllocVoid
   {
     cRingAlloc(const cRingAlloc& copy) BSS_DELETEFUNC
       cRingAlloc& operator=(const cRingAlloc& copy) BSS_DELETEFUNCOP
 
   public:
-    inline cRingAlloc(cRingAlloc&& mov) : cRingAllocVoid(std::move(mov)) {}
-    inline explicit cRingAlloc(size_t init = 8) : cRingAllocVoid(init) {}
-    inline T* alloc(size_t num) noexcept { return (T*)cRingAllocVoid::alloc(num * sizeof(T)); }
-    inline cRingAlloc& operator=(cRingAlloc&& mov) noexcept { cRingAllocVoid::operator=(std::move(mov)); return *this; }
+    inline cRingAlloc(cRingAlloc&& mov) : RingAllocVoid(std::move(mov)) {}
+    inline explicit cRingAlloc(size_t init = 8) : RingAllocVoid(init) {}
+    inline T* alloc(size_t num) noexcept { return (T*)RingAllocVoid::alloc(num * sizeof(T)); }
+    inline cRingAlloc& operator=(cRingAlloc&& mov) noexcept { RingAllocVoid::operator=(std::move(mov)); return *this; }
   };
 
   template<typename T>

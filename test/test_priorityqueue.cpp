@@ -1,15 +1,15 @@
 // Copyright ©2017 Black Sphere Studios
 // For conditions of distribution and use, see copyright notice in "bss_util.h"
 
-#include "cPriorityQueue.h"
+#include "bss-util/PriorityQueue.h"
 #include "test.h"
 
-using namespace bss_util;
+using namespace bss;
 
 TESTDEF::RETPAIR test_PRIORITYQUEUE()
 {
   BEGINTEST;
-  cPriorityQueue<int, cStr, CompTInv<int>, uint32_t, CARRAY_SAFE> q;
+  PriorityQueue<int, Str, CompTInv<int>, uint32_t, CARRAY_SAFE> q;
 
   q.Push(5, "5");
   q.Push(3, "3");

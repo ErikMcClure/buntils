@@ -4,9 +4,9 @@
 #ifndef __DATA_H__BSS__
 #define __DATA_H__BSS__
 
-#include "cDynArray.h"
+#include "bss-util/DynArray.h"
 
-namespace bss_util {
+namespace bss {
   struct DataListener
   {
     virtual void OnPost(const T&) = 0;
@@ -22,7 +22,7 @@ namespace bss_util {
     void Put(const T& v);
 
   protected:
-    cDynArray<DataListener*> _listeners;
+    DynArray<DataListener*> _listeners;
   };
 
   template<class T>
@@ -35,7 +35,7 @@ namespace bss_util {
     void Patch(const char* id, const U& data);
 
   protected:
-    cDynArray<DataListener*> _listeners;
+    DynArray<DataListener*> _listeners;
   };
 
   template<class T, class ITER>
@@ -48,7 +48,7 @@ namespace bss_util {
     void Delete(ITER index);
 
   protected:
-    cDynArray<DataListener*> _listeners;
+    DynArray<DataListener*> _listeners;
   };
 }
 

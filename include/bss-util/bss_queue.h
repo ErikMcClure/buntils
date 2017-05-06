@@ -4,22 +4,22 @@
 #ifndef __C_BSS_QUEUE_H__
 #define __C_BSS_QUEUE_H__
 
-#include "cArrayCircular.h"
+#include "bss-util/ArrayCircular.h"
 
-namespace bss_util {
+namespace bss {
   // Fast, tiny circular array-based queue. Pop and Peek are only valid if there is an item in the stack; this check must be done by the user.
   template<class T, typename CType = ptrdiff_t, ARRAY_TYPE ArrayType = CARRAY_SIMPLE, typename Alloc = StaticAllocPolicy<T>>
-  class BSS_COMPILER_DLLEXPORT cQueue : protected cArrayCircular<T, CType, ArrayType, Alloc>
+  class BSS_COMPILER_DLLEXPORT Queue : protected ArrayCircular<T, CType, ArrayType, Alloc>
   {
   protected:
-    typedef cArrayCircular<T, CType, ArrayType, Alloc> BASE;
+    typedef ArrayCircular<T, CType, ArrayType, Alloc> BASE;
     using BASE::_length;
 
   public:
-    inline cQueue(const cQueue& copy) : BASE(copy) {}
-    inline cQueue(cQueue&& mov) : BASE(std::move(mov)) {}
-    inline explicit cQueue(CType init = 0) : BASE(init) {}
-    inline ~cQueue() {}
+    inline Queue(const Queue& copy) : BASE(copy) {}
+    inline Queue(Queue&& mov) : BASE(std::move(mov)) {}
+    inline explicit Queue(CType init = 0) : BASE(init) {}
+    inline ~Queue() {}
     // Pushes a value into the queue in FIFO order.
     BSS_FORCEINLINE void Push(const T& value) { _push<const T&>(value); }
     BSS_FORCEINLINE void Push(T&& value) { _push<T&&>(std::move(value)); }
@@ -37,8 +37,8 @@ namespace bss_util {
     // Returns how many items are currently in the queue. Calling Pop or Peek when this is 0 is illegal.
     BSS_FORCEINLINE CType Length() const { return _length; }
 
-    inline cQueue& operator=(const cQueue& copy) { BASE::operator=(copy); return *this; }
-    inline cQueue& operator=(cQueue&& mov) { BASE::operator=(std::move(mov)); return *this; }
+    inline Queue& operator=(const Queue& copy) { BASE::operator=(copy); return *this; }
+    inline Queue& operator=(Queue&& mov) { BASE::operator=(std::move(mov)); return *this; }
 
   protected:
     template<typename U>

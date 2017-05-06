@@ -1,10 +1,10 @@
 // Copyright ©2017 Black Sphere Studios
 // For conditions of distribution and use, see copyright notice in "bss_util.h"
 
-#include "delegate.h"
+#include "bss-util/Delegate.h"
 #include "test.h"
 
-using namespace bss_util;
+using namespace bss;
 
 struct foobar
 {
@@ -26,18 +26,18 @@ TESTDEF::RETPAIR test_DELEGATE()
 {
   BEGINTEST;
   foobar foo = { __testret, 0 };
-  auto first = delegate<void>::From<foobar, &foobar::zoidberg>(&foo);
-  auto second = delegate<void, uint32_t>::From<foobar, &foobar::nyan>(&foo);
-  auto three = delegate<void, int, int>::From<foobar, &foobar::nyannyan>(&foo);
-  auto four = delegate<void, int, int, bool>::From<foobar, &foobar::nyannyannyan>(&foo);
-  auto five = delegate<void>::FromC<foobar, &external_zoidberg>(&foo);
+  auto first = Delegate<void>::From<foobar, &foobar::zoidberg>(&foo);
+  auto second = Delegate<void, uint32_t>::From<foobar, &foobar::nyan>(&foo);
+  auto three = Delegate<void, int, int>::From<foobar, &foobar::nyannyan>(&foo);
+  auto four = Delegate<void, int, int, bool>::From<foobar, &foobar::nyannyannyan>(&foo);
+  auto five = Delegate<void>::FromC<foobar, &external_zoidberg>(&foo);
 
-  delegate<void> copy(first);
+  Delegate<void> copy(first);
   copy = first;
   CPU_Barrier();
   copy();
   CPU_Barrier();
-  delegate<void, uint32_t> copy2(second);
+  Delegate<void, uint32_t> copy2(second);
   CPU_Barrier();
   copy2(5);
   CPU_Barrier();
@@ -46,8 +46,8 @@ TESTDEF::RETPAIR test_DELEGATE()
 
   bool fcalled = false;
   std::function<void()> f = [&]() { fcalled = true; };
-  delegate<void> d = f;
-  //delegate<void> d(std::function<void()>([](){})); // This should throw a compiler error
+  Delegate<void> d = f;
+  //Delegate<void> d(std::function<void()>([](){})); // This should throw a compiler error
   d();
   TEST(fcalled);
   five();

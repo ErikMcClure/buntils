@@ -17,7 +17,7 @@
 #ifndef __BSS_UTIL_H__
 #define __BSS_UTIL_H__
 
-#include "bss_util_c.h"
+#include "bss-util/bss_util_c.h"
 #include <assert.h>
 #include <cmath>
 #include <memory>
@@ -37,7 +37,7 @@
 #include <fpu_control.h> // for FPU control on POSIX systems
 #endif
 
-namespace bss_util {
+namespace bss {
   static const VersionType BSSUTIL_VERSION = { { { BSS_VERSION_MAJOR,BSS_VERSION_MINOR,BSS_VERSION_REVISION } } };
 
   BSS_COMPILER_DLLEXPORT extern void SetWorkDirToCur(); //Sets the working directory to the actual goddamn location of the EXE instead of the freaking start menu, or possibly the desktop. The possibilities are endless! Fuck you, windows.
@@ -88,9 +88,9 @@ namespace bss_util {
 
   // Typesafe malloc implementation, for when you don't want to use New because you don't want constructors to be called.
   template<typename T>
-  BSS_FORCEINLINE T* bssmalloc(size_t sz) { return reinterpret_cast<T*>(malloc(sz * sizeof(T))); }
+  BSS_FORCEINLINE T* bssMalloc(size_t sz) { return reinterpret_cast<T*>(malloc(sz * sizeof(T))); }
   template<typename T>
-  BSS_FORCEINLINE T* bsscalloc(size_t sz) { return reinterpret_cast<T*>(calloc(sz, sizeof(T))); }
+  BSS_FORCEINLINE T* bssCAlloc(size_t sz) { return reinterpret_cast<T*>(calloc(sz, sizeof(T))); }
 
   // template inferred version of T_GETBIT and T_GETBITRANGE
   template<class T>
@@ -156,7 +156,7 @@ namespace bss_util {
   // This yields mathematically correct integer division (i/div) towards negative infinity, but only if div is a positive integer. This
   // implementation obviously must have integral types for T and D, but can be explicitely specialized to handle vectors or other structs.
   template<typename T, typename D>
-  inline T intdiv(T i, D div) noexcept
+  inline T IntDiv(T i, D div) noexcept
   {
     static_assert(std::is_integral<T>::value, "T must be integral");
     static_assert(std::is_integral<D>::value, "D must be integral");
@@ -166,7 +166,7 @@ namespace bss_util {
 
   // Performs a mathematically correct modulo, unlike the modulo operator, which doesn't actually perform modulo, it performs a remainder operation. THANKS GUYS!
   template<typename T> //T must be integral
-  BSS_FORCEINLINE T bssmod(T x, T m) noexcept
+  BSS_FORCEINLINE T bssMod(T x, T m) noexcept
   {
     static_assert(std::is_signed<T>::value && std::is_integral<T>::value, "T must be a signed integral type or this function is pointless");
     x %= m;
@@ -176,21 +176,21 @@ namespace bss_util {
 
   // Performs a mathematically correct floating point modulo, unlike fmod, which performs a remainder operation, not a modulo operation.
   template<typename T> //T must be floating point
-  BSS_FORCEINLINE T bssfmod(T x, T m) noexcept
+  BSS_FORCEINLINE T bssFMod(T x, T m) noexcept
   {
     static_assert(std::is_floating_point<T>::value, "T must be a floating point type");
     return x - floor(x / m)*m;
   }
   // Uses rswap to reverse the order of an array
   template<typename T>
-  inline void bssreverse(T* src, size_t length) noexcept
+  inline void bssReverse(T* src, size_t length) noexcept
   {
     assert(length > 0);
     for(size_t i = 0, j = (--length); i < j; j = length - (++i)) // Equivelent to: for(size_t i = 0,j=length-1; i < j; j=length-1-(++i))
       rswap(src[i], src[j]);
   }
   template<typename T, size_t size>
-  BSS_FORCEINLINE void bssreverse(T(&p)[size]) noexcept { bssreverse(p, size); }
+  BSS_FORCEINLINE void bssReverse(T(&p)[size]) noexcept { bssReverse(p, size); }
 
   /* Trims space from left end of string by returning a different pointer. It is possible to use const char or const wchar_t as a type
      here because the string itself is not modified. */
@@ -336,7 +336,7 @@ namespace bss_util {
   }
 
   // Flips the endianness of a memory location
-  BSS_FORCEINLINE void flipendian(char* target, char n) noexcept
+  BSS_FORCEINLINE void FlipEndian(char* target, char n) noexcept
   {
     char t;
     char end = (n >> 1);
@@ -350,13 +350,13 @@ namespace bss_util {
   }
 
   template<int I>
-  BSS_FORCEINLINE void flipendian(char* target) noexcept { flipendian((char*)target, I); }
-  template<> BSS_FORCEINLINE void flipendian<0>(char* target) noexcept {}
-  template<> BSS_FORCEINLINE void flipendian<1>(char* target) noexcept {}
-  template<> BSS_FORCEINLINE void flipendian<2>(char* target) noexcept { char t = target[0]; target[0] = target[1]; target[1] = t; }
+  BSS_FORCEINLINE void FlipEndian(char* target) noexcept { FlipEndian((char*)target, I); }
+  template<> BSS_FORCEINLINE void FlipEndian<0>(char* target) noexcept {}
+  template<> BSS_FORCEINLINE void FlipEndian<1>(char* target) noexcept {}
+  template<> BSS_FORCEINLINE void FlipEndian<2>(char* target) noexcept { char t = target[0]; target[0] = target[1]; target[1] = t; }
 
   template<typename T>
-  BSS_FORCEINLINE void flipendian(T* target) noexcept { flipendian<sizeof(T)>((char*)target); }
+  BSS_FORCEINLINE void FlipEndian(T* target) noexcept { FlipEndian<sizeof(T)>((char*)target); }
 
     // This is a bit-shift method of calculating the next number in the fibonacci sequence by approximating the golden ratio with 0.6171875 (1/2 + 1/8 - 1/128)
   template<typename T>
@@ -371,7 +371,8 @@ namespace bss_util {
   template<typename T>
   BSS_FORCEINLINE T tsign(T n) noexcept
   {
-    static_assert(std::is_integral<T>::value, "T must be an integer.");
+    static_assert(std::is_integral<T>::value, "T must be a signed integer.");
+    static_assert(std::is_signed<T>::value, "T must be a signed integer.");
     return 1 | (n >> ((sizeof(T) << 3) - 1));
   }
 
@@ -384,7 +385,7 @@ namespace bss_util {
 
   // Gets the shortest distance between two angles in radians
   template<typename T>
-  BSS_FORCEINLINE T angledist(T a, T b) noexcept
+  BSS_FORCEINLINE T AngleDist(T a, T b) noexcept
   {
     static_assert(std::is_floating_point<T>::value, "T must be float, double, or long double");
     return ((T)PI) - fabs(fmod(fabs(a - b), ((T)PI_DOUBLE)) - ((T)PI));
@@ -392,10 +393,10 @@ namespace bss_util {
 
   // Gets the SIGNED shortest distance between two angles starting with (a - b) in radians
   template<typename T>
-  BSS_FORCEINLINE T angledistsgn(T a, T b) noexcept
+  BSS_FORCEINLINE T AngleDistSigned(T a, T b) noexcept
   {
     static_assert(std::is_floating_point<T>::value, "T must be float, double, or long double");
-    return fmod(bssfmod(b - a, (T)PI_DOUBLE) + ((T)PI), (T)PI_DOUBLE) - ((T)PI);
+    return fmod(bssFMod(b - a, (T)PI_DOUBLE) + ((T)PI), (T)PI_DOUBLE) - ((T)PI);
   }
 
   // Smart compilers will use SSE2 instructions to eliminate the massive overhead of int -> float conversions. This uses SSE2 instructions
@@ -498,7 +499,7 @@ namespace bss_util {
 
   // This is a super fast floating point comparison function with a significantly higher tolerance and no
   // regard towards the size of the floats.
-  inline bool fwidecompare(float fleft, float fright) noexcept
+  inline bool fWideCompare(float fleft, float fright) noexcept
   {
     int32_t left = *reinterpret_cast<int32_t*>(&fleft); //This maps our float to an int so we can do bitshifting operations on it
     int32_t right = *reinterpret_cast<int32_t*>(&fright); //see above
@@ -509,9 +510,9 @@ namespace bss_util {
   }
 
   // Highly optimized traditional tolerance based approach to comparing floating point numbers, found here: http://www.randydillon.org/Papers/2007/everfast.htm
-  inline bool fcompare(float af, float bf, int32_t maxDiff = 1) noexcept
+  inline bool fCompare(float af, float bf, int32_t maxDiff = 1) noexcept
   {
-    //assert(af!=0.0f && bf!=0.0f); // Use fsmall for this
+    //assert(af!=0.0f && bf!=0.0f); // Use fSmall for this
     int32_t ai = *reinterpret_cast<int32_t*>(&af);
     int32_t bi = *reinterpret_cast<int32_t*>(&bf);
     int32_t test = (-(int32_t)(((uint32_t)(ai^bi)) >> 31));
@@ -522,9 +523,9 @@ namespace bss_util {
     return (v1 | v2) >= 0;
   }
 
-  inline bool fcompare(double af, double bf, int64_t maxDiff = 1) noexcept
+  inline bool fCompare(double af, double bf, int64_t maxDiff = 1) noexcept
   {
-    //assert(af!=0.0 && bf!=0.0); // Use fsmall for this
+    //assert(af!=0.0 && bf!=0.0); // Use fSmall for this
     int64_t ai = *reinterpret_cast<int64_t*>(&af);
     int64_t bi = *reinterpret_cast<int64_t*>(&bf);
     int64_t test = (-(int64_t)(((uint64_t)(ai^bi)) >> 63));
@@ -536,7 +537,7 @@ namespace bss_util {
   }
 
   // This determines if a float is sufficiently close to 0
-  BSS_FORCEINLINE bool fsmall(float f, float eps = FLT_EPS) noexcept
+  BSS_FORCEINLINE bool fSmall(float f, float eps = FLT_EPS) noexcept
   {
     uint32_t i = ((*reinterpret_cast<uint32_t*>(&f)) & 0x7FFFFFFF); //0x7FFFFFFF strips off the sign bit (which is always the highest bit)
     uint32_t e = *reinterpret_cast<uint32_t*>(&eps);
@@ -544,29 +545,29 @@ namespace bss_util {
   }
 
   // This determines if a double is sufficiently close to 0
-  BSS_FORCEINLINE bool fsmall(double f, double eps = DBL_EPS) noexcept
+  BSS_FORCEINLINE bool fSmall(double f, double eps = DBL_EPS) noexcept
   {
     uint64_t i = ((*reinterpret_cast<uint64_t*>(&f)) & 0x7FFFFFFFFFFFFFFF); //0x7FFFFFFFFFFFFFFF strips off the sign bit (which is always the highest bit)
     uint64_t e = *reinterpret_cast<uint64_t*>(&eps);
     return i <= e;
   }
 
-  inline bool fcomparesmall(float af, float bf, int32_t maxDiff = 1, float eps = FLT_EPS) noexcept
+  inline bool fCompareSmall(float af, float bf, int32_t maxDiff = 1, float eps = FLT_EPS) noexcept
   {
-    if(af == 0.0) return fsmall(bf, eps);
-    if(bf == 0.0) return fsmall(af, eps);
-    return fcompare(af, bf, maxDiff);
+    if(af == 0.0) return fSmall(bf, eps);
+    if(bf == 0.0) return fSmall(af, eps);
+    return fCompare(af, bf, maxDiff);
   }
 
-  inline bool fcomparesmall(double af, double bf, int64_t maxDiff = 1, double eps = DBL_EPS) noexcept
+  inline bool fCompareSmall(double af, double bf, int64_t maxDiff = 1, double eps = DBL_EPS) noexcept
   {
-    if(af == 0.0) return fsmall(bf, eps);
-    if(bf == 0.0) return fsmall(af, eps);
-    return fcompare(af, bf, maxDiff);
+    if(af == 0.0) return fSmall(bf, eps);
+    if(bf == 0.0) return fSmall(af, eps);
+    return fCompare(af, bf, maxDiff);
   }
 
   // This is a super fast length approximation for 2D coordinates; See http://www.azillionmonkeys.com/qed/sqroot.html for details (Algorithm by Paul Hsieh)
-  inline float flength(float x, float y) noexcept
+  inline float fLength(float x, float y) noexcept
   {
     x = fabs(x);
     y = fabs(y);
@@ -644,22 +645,22 @@ namespace bss_util {
 
   // Distance calculation (squared)
   template<typename T>
-  BSS_FORCEINLINE T distsqr(T X, T Y, T x, T y) noexcept
+  BSS_FORCEINLINE T DistSqr(T X, T Y, T x, T y) noexcept
   {
     T tx = X - x, ty = Y - y; return (tx*tx) + (ty*ty); //It doesn't matter if you use temporary values for floats, but it does if you use ints (for unknown reasons)
   }
 
   // Distance calculation
   template<typename T>
-  BSS_FORCEINLINE T dist(T X, T Y, T x, T y) noexcept
+  BSS_FORCEINLINE T Dist(T X, T Y, T x, T y) noexcept
   {
-    return FastSqrt<T>(distsqr<T>(X, Y, x, y));
+    return FastSqrt<T>(DistSqr<T>(X, Y, x, y));
   }
 
   // Average aggregation without requiring a total variable that can overflow. Nextnum should be the current avg count incremented by 1.
   template<typename T, typename CT_> // T must be float or double, CT_ must be integral
-  BSS_FORCEINLINE T bssavg(T curavg, T nvalue, CT_ nextnum) noexcept
-  { // USAGE: avg = bssavg<double, int>(avg, value, ++total);
+  BSS_FORCEINLINE T bssAvg(T curavg, T nvalue, CT_ nextnum) noexcept
+  { // USAGE: avg = bssAvg<double, int>(avg, value, ++total);
     static_assert(std::is_integral<CT_>::value, "CT_ must be integral");
     static_assert(std::is_floating_point<T>::value, "T must be float, double, or long double");
     return curavg + ((nvalue - curavg) / (T)nextnum);
@@ -667,8 +668,8 @@ namespace bss_util {
 
   // Sum of squares of differences aggregation using an algorithm by Knuth. Nextnum should be the current avg count incremented by 1.
   template<typename T, typename CT_> // T must be float or double, CT_ must be integral
-  BSS_FORCEINLINE void bssvariance(T& curvariance, T& avg, T nvalue, CT_ nextnum) noexcept
-  { // USAGE: bssvariance<double, int>(variance, avg, value, ++total); Then use sqrt(variance/(n-1)) to get the actual standard deviation
+  BSS_FORCEINLINE void bssVariance(T& curvariance, T& avg, T nvalue, CT_ nextnum) noexcept
+  { // USAGE: bssVariance<double, int>(variance, avg, value, ++total); Then use sqrt(variance/(n-1)) to get the actual standard deviation
     static_assert(std::is_integral<CT_>::value, "CT_ must be integral");
     static_assert(std::is_floating_point<T>::value, "T must be float, double, or long double");
     T delta = nvalue - avg;
@@ -677,29 +678,29 @@ namespace bss_util {
   }
 
   // Searches an arbitrary series of bytes for another arbitrary series of bytes
-  inline const void* bytesearch(const void* search, size_t length, const void* find, size_t flength) noexcept
+  inline const void* ByteSearch(const void* search, size_t length, const void* find, size_t fLength) noexcept
   {
-    if(!search || !length || !find || !flength || length < flength) return 0;
+    if(!search || !length || !find || !fLength || length < fLength) return 0;
 
     uint8_t* s = (uint8_t*)search;
-    length -= flength;
-    for(size_t i = 0; i <= length; ++i) // i <= length works because of the above length-=flength
+    length -= fLength;
+    for(size_t i = 0; i <= length; ++i) // i <= length works because of the above length-=fLength
     {
       search = s + i;
-      if(!memcmp(search, find, flength))
+      if(!memcmp(search, find, fLength))
         return search;
     }
     return 0;
   }
 
-  BSS_FORCEINLINE void* bytesearch(void* search, size_t length, void* find, size_t flength) noexcept
+  BSS_FORCEINLINE void* ByteSearch(void* search, size_t length, void* find, size_t fLength) noexcept
   {
-    return const_cast<void*>(bytesearch((const void*)search, length, (const void*)find, flength));
+    return const_cast<void*>(ByteSearch((const void*)search, length, (const void*)find, fLength));
   }
 
   // Counts the number of bits in v (up to 128-bit types) using the parallel method detailed here: http://graphics.stanford.edu/~seander/bithacks.html#CountBitsSetParallel
   template<typename T>
-  inline uint8_t bitcount(T v) noexcept
+  inline uint8_t BitCount(T v) noexcept
   {
     static_assert(std::is_integral<T>::value, "T must be integral");
     v = v - ((v >> 1) & (T)~(T)0 / 3);                           // temp
@@ -729,7 +730,7 @@ namespace bss_util {
   //  return FastSin(x+(float)PI_HALF);
   //}
   template<typename T, bool nullterminate = false>
-  BSS_FORCEINLINE std::pair<std::unique_ptr<T[]>, size_t> bssloadfile(const char* file)
+  BSS_FORCEINLINE std::pair<std::unique_ptr<T[]>, size_t> bssLoadFile(const char* file)
   {
     FILE* f = 0;
     WFOPEN(f, file, "rb");
@@ -745,7 +746,7 @@ namespace bss_util {
     return std::pair<std::unique_ptr<T[]>, size_t>(std::move(a), ln + !!nullterminate);
   }
   // Round a number up to the next power of 2 (32 -> 32, 33 -> 64, etc.)
-  inline uint64_t nextpow2(uint64_t v) noexcept
+  inline uint64_t NextPow2(uint64_t v) noexcept
   {
     v -= 1;
     v |= (v >> 1);
@@ -757,7 +758,7 @@ namespace bss_util {
 
     return v + 1;
   }
-  inline uint32_t nextpow2(uint32_t v) noexcept
+  inline uint32_t NextPow2(uint32_t v) noexcept
   {
     v -= 1;
     v |= (v >> 1);
@@ -768,7 +769,7 @@ namespace bss_util {
 
     return v + 1;
   }
-  inline uint16_t nextpow2(uint16_t v) noexcept
+  inline uint16_t NextPow2(uint16_t v) noexcept
   {
     v -= 1;
     v |= (v >> 1);
@@ -778,7 +779,7 @@ namespace bss_util {
 
     return v + 1;
   }
-  inline uint8_t nextpow2(uint8_t v) noexcept
+  inline uint8_t NextPow2(uint8_t v) noexcept
   {
     v -= 1;
     v |= (v >> 1);
@@ -789,7 +790,7 @@ namespace bss_util {
   }
 
 #ifdef BSS_COMPILER_MSC
-  inline uint32_t bsslog2(uint32_t v) noexcept
+  inline uint32_t bssLog2(uint32_t v) noexcept
   {
     if(!v) return 0;
     unsigned long r;
@@ -797,27 +798,27 @@ namespace bss_util {
     return r;
   }
 #elif defined(BSS_COMPILER_GCC)
-  inline uint32_t bsslog2(uint32_t v) noexcept { return !v ? 0 : ((sizeof(uint32_t) << 3) - 1 - __builtin_clz(v)); }
+  inline uint32_t bssLog2(uint32_t v) noexcept { return !v ? 0 : ((sizeof(uint32_t) << 3) - 1 - __builtin_clz(v)); }
 #else
   // Bit-twiddling hack for base 2 log by Sean Eron Anderson
-  inline uint32_t bsslog2(uint8_t v) noexcept
+  inline uint32_t bssLog2(uint8_t v) noexcept
   {
     const uint32_t b[] = { 0x2, 0xC, 0xF0 };
     const uint32_t S[] = { 1, 2, 4 };
 
-    uint32_t r = 0; // result of bsslog2(v) will go here
+    uint32_t r = 0; // result of bssLog2(v) will go here
     if(v & b[2]) { v >>= S[2]; r |= S[2]; }
     if(v & b[1]) { v >>= S[1]; r |= S[1]; }
     if(v & b[0]) { v >>= S[0]; r |= S[0]; }
 
     return r;
   }
-  inline uint32_t bsslog2(uint16_t v) noexcept
+  inline uint32_t bssLog2(uint16_t v) noexcept
   {
     const uint32_t b[] = { 0x2, 0xC, 0xF0, 0xFF00 };
     const uint32_t S[] = { 1, 2, 4, 8 };
 
-    uint32_t r = 0; // result of bsslog2(v) will go here
+    uint32_t r = 0; // result of bssLog2(v) will go here
     if(v & b[3]) { v >>= S[3]; r |= S[3]; }
     if(v & b[2]) { v >>= S[2]; r |= S[2]; }
     if(v & b[1]) { v >>= S[1]; r |= S[1]; }
@@ -826,12 +827,12 @@ namespace bss_util {
     return r;
   }
 
-  inline uint32_t bsslog2(uint32_t v) noexcept
+  inline uint32_t bssLog2(uint32_t v) noexcept
   {
     const uint32_t b[] = { 0x2, 0xC, 0xF0, 0xFF00, 0xFFFF0000 };
     const uint32_t S[] = { 1, 2, 4, 8, 16 };
 
-    uint32_t r = 0; // result of bsslog2(v) will go here
+    uint32_t r = 0; // result of bssLog2(v) will go here
     if(v & b[4]) { v >>= S[4]; r |= S[4]; }
     if(v & b[3]) { v >>= S[3]; r |= S[3]; }
     if(v & b[2]) { v >>= S[2]; r |= S[2]; }
@@ -841,7 +842,7 @@ namespace bss_util {
     return r;
   }
 #endif
-  inline uint32_t bsslog2(uint64_t v) noexcept
+  inline uint32_t bssLog2(uint64_t v) noexcept
   {
 #if defined(BSS_COMPILER_MSC) && defined(BSS_64BIT)
     if(!v) return 0;
@@ -853,7 +854,7 @@ namespace bss_util {
     const uint64_t b[] = { 0x2, 0xC, 0xF0, 0xFF00, 0xFFFF0000, 0xFFFFFFFF00000000 };
     const uint32_t S[] = { 1, 2, 4, 8, 16, 32 };
 
-    uint32_t r = 0; // result of bsslog2(v) will go here
+    uint32_t r = 0; // result of bssLog2(v) will go here
     if(v & b[5]) { v >>= S[5]; r |= S[5]; }
     if(v & b[4]) { v >>= S[4]; r |= S[4]; }
     if(v & b[3]) { v >>= S[3]; r |= S[3]; }
@@ -864,7 +865,7 @@ namespace bss_util {
 
     return r;
   }
-  inline uint32_t bsslog2_p2(uint32_t v) noexcept //Works only if v is a power of 2
+  inline uint32_t bssLog2_p2(uint32_t v) noexcept //Works only if v is a power of 2
   {
     assert(v && !(v & (v - 1))); //debug version checks to ensure its a power of two
 #ifdef BSS_COMPILER_MSC
@@ -884,7 +885,7 @@ namespace bss_util {
   }
 
   template<class T>
-  inline typename std::make_unsigned<T>::type bssabs(T x) noexcept
+  inline typename std::make_unsigned<T>::type bssAbs(T x) noexcept
   {
     static_assert(std::is_signed<T>::value, "T must be signed for this to work properly.");
     T const mask = x >> ((sizeof(T) << 3) - 1); // Uses a bit twiddling hack to take absolute value without branching: https://graphics.stanford.edu/~seander/bithacks.html#IntegerAbs
@@ -892,7 +893,7 @@ namespace bss_util {
   }
 
   template<class T>
-  inline typename std::make_signed<T>::type bssnegate(T x, char negate) noexcept
+  inline typename std::make_signed<T>::type bssNegate(T x, char negate) noexcept
   {
     static_assert(std::is_unsigned<T>::value, "T must be unsigned for this to work properly.");
     return (x ^ -negate) + negate;
@@ -901,7 +902,7 @@ namespace bss_util {
   template<bool ENABLE, typename T>
   struct __bssabsnegate_h
   {
-    BSS_FORCEINLINE static typename std::make_unsigned<T>::type _bssabs(T x) { return bssabs<T>(x); }
+    BSS_FORCEINLINE static typename std::make_unsigned<T>::type _bssabs(T x) { return bssAbs<T>(x); }
     BSS_FORCEINLINE static void _bssnegate(T& x, T& y, char negate)
     {
       if(negate)
@@ -948,20 +949,20 @@ namespace bss_util {
     return (T)(low | high);
   }
   template<class T>
-  BSS_FORCEINLINE T bssmultiplyextract(T x, T y, T shift) noexcept
+  BSS_FORCEINLINE T bssMultiplyExtract(T x, T y, T shift) noexcept
   {
     typedef typename std::conditional<std::is_signed<T>::value, typename BitLimit<sizeof(T) << 4>::SIGNED, typename BitLimit<sizeof(T) << 4>::UNSIGNED>::type U;
     return (T)(((U)x * (U)y) >> shift);
   }
 #ifndef BSS_HASINT128
   template<>
-  BSS_FORCEINLINE int64_t bssmultiplyextract<int64_t>(int64_t x, int64_t y, int64_t shift) noexcept { return __bssmultiplyextract__h<int64_t>(x, y, shift); }
+  BSS_FORCEINLINE int64_t bssMultiplyExtract<int64_t>(int64_t x, int64_t y, int64_t shift) noexcept { return __bssmultiplyextract__h<int64_t>(x, y, shift); }
   template<>
-  BSS_FORCEINLINE uint64_t bssmultiplyextract<uint64_t>(uint64_t x, uint64_t y, uint64_t shift) noexcept { return __bssmultiplyextract__h<uint64_t>(x, y, shift); }
+  BSS_FORCEINLINE uint64_t bssMultiplyExtract<uint64_t>(uint64_t x, uint64_t y, uint64_t shift) noexcept { return __bssmultiplyextract__h<uint64_t>(x, y, shift); }
 #endif
 
   template<class I>
-  inline I days_from_civil(I y, unsigned m, unsigned d) noexcept
+  inline I DaysFromCivil(I y, unsigned m, unsigned d) noexcept
   {
     static_assert(std::numeric_limits<unsigned>::digits >= 18, "This algorithm has not been ported to a 16 bit unsigned integer");
     static_assert(std::numeric_limits<I>::digits >= 20, "This algorithm has not been ported to a 16 bit signed integer");
@@ -975,7 +976,7 @@ namespace bss_util {
 
   // Generic function application to an array
   template<class T, size_t I, T(*F)(T, T)>
-  BSS_FORCEINLINE std::array<T, I> arraymap(const std::array<T, I>& l, const std::array<T, I>& r) noexcept
+  BSS_FORCEINLINE std::array<T, I> ArrayMap(const std::array<T, I>& l, const std::array<T, I>& r) noexcept
   {
     std::array<T, I> x;
     for(size_t i = 0; i < I; ++i)
@@ -999,35 +1000,35 @@ namespace bss_util {
   template<int ...S> struct bssSeq_gens<0, S...> { typedef bssSeq<S...> type; };
 #endif
 
-  BSS_COMPILER_DLLEXPORT extern void bssdll_delete_delfunc(void* p);
+  BSS_COMPILER_DLLEXPORT extern void bssDLLDeleteFunc(void* p);
 
   //unique_ptr deleter class that forces the deletion to occur in this DLL
   template<class _Ty>
-  struct bssdll_delete
+  struct bssDLLDelete
   {	// default deleter for unique_ptr
-    typedef bssdll_delete<_Ty> _Myt;
+    typedef bssDLLDelete<_Ty> _Myt;
 
     void operator()(_Ty *_Ptr) const
     {
       if(0 < sizeof(_Ty))
       { // won't compile for incomplete type
         _Ptr->~_Ty(); // call destructor because delete won't
-        bssdll_delete_delfunc(_Ptr);
+        bssDLLDeleteFunc(_Ptr);
       }
     }
   };
 
   template<class _Ty>
-  struct bssdll_delete<_Ty[]>
+  struct bssDLLDelete<_Ty[]>
   {	// default deleter for unique_ptr to array of unknown size
-    typedef bssdll_delete<_Ty> _Myt;
+    typedef bssDLLDelete<_Ty> _Myt;
 
     void operator()(_Ty *_Ptr) const
     {
       if(0 < sizeof(_Ty))
       { // won't compile for incomplete type
         _Ptr->~_Ty(); // call destructor because delete won't
-        bssdll_delete_delfunc(_Ptr);
+        bssDLLDeleteFunc(_Ptr);
       }
     }
   };

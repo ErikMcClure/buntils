@@ -33,7 +33,7 @@ namespace bss_util {
   };
   template<> struct __Graph__InternalEdge<void> {
     static BSS_FORCEINLINE void _getdata(char& target, const VoidData<void>& t) { target = 1; }
-    static BSS_FORCEINLINE void _setdataE(VoidData<void>& t, const void* d) { }
+    static BSS_FORCEINLINE void _setdataE(VoidData<void>& t, const void* d) {}
   };
 
   template<typename V, typename CT>
@@ -44,8 +44,8 @@ namespace bss_util {
   };
   template<typename CT>
   struct __Graph__InternalVertex<void, CT> {
-    static BSS_FORCEINLINE void _setdataV(VoidData<void>& t, const void* d) { }
-    static BSS_FORCEINLINE void _setvertex(void* v, CT i, const VoidData<void>& t) { }
+    static BSS_FORCEINLINE void _setdataV(VoidData<void>& t, const void* d) {}
+    static BSS_FORCEINLINE void _setvertex(void* v, CT i, const VoidData<void>& t) {}
     static BSS_FORCEINLINE const void* _addvertex(const void* v, CT i) { return 0; }
   };
 
@@ -183,10 +183,10 @@ namespace bss_util {
     DYNARRAY(CT, height, cap);
     DYNARRAY(PEDGE, seen, cap);
     DYNARRAY(PAIR, v, (len - 2)); //integer based singly-linked list.
-    memset(excess, 0, cap*sizeof(int));
-    memset(height, 0, cap*sizeof(CT));
-    memset(seen, 0, cap*sizeof(PEDGE));
-    memset(v, -1, (len - 2)*sizeof(PAIR));
+    memset(excess, 0, cap * sizeof(int));
+    memset(height, 0, cap * sizeof(CT));
+    memset(seen, 0, cap * sizeof(PEDGE));
+    memset(v, -1, (len - 2) * sizeof(PAIR));
     PEDGE edge;
     auto& nodes = graph.GetNodes();
 
@@ -199,7 +199,8 @@ namespace bss_util {
     for(CT i = nodes.Front(); i != (CT)-1; nodes.Next(i))
     {
       seen[k] = nodes[i].to;
-      if(i != s && i != t) {
+      if(i != s && i != t)
+      {
         *plast = k;
         v[k].first = i;
         plast = &v[k++].second;
@@ -208,7 +209,8 @@ namespace bss_util {
     assert(k == (len - 2));
 
     // Push as much flow as possible from s
-    for(edge = nodes[s].to; edge != 0; edge = edge->next) {
+    for(edge = nodes[s].to; edge != 0; edge = edge->next)
+    {
       edge->data.flow = edge->data.capacity;
       excess[edge->to] = edge->data.capacity;
     }
@@ -226,16 +228,20 @@ namespace bss_util {
         if(!seen[k]) //If seen is null, we tried all our neighbors so relabel
         {
           send = INT_MAX;
-          for(edge = nodes[k].to; edge != 0; edge = edge->next) { // First we try to send it forward
-            if(edge->data.capacity - edge->data.flow > 0) {
+          for(edge = nodes[k].to; edge != 0; edge = edge->next)
+          { // First we try to send it forward
+            if(edge->data.capacity - edge->data.flow > 0)
+            {
               if(height[edge->to] < send) send = height[edge->to];
               height[k] = send + 1; // we have to do this in here because if there is no valid relabel, the height can't change.
             }
           }
           if(send == INT_MAX) // If this is true, our forward relabel failed, so that means we need to try to push things backwards
           {
-            for(edge = nodes[k].from; edge != 0; edge = edge->alt.next) {
-              if(edge->data.flow > 0) { // Negate the flow and set capacity to 0 because we're going backwards
+            for(edge = nodes[k].from; edge != 0; edge = edge->alt.next)
+            {
+              if(edge->data.flow > 0)
+              { // Negate the flow and set capacity to 0 because we're going backwards
                 if(height[edge->from] < send) send = height[edge->from];
                 height[k] = send + 1;
               }
@@ -246,10 +252,12 @@ namespace bss_util {
             seen[k] = nodes[k].to;
           continue;
         }
-        if(excess[k] > 0) {// If possible, do a push. We must check whether our current edge is backwards or not
+        if(excess[k] > 0)
+        {// If possible, do a push. We must check whether our current edge is backwards or not
           send = (seen[k]->from == k) ? seen[k]->data.capacity - seen[k]->data.flow : seen[k]->data.flow;
           target = (seen[k]->from == k) ? seen[k]->to : seen[k]->from;
-          if(height[k] > height[target] && send > 0) { // If possible, do a push
+          if(height[k] > height[target] && send > 0)
+          { // If possible, do a push
             if(excess[k] < send) send = excess[k]; // send an amount equal to min(excess, capacity - flow)
             seen[k]->data.flow += (seen[k]->from == k) ? send : -send; // Negate if the edge is backwards
             excess[target] += send;
@@ -292,15 +300,19 @@ namespace bss_util {
     auto& n = g.GetNodes();
     __edge_MaxFlow<E> edge = { 0 };
 
-    for(CT i = n.Front(); i != (CT)-1; n.Next(i)) {
-      if(i != ss && i != st) {
+    for(CT i = n.Front(); i != (CT)-1; n.Next(i))
+    {
+      if(i != ss && i != st)
+      {
         d = n[i].data.demand;
         total += d;
-        if(d < 0) {// This is a source
+        if(d < 0)
+        {// This is a source
           edge.capacity = -d;
           g.AddEdge(ss, i, &edge);
         }
-        else if(d>0) {// this is a sink
+        else if(d > 0)
+        {// this is a sink
           edge.capacity = d;
           g.AddEdge(i, st, &edge);
         }
@@ -324,8 +336,10 @@ namespace bss_util {
     Edge<__edge_MaxFlow<__edge_LowerBound<E>>, CT>* e;
     auto& n = g.GetNodes();
     int l;
-    for(CT i = n.Front(); i != (CT)-1; n.Next(i)) {
-      for(e = n[i].to; e != 0; e = e->next) {
+    for(CT i = n.Front(); i != (CT)-1; n.Next(i))
+    {
+      for(e = n[i].to; e != 0; e = e->next)
+      {
         l = e->data.d.data.lowerbound;
         e->data.capacity -= l;
         n[i].data.demand += l;
@@ -358,7 +372,8 @@ namespace bss_util {
 
     // Queue up everything next to the root, checking only for edges that connect the root to itself
     size_t l = 0;
-    for(E* edge = n[root].to; edge != 0; edge = edge->next) {
+    for(E* edge = n[root].to; edge != 0; edge = edge->next)
+    {
       if(edge->to != root)
         queue[l++] = edge->to;
     }
@@ -367,7 +382,8 @@ namespace bss_util {
     {
       if(FACTION(queue[i])) return;
       set.Union(root, queue[i]);
-      for(E* edge = n[queue[i]].to; edge != 0; edge = edge->next) {
+      for(E* edge = n[queue[i]].to; edge != 0; edge = edge->next)
+      {
         if(set.Find(edge->to) != root) //Enqueue the children if they aren't already in the set.
           queue[l++] = edge->to; // Doesn't need to be circular because we can only enqueue n-1 anyway.
       }

@@ -34,13 +34,13 @@ namespace bss_util {
     // Gets the node that belongs to the data or returns nullptr if not found.
     inline AANODE<T>* Get(const T& data)
     {
-      AANODE<T>* cur=_root;
+      AANODE<T>* cur = _root;
       while(cur != _sentinel)
       {
         switch(CFunc(data, cur->data))
         {
-        case -1: cur=cur->left; break;
-        case 1: cur=cur->right; break;
+        case -1: cur = cur->left; break;
+        case 1: cur = cur->right; break;
         default: return cur;
         }
       }
@@ -52,9 +52,9 @@ namespace bss_util {
     inline AANODE<T>* GetRoot() { return _root == _sentinel ? 0 : _root; }
     inline bool IsEmpty() { return _root == _sentinel; }
     // Does an in-order traversal of the tree, applying FACTION to each node's data object.
-    template<void (*FACTION)(T&)>
+    template<void(*FACTION)(T&)>
     inline void Traverse() { _traverse<FACTION>(_root); }
-    
+
   protected:
     void _clear(AANODE<T>* n)
     {
@@ -64,7 +64,7 @@ namespace bss_util {
       n->~AANODE<T>();
       cAllocTracker<Alloc>::_deallocate(n, 1);
     }
-    template<void (*FACTION)(T&)>
+    template<void(*FACTION)(T&)>
     inline void _traverse(AANODE<T>* n)
     {
       _traverse(n->left);
@@ -73,7 +73,8 @@ namespace bss_util {
     }
     inline void _skew(AANODE<T>*& n)
     {
-      if(n->level == n->left->level) {
+      if(n->level == n->left->level)
+      {
         AANODE<T>* l = n->left;
         n->left = l->right;
         l->right = n;
@@ -82,7 +83,8 @@ namespace bss_util {
     }
     inline void _split(AANODE<T>*& n)
     {
-      if(n->right->right->level == n->level) {
+      if(n->right->right->level == n->level)
+      {
         AANODE<T>* r = n->right;
         n->right = r->left;
         r->left = n;
@@ -100,7 +102,7 @@ namespace bss_util {
         n->level = 1;
         return;
       }
-      if(CFunc(data, n->data)<0)
+      if(CFunc(data, n->data) < 0)
         _insert(n->left, data);
       else
         _insert(n->right, data);
@@ -113,20 +115,26 @@ namespace bss_util {
       if(n == _sentinel) return false;
       _last = n;
       bool b = false;
-      if(CFunc(data, n->data) < 0) {
+      if(CFunc(data, n->data) < 0)
+      {
         b = _remove(n->left, data);
-      } else {
+      }
+      else
+      {
         _deleted = n;
         b = _remove(n->right, data);
       }
-      if(n == _last && _deleted != _sentinel && !CFunc(data, _deleted->data)) {
+      if(n == _last && _deleted != _sentinel && !CFunc(data, _deleted->data))
+      {
         _deleted->data = n->data;
         _deleted = _sentinel;
         n = n->right;
         cAllocTracker<Alloc>::_deallocate(_last);
         _last = _sentinel;
         b = true;
-      } else if(n->left->level < n->level-1 || n->right->level < n->level-1) {
+      }
+      else if(n->left->level < n->level - 1 || n->right->level < n->level - 1)
+      {
         n->level--;
         if(n->right->level > n->level)
           n->right->level = n->level;

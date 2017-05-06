@@ -54,18 +54,18 @@ namespace bss_util {
 
     BSS_FORCEINLINE uint64_t StartProfile(PROFILER_INT id)
     {
-      PROF_TRIENODE** r=&_cur;
-      while(id>0)
+      PROF_TRIENODE** r = &_cur;
+      while(id > 0)
       {
-        r = &(*r)->_children[id%16];
-        id = (id>>4);
+        r = &(*r)->_children[id % 16];
+        id = (id >> 4);
         if(!*r)
           *r = _allocnode();
       }
-      _cur=*r;
+      _cur = *r;
       if(_cur->total == (uint64_t)-1)
         _cur->total = 0;
-      _cur->inner=0;
+      _cur->inner = 0;
       return cHighPrecisionTimer::OpenProfiler();
     }
     BSS_FORCEINLINE void EndProfile(uint64_t time, PROF_TRIENODE* old)
@@ -74,18 +74,18 @@ namespace bss_util {
       //bssvariance<double, uint64_t>(_cur->variance, _cur->avg, (double)time, ++_cur->total);
       _cur->avg = bssavg<double, uint64_t>(_cur->avg, (double)time, ++_cur->total);
       _cur->codeavg = bssavg<double, uint64_t>(_cur->codeavg, (double)(time - _cur->inner), _cur->total);
-      _cur=old;
+      _cur = old;
       _cur->inner += time;
     }
     BSS_FORCEINLINE PROF_TRIENODE* GetRoot() { return _trie; }
     BSS_FORCEINLINE PROF_TRIENODE* GetCur() { return _cur; }
     void AddData(PROFILER_INT id, ProfilerData* p);
-    enum OUTPUT_DATA : uint8_t { OUTPUT_FLAT=1, OUTPUT_TREE=2, OUTPUT_HEATMAP=4, OUTPUT_ALL=1|2|4 };
+    enum OUTPUT_DATA : uint8_t { OUTPUT_FLAT = 1, OUTPUT_TREE = 2, OUTPUT_HEATMAP = 4, OUTPUT_ALL = 1 | 2 | 4 };
     void WriteToFile(const char* s, uint8_t output);
     void WriteToStream(std::ostream& stream, uint8_t output);
 
     static Profiler profiler;
-    static const PROFILER_INT BUFSIZE=4096;
+    static const PROFILER_INT BUFSIZE = 4096;
 
   private:
     Profiler();
@@ -109,7 +109,8 @@ namespace bss_util {
   inline static bool __DEBUG_VERIFY(PROF_TRIENODE* node)
   {
     if(!node) return true;
-    if(!std::isfinite(node->avg) || !std::isfinite(node->codeavg)) {
+    if(!std::isfinite(node->avg) || !std::isfinite(node->codeavg))
+    {
       return false;
     }
     for(int i = 0; i < 16; ++i)
@@ -120,7 +121,7 @@ namespace bss_util {
 
   struct ProfilerBlock
   {
-    BSS_FORCEINLINE ProfilerBlock(PROFILER_INT id, PROF_TRIENODE* cache) : _cache(cache), _time(Profiler::profiler.StartProfile(id)) { }
+    BSS_FORCEINLINE ProfilerBlock(PROFILER_INT id, PROF_TRIENODE* cache) : _cache(cache), _time(Profiler::profiler.StartProfile(id)) {}
     BSS_FORCEINLINE ~ProfilerBlock() { Profiler::profiler.EndProfile(_time, _cache); }
     PROF_TRIENODE* _cache;
     uint64_t _time;

@@ -9,8 +9,8 @@
 
 using namespace bss_util;
 
-cXML::cXML(const cXML& copy) : cXMLNode(copy) { }
-cXML::cXML(cXML&& mov) : cXMLNode(std::move(mov)) { }
+cXML::cXML(const cXML& copy) : cXMLNode(copy) {}
+cXML::cXML(cXML&& mov) : cXMLNode(std::move(mov)) {}
 cXML::cXML(const char* source) { if(source) { cStr buf; std::istringstream ss(source); _initialparse(ss, buf); _parseinner(ss, buf); } }
 cXML::cXML(std::istream& stream) { cStr buf; _initialparse(stream, buf); _parseinner(stream, buf); }
 
@@ -28,7 +28,7 @@ void cXML::Write(const char* file, bool pretty) const
 }
 void cXML::Write(std::ostream& stream, bool pretty) const
 {
-  if(_attributes.Length()>0)
+  if(_attributes.Length() > 0)
   {
     stream << "<?";
     _writeattribute(stream);
@@ -41,20 +41,20 @@ void cXML::Write(std::ostream& stream, bool pretty) const
 cXMLNode::cXMLNode(const cXMLNode& copy) : _nodes(copy._nodes), _nodehash(copy._nodehash), _attributes(copy._attributes), _attrhash(copy._attrhash),
   _value(copy._value), _name(copy._name)
 {
-  next=0;
-  prev=0;
+  next = 0;
+  prev = 0;
 }
 cXMLNode::cXMLNode(cXMLNode&& mov) : _nodes(std::move(mov._nodes)), _nodehash(std::move(mov._nodehash)), _attributes(std::move(mov._attributes)),
-_attrhash(std::move(mov._attrhash)), _value(std::move(mov._value)), _name(std::move(mov._name))
-{ 
-  next=mov.next; 
-  prev=mov.prev; 
-  mov.next=0; 
-  mov.prev=0; 
+  _attrhash(std::move(mov._attrhash)), _value(std::move(mov._value)), _name(std::move(mov._name))
+{
+  next = mov.next;
+  prev = mov.prev;
+  mov.next = 0;
+  mov.prev = 0;
 }
 
-cXMLNode::cXMLNode(const char* parse) { if(parse) { cStr buf; std::istringstream ss(parse); _parse(ss, buf); } next=0; prev=0; }
-cXMLNode::cXMLNode(std::istream& stream) { cStr buf; _parse(stream, buf); next=0; prev=0; }
+cXMLNode::cXMLNode(const char* parse) { if(parse) { cStr buf; std::istringstream ss(parse); _parse(ss, buf); } next = 0; prev = 0; }
+cXMLNode::cXMLNode(std::istream& stream) { cStr buf; _parse(stream, buf); next = 0; prev = 0; }
 
 cXMLNode& cXMLNode::operator=(const cXMLNode& copy)
 {
@@ -80,13 +80,15 @@ cXMLNode& cXMLNode::operator=(cXMLNode&& mov)
 cXMLNode* cXMLNode::AddNode(const cXMLNode& node) { return _addnode(std::unique_ptr<cXMLNode>(new cXMLNode(node))); }
 cXMLNode* cXMLNode::AddNode(const char* name) { std::unique_ptr<cXMLNode> node(new cXMLNode()); node->_name = name; return _addnode(std::move(node)); }
 cXMLValue* cXMLNode::AddAttribute(const cXMLValue& value) { return _addattribute(cXMLValue(value)); }
-cXMLValue* cXMLNode::AddAttribute(const char* name) { cXMLValue v; v.Name=name; return _addattribute(std::move(v)); }
+cXMLValue* cXMLNode::AddAttribute(const char* name) { cXMLValue v; v.Name = name; return _addattribute(std::move(v)); }
 bool cXMLNode::RemoveNode(size_t index)
-{ 
-  if(index>= _nodes.Length()) return false;
+{
+  if(index >= _nodes.Length()) return false;
   khiter_t iter = _nodehash.Iterator(_nodes[index]->_name);
-  if(_nodes[index]->next) {
-    for(size_t i = 0; i < _nodes.Length(); ++i) {
+  if(_nodes[index]->next)
+  {
+    for(size_t i = 0; i < _nodes.Length(); ++i)
+    {
       if(_nodes[i].get() == _nodes[index]->next)
       {
         _nodes[i]->prev = 0;
@@ -94,16 +96,17 @@ bool cXMLNode::RemoveNode(size_t index)
           _nodehash.SetValue(iter, i);
       }
     }
-  } else if(_nodehash.ExistsIter(iter))
+  }
+  else if(_nodehash.ExistsIter(iter))
     _nodehash.RemoveIter(iter);
-  
+
   _nodes.Remove(index);
   return true;
 }
 bool cXMLNode::RemoveNode(const char* name) { return RemoveNode(_nodehash[name]); }
 bool cXMLNode::RemoveAttribute(size_t index)
 {
-  if(index>= _nodes.Length()) return false;
+  if(index >= _nodes.Length()) return false;
   _attrhash.Remove(_nodes[index]->_name);
   _nodes.Remove(index);
   return true;
@@ -124,14 +127,15 @@ cXMLNode* cXMLNode::_addnode(std::unique_ptr<cXMLNode> && n)
     LLInsert<cXMLNode>(n.get(), target);
     _nodehash.SetValue(iter, _nodes.Length());
   }
-    
+
   _nodes.Add(std::move(n));
   return _nodes.Back().get();
 }
 cXMLValue* cXMLNode::_addattribute(cXMLValue && v)
 {
   khiter_t iter = _attrhash.Iterator(v.Name);
-  if(!_attrhash.ExistsIter(iter)) {
+  if(!_attrhash.ExistsIter(iter))
+  {
     _attributes.Add(std::move(v));
     _attrhash.Insert(_attributes.Back().Name, _attributes.Length() - 1);
     return &_attributes.Back();
@@ -162,12 +166,12 @@ bool cXMLNode::_match(std::istream& stream, cStr& out, const char* pattern, bool
   std::streamoff mid = stream.tellg();
   out.clear();
 
-  while(stream.peek() != -1 && stream && pattern[end]!=0)
+  while(stream.peek() != -1 && stream && pattern[end] != 0)
   {
-    end = (stream.peek() == pattern[end])?(end+1):i;
+    end = (stream.peek() == pattern[end]) ? (end + 1) : i;
     out += stream.get();
   }
-  out.resize(i-end+out.length()); // trim off ending
+  out.resize(i - end + out.length()); // trim off ending
   if(!pattern[end]) { if(reset) stream.seekg(mid); return true; } // If we got through the entire pattern, the match was a success (even if the file ended).
   stream.seekg(start); // otherwise we failed so reset everything
   return false;
@@ -178,8 +182,8 @@ bool cXMLNode::_parse(std::istream& stream, cStr& buf)
   while(_match(stream, buf, "<!--*-->"));
   if(!_match(stream, buf, "<*>")) return false;
   if(buf.length() > 0 && buf.back() == '/') // this is a self-closing tag
-  { 
-    buf.resize(buf.length()-1); // chop off the /
+  {
+    buf.resize(buf.length() - 1); // chop off the /
     _parseattribute(buf);
     return true;
   }
@@ -187,7 +191,7 @@ bool cXMLNode::_parse(std::istream& stream, cStr& buf)
   _parseinner(stream, buf);
   if(stream.peek() == -1 || !stream) return true;
   if(buf.Trim() != _name) // If the end tag is not a legal end tag, someone didn't close something properly, so we need to backtrack
-    stream.seekg(-2-buf.length(), std::ios_base::cur);
+    stream.seekg(-2 - buf.length(), std::ios_base::cur);
   return true;
 }
 
@@ -228,7 +232,7 @@ void cXMLNode::_parseattribute(cStr& buf)
   const char* c = ((const char*)buf) + i;
 
   std::istringstream ss(c);
-  while(ss.peek() != -1 && ss) 
+  while(ss.peek() != -1 && ss)
   {
     cXMLValue v;
     if(_match(ss, v.Name, "*="))
@@ -240,7 +244,9 @@ void cXMLNode::_parseattribute(cStr& buf)
       }
 
       _evalvalue(v);
-    } else { // If we can't find an equals sign, we'll just have to eat the whole thing.
+    }
+    else
+    { // If we can't find an equals sign, we'll just have to eat the whole thing.
       while(ss.peek() != -1 && ss && !isspace(ss.peek())) v.Name += ss.get();
     }
     _addattribute(std::move(v));
@@ -329,13 +335,13 @@ void cXMLNode::_write(std::ostream& stream, bool pretty, int depth) const
   if(content) _writestring(stream, _value.String);
 
   for(size_t i = 0; i < _nodes.Length(); ++i)
-    _nodes[i]->_write(stream, pretty, depth+1);
+    _nodes[i]->_write(stream, pretty, depth + 1);
 
-  if(_nodes.Length()>0 && pretty)
+  if(_nodes.Length() > 0 && pretty)
   {
     stream << std::endl;
     for(int i = 0; i < depth; ++i) stream.put('\t');
   }
-  
+
   stream << "</" << _name << ">";
 }

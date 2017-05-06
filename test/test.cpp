@@ -88,12 +88,12 @@ int main(int argc, char** argv)
   _failedtests.AddTarget("failedtests.txt");
   uint64_t seed = (uint64_t)time(nullptr);
   //seed = 1489803649;
-  bssrandseed(seed);
+  bssRandSeed(seed);
   //profile_ring_alloc();
 
   for(int i = 0; i<TESTNUM; ++i)
     testnums[i] = i;
-  shuffle(testnums); 
+  Shuffle(testnums); 
 
   // For best results on windows, add the test application to Application Verifier before going through the tests.
   TESTDEF tests[] = {

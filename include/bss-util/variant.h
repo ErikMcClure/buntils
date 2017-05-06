@@ -14,86 +14,86 @@
 
 namespace bss_util {
 
-	template<typename V, typename... Tx>
-	struct _variant_op;
+  template<typename V, typename... Tx>
+  struct _variant_op;
 
-	template<typename V, typename T, typename... Tx>
-	struct _variant_op<V, T, Tx...>
-	{
-		inline static void destroy(int tag, char* store)
-		{
-			if(tag == V::template pubgetpos<T>::value)
-				reinterpret_cast<T*>(store)->~T();
-			else
-				_variant_op<V, Tx...>::destroy(tag, store);
-		}
-		template<class U>
-		inline static void construct(int tag, char* store, const typename std::remove_reference<U>::type& v)
-		{
-			if(tag == V::template pubgetpos<T>::value)
-				new(store) T(*reinterpret_cast<const T*>(v._store));
-			else
-				_variant_op<V, Tx...>::template construct<typename std::remove_reference<U>::type>(tag, store, v);
-		}
-		template<class U>
-		inline static void construct(int tag, char* store, typename std::remove_reference<U>::type&& v)
-		{
-			if(tag == V::template pubgetpos<T>::value)
-				new(store) T((T&&)(*reinterpret_cast<T*>(v._store)));
-			else
-				_variant_op<V, Tx...>::template construct<U>(tag, store, std::move(v));
-		}
-		template<class U>
-		inline static void assign(int tag, char* store, const typename std::remove_reference<U>::type& v)
-		{
-			if(tag == V::template pubgetpos<T>::value)
-				*reinterpret_cast<T*>(store) = *reinterpret_cast<const T*>(v._store);
-			else
-				_variant_op<V, Tx...>::template assign<typename std::remove_reference<U>::type>(tag, store, v);
-		}
-		template<class U>
-		inline static void assign(int tag, char* store, typename std::remove_reference<U>::type&& v)
-		{
-			if(tag == V::template pubgetpos<T>::value)
-				*reinterpret_cast<T*>(store) = (T&&)(*reinterpret_cast<const T*>(v._store));
-			else
-				_variant_op<V, Tx...>::template assign<U>(tag, store, std::move(v));
-		}
-		template<class U>
-		inline static U convert(int tag, char* store)
-		{
-			if(tag == V::template pubgetpos<T>::value)
-				return static_cast<U>(*reinterpret_cast<T*>(store));
-			else
-				return _variant_op<V, Tx...>::template convert<U>(tag, store);
-		}
-		template<class U>
-		inline static U* convertP(int tag, char* store)
-		{
-			if(tag == V::template pubgetpos<T>::value)
-				return static_cast<U*>(reinterpret_cast<T*>(store));
-			else
-				return _variant_op<V, Tx...>::template convertP<U>(tag, store);
-		}
-	};
+  template<typename V, typename T, typename... Tx>
+  struct _variant_op<V, T, Tx...>
+  {
+    inline static void destroy(int tag, char* store)
+    {
+      if(tag == V::template pubgetpos<T>::value)
+        reinterpret_cast<T*>(store)->~T();
+      else
+        _variant_op<V, Tx...>::destroy(tag, store);
+    }
+    template<class U>
+    inline static void construct(int tag, char* store, const typename std::remove_reference<U>::type& v)
+    {
+      if(tag == V::template pubgetpos<T>::value)
+        new(store) T(*reinterpret_cast<const T*>(v._store));
+      else
+        _variant_op<V, Tx...>::template construct<typename std::remove_reference<U>::type>(tag, store, v);
+    }
+    template<class U>
+    inline static void construct(int tag, char* store, typename std::remove_reference<U>::type&& v)
+    {
+      if(tag == V::template pubgetpos<T>::value)
+        new(store) T((T&&)(*reinterpret_cast<T*>(v._store)));
+      else
+        _variant_op<V, Tx...>::template construct<U>(tag, store, std::move(v));
+    }
+    template<class U>
+    inline static void assign(int tag, char* store, const typename std::remove_reference<U>::type& v)
+    {
+      if(tag == V::template pubgetpos<T>::value)
+        *reinterpret_cast<T*>(store) = *reinterpret_cast<const T*>(v._store);
+      else
+        _variant_op<V, Tx...>::template assign<typename std::remove_reference<U>::type>(tag, store, v);
+    }
+    template<class U>
+    inline static void assign(int tag, char* store, typename std::remove_reference<U>::type&& v)
+    {
+      if(tag == V::template pubgetpos<T>::value)
+        *reinterpret_cast<T*>(store) = (T&&)(*reinterpret_cast<const T*>(v._store));
+      else
+        _variant_op<V, Tx...>::template assign<U>(tag, store, std::move(v));
+    }
+    template<class U>
+    inline static U convert(int tag, char* store)
+    {
+      if(tag == V::template pubgetpos<T>::value)
+        return static_cast<U>(*reinterpret_cast<T*>(store));
+      else
+        return _variant_op<V, Tx...>::template convert<U>(tag, store);
+    }
+    template<class U>
+    inline static U* convertP(int tag, char* store)
+    {
+      if(tag == V::template pubgetpos<T>::value)
+        return static_cast<U*>(reinterpret_cast<T*>(store));
+      else
+        return _variant_op<V, Tx...>::template convertP<U>(tag, store);
+    }
+  };
 
-	template<typename V>
-	struct _variant_op<V>
-	{
-		inline static void destroy(int tag, char* store) { assert(tag == -1); }
-		template<class U>
-		inline static void construct(int tag, char* store, const U& v) { assert(tag == -1); }
-		template<class U>
-		inline static void construct(int tag, char* store, U && v) { assert(tag == -1); }
-		template<class U>
-		inline static void assign(int tag, char* store, const U& v) { assert(false); }
-		template<class U>
-		inline static void assign(int tag, char* store, U && v) { assert(false); }
-		template<class U>
-		inline static U convert(int tag, char* store) { assert(false); return *reinterpret_cast<U*>(store); }
-		template<class U>
-		inline static U* convertP(int tag, char* store) { assert(false); return reinterpret_cast<U*>(store); }
-	};
+  template<typename V>
+  struct _variant_op<V>
+  {
+    inline static void destroy(int tag, char* store) { assert(tag == -1); }
+    template<class U>
+    inline static void construct(int tag, char* store, const U& v) { assert(tag == -1); }
+    template<class U>
+    inline static void construct(int tag, char* store, U && v) { assert(tag == -1); }
+    template<class U>
+    inline static void assign(int tag, char* store, const U& v) { assert(false); }
+    template<class U>
+    inline static void assign(int tag, char* store, U && v) { assert(false); }
+    template<class U>
+    inline static U convert(int tag, char* store) { assert(false); return *reinterpret_cast<U*>(store); }
+    template<class U>
+    inline static U* convertP(int tag, char* store) { assert(false); return reinterpret_cast<U*>(store); }
+  };
 
   // algebriac union using variadic templates
   template<typename Arg, typename... Args>
@@ -133,7 +133,7 @@ namespace bss_util {
     struct resolve
     {
       inline static void construct(variant& src, U && v)
-      { 
+      {
         static_assert(getpos<T, Arg, Args...>::value != -1, "Type does not exist in variant");
         src._tag = getpos<T, Arg, Args...>::value;
         new(src._store) T(std::forward<U>(v));
@@ -155,7 +155,8 @@ namespace bss_util {
     struct resolve<variant, U>
     {
       inline static void construct(variant& src, U && v) { src._tag = v._tag; _variant_op<SELF, Arg, Args...>::template construct<U>(src._tag, src._store, std::forward<U>(v)); }
-      inline static void assign(variant& src, U && v) { 
+      inline static void assign(variant& src, U && v)
+      {
         if(src._tag == v._tag)
           _variant_op<SELF, Arg, Args...>::template assign<U>(src._tag, src._store, std::forward<U>(v));
         else
@@ -209,7 +210,7 @@ namespace bss_util {
     inline bool is() const { return getpos<T, Arg, Args...>::value == _tag; }
     template<typename T>
     inline void typeset()
-    { 
+    {
       static_assert(getpos<T, Arg, Args...>::value != -1, "Type does not exist in variant");
       _destruct();
       _tag = getpos<T, Arg, Args...>::value;

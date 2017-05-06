@@ -118,8 +118,8 @@ public:
   template<class U> inline cStrT(const cStrT<T, U>& copy) : BASE(copy) {}
   template<class U> inline cStrT(const cStrT<OTHER_C, U>& copy) : BASE() { _convstr(copy.c_str(), copy.size() + 1); }
   template<class U> inline cStrT(const cStrT<OTHER_C2, U>& copy) : BASE() { _convstr2(copy.c_str(), copy.size() + 1); }
-  inline cStrT(const CHAR* string) : BASE(!string ? CSTR_CT<T>::STREMPTY() : string) { }
-  inline cStrT(const CHAR* string, size_t count) : BASE(!string ? CSTR_CT<T>::STREMPTY() : string, count) { }
+  inline cStrT(const CHAR* string) : BASE(!string ? CSTR_CT<T>::STREMPTY() : string) {}
+  inline cStrT(const CHAR* string, size_t count) : BASE(!string ? CSTR_CT<T>::STREMPTY() : string, count) {}
   inline cStrT(const OTHER_C* text) : BASE() { if(text != 0) _convstr(text, -1); }
   inline cStrT(const OTHER_C* text, size_t count) : BASE() { if(text != 0) _convstr(text, count); }
   inline cStrT(const OTHER_C2* text) : BASE() { if(text != 0) _convstr2(text, -1); }
@@ -279,8 +279,8 @@ private:
     BASE::resize(r - 1); // resize to actual number of characters instead of simply the maximum (disregard null terminator)
   }
 
-  inline static T* _ltrim(T* str) { for(; *str>0 && *str<33; ++str); return str; }
-  inline static T* _rtrim(T* str, size_t size) { T* inter = str + size; for(; inter>str && *inter<33; --inter); *(++inter) = 0; return str; }
+  inline static T* _ltrim(T* str) { for(; *str > 0 && *str < 33; ++str); return str; }
+  inline static T* _rtrim(T* str, size_t size) { T* inter = str + size; for(; inter > str && *inter < 33; --inter); *(++inter) = 0; return str; }
 
 };
 #pragma warning(pop)

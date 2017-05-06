@@ -11,14 +11,14 @@
 namespace bss_util {
   template<typename STREAM, bool ISOUT>
   struct __bitstream_internal { BSS_FORCEINLINE static void _flush(STREAM* s, uint8_t buf) { s->write((char*)&buf, 1); } };
-  
+
   template<typename STREAM>
-  struct __bitstream_internal<STREAM,false> { BSS_FORCEINLINE static void _flush(STREAM* s, uint8_t buf) { } };
+  struct __bitstream_internal<STREAM, false> { BSS_FORCEINLINE static void _flush(STREAM* s, uint8_t buf) {} };
 
   // This wraps around an existing stream and flushes to it. Capable of writing and reading with single-bit precision.
-  template<typename STREAM=std::iostream>
-  class BSS_COMPILER_DLLEXPORT cBitStream : protected __bitstream_internal<STREAM,std::is_base_of<std::ostream, STREAM>::value>
-  { 
+  template<typename STREAM = std::iostream>
+  class BSS_COMPILER_DLLEXPORT cBitStream : protected __bitstream_internal<STREAM, std::is_base_of<std::ostream, STREAM>::value>
+  {
     using __bitstream_internal<STREAM, std::is_base_of<std::ostream, STREAM>::value>::_flush;
 
   public:
@@ -28,56 +28,56 @@ namespace bss_util {
     ~cBitStream() { if(_base) Flush(); }
     void Write(const void* source, int bits)
     {
-      const uint8_t* d=(const uint8_t*)source;
-      int k=0;
+      const uint8_t* d = (const uint8_t*)source;
+      int k = 0;
       int i;
-      for(i = bits; i>=8; i-=8)
+      for(i = bits; i >= 8; i -= 8)
       {
-        _buf|=(d[k]<<_woffset);
+        _buf |= (d[k] << _woffset);
         _base->put(_buf);
-        _buf=(d[k++]>>(8-_woffset));
+        _buf = (d[k++] >> (8 - _woffset));
       }
       if(!i) return;
-      _buf |= (d[k]<<_woffset);
-      if((_woffset+i)>=8) // We ran over our current character
+      _buf |= (d[k] << _woffset);
+      if((_woffset + i) >= 8) // We ran over our current character
       {
         _base->put(_buf);
-        _buf = (d[k]>>(8-_woffset));
+        _buf = (d[k] >> (8 - _woffset));
       }
-      _woffset=((_woffset+i)&7);
-      _buf = (_buf&((1<<_woffset)-1)); // This zeros out all bits we didn't assign in _buf
+      _woffset = ((_woffset + i) & 7);
+      _buf = (_buf&((1 << _woffset) - 1)); // This zeros out all bits we didn't assign in _buf
     }
     template<typename T>
-    void Write(const T& source) { Write(&source, std::conditional<std::is_same<T, bool>::value, std::integral_constant<int, 1>, std::integral_constant<int, (sizeof(T)<<3)>>::type::value); }
+    void Write(const T& source) { Write(&source, std::conditional<std::is_same<T, bool>::value, std::integral_constant<int, 1>, std::integral_constant<int, (sizeof(T) << 3)>>::type::value); }
     void Read(void* dest, int bits)
     {
       uint8_t* d = (uint8_t*)dest;
       uint8_t b;
       int k = 0;
       int i;
-      for(i = bits; i>=8; i -= 8)
+      for(i = bits; i >= 8; i -= 8)
       {
-        d[k] = (_base->peek()>>_roffset);
+        d[k] = (_base->peek() >> _roffset);
         _base->get(*((char*)&b));
-        d[k++] |= (_base->peek()<<(8-_roffset));
+        d[k++] |= (_base->peek() << (8 - _roffset));
       }
       if(!i) return;
-      d[k] |= (_base->peek()>>_roffset);
-      if((_roffset+i)>=8) // We ran over our current character
+      d[k] |= (_base->peek() >> _roffset);
+      if((_roffset + i) >= 8) // We ran over our current character
       {
         _base->get(*((char*)&b));
-        if((_roffset+i)>8) // We do this so we don't accidentally peek into an invalid character
-          d[k] |= (_base->peek()<<(8-_roffset));
+        if((_roffset + i) > 8) // We do this so we don't accidentally peek into an invalid character
+          d[k] |= (_base->peek() << (8 - _roffset));
       }
-      _roffset = ((_roffset+i)&7);
-      d[k] = (d[k]&((1<<i)-1)); // This zeros out all bits we didn't assign
+      _roffset = ((_roffset + i) & 7);
+      d[k] = (d[k] & ((1 << i) - 1)); // This zeros out all bits we didn't assign
     }
     template<typename T>
-    void Read(T& dest) { Read(&dest, std::conditional<std::is_same<T, bool>::value, std::integral_constant<int, 1>, std::integral_constant<int, (sizeof(T)<<3)>>::type::value); }
+    void Read(T& dest) { Read(&dest, std::conditional<std::is_same<T, bool>::value, std::integral_constant<int, 1>, std::integral_constant<int, (sizeof(T) << 3)>>::type::value); }
     void Flush() { if(_woffset) _flush(_base, _buf); }
 
-    cBitStream& operator=(const cBitStream& copy) { _base=copy._base; return *this; }
-    cBitStream& operator=(cBitStream&& mov) { _base=mov._base; mov._base=0; return *this; }
+    cBitStream& operator=(const cBitStream& copy) { _base = copy._base; return *this; }
+    cBitStream& operator=(cBitStream&& mov) { _base = mov._base; mov._base = 0; return *this; }
     template<typename T>
     cBitStream& operator<<(const T& v) { Write<T>(v); return *this; }
     template<typename T>
@@ -95,33 +95,33 @@ namespace bss_util {
   void bss_Serialize(T d, std::ostream& s)
   {
 #ifdef BSS_ENDIAN_BIG
-    flipendian((char*)&d,sizeof(T));
+    flipendian((char*)&d, sizeof(T));
 #endif
-    s.write((const char*)&d,sizeof(T));
+    s.write((const char*)&d, sizeof(T));
   }
   template<>
   void bss_Serialize<const char*>(const char* d, std::ostream& s)
   {
-    size_t len=strlen(d);
-    bss_Serialize(len,s);
-    s.write(d,len);
+    size_t len = strlen(d);
+    bss_Serialize(len, s);
+    s.write(d, len);
   }
 
   template<class T>
   void bss_Deserialize(T& d, std::istream& s)
   {
-    s.read((char*)&d,sizeof(T));
+    s.read((char*)&d, sizeof(T));
 #ifdef BSS_ENDIAN_BIG
-    flipendian((char*)&d,sizeof(T));
+    flipendian((char*)&d, sizeof(T));
 #endif
   }
   template<>
   void bss_Deserialize<std::string>(std::string& d, std::istream& s)
   {
     size_t len;
-    bss_Deserialize(len,s);
+    bss_Deserialize(len, s);
     d.resize(len);
-    s.read(const_cast<char*>(d.c_str()),len);
+    s.read(const_cast<char*>(d.c_str()), len);
   }
   template<>
   void bss_Deserialize<cStr>(cStr& d, std::istream& s) { bss_Deserialize<std::string>(d, s); }

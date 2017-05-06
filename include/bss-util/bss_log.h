@@ -28,9 +28,9 @@ namespace bss_util {
     // Move semantics only
     cLog(cLog&& mov);
     // Constructor - takes a stream and adds it
-    explicit cLog(std::ostream* log=0);
+    explicit cLog(std::ostream* log = 0);
     // Constructor - takes either a stream or a file (or both) and adds them
-    explicit cLog(const char* logfile, std::ostream* log=0);
+    explicit cLog(const char* logfile, std::ostream* log = 0);
 #ifdef BSS_PLATFORM_WIN32
     cLog(const wchar_t* logfile, std::ostream* log);
 #endif

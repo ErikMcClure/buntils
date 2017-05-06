@@ -9,7 +9,7 @@
 
 namespace bss_util {
   // Simple circular array implementation. Unlike most data structures, CType must be signed instead of unsigned
-  template<class T, typename CType = ptrdiff_t, ARRAY_TYPE ArrayType = CARRAY_SIMPLE, typename Alloc=StaticAllocPolicy<T>>
+  template<class T, typename CType = ptrdiff_t, ARRAY_TYPE ArrayType = CARRAY_SIMPLE, typename Alloc = StaticAllocPolicy<T>>
   class BSS_COMPILER_DLLEXPORT cArrayCircular : protected cArrayBase<T, CType, Alloc>, protected cArrayInternal<T, CType, ArrayType, Alloc>
   {
   protected:
@@ -24,35 +24,35 @@ namespace bss_util {
     // Constructors
     inline cArrayCircular(const cArrayCircular& copy) : AT_(0), _cur(-1), _length(0) { operator=(copy); }
     inline cArrayCircular(cArrayCircular&& mov) : AT_(std::move(mov)), _cur(mov._cur), _length(mov._length) { mov._cur = -1; mov._length = 0; }
-    inline explicit cArrayCircular(CType size=0) : AT_(size), _cur(-1), _length(0) {}
+    inline explicit cArrayCircular(CType size = 0) : AT_(size), _cur(-1), _length(0) {}
     inline ~cArrayCircular() { Clear(); }
     BSS_FORCEINLINE void Push(const T& item) { _push<const T&>(item); }
     BSS_FORCEINLINE void Push(T&& item) { _push<T&&>(std::move(item)); }
     inline T Pop()
-    { 
-      assert(_length>0);
+    {
+      assert(_length > 0);
       --_length;
       T r(std::move(_array[_cur]));
       _array[_cur].~T();
-      _cur=bssmod<CType>(_cur-1, _capacity);
+      _cur = bssmod<CType>(_cur - 1, _capacity);
       return r;
     }
     inline T PopBack()
-    { 
-      assert(_length>0);
+    {
+      assert(_length > 0);
       CType l = _modindex(--_length);
       T r(std::move(_array[l]));
       _array[l].~T();
       return r;
     }
-    inline const T& Front() const { assert(_length>0); return _array[_cur]; }
-    inline T& Front() { assert(_length>0); return _array[_cur]; }
-    inline const T& Back() const { assert(_length>0); return _array[_modindex(_length-1)]; }
-    inline T& Back() { assert(_length>0); return _array[_modindex(_length-1)]; }
+    inline const T& Front() const { assert(_length > 0); return _array[_cur]; }
+    inline T& Front() { assert(_length > 0); return _array[_cur]; }
+    inline const T& Back() const { assert(_length > 0); return _array[_modindex(_length - 1)]; }
+    inline T& Back() { assert(_length > 0); return _array[_modindex(_length - 1)]; }
     inline CType Capacity() const { return _capacity; }
     inline CType Length() const { return _length; }
     inline void Clear()
-    { 
+    {
       if(_length == _capacity) // Dump the whole thing
         BASE::_setlength(_array, _length, 0);
       else if(_cur - _length >= -1) // The current used chunk is contiguous
@@ -64,8 +64,8 @@ namespace bss_util {
         BASE::_setlength(_array, _cur + 1, 0); // We can only have two seperate chunks if it crosses over the 0 mark at some point, so this always starts at 0
       }
 
-      _length=0;
-      _cur=-1;
+      _length = 0;
+      _cur = -1;
     }
     inline void SetCapacity(CType nsize) // Will preserve the array but only if it got larger
     {
@@ -113,20 +113,20 @@ namespace bss_util {
       return *this;
     }
     inline cArrayCircular& operator=(cArrayCircular&& right)
-    { 
+    {
       Clear();
       AT_::operator=(std::move(right));
       _cur = right._cur;
       _length = right._length;
       right._length = 0;
       right._cur = -1;
-      return *this; 
+      return *this;
     }
 
   protected:
     template<typename U> // Note that _cur+1 can never be negative so we don't need to use bssmod
     inline void _push(U && item)
-    { 
+    {
       _cur = ((_cur + 1) % _capacity);
       if(_length < _capacity)
       {
@@ -136,7 +136,7 @@ namespace bss_util {
       else
         _array[_cur] = std::forward<U>(item);
     }
-    BSS_FORCEINLINE CType _modindex(CType index) { return bssmod<CType>(_cur-index, _capacity); }
+    BSS_FORCEINLINE CType _modindex(CType index) { return bssmod<CType>(_cur - index, _capacity); }
 
     CType _cur;
     CType _length;

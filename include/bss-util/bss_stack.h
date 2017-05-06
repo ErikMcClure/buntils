@@ -8,13 +8,13 @@
 
 namespace bss_util {
   // Fast, tiny array-based stack. Pop and Top are only valid if there is an item in the stack; this check must be done by the user.
-  template<class T, typename CType=uint32_t, ARRAY_TYPE ArrayType = CARRAY_SIMPLE, typename Alloc=StaticAllocPolicy<T>>
+  template<class T, typename CType = uint32_t, ARRAY_TYPE ArrayType = CARRAY_SIMPLE, typename Alloc = StaticAllocPolicy<T>>
   class BSS_COMPILER_DLLEXPORT cStack
   {
   public:
     inline cStack(const cStack& copy) : _array(copy) {}
     inline cStack(cStack&& mov) : _array(std::move(mov)) {}
-    inline explicit cStack(CType init=0) : _array(init) {}
+    inline explicit cStack(CType init = 0) : _array(init) {}
     inline ~cStack() {}
     // Pushes an item on to the stack in LIFO order.
     BSS_FORCEINLINE void Push(const T& value) { _array.Add(value); }

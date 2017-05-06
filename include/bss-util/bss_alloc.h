@@ -18,13 +18,14 @@ namespace bss_util {
     template<typename U>
     struct rebind { typedef StandardAllocPolicy<U> other; };
 
-    inline pointer allocate(size_t cnt, const pointer p = nullptr) noexcept {
-      //return reinterpret_cast<pointer>(::operator new(cnt * sizeof (T))); // note that while operator new does not call a constructor (it can't), it's much easier to override for leak tests.
-      return reinterpret_cast<pointer>(realloc(p, cnt*sizeof(T)));
+    inline pointer allocate(size_t cnt, const pointer p = nullptr) noexcept
+    {
+//return reinterpret_cast<pointer>(::operator new(cnt * sizeof (T))); // note that while operator new does not call a constructor (it can't), it's much easier to override for leak tests.
+      return reinterpret_cast<pointer>(realloc(p, cnt * sizeof(T)));
     }
     //inline void deallocate(pointer p, size_t = 0) { ::operator delete(p); }
     inline void deallocate(pointer p, size_t = 0) noexcept { free(p); }
-    inline size_t max_size() const noexcept { return ((size_t)(-1)/sizeof(T)); }
+    inline size_t max_size() const noexcept { return ((size_t)(-1) / sizeof(T)); }
   };
 
   // Implementation of a null allocation policy. Doesn't free anything, always returns 0 on all allocations.
@@ -36,8 +37,8 @@ namespace bss_util {
     struct rebind { typedef NullAllocPolicy<U> other; };
 
     inline pointer allocate(size_t cnt, const pointer p = nullptr) noexcept { return nullptr; }
-    inline void deallocate(pointer p, size_t = 0) noexcept { }
-    inline size_t max_size() const noexcept { return ((size_t)(-1)/sizeof(T)); }
+    inline void deallocate(pointer p, size_t = 0) noexcept {}
+    inline size_t max_size() const noexcept { return ((size_t)(-1) / sizeof(T)); }
   };
 
   // Static implementation of the standard allocation policy, used for cArrayBase
@@ -47,7 +48,7 @@ namespace bss_util {
     typedef T value_type;
     template<typename U> struct rebind { typedef StaticAllocPolicy<U> other; };
 
-    inline static pointer allocate(size_t cnt, const pointer p = nullptr) noexcept { return reinterpret_cast<pointer>(realloc(p, cnt*sizeof(T))); }
+    inline static pointer allocate(size_t cnt, const pointer p = nullptr) noexcept { return reinterpret_cast<pointer>(realloc(p, cnt * sizeof(T))); }
     inline static void deallocate(pointer p, size_t = 0) noexcept { free(p); }
   };
 
@@ -59,7 +60,7 @@ namespace bss_util {
     template<typename U> struct rebind { typedef StaticNullPolicy<U> other; };
 
     inline static pointer allocate(size_t cnt, const pointer = nullptr) noexcept { return nullptr; }
-    inline static void deallocate(pointer p, size_t = 0) noexcept { }
+    inline static void deallocate(pointer p, size_t = 0) noexcept {}
   };
 
   // Internal class used by cAllocTracker
@@ -68,15 +69,15 @@ namespace bss_util {
   {
     typedef typename _Ax::pointer pointer;
   public:
-    inline i_AllocTracker(const i_AllocTracker& copy) : _allocator(copy._alloc_extern?copy._allocator:new _Ax()), _alloc_extern(copy._alloc_extern) {}
-    inline i_AllocTracker(i_AllocTracker&& mov) : _allocator(mov._allocator), _alloc_extern(mov._alloc_extern) { mov._alloc_extern=true; }
-    inline explicit i_AllocTracker(_Ax* ptr=0) :	_allocator((!ptr)?(new _Ax()):(ptr)), _alloc_extern(ptr!=0) {}
+    inline i_AllocTracker(const i_AllocTracker& copy) : _allocator(copy._alloc_extern ? copy._allocator : new _Ax()), _alloc_extern(copy._alloc_extern) {}
+    inline i_AllocTracker(i_AllocTracker&& mov) : _allocator(mov._allocator), _alloc_extern(mov._alloc_extern) { mov._alloc_extern = true; }
+    inline explicit i_AllocTracker(_Ax* ptr = 0) : _allocator((!ptr) ? (new _Ax()) : (ptr)), _alloc_extern(ptr != 0) {}
     inline ~i_AllocTracker() { if(!_alloc_extern) delete _allocator; }
     inline pointer _allocate(size_t cnt, const pointer p = 0) noexcept { return _allocator->allocate(cnt, p); }
     inline void _deallocate(pointer p, size_t s = 0) noexcept { _allocator->deallocate(p, s); }
 
-    inline i_AllocTracker& operator =(const i_AllocTracker& copy) noexcept { if(&copy==this) return *this; if(!_alloc_extern) delete _allocator; _allocator = copy._alloc_extern?copy._allocator:new _Ax(); _alloc_extern=copy._alloc_extern; return *this; }
-    inline i_AllocTracker& operator =(i_AllocTracker&& mov) noexcept { if(&mov==this) return *this; if(!_alloc_extern) delete _allocator; _allocator = mov._allocator; _alloc_extern=mov._alloc_extern; mov._alloc_extern=true; return *this; }
+    inline i_AllocTracker& operator =(const i_AllocTracker& copy) noexcept { if(&copy == this) return *this; if(!_alloc_extern) delete _allocator; _allocator = copy._alloc_extern ? copy._allocator : new _Ax(); _alloc_extern = copy._alloc_extern; return *this; }
+    inline i_AllocTracker& operator =(i_AllocTracker&& mov) noexcept { if(&mov == this) return *this; if(!_alloc_extern) delete _allocator; _allocator = mov._allocator; _alloc_extern = mov._alloc_extern; mov._alloc_extern = true; return *this; }
 
   protected:
     _Ax* _allocator;
@@ -102,7 +103,7 @@ namespace bss_util {
   public:
     inline cAllocTracker(const cAllocTracker& copy) : BASE(copy) {}
     inline cAllocTracker(cAllocTracker&& mov) : BASE(std::move(mov)) {}
-    inline explicit cAllocTracker(_Ax* ptr=0) : BASE(ptr) {}
+    inline explicit cAllocTracker(_Ax* ptr = 0) : BASE(ptr) {}
   };
 }
 

@@ -149,7 +149,7 @@ Logger& Logger::operator=(Logger&& right)
   _stream.rdbuf(_split);
   return *this;
 }
-const char* Logger::_trimpath(const char* path)
+const char* Logger::_trimPath(const char* path)
 {
   const char* r = strrchr(path, '/');
   const char* r2 = strrchr(path, '\\');
@@ -195,7 +195,7 @@ void Logger::_header(std::ostream& o, int n, const char* source, const char* fil
 
 std::ostream& Logger::_logHeader(const char* source, const char* file, uint32_t line, const char* level)
 {
-  file = _trimpath(file);
+  file = _trimPath(file);
   __safeFormat<const char*, const char*, uint32_t, const char*, long>::F<&_header>(_stream, ((!source && _nullformat != 0) ? _nullformat : _format), source, file, line, level, _tz);
   return _stream;
 }

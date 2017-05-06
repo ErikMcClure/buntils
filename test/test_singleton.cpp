@@ -8,8 +8,11 @@ using namespace bss;
 
 struct SINGLETEST : Singleton<SINGLETEST>
 {
-  SINGLETEST() : Singleton<SINGLETEST>(this) {}
+  SINGLETEST() {}
+  static SINGLETEST* Instance() { return _instance; }
 };
+
+SINGLETEST* Singleton<SINGLETEST>::_instance = 0;
 
 TESTDEF::RETPAIR test_SINGLETON()
 {

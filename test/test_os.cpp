@@ -124,21 +124,21 @@ TESTDEF::RETPAIR test_OS()
   //CPU_Barrier();
 
   auto p = GetFontPath("Arial", 400, false);
-  TEST(!STRICMP(Logger::_trimpath(p.get()), "arial.ttf"));
+  TEST(!STRICMP(Logger::_trimPath(p.get()), "arial.ttf"));
   p = GetFontPath("Arial", 500, false);
-  TEST(!STRICMP(Logger::_trimpath(p.get()), "arial.ttf"));
+  TEST(!STRICMP(Logger::_trimPath(p.get()), "arial.ttf"));
   p = GetFontPath("Arial", 501, false);
-  TEST(!STRICMP(Logger::_trimpath(p.get()), "arialbd.ttf"));
+  TEST(!STRICMP(Logger::_trimPath(p.get()), "arialbd.ttf"));
   p = GetFontPath("Arial", 399, false);
-  TEST(!STRICMP(Logger::_trimpath(p.get()), "arial.ttf"));
+  TEST(!STRICMP(Logger::_trimPath(p.get()), "arial.ttf"));
   p = GetFontPath("Arial", 1, false);
-  TEST(!STRICMP(Logger::_trimpath(p.get()), "arial.ttf"));
+  TEST(!STRICMP(Logger::_trimPath(p.get()), "arial.ttf"));
   p = GetFontPath("Arial", 600, false);
-  TEST(!STRICMP(Logger::_trimpath(p.get()), "arialbd.ttf"));
+  TEST(!STRICMP(Logger::_trimPath(p.get()), "arialbd.ttf"));
   p = GetFontPath("Arial", 600, true);
-  TEST(!STRICMP(Logger::_trimpath(p.get()), "arialbi.ttf"));
+  TEST(!STRICMP(Logger::_trimPath(p.get()), "arialbi.ttf"));
   p = GetFontPath("Arial", 500, true);
-  TEST(!STRICMP(Logger::_trimpath(p.get()), "ariali.ttf"));
+  TEST(!STRICMP(Logger::_trimPath(p.get()), "ariali.ttf"));
 
   ENDTEST;
 }

@@ -90,7 +90,7 @@ void Profiler::WriteToStream(std::ostream& stream, uint8_t output)
   if(output | OUTPUT_TREE)
   {
     stream << "BSS Profiler Tree Output: " << std::endl;
-    _treeout(stream, _trie, 0, -1, 0);
+    _treeOut(stream, _trie, 0, -1, 0);
     stream << std::endl << std::endl;
   }
   if(output | OUTPUT_FLAT)
@@ -98,12 +98,12 @@ void Profiler::WriteToStream(std::ostream& stream, uint8_t output)
     stream << "BSS Profiler Flat Output: " << std::endl;
     PROF_FLATOUT* avg = (PROF_FLATOUT*)calloc(_data.Capacity(), sizeof(PROF_FLATOUT));
     if(!avg) return;
-    _flatout(avg, _trie, 0, 0);
+    _flatOut(avg, _trie, 0, 0);
     std::sort(avg + 1, avg + _data.Capacity(), [](const PROF_FLATOUT& l, const PROF_FLATOUT& r) -> bool { return l.avg > r.avg; });
     for(PROFILER_INT i = 1; i < _data.Capacity(); ++i)
     {
-      stream << '[' << _trimpath(_data[i]->file) << ':' << _data[i]->line << "] " << _data[i]->name << ": ";
-      _timeformat(stream, avg[i].avg, avg[i].var, avg[i].total);
+      stream << '[' << _trimPath(_data[i]->file) << ':' << _data[i]->line << "] " << _data[i]->name << ": ";
+      _timeFormat(stream, avg[i].avg, avg[i].var, avg[i].total);
       stream << std::endl;
     }
     free(avg);
@@ -113,27 +113,27 @@ void Profiler::WriteToStream(std::ostream& stream, uint8_t output)
   if(output | OUTPUT_HEATMAP)
   {
     PROF_HEATNODE root;
-    _heatout(root, _trie, 0, 0);
+    _heatOut(root, _trie, 0, 0);
     stream << "BSS Profiler Heat Output: " << std::endl;
-    _heatwrite(stream, root, -1, _heatfindmax(root));
+    _heatWrite(stream, root, -1, _heatFindMax(root));
   }
 }
-void Profiler::_treeout(std::ostream& stream, PROF_TRIENODE* node, PROFILER_INT id, uint32_t level, PROFILER_INT idlevel)
+void Profiler::_treeOut(std::ostream& stream, PROF_TRIENODE* node, PROFILER_INT id, uint32_t level, PROFILER_INT idlevel)
 {
   if(!node) return;
   if(node->total != (uint64_t)-1)
   {
     for(uint32_t i = 0; i < level * 2; ++i) stream.put(' ');
-    stream << '[' << _trimpath(_data[id]->file) << ':' << _data[id]->line << "] " << _data[id]->name << ": ";
-    _timeformat(stream, node->avg, 0.0, node->total);
+    stream << '[' << _trimPath(_data[id]->file) << ':' << _data[id]->line << "] " << _data[id]->name << ": ";
+    _timeFormat(stream, node->avg, 0.0, node->total);
     stream << std::endl;
     id = 0;
     idlevel = 0;
   }
   for(PROFILER_INT i = 0; i < 16; ++i)
-    _treeout(stream, node->_children[i], id | (i << (4 * idlevel)), level + !id, idlevel + 1);
+    _treeOut(stream, node->_children[i], id | (i << (4 * idlevel)), level + !id, idlevel + 1);
 }
-void Profiler::_heatout(PROF_HEATNODE& heat, PROF_TRIENODE* node, PROFILER_INT id, PROFILER_INT idlevel)
+void Profiler::_heatOut(PROF_HEATNODE& heat, PROF_TRIENODE* node, PROFILER_INT id, PROFILER_INT idlevel)
 {
   if(!node) return;
   if(node->total != (uint64_t)-1)
@@ -144,7 +144,7 @@ void Profiler::_heatout(PROF_HEATNODE& heat, PROF_TRIENODE* node, PROFILER_INT i
     idlevel = 0;
 
     for(PROFILER_INT i = 0; i < 16; ++i)
-      _heatout(nheat, node->_children[i], id | (i << (4 * idlevel)), 0);
+      _heatOut(nheat, node->_children[i], id | (i << (4 * idlevel)), 0);
 
     double total = 0.0; // Create the [code] node
     for(PROFILER_INT i = 0; i < nheat._children.Length(); ++i)
@@ -156,16 +156,16 @@ void Profiler::_heatout(PROF_HEATNODE& heat, PROF_TRIENODE* node, PROFILER_INT i
   }
   else
     for(PROFILER_INT i = 0; i < 16; ++i)
-      _heatout(heat, node->_children[i], id | (i << (4 * idlevel)), idlevel + 1);
+      _heatOut(heat, node->_children[i], id | (i << (4 * idlevel)), idlevel + 1);
 }
-double Profiler::_heatfindmax(PROF_HEATNODE& heat)
+double Profiler::_heatFindMax(PROF_HEATNODE& heat)
 {
   double max = heat.avg;
   for(PROFILER_INT i = 0; i < heat._children.Length(); ++i)
-    max = std::max(_heatfindmax(heat._children[i]), max);
+    max = std::max(_heatFindMax(heat._children[i]), max);
   return max;
 }
-void Profiler::_heatwrite(std::ostream& stream, PROF_HEATNODE& node, uint32_t level, double max)
+void Profiler::_heatWrite(std::ostream& stream, PROF_HEATNODE& node, uint32_t level, double max)
 {
   static const int BARLENGTH = 10;
 
@@ -175,8 +175,8 @@ void Profiler::_heatwrite(std::ostream& stream, PROF_HEATNODE& node, uint32_t le
     if(!node.id)
       stream << "[code]: ";
     else
-      stream << '[' << _trimpath(_data[node.id]->file) << ':' << _data[node.id]->line << "] " << _data[node.id]->name << ": ";
-    _timeformat(stream, node.avg, 0.0, 0);
+      stream << '[' << _trimPath(_data[node.id]->file) << ':' << _data[node.id]->line << "] " << _data[node.id]->name << ": ";
+    _timeFormat(stream, node.avg, 0.0, 0);
     //double percent = (node.avg/max);
     double mag1 = pow(max, 1.0 / 4.0);
     double mag2 = pow(max, 2.0 / 4.0);
@@ -200,9 +200,9 @@ void Profiler::_heatwrite(std::ostream& stream, PROF_HEATNODE& node, uint32_t le
   if(node._children.Length() == 1 && !node._children[0].id)
     return;
   for(PROFILER_INT i = 0; i < node._children.Length(); ++i)
-    _heatwrite(stream, node._children[i], level + 1, max);
+    _heatWrite(stream, node._children[i], level + 1, max);
 }
-void Profiler::_flatout(PROF_FLATOUT* avg, PROF_TRIENODE* node, PROFILER_INT id, PROFILER_INT idlevel)
+void Profiler::_flatOut(PROF_FLATOUT* avg, PROF_TRIENODE* node, PROFILER_INT id, PROFILER_INT idlevel)
 {
   if(!node) return;
   if(node->total != (uint64_t)-1)
@@ -218,17 +218,17 @@ void Profiler::_flatout(PROF_FLATOUT* avg, PROF_TRIENODE* node, PROFILER_INT id,
     idlevel = 0;
   }
   for(PROFILER_INT i = 0; i < 16; ++i)
-    _flatout(avg, node->_children[i], id | (i << (4 * idlevel)), idlevel + 1);
+    _flatOut(avg, node->_children[i], id | (i << (4 * idlevel)), idlevel + 1);
 
 }
-const char* Profiler::_trimpath(const char* path)
+const char* Profiler::_trimPath(const char* path)
 {
   const char* r = strrchr(path, '/');
   const char* r2 = strrchr(path, '\\');
   r = bssmax(r, r2);
   return (!r) ? path : (r + 1);
 }
-void Profiler::_timeformat(std::ostream& stream, double avg, double variance, uint64_t num)
+void Profiler::_timeFormat(std::ostream& stream, double avg, double variance, uint64_t num)
 {
   //double sd = bss::FastSqrt(variance/(double)(num-1));
   if(avg >= 1000000000000.0)

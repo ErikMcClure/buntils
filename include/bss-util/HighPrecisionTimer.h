@@ -52,7 +52,7 @@ namespace bss {
     // Resets the time to 0 (preserves delta)
     inline void ResetTime() { _time = 0; _nsTime = 0; }
     // Resets the delta to 0, and resamples the timer.
-    inline void ResetDelta() { _querytime(&_curTime); _delta = 0; _nsDelta = 0; }
+    inline void ResetDelta() { _queryTime(&_curTime); _delta = 0; _nsDelta = 0; }
 
     // Converts two nanosecond counts to seconds and returns the difference as a double.
     BSS_FORCEINLINE static double NanosecondDiff(uint64_t now, uint64_t old) { return (now - old) / 1000000000.0; }
@@ -62,9 +62,9 @@ namespace bss {
     {
       uint64_t ret;
 #ifdef BSS_PLATFORM_WIN32
-      _querytime(&ret);
+      _queryTime(&ret);
 #else
-      _querytime(&ret, BSS_POSIX_CLOCK_PROFILER);
+      _queryTime(&ret, BSS_POSIX_CLOCK_PROFILER);
 #endif
       return ret;
     }
@@ -73,10 +73,10 @@ namespace bss {
     {
       uint64_t compare;
 #ifdef BSS_PLATFORM_WIN32
-      _querytime(&compare);
-      return ((compare - begin) * 1000000000) / _getfreq(); //convert to nanoseconds
+      _queryTime(&compare);
+      return ((compare - begin) * 1000000000) / _getFrequency(); //convert to nanoseconds
 #else
-      _querytime(&compare, BSS_POSIX_CLOCK_PROFILER);
+      _queryTime(&compare, BSS_POSIX_CLOCK_PROFILER);
       return compare - begin;
 #endif
     }
@@ -89,10 +89,10 @@ namespace bss {
     uint64_t _nsDelta; // Delta in nanoseconds;
 
 #ifdef BSS_PLATFORM_WIN32
-    static void _querytime(uint64_t* _pval);
-    static uint64_t _getfreq();
+    static void _queryTime(uint64_t* _pval);
+    static uint64_t _getFrequency();
 #else
-    static void _querytime(uint64_t* _pval, clockid_t clock = BSS_POSIX_CLOCK);
+    static void _queryTime(uint64_t* _pval, clockid_t clock = BSS_POSIX_CLOCK);
 #endif
   };
 }

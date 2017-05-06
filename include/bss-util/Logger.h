@@ -93,7 +93,7 @@ namespace bss {
       assert(level < _levels.Capacity());
       return _logHeader(source, file, line, (level < 0) ? "" : _levels[level]);
     }
-    static const char* _trimpath(const char* path);
+    static const char* _trimPath(const char* path);
 
     static const char* DEFAULTFORMAT;
     static const char* DEFAULTNULLFORMAT;

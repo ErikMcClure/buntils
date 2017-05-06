@@ -167,13 +167,13 @@ namespace bss {
     inline void Remove(CT_ index)
     {
       assert(index < _length);
-      _shiftDel(index);
+      _shiftDelete(index);
       --_length;
     }
     BSS_FORCEINLINE void RemoveLast() { --_length; }
     BSS_FORCEINLINE void Insert(bool t, CT_ index = 0)
     {
-      _shiftIns(index);
+      _shiftInsert(index);
       ++_length;
       GetBit(index) = t;
     }
@@ -294,7 +294,7 @@ namespace bss {
     BSS_FORCEINLINE _BIT_REF<STORE> GetBit(CT_ bitindex) { return _BIT_REF<STORE>(((STORE)1) << (bitindex&MOD_AMT), *(_array + (bitindex / DIV_AMT))); }
     BSS_FORCEINLINE bool GetBitConst(CT_ bitindex) const { return (_array[(bitindex / DIV_AMT)] & (((STORE)1) << (bitindex&MOD_AMT))) != 0; }
     BSS_FORCEINLINE static CT_ _maxChunks(CT_ numbits) { return T_NEXTMULTIPLE(numbits, MOD_AMT); }
-    inline void _shiftDel(CT_ index)
+    inline void _shiftDelete(CT_ index)
     {
       CT_ ind = index / DIV_AMT;
       CT_ off = index & MOD_AMT;
@@ -308,7 +308,7 @@ namespace bss {
         _array[i] >>= 1;
       }
     }
-    inline void _shiftIns(CT_ index)
+    inline void _shiftInsert(CT_ index)
     {
       _checkSize();
       CT_ ind = index / DIV_AMT;

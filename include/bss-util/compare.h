@@ -29,11 +29,11 @@ namespace bss {
   template<typename T>
   BSS_FORCEINLINE char CompT_NEQ(const T& left, const T& right) noexcept { return (left != right); }
 
-  template<typename T, char(*CFunc)(const typename T::first_type&, const typename T::first_type&)>
-  BSS_FORCEINLINE char CompTFirst(const T& left, const T& right) noexcept { return CFunc(left.first, right.first); }
+  template<typename T, char(*CompF)(const typename T::first_type&, const typename T::first_type&)>
+  BSS_FORCEINLINE char CompTFirst(const T& left, const T& right) noexcept { return CompF(left.first, right.first); }
 
-  template<typename T, char(*CFunc)(const typename T::second_type&, const typename T::second_type&)>
-  BSS_FORCEINLINE char CompTSecond(const T& left, const T& right) noexcept { return CFunc(left.second, right.second); }
+  template<typename T, char(*CompF)(const typename T::second_type&, const typename T::second_type&)>
+  BSS_FORCEINLINE char CompTSecond(const T& left, const T& right) noexcept { return CompF(left.second, right.second); }
 
   template<typename T>
   BSS_FORCEINLINE char CompStr(const T& left, const T& right)

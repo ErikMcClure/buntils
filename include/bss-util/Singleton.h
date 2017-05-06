@@ -11,25 +11,19 @@ namespace bss {
   class BSS_COMPILER_DLLEXPORT Singleton //exported to make VC++ shut up
   {
     inline Singleton(const Singleton&) BSS_DELETEFUNC
-      inline Singleton(Singleton&&) BSS_DELETEFUNC
-      inline Singleton& operator=(const Singleton&) BSS_DELETEFUNCOP
-      inline Singleton& operator=(Singleton&&) BSS_DELETEFUNCOP
+    inline Singleton& operator=(const Singleton&) BSS_DELETEFUNCOP
   public:
-    inline Singleton(T* ptr) { _ptr = ptr; _instance = _ptr; }
-    inline ~Singleton() { if(_instance == _ptr) _instance = 0; }
+    inline Singleton(Singleton&& mov) { if(_instance == static_cast<T*>(&mov)) _instance = static_cast<T*>(this); }
+    inline Singleton() { _instance = static_cast<T*>(this); }
+    inline ~Singleton() { if(_instance == static_cast<T*>(this)) _instance = 0; }
 
-    inline static T* Instance() { return _instance; }
-    inline static T& InstRef() { return *_instance; }
+    //inline static T* Instance() { return _instance; } // You have to provide this so it gets called from the correct DLL
+
+    inline Singleton& operator=(Singleton&& mov) { if(_instance == static_cast<T*>(&mov)) _instance = static_cast<T*>(this); return *this; }
 
   protected:
     static T* _instance;
-
-  private:
-    T* _ptr;
   };
-
-  template<class T>
-  T* Singleton<T>::_instance = 0;
 }
 
 #endif

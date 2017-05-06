@@ -43,8 +43,8 @@ namespace bss {
       return r;
     }
     BSS_FORCEINLINE UINT operator()(void) { return Get(); }
-    inline F* GetProb() const { return _prob; }
-    inline UINT* GetAlias() const { return _alias; }
+    inline F* GetProbabilities() const { return _prob; }
+    inline UINT* GetAliases() const { return _alias; }
     inline UINT GetCount() const { return _count; }
 
   protected:

@@ -67,7 +67,7 @@ TESTDEF::RETPAIR test_TRBTREE()
   cTRBtree<int, CompT<int>, BlockPolicy<TRB_Node<int>>> blah(&fixedalloc);
 
   uint32_t same = 0;
-  shuffle(testnums);
+  Shuffle(testnums);
 
   blah.Clear();
   for(int i = 0; i<TESTNUM; ++i)
@@ -77,7 +77,7 @@ TESTDEF::RETPAIR test_TRBTREE()
   TEST(!blah.Get(-1));
   TEST(!blah.Get(TESTNUM + 1));
 
-    shuffle(testnums);
+    Shuffle(testnums);
   int num = 0;
   for(int i = 0; i<TESTNUM; ++i)
   {
@@ -92,17 +92,17 @@ TESTDEF::RETPAIR test_TRBTREE()
   TEST(blah.GetNear(4, false)->value == 5);
   blah.Insert(4);
 
-  shuffle(testnums);
+  Shuffle(testnums);
   for(int i = 0; i<TESTNUM; ++i)
     blah.Insert(testnums[i]);
-  shuffle(testnums);
+  Shuffle(testnums);
   for(int i = 0; i<TESTNUM; ++i)
     blah.Insert(testnums[i]);
 
   TEST(verifytree(blah.Front(), same));
   TEST(same == (TESTNUM * 2));
 
-  shuffle(testnums);
+  Shuffle(testnums);
   num = 0;
   int n2 = 0;
   int n3 = 0;

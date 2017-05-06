@@ -22,8 +22,8 @@ TESTDEF::RETPAIR test_TRIE()
   const char* randstr[200];
   for(uint32_t i = 0; i < 200; ++i)
   {
-    for(uint32_t j = bssrandint(2,20); j>0; --j)
-      randcstr[i]+=(char)bssrandint('a','z');
+    for(uint32_t j = bssRandInt(2,20); j>0; --j)
+      randcstr[i]+=(char)bssRandInt('a','z');
     randstr[i]=randcstr[i];
   }
   cTrie<uint32_t> t0(50,randstr);
@@ -31,7 +31,7 @@ TESTDEF::RETPAIR test_TRIE()
   for(uint32_t i = 0; i < 50; ++i)
     hashtest.Insert(randstr[i],i);
   uint32_t dm;
-  shuffle(testnums);
+  Shuffle(testnums);
   auto prof = cHighPrecisionTimer::OpenProfiler();
   CPU_Barrier();
   for(uint32_t i = 0; i < TESTNUM; ++i)

@@ -24,28 +24,28 @@ namespace bss_util {
   class BSS_COMPILER_DLLEXPORT StreamSplitter : public std::basic_stringbuf<char>
   {
     inline StreamSplitter(const StreamSplitter& copy) BSS_DELETEFUNC
-    inline StreamSplitter& operator =(const StreamSplitter& right) BSS_DELETEFUNCOP
+      inline StreamSplitter& operator =(const StreamSplitter& right) BSS_DELETEFUNCOP
   public:
 #ifndef BSS_COMPILER_GCC
     inline StreamSplitter(StreamSplitter&& mov) : std::basic_stringbuf<char>(std::move(mov)), _targets(std::move(mov._targets)) {}//, _wtargets(move(copy._wtargets)) {}
 #endif
-    inline explicit StreamSplitter(std::ios_base::openmode _Mode = std::ios_base::out) : std::basic_stringbuf<char>(_Mode) { }
+    inline explicit StreamSplitter(std::ios_base::openmode _Mode = std::ios_base::out) : std::basic_stringbuf<char>(_Mode) {}
     inline void AddTarget(std::ostream* stream) { sync(); _targets.push_back(stream); }
     inline void ClearTargets() { sync(); _targets.clear(); } //_wtargets.clear(); }
 
 #ifndef BSS_COMPILER_GCC
-    inline StreamSplitter& operator =(StreamSplitter&& right) { std::basic_stringbuf<char>::operator=(std::move(right)); _targets=std::move(right._targets); /*_wtargets=std::move(right._wtargets);*/ return *this;}
+    inline StreamSplitter& operator =(StreamSplitter&& right) { std::basic_stringbuf<char>::operator=(std::move(right)); _targets = std::move(right._targets); /*_wtargets=std::move(right._wtargets);*/ return *this; }
 #endif
 
   protected:
-	  virtual int sync()
+    virtual int sync()
     {
       size_t length = std::basic_stringbuf<char>::pptr() - std::basic_stringbuf<char>::pbase();
 
       for(size_t i = 0; i < _targets.size(); ++i)
-        _targets[i]->write(basic_stringbuf<char>::pbase(),length).flush();
+        _targets[i]->write(basic_stringbuf<char>::pbase(), length).flush();
 
-      std::basic_stringbuf<char>::seekpos(0,std::ios_base::out); //Flush the buffer (make it overwrite itself because we no longer need what's in there)
+      std::basic_stringbuf<char>::seekpos(0, std::ios_base::out); //Flush the buffer (make it overwrite itself because we no longer need what's in there)
       return std::basic_stringbuf<char>::sync();
     }
 
@@ -57,13 +57,14 @@ namespace bss_util {
   class BSS_COMPILER_DLLEXPORT DynArrayIBuf : public std::streambuf
   {
     inline DynArrayIBuf(const DynArrayIBuf& copy) BSS_DELETEFUNC
-    inline DynArrayIBuf& operator =(const DynArrayIBuf& right) BSS_DELETEFUNCOP
+      inline DynArrayIBuf& operator =(const DynArrayIBuf& right) BSS_DELETEFUNCOP
 
   public:
     DynArrayIBuf(DynArrayIBuf&& mov) : std::streambuf(std::move(mov)), _ref(mov._ref), _read(mov._read) { mov._read = (CType)-1; }
     DynArrayIBuf(const cDynArray<T, CType, ArrayType, Alloc>& ref) : _ref(ref), _read(0) {}
 
-    inline DynArrayIBuf& operator =(DynArrayIBuf&& right) { 
+    inline DynArrayIBuf& operator =(DynArrayIBuf&& right)
+    {
       std::streambuf::operator=(std::move(right));
       _ref = right._ref;
       _read = right._read;
@@ -74,8 +75,9 @@ namespace bss_util {
   protected:
     inline virtual int_type uflow() { return (_read == _ref.Length()) ? traits_type::eof() : traits_type::to_int_type(_ref[_read++]); }
     inline virtual int_type underflow() { return (_read == _ref.Length()) ? traits_type::eof() : traits_type::to_int_type(_ref[_read]); }
-    inline virtual int_type pbackfail(int_type ch) {
-      if(_read == 0 || (ch != traits_type::eof() && ch != _ref[_read-1]))
+    inline virtual int_type pbackfail(int_type ch)
+    {
+      if(_read == 0 || (ch != traits_type::eof() && ch != _ref[_read - 1]))
         return traits_type::eof();
       return traits_type::to_int_type(_ref[--_read]);
     }
@@ -114,7 +116,7 @@ namespace bss_util {
   {
     typedef DynArrayIBuf<T, CType, ArrayType, Alloc> BASE;
     inline DynArrayBuf(const DynArrayBuf& copy) BSS_DELETEFUNC
-    inline DynArrayBuf& operator =(const DynArrayBuf& right) BSS_DELETEFUNCOP
+      inline DynArrayBuf& operator =(const DynArrayBuf& right) BSS_DELETEFUNCOP
 
   public:
     DynArrayBuf(DynArrayBuf&& mov) : BASE(std::move(mov)), _write(mov._write) { mov._write = (CType)-1; }

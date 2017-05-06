@@ -10,7 +10,7 @@
 
 namespace bss_util {
   // Trie node
-  template<typename T=uint8_t>
+  template<typename T = uint8_t>
   struct BSS_COMPILER_DLLEXPORT TRIE_NODE__
   {
     char chr; // letter that this node has
@@ -22,10 +22,10 @@ namespace bss_util {
   template<typename T, bool IGNORECASE>
   struct __cTrie_ToLower { static BSS_FORCEINLINE void F(T& c) { c = tolower(c); } };
   template<typename T>
-  struct __cTrie_ToLower<T, false> { static BSS_FORCEINLINE void F(T& c) { } };
+  struct __cTrie_ToLower<T, false> { static BSS_FORCEINLINE void F(T& c) {} };
 
   // A static trie optimized for looking up small collections of words.
-  template<typename T=uint8_t, bool IGNORECASE = false>
+  template<typename T = uint8_t, bool IGNORECASE = false>
   class BSS_COMPILER_DLLEXPORT cTrie : protected cArrayBase<TRIE_NODE__<T>, T>
   {
     typedef cArrayBase<TRIE_NODE__<T>, T> BASE;
@@ -44,7 +44,7 @@ namespace bss_util {
       DYNARRAY(PAIR, s, num);
       va_list vl;
       va_start(vl, num);
-      for(T i = 0; i < num; ++i) { s[i].first=i; s[i].second=va_arg(vl, const char*); }
+      for(T i = 0; i < num; ++i) { s[i].first = i; s[i].second = va_arg(vl, const char*); }
       va_end(vl);
       SORTING_HEAP::HeapSort(s, num); // sort into alphabetical order
       _init(num, s, 0, 0); // Put into our recursive initializer
@@ -55,42 +55,42 @@ namespace bss_util {
     inline ~cTrie() {}
     T Get(const char* word) const
     {
-      assert(word!=0);
-      TNODE* cur=_array; // root is always 0
-      T r=0;
+      assert(word != 0);
+      TNODE* cur = _array; // root is always 0
+      T r = 0;
       char c;
-      while((c=*(word++)))
+      while((c = *(word++)))
       {
         __cTrie_ToLower<char, IGNORECASE>::F(c);
-        if(cur->clen>1) // This is faster than a switch statement
-          r=binsearch_exact<TNODE, char, T, &cTrie::_CompTNode>(cur, c, 0, cur->clen);
-        else if(cur->clen==1)
-          r=(T)-(cur->chr!=c);
+        if(cur->clen > 1) // This is faster than a switch statement
+          r = BinarySearchExact<TNODE, char, T, &cTrie::_CompTNode>(cur, c, 0, cur->clen);
+        else if(cur->clen == 1)
+          r = (T)-(cur->chr != c);
         else
           return (T)-1;
-        if(r==(T)-1) return (T)-1;
-        cur=_array+cur[r].child;
+        if(r == (T)-1) return (T)-1;
+        cur = _array + cur[r].child;
       }
       return cur->word;
     }
     T Get(const char* word, T len) const
     {
-      assert(word!=0);
-      TNODE* cur=_array; // root is always 0
-      T r=0;
+      assert(word != 0);
+      TNODE* cur = _array; // root is always 0
+      T r = 0;
       char c;
-      while((len--)>0)
+      while((len--) > 0)
       {
-        c=*(word++);
+        c = *(word++);
         __cTrie_ToLower<char, IGNORECASE>::F(c);
-        if(cur->clen>1) // This is faster than a switch statement
-          r=binsearch_exact<TNODE, char, T, &cTrie::_CompTNode>(cur, c, 0, cur->clen);
-        else if(cur->clen==1)
-          r=(T)-(cur->chr!=c);
+        if(cur->clen > 1) // This is faster than a switch statement
+          r = BinarySearchExact<TNODE, char, T, &cTrie::_CompTNode>(cur, c, 0, cur->clen);
+        else if(cur->clen == 1)
+          r = (T)-(cur->chr != c);
         else
           return (T)-1;
-        if(r==(T)-1) return (T)-1;
-        cur=_array+cur[r].child;
+        if(r == (T)-1) return (T)-1;
+        cur = _array + cur[r].child;
       }
       return cur->word;
     }
@@ -107,7 +107,7 @@ namespace bss_util {
     {
       _fill(0, num);
       DYNARRAY(PAIR, s, num);
-      for(T i = 0; i < num; ++i) { s[i].first=i; s[i].second=initstr[i]; }
+      for(T i = 0; i < num; ++i) { s[i].first = i; s[i].second = initstr[i]; }
       SORTING_HEAP::HeapSort(s, num); // sort into alphabetical order
       _init(num, s, 0, 0); // Put into our recursive initializer
     }
@@ -115,40 +115,40 @@ namespace bss_util {
     {
       for(T i = s; i < e; ++i)
       {
-        _array[i].word=(T)-1;
-        _array[i].child=(T)-1;
-        _array[i].clen=0;
-        _array[i].chr=0;
+        _array[i].word = (T)-1;
+        _array[i].child = (T)-1;
+        _array[i].clen = 0;
+        _array[i].chr = 0;
       }
     }
-    BSS_FORCEINLINE void _checksize(T r) { assert(r<(std::numeric_limits<T>::max()-2)); if(r>=_capacity) { T s=_capacity; BASE::SetCapacity(_capacity<<1); _fill(s, _capacity); } }
+    BSS_FORCEINLINE void _checksize(T r) { assert(r < (std::numeric_limits<T>::max() - 2)); if(r >= _capacity) { T s = _capacity; BASE::SetCapacity(_capacity << 1); _fill(s, _capacity); } }
     T _init(T len, PAIR const* str, T cnt, T level)
     {
-      T r=cnt-1;
-      char c=str[0].second[level];
+      T r = cnt - 1;
+      char c = str[0].second[level];
       if(IGNORECASE) c = tolower(c);
-      if(!c) { _checksize(r+1); _array[r+1].word=str[0].first; ++str; --len; } // The only place we'll recieve the end of the word is in our starting position due to alphabetical order
+      if(!c) { _checksize(r + 1); _array[r + 1].word = str[0].first; ++str; --len; } // The only place we'll recieve the end of the word is in our starting position due to alphabetical order
 
-      char l=0;
+      char l = 0;
       for(T i = 0; i < len; ++i) //first pass so we can assemble top level nodes here
       {
-        c=str[i].second[level];
+        c = str[i].second[level];
         if(IGNORECASE) c = tolower(c);
-        if(l!=c) { _checksize(++r); _array[r].chr=(l=c); }
-        assert(_array[r].clen<(std::numeric_limits<T>::max()-2));
+        if(l != c) { _checksize(++r); _array[r].chr = (l = c); }
+        assert(_array[r].clen < (std::numeric_limits<T>::max() - 2));
         ++_array[r].clen;
       }
-      len=(++r)-cnt;
+      len = (++r) - cnt;
       ++level;
-      T last=r;
+      T last = r;
       for(T i = cnt; i < last; ++i) // Second pass that generates children
       {
-        _array[i].child=r;
-        r=_init(_array[i].clen, str, r, level);
-        str+=_array[i].clen;
+        _array[i].child = r;
+        r = _init(_array[i].clen, str, r, level);
+        str += _array[i].clen;
       }
-      _array[cnt].clen=len;
-      return !len?1+r:r;
+      _array[cnt].clen = len;
+      return !len ? 1 + r : r;
     }
 
     T _length;

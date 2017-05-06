@@ -128,7 +128,7 @@ size_t UTF32toUTF16(const int*BSS_RESTRICT input, ptrdiff_t srclen, wchar_t*BSS_
   }
   if(!output) return buflen;
   const UTF32* sourceEnd = ((input - (const int*)source) < srclen) ? sourceEnd = ++input : source + srclen;
-  
+
   while(source < sourceEnd)
   {
     UTF32 ch;
@@ -150,8 +150,8 @@ size_t UTF32toUTF16(const int*BSS_RESTRICT input, ptrdiff_t srclen, wchar_t*BSS_
         //}
         //else
         //{
-          *target++ = UNI_REPLACEMENT_CHAR;
-        //}
+        *target++ = UNI_REPLACEMENT_CHAR;
+      //}
       }
       else
       {
@@ -166,8 +166,8 @@ size_t UTF32toUTF16(const int*BSS_RESTRICT input, ptrdiff_t srclen, wchar_t*BSS_
       //}
       //else
       //{
-        *target++ = UNI_REPLACEMENT_CHAR;
-      //}
+      *target++ = UNI_REPLACEMENT_CHAR;
+    //}
     }
     else
     {
@@ -356,7 +356,8 @@ size_t UTF32toUTF8(const int*BSS_RESTRICT input, ptrdiff_t srclen, char*BSS_REST
 * definition of UTF-8 goes up to 4-byte sequences.
 */
 
-char isLegalUTF8(const UTF8 *source, int length) {
+char isLegalUTF8(const UTF8 *source, int length)
+{
   UTF8 a;
   const UTF8 *srcptr = source + length;
   switch(length)
@@ -389,7 +390,8 @@ char isLegalUTF8(const UTF8 *source, int length) {
 * Exported function to return whether a UTF-8 sequence is legal or not.
 * This is not used here; it's just exported.
 */
-char isLegalUTF8Sequence(const UTF8 *source, const UTF8 *sourceEnd) {
+char isLegalUTF8Sequence(const UTF8 *source, const UTF8 *sourceEnd)
+{
   int length = trailingBytesForUTF8[*source] + 1;
   if(length > sourceEnd - source)
   {
@@ -410,7 +412,8 @@ size_t UTF8toUTF32(const char*BSS_RESTRICT input, ptrdiff_t srclen, int*BSS_REST
   UTF32* targetEnd = target + buflen;
   if(srclen < 0) srclen = PTRDIFF_MAX;
   buflen = 1;
-  while(*input && (input - (const char*)source) < srclen) {
+  while(*input && (input - (const char*)source) < srclen)
+  {
     buflen += (((*input) & 0b11000000) != 0b10000000);
     ++input;
   }

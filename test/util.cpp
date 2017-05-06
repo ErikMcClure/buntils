@@ -38,13 +38,13 @@ int getuniformint()
     samples[0] = 0;
     for(int i = 1; i<NUM; ++i)
     {
-      int64_t j = bssrandint(0, i + 1);
+      int64_t j = bssRandInt(0, i + 1);
       samples[i] = samples[j];
       samples[j] = i;
     }
     if(last == samples[0])
     {
-      int64_t j = 1 + bssrandint(0, NUM - 1);
+      int64_t j = 1 + bssRandInt(0, NUM - 1);
       samples[0] = samples[j];
       samples[j] = last;
     }

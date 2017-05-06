@@ -67,7 +67,7 @@ namespace bss_util {
     typedef cAniFrame<T, D> FRAME;
     typedef T(*FUNC)(const FRAME*, uint32_t, uint32_t, double, const T&);
 
-    explicit cAnimation(FUNC f = 0) : cAniBase(sizeof(T)), _f(f) { }
+    explicit cAnimation(FUNC f = 0) : cAniBase(sizeof(T)), _f(f) {}
     cAnimation(cAnimation&& mov) : cAniBase(std::move(mov)), _frames(std::move(mov._frames)), _f(std::move(mov._f)) {}
     cAnimation(const cAnimation& copy) : cAniBase(copy), _frames(copy._frames), _f(copy._f) {}
     cAnimation(const FRAME* src, uint32_t len, FUNC f = 0) : cAniBase(sizeof(T)), _f(f) { Set(src, len); }
@@ -105,7 +105,7 @@ namespace bss_util {
     using BASE::_calc;
     using BASE::_frames;
   public:
-    explicit cAnimationInterval(typename BASE::FUNC f = 0) : BASE(f) { }
+    explicit cAnimationInterval(typename BASE::FUNC f = 0) : BASE(f) {}
     cAnimationInterval(const cAnimationInterval& copy) : BASE(copy) {}
     cAnimationInterval(cAnimationInterval&& mov) : BASE(std::move(mov)) {}
     cAnimationInterval(const typename BASE::FRAME* src, uint32_t len, typename BASE::FUNC f = 0) : BASE(src, len, f) { _recalclength(); }
@@ -140,7 +140,7 @@ namespace bss_util {
     cAniState(cAniState&& mov) : _ani(mov._ani), _cur(mov._cur), _time(mov._time) { mov._ani = 0; }
     explicit cAniState(cAniBase* p) : _ani(p), _cur(0), _time(0.0) { if(_ani) _ani->Grab(); }
     virtual ~cAniState() { if(_ani) _ani->Drop(); }
-    virtual bool Interpolate(double delta)=0;
+    virtual bool Interpolate(double delta) = 0;
     virtual void Reset() { _cur = 0; _time = 0.0; }
     inline cAniBase* GetAniBase() const { return _ani; }
     inline double GetTime() const { return _time; }
@@ -182,12 +182,12 @@ namespace bss_util {
     using cAniState::_ani;
     using cAniState::_cur;
     using cAniState::_time;
-    cAniStateDiscrete(const cAniStateDiscrete& copy) : cAniState(copy), _set(copy._set) { }
-    cAniStateDiscrete(cAniStateDiscrete&& mov) : cAniState(std::move(mov)), _set(std::move(mov._set)) { }
+    cAniStateDiscrete(const cAniStateDiscrete& copy) : cAniState(copy), _set(copy._set) {}
+    cAniStateDiscrete(cAniStateDiscrete&& mov) : cAniState(std::move(mov)), _set(std::move(mov._set)) {}
     cAniStateDiscrete(cAniBase* p, delegate<AUX, REF> d) : cAniState(p), _set(d) { assert(_ani->SizeOf() == sizeof(T)); }
     template<ARRAY_TYPE ArrayType, typename Alloc>
     cAniStateDiscrete(cAnimation<T, D, ArrayType, Alloc>* p, delegate<AUX, REF> d) : cAniState(p), _set(d) {}
-    cAniStateDiscrete() : _set(0,0) {}
+    cAniStateDiscrete() : _set(0, 0) {}
 
     cAniStateDiscrete& operator=(const cAniStateDiscrete& copy) { cAniState::operator=(copy); _set = copy._set; return *this; }
     cAniStateDiscrete& operator=(cAniStateDiscrete&& mov) { cAniState::operator=(std::move(mov)); _set = std::move(mov._set); return *this; }
@@ -221,8 +221,8 @@ namespace bss_util {
     using BASE::_ani;
     using BASE::_cur;
     using BASE::_time;
-    cAniStateSmooth(const cAniStateSmooth& copy) : BASE(copy), _init(copy._init) { }
-    cAniStateSmooth(cAniStateSmooth&& mov) : BASE(std::move(mov)), _init(std::move(mov._init)) { }
+    cAniStateSmooth(const cAniStateSmooth& copy) : BASE(copy), _init(copy._init) {}
+    cAniStateSmooth(cAniStateSmooth&& mov) : BASE(std::move(mov)), _init(std::move(mov._init)) {}
     cAniStateSmooth(cAniBase* p, delegate<AUX, REF> d, T init = T()) : BASE(p, d), _init(init) { assert(_ani->GetFunc() != 0); }
     template<ARRAY_TYPE ArrayType, typename Alloc>
     cAniStateSmooth(cAnimation<T, D, ArrayType, Alloc>* p, delegate<AUX, REF> d, T init = T()) : BASE(p, d), _init(init) {}
@@ -245,21 +245,21 @@ namespace bss_util {
         _time = fmod(_time - length, length - loop) + loop;
       }
 
-      while(_cur<svar && v[_cur].time <= _time) ++_cur;
+      while(_cur < svar && v[_cur].time <= _time) ++_cur;
       if(_cur >= svar)
       { //Resolve the animation, but only if there was more than 1 keyframe, otherwise we'll break it.
-        if(svar>1)
+        if(svar > 1)
           BASE::_set(f(v, svar, svar - 1, 1.0, _init));
       }
       else
       {
-        double hold = !_cur?0.0:v[_cur - 1].time;
+        double hold = !_cur ? 0.0 : v[_cur - 1].time;
         BASE::_set(f(v, svar, _cur, (_time - hold) / (v[_cur].time - hold), _init));
       }
       return _time < length;
     }
 
-    static inline T NoInterpolate(const typename cAnimation<T, D>::FRAME* v, uint32_t s, uint32_t cur, double t, const T& init) { uint32_t i = cur - (t != 1.0); return (i<0) ? init : v[i].value; }
+    static inline T NoInterpolate(const typename cAnimation<T, D>::FRAME* v, uint32_t s, uint32_t cur, double t, const T& init) { uint32_t i = cur - (t != 1.0); return (i < 0) ? init : v[i].value; }
     static inline T NoInterpolateRel(const typename cAnimation<T, D>::FRAME* v, uint32_t s, uint32_t cur, double t, const T& init) { assert(cur > 0); return init + v[cur - (t != 1.0)].value; }
     static inline T LerpInterpolate(const typename cAnimation<T, D>::FRAME* v, uint32_t s, uint32_t cur, double t, const T& init) { return lerp<T>(!cur ? init : v[cur - 1].value, v[cur].value, t); }
     static inline T LerpInterpolateRel(const typename cAnimation<T, D>::FRAME* v, uint32_t s, uint32_t cur, double t, const T& init) { assert(cur > 0); return init + lerp<T>(v[cur - 1].value, v[cur].value, t); }
@@ -304,7 +304,7 @@ namespace bss_util {
     }
   };
 
-  template<class T, double (*LENGTH)(const T&, const T&, const T&)>
+  template<class T, double(*LENGTH)(const T&, const T&, const T&)>
   struct cAniQuadData : cAniCubicEasing
   {
     template<class U>
@@ -392,7 +392,7 @@ namespace bss_util {
     T p1;
     T p2;
   };
-  
+
   template<typename T, typename AUX, typename REF = T, typename QUEUEALLOC = StaticAllocPolicy<std::pair<double, AUX>>>
   struct BSS_COMPILER_DLLEXPORT cAniStateInterval : public cAniStateDiscrete<T, double, REF, AUX>
   {

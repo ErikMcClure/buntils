@@ -63,12 +63,12 @@ namespace bss_util {
     typedef char DATAGET;
 
   protected:
-    BSS_FORCEINLINE static void _setdata(AVLNode* BSS_RESTRICT old, AVLNode* BSS_RESTRICT cur) { }
+    BSS_FORCEINLINE static void _setdata(AVLNode* BSS_RESTRICT old, AVLNode* BSS_RESTRICT cur) {}
     template<typename U>
-    BSS_FORCEINLINE static void _setraw(U && data, AVLNode* cur) { }
+    BSS_FORCEINLINE static void _setraw(U && data, AVLNode* cur) {}
     BSS_FORCEINLINE static KEYGET& _getdata(KeyData& cur) { return cur; }
     BSS_FORCEINLINE static Key& _getkey(KeyData& cur) { return cur; }
-    BSS_FORCEINLINE static void _swapdata(AVLNode* BSS_RESTRICT retval, AVLNode* BSS_RESTRICT root) { }
+    BSS_FORCEINLINE static void _swapdata(AVLNode* BSS_RESTRICT retval, AVLNode* BSS_RESTRICT root) {}
   };
 
   // AVL Tree implementation
@@ -209,9 +209,9 @@ namespace bss_util {
 
       char result = CFunc(BASE::_getkey(root->_key), key);
       AVLNode* retval = 0;
-      if(result<0)
+      if(result < 0)
         retval = _insert(key, &root->_left, change);
-      else if(result>0)
+      else if(result > 0)
         retval = _insert(key, &root->_right, change);
       else
       {
@@ -261,7 +261,7 @@ namespace bss_util {
     {
       AVLNode* _root = *root;
       char retval = 0;
-      if(_root->_balance<-1)
+      if(_root->_balance < -1)
       {
         if(_root->_left->_balance == 1) // LR
         {
@@ -276,7 +276,7 @@ namespace bss_util {
           _rightrotate(root);
         }
       }
-      else if(_root->_balance>1)
+      else if(_root->_balance > 1)
       {
         if(_root->_right->_balance == -1)
         { //RL
@@ -305,12 +305,12 @@ namespace bss_util {
 
       char result = CFunc(BASE::_getkey(root->_key), key);
       AVLNode* retval = 0;
-      if(result<0)
+      if(result < 0)
       {
         retval = _remove(key, &root->_left, change);
         result *= change;
       }
-      else if(result>0)
+      else if(result > 0)
       {
         retval = _remove(key, &root->_right, change);
         result *= change;

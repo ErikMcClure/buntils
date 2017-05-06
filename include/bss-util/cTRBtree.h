@@ -344,9 +344,9 @@ namespace bss_util {
   class BSS_COMPILER_DLLEXPORT cTRBtree : protected cAllocTracker<Alloc>
   {
     inline cTRBtree(const cTRBtree&) BSS_DELETEFUNC
-    inline cTRBtree& operator=(const cTRBtree&) BSS_DELETEFUNCOP
+      inline cTRBtree& operator=(const cTRBtree&) BSS_DELETEFUNCOP
 
-    BSS_FORCEINLINE static char CompNode(const TRB_Node<T>& l, const TRB_Node<T>& r) { return CFunc(l.value, r.value); }
+      BSS_FORCEINLINE static char CompNode(const TRB_Node<T>& l, const TRB_Node<T>& r) { return CFunc(l.value, r.value); }
 
   public:
     inline explicit cTRBtree(Alloc* allocator = 0) : cAllocTracker<Alloc>(allocator), _first(0), _last(0), _root(&NIL), NIL(&NIL) {}

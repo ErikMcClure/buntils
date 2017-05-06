@@ -30,7 +30,7 @@
 #endif
 #define CONCAT(...) __VA_ARGS__
 
-    
+
 // These yield float/int ranges using rand(). However, rand() is a horrible RNG, so unless you have a good reason, use bssrand() instead.
 #ifndef RANDFLOATGEN
 #define RANDFLOATGEN(min,max) (((max) - (min)) * (rand()/(RAND_MAX+1.0)) + (min))

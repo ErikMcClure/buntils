@@ -24,7 +24,7 @@ namespace bss_util {
     BSS_FORCEINLINE double GetDouble() const { return _dvalue; }
     BSS_FORCEINLINE bool IsValid() const { return !_key.empty(); }
 
-    BSS_FORCEINLINE operator bool() const { return _ivalue!=0; }
+    BSS_FORCEINLINE operator bool() const { return _ivalue != 0; }
     BSS_FORCEINLINE operator char() const { return (char)_ivalue; }
     BSS_FORCEINLINE operator short() const { return (short)_ivalue; }
     BSS_FORCEINLINE operator int() const { return (int)_ivalue; }

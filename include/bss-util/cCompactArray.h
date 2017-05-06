@@ -20,7 +20,7 @@ namespace bss_util {
     inline cCompactArray(const cCompactArray& copy) : _capacity(0), _length(COMPACTFLAG)
     {
       SetLength(copy._length&COMPACTMASK);
-      MEMCPY(begin(), (_length&COMPACTMASK) * sizeof(T), copy.begin(), (copy._length&COMPACTMASK)*sizeof(T));
+      MEMCPY(begin(), (_length&COMPACTMASK) * sizeof(T), copy.begin(), (copy._length&COMPACTMASK) * sizeof(T));
     }
     inline cCompactArray(cCompactArray&& mov) : _array(0), _capacity(mov._capacity), _length(mov._length)
     {
@@ -59,7 +59,7 @@ namespace bss_util {
     BSS_FORCEINLINE void Set(const T* p, CT n)
     {
       SetLength(n);
-      MEMCPY(begin(), (_length&COMPACTMASK) * sizeof(T), p, n*sizeof(T));
+      MEMCPY(begin(), (_length&COMPACTMASK) * sizeof(T), p, n * sizeof(T));
     }
     BSS_FORCEINLINE bool Empty() const { return !(_length&COMPACTMASK); }
     BSS_FORCEINLINE void Clear() { _length = (_length&COMPACTFLAG); }
@@ -82,7 +82,7 @@ namespace bss_util {
           T* a = Alloc::allocate(capacity, 0);
           _length = (_length&COMPACTMASK);
           if(_length)
-            MEMCPY(a, capacity * sizeof(T), _internal, _length*sizeof(T));
+            MEMCPY(a, capacity * sizeof(T), _internal, _length * sizeof(T));
           _array = a;
           _capacity = capacity;
         }
@@ -94,11 +94,11 @@ namespace bss_util {
       }
     }
     BSS_FORCEINLINE CT Length() const { return _length&COMPACTMASK; }
-    BSS_FORCEINLINE CT Capacity() const { return (_length&COMPACTFLAG)?I:_capacity; }
-    BSS_FORCEINLINE const T& Front() const { assert(Length()>0); return begin()[0]; }
-    BSS_FORCEINLINE const T& Back() const { assert(Length()>0); return begin()[Length() - 1]; }
-    BSS_FORCEINLINE T& Front() { assert(Length()>0); return begin()[0]; }
-    BSS_FORCEINLINE T& Back() { assert(Length()>0); return begin()[Length() - 1]; }
+    BSS_FORCEINLINE CT Capacity() const { return (_length&COMPACTFLAG) ? I : _capacity; }
+    BSS_FORCEINLINE const T& Front() const { assert(Length() > 0); return begin()[0]; }
+    BSS_FORCEINLINE const T& Back() const { assert(Length() > 0); return begin()[Length() - 1]; }
+    BSS_FORCEINLINE T& Front() { assert(Length() > 0); return begin()[0]; }
+    BSS_FORCEINLINE T& Back() { assert(Length() > 0); return begin()[Length() - 1]; }
     BSS_FORCEINLINE const T* begin() const noexcept { return (_length&COMPACTFLAG) ? _internal : _array; }
     BSS_FORCEINLINE const T* end() const noexcept { return begin() + Length(); }
     BSS_FORCEINLINE T* begin() noexcept { return (_length&COMPACTFLAG) ? _internal : _array; }
@@ -135,7 +135,7 @@ namespace bss_util {
         T _internal[I];
       };
     };
-    
+
     CT _length;
   };
 }

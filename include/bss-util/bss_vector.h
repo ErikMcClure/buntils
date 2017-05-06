@@ -13,9 +13,9 @@ namespace bss_util {
   template<typename T, int N>
   BSS_FORCEINLINE T NVector_Dot(const T(&l)[N], const T(&r)[N])
   {
-    T ret=0;
-    for(int i=0; i<N; ++i)
-      ret+=(l[i]*r[i]);
+    T ret = 0;
+    for(int i = 0; i < N; ++i)
+      ret += (l[i] * r[i]);
     return ret;
   }
 
@@ -35,11 +35,11 @@ namespace bss_util {
   template<typename T, int N>
   inline T NVector_DistanceSq(const T(&l)[N], const T(&r)[N])
   {
-    T tp = r[0]-l[0];
+    T tp = r[0] - l[0];
     T ret = tp*tp;
     for(int i = 1; i < N; ++i)
     {
-      tp = r[i]-l[i];
+      tp = r[i] - l[i];
       ret += tp*tp;
     }
     return ret;
@@ -50,17 +50,17 @@ namespace bss_util {
   template<typename T, int N>
   BSS_FORCEINLINE void NVector_Normalize(const T(&v)[N], T(&out)[N])
   {
-    T invlength = 1/FastSqrt<T>(NVector_Dot<T, N>(v, v));
+    T invlength = 1 / FastSqrt<T>(NVector_Dot<T, N>(v, v));
     assert(invlength != 0);
     for(int i = 0; i < N; ++i)
-      out[i] = v[i]*invlength;
+      out[i] = v[i] * invlength;
   }
 
   template<>
   BSS_FORCEINLINE void NVector_Normalize<float, 4>(const float(&v)[4], float(&out)[4])
   {
     float l = FastSqrt<float>(NVector_Dot<float, 4>(v, v));
-    (sseVec(v)/sseVec(l, l, l, l)) >> out;
+    (sseVec(v) / sseVec(l, l, l, l)) >> out;
   }
 
   template<typename T>
@@ -83,8 +83,8 @@ namespace bss_util {
     T a = NVector_Distance(x1, x2);
     T b = NVector_Distance(x1, x3);
     T c = NVector_Distance(x2, x3);
-    T s = (a+b+c)/((T)2);
-    return FastSqrt<T>(s*(s-a)*(s-b)*(s-c));
+    T s = (a + b + c) / ((T)2);
+    return FastSqrt<T>(s*(s - a)*(s - b)*(s - c));
   }
 
   // Applies an operator to two vectors
@@ -137,25 +137,25 @@ namespace bss_util {
   template<typename T, int N> BSS_FORCEINLINE void NVectDiv(const T(&x1)[N], T x2, T(&out)[N])
   { return NVectOp<T, N, NVectFDiv<T, T>, NVectFDiv<const sseVecT<T>&, sseVecT<T>>>(x1, x2, out); }*/
 
-  template<typename T, int M, int N, bool B=false>
+  template<typename T, int M, int N, bool B = false>
   struct SetSubMatrix
   {
     static BSS_FORCEINLINE void M2x2(T(&out)[N][M], T m11, T m12, T m21, T m22)
     {
-      static_assert(N>=2 && M>=2, "The NxM matrix must be at least 2x2");
+      static_assert(N >= 2 && M >= 2, "The NxM matrix must be at least 2x2");
       out[0][0] = m11; out[0][1] = m12;
       out[1][0] = m21; out[1][1] = m22;
     }
     static BSS_FORCEINLINE void M3x3(T(&out)[N][M], T m11, T m12, T m13, T m21, T m22, T m23, T m31, T m32, T m33)
     {
-      static_assert(N>=3 && M>=3, "The NxM matrix must be at least 3x3");
+      static_assert(N >= 3 && M >= 3, "The NxM matrix must be at least 3x3");
       out[0][0] = m11; out[0][1] = m12; out[0][2] = m13;
       out[1][0] = m21; out[1][1] = m22; out[1][2] = m23;
       out[2][0] = m31; out[2][1] = m32; out[2][2] = m33;
     }
     static BSS_FORCEINLINE void M4x4(T(&out)[N][M], T m11, T m12, T m13, T m14, T m21, T m22, T m23, T m24, T m31, T m32, T m33, T m34, T m41, T m42, T m43, T m44)
     {
-      static_assert(N>=4 && M>=4, "The NxM matrix must be at least 4x4");
+      static_assert(N >= 4 && M >= 4, "The NxM matrix must be at least 4x4");
       out[0][0] = m11; out[0][1] = m12; out[0][2] = m13; out[0][3] = m14;
       out[1][0] = m21; out[1][1] = m22; out[1][2] = m23; out[1][3] = m24;
       out[2][0] = m31; out[2][1] = m32; out[2][2] = m33; out[2][3] = m34;
@@ -166,13 +166,16 @@ namespace bss_util {
   template<typename T, int M, int N>
   struct SetSubMatrix<T, M, N, true>
   {
-    static BSS_FORCEINLINE void M2x2(T(&out)[N][M], T m11, T m12, T m21, T m22) {
+    static BSS_FORCEINLINE void M2x2(T(&out)[N][M], T m11, T m12, T m21, T m22)
+    {
       SetSubMatrix<T, M, N, false>::M2x2(out, m11, m21, m12, m22);
     }
-    static BSS_FORCEINLINE void M3x3(T(&out)[N][M], T m11, T m12, T m13, T m21, T m22, T m23, T m31, T m32, T m33) {
+    static BSS_FORCEINLINE void M3x3(T(&out)[N][M], T m11, T m12, T m13, T m21, T m22, T m23, T m31, T m32, T m33)
+    {
       SetSubMatrix<T, M, N, false>::M3x3(out, m11, m21, m31, m12, m22, m32, m13, m23, m33);
     }
-    static BSS_FORCEINLINE void M4x4(T(&out)[N][M], T m11, T m12, T m13, T m14, T m21, T m22, T m23, T m24, T m31, T m32, T m33, T m34, T m41, T m42, T m43, T m44) {
+    static BSS_FORCEINLINE void M4x4(T(&out)[N][M], T m11, T m12, T m13, T m14, T m21, T m22, T m23, T m24, T m31, T m32, T m33, T m34, T m41, T m42, T m43, T m44)
+    {
       SetSubMatrix<T, M, N, false>::M4x4(out, m11, m21, m31, m41, m12, m22, m32, m42, m13, m23, m33, m43, m14, m24, m34, m44);
     }
   };
@@ -184,11 +187,12 @@ namespace bss_util {
     T src[16]; /* array of transpose source matrix */
     T det;  /* determinant */
     /* transpose matrix */
-    for(int i = 0; i < 4; i++) { // because of this operation, mat and dst can be the same
-      src[i] = mat[i*4];
-      src[i + 4] = mat[i*4+ 1];
-      src[i + 8] = mat[i*4+ 2];
-      src[i + 12] = mat[i*4+ 3];
+    for(int i = 0; i < 4; i++)
+    { // because of this operation, mat and dst can be the same
+      src[i] = mat[i * 4];
+      src[i + 4] = mat[i * 4 + 1];
+      src[i + 8] = mat[i * 4 + 2];
+      src[i + 12] = mat[i * 4 + 3];
     }
     /* calculate pairs for first 8 elements (cofactors) */
     tmp[0] = src[10] * src[15];
@@ -204,56 +208,56 @@ namespace bss_util {
     tmp[10] = src[8] * src[13];
     tmp[11] = src[9] * src[12];
     /* calculate first 8 elements (cofactors) */
-    dst[0] = tmp[0]*src[5] + tmp[3]*src[6] + tmp[4]*src[7];
-    dst[0] -= tmp[1]*src[5] + tmp[2]*src[6] + tmp[5]*src[7];
-    dst[1] = tmp[1]*src[4] + tmp[6]*src[6] + tmp[9]*src[7];
-    dst[1] -= tmp[0]*src[4] + tmp[7]*src[6] + tmp[8]*src[7];
-    dst[2] = tmp[2]*src[4] + tmp[7]*src[5] + tmp[10]*src[7];
-    dst[2] -= tmp[3]*src[4] + tmp[6]*src[5] + tmp[11]*src[7];
-    dst[3] = tmp[5]*src[4] + tmp[8]*src[5] + tmp[11]*src[6];
-    dst[3] -= tmp[4]*src[4] + tmp[9]*src[5] + tmp[10]*src[6];
-    dst[4] = tmp[1]*src[1] + tmp[2]*src[2] + tmp[5]*src[3];
-    dst[4] -= tmp[0]*src[1] + tmp[3]*src[2] + tmp[4]*src[3];
-    dst[5] = tmp[0]*src[0] + tmp[7]*src[2] + tmp[8]*src[3];
-    dst[5] -= tmp[1]*src[0] + tmp[6]*src[2] + tmp[9]*src[3];
-    dst[6] = tmp[3]*src[0] + tmp[6]*src[1] + tmp[11]*src[3];
-    dst[6] -= tmp[2]*src[0] + tmp[7]*src[1] + tmp[10]*src[3];
-    dst[7] = tmp[4]*src[0] + tmp[9]*src[1] + tmp[10]*src[2];
-    dst[7] -= tmp[5]*src[0] + tmp[8]*src[1] + tmp[11]*src[2];
+    dst[0] = tmp[0] * src[5] + tmp[3] * src[6] + tmp[4] * src[7];
+    dst[0] -= tmp[1] * src[5] + tmp[2] * src[6] + tmp[5] * src[7];
+    dst[1] = tmp[1] * src[4] + tmp[6] * src[6] + tmp[9] * src[7];
+    dst[1] -= tmp[0] * src[4] + tmp[7] * src[6] + tmp[8] * src[7];
+    dst[2] = tmp[2] * src[4] + tmp[7] * src[5] + tmp[10] * src[7];
+    dst[2] -= tmp[3] * src[4] + tmp[6] * src[5] + tmp[11] * src[7];
+    dst[3] = tmp[5] * src[4] + tmp[8] * src[5] + tmp[11] * src[6];
+    dst[3] -= tmp[4] * src[4] + tmp[9] * src[5] + tmp[10] * src[6];
+    dst[4] = tmp[1] * src[1] + tmp[2] * src[2] + tmp[5] * src[3];
+    dst[4] -= tmp[0] * src[1] + tmp[3] * src[2] + tmp[4] * src[3];
+    dst[5] = tmp[0] * src[0] + tmp[7] * src[2] + tmp[8] * src[3];
+    dst[5] -= tmp[1] * src[0] + tmp[6] * src[2] + tmp[9] * src[3];
+    dst[6] = tmp[3] * src[0] + tmp[6] * src[1] + tmp[11] * src[3];
+    dst[6] -= tmp[2] * src[0] + tmp[7] * src[1] + tmp[10] * src[3];
+    dst[7] = tmp[4] * src[0] + tmp[9] * src[1] + tmp[10] * src[2];
+    dst[7] -= tmp[5] * src[0] + tmp[8] * src[1] + tmp[11] * src[2];
     /* calculate pairs for second 8 elements (cofactors) */
-    tmp[0] = src[2]*src[7];
-    tmp[1] = src[3]*src[6];
-    tmp[2] = src[1]*src[7];
-    tmp[3] = src[3]*src[5];
-    tmp[4] = src[1]*src[6];
-    tmp[5] = src[2]*src[5];
-    tmp[6] = src[0]*src[7];
-    tmp[7] = src[3]*src[4];
-    tmp[8] = src[0]*src[6];
-    tmp[9] = src[2]*src[4];
-    tmp[10] = src[0]*src[5];
-    tmp[11] = src[1]*src[4];
+    tmp[0] = src[2] * src[7];
+    tmp[1] = src[3] * src[6];
+    tmp[2] = src[1] * src[7];
+    tmp[3] = src[3] * src[5];
+    tmp[4] = src[1] * src[6];
+    tmp[5] = src[2] * src[5];
+    tmp[6] = src[0] * src[7];
+    tmp[7] = src[3] * src[4];
+    tmp[8] = src[0] * src[6];
+    tmp[9] = src[2] * src[4];
+    tmp[10] = src[0] * src[5];
+    tmp[11] = src[1] * src[4];
     /* calculate second 8 elements (cofactors) */
-    dst[8] = tmp[0]*src[13] + tmp[3]*src[14] + tmp[4]*src[15];
-    dst[8] -= tmp[1]*src[13] + tmp[2]*src[14] + tmp[5]*src[15];
-    dst[9] = tmp[1]*src[12] + tmp[6]*src[14] + tmp[9]*src[15];
-    dst[9] -= tmp[0]*src[12] + tmp[7]*src[14] + tmp[8]*src[15];
-    dst[10] = tmp[2]*src[12] + tmp[7]*src[13] + tmp[10]*src[15];
-    dst[10]-= tmp[3]*src[12] + tmp[6]*src[13] + tmp[11]*src[15];
-    dst[11] = tmp[5]*src[12] + tmp[8]*src[13] + tmp[11]*src[14];
-    dst[11]-= tmp[4]*src[12] + tmp[9]*src[13] + tmp[10]*src[14];
-    dst[12] = tmp[2]*src[10] + tmp[5]*src[11] + tmp[1]*src[9];
-    dst[12]-= tmp[4]*src[11] + tmp[0]*src[9] + tmp[3]*src[10];
-    dst[13] = tmp[8]*src[11] + tmp[0]*src[8] + tmp[7]*src[10];
-    dst[13]-= tmp[6]*src[10] + tmp[9]*src[11] + tmp[1]*src[8];
-    dst[14] = tmp[6]*src[9] + tmp[11]*src[11] + tmp[3]*src[8];
-    dst[14]-= tmp[10]*src[11] + tmp[2]*src[8] + tmp[7]*src[9];
-    dst[15] = tmp[10]*src[10] + tmp[4]*src[8] + tmp[9]*src[9];
-    dst[15]-= tmp[8]*src[9] + tmp[11]*src[10] + tmp[5]*src[8];
+    dst[8] = tmp[0] * src[13] + tmp[3] * src[14] + tmp[4] * src[15];
+    dst[8] -= tmp[1] * src[13] + tmp[2] * src[14] + tmp[5] * src[15];
+    dst[9] = tmp[1] * src[12] + tmp[6] * src[14] + tmp[9] * src[15];
+    dst[9] -= tmp[0] * src[12] + tmp[7] * src[14] + tmp[8] * src[15];
+    dst[10] = tmp[2] * src[12] + tmp[7] * src[13] + tmp[10] * src[15];
+    dst[10] -= tmp[3] * src[12] + tmp[6] * src[13] + tmp[11] * src[15];
+    dst[11] = tmp[5] * src[12] + tmp[8] * src[13] + tmp[11] * src[14];
+    dst[11] -= tmp[4] * src[12] + tmp[9] * src[13] + tmp[10] * src[14];
+    dst[12] = tmp[2] * src[10] + tmp[5] * src[11] + tmp[1] * src[9];
+    dst[12] -= tmp[4] * src[11] + tmp[0] * src[9] + tmp[3] * src[10];
+    dst[13] = tmp[8] * src[11] + tmp[0] * src[8] + tmp[7] * src[10];
+    dst[13] -= tmp[6] * src[10] + tmp[9] * src[11] + tmp[1] * src[8];
+    dst[14] = tmp[6] * src[9] + tmp[11] * src[11] + tmp[3] * src[8];
+    dst[14] -= tmp[10] * src[11] + tmp[2] * src[8] + tmp[7] * src[9];
+    dst[15] = tmp[10] * src[10] + tmp[4] * src[8] + tmp[9] * src[9];
+    dst[15] -= tmp[8] * src[9] + tmp[11] * src[10] + tmp[5] * src[8];
     /* calculate determinant */
-    det=src[0]*dst[0]+src[1]*dst[1]+src[2]*dst[2]+src[3]*dst[3];
+    det = src[0] * dst[0] + src[1] * dst[1] + src[2] * dst[2] + src[3] * dst[3];
     /* calculate matrix inverse */
-    det = 1/det;
+    det = 1 / det;
     for(int j = 0; j < 16; j++)
       dst[j] *= det;
   }
@@ -270,7 +274,7 @@ namespace bss_util {
     // copyright notice and this statement appear in all copies.  
     // Intel makes no representations about the suitability of this software for 
     // any purpose, and specifically disclaims all warranties. 
-    static const BSS_ALIGN(16) uint32_t _Sign_PNNP[4] ={ 0x00000000, 0x80000000, 0x80000000, 0x00000000 };
+    static const BSS_ALIGN(16) uint32_t _Sign_PNNP[4] = { 0x00000000, 0x80000000, 0x80000000, 0x00000000 };
 
     // The inverse is calculated using "Divide and Conquer" technique. The 
     // original matrix is divide into four 2x2 sub-matrices. Since each 
@@ -278,9 +282,9 @@ namespace bss_util {
     // represented as a registers. Hence we get a better locality of the 
     // calculations.
     sseVec _L1(BSS_SSE_LOAD_APS(src));
-    sseVec _L2(BSS_SSE_LOAD_APS(src+4));
-    sseVec _L3(BSS_SSE_LOAD_APS(src+8));
-    sseVec _L4(BSS_SSE_LOAD_APS(src+12));
+    sseVec _L2(BSS_SSE_LOAD_APS(src + 4));
+    sseVec _L3(BSS_SSE_LOAD_APS(src + 8));
+    sseVec _L4(BSS_SSE_LOAD_APS(src + 12));
 
     sseVec A = _mm_movelh_ps(_L1, _L2),    // the four sub-matrices 
       B = _mm_movehl_ps(_L2, _L1),
@@ -360,9 +364,9 @@ namespace bss_util {
     iD *= rd;
 
     BSS_SSE_STORE_APS(dest, _mm_shuffle_ps(iA, iB, 0x77));
-    BSS_SSE_STORE_APS(dest+4, _mm_shuffle_ps(iA, iB, 0x22));
-    BSS_SSE_STORE_APS(dest+8, _mm_shuffle_ps(iC, iD, 0x77));
-    BSS_SSE_STORE_APS(dest+12, _mm_shuffle_ps(iC, iD, 0x22));
+    BSS_SSE_STORE_APS(dest + 4, _mm_shuffle_ps(iA, iB, 0x22));
+    BSS_SSE_STORE_APS(dest + 8, _mm_shuffle_ps(iC, iD, 0x77));
+    BSS_SSE_STORE_APS(dest + 12, _mm_shuffle_ps(iC, iD, 0x22));
   }
 #endif
 
@@ -377,9 +381,9 @@ namespace bss_util {
       {
         for(int j = 0; j < P; ++j)
         {
-          m[i][j] = l[i][0]*r[0][j];
+          m[i][j] = l[i][0] * r[0][j];
           for(int k = 1; k < N; ++k)
-            m[i][j] += l[i][k]*r[k][j];
+            m[i][j] += l[i][k] * r[k][j];
         }
       }
       for(int i = 0; i < M; ++i) // Done so the compiler can get rid of it if it isn't necessary
@@ -400,10 +404,10 @@ namespace bss_util {
       sseVec d(r[3]);
 
       // Note: It's ok if l, r, and out are all the same matrix because of the order they're accessed in.
-      ((a*sseVec(l[0][0]))+(b*sseVec(l[0][1]))+(c*sseVec(l[0][2]))+(d*sseVec(l[0][3]))) >> out[0];
-      ((a*sseVec(l[1][0]))+(b*sseVec(l[1][1]))+(c*sseVec(l[1][2]))+(d*sseVec(l[1][3]))) >> out[1];
-      ((a*sseVec(l[2][0]))+(b*sseVec(l[2][1]))+(c*sseVec(l[2][2]))+(d*sseVec(l[2][3]))) >> out[2];
-      ((a*sseVec(l[3][0]))+(b*sseVec(l[3][1]))+(c*sseVec(l[3][2]))+(d*sseVec(l[3][3]))) >> out[3];
+      ((a*sseVec(l[0][0])) + (b*sseVec(l[0][1])) + (c*sseVec(l[0][2])) + (d*sseVec(l[0][3]))) >> out[0];
+      ((a*sseVec(l[1][0])) + (b*sseVec(l[1][1])) + (c*sseVec(l[1][2])) + (d*sseVec(l[1][3]))) >> out[1];
+      ((a*sseVec(l[2][0])) + (b*sseVec(l[2][1])) + (c*sseVec(l[2][2])) + (d*sseVec(l[2][3]))) >> out[2];
+      ((a*sseVec(l[3][0])) + (b*sseVec(l[3][1])) + (c*sseVec(l[3][2])) + (d*sseVec(l[3][3]))) >> out[3];
     }
   };
 
@@ -419,7 +423,7 @@ namespace bss_util {
       sseVec d(r[3]);
 
       for(int i = 0; i < M; ++i) // Note: It's ok if l, r, and out are all the same matrix because of the order they're accessed in.
-        ((a*sseVec(l[i][0]))+(b*sseVec(l[i][1]))+(c*sseVec(l[i][2]))+(d*sseVec(l[i][3]))) >> out[i];
+        ((a*sseVec(l[i][0])) + (b*sseVec(l[i][1])) + (c*sseVec(l[i][2])) + (d*sseVec(l[i][3]))) >> out[i];
     }
   };
 
@@ -434,7 +438,7 @@ namespace bss_util {
       sseVeci d(r[3]);
 
       for(int i = 0; i < M; ++i) // Note: It's ok if l, r, and out are all the same matrix because of the order they're accessed in.
-        ((a*sseVeci(l[i][0]))+(b*sseVeci(l[i][1]))+(c*sseVeci(l[i][2]))+(d*sseVeci(l[i][3]))) >> out[i];
+        ((a*sseVeci(l[i][0])) + (b*sseVeci(l[i][1])) + (c*sseVeci(l[i][2])) + (d*sseVeci(l[i][3]))) >> out[i];
     }
   };
 
@@ -443,7 +447,7 @@ namespace bss_util {
   {
     static BSS_FORCEINLINE void MM(const float(&l)[1][4], const float(&r)[4][4], float(&out)[1][4])
     { // Note: It's ok if l, r, and out are all the same matrix because of the order they're accessed in.
-      ((sseVec(r[0])*sseVec(l[0][0]))+(sseVec(r[1])*sseVec(l[0][1]))+(sseVec(r[2])*sseVec(l[0][2]))+(sseVec(r[3])*sseVec(l[0][3]))) >> out[0];
+      ((sseVec(r[0])*sseVec(l[0][0])) + (sseVec(r[1])*sseVec(l[0][1])) + (sseVec(r[2])*sseVec(l[0][2])) + (sseVec(r[3])*sseVec(l[0][3]))) >> out[0];
     }
   };
 
@@ -464,7 +468,7 @@ namespace bss_util {
   template<typename T>
   BSS_FORCEINLINE sseVecT<T> MatrixMultiply1x4(const T(&l)[4], const T(&r)[4][4])
   {
-    return (sseVecT<T>(r[0])*sseVecT<T>(l[0]))+(sseVecT<T>(r[1])*sseVecT<T>(l[1]))+(sseVecT<T>(r[2])*sseVecT<T>(l[2]))+(sseVecT<T>(r[3])*sseVecT<T>(l[3]));
+    return (sseVecT<T>(r[0])*sseVecT<T>(l[0])) + (sseVecT<T>(r[1])*sseVecT<T>(l[1])) + (sseVecT<T>(r[2])*sseVecT<T>(l[2])) + (sseVecT<T>(r[3])*sseVecT<T>(l[3]));
   }
 
   template<typename T, int M, int N, int P>
@@ -494,7 +498,8 @@ namespace bss_util {
   struct BSS_COMPILER_DLLEXPORT __MatrixDeterminant<float, 3>
   {
     BSS_FORCEINLINE static float MD(const float(&x)[3][3]) { return D(x[0][0], x[0][1], x[0][2], x[1][0], x[1][1], x[1][2], x[2][0], x[2][1], x[2][2]); }
-    BSS_FORCEINLINE static float D(float a, float b, float c, float d, float e, float f, float g, float h, float i) {
+    BSS_FORCEINLINE static float D(float a, float b, float c, float d, float e, float f, float g, float h, float i)
+    {
       sseVec u(a, b, c, 0);
       sseVec v(e, i, d, f);
       sseVec w(i, d, h, g);
@@ -509,19 +514,20 @@ namespace bss_util {
   template<typename T>
   struct BSS_COMPILER_DLLEXPORT __MatrixDeterminant<T, 4>
   {
-    BSS_FORCEINLINE static T MD(const T(&x)[4][4]) {
-      return x[0][0]*__MatrixDeterminant<T, 3>::D(x[1][1], x[1][2], x[1][3],
+    BSS_FORCEINLINE static T MD(const T(&x)[4][4])
+    {
+      return x[0][0] * __MatrixDeterminant<T, 3>::D(x[1][1], x[1][2], x[1][3],
         x[2][1], x[2][2], x[2][3],
         x[3][1], x[3][2], x[3][3]) -
-        x[0][1]*__MatrixDeterminant<T, 3>::D(x[1][0], x[1][2], x[1][3],
-        x[2][0], x[2][2], x[2][3],
-        x[3][0], x[3][2], x[3][3]) +
-        x[0][2]*__MatrixDeterminant<T, 3>::D(x[1][0], x[1][1], x[1][3],
-        x[2][0], x[2][1], x[2][3],
-        x[3][0], x[3][1], x[3][3]) -
-        x[0][3]*__MatrixDeterminant<T, 3>::D(x[1][0], x[1][1], x[1][2],
-        x[2][0], x[2][1], x[2][2],
-        x[3][0], x[3][1], x[3][2]);
+        x[0][1] * __MatrixDeterminant<T, 3>::D(x[1][0], x[1][2], x[1][3],
+          x[2][0], x[2][2], x[2][3],
+          x[3][0], x[3][2], x[3][3]) +
+        x[0][2] * __MatrixDeterminant<T, 3>::D(x[1][0], x[1][1], x[1][3],
+          x[2][0], x[2][1], x[2][3],
+          x[3][0], x[3][1], x[3][3]) -
+        x[0][3] * __MatrixDeterminant<T, 3>::D(x[1][0], x[1][1], x[1][2],
+          x[2][0], x[2][1], x[2][2],
+          x[3][0], x[3][1], x[3][2]);
     }
   };
 
@@ -529,15 +535,16 @@ namespace bss_util {
   struct BSS_COMPILER_DLLEXPORT __MatrixDeterminant<float, 4>
   {
     template<uint8_t I>
-    BSS_FORCEINLINE static BSS_SSE_M128 _mm_ror_ps(BSS_SSE_M128 vec) { return (((I)%4) ? (BSS_SSE_SHUFFLE_PS(vec, vec, _MM_SHUFFLE((uint8_t)(I+3)%4, (uint8_t)(I+2)%4, (uint8_t)(I+1)%4, (uint8_t)(I+0)%4))) : vec); }
-    BSS_FORCEINLINE static float MD(const float(&x)[4][4]) {
-      //   Copyright (c) 2001 Intel Corporation.
-      //
-      // Permition is granted to use, copy, distribute and prepare derivative works 
-      // of this library for any purpose and without fee, provided, that the above 
-      // copyright notice and this statement appear in all copies.  
-      // Intel makes no representations about the suitability of this software for 
-      // any purpose, and specifically disclaims all warranties. 
+    BSS_FORCEINLINE static BSS_SSE_M128 _mm_ror_ps(BSS_SSE_M128 vec) { return (((I) % 4) ? (BSS_SSE_SHUFFLE_PS(vec, vec, _MM_SHUFFLE((uint8_t)(I + 3) % 4, (uint8_t)(I + 2) % 4, (uint8_t)(I + 1) % 4, (uint8_t)(I + 0) % 4))) : vec); }
+    BSS_FORCEINLINE static float MD(const float(&x)[4][4])
+    {
+//   Copyright (c) 2001 Intel Corporation.
+//
+// Permition is granted to use, copy, distribute and prepare derivative works 
+// of this library for any purpose and without fee, provided, that the above 
+// copyright notice and this statement appear in all copies.  
+// Intel makes no representations about the suitability of this software for 
+// any purpose, and specifically disclaims all warranties. 
 
       BSS_SSE_M128 Va, Vb, Vc;
       BSS_SSE_M128 r1, r2, r3, t1, t2, sum;
@@ -574,7 +581,7 @@ namespace bss_util {
   template<typename T, int N>
   BSS_FORCEINLINE void FromQuaternion(T(&q)[4], T(&out)[N][N])
   {
-    T w=q[3], x=q[0], y=q[1], z=q[2];
+    T w = q[3], x = q[0], y = q[1], z = q[2];
     T xx = x*x, xy = x*y, xz = x*z, xw = x*w;
     T yy = y*y, yz = y*z, yw = y*w;
     T zz = z*z, zw = z*w;
@@ -631,7 +638,7 @@ namespace bss_util {
     inline explicit Vector(T scalar) { for(int i = 0; i < N; ++i) v[i] = scalar; }
     inline explicit Vector(const T(&e)[N]) { for(int i = 0; i < N; ++i) v[i] = e[i]; }
     inline Vector(const std::initializer_list<T>& e) { int k = 0; for(const T* i = e.begin(); i != e.end() && k < N; ++i) v[k++] = *i; }
-    inline Vector() { }
+    inline Vector() {}
     inline T Length() const { return FastSqrt<T>(Dot(*this)); }
     inline Vector<T, N> Normalize() const { Vector<T, N> ret(*this); NVector_Normalize(v, ret.v); return ret; }
     inline Vector<T, N> Abs() const { Vector<T, N> ret(*this); NVector_Abs(v, ret.v); return ret; }
@@ -654,27 +661,27 @@ namespace bss_util {
   struct BSS_COMPILER_DLLEXPORT Vector<T, 2>
   {
     template<typename U>
-    inline Vector(const Vector<U, 2>& copy) : x((T)copy.v[0]), y((T)copy.v[1]) { }
-    inline explicit Vector(T scalar) : x(scalar), y(scalar) { }
-    inline explicit Vector(const T(&e)[2]) : x(e[0]), y(e[1]) { }
+    inline Vector(const Vector<U, 2>& copy) : x((T)copy.v[0]), y((T)copy.v[1]) {}
+    inline explicit Vector(T scalar) : x(scalar), y(scalar) {}
+    inline explicit Vector(const T(&e)[2]) : x(e[0]), y(e[1]) {}
     inline Vector(const std::initializer_list<T>& e) { int k = 0; for(const T* i = e.begin(); i != e.end() && k < 2; ++i) v[k++] = *i; }
-    inline Vector(T X, T Y) : x(X), y(Y) { }
-    inline Vector() { }
+    inline Vector(T X, T Y) : x(X), y(Y) {}
+    inline Vector() {}
     inline T Length() const { return FastSqrt<T>(Dot(*this)); }
-    inline Vector<T, 2> Normalize() const { T l = Length(); return Vector<T, 2>(x/l, y/l); }
+    inline Vector<T, 2> Normalize() const { T l = Length(); return Vector<T, 2>(x / l, y / l); }
     inline Vector<T, 2> Abs() const { return Vector<T, 2>(NVector_AbsCall(x), NVector_AbsCall(y)); }
     inline T Dot(const Vector<T, 2>& r) const { return DotProduct(r.x, r.y, x, y); }
     inline T Distance(const Vector<T, 2>& r) const { return FastSqrt<T>(DistanceSq(r)); }
     inline T DistanceSq(const Vector<T, 2>& r) const { return bss_util::distsqr<T>(r.x, r.y, x, y); }
     inline Vector<T, 2> Rotate(T R, const Vector<T, 2>& center) const { return Rotate(R, center.x, center.y); }
-    inline Vector<T, 2> Rotate(T R, T X, T Y) const { T tx=x; T ty=y; RotatePoint(tx, ty, R, X, Y); return Vector<T, 2>(tx, ty); }
+    inline Vector<T, 2> Rotate(T R, T X, T Y) const { T tx = x; T ty = y; RotatePoint(tx, ty, R, X, Y); return Vector<T, 2>(tx, ty); }
     inline T Cross(const Vector<T, 2>& r) const { return CrossProduct(r.x, r.y, x, y); }
     inline T Cross(T X, T Y) const { return CrossProduct(X, Y, x, y); }
     template<int K> inline void Outer(const Vector<T, K>& r, T(&out)[2][K]) const { MatrixMultiply<T, 2, 1, K>(v_column, r.v_row, out); }
 
     template<typename U> inline Vector<T, 2>& operator=(const Vector<U, 2>& r) { x = (T)r.x; y = (T)r.y; return *this; }
 
-    static BSS_FORCEINLINE void RotatePoint(T& x, T& y, T r, T cx, T cy) { T tx = x-cx; T ty = y-cy; T rcos = (T)cos(r); T rsin = (T)sin(r); x = (tx*rcos - ty*rsin)+cx; y = (ty*rcos + tx*rsin)+cy; }
+    static BSS_FORCEINLINE void RotatePoint(T& x, T& y, T r, T cx, T cy) { T tx = x - cx; T ty = y - cy; T rcos = (T)cos(r); T rsin = (T)sin(r); x = (tx*rcos - ty*rsin) + cx; y = (ty*rcos + tx*rsin) + cy; }
     static BSS_FORCEINLINE T CrossProduct(T X, T Y, T x, T y) { return x*Y - X*y; }
     static BSS_FORCEINLINE T DotProduct(T X, T Y, T x, T y) { return X*x + Y*y; }
     static BSS_FORCEINLINE Vector<T, 2> FromPolar(const Vector<T, 2>& v) { return FromPolar(v.x, v.y); }
@@ -696,18 +703,18 @@ namespace bss_util {
   struct BSS_COMPILER_DLLEXPORT Vector<T, 3>
   {
     template<typename U>
-    inline Vector(const Vector<U, 3>& copy) : x((T)copy.v[0]), y((T)copy.v[1]), z((T)copy.v[2]) { }
-    inline explicit Vector(T scalar) : x(scalar), y(scalar), z(scalar){ }
-    inline explicit Vector(const T(&e)[3]) : x(e[0]), y(e[1]), z(e[2]) { }
+    inline Vector(const Vector<U, 3>& copy) : x((T)copy.v[0]), y((T)copy.v[1]), z((T)copy.v[2]) {}
+    inline explicit Vector(T scalar) : x(scalar), y(scalar), z(scalar) {}
+    inline explicit Vector(const T(&e)[3]) : x(e[0]), y(e[1]), z(e[2]) {}
     inline Vector(const std::initializer_list<T>& e) { int k = 0; for(const T* i = e.begin(); i != e.end() && k < 3; ++i) v[k++] = *i; }
-    inline Vector(T X, T Y, T Z) : x(X), y(Y), z(Z) { }
-    inline Vector() { }
-    inline T Length() const { return FastSqrt((x*x)+(y*y)+(z*z)); }
-    inline Vector<T, 3> Normalize() const { T l = Length(); return Vector<T, 3>(x/l, y/l, z/l); }
+    inline Vector(T X, T Y, T Z) : x(X), y(Y), z(Z) {}
+    inline Vector() {}
+    inline T Length() const { return FastSqrt((x*x) + (y*y) + (z*z)); }
+    inline Vector<T, 3> Normalize() const { T l = Length(); return Vector<T, 3>(x / l, y / l, z / l); }
     inline Vector<T, 3> Abs() const { return Vector<T, 3>(NVector_AbsCall(x), NVector_AbsCall(y), NVector_AbsCall(z)); }
     inline T Dot(const Vector<T, 3>& r) const { return (x*r.x) + (y*r.y) + (z*r.z); }
     inline T Distance(const Vector<T, 3>& r) const { return FastSqrt<T>(DistanceSq(r)); }
-    inline T DistanceSq(const Vector<T, 3>& r) const { T tz = (r.z - z); T ty = (r.y - y); T tx = (r.x - x); return (T)((tx*tx)+(ty*ty)+(tz*tz)); }
+    inline T DistanceSq(const Vector<T, 3>& r) const { T tz = (r.z - z); T ty = (r.y - y); T tx = (r.x - x); return (T)((tx*tx) + (ty*ty) + (tz*tz)); }
     inline Vector<T, 3> Cross(const Vector<T, 3>& r) const { return Cross(r.x, r.y, r.z); }
     inline Vector<T, 3> Cross(T X, T Y, T Z) const { return Vector<T, 3>(y*Z - z*Y, z*X - x*Z, x*Y - X*y); }
     template<int K> inline void Outer(const Vector<T, K>& r, T(&out)[3][K]) const { MatrixMultiply<T, 3, 1, K>(v_column, r.v_row, out); }
@@ -738,18 +745,18 @@ namespace bss_util {
   struct BSS_COMPILER_DLLEXPORT Vector<T, 4>
   {
     template<typename U>
-    inline Vector(const Vector<U, 4>& copy) : x((T)copy.v[0]), y((T)copy.v[1]), z((T)copy.v[2]), w((T)copy.v[3]) { }
-    inline explicit Vector(T scalar) : x(scalar), y(scalar), z(scalar), w(scalar) { }
-    inline explicit Vector(const T(&e)[4]) : x(e[0]), y(e[1]), z(e[2]), w(e[3]) { }
+    inline Vector(const Vector<U, 4>& copy) : x((T)copy.v[0]), y((T)copy.v[1]), z((T)copy.v[2]), w((T)copy.v[3]) {}
+    inline explicit Vector(T scalar) : x(scalar), y(scalar), z(scalar), w(scalar) {}
+    inline explicit Vector(const T(&e)[4]) : x(e[0]), y(e[1]), z(e[2]), w(e[3]) {}
     inline Vector(const std::initializer_list<T>& e) { int k = 0; for(const T* i = e.begin(); i != e.end() && k < 4; ++i) v[k++] = *i; }
-    inline Vector(T X, T Y, T Z, T W) : x(X), y(Y), z(Z), w(W) { }
-    inline Vector() { }
+    inline Vector(T X, T Y, T Z, T W) : x(X), y(Y), z(Z), w(W) {}
+    inline Vector() {}
     inline T Length() const { return FastSqrt<T>(Dot(*this)); }
     inline Vector<T, 4> Normalize() const { Vector<T, 4> r; NVector_Normalize<T, 4>(v, r.v); return r; }
     inline Vector<T, 4> Abs() const { return Vector<T, 4>(NVector_AbsCall(x), NVector_AbsCall(y), NVector_AbsCall(z), NVector_AbsCall(w)); }
     inline T Dot(const Vector<T, 4>& r) const { return NVector_Dot<T, 4>(v, r.v); }
     inline T Distance(const Vector<T, 4>& r) const { return FastSqrt<T>(DistanceSq(r)); }
-    inline T DistanceSq(const Vector<T, 4>& r) const { T tz = (r.z - z); T ty = (r.y - y); T tx = (r.x - x); T tw = (r.w - w); return (T)((tx*tx)+(ty*ty)+(tz*tz)+(tw*tw)); }
+    inline T DistanceSq(const Vector<T, 4>& r) const { T tz = (r.z - z); T ty = (r.y - y); T tx = (r.x - x); T tw = (r.w - w); return (T)((tx*tx) + (ty*ty) + (tz*tz) + (tw*tw)); }
     template<int K> inline void Outer(const Vector<T, K>& r, T(&out)[4][K]) const { MatrixMultiply<T, 4, 1, K>(v_column, r.v_row, out); }
 
     template<typename U> inline Vector<T, 4>& operator=(const Vector<U, 4>& r) { x = (T)r.x; y = (T)r.y; z = (T)r.z; w = (T)r.w; return *this; }
@@ -798,7 +805,8 @@ namespace bss_util {
     inline Vector<T, 4> wzxy() const { return Vector<T, 4>(w, z, x, y); }
     inline Vector<T, 4> wzyx() const { return Vector<T, 4>(w, z, y, x); }
 
-    BSS_ALIGNED_UNION(16) {
+    BSS_ALIGNED_UNION(16)
+    {
       T v[4];
       T v_column[4][1];
       T v_row[1][4];
@@ -814,19 +822,19 @@ namespace bss_util {
   template<typename T, int M, int N>
   struct BSS_COMPILER_DLLEXPORT Matrix
   {
-    static const int MIN = M<N?M:N;
+    static const int MIN = M < N ? M : N;
 
     template<typename U>
-    inline Matrix(const Matrix<U, M, N>& copy) { T* p = v; U* cp = copy.v; for(int i = 0; i < M*N; ++i) p[i]=(T)cp[i]; }
-    inline Matrix(const std::initializer_list<T>& l) { assert(l.size()==(M*N)); T* p = (T*)v; int k = 0; for(const T* i = l.begin(); i != l.end() && k < M*N; ++i) p[k++] = *i; }
+    inline Matrix(const Matrix<U, M, N>& copy) { T* p = v; U* cp = copy.v; for(int i = 0; i < M*N; ++i) p[i] = (T)cp[i]; }
+    inline Matrix(const std::initializer_list<T>& l) { assert(l.size() == (M*N)); T* p = (T*)v; int k = 0; for(const T* i = l.begin(); i != l.end() && k < M*N; ++i) p[k++] = *i; }
     inline explicit Matrix(const T(&m)[M][N]) { memcpy(v, m, sizeof(T)*M*N); }
-    inline Matrix() { }
+    inline Matrix() {}
     inline void Transpose(T(&out)[N][M]) const { Transpose(v, out); }
     inline void Transpose(Matrix& mat) const { Transpose(v, mat.v); }
     inline Matrix<T, M, N> Transpose() const { Matrix<T, M, N> m; Transpose(v, m.v); return m; }
 
     inline Matrix<T, M, N>& operator=(const Matrix<T, M, N>& r) { memcpy(v, r.v, sizeof(T)*M*N); return *this; }
-    template<typename U> inline Matrix<T, M, N>& operator=(const Matrix<U, M, N>& r) { T* p = v; U* cp = r.v; for(int i = 0; i < M*N; ++i) p[i]=(T)cp[i]; return *this; }
+    template<typename U> inline Matrix<T, M, N>& operator=(const Matrix<U, M, N>& r) { T* p = v; U* cp = r.v; for(int i = 0; i < M*N; ++i) p[i] = (T)cp[i]; return *this; }
 
     BSS_FORCEINLINE static void Diagonal(const Vector<T, MIN>& d, Matrix& mat) { Diagonal(d.v, mat.v); }
     BSS_FORCEINLINE static void Diagonal(const T(&d)[MIN], Matrix& mat) { Diagonal(d.v, mat.v); }
@@ -866,16 +874,16 @@ namespace bss_util {
   struct BSS_COMPILER_DLLEXPORT Matrix<T, 2, 2>
   {
     template<typename U>
-    inline Matrix(const Matrix<U, 2, 2>& copy) : a((T)copy.a), b((T)copy.b), c((T)copy.c), d((T)copy.d) { }
-    inline Matrix(const std::initializer_list<T>& l) { assert(l.size()==(2*2)); T* p = (T*)v; int k = 0; for(const T* i = l.begin(); i != l.end() && k < 2*2; ++i) p[k++] = *i; }
-    inline explicit Matrix(const T(&m)[2][2]) : a(m[0][0]), b(m[0][1]), c(m[1][0]), d(m[1][1]) { }
-    inline Matrix() { }
+    inline Matrix(const Matrix<U, 2, 2>& copy) : a((T)copy.a), b((T)copy.b), c((T)copy.c), d((T)copy.d) {}
+    inline Matrix(const std::initializer_list<T>& l) { assert(l.size() == (2 * 2)); T* p = (T*)v; int k = 0; for(const T* i = l.begin(); i != l.end() && k < 2 * 2; ++i) p[k++] = *i; }
+    inline explicit Matrix(const T(&m)[2][2]) : a(m[0][0]), b(m[0][1]), c(m[1][0]), d(m[1][1]) {}
+    inline Matrix() {}
     inline void Transpose(Matrix& mat) const { Transpose(mat.v); }
     inline void Transpose(T(&out)[2][2]) const { SetSubMatrix<T, 2, 2, true>::M2x2(out, a, b, c, d); }
     inline Matrix Transpose() const { Matrix m; Transpose(v, m.v); return m; }
     inline T Determinant() const { return MatrixDeterminant<T, 2>(v); }
     inline void Inverse(Matrix& mat) const { Inverse(mat.v); }
-    inline void Inverse(T(&out)[2][2]) const { T invd = ((T)1)/Determinant(); SetSubMatrix<T, 2, 2>::M2x2(out, d*invd, -b*invd, -c*invd, a*invd); }
+    inline void Inverse(T(&out)[2][2]) const { T invd = ((T)1) / Determinant(); SetSubMatrix<T, 2, 2>::M2x2(out, d*invd, -b*invd, -c*invd, a*invd); }
     inline Matrix Inverse() const { Matrix m; Inverse(m.v); return m; }
 
     inline Matrix<T, 2, 2>& operator=(const Matrix<T, 2, 2>& r) { a = r.a; b = r.b; c = r.c; d = r.d; return *this; }
@@ -909,10 +917,10 @@ namespace bss_util {
   struct BSS_COMPILER_DLLEXPORT Matrix<T, 3, 3>
   {
     template<typename U>
-    inline Matrix(const Matrix<U, 3, 3>& copy) : a((T)copy.a), b((T)copy.b), c((T)copy.c), d((T)copy.d), e((T)copy.e), f((T)copy.f), g((T)copy.g), h((T)copy.h), i((T)copy.i) { }
-    inline Matrix(const std::initializer_list<T>& l) { assert(l.size()==(3*3)); T* p = (T*)v; int k = 0; for(const T* j = l.begin(); j != l.end() && k < 3*3; ++j) p[k++] = *j; }
-    inline explicit Matrix(const T(&m)[3][3]) : a(m[0][0]), b(m[0][1]), c(m[0][2]), d(m[1][0]), e(m[1][1]), f(m[1][2]), g(m[2][0]), h(m[2][1]), i(m[2][2]) { }
-    inline Matrix() { }
+    inline Matrix(const Matrix<U, 3, 3>& copy) : a((T)copy.a), b((T)copy.b), c((T)copy.c), d((T)copy.d), e((T)copy.e), f((T)copy.f), g((T)copy.g), h((T)copy.h), i((T)copy.i) {}
+    inline Matrix(const std::initializer_list<T>& l) { assert(l.size() == (3 * 3)); T* p = (T*)v; int k = 0; for(const T* j = l.begin(); j != l.end() && k < 3 * 3; ++j) p[k++] = *j; }
+    inline explicit Matrix(const T(&m)[3][3]) : a(m[0][0]), b(m[0][1]), c(m[0][2]), d(m[1][0]), e(m[1][1]), f(m[1][2]), g(m[2][0]), h(m[2][1]), i(m[2][2]) {}
+    inline Matrix() {}
     inline void Transpose(Matrix& mat) const { Transpose(mat.v); }
     inline void Transpose(T(&out)[3][3]) const { SetSubMatrix<T, 3, 3, true>::M3x3(out, a, b, c, d, e, f, g, h, i); }
     inline Matrix Transpose() const { Matrix m; Transpose(v, m.v); return m; }
@@ -920,7 +928,7 @@ namespace bss_util {
     inline void Inverse(Matrix& mat) const { Inverse(mat.v); }
     inline void Inverse(T(&out)[3][3]) const
     {
-      T invd = ((T)1)/Determinant();
+      T invd = ((T)1) / Determinant();
       SetSubMatrix<T, 3, 3>::M3x3(out,
         invd*(e*i - f*h), invd*(c*h - b*i), invd*(b*f - c*e),
         invd*(f*g - d*i), invd*(a*i - c*g), invd*(c*d - a*f),
@@ -990,10 +998,10 @@ namespace bss_util {
   struct BSS_COMPILER_DLLEXPORT Matrix<T, 4, 4>
   {
     template<typename U>
-    inline Matrix(const Matrix<U, 4, 4>& copy) : a((T)copy.a), b((T)copy.b), c((T)copy.c), d((T)copy.d), e((T)copy.e), f((T)copy.f), g((T)copy.g), h((T)copy.h), i((T)copy.i), j((T)copy.j), k((T)copy.k), l((T)copy.l), m((T)copy.m), n((T)copy.n), o((T)copy.o), p((T)copy.p) { }
-    inline Matrix(const std::initializer_list<T>& l) { assert(l.size()==(4*4)); T* p = (T*)v; int k = 0; for(const T* u = l.begin(); u != l.end() && k < 4*4; ++u) p[k++] = *u; }
-    inline explicit Matrix(const T(&m)[4][4]) { memcpy(v, m, sizeof(T)*4*4); }
-    inline Matrix() { }
+    inline Matrix(const Matrix<U, 4, 4>& copy) : a((T)copy.a), b((T)copy.b), c((T)copy.c), d((T)copy.d), e((T)copy.e), f((T)copy.f), g((T)copy.g), h((T)copy.h), i((T)copy.i), j((T)copy.j), k((T)copy.k), l((T)copy.l), m((T)copy.m), n((T)copy.n), o((T)copy.o), p((T)copy.p) {}
+    inline Matrix(const std::initializer_list<T>& l) { assert(l.size() == (4 * 4)); T* p = (T*)v; int k = 0; for(const T* u = l.begin(); u != l.end() && k < 4 * 4; ++u) p[k++] = *u; }
+    inline explicit Matrix(const T(&m)[4][4]) { memcpy(v, m, sizeof(T) * 4 * 4); }
+    inline Matrix() {}
     inline void Transpose(Matrix& mat) const { Transpose(mat.v); }
     inline void Transpose(T(&out)[4][4]) const { SetSubMatrix<T, 4, 4, true>::M4x4(out, a, b, c, d, e, f, g, h, i, j, k, l, m, n, o, p); }
     inline Matrix Transpose() const { Matrix m; Transpose(v, m.v); return m; }
@@ -1051,7 +1059,8 @@ namespace bss_util {
     static BSS_FORCEINLINE void Identity(T(&m)[4][4]) { Diagonal(1, 1, 1, 1, m); }
     static BSS_FORCEINLINE Matrix Identity() { Matrix m; Identity(m); return m; }
 
-    BSS_ALIGNED_UNION(16) {
+    BSS_ALIGNED_UNION(16)
+    {
       T v[4][4];
       struct { T a, b, c, d, e, f, g, h, i, j, k, l, m, n, o, p; };
     };
@@ -1066,11 +1075,13 @@ namespace bss_util {
   template<typename T, int N> inline Vector<T, N> operator *(const Vector<T, N>& l, const T scalar) { Vector<T, N> n(l); n *= scalar; return n; }
   template<typename T, int N> inline Vector<T, N> operator /(const Vector<T, N>& l, const T scalar) { Vector<T, N> n(l); n /= scalar; return n; }
   template<typename T, int N> inline Vector<T, N> operator +(const T scalar, const Vector<T, N>& r) { Vector<T, N> n(r); n += scalar; return n; }
-  template<typename T, int N> inline Vector<T, N> operator -(const T scalar, const Vector<T, N>& r) {
+  template<typename T, int N> inline Vector<T, N> operator -(const T scalar, const Vector<T, N>& r)
+  {
     Vector<T, N> ret(r); for(int i = 0; i < N; ++i) ret.v[i] = scalar - r.v[i]; return ret;
   }
   template<typename T, int N> inline Vector<T, N> operator *(const T scalar, const Vector<T, N>& r) { Vector<T, N> n(r); n *= scalar; return n; }
-  template<typename T, int N> inline Vector<T, N> operator /(const T scalar, const Vector<T, N>& r) {
+  template<typename T, int N> inline Vector<T, N> operator /(const T scalar, const Vector<T, N>& r)
+  {
     Vector<T, N> ret(r); for(int i = 0; i < N; ++i) ret.v[i] = scalar / r.v[i]; return ret;
   }
 
@@ -1089,8 +1100,8 @@ namespace bss_util {
   template<typename T, int N> inline bool operator ==(const Vector<T, N>& l, const Vector<T, N>& r) { bool ret = true; for(int i = 0; i < N; ++i) ret = ret && (l.v[i] == r.v[i]); return ret; }
   template<typename T, int N> inline bool operator !=(const Vector<T, N>& l, const T scalar) { bool ret = false; for(int i = 0; i < N; ++i) ret = ret || (l.v[i] != scalar); return ret; }
   template<typename T, int N> inline bool operator ==(const Vector<T, N>& l, const T scalar) { bool ret = true; for(int i = 0; i < N; ++i) ret = ret && (l.v[i] == scalar); return ret; }
-  template<typename T, int N> inline bool operator >(const Vector<T, N>& l, const Vector<T, N>& r) { char c = 0; for(int i = 0; i < N && !c; ++i) c = SGNCOMPARE(l.v[i], r.v[i]); return c>0; }
-  template<typename T, int N> inline bool operator <(const Vector<T, N>& l, const Vector<T, N>& r) { char c = 0; for(int i = 0; i < N && !c; ++i) c = SGNCOMPARE(l.v[i], r.v[i]); return c<0; }
+  template<typename T, int N> inline bool operator >(const Vector<T, N>& l, const Vector<T, N>& r) { char c = 0; for(int i = 0; i < N && !c; ++i) c = SGNCOMPARE(l.v[i], r.v[i]); return c > 0; }
+  template<typename T, int N> inline bool operator <(const Vector<T, N>& l, const Vector<T, N>& r) { char c = 0; for(int i = 0; i < N && !c; ++i) c = SGNCOMPARE(l.v[i], r.v[i]); return c < 0; }
   template<typename T, int N> inline bool operator >=(const Vector<T, N>& l, const Vector<T, N>& r) { return !operator<(l, r); }
   template<typename T, int N> inline bool operator <=(const Vector<T, N>& l, const Vector<T, N>& r) { return !operator>(l, r); }
   template<typename T, int N> inline bool operator >(const Vector<T, N>& l, const T scalar) { bool ret = true; for(int i = 0; i < N; ++i) ret = ret && (l.v[i] > scalar); return ret; }
@@ -1108,7 +1119,8 @@ namespace bss_util {
   template<typename T, int M, int N> inline Matrix<T, M, N> operator *(const Matrix<T, M, N>& l, const T scalar) { Matrix<T, M, N> n(l); n *= scalar; return n; }
   template<typename T, int M, int N> inline Matrix<T, M, N> operator /(const Matrix<T, M, N>& l, const T scalar) { Matrix<T, M, N> n(l); n /= scalar; return n; }
   template<typename T, int M, int N> inline Matrix<T, M, N> operator +(const T scalar, const Matrix<T, M, N>& r) { Matrix<T, M, N> n(r); n += scalar; return n; }
-  template<typename T, int M, int N> inline Matrix<T, M, N> operator -(const T scalar, const Matrix<T, M, N>& r) {
+  template<typename T, int M, int N> inline Matrix<T, M, N> operator -(const T scalar, const Matrix<T, M, N>& r)
+  {
     Matrix<T, M, N> x;
     T* u = (T*)x.v;
     T* v = (T*)r.v;
@@ -1116,7 +1128,8 @@ namespace bss_util {
     return x;
   }
   template<typename T, int M, int N> inline Matrix<T, M, N> operator *(const T scalar, const Matrix<T, M, N>& r) { Matrix<T, M, N> n(r); n *= scalar; return n; }
-  template<typename T, int M, int N> inline Matrix<T, M, N> operator /(const T scalar, const Matrix<T, M, N>& r) {
+  template<typename T, int M, int N> inline Matrix<T, M, N> operator /(const T scalar, const Matrix<T, M, N>& r)
+  {
     Matrix<T, M, N> x;
     T* u = (T*)x.v;
     T* v = (T*)r.v;
@@ -1175,14 +1188,14 @@ namespace bss_util {
     return l;
   }
 
-  template<> inline Vector<float, 4>& operator +=<float, float, 4>(Vector<float, 4>& l, const Vector<float, 4>& r) { (sseVec(l.v)+sseVec(r.v)) >> l.v; return l; }
-  template<> inline Vector<float, 4>& operator -=<float, float, 4>(Vector<float, 4>& l, const Vector<float, 4>& r) { (sseVec(l.v)-sseVec(r.v)) >> l.v; return l; }
+  template<> inline Vector<float, 4>& operator +=<float, float, 4>(Vector<float, 4>& l, const Vector<float, 4>& r) { (sseVec(l.v) + sseVec(r.v)) >> l.v; return l; }
+  template<> inline Vector<float, 4>& operator -=<float, float, 4>(Vector<float, 4>& l, const Vector<float, 4>& r) { (sseVec(l.v) - sseVec(r.v)) >> l.v; return l; }
   template<> inline Vector<float, 4>& operator *=<float, float, 4>(Vector<float, 4>& l, const Vector<float, 4>& r) { (sseVec(l.v)*sseVec(r.v)) >> l.v; return l; }
-  template<> inline Vector<float, 4>& operator /=<float, float, 4>(Vector<float, 4>& l, const Vector<float, 4>& r) { (sseVec(l.v)/sseVec(r.v)) >> l.v; return l; }
-  template<> inline Vector<float, 4>& operator +=<float, 4>(Vector<float, 4>& l, const float r) { (sseVec(l.v)+sseVec(r, r, r, r)) >> l.v; return l; }
-  template<> inline Vector<float, 4>& operator -=<float, 4>(Vector<float, 4>& l, const float r) { (sseVec(l.v)-sseVec(r, r, r, r)) >> l.v; return l; }
+  template<> inline Vector<float, 4>& operator /=<float, float, 4>(Vector<float, 4>& l, const Vector<float, 4>& r) { (sseVec(l.v) / sseVec(r.v)) >> l.v; return l; }
+  template<> inline Vector<float, 4>& operator +=<float, 4>(Vector<float, 4>& l, const float r) { (sseVec(l.v) + sseVec(r, r, r, r)) >> l.v; return l; }
+  template<> inline Vector<float, 4>& operator -=<float, 4>(Vector<float, 4>& l, const float r) { (sseVec(l.v) - sseVec(r, r, r, r)) >> l.v; return l; }
   template<> inline Vector<float, 4>& operator *=<float, 4>(Vector<float, 4>& l, const float r) { (sseVec(l.v)*sseVec(r, r, r, r)) >> l.v; return l; }
-  template<> inline Vector<float, 4>& operator /=<float, 4>(Vector<float, 4>& l, const float r) { (sseVec(l.v)/sseVec(r, r, r, r)) >> l.v; return l; }
+  template<> inline Vector<float, 4>& operator /=<float, 4>(Vector<float, 4>& l, const float r) { (sseVec(l.v) / sseVec(r, r, r, r)) >> l.v; return l; }
 
 }
 

@@ -24,10 +24,10 @@ namespace bss_util {
 #endif
     cBlockAllocVoid& operator=(const cBlockAllocVoid& copy) BSS_DELETEFUNCOP
   public:
-    inline cBlockAllocVoid(cBlockAllocVoid&& mov) : _root(mov._root), _freelist(mov._freelist), _sz(mov._sz) { mov._root=0; mov._freelist=0; }
-    inline explicit cBlockAllocVoid(size_t sz, size_t init=8) : _root(0), _freelist(0), _sz(sz)
+    inline cBlockAllocVoid(cBlockAllocVoid&& mov) : _root(mov._root), _freelist(mov._freelist), _sz(mov._sz) { mov._root = 0; mov._freelist = 0; }
+    inline explicit cBlockAllocVoid(size_t sz, size_t init = 8) : _root(0), _freelist(0), _sz(sz)
     {
-      assert(sz>=sizeof(void*));
+      assert(sz >= sizeof(void*));
       _allocchunk(init*_sz);
     }
     inline ~cBlockAllocVoid()
@@ -42,7 +42,7 @@ namespace bss_util {
     }
     inline void* alloc(size_t num) noexcept
     {
-      assert(num==1);
+      assert(num == 1);
 #ifdef BSS_DISABLE_CUSTOM_ALLOCATORS
       return malloc(num*_sz);
 #endif
@@ -54,8 +54,8 @@ namespace bss_util {
           return nullptr;
       }
 
-      void* ret=_freelist;
-      _freelist=*((void**)_freelist);
+      void* ret = _freelist;
+      _freelist = *((void**)_freelist);
       assert(_validpointer(ret));
       return ret;
     }
@@ -68,20 +68,20 @@ namespace bss_util {
 #ifdef BSS_DEBUG
       memset(p, 0xfd, _sz);
 #endif
-      *((void**)p)=_freelist;
-      _freelist=p;
+      *((void**)p) = _freelist;
+      _freelist = p;
     }
     void Clear()
     {
-      size_t nsize=0;
-      FIXEDLIST_NODE* hold=_root;
-      while((_root=hold)!=0)
+      size_t nsize = 0;
+      FIXEDLIST_NODE* hold = _root;
+      while((_root = hold) != 0)
       {
-        nsize+=hold->size;
-        hold=_root->next;
+        nsize += hold->size;
+        hold = _root->next;
         free(_root);
       }
-      _freelist=0; // There's this funny story about a time where I forgot to put this in here and then wondered why everything blew up.
+      _freelist = 0; // There's this funny story about a time where I forgot to put this in here and then wondered why everything blew up.
       _allocchunk(nsize); // Note that nsize is in bytes
     }
 
@@ -89,36 +89,36 @@ namespace bss_util {
 #ifdef BSS_DEBUG
     bool _validpointer(const void* p) const
     {
-      const FIXEDLIST_NODE* hold=_root;
+      const FIXEDLIST_NODE* hold = _root;
       while(hold)
       {
-        if(p>=(hold+1) && p<(((uint8_t*)(hold+1))+hold->size))
-          return ((((uint8_t*)p)-((uint8_t*)(hold+1)))%_sz)==0; //the pointer should be an exact multiple of _sz
+        if(p >= (hold + 1) && p < (((uint8_t*)(hold + 1)) + hold->size))
+          return ((((uint8_t*)p) - ((uint8_t*)(hold + 1))) % _sz) == 0; //the pointer should be an exact multiple of _sz
 
-        hold=hold->next;
+        hold = hold->next;
       }
       return false;
     }
 #endif
     inline void _allocchunk(size_t nsize) noexcept
     {
-      FIXEDLIST_NODE* retval=reinterpret_cast<FIXEDLIST_NODE*>(malloc(sizeof(FIXEDLIST_NODE)+nsize));
+      FIXEDLIST_NODE* retval = reinterpret_cast<FIXEDLIST_NODE*>(malloc(sizeof(FIXEDLIST_NODE) + nsize));
       if(!retval) return;
-      retval->next=_root;
-      retval->size=nsize;
+      retval->next = _root;
+      retval->size = nsize;
       //#pragma message(TODO "DEBUG REMOVE")
       //memset(retval->mem,0xff,retval->size);
       _initchunk(retval);
-      _root=retval;
+      _root = retval;
     }
 
     BSS_FORCEINLINE void _initchunk(const FIXEDLIST_NODE* chunk) noexcept
     {
-      uint8_t* memend=((uint8_t*)(chunk+1))+chunk->size;
-      for(uint8_t* memref=(((uint8_t*)(chunk+1))); memref<memend; memref+=_sz)
+      uint8_t* memend = ((uint8_t*)(chunk + 1)) + chunk->size;
+      for(uint8_t* memref = (((uint8_t*)(chunk + 1))); memref < memend; memref += _sz)
       {
-        *((void**)(memref))=_freelist;
-        _freelist=memref;
+        *((void**)(memref)) = _freelist;
+        _freelist = memref;
       }
     }
 
@@ -134,7 +134,7 @@ namespace bss_util {
       cBlockAlloc& operator=(const cBlockAlloc& copy) BSS_DELETEFUNCOP
   public:
     inline cBlockAlloc(cBlockAlloc&& mov) : cBlockAllocVoid(std::move(mov)) {}
-    inline explicit cBlockAlloc(size_t init=8) : cBlockAllocVoid(sizeof(T), init) { static_assert((sizeof(T)>=sizeof(void*)), "T cannot be less than the size of a pointer"); }
+    inline explicit cBlockAlloc(size_t init = 8) : cBlockAllocVoid(sizeof(T), init) { static_assert((sizeof(T) >= sizeof(void*)), "T cannot be less than the size of a pointer"); }
     inline T* alloc(size_t num) noexcept { return (T*)cBlockAllocVoid::alloc(num); }
   };
 

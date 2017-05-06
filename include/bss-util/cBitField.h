@@ -8,13 +8,12 @@
 #include <utility>
 #include <stdint.h>
 
-namespace bss_util
-{
+namespace bss_util {
   template<typename T>
   struct BSS_COMPILER_DLLEXPORT _cBIT_REF
   {
     inline _cBIT_REF(T bit, T& bits) : _bit(bit), _bits(bits) {}
-    inline _cBIT_REF& operator=(bool right) { _bits=T_SETBIT(_bits,_bit,right,typename std::make_signed<T>::type); return *this; }
+    inline _cBIT_REF& operator=(bool right) { _bits = T_SETBIT(_bits, _bit, right, typename std::make_signed<T>::type); return *this; }
     BSS_FORCEINLINE _cBIT_REF& operator=(const _cBIT_REF& right) { return operator=((bool)right); }
     BSS_FORCEINLINE operator bool() const { return (_bits&_bit) != 0; }
     inline void flip() { _bits ^= _bit; }
@@ -34,25 +33,25 @@ namespace bss_util
   };
 
   // Generic implementation of using an integral type's component bits to store flags.
-  template<typename T=uint32_t>
+  template<typename T = uint32_t>
   class BSS_COMPILER_DLLEXPORT cBitField
   {
   public:
     // Initializes the bitfield with the given flag values, if any
-    inline explicit cBitField(T init=0) : _bits(init) {}
+    inline explicit cBitField(T init = 0) : _bits(init) {}
     // Sets the entire bitfield to the given value
-    BSS_FORCEINLINE void Set(T bits) { _bits=bits; }
-    BSS_FORCEINLINE void Set(T bits, T mask) { _bits^=(bits^(_bits&mask)); }
+    BSS_FORCEINLINE void Set(T bits) { _bits = bits; }
+    BSS_FORCEINLINE void Set(T bits, T mask) { _bits ^= (bits ^ (_bits&mask)); }
     // Gets the entire bitfield
     BSS_FORCEINLINE T Get() const { return _bits; }
-    BSS_FORCEINLINE bool Get(T bit) const { return (_bits&bit)!=0; }
+    BSS_FORCEINLINE bool Get(T bit) const { return (_bits&bit) != 0; }
 
-    inline cBitField& operator=(T right) { _bits=right; return *this; }
+    inline cBitField& operator=(T right) { _bits = right; return *this; }
     BSS_FORCEINLINE bool operator[](T bit) const { return Get(bit); }
-    BSS_FORCEINLINE _cBIT_REF<T> operator[](T bit) { return _cBIT_REF<T>(bit,_bits); }
+    BSS_FORCEINLINE _cBIT_REF<T> operator[](T bit) { return _cBIT_REF<T>(bit, _bits); }
     inline operator T() const { return _bits; }
-    inline cBitField& operator+=(T bit) { _bits|=bit; return *this; }
-    inline cBitField& operator-=(T bit) { _bits&=(~bit); return *this; }
+    inline cBitField& operator+=(T bit) { _bits |= bit; return *this; }
+    inline cBitField& operator-=(T bit) { _bits &= (~bit); return *this; }
 
   protected:
     T _bits;

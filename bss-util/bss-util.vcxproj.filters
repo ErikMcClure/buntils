@@ -87,12 +87,6 @@
     <ClInclude Include="..\include\bss-util\cSingleton.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="..\include\bss-util\cStr.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="..\include\bss-util\cStrTable.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
     <ClInclude Include="..\include\bss-util\INIparse.h">
       <Filter>Header Files</Filter>
     </ClInclude>
@@ -117,9 +111,6 @@
     <ClInclude Include="..\include\bss-util\cLocklessQueue.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="..\include\bss-util\cTRBtree.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
     <ClInclude Include="..\include\bss-util\delegate.h">
       <Filter>Header Files</Filter>
     </ClInclude>
@@ -138,12 +129,6 @@
     <ClInclude Include="..\include\bss-util\cKDTree.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="..\include\bss-util\cTrie.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="..\include\bss-util\cSmartPtr.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
     <ClInclude Include="..\include\bss-util\bss_graph.h">
       <Filter>Header Files</Filter>
     </ClInclude>
@@ -151,12 +136,6 @@
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="..\include\bss-util\cIDHash.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="..\include\bss-util\cThread.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="..\include\bss-util\cThreadPool.h">
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="..\include\bss-util\bss_queue.h">
@@ -198,13 +177,7 @@
     <ClInclude Include="..\include\bss-util\bss_alloc_block_MT.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="..\include\bss-util\cXML.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
     <ClInclude Include="..\include\bss-util\cJSON.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="..\include\bss-util\cUBJSON.h">
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="..\include\bss-util\variant.h">
@@ -225,13 +198,40 @@
     <ClInclude Include="..\include\bss-util\FixedPt.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="..\include\bss-util\cTOML.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
     <ClInclude Include="..\include\bss-util\rwlock.h">
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="..\include\bss-util\cCompactArray.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="..\include\bss-util\XML.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="..\include\bss-util\UBJSON.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="..\include\bss-util\Trie.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="..\include\bss-util\TRBtree.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="..\include\bss-util\TOML.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="..\include\bss-util\ThreadPool.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="..\include\bss-util\Thread.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="..\include\bss-util\StrTable.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="..\include\bss-util\SmartPtr.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="..\include\bss-util\Str.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>

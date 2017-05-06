@@ -13,16 +13,16 @@ using namespace std;
 const char* cLog::DEFAULTFORMAT = "{4} [{0}] ({1}:{2}) {3}";
 const char* cLog::DEFAULTNULLFORMAT = "{4} ({1}:{2}) {3}";
 
-cLog::cLog(cLog&& mov) : _levels(std::move(mov._levels)), _split(mov._split), _tz(GetTimeZoneMinutes()), _files(std::move(mov._files)), 
+cLog::cLog(cLog&& mov) : _levels(std::move(mov._levels)), _split(mov._split), _tz(GetTimeZoneMinutes()), _files(std::move(mov._files)),
   _backup(std::move(mov._backup)), _stream(_split), _maxlevel(mov._maxlevel), _format(mov._format), _nullformat(mov._nullformat)
 {
-  mov._split=0;
+  mov._split = 0;
 }
 cLog::cLog(std::ostream* log) : _levels(6), _split(new StreamSplitter()), _tz(GetTimeZoneMinutes()), _stream(_split), _maxlevel(127),
   _format(DEFAULTFORMAT), _nullformat(DEFAULTNULLFORMAT)
 {
   _leveldefaults();
-  if(log!=0)
+  if(log != 0)
     AddTarget(*log);
 }
 cLog::cLog(const char* logfile, std::ostream* log) : _levels(6), _split(new StreamSplitter()), _tz(GetTimeZoneMinutes()), _stream(_split),
@@ -30,7 +30,7 @@ cLog::cLog(const char* logfile, std::ostream* log) : _levels(6), _split(new Stre
 {
   _leveldefaults();
   AddTarget(logfile);
-  if(log!=0)
+  if(log != 0)
     AddTarget(*log);
 }
 #ifdef BSS_PLATFORM_WIN32
@@ -39,7 +39,7 @@ cLog::cLog(const wchar_t* logfile, std::ostream* log) : _levels(6), _split(new S
 {
   _leveldefaults();
   AddTarget(logfile);
-  if(log!=0)
+  if(log != 0)
     AddTarget(*log);
 }
 #endif
@@ -48,25 +48,25 @@ cLog::~cLog()
   ClearTargets();
   for(size_t i = 0; i < _backup.size(); ++i) //restore stream buffer backups so we don't blow up someone else's stream when destroying ourselves
     _backup[i].first.rdbuf(_backup[i].second);
-  if(_split!=0) delete _split;
+  if(_split != 0) delete _split;
 }
 void cLog::Assimilate(std::ostream& stream)
 {
-  _backup.push_back(std::pair<std::ostream&, std::streambuf*>(stream,stream.rdbuf()));
-  if(_split!=0) stream.rdbuf(_split);
+  _backup.push_back(std::pair<std::ostream&, std::streambuf*>(stream, stream.rdbuf()));
+  if(_split != 0) stream.rdbuf(_split);
 }
 void cLog::AddTarget(std::ostream& stream)
 {
-  if(_split!=0) _split->AddTarget(&stream);
+  if(_split != 0) _split->AddTarget(&stream);
 }
 void cLog::AddTarget(const char* file)
 {
   if(!file) return;
 #ifdef BSS_COMPILER_GCC 
-  _files.push_back(std::unique_ptr<std::ofstream>(new ofstream(BSSPOSIX_WCHAR(file),ios_base::out|ios_base::trunc)));
+  _files.push_back(std::unique_ptr<std::ofstream>(new ofstream(BSSPOSIX_WCHAR(file), ios_base::out | ios_base::trunc)));
   AddTarget(*_files.back());
 #else
-  _files.push_back(ofstream(BSSPOSIX_WCHAR(file),ios_base::out|ios_base::trunc));
+  _files.push_back(ofstream(BSSPOSIX_WCHAR(file), ios_base::out | ios_base::trunc));
   AddTarget(_files.back());
 #endif
 }
@@ -74,14 +74,14 @@ void cLog::AddTarget(const char* file)
 void cLog::AddTarget(const wchar_t* file)
 {
   if(!file) return;
-  _files.push_back(ofstream(file,ios_base::out|ios_base::trunc));
+  _files.push_back(ofstream(file, ios_base::out | ios_base::trunc));
   AddTarget(_files.back());
 }
 #endif
 
 void cLog::ClearTargets()
 {
-  if(_split!=0) _split->ClearTargets();
+  if(_split != 0) _split->ClearTargets();
   for(size_t i = 0; i < _files.size(); ++i)
 #ifdef BSS_COMPILER_GCC 
     _files[i]->close();
@@ -103,9 +103,9 @@ void cLog::SetNullFormat(const char* format)
 
 void cLog::SetLevel(uint8_t level, const char* str)
 {
-  if(_levels.Capacity()>=level)
-    _levels.SetCapacity(level+1);
-  _levels[level]=str;
+  if(_levels.Capacity() >= level)
+    _levels.SetCapacity(level + 1);
+  _levels[level] = str;
 }
 void cLog::SetMaxLevel(uint8_t level)
 {
@@ -117,22 +117,22 @@ bool cLog::_writedatetime(long timez, std::ostream& log, bool timeonly)
   time_t rawtime;
   TIME64(&rawtime);
   tm stm;
-  tm* ptm=&stm;
-  if(GMTIMEFUNC(&rawtime, ptm)!=0)
+  tm* ptm = &stm;
+  if(GMTIMEFUNC(&rawtime, ptm) != 0)
     return false;
 
-  long m=ptm->tm_hour*60 + ptm->tm_min + 1440 + timez; //+1440 ensures this is never negative because % does not properly respond to negative numbers.
-  long h=((m/60)%24);
-  m%=60;
+  long m = ptm->tm_hour * 60 + ptm->tm_min + 1440 + timez; //+1440 ensures this is never negative because % does not properly respond to negative numbers.
+  long h = ((m / 60) % 24);
+  m %= 60;
 
   char logchar = log.fill();
   std::streamsize logwidth = log.width();
   log.fill('0');
   //Write date if we need to
-  if(!timeonly) log << std::setw(4) << ptm->tm_year+1900 << std::setw(1) << '-' << std::setw(2) << ptm->tm_mon+1 << std::setw(1) << '-' << std::setw(2) << ptm->tm_mday << std::setw(1) << ' ';
+  if(!timeonly) log << std::setw(4) << ptm->tm_year + 1900 << std::setw(1) << '-' << std::setw(2) << ptm->tm_mon + 1 << std::setw(1) << '-' << std::setw(2) << ptm->tm_mday << std::setw(1) << ' ';
   //Write time and flush stream
   log << std::setw(1) << h << std::setw(0) << ':' << std::setw(2) << m << std::setw(0) << ':' << std::setw(2) << ptm->tm_sec;
-  
+
   //Reset values of stream
   log.width(logwidth);
   log.fill(logchar);
@@ -141,20 +141,20 @@ bool cLog::_writedatetime(long timez, std::ostream& log, bool timeonly)
 }
 cLog& cLog::operator=(cLog&& right)
 {
-  _tz=GetTimeZoneMinutes();
-  _files=std::move(right._files);
-  _backup=std::move(right._backup);
-  _split=right._split;
-  right._split=0;
+  _tz = GetTimeZoneMinutes();
+  _files = std::move(right._files);
+  _backup = std::move(right._backup);
+  _split = right._split;
+  right._split = 0;
   _stream.rdbuf(_split);
   return *this;
 }
 const char* cLog::_trimpath(const char* path)
 {
-	const char* r=strrchr(path,'/');
-	const char* r2=strrchr(path,'\\');
-  r=bssmax(r,r2);
-  return (!r)?path:(r+1);
+  const char* r = strrchr(path, '/');
+  const char* r2 = strrchr(path, '\\');
+  r = bssmax(r, r2);
+  return (!r) ? path : (r + 1);
 }
 void cLog::_leveldefaults()
 {

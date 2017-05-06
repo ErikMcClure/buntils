@@ -50,7 +50,7 @@ namespace bss_util {
         else // if we haven't even created the state it obviously isn't finished
           finish = false;
       }
-      return finish || (_length > 0 && _time >= _length);    
+      return finish || (_length > 0 && _time >= _length);
     }
 
     virtual void Reset()
@@ -79,7 +79,7 @@ namespace bss_util {
     }
 
     void AddAni(ANI* ani, double delay)
-    { 
+    {
       assert(ani != 0);
       AniRef ref = { ani, delay, 0 };
       _anistates.Add(ref);

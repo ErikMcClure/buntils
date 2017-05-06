@@ -25,14 +25,14 @@ namespace bss_util {
 #ifdef BSS_DEBUG
       _debuglock.clear(std::memory_order_release);
 #endif
-    } 
-    inline ~RWLock() { }
+    }
+    inline ~RWLock() {}
 
     // Acquire write lock
     BSS_FORCEINLINE void Lock() noexcept
     {
       //assert(debugemplace());
-      
+
       while(asmbts<size_t>((size_t*)&l, WBIT)); // While the returned value includes the flag bit, another writer is performing an operation
       while((l.load(std::memory_order_relaxed)&WMASK) > 0); // Wait for any remaining readers to flush
     }
@@ -58,7 +58,7 @@ namespace bss_util {
 
     // Release write lock
     BSS_FORCEINLINE void Unlock() noexcept
-    { 
+    {
       //assert(debugerase() == 1);
       assert(l.load(std::memory_order_relaxed)&WFLAG);
       l.fetch_and(WMASK, std::memory_order_release);
@@ -87,7 +87,7 @@ namespace bss_util {
       return true;
     }
     BSS_FORCEINLINE size_t RUnlock() noexcept
-    { 
+    {
       //assert(debugerase() == 1);
       assert((l.load(std::memory_order_relaxed)&WMASK) > 0);
       return l.fetch_sub(ONE_READER, std::memory_order_release);

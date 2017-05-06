@@ -14,7 +14,7 @@ namespace bss_util {
   struct MFUNC_DEFAULT { BSS_FORCEINLINE static void MFunc(const T&, CT_, MFUNC_DEFAULT*) {} };
 
   // This is a binary max-heap implemented using an array. Use CompTInv to change it into a min-heap, or to make it use pairs.
-  template<class T, typename CT_=uint32_t, char(*CFunc)(const T&, const T&)=CompT<T>, ARRAY_TYPE ArrayType = CARRAY_SIMPLE, typename Alloc=StaticAllocPolicy<T>, class MFUNC = MFUNC_DEFAULT<T, CT_>>
+  template<class T, typename CT_ = uint32_t, char(*CFunc)(const T&, const T&) = CompT<T>, ARRAY_TYPE ArrayType = CARRAY_SIMPLE, typename Alloc = StaticAllocPolicy<T>, class MFUNC = MFUNC_DEFAULT<T, CT_>>
   class BSS_COMPILER_DLLEXPORT cBinaryHeap : protected cDynArray<T, CT_, ArrayType, Alloc>, protected MFUNC
   {
   protected:
@@ -27,19 +27,19 @@ namespace bss_util {
 #define CBH_RIGHT(i) ((i<<1)+2)
 
   public:
-    inline cBinaryHeap(const cBinaryHeap& copy) : AT_(copy) { }
-    inline cBinaryHeap(cBinaryHeap&& mov) : AT_(std::move(mov)) { }
+    inline cBinaryHeap(const cBinaryHeap& copy) : AT_(copy) {}
+    inline cBinaryHeap(cBinaryHeap&& mov) : AT_(std::move(mov)) {}
     inline cBinaryHeap() : AT_(0) {}
     inline cBinaryHeap(const T* src, CT_ length) : AT_(length) { _copy(_array, src, sizeof(T)*length); _length = length; Heapify(_array, _length); }
     template<CT_ SIZE>
     inline cBinaryHeap(const T(&src)[SIZE]) : AT_(SIZE) { _copy(_array, src, sizeof(T)*SIZE); _length = SIZE; Heapify(_array, _length); }
     inline ~cBinaryHeap() {}
     inline const T& Peek() { return _array[0]; }
-    inline const T& Get(CT_ index) { assert(index<_length); return _array[index]; }
-    inline T Pop() { T r=std::move(_array[0]); Remove(0); return std::move(r); }
+    inline const T& Get(CT_ index) { assert(index < _length); return _array[index]; }
+    inline T Pop() { T r = std::move(_array[0]); Remove(0); return std::move(r); }
     inline bool Empty() { return !_length; }
     inline CT_ Length() { return _length; }
-    inline void Clear() { _length=0; }
+    inline void Clear() { _length = 0; }
     // Inserts a value
     inline void Insert(const T& val) { _insert(val); }
     inline void Insert(T&& val) { _insert(std::move(val)); }
@@ -49,8 +49,8 @@ namespace bss_util {
     // To remove a node, we replace it with the last item in the heap and then percolate down
     inline bool Remove(CT_ index)
     {
-      if(index>=_length) return false; //We don't have to copy _array[_length - 1] because it stays valid during the percolation
-      if(_length>1) //We can't percolate down if there's nothing in the array! 
+      if(index >= _length) return false; //We don't have to copy _array[_length - 1] because it stays valid during the percolation
+      if(_length > 1) //We can't percolate down if there's nothing in the array! 
         PercolateDown(_array, _length - 1, index, _array[_length - 1], this);
       AT_::RemoveLast();
       return true;
@@ -60,53 +60,54 @@ namespace bss_util {
     template<typename U>
     static void PercolateUp(T* _array, CT_ _length, CT_ k, U && val, cBinaryHeap* p = 0)
     {
-      assert(k<_length);
+      assert(k < _length);
       uint32_t parent;
 
-      while(k > 0) {
+      while(k > 0)
+      {
         parent = CBH_PARENT(k);
         if(CFunc(_array[parent], val) > 0) break;
         _array[k] = std::move(_array[parent]);
         MFUNC::MFunc(_array[k], k, p);
         k = parent;
       }
-      _array[k]=std::forward<U>(val);
+      _array[k] = std::forward<U>(val);
       MFUNC::MFunc(_array[k], k, p);
     }
     // Percolate down a heap
     template<typename U>
     static void PercolateDown(T* _array, CT_ length, CT_ k, U && val, cBinaryHeap* p = 0)
     {
-      assert(k<length);
-      assert(k<(std::numeric_limits<CT_>::max()>>1));
+      assert(k < length);
+      assert(k < (std::numeric_limits<CT_>::max() >> 1));
       CT_ i;
 
       for(i = CBH_RIGHT(k); i < length; i = CBH_RIGHT(i))
       {
-        if(CFunc(_array[i-1], _array[i]) > 0) // CFunc (left,right) and return true if left > right
+        if(CFunc(_array[i - 1], _array[i]) > 0) // CFunc (left,right) and return true if left > right
           --i; //left is greater than right so pick that one
         if(CFunc(val, _array[i]) > 0)
           break;
-        _array[k]=std::move(_array[i]);
+        _array[k] = std::move(_array[i]);
         MFUNC::MFunc(_array[k], k, p);
-        k=i;
-        assert(k<(std::numeric_limits<CT_>::max()>>1));
+        k = i;
+        assert(k < (std::numeric_limits<CT_>::max() >> 1));
       }
-      if(i >= length && --i < length && CFunc(val, _array[i])<=0) //Check if left child is also invalid (can only happen at the very end of the array)
+      if(i >= length && --i < length && CFunc(val, _array[i]) <= 0) //Check if left child is also invalid (can only happen at the very end of the array)
       {
-        _array[k]=std::move(_array[i]);
+        _array[k] = std::move(_array[i]);
         MFUNC::MFunc(_array[k], k, p);
-        k=i;
+        k = i;
       }
-      _array[k]=std::forward<U>(val);
+      _array[k] = std::forward<U>(val);
       MFUNC::MFunc(_array[k], k, p);
     }
     operator T*() { return _array; }
     operator const T*() const { return _array; }
     inline const T* begin() const { return _array; }
-    inline const T* end() const { return _array+_length; }
+    inline const T* end() const { return _array + _length; }
     inline T* begin() { return _array; }
-    inline T* end() { return _array+_length; }
+    inline T* end() { return _array + _length; }
     inline cBinaryHeap& operator=(const cBinaryHeap& copy) { AT_::operator=(copy); return *this; }
     inline cBinaryHeap& operator=(cBinaryHeap&& mov) { AT_::operator=(std::move(mov)); return *this; }
 
@@ -115,9 +116,9 @@ namespace bss_util {
     inline static void Heapify(T* src, CT_ length)
     {
       T store;
-      for(CT_ i = length/2; i>0;)
+      for(CT_ i = length / 2; i > 0;)
       {
-        store=src[--i];
+        store = src[--i];
         PercolateDown(src, length, i, store);
       }
     }
@@ -127,10 +128,10 @@ namespace bss_util {
     {
       Heapify(src, length);
       T store;
-      while(length>1)
+      while(length > 1)
       {
-        store=src[--length];
-        src[length]=src[0];
+        store = src[--length];
+        src[length] = src[0];
         PercolateDown(src, length, 0, store);
       }
     }
@@ -149,7 +150,7 @@ namespace bss_util {
     template<typename U>
     inline bool _set(CT_ index, U && val)
     {
-      if(index>=_length) return false;
+      if(index >= _length) return false;
       if(CFunc(_array[index], val) <= 0) //in this case we percolate up
         PercolateUp(_array, _length, index, std::forward<U>(val), this);
       else

@@ -71,7 +71,7 @@ TESTDEF::RETPAIR test_bss_util_c()
   //uint64_t prof = cHighPrecisionTimer::OpenProfiler();
   //CPU_Barrier();
   //for(int i = 0; i < 1000000; ++i) {
-  //  a+= bssrandint(9,12);
+  //  a+= bssRandInt(9,12);
   //}
   //CPU_Barrier();
   //std::cout << cHighPrecisionTimer::CloseProfiler(prof) << " :( " << a << std::endl;
@@ -133,14 +133,14 @@ TESTDEF::RETPAIR test_bss_util_c()
   int outstr[1024];
   wchar_t wstr[1024];
   char instr[1024];
-  for(int i = 0; i < 1023; ++i) instr[i] = (char)bssrandint(0, 256);
+  for(int i = 0; i < 1023; ++i) instr[i] = (char)bssRandInt(0, 256);
   instr[1023] = 0;
 
   size_t len = UTF8toUTF32(instr, -1, 0, 0);
   TEST(len < 1024);
   TEST(UTF8toUTF32(instr, -1, outstr, len) <= len);
 
-  for(int i = 0; i < 255; ++i) outstr[i] = (int)bssrandint(0, 0xFFFFFFFF);
+  for(int i = 0; i < 255; ++i) outstr[i] = (int)bssRandInt(0, 0xFFFFFFFF);
   outstr[255] = 0;
 
   len = UTF32toUTF8(outstr, -1, 0, 0);

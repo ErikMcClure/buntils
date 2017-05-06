@@ -7,7 +7,7 @@
 #include "bss_compiler.h"
 #include <assert.h>
 
-namespace bss_util {  
+namespace bss_util {
   // A reference counter class that is entirely inline
   class BSS_COMPILER_DLLEXPORT cRefCounter
   {
@@ -15,7 +15,8 @@ namespace bss_util {
     // Increments and returns the reference counter
     BSS_FORCEINLINE int Grab() noexcept { return ++_refs; }
     // Decrements the reference counter and calls delete this; if it is equal to or less then 0
-    BSS_FORCEINLINE int Drop() {
+    BSS_FORCEINLINE int Drop()
+    {
       assert(_refs > 0);
       if(--_refs > 0)
         return _refs;
@@ -28,7 +29,7 @@ namespace bss_util {
     inline cRefCounter() { _refs = 0; }
     inline cRefCounter(const cRefCounter& copy) { _refs = 0; }
     // Destructor - Does nothing, but because it is virtual, ensures that all superclasses get destroyed as well
-    virtual ~cRefCounter() { }
+    virtual ~cRefCounter() {}
     // Destroys this object - made a seperate virtual function so it is overridable to ensure it is deleted in the proper DLL
     virtual void DestroyThis() { delete this; }
 

@@ -20,28 +20,28 @@ namespace bss_util {
   class BSS_COMPILER_DLLEXPORT cGreedyAlloc
   {
     cGreedyAlloc(const cGreedyAlloc& copy) BSS_DELETEFUNC
-    cGreedyAlloc& operator=(const cGreedyAlloc& copy) BSS_DELETEFUNCOP
+      cGreedyAlloc& operator=(const cGreedyAlloc& copy) BSS_DELETEFUNCOP
 
   public:
-    inline cGreedyAlloc(cGreedyAlloc&& mov) : _root(mov._root.load(std::memory_order_relaxed)), _curpos(mov._curpos.load(std::memory_order_relaxed)) { mov._root.store(nullptr, std::memory_order_relaxed); mov._curpos=0; }
-    inline explicit cGreedyAlloc(size_t init=64) : _root(0), _curpos(0)
+    inline cGreedyAlloc(cGreedyAlloc&& mov) : _root(mov._root.load(std::memory_order_relaxed)), _curpos(mov._curpos.load(std::memory_order_relaxed)) { mov._root.store(nullptr, std::memory_order_relaxed); mov._curpos = 0; }
+    inline explicit cGreedyAlloc(size_t init = 64) : _root(0), _curpos(0)
     {
       _allocchunk(init);
     }
     inline ~cGreedyAlloc()
     {
       _lock.Lock();
-      AFLISTITEM* hold=_root.load(std::memory_order_relaxed);
-      while((_root=hold))
+      AFLISTITEM* hold = _root.load(std::memory_order_relaxed);
+      while((_root = hold))
       {
-        hold=hold->next;
+        hold = hold->next;
         free(_root.load(std::memory_order_relaxed));
       }
     }
     template<typename T>
     inline T* allocT(size_t num) noexcept
     {
-      return (T*)alloc(num*sizeof(T));
+      return (T*)alloc(num * sizeof(T));
     }
     inline void* alloc(size_t _sz) noexcept
     {
@@ -73,7 +73,7 @@ namespace bss_util {
           break;
       }
 
-      void* retval= ((char*)(root+1))+r;
+      void* retval = ((char*)(root + 1)) + r;
       _lock.RUnlock();
       return retval;
     }
@@ -84,12 +84,12 @@ namespace bss_util {
 #endif
 #ifdef BSS_DEBUG
       _lock.RLock();
-      AFLISTITEM* cur= _root.load(std::memory_order_relaxed);
-      bool found=false;
+      AFLISTITEM* cur = _root.load(std::memory_order_relaxed);
+      bool found = false;
       while(cur)
       {
-        if(p>=(cur+1) && p<(((char*)(cur+1))+cur->size)) { found=true; break; }
-        cur=cur->next;
+        if(p >= (cur + 1) && p < (((char*)(cur + 1)) + cur->size)) { found = true; break; }
+        cur = cur->next;
       }
       _lock.RUnlock();
       assert(found);
@@ -101,14 +101,14 @@ namespace bss_util {
       _lock.Lock();
       AFLISTITEM* root = _root.load(std::memory_order_acquire);
       if(!root->next) return _lock.Unlock();
-      size_t nsize=0;
+      size_t nsize = 0;
       AFLISTITEM* hold;
       while(root)
       {
-        hold= root->next;
-        nsize+= root->size;
+        hold = root->next;
+        nsize += root->size;
         free(root);
-        root =hold;
+        root = hold;
       }
       _root.store(nullptr, std::memory_order_release);
       _allocchunk(nsize); //consolidates all memory into one chunk to try and take advantage of data locality
@@ -118,9 +118,9 @@ namespace bss_util {
   protected:
     BSS_FORCEINLINE void _allocchunk(size_t nsize) noexcept
     {
-      AFLISTITEM* retval=reinterpret_cast<AFLISTITEM*>(malloc(sizeof(AFLISTITEM)+nsize));
-      retval->next=_root.load(std::memory_order_acquire);
-      retval->size=nsize;
+      AFLISTITEM* retval = reinterpret_cast<AFLISTITEM*>(malloc(sizeof(AFLISTITEM) + nsize));
+      retval->next = _root.load(std::memory_order_acquire);
+      retval->size = nsize;
       assert(_prepDEBUG(retval));
       _root.store(retval, std::memory_order_release);
     }
@@ -128,7 +128,7 @@ namespace bss_util {
     BSS_FORCEINLINE static bool _prepDEBUG(AFLISTITEM* root) noexcept
     {
       if(!root) return false;
-      memset(root +1, 0xfd, root->size);
+      memset(root + 1, 0xfd, root->size);
       return true;
     }
 #endif
@@ -153,7 +153,7 @@ namespace bss_util {
     inline ~GreedyPolicy() {}
 
     inline pointer allocate(std::size_t cnt, const pointer = 0) noexcept { return cGreedyAlloc::allocT<T>(cnt); }
-    inline void deallocate(pointer p, std::size_t num = 0) noexcept { }
+    inline void deallocate(pointer p, std::size_t num = 0) noexcept {}
     inline void clear() noexcept { cGreedyAlloc::Clear(); } //done for functor reasons, has no effect here
   };
 }

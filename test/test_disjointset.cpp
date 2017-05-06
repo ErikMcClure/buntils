@@ -29,7 +29,7 @@ TESTDEF::RETPAIR test_DISJOINTSET()
   E[7].second = 2;
   E[8].second = 2;
   E[9].second = 3;
-  shuffle(E); // shuffle our edges
+  Shuffle(E); // Shuffle our edges
   auto tree = cDisjointSet<uint32_t>::MinSpanningTree(5, std::begin(E), std::end(E));
   TEST(tree.Capacity() == 4);
 

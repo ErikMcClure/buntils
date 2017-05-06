@@ -8,51 +8,46 @@
 
 using namespace bss_util;
 
-cINIentry::cINIentry(const cINIentry& mov) : _key(mov._key),_svalue(mov._svalue),_ivalue(mov._ivalue),_dvalue(mov._dvalue)
-{
-}
-cINIentry::cINIentry(cINIentry&& mov) : _key(std::move(mov._key)),_svalue(std::move(mov._svalue)),_ivalue(mov._ivalue),_dvalue(mov._dvalue)
-{
-}
-cINIentry::cINIentry() : _ivalue(0),_dvalue(0.0)//,_index(0)
-{
-}
-cINIentry::cINIentry(const char *key, const char *svalue, int64_t ivalue, double dvalue) : _key(key),_svalue(svalue),
-  _ivalue(ivalue),_dvalue(dvalue)//,_index(index)
-{
-}
+cINIentry::cINIentry(const cINIentry& mov) : _key(mov._key), _svalue(mov._svalue), _ivalue(mov._ivalue), _dvalue(mov._dvalue)
+{}
+cINIentry::cINIentry(cINIentry&& mov) : _key(std::move(mov._key)), _svalue(std::move(mov._svalue)), _ivalue(mov._ivalue), _dvalue(mov._dvalue)
+{}
+cINIentry::cINIentry() : _ivalue(0), _dvalue(0.0)//,_index(0)
+{}
+cINIentry::cINIentry(const char *key, const char *svalue, int64_t ivalue, double dvalue) : _key(key), _svalue(svalue),
+_ivalue(ivalue), _dvalue(dvalue)//,_index(index)
+{}
 cINIentry::cINIentry(const char* key, const char* data) : _key(key)//,_index(index)
 {
   SetData(data);
 }
 
 cINIentry::~cINIentry()
-{
-}
+{}
 
 cINIentry& cINIentry::operator=(cINIentry&& mov)
 {
-  _key=std::move(mov._key);
-  _svalue=std::move(mov._svalue);
-  _ivalue=mov._ivalue;
-  _dvalue=mov._dvalue;
+  _key = std::move(mov._key);
+  _svalue = std::move(mov._svalue);
+  _ivalue = mov._ivalue;
+  _dvalue = mov._dvalue;
   return *this;
 }
 
-bool cINIentry::operator ==(cINIentry &other) const { return STRICMP(_key,other._key)==0 && STRICMP(_svalue,other._svalue)==0; }
-bool cINIentry::operator !=(cINIentry &other) const { return STRICMP(_key,other._key)!=0 || STRICMP(_svalue,other._svalue)!=0; }
+bool cINIentry::operator ==(cINIentry &other) const { return STRICMP(_key, other._key) == 0 && STRICMP(_svalue, other._svalue) == 0; }
+bool cINIentry::operator !=(cINIentry &other) const { return STRICMP(_key, other._key) != 0 || STRICMP(_svalue, other._svalue) != 0; }
 
 //bool cINIentry<wchar_t>::operator ==(cINIentry &other) const { return WCSICMP(_key,other._key)==0 && WCSICMP(_svalue,other._svalue)==0; }
 //bool cINIentry<wchar_t>::operator !=(cINIentry &other) const { return WCSICMP(_key,other._key)!=0 || WCSICMP(_svalue,other._svalue)!=0; }
 
 void cINIentry::SetData(const char* data)
-{  
+{
   if(!data) return;
-  _svalue=data;
+  _svalue = data;
 
   if(_svalue[0] == '0' && (_svalue[1] == 'x' || _svalue[1] == 'X')) //If this is true its a hex number
   {
-    uint64_t v = STRTOULL(_svalue,0,16); //We store the unsigned here so it gets properly stored in the double even if it overflows on the signed int64_t
+    uint64_t v = STRTOULL(_svalue, 0, 16); //We store the unsigned here so it gets properly stored in the double even if it overflows on the signed int64_t
     _ivalue = (int64_t)v;
     _dvalue = (double)v;
   }
@@ -102,7 +97,7 @@ void cINIentry::SetData(const char* data)
 //#undef STR_NONE
 //#undef STR_NNSL
 //#undef STR_NSES
-//#undef STR_APT 
+//#undef STR_APT
 //#undef STR_LB
 //#define STR_RT L"rb" //So apparently text mode is assumed to be ASCII... even if you use a wchar_t function. You have to open a unicode file in binary and the parser magically works
 //#define STR_WT L"wb"

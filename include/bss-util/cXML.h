@@ -24,7 +24,7 @@ namespace bss_util {
     inline cXMLValue& operator=(const cXMLValue& copy) { Name = copy.Name; String = copy.String; Float = copy.Float; Integer = copy.Integer; return *this; }
     inline cXMLValue& operator=(cXMLValue&& mov) { Name = std::move(mov.Name); String = std::move(mov.String); Float = mov.Float; Integer = mov.Integer; return *this; }
 
-    BSS_FORCEINLINE operator bool() const { return Integer!=0; } // If the string is "true" the integer gets set to 1 by the parser.
+    BSS_FORCEINLINE operator bool() const { return Integer != 0; } // If the string is "true" the integer gets set to 1 by the parser.
     BSS_FORCEINLINE operator char() const { return (char)Integer; }
     BSS_FORCEINLINE operator short() const { return (short)Integer; }
     BSS_FORCEINLINE operator int() const { return (int)Integer; }
@@ -45,13 +45,13 @@ namespace bss_util {
   {
     cXMLNode(const cXMLNode& copy);
     cXMLNode(cXMLNode&& mov);
-    explicit cXMLNode(const char* parse=0);
+    explicit cXMLNode(const char* parse = 0);
     explicit cXMLNode(std::istream& stream);
     BSS_FORCEINLINE const char* GetName() const { return _name; }
-    BSS_FORCEINLINE const cXMLNode* GetNode(size_t index) const { return index>=_nodes.Length()?0:_nodes[index].get(); }
+    BSS_FORCEINLINE const cXMLNode* GetNode(size_t index) const { return index >= _nodes.Length() ? 0 : _nodes[index].get(); }
     BSS_FORCEINLINE const cXMLNode* GetNode(const char* name) const { return GetNode(_nodehash[name]); }
     BSS_FORCEINLINE size_t GetNodes() const { return _nodes.Length(); }
-    BSS_FORCEINLINE const cXMLValue* GetAttribute(size_t index) const { return index>=_attributes.Length()?0:(_attributes+index); }
+    BSS_FORCEINLINE const cXMLValue* GetAttribute(size_t index) const { return index >= _attributes.Length() ? 0 : (_attributes + index); }
     BSS_FORCEINLINE const cXMLValue* GetAttribute(const char* name) const { return GetAttribute(_attrhash[name]); }
     BSS_FORCEINLINE const char* GetAttributeString(const char* name) const { const cXMLValue* r = GetAttribute(_attrhash[name]); return !r ? 0 : r->String.c_str(); }
     BSS_FORCEINLINE const int64_t GetAttributeInt(const char* name) const { const cXMLValue* r = GetAttribute(_attrhash[name]); return !r ? 0 : r->Integer; }
@@ -109,10 +109,10 @@ namespace bss_util {
   public:
     cXML(const cXML& copy);
     cXML(cXML&& mov);
-    explicit cXML(const char* source=0);
+    explicit cXML(const char* source = 0);
     explicit cXML(std::istream& stream);
-    void Write(const char* file, bool pretty=true) const;
-    void Write(std::ostream& stream, bool pretty=true) const;
+    void Write(const char* file, bool pretty = true) const;
+    void Write(std::ostream& stream, bool pretty = true) const;
 
     inline cXML& operator=(const cXML& copy) { cXMLNode::operator=(copy); return *this; }
     inline cXML& operator=(cXML&& mov) { cXMLNode::operator=(mov); return *this; }

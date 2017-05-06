@@ -16,16 +16,16 @@ void TEST_ALLOC_FUZZER_THREAD(TESTDEF::RETPAIR& __testret, T& _alloc, bss_util::
     bool pass = true;
     for(int i = 0; i < TRIALS; ++i)
     {
-      if(bss_util::bssrandint(0, 10)<5 || plist.Length()<3)
+      if(bss_util::bssRandInt(0, 10)<5 || plist.Length()<3)
       {
-        size_t sz = (size_t)bss_util::bssrandint(1, MAXSIZE);
+        size_t sz = (size_t)bss_util::bssRandInt(1, MAXSIZE);
         P* test = (P*)_alloc.alloc(sz);
         for(size_t i = 0; i<sz; ++i) *(char*)(test + i) = (char)(i + 1);
         plist.Add(std::pair<P*, size_t>(test, sz));
       }
       else
       {
-        size_t index = (size_t)bss_util::bssrandint(0, plist.Length());
+        size_t index = (size_t)bss_util::bssRandInt(0, plist.Length());
         for(size_t i = 0; i<plist[index].second; ++i)
         {
           if(((char)(i + 1) != *(char*)(plist[index].first + i)))

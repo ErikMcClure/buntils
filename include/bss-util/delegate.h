@@ -14,7 +14,7 @@ namespace bss_util {
   class BSS_COMPILER_DLLEXPORT delegate
   {
     inline delegate(std::function<R(Args...)>&& src) BSS_DELETEFUNC // Don't do delegate([&](){ return; }) or it'll go out of scope.
-    typedef R RTYPE;
+      typedef R RTYPE;
     typedef R(*FUNCTYPE)(void*, Args...);
   public:
     inline delegate(const delegate& copy) noexcept : _src(copy._src), _stub(copy._stub) {}
@@ -96,7 +96,7 @@ namespace bss_util {
   BSS_FORCEINLINE DeferDelegate<R, Args...> defer(delegate<R, Args...> fn, Args&&... args) { return DeferDelegate<R, Args...>(fn, std::forward<Args>(args)...); }
   template<typename R, class... Args>
   BSS_FORCEINLINE DeferFunction<R, Args...> defer(R(*stub)(Args...), Args&&... args) { return DeferFunction<R, Args...>(stub, std::forward<Args>(args)...); }
-  
+
 #else
   template<typename R = void, typename T1 = void, typename T2 = void, typename T3 = void, typename T4 = void, typename T5 = void>
   class BSS_COMPILER_DLLEXPORT delegate {};

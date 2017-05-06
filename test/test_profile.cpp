@@ -21,7 +21,7 @@ TESTDEF::RETPAIR test_PROFILE()
       CPU_Barrier();
       __PROFILE_ZONE(control);
       CPU_Barrier();
-      testnums[bssrandint(0, TESTNUM)] += 1;
+      testnums[bssRandInt(0, TESTNUM)] += 1;
     }
 
     auto pr = cHighPrecisionTimer::OpenProfiler();
@@ -30,7 +30,7 @@ TESTDEF::RETPAIR test_PROFILE()
       PROFILE_BLOCK(outer);
       {
         PROFILE_BLOCK(inner);
-        testnums[bssrandint(0, TESTNUM)] += 1;
+        testnums[bssRandInt(0, TESTNUM)] += 1;
       }
     }
     //std::cout << cHighPrecisionTimer::CloseProfiler(pr)/100000.0 << std::endl;
@@ -38,7 +38,7 @@ TESTDEF::RETPAIR test_PROFILE()
     for(int i = 0; i < 100000; ++i)
     {
       PROFILE_BEGIN(beginend);
-      testnums[bssrandint(0, TESTNUM)] += 1;
+      testnums[bssRandInt(0, TESTNUM)] += 1;
       PROFILE_END(beginend);
     }
 

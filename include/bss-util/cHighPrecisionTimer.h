@@ -26,8 +26,7 @@
 #endif
 #endif
 
-namespace bss_util
-{
+namespace bss_util {
   // High precision timer class with nanosecond precision.
   class BSS_DLLEXPORT cHighPrecisionTimer
   {
@@ -75,10 +74,10 @@ namespace bss_util
       uint64_t compare;
 #ifdef BSS_PLATFORM_WIN32
       _querytime(&compare);
-      return ((compare-begin)*1000000000)/_getfreq(); //convert to nanoseconds
+      return ((compare - begin) * 1000000000) / _getfreq(); //convert to nanoseconds
 #else
       _querytime(&compare, BSS_POSIX_CLOCK_PROFILER);
-      return compare-begin;
+      return compare - begin;
 #endif
     }
 

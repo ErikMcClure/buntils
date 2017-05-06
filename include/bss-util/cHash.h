@@ -134,7 +134,8 @@ namespace bss_util {
     inline khiter_t Iterator(const Key& key) const { return _get(key); }
     inline const Key& GetKey(khiter_t i) { return keys[i]; }
     template<bool U = IsMap>
-    inline typename std::enable_if<U, GET>::type GetValue(khiter_t i) const {
+    inline typename std::enable_if<U, GET>::type GetValue(khiter_t i) const
+    {
       static const GET INVALID = __cHashBaseInvalid<GET, std::is_integral<GET>::value>::INVALID();
       if(!ExistsIter(i))
         return INVALID;
@@ -218,17 +219,17 @@ namespace bss_util {
       inline khiter_t operator*() const { return cur; }
       inline cHash_Iter& operator++() { ++cur; _chknext(); return *this; } //prefix
       inline cHash_Iter operator++(int) { cHash_Iter r(*this); ++*this; return r; } //postfix
-      inline cHash_Iter& operator--() { while((--cur)<_src->End() && !_src->ExistsIter(cur)); return *this; } //prefix
+      inline cHash_Iter& operator--() { while((--cur) < _src->End() && !_src->ExistsIter(cur)); return *this; } //prefix
       inline cHash_Iter operator--(int) { cHash_Iter r(*this); --*this; return r; } //postfix
       inline bool operator==(const cHash_Iter& _Right) const { return (cur == _Right.cur); }
       inline bool operator!=(const cHash_Iter& _Right) const { return (cur != _Right.cur); }
       inline bool operator!() const { return !IsValid(); }
-      inline bool IsValid() { return cur<_src->End(); }
+      inline bool IsValid() { return cur < _src->End(); }
 
       khiter_t cur; //khiter_t is unsigned (this is why operator--() works)
 
     protected:
-      inline void _chknext() { while(cur<_src->End() && !_src->ExistsIter(cur)) ++cur; }
+      inline void _chknext() { while(cur < _src->End() && !_src->ExistsIter(cur)) ++cur; }
 
       const cHashBase* _src;
     };
@@ -258,15 +259,18 @@ namespace bss_util {
         kroundup32(new_n_buckets);
         if(new_n_buckets < 4) new_n_buckets = 32;
         if(size >= (khint_t)(new_n_buckets * __ac_HASH_UPPER + 0.5)) j = 0;	/* requested size is too small */
-        else { /* hash table size to be changed (shrink or expand); rehash */
+        else
+        { /* hash table size to be changed (shrink or expand); rehash */
           new_flags = (khint8_t*)Alloc::allocate(new_n_buckets);
           if(!new_flags) return -1;
           memset(new_flags, 2, new_n_buckets);
-          if(n_buckets < new_n_buckets) {	/* expand */
+          if(n_buckets < new_n_buckets)
+          {	/* expand */
             Key *new_keys = __cHashBaseAlloc<Key, ArrayType, Alloc>::_realloc(flags, keys, new_n_buckets, n_buckets);
             if(!new_keys) { Alloc::deallocate((char*)new_flags); return -1; }
             keys = new_keys;
-            if(IsMap) {
+            if(IsMap)
+            {
               Data *new_vals = __cHashBaseAlloc<Data, ArrayType, Alloc>::_realloc(flags, vals, new_n_buckets, n_buckets);
               if(!new_vals) { Alloc::deallocate((char*)new_flags); return -1; }
               vals = new_vals;
@@ -274,22 +278,27 @@ namespace bss_util {
           } /* otherwise shrink */
         }
       }
-      if(j) { /* rehashing is needed */
-        for(j = 0; j != n_buckets; ++j) {
-          if(__ac_iseither(flags, j) == 0) {
+      if(j)
+      { /* rehashing is needed */
+        for(j = 0; j != n_buckets; ++j)
+        {
+          if(__ac_iseither(flags, j) == 0)
+          {
             Key key(std::move(keys[j]));
             Data val;
             khint_t new_mask;
             new_mask = new_n_buckets - 1;
             if(IsMap) val = std::move(vals[j]);
             __ac_set_isdel_true(flags, j);
-            while(1) { /* kick-out process; sort of like in Cuckoo hashing */
+            while(1)
+            { /* kick-out process; sort of like in Cuckoo hashing */
               khint_t k, i, step = 0;
               k = __hash_func(key);
               i = k & new_mask;
               while(!__ac_isempty(new_flags, i)) i = (i + (++step)) & new_mask;
               __ac_set_isempty_false(new_flags, i);
-              if(i < n_buckets && __ac_iseither(flags, i) == 0) { /* kick out the existing element */
+              if(i < n_buckets && __ac_iseither(flags, i) == 0)
+              { /* kick out the existing element */
                 rswap(keys[i], key);
                 if(IsMap) rswap(vals[i], val);
                 __ac_set_isdel_true(flags, i); /* mark it as deleted in the old hash table */
@@ -303,7 +312,8 @@ namespace bss_util {
             }
           }
         }
-        if(n_buckets > new_n_buckets) { /* shrink the hash table */
+        if(n_buckets > new_n_buckets)
+        { /* shrink the hash table */
           keys = __cHashBaseAlloc<Key, ArrayType, Alloc>::_realloc(flags, keys, new_n_buckets, n_buckets);
           if(IsMap)
             vals = __cHashBaseAlloc<Data, ArrayType, Alloc>::_realloc(flags, vals, new_n_buckets, n_buckets);
@@ -321,14 +331,18 @@ namespace bss_util {
     khint_t _put(U && key, int* ret)
     {
       khint_t x;
-      if(n_occupied >= upper_bound) { /* update the hash table */
-        if(n_buckets > (size << 1)) {
+      if(n_occupied >= upper_bound)
+      { /* update the hash table */
+        if(n_buckets > (size << 1))
+        {
           \
-            if(_resize(n_buckets - 1) < 0) { /* clear "deleted" elements */
+            if(_resize(n_buckets - 1) < 0)
+            { /* clear "deleted" elements */
               *ret = -1; return n_buckets;
             }
         }
-        else if(_resize(n_buckets + 1) < 0) { /* expand the hash table */
+        else if(_resize(n_buckets + 1) < 0)
+        { /* expand the hash table */
           *ret = -1; return n_buckets;
         }
       } /* TODO: to implement automatically shrinking; resize() already support shrinking */
@@ -336,26 +350,31 @@ namespace bss_util {
         khint_t k, i, site, last, mask = n_buckets - 1, step = 0;
         x = site = n_buckets; k = __hash_func(key); i = k & mask;
         if(__ac_isempty(flags, i)) x = i; /* for speed up */
-        else {
+        else
+        {
           last = i;
-          while(!__ac_isempty(flags, i) && (__ac_isdel(flags, i) || !__hash_equal(keys[i], key))) {
+          while(!__ac_isempty(flags, i) && (__ac_isdel(flags, i) || !__hash_equal(keys[i], key)))
+          {
             if(__ac_isdel(flags, i)) site = i;
             i = (i + (++step)) & mask;
             if(i == last) { x = site; break; }
           }
-          if(x == n_buckets) {
+          if(x == n_buckets)
+          {
             if(__ac_isempty(flags, i) && site != n_buckets) x = site;
             else x = i;
           }
         }
       }
-      if(__ac_isempty(flags, x)) { /* not present at all */
+      if(__ac_isempty(flags, x))
+      { /* not present at all */
         new(keys + x) Key(std::move(key));
         __ac_set_isboth_false(flags, x);
         ++size; ++n_occupied;
         *ret = 1;
       }
-      else if(__ac_isdel(flags, x)) { /* deleted */
+      else if(__ac_isdel(flags, x))
+      { /* deleted */
         new(keys + x) Key(std::move(key));
         __ac_set_isboth_false(flags, x);
         ++size;
@@ -366,22 +385,25 @@ namespace bss_util {
     }
     khint_t _get(const Key& key) const
     {
-      if(n_buckets) {
-          khint_t k, i, last, mask, step = 0; 
-          mask = n_buckets - 1;
-          k = __hash_func(key); i = k & mask;
-          last = i;
-          while(!__ac_isempty(flags, i) && (__ac_isdel(flags, i) || !__hash_equal(keys[i], key))) {
-              i = (i + (++step)) & mask;
-              if(i == last) return n_buckets;
-          }
-            return __ac_iseither(flags, i) ? n_buckets : i;
+      if(n_buckets)
+      {
+        khint_t k, i, last, mask, step = 0;
+        mask = n_buckets - 1;
+        k = __hash_func(key); i = k & mask;
+        last = i;
+        while(!__ac_isempty(flags, i) && (__ac_isdel(flags, i) || !__hash_equal(keys[i], key)))
+        {
+          i = (i + (++step)) & mask;
+          if(i == last) return n_buckets;
+        }
+        return __ac_iseither(flags, i) ? n_buckets : i;
       }
       else return 0;
     }
     inline void _delete(khint_t x)
     {
-      if(x != n_buckets && !__ac_iseither(flags, x)) {
+      if(x != n_buckets && !__ac_iseither(flags, x))
+      {
         keys[x].~Key();
         if(IsMap)
           vals[x].~Data();
@@ -405,11 +427,12 @@ namespace bss_util {
   template<> BSS_FORCEINLINE khint_t KH_INT_HASHFUNC<unsigned int>(unsigned int key) { return kh_int_hash_func2(key); }
   template<> BSS_FORCEINLINE khint_t KH_INT_HASHFUNC<int>(int key) { return kh_int_hash_func2(key); }
   inline khint_t KH_STR_HASHFUNC(const char * s) { khint_t h = *s; if(h) for(++s; *s; ++s) h = (h << 5) - h + *s; return h; }
-  inline khint_t KH_STRINS_HASHFUNC(const char *s) { khint_t h = ((*s)>64 && (*s)<91) ? (*s) + 32 : *s;	if(h) for(++s; *s; ++s) h = (h << 5) - h + (((*s)>64 && (*s)<91) ? (*s) + 32 : *s); return h; }
+  inline khint_t KH_STRINS_HASHFUNC(const char *s) { khint_t h = ((*s) > 64 && (*s) < 91) ? (*s) + 32 : *s;	if(h) for(++s; *s; ++s) h = (h << 5) - h + (((*s) > 64 && (*s) < 91) ? (*s) + 32 : *s); return h; }
   inline khint_t KH_STRW_HASHFUNC(const wchar_t * s) { khint_t h = *s; if(h) for(++s; *s; ++s) h = (h << 5) - h + *s; return h; }
   inline khint_t KH_STRWINS_HASHFUNC(const wchar_t *s) { khint_t h = towlower(*s); if(h) for(++s; *s; ++s) h = (h << 5) - h + towlower(*s); return h; }
   template<class T>
-  BSS_FORCEINLINE khint_t KH_POINTER_HASHFUNC(T p) {
+  BSS_FORCEINLINE khint_t KH_POINTER_HASHFUNC(T p)
+  {
 #ifdef BSS_64BIT
     return KH_INT64_HASHFUNC((int64_t)p);
 #else

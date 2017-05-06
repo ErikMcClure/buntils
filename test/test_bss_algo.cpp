@@ -15,24 +15,24 @@ TESTDEF::RETPAIR test_bss_algo()
     bool test;
     for(int i = -10; i < 40; ++i)
     {
-      test = (binsearch_before<int, uint32_t, CompT<int>, 15>(a, i) == (uint32_t)((std::upper_bound(std::begin(a), std::end(a), i) - a) - 1));
+      test = (BinarySearchBefore<int, uint32_t, CompT<int>, 15>(a, i) == (uint32_t)((std::upper_bound(std::begin(a), std::end(a), i) - a) - 1));
       TEST(test);
-      TEST((binsearch_after<int, uint32_t, CompT<int>, 15>(a, i) == (std::lower_bound(std::begin(a), std::end(a), i) - a)));
+      TEST((BinarySearchAfter<int, uint32_t, CompT<int>, 15>(a, i) == (std::lower_bound(std::begin(a), std::end(a), i) - a)));
     }
 
     int b[2] = { 2,3 };
     int d[1] = { 1 };
-    TEST((binsearch_exact<int, uint32_t, CompT<int>, 2>(b, 1) == -1));
-    TEST((binsearch_exact<int, uint32_t, CompT<int>, 2>(b, 2) == 0));
-    TEST((binsearch_exact<int, uint32_t, CompT<int>, 2>(b, 3) == 1));
-    TEST((binsearch_exact<int, uint32_t, CompT<int>, 2>(b, 4) == -1));
-    TEST((binsearch_exact<int, int, uint32_t, CompT<int>>(0, 0, 0, 0) == -1));
-    TEST((binsearch_exact<int, int, uint32_t, CompT<int>>(0, -1, 0, 0) == -1));
-    TEST((binsearch_exact<int, int, uint32_t, CompT<int>>(0, 1, 0, 0) == -1));
-    TEST((binsearch_exact<int, uint32_t, CompT<int>, 1>(d, -1) == -1));
-    TEST((binsearch_exact<int, uint32_t, CompT<int>, 1>(d, 1) == 0));
-    TEST((binsearch_exact<int, int, uint32_t, CompT<int>>(d, 1, 1, 1) == -1));
-    TEST((binsearch_exact<int, uint32_t, CompT<int>, 1>(d, 2) == -1));
+    TEST((BinarySearchExact<int, uint32_t, CompT<int>, 2>(b, 1) == -1));
+    TEST((BinarySearchExact<int, uint32_t, CompT<int>, 2>(b, 2) == 0));
+    TEST((BinarySearchExact<int, uint32_t, CompT<int>, 2>(b, 3) == 1));
+    TEST((BinarySearchExact<int, uint32_t, CompT<int>, 2>(b, 4) == -1));
+    TEST((BinarySearchExact<int, int, uint32_t, CompT<int>>(0, 0, 0, 0) == -1));
+    TEST((BinarySearchExact<int, int, uint32_t, CompT<int>>(0, -1, 0, 0) == -1));
+    TEST((BinarySearchExact<int, int, uint32_t, CompT<int>>(0, 1, 0, 0) == -1));
+    TEST((BinarySearchExact<int, uint32_t, CompT<int>, 1>(d, -1) == -1));
+    TEST((BinarySearchExact<int, uint32_t, CompT<int>, 1>(d, 1) == 0));
+    TEST((BinarySearchExact<int, int, uint32_t, CompT<int>>(d, 1, 1, 1) == -1));
+    TEST((BinarySearchExact<int, uint32_t, CompT<int>, 1>(d, 2) == -1));
   }
 
   {
@@ -59,7 +59,7 @@ TESTDEF::RETPAIR test_bss_algo()
     TEST(xorshift1024star(state) == 17572132563546066374ULL);
     TEST(xorshift1024star(state) == 11245070064711388831ULL);
 
-    xorshiftrand(234);
+    XorshiftRand(234);
   }
 
   {
@@ -146,10 +146,10 @@ TESTDEF::RETPAIR test_bss_algo()
   //filter(std::begin(testmap), std::end(testmap), array2);
 
   // This can be used to test the distribution of a random engine to verify it is uniform
-  //xorshift_engine<double> dtest;
+  //XorshiftEngine<double> dtest;
   /*double vals[10000];
   for(int i = 0; i < sizeof(vals) / sizeof(double); ++i)
-    vals[i] = bssrandreal(0.0, 1.0);
+    vals[i] = bssRandReal(0.0, 1.0);
     //vals[i] = dtest();
 
   double vmin = vals[0];

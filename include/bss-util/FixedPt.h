@@ -13,7 +13,7 @@ namespace bss_util {
   inline float convf_fixedpt(T i) { static const T SMIN = bssmax(0, S - 24); return ((float)(i >> S)) + (((i&(((T)1 << S) - 1)) >> SMIN) / (float)((T)1 << (S - SMIN))); }
   template<typename T, T S>
   inline double convd_fixedpt(T i) { static const T SMIN = bssmax(0, S - 53); return ((double)(i >> S)) + (((i&(((T)1 << S) - 1)) >> SMIN) / (double)((T)1 << (S - SMIN))); }
-  
+
   template<typename T, T S_X, T S_Y>
   inline T fixedpt_add(T x, T y) { return x + SAFESHIFT(y, S_X - S_Y); }
   template<typename T>
@@ -22,7 +22,8 @@ namespace bss_util {
   template<typename T> // Resulting decimal bits after this when T is a 32-bit int is 30 - S
   inline T fixedpt_recip(T x) { return ((T)1 << ((sizeof(T) << 3) - 2)) / x; }
   template<typename T>
-  inline T fixedpt_div(T x, T y, T S_Y) { // The result here has a scaling factor of 2^S_X / 2^S_Y = 2^(S_X - S_Y). By shifting left S_Y before the division, we end up with an S_X scaling factor.
+  inline T fixedpt_div(T x, T y, T S_Y)
+  { // The result here has a scaling factor of 2^S_X / 2^S_Y = 2^(S_X - S_Y). By shifting left S_Y before the division, we end up with an S_X scaling factor.
     typedef typename BitLimit<sizeof(T) << 4>::SIGNED U;
     return (U(x) << S_Y) / (U)y;
   }

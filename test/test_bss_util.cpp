@@ -320,7 +320,7 @@ TESTDEF::RETPAIR test_bss_util()
   //double sqrt_avg=0;
   //float NUMBERS[100000];
   //for(uint32_t i = 0; i < 100000; ++i)
-  //  NUMBERS[i]=bssrandreal(2,4);
+  //  NUMBERS[i]=bssRandReal(2,4);
 
   //uint64_t p=cHighPrecisionTimer::OpenProfiler();
   //CPU_Barrier();
@@ -364,7 +364,7 @@ TESTDEF::RETPAIR test_bss_util()
   //static const int NUM=100000;
   //float _numrand[NUM];
   //for(uint32_t i = 0; i < NUM; ++i)
-  //  _numrand[i]=bssrandreal(0,100.0f);
+  //  _numrand[i]=bssRandReal(0,100.0f);
 
   //int add=0;
   //uint64_t prof = cHighPrecisionTimer::OpenProfiler();

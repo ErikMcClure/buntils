@@ -41,7 +41,7 @@ inline static uint32_t Interpolate(uint32_t l, uint32_t r, float c)
   //BSS_SSE_M128i xl = _mm_set1_epi32(l); // duplicate l 4 times in the 128-bit register (l,l,l,l)
   //BSS_SSE_M128i xm = _mm_set_epi32(0xFF000000,0x00FF0000,0x0000FF00,0x000000FF); // Channel masks (alpha,red,green,blue)
   //xl=_mm_and_si128(xl,xm); // l&mask
-  //xl=_mm_shufflehi_epi16(xl,0xB1); // Now we have to shuffle these values down because there is no way to convert an uint32_t to a float. In any instruction set. Ever.
+  //xl=_mm_shufflehi_epi16(xl,0xB1); // Now we have to Shuffle these values down because there is no way to convert an uint32_t to a float. In any instruction set. Ever.
   //BSS_SSE_M128 xfl = _mm_cvtepi32_ps(xl); // Convert to float
   //BSS_SSE_M128 xc = _mm_set_ps1(c); // (c,c,c,c)
   //BSS_SSE_M128 xinv = _mm_set_ps1(1.0f);  // (1.0,1.0,1.0,1.0)
@@ -54,7 +54,7 @@ inline static uint32_t Interpolate(uint32_t l, uint32_t r, float c)
   //xrl = _mm_mul_ps(xrl,xc); // Multiply r by c
   //xfl = _mm_add_ps(xfl,xrl); // Add l and r
   //xl = _mm_cvttps_epi32(xfl); // Convert back to integer
-  //xl=_mm_shufflehi_epi16(xl,0xB1); // Shuffle the last two back up (this is actually the same shuffle, since before we just swapped locations, so we swap locations again and then we're back where we started).
+  //xl=_mm_shufflehi_epi16(xl,0xB1); // Shuffle the last two back up (this is actually the same Shuffle, since before we just swapped locations, so we swap locations again and then we're back where we started).
   //xl = _mm_and_si128(xl,xm); // l&mask
   //xr = xl;
   //xr = _mm_shuffle_epi32(xr,0x1B); // Reverses the order of xr so we now have (d,c,b,a)
@@ -64,12 +64,12 @@ inline static uint32_t Interpolate(uint32_t l, uint32_t r, float c)
 
   sseVeci xl(l); // duplicate l 4 times in the 128-bit register (l,l,l,l)
   sseVeci xm(0x000000FF, 0x0000FF00, 0x00FF0000, 0xFF000000); // Channel masks (alpha,red,green,blue), these are loaded in reverse order.
-  xl = sseVeci::ShuffleHi<0xB1>(xl&xm); // Now we have to shuffle (l&m) down because there is no way to convert an uint32_t xmm register to a float. In any instruction set. Ever.
+  xl = sseVeci::ShuffleHi<0xB1>(xl&xm); // Now we have to Shuffle (l&m) down because there is no way to convert an uint32_t xmm register to a float. In any instruction set. Ever.
   sseVec xc(c); // (c,c,c,c)
   sseVeci xr(r); // duplicate r 4 times across the 128-bit register (r,r,r,r)
   xr = sseVeci::ShuffleHi<0xB1>(xr&xm); // Shuffle r down just like l
   xl = ((sseVec(xr)*xc) + (sseVec(xl)*(sseVec(1.0f) - xc))); //do the operation (r*c) + (l*(1.0-c)) across all 4 integers, converting to and from floating point in the process.
-  xl = sseVeci::ShuffleHi<0xB1>(xl); // reverse our shuffling from before (this is actually the same shuffle, since before we just swapped locations, so we swap locations again, and then we're back where we started).
+  xl = sseVeci::ShuffleHi<0xB1>(xl); // reverse our shuffling from before (this is actually the same Shuffle, since before we just swapped locations, so we swap locations again, and then we're back where we started).
   xl &= xm; // mask l with m again.
   xr = sseVeci::Shuffle<0x1B>(xl); // assign the values of xl to xr, but reversed, so we have (d,c,b,a)
   xl |= xr; // OR xl and xr so we get (d|a,c|b,b|c,a|d) in xl
@@ -315,7 +315,7 @@ TESTDEF::RETPAIR test_bss_SSE()
   //{
   //char prof;
 
-  //shuffle(megatest);
+  //Shuffle(megatest);
   //int l=0;
   //prof=cHighPrecisionTimer::OpenProfiler();
   //CPU_Barrier();
@@ -327,7 +327,7 @@ TESTDEF::RETPAIR test_bss_SSE()
   //CPU_Barrier();
   //std::cout << "SSE:" << cHighPrecisionTimer::CloseProfiler(prof) << std::endl;
 
-  //shuffle(megatest);
+  //Shuffle(megatest);
   //int l2=0;
   //prof=cHighPrecisionTimer::OpenProfiler();
   //CPU_Barrier();

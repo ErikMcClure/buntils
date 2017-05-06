@@ -27,18 +27,18 @@
 template<DWORD T_FLAG>
 inline bool r_fexists(const wchar_t* path)
 {
-  assert(path!=0);
+  assert(path != 0);
   cStrW s(L"\\\\?\\"); //You must append \\?\ to the beginning of the string to allow paths up to 32767 characters long
   if(!PathIsRelativeW(path)) // But only if its an absolute path
   {
-    s+=path;
-    path=s;
+    s += path;
+    path = s;
     s.ReplaceChar('/', '\\'); //This doesn't behave nicely if you have / in there instead of \ for some reason.
   }
 
   DWORD attr = GetFileAttributesW(path);
 
-  if(attr==INVALID_FILE_ATTRIBUTES)
+  if(attr == INVALID_FILE_ATTRIBUTES)
     return false;
 
   /*if(attr&FILE_ATTRIBUTE_REPARSE_POINT !=0) // Navigate through symlink
@@ -63,7 +63,7 @@ inline bool r_fexists(const wchar_t* path)
   return false;
   }*/
 
-  return ((attr&FILE_ATTRIBUTE_DIRECTORY)^T_FLAG) !=0;
+  return ((attr&FILE_ATTRIBUTE_DIRECTORY) ^ T_FLAG) != 0;
 }
 
 BSS_COMPILER_DLLEXPORT
@@ -83,9 +83,9 @@ template<int T_FLAG>
 inline bool r_fexists(const char* path)
 {
   struct stat st;
-  if(stat(path, &st)!=0)
+  if(stat(path, &st) != 0)
     return false;
-  return ((S_ISDIR(st.st_mode)!=0)^T_FLAG)!=0;
+  return ((S_ISDIR(st.st_mode) != 0) ^ T_FLAG) != 0;
 }
 #endif
 
@@ -107,7 +107,7 @@ extern void bss_util::SetWorkDirToCur()
 #ifdef BSS_PLATFORM_WIN32
   cStrW commands(MAX_PATH);
   GetModuleFileNameW(0, commands.UnsafeString(), MAX_PATH);
-  commands.UnsafeString()[wcsrchr(commands, '\\')-commands+1] = '\0';
+  commands.UnsafeString()[wcsrchr(commands, '\\') - commands + 1] = '\0';
   SetCurrentDirectoryW(commands);
 #endif
 }
@@ -122,7 +122,7 @@ extern void bss_util::ForceWin64Crash()
   DWORD dwFlags;
 
   HMODULE kernel32 = LoadLibraryA("kernel32.dll");
-  assert(kernel32!=0);
+  assert(kernel32 != 0);
   tGetPolicy pGetPolicy = (tGetPolicy)GetProcAddress(kernel32, "GetProcessUserModeExceptionPolicy");
   tSetPolicy pSetPolicy = (tSetPolicy)GetProcAddress(kernel32, "SetProcessUserModeExceptionPolicy");
   if(pGetPolicy && pSetPolicy && pGetPolicy(&dwFlags))
@@ -137,8 +137,8 @@ BSS_COMPILER_DLLEXPORT extern unsigned long long bss_util::bssFileSize(const cha
   return bssFileSize(cStrW(path).c_str());
 #else // BSS_PLATFORM_POSIX
   struct stat path_stat;
-  if(::stat(path, &path_stat)!=0 || !S_ISREG(path_stat.st_mode))
-    return (unsigned long long)-1;
+  if(::stat(path, &path_stat) != 0 || !S_ISREG(path_stat.st_mode))
+    return (unsigned long long) - 1;
 
   return (unsigned long long)path_stat.st_size;
 #endif
@@ -148,10 +148,10 @@ BSS_COMPILER_DLLEXPORT extern unsigned long long bss_util::bssFileSize(const wch
 #ifdef BSS_PLATFORM_WIN32
   WIN32_FILE_ATTRIBUTE_DATA fad;
 
-  if(GetFileAttributesExW(path, GetFileExInfoStandard, &fad)==FALSE || (fad.dwFileAttributes & FILE_ATTRIBUTE_DIRECTORY)!=0)
-    return (unsigned long long)-1;
+  if(GetFileAttributesExW(path, GetFileExInfoStandard, &fad) == FALSE || (fad.dwFileAttributes & FILE_ATTRIBUTE_DIRECTORY) != 0)
+    return (unsigned long long) - 1;
 
-  return (static_cast<unsigned long long>(fad.nFileSizeHigh) << (sizeof(fad.nFileSizeLow)*8)) + fad.nFileSizeLow;
+  return (static_cast<unsigned long long>(fad.nFileSizeHigh) << (sizeof(fad.nFileSizeLow) * 8)) + fad.nFileSizeLow;
 #else // BSS_PLATFORM_POSIX
   return bssFileSize(cStr(path).c_str());
 #endif
@@ -159,14 +159,14 @@ BSS_COMPILER_DLLEXPORT extern unsigned long long bss_util::bssFileSize(const wch
 
 BSS_COMPILER_DLLEXPORT
 extern std::unique_ptr<char[], bss_util::bssdll_delete<char[]>> bss_util::FileDialog(bool open, unsigned long flags,
-const char* file, const char* filter, const char* initdir, const char* defext)
+  const char* file, const char* filter, const char* initdir, const char* defext)
 {
 #ifdef BSS_PLATFORM_WIN32 //Windows function
   cStrW wfilter;
   size_t c;
   const char* i;
-  for(i=filter; *((const short*)i) != 0; ++i);
-  c=i-filter+1; //+1 to include null terminator
+  for(i = filter; *((const short*)i) != 0; ++i);
+  c = i - filter + 1; //+1 to include null terminator
   wfilter.reserve(MultiByteToWideChar(CP_UTF8, 0, filter, (int)c, 0, 0));
   MultiByteToWideChar(CP_UTF8, 0, filter, (int)c, wfilter.UnsafeString(), (int)wfilter.capacity());
   return FileDialog(open, flags, cStrW(file), wfilter, cStrW(initdir), cStrW(defext), 0);
@@ -206,14 +206,14 @@ const char* file, const char* filter, const char* initdir, const char* defext)
 #ifdef BSS_PLATFORM_WIN32 //Windows function
 BSS_COMPILER_DLLEXPORT
 extern std::unique_ptr<char[], bss_util::bssdll_delete<char[]>> bss_util::FileDialog(bool open, unsigned long flags,
-const wchar_t* file, const wchar_t* filter, const wchar_t* initdir, const wchar_t* defext, HWND__* owner)
+  const wchar_t* file, const wchar_t* filter, const wchar_t* initdir, const wchar_t* defext, HWND__* owner)
 {
   wchar_t buf[MAX_PATH];
   GetCurrentDirectoryW(MAX_PATH, buf);
   cStrW curdirsave(buf);
   ZeroMemory(buf, MAX_PATH);
 
-  if(file!=0) WCSNCPY(buf, MAX_PATH, file, bssmin(wcslen(file), MAX_PATH-1));
+  if(file != 0) WCSNCPY(buf, MAX_PATH, file, bssmin(wcslen(file), MAX_PATH - 1));
 
   OPENFILENAMEW ofn;
   ZeroMemory(&ofn, sizeof(ofn));
@@ -223,14 +223,14 @@ const wchar_t* file, const wchar_t* filter, const wchar_t* initdir, const wchar_
   ofn.lpstrFilter = filter;
   ofn.lpstrFile = buf;
   ofn.nMaxFile = MAX_PATH;
-  ofn.Flags = (open?OFN_EXPLORER|OFN_FILEMUSTEXIST:OFN_EXPLORER) | flags;
+  ofn.Flags = (open ? OFN_EXPLORER | OFN_FILEMUSTEXIST : OFN_EXPLORER) | flags;
   ofn.lpstrDefExt = defext;
   ofn.lpstrInitialDir = initdir;
 
-  BOOL res = open?GetOpenFileNameW(&ofn):GetSaveFileNameW(&ofn);
+  BOOL res = open ? GetOpenFileNameW(&ofn) : GetSaveFileNameW(&ofn);
 
   SetCurrentDirectoryW(curdirsave); //There is actually a flag that's supposed to do this for us but it doesn't work on XP for file open, so we have to do it manually just to be sure
-  if(!res) buf[0]='\0';
+  if(!res) buf[0] = '\0';
   size_t len = WideCharToMultiByte(CP_UTF8, 0, buf, -1, 0, 0, 0, 0);
   std::unique_ptr<char[], bssdll_delete<char[]>> r(new char[len]);
   WideCharToMultiByte(CP_UTF8, 0, buf, -1, r.get(), (int)len, 0, 0);
@@ -242,14 +242,14 @@ extern long bss_util::GetTimeZoneMinutes()
 {
 #ifdef BSS_PLATFORM_WIN32
   TIME_ZONE_INFORMATION dtime;
-  DWORD r=GetTimeZoneInformation(&dtime);
+  DWORD r = GetTimeZoneInformation(&dtime);
   switch(r)
   {
   case 0:
   case 1: //None or unknown daylight savings time
-    return -(dtime.Bias+dtime.StandardBias); //This should be negated because the equation is UTC = local time + bias, so that means UTC - bias = local time
+    return -(dtime.Bias + dtime.StandardBias); //This should be negated because the equation is UTC = local time + bias, so that means UTC - bias = local time
   case 2: //Using daylight savings time
-    return -(dtime.Bias+dtime.DaylightBias);
+    return -(dtime.Bias + dtime.DaylightBias);
   }
   return 0; //error
 
@@ -257,7 +257,7 @@ extern long bss_util::GetTimeZoneMinutes()
   time_t rawtime;
   TIME64(&rawtime);
   tm stm;
-  if(GMTIMEFUNC(&rawtime, &stm)!=0)
+  if(GMTIMEFUNC(&rawtime, &stm) != 0)
     return 0;
   return stm.tm_gmtoff;
 #endif
@@ -287,13 +287,13 @@ extern int bss_util::CreateDirW(const wchar_t* path, bool recursive)
     return -(CreateDirectoryW(path, 0) == 0);
   cStrW hold(path);
   hold.ReplaceChar('/', '\\');
-  if(hold[hold.size()-1] != '\\') hold += '\\'; //Make sure we've got a trailing \\ on the path.
+  if(hold[hold.size() - 1] != '\\') hold += '\\'; //Make sure we've got a trailing \\ on the path.
   const wchar_t* pos = wcschr(hold, '\\');
   cStrW temppath;
   while(pos)
   {
-    temppath = hold.substr(0, pos-(const wchar_t*)hold);
-    if(!FolderExistsW(temppath) && CreateDirectoryW(temppath, 0)==0)
+    temppath = hold.substr(0, pos - (const wchar_t*)hold);
+    if(!FolderExistsW(temppath) && CreateDirectoryW(temppath, 0) == 0)
       return -1;
     pos = wcschr(++pos, '\\');
   }
@@ -305,16 +305,16 @@ extern int bss_util::CreateDir(const char* path, bool recursive)
 {
   if(!recursive)
     return mkdir(path, 0700);
-  struct stat st ={ 0 };
+  struct stat st = { 0 };
 
   cStr hold(path);
   hold.ReplaceChar('\\', '/');
-  if(hold[hold.size()-1] != '/') hold += '/'; //Make sure we've got a trailing \\ on the path.
+  if(hold[hold.size() - 1] != '/') hold += '/'; //Make sure we've got a trailing \\ on the path.
   const char* pos = strchr(hold, '/');
   cStr temppath;
   while(pos)
   {
-    temppath = hold.substr(0, pos-(const char*)hold);
+    temppath = hold.substr(0, pos - (const char*)hold);
     if(stat(temppath, &st) < 0 && mkdir(temppath, 0700) < 0)
       return -1;
     pos = strchr(++pos, '/');
@@ -338,14 +338,15 @@ extern int bss_util::DelDirW(const wchar_t* cdir, bool recursive)
 
   cStrW dir(cdir);
   dir.ReplaceChar('/', '\\');
-  if(dir[dir.length()-1] != L'\\') dir += L'\\';
-  hdir = FindFirstFileW(dir+L"*", &ffd);
+  if(dir[dir.length() - 1] != L'\\') dir += L'\\';
+  hdir = FindFirstFileW(dir + L"*", &ffd);
 
   while(hdir != 0 && hdir != INVALID_HANDLE_VALUE)
   {
-    if(WCSICMP(ffd.cFileName, L".")!=0 && WCSICMP(ffd.cFileName, L"..")!=0)
+    if(WCSICMP(ffd.cFileName, L".") != 0 && WCSICMP(ffd.cFileName, L"..") != 0)
     {
-      if(ffd.dwFileAttributes & FILE_ATTRIBUTE_DIRECTORY) {
+      if(ffd.dwFileAttributes & FILE_ATTRIBUTE_DIRECTORY)
+      {
         if(DelDirW(dir + ffd.cFileName, true) != 0)
         {
           FindClose(hdir);
@@ -363,7 +364,7 @@ extern int bss_util::DelDirW(const wchar_t* cdir, bool recursive)
 
   if(hdir != 0)
     FindClose(hdir);
-  if(RemoveDirectoryW(dir.substr(0, dir.size()-1).c_str())==0)
+  if(RemoveDirectoryW(dir.substr(0, dir.size() - 1).c_str()) == 0)
     return -1;
   return 0;
 }
@@ -372,10 +373,10 @@ extern int bss_util::DelDirW(const wchar_t* cdir, bool recursive)
 
 int _deldir_func(const char *fpath, const struct stat *sb, int typeflag, struct FTW *ftwbuf)
 {
-  assert(typeflag!=FTW_D); //shouldn't happen because we set FTW_DEPTH
-  if(typeflag==FTW_DP)
+  assert(typeflag != FTW_D); //shouldn't happen because we set FTW_DEPTH
+  if(typeflag == FTW_DP)
     return rmdir(fpath);
-  if(typeflag==FTW_F)
+  if(typeflag == FTW_F)
     return unlink(fpath);
   return remove(fpath);
 }
@@ -384,7 +385,7 @@ extern int bss_util::DelDir(const char* cdir, bool recursive)
 {
   if(!recursive)
     return rmdir(cdir);
-  return nftw(cdir,&_deldir_func, 20, FTW_DEPTH);
+  return nftw(cdir, &_deldir_func, 20, FTW_DEPTH);
 }
 #endif
 
@@ -395,20 +396,22 @@ BSS_COMPILER_DLLEXPORT extern int bss_util::_listdir(const wchar_t* cdir, void(*
   HANDLE hdir = INVALID_HANDLE_VALUE;
 
   cStrW dir(cdir);
-  if(dir[dir.length()-1] == '/') dir.UnsafeString()[dir.length()-1] = '\\';
-  if(dir[dir.length()-1] != '\\') dir += '\\';
-  hdir = FindFirstFileW(dir+"*", &ffd);
+  if(dir[dir.length() - 1] == '/') dir.UnsafeString()[dir.length() - 1] = '\\';
+  if(dir[dir.length() - 1] != '\\') dir += '\\';
+  hdir = FindFirstFileW(dir + "*", &ffd);
 
-  while(hdir != 0 && hdir !=INVALID_HANDLE_VALUE)
+  while(hdir != 0 && hdir != INVALID_HANDLE_VALUE)
   {
-    if(WCSICMP(ffd.cFileName, L".")!=0 && WCSICMP(ffd.cFileName, L"..")!=0)
+    if(WCSICMP(ffd.cFileName, L".") != 0 && WCSICMP(ffd.cFileName, L"..") != 0)
     {
-      if(ffd.dwFileAttributes & FILE_ATTRIBUTE_DIRECTORY) {
-        cStrW fldir(dir+ffd.cFileName);
-        if(flags&2) (*fn)(fldir.c_str(), files);
-        if(flags&1) _listdir(fldir.c_str(), fn, files, flags);
-      } else
-        (*fn)((dir+ffd.cFileName).c_str(),files);
+      if(ffd.dwFileAttributes & FILE_ATTRIBUTE_DIRECTORY)
+      {
+        cStrW fldir(dir + ffd.cFileName);
+        if(flags & 2) (*fn)(fldir.c_str(), files);
+        if(flags & 1) _listdir(fldir.c_str(), fn, files, flags);
+      }
+      else
+        (*fn)((dir + ffd.cFileName).c_str(), files);
     }
     if(FindNextFileW(hdir, &ffd) <= 0) break; //either we're done or it failed
   }
@@ -428,21 +431,23 @@ BSS_COMPILER_DLLEXPORT extern int bss_util::ListDir(const char* path, std::vecto
   struct stat st;
   struct dirent* dent;
   cStr dir(path);
-  if(dir[dir.length()-1] == '\\') dir.UnsafeString()[dir.length()-1] = '/';
-  if(dir[dir.length()-1] != '/') dir += '/';
+  if(dir[dir.length() - 1] == '\\') dir.UnsafeString()[dir.length() - 1] = '/';
+  if(dir[dir.length() - 1] != '/') dir += '/';
 
-  while((dent = readdir(srcdir))!=0)
+  while((dent = readdir(srcdir)) != 0)
   {
     if(strcmp(dent->d_name, ".") == 0 || strcmp(dent->d_name, "..") == 0)
       continue;
-    if (fstatat(dirfd(srcdir), dent->d_name, &st, 0) == 0)
+    if(fstatat(dirfd(srcdir), dent->d_name, &st, 0) == 0)
     {
-      cStr sdir(dir+dent->d_name);
-      if(S_ISDIR(st.st_mode)) {
-        if(flags&2) files.push_back(sdir.c_str());
-        if(flags&1) ListDir(sdir.c_str(), files, flags);
-      } else
-        files.push_back((dir+dent->d_name).c_str());
+      cStr sdir(dir + dent->d_name);
+      if(S_ISDIR(st.st_mode))
+      {
+        if(flags & 2) files.push_back(sdir.c_str());
+        if(flags & 1) ListDir(sdir.c_str(), files, flags);
+      }
+      else
+        files.push_back((dir + dent->d_name).c_str());
     }
   }
   closedir(srcdir);
@@ -486,7 +491,7 @@ int bss_util::SetRegistryValueW(HKEY__*	hOpenKey, const wchar_t* szKey, const wc
   if(!hOpenKey || !szKey || !szKey[0] || !szValue || !szData) { ::SetLastError((DWORD)E_INVALIDARG); return FALSE; } // validate input
 
   return r_setregvalue(hOpenKey, szKey, [&](HKEY& hTempKey) -> int {
-    return RegSetValueExW(hTempKey, (LPWSTR)szValue, 0, REG_SZ, (LPBYTE)szData, ((DWORD)strlen(szData)+1)*sizeof(wchar_t));
+    return RegSetValueExW(hTempKey, (LPWSTR)szValue, 0, REG_SZ, (LPBYTE)szData, ((DWORD)strlen(szData) + 1) * sizeof(wchar_t));
   });
 }
 
@@ -583,16 +588,19 @@ int r_delregnode(HKEY__* hKeyRoot, const wchar_t* lpSubKey)
 
   if(lResult != ERROR_SUCCESS)
   {
-    if(lResult == ERROR_FILE_NOT_FOUND) {
+    if(lResult == ERROR_FILE_NOT_FOUND)
+    {
       OutputDebugStringW(L"Key not found.\n");
       return TRUE;
-    } else {
+    }
+    else
+    {
       OutputDebugStringW(L"Error opening key.\n");
       return FALSE;
     }
   }
   // Check for an ending slash and add one if it is missing.
-  if(lpEnd[lpEnd.length()-1] != L'\\')
+  if(lpEnd[lpEnd.length() - 1] != L'\\')
     lpEnd += L'\\';
 
   dwSize = MAX_PATH;
@@ -600,9 +608,10 @@ int r_delregnode(HKEY__* hKeyRoot, const wchar_t* lpSubKey)
 
   if(lResult == ERROR_SUCCESS)
   {
-    do {
-      //lpEnd = szName;
-      if(!r_delregnode(hKeyRoot, lpEnd+szName))
+    do
+    {
+  //lpEnd = szName;
+      if(!r_delregnode(hKeyRoot, lpEnd + szName))
         break;
 
       dwSize = MAX_PATH;
@@ -614,7 +623,7 @@ int r_delregnode(HKEY__* hKeyRoot, const wchar_t* lpSubKey)
 
   lResult = RegDeleteKeyW(hKeyRoot, lpEnd);
 
-  return lResult == ERROR_SUCCESS?TRUE:FALSE;
+  return lResult == ERROR_SUCCESS ? TRUE : FALSE;
 }
 
 int bss_util::DelRegistryNode(HKEY__* hKeyRoot, const char* lpSubKey)
@@ -630,7 +639,7 @@ int bss_util::DelRegistryNodeW(HKEY__* hKeyRoot, const wchar_t* lpSubKey)
 struct BSSFONT
 {
   BSSFONT(const ENUMLOGFONTEX* fontex, DWORD elftype) : weight((short)fontex->elfLogFont.lfWeight), italic(fontex->elfLogFont.lfItalic != 0), type((char)elftype)
-  { 
+  {
     memcpy_s(elfFullName, sizeof(wchar_t)*LF_FULLFACESIZE, fontex->elfFullName, sizeof(wchar_t)*LF_FULLFACESIZE);
   }
 
@@ -648,7 +657,7 @@ struct BSSFONT
 
 typedef bss_util::cArraySort<BSSFONT, &BSSFONT::Comp> BSSFONTARRAY;
 
-int CALLBACK EnumFont_GetFontPath(const LOGFONT *lpelfe,const TEXTMETRIC *lpntme,DWORD FontType,LPARAM lParam)
+int CALLBACK EnumFont_GetFontPath(const LOGFONT *lpelfe, const TEXTMETRIC *lpntme, DWORD FontType, LPARAM lParam)
 {
   const ENUMLOGFONTEX* info = reinterpret_cast<const ENUMLOGFONTEX*>(lpelfe);
   BSSFONTARRAY* fonts = reinterpret_cast<BSSFONTARRAY*>(lParam);
@@ -686,7 +695,7 @@ std::unique_ptr<char[], bss_util::bssdll_delete<char[]>> bss_util::GetFontPath(c
   UTF8toUTF16(family, -1, font.lfFaceName, LF_FACESIZE - 1);
   BSSFONTARRAY fonts;
   EnumFontFamiliesExW(hdc, &font, &EnumFont_GetFontPath, reinterpret_cast<LPARAM>(&fonts), 0);
-  
+
   size_t target = 0;
   std::unique_ptr<char[], bss_util::bssdll_delete<char[]>> p(nullptr);
   if(fonts.Length() > 0) // Make sure we have at least one result
@@ -697,9 +706,9 @@ std::unique_ptr<char[], bss_util::bssdll_delete<char[]>> bss_util::GetFontPath(c
       {
         if((fonts[target].italic != italic) || // If our current target doesn't match italic, immediately substitute this one.
           (fonts[i].weight == weight) || // Check for an exact weight match
-           (weight == 500 && fonts[i].weight == 400 && fonts[target].weight != 500) || // If the requested weight is exactly 500 and we haven't matched it, use 400 instead
-           (weight == 400 && fonts[i].weight == 500 && fonts[target].weight != 400) || // If the requested weight is exactly 400 and we haven't matched it, use 500 instead
-           weightbiascheck(weight, fonts[target].weight, fonts[i].weight))
+          (weight == 500 && fonts[i].weight == 400 && fonts[target].weight != 500) || // If the requested weight is exactly 500 and we haven't matched it, use 400 instead
+          (weight == 400 && fonts[i].weight == 500 && fonts[target].weight != 400) || // If the requested weight is exactly 400 and we haven't matched it, use 500 instead
+          weightbiascheck(weight, fonts[target].weight, fonts[i].weight))
           target = i;
       }
     }
@@ -719,7 +728,7 @@ std::unique_ptr<char[], bss_util::bssdll_delete<char[]>> bss_util::GetFontPath(c
       {
         wcscat_s(buf, L"\\");
         wcscat_s(buf, (wchar_t*)path);
-        p = std::move(std::unique_ptr<char[], bss_util::bssdll_delete<char[]>>(new char[MAX_PATH*2]));
+        p = std::move(std::unique_ptr<char[], bss_util::bssdll_delete<char[]>>(new char[MAX_PATH * 2]));
         UTF16toUTF8(buf, MAX_PATH, p.get(), MAX_PATH * 2);
       }
     }
@@ -764,9 +773,10 @@ std::unique_ptr<char[], bss_util::bssdll_delete<char[]>> bss_util::GetFontPath(c
 
 struct testclass
 {
-  void f() {
+  void f()
+  {
 
-  
+
   }
 };
 void ffff() {}

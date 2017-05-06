@@ -87,7 +87,7 @@ namespace bss_util {
 
     inline void dealloc(void* p) noexcept
     {
-      Node* n = ((Node*)p)-1;
+      Node* n = ((Node*)p) - 1;
       Bucket* b = n->p; // grab bucket pointer before we annihilate the node
 #ifdef BSS_DEBUG
       memset(n, 0xfc, n->sz); // n->sz is the entire size of the node, including the node itself.
@@ -116,7 +116,7 @@ namespace bss_util {
   protected:
     BSS_FORCEINLINE static LLBase<Bucket>& _getbucket(Bucket* b) noexcept { return b->list; }
 
-    void _clear() 
+    void _clear()
     {
       Bucket* hold;
       while(_list != 0)
@@ -136,8 +136,8 @@ namespace bss_util {
       if(_lastsize < num) _lastsize = num;
 
       // If there are buckets in _gc, see if they are big enough. If they aren't, throw them out
-      bss_PTag<Bucket> prev ={ 0, 0 };
-      bss_PTag<Bucket> nval ={ 0, 0 };
+      bss_PTag<Bucket> prev = { 0, 0 };
+      bss_PTag<Bucket> nval = { 0, 0 };
       asmcasr<bss_PTag<Bucket>>(&_gc, prev, prev, prev);
       Bucket* hold;
       while((hold = prev.p) != 0)
@@ -159,7 +159,7 @@ namespace bss_util {
       if(!hold) // If hold is nullptr we need a new bucket
       {
         _lastsize = T_FBNEXT(_lastsize);
-        hold = (Bucket*)calloc(1, sizeof(Bucket)+_lastsize);
+        hold = (Bucket*)calloc(1, sizeof(Bucket) + _lastsize);
         new (&hold->lock) RWLock();
         hold->sz = _lastsize;
         AltLLAdd<Bucket, &_getbucket>(hold, _list);
@@ -203,13 +203,13 @@ namespace bss_util {
 
     void _recycle(Bucket* b) noexcept
     {
-      bss_PTag<Bucket> prev ={ 0, 0 };
-      bss_PTag<Bucket> nval ={ b, 0 };
+      bss_PTag<Bucket> prev = { 0, 0 };
+      bss_PTag<Bucket> nval = { b, 0 };
       asmcasr<bss_PTag<Bucket>>(&_gc, prev, prev, prev); // This will almost always fail but it only serves to get the value of _gc
       do
       {
         b->next = prev.p;
-        nval.tag = prev.tag+1;
+        nval.tag = prev.tag + 1;
       } while(!asmcasr<bss_PTag<Bucket>>(&_gc, nval, prev, prev));
     }
 
@@ -231,8 +231,8 @@ namespace bss_util {
 
   public:
     inline cRingAlloc(cRingAlloc&& mov) : cRingAllocVoid(std::move(mov)) {}
-    inline explicit cRingAlloc(size_t init=8) : cRingAllocVoid(init) { }
-    inline T* alloc(size_t num) noexcept { return (T*)cRingAllocVoid::alloc(num*sizeof(T)); }
+    inline explicit cRingAlloc(size_t init = 8) : cRingAllocVoid(init) {}
+    inline T* alloc(size_t num) noexcept { return (T*)cRingAllocVoid::alloc(num * sizeof(T)); }
     inline cRingAlloc& operator=(cRingAlloc&& mov) noexcept { cRingAllocVoid::operator=(std::move(mov)); return *this; }
   };
 

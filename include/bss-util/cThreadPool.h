@@ -10,16 +10,15 @@
 #include "cArray.h"
 #include "delegate.h"
 
-namespace bss_util
-{
+namespace bss_util {
   // Stores a pool of threads that execute tasks.
   class cThreadPool
   {
     typedef void(*FN)(void*);
     typedef std::pair<FN, void*> TASK;
-    
+
     cThreadPool(const cThreadPool&) BSS_DELETEFUNC
-    cThreadPool& operator=(const cThreadPool&) BSS_DELETEFUNCOP
+      cThreadPool& operator=(const cThreadPool&) BSS_DELETEFUNCOP
 
   public:
     cThreadPool(cThreadPool&& mov) : _falloc(std::move(mov._falloc)), _run(mov._run.load(std::memory_order_relaxed)),
@@ -29,10 +28,12 @@ namespace bss_util
       mov._inactive.store(0, std::memory_order_release);
       mov._run.store(0, std::memory_order_release);
     }
-    explicit cThreadPool(uint32_t count) : _falloc(sizeof(TASK) * 20), _run(0), _inactive(0), _tasks(0) {
+    explicit cThreadPool(uint32_t count) : _falloc(sizeof(TASK) * 20), _run(0), _inactive(0), _tasks(0)
+    {
       AddThreads(count);
     }
-    cThreadPool() : _falloc(sizeof(TASK)*20), _run(0), _inactive(0), _tasks(0) {
+    cThreadPool() : _falloc(sizeof(TASK) * 20), _run(0), _inactive(0), _tasks(0)
+    {
       AddThreads(IdealWorkerCount());
     }
     ~cThreadPool()

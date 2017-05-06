@@ -23,7 +23,7 @@ namespace bss_util {
   template<typename T, typename D, typename CT_, char(*CEQ)(const char&, const char&), char CVAL, typename... Args>
   struct binsearch_aux_t {
     template<char(*CFunc)(const D&, const T&, Args...)>
-    inline static CT_ binsearch_near(const T* arr, const D& data, CT_ first, CT_ last, Args... args)
+    inline static CT_ BinarySearchNear(const T* arr, const D& data, CT_ first, CT_ last, Args... args)
     {
       typename std::make_signed<CT_>::type c = last - first; // Must be a signed version of whatever CT_ is
       CT_ c2; //No possible operation can make this negative so we leave it as possibly unsigned.
@@ -48,31 +48,31 @@ namespace bss_util {
 
   // Performs a binary search on "arr" between first and last. if CEQ=NEQ and char CVAL=-1, uses an upper bound, otherwise uses lower bound.
   template<typename T, typename D, typename CT_, char(*CFunc)(const D&, const T&), char(*CEQ)(const char&, const char&), char CVAL>
-  BSS_FORCEINLINE CT_ binsearch_near(const T* arr, const D& data, CT_ first, CT_ last) { return binsearch_aux_t<T, D, CT_, CEQ, CVAL>::template binsearch_near<CFunc>(arr, data, first, last); }
+  BSS_FORCEINLINE CT_ BinarySearchNear(const T* arr, const D& data, CT_ first, CT_ last) { return binsearch_aux_t<T, D, CT_, CEQ, CVAL>::template BinarySearchNear<CFunc>(arr, data, first, last); }
 
   // Either gets the element that matches the value in question or one immediately before the closest match. Could return an invalid -1 value.
   template<typename T, typename CT_, char(*CFunc)(const T&, const T&)>
-  BSS_FORCEINLINE CT_ binsearch_before(const T* arr, const T& data, CT_ first, CT_ last) { return binsearch_near<T, T, CT_, CFunc, CompT_NEQ<char>, -1>(arr, data, first, last) - 1; }
+  BSS_FORCEINLINE CT_ BinarySearchBefore(const T* arr, const T& data, CT_ first, CT_ last) { return BinarySearchNear<T, T, CT_, CFunc, CompT_NEQ<char>, -1>(arr, data, first, last) - 1; }
 
   template<typename T, typename CT_, char(*CFunc)(const T&, const T&)>
-  BSS_FORCEINLINE CT_ binsearch_before(const T* arr, CT_ length, const T& data) { return binsearch_near<T, T, CT_, CFunc, CompT_NEQ<char>, -1>(arr, data, 0, length) - 1; }
+  BSS_FORCEINLINE CT_ BinarySearchBefore(const T* arr, CT_ length, const T& data) { return BinarySearchNear<T, T, CT_, CFunc, CompT_NEQ<char>, -1>(arr, data, 0, length) - 1; }
 
   template<typename T, typename CT_, char(*CFunc)(const T&, const T&), CT_ I>
-  BSS_FORCEINLINE CT_ binsearch_before(const T(&arr)[I], const T& data) { return binsearch_before<T, CT_, CFunc>(arr, I, data); }
+  BSS_FORCEINLINE CT_ BinarySearchBefore(const T(&arr)[I], const T& data) { return BinarySearchBefore<T, CT_, CFunc>(arr, I, data); }
 
   // Either gets the element that matches the value in question or one immediately after the closest match.
   template<typename T, typename CT_, char(*CFunc)(const T&, const T&)>
-  BSS_FORCEINLINE CT_ binsearch_after(const T* arr, const T& data, CT_ first, CT_ last) { return binsearch_near<T, T, CT_, CFunc, CompT_EQ<char>, 1>(arr, data, first, last); }
+  BSS_FORCEINLINE CT_ BinarySearchAfter(const T* arr, const T& data, CT_ first, CT_ last) { return BinarySearchNear<T, T, CT_, CFunc, CompT_EQ<char>, 1>(arr, data, first, last); }
 
   template<typename T, typename CT_, char(*CFunc)(const T&, const T&)>
-  BSS_FORCEINLINE CT_ binsearch_after(const T* arr, CT_ length, const T& data) { return binsearch_near<T, T, CT_, CFunc, CompT_EQ<char>, 1>(arr, data, 0, length); }
+  BSS_FORCEINLINE CT_ BinarySearchAfter(const T* arr, CT_ length, const T& data) { return BinarySearchNear<T, T, CT_, CFunc, CompT_EQ<char>, 1>(arr, data, 0, length); }
 
   template<typename T, typename CT_, char(*CFunc)(const T&, const T&), CT_ I>
-  BSS_FORCEINLINE CT_ binsearch_after(const T(&arr)[I], const T& data) { return binsearch_after<T, CT_, CFunc>(arr, I, data); }
+  BSS_FORCEINLINE CT_ BinarySearchAfter(const T(&arr)[I], const T& data) { return BinarySearchAfter<T, CT_, CFunc>(arr, I, data); }
 
   // Returns index of the item, if it exists, or -1
   template<typename T, typename D, typename CT_, char(*CFunc)(const T&, const D&)>
-  inline CT_ binsearch_exact(const T* arr, const D& data, typename std::make_signed<CT_>::type f, typename std::make_signed<CT_>::type l)
+  inline CT_ BinarySearchExact(const T* arr, const D& data, typename std::make_signed<CT_>::type f, typename std::make_signed<CT_>::type l)
   {
     --l; // Done so l can be an exclusive size parameter even though the algorithm is inclusive.
     CT_ m; // While f and l must be signed ints or the algorithm breaks, m does not.
@@ -92,7 +92,7 @@ namespace bss_util {
   }
 
   template<typename T, typename CT_, char(*CFunc)(const T&, const T&), CT_ I>
-  BSS_FORCEINLINE CT_ binsearch_exact(const T(&arr)[I], const T& data) { return binsearch_exact<T, T, CT_, CFunc>(arr, data, 0, I); }
+  BSS_FORCEINLINE CT_ BinarySearchExact(const T(&arr)[I], const T& data) { return BinarySearchExact<T, T, CT_, CFunc>(arr, data, 0, I); }
 
   // Implementation of an xorshift64star generator. x serves as the generator state, which should initially be set to the RNG seed.
   inline uint64_t xorshift64star(uint64_t& x)
@@ -162,12 +162,12 @@ namespace bss_util {
   };*/
 
   template<typename T = uint64_t>
-  class BSS_COMPILER_DLLEXPORT xorshift_engine : protected xorshift_engine_base<T>
+  class BSS_COMPILER_DLLEXPORT XorshiftEngine : protected xorshift_engine_base<T>
   {
   public:
-    xorshift_engine() { seed(); }
-    explicit xorshift_engine(uint64_t s) { seed(s); }
-    explicit xorshift_engine(uint64_t s[16]) { seed(s); }
+    XorshiftEngine() { seed(); }
+    explicit XorshiftEngine(uint64_t s) { seed(s); }
+    explicit XorshiftEngine(uint64_t s[16]) { seed(s); }
     void seed() { std::random_device rd; genxor1024seed(rd(), _state); }
     void seed(uint64_t s) { genxor1024seed(s, _state); }
     void seed(uint64_t s[16]) { for(int i = 0; i < 16; ++i) _state[i] = s[i]; _state[16] = 0; }
@@ -177,8 +177,8 @@ namespace bss_util {
     inline static T max() { return xorshift_engine_base<T>::base_max(); }
 
     inline T operator()() { return xorshift_engine_base<T>::base_transform(xorshift1024star(_state)); } // Truncate to return_value size.
-    bool operator ==(const xorshift_engine& r) const { for(int i = 0; i < 17; ++i) if(_state[i] != r._state[i]) return false; return true; }
-    bool operator !=(const xorshift_engine& r) const { return !operator==(r); }
+    bool operator ==(const XorshiftEngine& r) const { for(int i = 0; i < 17; ++i) if(_state[i] != r._state[i]) return false; return true; }
+    bool operator !=(const XorshiftEngine& r) const { return !operator==(r); }
 
     typedef T result_type;
 
@@ -186,12 +186,13 @@ namespace bss_util {
     uint64_t _state[17];
   };
 
-  inline uint64_t xorshiftrand(uint64_t seed = 0) {
+  inline uint64_t XorshiftRand(uint64_t seed = 0)
+  {
     static uint64_t state[17];
     if(seed) genxor1024seed(seed, state);
     return xorshift1024star(state);
   }
-  typedef xorshift_engine<uint64_t> xorshift_engine64;
+  typedef XorshiftEngine<uint64_t> XorshiftEngine64;
 
   template<typename T, class ENGINE, typename ET>
   inline T __bss_gencanonical(ENGINE& e, ET _Emin)
@@ -214,46 +215,46 @@ namespace bss_util {
 
   // VC++ has a broken implementation of std::generate_canonical so we get to reimplement it ourselves.
   template<typename T, typename ENGINE>
-  inline T bss_gencanonical(ENGINE& e)
+  inline T bssGenCanonical(ENGINE& e)
   {
     return __bss_gencanonical<T, ENGINE>(e, (typename ENGINE::result_type)e.min());
   }
 
-  inline xorshift_engine<uint64_t>& bss_getdefaultengine()
+  inline XorshiftEngine<uint64_t>& bss_getdefaultengine()
   {
-    static xorshift_engine<uint64_t> e;
+    static XorshiftEngine<uint64_t> e;
     return e;
   }
 
   // Generates a number in the range [min,max) using the given engine.
-  template<typename T, typename ENGINE = xorshift_engine<uint64_t>>
+  template<typename T, typename ENGINE = XorshiftEngine<uint64_t>>
   inline T bssrand(T min, T max, ENGINE& e = bss_getdefaultengine())
   {
-    return min + static_cast<T>(bss_gencanonical<double, ENGINE>(e)*static_cast<double>(max - min));
+    return min + static_cast<T>(bssGenCanonical<double, ENGINE>(e)*static_cast<double>(max - min));
   }
-  inline double bssrandreal(double min, double max) { return bssrand<double>(min, max); }
-  inline int64_t bssrandint(int64_t min, int64_t max) { return bssrand<int64_t>(min, max); }
-  inline void bssrandseed(uint64_t s) { bss_getdefaultengine().seed(s); }
+  inline double bssRandReal(double min, double max) { return bssrand<double>(min, max); }
+  inline int64_t bssRandInt(int64_t min, int64_t max) { return bssrand<int64_t>(min, max); }
+  inline void bssRandSeed(uint64_t s) { bss_getdefaultengine().seed(s); }
 
   // Shuffler using Fisher-Yates/Knuth Shuffle algorithm based on Durstenfeld's implementation.
   template<typename T, typename CT, typename ENGINE>
-  inline void shuffle(T* p, CT size, ENGINE& e)
+  inline void Shuffle(T* p, CT size, ENGINE& e)
   {
     for(CT i = size; i > 0; --i)
       rswap<T>(p[i - 1], p[bssrand<CT, ENGINE>(0, i, e)]);
   }
   template<typename T, typename CT, typename ENGINE, CT size>
-  inline void shuffle(T(&p)[size], ENGINE& e) { shuffle<T, CT, ENGINE>(p, size, e); }
+  inline void Shuffle(T(&p)[size], ENGINE& e) { Shuffle<T, CT, ENGINE>(p, size, e); }
 
   /* Shuffler using default random number generator.*/
   template<typename T>
-  BSS_FORCEINLINE void shuffle(T* p, int size)
+  BSS_FORCEINLINE void Shuffle(T* p, int size)
   {
-    xorshift_engine<uint64_t> e;
-    shuffle<T, int, xorshift_engine<uint64_t>>(p, size, e);
+    XorshiftEngine<uint64_t> e;
+    Shuffle<T, int, XorshiftEngine<uint64_t>>(p, size, e);
   }
   template<typename T, int size>
-  BSS_FORCEINLINE void shuffle(T(&p)[size]) { shuffle<T>(p, size); }
+  BSS_FORCEINLINE void Shuffle(T(&p)[size]) { Shuffle<T>(p, size); }
 
   template<class F, typename T, size_t SIZE>
   BSS_FORCEINLINE void transform(T(&t)[SIZE], T(&result)[SIZE], F func) { std::transform(std::begin(t), std::end(t), result, func); }
@@ -263,7 +264,7 @@ namespace bss_util {
   BSS_FORCEINLINE void for_each(T(&t)[SIZE], F func) { std::for_each(std::begin(t), std::end(t), func); }
 
   // Random queue that pops a random item instead of the last item.
-  template<typename T, typename CType = uint32_t, typename ENGINE = xorshift_engine<uint64_t>, ARRAY_TYPE ArrayType = CARRAY_SIMPLE, typename Alloc = StaticAllocPolicy<T>>
+  template<typename T, typename CType = uint32_t, typename ENGINE = XorshiftEngine<uint64_t>, ARRAY_TYPE ArrayType = CARRAY_SIMPLE, typename Alloc = StaticAllocPolicy<T>>
   class BSS_COMPILER_DLLEXPORT cRandomQueue : protected cDynArray<T, CType, ArrayType, Alloc>
   {
   protected:
@@ -303,7 +304,7 @@ namespace bss_util {
   static const double ZIGNOR_R = 3.442619855899;
 
   // Instance for generating random samples from a normal distribution.
-  template<int ZIGNOR_C = 128, typename T = double, typename ENGINE = xorshift_engine<uint64_t>>
+  template<int ZIGNOR_C = 128, typename T = double, typename ENGINE = XorshiftEngine<uint64_t>>
   struct NormalZig
   {
     T s_adZigX[ZIGNOR_C + 1], s_adZigR[ZIGNOR_C];
@@ -370,7 +371,7 @@ namespace bss_util {
   template<typename T, typename F1, typename F2, typename F3> // F2 takes (const float (&rect)[4]) and is called when a branch terminates on a rect.
   inline void StochasticSubdivider(const T(&rect)[4], const F1& f1, const F2& f2, const F3& f3, uint32_t depth = 0) // F3 returns a random number from [0,1]
   {
-    if(bssrandreal(0, 1.0) < f1(depth, rect))
+    if(bssRandReal(0, 1.0) < f1(depth, rect))
     {
       f2(rect);
       return;
@@ -407,7 +408,7 @@ namespace bss_util {
     assert(!(~ig[0]));
 
     cRandomQueue<std::array<T, 2>> list;
-    std::array<T, 2> pt = { (T)bssrandreal(rect[0], rect[2]), (T)bssrandreal(rect[1], rect[3]) };
+    std::array<T, 2> pt = { (T)bssRandReal(rect[0], rect[2]), (T)bssRandReal(rect[1], rect[3]) };
 
     //update containers 
     list.Push(pt);
@@ -423,8 +424,8 @@ namespace bss_util {
       auto point = list.Pop();
       for(uint32_t i = 0; i < pointsPerIteration; i++)
       {
-        radius = mindist*((T)bssrandreal(1, 2)); //random point between mindist and 2*mindist
-        angle = (T)bssrandreal(0, PI_DOUBLE);
+        radius = mindist*((T)bssRandReal(1, 2)); //random point between mindist and 2*mindist
+        angle = (T)bssRandReal(0, PI_DOUBLE);
         pt[0] = point[0] + radius * cos(angle); //the new point is generated around the point (x, y)
         pt[1] = point[1] + radius * sin(angle);
 

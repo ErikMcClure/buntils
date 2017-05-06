@@ -10,7 +10,7 @@
 
 namespace bss_util {
   // A dynamic array that keeps its contents sorted using insertion sort and uses a binary search to retrieve items.
-  template<typename T, char(*CFunc)(const T&, const T&)=&CompT<T>, typename CType = size_t, ARRAY_TYPE ArrayType = CARRAY_SIMPLE, typename Alloc=StaticAllocPolicy<T>>
+  template<typename T, char(*CFunc)(const T&, const T&) = &CompT<T>, typename CType = size_t, ARRAY_TYPE ArrayType = CARRAY_SIMPLE, typename Alloc = StaticAllocPolicy<T>>
   class BSS_COMPILER_DLLEXPORT cArraySort
   {
   public:
@@ -21,12 +21,12 @@ namespace bss_util {
     inline cArraySort(const cArraySort& copy) : _array(copy._array) {}
     inline cArraySort(cArraySort&& mov) : _array(std::move(mov._array)) {}
     inline cArraySort(const cArraySlice<const T, CType>& slice) : _array(slice) {}
-    inline explicit cArraySort(CT_ size=0) : _array(size) {}
-    inline ~cArraySort() { }
+    inline explicit cArraySort(CT_ size = 0) : _array(size) {}
+    inline ~cArraySort() {}
     BSS_FORCEINLINE CT_ Insert(constref data) { CT_ loc = _insert(data); _array.Insert(data, loc); return loc; }
     BSS_FORCEINLINE CT_ Insert(moveref data) { CT_ loc = _insert(std::move(data)); _array.Insert(std::move(data), loc); return loc; }
     inline void Clear() { _array.Clear(); }
-    inline void Discard(uint32_t num) { _array.SetLength((num>_array.Length())?0:(_array.Length() - num)); }
+    inline void Discard(uint32_t num) { _array.SetLength((num > _array.Length()) ? 0 : (_array.Length() - num)); }
     BSS_FORCEINLINE bool Empty() const { return _array.Empty(); }
     BSS_FORCEINLINE void Reserve(CT_ capacity) { _array.Reserve(capacity); }
     BSS_FORCEINLINE CT_ Length() const { return _array.Length(); }
@@ -44,18 +44,18 @@ namespace bss_util {
     CT_ ReplaceData(CT_ index, constref data)
     {
       T swap;
-      _array[index]=data;
-      while(index>0 && CFunc(_array[index-1], _array[index])>0)
+      _array[index] = data;
+      while(index > 0 && CFunc(_array[index - 1], _array[index]) > 0)
       { //we do a swap here and hope that the compiler is smart enough to optimize it
-        swap=_array[index];
-        _array[index]=_array[index-1];
-        _array[--index]=swap;
+        swap = _array[index];
+        _array[index] = _array[index - 1];
+        _array[--index] = swap;
       }
-      while(index<(_array.Length()-1) && CFunc(_array[index+1], _array[index])<0)
+      while(index < (_array.Length() - 1) && CFunc(_array[index + 1], _array[index]) < 0)
       { //we do a swap here and hope that the compiler is smart enough to optimize it
-        swap=_array[index];
-        _array[index]=_array[index+1];
-        _array[++index]=swap;
+        swap = _array[index];
+        _array[index] = _array[index + 1];
+        _array[++index] = swap;
       }
       return index;
     }
@@ -69,14 +69,14 @@ namespace bss_util {
 
     BSS_FORCEINLINE CT_ Find(constref data) const
     {
-      return binsearch_exact<T, T, CT_, CFunc>(_array, data, 0, _array.Length());
+      return BinarySearchExact<T, T, CT_, CFunc>(_array, data, 0, _array.Length());
     }
 
     // Can actually return -1 if there isn't anything in the array
-    inline CT_ FindNear(constref data, bool before=true) const
+    inline CT_ FindNear(constref data, bool before = true) const
     {
-      CT_ retval=before?binsearch_before<T, CT_, CFunc>(_array, _array.Length(), data):binsearch_after<T, CT_, CFunc>(_array, _array.Length(), data);
-      return (retval<_array.Length())?retval:(CT_)(-1); // This is only needed for before=false in case it returns a value outside the range.
+      CT_ retval = before ? BinarySearchBefore<T, CT_, CFunc>(_array, _array.Length(), data) : BinarySearchAfter<T, CT_, CFunc>(_array, _array.Length(), data);
+      return (retval < _array.Length()) ? retval : (CT_)(-1); // This is only needed for before=false in case it returns a value outside the range.
     }
 
     BSS_FORCEINLINE constref operator [](CT_ index) const { return _array[index]; }
@@ -96,7 +96,7 @@ namespace bss_util {
         CT_ loc;
         if((*CFunc)(data, _array[0]) < 0) loc = 0;
         else if((*CFunc)(data, _array.Back()) >= 0) loc = _array.Length();
-        else loc = binsearch_after<T, CT_, CFunc>(_array, _array.Length(), std::forward<U>(data));
+        else loc = BinarySearchAfter<T, CT_, CFunc>(_array, _array.Length(), std::forward<U>(data));
         return loc;
       }
     }

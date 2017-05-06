@@ -1,12 +1,12 @@
 // Copyright ©2017 Black Sphere Studios
 // For conditions of distribution and use, see copyright notice in "bss_util.h"
 
-#ifndef __C_SERIALIZER_H__BSS__
-#define __C_SERIALIZER_H__BSS__
+#ifndef __SERIALIZER_H__BSS__
+#define __SERIALIZER_H__BSS__
 
 #include <iostream>
 #include <tuple>
-#include "bss-util/Trie.h"
+#include "Trie.h"
 
 namespace bss {
   //DEFINE_MEMBER_CHECKER(Serialize); // doesn't seem to work for template functions

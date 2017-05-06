@@ -1,11 +1,11 @@
 // Copyright ©2017 Black Sphere Studios
 // For conditions of distribution and use, see copyright notice in "bss_util.h"
 
-#ifndef __C_COMPACT_ARRAY_H__BSS__
-#define __C_COMPACT_ARRAY_H__BSS__
+#ifndef __COMPACT_ARRAY_H__BSS__
+#define __COMPACT_ARRAY_H__BSS__
 
-#include "bss-util/Array.h"
-#include "bss-util/bss_util.h"
+#include "Array.h"
+#include "bss_util.h"
 
 namespace bss {
   // Array that uses a inline stack for smaller arrays before allocating something on the heap. Can only be used with simple data.

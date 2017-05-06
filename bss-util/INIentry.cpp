@@ -74,7 +74,7 @@ void INIentry::SetData(const char* data)
 
 /*
 #define char char
-#include "bss-util/INIstorage.inl"
+#include "INIstorage.inl"
 #undef char
 #define char wchar_t
 #undef FOPEN
@@ -107,7 +107,7 @@ void INIentry::SetData(const char* data)
 //#define STR_APT L"a+b"
 //#define STR_LB L"]"
 
-#include "bss-util/INIstorage.inl"
+#include "INIstorage.inl"
 #undef char
 #undef FOPEN
 #undef strchr*/

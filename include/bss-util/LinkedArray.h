@@ -1,11 +1,11 @@
 // Copyright ©2017 Black Sphere Studios
 // For conditions of distribution and use, see copyright notice in "bss_util.h"
 
-#ifndef __C_LINKED_ARRAY_H__BSS__
-#define __C_LINKED_ARRAY_H__BSS__
+#ifndef __LINKED_ARRAY_H__BSS__
+#define __LINKED_ARRAY_H__BSS__
 
-#include "bss-util/bss_util.h"
-#include "bss-util/Array.h"
+#include "bss_util.h"
+#include "Array.h"
 
 namespace bss {
   template<class T, typename CType>
@@ -17,7 +17,7 @@ namespace bss {
   };
 
   // Linked list implemented as an array.
-  template<class T, typename CType = size_t, ARRAY_TYPE ArrayType = CARRAY_SIMPLE, typename Alloc = StaticAllocPolicy<LINKEDNODE<T, CType>>>
+  template<class T, typename CType = size_t, ARRAY_TYPE ArrayType = ARRAY_SIMPLE, typename Alloc = StaticAllocPolicy<LINKEDNODE<T, CType>>>
   class BSS_COMPILER_DLLEXPORT LinkedArray
   {
   public:

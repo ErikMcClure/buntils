@@ -1,13 +1,13 @@
 // Copyright ©2017 Black Sphere Studios
 // For conditions of distribution and use, see copyright notice in "bss_util.h"
 
-#ifndef __C_FX_ENGINE_H__BSS__
-#define __C_FX_ENGINE_H__BSS__
+#ifndef __FX_ENGINE_H__BSS__
+#define __FX_ENGINE_H__BSS__
 
-#include "bss-util/Animation.h"
+#include "Animation.h"
 #include "Variant.h"
-#include "bss-util/bss_alloc_block.h"
-#include "bss-util/LinkedArray.h"
+#include "BlockAlloc.h"
+#include "LinkedArray.h"
 
 namespace bss {
   // Holds an object instantiation and all the anistates that belong to it.
@@ -160,7 +160,7 @@ namespace bss {
     typedef FXManager<OBJ, ANI, STATE, MAP> FXMANAGER;
 
     FXAni(FXMANAGER* manager) : _manager(manager), AniBase(sizeof(Def)) {}
-    template<typename T, typename D, ARRAY_TYPE ArrayType = CARRAY_SAFE>
+    template<typename T, typename D, ARRAY_TYPE ArrayType = ARRAY_SAFE>
     size_t AddAnimation(const AniFrame<T, D>* src, uint32_t len, typename Animation<T, D>::FUNC f = 0)
     {
       return _animations.AddConstruct(Animation<T, D, ArrayType>(src, len, f));
@@ -229,8 +229,8 @@ namespace bss {
       static BSS_FORCEINLINE bool CompL(const AniMap& left, size_t right) { return left.objID < right; }
     };
 
-    DynArray<Def, size_t, CARRAY_SAFE> _defs;
-    DynArray<ANI, size_t, CARRAY_SAFE> _animations;
+    DynArray<Def, size_t, ARRAY_SAFE> _defs;
+    DynArray<ANI, size_t, ARRAY_SAFE> _animations;
     ArraySort<AniMap, &AniMap::Comp> _mapping;
     FXMANAGER* _manager;
   };

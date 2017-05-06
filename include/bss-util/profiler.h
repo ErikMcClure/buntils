@@ -4,9 +4,9 @@
 #ifndef __PROFILER_H__BSS__
 #define __PROFILER_H__BSS__
 
-#include "bss-util/HighPrecisionTimer.h"
-#include "bss-util/Array.h"
-#include "bss-util/bss_alloc_block.h"
+#include "HighPrecisionTimer.h"
+#include "Array.h"
+#include "BlockAlloc.h"
 #include <cmath>
 
 #ifndef BSS_ENABLE_PROFILER

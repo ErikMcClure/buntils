@@ -3,7 +3,7 @@
 
 #define BSS_ENABLE_PROFILER
 #include "bss-util/profiler.h"
-#include "bss-util/bss_algo.h"
+#include "bss-util/algo.h"
 #include "test.h"
 
 using namespace bss;

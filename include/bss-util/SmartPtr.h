@@ -1,10 +1,10 @@
 // Copyright ©2017 Black Sphere Studios
 // For conditions of distribution and use, see copyright notice in "bss_util.h"
 
-#ifndef __C_SMART_PTR_H__BSS__
-#define __C_SMART_PTR_H__BSS__
+#ifndef __SMART_PTR_H__BSS__
+#define __SMART_PTR_H__BSS__
 
-#include "bss-util/bss_compiler.h"
+#include "compiler.h"
 #include <memory> // for std::default_delete<_Ty>
 
 namespace bss {

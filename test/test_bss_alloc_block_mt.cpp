@@ -1,7 +1,7 @@
 // Copyright ©2017 Black Sphere Studios
 // For conditions of distribution and use, see copyright notice in "bss_util.h"
 
-#include "bss-util/bss_alloc_block_MT.h"
+#include "bss-util/BlockAllocMT.h"
 #include "bss-util/Thread.h"
 #include "test_alloc.h"
 

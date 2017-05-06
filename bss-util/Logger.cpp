@@ -1,8 +1,8 @@
 // Copyright ©2017 Black Sphere Studios
 // For conditions of distribution and use, see copyright notice in "bss_util.h"
 
-#include "bss-util/bss_log.h"
-#include "bss-util/bss_stream.h"
+#include "bss-util/Logger.h"
+#include "bss-util/stream.h"
 #include "bss-util/bss_util.h"
 #include <fstream>
 #include <iomanip>
@@ -10,22 +10,22 @@
 using namespace bss;
 using namespace std;
 
-const char* Log::DEFAULTFORMAT = "{4} [{0}] ({1}:{2}) {3}";
-const char* Log::DEFAULTNULLFORMAT = "{4} ({1}:{2}) {3}";
+const char* Logger::DEFAULTFORMAT = "{4} [{0}] ({1}:{2}) {3}";
+const char* Logger::DEFAULTNULLFORMAT = "{4} ({1}:{2}) {3}";
 
-Log::Log(Log&& mov) : _levels(std::move(mov._levels)), _split(mov._split), _tz(GetTimeZoneMinutes()), _files(std::move(mov._files)),
+Logger::Logger(Logger&& mov) : _levels(std::move(mov._levels)), _split(mov._split), _tz(GetTimeZoneMinutes()), _files(std::move(mov._files)),
   _backup(std::move(mov._backup)), _stream(_split), _maxlevel(mov._maxlevel), _format(mov._format), _nullformat(mov._nullformat)
 {
   mov._split = 0;
 }
-Log::Log(std::ostream* log) : _levels(6), _split(new StreamSplitter()), _tz(GetTimeZoneMinutes()), _stream(_split), _maxlevel(127),
+Logger::Logger(std::ostream* log) : _levels(6), _split(new StreamSplitter()), _tz(GetTimeZoneMinutes()), _stream(_split), _maxlevel(127),
   _format(DEFAULTFORMAT), _nullformat(DEFAULTNULLFORMAT)
 {
   _levelDefaults();
   if(log != 0)
     AddTarget(*log);
 }
-Log::Log(const char* logfile, std::ostream* log) : _levels(6), _split(new StreamSplitter()), _tz(GetTimeZoneMinutes()), _stream(_split),
+Logger::Logger(const char* logfile, std::ostream* log) : _levels(6), _split(new StreamSplitter()), _tz(GetTimeZoneMinutes()), _stream(_split),
   _maxlevel(127), _format(DEFAULTFORMAT), _nullformat(DEFAULTNULLFORMAT)
 {
   _levelDefaults();
@@ -34,7 +34,7 @@ Log::Log(const char* logfile, std::ostream* log) : _levels(6), _split(new Stream
     AddTarget(*log);
 }
 #ifdef BSS_PLATFORM_WIN32
-Log::Log(const wchar_t* logfile, std::ostream* log) : _levels(6), _split(new StreamSplitter()), _tz(GetTimeZoneMinutes()), _stream(_split),
+Logger::Logger(const wchar_t* logfile, std::ostream* log) : _levels(6), _split(new StreamSplitter()), _tz(GetTimeZoneMinutes()), _stream(_split),
   _maxlevel(127), _format(DEFAULTFORMAT), _nullformat(DEFAULTNULLFORMAT)
 {
   _levelDefaults();
@@ -43,23 +43,23 @@ Log::Log(const wchar_t* logfile, std::ostream* log) : _levels(6), _split(new Str
     AddTarget(*log);
 }
 #endif
-Log::~Log()
+Logger::~Logger()
 {
   ClearTargets();
   for(size_t i = 0; i < _backup.size(); ++i) //restore stream buffer backups so we don't blow up someone else's stream when destroying ourselves
     _backup[i].first.rdbuf(_backup[i].second);
   if(_split != 0) delete _split;
 }
-void Log::Assimilate(std::ostream& stream)
+void Logger::Assimilate(std::ostream& stream)
 {
   _backup.push_back(std::pair<std::ostream&, std::streambuf*>(stream, stream.rdbuf()));
   if(_split != 0) stream.rdbuf(_split);
 }
-void Log::AddTarget(std::ostream& stream)
+void Logger::AddTarget(std::ostream& stream)
 {
   if(_split != 0) _split->AddTarget(&stream);
 }
-void Log::AddTarget(const char* file)
+void Logger::AddTarget(const char* file)
 {
   if(!file) return;
 #ifdef BSS_COMPILER_GCC 
@@ -71,7 +71,7 @@ void Log::AddTarget(const char* file)
 #endif
 }
 #ifdef BSS_PLATFORM_WIN32
-void Log::AddTarget(const wchar_t* file)
+void Logger::AddTarget(const wchar_t* file)
 {
   if(!file) return;
   _files.push_back(ofstream(file, ios_base::out | ios_base::trunc));
@@ -79,7 +79,7 @@ void Log::AddTarget(const wchar_t* file)
 }
 #endif
 
-void Log::ClearTargets()
+void Logger::ClearTargets()
 {
   if(_split != 0) _split->ClearTargets();
   for(size_t i = 0; i < _files.size(); ++i)
@@ -91,28 +91,28 @@ void Log::ClearTargets()
   _files.clear();
 }
 
-void Log::SetFormat(const char* format)
+void Logger::SetFormat(const char* format)
 {
   _format = format;
 }
 
-void Log::SetNullFormat(const char* format)
+void Logger::SetNullFormat(const char* format)
 {
   _nullformat = format;
 }
 
-void Log::SetLevel(uint8_t level, const char* str)
+void Logger::SetLevel(uint8_t level, const char* str)
 {
   if(_levels.Capacity() >= level)
     _levels.SetCapacity(level + 1);
   _levels[level] = str;
 }
-void Log::SetMaxLevel(uint8_t level)
+void Logger::SetMaxLevel(uint8_t level)
 {
   _maxlevel = level;
 }
 
-bool Log::_writeDateTime(long timez, std::ostream& log, bool timeonly)
+bool Logger::_writeDateTime(long timez, std::ostream& log, bool timeonly)
 {
   time_t rawtime;
   TIME64(&rawtime);
@@ -139,7 +139,7 @@ bool Log::_writeDateTime(long timez, std::ostream& log, bool timeonly)
 
   return true;
 }
-Log& Log::operator=(Log&& right)
+Logger& Logger::operator=(Logger&& right)
 {
   _tz = GetTimeZoneMinutes();
   _files = std::move(right._files);
@@ -149,14 +149,14 @@ Log& Log::operator=(Log&& right)
   _stream.rdbuf(_split);
   return *this;
 }
-const char* Log::_trimpath(const char* path)
+const char* Logger::_trimpath(const char* path)
 {
   const char* r = strrchr(path, '/');
   const char* r2 = strrchr(path, '\\');
   r = bssmax(r, r2);
   return (!r) ? path : (r + 1);
 }
-void Log::_levelDefaults()
+void Logger::_levelDefaults()
 {
   SetLevel(0, "FATAL: ");
   SetLevel(1, "ERROR: ");
@@ -165,7 +165,7 @@ void Log::_levelDefaults()
   SetLevel(4, "INFO: ");
   SetLevel(5, "DEBUG: ");
 }
-int Log::PrintLogV(const char* source, const char* file, uint32_t line, int8_t level, const char* format, va_list args)
+int Logger::PrintLogV(const char* source, const char* file, uint32_t line, int8_t level, const char* format, va_list args)
 {
   if(level >= _maxlevel)
     return 0;
@@ -173,14 +173,14 @@ int Log::PrintLogV(const char* source, const char* file, uint32_t line, int8_t l
 
   va_list vltemp;
   va_copy(vltemp, args);
-  size_t _length = (size_t)CSTR_CT<char>::VPCF(format, vltemp) + 1; // If we didn't copy vl here, it would get modified by vsnprintf and blow up.
+  size_t _length = (size_t)STR_CT<char>::VPCF(format, vltemp) + 1; // If we didn't copy vl here, it would get modified by vsnprintf and blow up.
   va_end(vltemp);
   DYNARRAY(char, buf, _length);
-  int r = CSTR_CT<char>::VPF(buf, _length, format, args);
+  int r = STR_CT<char>::VPF(buf, _length, format, args);
   _stream << buf << std::endl;
   return r;
 }
-void Log::_header(std::ostream& o, int n, const char* source, const char* file, uint32_t line, const char* level, long tz)
+void Logger::_header(std::ostream& o, int n, const char* source, const char* file, uint32_t line, const char* level, long tz)
 {
   switch(n)
   {
@@ -193,7 +193,7 @@ void Log::_header(std::ostream& o, int n, const char* source, const char* file, 
   }
 }
 
-std::ostream& Log::_logHeader(const char* source, const char* file, uint32_t line, const char* level)
+std::ostream& Logger::_logHeader(const char* source, const char* file, uint32_t line, const char* level)
 {
   file = _trimpath(file);
   __safeFormat<const char*, const char*, uint32_t, const char*, long>::F<&_header>(_stream, ((!source && _nullformat != 0) ? _nullformat : _format), source, file, line, level, _tz);

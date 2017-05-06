@@ -1,9 +1,9 @@
 // Copyright ©2017 Black Sphere Studios
 // For conditions of distribution and use, see copyright notice in "bss_util.h"
 
-#include "bss-util/cAVLtree.h"
-#include "bss-util/bss_alloc_block.h"
-#include "bss-util/bss_algo.h"
+#include "bss-util/AVLtree.h"
+#include "bss-util/BlockAlloc.h"
+#include "bss-util/algo.h"
 #include "test.h"
 
 using namespace bss;
@@ -18,7 +18,7 @@ TESTDEF::RETPAIR test_AVLTREE()
   BEGINTEST;
 
   BlockPolicy<AVL_Node<std::pair<int, int>>> fixedavl;
-  cAVLtree<int, int, CompT<int>, BlockPolicy<AVL_Node<std::pair<int, int>>>> avlblah(&fixedavl);
+  AVLTree<int, int, CompT<int>, BlockPolicy<AVL_Node<std::pair<int, int>>>> avlblah(&fixedavl);
 
   //uint64_t prof=HighPrecisionTimer::OpenProfiler();
   for(int i = 0; i<TESTNUM; ++i)
@@ -45,7 +45,7 @@ TESTDEF::RETPAIR test_AVLTREE()
     c += (avlblah.GetRef(testnums[i]) == 0);
   TEST(c == TESTNUM);
 
-  cAVLtree<int, std::pair<int, int>*>* tree = new cAVLtree<int, std::pair<int, int>*>();
+  AVLTree<int, std::pair<int, int>*>* tree = new AVLTree<int, std::pair<int, int>*>();
   std::pair<int, int> test(5, 5);
   tree->Insert(test.first, &test);
   tree->Get(test.first, 0);
@@ -64,7 +64,7 @@ TESTDEF::RETPAIR test_AVLTREE()
     Shuffle(testnums);
     BlockAlloc<DEBUG_CDT<false>> dalloc(TESTNUM);
     typedef std::unique_ptr<DEBUG_CDT<false>, std::function<void(DEBUG_CDT<false>*)>> AVL_D;
-    cAVLtree<int, AVL_D, CompT<int>, BlockPolicy<AVL_Node<std::pair<int, AVL_D>>>> dtree;
+    AVLTree<int, AVL_D, CompT<int>, BlockPolicy<AVL_Node<std::pair<int, AVL_D>>>> dtree;
     for(int i = 0; i<TESTNUM; ++i)
     {
       auto dp = dalloc.alloc(1);
@@ -106,7 +106,7 @@ TESTDEF::RETPAIR test_AVLTREE()
   }
   TEST(!DEBUG_CDT<false>::count)
 
-    cAVLtree<int, void, CompT<int>, BlockPolicy<AVL_Node<int>>> avlblah2;
+    AVLTree<int, void, CompT<int>, BlockPolicy<AVL_Node<int>>> avlblah2;
 
   //uint64_t prof=HighPrecisionTimer::OpenProfiler();
   for(int i = 0; i<TESTNUM; ++i)

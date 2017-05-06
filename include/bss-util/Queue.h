@@ -1,14 +1,14 @@
 // Copyright ©2017 Black Sphere Studios
 // For conditions of distribution and use, see copyright notice in "bss_util.h"
 
-#ifndef __C_BSS_QUEUE_H__
-#define __C_BSS_QUEUE_H__
+#ifndef __BSS_QUEUE_H__
+#define __BSS_QUEUE_H__
 
-#include "bss-util/ArrayCircular.h"
+#include "ArrayCircular.h"
 
 namespace bss {
   // Fast, tiny circular array-based queue. Pop and Peek are only valid if there is an item in the stack; this check must be done by the user.
-  template<class T, typename CType = ptrdiff_t, ARRAY_TYPE ArrayType = CARRAY_SIMPLE, typename Alloc = StaticAllocPolicy<T>>
+  template<class T, typename CType = ptrdiff_t, ARRAY_TYPE ArrayType = ARRAY_SIMPLE, typename Alloc = StaticAllocPolicy<T>>
   class BSS_COMPILER_DLLEXPORT Queue : protected ArrayCircular<T, CType, ArrayType, Alloc>
   {
   protected:

@@ -3,7 +3,7 @@
 
 #include "bss-util/AATree.h"
 #include "test.h"
-#include "bss-util/bss_algo.h"
+#include "bss-util/algo.h"
 #include <iostream>
 
 using namespace bss;

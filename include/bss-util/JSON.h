@@ -1,14 +1,14 @@
 // Copyright ©2017 Black Sphere Studios
 // For conditions of distribution and use, see copyright notice in "bss_util.h"
 
-#ifndef __C_JSON_H__BSS__
-#define __C_JSON_H__BSS__
+#ifndef __JSON_H__BSS__
+#define __JSON_H__BSS__
 
-#include "bss-util/DynArray.h"
-#include "bss-util/Str.h"
-#include "bss-util/bss_util.h"
+#include "DynArray.h"
+#include "Str.h"
+#include "bss_util.h"
 #include "Variant.h"
-#include "bss-util/Serializer.h"
+#include "Serializer.h"
 #include <sstream>
 #include <istream>
 #include <ostream>
@@ -62,10 +62,10 @@ namespace bss {
     inline static constexpr const BASE&& f(std::remove_reference<const JSONValue>::type&& r) { return (static_cast<const BASE&&>(r)); }
   };
 
-  struct JSONValue : public Variant<Str, double, int64_t, bool, DynArray<JSONValue, size_t, CARRAY_SAFE>, DynArray<std::pair<Str, JSONValue>, size_t, CARRAY_SAFE>>
+  struct JSONValue : public Variant<Str, double, int64_t, bool, DynArray<JSONValue, size_t, ARRAY_SAFE>, DynArray<std::pair<Str, JSONValue>, size_t, ARRAY_SAFE>>
   {
-    typedef DynArray<JSONValue, size_t, CARRAY_SAFE> JSONArray;
-    typedef DynArray<std::pair<Str, JSONValue>, size_t, CARRAY_SAFE> JSONObject;
+    typedef DynArray<JSONValue, size_t, ARRAY_SAFE> JSONArray;
+    typedef DynArray<std::pair<Str, JSONValue>, size_t, ARRAY_SAFE> JSONObject;
     typedef Variant<Str, double, int64_t, bool, JSONArray, JSONObject> BASE;
 
   public:

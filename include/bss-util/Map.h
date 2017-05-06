@@ -1,15 +1,15 @@
 // Copyright ©2017 Black Sphere Studios
 // For conditions of distribution and use, see copyright notice in "bss_util.h"
 
-#ifndef __C_MAP_H__BSS__
-#define __C_MAP_H__BSS__
+#ifndef __MAP_H__BSS__
+#define __MAP_H__BSS__
 
-#include "bss-util/ArraySort.h"
+#include "ArraySort.h"
 #include <utility>
 
 namespace bss {
   // A map class implemented as an associative sorted array
-  template<class Key, class Data, char(*CFunc)(const Key&, const Key&) = CompT<Key>, typename CType = size_t, ARRAY_TYPE ArrayType = CARRAY_SIMPLE, typename Alloc = StaticAllocPolicy<std::pair<Key, Data>>>
+  template<class Key, class Data, char(*CFunc)(const Key&, const Key&) = CompT<Key>, typename CType = size_t, ARRAY_TYPE ArrayType = ARRAY_SIMPLE, typename Alloc = StaticAllocPolicy<std::pair<Key, Data>>>
   class BSS_COMPILER_DLLEXPORT Map : protected ArraySort<std::pair<Key, Data>, CompTFirst<std::pair<Key, Data>, CFunc>, CType, ArrayType, Alloc>
   {
   protected:

@@ -1,10 +1,10 @@
 // Copyright ©2017 Black Sphere Studios
 // For conditions of distribution and use, see copyright notice in "bss_util.h"
 
-#ifndef __C_LOCKLESS_QUEUE_H__
-#define __C_LOCKLESS_QUEUE_H__
+#ifndef __LOCKLESS_QUEUE_H__
+#define __LOCKLESS_QUEUE_H__
 
-#include "bss-util/bss_alloc_block_MT.h"
+#include "BlockAllocMT.h"
 
 namespace bss {
   template<typename T>

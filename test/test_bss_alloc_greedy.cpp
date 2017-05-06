@@ -1,7 +1,7 @@
 // Copyright ©2017 Black Sphere Studios
 // For conditions of distribution and use, see copyright notice in "bss_util.h"
 
-#include "bss-util/bss_alloc_greedy.h"
+#include "bss-util/GreedyAlloc.h"
 #include "test_alloc.h"
 
 using namespace bss;

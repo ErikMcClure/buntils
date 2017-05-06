@@ -1,15 +1,15 @@
 // Copyright ©2017 Black Sphere Studios
 // For conditions of distribution and use, see copyright notice in "bss_util.h"
 
-#ifndef __C_ARRAY_CIRCULAR_H__BSS__
-#define __C_ARRAY_CIRCULAR_H__BSS__
+#ifndef __ARRAY_CIRCULAR_H__BSS__
+#define __ARRAY_CIRCULAR_H__BSS__
 
-#include "bss-util/Array.h"
-#include "bss-util/bss_util.h"
+#include "Array.h"
+#include "bss_util.h"
 
 namespace bss {
   // Simple circular array implementation. Unlike most data structures, CType must be signed instead of unsigned
-  template<class T, typename CType = ptrdiff_t, ARRAY_TYPE ArrayType = CARRAY_SIMPLE, typename Alloc = StaticAllocPolicy<T>>
+  template<class T, typename CType = ptrdiff_t, ARRAY_TYPE ArrayType = ARRAY_SIMPLE, typename Alloc = StaticAllocPolicy<T>>
   class BSS_COMPILER_DLLEXPORT ArrayCircular : protected ArrayBase<T, CType, Alloc>, protected ArrayInternal<T, CType, ArrayType, Alloc>
   {
   protected:

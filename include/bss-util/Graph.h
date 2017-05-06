@@ -4,9 +4,9 @@
 #ifndef __BSS_GRAPH_H__
 #define __BSS_GRAPH_H__
 
-#include "bss-util/LinkedArray.h"
-#include "bss-util/bss_alloc_block.h"
-#include "bss-util/DisjointSet.h"
+#include "LinkedArray.h"
+#include "BlockAlloc.h"
+#include "DisjointSet.h"
 #include "LLBase.h"
 #include <limits.h>
 #ifdef BSS_COMPILER_GCC
@@ -50,7 +50,7 @@ namespace bss {
   };
 
   // Represents a graph using an adjacency list. Converts to and from an adjacency matrix representation.
-  template<typename E, typename V, typename CT = uint16_t, typename ALLOC = BlockPolicy<Edge<E, CT>>, typename NODEALLOC = StaticAllocPolicy<LINKEDNODE<Node<E, V, CT>, CT>>, ARRAY_TYPE ArrayType = CARRAY_SIMPLE>
+  template<typename E, typename V, typename CT = uint16_t, typename ALLOC = BlockPolicy<Edge<E, CT>>, typename NODEALLOC = StaticAllocPolicy<LINKEDNODE<Node<E, V, CT>, CT>>, ARRAY_TYPE ArrayType = ARRAY_SIMPLE>
   class Graph : public AllocTracker<ALLOC>, protected __Graph__InternalEdge<E>, protected __Graph__InternalVertex<V, CT>
   {
     static BSS_FORCEINLINE bool _baseCheck(const char* b) { return (*b) != 0; }

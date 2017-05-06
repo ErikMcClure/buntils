@@ -224,20 +224,20 @@ namespace bss {
   };
 
   template<class T>
-  class BSS_COMPILER_DLLEXPORT cRingAlloc : public RingAllocVoid
+  class BSS_COMPILER_DLLEXPORT RingAlloc : public RingAllocVoid
   {
-    cRingAlloc(const cRingAlloc& copy) BSS_DELETEFUNC
-      cRingAlloc& operator=(const cRingAlloc& copy) BSS_DELETEFUNCOP
+    RingAlloc(const RingAlloc& copy) BSS_DELETEFUNC
+      RingAlloc& operator=(const RingAlloc& copy) BSS_DELETEFUNCOP
 
   public:
-    inline cRingAlloc(cRingAlloc&& mov) : RingAllocVoid(std::move(mov)) {}
-    inline explicit cRingAlloc(size_t init = 8) : RingAllocVoid(init) {}
+    inline RingAlloc(RingAlloc&& mov) : RingAllocVoid(std::move(mov)) {}
+    inline explicit RingAlloc(size_t init = 8) : RingAllocVoid(init) {}
     inline T* alloc(size_t num) noexcept { return (T*)RingAllocVoid::alloc(num * sizeof(T)); }
-    inline cRingAlloc& operator=(cRingAlloc&& mov) noexcept { RingAllocVoid::operator=(std::move(mov)); return *this; }
+    inline RingAlloc& operator=(RingAlloc&& mov) noexcept { RingAllocVoid::operator=(std::move(mov)); return *this; }
   };
 
   template<typename T>
-  class BSS_COMPILER_DLLEXPORT RingPolicy : protected cRingAlloc<T>
+  class BSS_COMPILER_DLLEXPORT RingPolicy : protected RingAlloc<T>
   {
     RingPolicy(const RingPolicy& copy) BSS_DELETEFUNC
       RingPolicy& operator=(const RingPolicy& copy) BSS_DELETEFUNCOP
@@ -248,14 +248,14 @@ namespace bss {
     template<typename U>
     struct rebind { typedef RingPolicy<U> other; };
 
-    inline RingPolicy(RingPolicy&& mov) : cRingAlloc<T>(std::move(mov)) {}
+    inline RingPolicy(RingPolicy&& mov) : RingAlloc<T>(std::move(mov)) {}
     inline RingPolicy() {}
-    inline explicit RingPolicy(size_t init) : cRingAlloc<T>(init) {}
+    inline explicit RingPolicy(size_t init) : RingAlloc<T>(init) {}
     inline ~RingPolicy() {}
-    inline RingPolicy& operator=(RingPolicy&& mov) noexcept { cRingAlloc<T>::operator=(std::move(mov)); return *this; }
+    inline RingPolicy& operator=(RingPolicy&& mov) noexcept { RingAlloc<T>::operator=(std::move(mov)); return *this; }
 
-    inline pointer allocate(size_t cnt, const pointer = 0) noexcept { return cRingAlloc<T>::alloc(cnt); }
-    inline void deallocate(pointer p, size_t num = 0) noexcept { return cRingAlloc<T>::dealloc(p); }
+    inline pointer allocate(size_t cnt, const pointer = 0) noexcept { return RingAlloc<T>::alloc(cnt); }
+    inline void deallocate(pointer p, size_t num = 0) noexcept { return RingAlloc<T>::dealloc(p); }
   };
 }
 

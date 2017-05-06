@@ -16,26 +16,26 @@ TESTDEF::RETPAIR test_HASH()
   //hashtest.Insert(1,0);
   //int r=hashtest.GetIterKey(hashtest.GetIterator(1));
   {
-    Hash<int, Log*> hasherint;
+    Hash<int, Logger*> hasherint;
     hasherint.Insert(25, &_failedtests);
     hasherint.Get(25);
     hasherint.Remove(25);
-    Hash<const char*, Log*, true> hasher;
+    Hash<const char*, Logger*, true> hasher;
     TEST(!hasher[""]);
     hasher.Insert("", &_failedtests);
-    hasher.Insert("Video", (Log*)5);
+    hasher.Insert("Video", (Logger*)5);
     hasher.SetCapacity(100);
     hasher.Insert("Physics", 0);
-    Log* check = hasher.Get("Video");
-    TEST(check == (Log*)5);
+    Logger* check = hasher.Get("Video");
+    TEST(check == (Logger*)5);
     check = hasher.Get("Video");
-    TEST(check == (Log*)5);
-    Hash<const char*, Log*, true> hasher2(hasher);
+    TEST(check == (Logger*)5);
+    Hash<const char*, Logger*, true> hasher2(hasher);
     check = hasher2.Get("Video");
-    TEST(check == (Log*)5);
-    Hash<const char*, Log*, true> hasher3(std::move(hasher));
+    TEST(check == (Logger*)5);
+    Hash<const char*, Logger*, true> hasher3(std::move(hasher));
     check = hasher2.Get("Video");
-    TEST(check == (Log*)5);
+    TEST(check == (Logger*)5);
     //uint64_t diff = HighPrecisionTimer::CloseProfiler(ID);
 
     {
@@ -80,7 +80,7 @@ TESTDEF::RETPAIR test_HASH()
       TEST(!set.Exists(HASHTESTPAIR(3, -1)));
     }
     {
-      Hash<int, DEBUG_CDT<true>, false, CARRAY_SAFE> safe;
+      Hash<int, DEBUG_CDT<true>, false, ARRAY_SAFE> safe;
       TEST(!safe[2]);
       safe.Insert(0, DEBUG_CDT<true>());
       safe.Insert(2, DEBUG_CDT<true>());

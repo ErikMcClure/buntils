@@ -4,7 +4,7 @@
 #ifndef __BSS_DUAL_H__
 #define __BSS_DUAL_H__
 
-#include "bss-util/bss_compare.h"
+#include "compare.h"
 #include <cmath>
 #include <assert.h>
 

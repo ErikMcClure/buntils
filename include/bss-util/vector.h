@@ -4,8 +4,8 @@
 #ifndef __BSS_VECTOR_H__
 #define __BSS_VECTOR_H__
 
-#include "bss-util/bss_util.h"
-#include "bss-util/bss_sse.h"
+#include "bss_util.h"
+#include "sseVec.h"
 #include <initializer_list>
 
 namespace bss {

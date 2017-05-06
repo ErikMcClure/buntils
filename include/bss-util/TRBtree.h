@@ -63,7 +63,7 @@ namespace bss {
       if(node->color == -1) { LLRemove(node, first, last); return; }
       if(node->next && node->next->color == -1)
       {
-        _replacenode(node, node->next, root);
+        _replaceNode(node, node->next, root);
         LLRemove(node, first, last);
         pNIL->parent = 0;
         return;
@@ -74,7 +74,7 @@ namespace bss {
       T*  z;
 
       if(node->left != pNIL && node->right != pNIL)
-        y = _findmin(node->right, pNIL);
+        y = _findMin(node->right, pNIL);
       else
         y = node;
 
@@ -88,8 +88,8 @@ namespace bss {
 
       bool balance = (y->color == 0);
 
-      if(y != node) _replacenode(node, y, root);
-      if(balance) _fixdelete(z, root, pNIL);
+      if(y != node) _replaceNode(node, y, root);
+      if(balance) _fixDelete(z, root, pNIL);
       pNIL->parent = 0;
       assert(pNIL->color == 0);
     }
@@ -130,13 +130,13 @@ namespace bss {
           parent->right = node;
           if(parent->next != 0 && parent->next->color == -1) // This is required to support duplicate nodes
           { // What can happen is you get here with a value greater than the parent, then try to insert after the parent... but any duplicate values would then be ahead of you.
-            if((parent = _treenextsub(parent)) == 0) last = LLAddAfter(node, last);
+            if((parent = _treeNextSub(parent)) == 0) last = LLAddAfter(node, last);
             else LLInsert(node, parent, first);
           }
           else
             LLInsertAfter(node, parent, last); // If there aren't any duplicate values in front of you, it doesn't matter.
         }
-        _fixinsert(node, root, pNIL);
+        _fixInsert(node, root, pNIL);
       }
       else //this is the root node so re-assign
       {
@@ -178,7 +178,7 @@ namespace bss {
       r->right = node;
       if(node != pNIL) node->parent = r;
     }
-    inline static void _fixinsert(T* node, T*& root, T* pNIL)
+    inline static void _fixInsert(T* node, T*& root, T* pNIL)
     {
       while(node != root && node->parent->color == 1)
       {
@@ -231,7 +231,7 @@ namespace bss {
 
       root->color = 0;
     }
-    inline static void _fixdelete(T* node, T*& root, T* pNIL)
+    inline static void _fixDelete(T* node, T*& root, T* pNIL)
     {
       while(node != root && node->color == 0)
       {
@@ -302,7 +302,7 @@ namespace bss {
       }
       node->color = 0;
     }
-    inline static void _replacenode(T* node, T* y, T*& root)
+    inline static void _replaceNode(T* node, T* y, T*& root)
     {
       y->color = node->color;
       y->left = node->left;
@@ -317,12 +317,12 @@ namespace bss {
       y->left->parent = y;
       y->right->parent = y;
     }
-    BSS_FORCEINLINE static T* _findmin(T* node, T* pNIL)
+    BSS_FORCEINLINE static T* _findMin(T* node, T* pNIL)
     {
       while(node->left != pNIL) node = node->left;
       return node;
     }
-    inline static T* _treenextsub(T* node)
+    inline static T* _treeNextSub(T* node)
     {
       while(node->parent && node != node->parent->left)
         node = node->parent;

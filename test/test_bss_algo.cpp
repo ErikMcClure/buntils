@@ -51,7 +51,7 @@ TESTDEF::RETPAIR test_bss_algo()
     TEST(res == 8.0);
 
     uint64_t state[17];
-    genxor1024seed(9, state);
+    GenXor1024Seed(9, state);
     TEST(xorshift1024star(state) == 8818441658795715037ULL);
     TEST(xorshift1024star(state) == 1327952074883251404ULL);
     TEST(xorshift1024star(state) == 15247190286870378554ULL);

@@ -102,7 +102,7 @@ namespace bss {
     template<typename U>
     CT_ _insertAfter(U && item, CT_ index)
     {
-      CT_ cur = _insPrep();
+      CT_ cur = _insertPrep();
 
       TLNODE& pcur = _ref[cur];
       pcur.val = std::forward<U>(item);
@@ -120,7 +120,7 @@ namespace bss {
     template<typename U>
     CT_ _insertBefore(U && item, CT_ index)
     {
-      CT_ cur = _insPrep();
+      CT_ cur = _insertPrep();
 
       TLNODE& pcur = _ref[cur];
       pcur.val = std::forward<U>(item);
@@ -146,7 +146,7 @@ namespace bss {
       while(i > start) //this trick lets us run backwards without worrying about the unsigned problem.
         _addFreeList(--i);
     }
-    inline CT_ _insPrep()
+    inline CT_ _insertPrep()
     {
       if(_freelist == (CT_)-1) Reserve(fbnext(_ref.Capacity()));
       CT_ cur = _freelist;

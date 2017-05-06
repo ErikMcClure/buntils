@@ -22,6 +22,8 @@
 - inverted include order on tests to catch header file mistakes
 - Internal function refactored to camelCase
 - All public functions that aren't meant to mimic standard library functions are now Capitalized
+- Some function names have been expanded to full words for readability
+- Singleton behavior has been changed, and now does not provide Instance() or instantiate the static variable for you to prevent DLL boundary accidents.
 
 0.4.7
 -----

@@ -23,7 +23,7 @@ HighPrecisionTimer::HighPrecisionTimer() : _time(0), _nsTime(0)
 double HighPrecisionTimer::Update()
 {
   uint64_t newTime;
-  _querytime(&newTime);
+  _queryTime(&newTime);
   if(newTime < _curTime) newTime = _curTime; // Do not allow time to run backwards
 #ifdef BSS_PLATFORM_WIN32
   _delta = ((newTime - _curTime) * 1000) / (double)hpt_freq; //We multiply by 1000 BEFORE dividing into a double to maintain precision (since its unlikely the difference between newtime and oldtime is going to be bigger then 9223372036854775
@@ -42,7 +42,7 @@ double HighPrecisionTimer::Update(double timewarp)
 {
   if(timewarp == 1.0) return Update();
   uint64_t newTime;
-  _querytime(&newTime);
+  _queryTime(&newTime);
   if(newTime < _curTime) newTime = _curTime; // Do not allow time to run backwards
 #ifdef BSS_PLATFORM_WIN32
   uint64_t warpfreq = (uint64_t)(hpt_freq*timewarp);
@@ -59,7 +59,7 @@ double HighPrecisionTimer::Update(double timewarp)
 }
 void HighPrecisionTimer::Override(uint64_t nsdelta)
 {
-  _querytime(&_curTime);
+  _queryTime(&_curTime);
   _nsDelta = nsdelta;
   _delta = nsdelta / 1000000.0;
   _nsTime += _nsDelta;
@@ -67,7 +67,7 @@ void HighPrecisionTimer::Override(uint64_t nsdelta)
 }
 void HighPrecisionTimer::Override(double delta)
 {
-  _querytime(&_curTime);
+  _queryTime(&_curTime);
   _nsDelta = (uint64_t)(delta * 1000000.0);
   _delta = delta;
   _nsTime += _nsDelta;
@@ -75,7 +75,7 @@ void HighPrecisionTimer::Override(double delta)
 }
 
 #ifdef BSS_PLATFORM_WIN32
-void HighPrecisionTimer::_querytime(uint64_t* _pval)
+void HighPrecisionTimer::_queryTime(uint64_t* _pval)
 { // The multicore timing glitch that used to happen with QPC calls no longer affects modern windows. See: http://msdn.microsoft.com/en-us/library/windows/desktop/dn553408(v=vs.85).aspx
   //DWORD procmask=_getaffinity(); 
   //HANDLE curthread = GetCurrentThread();
@@ -86,7 +86,7 @@ void HighPrecisionTimer::_querytime(uint64_t* _pval)
   //SetThreadAffinityMask(curthread, procmask);
 }
 #else
-void HighPrecisionTimer::_querytime(uint64_t* _pval, clockid_t clock)
+void HighPrecisionTimer::_queryTime(uint64_t* _pval, clockid_t clock)
 {
   timespec tspec;
   clock_gettime(clock, &tspec);
@@ -95,5 +95,5 @@ void HighPrecisionTimer::_querytime(uint64_t* _pval, clockid_t clock)
 #endif
 
 #ifdef BSS_PLATFORM_WIN32
-uint64_t HighPrecisionTimer::_getfreq() { return hpt_freq; }
+uint64_t HighPrecisionTimer::_getFrequency() { return hpt_freq; }
 #endif

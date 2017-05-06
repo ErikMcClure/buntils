@@ -20,9 +20,9 @@
 
 namespace bss {
   // A generalization of the binary search that allows for auxiliary arguments to be passed into the comparison function
-  template<typename T, typename D, typename CT_, char(*CEQ)(const char&, const char&), char CVAL, typename... Args>
+  template<typename T, typename D, typename CT_, char(*CompEQ)(const char&, const char&), char CompValue, typename... Args>
   struct binsearch_aux_t {
-    template<char(*CFunc)(const D&, const T&, Args...)>
+    template<char(*CompF)(const D&, const T&, Args...)>
     inline static CT_ BinarySearchNear(const T* arr, const D& data, CT_ first, CT_ last, Args... args)
     {
       typename std::make_signed<CT_>::type c = last - first; // Must be a signed version of whatever CT_ is
@@ -34,7 +34,7 @@ namespace bss {
         m = first + c2;
 
         //if(!(_Val < *_Mid))
-        if((*CEQ)((*CFunc)(data, arr[m], args...), CVAL))
+        if((*CompEQ)((*CompF)(data, arr[m], args...), CompValue))
         {	// try top half
           first = m + 1;
           c -= c2 + 1;
@@ -46,32 +46,32 @@ namespace bss {
     }
   };
 
-  // Performs a binary search on "arr" between first and last. if CEQ=NEQ and char CVAL=-1, uses an upper bound, otherwise uses lower bound.
-  template<typename T, typename D, typename CT_, char(*CFunc)(const D&, const T&), char(*CEQ)(const char&, const char&), char CVAL>
-  BSS_FORCEINLINE CT_ BinarySearchNear(const T* arr, const D& data, CT_ first, CT_ last) { return binsearch_aux_t<T, D, CT_, CEQ, CVAL>::template BinarySearchNear<CFunc>(arr, data, first, last); }
+  // Performs a binary search on "arr" between first and last. if CompEQ=NEQ and char CompValue=-1, uses an upper bound, otherwise uses lower bound.
+  template<typename T, typename D, typename CT_, char(*CompF)(const D&, const T&), char(*CompEQ)(const char&, const char&), char CompValue>
+  BSS_FORCEINLINE CT_ BinarySearchNear(const T* arr, const D& data, CT_ first, CT_ last) { return binsearch_aux_t<T, D, CT_, CompEQ, CompValue>::template BinarySearchNear<CompF>(arr, data, first, last); }
 
   // Either gets the element that matches the value in question or one immediately before the closest match. Could return an invalid -1 value.
-  template<typename T, typename CT_, char(*CFunc)(const T&, const T&)>
-  BSS_FORCEINLINE CT_ BinarySearchBefore(const T* arr, const T& data, CT_ first, CT_ last) { return BinarySearchNear<T, T, CT_, CFunc, CompT_NEQ<char>, -1>(arr, data, first, last) - 1; }
+  template<typename T, typename CT_, char(*CompF)(const T&, const T&)>
+  BSS_FORCEINLINE CT_ BinarySearchBefore(const T* arr, const T& data, CT_ first, CT_ last) { return BinarySearchNear<T, T, CT_, CompF, CompT_NEQ<char>, -1>(arr, data, first, last) - 1; }
 
-  template<typename T, typename CT_, char(*CFunc)(const T&, const T&)>
-  BSS_FORCEINLINE CT_ BinarySearchBefore(const T* arr, CT_ length, const T& data) { return BinarySearchNear<T, T, CT_, CFunc, CompT_NEQ<char>, -1>(arr, data, 0, length) - 1; }
+  template<typename T, typename CT_, char(*CompF)(const T&, const T&)>
+  BSS_FORCEINLINE CT_ BinarySearchBefore(const T* arr, CT_ length, const T& data) { return BinarySearchNear<T, T, CT_, CompF, CompT_NEQ<char>, -1>(arr, data, 0, length) - 1; }
 
-  template<typename T, typename CT_, char(*CFunc)(const T&, const T&), CT_ I>
-  BSS_FORCEINLINE CT_ BinarySearchBefore(const T(&arr)[I], const T& data) { return BinarySearchBefore<T, CT_, CFunc>(arr, I, data); }
+  template<typename T, typename CT_, char(*CompF)(const T&, const T&), CT_ I>
+  BSS_FORCEINLINE CT_ BinarySearchBefore(const T(&arr)[I], const T& data) { return BinarySearchBefore<T, CT_, CompF>(arr, I, data); }
 
   // Either gets the element that matches the value in question or one immediately after the closest match.
-  template<typename T, typename CT_, char(*CFunc)(const T&, const T&)>
-  BSS_FORCEINLINE CT_ BinarySearchAfter(const T* arr, const T& data, CT_ first, CT_ last) { return BinarySearchNear<T, T, CT_, CFunc, CompT_EQ<char>, 1>(arr, data, first, last); }
+  template<typename T, typename CT_, char(*CompF)(const T&, const T&)>
+  BSS_FORCEINLINE CT_ BinarySearchAfter(const T* arr, const T& data, CT_ first, CT_ last) { return BinarySearchNear<T, T, CT_, CompF, CompT_EQ<char>, 1>(arr, data, first, last); }
 
-  template<typename T, typename CT_, char(*CFunc)(const T&, const T&)>
-  BSS_FORCEINLINE CT_ BinarySearchAfter(const T* arr, CT_ length, const T& data) { return BinarySearchNear<T, T, CT_, CFunc, CompT_EQ<char>, 1>(arr, data, 0, length); }
+  template<typename T, typename CT_, char(*CompF)(const T&, const T&)>
+  BSS_FORCEINLINE CT_ BinarySearchAfter(const T* arr, CT_ length, const T& data) { return BinarySearchNear<T, T, CT_, CompF, CompT_EQ<char>, 1>(arr, data, 0, length); }
 
-  template<typename T, typename CT_, char(*CFunc)(const T&, const T&), CT_ I>
-  BSS_FORCEINLINE CT_ BinarySearchAfter(const T(&arr)[I], const T& data) { return BinarySearchAfter<T, CT_, CFunc>(arr, I, data); }
+  template<typename T, typename CT_, char(*CompF)(const T&, const T&), CT_ I>
+  BSS_FORCEINLINE CT_ BinarySearchAfter(const T(&arr)[I], const T& data) { return BinarySearchAfter<T, CT_, CompF>(arr, I, data); }
 
   // Returns index of the item, if it exists, or -1
-  template<typename T, typename D, typename CT_, char(*CFunc)(const T&, const D&)>
+  template<typename T, typename D, typename CT_, char(*CompF)(const T&, const D&)>
   inline CT_ BinarySearchExact(const T* arr, const D& data, typename std::make_signed<CT_>::type f, typename std::make_signed<CT_>::type l)
   {
     --l; // Done so l can be an exclusive size parameter even though the algorithm is inclusive.
@@ -81,7 +81,7 @@ namespace bss {
     {
       m = f + ((l - f) >> 1); // Done to avoid overflow on large numbers. >> 1 is valid because l must be >= f so this can't be negative
 
-      if((r = (*CFunc)(arr[m], data)) < 0) // This is faster than a switch statement
+      if((r = (*CompF)(arr[m], data)) < 0) // This is faster than a switch statement
         f = m + 1;
       else if(r > 0)
         l = m - 1;
@@ -91,8 +91,8 @@ namespace bss {
     return (CT_)-1;
   }
 
-  template<typename T, typename CT_, char(*CFunc)(const T&, const T&), CT_ I>
-  BSS_FORCEINLINE CT_ BinarySearchExact(const T(&arr)[I], const T& data) { return BinarySearchExact<T, T, CT_, CFunc>(arr, data, 0, I); }
+  template<typename T, typename CT_, char(*CompF)(const T&, const T&), CT_ I>
+  BSS_FORCEINLINE CT_ BinarySearchExact(const T(&arr)[I], const T& data) { return BinarySearchExact<T, T, CT_, CompF>(arr, data, 0, I); }
 
   // Implementation of an xorshift64star generator. x serves as the generator state, which should initially be set to the RNG seed.
   inline uint64_t xorshift64star(uint64_t& x)
@@ -115,7 +115,7 @@ namespace bss {
   }
 
   // Generates a seed for xorshift1024star from a 64-bit value
-  inline void genxor1024seed(uint64_t x, uint64_t(&seed)[17])
+  inline void GenXor1024Seed(uint64_t x, uint64_t(&seed)[17])
   {
     xorshift64star(x);
     for(uint8_t i = 0; i < 16; ++i)
@@ -168,8 +168,8 @@ namespace bss {
     XorshiftEngine() { seed(); }
     explicit XorshiftEngine(uint64_t s) { seed(s); }
     explicit XorshiftEngine(uint64_t s[16]) { seed(s); }
-    void seed() { std::random_device rd; genxor1024seed(rd(), _state); }
-    void seed(uint64_t s) { genxor1024seed(s, _state); }
+    void seed() { std::random_device rd; GenXor1024Seed(rd(), _state); }
+    void seed(uint64_t s) { GenXor1024Seed(s, _state); }
     void seed(uint64_t s[16]) { for(int i = 0; i < 16; ++i) _state[i] = s[i]; _state[16] = 0; }
     void discard(unsigned long long z) { for(int i = 0; i < z; ++i) xorshift1024star(_state); }
 
@@ -189,7 +189,7 @@ namespace bss {
   inline uint64_t XorshiftRand(uint64_t seed = 0)
   {
     static uint64_t state[17];
-    if(seed) genxor1024seed(seed, state);
+    if(seed) GenXor1024Seed(seed, state);
     return xorshift1024star(state);
   }
   typedef XorshiftEngine<uint64_t> XorshiftEngine64;

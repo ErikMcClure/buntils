@@ -9,16 +9,16 @@
 using namespace bss;
 
 int avltestnum[8];
-BSS_FORCEINLINE bool AVLACTION(AVL_Node<int>* n) { static int c = 0; avltestnum[c++] = n->_key; return false; }
-BSS_FORCEINLINE AVL_Node<int>* LAVLCHILD(AVL_Node<int>* n) { return n->_left; }
-BSS_FORCEINLINE AVL_Node<int>* RAVLCHILD(AVL_Node<int>* n) { return n->_right; }
+BSS_FORCEINLINE bool AVLACTION(AVLNode<int>* n) { static int c = 0; avltestnum[c++] = n->_key; return false; }
+BSS_FORCEINLINE AVLNode<int>* LAVLCHILD(AVLNode<int>* n) { return n->_left; }
+BSS_FORCEINLINE AVLNode<int>* RAVLCHILD(AVLNode<int>* n) { return n->_right; }
 
 TESTDEF::RETPAIR test_AVLTREE()
 {
   BEGINTEST;
 
-  BlockPolicy<AVL_Node<std::pair<int, int>>> fixedavl;
-  AVLTree<int, int, CompT<int>, BlockPolicy<AVL_Node<std::pair<int, int>>>> avlblah(&fixedavl);
+  BlockPolicy<AVLNode<std::pair<int, int>>> fixedavl;
+  AVLTree<int, int, CompT<int>, BlockPolicy<AVLNode<std::pair<int, int>>>> avlblah(&fixedavl);
 
   //uint64_t prof=HighPrecisionTimer::OpenProfiler();
   for(int i = 0; i<TESTNUM; ++i)
@@ -64,7 +64,7 @@ TESTDEF::RETPAIR test_AVLTREE()
     Shuffle(testnums);
     BlockAlloc<DEBUG_CDT<false>> dalloc(TESTNUM);
     typedef std::unique_ptr<DEBUG_CDT<false>, std::function<void(DEBUG_CDT<false>*)>> AVL_D;
-    AVLTree<int, AVL_D, CompT<int>, BlockPolicy<AVL_Node<std::pair<int, AVL_D>>>> dtree;
+    AVLTree<int, AVL_D, CompT<int>, BlockPolicy<AVLNode<std::pair<int, AVL_D>>>> dtree;
     for(int i = 0; i<TESTNUM; ++i)
     {
       auto dp = dalloc.alloc(1);
@@ -106,7 +106,7 @@ TESTDEF::RETPAIR test_AVLTREE()
   }
   TEST(!DEBUG_CDT<false>::count)
 
-    AVLTree<int, void, CompT<int>, BlockPolicy<AVL_Node<int>>> avlblah2;
+    AVLTree<int, void, CompT<int>, BlockPolicy<AVLNode<int>>> avlblah2;
 
   //uint64_t prof=HighPrecisionTimer::OpenProfiler();
   for(int i = 0; i<TESTNUM; ++i)
@@ -136,7 +136,7 @@ TESTDEF::RETPAIR test_AVLTREE()
   avlblah2.Insert(-1);
   avlblah2.Insert(-2);
   avlblah2.Insert(-3);
-  BreadthFirstTree<AVL_Node<int>, AVLACTION, LAVLCHILD, RAVLCHILD>(avlblah2.GetRoot(), 8);
+  BreadthFirstTree<AVLNode<int>, AVLACTION, LAVLCHILD, RAVLCHILD>(avlblah2.GetRoot(), 8);
   TEST(avltestnum[0] == 3);
   TEST(avltestnum[1] == 4);
   TEST(avltestnum[2] == 1);

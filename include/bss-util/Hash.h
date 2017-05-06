@@ -483,20 +483,20 @@ namespace bss {
   template<typename T> struct __cKh_KHGET<T, true> { typedef T KHGET; static const KHGET INV = (KHGET)-1; };
   template<typename T> struct KHGET_cKh : __cKh_KHGET<T, std::is_integral<T>::value> { typedef typename __cKh_KHGET<T, std::is_integral<T>::value>::KHGET KHGET; };
   template<> struct KHGET_cKh<void> { typedef char KHGET; static const KHGET INV = (KHGET)-1; };
-  template<typename T, bool ins> struct CHASH_HELPER {
+  template<typename T, bool ins> struct _HashHelper {
     BSS_FORCEINLINE static khint_t hash(const T& k) { return KH_AUTO_HASHFUNC<T>(k); }
     BSS_FORCEINLINE static bool equal(const T& a, const T& b) { return KH_AUTO_EQUALFUNC<T>(a, b); }
   };
-  template<typename T> struct CHASH_HELPER<T, true> {
+  template<typename T> struct _HashHelper<T, true> {
     BSS_FORCEINLINE static khint_t hash(const T& k) { return KH_AUTOINS_HASHFUNC<T>(k); }
     BSS_FORCEINLINE static bool equal(const T& a, const T& b) { return KH_AUTOINS_EQUALFUNC<T>(a, b); }
   };
 
   // Generic hash definition
   template<typename K, typename T = void, bool ins = false, ARRAY_TYPE ArrayType = ARRAY_SIMPLE, typename Alloc = StaticAllocPolicy<char>>
-  class BSS_COMPILER_DLLEXPORT Hash : public HashBase<K, typename std::conditional<std::is_void<T>::value, char, T>::type, !std::is_void<T>::value, &CHASH_HELPER<K, ins>::hash, &CHASH_HELPER<K, ins>::equal, ArrayType, Alloc>
+  class BSS_COMPILER_DLLEXPORT Hash : public HashBase<K, typename std::conditional<std::is_void<T>::value, char, T>::type, !std::is_void<T>::value, &_HashHelper<K, ins>::hash, &_HashHelper<K, ins>::equal, ArrayType, Alloc>
   {
-    typedef HashBase<K, typename std::conditional<std::is_void<T>::value, char, T>::type, !std::is_void<T>::value, &CHASH_HELPER<K, ins>::hash, &CHASH_HELPER<K, ins>::equal, ArrayType, Alloc> BASE;
+    typedef HashBase<K, typename std::conditional<std::is_void<T>::value, char, T>::type, !std::is_void<T>::value, &_HashHelper<K, ins>::hash, &_HashHelper<K, ins>::equal, ArrayType, Alloc> BASE;
 
   public:
     inline Hash(const Hash& copy) : BASE(copy) {}

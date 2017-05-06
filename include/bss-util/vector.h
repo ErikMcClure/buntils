@@ -11,7 +11,7 @@
 namespace bss {
   // Find the dot product of two n-dimensional vectors
   template<typename T, int N>
-  BSS_FORCEINLINE T NVector_Dot(const T(&l)[N], const T(&r)[N])
+  BSS_FORCEINLINE T NVectorDot(const T(&l)[N], const T(&r)[N])
   {
     T ret = 0;
     for(int i = 0; i < N; ++i)
@@ -20,20 +20,20 @@ namespace bss {
   }
 
   template<>
-  BSS_FORCEINLINE float NVector_Dot<float, 4>(const float(&l)[4], const float(&r)[4])
+  BSS_FORCEINLINE float NVectorDot<float, 4>(const float(&l)[4], const float(&r)[4])
   {
     return (sseVec(l)*sseVec(r)).Sum();
   }
 
   template<>
-  BSS_FORCEINLINE int NVector_Dot<int, 4>(const int(&l)[4], const int(&r)[4])
+  BSS_FORCEINLINE int NVectorDot<int, 4>(const int(&l)[4], const int(&r)[4])
   {
     return (sseVeci(l)*sseVeci(r)).Sum();
   }
 
   // Get the squared distance between two n-dimensional vectors
   template<typename T, int N>
-  inline T NVector_DistanceSq(const T(&l)[N], const T(&r)[N])
+  inline T NVectorDistanceSq(const T(&l)[N], const T(&r)[N])
   {
     T tp = r[0] - l[0];
     T ret = tp*tp;
@@ -45,44 +45,44 @@ namespace bss {
     return ret;
   }
   template<typename T, int N>
-  BSS_FORCEINLINE T NVector_Distance(const T(&l)[N], const T(&r)[N]) { return FastSqrt<T>(NVector_DistanceSq<T, N>(l, r)); }
+  BSS_FORCEINLINE T NVectorDistance(const T(&l)[N], const T(&r)[N]) { return FastSqrt<T>(NVectorDistanceSq<T, N>(l, r)); }
 
   template<typename T, int N>
-  BSS_FORCEINLINE void NVector_Normalize(const T(&v)[N], T(&out)[N])
+  BSS_FORCEINLINE void NVectorNormalize(const T(&v)[N], T(&out)[N])
   {
-    T invlength = 1 / FastSqrt<T>(NVector_Dot<T, N>(v, v));
+    T invlength = 1 / FastSqrt<T>(NVectorDot<T, N>(v, v));
     assert(invlength != 0);
     for(int i = 0; i < N; ++i)
       out[i] = v[i] * invlength;
   }
 
   template<>
-  BSS_FORCEINLINE void NVector_Normalize<float, 4>(const float(&v)[4], float(&out)[4])
+  BSS_FORCEINLINE void NVectorNormalize<float, 4>(const float(&v)[4], float(&out)[4])
   {
-    float l = FastSqrt<float>(NVector_Dot<float, 4>(v, v));
+    float l = FastSqrt<float>(NVectorDot<float, 4>(v, v));
     (sseVec(v) / sseVec(l, l, l, l)) >> out;
   }
 
   template<typename T>
-  BSS_FORCEINLINE T NVector_AbsCall(const T v)
+  BSS_FORCEINLINE T NVectorAbsCall(const T v)
   {
     return abs((typename std::conditional<std::is_integral<T>::value, typename std::make_signed<typename std::conditional<std::is_integral<T>::value, T, int>::type>::type, T>::type)v);
   }
 
   template<typename T, int N>
-  BSS_FORCEINLINE void NVector_Abs(const T(&v)[N], T(&out)[N])
+  BSS_FORCEINLINE void NVectorAbs(const T(&v)[N], T(&out)[N])
   {
     for(int i = 0; i < N; ++i)
-      out[i] = NVector_AbsCall(v[i]);
+      out[i] = NVectorAbsCall(v[i]);
   }
 
   // Find the area of an n-dimensional triangle using Heron's formula
   template<typename T, int N>
   inline T NTriangleArea(const T(&x1)[N], const T(&x2)[N], const T(&x3)[N])
   {
-    T a = NVector_Distance(x1, x2);
-    T b = NVector_Distance(x1, x3);
-    T c = NVector_Distance(x2, x3);
+    T a = NVectorDistance(x1, x2);
+    T b = NVectorDistance(x1, x3);
+    T c = NVectorDistance(x2, x3);
     T s = (a + b + c) / ((T)2);
     return FastSqrt<T>(s*(s - a)*(s - b)*(s - c));
   }
@@ -640,11 +640,11 @@ namespace bss {
     inline Vector(const std::initializer_list<T>& e) { int k = 0; for(const T* i = e.begin(); i != e.end() && k < N; ++i) v[k++] = *i; }
     inline Vector() {}
     inline T Length() const { return FastSqrt<T>(Dot(*this)); }
-    inline Vector<T, N> Normalize() const { Vector<T, N> ret(*this); NVector_Normalize(v, ret.v); return ret; }
-    inline Vector<T, N> Abs() const { Vector<T, N> ret(*this); NVector_Abs(v, ret.v); return ret; }
-    inline T Dot(const Vector<T, N>& r) const { return NVector_Dot<T, N>(v, r.v); }
+    inline Vector<T, N> Normalize() const { Vector<T, N> ret(*this); NVectorNormalize(v, ret.v); return ret; }
+    inline Vector<T, N> Abs() const { Vector<T, N> ret(*this); NVectorAbs(v, ret.v); return ret; }
+    inline T Dot(const Vector<T, N>& r) const { return NVectorDot<T, N>(v, r.v); }
     inline T Distance(const Vector<T, N>& r) const { return FastSqrt<T>(DistanceSq(r)); }
-    inline T DistanceSq(const Vector<T, N>& r) const { return NVector_DistanceSq<T, N>(v, r.v); }
+    inline T DistanceSq(const Vector<T, N>& r) const { return NVectorDistanceSq<T, N>(v, r.v); }
     template<int K> inline void Outer(const Vector<T, K>& r, T(&out)[N][K]) const { MatrixMultiply<T, N, 1, K>(v_column, r.v_row, out); }
 
     inline Vector<T, N>& operator=(const Vector<T, N>& r) { for(int i = 0; i < N; ++i) v[i] = r.v[i]; return *this; }
@@ -669,7 +669,7 @@ namespace bss {
     inline Vector() {}
     inline T Length() const { return FastSqrt<T>(Dot(*this)); }
     inline Vector<T, 2> Normalize() const { T l = Length(); return Vector<T, 2>(x / l, y / l); }
-    inline Vector<T, 2> Abs() const { return Vector<T, 2>(NVector_AbsCall(x), NVector_AbsCall(y)); }
+    inline Vector<T, 2> Abs() const { return Vector<T, 2>(NVectorAbsCall(x), NVectorAbsCall(y)); }
     inline T Dot(const Vector<T, 2>& r) const { return DotProduct(r.x, r.y, x, y); }
     inline T Distance(const Vector<T, 2>& r) const { return FastSqrt<T>(DistanceSq(r)); }
     inline T DistanceSq(const Vector<T, 2>& r) const { return bss::DistSqr<T>(r.x, r.y, x, y); }
@@ -711,7 +711,7 @@ namespace bss {
     inline Vector() {}
     inline T Length() const { return FastSqrt((x*x) + (y*y) + (z*z)); }
     inline Vector<T, 3> Normalize() const { T l = Length(); return Vector<T, 3>(x / l, y / l, z / l); }
-    inline Vector<T, 3> Abs() const { return Vector<T, 3>(NVector_AbsCall(x), NVector_AbsCall(y), NVector_AbsCall(z)); }
+    inline Vector<T, 3> Abs() const { return Vector<T, 3>(NVectorAbsCall(x), NVectorAbsCall(y), NVectorAbsCall(z)); }
     inline T Dot(const Vector<T, 3>& r) const { return (x*r.x) + (y*r.y) + (z*r.z); }
     inline T Distance(const Vector<T, 3>& r) const { return FastSqrt<T>(DistanceSq(r)); }
     inline T DistanceSq(const Vector<T, 3>& r) const { T tz = (r.z - z); T ty = (r.y - y); T tx = (r.x - x); return (T)((tx*tx) + (ty*ty) + (tz*tz)); }
@@ -752,9 +752,9 @@ namespace bss {
     inline Vector(T X, T Y, T Z, T W) : x(X), y(Y), z(Z), w(W) {}
     inline Vector() {}
     inline T Length() const { return FastSqrt<T>(Dot(*this)); }
-    inline Vector<T, 4> Normalize() const { Vector<T, 4> r; NVector_Normalize<T, 4>(v, r.v); return r; }
-    inline Vector<T, 4> Abs() const { return Vector<T, 4>(NVector_AbsCall(x), NVector_AbsCall(y), NVector_AbsCall(z), NVector_AbsCall(w)); }
-    inline T Dot(const Vector<T, 4>& r) const { return NVector_Dot<T, 4>(v, r.v); }
+    inline Vector<T, 4> Normalize() const { Vector<T, 4> r; NVectorNormalize<T, 4>(v, r.v); return r; }
+    inline Vector<T, 4> Abs() const { return Vector<T, 4>(NVectorAbsCall(x), NVectorAbsCall(y), NVectorAbsCall(z), NVectorAbsCall(w)); }
+    inline T Dot(const Vector<T, 4>& r) const { return NVectorDot<T, 4>(v, r.v); }
     inline T Distance(const Vector<T, 4>& r) const { return FastSqrt<T>(DistanceSq(r)); }
     inline T DistanceSq(const Vector<T, 4>& r) const { T tz = (r.z - z); T ty = (r.y - y); T tx = (r.x - x); T tw = (r.w - w); return (T)((tx*tx) + (ty*ty) + (tz*tz) + (tw*tw)); }
     template<int K> inline void Outer(const Vector<T, K>& r, T(&out)[4][K]) const { MatrixMultiply<T, 4, 1, K>(v_column, r.v_row, out); }

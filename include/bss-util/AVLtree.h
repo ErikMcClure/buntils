@@ -9,39 +9,39 @@
 
 namespace bss {
   template<class KeyData> // If data is non-void, KeyData is std::pair<Key,Data>, otherwise it's just Key
-  struct BSS_COMPILER_DLLEXPORT AVL_Node
+  struct BSS_COMPILER_DLLEXPORT AVLNode
   {
-    inline AVL_Node() : _key(), _left(0), _right(0), _balance(0) {} // Empty constructor is important so we initialize the data as empty if it exists.
+    inline AVLNode() : _key(), _left(0), _right(0), _balance(0) {} // Empty constructor is important so we initialize the data as empty if it exists.
 #pragma warning(push)
 #pragma warning(disable:4251)
     KeyData _key;
 #pragma warning(pop)
-    AVL_Node<KeyData>* _left;
-    AVL_Node<KeyData>* _right;
+    AVLNode<KeyData>* _left;
+    AVLNode<KeyData>* _right;
     int _balance;
 
   private:
-    inline AVL_Node(const AVL_Node&) BSS_DELETEFUNC // This is to keep the compiler from defining a copy or assignment constructor that could conflict with move-only structures, like unique_ptr
-      AVL_Node& operator =(const AVL_Node&) BSS_DELETEFUNCOP
+    inline AVLNode(const AVLNode&) BSS_DELETEFUNC // This is to keep the compiler from defining a copy or assignment constructor that could conflict with move-only structures, like unique_ptr
+    AVLNode& operator =(const AVLNode&) BSS_DELETEFUNCOP
   };
 
   // Adaptive function definitions to allow for an optional Data field
   template<class Key, class Data>
-  class BSS_COMPILER_DLLEXPORT _AVL_TREE_DATAFIELD
+  class BSS_COMPILER_DLLEXPORT _AVLTreeDataField
   {
   public:
     typedef std::pair<Key, Data> KeyData;
-    typedef AVL_Node<KeyData> AVLNode;
-    typedef Data KEYGET;
-    typedef Data DATAGET;
+    typedef AVLNode<KeyData> Node;
+    typedef Data KeyGet;
+    typedef Data DataGet;
 
   protected:
-    BSS_FORCEINLINE static void _setData(AVLNode* BSS_RESTRICT old, AVLNode* BSS_RESTRICT cur) { assert(old != cur); if(cur != 0) cur->_key.second = std::move(old->_key.second); }
+    BSS_FORCEINLINE static void _setData(Node* BSS_RESTRICT old, Node* BSS_RESTRICT cur) { assert(old != cur); if(cur != 0) cur->_key.second = std::move(old->_key.second); }
     template<typename U>
-    BSS_FORCEINLINE static void _setRaw(U && data, AVLNode* cur) { if(cur != 0) cur->_key.second = std::forward<U>(data); }
-    BSS_FORCEINLINE static KEYGET& _getData(KeyData& cur) { return cur.second; }
+    BSS_FORCEINLINE static void _setRaw(U && data, Node* cur) { if(cur != 0) cur->_key.second = std::forward<U>(data); }
+    BSS_FORCEINLINE static KeyGet& _getData(KeyData& cur) { return cur.second; }
     BSS_FORCEINLINE static Key& _getKey(KeyData& cur) { return cur.first; }
-    BSS_FORCEINLINE static void _swapData(AVLNode* BSS_RESTRICT retval, AVLNode* BSS_RESTRICT root)
+    BSS_FORCEINLINE static void _swapData(Node* BSS_RESTRICT retval, Node* BSS_RESTRICT root)
     {
       assert(retval != root);
       if(retval != 0) // We have to actually swap the data so that retval returns the correct data so it can be used in ReplaceKey
@@ -54,81 +54,81 @@ namespace bss {
   };
 
   template<class Key>
-  class BSS_COMPILER_DLLEXPORT _AVL_TREE_DATAFIELD<Key, void>
+  class BSS_COMPILER_DLLEXPORT _AVLTreeDataField<Key, void>
   {
   public:
     typedef Key KeyData;
-    typedef AVL_Node<KeyData> AVLNode;
-    typedef Key KEYGET;
-    typedef char DATAGET;
+    typedef AVLNode<KeyData> Node;
+    typedef Key KeyGet;
+    typedef char DataGet;
 
   protected:
-    BSS_FORCEINLINE static void _setData(AVLNode* BSS_RESTRICT old, AVLNode* BSS_RESTRICT cur) {}
+    BSS_FORCEINLINE static void _setData(Node* BSS_RESTRICT old, Node* BSS_RESTRICT cur) {}
     template<typename U>
-    BSS_FORCEINLINE static void _setRaw(U && data, AVLNode* cur) {}
-    BSS_FORCEINLINE static KEYGET& _getData(KeyData& cur) { return cur; }
+    BSS_FORCEINLINE static void _setRaw(U && data, Node* cur) {}
+    BSS_FORCEINLINE static KeyGet& _getData(KeyData& cur) { return cur; }
     BSS_FORCEINLINE static Key& _getKey(KeyData& cur) { return cur; }
-    BSS_FORCEINLINE static void _swapData(AVLNode* BSS_RESTRICT retval, AVLNode* BSS_RESTRICT root) {}
+    BSS_FORCEINLINE static void _swapData(Node* BSS_RESTRICT retval, Node* BSS_RESTRICT root) {}
   };
 
   // AVL Tree implementation
-  template<class Key, class Data, char(*CFunc)(const Key&, const Key&) = CompT<Key>, typename Alloc = StandardAllocPolicy<typename _AVL_TREE_DATAFIELD<Key, Data>::AVLNode>>
-  class BSS_COMPILER_DLLEXPORT AVLTree : protected AllocTracker<Alloc>, public _AVL_TREE_DATAFIELD<Key, Data>
+  template<class Key, class Data, char(*CFunc)(const Key&, const Key&) = CompT<Key>, typename Alloc = StandardAllocPolicy<typename _AVLTreeDataField<Key, Data>::Node>>
+  class BSS_COMPILER_DLLEXPORT AVLTree : protected AllocTracker<Alloc>, public _AVLTreeDataField<Key, Data>
   {
     AVLTree(const AVLTree& copy) BSS_DELETEFUNC
-      AVLTree& operator=(const AVLTree& copy) BSS_DELETEFUNCOP
+    AVLTree& operator=(const AVLTree& copy) BSS_DELETEFUNCOP
   protected:
-    typedef _AVL_TREE_DATAFIELD<Key, Data> BASE;
-    typedef typename BASE::KeyData KeyData;
-    typedef typename BASE::AVLNode AVLNode;
-    typedef typename BASE::KEYGET KEYGET;
-    typedef typename BASE::DATAGET DATAGET;
+    typedef _AVLTreeDataField<Key, Data> Base;
+    typedef typename Base::KeyData KeyData;
+    typedef typename Base::Node Node;
+    typedef typename Base::KeyGet KeyGet;
+    typedef typename Base::DataGet DataGet;
 
   public:
     inline AVLTree(AVLTree&& mov) : AllocTracker<Alloc>(std::move(mov)), _root(mov._root) { mov._root = 0; }
     inline AVLTree(Alloc* allocator = 0) : AllocTracker<Alloc>(allocator), _root(0) {}
     inline ~AVLTree() { Clear(); }
     inline void Clear() { _clear(_root); _root = 0; }
-    inline AVLNode* GetRoot() { return _root; }
+    inline Node* GetRoot() { return _root; }
     template<typename F> // std::function<void(std::pair<key,data>)> (we infer _traverse's template argument here, otherwise GCC explodes)
     BSS_FORCEINLINE void Traverse(F lambda) { _traverse(lambda, _root); }
-    BSS_FORCEINLINE AVLNode* Insert(Key key, const DATAGET& data)
+    BSS_FORCEINLINE Node* Insert(Key key, const DataGet& data)
     {
       char change = 0;
-      AVLNode* cur = _insert(key, &_root, change);
-      BASE::template _setRaw<const DATAGET&>(data, cur); // WHO COMES UP WITH THIS SYNTAX?!
+      Node* cur = _insert(key, &_root, change);
+      Base::template _setRaw<const DataGet&>(data, cur); // WHO COMES UP WITH THIS SYNTAX?!
       return cur;
     }
-    BSS_FORCEINLINE AVLNode* Insert(Key key, DATAGET&& data)
+    BSS_FORCEINLINE Node* Insert(Key key, DataGet&& data)
     {
       char change = 0;
-      AVLNode* cur = _insert(key, &_root, change);
-      BASE::template _setRaw<DATAGET&&>(std::move(data), cur);
+      Node* cur = _insert(key, &_root, change);
+      Base::template _setRaw<DataGet&&>(std::move(data), cur);
       return cur;
     }
-    BSS_FORCEINLINE AVLNode* Insert(Key key)
+    BSS_FORCEINLINE Node* Insert(Key key)
     {
       char change = 0;
       return _insert(key, &_root, change);
     }
-    BSS_FORCEINLINE AVLNode* Near(const Key key) const { return _near(key); }
-    BSS_FORCEINLINE KEYGET Get(const Key key, const KEYGET& INVALID) const
+    BSS_FORCEINLINE Node* Near(const Key key) const { return _near(key); }
+    BSS_FORCEINLINE KeyGet Get(const Key key, const KeyGet& INVALID) const
     {
-      AVLNode* retval = _find(key);
-      return !retval ? INVALID : BASE::_getData(retval->_key);
+      Node* retval = _find(key);
+      return !retval ? INVALID : Base::_getData(retval->_key);
     }
-    BSS_FORCEINLINE KEYGET* GetRef(const Key key) const
+    BSS_FORCEINLINE KeyGet* GetRef(const Key key) const
     {
-      AVLNode* retval = _find(key);
-      return !retval ? 0 : &BASE::_getData(retval->_key);
+      Node* retval = _find(key);
+      return !retval ? 0 : &Base::_getData(retval->_key);
     }
     inline bool Remove(const Key key)
     {
       char change = 0;
-      AVLNode* node = _remove(key, &_root, change);
+      Node* node = _remove(key, &_root, change);
       if(node != 0)
       {
-        node->~AVLNode();
+        node->~Node();
         AllocTracker<Alloc>::_deallocate(node, 1);
         return true;
       }
@@ -137,12 +137,12 @@ namespace bss {
     inline bool ReplaceKey(const Key oldkey, const Key newkey)
     {
       char change = 0;
-      AVLNode* old = _remove(oldkey, &_root, change);
-      AVLNode* cur = _insert(newkey, &_root, change);
+      Node* old = _remove(oldkey, &_root, change);
+      Node* cur = _insert(newkey, &_root, change);
       if(old != 0)
       {
-        BASE::_setData(old, cur);
-        old->~AVLNode();
+        Base::_setData(old, cur);
+        old->~Node();
         AllocTracker<Alloc>::_deallocate(old, 1);
       }
       return (cur != 0);
@@ -152,7 +152,7 @@ namespace bss {
 
   protected:
     template<typename F>
-    BSS_FORCEINLINE static void _traverse(F lambda, AVLNode* node)
+    BSS_FORCEINLINE static void _traverse(F lambda, Node* node)
     {
       if(!node) return;
       _traverse<F>(lambda, node->_left);
@@ -160,19 +160,19 @@ namespace bss {
       _traverse<F>(lambda, node->_right);
     }
 
-    inline void _clear(AVLNode* node)
+    inline void _clear(Node* node)
     {
       if(!node) return;
       _clear(node->_left);
       _clear(node->_right);
-      node->~AVLNode();
+      node->~Node();
       AllocTracker<Alloc>::_deallocate(node, 1);
     }
 
-    static void _leftRotate(AVLNode** pnode)
+    static void _leftRotate(Node** pnode)
     {
-      AVLNode* node = *pnode;
-      AVLNode* r = node->_right;
+      Node* node = *pnode;
+      Node* r = node->_right;
 
       node->_right = r->_left;
       r->_left = node;
@@ -182,10 +182,10 @@ namespace bss {
       r->_balance -= (1 - bssmin(r->_left->_balance, 0));
     }
 
-    static void _rightRotate(AVLNode** pnode)
+    static void _rightRotate(Node** pnode)
     {
-      AVLNode* node = *pnode;
-      AVLNode* r = node->_left;
+      Node* node = *pnode;
+      Node* r = node->_left;
 
       node->_left = r->_right;
       r->_right = node;
@@ -194,21 +194,21 @@ namespace bss {
       r->_right->_balance += (1 - bssmin(r->_balance, 0));
       r->_balance += (1 + bssmax(r->_right->_balance, 0));
     }
-    AVLNode* _insert(Key key, AVLNode** proot, char& change) //recursive insertion function
+    Node* _insert(Key key, Node** proot, char& change) //recursive insertion function
     {
-      AVLNode* root = *proot;
+      Node* root = *proot;
       if(!root)
       {
         root = AllocTracker<Alloc>::_allocate(1);
         *proot = root;
-        new(root) AVLNode();
-        BASE::_getKey(root->_key) = key;
+        new(root) Node();
+        Base::_getKey(root->_key) = key;
         change = 1;
         return root;
       }
 
-      char result = CFunc(BASE::_getKey(root->_key), key);
-      AVLNode* retval = 0;
+      char result = CFunc(Base::_getKey(root->_key), key);
+      Node* retval = 0;
       if(result < 0)
         retval = _insert(key, &root->_left, change);
       else if(result > 0)
@@ -224,12 +224,12 @@ namespace bss {
       return retval;
     }
 
-    inline AVLNode* _find(const Key& key) const
+    inline Node* _find(const Key& key) const
     {
-      AVLNode* cur = _root;
+      Node* cur = _root;
       while(cur)
       {
-        switch(CFunc(BASE::_getKey(cur->_key), key)) //This is faster then if/else statements because FUCK IF I KNOW!
+        switch(CFunc(Base::_getKey(cur->_key), key)) //This is faster then if/else statements because FUCK IF I KNOW!
         {
         case -1: cur = cur->_left; break;
         case 1: cur = cur->_right; break;
@@ -240,14 +240,14 @@ namespace bss {
       return 0;
     }
 
-    inline AVLNode* _near(const Key& key) const
+    inline Node* _near(const Key& key) const
     {
-      AVLNode* prev = 0;
-      AVLNode* cur = _root;
+      Node* prev = 0;
+      Node* cur = _root;
       while(cur)
       {
         prev = cur;
-        switch(CFunc(BASE::_getKey(cur->_key), key)) //This is faster then if/else statements because FUCK IF I KNOW!
+        switch(CFunc(Base::_getKey(cur->_key), key)) //This is faster then if/else statements because FUCK IF I KNOW!
         {
         case -1: cur = cur->_left; break;
         case 1: cur = cur->_right; break;
@@ -257,9 +257,9 @@ namespace bss {
 
       return prev;
     }
-    inline static char _rebalance(AVLNode** root)
+    inline static char _rebalance(Node** root)
     {
-      AVLNode* _root = *root;
+      Node* _root = *root;
       char retval = 0;
       if(_root->_balance < -1)
       {
@@ -294,17 +294,17 @@ namespace bss {
       return retval;
     }
 
-    AVLNode* _remove(const Key& key, AVLNode** proot, char& change) //recursive removal function
+    Node* _remove(const Key& key, Node** proot, char& change) //recursive removal function
     {
-      AVLNode* root = *proot;
+      Node* root = *proot;
       if(!root)
       {
         change = 0;
         return 0;
       }
 
-      char result = CFunc(BASE::_getKey(root->_key), key);
-      AVLNode* retval = 0;
+      char result = CFunc(Base::_getKey(root->_key), key);
+      Node* retval = 0;
       if(result < 0)
       {
         retval = _remove(key, &root->_left, change);
@@ -331,13 +331,13 @@ namespace bss {
         }
         else
         {
-          AVLNode* successor = root->_right;
+          Node* successor = root->_right;
           while(successor->_left)
             successor = successor->_left;
 
-          BASE::_getKey(root->_key) = BASE::_getKey(successor->_key);
-          retval = _remove(BASE::_getKey(successor->_key), &root->_right, result); //this works because we're always removing something from the right side, which means we should always subtract 1 or 0.
-          BASE::_swapData(retval, root);
+          Base::_getKey(root->_key) = Base::_getKey(successor->_key);
+          retval = _remove(Base::_getKey(successor->_key), &root->_right, result); //this works because we're always removing something from the right side, which means we should always subtract 1 or 0.
+          Base::_swapData(retval, root);
 
           change = 1;
         }
@@ -348,7 +348,7 @@ namespace bss {
       return retval;
     }
 
-    AVLNode* _root;
+    Node* _root;
   };
 }
 

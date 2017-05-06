@@ -31,7 +31,7 @@ namespace bss {
     // Acquire write lock
     BSS_FORCEINLINE void Lock() noexcept
     {
-      //assert(debugemplace());
+      //assert(debugEmplace());
 
       while(asmbts<size_t>((size_t*)&l, WBIT)); // While the returned value includes the flag bit, another writer is performing an operation
       while((l.load(std::memory_order_relaxed)&WMASK) > 0); // Wait for any remaining readers to flush
@@ -42,7 +42,7 @@ namespace bss {
     {
       if(asmbts<size_t>((size_t*)&l, WBIT)) // If another writer already has the lock, give up
         return false;
-      //assert(debugemplace());
+      //assert(debugEmplace());
       while((l.load(std::memory_order_relaxed)&WMASK) > 0); // Wait for any remaining readers to flush
       return true;
     }
@@ -52,14 +52,14 @@ namespace bss {
     {
       size_t prev = 0;
       bool r = l.compare_exchange_strong(prev, WFLAG, std::memory_order_release);
-      //if(r) assert(debugemplace());
+      //if(r) assert(debugEmplace());
       return r;
     }
 
     // Release write lock
     BSS_FORCEINLINE void Unlock() noexcept
     {
-      //assert(debugerase() == 1);
+      //assert(debugErase() == 1);
       assert(l.load(std::memory_order_relaxed)&WFLAG);
       l.fetch_and(WMASK, std::memory_order_release);
     }
@@ -67,7 +67,7 @@ namespace bss {
     // Acquire read lock
     BSS_FORCEINLINE void RLock() noexcept
     {
-      //assert(debugemplace());
+      //assert(debugEmplace());
       while(l.fetch_add(ONE_READER, std::memory_order_acquire)&WFLAG) // Oppurtunistically acquire a read lock and check to see if the writer flag is set
       {
         if(l.fetch_sub(ONE_READER, std::memory_order_release)&WFLAG) // If the writer flag is set, release our lock to let the writer through
@@ -83,12 +83,12 @@ namespace bss {
         l.fetch_sub(ONE_READER, std::memory_order_release);
         return false;
       }
-      //assert(debugemplace());
+      //assert(debugEmplace());
       return true;
     }
     BSS_FORCEINLINE size_t RUnlock() noexcept
     {
-      //assert(debugerase() == 1);
+      //assert(debugErase() == 1);
       assert((l.load(std::memory_order_relaxed)&WMASK) > 0);
       return l.fetch_sub(ONE_READER, std::memory_order_release);
     }
@@ -96,7 +96,7 @@ namespace bss {
     // Upgrades a read lock to a write lock without releasing the read lock. You CANNOT release this write lock using Unlock(), you have to use Downgrade() followed by RUnlock().
     BSS_FORCEINLINE void Upgrade() noexcept
     {
-      //assert(debugcount() == 1);
+      //assert(debugCount() == 1);
       assert((l.load(std::memory_order_relaxed)&WMASK) > 0);
       while(asmbts<size_t>((size_t*)&l, WBIT)); // Acquire the write lock with acquire/release semantics, because this must have come after an initial RLock()
       while((l.load(std::memory_order_relaxed)&WMASK) > ONE_READER); // Only flush to a single read lock, which will be our own
@@ -108,7 +108,7 @@ namespace bss {
       assert((l.load(std::memory_order_relaxed)&WMASK) > 0);
       if(asmbts<size_t>((size_t*)&l, WBIT))
         return false;
-      //assert(debugcount() == 1);
+      //assert(debugCount() == 1);
       while((l.load(std::memory_order_relaxed)&WMASK) > ONE_READER); // Only flush to a single read lock, which will be our own
       return true;
     }
@@ -116,7 +116,7 @@ namespace bss {
     // Releases a write lock without releasing the read lock. MUST be called after calling Upgrade()
     BSS_FORCEINLINE void Downgrade() noexcept
     {
-      //assert(debugcount() == 1);
+      //assert(debugCount() == 1);
       assert(l.load(std::memory_order_relaxed)&WFLAG);
       l.fetch_and(WMASK, std::memory_order_release); // Even though this actually does the same thing as Unlock, we force you to call this function instead so the debug checks are valid.
     }
@@ -139,9 +139,9 @@ namespace bss {
     std::atomic<size_t> l;
 
 #ifdef BSS_DEBUG
-    bool debugemplace() { while(_debuglock.test_and_set(std::memory_order_acquire)); bool r = _debug.emplace(std::this_thread::get_id(), 0).second; _debuglock.clear(std::memory_order_release); return r; }
-    size_t debugerase() { while(_debuglock.test_and_set(std::memory_order_acquire)); size_t r = _debug.erase(std::this_thread::get_id()); _debuglock.clear(std::memory_order_release); return r; }
-    size_t debugcount() { while(_debuglock.test_and_set(std::memory_order_acquire)); size_t r = _debug.count(std::this_thread::get_id()); _debuglock.clear(std::memory_order_release); return r; }
+    bool debugEmplace() { while(_debuglock.test_and_set(std::memory_order_acquire)); bool r = _debug.emplace(std::this_thread::get_id(), 0).second; _debuglock.clear(std::memory_order_release); return r; }
+    size_t debugErase() { while(_debuglock.test_and_set(std::memory_order_acquire)); size_t r = _debug.erase(std::this_thread::get_id()); _debuglock.clear(std::memory_order_release); return r; }
+    size_t debugCount() { while(_debuglock.test_and_set(std::memory_order_acquire)); size_t r = _debug.count(std::this_thread::get_id()); _debuglock.clear(std::memory_order_release); return r; }
     std::unordered_map<std::thread::id, int> _debug;
     std::atomic_flag _debuglock;
 #endif

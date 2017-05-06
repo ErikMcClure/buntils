@@ -156,7 +156,7 @@ namespace bss {
     {
       _remove(node);
 
-      _delnode(node); //We don't need our linkedlist wrapper struct anymore so we destroy it
+      _deleteNode(node); //We don't need our linkedlist wrapper struct anymore so we destroy it
       LList_SIZE<useSize>::_decsize(); //our size is now down one
     }
     inline LLNode<T>* Remove(LLNode<T>* node, bool backwards)
@@ -175,7 +175,7 @@ namespace bss {
       while(hold)
       {
         nexthold = hold->next;
-        _delnode(hold);
+        _deleteNode(hold);
         hold = nexthold;
       }
       memset(this, 0, sizeof(LinkedList<T, Alloc, useLast, useSize>));
@@ -223,7 +223,7 @@ namespace bss {
       return retval;
     }
 
-    inline void _delnode(LLNode<T>* target) { AllocTracker<Alloc>::_deallocate(target, 1); }
+    inline void _deleteNode(LLNode<T>* target) { AllocTracker<Alloc>::_deallocate(target, 1); }
   };
 }
 

@@ -90,13 +90,13 @@ namespace bss {
   private:
     Profiler();
     PROF_TRIENODE* _allocNode();
-    void _treeout(std::ostream& stream, PROF_TRIENODE* node, PROFILER_INT id, uint32_t level, PROFILER_INT idlevel);
-    void _heatout(PROF_HEATNODE& heat, PROF_TRIENODE* node, PROFILER_INT id, PROFILER_INT idlevel);
-    void _heatwrite(std::ostream& stream, PROF_HEATNODE& node, uint32_t level, double max);
-    double _heatfindmax(PROF_HEATNODE& heat);
-    static void _flatout(PROF_FLATOUT* avg, PROF_TRIENODE* node, PROFILER_INT id, PROFILER_INT idlevel);
-    static const char* _trimpath(const char* path);
-    static void _timeformat(std::ostream& stream, double avg, double variance, uint64_t num);
+    void _treeOut(std::ostream& stream, PROF_TRIENODE* node, PROFILER_INT id, uint32_t level, PROFILER_INT idlevel);
+    void _heatOut(PROF_HEATNODE& heat, PROF_TRIENODE* node, PROFILER_INT id, PROFILER_INT idlevel);
+    void _heatWrite(std::ostream& stream, PROF_HEATNODE& node, uint32_t level, double max);
+    double _heatFindMax(PROF_HEATNODE& heat);
+    static void _flatOut(PROF_FLATOUT* avg, PROF_TRIENODE* node, PROFILER_INT id, PROFILER_INT idlevel);
+    static const char* _trimPath(const char* path);
+    static void _timeFormat(std::ostream& stream, double avg, double variance, uint64_t num);
     static PROFILER_INT total;
 
     Array<ProfilerData*, PROFILER_INT> _data;

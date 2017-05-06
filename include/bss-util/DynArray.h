@@ -1,16 +1,16 @@
 // Copyright ©2017 Black Sphere Studios
 // For conditions of distribution and use, see copyright notice in "bss_util.h"
 
-#ifndef __C_DYN_ARRAY_H__BSS__
-#define __C_DYN_ARRAY_H__BSS__
+#ifndef __DYN_ARRAY_H__BSS__
+#define __DYN_ARRAY_H__BSS__
 
-#include "bss-util/Array.h"
-#include "bss-util/BitField.h"
-#include "bss-util/bss_util.h"
+#include "Array.h"
+#include "BitField.h"
+#include "bss_util.h"
 
 namespace bss {
   // Dynamic array implemented using ArrayType (should only be used when constructors could potentially not be needed)
-  template<class T, typename CType = size_t, ARRAY_TYPE ArrayType = CARRAY_SIMPLE, typename Alloc = StaticAllocPolicy<T>>
+  template<class T, typename CType = size_t, ARRAY_TYPE ArrayType = ARRAY_SIMPLE, typename Alloc = StaticAllocPolicy<T>>
   class BSS_COMPILER_DLLEXPORT DynArray : protected ArrayBase<T, CType, Alloc>, protected ArrayInternal<T, CType, ArrayType, Alloc>
   {
   protected:

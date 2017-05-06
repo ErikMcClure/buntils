@@ -1,7 +1,7 @@
 // Copyright ©2017 Black Sphere Studios
 // For conditions of distribution and use, see copyright notice in "bss_util.h"
 
-#include "bss-util/cUBJSON.h"
+#include "bss-util/UBJSON.h"
 #include <fstream>
 #include "test.h"
 
@@ -46,8 +46,8 @@ struct ubjsontest
   std::string n[2];
   std::vector<int> u;
   DynArray<bool> v;
-  DynArray<Str, size_t, CARRAY_SAFE> w;
-  DynArray<ubjsontest2, size_t, CARRAY_SAFE> z;
+  DynArray<Str, size_t, ARRAY_SAFE> w;
+  DynArray<ubjsontest2, size_t, ARRAY_SAFE> z;
 
   template<typename Engine>
   void Serialize(Serializer<Engine>& engine)

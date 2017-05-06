@@ -1,13 +1,13 @@
 // Copyright ©2017 Black Sphere Studios
 // For conditions of distribution and use, see copyright notice in "bss_util.h"
 
-#ifndef __C_XML_H__BSS__
-#define __C_XML_H__BSS__
+#ifndef __XML_H__BSS__
+#define __XML_H__BSS__
 
-#include "bss-util/DynArray.h"
-#include "bss-util/Hash.h"
+#include "DynArray.h"
+#include "Hash.h"
 #include "LLBase.h"
-#include "bss-util/Str.h"
+#include "Str.h"
 
 namespace bss {
   // Represents an XML value converted to various forms.
@@ -93,29 +93,29 @@ namespace bss {
     static void _writeString(std::ostream& stream, const char* s);
     void _write(std::ostream& stream, bool pretty, int depth) const;
 
-    friend class XML;
+    friend class XMLFile;
 
-    DynArray<std::unique_ptr<XMLNode>, size_t, CARRAY_MOVE> _nodes;
-    Hash<Str, size_t, false, CARRAY_SAFE> _nodehash;
-    DynArray<XMLValue, size_t, CARRAY_MOVE> _attributes;
-    Hash<Str, size_t, false, CARRAY_SAFE> _attrhash;
+    DynArray<std::unique_ptr<XMLNode>, size_t, ARRAY_MOVE> _nodes;
+    Hash<Str, size_t, false, ARRAY_SAFE> _nodehash;
+    DynArray<XMLValue, size_t, ARRAY_MOVE> _attributes;
+    Hash<Str, size_t, false, ARRAY_SAFE> _attrhash;
     XMLValue _value;
     Str _name;
   };
 
   // Tiny XML parser
-  class BSS_DLLEXPORT XML : public XMLNode
+  class BSS_DLLEXPORT XMLFile : public XMLNode
   {
   public:
-    XML(const XML& copy);
-    XML(XML&& mov);
-    explicit XML(const char* source = 0);
-    explicit XML(std::istream& stream);
+    XMLFile(const XMLFile& copy);
+    XMLFile(XMLFile&& mov);
+    explicit XMLFile(const char* source = 0);
+    explicit XMLFile(std::istream& stream);
     void Write(const char* file, bool pretty = true) const;
     void Write(std::ostream& stream, bool pretty = true) const;
 
-    inline XML& operator=(const XML& copy) { XMLNode::operator=(copy); return *this; }
-    inline XML& operator=(XML&& mov) { XMLNode::operator=(mov); return *this; }
+    inline XMLFile& operator=(const XMLFile& copy) { XMLNode::operator=(copy); return *this; }
+    inline XMLFile& operator=(XMLFile&& mov) { XMLNode::operator=(mov); return *this; }
     BSS_FORCEINLINE const XMLNode* operator[](size_t index) const { return GetNode(index); }
     BSS_FORCEINLINE const XMLNode* operator[](const char* name) const { return GetNode(name); }
     BSS_FORCEINLINE const XMLValue* operator()(size_t index) const { return GetAttribute(index); }

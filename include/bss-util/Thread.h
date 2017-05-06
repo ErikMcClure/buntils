@@ -1,10 +1,10 @@
 // Copyright ©2017 Black Sphere Studios
 // For conditions of distribution and use, see copyright notice in "bss_util.h"
 
-#ifndef __C_THREAD_H__BSS__
-#define __C_THREAD_H__BSS__
+#ifndef __THREAD_H__BSS__
+#define __THREAD_H__BSS__
 
-#include "bss-util/bss_defines.h"
+#include "defines.h"
 #include <assert.h>
 #ifndef BSS_COMPILER_MSC2010
 #include <thread>
@@ -12,7 +12,7 @@
 #include <functional>
 #endif
 #ifdef BSS_PLATFORM_WIN32
-#include "bss-util/bss_win32_includes.h"
+#include "win32_includes.h"
 #include <process.h>
 #else // Assume BSS_PLATFORM_POSIX
 #include <pthread.h>

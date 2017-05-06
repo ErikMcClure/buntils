@@ -1,11 +1,11 @@
 // Copyright ©2017 Black Sphere Studios
 // For conditions of distribution and use, see copyright notice in "bss_util.h"
 
-#ifndef __C_HEAP_H__BSS__
-#define __C_HEAP_H__BSS__
+#ifndef __HEAP_H__BSS__
+#define __HEAP_H__BSS__
 
-#include "bss-util/bss_compare.h"
-#include "bss-util/DynArray.h"
+#include "compare.h"
+#include "DynArray.h"
 #include <memory>
 #include <limits>
 
@@ -14,7 +14,7 @@ namespace bss {
   struct MFUNC_DEFAULT { BSS_FORCEINLINE static void MFunc(const T&, CT_, MFUNC_DEFAULT*) {} };
 
   // This is a binary max-heap implemented using an array. Use CompTInv to change it into a min-heap, or to make it use pairs.
-  template<class T, typename CT_ = uint32_t, char(*CFunc)(const T&, const T&) = CompT<T>, ARRAY_TYPE ArrayType = CARRAY_SIMPLE, typename Alloc = StaticAllocPolicy<T>, class MFUNC = MFUNC_DEFAULT<T, CT_>>
+  template<class T, typename CT_ = uint32_t, char(*CFunc)(const T&, const T&) = CompT<T>, ARRAY_TYPE ArrayType = ARRAY_SIMPLE, typename Alloc = StaticAllocPolicy<T>, class MFUNC = MFUNC_DEFAULT<T, CT_>>
   class BSS_COMPILER_DLLEXPORT BinaryHeap : protected DynArray<T, CT_, ArrayType, Alloc>, protected MFUNC
   {
   protected:

@@ -1,13 +1,13 @@
 // Copyright ©2017 Black Sphere Studios
 // For conditions of distribution and use, see copyright notice in "bss_util.h"
 
-#ifndef __C_THREAD_POOL_H__BSS__
-#define __C_THREAD_POOL_H__BSS__
+#ifndef __THREAD_POOL_H__BSS__
+#define __THREAD_POOL_H__BSS__
 
-#include "bss-util/Thread.h"
-#include "bss-util/LocklessQueue.h"
-#include "bss-util/bss_alloc_ring.h"
-#include "bss-util/Array.h"
+#include "Thread.h"
+#include "LocklessQueue.h"
+#include "RingAlloc.h"
+#include "Array.h"
 #include "Delegate.h"
 
 namespace bss {
@@ -146,7 +146,7 @@ namespace bss {
 
     MicroLockQueue<TASK, uint32_t> _tasklist;
     std::atomic<uint32_t> _tasks; // Count of tasks still being processed (this includes tasks that have been removed from the queue, but haven't finished yet)
-    Array<std::unique_ptr<std::pair<Thread, std::atomic_bool>>, uint32_t, CARRAY_MOVE> _threads;
+    Array<std::unique_ptr<std::pair<Thread, std::atomic_bool>>, uint32_t, ARRAY_MOVE> _threads;
     std::atomic<uint32_t> _inactive;
     std::atomic<int32_t> _run;
     RingAllocVoid _falloc;

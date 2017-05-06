@@ -4,7 +4,7 @@
 #ifndef __BSS_DEFINES_H__
 #define __BSS_DEFINES_H__
 
-#include "bss-util/bss_compiler.h"
+#include "compiler.h"
 
 // Version numbers
 #define BSS_VERSION_MAJOR 0

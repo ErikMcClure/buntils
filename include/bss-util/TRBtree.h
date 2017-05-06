@@ -3,11 +3,11 @@
 // Insert/delete implementations modified from Arjan van den Boogaard (2004)
 // http://archive.gamedev.net/archive/reference/programming/features/TStorage/TStorage.h
 
-#ifndef __C_TRB_TREE_H__BSS__
-#define __C_TRB_TREE_H__BSS__
+#ifndef __TRB_TREE_H__BSS__
+#define __TRB_TREE_H__BSS__
 
-#include "bss-util/bss_compare.h"
-#include "bss-util/bss_alloc.h"
+#include "compare.h"
+#include "alloc.h"
 #include "LLBase.h"
 
 namespace bss {

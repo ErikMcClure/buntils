@@ -4,7 +4,7 @@
 #ifndef __LL_BASE_H__BSS__
 #define __LL_BASE_H__BSS__
 
-#include "bss-util/bss_defines.h"
+#include "defines.h"
 #include <iterator>
 #include <stddef.h>
 

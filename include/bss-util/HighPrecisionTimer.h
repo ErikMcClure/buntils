@@ -1,10 +1,10 @@
 // Copyright ©2017 Black Sphere Studios
 // For conditions of distribution and use, see copyright notice in "bss_util.h"
 
-#ifndef __C_HIGHPRECISIONTIMER_H__BSS__
-#define __C_HIGHPRECISIONTIMER_H__BSS__
+#ifndef __HIGHPRECISIONTIMER_H__BSS__
+#define __HIGHPRECISIONTIMER_H__BSS__
 
-#include "bss-util/bss_defines.h"
+#include "defines.h"
 #include <stdint.h>
 #ifndef BSS_PLATFORM_WIN32
 #include <time.h>

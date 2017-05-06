@@ -1,11 +1,11 @@
 // Copyright ©2017 Black Sphere Studios
 // For conditions of distribution and use, see copyright notice in "bss_util.h"
 
-#ifndef __C_KD_TREE_H__BSS__
-#define __C_KD_TREE_H__BSS__
+#ifndef __KD_TREE_H__BSS__
+#define __KD_TREE_H__BSS__
 
-#include "bss-util/bss_compare.h"
-#include "bss-util/bss_alloc.h"
+#include "compare.h"
+#include "alloc.h"
 #include "LLBase.h"
 #include <float.h> // for FLT_MAX on linux
 

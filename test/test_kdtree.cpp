@@ -2,7 +2,7 @@
 // For conditions of distribution and use, see copyright notice in "bss_util.h"
 
 #include "bss-util/KDTree.h"
-#include "bss-util/bss_alloc_block.h"
+#include "bss-util/BlockAlloc.h"
 #include "test.h"
 
 using namespace bss;

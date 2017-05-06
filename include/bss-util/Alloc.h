@@ -4,7 +4,7 @@
 #ifndef __BSS_ALLOC_H__
 #define __BSS_ALLOC_H__
 
-#include "bss-util/bss_defines.h"
+#include "defines.h"
 #include <memory>
 #include <malloc.h> // Must be included because GCC is weird
 #include <assert.h>

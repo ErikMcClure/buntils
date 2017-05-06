@@ -1,7 +1,7 @@
 // Copyright ©2017 Black Sphere Studios
 // For conditions of distribution and use, see copyright notice in "bss_util.h"
 
-#include "bss-util/cJSON.h"
+#include "bss-util/JSON.h"
 #include <fstream>
 #include "test.h"
 
@@ -9,7 +9,7 @@ using namespace bss;
 
 struct JSONtest2
 {
-  DynArray<JSONtest2, uint32_t, CARRAY_SAFE> value;
+  DynArray<JSONtest2, uint32_t, ARRAY_SAFE> value;
   std::array<int, 2> ia;
 
   template<typename Engine>
@@ -28,8 +28,8 @@ struct JSONtest
   JSONtest2 nested;
   DynArray<uint16_t> foo;
   std::vector<double> bar;
-  DynArray<Str, uint16_t, CARRAY_SAFE> foobar;
-  DynArray<JSONtest, uint32_t, CARRAY_SAFE> nestarray;
+  DynArray<Str, uint16_t, ARRAY_SAFE> foobar;
+  DynArray<JSONtest, uint32_t, ARRAY_SAFE> nestarray;
   JSONtest2 nested2;
   bool btrue;
   bool bfalse;

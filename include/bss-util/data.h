@@ -4,7 +4,7 @@
 #ifndef __DATA_H__BSS__
 #define __DATA_H__BSS__
 
-#include "bss-util/DynArray.h"
+#include "DynArray.h"
 
 namespace bss {
   struct DataListener

@@ -1,14 +1,14 @@
 // Copyright ©2017 Black Sphere Studios
 // For conditions of distribution and use, see copyright notice in "bss_util.h"
 
-#ifndef __C_UBJSON_H__BSS__
-#define __C_UBJSON_H__BSS__
+#ifndef __UBJSON_H__BSS__
+#define __UBJSON_H__BSS__
 
-#include "bss-util/DynArray.h"
-#include "bss-util/Str.h"
-#include "bss-util/bss_util.h"
+#include "DynArray.h"
+#include "Str.h"
+#include "bss_util.h"
 #include "Variant.h"
-#include "bss-util/Serializer.h"
+#include "Serializer.h"
 #include <sstream>
 #include <istream>
 #include <ostream>
@@ -187,10 +187,10 @@ namespace bss {
     inline static constexpr const BASE&& f(std::remove_reference<const UBJSONValue>::type&& r) { return (static_cast<const BASE&&>(r)); }
   };
 
-  struct UBJSONValue : Variant<Str, bool, uint8_t, char, int16_t, int32_t, int64_t, float, double, DynArray<UBJSONValue, size_t, CARRAY_SAFE>, DynArray<std::pair<Str, UBJSONValue>, size_t, CARRAY_SAFE>, DynArray<uint8_t, size_t>>
+  struct UBJSONValue : Variant<Str, bool, uint8_t, char, int16_t, int32_t, int64_t, float, double, DynArray<UBJSONValue, size_t, ARRAY_SAFE>, DynArray<std::pair<Str, UBJSONValue>, size_t, ARRAY_SAFE>, DynArray<uint8_t, size_t>>
   {
-    typedef DynArray<UBJSONValue, size_t, CARRAY_SAFE> UBJSONArray;
-    typedef DynArray<std::pair<Str, UBJSONValue>, size_t, CARRAY_SAFE> UBJSONObject;
+    typedef DynArray<UBJSONValue, size_t, ARRAY_SAFE> UBJSONArray;
+    typedef DynArray<std::pair<Str, UBJSONValue>, size_t, ARRAY_SAFE> UBJSONObject;
     typedef DynArray<uint8_t, size_t> UBJSONBinary;
     typedef Variant<Str, bool, uint8_t, char, int16_t, int32_t, int64_t, float, double, UBJSONArray, UBJSONObject, UBJSONBinary> BASE;
 

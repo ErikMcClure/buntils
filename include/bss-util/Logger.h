@@ -7,8 +7,8 @@
 #include <ostream>
 #include <vector>
 #include <stdarg.h>
-#include "bss-util/bss_util.h"
-#include "bss-util/Array.h"
+#include "bss_util.h"
+#include "Array.h"
 
 #define BSSLOG(logger,level,...) ((logger).Log(0,__FILE__,__LINE__,(level),__VA_ARGS__))
 
@@ -16,26 +16,26 @@ namespace bss {
   class StreamSplitter;
 
   // Log class that can be converted into a stream and redirected to various different stream targets
-  class BSS_DLLEXPORT Log
+  class BSS_DLLEXPORT Logger
   {
 #ifdef BSS_COMPILER_MSC2010
-    Log(const Log& copy) : _stream(std::_Noinit) {}
+    Logger(const Logger& copy) : _stream(std::_Noinit) {}
 #else
-    Log(const Log& copy) = delete;
+    Logger(const Logger& copy) = delete;
 #endif
-    Log& operator=(const Log& right) BSS_DELETEFUNCOP
+    Logger& operator=(const Logger& right) BSS_DELETEFUNCOP
   public:
     // Move semantics only
-    Log(Log&& mov);
+    Logger(Logger&& mov);
     // Constructor - takes a stream and adds it
-    explicit Log(std::ostream* log = 0);
+    explicit Logger(std::ostream* log = 0);
     // Constructor - takes either a stream or a file (or both) and adds them
-    explicit Log(const char* logfile, std::ostream* log = 0);
+    explicit Logger(const char* logfile, std::ostream* log = 0);
 #ifdef BSS_PLATFORM_WIN32
-    Log(const wchar_t* logfile, std::ostream* log);
+    Logger(const wchar_t* logfile, std::ostream* log);
 #endif
     // Destructor - destroys any file streams
-    ~Log();
+    ~Logger();
     // Redirects an existing stream to write to this log's buffer
     void Assimilate(std::ostream& stream);
     // Adds a target stream to post logs to
@@ -58,7 +58,7 @@ namespace bss {
     // Sets the maximum level that will be logged. Useful for excluding unnecessary debug logs from release builds
     void SetMaxLevel(uint8_t level);
 
-    Log& operator=(Log&& right);
+    Logger& operator=(Logger&& right);
     inline operator std::ostream&() { return _stream; }
 
     inline int PrintLog(const char* source, const char* file, uint32_t line, int8_t level, const char* format, ...)

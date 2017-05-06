@@ -1,13 +1,13 @@
 // Copyright ©2017 Black Sphere Studios
 // For conditions of distribution and use, see copyright notice in "bss_util.h"
 
-#ifndef __C_ANIMATION_H__BSS__
-#define __C_ANIMATION_H__BSS__
+#ifndef __ANIMATION_H__BSS__
+#define __ANIMATION_H__BSS__
 
-#include "bss-util/ArraySort.h"
-#include "bss-util/RefCounter.h"
+#include "ArraySort.h"
+#include "RefCounter.h"
 #include "Delegate.h"
-#include "bss-util/PriorityQueue.h"
+#include "PriorityQueue.h"
 
 namespace bss {
   // Abstract base animation class
@@ -60,7 +60,7 @@ namespace bss {
   };
 
   // Animation class that stores an animation for a specific type.
-  template<typename T, typename D = void, ARRAY_TYPE ArrayType = CARRAY_SAFE, typename Alloc = StaticAllocPolicy<AniFrame<T, D>>>
+  template<typename T, typename D = void, ARRAY_TYPE ArrayType = ARRAY_SAFE, typename Alloc = StaticAllocPolicy<AniFrame<T, D>>>
   class BSS_COMPILER_DLLEXPORT Animation : public AniBase
   {
   public:
@@ -98,7 +98,7 @@ namespace bss {
     FUNC _f;
   };
 
-  template<typename T, ARRAY_TYPE ArrayType = CARRAY_SAFE, typename Alloc = StaticAllocPolicy<AniFrame<T, double>>>
+  template<typename T, ARRAY_TYPE ArrayType = ARRAY_SAFE, typename Alloc = StaticAllocPolicy<AniFrame<T, double>>>
   class BSS_COMPILER_DLLEXPORT AnimationInterval : public Animation<T, double, ArrayType, Alloc>
   {
     typedef Animation<T, double, ArrayType, Alloc> BASE;
@@ -435,7 +435,7 @@ namespace bss {
         _remove(_queue.Pop().second);
     }
     Delegate<void, AUX> _remove; //Delegate for removal
-    PriorityQueue<double, AUX, CompT<double>, uint32_t, CARRAY_SIMPLE, QUEUEALLOC> _queue;
+    PriorityQueue<double, AUX, CompT<double>, uint32_t, ARRAY_SIMPLE, QUEUEALLOC> _queue;
   };
 }
 

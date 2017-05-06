@@ -4,13 +4,13 @@
 #ifndef __BSS_SSE_H__
 #define __BSS_SSE_H__
 
-#include "bss-util/bss_defines.h"
+#include "defines.h"
 #include <assert.h>
 #include <emmintrin.h>
 #include <stdint.h>
 
 #ifndef BSS_SSE_ENABLED
-#include "bss-util/bss_util.h"
+#include "bss_util.h"
 
 #define BSS_SSE_M128 std::array<float, 4>
 #define BSS_SSE_M128i8 std::array<int8_t, 16>

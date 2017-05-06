@@ -2,7 +2,7 @@
 // For conditions of distribution and use, see copyright notice in "bss_util.h"
 
 #include "bss-util/Thread.h"
-#include "bss-util/bss_algo.h"
+#include "bss-util/algo.h"
 #include "bss-util/HighPrecisionTimer.h"
 #include "test.h"
 

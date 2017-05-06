@@ -6,7 +6,7 @@
 #include "bss-util/os.h"
 #include "bss-util/ArraySort.h"
 #ifdef BSS_PLATFORM_WIN32
-#include "bss-util/bss_win32_includes.h"
+#include "bss-util/win32_includes.h"
 #include <Commdlg.h>
 #include <Shlwapi.h>
 #include <Shlobj.h>
@@ -28,7 +28,7 @@ template<DWORD T_FLAG>
 inline bool r_fexists(const wchar_t* path)
 {
   assert(path != 0);
-  StrW s(L"\\\\?\\"); //You must append \\?\ to the beginning of the string to allow paths up to 32767 characters long
+  bss::StrW s(L"\\\\?\\"); //You must append \\?\ to the beginning of the string to allow paths up to 32767 characters long
   if(!PathIsRelativeW(path)) // But only if its an absolute path
   {
     s += path;
@@ -578,7 +578,7 @@ int r_delregnode(HKEY__* hKeyRoot, const wchar_t* lpSubKey)
   HKEY hKey;
   FILETIME ftWrite;
 
-  StrW lpEnd = lpSubKey;
+  bss::StrW lpEnd = lpSubKey;
   lResult = RegDeleteKeyW(hKeyRoot, lpEnd);
 
   if(lResult == ERROR_SUCCESS)
@@ -783,6 +783,6 @@ void ffff() {}
 
 bss::Delegate<void> rrrrr = bss::Delegate<void>::From<testclass, &testclass::f>(0);
 
-bss::Hash<int, testclass, false, bss::CARRAY_SAFE> hashtest;
+bss::Hash<int, testclass, false, bss::ARRAY_SAFE> hashtest;
 static bool testhash = !hashtest[2];
 #endif

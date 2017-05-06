@@ -6,8 +6,8 @@
 
 #include <sstream>
 #include <streambuf>
-#include "bss-util/Str.h"
-#include "bss-util/DynArray.h"
+#include "Str.h"
+#include "DynArray.h"
 
 /* modifies the basic_ostream so it takes wchar_t and converts it into UTF */
 template<class _Traits>
@@ -53,7 +53,7 @@ namespace bss {
     std::vector<std::ostream*> _targets;
   };
 
-  template<class T, typename CType = size_t, ARRAY_TYPE ArrayType = CARRAY_SIMPLE, typename Alloc = StaticAllocPolicy<T>>
+  template<class T, typename CType = size_t, ARRAY_TYPE ArrayType = ARRAY_SIMPLE, typename Alloc = StaticAllocPolicy<T>>
   class BSS_COMPILER_DLLEXPORT DynArrayIBuf : public std::streambuf
   {
     inline DynArrayIBuf(const DynArrayIBuf& copy) BSS_DELETEFUNC
@@ -111,7 +111,7 @@ namespace bss {
   };
 
 
-  template<class T, typename CType = size_t, ARRAY_TYPE ArrayType = CARRAY_SIMPLE, typename Alloc = StaticAllocPolicy<T>>
+  template<class T, typename CType = size_t, ARRAY_TYPE ArrayType = ARRAY_SIMPLE, typename Alloc = StaticAllocPolicy<T>>
   class BSS_COMPILER_DLLEXPORT DynArrayBuf : public DynArrayIBuf<T, CType, ArrayType, Alloc>
   {
     typedef DynArrayIBuf<T, CType, ArrayType, Alloc> BASE;

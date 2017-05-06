@@ -1,16 +1,16 @@
 // Copyright ©2017 Black Sphere Studios
 // For conditions of distribution and use, see copyright notice in "bss_util.h"
 
-#ifndef __C_ARRAY_SORT_H__BSS__
-#define __C_ARRAY_SORT_H__BSS__
+#ifndef __ARRAY_SORT_H__BSS__
+#define __ARRAY_SORT_H__BSS__
 
-#include "bss-util/bss_algo.h"
-#include "bss-util/bss_compare.h"
-#include "bss-util/DynArray.h"
+#include "algo.h"
+#include "compare.h"
+#include "DynArray.h"
 
 namespace bss {
   // A dynamic array that keeps its contents sorted using insertion sort and uses a binary search to retrieve items.
-  template<typename T, char(*CFunc)(const T&, const T&) = &CompT<T>, typename CType = size_t, ARRAY_TYPE ArrayType = CARRAY_SIMPLE, typename Alloc = StaticAllocPolicy<T>>
+  template<typename T, char(*CFunc)(const T&, const T&) = &CompT<T>, typename CType = size_t, ARRAY_TYPE ArrayType = ARRAY_SIMPLE, typename Alloc = StaticAllocPolicy<T>>
   class BSS_COMPILER_DLLEXPORT ArraySort
   {
   public:

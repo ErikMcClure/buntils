@@ -10,7 +10,7 @@
 #include <vector>
 #include <assert.h>
 #include <stddef.h>
-#include "bss-util/bss_util_c.h"
+#include "bss_util_c.h"
 #ifdef BSS_COMPILER_GCC
 #include <stdio.h>
 #endif
@@ -288,7 +288,7 @@ namespace bss {
 
 #ifdef BSS_PLATFORM_WIN32
   typedef StrT<wchar_t, std::allocator<wchar_t>> StrW;
-  inline StrW cStrWF(const wchar_t* string, ...) { va_list vl; va_start(vl, string); StrW r = StrW::StrTF(string, vl); va_end(vl); return r; }
+  inline StrW StrWF(const wchar_t* string, ...) { va_list vl; va_start(vl, string); StrW r = StrW::StrTF(string, vl); va_end(vl); return r; }
   typedef wchar_t bsschar;
 #else
   typedef char bsschar;
@@ -305,42 +305,42 @@ namespace bss {
 
 // This allows Str to inherit all the string operations
   template<class _Elem, class _Alloc> // return NTCS + string
-  inline StrT<_Elem, _Alloc> operator+(const _Elem *_Left, const StrT<_Elem, _Alloc>& _Right)
+  inline bss::StrT<_Elem, _Alloc> operator+(const _Elem *_Left, const bss::StrT<_Elem, _Alloc>& _Right)
   {
-    StrT<_Elem, _Alloc> _Ans(std::char_traits<_Elem>::length(_Left) + _Right.size()); _Ans += _Left; return (_Ans += _Right);
+    bss::StrT<_Elem, _Alloc> _Ans(std::char_traits<_Elem>::length(_Left) + _Right.size()); _Ans += _Left; return (_Ans += _Right);
   }
   template<class _Elem, class _Alloc> // return character + string
-  inline StrT<_Elem, _Alloc> operator+(const _Elem _Left, const StrT<_Elem, _Alloc>& _Right)
+  inline bss::StrT<_Elem, _Alloc> operator+(const _Elem _Left, const bss::StrT<_Elem, _Alloc>& _Right)
   {
-    StrT<_Elem, _Alloc> _Ans(1 + _Right.size()); _Ans += _Left; return (_Ans += _Right);
+    bss::StrT<_Elem, _Alloc> _Ans(1 + _Right.size()); _Ans += _Left; return (_Ans += _Right);
   }
   template<class _Elem, class _Alloc> // return string + string
-  inline StrT<_Elem, _Alloc> operator+(StrT<_Elem, _Alloc>&& _Left, const StrT<_Elem, _Alloc>& _Right)
+  inline bss::StrT<_Elem, _Alloc> operator+(bss::StrT<_Elem, _Alloc>&& _Left, const bss::StrT<_Elem, _Alloc>& _Right)
   {
     _Left.append(_Right); return (std::move(_Left));
   } //These operations are moved to the left because they return a basic_string, not Str
   template<class _Elem, class _Alloc> // return NTCS + string
-  inline StrT<_Elem, _Alloc> operator+(const _Elem *_Left, StrT<_Elem, _Alloc>&& _Right)
+  inline bss::StrT<_Elem, _Alloc> operator+(const _Elem *_Left, bss::StrT<_Elem, _Alloc>&& _Right)
   {
     _Right.insert(0, _Left); return (std::move(_Right));
   }
   template<class _Elem, class _Alloc> // return character + string
-  inline StrT<_Elem, _Alloc> operator+(const _Elem _Left, StrT<_Elem, _Alloc>&& _Right)
+  inline bss::StrT<_Elem, _Alloc> operator+(const _Elem _Left, bss::StrT<_Elem, _Alloc>&& _Right)
   {
     _Right.insert(0, 1, _Left); return (std::move(_Right));
   }
   template<class _Elem, class _Alloc> // return string + NTCS
-  inline StrT<_Elem, _Alloc> operator+(StrT<_Elem, _Alloc>&& _Left, const _Elem *_Right)
+  inline bss::StrT<_Elem, _Alloc> operator+(bss::StrT<_Elem, _Alloc>&& _Left, const _Elem *_Right)
   {
     _Left.append(_Right); return (std::move(_Left));
   }
   template<class _Elem, class _Alloc> // return string + character
-  inline StrT<_Elem, _Alloc> operator+(StrT<_Elem, _Alloc>&& _Left, const _Elem _Right)
+  inline bss::StrT<_Elem, _Alloc> operator+(bss::StrT<_Elem, _Alloc>&& _Left, const _Elem _Right)
   {
     _Left.append(1, _Right); return (std::move(_Left));
   }
   template<class _Elem, class _Alloc> // return string + string
-  inline StrT<_Elem, _Alloc> operator+(StrT<_Elem, _Alloc>&& _Left, StrT<_Elem, _Alloc>&& _Right)
+  inline bss::StrT<_Elem, _Alloc> operator+(bss::StrT<_Elem, _Alloc>&& _Left, bss::StrT<_Elem, _Alloc>&& _Right)
   {
     if(_Right.size() <= _Left.capacity() - _Left.size() || _Right.capacity() - _Right.size() < _Left.size())
     {

@@ -1,11 +1,11 @@
 // Copyright ©2017 Black Sphere Studios
 // For conditions of distribution and use, see copyright notice in "bss_util.h"
 
-#ifndef __C_DISJOINT_SET_H__BSS__
-#define __C_DISJOINT_SET_H__BSS__
+#ifndef __DISJOINT_SET_H__BSS__
+#define __DISJOINT_SET_H__BSS__
 
-#include "bss-util/Array.h"
-#include "bss-util/bss_util.h"
+#include "Array.h"
+#include "bss_util.h"
 
 namespace bss {
   // Represents a disjoint set data structure that uses path compression.

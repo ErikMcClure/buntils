@@ -13,7 +13,7 @@ TESTDEF::RETPAIR test_ARRAYSORT()
   DEBUG_CDT<true>::count = 0;
 
   {
-    ArraySort<DEBUG_CDT<true>, CompT<DEBUG_CDT<true>>, uint32_t, CARRAY_SAFE> arrtest;
+    ArraySort<DEBUG_CDT<true>, CompT<DEBUG_CDT<true>>, uint32_t, ARRAY_SAFE> arrtest;
     arrtest.Insert(DEBUG_CDT<true>(0));
     arrtest.Insert(DEBUG_CDT<true>(1));
     arrtest.Insert(DEBUG_CDT<true>(2));
@@ -36,7 +36,7 @@ TESTDEF::RETPAIR test_ARRAYSORT()
     TEST(arrtest[2] == 5);
     TEST(arrtest[3] == 7);
 
-    ArraySort<DEBUG_CDT<true>, CompT<DEBUG_CDT<true>>, uint32_t, CARRAY_SAFE> arrtest2;
+    ArraySort<DEBUG_CDT<true>, CompT<DEBUG_CDT<true>>, uint32_t, ARRAY_SAFE> arrtest2;
     arrtest2.Insert(DEBUG_CDT<true>(7));
     arrtest2.Insert(DEBUG_CDT<true>(8));
     arrtest = arrtest2;

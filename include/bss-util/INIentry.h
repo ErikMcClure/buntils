@@ -1,10 +1,10 @@
 // Copyright ©2017 Black Sphere Studios
 // For conditions of distribution and use, see copyright notice in "bss_util.h"
 
-#ifndef __C_INIENTRY_H__BSS__
-#define __C_INIENTRY_H__BSS__
+#ifndef __INIENTRY_H__BSS__
+#define __INIENTRY_H__BSS__
 
-#include "bss-util/Str.h"
+#include "Str.h"
 
 namespace bss {
   // Stores an INI entry and allows it to be accessed via multiple type translations

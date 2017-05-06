@@ -1,13 +1,13 @@
 // Copyright ©2017 Black Sphere Studios
 // For conditions of distribution and use, see copyright notice in "bss_util.h"
 
-#ifndef __C_HASH_H__BSS__
-#define __C_HASH_H__BSS__
+#ifndef __HASH_H__BSS__
+#define __HASH_H__BSS__
 
 #include "khash.h"
-#include "bss-util/bss_util.h"
-#include "bss-util/Array.h"
-#include "bss-util/Str.h"
+#include "bss_util.h"
+#include "Array.h"
+#include "Str.h"
 #include <wchar.h>
 #include <iterator>
 
@@ -19,13 +19,13 @@ namespace bss {
   };
 
   template<class T, typename Alloc>
-  struct __cHashBaseAlloc<T, CARRAY_CONSTRUCT, Alloc>
+  struct __cHashBaseAlloc<T, ARRAY_CONSTRUCT, Alloc>
   {
     inline static T* _realloc(khint8_t* flags, T* src, khint_t new_n_buckets, khint_t n_buckets) noexcept { return (T*)Alloc::allocate(new_n_buckets * sizeof(T), (char*)src); }
   };
 
   template<class T, typename Alloc>
-  struct __cHashBaseAlloc<T, CARRAY_SAFE, Alloc>
+  struct __cHashBaseAlloc<T, ARRAY_SAFE, Alloc>
   {
     inline static T* _realloc(khint8_t* flags, T* src, khint_t new_n_buckets, khint_t n_buckets) noexcept
     {
@@ -44,9 +44,9 @@ namespace bss {
   };
 
   template<class T, typename Alloc>
-  struct __cHashBaseAlloc<T, CARRAY_MOVE, Alloc>
+  struct __cHashBaseAlloc<T, ARRAY_MOVE, Alloc>
   {
-    inline static T* _realloc(khint8_t* flags, T* src, khint_t new_n_buckets, khint_t n_buckets) noexcept { return __cHashBaseAlloc<T, CARRAY_SAFE, Alloc>(flags, src, new_n_buckets, n_buckets); }
+    inline static T* _realloc(khint8_t* flags, T* src, khint_t new_n_buckets, khint_t n_buckets) noexcept { return __cHashBaseAlloc<T, ARRAY_SAFE, Alloc>(flags, src, new_n_buckets, n_buckets); }
   };
 
   template<class T, bool integral>
@@ -69,7 +69,7 @@ namespace bss {
   struct __cHashBaseGET<StrW, false> { typedef const wchar_t* GET; static BSS_FORCEINLINE GET F(StrW& s) { return s.c_str(); } };
 #endif
 
-  template<class Key, class Data, bool IsMap, khint_t(*__hash_func)(const Key&), bool(*__hash_equal)(const Key&, const Key&), ARRAY_TYPE ArrayType = CARRAY_SIMPLE, typename Alloc = StaticAllocPolicy<char>>
+  template<class Key, class Data, bool IsMap, khint_t(*__hash_func)(const Key&), bool(*__hash_equal)(const Key&, const Key&), ARRAY_TYPE ArrayType = ARRAY_SIMPLE, typename Alloc = StaticAllocPolicy<char>>
   class HashBase
   {
   public:
@@ -493,7 +493,7 @@ namespace bss {
   };
 
   // Generic hash definition
-  template<typename K, typename T = void, bool ins = false, ARRAY_TYPE ArrayType = CARRAY_SIMPLE, typename Alloc = StaticAllocPolicy<char>>
+  template<typename K, typename T = void, bool ins = false, ARRAY_TYPE ArrayType = ARRAY_SIMPLE, typename Alloc = StaticAllocPolicy<char>>
   class BSS_COMPILER_DLLEXPORT Hash : public HashBase<K, typename std::conditional<std::is_void<T>::value, char, T>::type, !std::is_void<T>::value, &CHASH_HELPER<K, ins>::hash, &CHASH_HELPER<K, ins>::equal, ArrayType, Alloc>
   {
     typedef HashBase<K, typename std::conditional<std::is_void<T>::value, char, T>::type, !std::is_void<T>::value, &CHASH_HELPER<K, ins>::hash, &CHASH_HELPER<K, ins>::equal, ArrayType, Alloc> BASE;

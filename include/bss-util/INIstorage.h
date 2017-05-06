@@ -1,10 +1,10 @@
 // Copyright ©2017 Black Sphere Studios
 // For conditions of distribution and use, see copyright notice in "bss_util.h"
 
-#ifndef __C_INISTORAGE_H__BSS__
-#define __C_INISTORAGE_H__BSS__
+#ifndef __INISTORAGE_H__BSS__
+#define __INISTORAGE_H__BSS__
 
-#include "bss-util/INIsection.h"
+#include "INIsection.h"
 
 namespace bss {
   // Stores an INI file as a linked list of sections, also stored via hash for O(1) time operations.

@@ -4,7 +4,7 @@
 #include "bss-util/profiler.h"
 #include "bss-util/Str.h"
 #include "bss-util/ArraySort.h"
-#include "bss-util/bss_alloc_greedy.h"
+#include "bss-util/GreedyAlloc.h"
 #include <fstream>
 
 using namespace bss;
@@ -46,7 +46,7 @@ namespace bss {
     inline PROF_HEATNODE(PROFILER_INT ID, double Avg) : avg(Avg), id(ID) {}
     inline PROF_HEATNODE(const PROF_HEATNODE& copy) : _children(copy._children), avg(copy.avg), id(copy.id) {}
     inline PROF_HEATNODE(PROF_HEATNODE&& mov) : _children(std::move(mov._children)), avg(mov.avg), id(mov.id) {}
-    ArraySort<PROF_HEATNODE, COMP, uint32_t, CARRAY_CONSTRUCT, HeatAllocPolicy> _children;
+    ArraySort<PROF_HEATNODE, COMP, uint32_t, ARRAY_CONSTRUCT, HeatAllocPolicy> _children;
     double avg;
     PROFILER_INT id;
     PROF_HEATNODE& operator=(PROF_HEATNODE&& mov) { _children = std::move(mov._children); avg = mov.avg; id = mov.id; return *this; }

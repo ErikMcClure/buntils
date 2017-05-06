@@ -2,7 +2,7 @@
 // For conditions of distribution and use, see copyright notice in "bss_util.h"
 
 #include "bss-util/DynArray.h"
-#include "bss-util/bss_stream.h"
+#include "bss-util/stream.h"
 #include "test.h"
 
 using namespace bss;
@@ -134,19 +134,19 @@ TESTDEF::RETPAIR test_DYNARRAY()
 
   TEST(!m.Length());
 
-  auto f = [](DynArray<DEBUG_CDT<true>, uint32_t, CARRAY_SAFE>& arr)->bool {
+  auto f = [](DynArray<DEBUG_CDT<true>, uint32_t, ARRAY_SAFE>& arr)->bool {
     for(uint32_t i = 0; i < arr.Length(); ++i)
       if(arr[i]._index != i)
         return false;
     return true;
   };
-  auto f2 = [](DynArray<DEBUG_CDT<true>, uint32_t, CARRAY_SAFE>& arr, uint32_t s) { for(uint32_t i = s; i < arr.Length(); ++i) { arr[i]._index = i; } };
+  auto f2 = [](DynArray<DEBUG_CDT<true>, uint32_t, ARRAY_SAFE>& arr, uint32_t s) { for(uint32_t i = s; i < arr.Length(); ++i) { arr[i]._index = i; } };
   int peek;
 
   assert(!DEBUG_CDT_SAFE::Tracker.Length());
   {
     DEBUG_CDT<true>::count = 0;
-    DynArray<DEBUG_CDT<true>, uint32_t, CARRAY_SAFE> b(10);
+    DynArray<DEBUG_CDT<true>, uint32_t, ARRAY_SAFE> b(10);
     b.SetLength(10);
     f2(b, 0);
     b.Remove(5);
@@ -163,7 +163,7 @@ TESTDEF::RETPAIR test_DYNARRAY()
     peek = DEBUG_CDT<true>::count;
     TEST(DEBUG_CDT<true>::count == 19);
     TEST(b.Length() == 19);
-    DynArray<DEBUG_CDT<true>, uint32_t, CARRAY_SAFE> c(b);
+    DynArray<DEBUG_CDT<true>, uint32_t, ARRAY_SAFE> c(b);
     TEST(f(c));
     TEST(DEBUG_CDT<true>::count == 38);
     b += c;
@@ -182,16 +182,16 @@ TESTDEF::RETPAIR test_DYNARRAY()
   TEST(!DEBUG_CDT<true>::count);
   TEST(!DEBUG_CDT_SAFE::Tracker.Length());
 
-  auto f3 = [](DynArray<DEBUG_CDT<false>, uint32_t, CARRAY_CONSTRUCT>& arr)->bool {
+  auto f3 = [](DynArray<DEBUG_CDT<false>, uint32_t, ARRAY_CONSTRUCT>& arr)->bool {
     for(uint32_t i = 0; i < arr.Length(); ++i)
       if(arr[i]._index != i)
         return false;
     return true;
   };
-  auto f4 = [](DynArray<DEBUG_CDT<false>, uint32_t, CARRAY_CONSTRUCT>& arr, uint32_t s) { for(uint32_t i = s; i < arr.Length(); ++i) { arr[i]._index = i; } };
+  auto f4 = [](DynArray<DEBUG_CDT<false>, uint32_t, ARRAY_CONSTRUCT>& arr, uint32_t s) { for(uint32_t i = s; i < arr.Length(); ++i) { arr[i]._index = i; } };
   {
     DEBUG_CDT<false>::count = 0;
-    DynArray<DEBUG_CDT<false>, uint32_t, CARRAY_CONSTRUCT> b(10);
+    DynArray<DEBUG_CDT<false>, uint32_t, ARRAY_CONSTRUCT> b(10);
     b.SetLength(10);
     f4(b, 0);
     b.Remove(5);
@@ -205,7 +205,7 @@ TESTDEF::RETPAIR test_DYNARRAY()
     TEST(f3(b));
     TEST(DEBUG_CDT<false>::count == 19);
     TEST(b.Length() == 19);
-    DynArray<DEBUG_CDT<false>, uint32_t, CARRAY_CONSTRUCT> c(b);
+    DynArray<DEBUG_CDT<false>, uint32_t, ARRAY_CONSTRUCT> c(b);
     TEST(f3(c));
     TEST(DEBUG_CDT<false>::count == 38);
     b += c;

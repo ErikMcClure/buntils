@@ -1,11 +1,11 @@
 // Copyright ©2017 Black Sphere Studios
 // For conditions of distribution and use, see copyright notice in "bss_util.h"
 
-#ifndef __C_AVLTREE_H__BSS__
-#define __C_AVLTREE_H__BSS__
+#ifndef __AVLTREE_H__BSS__
+#define __AVLTREE_H__BSS__
 
-#include "bss-util/bss_compare.h"
-#include "bss-util/bss_alloc.h"
+#include "compare.h"
+#include "alloc.h"
 
 namespace bss {
   template<class KeyData> // If data is non-void, KeyData is std::pair<Key,Data>, otherwise it's just Key
@@ -73,10 +73,10 @@ namespace bss {
 
   // AVL Tree implementation
   template<class Key, class Data, char(*CFunc)(const Key&, const Key&) = CompT<Key>, typename Alloc = StandardAllocPolicy<typename _AVL_TREE_DATAFIELD<Key, Data>::AVLNode>>
-  class BSS_COMPILER_DLLEXPORT cAVLtree : protected AllocTracker<Alloc>, public _AVL_TREE_DATAFIELD<Key, Data>
+  class BSS_COMPILER_DLLEXPORT AVLTree : protected AllocTracker<Alloc>, public _AVL_TREE_DATAFIELD<Key, Data>
   {
-    cAVLtree(const cAVLtree& copy) BSS_DELETEFUNC
-      cAVLtree& operator=(const cAVLtree& copy) BSS_DELETEFUNCOP
+    AVLTree(const AVLTree& copy) BSS_DELETEFUNC
+      AVLTree& operator=(const AVLTree& copy) BSS_DELETEFUNCOP
   protected:
     typedef _AVL_TREE_DATAFIELD<Key, Data> BASE;
     typedef typename BASE::KeyData KeyData;
@@ -85,9 +85,9 @@ namespace bss {
     typedef typename BASE::DATAGET DATAGET;
 
   public:
-    inline cAVLtree(cAVLtree&& mov) : AllocTracker<Alloc>(std::move(mov)), _root(mov._root) { mov._root = 0; }
-    inline cAVLtree(Alloc* allocator = 0) : AllocTracker<Alloc>(allocator), _root(0) {}
-    inline ~cAVLtree() { Clear(); }
+    inline AVLTree(AVLTree&& mov) : AllocTracker<Alloc>(std::move(mov)), _root(mov._root) { mov._root = 0; }
+    inline AVLTree(Alloc* allocator = 0) : AllocTracker<Alloc>(allocator), _root(0) {}
+    inline ~AVLTree() { Clear(); }
     inline void Clear() { _clear(_root); _root = 0; }
     inline AVLNode* GetRoot() { return _root; }
     template<typename F> // std::function<void(std::pair<key,data>)> (we infer _traverse's template argument here, otherwise GCC explodes)
@@ -148,7 +148,7 @@ namespace bss {
       return (cur != 0);
     }
 
-    inline cAVLtree& operator=(cAVLtree&& mov) { Clear(); _root = mov._root; mov._root = 0; return *this; }
+    inline AVLTree& operator=(AVLTree&& mov) { Clear(); _root = mov._root; mov._root = 0; return *this; }
 
   protected:
     template<typename F>

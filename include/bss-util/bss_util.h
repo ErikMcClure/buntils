@@ -17,7 +17,7 @@
 #ifndef __BSS_UTIL_H__
 #define __BSS_UTIL_H__
 
-#include "bss-util/bss_util_c.h"
+#include "bss_util_c.h"
 #include <assert.h>
 #include <cmath>
 #include <memory>

@@ -4,12 +4,12 @@
 #ifndef __BSS_ALGO_H__
 #define __BSS_ALGO_H__
 
-#include "bss-util/bss_util.h"
-#include "bss-util/bss_compare.h"
-#include "bss-util/bss_sse.h"
-#include "bss-util/bss_vector.h"
-#include "bss-util/DynArray.h"
-#include "bss-util/DisjointSet.h"
+#include "bss_util.h"
+#include "compare.h"
+#include "sseVec.h"
+#include "vector.h"
+#include "DynArray.h"
+#include "DisjointSet.h"
 #include "Delegate.h"
 #include <algorithm>
 #include <random>
@@ -264,7 +264,7 @@ namespace bss {
   BSS_FORCEINLINE void for_each(T(&t)[SIZE], F func) { std::for_each(std::begin(t), std::end(t), func); }
 
   // Random queue that pops a random item instead of the last item.
-  template<typename T, typename CType = uint32_t, typename ENGINE = XorshiftEngine<uint64_t>, ARRAY_TYPE ArrayType = CARRAY_SIMPLE, typename Alloc = StaticAllocPolicy<T>>
+  template<typename T, typename CType = uint32_t, typename ENGINE = XorshiftEngine<uint64_t>, ARRAY_TYPE ArrayType = ARRAY_SIMPLE, typename Alloc = StaticAllocPolicy<T>>
   class BSS_COMPILER_DLLEXPORT RandomQueue : protected DynArray<T, CType, ArrayType, Alloc>
   {
   protected:

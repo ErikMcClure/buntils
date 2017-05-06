@@ -1,11 +1,11 @@
 // Copyright ©2017 Black Sphere Studios
 // For conditions of distribution and use, see copyright notice in "bss_util.h"
 
-#ifndef __C_TRIE_H__
-#define __C_TRIE_H__
+#ifndef __TRIE_H__
+#define __TRIE_H__
 
-#include "bss-util/BinaryHeap.h"
-#include "bss-util/bss_algo.h"
+#include "BinaryHeap.h"
+#include "algo.h"
 #include <stdarg.h>
 
 namespace bss {

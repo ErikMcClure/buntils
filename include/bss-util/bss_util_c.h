@@ -4,7 +4,7 @@
 #ifndef __BSS_UTIL_C_H__
 #define __BSS_UTIL_C_H__
 
-#include "bss-util/bss_defines.h"
+#include "defines.h"
 #include <wchar.h>
 #include <stddef.h>
 

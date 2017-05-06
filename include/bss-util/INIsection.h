@@ -1,14 +1,14 @@
 // Copyright ©2017 Black Sphere Studios
 // For conditions of distribution and use, see copyright notice in "bss_util.h"
 
-#ifndef __C_INISECTION_H__BSS__
-#define __C_INISECTION_H__BSS__
+#ifndef __INISECTION_H__BSS__
+#define __INISECTION_H__BSS__
 
-#include "bss-util/INIentry.h"
-#include "bss-util/Hash.h"
-#include "bss-util/Array.h"
+#include "INIentry.h"
+#include "Hash.h"
+#include "Array.h"
 #include "LLBase.h"
-#include "bss-util/bss_alloc_block_MT.h"
+#include "BlockAllocMT.h"
 
 namespace bss {
   class INIstorage;

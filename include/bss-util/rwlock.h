@@ -4,7 +4,7 @@
 #ifndef __RWLOCK_H__BSS__
 #define __RWLOCK_H__BSS__
 
-#include "bss-util/bss_compiler.h"
+#include "compiler.h"
 #include "lockless.h"
 #include <atomic>
 #include <assert.h>

@@ -552,7 +552,7 @@
     <ClCompile Include="test_bss_alloc_greedy.cpp" />
     <ClCompile Include="test_bss_defines.cpp" />
     <ClCompile Include="test_bss_graph.cpp" />
-    <ClCompile Include="test_bss_log.cpp" />
+    <ClCompile Include="test_bss_logger.cpp" />
     <ClCompile Include="test_bss_sse.cpp" />
     <ClCompile Include="test_bss_util.cpp" />
     <ClCompile Include="test_bss_util_c.cpp" />

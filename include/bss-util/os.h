@@ -4,8 +4,8 @@
 #ifndef __BSS_OS_H__
 #define __BSS_OS_H__
 
-#include "bss-util/bss_util.h" // bssDLLDelete
-#include "bss-util/Str.h"
+#include "bss_util.h" // bssDLLDelete
+#include "Str.h"
 
 #ifdef BSS_PLATFORM_WIN32
 struct HWND__;

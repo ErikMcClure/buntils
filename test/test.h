@@ -5,7 +5,7 @@
 #define __BSS_TEST_H__
 
 #include "bss-util/Hash.h"
-#include "bss-util/bss_log.h"
+#include "bss-util/Logger.h"
 #include "bss-util/lockless.h"
 #include "bss-util/Str.h"
 #include "bss-util/RefCounter.h"
@@ -27,7 +27,7 @@ struct TESTDEF
 
 const uint16_t TESTNUM = 50000;
 extern uint16_t testnums[TESTNUM];
-extern bss::Log _failedtests; 
+extern bss::Logger _failedtests;
 extern volatile std::atomic<bool> startflag;
 
 #define BEGINTEST TESTDEF::RETPAIR __testret(0,0); DEBUG_CDT_SAFE::_testret = &__testret; DEBUG_CDT_SAFE::Tracker.Clear();
@@ -99,7 +99,7 @@ struct DEBUG_CDT : DEBUG_CDT_SAFE {
 // This defines an enormous list of pangrams for a ton of languages, used for text processing in an attempt to expose possible unicode errors.
 extern const char* PANGRAM;
 static const int NPANGRAMS = 29;
-extern const bsschar* PANGRAMS[NPANGRAMS];
+extern const bss::bsschar* PANGRAMS[NPANGRAMS];
 extern const wchar_t* TESTUNICODESTR;
 
 struct FWDTEST {

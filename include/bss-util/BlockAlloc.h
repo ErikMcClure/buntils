@@ -4,8 +4,8 @@
 #ifndef __BSS_ALLOC_BLOCK_H__
 #define __BSS_ALLOC_BLOCK_H__
 
-#include "bss-util/bss_alloc.h"
-#include "bss-util/bss_util.h"
+#include "alloc.h"
+#include "bss_util.h"
 
 namespace bss {
   // Block Chunk Alloc

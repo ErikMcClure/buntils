@@ -4,7 +4,7 @@
 #ifndef __BSS_ALLOC_BLOCK_LOCKLESS_H__
 #define __BSS_ALLOC_BLOCK_LOCKLESS_H__
 
-#include "bss-util/bss_alloc_block.h"
+#include "BlockAlloc.h"
 #include "lockless.h"
 
 namespace bss {

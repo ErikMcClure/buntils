@@ -11,7 +11,7 @@ TESTDEF::RETPAIR test_XML()
 {
   BEGINTEST;
 
-  XML test2("<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n<room fancyname=\"Space\" desc=\"This is space.\" startroom=\"0xFFFFFFFFFFFFFFFF\" north=\"TESTROOMNORTH\" roomid=\"TESTROOM\" />\n<room roomid = \"TESTROOMNORTH\" nm:fancyname = \"-200000\" desc = \"This is the room to the north.\" south = \"TESTROOM\" />");
+  XMLFile test2("<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n<room fancyname=\"Space\" desc=\"This is space.\" startroom=\"0xFFFFFFFFFFFFFFFF\" north=\"TESTROOMNORTH\" roomid=\"TESTROOM\" />\n<room roomid = \"TESTROOMNORTH\" nm:fancyname = \"-200000\" desc = \"This is the room to the north.\" south = \"TESTROOM\" />");
 
   TEST(!strcmp(test2[(size_t)0]->GetAttribute("roomid")->String, "TESTROOM"));
   TEST(!strcmp(test2[(size_t)0]->GetAttribute((size_t)0)->String, "Space"));
@@ -33,8 +33,8 @@ TESTDEF::RETPAIR test_XML()
   TEST(!test2[1]->GetAttributeInt(0));
 
 
-  Str XML = "<?xml version=\"1.0\" encoding=\"UTF-8\"?><foo>abc&amp;<bar></bar>zxy<bar2><!-- comment --></bar2  ><   bar/> <  test    />  <!-- comment --><test test=\"attr\" /><!-- comment --></foo> <foo again=\"true\" fail></foo> <bobasdfghqwertyuiopasdfzcvxnm></bobasdfghqwertyuiopasdfzcvxnm><!-- comment --><foo test=\"test\" test=\"success\" /><!-- comment -->";
-  XML xml(XML);
+  Str strXML = "<?xml version=\"1.0\" encoding=\"UTF-8\"?><foo>abc&amp;<bar></bar>zxy<bar2><!-- comment --></bar2  ><   bar/> <  test    />  <!-- comment --><test test=\"attr\" /><!-- comment --></foo> <foo again=\"true\" fail></foo> <bobasdfghqwertyuiopasdfzcvxnm></bobasdfghqwertyuiopasdfzcvxnm><!-- comment --><foo test=\"test\" test=\"success\" /><!-- comment -->";
+  XMLFile xml(strXML);
   TEST(xml.GetNodes() == 4);
   TEST(xml[(size_t)0]->GetName() == Str("foo"));
   TEST(xml[(size_t)0]->GetAttributes() == 0);
@@ -53,7 +53,7 @@ TESTDEF::RETPAIR test_XML()
   
   xml.Write("test.xml");
 
-  XML construct;
+  XMLFile construct;
   construct.SetName("xml");
   construct.AddAttribute("version")->String = "1.0";
   construct.AddAttribute("encoding")->String = "UTF-8";
@@ -75,9 +75,9 @@ TESTDEF::RETPAIR test_XML()
   TEST(compare == compare2);
 
   // Ensure that, even if we can't recover from various errors, the parser does not crash or go into an infinite loop due to bad data
-  for(uint32_t i = 1; i < XML.length(); ++i)
+  for(uint32_t i = 1; i < strXML.length(); ++i)
   {
-    XML x(XML.substr(0, i).c_str());
+    XMLFile x(strXML.substr(0, i).c_str());
     TEST(xml.GetName() != 0); //keep this from getting optimized out
   }
 
@@ -87,7 +87,7 @@ TESTDEF::RETPAIR test_XML()
   for(int i = 0; i < AMOUNT; ++i)
     s += RANDINTGEN(33, 63);
 
-  XML x(s);
+  XMLFile x(s);
   TEST(x.GetName() != 0);
   ENDTEST;
 }

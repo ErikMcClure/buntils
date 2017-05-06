@@ -1,18 +1,18 @@
 // Copyright ©2017 Black Sphere Studios
 // For conditions of distribution and use, see copyright notice in "bss_util.h"
 
-#ifndef __C_SCHEDULER_H__BSS__
-#define __C_SCHEDULER_H__BSS__
+#ifndef __SCHEDULER_H__BSS__
+#define __SCHEDULER_H__BSS__
 
-#include "bss-util/HighPrecisionTimer.h"
-#include "bss-util/BinaryHeap.h"
+#include "HighPrecisionTimer.h"
+#include "BinaryHeap.h"
 
 namespace bss {
   // Scheduler object that lets you schedule events that happen x milliseconds into the future. If the event returns a number greater than 0,it will be rescheduled. 
   template<typename F, typename ST = uint32_t> //std::function<double(void)>
-  class BSS_COMPILER_DLLEXPORT Scheduler : protected HighPrecisionTimer, protected BinaryHeap<std::pair<double, F>, ST, CompTFirst<std::pair<double, F>, CompTInv<double>>, CARRAY_SAFE>
+  class BSS_COMPILER_DLLEXPORT Scheduler : protected HighPrecisionTimer, protected BinaryHeap<std::pair<double, F>, ST, CompTFirst<std::pair<double, F>, CompTInv<double>>, ARRAY_SAFE>
   {
-    typedef BinaryHeap<std::pair<double, F>, ST, CompTFirst<std::pair<double, F>, CompTInv<double>>, CARRAY_SAFE> BASE;
+    typedef BinaryHeap<std::pair<double, F>, ST, CompTFirst<std::pair<double, F>, CompTInv<double>>, ARRAY_SAFE> BASE;
   public:
     // Constructor
     inline Scheduler() {}

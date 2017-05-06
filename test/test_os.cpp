@@ -6,7 +6,7 @@
 #include <string.h>
 #include "test.h"
 #ifdef BSS_PLATFORM_WIN32
-#include "bss-util/bss_win32_includes.h"
+#include "bss-util/win32_includes.h"
 #endif
 
 using namespace bss;
@@ -124,21 +124,21 @@ TESTDEF::RETPAIR test_OS()
   //CPU_Barrier();
 
   auto p = GetFontPath("Arial", 400, false);
-  TEST(!STRICMP(Log::_trimpath(p.get()), "arial.ttf"));
+  TEST(!STRICMP(Logger::_trimpath(p.get()), "arial.ttf"));
   p = GetFontPath("Arial", 500, false);
-  TEST(!STRICMP(Log::_trimpath(p.get()), "arial.ttf"));
+  TEST(!STRICMP(Logger::_trimpath(p.get()), "arial.ttf"));
   p = GetFontPath("Arial", 501, false);
-  TEST(!STRICMP(Log::_trimpath(p.get()), "arialbd.ttf"));
+  TEST(!STRICMP(Logger::_trimpath(p.get()), "arialbd.ttf"));
   p = GetFontPath("Arial", 399, false);
-  TEST(!STRICMP(Log::_trimpath(p.get()), "arial.ttf"));
+  TEST(!STRICMP(Logger::_trimpath(p.get()), "arial.ttf"));
   p = GetFontPath("Arial", 1, false);
-  TEST(!STRICMP(Log::_trimpath(p.get()), "arial.ttf"));
+  TEST(!STRICMP(Logger::_trimpath(p.get()), "arial.ttf"));
   p = GetFontPath("Arial", 600, false);
-  TEST(!STRICMP(Log::_trimpath(p.get()), "arialbd.ttf"));
+  TEST(!STRICMP(Logger::_trimpath(p.get()), "arialbd.ttf"));
   p = GetFontPath("Arial", 600, true);
-  TEST(!STRICMP(Log::_trimpath(p.get()), "arialbi.ttf"));
+  TEST(!STRICMP(Logger::_trimpath(p.get()), "arialbi.ttf"));
   p = GetFontPath("Arial", 500, true);
-  TEST(!STRICMP(Log::_trimpath(p.get()), "ariali.ttf"));
+  TEST(!STRICMP(Logger::_trimpath(p.get()), "ariali.ttf"));
 
   ENDTEST;
 }

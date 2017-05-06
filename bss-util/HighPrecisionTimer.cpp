@@ -3,7 +3,7 @@
 
 #include "bss-util/HighPrecisionTimer.h"
 #ifdef BSS_PLATFORM_WIN32
-#include "bss-util/bss_win32_includes.h"
+#include "bss-util/win32_includes.h"
 #endif
 
 using namespace bss;

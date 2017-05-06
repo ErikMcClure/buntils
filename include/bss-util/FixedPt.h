@@ -4,7 +4,7 @@
 #ifndef __BSS_FIXED_H__
 #define __BSS_FIXED_H__
 
-#include "bss-util/bss_util.h"
+#include "bss_util.h"
 
 namespace bss {
   template<typename T, T S, typename F>

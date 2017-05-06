@@ -9,24 +9,24 @@
 
 using namespace bss;
 
-XML::XML(const XML& copy) : XMLNode(copy) {}
-XML::XML(XML&& mov) : XMLNode(std::move(mov)) {}
-XML::XML(const char* source) { if(source) { Str buf; std::istringstream ss(source); _initialParse(ss, buf); _parseInner(ss, buf); } }
-XML::XML(std::istream& stream) { Str buf; _initialParse(stream, buf); _parseInner(stream, buf); }
+XMLFile::XMLFile(const XMLFile& copy) : XMLNode(copy) {}
+XMLFile::XMLFile(XMLFile&& mov) : XMLNode(std::move(mov)) {}
+XMLFile::XMLFile(const char* source) { if(source) { Str buf; std::istringstream ss(source); _initialParse(ss, buf); _parseInner(ss, buf); } }
+XMLFile::XMLFile(std::istream& stream) { Str buf; _initialParse(stream, buf); _parseInner(stream, buf); }
 
-void XML::_initialParse(std::istream& stream, Str& buf)
+void XMLFile::_initialParse(std::istream& stream, Str& buf)
 {
   if(_match(stream, buf, "<?*?>"))
     _parseAttribute(buf);
 }
 
-void XML::Write(const char* file, bool pretty) const
+void XMLFile::Write(const char* file, bool pretty) const
 {
   std::ofstream fs(file, std::ios_base::out | std::ios_base::trunc | std::ios_base::binary);
   Write(fs, pretty);
   fs.close();
 }
-void XML::Write(std::ostream& stream, bool pretty) const
+void XMLFile::Write(std::ostream& stream, bool pretty) const
 {
   if(_attributes.Length() > 0)
   {

@@ -5,8 +5,8 @@
 #define __BSS_ALLOC_GREEDY_H__
 
 #include <atomic>
-#include "bss-util/bss_alloc.h"
-#include "bss-util/bss_util.h"
+#include "alloc.h"
+#include "bss_util.h"
 #include "rwlock.h"
 
 namespace bss {

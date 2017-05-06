@@ -1,14 +1,14 @@
 // Copyright ©2017 Black Sphere Studios
 // For conditions of distribution and use, see copyright notice in "bss_util.h"
 
-#ifndef __C_PRIORITY_QUEUE_H__BSS__
-#define __C_PRIORITY_QUEUE_H__BSS__
+#ifndef __PRIORITY_QUEUE_H__BSS__
+#define __PRIORITY_QUEUE_H__BSS__
 
-#include "bss-util/BinaryHeap.h"
+#include "BinaryHeap.h"
 
 namespace bss {
   // PriorityQueue that can be implemented as either a maxheap or a minheap
-  template<typename K, typename D, char(*CFunc)(const K&, const K&) = CompT<K>, typename CT_ = uint32_t, ARRAY_TYPE ArrayType = CARRAY_SIMPLE, typename Alloc = StaticAllocPolicy<std::pair<K, D>>>
+  template<typename K, typename D, char(*CFunc)(const K&, const K&) = CompT<K>, typename CT_ = uint32_t, ARRAY_TYPE ArrayType = ARRAY_SIMPLE, typename Alloc = StaticAllocPolicy<std::pair<K, D>>>
   class BSS_COMPILER_DLLEXPORT PriorityQueue : protected BinaryHeap<std::pair<K, D>, CT_, CompTFirst<std::pair<K, D>, CFunc>, ArrayType, Alloc>
   {
     typedef std::pair<K, D> PAIR;
@@ -40,7 +40,7 @@ namespace bss {
     Array<CT_, CT_> _subarray;
   };
 
-  template<typename D, typename CT_ = uint32_t, char(*CFunc)(const D&, const D&) = CompT<D>, ARRAY_TYPE ArrayType = CARRAY_SIMPLE, typename Alloc = StaticAllocPolicy<std::pair<CT_, D>>>
+  template<typename D, typename CT_ = uint32_t, char(*CFunc)(const D&, const D&) = CompT<D>, ARRAY_TYPE ArrayType = ARRAY_SIMPLE, typename Alloc = StaticAllocPolicy<std::pair<CT_, D>>>
   class BSS_COMPILER_DLLEXPORT PriorityHeap : protected BinaryHeap<std::pair<CT_, D>, CT_, CompTSecond<std::pair<CT_, D>, CFunc>, ArrayType, Alloc, MFUNC_PRIORITY<std::pair<CT_, D>, CT_>>
   {
     typedef std::pair<CT_, D> PAIR;

@@ -1,10 +1,10 @@
 // Copyright ©2017 Black Sphere Studios
 // For conditions of distribution and use, see copyright notice in "bss_util.h"
 
-#ifndef __C_RATIONAL_H__BSS__ //These are used in case this header file is used by two different projects dependent on each other, resulting in duplicates which cannot be differentiated by #pragma once
-#define __C_RATIONAL_H__BSS__
+#ifndef __RATIONAL_H__BSS__ //These are used in case this header file is used by two different projects dependent on each other, resulting in duplicates which cannot be differentiated by #pragma once
+#define __RATIONAL_H__BSS__
 
-#include "bss-util/bss_defines.h"
+#include "defines.h"
 #include <stdlib.h>
 #include <type_traits>
 

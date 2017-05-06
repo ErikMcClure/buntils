@@ -1,10 +1,10 @@
 // Copyright ©2017 Black Sphere Studios
 // For conditions of distribution and use, see copyright notice in "bss_util.h"
 
-#ifndef __C_ARRAY_H__BSS__
-#define __C_ARRAY_H__BSS__
+#ifndef __ARRAY_H__BSS__
+#define __ARRAY_H__BSS__
 
-#include "bss-util/bss_alloc.h"
+#include "alloc.h"
 #include <string.h>
 #include <initializer_list>
 
@@ -67,7 +67,7 @@ namespace bss {
     memmove(a + index, a + index + range, sizeof(T)*(length - index - range));
   }
 
-  enum ARRAY_TYPE : uint8_t { CARRAY_SIMPLE = 0, CARRAY_CONSTRUCT = 1, CARRAY_SAFE = 2, CARRAY_MOVE = 3 };
+  enum ARRAY_TYPE : uint8_t { ARRAY_SIMPLE = 0, ARRAY_CONSTRUCT = 1, ARRAY_SAFE = 2, ARRAY_MOVE = 3 };
 
   // Handles the very basic operations of an array. Constructor management is done by classes that inherit this class.
   template<class T, typename CType = size_t, typename Alloc = StaticAllocPolicy<T>>
@@ -131,7 +131,7 @@ namespace bss {
 #define BSS_DEBUGFILL(p, old, n, Ty)  
 #endif
 
-  template<class T, typename CType = size_t, ARRAY_TYPE ArrayType = CARRAY_SIMPLE, typename Alloc = StaticAllocPolicy<T>>
+  template<class T, typename CType = size_t, ARRAY_TYPE ArrayType = ARRAY_SIMPLE, typename Alloc = StaticAllocPolicy<T>>
   struct BSS_COMPILER_DLLEXPORT ArrayInternal
   {
     static void _copyMove(T* BSS_RESTRICT dest, T* BSS_RESTRICT src, CType n) noexcept { if(dest == nullptr) return; assert(dest != src); _copy(dest, src, n); }
@@ -155,7 +155,7 @@ namespace bss {
   };
 
   template<class T, typename CType, typename Alloc>
-  struct BSS_COMPILER_DLLEXPORT ArrayInternal<T, CType, CARRAY_CONSTRUCT, Alloc>
+  struct BSS_COMPILER_DLLEXPORT ArrayInternal<T, CType, ARRAY_CONSTRUCT, Alloc>
   {
     static void _copyMove(T* BSS_RESTRICT dest, T* BSS_RESTRICT src, CType n) noexcept { if(dest == nullptr) return; assert(dest != src); memcpy(dest, src, sizeof(T)*n); }
     static void _copy(T* BSS_RESTRICT dest, const T* BSS_RESTRICT src, CType n) noexcept
@@ -166,7 +166,7 @@ namespace bss {
         new(dest + i) T(src[i]);
     }
     template<typename U>
-    static void _insert(T* a, CType length, CType index, U && t) noexcept { ArrayInternal<T, CType, CARRAY_SIMPLE, Alloc>::_insert(a, length, index, std::forward<U>(t)); }
+    static void _insert(T* a, CType length, CType index, U && t) noexcept { ArrayInternal<T, CType, ARRAY_SIMPLE, Alloc>::_insert(a, length, index, std::forward<U>(t)); }
     static void _remove(T* a, CType length, CType index) noexcept
     {
       a[index].~T();
@@ -188,7 +188,7 @@ namespace bss {
   };
 
   template<class T, typename CType, typename Alloc>
-  struct BSS_COMPILER_DLLEXPORT ArrayInternal<T, CType, CARRAY_SAFE, Alloc>
+  struct BSS_COMPILER_DLLEXPORT ArrayInternal<T, CType, ARRAY_SAFE, Alloc>
   {
     static void _copyMove(T* BSS_RESTRICT dest, T* BSS_RESTRICT src, CType n) noexcept
     {
@@ -224,7 +224,7 @@ namespace bss {
       std::move<T*, T*>(a + index + 1, a + length, a + index);
       a[length - 1].~T();
     }
-    static void _setLength(T* a, CType old, CType n) noexcept { ArrayInternal<T, CType, CARRAY_CONSTRUCT, Alloc>::_setLength(a, old, n); }
+    static void _setLength(T* a, CType old, CType n) noexcept { ArrayInternal<T, CType, ARRAY_CONSTRUCT, Alloc>::_setLength(a, old, n); }
     static void _setCapacity(ArrayBase<T, CType, Alloc>& a, CType length, CType capacity) noexcept
     {
       T* n = ArrayBase<T, CType, Alloc>::_getAlloc(capacity, 0);
@@ -236,9 +236,9 @@ namespace bss {
   };
 
   template<class T, typename CType, typename Alloc>
-  struct BSS_COMPILER_DLLEXPORT ArrayInternal<T, CType, CARRAY_MOVE, Alloc>
+  struct BSS_COMPILER_DLLEXPORT ArrayInternal<T, CType, ARRAY_MOVE, Alloc>
   {
-    typedef ArrayInternal<T, CType, CARRAY_SAFE, Alloc> SAFE;
+    typedef ArrayInternal<T, CType, ARRAY_SAFE, Alloc> SAFE;
     static void _copyMove(T* BSS_RESTRICT dest, T* BSS_RESTRICT src, CType n) noexcept { if(dest == nullptr) return; assert(dest != src); SAFE::_copyMove(dest, src, n); }
     static void _copy(T* BSS_RESTRICT dest, const T* BSS_RESTRICT src, CType n) noexcept { assert(false); }
     template<typename U>
@@ -249,7 +249,7 @@ namespace bss {
   };
 
   // Wrapper for underlying arrays that expose the array, making them independently usable without blowing up everything that inherits them
-  template<class T, typename CType = size_t, ARRAY_TYPE ArrayType = CARRAY_SIMPLE, typename Alloc = StaticAllocPolicy<T>>
+  template<class T, typename CType = size_t, ARRAY_TYPE ArrayType = ARRAY_SIMPLE, typename Alloc = StaticAllocPolicy<T>>
   class BSS_COMPILER_DLLEXPORT Array : protected ArrayBase<T, CType, Alloc>, protected ArrayInternal<T, CType, ArrayType, Alloc>
   {
   protected:

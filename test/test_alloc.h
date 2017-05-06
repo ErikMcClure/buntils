@@ -5,7 +5,7 @@
 #define __BSS_TEST_ALLOC_H__
 
 #include "bss-util/DynArray.h"
-#include "bss-util/bss_algo.h"
+#include "bss-util/algo.h"
 #include "test.h"
 
 template<class T, typename P, int MAXSIZE, int TRIALS>

@@ -1,13 +1,13 @@
 // Copyright ©2017 Black Sphere Studios
 // For conditions of distribution and use, see copyright notice in "bss_util.h"
 
-#ifndef __C_STR_TABLE_H__BSS__
-#define __C_STR_TABLE_H__BSS__
+#ifndef __STR_TABLE_H__BSS__
+#define __STR_TABLE_H__BSS__
 
-//#include "bss-util/bss_alloc.h"
-#include "bss-util/bss_util.h"
-#include "bss-util/Array.h"
-#include "bss-util/Str.h"
+//#include "alloc.h"
+#include "bss_util.h"
+#include "Array.h"
+#include "Str.h"
 #include <stdlib.h>
 #include <ostream>
 #include <istream>
@@ -56,8 +56,8 @@ namespace bss {
     inline const T* GetString(CT_ index) const { assert(index < _indices.Capacity()); return _strings + _indices[index]; }
     inline void AppendString(const char* s)
     {
-      CT_ last = CSTR_CT<T>::SLEN(_strings + _indices[_indices.Capacity() - 1]) + 1 + _indices[_indices.Capacity() - 1];
-      CT_ sz = CSTR_CT<T>::SLEN(s) + 1;
+      CT_ last = STR_CT<T>::SLEN(_strings + _indices[_indices.Capacity() - 1]) + 1 + _indices[_indices.Capacity() - 1];
+      CT_ sz = STR_CT<T>::SLEN(s) + 1;
 
       _indices.SetCapacity(_indices.Capacity() + 1);
       _indices[_indices.Capacity() - 1] = last; // Add another indice and set its value appropriately
@@ -108,7 +108,7 @@ namespace bss {
       CT_ sz = 0;
       for(CT_ i = 0; i < size; ++i) //this will cause an infinite loop if someone is dumb enough to set CT_ to an unsigned type and set size equal to -1. If you actually think you could make that mistake, stop using this class.
       {
-        _indices[i] = CSTR_CT<T>::SLEN(strings[i]) + 1; //include null terminator in length count
+        _indices[i] = STR_CT<T>::SLEN(strings[i]) + 1; //include null terminator in length count
         sz += _indices[i];
       }
       _strings.SetCapacity(sz);

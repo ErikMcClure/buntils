@@ -3,7 +3,7 @@
 
 #include "bss-util/bss_util_c.h"
 #include <functional>
-#include "bss-util/bss_algo.h"
+#include "bss-util/algo.h"
 #include "test.h"
 
 using namespace bss;

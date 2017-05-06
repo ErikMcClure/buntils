@@ -9,7 +9,7 @@ using namespace bss;
 TESTDEF::RETPAIR test_PRIORITYQUEUE()
 {
   BEGINTEST;
-  PriorityQueue<int, Str, CompTInv<int>, uint32_t, CARRAY_SAFE> q;
+  PriorityQueue<int, Str, CompTInv<int>, uint32_t, ARRAY_SAFE> q;
 
   q.Push(5, "5");
   q.Push(3, "3");

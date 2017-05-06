@@ -1,10 +1,10 @@
 // Copyright ©2017 Black Sphere Studios
 // For conditions of distribution and use, see copyright notice in "bss_util.h"
 
-#ifndef __C_ALIAS_TABLE_H__BSS__
-#define __C_ALIAS_TABLE_H__BSS__
+#ifndef __ALIAS_TABLE_H__BSS__
+#define __ALIAS_TABLE_H__BSS__
 
-#include "bss-util/bss_algo.h"
+#include "algo.h"
 
 namespace bss {
   // Implementation of the Alias method, based off Keith Schwarz's code, found here: http://www.keithschwarz.com/darts-dice-coins/

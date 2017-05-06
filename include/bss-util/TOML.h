@@ -1,13 +1,13 @@
 // Copyright ©2017 Black Sphere Studios
 // For conditions of distribution and use, see copyright notice in "bss_util.h"
 
-#ifndef __C_TOML_H__BSS__
-#define __C_TOML_H__BSS__
+#ifndef __TOML_H__BSS__
+#define __TOML_H__BSS__
 
-#include "bss-util/Hash.h"
-#include "bss-util/DynArray.h"
+#include "Hash.h"
+#include "DynArray.h"
 #include "Variant.h"
-#include "bss-util/Serializer.h"
+#include "Serializer.h"
 #include <chrono>
 #include <sstream>
 #include <locale>
@@ -56,10 +56,10 @@ namespace bss {
   void static WriteTOMLBase(Serializer<TOMLEngine>& e, const char* id, const T& obj, std::ostream& s);
 
   // Represents an arbitrary TOML value in any of the standard storage types recognized by the format.
-  struct TOMLValue : public Variant<Str, double, int64_t, bool, std::chrono::system_clock::time_point, DynArray<TOMLValue, size_t, CARRAY_SAFE>, Hash<Str, TOMLValue, false, CARRAY_SAFE>>
+  struct TOMLValue : public Variant<Str, double, int64_t, bool, std::chrono::system_clock::time_point, DynArray<TOMLValue, size_t, ARRAY_SAFE>, Hash<Str, TOMLValue, false, ARRAY_SAFE>>
   {
-    typedef DynArray<TOMLValue, size_t, CARRAY_SAFE> TOMLArray;
-    typedef Hash<Str, TOMLValue, false, CARRAY_SAFE> TOMLTable; // All objects in TOML are tables
+    typedef DynArray<TOMLValue, size_t, ARRAY_SAFE> TOMLArray;
+    typedef Hash<Str, TOMLValue, false, ARRAY_SAFE> TOMLTable; // All objects in TOML are tables
     typedef Variant<Str, double, int64_t, bool, std::chrono::system_clock::time_point, TOMLArray, TOMLTable> BASE;
 
   public:

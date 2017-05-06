@@ -2,7 +2,7 @@
 // For conditions of distribution and use, see copyright notice in "bss_util.h"
 
 #include "test.h"
-#include "bss-util/bss_algo.h"
+#include "bss-util/algo.h"
 #include <time.h>
 #include <iostream>
 
@@ -70,7 +70,7 @@ const bsschar* PANGRAMS[29] = {
 const wchar_t* TESTUNICODESTR = L"الرِضَءَجيعُ بِهءَرِا نَجلاءَرِ رِمِعطارِ";
 
 uint16_t testnums[TESTNUM];
-Log _failedtests;
+Logger _failedtests;
 volatile std::atomic<bool> startflag;
 
 TESTDEF::RETPAIR* DEBUG_CDT_SAFE::_testret = 0;
@@ -100,26 +100,26 @@ int main(int argc, char** argv)
     { "bss_util_c.h", &test_bss_util_c },
     { "bss_util.h", &test_bss_util },
     { "Log.h", &test_bss_LOG },
-    { "bss_algo.h", &test_bss_algo },
-    { "bss_alloc_greedy.h", &test_bss_ALLOC_ADDITIVE },
-    { "bss_alloc_circular.h", &test_bss_ALLOC_RING },
-    { "bss_alloc_block.h", &test_bss_ALLOC_BLOCK },
-    { "bss_alloc_block_MT.h", &test_bss_ALLOC_BLOCK_LOCKLESS },
+    { "algo.h", &test_bss_algo },
+    { "GreedyAlloc.h", &test_bss_ALLOC_ADDITIVE },
+    { "RingAlloc.h", &test_bss_ALLOC_RING },
+    { "BlockAlloc.h", &test_bss_ALLOC_BLOCK },
+    { "BlockAllocMT.h", &test_bss_ALLOC_BLOCK_LOCKLESS },
     { "bss_depracated.h", &test_bss_deprecated },
-    { "bss_dual.h", &test_bss_DUAL },
-    { "bss_fixedpt.h", &test_bss_FIXEDPT },
-    { "bss_sse.h", &test_bss_SSE },
-    { "bss_stream.h", &test_STREAMSPLITTER },
-    { "bss_graph.h", &test_bss_GRAPH },
-    { "bss_vector.h", &test_VECTOR },
+    { "Dual.h", &test_bss_DUAL },
+    { "FixedPt.h", &test_bss_FIXEDPT },
+    { "sseVec.h", &test_bss_SSE },
+    { "stream.h", &test_STREAMSPLITTER },
+    { "Graph.h", &test_bss_GRAPH },
+    { "vector.h", &test_VECTOR },
     { "AliasTable.h", &test_ALIASTABLE },
     { "Animation.h", &test_ANIMATION },
     { "FXAni.h", &test_FX_ANI },
     { "ArrayCircular.h", &test_ARRAYCIRCULAR },
     { "Array.h", &test_ARRAY },
     { "ArraySort.h", &test_ARRAYSORT },
-    { "cAVLtree.h", &test_AVLTREE },
-    { "cAAtree.h", &test_AA_TREE },
+    { "AVLtree.h", &test_AVLTREE },
+    { "AAtree.h", &test_AA_TREE },
     { "BinaryHeap.h", &test_BINARYHEAP },
     { "BitField.h", &test_BITFIELD },
     { "BitStream.h", &test_BITSTREAM },
@@ -133,8 +133,8 @@ int main(int argc, char** argv)
     { "Scheduler.h", &test_SCHEDULER },
     { "INIstorage.h", &test_INISTORAGE },
     { "KDTree.h", &test_KDTREE },
-    { "cJSON.h", &test_JSON },
-    { "cUBJSON.h", &test_UBJSON },
+    { "JSON.h", &test_JSON },
+    { "UBJSON.h", &test_UBJSON },
     { "Hash.h", &test_HASH },
     { "LinkedArray.h", &test_LINKEDARRAY },
     { "LinkedList.h", &test_LINKEDLIST },
@@ -150,11 +150,11 @@ int main(int argc, char** argv)
     { "StringTable.h", &test_STRTABLE },
     { "Thread.h", &test_THREAD },
     { "ThreadPool.h", &test_THREADPOOL },
-    { "cTOML.h", &test_TOML },
+    { "TOML.h", &test_TOML },
     { "TRBtree.h", &test_TRBTREE },
     { "Trie.h", &test_TRIE },
     { "XML.h", &test_XML },
-    { "cSmartPtr.h", &test_SMARTPTR },
+    { "SmartPtr.h", &test_SMARTPTR },
     { "Delegate.h", &test_DELEGATE },
     { "os.h", &test_OS },
     { "profile.h", &test_PROFILE },

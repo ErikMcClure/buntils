@@ -1,11 +1,11 @@
 // Copyright ©2017 Black Sphere Studios
 // For conditions of distribution and use, see copyright notice in "bss_util.h"
 
-#include "cBinaryHeap.h"
+#include "bss-util/BinaryHeap.h"
 #include <algorithm>
 #include "test.h"
 
-using namespace bss_util;
+using namespace bss;
 
 TESTDEF::RETPAIR test_BINARYHEAP()
 {
@@ -21,15 +21,15 @@ TESTDEF::RETPAIR test_BINARYHEAP()
   };
 
   std::sort(std::begin(a2), std::end(a2));
-  cBinaryHeap<int>::HeapSort(a3);
+  BinaryHeap<int>::HeapSort(a3);
   arrtest(a2, a3, a2_SZ);
 
   std::sort(std::begin(a2), std::end(a2), [](int x, int y)->bool { return x>y; });
-  cBinaryHeap<int, uint32_t, CompTInv<int>>::HeapSort(a3);
+  BinaryHeap<int, uint32_t, CompTInv<int>>::HeapSort(a3);
   arrtest(a2, a3, a2_SZ);
 
   std::vector<int> b;
-  cBinaryHeap<int> c;
+  BinaryHeap<int> c;
   for(uint32_t i = 0; i < a2_SZ; ++i)
   {
     b.push_back(a[i]);

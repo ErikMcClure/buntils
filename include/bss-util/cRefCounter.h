@@ -4,12 +4,12 @@
 #ifndef __C_REFCOUNTER_H__BSS__ //These are used in case this header file is used by two different projects dependent on each other, resulting in duplicates which cannot be differentiated by #pragma once
 #define __C_REFCOUNTER_H__BSS__
 
-#include "bss_compiler.h"
+#include "bss-util/bss_compiler.h"
 #include <assert.h>
 
-namespace bss_util {
+namespace bss {
   // A reference counter class that is entirely inline
-  class BSS_COMPILER_DLLEXPORT cRefCounter
+  class BSS_COMPILER_DLLEXPORT RefCounter
   {
   public:
     // Increments and returns the reference counter
@@ -26,19 +26,19 @@ namespace bss_util {
 
   protected:
     // Constructor - Reference is set to 0 because you may or may not have a persistent reference to this, or something else will try to grab it or whatever
-    inline cRefCounter() { _refs = 0; }
-    inline cRefCounter(const cRefCounter& copy) { _refs = 0; }
+    inline RefCounter() { _refs = 0; }
+    inline RefCounter(const RefCounter& copy) { _refs = 0; }
     // Destructor - Does nothing, but because it is virtual, ensures that all superclasses get destroyed as well
-    virtual ~cRefCounter() {}
+    virtual ~RefCounter() {}
     // Destroys this object - made a seperate virtual function so it is overridable to ensure it is deleted in the proper DLL
     virtual void DestroyThis() { delete this; }
 
-    inline cRefCounter& operator=(const cRefCounter& right) { return *this; } // This does not actually change the reference count
+    inline RefCounter& operator=(const RefCounter& right) { return *this; } // This does not actually change the reference count
 
     int _refs; //holds the number of references held for this object
   };
 
-  // Implementation of an automatic reference tracker for use in conjunction with cRefCounter. Mimics a pointer.
+  // Implementation of an automatic reference tracker for use in conjunction with RefCounter. Mimics a pointer.
   template<class T>
   class BSS_COMPILER_DLLEXPORT ref_ptr
   {

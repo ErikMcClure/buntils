@@ -1,11 +1,11 @@
 // Copyright ©2017 Black Sphere Studios
 // For conditions of distribution and use, see copyright notice in "bss_util.h"
 
-#include "bss_alloc_ring.h"
-#include "cThread.h"
+#include "bss-util/bss_alloc_ring.h"
+#include "bss-util/Thread.h"
 #include "test_alloc.h"
 
-using namespace bss_util;
+using namespace bss;
 
 template<class T>
 struct MTCIRCALLOCWRAP : cRingAlloc<T> { inline MTCIRCALLOCWRAP(size_t init = 8) : cRingAlloc<T>(init) {} inline void Clear() {} };
@@ -18,10 +18,10 @@ TESTDEF::RETPAIR test_bss_ALLOC_RING()
   MTCIRCALLOCWRAP<size_t> _alloc;
 
   const int NUM = 16;
-  cThread threads[NUM];
+  Thread threads[NUM];
   startflag.store(false);
   for(int i = 0; i < NUM; ++i)
-    threads[i] = cThread((CIRCALLOCFN)&TEST_ALLOC_MT<MTCIRCALLOCWRAP<size_t>, size_t, 1000>, std::ref(__testret), std::ref(_alloc));
+    threads[i] = Thread((CIRCALLOCFN)&TEST_ALLOC_MT<MTCIRCALLOCWRAP<size_t>, size_t, 1000>, std::ref(__testret), std::ref(_alloc));
   startflag.store(true);
 
   for(int i = 0; i < NUM; ++i)

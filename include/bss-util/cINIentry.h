@@ -4,18 +4,18 @@
 #ifndef __C_INIENTRY_H__BSS__
 #define __C_INIENTRY_H__BSS__
 
-#include "cStr.h"
+#include "bss-util/Str.h"
 
-namespace bss_util {
+namespace bss {
   // Stores an INI entry and allows it to be accessed via multiple type translations
-  struct BSS_DLLEXPORT cINIentry
+  struct BSS_DLLEXPORT INIentry
   {
-    cINIentry(const cINIentry& copy);
-    cINIentry(cINIentry&& mov);
-    cINIentry();
-    cINIentry(const char* key, const char* svalue, int64_t ivalue, double dvalue);
-    cINIentry(const char* key, const char* data);
-    ~cINIentry();
+    INIentry(const INIentry& copy);
+    INIentry(INIentry&& mov);
+    INIentry();
+    INIentry(const char* key, const char* svalue, int64_t ivalue, double dvalue);
+    INIentry(const char* key, const char* data);
+    ~INIentry();
     void SetData(const char* data);
     BSS_FORCEINLINE const char* GetKey() const { return _key; }
     //BSS_FORCEINLINE uint32_t GetIndex() const { return _index; }
@@ -39,13 +39,13 @@ namespace bss_util {
     BSS_FORCEINLINE operator double() const { return _dvalue; }
     BSS_FORCEINLINE operator const char*() const { return _svalue; }
 
-    bool operator ==(cINIentry &other) const; //these can't be inlined because the compare function is different.
-    bool operator !=(cINIentry &other) const;
-    cINIentry& operator=(cINIentry&& mov);
+    bool operator ==(INIentry &other) const; //these can't be inlined because the compare function is different.
+    bool operator !=(INIentry &other) const;
+    INIentry& operator=(INIentry&& mov);
 
   private:
-    cStr _key;
-    cStr _svalue;
+    Str _key;
+    Str _svalue;
     int64_t _ivalue;
     double _dvalue;
   };

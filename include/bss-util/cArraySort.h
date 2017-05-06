@@ -4,25 +4,25 @@
 #ifndef __C_ARRAY_SORT_H__BSS__
 #define __C_ARRAY_SORT_H__BSS__
 
-#include "bss_algo.h"
-#include "bss_compare.h"
-#include "cDynArray.h"
+#include "bss-util/bss_algo.h"
+#include "bss-util/bss_compare.h"
+#include "bss-util/DynArray.h"
 
-namespace bss_util {
+namespace bss {
   // A dynamic array that keeps its contents sorted using insertion sort and uses a binary search to retrieve items.
   template<typename T, char(*CFunc)(const T&, const T&) = &CompT<T>, typename CType = size_t, ARRAY_TYPE ArrayType = CARRAY_SIMPLE, typename Alloc = StaticAllocPolicy<T>>
-  class BSS_COMPILER_DLLEXPORT cArraySort
+  class BSS_COMPILER_DLLEXPORT ArraySort
   {
   public:
     typedef CType CT_;
     typedef const T& constref;
     typedef T&& moveref;
 
-    inline cArraySort(const cArraySort& copy) : _array(copy._array) {}
-    inline cArraySort(cArraySort&& mov) : _array(std::move(mov._array)) {}
-    inline cArraySort(const cArraySlice<const T, CType>& slice) : _array(slice) {}
-    inline explicit cArraySort(CT_ size = 0) : _array(size) {}
-    inline ~cArraySort() {}
+    inline ArraySort(const ArraySort& copy) : _array(copy._array) {}
+    inline ArraySort(ArraySort&& mov) : _array(std::move(mov._array)) {}
+    inline ArraySort(const ArraySlice<const T, CType>& slice) : _array(slice) {}
+    inline explicit ArraySort(CT_ size = 0) : _array(size) {}
+    inline ~ArraySort() {}
     BSS_FORCEINLINE CT_ Insert(constref data) { CT_ loc = _insert(data); _array.Insert(data, loc); return loc; }
     BSS_FORCEINLINE CT_ Insert(moveref data) { CT_ loc = _insert(std::move(data)); _array.Insert(std::move(data), loc); return loc; }
     inline void Clear() { _array.Clear(); }
@@ -39,7 +39,7 @@ namespace bss_util {
     inline const T* end() const noexcept { return _array.end(); }
     inline T* begin() noexcept { return _array.begin(); }
     inline T* end() noexcept { return _array.end(); }
-    BSS_FORCEINLINE cArraySlice<T, CT_> GetSlice() const noexcept { return _array.GetSlice(); }
+    BSS_FORCEINLINE ArraySlice<T, CT_> GetSlice() const noexcept { return _array.GetSlice(); }
 
     CT_ ReplaceData(CT_ index, constref data)
     {
@@ -81,9 +81,9 @@ namespace bss_util {
 
     BSS_FORCEINLINE constref operator [](CT_ index) const { return _array[index]; }
     BSS_FORCEINLINE T& operator [](CT_ index) { return _array[index]; }
-    inline cArraySort& operator=(const cArraySort& right) { _array = right._array; return *this; }
-    inline cArraySort& operator=(cArraySort&& mov) { _array = std::move(mov._array); return *this; }
-    inline cArraySort& operator=(const cArraySlice<const T, CType>& copy) { _array = copy; return *this; }
+    inline ArraySort& operator=(const ArraySort& right) { _array = right._array; return *this; }
+    inline ArraySort& operator=(ArraySort&& mov) { _array = std::move(mov._array); return *this; }
+    inline ArraySort& operator=(const ArraySlice<const T, CType>& copy) { _array = copy; return *this; }
 
   protected:
     template<typename U>
@@ -101,7 +101,7 @@ namespace bss_util {
       }
     }
 
-    cDynArray<T, CType, ArrayType, Alloc> _array;
+    DynArray<T, CType, ArrayType, Alloc> _array;
   };
 }
 

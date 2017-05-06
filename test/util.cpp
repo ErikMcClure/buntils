@@ -1,11 +1,11 @@
 // Copyright ©2017 Black Sphere Studios
 // For conditions of distribution and use, see copyright notice in "bss_util.h"
 
-#include "cThread.h"
-#include "bss_algo.h"
+#include "bss-util/Thread.h"
+#include "bss-util/bss_algo.h"
 #include "test.h"
 
-using namespace bss_util;
+using namespace bss;
 
 #if defined(BSS_CPU_x86) || defined(BSS_CPU_x64)
 // This is an SSE version of the fast sqrt that calculates x*invsqrt(x) as a speed hack. Sadly, it's still slower and actually LESS accurate than the classic FastSqrt with an added iteration, below, and it isn't even portable. Left here for reference, in case you don't believe me ;)
@@ -91,16 +91,16 @@ lq_r.store(0);
 std::atomic<void*> arr[MAX];
 memset(arr, 0, sizeof(void*)*MAX);
 const int NUM = 8;
-cThread threads[NUM];
+Thread threads[NUM];
 startflag.store(false);
 for(int i = 0; i < NUM; ++i)
-threads[i] = cThread((i%2)?&profile_pop<Alloc, MAX>:&profile_push<Alloc, MAX, SZ>, std::ref(a), arr);
+threads[i] = Thread((i%2)?&profile_pop<Alloc, MAX>:&profile_push<Alloc, MAX, SZ>, std::ref(a), arr);
 
-auto prof = cHighPrecisionTimer::OpenProfiler();
+auto prof = HighPrecisionTimer::OpenProfiler();
 startflag.store(true);
 
 while(startflag.load(std::memory_order_acquire));
-uint64_t diff = cHighPrecisionTimer::CloseProfiler(prof);
+uint64_t diff = HighPrecisionTimer::CloseProfiler(prof);
 
 for(int i = 0; i < NUM; ++i)
 threads[i].join();
@@ -255,9 +255,9 @@ inline void invalidate() { i=0; offset=0;blah=0; }
 inline void validate() { i=-1; offset=-1;blah=-1; }
 };
 
-void printout(cLinkedList<int,StandardAllocPolicy<cLLNode<int>>,true>& list)
+void printout(LinkedList<int,StandardAllocPolicy<LLNode<int>>,true>& list)
 {
-cLLIter<int> cur(list.GetRoot());
+LLIter<int> cur(list.GetRoot());
 
 while(cur.IsValid())
 std::cout<<*(cur++);
@@ -265,7 +265,7 @@ std::cout<<*(cur++);
 std::cout<<std::endl;
 }
 
-void printout(cLinkedArray<int>& list)
+void printout(LinkedArray<int>& list)
 {
 auto cur=list.begin();
 

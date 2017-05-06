@@ -1,10 +1,10 @@
 // Copyright ©2017 Black Sphere Studios
 // For conditions of distribution and use, see copyright notice in "bss_util.h"
 
-#include "bss_vector.h"
+#include "bss-util/bss_vector.h"
 #include "test.h"
 
-using namespace bss_util;
+using namespace bss;
 
 template<typename T>
 bool TESTVECTOR_EQUALITY(T l, T r)
@@ -14,16 +14,16 @@ bool TESTVECTOR_EQUALITY(T l, T r)
 template<>
 bool TESTVECTOR_EQUALITY<float>(float l, float r)
 {
-  if(l == 0.0) return fsmall(r);
-  if(r == 0.0) return fsmall(l);
-  return fcompare(l, r, 1);
+  if(l == 0.0) return fSmall(r);
+  if(r == 0.0) return fSmall(l);
+  return fCompare(l, r, 1);
 }
 template<>
 bool TESTVECTOR_EQUALITY<double>(double l, double r)
 {
-  if(l == 0.0) return fsmall(r);
-  if(r == 0.0) return fsmall(l);
-  return fcompare(l, r, 100LL);
+  if(l == 0.0) return fSmall(r);
+  if(r == 0.0) return fSmall(l);
+  return fCompare(l, r, 100LL);
 }
 
 #define TESTVECTOR(vec, arr, __testret) for(int i = 0; i < N; ++i) { TEST(TESTVECTOR_EQUALITY(vec.v[i],arr[i])); }
@@ -231,8 +231,8 @@ void MATRIX_MULTIPLY(const T(&l)[M][N], const T(&r)[N][P], T(&out)[M][P])
 }
 
 template<typename T> bool MAT_OP_COMPFUNC(const T& l, const T& r) { return l == r; }
-template<> bool MAT_OP_COMPFUNC<float>(const float &l, const float& r) { return fcomparesmall(l, r); }
-template<> bool MAT_OP_COMPFUNC<double>(const double& l, const double& r) { return fcomparesmall(l, r); }
+template<> bool MAT_OP_COMPFUNC<float>(const float &l, const float& r) { return fCompareSmall(l, r); }
+template<> bool MAT_OP_COMPFUNC<double>(const double& l, const double& r) { return fCompareSmall(l, r); }
 
 template<typename T, int M, int N, T(*op)(const T& l, const T& r)>
 bool MATRIX_OP_TEST(const T(&x)[M][N], const T(&l)[M][N], const T(&r)[M][N])
@@ -270,7 +270,7 @@ bool MATRIX_COMPARE(const T(&l)[M][N], const T(&r)[M][N], int diff = 1)
 {
   for(int i = 0; i < M; ++i)
     for(int j = 0; j < N; ++j)
-      if(!fcomparesmall(l[i][j], r[i][j], diff))
+      if(!fCompareSmall(l[i][j], r[i][j], diff))
         return false;
   return true;
 }
@@ -705,14 +705,14 @@ TESTDEF::RETPAIR test_VECTOR()
   BSS_ALIGN(16) float v[4] = { 2, -3, 4, -5 };
   BSS_ALIGN(16) float u[4] = { 1, -2, -1, 2 };
   BSS_ALIGN(16) float w[4] = { 0, 0, 0, 0 };
-  TEST(fcompare(NVector_DistanceSq(v, w), 54.0f));
-  TEST(fcompare(NVector_Distance(v, w), 7.34846922835f));
-  TEST(fcompare(NVector_Distance(u, v), NVector_Distance(v, u)));
-  TEST(fcompare(NVector_Distance(u, v), 8.717797887f));
-  TEST(fcompare(NTriangleArea(v, u, w), 11.22497216f, 100));
-  TEST(fcompare(NTriangleArea(u, v, w), 11.22497216f, 100));
-  TEST(fsmall(NVector_Dot(u, w)));
-  TEST(fcompare(NVector_Dot(u, v), -6.0f));
+  TEST(fCompare(NVector_DistanceSq(v, w), 54.0f));
+  TEST(fCompare(NVector_Distance(v, w), 7.34846922835f));
+  TEST(fCompare(NVector_Distance(u, v), NVector_Distance(v, u)));
+  TEST(fCompare(NVector_Distance(u, v), 8.717797887f));
+  TEST(fCompare(NTriangleArea(v, u, w), 11.22497216f, 100));
+  TEST(fCompare(NTriangleArea(u, v, w), 11.22497216f, 100));
+  TEST(fSmall(NVector_Dot(u, w)));
+  TEST(fCompare(NVector_Dot(u, v), -6.0f));
   //NVectAdd(v, w, w);
   //TESTFOUR(w, v[0], v[1], v[2], v[3]);
   //NVectAdd(v, 3.0f, w);

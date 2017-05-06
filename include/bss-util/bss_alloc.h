@@ -4,12 +4,12 @@
 #ifndef __BSS_ALLOC_H__
 #define __BSS_ALLOC_H__
 
-#include "bss_defines.h"
+#include "bss-util/bss_defines.h"
 #include <memory>
 #include <malloc.h> // Must be included because GCC is weird
 #include <assert.h>
 
-namespace bss_util {
+namespace bss {
   // An implementation of a standard allocation policy
   template<typename T>
   struct BSS_COMPILER_DLLEXPORT StandardAllocPolicy {
@@ -41,7 +41,7 @@ namespace bss_util {
     inline size_t max_size() const noexcept { return ((size_t)(-1) / sizeof(T)); }
   };
 
-  // Static implementation of the standard allocation policy, used for cArrayBase
+  // Static implementation of the standard allocation policy, used for ArrayBase
   template<typename T>
   struct BSS_COMPILER_DLLEXPORT StaticAllocPolicy {
     typedef T* pointer;
@@ -63,7 +63,7 @@ namespace bss_util {
     inline static void deallocate(pointer p, size_t = 0) noexcept {}
   };
 
-  // Internal class used by cAllocTracker
+  // Internal class used by AllocTracker
   template<typename T, typename _Ax>
   class i_AllocTracker
   {
@@ -84,7 +84,7 @@ namespace bss_util {
     bool _alloc_extern;
   };
 
-  // Explicit specialization of cAllocTracker that removes the memory usage for a standard allocation policy, as it isn't needed.
+  // Explicit specialization of AllocTracker that removes the memory usage for a standard allocation policy, as it isn't needed.
   template<typename T>
   class i_AllocTracker<T, StandardAllocPolicy<T>>
   {
@@ -97,13 +97,13 @@ namespace bss_util {
 
   // This implements stateful allocators.
   template<typename _Ax>
-  class cAllocTracker : public i_AllocTracker<typename _Ax::value_type, _Ax>
+  class AllocTracker : public i_AllocTracker<typename _Ax::value_type, _Ax>
   {
     typedef i_AllocTracker<typename _Ax::value_type, _Ax> BASE;
   public:
-    inline cAllocTracker(const cAllocTracker& copy) : BASE(copy) {}
-    inline cAllocTracker(cAllocTracker&& mov) : BASE(std::move(mov)) {}
-    inline explicit cAllocTracker(_Ax* ptr = 0) : BASE(ptr) {}
+    inline AllocTracker(const AllocTracker& copy) : BASE(copy) {}
+    inline AllocTracker(AllocTracker&& mov) : BASE(std::move(mov)) {}
+    inline explicit AllocTracker(_Ax* ptr = 0) : BASE(ptr) {}
   };
 }
 

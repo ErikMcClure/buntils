@@ -1,11 +1,11 @@
 // Copyright ©2017 Black Sphere Studios
 // For conditions of distribution and use, see copyright notice in "bss_util.h"
 
-#include "bss_sse.h"
-#include "bss_algo.h"
+#include "bss-util/bss_sse.h"
+#include "bss-util/bss_algo.h"
 #include "test.h"
 
-using namespace bss_util;
+using namespace bss;
 
 // This does not perform well at all
 template<int M1, int M2, int M3, int M4>
@@ -264,7 +264,7 @@ TESTDEF::RETPAIR test_bss_SSE()
     TESTTWO(arr, -1, -1);
     u_v = uw*w / v + u*v - v / w;
     u_v >> arr;
-    TEST(fcompare((arr)[0], (10.2)) && fcompare((arr)[1], (14.1)));
+    TEST(fCompare((arr)[0], (10.2)) && fCompare((arr)[1], (14.1)));
     (u / w + v - u) >> arr;
     TESTTWO(arr, 3, 2);
     (u / w + v - u) >> BSS_UNALIGNED<double>(uarr);
@@ -317,7 +317,7 @@ TESTDEF::RETPAIR test_bss_SSE()
 
   //Shuffle(megatest);
   //int l=0;
-  //prof=cHighPrecisionTimer::OpenProfiler();
+  //prof=HighPrecisionTimer::OpenProfiler();
   //CPU_Barrier();
   //int v;
   //for(int i = 0; i < 1000000; i+=8) {
@@ -325,11 +325,11 @@ TESTDEF::RETPAIR test_bss_SSE()
   //  l+=SGNCOMPARE(v,0);
   //}
   //CPU_Barrier();
-  //std::cout << "SSE:" << cHighPrecisionTimer::CloseProfiler(prof) << std::endl;
+  //std::cout << "SSE:" << HighPrecisionTimer::CloseProfiler(prof) << std::endl;
 
   //Shuffle(megatest);
   //int l2=0;
-  //prof=cHighPrecisionTimer::OpenProfiler();
+  //prof=HighPrecisionTimer::OpenProfiler();
   //CPU_Barrier();
   //for(int i = 0; i < 1000000; i+=8)
   //{
@@ -351,7 +351,7 @@ TESTDEF::RETPAIR test_bss_SSE()
   //  }
   //}
   //CPU_Barrier();
-  //std::cout << "NORMAL:" << cHighPrecisionTimer::CloseProfiler(prof) << std::endl;
+  //std::cout << "NORMAL:" << HighPrecisionTimer::CloseProfiler(prof) << std::endl;
   //TEST(l==l2);
   //}
 
@@ -362,7 +362,7 @@ TESTDEF::RETPAIR test_bss_SSE()
   //  testfloats[i]=0.1*i;
 
   //float res[4];
-  //uint64_t prof=cHighPrecisionTimer::OpenProfiler();
+  //uint64_t prof=HighPrecisionTimer::OpenProfiler();
   //CPU_Barrier();
   //for(int cur=0; cur<70000; cur+=7)
   //{
@@ -375,7 +375,7 @@ TESTDEF::RETPAIR test_bss_SSE()
   //  y=testfloats[cur+6];
   //}
   //CPU_Barrier();
-  //std::cout << "NORMAL:" << cHighPrecisionTimer::CloseProfiler(prof) << std::endl;
+  //std::cout << "NORMAL:" << HighPrecisionTimer::CloseProfiler(prof) << std::endl;
   //std::cout << left << right << top << bottom << std::endl;
   ENDTEST;
 }

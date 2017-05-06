@@ -2,7 +2,7 @@
 // For conditions of distribution and use, see copyright notice in "bss_util.h"
 
 #include "test.h"
-#include "bss_algo.h"
+#include "bss-util/bss_algo.h"
 #include <time.h>
 #include <iostream>
 
@@ -31,7 +31,7 @@
 #endif
 
 #pragma warning(disable:4566)
-using namespace bss_util;
+using namespace bss;
 
 // --- Define global variables ---
 const char* PANGRAM = "The wizard quickly jinxed the gnomes before they vapourized.";
@@ -70,13 +70,13 @@ const bsschar* PANGRAMS[29] = {
 const wchar_t* TESTUNICODESTR = L"الرِضَءَجيعُ بِهءَرِا نَجلاءَرِ رِمِعطارِ";
 
 uint16_t testnums[TESTNUM];
-cLog _failedtests;
+Log _failedtests;
 volatile std::atomic<bool> startflag;
 
 TESTDEF::RETPAIR* DEBUG_CDT_SAFE::_testret = 0;
 int DEBUG_CDT_SAFE::count = 0;
 int DEBUG_CDT_SAFE::ID = 0;
-bss_util::cHash<int> DEBUG_CDT_SAFE::Tracker;
+bss::Hash<int> DEBUG_CDT_SAFE::Tracker;
 
 //#define BSS_ISOLATE_TEST 55
 
@@ -99,7 +99,7 @@ int main(int argc, char** argv)
   TESTDEF tests[] = {
     { "bss_util_c.h", &test_bss_util_c },
     { "bss_util.h", &test_bss_util },
-    { "cLog.h", &test_bss_LOG },
+    { "Log.h", &test_bss_LOG },
     { "bss_algo.h", &test_bss_algo },
     { "bss_alloc_greedy.h", &test_bss_ALLOC_ADDITIVE },
     { "bss_alloc_circular.h", &test_bss_ALLOC_RING },
@@ -112,53 +112,53 @@ int main(int argc, char** argv)
     { "bss_stream.h", &test_STREAMSPLITTER },
     { "bss_graph.h", &test_bss_GRAPH },
     { "bss_vector.h", &test_VECTOR },
-    { "cAliasTable.h", &test_ALIASTABLE },
-    { "cAnimation.h", &test_ANIMATION },
-    { "cFXAni.h", &test_FX_ANI },
-    { "cArrayCircular.h", &test_ARRAYCIRCULAR },
-    { "cArray.h", &test_ARRAY },
-    { "cArraySort.h", &test_ARRAYSORT },
+    { "AliasTable.h", &test_ALIASTABLE },
+    { "Animation.h", &test_ANIMATION },
+    { "FXAni.h", &test_FX_ANI },
+    { "ArrayCircular.h", &test_ARRAYCIRCULAR },
+    { "Array.h", &test_ARRAY },
+    { "ArraySort.h", &test_ARRAYSORT },
     { "cAVLtree.h", &test_AVLTREE },
     { "cAAtree.h", &test_AA_TREE },
-    { "cBinaryHeap.h", &test_BINARYHEAP },
-    { "cBitField.h", &test_BITFIELD },
-    { "cBitStream.h", &test_BITSTREAM },
-    { "cCompactArray.h", &test_COMPACTARRAY },
-    { "cQueue.h", &test_BSS_QUEUE },
-    { "cStack.h", &test_BSS_STACK },
-    { "cDisjointSet.h", &test_DISJOINTSET },
-    { "cDynArray.h", &test_DYNARRAY },
-    { "cHighPrecisionTimer.h", &test_HIGHPRECISIONTIMER },
-    { "cIDHash.h", &test_IDHASH },
-    { "cScheduler.h", &test_SCHEDULER },
-    { "cINIstorage.h", &test_INISTORAGE },
-    { "cKDTree.h", &test_KDTREE },
+    { "BinaryHeap.h", &test_BINARYHEAP },
+    { "BitField.h", &test_BITFIELD },
+    { "BitStream.h", &test_BITSTREAM },
+    { "CompactArray.h", &test_COMPACTARRAY },
+    { "Queue.h", &test_BSS_QUEUE },
+    { "Stack.h", &test_BSS_STACK },
+    { "DisjointSet.h", &test_DISJOINTSET },
+    { "DynArray.h", &test_DYNARRAY },
+    { "HighPrecisionTimer.h", &test_HIGHPRECISIONTIMER },
+    { "IDHash.h", &test_IDHASH },
+    { "Scheduler.h", &test_SCHEDULER },
+    { "INIstorage.h", &test_INISTORAGE },
+    { "KDTree.h", &test_KDTREE },
     { "cJSON.h", &test_JSON },
     { "cUBJSON.h", &test_UBJSON },
-    { "cHash.h", &test_HASH },
-    { "cLinkedArray.h", &test_LINKEDARRAY },
-    { "cLinkedList.h", &test_LINKEDLIST },
+    { "Hash.h", &test_HASH },
+    { "LinkedArray.h", &test_LINKEDARRAY },
+    { "LinkedList.h", &test_LINKEDLIST },
     { "lockless.h", &test_LOCKLESS },
-    { "cLocklessQueue.h", &test_LOCKLESSQUEUE },
-    { "cMap.h", &test_MAP },
-    { "cPriorityQueue.h", &test_PRIORITYQUEUE },
-    { "cRational.h", &test_RATIONAL },
-    { "cRefCounter.h", &test_REFCOUNTER },
+    { "LocklessQueue.h", &test_LOCKLESSQUEUE },
+    { "Map.h", &test_MAP },
+    { "PriorityQueue.h", &test_PRIORITYQUEUE },
+    { "Rational.h", &test_RATIONAL },
+    { "RefCounter.h", &test_REFCOUNTER },
     { "rwlock.h", &test_RWLOCK },
-    { "cSingleton.h", &test_SINGLETON },
-    { "cStr.h", &test_STR },
-    { "cStrTable.h", &test_STRTABLE },
-    { "cThread.h", &test_THREAD },
-    { "cThreadPool.h", &test_THREADPOOL },
+    { "Singleton.h", &test_SINGLETON },
+    { "Str.h", &test_STR },
+    { "StringTable.h", &test_STRTABLE },
+    { "Thread.h", &test_THREAD },
+    { "ThreadPool.h", &test_THREADPOOL },
     { "cTOML.h", &test_TOML },
-    { "cTRBtree.h", &test_TRBTREE },
-    { "cTrie.h", &test_TRIE },
-    { "cXML.h", &test_XML },
+    { "TRBtree.h", &test_TRBTREE },
+    { "Trie.h", &test_TRIE },
+    { "XML.h", &test_XML },
     { "cSmartPtr.h", &test_SMARTPTR },
-    { "delegate.h", &test_DELEGATE },
+    { "Delegate.h", &test_DELEGATE },
     { "os.h", &test_OS },
     { "profile.h", &test_PROFILE },
-    { "variant.h", &test_VARIANT },
+    { "Variant.h", &test_VARIANT },
   };
 
   const size_t NUMTESTS = sizeof(tests) / sizeof(TESTDEF);
@@ -180,7 +180,7 @@ int main(int argc, char** argv)
       numpassed = tests[i].FUNC(); //First is total, second is succeeded
       if(numpassed.first != numpassed.second) failures.push_back(i);
 
-      printf("%-*s %*s %-*s\n", COLUMNS[0], tests[i].NAME, COLUMNS[1], cStrF("%u/%u", numpassed.second, numpassed.first).c_str(), COLUMNS[2], (numpassed.first == numpassed.second) ? "PASS" : "FAIL");
+      printf("%-*s %*s %-*s\n", COLUMNS[0], tests[i].NAME, COLUMNS[1], StrF("%u/%u", numpassed.second, numpassed.first).c_str(), COLUMNS[2], (numpassed.first == numpassed.second) ? "PASS" : "FAIL");
     }
 
     if(failures.empty())

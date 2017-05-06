@@ -1,10 +1,10 @@
 // Copyright ©2017 Black Sphere Studios
 // For conditions of distribution and use, see copyright notice in "bss_util.h"
 
-#include "cSerializer.h"
+#include "bss-util/Serializer.h"
 #include "test.h"
 
-using namespace bss_util;
+using namespace bss;
 
 struct SerializerTest
 {
@@ -13,7 +13,7 @@ struct SerializerTest
   const char* c;
 
   template<typename Engine>
-  void Serialize(cSerializer<Engine>& e)
+  void Serialize(Serializer<Engine>& e)
   {
     e.template EvaluateType<SerializerTest>(
       GenPair("a", a),
@@ -26,7 +26,7 @@ struct SerializerTest
 TESTDEF::RETPAIR test_Serializer()
 {
   BEGINTEST;
-  cSerializer<EmptyEngine> s;
+  Serializer<EmptyEngine> s;
   SerializerTest test;
   s.Serialize(test, std::cout, "");
   s.Parse(test, std::cin, "");

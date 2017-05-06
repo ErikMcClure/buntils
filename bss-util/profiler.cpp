@@ -1,20 +1,20 @@
 // Copyright ©2017 Black Sphere Studios
 // For conditions of distribution and use, see copyright notice in "bss_util.h"
 
-#include "profiler.h"
-#include "cStr.h"
-#include "cArraySort.h"
-#include "bss_alloc_greedy.h"
+#include "bss-util/profiler.h"
+#include "bss-util/Str.h"
+#include "bss-util/ArraySort.h"
+#include "bss-util/bss_alloc_greedy.h"
 #include <fstream>
 
-using namespace bss_util;
+using namespace bss;
 
-namespace bss_util {
-  // Static implementation of the standard allocation policy, used for cArrayBase
+namespace bss {
+  // Static implementation of the standard allocation policy, used for ArrayBase
   struct PROF_HEATNODE
   {
     struct BSS_COMPILER_DLLEXPORT HeatAllocPolicy {
-      static cGreedyAlloc _alloc;
+      static GreedyAlloc _alloc;
       inline static PROF_HEATNODE* allocate(size_t cnt, const PROF_HEATNODE* p = 0)
       {
         auto n = _alloc.allocT<PROF_HEATNODE>(cnt + 1);
@@ -46,7 +46,7 @@ namespace bss_util {
     inline PROF_HEATNODE(PROFILER_INT ID, double Avg) : avg(Avg), id(ID) {}
     inline PROF_HEATNODE(const PROF_HEATNODE& copy) : _children(copy._children), avg(copy.avg), id(copy.id) {}
     inline PROF_HEATNODE(PROF_HEATNODE&& mov) : _children(std::move(mov._children)), avg(mov.avg), id(mov.id) {}
-    cArraySort<PROF_HEATNODE, COMP, uint32_t, CARRAY_CONSTRUCT, HeatAllocPolicy> _children;
+    ArraySort<PROF_HEATNODE, COMP, uint32_t, CARRAY_CONSTRUCT, HeatAllocPolicy> _children;
     double avg;
     PROFILER_INT id;
     PROF_HEATNODE& operator=(PROF_HEATNODE&& mov) { _children = std::move(mov._children); avg = mov.avg; id = mov.id; return *this; }
@@ -62,9 +62,9 @@ namespace bss_util {
 
 Profiler Profiler::profiler;
 PROFILER_INT Profiler::total = 0;
-cGreedyAlloc PROF_HEATNODE::HeatAllocPolicy::_alloc(128 * sizeof(PROF_HEATNODE));
+GreedyAlloc PROF_HEATNODE::HeatAllocPolicy::_alloc(128 * sizeof(PROF_HEATNODE));
 
-Profiler::Profiler() : _alloc(32), _data(1), _totalnodes(0) { _trie = _cur = _allocnode(); _data[0] = 0; }
+Profiler::Profiler() : _alloc(32), _data(1), _totalnodes(0) { _trie = _cur = _allocNode(); _data[0] = 0; }
 
 void Profiler::AddData(PROFILER_INT id, ProfilerData* p)
 {
@@ -230,7 +230,7 @@ const char* Profiler::_trimpath(const char* path)
 }
 void Profiler::_timeformat(std::ostream& stream, double avg, double variance, uint64_t num)
 {
-  //double sd = bss_util::FastSqrt(variance/(double)(num-1));
+  //double sd = bss::FastSqrt(variance/(double)(num-1));
   if(avg >= 1000000000000.0)
     stream << (avg / 1000000000.0) << " s";
   else if(avg >= 1000000000.0)
@@ -240,7 +240,7 @@ void Profiler::_timeformat(std::ostream& stream, double avg, double variance, ui
   else
     stream << avg << " ns";
 }
-PROF_TRIENODE* Profiler::_allocnode()
+PROF_TRIENODE* Profiler::_allocNode()
 {
   PROF_TRIENODE* r = _alloc.alloc(1);
   memset(r, 0, sizeof(PROF_TRIENODE));

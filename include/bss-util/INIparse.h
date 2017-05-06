@@ -4,7 +4,7 @@
 #ifndef __INIPARSE_H__BSS__
 #define __INIPARSE_H__BSS__
 
-#include "bss_defines.h"
+#include "bss-util/bss_defines.h"
 #include <wchar.h>
 #include <stdio.h>
 
@@ -32,11 +32,11 @@ extern "C" {
     const void* end;
   } INICHUNK;
 
-  extern char bss_initINI(INIParser* init, FILE* stream);
-  extern char bss_destroyINI(INIParser* destroy);
-  extern char bss_parseLine(INIParser* parse);
-  extern INICHUNK bss_findINIsection(const void* data, size_t length, const char* section, size_t instance);
-  extern INICHUNK bss_findINIentry(INICHUNK section, const char* key, size_t instance);
+  extern char bssInitINI(INIParser* init, FILE* stream);
+  extern char bssDestroyINI(INIParser* destroy);
+  extern char bssParseLine(INIParser* parse);
+  extern INICHUNK bssFindINISection(const void* data, size_t length, const char* section, size_t instance);
+  extern INICHUNK bssFindINIEntry(INICHUNK section, const char* key, size_t instance);
 
 #ifdef  __cplusplus
 }

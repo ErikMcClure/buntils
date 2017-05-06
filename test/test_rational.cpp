@@ -1,17 +1,17 @@
 // Copyright ©2017 Black Sphere Studios
 // For conditions of distribution and use, see copyright notice in "bss_util.h"
 
-#include "cRational.h"
+#include "bss-util/Rational.h"
 #include "test.h"
 
-using namespace bss_util;
+using namespace bss;
 
 TESTDEF::RETPAIR test_RATIONAL()
 {
   BEGINTEST;
-  cRational<int> tr(1, 10);
-  cRational<int> tr2(1, 11);
-  cRational<int> tr3(tr + tr2);
+  Rational<int> tr(1, 10);
+  Rational<int> tr2(1, 11);
+  Rational<int> tr3(tr + tr2);
   TEST(tr.N() == 1 && tr.D() == 10);
   TEST(tr2.N() == 1 && tr2.D() == 11);
   TEST(tr3.N() == 21 && tr3.D() == 110);

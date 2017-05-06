@@ -5,11 +5,11 @@
 #define __BSS_ALLOC_GREEDY_H__
 
 #include <atomic>
-#include "bss_alloc.h"
-#include "bss_util.h"
+#include "bss-util/bss_alloc.h"
+#include "bss-util/bss_util.h"
 #include "rwlock.h"
 
-namespace bss_util {
+namespace bss {
   struct AFLISTITEM
   {
     AFLISTITEM* next;
@@ -17,18 +17,18 @@ namespace bss_util {
   };
 
   // Lockless dynamic greedy allocator that can allocate any number of bytes
-  class BSS_COMPILER_DLLEXPORT cGreedyAlloc
+  class BSS_COMPILER_DLLEXPORT GreedyAlloc
   {
-    cGreedyAlloc(const cGreedyAlloc& copy) BSS_DELETEFUNC
-      cGreedyAlloc& operator=(const cGreedyAlloc& copy) BSS_DELETEFUNCOP
+    GreedyAlloc(const GreedyAlloc& copy) BSS_DELETEFUNC
+      GreedyAlloc& operator=(const GreedyAlloc& copy) BSS_DELETEFUNCOP
 
   public:
-    inline cGreedyAlloc(cGreedyAlloc&& mov) : _root(mov._root.load(std::memory_order_relaxed)), _curpos(mov._curpos.load(std::memory_order_relaxed)) { mov._root.store(nullptr, std::memory_order_relaxed); mov._curpos = 0; }
-    inline explicit cGreedyAlloc(size_t init = 64) : _root(0), _curpos(0)
+    inline GreedyAlloc(GreedyAlloc&& mov) : _root(mov._root.load(std::memory_order_relaxed)), _curpos(mov._curpos.load(std::memory_order_relaxed)) { mov._root.store(nullptr, std::memory_order_relaxed); mov._curpos = 0; }
+    inline explicit GreedyAlloc(size_t init = 64) : _root(0), _curpos(0)
     {
-      _allocchunk(init);
+      _allocChunk(init);
     }
-    inline ~cGreedyAlloc()
+    inline ~GreedyAlloc()
     {
       _lock.Lock();
       AFLISTITEM* hold = _root.load(std::memory_order_relaxed);
@@ -62,7 +62,7 @@ namespace bss_util {
           {
             if(rend >= root->size) // We do another check in here to ensure another thread didn't already resize the root for us.
             {
-              _allocchunk(fbnext(rend));
+              _allocChunk(fbnext(rend));
               _curpos.store(0, std::memory_order_relaxed);
             }
             _lock.Downgrade();
@@ -111,12 +111,12 @@ namespace bss_util {
         root = hold;
       }
       _root.store(nullptr, std::memory_order_release);
-      _allocchunk(nsize); //consolidates all memory into one chunk to try and take advantage of data locality
+      _allocChunk(nsize); //consolidates all memory into one chunk to try and take advantage of data locality
       _curpos.store(0, std::memory_order_relaxed);
       _lock.Unlock();
     }
   protected:
-    BSS_FORCEINLINE void _allocchunk(size_t nsize) noexcept
+    BSS_FORCEINLINE void _allocChunk(size_t nsize) noexcept
     {
       AFLISTITEM* retval = reinterpret_cast<AFLISTITEM*>(malloc(sizeof(AFLISTITEM) + nsize));
       retval->next = _root.load(std::memory_order_acquire);
@@ -142,7 +142,7 @@ namespace bss_util {
   };
 
   template<typename T>
-  class BSS_COMPILER_DLLEXPORT GreedyPolicy : protected cGreedyAlloc {
+  class BSS_COMPILER_DLLEXPORT GreedyPolicy : protected GreedyAlloc {
   public:
     typedef T* pointer;
     typedef T value_type;
@@ -152,9 +152,9 @@ namespace bss_util {
     inline GreedyPolicy() {}
     inline ~GreedyPolicy() {}
 
-    inline pointer allocate(std::size_t cnt, const pointer = 0) noexcept { return cGreedyAlloc::allocT<T>(cnt); }
+    inline pointer allocate(std::size_t cnt, const pointer = 0) noexcept { return GreedyAlloc::allocT<T>(cnt); }
     inline void deallocate(pointer p, std::size_t num = 0) noexcept {}
-    inline void clear() noexcept { cGreedyAlloc::Clear(); } //done for functor reasons, has no effect here
+    inline void clear() noexcept { GreedyAlloc::Clear(); } //done for functor reasons, has no effect here
   };
 }
 

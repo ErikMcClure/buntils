@@ -1,13 +1,13 @@
 // Copyright ©2017 Black Sphere Studios
 // For conditions of distribution and use, see copyright notice in "bss_util.h"
 
-#include "cTRBtree.h"
-#include "bss_algo.h"
-#include "bss_alloc_block.h"
+#include "bss-util/TRBtree.h"
+#include "bss-util/bss_algo.h"
+#include "bss-util/bss_alloc_block.h"
 #include <fstream>
 #include "test.h"
 
-using namespace bss_util;
+using namespace bss;
 
 bool verifytree(TRB_Node<int>* front, uint32_t& same)
 {
@@ -46,7 +46,7 @@ void deserialize_testnum(const char* file)
 
 bool verify_unique_testnums()
 {
-  cHash<int, char, false> hash;
+  Hash<int, char, false> hash;
 
   for(int i = 0; i<TESTNUM; ++i)
   {
@@ -64,7 +64,7 @@ TESTDEF::RETPAIR test_TRBTREE()
 {
   BEGINTEST;
   BlockPolicy<TRB_Node<int>> fixedalloc;
-  cTRBtree<int, CompT<int>, BlockPolicy<TRB_Node<int>>> blah(&fixedalloc);
+  TRBtree<int, CompT<int>, BlockPolicy<TRB_Node<int>>> blah(&fixedalloc);
 
   uint32_t same = 0;
   Shuffle(testnums);
@@ -118,6 +118,6 @@ TESTDEF::RETPAIR test_TRBTREE()
   TEST(n2 == TESTNUM * 3);
   TEST(n3 == TESTNUM);
 
-  //std::cout << cHighPrecisionTimer::CloseProfiler(prof) << std::endl;
+  //std::cout << HighPrecisionTimer::CloseProfiler(prof) << std::endl;
   ENDTEST;
 }

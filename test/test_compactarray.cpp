@@ -1,20 +1,20 @@
 // Copyright ©2017 Black Sphere Studios
 // For conditions of distribution and use, see copyright notice in "bss_util.h"
 
-#include "cCompactArray.h"
+#include "bss-util/CompactArray.h"
 #include "test.h"
 
-using namespace bss_util;
+using namespace bss;
 
-static_assert(sizeof(cCompactArray<size_t>) == sizeof(size_t) * 3, "CompactArray is not structured correctly");
-static_assert(sizeof(cCompactArray<size_t, 1>) == sizeof(size_t) * 3, "CompactArray is not structured correctly");
-static_assert(sizeof(cCompactArray<size_t, 3>) == sizeof(size_t) * 4, "CompactArray is not structured correctly");
+static_assert(sizeof(CompactArray<size_t>) == sizeof(size_t) * 3, "CompactArray is not structured correctly");
+static_assert(sizeof(CompactArray<size_t, 1>) == sizeof(size_t) * 3, "CompactArray is not structured correctly");
+static_assert(sizeof(CompactArray<size_t, 3>) == sizeof(size_t) * 4, "CompactArray is not structured correctly");
 
 TESTDEF::RETPAIR test_COMPACTARRAY()
 {
   BEGINTEST;
 
-  cCompactArray<size_t> x;
+  CompactArray<size_t> x;
   TEST(x.begin() != 0);
   TEST(x.Capacity() == 2);
   TEST(x.Length() == 0);
@@ -69,7 +69,7 @@ TESTDEF::RETPAIR test_COMPACTARRAY()
   x.Insert(6, 5);
   TEST(x[5] == 6);
   TEST(x[6] == 7);
-  cCompactArray<int> y;
+  CompactArray<int> y;
   y.Add(9);
   y.Add(11);
   

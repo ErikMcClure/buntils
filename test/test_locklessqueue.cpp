@@ -1,13 +1,13 @@
 // Copyright ©2017 Black Sphere Studios
 // For conditions of distribution and use, see copyright notice in "bss_util.h"
 
-#include "cLocklessQueue.h"
+#include "bss-util/LocklessQueue.h"
 #include <algorithm>
-#include "cThread.h"
-#include "cHighPrecisionTimer.h"
+#include "bss-util/Thread.h"
+#include "bss-util/HighPrecisionTimer.h"
 #include "test.h"
 
-using namespace bss_util;
+using namespace bss;
 
 std::atomic<size_t> lq_c;
 uint16_t lq_end[TESTNUM];
@@ -42,7 +42,7 @@ TESTDEF::RETPAIR test_LOCKLESSQUEUE()
 {
   BEGINTEST;
   {
-    cLocklessQueue<int64_t> q; // Basic sanity test
+    LocklessQueue<int64_t> q; // Basic sanity test
     q.Push(5);
     int64_t c;
     TEST(q.Pop(c));
@@ -66,23 +66,23 @@ TESTDEF::RETPAIR test_LOCKLESSQUEUE()
   }
 
   const int NUMTHREADS = 18;
-  cThread threads[NUMTHREADS];
+  Thread threads[NUMTHREADS];
 
-  //typedef cLocklessQueue<uint32_t,true,true,size_t,size_t> LLQUEUE_SCSP; 
-  typedef cLocklessQueue<uint16_t, size_t> LLQUEUE_SCSP;
+  //typedef LocklessQueue<uint32_t,true,true,size_t,size_t> LLQUEUE_SCSP; 
+  typedef LocklessQueue<uint16_t, size_t> LLQUEUE_SCSP;
   {
     LLQUEUE_SCSP q; // single consumer single producer test
-    uint64_t ppp = cHighPrecisionTimer::OpenProfiler();
+    uint64_t ppp = HighPrecisionTimer::OpenProfiler();
     lq_c = 1;
     lq_pos = 0;
     memset(lq_end, 0, sizeof(short)*TESTNUM);
     startflag.store(false);
-    threads[0] = cThread((VOIDFN)&_locklessqueue_produce<LLQUEUE_SCSP>, &q);
-    threads[1] = cThread((VOIDFN)&_locklessqueue_consume<LLQUEUE_SCSP>, &q);
+    threads[0] = Thread((VOIDFN)&_locklessqueue_produce<LLQUEUE_SCSP>, &q);
+    threads[1] = Thread((VOIDFN)&_locklessqueue_consume<LLQUEUE_SCSP>, &q);
     startflag.store(true);
     threads[0].join();
     threads[1].join();
-    //std::cout << '\n' << cHighPrecisionTimer::CloseProfiler(ppp) << std::endl;
+    //std::cout << '\n' << HighPrecisionTimer::CloseProfiler(ppp) << std::endl;
     bool check = true;
     for(int i = 0; i < TESTNUM; ++i)
       check = check && (lq_end[i] == i + 1);
@@ -91,7 +91,7 @@ TESTDEF::RETPAIR test_LOCKLESSQUEUE()
 
   for(int k = 0; k < 1; ++k)
   {
-    typedef cMicroLockQueue<uint16_t, size_t> LLQUEUE_MCMP;
+    typedef MicroLockQueue<uint16_t, size_t> LLQUEUE_MCMP;
     for(int j = 2; j <= NUMTHREADS; j = fbnext(j))
     {
       lq_c = 1;
@@ -103,7 +103,7 @@ TESTDEF::RETPAIR test_LOCKLESSQUEUE()
       //for(int i=1; i<j; ++i)
       //  threads[i] = std::thread(_locklessqueue_produce<LLQUEUE_MCMP>, &q);
       for(int i = 0; i<j; ++i)
-        threads[i] = cThread((i & 1) ? _locklessqueue_produce<LLQUEUE_MCMP> : _locklessqueue_consume<LLQUEUE_MCMP>, &q);
+        threads[i] = Thread((i & 1) ? _locklessqueue_produce<LLQUEUE_MCMP> : _locklessqueue_consume<LLQUEUE_MCMP>, &q);
       startflag.store(true);
       for(int i = 0; i<j; ++i)
         threads[i].join();

@@ -1,16 +1,16 @@
 // Copyright ©2017 Black Sphere Studios
 // For conditions of distribution and use, see copyright notice in "bss_util.h"
 
-#include "cRefCounter.h"
+#include "bss-util/RefCounter.h"
 #include "test.h"
 
-using namespace bss_util;
+using namespace bss;
 
-struct REF_TEST : DEBUG_CDT<false>, cRefCounter
+struct REF_TEST : DEBUG_CDT<false>, RefCounter
 {
   REF_TEST(TESTDEF::RETPAIR& t) : __testret(t) {}
   ~REF_TEST() { TEST(true); }
-  virtual void DestroyThis() { TEST(true); cRefCounter::DestroyThis(); }
+  virtual void DestroyThis() { TEST(true); RefCounter::DestroyThis(); }
 
   TESTDEF::RETPAIR& __testret;
 };

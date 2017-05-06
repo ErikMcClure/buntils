@@ -1,18 +1,18 @@
 // Copyright ©2017 Black Sphere Studios
 // For conditions of distribution and use, see copyright notice in "bss_util.h"
 
-#include "cTOML.h"
+#include "bss-util/cTOML.h"
 #include <fstream>
 #include "test.h"
 
-using namespace bss_util;
+using namespace bss;
 
 struct TOMLtest3
 {
   float f;
 
   template<typename Engine>
-  void Serialize(cSerializer<Engine>& s)
+  void Serialize(Serializer<Engine>& s)
   {
     s.template EvaluateType<TOMLtest3>(GenPair("f", f));
   }
@@ -23,7 +23,7 @@ struct TOMLtest2
   TOMLtest3 test;
 
   template<typename Engine>
-  void Serialize(cSerializer<Engine>& s)
+  void Serialize(Serializer<Engine>& s)
   {
     s.template EvaluateType<TOMLtest2>(GenPair("a", a), GenPair("test", test));
   }
@@ -34,22 +34,22 @@ struct TOMLtest
   int64_t a;
   uint16_t b;
   double c;
-  cStr test;
+  Str test;
   TOMLtest2 test2;
   bool btrue;
   bool bfalse;
-  cDynArray<double> d;
+  DynArray<double> d;
   int e[3];
-  std::vector<cStr> f;
+  std::vector<Str> f;
   std::array<bool, 2> g;
-  cDynArray<TOMLtest2> nested;
+  DynArray<TOMLtest2> nested;
   TOMLtest2 inlinetest;
 #ifdef BSS_COMPILER_HAS_TIME_GET
   std::chrono::system_clock::time_point date;
 #endif
 
   template<typename Engine>
-  void Serialize(cSerializer<Engine>& s)
+  void Serialize(Serializer<Engine>& s)
   {
     s.template EvaluateType<TOMLtest>(
       GenPair("a", a),
@@ -185,10 +185,10 @@ f = -3.5";
   TEST(t3e[1].get<int64_t>() == 100);
   TEST(t3e[2].get<int64_t>() == 8);
   auto& t3f = t3["f"]->get<TOMLValue::TOMLArray>();
-  TEST(!strcmp(t3f[0].get<cStr>(), "first"));
-  TEST(!strcmp(t3f[1].get<cStr>(), "SECOND"));
-  TEST(!strcmp(t3f[2].get<cStr>(), "ThirD"));
-  TEST(!strcmp(t3f[3].get<cStr>(), "fOURTh"));
+  TEST(!strcmp(t3f[0].get<Str>(), "first"));
+  TEST(!strcmp(t3f[1].get<Str>(), "SECOND"));
+  TEST(!strcmp(t3f[2].get<Str>(), "ThirD"));
+  TEST(!strcmp(t3f[3].get<Str>(), "fOURTh"));
   auto& t3g = t3["g"]->get<TOMLValue::TOMLArray>();
   TEST(!t3g[0].get<bool>());
   TEST(t3g[1].get<bool>());

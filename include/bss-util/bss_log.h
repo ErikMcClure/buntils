@@ -7,35 +7,35 @@
 #include <ostream>
 #include <vector>
 #include <stdarg.h>
-#include "bss_util.h"
-#include "cArray.h"
+#include "bss-util/bss_util.h"
+#include "bss-util/Array.h"
 
 #define BSSLOG(logger,level,...) ((logger).Log(0,__FILE__,__LINE__,(level),__VA_ARGS__))
 
-namespace bss_util {
+namespace bss {
   class StreamSplitter;
 
   // Log class that can be converted into a stream and redirected to various different stream targets
-  class BSS_DLLEXPORT cLog
+  class BSS_DLLEXPORT Log
   {
 #ifdef BSS_COMPILER_MSC2010
-    cLog(const cLog& copy) : _stream(std::_Noinit) {}
+    Log(const Log& copy) : _stream(std::_Noinit) {}
 #else
-    cLog(const cLog& copy) = delete;
+    Log(const Log& copy) = delete;
 #endif
-    cLog& operator=(const cLog& right) BSS_DELETEFUNCOP
+    Log& operator=(const Log& right) BSS_DELETEFUNCOP
   public:
     // Move semantics only
-    cLog(cLog&& mov);
+    Log(Log&& mov);
     // Constructor - takes a stream and adds it
-    explicit cLog(std::ostream* log = 0);
+    explicit Log(std::ostream* log = 0);
     // Constructor - takes either a stream or a file (or both) and adds them
-    explicit cLog(const char* logfile, std::ostream* log = 0);
+    explicit Log(const char* logfile, std::ostream* log = 0);
 #ifdef BSS_PLATFORM_WIN32
-    cLog(const wchar_t* logfile, std::ostream* log);
+    Log(const wchar_t* logfile, std::ostream* log);
 #endif
     // Destructor - destroys any file streams
-    ~cLog();
+    ~Log();
     // Redirects an existing stream to write to this log's buffer
     void Assimilate(std::ostream& stream);
     // Adds a target stream to post logs to
@@ -58,7 +58,7 @@ namespace bss_util {
     // Sets the maximum level that will be logged. Useful for excluding unnecessary debug logs from release builds
     void SetMaxLevel(uint8_t level);
 
-    cLog& operator=(cLog&& right);
+    Log& operator=(Log&& right);
     inline operator std::ostream&() { return _stream; }
 
     inline int PrintLog(const char* source, const char* file, uint32_t line, int8_t level, const char* format, ...)
@@ -77,7 +77,7 @@ namespace bss_util {
     {
       if(level >= _maxlevel)
         return;
-      _writelog(LogHeader(source, file, line, level), args...);
+      _writeLog(LogHeader(source, file, line, level), args...);
     }
     template<typename... Args>
     BSS_FORCEINLINE void LogFormat(const char* source, const char* file, uint32_t line, int8_t level, const char* format, Args... args)
@@ -91,7 +91,7 @@ namespace bss_util {
     BSS_FORCEINLINE std::ostream& LogHeader(const char* source, const char* file, uint32_t line, int8_t level)
     {
       assert(level < _levels.Capacity());
-      return _logheader(source, file, line, (level < 0) ? "" : _levels[level]);
+      return _logHeader(source, file, line, (level < 0) ? "" : _levels[level]);
     }
     static const char* _trimpath(const char* path);
 
@@ -101,15 +101,15 @@ namespace bss_util {
   protected:
 #ifdef BSS_VARIADIC_TEMPLATES
     template<typename Arg, typename... Args>
-    static inline void _writelog(std::ostream& o, Arg arg, Args... args) { o << arg; _writelog(o, args...); }
-    static inline void _writelog(std::ostream& o) { o << std::endl; }
+    static inline void _writeLog(std::ostream& o, Arg arg, Args... args) { o << arg; _writeLog(o, args...); }
+    static inline void _writeLog(std::ostream& o) { o << std::endl; }
 #endif
-    std::ostream& _logheader(const char* source, const char* file, uint32_t line, const char* level);
+    std::ostream& _logHeader(const char* source, const char* file, uint32_t line, const char* level);
     static void _header(std::ostream& o, int n, const char* source, const char* file, uint32_t line, const char* level, long tz);
-    static bool _writedatetime(long timezone, std::ostream& log, bool timeonly);
-    void _leveldefaults();
+    static bool _writeDateTime(long timezone, std::ostream& log, bool timeonly);
+    void _levelDefaults();
 
-    cArray<const char*, uint8_t> _levels;
+    Array<const char*, uint8_t> _levels;
     int8_t _maxlevel;
     StreamSplitter* _split;
     const char* _format;

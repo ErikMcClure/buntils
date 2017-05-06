@@ -1,11 +1,11 @@
 // Copyright ©2017 Black Sphere Studios
 // For conditions of distribution and use, see copyright notice in "bss_util.h"
 
-#include "rwlock.h"
-#include "cThread.h"
+#include "bss-util/rwlock.h"
+#include "bss-util/Thread.h"
 #include "test.h"
 
-using namespace bss_util;
+using namespace bss;
 
 
 TESTDEF::RETPAIR test_RWLOCK()
@@ -26,7 +26,7 @@ TESTDEF::RETPAIR test_RWLOCK()
   {
     lock.RLock();
     size_t steps = 0;
-    cThread t([&]() { lock.RLock(); ++steps; lock.RUnlock(); ++steps; });
+    Thread t([&]() { lock.RLock(); ++steps; lock.RUnlock(); ++steps; });
     t.join();
     TEST(steps == 2);
     lock.RUnlock();
@@ -36,7 +36,7 @@ TESTDEF::RETPAIR test_RWLOCK()
   {
     lock.RLock();
     std::atomic<size_t> steps(0);
-    cThread t([&]() {
+    Thread t([&]() {
       steps.fetch_add(1, std::memory_order_relaxed);
       lock.Lock();
       steps.fetch_add(1, std::memory_order_relaxed);
@@ -54,7 +54,7 @@ TESTDEF::RETPAIR test_RWLOCK()
   {
     lock.Lock();
     std::atomic<size_t> steps(0);
-    cThread t([&]() {
+    Thread t([&]() {
       steps.fetch_add(1, std::memory_order_relaxed);
       lock.RLock();
       steps.fetch_add(1, std::memory_order_relaxed);

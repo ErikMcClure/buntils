@@ -1,11 +1,11 @@
 // Copyright ©2017 Black Sphere Studios
 // For conditions of distribution and use, see copyright notice in "bss_util.h"
 
-#include "cDisjointSet.h"
-#include "bss_algo.h"
+#include "bss-util/DisjointSet.h"
+#include "bss-util/bss_algo.h"
 #include "test.h"
 
-using namespace bss_util;
+using namespace bss;
 
 TESTDEF::RETPAIR test_DISJOINTSET()
 {
@@ -30,10 +30,10 @@ TESTDEF::RETPAIR test_DISJOINTSET()
   E[8].second = 2;
   E[9].second = 3;
   Shuffle(E); // Shuffle our edges
-  auto tree = cDisjointSet<uint32_t>::MinSpanningTree(5, std::begin(E), std::end(E));
+  auto tree = DisjointSet<uint32_t>::MinSpanningTree(5, std::begin(E), std::end(E));
   TEST(tree.Capacity() == 4);
 
-  cDisjointSet<uint32_t> s(5);
+  DisjointSet<uint32_t> s(5);
   s.Union(2, 3);
   s.Union(2, 4);
   s.Union(1, 2);

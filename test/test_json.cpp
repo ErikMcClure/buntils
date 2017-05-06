@@ -1,19 +1,19 @@
 // Copyright ©2017 Black Sphere Studios
 // For conditions of distribution and use, see copyright notice in "bss_util.h"
 
-#include "cJSON.h"
+#include "bss-util/cJSON.h"
 #include <fstream>
 #include "test.h"
 
-using namespace bss_util;
+using namespace bss;
 
 struct JSONtest2
 {
-  cDynArray<JSONtest2, uint32_t, CARRAY_SAFE> value;
+  DynArray<JSONtest2, uint32_t, CARRAY_SAFE> value;
   std::array<int, 2> ia;
 
   template<typename Engine>
-  void Serialize(cSerializer<Engine>& s)
+  void Serialize(Serializer<Engine>& s)
   {
     s.template EvaluateType<JSONtest2>(GenPair("value", value), GenPair("ia", ia));
   }
@@ -24,19 +24,19 @@ struct JSONtest
   int64_t a;
   uint16_t b;
   double c;
-  cStr test;
+  Str test;
   JSONtest2 nested;
-  cDynArray<uint16_t> foo;
+  DynArray<uint16_t> foo;
   std::vector<double> bar;
-  cDynArray<cStr, uint16_t, CARRAY_SAFE> foobar;
-  cDynArray<JSONtest, uint32_t, CARRAY_SAFE> nestarray;
+  DynArray<Str, uint16_t, CARRAY_SAFE> foobar;
+  DynArray<JSONtest, uint32_t, CARRAY_SAFE> nestarray;
   JSONtest2 nested2;
   bool btrue;
   bool bfalse;
   float fixed[3];
 
   template<typename Engine>
-  void Serialize(cSerializer<Engine>& s)
+  void Serialize(Serializer<Engine>& s)
   {
     s.template EvaluateType<JSONtest>(
       GenPair("a", a),
@@ -136,7 +136,7 @@ TESTDEF::RETPAIR test_JSON()
   TEST(var1[2].first == "c");
   TEST(var1[2].second.is<double>());
   TEST(var1[3].first == "test");
-  TEST(var1[3].second.is<cStr>());
+  TEST(var1[3].second.is<Str>());
   TEST(var1[4].first == "nested");
   TEST(var1[4].second.is<JSONValue::JSONObject>());
   TEST(var1[4].second.get<JSONValue::JSONObject>()[0].first == "value");
@@ -175,10 +175,10 @@ TESTDEF::RETPAIR test_JSON()
 
   auto& var4 = var1[7].second.get<JSONValue::JSONArray>();
   TEST(var4.Length() == 2);
-  TEST(var4[0].is<cStr>());
-  TEST(var4[0].get<cStr>() == "moar");
-  TEST(var4[1].is<cStr>());
-  TEST(var4[1].get<cStr>() == "");
+  TEST(var4[0].is<Str>());
+  TEST(var4[0].get<Str>() == "moar");
+  TEST(var4[1].is<Str>());
+  TEST(var4[1].get<Str>() == "");
 
   TEST(var1[8].first == "nestarray");
   TEST(var1[8].second.is<JSONValue::JSONArray>());
@@ -201,7 +201,7 @@ TESTDEF::RETPAIR test_JSON()
   fs4.close();
   dotest_JSON(o4, __testret);
 
-  cStr s; // test to ensure that invalid data does not crash or lock up the parser
+  Str s; // test to ensure that invalid data does not crash or lock up the parser
   for(int i = (int)strlen(json); i > 0; --i)
   {
     s.assign(json, i);

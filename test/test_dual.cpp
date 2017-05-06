@@ -1,18 +1,18 @@
 // Copyright ©2017 Black Sphere Studios
 // For conditions of distribution and use, see copyright notice in "bss_util.h"
 
-#include "Dual.h"
+#include "bss-util/Dual.h"
 #include "test.h"
 
-using namespace bss_util;
+using namespace bss;
 
 BSS_FORCEINLINE bool fsmallcomp(double af, double bf, int64_t maxDiff = 1)
 {
   if(af == 0.0)
-    return fsmall(bf);
+    return fSmall(bf);
   if(bf == 0.0)
-    return fsmall(af);
-  return fcompare(af, bf, maxDiff);
+    return fSmall(af);
+  return fCompare(af, bf, maxDiff);
 }
 
 TESTDEF::RETPAIR test_bss_DUAL()

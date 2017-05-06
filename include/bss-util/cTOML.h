@@ -4,30 +4,30 @@
 #ifndef __C_TOML_H__BSS__
 #define __C_TOML_H__BSS__
 
-#include "cHash.h"
-#include "cDynArray.h"
-#include "variant.h"
-#include "cSerializer.h"
+#include "bss-util/Hash.h"
+#include "bss-util/DynArray.h"
+#include "Variant.h"
+#include "bss-util/Serializer.h"
 #include <chrono>
 #include <sstream>
 #include <locale>
 #include <iomanip>
 
-namespace bss_util {
+namespace bss {
   class TOMLEngine
   {
   public:
     TOMLEngine() : state(3), first(false) {}
     static constexpr bool Ordered() { return false; }
     template<typename T>
-    static void Serialize(cSerializer<TOMLEngine>& e, const T& t, const char* id);
+    static void Serialize(Serializer<TOMLEngine>& e, const T& t, const char* id);
     template<typename T>
-    static void Parse(cSerializer<TOMLEngine>& e, T& t, const char* id);
+    static void Parse(Serializer<TOMLEngine>& e, T& t, const char* id);
     template<typename... Args>
-    static void ParseMany(cSerializer<TOMLEngine>& e, const cTrie<uint16_t>& t, std::tuple<Args...>& args);
+    static void ParseMany(Serializer<TOMLEngine>& e, const Trie<uint16_t>& t, std::tuple<Args...>& args);
 
     uint32_t state;
-    cStr id;
+    Str id;
     bool first;
   };
 
@@ -53,14 +53,14 @@ namespace bss_util {
   };
 
   template<class T>
-  void static WriteTOMLBase(cSerializer<TOMLEngine>& e, const char* id, const T& obj, std::ostream& s);
+  void static WriteTOMLBase(Serializer<TOMLEngine>& e, const char* id, const T& obj, std::ostream& s);
 
   // Represents an arbitrary TOML value in any of the standard storage types recognized by the format.
-  struct TOMLValue : public variant<cStr, double, int64_t, bool, std::chrono::system_clock::time_point, cDynArray<TOMLValue, size_t, CARRAY_SAFE>, cHash<cStr, TOMLValue, false, CARRAY_SAFE>>
+  struct TOMLValue : public Variant<Str, double, int64_t, bool, std::chrono::system_clock::time_point, DynArray<TOMLValue, size_t, CARRAY_SAFE>, Hash<Str, TOMLValue, false, CARRAY_SAFE>>
   {
-    typedef cDynArray<TOMLValue, size_t, CARRAY_SAFE> TOMLArray;
-    typedef cHash<cStr, TOMLValue, false, CARRAY_SAFE> TOMLTable; // All objects in TOML are tables
-    typedef variant<cStr, double, int64_t, bool, std::chrono::system_clock::time_point, TOMLArray, TOMLTable> BASE;
+    typedef DynArray<TOMLValue, size_t, CARRAY_SAFE> TOMLArray;
+    typedef Hash<Str, TOMLValue, false, CARRAY_SAFE> TOMLTable; // All objects in TOML are tables
+    typedef Variant<Str, double, int64_t, bool, std::chrono::system_clock::time_point, TOMLArray, TOMLTable> BASE;
 
   public:
     TOMLValue() : BASE() {}
@@ -79,7 +79,7 @@ namespace bss_util {
     BASE& operator=(T&& right) { BASE::operator=(__TOMLValue__conv<T, BASE>::f(right)); return *this; }
 
     template<typename Engine>
-    void Serialize(cSerializer<Engine>& e)
+    void Serialize(Serializer<Engine>& e)
     {
       assert(BASE::template is<TOMLTable>());
       if(e.out)
@@ -92,7 +92,7 @@ namespace bss_util {
   };
 
   template<class T>
-  void static ParseTOMLBase(cSerializer<TOMLEngine>& e, T& obj, std::istream& s);
+  void static ParseTOMLBase(Serializer<TOMLEngine>& e, T& obj, std::istream& s);
 
   inline void ParseTOMLEatWhitespace(std::istream& s) { while(!!s && (s.peek() == ' ' || s.peek() == '\t')) s.get(); }
 
@@ -248,7 +248,7 @@ namespace bss_util {
   template<class T, bool A>
   struct ParseTOMLInternal
   {
-    static void F(cSerializer<TOMLEngine>& e, T& obj, std::istream& s)
+    static void F(Serializer<TOMLEngine>& e, T& obj, std::istream& s)
     {
       obj.template Serialize<TOMLEngine>(e);
     }
@@ -257,7 +257,7 @@ namespace bss_util {
   template<class T> // For arithmetic base types
   struct ParseTOMLInternal<T, true>
   {
-    static void F(cSerializer<TOMLEngine>& e, T& obj, std::istream& s)
+    static void F(Serializer<TOMLEngine>& e, T& obj, std::istream& s)
     {
       if(s.peek() == '\n' || s.peek() == '\r' || s.peek() == ',') return;
       if(s.peek() == '"') // if true, we have to attempt to coerce the string to T
@@ -273,7 +273,7 @@ namespace bss_util {
   };
 
   template<class T>
-  void ParseTOMLArray(cSerializer<TOMLEngine>& e, T& obj, std::istream& s)
+  void ParseTOMLArray(Serializer<TOMLEngine>& e, T& obj, std::istream& s)
   {
     int n = 0;
     if(e.engine.state > 0 && e.in->peek() == '.') // If this happens, we are attempted to access an array
@@ -296,10 +296,10 @@ namespace bss_util {
   }
 
   template<typename F>
-  inline void ParseTOMLTable(cSerializer<TOMLEngine>& e, std::istream& s, F f)
+  inline void ParseTOMLTable(Serializer<TOMLEngine>& e, std::istream& s, F f)
   {
     ParseTOMLEatAllspace(s);
-    cStr buf;
+    Str buf;
     while(!!s && s.peek() != '}' && s.peek() != '\n' && s.peek() != '\r' && s.peek() != -1)
     {
       ParseTOMLString<false, '=', 0>(buf, s);
@@ -318,10 +318,10 @@ namespace bss_util {
   }
 
   template<typename F>
-  inline void ParseTOMLPairs(cSerializer<TOMLEngine>& e, std::istream& s, F f)
+  inline void ParseTOMLPairs(Serializer<TOMLEngine>& e, std::istream& s, F f)
   {
     ParseTOMLEatAllspace(s);
-    cStr buf;
+    Str buf;
     while(!!s && s.peek() != '[' && s.peek() != -1)
     {
       ParseTOMLString<false, '=', 0>(buf, s);
@@ -339,9 +339,9 @@ namespace bss_util {
 
   // This is the primary parsing function valid only for the root of the document. It only parses [tables] and [[table arrays]].
   template<typename F>
-  inline void ParseTOMLRoot(cSerializer<TOMLEngine>& e, std::istream& s, F f)
+  inline void ParseTOMLRoot(Serializer<TOMLEngine>& e, std::istream& s, F f)
   {
-    cStr buf;
+    Str buf;
     ParseTOMLPairs(e, s, f); // First we parse any root-level key value pairs directly into our target object
     while(!!s && s.get() == '[') // Then, we start resolving tables
     {
@@ -361,73 +361,73 @@ namespace bss_util {
   }
 
   template<class T, typename CType, ARRAY_TYPE ArrayType, typename Alloc>
-  struct ParseTOMLInternal<cDynArray<T, CType, ArrayType, Alloc>, false>
+  struct ParseTOMLInternal<DynArray<T, CType, ArrayType, Alloc>, false>
   {
-    static inline T& GetLast(cDynArray<T, CType, ArrayType, Alloc>& obj) { assert(obj.Length()); return obj.Back(); }
-    static inline void DoAddCall(cSerializer<TOMLEngine>& e, cDynArray<T, CType, ArrayType, Alloc>& obj, std::istream& s, int& n)
+    static inline T& GetLast(DynArray<T, CType, ArrayType, Alloc>& obj) { assert(obj.Length()); return obj.Back(); }
+    static inline void DoAddCall(Serializer<TOMLEngine>& e, DynArray<T, CType, ArrayType, Alloc>& obj, std::istream& s, int& n)
     {
       obj.AddConstruct();
       ParseTOMLBase<T>(e, obj.Back(), s);
     }
-    static void F(cSerializer<TOMLEngine>& e, cDynArray<T, CType, ArrayType, Alloc>& obj, std::istream& s)
+    static void F(Serializer<TOMLEngine>& e, DynArray<T, CType, ArrayType, Alloc>& obj, std::istream& s)
     {
-      ParseTOMLArray<cDynArray<T, CType, ArrayType, Alloc>>(e, obj, s);
+      ParseTOMLArray<DynArray<T, CType, ArrayType, Alloc>>(e, obj, s);
     }
   };
   template<class T, typename CType, ARRAY_TYPE ArrayType, typename Alloc>
-  struct ParseTOMLInternal<cArray<T, CType, ArrayType, Alloc>, false>
+  struct ParseTOMLInternal<Array<T, CType, ArrayType, Alloc>, false>
   {
-    static inline T& GetLast(cArray<T, CType, ArrayType, Alloc>& obj) { assert(obj.Capacity()); return obj.Back(); }
-    static inline void DoAddCall(cSerializer<TOMLEngine>& e, cArray<T, CType, ArrayType, Alloc>& obj, std::istream& s, int& n)
+    static inline T& GetLast(Array<T, CType, ArrayType, Alloc>& obj) { assert(obj.Capacity()); return obj.Back(); }
+    static inline void DoAddCall(Serializer<TOMLEngine>& e, Array<T, CType, ArrayType, Alloc>& obj, std::istream& s, int& n)
     {
       obj.SetCapacity(obj.Capacity() + 1);
       ParseTOMLBase<T>(e, obj.Back(), s);
     }
-    static void F(cSerializer<TOMLEngine>& e, cArray<T, CType, ArrayType, Alloc>& obj, std::istream& s)
+    static void F(Serializer<TOMLEngine>& e, Array<T, CType, ArrayType, Alloc>& obj, std::istream& s)
     {
-      ParseTOMLArray<cArray<T, CType, ArrayType, Alloc>>(e, obj, s);
+      ParseTOMLArray<Array<T, CType, ArrayType, Alloc>>(e, obj, s);
     }
   };
   template<class T, size_t I, bool B> // For fixed-length arrays
   struct ParseTOMLInternal<T[I], B>
   {
     static inline T& GetLast(T(&obj)[I]) { return obj[0]; }
-    static inline void DoAddCall(cSerializer<TOMLEngine>& e, T(&obj)[I], std::istream& s, int& n) { if(n < I) ParseTOMLBase<T>(e, obj[n++], s); }
-    static void F(cSerializer<TOMLEngine>& e, T(&obj)[I], std::istream& s) { ParseTOMLArray<T[I]>(e, obj, s); }
+    static inline void DoAddCall(Serializer<TOMLEngine>& e, T(&obj)[I], std::istream& s, int& n) { if(n < I) ParseTOMLBase<T>(e, obj[n++], s); }
+    static void F(Serializer<TOMLEngine>& e, T(&obj)[I], std::istream& s) { ParseTOMLArray<T[I]>(e, obj, s); }
   };
   template<class T, size_t I, bool B> // For fixed-length arrays
   struct ParseTOMLInternal<std::array<T, I>, B>
   {
     static inline T& GetLast(std::array<T, I>& obj) { return obj[0]; }
-    static inline void DoAddCall(cSerializer<TOMLEngine>& e, std::array<T, I>& obj, std::istream& s, int& n) { if(n < I) ParseTOMLBase<T>(e, obj[n++], s); }
-    static void F(cSerializer<TOMLEngine>& e, std::array<T, I>& obj, std::istream& s) { ParseTOMLArray<std::array<T, I>>(e, obj, s); }
+    static inline void DoAddCall(Serializer<TOMLEngine>& e, std::array<T, I>& obj, std::istream& s, int& n) { if(n < I) ParseTOMLBase<T>(e, obj[n++], s); }
+    static void F(Serializer<TOMLEngine>& e, std::array<T, I>& obj, std::istream& s) { ParseTOMLArray<std::array<T, I>>(e, obj, s); }
   };
   template<class T, typename Alloc>
   struct ParseTOMLInternal<std::vector<T, Alloc>, false>
   {
     static inline T& GetLast(std::vector<T, Alloc>& obj) { assert(obj.size()); return obj.back(); }
-    static inline void DoAddCall(cSerializer<TOMLEngine>& e, std::vector<T, Alloc>& obj, std::istream& s, int& n)
+    static inline void DoAddCall(Serializer<TOMLEngine>& e, std::vector<T, Alloc>& obj, std::istream& s, int& n)
     {
       obj.push_back(T());
       ParseTOMLBase<T>(e, obj.back(), s);
     }
-    static void F(cSerializer<TOMLEngine>& e, std::vector<T, Alloc>& obj, std::istream& s)
+    static void F(Serializer<TOMLEngine>& e, std::vector<T, Alloc>& obj, std::istream& s)
     {
       ParseTOMLArray<std::vector<T, Alloc>>(e, obj, s);
     }
   };
 
   template<class T>
-  inline void static ParseTOMLBase(cSerializer<TOMLEngine>& e, T& obj, std::istream& s)
+  inline void static ParseTOMLBase(Serializer<TOMLEngine>& e, T& obj, std::istream& s)
   {
     ParseTOMLInternal<T, std::is_arithmetic<T>::value>::F(e, obj, s);
   }
   template<>
-  inline void ParseTOMLBase<std::string>(cSerializer<TOMLEngine>& e, std::string& target, std::istream& s) { ParseTOMLString<true, 0, 0>(target, s); }
+  inline void ParseTOMLBase<std::string>(Serializer<TOMLEngine>& e, std::string& target, std::istream& s) { ParseTOMLString<true, 0, 0>(target, s); }
   template<>
-  inline void ParseTOMLBase<cStr>(cSerializer<TOMLEngine>& e, cStr& target, std::istream& s) { ParseTOMLBase<std::string>(e, target, s); }
+  inline void ParseTOMLBase<Str>(Serializer<TOMLEngine>& e, Str& target, std::istream& s) { ParseTOMLBase<std::string>(e, target, s); }
   template<>
-  inline void ParseTOMLBase<bool>(cSerializer<TOMLEngine>& e, bool& target, std::istream& s)
+  inline void ParseTOMLBase<bool>(Serializer<TOMLEngine>& e, bool& target, std::istream& s)
   {
     static const char* val = "true";
     ParseTOMLEatWhitespace(s);
@@ -453,7 +453,7 @@ namespace bss_util {
 
 #ifdef BSS_COMPILER_HAS_TIME_GET
   template<>
-  inline void ParseTOMLBase<std::chrono::system_clock::time_point>(cSerializer<TOMLEngine>& e, std::chrono::system_clock::time_point& target, std::istream& s)
+  inline void ParseTOMLBase<std::chrono::system_clock::time_point>(Serializer<TOMLEngine>& e, std::chrono::system_clock::time_point& target, std::istream& s)
   {
     using days = std::chrono::duration<int, std::ratio_multiply<std::ratio<24>, std::chrono::hours::period>>;
     static const char DATE[] = "%Y-%m-%d";
@@ -483,7 +483,7 @@ namespace bss_util {
               offset = (sign == '+' ? 1 : -1) * (std::chrono::hours{ tz.tm_hour } +std::chrono::minutes{ tz.tm_min });
 
             target = std::chrono::system_clock::time_point{
-              days { days_from_civil(t.tm_year + 1900, t.tm_mon + 1, t.tm_mday) } +
+              days { DaysFromCivil(t.tm_year + 1900, t.tm_mon + 1, t.tm_mday) } +
               std::chrono::hours { t.tm_hour } +std::chrono::minutes { t.tm_min } +std::chrono::seconds { t.tm_sec } -
               offset };
             return;
@@ -493,16 +493,16 @@ namespace bss_util {
         }
       }
 
-      target = std::chrono::system_clock::time_point{ days { days_from_civil(t.tm_year + 1900, t.tm_mon + 1, t.tm_mday) } };
+      target = std::chrono::system_clock::time_point{ days { DaysFromCivil(t.tm_year + 1900, t.tm_mon + 1, t.tm_mday) } };
     }
   }
 #endif
 
   // This function parses values and is recursive, allowing for nested inline tables or arrays, etc.
   template<>
-  inline void ParseTOMLBase<TOMLValue>(cSerializer<TOMLEngine>& e, TOMLValue& target, std::istream& s)
+  inline void ParseTOMLBase<TOMLValue>(Serializer<TOMLEngine>& e, TOMLValue& target, std::istream& s)
   {
-    auto f = [&target](cSerializer<TOMLEngine>& e, const char* id) {
+    auto f = [&target](Serializer<TOMLEngine>& e, const char* id) {
       auto& table = target.get<TOMLValue::TOMLTable>();
       TOMLValue* v = table[id];
       if(!v)
@@ -520,7 +520,7 @@ namespace bss_util {
       if(e.in->peek() == '.')
       {
         e.in->get();
-        cStr buf;
+        Str buf;
         ParseTOMLString<false, '.', ']'>(buf, *e.in);
         TOMLValue* v = target.get<TOMLValue::TOMLTable>()[buf];
         if(v)
@@ -563,8 +563,8 @@ namespace bss_util {
       break;
     case '"': // Single or multi-line string
     case '\'': // Single or multi-line literal string
-      target = cStr();
-      ParseTOMLBase<cStr>(e, target.get<cStr>(), s);
+      target = Str();
+      ParseTOMLBase<Str>(e, target.get<Str>(), s);
       break;
     case '0':
     case '1':
@@ -594,20 +594,20 @@ namespace bss_util {
   }
 
   template<class T>
-  inline void ParseTOML(T& obj, std::istream& s) { cSerializer<TOMLEngine> e; e.Parse(obj, s, 0); }
+  inline void ParseTOML(T& obj, std::istream& s) { Serializer<TOMLEngine> e; e.Parse(obj, s, 0); }
   template<class T>
   inline void ParseTOML(T& obj, const char* s) { std::istringstream ss(s); ParseTOML<T>(obj, ss); }
 
   template<typename T>
-  void TOMLEngine::Parse(cSerializer<TOMLEngine>& e, T& t, const char* id)
+  void TOMLEngine::Parse(Serializer<TOMLEngine>& e, T& t, const char* id)
   {
     ParseTOMLBase<T>(e, t, *e.in);
   }
 
   template<typename... Args>
-  void TOMLEngine::ParseMany(cSerializer<TOMLEngine>& e, const cTrie<uint16_t>& t, std::tuple<Args...>& args)
+  void TOMLEngine::ParseMany(Serializer<TOMLEngine>& e, const Trie<uint16_t>& t, std::tuple<Args...>& args)
   {
-    auto f = [&t, &args](cSerializer<TOMLEngine>& e, const char* id) { cSerializer<TOMLEngine>::_findparse<Args...>(e, id, t, args); };
+    auto f = [&t, &args](Serializer<TOMLEngine>& e, const char* id) { Serializer<TOMLEngine>::_findparse<Args...>(e, id, t, args); };
     switch(e.engine.state)
     {
     case 3: // If state is 3, this is the initial object serialization.
@@ -617,9 +617,9 @@ namespace bss_util {
       if(e.in->peek() == '.')
       {
         e.in->get();
-        cStr buf;
+        Str buf;
         ParseTOMLString<false, '.', ']'>(buf, *e.in);
-        cSerializer<TOMLEngine>::_findparse<Args...>(e, buf.c_str(), t, args);
+        Serializer<TOMLEngine>::_findparse<Args...>(e, buf.c_str(), t, args);
       }
       else if(e.in->peek() == ']')
       {
@@ -651,7 +651,7 @@ namespace bss_util {
     }
   }
 
-  inline void WriteTOMLId(cSerializer<TOMLEngine>& e, const char* id, std::ostream& s)
+  inline void WriteTOMLId(Serializer<TOMLEngine>& e, const char* id, std::ostream& s)
   {
     if(!id || e.engine.state == 2)
     {
@@ -664,9 +664,9 @@ namespace bss_util {
   }
 
   template<class T>
-  inline void WriteTOMLTables(cSerializer<TOMLEngine>& e, const char* id, const T& obj, std::ostream& s)
+  inline void WriteTOMLTables(Serializer<TOMLEngine>& e, const char* id, const T& obj, std::ostream& s)
   {
-    cStr last = e.engine.id;
+    Str last = e.engine.id;
     if(e.engine.id.size())
       e.engine.id += '.';
     e.engine.id += id;
@@ -675,7 +675,7 @@ namespace bss_util {
   }
 
   template<class T>
-  inline void WriteTOMLArray(cSerializer<TOMLEngine>& e, const char* id, const T* obj, size_t size, std::ostream& s)
+  inline void WriteTOMLArray(Serializer<TOMLEngine>& e, const char* id, const T* obj, size_t size, std::ostream& s)
   {
     if(e.engine.state == 1) return;
     WriteTOMLId(e, id, s);
@@ -688,7 +688,7 @@ namespace bss_util {
   }
 
   template<class T>
-  inline void WriteTOMLPairs(cSerializer<TOMLEngine>& e, const char* id, const T& obj, std::ostream& s)
+  inline void WriteTOMLPairs(Serializer<TOMLEngine>& e, const char* id, const T& obj, std::ostream& s)
   {
     if(e.engine.state == 2) // if we're in state 2 we're writing an inline table
     {
@@ -715,7 +715,7 @@ namespace bss_util {
   template<class T, bool B>
   struct WriteTOMLInternal
   {
-    static void F(cSerializer<TOMLEngine>& e, const char* id, const T& obj, std::ostream& s)
+    static void F(Serializer<TOMLEngine>& e, const char* id, const T& obj, std::ostream& s)
     {
       if(e.engine.state == 2 || (!id && !e.engine.state))
       {
@@ -738,7 +738,7 @@ namespace bss_util {
   template<class T>
   struct WriteTOMLInternal<T, true>
   {
-    static void F(cSerializer<TOMLEngine>& e, const char* id, const T& obj, std::ostream& s)
+    static void F(Serializer<TOMLEngine>& e, const char* id, const T& obj, std::ostream& s)
     {
       if(e.engine.state == 1) return;
       WriteTOMLId(e, id, s);
@@ -750,29 +750,29 @@ namespace bss_util {
   template<class T, size_t I, bool B>
   struct WriteTOMLInternal<T[I], B>
   {
-    static void F(cSerializer<TOMLEngine>& e, const char* id, const T(&obj)[I], std::ostream& s) { WriteTOMLArray<T>(e, id, obj, I, s); }
+    static void F(Serializer<TOMLEngine>& e, const char* id, const T(&obj)[I], std::ostream& s) { WriteTOMLArray<T>(e, id, obj, I, s); }
   };
   template<class T, size_t I, bool B>
   struct WriteTOMLInternal<std::array<T, I>, B>
   {
-    static void F(cSerializer<TOMLEngine>& e, const char* id, const std::array<T, I>& obj, std::ostream& s) { WriteTOMLArray<T>(e, id, obj.data(), I, s); }
+    static void F(Serializer<TOMLEngine>& e, const char* id, const std::array<T, I>& obj, std::ostream& s) { WriteTOMLArray<T>(e, id, obj.data(), I, s); }
   };
   template<class T, typename CType, ARRAY_TYPE ArrayType, typename Alloc>
-  struct WriteTOMLInternal<cDynArray<T, CType, ArrayType, Alloc>, false>
+  struct WriteTOMLInternal<DynArray<T, CType, ArrayType, Alloc>, false>
   {
-    static void F(cSerializer<TOMLEngine>& e, const char* id, const cDynArray<T, CType, ArrayType, Alloc>& obj, std::ostream& s) { WriteTOMLArray<T>(e, id, obj, obj.Length(), s); }
+    static void F(Serializer<TOMLEngine>& e, const char* id, const DynArray<T, CType, ArrayType, Alloc>& obj, std::ostream& s) { WriteTOMLArray<T>(e, id, obj, obj.Length(), s); }
   };
   template<class T, typename Alloc>
   struct WriteTOMLInternal<std::vector<T, Alloc>, false>
   {
-    static void F(cSerializer<TOMLEngine>& e, const char* id, const std::vector<T, Alloc>& obj, std::ostream& s) { WriteTOMLArray<T>(e, id, obj.data(), obj.size(), s); }
+    static void F(Serializer<TOMLEngine>& e, const char* id, const std::vector<T, Alloc>& obj, std::ostream& s) { WriteTOMLArray<T>(e, id, obj.data(), obj.size(), s); }
   };
 
   template<class T>
-  inline void WriteTOMLBase(cSerializer<TOMLEngine>& e, const char* id, const T& obj, std::ostream& s) { WriteTOMLInternal<T, std::is_arithmetic<T>::value>::F(e, id, obj, s); }
+  inline void WriteTOMLBase(Serializer<TOMLEngine>& e, const char* id, const T& obj, std::ostream& s) { WriteTOMLInternal<T, std::is_arithmetic<T>::value>::F(e, id, obj, s); }
 
   template<>
-  void WriteTOMLBase<std::string>(cSerializer<TOMLEngine>& e, const char* id, const std::string& obj, std::ostream& s)
+  void WriteTOMLBase<std::string>(Serializer<TOMLEngine>& e, const char* id, const std::string& obj, std::ostream& s)
   {
     if(e.engine.state == 1) return;
     WriteTOMLId(e, id, s);
@@ -796,9 +796,9 @@ namespace bss_util {
   }
 
   template<>
-  void WriteTOMLBase<cStr>(cSerializer<TOMLEngine>& e, const char* id, const cStr& obj, std::ostream& s) { WriteTOMLBase<std::string>(e, id, obj, s); }
+  void WriteTOMLBase<Str>(Serializer<TOMLEngine>& e, const char* id, const Str& obj, std::ostream& s) { WriteTOMLBase<std::string>(e, id, obj, s); }
   template<>
-  void WriteTOMLBase<bool>(cSerializer<TOMLEngine>& e, const char* id, const bool& obj, std::ostream& s)
+  void WriteTOMLBase<bool>(Serializer<TOMLEngine>& e, const char* id, const bool& obj, std::ostream& s)
   {
     if(e.engine.state == 1) return;
     WriteTOMLId(e, id, s);
@@ -807,7 +807,7 @@ namespace bss_util {
   }
 #ifdef BSS_COMPILER_HAS_TIME_GET
   template<>
-  void WriteTOMLBase<std::chrono::system_clock::time_point>(cSerializer<TOMLEngine>& e, const char* id, const std::chrono::system_clock::time_point& obj, std::ostream& s)
+  void WriteTOMLBase<std::chrono::system_clock::time_point>(Serializer<TOMLEngine>& e, const char* id, const std::chrono::system_clock::time_point& obj, std::ostream& s)
   {
     if(e.engine.state == 1) return;
     WriteTOMLId(e, id, s);
@@ -818,12 +818,12 @@ namespace bss_util {
 #endif
 
   template<class T>
-  inline void WriteTOML(const T& obj, std::ostream& s) { cSerializer<TOMLEngine> e; e.engine.state = 1; e.Serialize<T>(obj, s, 0); }
+  inline void WriteTOML(const T& obj, std::ostream& s) { Serializer<TOMLEngine> e; e.engine.state = 1; e.Serialize<T>(obj, s, 0); }
   template<class T>
   inline void WriteTOML(const T& obj, const char* file) { std::ofstream fs(file, std::ios_base::out | std::ios_base::trunc | std::ios_base::binary); WriteTOML<T>(obj, fs); }
 
   template<typename T>
-  void TOMLEngine::Serialize(cSerializer<TOMLEngine>& e, const T& t, const char* id)
+  void TOMLEngine::Serialize(Serializer<TOMLEngine>& e, const T& t, const char* id)
   {
     WriteTOMLBase<T>(e, id, t, *e.out);
   }

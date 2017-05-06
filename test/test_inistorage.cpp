@@ -1,10 +1,10 @@
 // Copyright ©2017 Black Sphere Studios
 // For conditions of distribution and use, see copyright notice in "bss_util.h"
 
-#include "cINIstorage.h"
+#include "bss-util/INIstorage.h"
 #include "test.h"
 
-using namespace bss_util;
+using namespace bss;
 
 #define INI_E(s,k,v,nk,ns) TEST(!ini.EditEntry(MAKESTRING(s),MAKESTRING(k),MAKESTRING(v),nk,ns))
 #define INI_NE(s,k,v,nk,ns) TEST(ini.EditEntry(MAKESTRING(s),MAKESTRING(k),MAKESTRING(v),nk,ns)<0)
@@ -15,9 +15,9 @@ TESTDEF::RETPAIR test_INISTORAGE()
 {
   BEGINTEST;
 
-  cINIstorage ini("inistorage.ini");
+  INIstorage ini("inistorage.ini");
 
-  auto fn = [&](cINIentry* e, const char* s, int i) -> bool { return (e != 0 && !strcmp(e->GetString(), s) && e->GetInt() == i); };
+  auto fn = [&](INIentry* e, const char* s, int i) -> bool { return (e != 0 && !strcmp(e->GetString(), s) && e->GetInt() == i); };
   auto fn2 = [&](const char* s) {
     FILE* f;
     FOPEN(f, "inistorage.ini", "rb"); //this will create the file if it doesn't already exist
@@ -27,7 +27,7 @@ TESTDEF::RETPAIR test_INISTORAGE()
       fseek(f, 0, SEEK_END);
       size_t size = (size_t)ftell(f);
       fseek(f, 0, SEEK_SET);
-      cStr ini(size + 1);
+      Str ini(size + 1);
       size = fread(ini.UnsafeString(), sizeof(char), size, f); //reads in the entire file
       ini.UnsafeString()[size] = '\0';
       fclose(f);
@@ -55,7 +55,7 @@ TESTDEF::RETPAIR test_INISTORAGE()
     ini.AddSection("2");
   };
   auto fn4 = [&](const char* s, uint32_t index) -> bool {
-    cINIsection* sec = ini.GetSection(s, index);
+    INIsection* sec = ini.GetSection(s, index);
     return sec != 0 && sec->GetIndex() == index;
   };
 
@@ -207,7 +207,7 @@ TESTDEF::RETPAIR test_INISTORAGE()
   ini.EndINIEdit();
   fn2("[1]\nb=2\nc=4\na=1\na=2\na=3\na=4\nb=1\nc=1\nc=2\nd=1\n\n[2]\na=1\na=2\nb=1\n\n[1]\n\n[2]\na=1\na=2\nb=1\n\n[2]\n\n[2]");
 
-  cStr comp;
+  Str comp;
   for(auto i = ini.Front(); i != 0; i = i->next)
   {
     comp = comp + "\n[" + i->val.GetName() + ']';

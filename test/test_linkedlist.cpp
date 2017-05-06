@@ -1,13 +1,13 @@
 // Copyright ©2017 Black Sphere Studios
 // For conditions of distribution and use, see copyright notice in "bss_util.h"
 
-#include "cLinkedList.h"
+#include "bss-util/LinkedList.h"
 #include "test.h"
 
-using namespace bss_util;
+using namespace bss;
 
 template<bool L, bool S>
-bool cmplist(cLinkedList<int, StandardAllocPolicy<cLLNode<int>>, L, S>& list, const char* nums)
+bool cmplist(LinkedList<int, StandardAllocPolicy<LLNode<int>>, L, S>& list, const char* nums)
 {
   auto cur = list.begin();
   bool r = true;
@@ -19,8 +19,8 @@ bool cmplist(cLinkedList<int, StandardAllocPolicy<cLLNode<int>>, L, S>& list, co
 TESTDEF::RETPAIR test_LINKEDLIST()
 {
   BEGINTEST;
-  cLinkedList<int, StandardAllocPolicy<cLLNode<int>>, true, true> test;
-  cLLNode<int>* llp[5];
+  LinkedList<int, StandardAllocPolicy<LLNode<int>>, true, true> test;
+  LLNode<int>* llp[5];
 
   llp[0] = test.Add(1);
   TEST(cmplist(test, "1"));
@@ -42,7 +42,7 @@ TESTDEF::RETPAIR test_LINKEDLIST()
   TEST(cmplist(test, "230"));
   TEST(test.Length() == 3);
 
-  cLinkedList<int, StandardAllocPolicy<cLLNode<int>>, false, true> test2;
+  LinkedList<int, StandardAllocPolicy<LLNode<int>>, false, true> test2;
 
   llp[0] = test2.Add(1);
   TEST(cmplist(test2, "1"));
@@ -64,7 +64,7 @@ TESTDEF::RETPAIR test_LINKEDLIST()
   TEST(cmplist(test2, "032"));
   TEST(test2.Length() == 3);
 
-  cLinkedList<int, StandardAllocPolicy<cLLNode<int>>> test3;
+  LinkedList<int, StandardAllocPolicy<LLNode<int>>> test3;
 
   llp[0] = test3.Add(1);
   TEST(cmplist(test3, "1"));

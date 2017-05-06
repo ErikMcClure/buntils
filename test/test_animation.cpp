@@ -1,12 +1,12 @@
 // Copyright ©2017 Black Sphere Studios
 // For conditions of distribution and use, see copyright notice in "bss_util.h"
 
-#include "cFXAni.h"
-#include "variant.h"
+#include "bss-util/FXAni.h"
+#include "bss-util/Variant.h"
 #include "test.h"
 #include <memory>
 
-using namespace bss_util;
+using namespace bss;
 
 struct cAnimObj
 {
@@ -14,21 +14,21 @@ struct cAnimObj
   int test;
   int test2;
   float fl;
-  void donothing(cRefCounter*) { ++test; }
-  cRefCounter* retnothing(ref_ptr<cRefCounter> p) {
+  void donothing(RefCounter*) { ++test; }
+  RefCounter* retnothing(ref_ptr<RefCounter> p) {
     ++test2;
     p->Grab();
-    return (cRefCounter*)p;
+    return (RefCounter*)p;
   }
-  void remnothing(cRefCounter* p) { p->Drop(); }
+  void remnothing(RefCounter* p) { p->Drop(); }
   void setfloat(float a) { fl = a; }
   const float& getfloat() { return fl; }
 };
 
-typedef variant<double> FX_DEF;
-typedef variant<DEBUG_CDT<true>, DEBUG_CDT<false>> FX_OBJ;
-typedef variant<cAnimation<float>> FX_ANI;
-typedef variant<cAniStateDiscrete<float>> FX_STATE;
+typedef Variant<double> FX_DEF;
+typedef Variant<DEBUG_CDT<true>, DEBUG_CDT<false>> FX_OBJ;
+typedef Variant<Animation<float>> FX_ANI;
+typedef Variant<AniStateDiscrete<float>> FX_STATE;
 
 double anidefcreate(const FX_DEF& def, FX_OBJ& obj)
 {
@@ -42,14 +42,14 @@ double anidefcreate(const FX_DEF& def, FX_OBJ& obj)
 
 void anidefmap(FX_ANI& ani, FX_STATE& state, FX_OBJ& obj)
 {
-  if(ani.is<cAnimation<float>>())
+  if(ani.is<Animation<float>>())
   {
-    delegate<void, float> d(0, 0);
+    Delegate<void, float> d(0, 0);
     if(obj.is<DEBUG_CDT<true>>())
-      d = delegate<void, float>::From<DEBUG_CDT<true>, &DEBUG_CDT<true>::donothing>(&obj.get<DEBUG_CDT<true>>());
+      d = Delegate<void, float>::From<DEBUG_CDT<true>, &DEBUG_CDT<true>::donothing>(&obj.get<DEBUG_CDT<true>>());
     else
-      d = delegate<void, float>::From<DEBUG_CDT<false>, &DEBUG_CDT<false>::donothing>(&obj.get<DEBUG_CDT<false>>());
-    state = cAniStateDiscrete<float>(&ani.get<cAnimation<float>>(), d);
+      d = Delegate<void, float>::From<DEBUG_CDT<false>, &DEBUG_CDT<false>::donothing>(&obj.get<DEBUG_CDT<false>>());
+    state = AniStateDiscrete<float>(&ani.get<Animation<float>>(), d);
   }
 }
 TESTDEF::RETPAIR test_ANIMATION()
@@ -58,15 +58,15 @@ TESTDEF::RETPAIR test_ANIMATION()
   RCounter c;
   {
     c.Grab();
-    cAnimation<cRefCounter*> a0;
+    Animation<RefCounter*> a0;
     a0.Add(0.0, &c);
     a0.Add(1.1, &c);
     a0.Add(2.0, &c);
-    cAnimationInterval<ref_ptr<cRefCounter>> a1;
+    AnimationInterval<ref_ptr<RefCounter>> a1;
     a1.Add(0.0, &c, 1.5);
     a1.Add(1.0, &c, 0.5);
     a1.Add(1.5, &c, 0.5);
-    cAnimation<float> a2(&cAniStateSmooth<float>::LerpInterpolate);
+    Animation<float> a2(&AniStateSmooth<float>::LerpInterpolate);
     a2.Add(0.0, 0.0f);
     a2.Add(1.0, 1.0f);
     a2.Add(2.0, 2.0f);
@@ -79,17 +79,17 @@ TESTDEF::RETPAIR test_ANIMATION()
     //std::stringstream ss;
     //a.Serialize(ss);
 
-    //cAnimation<StaticAllocPolicy<char>> aa;
+    //Animation<StaticAllocPolicy<char>> aa;
     //aa.Deserialize(ss);
     //for(int i = 0; i<6; ++i) c.Grab(); // compensate for the pointer we just copied over
 
     cAnimObj obj;
     //a.GetAttribute<3>()->AddKeyFrame(KeyFrame<3>(0.0, [&](){ c.Grab(); obj.test++; }));
     //a.GetAttribute<3>()->AddKeyFrame(KeyFrame<3>(0.6, [&](){ c.Drop(); }));
-    //a.Attach(delegate<void,AniAttribute*>::From<cAnimObj,&cAnimObj::TypeIDRegFunc>(&obj));
-    cAniStateDiscrete<cRefCounter*> s0(&a0, delegate<void, cRefCounter*>::From<cAnimObj, &cAnimObj::donothing>(&obj));
-    cAniStateInterval<ref_ptr<cRefCounter>, cRefCounter*> s1(&a1, delegate<cRefCounter*, ref_ptr<cRefCounter>>::From<cAnimObj, &cAnimObj::retnothing>(&obj), delegate<void, cRefCounter*>::From<cAnimObj, &cAnimObj::remnothing>(&obj));
-    cAniStateSmooth<float> s2(&a2, delegate<void, float>::From<cAnimObj, &cAnimObj::setfloat>(&obj));
+    //a.Attach(Delegate<void,AniAttribute*>::From<cAnimObj,&cAnimObj::TypeIDRegFunc>(&obj));
+    AniStateDiscrete<RefCounter*> s0(&a0, Delegate<void, RefCounter*>::From<cAnimObj, &cAnimObj::donothing>(&obj));
+    cAniStateInterval<ref_ptr<RefCounter>, RefCounter*> s1(&a1, Delegate<RefCounter*, ref_ptr<RefCounter>>::From<cAnimObj, &cAnimObj::retnothing>(&obj), Delegate<void, RefCounter*>::From<cAnimObj, &cAnimObj::remnothing>(&obj));
+    AniStateSmooth<float> s2(&a2, Delegate<void, float>::From<cAnimObj, &cAnimObj::setfloat>(&obj));
 
     auto interall = [&](double t) {
       s0.Interpolate(t);
@@ -157,9 +157,9 @@ TESTDEF::RETPAIR test_ANIMATION()
     c.Drop();
 
     //{
-    //  cAnimation<StaticAllocPolicy<char>> b(a);
+    //  Animation<StaticAllocPolicy<char>> b(a);
     //  obj.test=0;
-    //  b.Attach(delegate<void, AniAttribute*>::From<cAnimObj, &cAnimObj::TypeIDRegFunc>(&obj));
+    //  b.Attach(Delegate<void, AniAttribute*>::From<cAnimObj, &cAnimObj::TypeIDRegFunc>(&obj));
     //  TEST(obj.test==0);
     //  b.Start(0);
     //  TEST(obj.test==2);
@@ -181,8 +181,8 @@ TESTDEF::RETPAIR test_FX_ANI()
   DEBUG_CDT<true>::count = 0;
 
   {
-    typedef cFXAni<FX_DEF, FX_OBJ, anidefcreate, FX_ANI, FX_STATE, anidefmap> FXANI;
-    cAniFrame<float, void> frames[2] = { { -1.0f,0.0 }, { 0.0f,1.0 } };
+    typedef FXAni<FX_DEF, FX_OBJ, anidefcreate, FX_ANI, FX_STATE, anidefmap> FXANI;
+    AniFrame<float, void> frames[2] = { { -1.0f,0.0 }, { 0.0f,1.0 } };
     FXANI::FXMANAGER manager;
     FXANI _test(&manager);
     _test.AddDef(FX_DEF(1.0), 0.0, true);
@@ -194,7 +194,7 @@ TESTDEF::RETPAIR test_FX_ANI()
     _test.AddMapping(1, 0, 2.0);
     _test.AddMapping(2, 0, 1.0);
     _test.AddMapping(3, 0, 0.0);
-    cFXAniState<FXANI> fxstate(&_test);
+    FXAniState<FXANI> fxstate(&_test);
     fxstate.Interpolate(1);
     fxstate.Interpolate(5);
     fxstate.Interpolate(1);

@@ -1,15 +1,15 @@
 // Copyright ©2017 Black Sphere Studios
 // For conditions of distribution and use, see copyright notice in "bss_util.h"
 
-#include "cArrayCircular.h"
+#include "bss-util/ArrayCircular.h"
 #include "test.h"
 
-using namespace bss_util;
+using namespace bss;
 
 TESTDEF::RETPAIR test_ARRAYCIRCULAR()
 {
   BEGINTEST;
-  cArrayCircular<int> a;
+  ArrayCircular<int> a;
   a.SetCapacity(25);
   TEST(a.Capacity() == 25);
   for(int i = 0; i < 25; ++i)
@@ -34,7 +34,7 @@ TESTDEF::RETPAIR test_ARRAYCIRCULAR()
   TEST(a[0] == 25);
   TEST(a[-1] == 0);
 
-  //const cArrayCircular<int>& b=a;
+  //const ArrayCircular<int>& b=a;
   //b[0]=5; // Should cause error
 
   ENDTEST;

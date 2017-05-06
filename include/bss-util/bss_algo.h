@@ -4,13 +4,13 @@
 #ifndef __BSS_ALGO_H__
 #define __BSS_ALGO_H__
 
-#include "bss_util.h"
-#include "bss_compare.h"
-#include "bss_sse.h"
-#include "bss_vector.h"
-#include "cDynArray.h"
-#include "cDisjointSet.h"
-#include "delegate.h"
+#include "bss-util/bss_util.h"
+#include "bss-util/bss_compare.h"
+#include "bss-util/bss_sse.h"
+#include "bss-util/bss_vector.h"
+#include "bss-util/DynArray.h"
+#include "bss-util/DisjointSet.h"
+#include "Delegate.h"
 #include <algorithm>
 #include <random>
 #include <array>
@@ -18,7 +18,7 @@
 #include <alloca.h>
 #endif
 
-namespace bss_util {
+namespace bss {
   // A generalization of the binary search that allows for auxiliary arguments to be passed into the comparison function
   template<typename T, typename D, typename CT_, char(*CEQ)(const char&, const char&), char CVAL, typename... Args>
   struct binsearch_aux_t {
@@ -265,18 +265,18 @@ namespace bss_util {
 
   // Random queue that pops a random item instead of the last item.
   template<typename T, typename CType = uint32_t, typename ENGINE = XorshiftEngine<uint64_t>, ARRAY_TYPE ArrayType = CARRAY_SIMPLE, typename Alloc = StaticAllocPolicy<T>>
-  class BSS_COMPILER_DLLEXPORT cRandomQueue : protected cDynArray<T, CType, ArrayType, Alloc>
+  class BSS_COMPILER_DLLEXPORT RandomQueue : protected DynArray<T, CType, ArrayType, Alloc>
   {
   protected:
     typedef CType CT_;
-    typedef cDynArray<T, CType, ArrayType, Alloc> AT_;
+    typedef DynArray<T, CType, ArrayType, Alloc> AT_;
     using AT_::_array;
     using AT_::_length;
 
   public:
-    cRandomQueue(const cRandomQueue& copy) : AT_(copy), _e(copy._e) {}
-    cRandomQueue(cRandomQueue&& mov) : AT_(std::move(mov)), _e(mov._e) {}
-    explicit cRandomQueue(CT_ size = 0, ENGINE& e = bss_getdefaultengine()) : AT_(size), _e(e) {}
+    RandomQueue(const RandomQueue& copy) : AT_(copy), _e(copy._e) {}
+    RandomQueue(RandomQueue&& mov) : AT_(std::move(mov)), _e(mov._e) {}
+    explicit RandomQueue(CT_ size = 0, ENGINE& e = bss_getdefaultengine()) : AT_(size), _e(e) {}
     inline void Push(const T& t) { AT_::Add(t); }
     inline void Push(T&& t) { AT_::Add(std::move(t)); }
     inline T Pop() { CT_ i = bssrand<CT_, ENGINE>(0, _length, _e); T r = std::move(_array[i]); Remove(i); return r; }
@@ -292,10 +292,10 @@ namespace bss_util {
 
     inline operator T*() { return _array; }
     inline operator const T*() const { return _array; }
-    inline cRandomQueue& operator=(const cRandomQueue& copy) { AT_::operator=(copy); return *this; }
-    inline cRandomQueue& operator=(cRandomQueue&& mov) { AT_::operator=(std::move(mov)); return *this; }
-    inline cRandomQueue& operator +=(const cRandomQueue& add) { AT_::operator+=(add); return *this; }
-    inline const cRandomQueue operator +(const cRandomQueue& add) const { cRandomQueue r(*this); return (r += add); }
+    inline RandomQueue& operator=(const RandomQueue& copy) { AT_::operator=(copy); return *this; }
+    inline RandomQueue& operator=(RandomQueue&& mov) { AT_::operator=(std::move(mov)); return *this; }
+    inline RandomQueue& operator +=(const RandomQueue& add) { AT_::operator+=(add); return *this; }
+    inline const RandomQueue operator +(const RandomQueue& add) const { RandomQueue r(*this); return (r += add); }
 
   protected:
     ENGINE& _e;
@@ -407,7 +407,7 @@ namespace bss_util {
     memset(grid, 0xFF, gw*gh * sizeof(std::array<T, 2>));
     assert(!(~ig[0]));
 
-    cRandomQueue<std::array<T, 2>> list;
+    RandomQueue<std::array<T, 2>> list;
     std::array<T, 2> pt = { (T)bssRandReal(rect[0], rect[2]), (T)bssRandReal(rect[1], rect[3]) };
 
     //update containers 
@@ -434,7 +434,7 @@ namespace bss_util {
           center = _PDS_imageToGrid<T>(pt, cell, gw, rect); // If another point is in the neighborhood, abort this point.
           edge = center - gw - gw;
           assert(edge > 0);
-#define POISSONSAMPLE_CHECK(edge) if((~ig[edge])!=0 && distsqr(grid[edge][0],grid[edge][1],pt[0],pt[1])<mindistsq) continue
+#define POISSONSAMPLE_CHECK(edge) if((~ig[edge])!=0 && DistSqr(grid[edge][0],grid[edge][1],pt[0],pt[1])<mindistsq) continue
           POISSONSAMPLE_CHECK(edge - 1);
           POISSONSAMPLE_CHECK(edge);
           POISSONSAMPLE_CHECK(edge + 1);
@@ -759,7 +759,7 @@ namespace bss_util {
     for(uint32_t i = 0; i < maxiterations; ++i)
     {
       T f = F(x);
-      if(fsmall(f, epsilon)) // If we're close enough to zero, return our value
+      if(fSmall(f, epsilon)) // If we're close enough to zero, return our value
       {
         result = x;
         return true;
@@ -777,7 +777,7 @@ namespace bss_util {
     for(uint32_t i = 0; i < maxiterations; ++i)
     {
       T f = F(x);
-      if(fsmall(f, epsilon)) // If we're close enough to zero, return x
+      if(fSmall(f, epsilon)) // If we're close enough to zero, return x
         return x;
 
       if(f > 0)

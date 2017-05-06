@@ -4,7 +4,7 @@
 #ifndef __LOCKLESS_H__BSS__
 #define __LOCKLESS_H__BSS__
 
-#include "bss_defines.h"
+#include "bss-util/bss_defines.h"
 #include <assert.h>
 #include <stddef.h>
 #ifdef BSS_COMPILER_MSC
@@ -24,7 +24,7 @@
 
 // These are all implemented using compiler intrinsics on MS compilers because the inline assembly does not behave well when inlined. GCC 
 // intrinsics are not used due to inconsistent locking barriers, and the wide availability of standardized inline assembly for them.
-namespace bss_util {
+namespace bss {
   template<typename T> struct bss_PTag { T* p; size_t tag; }; // Stores a pointer and a tag value
 
 #if defined(BSS_CPU_x86_64) || defined(BSS_CPU_x86)

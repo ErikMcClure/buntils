@@ -4,27 +4,27 @@
 #ifndef __C_MAP_H__BSS__
 #define __C_MAP_H__BSS__
 
-#include "cArraySort.h"
+#include "bss-util/ArraySort.h"
 #include <utility>
 
-namespace bss_util {
+namespace bss {
   // A map class implemented as an associative sorted array
   template<class Key, class Data, char(*CFunc)(const Key&, const Key&) = CompT<Key>, typename CType = size_t, ARRAY_TYPE ArrayType = CARRAY_SIMPLE, typename Alloc = StaticAllocPolicy<std::pair<Key, Data>>>
-  class BSS_COMPILER_DLLEXPORT cMap : protected cArraySort<std::pair<Key, Data>, CompTFirst<std::pair<Key, Data>, CFunc>, CType, ArrayType, Alloc>
+  class BSS_COMPILER_DLLEXPORT Map : protected ArraySort<std::pair<Key, Data>, CompTFirst<std::pair<Key, Data>, CFunc>, CType, ArrayType, Alloc>
   {
   protected:
     typedef CType CT_;
     typedef std::pair<Key, Data> pair_t;
-    typedef cArraySort<pair_t, CompTFirst<pair_t, CFunc>, CT_, ArrayType, Alloc> cArraySort_t;
+    typedef ArraySort<pair_t, CompTFirst<pair_t, CFunc>, CT_, ArrayType, Alloc> cArraySort_t;
     typedef const Data& constref;
     typedef const Key& CKEYREF;
     using cArraySort_t::_array;
 
   public:
-    explicit cMap(CT_ init = 1) : cArraySort_t(init) {}
-    cMap(const cMap& copy) : cArraySort_t(copy) {}
-    cMap(cMap&& mov) : cArraySort_t(std::move(mov)) {}
-    //~cMap() {}
+    explicit Map(CT_ init = 1) : cArraySort_t(init) {}
+    Map(const Map& copy) : cArraySort_t(copy) {}
+    Map(Map&& mov) : cArraySort_t(std::move(mov)) {}
+    //~Map() {}
     BSS_FORCEINLINE void Clear() { cArraySort_t::Clear(); }
     BSS_FORCEINLINE void Discard(uint32_t num) { cArraySort_t::Discard(num); }
     BSS_FORCEINLINE CT_ Insert(CKEYREF key, constref data) { return cArraySort_t::Insert(pair_t(key, data)); }
@@ -63,8 +63,8 @@ namespace bss_util {
     inline const std::pair<Key, Data>& Back() const { return _array.Back(); }
     inline std::pair<Key, Data>& Back() { return _array.Back(); }
 
-    inline cMap& operator =(const cMap& right) { cArraySort_t::operator =(right); return *this; }
-    inline cMap& operator =(cMap&& right) { cArraySort_t::operator =(std::move(right)); return *this; }
+    inline Map& operator =(const Map& right) { cArraySort_t::operator =(right); return *this; }
+    inline Map& operator =(Map&& right) { cArraySort_t::operator =(std::move(right)); return *this; }
     inline constref operator [](CT_ index) const { return cArraySort_t::operator [](index).second; }
     inline Data& operator [](CT_ index) { return cArraySort_t::operator [](index).second; }
   };

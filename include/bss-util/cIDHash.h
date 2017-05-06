@@ -4,27 +4,27 @@
 #ifndef __C_ID_HASH_H__BSS__
 #define __C_ID_HASH_H__BSS__
 
-#include "cArray.h"
-#include "bss_util.h"
-#include "cHash.h"
-#include "delegate.h"
+#include "bss-util/Array.h"
+#include "bss-util/bss_util.h"
+#include "bss-util/Hash.h"
+#include "Delegate.h"
 
-namespace bss_util {
+namespace bss {
   // This is a simple ID hash intended for pointers, which can optionally be compressed to eliminate holes.
   template<typename T, typename ST = uint32_t, typename Alloc = StaticAllocPolicy<T>, T INVALID = 0>
-  class cIDHash : protected cArrayBase<T, ST, Alloc>
+  class IDHash : protected ArrayBase<T, ST, Alloc>
   {
     static_assert(sizeof(ST) <= sizeof(T), "T must not be smaller than ST");
 
   protected:
-    using cArrayBase<T, ST, Alloc>::_array;
-    using cArrayBase<T, ST, Alloc>::_capacity;
+    using ArrayBase<T, ST, Alloc>::_array;
+    using ArrayBase<T, ST, Alloc>::_capacity;
 
   public:
-    cIDHash(const cIDHash& copy) : cArrayBase<T, ST, Alloc>(copy._capacity), _max(copy._max), _length(copy._length), _freelist(copy._freelist) { memcpy(_array, copy._array, _capacity * sizeof(T)); }
-    cIDHash(cIDHash&& mov) : cArrayBase<T, ST, Alloc>(std::move(mov)), _max(mov._max), _length(mov._length), _freelist(mov._freelist) { mov._max = 0; mov._length = 0; mov._freelist = (ST)-1; }
-    explicit cIDHash(ST reserve = 0) : cArrayBase<T, ST, Alloc>(reserve), _max(0), _length(0), _freelist((ST)-1) { _fixfreelist(0); }
-    virtual ~cIDHash() {}
+    IDHash(const IDHash& copy) : ArrayBase<T, ST, Alloc>(copy._capacity), _max(copy._max), _length(copy._length), _freelist(copy._freelist) { memcpy(_array, copy._array, _capacity * sizeof(T)); }
+    IDHash(IDHash&& mov) : ArrayBase<T, ST, Alloc>(std::move(mov)), _max(mov._max), _length(mov._length), _freelist(mov._freelist) { mov._max = 0; mov._length = 0; mov._freelist = (ST)-1; }
+    explicit IDHash(ST reserve = 0) : ArrayBase<T, ST, Alloc>(reserve), _max(0), _length(0), _freelist((ST)-1) { _fixfreelist(0); }
+    virtual ~IDHash() {}
     virtual ST Add(T item)
     {
       if(_freelist == (ST)-1)
@@ -71,8 +71,8 @@ namespace bss_util {
       _max = _length - 1; // Reset max value to one less than _length
     }
 
-    inline cIDHash& operator=(const cIDHash& copy) { cArrayBase<T, ST, Alloc>::operator=(copy); _max = copy._max; _length = copy._length; _freelist = copy._freelist; return *this; }
-    inline cIDHash& operator=(cIDHash&& mov) { cArrayBase<T, ST, Alloc>::operator=(std::move(mov)); _max = mov._max; _length = mov._length; _freelist = mov._freelist; return *this; }
+    inline IDHash& operator=(const IDHash& copy) { ArrayBase<T, ST, Alloc>::operator=(copy); _max = copy._max; _length = copy._length; _freelist = copy._freelist; return *this; }
+    inline IDHash& operator=(IDHash&& mov) { ArrayBase<T, ST, Alloc>::operator=(std::move(mov)); _max = mov._max; _length = mov._length; _freelist = mov._freelist; return *this; }
     inline T& operator[](ST id) { return _array[id]; }
     inline const T& operator[](ST id) const { return _array[id]; }
 
@@ -80,7 +80,7 @@ namespace bss_util {
     BSS_FORCEINLINE void _grow()
     {
       ST oldsize = _capacity;
-      cArrayBase<T, ST, Alloc>::SetCapacity(fbnext(_capacity));
+      ArrayBase<T, ST, Alloc>::SetCapacity(fbnext(_capacity));
       _fixfreelist(oldsize);
     }
     inline void _fixfreelist(ST start)
@@ -99,18 +99,18 @@ namespace bss_util {
 
   // This is a reversible wrapper around cIDhash that allows for two-way lookups.
   template<typename T, typename ST = uint32_t, typename Alloc = StaticAllocPolicy<T>, T INVALID = 0, khint_t(*__hash_func)(const T&) = &CHASH_HELPER<T, false>::hash, bool(*__hash_equal)(const T&, const T&) = &CHASH_HELPER<T, false>::equal>
-  class cIDReverse : protected cIDHash<T, ST, Alloc, INVALID>
+  class IDReverse : protected IDHash<T, ST, Alloc, INVALID>
   {
   protected:
-    typedef cIDHash<T, ST, Alloc, INVALID> BASE;
+    typedef IDHash<T, ST, Alloc, INVALID> BASE;
     using BASE::_array;
     using BASE::_capacity;
 
   public:
-    cIDReverse(const cIDReverse& copy) : BASE(copy), _hash(copy._freelist) {}
-    cIDReverse(cIDReverse&& mov) : BASE(std::move(mov)), _hash(std::move(mov._hash)) {}
-    explicit cIDReverse(ST reserve = 0) : BASE(reserve) {}
-    ~cIDReverse() {}
+    IDReverse(const IDReverse& copy) : BASE(copy), _hash(copy._freelist) {}
+    IDReverse(IDReverse&& mov) : BASE(std::move(mov)), _hash(std::move(mov._hash)) {}
+    explicit IDReverse(ST reserve = 0) : BASE(reserve) {}
+    ~IDReverse() {}
     virtual ST Add(T item)
     {
       ST r = BASE::Add(item);
@@ -130,18 +130,18 @@ namespace bss_util {
     // Compresses the IDs by eliminating holes. F is called on any ID before its changed so you can adjust it.
     void Compress()
     { // GCC is broken and won't compile ST at all, so we just replace it with size_t.
-      BASE::Compress(delegate<void, size_t, size_t>::From<cIDReverse, &cIDReverse::_flip>(this));
+      BASE::Compress(Delegate<void, size_t, size_t>::From<IDReverse, &IDReverse::_flip>(this));
     }
 
-    inline cIDReverse& operator=(const cIDReverse& copy) { BASE::operator=(copy); _hash = copy._hash; return *this; }
-    inline cIDReverse& operator=(cIDReverse&& mov) { BASE::operator=(std::move(mov)); _hash = mov._hash; return *this; }
+    inline IDReverse& operator=(const IDReverse& copy) { BASE::operator=(copy); _hash = copy._hash; return *this; }
+    inline IDReverse& operator=(IDReverse&& mov) { BASE::operator=(std::move(mov)); _hash = mov._hash; return *this; }
     inline T& operator[](ST id) { return _array[id]; }
     inline const T& operator[](ST id) const { return _array[id]; }
 
   protected:
     inline void _flip(size_t id, size_t nid) { _hash.Set(_array[id], nid); }
 
-    cHashBase<T, ST, true, __hash_func, __hash_equal> _hash;
+    HashBase<T, ST, true, __hash_func, __hash_equal> _hash;
   };
 }
 

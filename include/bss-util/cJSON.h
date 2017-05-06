@@ -4,44 +4,44 @@
 #ifndef __C_JSON_H__BSS__
 #define __C_JSON_H__BSS__
 
-#include "cDynArray.h"
-#include "cStr.h"
-#include "bss_util.h"
-#include "variant.h"
-#include "cSerializer.h"
+#include "bss-util/DynArray.h"
+#include "bss-util/Str.h"
+#include "bss-util/bss_util.h"
+#include "Variant.h"
+#include "bss-util/Serializer.h"
 #include <sstream>
 #include <istream>
 #include <ostream>
 #include <utility>
 
-namespace bss_util {
+namespace bss {
   class JSONEngine
   {
   public:
     JSONEngine() : pretty(0) {}
     static constexpr bool Ordered() { return false; }
     template<typename T>
-    static void Serialize(cSerializer<JSONEngine>& e, const T& t, const char* id);
+    static void Serialize(Serializer<JSONEngine>& e, const T& t, const char* id);
     template<typename T>
-    static void Parse(cSerializer<JSONEngine>& e, T& t, const char* id);
+    static void Parse(Serializer<JSONEngine>& e, T& t, const char* id);
     template<typename... Args>
-    static void ParseMany(cSerializer<JSONEngine>& e, const cTrie<uint16_t>& t, std::tuple<Args...>& args);
+    static void ParseMany(Serializer<JSONEngine>& e, const Trie<uint16_t>& t, std::tuple<Args...>& args);
 
     uint32_t pretty;
   };
 
   template<class T>
-  void ParseJSONBase(cSerializer<JSONEngine>& e, T& obj, std::istream& s);
+  void ParseJSONBase(Serializer<JSONEngine>& e, T& obj, std::istream& s);
 
   struct JSONValue;
   template<>
-  void ParseJSONBase<JSONValue>(cSerializer<JSONEngine>& e, JSONValue& target, std::istream& s);
+  void ParseJSONBase<JSONValue>(Serializer<JSONEngine>& e, JSONValue& target, std::istream& s);
 
   template<class T>
-  void WriteJSONBase(cSerializer<JSONEngine>& e, const char* id, const T& obj, std::ostream& s, uint32_t& pretty);
+  void WriteJSONBase(Serializer<JSONEngine>& e, const char* id, const T& obj, std::ostream& s, uint32_t& pretty);
 
   template<>
-  void WriteJSONBase<JSONValue>(cSerializer<JSONEngine>& e, const char* id, const JSONValue& obj, std::ostream& s, uint32_t& pretty);
+  void WriteJSONBase<JSONValue>(Serializer<JSONEngine>& e, const char* id, const JSONValue& obj, std::ostream& s, uint32_t& pretty);
 
   template<class T, class BASE>
   struct __JSONValue__conv
@@ -62,11 +62,11 @@ namespace bss_util {
     inline static constexpr const BASE&& f(std::remove_reference<const JSONValue>::type&& r) { return (static_cast<const BASE&&>(r)); }
   };
 
-  struct JSONValue : public variant<cStr, double, int64_t, bool, cDynArray<JSONValue, size_t, CARRAY_SAFE>, cDynArray<std::pair<cStr, JSONValue>, size_t, CARRAY_SAFE>>
+  struct JSONValue : public Variant<Str, double, int64_t, bool, DynArray<JSONValue, size_t, CARRAY_SAFE>, DynArray<std::pair<Str, JSONValue>, size_t, CARRAY_SAFE>>
   {
-    typedef cDynArray<JSONValue, size_t, CARRAY_SAFE> JSONArray;
-    typedef cDynArray<std::pair<cStr, JSONValue>, size_t, CARRAY_SAFE> JSONObject;
-    typedef variant<cStr, double, int64_t, bool, JSONArray, JSONObject> BASE;
+    typedef DynArray<JSONValue, size_t, CARRAY_SAFE> JSONArray;
+    typedef DynArray<std::pair<Str, JSONValue>, size_t, CARRAY_SAFE> JSONObject;
+    typedef Variant<Str, double, int64_t, bool, JSONArray, JSONObject> BASE;
 
   public:
     JSONValue() : BASE() {}
@@ -85,7 +85,7 @@ namespace bss_util {
     BASE& operator=(T&& right) { BASE::operator=(__JSONValue__conv<T, BASE>::f(right)); return *this; }
 
     template<typename Engine>
-    void Serialize(cSerializer<Engine>& s)
+    void Serialize(Serializer<Engine>& s)
     {
       assert(BASE::template is<JSONObject>());
       if(s.out)
@@ -126,10 +126,10 @@ namespace bss_util {
   }
 
   template<typename F>
-  void ParseJSONObject(cSerializer<JSONEngine>& e, F f)
+  void ParseJSONObject(Serializer<JSONEngine>& e, F f)
   {
     std::istream& s = *e.in;
-    cStr buf;
+    Str buf;
     ParseJSONEatWhitespace(s);
     if(!s || s.get() != '{') return;
     ParseJSONEatWhitespace(s);
@@ -143,7 +143,7 @@ namespace bss_util {
       if(s.get() != ':') continue;
       ParseJSONEatWhitespace(s);
       f(e, buf.c_str());
-      //cSerializer<JSONEngine>::_findparse(e, buf.c_str(), t, args);
+      //Serializer<JSONEngine>::_findparse(e, buf.c_str(), t, args);
       while(!!s && s.peek() != ',' && s.peek() != '}' && s.peek() != -1) s.get(); // eat everything up to a , or } character
       if(!!s && s.peek() == ',') s.get(); // Only eat comma if it's there.
       ParseJSONEatWhitespace(s);
@@ -152,25 +152,25 @@ namespace bss_util {
   }
 
   template<typename T>
-  void JSONEngine::Parse(cSerializer<JSONEngine>& e, T& t, const char* id) { ParseJSONBase<T>(e, t, *e.in); }
+  void JSONEngine::Parse(Serializer<JSONEngine>& e, T& t, const char* id) { ParseJSONBase<T>(e, t, *e.in); }
   template<typename... Args>
-  void JSONEngine::ParseMany(cSerializer<JSONEngine>& e, const cTrie<uint16_t>& t, std::tuple<Args...>& args)
+  void JSONEngine::ParseMany(Serializer<JSONEngine>& e, const Trie<uint16_t>& t, std::tuple<Args...>& args)
   {
-    ParseJSONObject(e, [&t, &args](cSerializer<JSONEngine>& e, const char* id) { cSerializer<JSONEngine>::_findparse(e, id, t, args); });
+    ParseJSONObject(e, [&t, &args](Serializer<JSONEngine>& e, const char* id) { Serializer<JSONEngine>::_findparse(e, id, t, args); });
   }
 
   template<class T, bool B>
   struct ParseJSONInternal
   {
-    static void F(cSerializer<JSONEngine>& e, T& obj, std::istream& s) { obj.template Serialize<JSONEngine>(e); }
+    static void F(Serializer<JSONEngine>& e, T& obj, std::istream& s) { obj.template Serialize<JSONEngine>(e); }
   };
   template<>
   struct ParseJSONInternal<JSONValue::JSONObject, false>
   {
-    static void F(cSerializer<JSONEngine>& e, JSONValue::JSONObject& obj, std::istream& s)
+    static void F(Serializer<JSONEngine>& e, JSONValue::JSONObject& obj, std::istream& s)
     {
-      ParseJSONObject(e, [&obj](cSerializer<JSONEngine>& e, const char* id) {
-        std::pair<cStr, JSONValue> pair;
+      ParseJSONObject(e, [&obj](Serializer<JSONEngine>& e, const char* id) {
+        std::pair<Str, JSONValue> pair;
         pair.first = id;
         ParseJSONBase<JSONValue>(e, pair.second, *e.in);
         obj.Add(pair);
@@ -180,7 +180,7 @@ namespace bss_util {
   template<class T> // For arithmetic base types
   struct ParseJSONInternal<T, true>
   {
-    static void F(cSerializer<JSONEngine>& e, T& obj, std::istream& s)
+    static void F(Serializer<JSONEngine>& e, T& obj, std::istream& s)
     {
       if(s.peek() == ',' || s.peek() == ']' || s.peek() == '}') return;
       if(s.peek() == '"') // if true, we have to attempt to coerce the string to T
@@ -195,7 +195,7 @@ namespace bss_util {
     }
   };
   template<class T>
-  void ParseJSONArray(cSerializer<JSONEngine>& e, T& obj, std::istream& s)
+  void ParseJSONArray(Serializer<JSONEngine>& e, T& obj, std::istream& s)
   {
     ParseJSONEatWhitespace(s);
     if(!s || s.get() != '[') return;
@@ -210,54 +210,54 @@ namespace bss_util {
     }
   }
   template<class T, typename CType, ARRAY_TYPE ArrayType, typename Alloc>
-  struct ParseJSONInternal<cDynArray<T, CType, ArrayType, Alloc>, false>
+  struct ParseJSONInternal<DynArray<T, CType, ArrayType, Alloc>, false>
   {
-    static inline void DoAddCall(cSerializer<JSONEngine>& e, cDynArray<T, CType, ArrayType, Alloc>& obj, std::istream& s, int& n)
+    static inline void DoAddCall(Serializer<JSONEngine>& e, DynArray<T, CType, ArrayType, Alloc>& obj, std::istream& s, int& n)
     {
       obj.AddConstruct();
       ParseJSONBase<T>(e, obj.Back(), s);
     }
-    static void F(cSerializer<JSONEngine>& e, cDynArray<T, CType, ArrayType, Alloc>& obj, std::istream& s)
+    static void F(Serializer<JSONEngine>& e, DynArray<T, CType, ArrayType, Alloc>& obj, std::istream& s)
     {
       obj.Clear();
-      ParseJSONArray<cDynArray<T, CType, ArrayType, Alloc>>(e, obj, s);
+      ParseJSONArray<DynArray<T, CType, ArrayType, Alloc>>(e, obj, s);
     }
   };
   template<class T, typename CType, ARRAY_TYPE ArrayType, typename Alloc>
-  struct ParseJSONInternal<cArray<T, CType, ArrayType, Alloc>, false>
+  struct ParseJSONInternal<Array<T, CType, ArrayType, Alloc>, false>
   {
-    static inline void DoAddCall(cSerializer<JSONEngine>& e, cArray<T, CType, ArrayType, Alloc>& obj, std::istream& s, int& n)
+    static inline void DoAddCall(Serializer<JSONEngine>& e, Array<T, CType, ArrayType, Alloc>& obj, std::istream& s, int& n)
     {
       obj.SetCapacity(obj.Capacity() + 1);
       ParseJSONBase<T>(e, obj.Back(), s);
     }
-    static void F(cSerializer<JSONEngine>& e, cArray<T, CType, ArrayType, Alloc>& obj, std::istream& s)
+    static void F(Serializer<JSONEngine>& e, Array<T, CType, ArrayType, Alloc>& obj, std::istream& s)
     {
       obj.SetCapacity(0);
-      ParseJSONArray<cArray<T, CType, ArrayType, Alloc>>(e, obj, s);
+      ParseJSONArray<Array<T, CType, ArrayType, Alloc>>(e, obj, s);
     }
   };
   template<class T, size_t I, bool B> // For fixed-length arrays
   struct ParseJSONInternal<T[I], B>
   {
-    static inline void DoAddCall(cSerializer<JSONEngine>& e, T(&obj)[I], std::istream& s, int& n) { if(n < I) ParseJSONBase<T>(e, obj[n++], s); }
-    static void F(cSerializer<JSONEngine>& e, T(&obj)[I], std::istream& s) { ParseJSONArray<T[I]>(e, obj, s); }
+    static inline void DoAddCall(Serializer<JSONEngine>& e, T(&obj)[I], std::istream& s, int& n) { if(n < I) ParseJSONBase<T>(e, obj[n++], s); }
+    static void F(Serializer<JSONEngine>& e, T(&obj)[I], std::istream& s) { ParseJSONArray<T[I]>(e, obj, s); }
   };
   template<class T, size_t I, bool B> // For fixed-length arrays
   struct ParseJSONInternal<std::array<T, I>, B>
   {
-    static inline void DoAddCall(cSerializer<JSONEngine>& e, std::array<T, I>& obj, std::istream& s, int& n) { if(n < I) ParseJSONBase<T>(e, obj[n++], s); }
-    static void F(cSerializer<JSONEngine>& e, std::array<T, I>& obj, std::istream& s) { ParseJSONArray<std::array<T, I>>(e, obj, s); }
+    static inline void DoAddCall(Serializer<JSONEngine>& e, std::array<T, I>& obj, std::istream& s, int& n) { if(n < I) ParseJSONBase<T>(e, obj[n++], s); }
+    static void F(Serializer<JSONEngine>& e, std::array<T, I>& obj, std::istream& s) { ParseJSONArray<std::array<T, I>>(e, obj, s); }
   };
   template<class T, typename Alloc>
   struct ParseJSONInternal<std::vector<T, Alloc>, false>
   {
-    static inline void DoAddCall(cSerializer<JSONEngine>& e, std::vector<T, Alloc>& obj, std::istream& s, int& n)
+    static inline void DoAddCall(Serializer<JSONEngine>& e, std::vector<T, Alloc>& obj, std::istream& s, int& n)
     {
       obj.push_back(T());
       ParseJSONBase<T>(e, obj.back(), s);
     }
-    static void F(cSerializer<JSONEngine>& e, std::vector<T, Alloc>& obj, std::istream& s)
+    static void F(Serializer<JSONEngine>& e, std::vector<T, Alloc>& obj, std::istream& s)
     {
       obj.clear();
       ParseJSONArray<std::vector<T, Alloc>>(e, obj, s);
@@ -266,19 +266,19 @@ namespace bss_util {
   template<>
   struct ParseJSONInternal<JSONValue::JSONArray, false>
   {
-    static inline void DoAddCall(cSerializer<JSONEngine>& e, JSONValue::JSONArray& obj, std::istream& s, int& n) { obj.SetLength(obj.Length() + 1); ParseJSONBase<JSONValue>(e, obj.Back(), s); }
-    static void F(cSerializer<JSONEngine>& e, JSONValue::JSONArray& obj, std::istream& s) { obj.Clear(); ParseJSONArray<JSONValue::JSONArray>(e, obj, s); }
+    static inline void DoAddCall(Serializer<JSONEngine>& e, JSONValue::JSONArray& obj, std::istream& s, int& n) { obj.SetLength(obj.Length() + 1); ParseJSONBase<JSONValue>(e, obj.Back(), s); }
+    static void F(Serializer<JSONEngine>& e, JSONValue::JSONArray& obj, std::istream& s) { obj.Clear(); ParseJSONArray<JSONValue::JSONArray>(e, obj, s); }
   };
 
   template<class T>
-  inline void ParseJSONBase(cSerializer<JSONEngine>& e, T& obj, std::istream& s) { ParseJSONInternal<T, std::is_arithmetic<T>::value>::F(e, obj, s); }
+  inline void ParseJSONBase(Serializer<JSONEngine>& e, T& obj, std::istream& s) { ParseJSONInternal<T, std::is_arithmetic<T>::value>::F(e, obj, s); }
   template<class T>
-  inline void ParseJSON(T& obj, std::istream& s) { cSerializer<JSONEngine> e; e.Parse<T>(obj, s, 0); }
+  inline void ParseJSON(T& obj, std::istream& s) { Serializer<JSONEngine> e; e.Parse<T>(obj, s, 0); }
   template<class T>
   inline void ParseJSON(T& obj, const char* s) { std::istringstream ss(s); ParseJSON<T>(obj, ss); }
 
   template<>
-  inline void ParseJSONBase<std::string>(cSerializer<JSONEngine>& e, std::string& target, std::istream& s)
+  inline void ParseJSONBase<std::string>(Serializer<JSONEngine>& e, std::string& target, std::istream& s)
   {
     target.clear();
     if(s.peek() == ',' || s.peek() == ']' || s.peek() == '}') return;
@@ -295,9 +295,9 @@ namespace bss_util {
     s.get(); // eat last " character
   }
   template<>
-  inline void ParseJSONBase<cStr>(cSerializer<JSONEngine>& e, cStr& target, std::istream& s) { ParseJSONBase<std::string>(e, target, s); }
+  inline void ParseJSONBase<Str>(Serializer<JSONEngine>& e, Str& target, std::istream& s) { ParseJSONBase<std::string>(e, target, s); }
   template<>
-  inline void ParseJSONBase<bool>(cSerializer<JSONEngine>& e, bool& target, std::istream& s)
+  inline void ParseJSONBase<bool>(Serializer<JSONEngine>& e, bool& target, std::istream& s)
   {
     static const char* val = "true";
     int pos = 0;
@@ -321,7 +321,7 @@ namespace bss_util {
   }
 
   template<>
-  inline void ParseJSONBase<JSONValue>(cSerializer<JSONEngine>& e, JSONValue& target, std::istream& s)
+  inline void ParseJSONBase<JSONValue>(Serializer<JSONEngine>& e, JSONValue& target, std::istream& s)
   {
     ParseJSONEatWhitespace(s);
     switch(s.peek())
@@ -335,8 +335,8 @@ namespace bss_util {
       ParseJSONInternal<JSONValue::JSONArray, false>::F(e, target.get<JSONValue::JSONArray>(), s);
       break;
     case '"':
-      target = cStr();
-      ParseJSONBase<cStr>(e, target.get<cStr>(), s);
+      target = Str();
+      ParseJSONBase<Str>(e, target.get<Str>(), s);
       break;
     case '0':
     case '1':
@@ -352,8 +352,8 @@ namespace bss_util {
     case '-':
     case '+':
     {
-      cStr buf;
-      ParseJSONBase<cStr>(e, buf, s);
+      Str buf;
+      ParseJSONBase<Str>(e, buf, s);
       const char* dot = strchr(buf.c_str(), '.');
       if(dot)
         target = (double)strtod(buf.c_str(), 0);
@@ -363,8 +363,8 @@ namespace bss_util {
     break;
     default:
     {
-      cStr buf;
-      ParseJSONBase<cStr>(e, buf, s);
+      Str buf;
+      ParseJSONBase<Str>(e, buf, s);
       if(!STRICMP(buf.c_str(), "true")) target = true;
       else if(!STRICMP(buf.c_str(), "false")) target = false;
       else if(!STRICMP(buf.c_str(), "null")) break;
@@ -404,7 +404,7 @@ namespace bss_util {
   static uint32_t WriteJSONPretty(uint32_t pretty) { return (pretty&(~0x80000000)) + ((pretty&(~0x80000000)) > 0); }
 
   template<class T>
-  static void WriteJSONObject(cSerializer<JSONEngine>& e, const char* id, const T& obj, std::ostream& s, uint32_t& pretty)
+  static void WriteJSONObject(Serializer<JSONEngine>& e, const char* id, const T& obj, std::ostream& s, uint32_t& pretty)
   {
     //static_assert(HAS_MEMBER(T, SerializeJSON), "T must implement void SerializeJSON(std::ostream&, uint32_t&) const");
     WriteJSONComma(s, pretty);
@@ -428,13 +428,13 @@ namespace bss_util {
   template<class T, bool B>
   struct WriteJSONInternal
   {
-    static void F(cSerializer<JSONEngine>& e, const char* id, const T& obj, std::ostream& s, uint32_t& pretty) { WriteJSONObject<T>(e, id, obj, s, pretty); }
+    static void F(Serializer<JSONEngine>& e, const char* id, const T& obj, std::ostream& s, uint32_t& pretty) { WriteJSONObject<T>(e, id, obj, s, pretty); }
   };
 
   template<class T>
   struct WriteJSONInternal<T, true>
   {
-    static void F(cSerializer<JSONEngine>& e, const char* id, const T& obj, std::ostream& s, uint32_t& pretty)
+    static void F(Serializer<JSONEngine>& e, const char* id, const T& obj, std::ostream& s, uint32_t& pretty)
     {
       WriteJSONComma(s, pretty);
       WriteJSONId(id, s, pretty);
@@ -443,10 +443,10 @@ namespace bss_util {
   };
 
   template<class T>
-  void static WriteJSONBase(cSerializer<JSONEngine>& e, const char* id, const T& obj, std::ostream& s, uint32_t& pretty);
+  void static WriteJSONBase(Serializer<JSONEngine>& e, const char* id, const T& obj, std::ostream& s, uint32_t& pretty);
 
   template<class T>
-  void WriteJSONArray(cSerializer<JSONEngine>& e, const char* id, const T* obj, size_t size, std::ostream& s, uint32_t& pretty)
+  void WriteJSONArray(Serializer<JSONEngine>& e, const char* id, const T* obj, size_t size, std::ostream& s, uint32_t& pretty)
   {
     WriteJSONComma(s, pretty);
     WriteJSONId(id, s, pretty);
@@ -460,30 +460,30 @@ namespace bss_util {
   template<class T, size_t I, bool B>
   struct WriteJSONInternal<T[I], B>
   {
-    static void F(cSerializer<JSONEngine>& e, const char* id, const T(&obj)[I], std::ostream& s, uint32_t& pretty) { WriteJSONArray<T>(e, id, obj, I, s, pretty); }
+    static void F(Serializer<JSONEngine>& e, const char* id, const T(&obj)[I], std::ostream& s, uint32_t& pretty) { WriteJSONArray<T>(e, id, obj, I, s, pretty); }
   };
   template<class T, size_t I, bool B>
   struct WriteJSONInternal<std::array<T, I>, B>
   {
-    static void F(cSerializer<JSONEngine>& e, const char* id, const std::array<T, I>& obj, std::ostream& s, uint32_t& pretty) { WriteJSONArray<T>(e, id, obj.data(), I, s, pretty); }
+    static void F(Serializer<JSONEngine>& e, const char* id, const std::array<T, I>& obj, std::ostream& s, uint32_t& pretty) { WriteJSONArray<T>(e, id, obj.data(), I, s, pretty); }
   };
   template<class T, typename CType, ARRAY_TYPE ArrayType, typename Alloc>
-  struct WriteJSONInternal<cDynArray<T, CType, ArrayType, Alloc>, false>
+  struct WriteJSONInternal<DynArray<T, CType, ArrayType, Alloc>, false>
   {
-    static void F(cSerializer<JSONEngine>& e, const char* id, const cDynArray<T, CType, ArrayType, Alloc>& obj, std::ostream& s, uint32_t& pretty) { WriteJSONArray<T>(e, id, obj, obj.Length(), s, pretty); }
+    static void F(Serializer<JSONEngine>& e, const char* id, const DynArray<T, CType, ArrayType, Alloc>& obj, std::ostream& s, uint32_t& pretty) { WriteJSONArray<T>(e, id, obj, obj.Length(), s, pretty); }
   };
   template<class T, typename Alloc>
   struct WriteJSONInternal<std::vector<T, Alloc>, false>
   {
-    static void F(cSerializer<JSONEngine>& e, const char* id, const std::vector<T, Alloc>& obj, std::ostream& s, uint32_t& pretty) { WriteJSONArray<T>(e, id, obj.data(), obj.size(), s, pretty); }
+    static void F(Serializer<JSONEngine>& e, const char* id, const std::vector<T, Alloc>& obj, std::ostream& s, uint32_t& pretty) { WriteJSONArray<T>(e, id, obj.data(), obj.size(), s, pretty); }
   };
 
   // To enable pretty output, set pretty to 1. The upper two bits are used as flags, so if you need more than 1073741823 levels of indentation... what the hell are you doing?!
   template<class T>
-  void static WriteJSONBase(cSerializer<JSONEngine>& e, const char* id, const T& obj, std::ostream& s, uint32_t& pretty) { WriteJSONInternal<T, std::is_arithmetic<T>::value>::F(e, id, obj, s, pretty); }
+  void static WriteJSONBase(Serializer<JSONEngine>& e, const char* id, const T& obj, std::ostream& s, uint32_t& pretty) { WriteJSONInternal<T, std::is_arithmetic<T>::value>::F(e, id, obj, s, pretty); }
 
   template<>
-  void WriteJSONBase<std::string>(cSerializer<JSONEngine>& e, const char* id, const std::string& obj, std::ostream& s, uint32_t& pretty)
+  void WriteJSONBase<std::string>(Serializer<JSONEngine>& e, const char* id, const std::string& obj, std::ostream& s, uint32_t& pretty)
   {
     WriteJSONComma(s, pretty);
     WriteJSONId(id, s, pretty);
@@ -507,10 +507,10 @@ namespace bss_util {
   }
 
   template<>
-  void WriteJSONBase<cStr>(cSerializer<JSONEngine>& e, const char* id, const cStr& obj, std::ostream& s, uint32_t& pretty) { WriteJSONBase<std::string>(e, id, obj, s, pretty); }
+  void WriteJSONBase<Str>(Serializer<JSONEngine>& e, const char* id, const Str& obj, std::ostream& s, uint32_t& pretty) { WriteJSONBase<std::string>(e, id, obj, s, pretty); }
 
   template<>
-  void WriteJSONBase<bool>(cSerializer<JSONEngine>& e, const char* id, const bool& obj, std::ostream& s, uint32_t& pretty)
+  void WriteJSONBase<bool>(Serializer<JSONEngine>& e, const char* id, const bool& obj, std::ostream& s, uint32_t& pretty)
   {
     WriteJSONComma(s, pretty);
     WriteJSONId(id, s, pretty);
@@ -518,17 +518,17 @@ namespace bss_util {
   }
 
   template<class T>
-  inline void WriteJSON(const T& obj, std::ostream& s, uint32_t pretty = 0) { cSerializer<JSONEngine> e; e.engine.pretty = pretty; e.Serialize<T>(obj, s, 0); }
+  inline void WriteJSON(const T& obj, std::ostream& s, uint32_t pretty = 0) { Serializer<JSONEngine> e; e.engine.pretty = pretty; e.Serialize<T>(obj, s, 0); }
 
   template<class T>
   inline void WriteJSON(const T& obj, const char* file, uint32_t pretty = 0) { std::ofstream fs(file, std::ios_base::out | std::ios_base::trunc | std::ios_base::binary); WriteJSON<T>(obj, fs, pretty); }
 
   template<>
-  void WriteJSONBase<JSONValue>(cSerializer<JSONEngine>& e, const char* id, const JSONValue& obj, std::ostream& s, uint32_t& pretty)
+  void WriteJSONBase<JSONValue>(Serializer<JSONEngine>& e, const char* id, const JSONValue& obj, std::ostream& s, uint32_t& pretty)
   {
     switch(obj.tag())
     {
-    case JSONValue::Type<cStr>::value: WriteJSONBase<cStr>(e, id, obj.get<cStr>(), s, pretty); break;
+    case JSONValue::Type<Str>::value: WriteJSONBase<Str>(e, id, obj.get<Str>(), s, pretty); break;
     case JSONValue::Type<double>::value: WriteJSONBase<double>(e, id, obj.get<double>(), s, pretty); break;
     case JSONValue::Type<int64_t>::value: WriteJSONBase<int64_t>(e, id, obj.get<int64_t>(), s, pretty); break;
     case JSONValue::Type<bool>::value: WriteJSONBase<bool>(e, id, obj.get<bool>(), s, pretty); break;
@@ -542,7 +542,7 @@ namespace bss_util {
   }
 
   template<typename T>
-  void JSONEngine::Serialize(cSerializer<JSONEngine>& e, const T& t, const char* id)
+  void JSONEngine::Serialize(Serializer<JSONEngine>& e, const T& t, const char* id)
   {
     WriteJSONBase<T>(e, id, t, *e.out, e.engine.pretty);
   }

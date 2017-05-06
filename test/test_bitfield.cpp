@@ -1,15 +1,15 @@
 // Copyright ©2017 Black Sphere Studios
 // For conditions of distribution and use, see copyright notice in "bss_util.h"
 
-#include "cBitField.h"
+#include "bss-util/BitField.h"
 #include "test.h"
 
-using namespace bss_util;
+using namespace bss;
 
 TESTDEF::RETPAIR test_BITFIELD()
 {
   BEGINTEST;
-  cBitField<uint32_t> t;
+  BitField<uint32_t> t;
   TEST(t == 0);
   t[1] = true;
   TEST(t == 1);

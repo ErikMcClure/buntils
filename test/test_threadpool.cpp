@@ -1,11 +1,11 @@
 // Copyright ©2017 Black Sphere Studios
 // For conditions of distribution and use, see copyright notice in "bss_util.h"
 
-#include "cThreadPool.h"
+#include "bss-util/ThreadPool.h"
 #include <algorithm>
 #include "test.h"
 
-using namespace bss_util;
+using namespace bss;
 
 std::atomic<size_t> pq_c;
 uint16_t pq_end[TESTNUM];
@@ -19,7 +19,7 @@ TESTDEF::RETPAIR test_THREADPOOL()
 {
   BEGINTEST;
   static const int NUM = 8;
-  cThreadPool pool(NUM);
+  ThreadPool pool(NUM);
 #ifdef BSS_VARIADIC_TEMPLATES
   memset(pq_end, 0, sizeof(uint16_t)*TESTNUM);
   pq_c = 0;

@@ -1,25 +1,25 @@
 // Copyright ©2017 Black Sphere Studios
 // For conditions of distribution and use, see copyright notice in "bss_util.h"
 
-#include "cStr.h"
+#include "bss-util/Str.h"
 #include "test.h"
 
-using namespace bss_util;
+using namespace bss;
 
 TESTDEF::RETPAIR test_STR()
 {
   BEGINTEST;
-  cStr s("blah");
+  Str s("blah");
   TEST(!strcmp(s, "blah"));
-  cStr s2(std::move(s));
+  Str s2(std::move(s));
   TEST(!strcmp(s.c_str(), ""));
   TEST(!strcmp(s2, "blah"));
-  cStr s3(s2);
+  Str s3(s2);
   TEST(!strcmp(s3, "blah"));
   s3 = std::move(s2);
-  cStr s5("blah", 3);
+  Str s5("blah", 3);
   TEST(!strcmp(s5, "bla"));
-  cStr s4;
+  Str s4;
   s4 = s3;
   TEST(!strcmp(s4, "blah"));
   TEST(!strcmp(s4 + ' ', "blah "));
@@ -34,12 +34,12 @@ TESTDEF::RETPAIR test_STR()
   TEST(!strcmp(s4, "blah  a"));
   s4 += s3;
   TEST(!strcmp(s4, "blah  ablah"));
-  TEST(!strcmp(cStr(0, "1 2", ' '), "1"));
-  TEST(!strcmp(cStr(1, "1 2", ' '), "2"));
-  TEST(!strcmp(cStrF("%s2", "place"), "place2"));
-  TEST(!strcmp(cStrF("2", "place"), "2"));
+  TEST(!strcmp(Str(0, "1 2", ' '), "1"));
+  TEST(!strcmp(Str(1, "1 2", ' '), "2"));
+  TEST(!strcmp(StrF("%s2", "place"), "place2"));
+  TEST(!strcmp(StrF("2", "place"), "2"));
 #ifdef BSS_COMPILER_MSVC // We can only run this test meaningfully on windows, because its the only one where it actually makes a difference.
-  TEST(!strcmp(cStr(BSS__L("Törkylempijävongahdus")), "TÃ¶rkylempijÃ¤vongahdus"));
+  TEST(!strcmp(Str(BSS__L("Törkylempijävongahdus")), "TÃ¶rkylempijÃ¤vongahdus"));
 #endif
 
   s4.GetChar(6) = 'b';
@@ -59,11 +59,11 @@ TESTDEF::RETPAIR test_STR()
   s3 = "trim";
   TEST(!strcmp(s3.Trim(), "trim"));
   TEST(!strcmp(s3.ReplaceChar('r', 'x'), "txim"));
-  TEST(!strcmp(cStr::StripChar(s3, 't'), "xim"));
-  TEST(!strcmp(cStr::StripChar(s3, 'x'), "tim"));
-  TEST(!strcmp(cStr::StripChar(s3, 'm'), "txi"));
+  TEST(!strcmp(Str::StripChar(s3, 't'), "xim"));
+  TEST(!strcmp(Str::StripChar(s3, 'x'), "tim"));
+  TEST(!strcmp(Str::StripChar(s3, 'm'), "txi"));
 
-  auto a = cStr::Explode(' ', "lots of words");
+  auto a = Str::Explode(' ', "lots of words");
   TEST(a.size() == 3);
   TEST(!strcmp(a[0], "lots"));
   TEST(!strcmp(a[1], "of"));
@@ -72,16 +72,16 @@ TESTDEF::RETPAIR test_STR()
 #ifdef BSS_COMPILER_MSC
   TEST(!strcmp(s2.c_str(), "")); // This is only supposed to happen on VC++, other compilers don't have to do this (GCC in particular doesn't).
 #endif
-  cStr sdfderp(s + cStr("temp") + cStr("temp") + cStr("temp") + cStr("temp"));
+  Str sdfderp(s + Str("temp") + Str("temp") + Str("temp") + Str("temp"));
 
   std::vector<int> vec1;
-  cStr::ParseTokens<int>("", ",", vec1, &atoi);
+  Str::ParseTokens<int>("", ",", vec1, &atoi);
   TEST(vec1.size() == 0);
-  cStr::ParseTokens<int>("1234", ",", vec1, &atoi);
+  Str::ParseTokens<int>("1234", ",", vec1, &atoi);
   TEST(vec1.size() == 1);
   TEST(vec1[0] == 1234);
   vec1.clear();
-  cStr::ParseTokens<int>("1234,235,2,6,1,0,,39,ahjs", ",", vec1, &atoi);
+  Str::ParseTokens<int>("1234,235,2,6,1,0,,39,ahjs", ",", vec1, &atoi);
   TEST(vec1.size() == 8);
   TEST(vec1[0] == 1234);
   TEST(vec1[1] == 235);
@@ -93,9 +93,9 @@ TESTDEF::RETPAIR test_STR()
   TEST(vec1[7] == 0);
   vec1.clear();
 #ifdef BSS_PLATFORM_WIN32
-  cStrW::ParseTokens<int>(L"", L",", vec1, &_wtoi);
+  StrW::ParseTokens<int>(L"", L",", vec1, &_wtoi);
   TEST(vec1.size() == 0);
-  cStrW::ParseTokens<int>(L"1234,235,2,6,1,0,,39,ahjs", L",", vec1, &_wtoi);
+  StrW::ParseTokens<int>(L"1234,235,2,6,1,0,,39,ahjs", L",", vec1, &_wtoi);
   TEST(vec1.size() == 8);
   TEST(vec1[0] == 1234);
   TEST(vec1[1] == 235);
@@ -107,7 +107,7 @@ TESTDEF::RETPAIR test_STR()
   TEST(vec1[7] == 0);
   vec1.clear();
 #endif
-  cStr::ParseTokens<int>("1234,235,2,6,1,0,,39,ahjs", ",", vec1, [](const char* s)->int { return atoi(s) + 1; });
+  Str::ParseTokens<int>("1234,235,2,6,1,0,,39,ahjs", ",", vec1, [](const char* s)->int { return atoi(s) + 1; });
   TEST(vec1.size() == 8);
   TEST(vec1[0] == 1235);
   TEST(vec1[1] == 236);
@@ -118,7 +118,7 @@ TESTDEF::RETPAIR test_STR()
   TEST(vec1[6] == 40);
   TEST(vec1[7] == 1);
 
-  cStrT<int> u32("jkl");
+  StrT<int> u32("jkl");
   TEST(u32[0] == 'j');
   TEST(u32[1] == 'k');
   TEST(u32[2] == 'l');

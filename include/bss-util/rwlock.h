@@ -4,7 +4,7 @@
 #ifndef __RWLOCK_H__BSS__
 #define __RWLOCK_H__BSS__
 
-#include "bss_compiler.h"
+#include "bss-util/bss_compiler.h"
 #include "lockless.h"
 #include <atomic>
 #include <assert.h>
@@ -13,7 +13,7 @@
 #include <unordered_map>
 #endif
 
-namespace bss_util {
+namespace bss {
   // Write-preferring Readers-Writer lock, although writer starvation is still theoretically possible if an infinite number of new readers attempt to acquire the lock
   class BSS_COMPILER_DLLEXPORT RWLock {
   public:

@@ -4,21 +4,21 @@
 #ifndef __C_ALIAS_TABLE_H__BSS__
 #define __C_ALIAS_TABLE_H__BSS__
 
-#include "bss_algo.h"
+#include "bss-util/bss_algo.h"
 
-namespace bss_util {
+namespace bss {
   // Implementation of the Alias method, based off Keith Schwarz's code, found here: http://www.keithschwarz.com/darts-dice-coins/
   template<typename UINT = uint32_t, typename F = double, typename ENGINE = XorshiftEngine<uint64_t>>
-  class cAliasTable
+  class AliasTable
   {
   public:
-    cAliasTable(const cAliasTable& copy) : _alias(new UINT[copy._count]), _prob(new F[copy._count]), _count(copy._count),
+    AliasTable(const AliasTable& copy) : _alias(new UINT[copy._count]), _prob(new F[copy._count]), _count(copy._count),
       _dist(copy._dist), _fdist(copy._fdist), _engine(copy._engine)
     {
       memcpy(_alias, copy._alias, sizeof(UINT)*copy._count);
       memcpy(_prob, copy._prob, sizeof(UINT)*copy._count);
     }
-    cAliasTable(cAliasTable&& mov) : _alias(mov._alias), _prob(mov._prob), _count(mov._count), _dist(std::move(mov._dist)),
+    AliasTable(AliasTable&& mov) : _alias(mov._alias), _prob(mov._prob), _count(mov._count), _dist(std::move(mov._dist)),
       _fdist(std::move(mov._fdist)), _engine(std::move(mov._engine))
     {
       mov._alias = 0;
@@ -26,10 +26,10 @@ namespace bss_util {
       mov._count = 0;
     }
     // Constructs a new table from a list of probabilities of type F (defaults to double)
-    cAliasTable(const F* problist, UINT count, ENGINE& e = bss_getdefaultengine()) : _alias(0), _prob(0), _count(0), _fdist(0, (F)1), _engine(e) { _gentable(problist, count); }
+    AliasTable(const F* problist, UINT count, ENGINE& e = bss_getdefaultengine()) : _alias(0), _prob(0), _count(0), _fdist(0, (F)1), _engine(e) { _getTable(problist, count); }
     template<UINT I>
-    explicit cAliasTable(const F(&problist)[I], ENGINE& e = bss_getdefaultengine()) : _alias(0), _prob(0), _count(0), _fdist(0, (F)1), _engine(e) { _gentable(problist, I); }
-    ~cAliasTable()
+    explicit AliasTable(const F(&problist)[I], ENGINE& e = bss_getdefaultengine()) : _alias(0), _prob(0), _count(0), _fdist(0, (F)1), _engine(e) { _getTable(problist, I); }
+    ~AliasTable()
     {
       if(_alias != 0) delete[] _alias;
       if(_prob != 0) delete[] _prob;
@@ -48,7 +48,7 @@ namespace bss_util {
     inline UINT GetCount() const { return _count; }
 
   protected:
-    void _gentable(const F* problist, UINT count)
+    void _getTable(const F* problist, UINT count)
     {
       if(!problist || !count)
         return;

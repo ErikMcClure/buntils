@@ -1,11 +1,11 @@
 // Copyright ©2017 Black Sphere Studios
 // For conditions of distribution and use, see copyright notice in "bss_util.h"
 
-#include "bss_algo.h"
+#include "bss-util/bss_algo.h"
 #include <functional>
 #include "test.h"
 
-using namespace bss_util;
+using namespace bss;
 
 TESTDEF::RETPAIR test_bss_algo()
 {
@@ -66,11 +66,11 @@ TESTDEF::RETPAIR test_bss_algo()
     const char b64test[] = "Man is distinguished, not only by his reason, but by this singular passion from other animals, which is a lust of the mind, that by a perseverance of delight in the continued and indefatigable generation of knowledge, exceeds the short vehemence of any carnal pleasure.";
     const char b64out[] = "TWFuIGlzIGRpc3Rpbmd1aXNoZWQsIG5vdCBvbmx5IGJ5IGhpcyByZWFzb24sIGJ1dCBieSB0aGlzIHNpbmd1bGFyIHBhc3Npb24gZnJvbSBvdGhlciBhbmltYWxzLCB3aGljaCBpcyBhIGx1c3Qgb2YgdGhlIG1pbmQsIHRoYXQgYnkgYSBwZXJzZXZlcmFuY2Ugb2YgZGVsaWdodCBpbiB0aGUgY29udGludWVkIGFuZCBpbmRlZmF0aWdhYmxlIGdlbmVyYXRpb24gb2Yga25vd2xlZGdlLCBleGNlZWRzIHRoZSBzaG9ydCB2ZWhlbWVuY2Ugb2YgYW55IGNhcm5hbCBwbGVhc3VyZS4";
 
-    cStr b64s;
+    Str b64s;
     b64s.resize(Base64Encode((uint8_t*)b64test, sizeof(b64test) - 1, 0));
     Base64Encode((uint8_t*)b64test, sizeof(b64test) - 1, b64s.UnsafeString());
     TEST(!memcmp(b64out, b64s.c_str(), sizeof(b64out) - 1));
-    cStr b64sd;
+    Str b64sd;
     b64sd.resize(Base64Decode(b64s.UnsafeString(), b64s.size(), 0));
     Base64Decode(b64s.UnsafeString(), b64s.size(), (uint8_t*)b64sd.UnsafeString());
     TEST(!memcmp(b64test, b64sd.c_str(), sizeof(b64test) - 1));
@@ -80,7 +80,7 @@ TESTDEF::RETPAIR test_bss_algo()
     for(size_t max = 256; max > 1; --max)
     {
       for(size_t i = 0; i < max; ++i) b64[i] = (uint8_t)i;
-      cStr str;
+      Str str;
       str.resize(Base64Encode(b64, max, 0));
       Base64Encode(b64, max, str.UnsafeString());
       TEST(Base64Decode(str.c_str(), str.size(), 0) == max);
@@ -140,9 +140,9 @@ TESTDEF::RETPAIR test_bss_algo()
   TESTARRAY(nsrc, return nsrc[i] == num[i];)
 
   //int testmap = { 1, 2, 3, 4, 5, 6, 7, 8, 9, -1 };
-  //cDynArray<int> array;
+  //DynArray<int> array;
   //filter(std::begin(testmap), std::end(testmap), array);
-  //cDynArray<int*> array2;
+  //DynArray<int*> array2;
   //filter(std::begin(testmap), std::end(testmap), array2);
 
   // This can be used to test the distribution of a random engine to verify it is uniform
@@ -159,7 +159,7 @@ TESTDEF::RETPAIR test_bss_algo()
   {
     vmin = std::min(vmin, vals[i]);
     vmax = std::max(vmax, vals[i]);
-    vavg = bssavg(vavg, vals[i], i);
+    vavg = bssAvg(vavg, vals[i], i);
   }
 
   double chunk = vmax / 25.0 - vmin / 25.0;

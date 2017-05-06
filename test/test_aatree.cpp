@@ -1,39 +1,39 @@
 // Copyright ©2017 Black Sphere Studios
 // For conditions of distribution and use, see copyright notice in "bss_util.h"
 
-#include "cAATree.h"
+#include "bss-util/AATree.h"
 #include "test.h"
-#include "bss_algo.h"
+#include "bss-util/bss_algo.h"
 #include <iostream>
 
-using namespace bss_util;
+using namespace bss;
 
 TESTDEF::RETPAIR test_AA_TREE()
 {
   BEGINTEST;
 
   BlockPolicy<AANODE<int>> fixedaa;
-  cAATree<int, CompT<int>, BlockPolicy<AANODE<int>>> aat(&fixedaa);
+  AATree<int, CompT<int>, BlockPolicy<AANODE<int>>> aat(&fixedaa);
 
   XorshiftEngine64 e;
 
   Shuffle(testnums, TESTNUM, e);
 
-  //uint64_t prof=cHighPrecisionTimer::OpenProfiler();
+  //uint64_t prof=HighPrecisionTimer::OpenProfiler();
   for(int i = 0; i<TESTNUM; ++i)
     aat.Insert(testnums[i]);
-  //std::cout << cHighPrecisionTimer::CloseProfiler(prof) << std::endl;
+  //std::cout << HighPrecisionTimer::CloseProfiler(prof) << std::endl;
 
   Shuffle(testnums, TESTNUM, e);
-  //prof=cHighPrecisionTimer::OpenProfiler();
+  //prof=HighPrecisionTimer::OpenProfiler();
   uint32_t c = 0;
   for(int i = 0; i<TESTNUM; ++i)
     c += (aat.Get(testnums[i]) != 0);
   TEST(c == TESTNUM);
-  //std::cout << cHighPrecisionTimer::CloseProfiler(prof) << std::endl;
+  //std::cout << HighPrecisionTimer::CloseProfiler(prof) << std::endl;
 
   Shuffle(testnums, TESTNUM, e);
-  //prof=cHighPrecisionTimer::OpenProfiler();
+  //prof=HighPrecisionTimer::OpenProfiler();
   c = 0;
   for(int i = 0; i<TESTNUM; ++i)
   {
@@ -52,7 +52,7 @@ TESTDEF::RETPAIR test_AA_TREE()
     //c+=aat.Remove(testnums[i]);
   }
   TEST(c == TESTNUM);
-  //std::cout << cHighPrecisionTimer::CloseProfiler(prof) << std::endl;
+  //std::cout << HighPrecisionTimer::CloseProfiler(prof) << std::endl;
 
   TEST(aat.GetRoot() == 0);
   aat.Clear();

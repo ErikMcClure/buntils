@@ -4,42 +4,42 @@
 #ifndef __C_SMART_PTR_H__BSS__
 #define __C_SMART_PTR_H__BSS__
 
-#include "bss_compiler.h"
+#include "bss-util/bss_compiler.h"
 #include <memory> // for std::default_delete<_Ty>
 
-namespace bss_util {
+namespace bss {
   template<class _Ty> // Trick that uses implicit conversion that allows cUniquePtr below to take _Ty* pointers without confusing itself for them.
-  struct BSS_COMPILER_DLLEXPORT cOwnerPtr_Ref { inline cOwnerPtr_Ref(_Ty* p) : _p(p) {} _Ty* _p; };
+  struct BSS_COMPILER_DLLEXPORT OwnerPtrRef { inline OwnerPtrRef(_Ty* p) : _p(p) {} _Ty* _p; };
 
   // A different kind of pointer handling class that allows copying, but keeps track of whether or not it is actually allowed to delete the given pointer
   template<class _Ty, class _Dy = std::default_delete<_Ty>>
-  class BSS_COMPILER_DLLEXPORT cOwnerPtr : private _Dy
+  class BSS_COMPILER_DLLEXPORT OwnerPtr : private _Dy
   {
   public:
-    inline cOwnerPtr(const cOwnerPtr& copy) : _p(copy._p), _owner(false) {}
+    inline OwnerPtr(const OwnerPtr& copy) : _p(copy._p), _owner(false) {}
     template<class T, class D>
-    inline explicit cOwnerPtr(cOwnerPtr<T, D>& copy) : _p(static_cast<_Ty*>(copy)), _owner(false) {}
-    inline cOwnerPtr(cOwnerPtr&& mov) : _p(mov._p), _owner(mov._owner) { mov._owner = false; }
-    inline explicit cOwnerPtr(const cOwnerPtr_Ref<_Ty>& p) : _p(p._p), _owner(p._p != 0) {}
-    inline explicit cOwnerPtr(_Ty& ref) : _p(&ref), _owner(false) {}
-    inline cOwnerPtr() : _p(0), _owner(false) {}
-    inline ~cOwnerPtr() { _disown(); }
+    inline explicit OwnerPtr(OwnerPtr<T, D>& copy) : _p(static_cast<_Ty*>(copy)), _owner(false) {}
+    inline OwnerPtr(OwnerPtr&& mov) : _p(mov._p), _owner(mov._owner) { mov._owner = false; }
+    inline explicit OwnerPtr(const OwnerPtrRef<_Ty>& p) : _p(p._p), _owner(p._p != 0) {}
+    inline explicit OwnerPtr(_Ty& ref) : _p(&ref), _owner(false) {}
+    inline OwnerPtr() : _p(0), _owner(false) {}
+    inline ~OwnerPtr() { _disown(); }
 
     BSS_FORCEINLINE bool operator !() { return !_p; }
     BSS_FORCEINLINE bool operator ==(const _Ty* right) { return _p == right; }
     BSS_FORCEINLINE bool operator !=(const _Ty* right) { return _p != right; }
-    BSS_FORCEINLINE bool operator ==(const cOwnerPtr& right) { return _p == right._p; }
-    BSS_FORCEINLINE bool operator !=(const cOwnerPtr& right) { return _p != right._p; }
+    BSS_FORCEINLINE bool operator ==(const OwnerPtr& right) { return _p == right._p; }
+    BSS_FORCEINLINE bool operator !=(const OwnerPtr& right) { return _p != right._p; }
     BSS_FORCEINLINE operator _Ty*() { return _p; }
     BSS_FORCEINLINE operator const _Ty*() const { return _p; }
     BSS_FORCEINLINE _Ty* operator->() { return _p; }
     BSS_FORCEINLINE const _Ty* operator->() const { return _p; }
     BSS_FORCEINLINE _Ty& operator*() { return *_p; }
     BSS_FORCEINLINE const _Ty& operator*() const { return *_p; }
-    inline cOwnerPtr& operator=(const cOwnerPtr_Ref<_Ty>& right) { _disown(); _p = right._p; _owner = true; return *this; }
-    inline cOwnerPtr& operator=(const cOwnerPtr& right) { _disown(); _p = right._p; _owner = false; return *this; }
-    inline cOwnerPtr& operator=(_Ty& ref) { _disown(); _p = &ref; _owner = false; return *this; }
-    inline cOwnerPtr& operator=(cOwnerPtr&& right) { _disown(); _p = right._p; _owner = true; right._owner = false; return *this; }
+    inline OwnerPtr& operator=(const OwnerPtrRef<_Ty>& right) { _disown(); _p = right._p; _owner = true; return *this; }
+    inline OwnerPtr& operator=(const OwnerPtr& right) { _disown(); _p = right._p; _owner = false; return *this; }
+    inline OwnerPtr& operator=(_Ty& ref) { _disown(); _p = &ref; _owner = false; return *this; }
+    inline OwnerPtr& operator=(OwnerPtr&& right) { _disown(); _p = right._p; _owner = true; right._owner = false; return *this; }
 
   protected:
     BSS_FORCEINLINE void _disown() const { if(_owner) { _Dy::operator()(_p); } }

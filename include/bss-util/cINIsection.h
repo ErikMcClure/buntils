@@ -4,28 +4,28 @@
 #ifndef __C_INISECTION_H__BSS__
 #define __C_INISECTION_H__BSS__
 
-#include "cINIentry.h"
-#include "cHash.h"
-#include "cArray.h"
+#include "bss-util/INIentry.h"
+#include "bss-util/Hash.h"
+#include "bss-util/Array.h"
 #include "LLBase.h"
-#include "bss_alloc_block_MT.h"
+#include "bss-util/bss_alloc_block_MT.h"
 
-namespace bss_util {
-  class cINIstorage;
+namespace bss {
+  class INIstorage;
 
   // Internal INI linked list node
   template<class T>
   struct BSS_COMPILER_DLLEXPORT _INInode : public LLBase<_INInode<T>>
   {
-    cArray<_INInode<T>*> instances; // If this is not the only instance, points to an array of all the other instances
+    Array<_INInode<T>*> instances; // If this is not the only instance, points to an array of all the other instances
     T val;
   };
 
   // Stores an INI section, denoted by [name], as a linked list of entries, also stored as a hash for O(1) time operations.
-  class BSS_DLLEXPORT cINIsection
+  class BSS_DLLEXPORT INIsection
   {
   public:
-    typedef _INInode<cINIentry> _NODE;
+    typedef _INInode<INIentry> _NODE;
     template<class T>
     struct INIiterator : LLIterator<_INInode<T>> {
       using LLIterator<_INInode<T>>::cur;
@@ -35,16 +35,16 @@ namespace bss_util {
     };
 
 // Constructors
-    cINIsection(const cINIsection& copy);
-    cINIsection(cINIsection&& mov);
-    cINIsection();
-    cINIsection(const char* name, cINIstorage* parent, size_t index);
+    INIsection(const INIsection& copy);
+    INIsection(INIsection&& mov);
+    INIsection();
+    INIsection(const char* name, INIstorage* parent, size_t index);
     // Destructors
-    ~cINIsection();
+    ~INIsection();
     // Gets the specified key with the given index. On failure returns an empty sentinel reference
-    cINIentry& GetEntry(const char* key, size_t instance = 0) const;
+    INIentry& GetEntry(const char* key, size_t instance = 0) const;
     // Gets the specified key with the given index. Returns null on failure.
-    cINIentry* GetEntryPtr(const char* key, size_t instance = 0) const;
+    INIentry* GetEntryPtr(const char* key, size_t instance = 0) const;
     // Gets number of entries with the given name
     size_t GetNumEntries(const char* section) const;
     // Gets the specified key node for iteration with the given index. Returns null on failure.
@@ -56,33 +56,33 @@ namespace bss_util {
     // Gets the last node of the section linked list
     inline const _NODE* Back() const { return _last; }
     // Iterators for standard containers
-    inline INIiterator<cINIentry> begin() { return INIiterator<cINIentry>(_root); }
-    inline INIiterator<cINIentry> end() { return INIiterator<cINIentry>(0); }
+    inline INIiterator<INIentry> begin() { return INIiterator<INIentry>(_root); }
+    inline INIiterator<INIentry> end() { return INIiterator<INIentry>(0); }
 
-    BSS_FORCEINLINE cINIstorage* GetParent() const { return _parent; }
+    BSS_FORCEINLINE INIstorage* GetParent() const { return _parent; }
     BSS_FORCEINLINE const char* GetName() const { return _name; }
     BSS_FORCEINLINE size_t GetIndex() const { return _index; }
 
-    BSS_FORCEINLINE cINIentry& operator[](const char* key) const { return GetEntry(key, 0); }
-    cINIsection& operator=(const cINIsection& right);
-    cINIsection& operator=(cINIsection&& mov);
+    BSS_FORCEINLINE INIentry& operator[](const char* key) const { return GetEntry(key, 0); }
+    INIsection& operator=(const INIsection& right);
+    INIsection& operator=(INIsection&& mov);
 
   protected:
-    friend class cINIstorage;
+    friend class INIstorage;
 
     void _destroy();
-    void _addentry(const char* key, const char* data);
-    void _copy(const cINIsection& copy);
+    void _addEntry(const char* key, const char* data);
+    void _copy(const INIsection& copy);
 
-    static cINIentry _entrysentinel;
-    static cLocklessBlockAlloc<_NODE> _alloc;
+    static INIentry _entrysentinel;
+    static LocklessBlockAlloc<_NODE> _alloc;
 
-    cStr _name;
+    Str _name;
     size_t _index;
     _NODE* _root;
     _NODE* _last;
-    cHash<const char*, _NODE*, true> _entries;
-    cINIstorage* _parent;
+    Hash<const char*, _NODE*, true> _entries;
+    INIstorage* _parent;
   };
 }
 

@@ -4,10 +4,10 @@
 #ifndef __C_AVLTREE_H__BSS__
 #define __C_AVLTREE_H__BSS__
 
-#include "bss_compare.h"
-#include "bss_alloc.h"
+#include "bss-util/bss_compare.h"
+#include "bss-util/bss_alloc.h"
 
-namespace bss_util {
+namespace bss {
   template<class KeyData> // If data is non-void, KeyData is std::pair<Key,Data>, otherwise it's just Key
   struct BSS_COMPILER_DLLEXPORT AVL_Node
   {
@@ -36,12 +36,12 @@ namespace bss_util {
     typedef Data DATAGET;
 
   protected:
-    BSS_FORCEINLINE static void _setdata(AVLNode* BSS_RESTRICT old, AVLNode* BSS_RESTRICT cur) { assert(old != cur); if(cur != 0) cur->_key.second = std::move(old->_key.second); }
+    BSS_FORCEINLINE static void _setData(AVLNode* BSS_RESTRICT old, AVLNode* BSS_RESTRICT cur) { assert(old != cur); if(cur != 0) cur->_key.second = std::move(old->_key.second); }
     template<typename U>
-    BSS_FORCEINLINE static void _setraw(U && data, AVLNode* cur) { if(cur != 0) cur->_key.second = std::forward<U>(data); }
-    BSS_FORCEINLINE static KEYGET& _getdata(KeyData& cur) { return cur.second; }
-    BSS_FORCEINLINE static Key& _getkey(KeyData& cur) { return cur.first; }
-    BSS_FORCEINLINE static void _swapdata(AVLNode* BSS_RESTRICT retval, AVLNode* BSS_RESTRICT root)
+    BSS_FORCEINLINE static void _setRaw(U && data, AVLNode* cur) { if(cur != 0) cur->_key.second = std::forward<U>(data); }
+    BSS_FORCEINLINE static KEYGET& _getData(KeyData& cur) { return cur.second; }
+    BSS_FORCEINLINE static Key& _getKey(KeyData& cur) { return cur.first; }
+    BSS_FORCEINLINE static void _swapData(AVLNode* BSS_RESTRICT retval, AVLNode* BSS_RESTRICT root)
     {
       assert(retval != root);
       if(retval != 0) // We have to actually swap the data so that retval returns the correct data so it can be used in ReplaceKey
@@ -63,17 +63,17 @@ namespace bss_util {
     typedef char DATAGET;
 
   protected:
-    BSS_FORCEINLINE static void _setdata(AVLNode* BSS_RESTRICT old, AVLNode* BSS_RESTRICT cur) {}
+    BSS_FORCEINLINE static void _setData(AVLNode* BSS_RESTRICT old, AVLNode* BSS_RESTRICT cur) {}
     template<typename U>
-    BSS_FORCEINLINE static void _setraw(U && data, AVLNode* cur) {}
-    BSS_FORCEINLINE static KEYGET& _getdata(KeyData& cur) { return cur; }
-    BSS_FORCEINLINE static Key& _getkey(KeyData& cur) { return cur; }
-    BSS_FORCEINLINE static void _swapdata(AVLNode* BSS_RESTRICT retval, AVLNode* BSS_RESTRICT root) {}
+    BSS_FORCEINLINE static void _setRaw(U && data, AVLNode* cur) {}
+    BSS_FORCEINLINE static KEYGET& _getData(KeyData& cur) { return cur; }
+    BSS_FORCEINLINE static Key& _getKey(KeyData& cur) { return cur; }
+    BSS_FORCEINLINE static void _swapData(AVLNode* BSS_RESTRICT retval, AVLNode* BSS_RESTRICT root) {}
   };
 
   // AVL Tree implementation
   template<class Key, class Data, char(*CFunc)(const Key&, const Key&) = CompT<Key>, typename Alloc = StandardAllocPolicy<typename _AVL_TREE_DATAFIELD<Key, Data>::AVLNode>>
-  class BSS_COMPILER_DLLEXPORT cAVLtree : protected cAllocTracker<Alloc>, public _AVL_TREE_DATAFIELD<Key, Data>
+  class BSS_COMPILER_DLLEXPORT cAVLtree : protected AllocTracker<Alloc>, public _AVL_TREE_DATAFIELD<Key, Data>
   {
     cAVLtree(const cAVLtree& copy) BSS_DELETEFUNC
       cAVLtree& operator=(const cAVLtree& copy) BSS_DELETEFUNCOP
@@ -85,8 +85,8 @@ namespace bss_util {
     typedef typename BASE::DATAGET DATAGET;
 
   public:
-    inline cAVLtree(cAVLtree&& mov) : cAllocTracker<Alloc>(std::move(mov)), _root(mov._root) { mov._root = 0; }
-    inline cAVLtree(Alloc* allocator = 0) : cAllocTracker<Alloc>(allocator), _root(0) {}
+    inline cAVLtree(cAVLtree&& mov) : AllocTracker<Alloc>(std::move(mov)), _root(mov._root) { mov._root = 0; }
+    inline cAVLtree(Alloc* allocator = 0) : AllocTracker<Alloc>(allocator), _root(0) {}
     inline ~cAVLtree() { Clear(); }
     inline void Clear() { _clear(_root); _root = 0; }
     inline AVLNode* GetRoot() { return _root; }
@@ -96,14 +96,14 @@ namespace bss_util {
     {
       char change = 0;
       AVLNode* cur = _insert(key, &_root, change);
-      BASE::template _setraw<const DATAGET&>(data, cur); // WHO COMES UP WITH THIS SYNTAX?!
+      BASE::template _setRaw<const DATAGET&>(data, cur); // WHO COMES UP WITH THIS SYNTAX?!
       return cur;
     }
     BSS_FORCEINLINE AVLNode* Insert(Key key, DATAGET&& data)
     {
       char change = 0;
       AVLNode* cur = _insert(key, &_root, change);
-      BASE::template _setraw<DATAGET&&>(std::move(data), cur);
+      BASE::template _setRaw<DATAGET&&>(std::move(data), cur);
       return cur;
     }
     BSS_FORCEINLINE AVLNode* Insert(Key key)
@@ -115,12 +115,12 @@ namespace bss_util {
     BSS_FORCEINLINE KEYGET Get(const Key key, const KEYGET& INVALID) const
     {
       AVLNode* retval = _find(key);
-      return !retval ? INVALID : BASE::_getdata(retval->_key);
+      return !retval ? INVALID : BASE::_getData(retval->_key);
     }
     BSS_FORCEINLINE KEYGET* GetRef(const Key key) const
     {
       AVLNode* retval = _find(key);
-      return !retval ? 0 : &BASE::_getdata(retval->_key);
+      return !retval ? 0 : &BASE::_getData(retval->_key);
     }
     inline bool Remove(const Key key)
     {
@@ -129,7 +129,7 @@ namespace bss_util {
       if(node != 0)
       {
         node->~AVLNode();
-        cAllocTracker<Alloc>::_deallocate(node, 1);
+        AllocTracker<Alloc>::_deallocate(node, 1);
         return true;
       }
       return false;
@@ -141,9 +141,9 @@ namespace bss_util {
       AVLNode* cur = _insert(newkey, &_root, change);
       if(old != 0)
       {
-        BASE::_setdata(old, cur);
+        BASE::_setData(old, cur);
         old->~AVLNode();
-        cAllocTracker<Alloc>::_deallocate(old, 1);
+        AllocTracker<Alloc>::_deallocate(old, 1);
       }
       return (cur != 0);
     }
@@ -166,10 +166,10 @@ namespace bss_util {
       _clear(node->_left);
       _clear(node->_right);
       node->~AVLNode();
-      cAllocTracker<Alloc>::_deallocate(node, 1);
+      AllocTracker<Alloc>::_deallocate(node, 1);
     }
 
-    static void _leftrotate(AVLNode** pnode)
+    static void _leftRotate(AVLNode** pnode)
     {
       AVLNode* node = *pnode;
       AVLNode* r = node->_right;
@@ -182,7 +182,7 @@ namespace bss_util {
       r->_balance -= (1 - bssmin(r->_left->_balance, 0));
     }
 
-    static void _rightrotate(AVLNode** pnode)
+    static void _rightRotate(AVLNode** pnode)
     {
       AVLNode* node = *pnode;
       AVLNode* r = node->_left;
@@ -199,15 +199,15 @@ namespace bss_util {
       AVLNode* root = *proot;
       if(!root)
       {
-        root = cAllocTracker<Alloc>::_allocate(1);
+        root = AllocTracker<Alloc>::_allocate(1);
         *proot = root;
         new(root) AVLNode();
-        BASE::_getkey(root->_key) = key;
+        BASE::_getKey(root->_key) = key;
         change = 1;
         return root;
       }
 
-      char result = CFunc(BASE::_getkey(root->_key), key);
+      char result = CFunc(BASE::_getKey(root->_key), key);
       AVLNode* retval = 0;
       if(result < 0)
         retval = _insert(key, &root->_left, change);
@@ -229,7 +229,7 @@ namespace bss_util {
       AVLNode* cur = _root;
       while(cur)
       {
-        switch(CFunc(BASE::_getkey(cur->_key), key)) //This is faster then if/else statements because FUCK IF I KNOW!
+        switch(CFunc(BASE::_getKey(cur->_key), key)) //This is faster then if/else statements because FUCK IF I KNOW!
         {
         case -1: cur = cur->_left; break;
         case 1: cur = cur->_right; break;
@@ -247,7 +247,7 @@ namespace bss_util {
       while(cur)
       {
         prev = cur;
-        switch(CFunc(BASE::_getkey(cur->_key), key)) //This is faster then if/else statements because FUCK IF I KNOW!
+        switch(CFunc(BASE::_getKey(cur->_key), key)) //This is faster then if/else statements because FUCK IF I KNOW!
         {
         case -1: cur = cur->_left; break;
         case 1: cur = cur->_right; break;
@@ -265,30 +265,30 @@ namespace bss_util {
       {
         if(_root->_left->_balance == 1) // LR
         {
-          _leftrotate(&_root->_left);
-          _rightrotate(root);
+          _leftRotate(&_root->_left);
+          _rightRotate(root);
           retval = 1;
         }
         else
         { // LL 
           retval = !_root->_left->_balance ? 0 : 1;
           //retval = (_root->_left->_balance<0)+(_root->_left->_balance>0); //Does the same thing as above without branching (useless)
-          _rightrotate(root);
+          _rightRotate(root);
         }
       }
       else if(_root->_balance > 1)
       {
         if(_root->_right->_balance == -1)
         { //RL
-          _rightrotate(&_root->_right);
-          _leftrotate(root);
+          _rightRotate(&_root->_right);
+          _leftRotate(root);
           retval = 1;
         }
         else
         { // RR
           retval = !_root->_right->_balance ? 0 : 1;
           //retval = (_root->_right->_balance<0)+(_root->_right->_balance>0); //Does the same thing as above without branching (useless)
-          _leftrotate(root);
+          _leftRotate(root);
         }
       }
       return retval;
@@ -303,7 +303,7 @@ namespace bss_util {
         return 0;
       }
 
-      char result = CFunc(BASE::_getkey(root->_key), key);
+      char result = CFunc(BASE::_getKey(root->_key), key);
       AVLNode* retval = 0;
       if(result < 0)
       {
@@ -335,9 +335,9 @@ namespace bss_util {
           while(successor->_left)
             successor = successor->_left;
 
-          BASE::_getkey(root->_key) = BASE::_getkey(successor->_key);
-          retval = _remove(BASE::_getkey(successor->_key), &root->_right, result); //this works because we're always removing something from the right side, which means we should always subtract 1 or 0.
-          BASE::_swapdata(retval, root);
+          BASE::_getKey(root->_key) = BASE::_getKey(successor->_key);
+          retval = _remove(BASE::_getKey(successor->_key), &root->_right, result); //this works because we're always removing something from the right side, which means we should always subtract 1 or 0.
+          BASE::_swapData(retval, root);
 
           change = 1;
         }

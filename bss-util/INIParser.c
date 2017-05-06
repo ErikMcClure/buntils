@@ -1,8 +1,8 @@
 // Copyright ©2017 Black Sphere Studios
 // For conditions of distribution and use, see copyright notice in "bss_util.h"
 
-#include "INIparse.h"
-#include "bss_util_c.h"
+#include "bss-util/INIparse.h"
+#include "bss-util/bss_util_c.h"
 #include <malloc.h>
 #include <string.h>
 
@@ -23,7 +23,7 @@ const char VALIDASCII = 33; //technically this works for unicode too
 //}
 
 
-char bss_initINI(INIParser* init, FILE* stream)
+char bssInitINI(INIParser* init, FILE* stream)
 {
   if(!init) return 0;
   init->file = stream;
@@ -38,7 +38,7 @@ char bss_initINI(INIParser* init, FILE* stream)
   *init->cursection = 0;
   return 1;
 }
-char bss_destroyINI(INIParser* destroy)
+char bssDestroyINI(INIParser* destroy)
 {
   if(!destroy) return 0;
   destroy->file = 0;
@@ -146,7 +146,7 @@ void _newkeyvaluepair(INIParser* parse, const char* start, char* mid)
   parse->curvalue = _savestr(parse->curvalue, mid + 1);
 }
 
-char bss_parseLine(INIParser* parse)
+char bssParseLine(INIParser* parse)
 {
   //const char* line;
   char* tc;
@@ -231,7 +231,7 @@ int comparevalues(const char* start, const char* end, const char* comp)
   b = strlen(comp);
   return STRNICMP(start, comp, bssmin(a, b));
 }
-INICHUNK bss_findINIsection(const void* data, size_t length, const char* section, size_t instance)
+INICHUNK bssFindINISection(const void* data, size_t length, const char* section, size_t instance)
 {
   const char* cur = (const char*)data;
   const char* end = cur + length;
@@ -265,7 +265,7 @@ INICHUNK bss_findINIsection(const void* data, size_t length, const char* section
   return retval;
 }
 
-INICHUNK bss_findINIentry(INICHUNK section, const char* key, size_t instance)
+INICHUNK bssFindINIEntry(INICHUNK section, const char* key, size_t instance)
 {
   const char* cur = (const char*)section.start;
   const char* end = (const char*)section.end;
@@ -300,8 +300,8 @@ INICHUNK bss_findINIentry(INICHUNK section, const char* key, size_t instance)
 #include "INIParser.inl"
 
 //This is a truly amazing abuse of #define to work around the fact that C has no templates or overloads, because copy+pasting the code would in fact be even worse.
-#define bss_initINI bss_winitINI
-#define bss_destroyINI bss_wdestroyINI
+#define bssInitINI bss_winitINI
+#define bssDestroyINI bss_wdestroyINI
 #define _trimlstr _wtrimlstr
 #define _trimrstr _wtrimrstr
 #define _nextkeychar _wnextkeychar
@@ -312,14 +312,14 @@ INICHUNK bss_findINIentry(INICHUNK section, const char* key, size_t instance)
 #define _newsection _wnewsection
 #define _newkeyvaluepair _wnewkeyvaluepair
 #define _nextkeychar _wnextkeychar
-#define bss_parseLine bss_wparseLine
+#define bssParseLine bss_wparseLine
 #define _snextkeychar _swnextkeychar
 #define _svalidatesection _swvalidatesection
 #define _svalidatevalue _swvalidatevalue
 #define _trimrstralt _wtrimrstralt
 #define comparevalues wcomparevalues
-#define bss_findINIsection bss_wfindINIsection
-#define bss_findINIentry bss_wfindINIentry
+#define bssFindINISection bss_wfindINIsection
+#define bssFindINIEntry bss_wfindINIentry
 
 #define INIParser INIParserW
 #define strlen wcslen

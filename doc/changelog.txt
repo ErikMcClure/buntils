@@ -2,7 +2,7 @@
 * Black Sphere Studios Utility Library Changelog *
 **************************************************
 
-0.4.8
+0.5.0
 -----
 - Added AttemptRLock(), AttemptStrictLock() to RWLock
 - Removed thread-specific debug assertions in RWLock to allow complex usage
@@ -20,6 +20,8 @@
 - cTRBTree can now be used statically, and properly calls destructors
 - changed include folder structure for vcpkg compatibility
 - inverted include order on tests to catch header file mistakes
+- Internal function refactored to camelCase
+- All public functions that aren't meant to mimic standard library functions are now Capitalized
 
 0.4.7
 -----

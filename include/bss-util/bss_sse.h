@@ -4,13 +4,13 @@
 #ifndef __BSS_SSE_H__
 #define __BSS_SSE_H__
 
-#include "bss_defines.h"
+#include "bss-util/bss_defines.h"
 #include <assert.h>
 #include <emmintrin.h>
 #include <stdint.h>
 
 #ifndef BSS_SSE_ENABLED
-#include "bss_util.h"
+#include "bss-util/bss_util.h"
 
 #define BSS_SSE_M128 std::array<float, 4>
 #define BSS_SSE_M128i8 std::array<int8_t, 16>
@@ -109,7 +109,7 @@ template<class T> BSS_FORCEINLINE T _sse_array_and(T l, T r) { return l & r; }
 template<class T> BSS_FORCEINLINE T _sse_array_andnot(T l, T r) { return (~l) & r; }
 template<class T> BSS_FORCEINLINE T _sse_array_or(T l, T r) { return l | r; }
 template<class T> BSS_FORCEINLINE T _sse_array_xor(T l, T r) { return l ^ r; }
-template<class T, bool(*F)(T, T)> BSS_FORCEINLINE T _sse_array_cmp(T l, T r) { typename bss_util::TBitLimit<T>::UNSIGNED t = (F(l, r) ? ((typename bss_util::TBitLimit<T>::UNSIGNED)~0) : 0); return *(T*)&t; }
+template<class T, bool(*F)(T, T)> BSS_FORCEINLINE T _sse_array_cmp(T l, T r) { typename bss::TBitLimit<T>::UNSIGNED t = (F(l, r) ? ((typename bss::TBitLimit<T>::UNSIGNED)~0) : 0); return *(T*)&t; }
 template<class T> BSS_FORCEINLINE bool _sse_array_cmpeq(T l, T r) { return l == r; }
 template<class T> BSS_FORCEINLINE bool _sse_array_cmpneq(T l, T r) { return l != r; }
 template<class T> BSS_FORCEINLINE bool _sse_array_cmplt(T l, T r) { return l < r; }
@@ -129,20 +129,20 @@ template<class T> BSS_FORCEINLINE bool _sse_array_shuffle(T l, T r) { return l >
 #define BSS_SSE_SET1_PS(a) BSS_SSE_M128{a, a, a, a}
 #define BSS_SSE_STORE_APS(v, a) (v)[0] = (a)[0]; (v)[1] = (a)[1]; (v)[2] = (a)[2]; (v)[3] = (a)[3]
 #define BSS_SSE_STORE_UPS BSS_SSE_STORE_APS
-#define BSS_SSE_ADD_PS bss_util::arraymap<float, 4, _sse_array_add<float>>
-#define BSS_SSE_SUB_PS bss_util::arraymap<float, 4, _sse_array_sub<float>>
-#define BSS_SSE_MUL_PS bss_util::arraymap<float, 4, _sse_array_mul<float>>
-#define BSS_SSE_DIV_PS bss_util::arraymap<float, 4, _sse_array_div<float>>
-#define BSS_SSE_MIN_PS bss_util::arraymap<float, 4, _sse_array_min<float>>
-#define BSS_SSE_MAX_PS bss_util::arraymap<float, 4, _sse_array_max<float>>
+#define BSS_SSE_ADD_PS bss::ArrayMap<float, 4, _sse_array_add<float>>
+#define BSS_SSE_SUB_PS bss::ArrayMap<float, 4, _sse_array_sub<float>>
+#define BSS_SSE_MUL_PS bss::ArrayMap<float, 4, _sse_array_mul<float>>
+#define BSS_SSE_DIV_PS bss::ArrayMap<float, 4, _sse_array_div<float>>
+#define BSS_SSE_MIN_PS bss::ArrayMap<float, 4, _sse_array_min<float>>
+#define BSS_SSE_MAX_PS bss::ArrayMap<float, 4, _sse_array_max<float>>
 #define BSS_SSE_FLOOR_PS _sse_array_unaryop<float, 4, floorf>
 #define BSS_SSE_CEIL_PS _sse_array_unaryop<float, 4, ceilf>
-#define BSS_SSE_CMPEQ_PS bss_util::arraymap<float, 4, _sse_array_cmp<float, _sse_array_cmpeq<float>>>
-#define BSS_SSE_CMPNEQ_PS bss_util::arraymap<float, 4, _sse_array_cmp<float, _sse_array_cmpneq<float>>>
-#define BSS_SSE_CMPLT_PS bss_util::arraymap<float, 4, _sse_array_cmp<float, _sse_array_cmplt<float>>>
-#define BSS_SSE_CMPLTE_PS bss_util::arraymap<float, 4, _sse_array_cmp<float, _sse_array_cmple<float>>>
-#define BSS_SSE_CMPGT_PS bss_util::arraymap<float, 4, _sse_array_cmp<float, _sse_array_cmpgt<float>>>
-#define BSS_SSE_CMPGTE_PS bss_util::arraymap<float, 4, _sse_array_cmp<float, _sse_array_cmpge<float>>>
+#define BSS_SSE_CMPEQ_PS bss::ArrayMap<float, 4, _sse_array_cmp<float, _sse_array_cmpeq<float>>>
+#define BSS_SSE_CMPNEQ_PS bss::ArrayMap<float, 4, _sse_array_cmp<float, _sse_array_cmpneq<float>>>
+#define BSS_SSE_CMPLT_PS bss::ArrayMap<float, 4, _sse_array_cmp<float, _sse_array_cmplt<float>>>
+#define BSS_SSE_CMPLTE_PS bss::ArrayMap<float, 4, _sse_array_cmp<float, _sse_array_cmple<float>>>
+#define BSS_SSE_CMPGT_PS bss::ArrayMap<float, 4, _sse_array_cmp<float, _sse_array_cmpgt<float>>>
+#define BSS_SSE_CMPGTE_PS bss::ArrayMap<float, 4, _sse_array_cmp<float, _sse_array_cmpge<float>>>
 #define BSS_SSE_SETZERO_PS() BSS_SSE_M128{0, 0, 0, 0}
 BSS_FORCEINLINE BSS_SSE_M128 BSS_SSE_MOVEHL_PS(BSS_SSE_M128 a, BSS_SSE_M128 b) { return BSS_SSE_M128{ (b)[2],(b)[3],(a)[2],(a)[3] }; }
 BSS_FORCEINLINE BSS_SSE_M128 BSS_SSE_MOVELH_PS(BSS_SSE_M128 a, BSS_SSE_M128 b) { return BSS_SSE_M128{ (a)[0],(a)[1],(b)[0],(b)[1] }; }
@@ -159,20 +159,20 @@ BSS_FORCEINLINE float BSS_SSE_SS_F32(BSS_SSE_M128 x) { return x[0]; }
 #define BSS_SSE_SET1_PD(x) BSS_SSE_M128d{x, x}
 #define BSS_SSE_STORE_APD(v, a) (v)[0] = (a)[0]; (v)[1] = (a)[1];
 #define BSS_SSE_STORE_UPD BSS_SSE_STORE_APD
-#define BSS_SSE_ADD_PD bss_util::arraymap<double, 2, _sse_array_add<double>>
-#define BSS_SSE_SUB_PD bss_util::arraymap<double, 2, _sse_array_sub<double>>
-#define BSS_SSE_MUL_PD bss_util::arraymap<double, 2, _sse_array_mul<double>>
-#define BSS_SSE_DIV_PD bss_util::arraymap<double, 2, _sse_array_div<double>>
-#define BSS_SSE_MIN_PD bss_util::arraymap<double, 2, _sse_array_min<double>>
-#define BSS_SSE_MAX_PD bss_util::arraymap<double, 2, _sse_array_max<double>>
+#define BSS_SSE_ADD_PD bss::ArrayMap<double, 2, _sse_array_add<double>>
+#define BSS_SSE_SUB_PD bss::ArrayMap<double, 2, _sse_array_sub<double>>
+#define BSS_SSE_MUL_PD bss::ArrayMap<double, 2, _sse_array_mul<double>>
+#define BSS_SSE_DIV_PD bss::ArrayMap<double, 2, _sse_array_div<double>>
+#define BSS_SSE_MIN_PD bss::ArrayMap<double, 2, _sse_array_min<double>>
+#define BSS_SSE_MAX_PD bss::ArrayMap<double, 2, _sse_array_max<double>>
 #define BSS_SSE_FLOOR_PD _sse_array_unaryop<double, 2, floor>
 #define BSS_SSE_CEIL_PD _sse_array_unaryop<double, 2, ceil>
-#define BSS_SSE_CMPEQ_PD bss_util::arraymap<double, 2, _sse_array_cmp<double, _sse_array_cmpeq<double>>>
-#define BSS_SSE_CMPNEQ_PD bss_util::arraymap<double, 2, _sse_array_cmp<double, _sse_array_cmpneq<double>>>
-#define BSS_SSE_CMPLT_PD bss_util::arraymap<double, 2, _sse_array_cmp<double, _sse_array_cmplt<double>>>
-#define BSS_SSE_CMPLTE_PD bss_util::arraymap<double, 2, _sse_array_cmp<double, _sse_array_cmple<double>>>
-#define BSS_SSE_CMPGT_PD bss_util::arraymap<double, 2, _sse_array_cmp<double, _sse_array_cmpgt<double>>>
-#define BSS_SSE_CMPGTE_PD bss_util::arraymap<double, 2, _sse_array_cmp<double, _sse_array_cmpge<double>>>
+#define BSS_SSE_CMPEQ_PD bss::ArrayMap<double, 2, _sse_array_cmp<double, _sse_array_cmpeq<double>>>
+#define BSS_SSE_CMPNEQ_PD bss::ArrayMap<double, 2, _sse_array_cmp<double, _sse_array_cmpneq<double>>>
+#define BSS_SSE_CMPLT_PD bss::ArrayMap<double, 2, _sse_array_cmp<double, _sse_array_cmplt<double>>>
+#define BSS_SSE_CMPLTE_PD bss::ArrayMap<double, 2, _sse_array_cmp<double, _sse_array_cmple<double>>>
+#define BSS_SSE_CMPGT_PD bss::ArrayMap<double, 2, _sse_array_cmp<double, _sse_array_cmpgt<double>>>
+#define BSS_SSE_CMPGTE_PD bss::ArrayMap<double, 2, _sse_array_cmp<double, _sse_array_cmpge<double>>>
 BSS_FORCEINLINE double BSS_SSE_SD_F64(BSS_SSE_M128d x) { return x[0]; }
 #define BSS_SSE_SETZERO_PD() BSS_SSE_M128d{0, 0}
 
@@ -182,52 +182,52 @@ BSS_FORCEINLINE bss_si128 BSS_SSE_LOAD_ASI128(BSS_SSE_M128i* x) { return bss_si1
 #define BSS_SSE_SET1_EPI32(a) BSS_SSE_M128i{a, a, a, a}
 BSS_FORCEINLINE void BSS_SSE_STORE_ASI128(BSS_SSE_M128i* p, bss_si128 b) { *p = b; }
 #define BSS_SSE_STORE_USI128 BSS_SSE_STORE_ASI128 
-#define BSS_SSE_ADD_EPI32 bss_util::arraymap<int32_t, 4, _sse_array_add<int32_t>>
-#define BSS_SSE_SUB_EPI32 bss_util::arraymap<int32_t, 4, _sse_array_sub<int32_t>>
-#define BSS_SSE_MUL_EPI32 bss_util::arraymap<int32_t, 4, _sse_array_mul<int32_t>>
-#define BSS_SSE_MIN_EPI32 bss_util::arraymap<int32_t, 4, _sse_array_min<int32_t>>
-#define BSS_SSE_MAX_EPI32 bss_util::arraymap<int32_t, 4, _sse_array_max<int32_t>>
-#define BSS_SSE_AND(a, b) bss_si128(bss_util::arraymap<int64_t, 2, _sse_array_and<int64_t>>(bss_si128(a), bss_si128(b)))
-#define BSS_SSE_ANDNOT(a, b) bss_si128(bss_util::arraymap<int64_t, 2, _sse_array_andnot<int64_t>> (bss_si128(a), bss_si128(b)) )
-#define BSS_SSE_OR(a, b) bss_si128(bss_util::arraymap<int64_t, 2, _sse_array_or<int64_t>>(bss_si128(a), bss_si128(b)))
-#define BSS_SSE_XOR(a, b) bss_si128(bss_util::arraymap<int64_t, 2, _sse_array_xor<int64_t>>(bss_si128(a), bss_si128(b)))
+#define BSS_SSE_ADD_EPI32 bss::ArrayMap<int32_t, 4, _sse_array_add<int32_t>>
+#define BSS_SSE_SUB_EPI32 bss::ArrayMap<int32_t, 4, _sse_array_sub<int32_t>>
+#define BSS_SSE_MUL_EPI32 bss::ArrayMap<int32_t, 4, _sse_array_mul<int32_t>>
+#define BSS_SSE_MIN_EPI32 bss::ArrayMap<int32_t, 4, _sse_array_min<int32_t>>
+#define BSS_SSE_MAX_EPI32 bss::ArrayMap<int32_t, 4, _sse_array_max<int32_t>>
+#define BSS_SSE_AND(a, b) bss_si128(bss::ArrayMap<int64_t, 2, _sse_array_and<int64_t>>(bss_si128(a), bss_si128(b)))
+#define BSS_SSE_ANDNOT(a, b) bss_si128(bss::ArrayMap<int64_t, 2, _sse_array_andnot<int64_t>> (bss_si128(a), bss_si128(b)) )
+#define BSS_SSE_OR(a, b) bss_si128(bss::ArrayMap<int64_t, 2, _sse_array_or<int64_t>>(bss_si128(a), bss_si128(b)))
+#define BSS_SSE_XOR(a, b) bss_si128(bss::ArrayMap<int64_t, 2, _sse_array_xor<int64_t>>(bss_si128(a), bss_si128(b)))
 #define BSS_SSE_SL_EPI32(a, i) _sse_array_shift<int32_t, 4, _sse_array_sl<int32_t>>(a, BSS_SSE_SI128_SI32(i))
 #define BSS_SSE_SLI_EPI32 _sse_array_shift<int32_t, 4, _sse_array_sl<int32_t>>
 #define BSS_SSE_SR_EPI32(a, i) _sse_array_shift<int32_t, 4, _sse_array_sr<int32_t>>(a, BSS_SSE_SI128_SI32(i))
 #define BSS_SSE_SRI_EPI32 _sse_array_shift<int32_t, 4, _sse_array_sr<int32_t>>
 #define BSS_SSE_SAR_EPI32(a, i) _sse_array_shift<int32_t, 4, _sse_array_sra<int32_t>>(a, BSS_SSE_SI128_SI32(i))
 #define BSS_SSE_SARI_EPI32 _sse_array_shift<int32_t, 4, _sse_array_sra<int32_t>>
-#define BSS_SSE_CMPEQ_EPI32 bss_util::arraymap<int32_t, 4, _sse_array_cmp<int32_t, _sse_array_cmpeq<int32_t>>>
-#define BSS_SSE_CMPLT_EPI32 bss_util::arraymap<int32_t, 4, _sse_array_cmp<int32_t, _sse_array_cmplt<int32_t>>>
-#define BSS_SSE_CMPGT_EPI32 bss_util::arraymap<int32_t, 4, _sse_array_cmp<int32_t, _sse_array_cmpgt<int32_t>>>
+#define BSS_SSE_CMPEQ_EPI32 bss::ArrayMap<int32_t, 4, _sse_array_cmp<int32_t, _sse_array_cmpeq<int32_t>>>
+#define BSS_SSE_CMPLT_EPI32 bss::ArrayMap<int32_t, 4, _sse_array_cmp<int32_t, _sse_array_cmplt<int32_t>>>
+#define BSS_SSE_CMPGT_EPI32 bss::ArrayMap<int32_t, 4, _sse_array_cmp<int32_t, _sse_array_cmpgt<int32_t>>>
 BSS_FORCEINLINE int32_t BSS_SSE_SI128_SI32(bss_si128 x) { return (int32_t)x.v[0]; }
 
 #define BSS_SSE_SET_EPI8(a, b, c, d, e, f, g, h, i, j, k, l, m, n, o, p) BSS_SSE_M128i8{p, o, n, m, l, k, j, i, h, g, f, e, d, c, b, a}
 #define BSS_SSE_SET1_EPI8(a) BSS_SSE_M128i8{a, a, a, a, a, a, a, a, a, a, a, a, a, a, a, a}
-#define BSS_SSE_ADD_EPI8 bss_util::arraymap<int8_t, 16, _sse_array_add<int8_t>>
-#define BSS_SSE_SUB_EPI8 bss_util::arraymap<int8_t, 16, _sse_array_sub<int8_t>>
-#define BSS_SSE_CMPEQ_EPI8 bss_util::arraymap<int8_t, 16, _sse_array_cmp<int8_t, _sse_array_cmpeq<int8_t>>>
-#define BSS_SSE_CMPLT_EPI8 bss_util::arraymap<int8_t, 16, _sse_array_cmp<int8_t, _sse_array_cmplt<int8_t>>>
-#define BSS_SSE_CMPGT_EPI8 bss_util::arraymap<int8_t, 16, _sse_array_cmp<int8_t, _sse_array_cmpgt<int8_t>>>
+#define BSS_SSE_ADD_EPI8 bss::ArrayMap<int8_t, 16, _sse_array_add<int8_t>>
+#define BSS_SSE_SUB_EPI8 bss::ArrayMap<int8_t, 16, _sse_array_sub<int8_t>>
+#define BSS_SSE_CMPEQ_EPI8 bss::ArrayMap<int8_t, 16, _sse_array_cmp<int8_t, _sse_array_cmpeq<int8_t>>>
+#define BSS_SSE_CMPLT_EPI8 bss::ArrayMap<int8_t, 16, _sse_array_cmp<int8_t, _sse_array_cmplt<int8_t>>>
+#define BSS_SSE_CMPGT_EPI8 bss::ArrayMap<int8_t, 16, _sse_array_cmp<int8_t, _sse_array_cmpgt<int8_t>>>
 #define BSS_SSE_SI128_SI8 (char)BSS_SSE_SI128_SI32
 
 #define BSS_SSE_SET_EPI16(a, b, c, d, e, f, g, h) BSS_SSE_M128i16{h, g, f, e, d, c, b, a}
 #define BSS_SSE_SET1_EPI16(a) BSS_SSE_M128i16{a, a, a, a, a, a, a, a}
-#define BSS_SSE_ADD_EPI16 bss_util::arraymap<int16_t, 8, _sse_array_add<int16_t>>
-#define BSS_SSE_SUB_EPI16 bss_util::arraymap<int16_t, 8, _sse_array_sub<int16_t>>
+#define BSS_SSE_ADD_EPI16 bss::ArrayMap<int16_t, 8, _sse_array_add<int16_t>>
+#define BSS_SSE_SUB_EPI16 bss::ArrayMap<int16_t, 8, _sse_array_sub<int16_t>>
 #define BSS_SSE_SL_EPI16(a, i) _sse_array_shift<int16_t, 8, _sse_array_sl<int16_t>>(a, BSS_SSE_SI128_SI32(i)) 
 #define BSS_SSE_SLI_EPI16 _sse_array_shift<int16_t, 8, _sse_array_sl<int16_t>>
 #define BSS_SSE_SR_EPI16(a, i) _sse_array_shift<int16_t, 8, _sse_array_sr<int16_t>>(a, BSS_SSE_SI128_SI32(i)) 
 #define BSS_SSE_SRI_EPI16 _sse_array_shift<int16_t, 8, _sse_array_sr<int16_t>>
-#define BSS_SSE_CMPEQ_EPI16 bss_util::arraymap<int16_t, 8, _sse_array_cmp<int16_t, _sse_array_cmpeq<int16_t>>>
-#define BSS_SSE_CMPLT_EPI16 bss_util::arraymap<int16_t, 8, _sse_array_cmp<int16_t, _sse_array_cmplt<int16_t>>>
-#define BSS_SSE_CMPGT_EPI16 bss_util::arraymap<int16_t, 8, _sse_array_cmp<int16_t, _sse_array_cmpgt<int16_t>>>
+#define BSS_SSE_CMPEQ_EPI16 bss::ArrayMap<int16_t, 8, _sse_array_cmp<int16_t, _sse_array_cmpeq<int16_t>>>
+#define BSS_SSE_CMPLT_EPI16 bss::ArrayMap<int16_t, 8, _sse_array_cmp<int16_t, _sse_array_cmplt<int16_t>>>
+#define BSS_SSE_CMPGT_EPI16 bss::ArrayMap<int16_t, 8, _sse_array_cmp<int16_t, _sse_array_cmpgt<int16_t>>>
 #define BSS_SSE_SI128_SI16 (short)BSS_SSE_SI128_SI32
 
 #define BSS_SSE_SET_EPI64(a, b) BSS_SSE_M128i64{b, a}
 #define BSS_SSE_SET1_EPI64(a) BSS_SSE_M128i64{a, a}
-#define BSS_SSE_ADD_EPI64 bss_util::arraymap<int64_t, 2, _sse_array_add<int64_t>>
-#define BSS_SSE_SUB_EPI64 bss_util::arraymap<int64_t, 2, _sse_array_sub<int64_t>>
+#define BSS_SSE_ADD_EPI64 bss::ArrayMap<int64_t, 2, _sse_array_add<int64_t>>
+#define BSS_SSE_SUB_EPI64 bss::ArrayMap<int64_t, 2, _sse_array_sub<int64_t>>
 #define BSS_SSE_SL_EPI64(a, i) _sse_array_shift<int64_t, 2, _sse_array_sl<int64_t>>(a, BSS_SSE_SI128_SI32(i)) 
 #define BSS_SSE_SLI_EPI64 _sse_array_shift<int64_t, 2, _sse_array_sl<int64_t>>
 #define BSS_SSE_SR_EPI64(a, i) _sse_array_shift<int64_t, 2, _sse_array_sr<int64_t>>(a, BSS_SSE_SI128_SI32(i)) 

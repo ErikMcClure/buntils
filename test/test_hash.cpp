@@ -1,10 +1,10 @@
 // Copyright ©2017 Black Sphere Studios
 // For conditions of distribution and use, see copyright notice in "bss_util.h"
 
-#include "cHash.h"
+#include "bss-util/Hash.h"
 #include "test.h"
 
-using namespace bss_util;
+using namespace bss;
 
 TESTDEF::RETPAIR test_HASH()
 {
@@ -16,30 +16,30 @@ TESTDEF::RETPAIR test_HASH()
   //hashtest.Insert(1,0);
   //int r=hashtest.GetIterKey(hashtest.GetIterator(1));
   {
-    cHash<int, cLog*> hasherint;
+    Hash<int, Log*> hasherint;
     hasherint.Insert(25, &_failedtests);
     hasherint.Get(25);
     hasherint.Remove(25);
-    cHash<const char*, cLog*, true> hasher;
+    Hash<const char*, Log*, true> hasher;
     TEST(!hasher[""]);
     hasher.Insert("", &_failedtests);
-    hasher.Insert("Video", (cLog*)5);
+    hasher.Insert("Video", (Log*)5);
     hasher.SetCapacity(100);
     hasher.Insert("Physics", 0);
-    cLog* check = hasher.Get("Video");
-    TEST(check == (cLog*)5);
+    Log* check = hasher.Get("Video");
+    TEST(check == (Log*)5);
     check = hasher.Get("Video");
-    TEST(check == (cLog*)5);
-    cHash<const char*, cLog*, true> hasher2(hasher);
+    TEST(check == (Log*)5);
+    Hash<const char*, Log*, true> hasher2(hasher);
     check = hasher2.Get("Video");
-    TEST(check == (cLog*)5);
-    cHash<const char*, cLog*, true> hasher3(std::move(hasher));
+    TEST(check == (Log*)5);
+    Hash<const char*, Log*, true> hasher3(std::move(hasher));
     check = hasher2.Get("Video");
-    TEST(check == (cLog*)5);
-    //uint64_t diff = cHighPrecisionTimer::CloseProfiler(ID);
+    TEST(check == (Log*)5);
+    //uint64_t diff = HighPrecisionTimer::CloseProfiler(ID);
 
     {
-      cHash<const void*> set;
+      Hash<const void*> set;
       TEST(!set.Exists(0));
       set.Insert(0);
       set.Insert(&check);
@@ -50,7 +50,7 @@ TESTDEF::RETPAIR test_HASH()
       TEST(set.Exists(0));
     }
     {
-      cHash<int, int> val;
+      Hash<int, int> val;
       TEST(val[0] == -1);
       val.Insert(0, 1);
       TEST(val[0] == 1);
@@ -67,7 +67,7 @@ TESTDEF::RETPAIR test_HASH()
     }
     {
       typedef std::pair<uint64_t, int32_t> HASHTESTPAIR;
-      cHash<HASHTESTPAIR> set;
+      Hash<HASHTESTPAIR> set;
       set.Insert(HASHTESTPAIR(0, 0));
       set.Insert(HASHTESTPAIR(1ULL << 34, 3));
       set.Insert(HASHTESTPAIR(2, -5));
@@ -80,7 +80,7 @@ TESTDEF::RETPAIR test_HASH()
       TEST(!set.Exists(HASHTESTPAIR(3, -1)));
     }
     {
-      cHash<int, DEBUG_CDT<true>, false, CARRAY_SAFE> safe;
+      Hash<int, DEBUG_CDT<true>, false, CARRAY_SAFE> safe;
       TEST(!safe[2]);
       safe.Insert(0, DEBUG_CDT<true>());
       safe.Insert(2, DEBUG_CDT<true>());

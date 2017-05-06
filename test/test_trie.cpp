@@ -1,24 +1,24 @@
 // Copyright ©2017 Black Sphere Studios
 // For conditions of distribution and use, see copyright notice in "bss_util.h"
 
-#include "cTrie.h"
-#include "bss_algo.h"
+#include "bss-util/Trie.h"
+#include "bss-util/bss_algo.h"
 #include "test.h"
 
-using namespace bss_util;
+using namespace bss;
 
 TESTDEF::RETPAIR test_TRIE()
 {
   BEGINTEST;
   const char* strs[] = { "fail","on","tex","rot","ro","ti","ontick","ondestroy","te","tick" };
-  cTrie<uint8_t> t(9, "tick", "on", "tex", "rot", "ro", "ti", "ontick", "ondestroy", "te", "tick");
-  cTrie<uint8_t> t2(9, strs);
-  cTrie<uint8_t> t3(strs);
+  Trie<uint8_t> t(9, "tick", "on", "tex", "rot", "ro", "ti", "ontick", "ondestroy", "te", "tick");
+  Trie<uint8_t> t2(9, strs);
+  Trie<uint8_t> t3(strs);
   TEST(t3["fail"] == 0);
   TEST(t3["tick"] == 9);
 
   /*
-  cStr randcstr[200];
+  Str randcstr[200];
   const char* randstr[200];
   for(uint32_t i = 0; i < 200; ++i)
   {
@@ -26,20 +26,20 @@ TESTDEF::RETPAIR test_TRIE()
       randcstr[i]+=(char)bssRandInt('a','z');
     randstr[i]=randcstr[i];
   }
-  cTrie<uint32_t> t0(50,randstr);
-  cHash<const char*,uint8_t> hashtest;
+  Trie<uint32_t> t0(50,randstr);
+  Hash<const char*,uint8_t> hashtest;
   for(uint32_t i = 0; i < 50; ++i)
     hashtest.Insert(randstr[i],i);
   uint32_t dm;
   Shuffle(testnums);
-  auto prof = cHighPrecisionTimer::OpenProfiler();
+  auto prof = HighPrecisionTimer::OpenProfiler();
   CPU_Barrier();
   for(uint32_t i = 0; i < TESTNUM; ++i)
     dm=hashtest[randstr[testnums[i]%200]];
     //dm= t0[randstr[testnums[i]%200]];
     //dm=t[strs[testnums[i]%10]];
   CPU_Barrier();
-  auto res = cHighPrecisionTimer::CloseProfiler(prof);
+  auto res = HighPrecisionTimer::CloseProfiler(prof);
   std::cout << dm << "\nTIME:" << res << std::endl;
   */
 
@@ -72,8 +72,8 @@ TESTDEF::RETPAIR test_TRIE()
   TEST(t[strs[9]] == 0);
 
   const char* casestr[] = { "tIck", "On", "tEX", "ROT", "RO", "ti", "ONtick", "ONdestROY", "te", "tick", "fail" };
-  cTrie<uint8_t, false> tcase(10, casestr);
-  cTrie<uint8_t, true> tins(10, "tIck", "On", "tEX", "ROT", "RO", "ti", "ONtick", "ONdestROY", "te", "tick");
+  Trie<uint8_t, false> tcase(10, casestr);
+  Trie<uint8_t, true> tins(10, "tIck", "On", "tEX", "ROT", "RO", "ti", "ONtick", "ONdestROY", "te", "tick");
 
   for(uint32_t i = 0; i < 11; ++i)
   {

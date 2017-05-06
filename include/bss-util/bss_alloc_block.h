@@ -4,10 +4,10 @@
 #ifndef __BSS_ALLOC_BLOCK_H__
 #define __BSS_ALLOC_BLOCK_H__
 
-#include "bss_alloc.h"
-#include "bss_util.h"
+#include "bss-util/bss_alloc.h"
+#include "bss-util/bss_util.h"
 
-namespace bss_util {
+namespace bss {
   // Block Chunk Alloc
   struct FIXEDLIST_NODE
   {
@@ -15,22 +15,22 @@ namespace bss_util {
     FIXEDLIST_NODE* next;
   };
 
-  class BSS_COMPILER_DLLEXPORT cBlockAllocVoid
+  class BSS_COMPILER_DLLEXPORT BlockAllocVoid
   {
 #ifdef BSS_COMPILER_MSC2010
-    cBlockAllocVoid(const cBlockAllocVoid& copy) : _freelist(0), _root(0), _sz(0) { assert(false); }
+    BlockAllocVoid(const BlockAllocVoid& copy) : _freelist(0), _root(0), _sz(0) { assert(false); }
 #else
-    cBlockAllocVoid(const cBlockAllocVoid& copy) = delete;
+    BlockAllocVoid(const BlockAllocVoid& copy) = delete;
 #endif
-    cBlockAllocVoid& operator=(const cBlockAllocVoid& copy) BSS_DELETEFUNCOP
+    BlockAllocVoid& operator=(const BlockAllocVoid& copy) BSS_DELETEFUNCOP
   public:
-    inline cBlockAllocVoid(cBlockAllocVoid&& mov) : _root(mov._root), _freelist(mov._freelist), _sz(mov._sz) { mov._root = 0; mov._freelist = 0; }
-    inline explicit cBlockAllocVoid(size_t sz, size_t init = 8) : _root(0), _freelist(0), _sz(sz)
+    inline BlockAllocVoid(BlockAllocVoid&& mov) : _root(mov._root), _freelist(mov._freelist), _sz(mov._sz) { mov._root = 0; mov._freelist = 0; }
+    inline explicit BlockAllocVoid(size_t sz, size_t init = 8) : _root(0), _freelist(0), _sz(sz)
     {
       assert(sz >= sizeof(void*));
-      _allocchunk(init*_sz);
+      _allocChunk(init*_sz);
     }
-    inline ~cBlockAllocVoid()
+    inline ~BlockAllocVoid()
     {
       FIXEDLIST_NODE* hold;
       while(_root != nullptr)
@@ -48,7 +48,7 @@ namespace bss_util {
 #endif
       if(!_freelist)
       {
-        _allocchunk(fbnext(_root->size / _sz)*_sz);
+        _allocChunk(fbnext(_root->size / _sz)*_sz);
         assert(_freelist != 0);
         if(!_freelist)
           return nullptr;
@@ -56,7 +56,7 @@ namespace bss_util {
 
       void* ret = _freelist;
       _freelist = *((void**)_freelist);
-      assert(_validpointer(ret));
+      assert(_validPointer(ret));
       return ret;
     }
     inline void dealloc(void* p) noexcept
@@ -64,7 +64,7 @@ namespace bss_util {
 #ifdef BSS_DISABLE_CUSTOM_ALLOCATORS
       delete p; return;
 #endif
-      assert(_validpointer(p));
+      assert(_validPointer(p));
 #ifdef BSS_DEBUG
       memset(p, 0xfd, _sz);
 #endif
@@ -82,12 +82,12 @@ namespace bss_util {
         free(_root);
       }
       _freelist = 0; // There's this funny story about a time where I forgot to put this in here and then wondered why everything blew up.
-      _allocchunk(nsize); // Note that nsize is in bytes
+      _allocChunk(nsize); // Note that nsize is in bytes
     }
 
   protected:
 #ifdef BSS_DEBUG
-    bool _validpointer(const void* p) const
+    bool _validPointer(const void* p) const
     {
       const FIXEDLIST_NODE* hold = _root;
       while(hold)
@@ -100,7 +100,7 @@ namespace bss_util {
       return false;
     }
 #endif
-    inline void _allocchunk(size_t nsize) noexcept
+    inline void _allocChunk(size_t nsize) noexcept
     {
       FIXEDLIST_NODE* retval = reinterpret_cast<FIXEDLIST_NODE*>(malloc(sizeof(FIXEDLIST_NODE) + nsize));
       if(!retval) return;
@@ -108,11 +108,11 @@ namespace bss_util {
       retval->size = nsize;
       //#pragma message(TODO "DEBUG REMOVE")
       //memset(retval->mem,0xff,retval->size);
-      _initchunk(retval);
+      _initChunk(retval);
       _root = retval;
     }
 
-    BSS_FORCEINLINE void _initchunk(const FIXEDLIST_NODE* chunk) noexcept
+    BSS_FORCEINLINE void _initChunk(const FIXEDLIST_NODE* chunk) noexcept
     {
       uint8_t* memend = ((uint8_t*)(chunk + 1)) + chunk->size;
       for(uint8_t* memref = (((uint8_t*)(chunk + 1))); memref < memend; memref += _sz)
@@ -128,18 +128,18 @@ namespace bss_util {
   };
 
   template<class T>
-  class BSS_COMPILER_DLLEXPORT cBlockAlloc : public cBlockAllocVoid
+  class BSS_COMPILER_DLLEXPORT BlockAlloc : public BlockAllocVoid
   {
-    cBlockAlloc(const cBlockAlloc& copy) BSS_DELETEFUNC
-      cBlockAlloc& operator=(const cBlockAlloc& copy) BSS_DELETEFUNCOP
+    BlockAlloc(const BlockAlloc& copy) BSS_DELETEFUNC
+      BlockAlloc& operator=(const BlockAlloc& copy) BSS_DELETEFUNCOP
   public:
-    inline cBlockAlloc(cBlockAlloc&& mov) : cBlockAllocVoid(std::move(mov)) {}
-    inline explicit cBlockAlloc(size_t init = 8) : cBlockAllocVoid(sizeof(T), init) { static_assert((sizeof(T) >= sizeof(void*)), "T cannot be less than the size of a pointer"); }
-    inline T* alloc(size_t num) noexcept { return (T*)cBlockAllocVoid::alloc(num); }
+    inline BlockAlloc(BlockAlloc&& mov) : BlockAllocVoid(std::move(mov)) {}
+    inline explicit BlockAlloc(size_t init = 8) : BlockAllocVoid(sizeof(T), init) { static_assert((sizeof(T) >= sizeof(void*)), "T cannot be less than the size of a pointer"); }
+    inline T* alloc(size_t num) noexcept { return (T*)BlockAllocVoid::alloc(num); }
   };
 
   template<typename T>
-  class BSS_COMPILER_DLLEXPORT BlockPolicy : protected cBlockAlloc<T>
+  class BSS_COMPILER_DLLEXPORT BlockPolicy : protected BlockAlloc<T>
   {
     BlockPolicy(const BlockPolicy& copy) BSS_DELETEFUNC
       BlockPolicy& operator=(const BlockPolicy& copy) BSS_DELETEFUNCOP
@@ -149,13 +149,13 @@ namespace bss_util {
     template<typename U>
     struct rebind { typedef BlockPolicy<U> other; };
 
-    inline BlockPolicy(BlockPolicy&& mov) : cBlockAlloc<T>(std::move(mov)) {}
+    inline BlockPolicy(BlockPolicy&& mov) : BlockAlloc<T>(std::move(mov)) {}
     inline BlockPolicy() {}
     inline ~BlockPolicy() {}
 
 
-    inline pointer allocate(size_t cnt, const pointer = 0) noexcept { return cBlockAlloc<T>::alloc(cnt); }
-    inline void deallocate(pointer p, size_t num = 0) noexcept { return cBlockAlloc<T>::dealloc(p); }
+    inline pointer allocate(size_t cnt, const pointer = 0) noexcept { return BlockAlloc<T>::alloc(cnt); }
+    inline void deallocate(pointer p, size_t num = 0) noexcept { return BlockAlloc<T>::dealloc(p); }
   };
 }
 

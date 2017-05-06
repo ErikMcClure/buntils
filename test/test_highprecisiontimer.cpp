@@ -1,16 +1,16 @@
 // Copyright ©2017 Black Sphere Studios
 // For conditions of distribution and use, see copyright notice in "bss_util.h"
 
-#include "cHighPrecisionTimer.h"
+#include "bss-util/HighPrecisionTimer.h"
 #include "test.h"
 #include <thread>
 
-using namespace bss_util;
+using namespace bss;
 
 TESTDEF::RETPAIR test_HIGHPRECISIONTIMER()
 {
   BEGINTEST;
-  cHighPrecisionTimer timer;
+  HighPrecisionTimer timer;
   while(timer.GetTime() == 0.0)
     timer.Update();
   double ldelta = timer.GetDelta();
@@ -31,14 +31,14 @@ TESTDEF::RETPAIR test_HIGHPRECISIONTIMER()
   timer.ResetTime();
   TEST(timer.GetDelta()>0.0);
   TEST(timer.GetTime() == 0.0);
-  auto prof = cHighPrecisionTimer::OpenProfiler();
+  auto prof = HighPrecisionTimer::OpenProfiler();
   TEST(prof != 0);
   timer.ResetDelta(); // The linux profiler is *too accurate* in that it only measures precisely how much time the process is using. So we can't just put it to sleep.
   while(timer.GetTime()<2.0) timer.Update();
 
-  TEST(cHighPrecisionTimer::CloseProfiler(prof)>1000000); // we should have slept for at least 1 millisecond
-  TEST(cHighPrecisionTimer::CloseProfiler(prof)<5000000); // but less than 5 milliseconds
-  prof = cHighPrecisionTimer::OpenProfiler();
-  TEST(cHighPrecisionTimer::CloseProfiler(prof)<10000);
+  TEST(HighPrecisionTimer::CloseProfiler(prof)>1000000); // we should have slept for at least 1 millisecond
+  TEST(HighPrecisionTimer::CloseProfiler(prof)<5000000); // but less than 5 milliseconds
+  prof = HighPrecisionTimer::OpenProfiler();
+  TEST(HighPrecisionTimer::CloseProfiler(prof)<10000);
   ENDTEST;
 }

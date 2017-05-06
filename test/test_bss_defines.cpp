@@ -1,11 +1,11 @@
 ﻿// Copyright ©2017 Black Sphere Studios
 // For conditions of distribution and use, see copyright notice in "bss_util.h"
 
-#include "bss_defines.h"
+#include "bss-util/bss_defines.h"
 #include <time.h>
 #include "test.h"
 
-using namespace bss_util;
+using namespace bss;
 
 TESTDEF::RETPAIR test_bss_deprecated()
 {

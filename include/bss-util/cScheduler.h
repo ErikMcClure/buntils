@@ -4,23 +4,23 @@
 #ifndef __C_SCHEDULER_H__BSS__
 #define __C_SCHEDULER_H__BSS__
 
-#include "cHighPrecisionTimer.h"
-#include "cBinaryHeap.h"
+#include "bss-util/HighPrecisionTimer.h"
+#include "bss-util/BinaryHeap.h"
 
-namespace bss_util {
+namespace bss {
   // Scheduler object that lets you schedule events that happen x milliseconds into the future. If the event returns a number greater than 0,it will be rescheduled. 
   template<typename F, typename ST = uint32_t> //std::function<double(void)>
-  class BSS_COMPILER_DLLEXPORT cScheduler : protected cHighPrecisionTimer, protected cBinaryHeap<std::pair<double, F>, ST, CompTFirst<std::pair<double, F>, CompTInv<double>>, CARRAY_SAFE>
+  class BSS_COMPILER_DLLEXPORT Scheduler : protected HighPrecisionTimer, protected BinaryHeap<std::pair<double, F>, ST, CompTFirst<std::pair<double, F>, CompTInv<double>>, CARRAY_SAFE>
   {
-    typedef cBinaryHeap<std::pair<double, F>, ST, CompTFirst<std::pair<double, F>, CompTInv<double>>, CARRAY_SAFE> BASE;
+    typedef BinaryHeap<std::pair<double, F>, ST, CompTFirst<std::pair<double, F>, CompTInv<double>>, CARRAY_SAFE> BASE;
   public:
     // Constructor
-    inline cScheduler() {}
-    inline cScheduler(const cScheduler& copy) : BASE(copy), cHighPrecisionTimer(copy) {}
-    inline cScheduler(cScheduler&& mov) : BASE(std::move(mov)), cHighPrecisionTimer(mov) {}
-    inline cScheduler(double t, const F& f) { Add(t, f); }
-    inline cScheduler(double t, F&& f) { Add(t, std::move(f)); }
-    inline ~cScheduler() {}
+    inline Scheduler() {}
+    inline Scheduler(const Scheduler& copy) : BASE(copy), HighPrecisionTimer(copy) {}
+    inline Scheduler(Scheduler&& mov) : BASE(std::move(mov)), HighPrecisionTimer(mov) {}
+    inline Scheduler(double t, const F& f) { Add(t, f); }
+    inline Scheduler(double t, F&& f) { Add(t, std::move(f)); }
+    inline ~Scheduler() {}
     // Gets number of events
     BSS_FORCEINLINE ST Length() const { return BASE::_length; }
     // Adds an event that will happen t milliseconds in the future, starting from the current time
@@ -29,7 +29,7 @@ namespace bss_util {
     // Updates the scheduler, setting off any events that need to be set off
     inline void Update()
     {
-      cHighPrecisionTimer::Update();
+      HighPrecisionTimer::Update();
       while(BASE::Peek().first <= _time)
       {
         double r = BASE::Peek().second();

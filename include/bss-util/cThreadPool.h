@@ -4,44 +4,44 @@
 #ifndef __C_THREAD_POOL_H__BSS__
 #define __C_THREAD_POOL_H__BSS__
 
-#include "cThread.h"
-#include "cLocklessQueue.h"
-#include "bss_alloc_ring.h"
-#include "cArray.h"
-#include "delegate.h"
+#include "bss-util/Thread.h"
+#include "bss-util/LocklessQueue.h"
+#include "bss-util/bss_alloc_ring.h"
+#include "bss-util/Array.h"
+#include "Delegate.h"
 
-namespace bss_util {
+namespace bss {
   // Stores a pool of threads that execute tasks.
-  class cThreadPool
+  class ThreadPool
   {
     typedef void(*FN)(void*);
     typedef std::pair<FN, void*> TASK;
 
-    cThreadPool(const cThreadPool&) BSS_DELETEFUNC
-      cThreadPool& operator=(const cThreadPool&) BSS_DELETEFUNCOP
+    ThreadPool(const ThreadPool&) BSS_DELETEFUNC
+      ThreadPool& operator=(const ThreadPool&) BSS_DELETEFUNCOP
 
   public:
-    cThreadPool(cThreadPool&& mov) : _falloc(std::move(mov._falloc)), _run(mov._run.load(std::memory_order_relaxed)),
+    ThreadPool(ThreadPool&& mov) : _falloc(std::move(mov._falloc)), _run(mov._run.load(std::memory_order_relaxed)),
       _tasks(mov._tasks.load(std::memory_order_relaxed)), _inactive(mov._inactive.load(std::memory_order_relaxed)),
       _tasklist(std::move(mov._tasklist)), _threads(std::move(mov._threads))
     {
       mov._inactive.store(0, std::memory_order_release);
       mov._run.store(0, std::memory_order_release);
     }
-    explicit cThreadPool(uint32_t count) : _falloc(sizeof(TASK) * 20), _run(0), _inactive(0), _tasks(0)
+    explicit ThreadPool(uint32_t count) : _falloc(sizeof(TASK) * 20), _run(0), _inactive(0), _tasks(0)
     {
       AddThreads(count);
     }
-    cThreadPool() : _falloc(sizeof(TASK) * 20), _run(0), _inactive(0), _tasks(0)
+    ThreadPool() : _falloc(sizeof(TASK) * 20), _run(0), _inactive(0), _tasks(0)
     {
       AddThreads(IdealWorkerCount());
     }
-    ~cThreadPool()
+    ~ThreadPool()
     {
       Wait();
       _run.store(-_run.load(std::memory_order_acquire), std::memory_order_release); // Negate the stop count, then wait for it to reach 0
       while(_run.load(std::memory_order_acquire) != 0) // While waiting, repeatedly signal threads to prevent race conditions
-        _signalthreads(_threads.Capacity());
+        _signalThreads(_threads.Capacity());
     }
     void AddTask(FN f, void* arg, uint32_t instances = 1)
     {
@@ -51,14 +51,14 @@ namespace bss_util {
       for(uint32_t i = 0; i < instances; ++i)
         _tasklist.Push(task);
 
-      _signalthreads(_tasklist.Length());
+      _signalThreads(_tasklist.Length());
     }
 
 #ifdef BSS_VARIADIC_TEMPLATES
     template<typename R, typename ...Args>
     void AddFunc(R(*f)(Args...), Args... args)
     {
-      std::pair<StoreFunction<R, Args...>, cRingAllocVoid*>* fn = _falloc.allocT<std::pair<StoreFunction<R, Args...>, cRingAllocVoid*>>();
+      std::pair<StoreFunction<R, Args...>, RingAllocVoid*>* fn = _falloc.allocT<std::pair<StoreFunction<R, Args...>, RingAllocVoid*>>();
       new (&fn->first) StoreFunction<R, Args...>(f, std::forward<Args>(args)...);
       fn->second = &_falloc; // This could just be a pointer to this thread pool, but it's easier if it's a direct pointer to the allocator we need.
       AddTask(_callfn<R, Args...>, fn);
@@ -70,9 +70,9 @@ namespace bss_util {
       for(uint32_t i = 0; i < num; ++i)
       {
         _run.fetch_add(1, std::memory_order_release);
-        std::unique_ptr<std::pair<cThread, std::atomic_bool>> t((std::pair<cThread, std::atomic_bool>*)calloc(1, sizeof(std::pair<cThread, std::atomic_bool>)));
+        std::unique_ptr<std::pair<Thread, std::atomic_bool>> t((std::pair<Thread, std::atomic_bool>*)calloc(1, sizeof(std::pair<Thread, std::atomic_bool>)));
         t->second.store(false, std::memory_order_release);
-        new (&t->first) cThread(_worker, t.get(), std::ref(*this));
+        new (&t->first) Thread(_worker, t.get(), std::ref(*this));
         _threads.Add(std::move(t));
       }
     }
@@ -95,7 +95,7 @@ namespace bss_util {
     }
 
   protected:
-    void _signalthreads(uint32_t count)
+    void _signalThreads(uint32_t count)
     {
       if(_inactive.load(std::memory_order_acquire) > 0)
       {
@@ -110,7 +110,7 @@ namespace bss_util {
       }
     }
 
-    static void _worker(std::pair<cThread, std::atomic_bool>* job, cThreadPool& pool)
+    static void _worker(std::pair<Thread, std::atomic_bool>* job, ThreadPool& pool)
     {
       job->second.store(false, std::memory_order_release);
 
@@ -125,7 +125,7 @@ namespace bss_util {
 
         job->second.store(true, std::memory_order_release);
         pool._inactive.fetch_add(1, std::memory_order_release);
-        cThread::Wait();
+        Thread::Wait();
         pool._inactive.fetch_sub(1, std::memory_order_release);
         job->second.store(false, std::memory_order_release);
       }
@@ -137,25 +137,25 @@ namespace bss_util {
     template<typename R, typename ...Args>
     static void _callfn(void* p)
     {
-      std::pair<StoreFunction<R, Args...>, cRingAllocVoid*>* fn = (std::pair<StoreFunction<R, Args...>, cRingAllocVoid*>*)p;
+      std::pair<StoreFunction<R, Args...>, RingAllocVoid*>* fn = (std::pair<StoreFunction<R, Args...>, RingAllocVoid*>*)p;
       fn->first.Call();
       fn->first.~StoreFunction();
       fn->second->dealloc(fn);
     }
 #endif
 
-    cMicroLockQueue<TASK, uint32_t> _tasklist;
+    MicroLockQueue<TASK, uint32_t> _tasklist;
     std::atomic<uint32_t> _tasks; // Count of tasks still being processed (this includes tasks that have been removed from the queue, but haven't finished yet)
-    cArray<std::unique_ptr<std::pair<cThread, std::atomic_bool>>, uint32_t, CARRAY_MOVE> _threads;
+    Array<std::unique_ptr<std::pair<Thread, std::atomic_bool>>, uint32_t, CARRAY_MOVE> _threads;
     std::atomic<uint32_t> _inactive;
     std::atomic<int32_t> _run;
-    cRingAllocVoid _falloc;
+    RingAllocVoid _falloc;
   };
 
   template<typename R, typename ...Args>
   class Future : StoreFunction<R, Args...>
   {
-    inline Future(cThreadPool& pool, R(*f)(Args...), Args&&... args) : StoreFunction<R, Args...>(f, std::forward<Args>(args)...) { pool.AddTask(_eval, this); }
+    inline Future(ThreadPool& pool, R(*f)(Args...), Args&&... args) : StoreFunction<R, Args...>(f, std::forward<Args>(args)...) { pool.AddTask(_eval, this); }
     ~Future() { assert(_finished.load(std::memory_order_acquire)); }
     R* Result() { return _finished.load(std::memory_order_acquire) ? &result : 0; }
 

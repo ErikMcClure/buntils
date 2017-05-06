@@ -1,12 +1,12 @@
 ﻿// Copyright ©2017 Black Sphere Studios
 // For conditions of distribution and use, see copyright notice in "bss_util.h"
 
-#include "bss_util.h"
+#include "bss-util/bss_util.h"
 #include <sstream>
 #include <algorithm>
 #include "test.h"
 
-using namespace bss_util;
+using namespace bss;
 
 template<uint8_t B, int64_t SMIN, int64_t SMAX, uint64_t UMIN, uint64_t UMAX, typename T>
 inline void TEST_BitLimit()
@@ -35,7 +35,7 @@ void testbitcount(TESTDEF::RETPAIR& __testret)
 { //Use fibonacci numbers to test this
   for(T i = 0; i < (((T)1) << (sizeof(T) << 2)); i = fbnext(i))
   {
-    TEST(naivebitcount<T>(i) == bitcount<T>(i));
+    TEST(naivebitcount<T>(i) == BitCount<T>(i));
   }
 }
 
@@ -44,7 +44,7 @@ TESTDEF::RETPAIR test_bss_util()
   BEGINTEST;
   TESTNOERROR(SetWorkDirToCur());
   TEST(bssFileSize(GetProgramPath()) != 0);
-  //TEST(bssFileSize(cStrW(fbuf))!=0);
+  //TEST(bssFileSize(StrW(fbuf))!=0);
   TESTNOERROR(GetTimeZoneMinutes());
 
   static_assert(std::is_same<BitLimit<sizeof(uint8_t) << 3>::SIGNED, char>::value, "Test Failure Line #" MAKESTRING(__LINE__));
@@ -181,39 +181,39 @@ TESTDEF::RETPAIR test_bss_util()
   TEST(ta == "second");
   TEST(tb == "first");
 
-  TEST((intdiv<int, int>(10, 5) == 2));
-  TEST((intdiv<int, int>(9, 5) == 1));
-  TEST((intdiv<int, int>(5, 5) == 1));
-  TEST((intdiv<int, int>(4, 5) == 0));
-  TEST((intdiv<int, int>(0, 5) == 0));
-  TEST((intdiv<int, int>(-1, 5) == -1));
-  TEST((intdiv<int, int>(-5, 5) == -1));
-  TEST((intdiv<int, int>(-6, 5) == -2));
-  TEST((intdiv<int, int>(-10, 5) == -2));
-  TEST((intdiv<int, int>(-11, 5) == -3));
+  TEST((IntDiv<int, int>(10, 5) == 2));
+  TEST((IntDiv<int, int>(9, 5) == 1));
+  TEST((IntDiv<int, int>(5, 5) == 1));
+  TEST((IntDiv<int, int>(4, 5) == 0));
+  TEST((IntDiv<int, int>(0, 5) == 0));
+  TEST((IntDiv<int, int>(-1, 5) == -1));
+  TEST((IntDiv<int, int>(-5, 5) == -1));
+  TEST((IntDiv<int, int>(-6, 5) == -2));
+  TEST((IntDiv<int, int>(-10, 5) == -2));
+  TEST((IntDiv<int, int>(-11, 5) == -3));
 
-  TEST((bssmod(-1, 7) == 6));
-  TEST((bssmod(-90, 7) == 1));
-  TEST((bssmod(6, 7) == 6));
-  TEST((bssmod(7, 7) == 0));
-  TEST((bssmod(0, 7) == 0));
-  TEST((bssmod(1, 7) == 1));
-  TEST((bssmod(8, 7) == 1));
-  TEST((bssmod(71, 7) == 1));
-  TEST((bssmod(1, 1) == 0));
-  TEST((bssmod(-1, 2) == 1));
+  TEST((bssMod(-1, 7) == 6));
+  TEST((bssMod(-90, 7) == 1));
+  TEST((bssMod(6, 7) == 6));
+  TEST((bssMod(7, 7) == 0));
+  TEST((bssMod(0, 7) == 0));
+  TEST((bssMod(1, 7) == 1));
+  TEST((bssMod(8, 7) == 1));
+  TEST((bssMod(71, 7) == 1));
+  TEST((bssMod(1, 1) == 0));
+  TEST((bssMod(-1, 2) == 1));
 
-  TEST(fcompare(bssfmod(-1.0f, PI_DOUBLEf), 5.2831853f, 10));
-  TEST(fcompare(bssfmod(-4.71f, PI_DOUBLEf), 1.57319f, 100));
-  TEST(fcompare(bssfmod(1.0f, PI_DOUBLEf), 1.0f));
-  TEST((bssfmod(0.0f, PI_DOUBLEf)) == 0.0f);
-  TEST(fcompare(bssfmod(12.0f, PI_DOUBLEf), 5.716814f, 10));
-  TEST(fcompare(bssfmod(90.0f, PI_DOUBLEf), 2.0354057f, 100));
-  TEST(fcompare(bssfmod(-90.0f, PI_DOUBLEf), 4.2477796f, 10));
+  TEST(fCompare(bssFMod(-1.0f, PI_DOUBLEf), 5.2831853f, 10));
+  TEST(fCompare(bssFMod(-4.71f, PI_DOUBLEf), 1.57319f, 100));
+  TEST(fCompare(bssFMod(1.0f, PI_DOUBLEf), 1.0f));
+  TEST((bssFMod(0.0f, PI_DOUBLEf)) == 0.0f);
+  TEST(fCompare(bssFMod(12.0f, PI_DOUBLEf), 5.716814f, 10));
+  TEST(fCompare(bssFMod(90.0f, PI_DOUBLEf), 2.0354057f, 100));
+  TEST(fCompare(bssFMod(-90.0f, PI_DOUBLEf), 4.2477796f, 10));
 
   int r[] = { -1,0,2,3,4,5,6 };
   int rr[] = { 6,5,4,3,2,0,-1 };
-  bssreverse(r);
+  bssReverse(r);
   TESTARRAY(r, return (r[0] == rr[0]);)
 
     const char* LTRIM = "    trim ";
@@ -253,52 +253,52 @@ TESTDEF::RETPAIR test_bss_util()
     TEST(tsignzero(INT_MIN) == -1)
     TEST(tsignzero(INT_MAX) == 1)
 
-    TEST(fcompare(angledist(PI, PI_HALF), PI_HALF))
-    TEST(fsmall(angledist(PI, PI + PI_DOUBLE)))
-    TEST(fcompare(angledist(PI_DOUBLE + PI, PI + PI_HALF*7.0), PI_HALF))
-    TEST(fcompare(angledist(PI + PI_HALF*7.0, PI_DOUBLE + PI), PI_HALF))
-    TEST(fcompare(angledist(PIf, PI_HALFf), PI_HALFf))
-    TEST(fsmall(angledist(PIf, PIf + PI_DOUBLEf), FLT_EPS * 4))
-    TEST(fcompare(angledist(PI_DOUBLEf + PIf, PIf + PI_HALFf*7.0f), PI_HALFf, 9))
-    TEST(fcompare(angledist(PIf + PI_HALFf*7.0f, PI_DOUBLEf + PIf), PI_HALFf, 9))
-    TEST(fcompare(angledist(PIf + PI_HALFf*7.0f, PI_DOUBLEf + PIf), PI_HALFf, 9))
-    TEST(fcompare(angledist(1.28f, -4.71f), 0.2931f, 10000))
-    TEST(fcompare(angledist(1.28f, -4.71f + PI_DOUBLEf), 0.2931f, 10000))
+    TEST(fCompare(AngleDist(PI, PI_HALF), PI_HALF))
+    TEST(fSmall(AngleDist(PI, PI + PI_DOUBLE)))
+    TEST(fCompare(AngleDist(PI_DOUBLE + PI, PI + PI_HALF*7.0), PI_HALF))
+    TEST(fCompare(AngleDist(PI + PI_HALF*7.0, PI_DOUBLE + PI), PI_HALF))
+    TEST(fCompare(AngleDist(PIf, PI_HALFf), PI_HALFf))
+    TEST(fSmall(AngleDist(PIf, PIf + PI_DOUBLEf), FLT_EPS * 4))
+    TEST(fCompare(AngleDist(PI_DOUBLEf + PIf, PIf + PI_HALFf*7.0f), PI_HALFf, 9))
+    TEST(fCompare(AngleDist(PIf + PI_HALFf*7.0f, PI_DOUBLEf + PIf), PI_HALFf, 9))
+    TEST(fCompare(AngleDist(PIf + PI_HALFf*7.0f, PI_DOUBLEf + PIf), PI_HALFf, 9))
+    TEST(fCompare(AngleDist(1.28f, -4.71f), 0.2931f, 10000))
+    TEST(fCompare(AngleDist(1.28f, -4.71f + PI_DOUBLEf), 0.2931f, 10000))
 
-    TEST(fcompare(angledistsgn(PI, PI_HALF), -PI_HALF))
-    TEST(fsmall(angledistsgn(PI, PI + PI_DOUBLE)))
-    TEST(fcompare(angledistsgn(PI_DOUBLE + PI, PI + PI_HALF*7.0), -PI_HALF))
-    TEST(fcompare(angledistsgn(PI_HALF, PI), PI_HALF))
-    TEST(fcompare(angledistsgn(PIf, PI_HALFf), -PI_HALFf))
-    TEST(fsmall(angledistsgn(PIf, PIf + PI_DOUBLEf), -FLT_EPS * 4))
-    TEST(fcompare(angledistsgn(PI_DOUBLEf + PIf, PIf + PI_HALFf*7.0f), -PI_HALFf, 9))
-    TEST(fcompare(angledistsgn(PI_HALFf, PIf), PI_HALFf))
-    TEST(fcompare(angledistsgn(1.28f, -4.71f), 0.2931f, 10000))
-    TEST(fcompare(angledistsgn(1.28f, -4.71f + PI_DOUBLEf), 0.2931f, 10000))
+    TEST(fCompare(AngleDistSigned(PI, PI_HALF), -PI_HALF))
+    TEST(fSmall(AngleDistSigned(PI, PI + PI_DOUBLE)))
+    TEST(fCompare(AngleDistSigned(PI_DOUBLE + PI, PI + PI_HALF*7.0), -PI_HALF))
+    TEST(fCompare(AngleDistSigned(PI_HALF, PI), PI_HALF))
+    TEST(fCompare(AngleDistSigned(PIf, PI_HALFf), -PI_HALFf))
+    TEST(fSmall(AngleDistSigned(PIf, PIf + PI_DOUBLEf), -FLT_EPS * 4))
+    TEST(fCompare(AngleDistSigned(PI_DOUBLEf + PIf, PIf + PI_HALFf*7.0f), -PI_HALFf, 9))
+    TEST(fCompare(AngleDistSigned(PI_HALFf, PIf), PI_HALFf))
+    TEST(fCompare(AngleDistSigned(1.28f, -4.71f), 0.2931f, 10000))
+    TEST(fCompare(AngleDistSigned(1.28f, -4.71f + PI_DOUBLEf), 0.2931f, 10000))
 
     const float flt = FLT_EPSILON;
   int32_t fi = *(int32_t*)(&flt);
-  TEST(fsmall(*(float*)(&(--fi))))
-    TEST(fsmall(*(float*)(&(++fi))))
-    TEST(!fsmall(*(float*)(&(++fi))))
+  TEST(fSmall(*(float*)(&(--fi))))
+    TEST(fSmall(*(float*)(&(++fi))))
+    TEST(!fSmall(*(float*)(&(++fi))))
     const double dbl = DBL_EPSILON;
   int64_t di = *(int64_t*)(&dbl);
-  TEST(fsmall(*(double*)(&(--di))))
-    TEST(fsmall(*(double*)(&(++di))))
-    TEST(!fsmall(*(double*)(&(++di))))
+  TEST(fSmall(*(double*)(&(--di))))
+    TEST(fSmall(*(double*)(&(++di))))
+    TEST(!fSmall(*(double*)(&(++di))))
 
-    TEST(fcompare(1.0f, 1.0f))
-    TEST(fcompare(1.0f, 1.0f + FLT_EPSILON))
-    TEST(fcompare(10.0f, 10.0f + FLT_EPSILON * 10))
-    TEST(fcompare(10.0f, 10.0f))
-    TEST(!fcompare(0.1f, 0.1f + FLT_EPSILON*0.1f))
-    TEST(!fcompare(0.1f, FLT_EPSILON))
-    TEST(fcompare(1.0, 1.0))
-    TEST(fcompare(1.0, 1.0 + DBL_EPSILON))
-    TEST(fcompare(10.0, 10.0 + DBL_EPSILON * 10))
-    TEST(fcompare(10.0, 10.0))
-    TEST(!fcompare(0.1, 0.1 + DBL_EPSILON*0.1))
-    TEST(!fcompare(0.1, DBL_EPSILON))
+    TEST(fCompare(1.0f, 1.0f))
+    TEST(fCompare(1.0f, 1.0f + FLT_EPSILON))
+    TEST(fCompare(10.0f, 10.0f + FLT_EPSILON * 10))
+    TEST(fCompare(10.0f, 10.0f))
+    TEST(!fCompare(0.1f, 0.1f + FLT_EPSILON*0.1f))
+    TEST(!fCompare(0.1f, FLT_EPSILON))
+    TEST(fCompare(1.0, 1.0))
+    TEST(fCompare(1.0, 1.0 + DBL_EPSILON))
+    TEST(fCompare(10.0, 10.0 + DBL_EPSILON * 10))
+    TEST(fCompare(10.0, 10.0))
+    TEST(!fCompare(0.1, 0.1 + DBL_EPSILON*0.1))
+    TEST(!fCompare(0.1, DBL_EPSILON))
 
     // This tests our average aggregation formula, which lets you average extremely large numbers while maintaining a fair amount of precision.
     uint64_t total = 0;
@@ -308,7 +308,7 @@ TESTDEF::RETPAIR test_bss_util()
   for(nc = 1; nc < 10000; ++nc)
   {
     total += nc*nc;
-    avg = bssavg<double>(avg, (double)(nc*nc), nc);
+    avg = bssAvg<double>(avg, (double)(nc*nc), nc);
     diff = bssmax(diff, fabs((total / (double)nc) - avg));
   }
   TEST(diff<FLT_EPSILON * 2);
@@ -322,7 +322,7 @@ TESTDEF::RETPAIR test_bss_util()
   //for(uint32_t i = 0; i < 100000; ++i)
   //  NUMBERS[i]=bssRandReal(2,4);
 
-  //uint64_t p=cHighPrecisionTimer::OpenProfiler();
+  //uint64_t p=HighPrecisionTimer::OpenProfiler();
   //CPU_Barrier();
   //for(uint32_t j = 0; j < 10; ++j)
   //{
@@ -343,7 +343,7 @@ TESTDEF::RETPAIR test_bss_util()
   //}
   //}
   //CPU_Barrier();
-  //sqrt_avg=cHighPrecisionTimer::CloseProfiler(p);
+  //sqrt_avg=HighPrecisionTimer::CloseProfiler(p);
   //
   //TEST(b==a); //keep things from optimizing out
   //cout << sqrt_avg << std::endl;
@@ -367,13 +367,13 @@ TESTDEF::RETPAIR test_bss_util()
   //  _numrand[i]=bssRandReal(0,100.0f);
 
   //int add=0;
-  //uint64_t prof = cHighPrecisionTimer::OpenProfiler();
+  //uint64_t prof = HighPrecisionTimer::OpenProfiler();
   //CPU_Barrier();
   //for(uint32_t i = 0; i < NUM; ++i)
   //  //add+=(int)_numrand[i];
   //  add+=fFastTruncate(_numrand[i]);
   //CPU_Barrier();
-  //auto res = cHighPrecisionTimer::CloseProfiler(prof);
+  //auto res = HighPrecisionTimer::CloseProfiler(prof);
   //double avg = res/(double)NUM;
   //TEST(add>-1);
   //std::cout << "\n" << avg << std::endl;
@@ -411,28 +411,28 @@ TESTDEF::RETPAIR test_bss_util()
   //TEST(fFastDoubleRound(4.5f)==(int)4.5f);
   //TEST(fFastDoubleRound(5.9f)==(int)5.9f); //This test fails, so don't use fFastDoubleRound for precision-critical anything.
 
-  TEST(fcompare(distsqr(2.0f, 2.0f, 5.0f, 6.0f), 25.0f));
-  TEST(fcompare(dist(2.0f, 2.0f, 5.0f, 6.0f), 5.0f, 40));
-  TEST(fcompare(distsqr(2.0, 2.0, 5.0, 6.0), 25.0));
-  TEST(fcompare(dist(2.0, 2.0, 5.0, 6.0), 5.0, (int64_t)150000)); // Do not use this for precision-critical anything.
-  TEST(distsqr(2, 2, 5, 6) == 5 * 5);
-  TEST(dist(2, 2, 5, 6) == 5); // Yes, you can actually do distance calculations using integers, since we use FastSqrt's integer extension.
+  TEST(fCompare(DistSqr(2.0f, 2.0f, 5.0f, 6.0f), 25.0f));
+  TEST(fCompare(Dist(2.0f, 2.0f, 5.0f, 6.0f), 5.0f, 40));
+  TEST(fCompare(DistSqr(2.0, 2.0, 5.0, 6.0), 25.0));
+  TEST(fCompare(Dist(2.0, 2.0, 5.0, 6.0), 5.0, (int64_t)150000)); // Do not use this for precision-critical anything.
+  TEST(DistSqr(2, 2, 5, 6) == 5 * 5);
+  TEST(Dist(2, 2, 5, 6) == 5); // Yes, you can actually do distance calculations using integers, since we use FastSqrt's integer extension.
 
   int64_t stuff = 2987452983472384720;
   uint16_t find = 43271;
-  TEST(bytesearch(&stuff, 8, &find, 1) == (((char*)&stuff) + 3));
-  TEST(bytesearch(&stuff, 8, &find, 2) == (((char*)&stuff) + 3));
-  TEST(bytesearch(&stuff, 5, &find, 1) == (((char*)&stuff) + 3));
-  TEST(bytesearch(&stuff, 5, &find, 2) == (((char*)&stuff) + 3));
-  TEST(bytesearch(&stuff, 4, &find, 1) == (((char*)&stuff) + 3));
-  TEST(!bytesearch(&stuff, 4, &find, 2));
-  TEST(!bytesearch(&stuff, 3, &find, 2));
-  TEST(!bytesearch(&stuff, 0, &find, 1));
-  TEST(!bytesearch(&stuff, 2, &find, 3));
+  TEST(ByteSearch(&stuff, 8, &find, 1) == (((char*)&stuff) + 3));
+  TEST(ByteSearch(&stuff, 8, &find, 2) == (((char*)&stuff) + 3));
+  TEST(ByteSearch(&stuff, 5, &find, 1) == (((char*)&stuff) + 3));
+  TEST(ByteSearch(&stuff, 5, &find, 2) == (((char*)&stuff) + 3));
+  TEST(ByteSearch(&stuff, 4, &find, 1) == (((char*)&stuff) + 3));
+  TEST(!ByteSearch(&stuff, 4, &find, 2));
+  TEST(!ByteSearch(&stuff, 3, &find, 2));
+  TEST(!ByteSearch(&stuff, 0, &find, 1));
+  TEST(!ByteSearch(&stuff, 2, &find, 3));
   find = 27344;
-  TEST(bytesearch(&stuff, 2, &find, 2));
+  TEST(ByteSearch(&stuff, 2, &find, 2));
   find = 41;
-  TEST(bytesearch(&stuff, 8, &find, 1) == (((char*)&stuff) + 7));
+  TEST(ByteSearch(&stuff, 8, &find, 1) == (((char*)&stuff) + 7));
 
   testbitcount<uint8_t>(__testret);
   testbitcount<uint16_t>(__testret);
@@ -442,40 +442,40 @@ TESTDEF::RETPAIR test_bss_util()
   auto flog = [](int i) -> int { int r = 0; while(i >>= 1) ++r; return r; };
   for(nmatch = 1; nmatch < 200000; ++nmatch)
   {
-    if(bsslog2(nmatch) != flog(nmatch))
+    if(bssLog2(nmatch) != flog(nmatch))
       break;
   }
   TEST(nmatch == 200000);
   for(nmatch = 2; nmatch < INT_MAX; nmatch <<= 1) // You have to do INT_MAX here even though its unsigned, because 10000... is actually less than 1111... and you overflow.
   {
-    if(bsslog2_p2(nmatch) != flog(nmatch))
+    if(bssLog2_p2(nmatch) != flog(nmatch))
       break;
   }
   TEST(nmatch == (1 << 31));
 
-  TEST(fcompare(lerp<double>(3, 4, 0.5), 3.5))
-    TEST(fcompare(lerp<double>(3, 4, 0), 3.0))
-    TEST(fcompare(lerp<double>(3, 4, 1), 4.0))
-    TEST(fsmall(lerp<double>(-3, 3, 0.5)))
-    TEST(fcompare(lerp<double>(-3, -4, 0.5), -3.5))
-    TEST(fcompare(lerp<float>(3, 4, 0.5f), 3.5f))
-    TEST(fcompare(lerp<float>(3, 4, 0), 3.0f))
-    TEST(fcompare(lerp<float>(3, 4, 1), 4.0f))
-    TEST(fsmall(lerp<float>(-3, 3, 0.5f)))
-    TEST(fcompare(lerp<float>(-3, -4, 0.5f), -3.5f))
+  TEST(fCompare(lerp<double>(3, 4, 0.5), 3.5))
+    TEST(fCompare(lerp<double>(3, 4, 0), 3.0))
+    TEST(fCompare(lerp<double>(3, 4, 1), 4.0))
+    TEST(fSmall(lerp<double>(-3, 3, 0.5)))
+    TEST(fCompare(lerp<double>(-3, -4, 0.5), -3.5))
+    TEST(fCompare(lerp<float>(3, 4, 0.5f), 3.5f))
+    TEST(fCompare(lerp<float>(3, 4, 0), 3.0f))
+    TEST(fCompare(lerp<float>(3, 4, 1), 4.0f))
+    TEST(fSmall(lerp<float>(-3, 3, 0.5f)))
+    TEST(fCompare(lerp<float>(-3, -4, 0.5f), -3.5f))
 
-    TEST((intdiv<int, int>(-5, 2) == -3));
-  TEST((intdiv<int, int>(5, 2) == 2));
-  TEST((intdiv<int, int>(0, 2) == 0));
-  TEST((intdiv<int, int>(-218937542, 378) == -579200));
-  TEST((intdiv<int, int>(INT_MIN, 3) == ((INT_MIN / 3) - 1)));
-  TEST((intdiv<int, int>(INT_MAX, 3) == (INT_MAX / 3)));
+    TEST((IntDiv<int, int>(-5, 2) == -3));
+  TEST((IntDiv<int, int>(5, 2) == 2));
+  TEST((IntDiv<int, int>(0, 2) == 0));
+  TEST((IntDiv<int, int>(-218937542, 378) == -579200));
+  TEST((IntDiv<int, int>(INT_MIN, 3) == ((INT_MIN / 3) - 1)));
+  TEST((IntDiv<int, int>(INT_MAX, 3) == (INT_MAX / 3)));
 
   int a = -1;
-  flipendian(&a);
+  FlipEndian(&a);
   TEST(a == -1);
   a = 1920199968;
-  flipendian(&a);
+  FlipEndian(&a);
   TEST(a == 552432498);
 
   FILE* f;
@@ -484,35 +484,35 @@ TESTDEF::RETPAIR test_bss_util()
   fclose(f);
 
   {
-    auto g = bssloadfile<char, false>("testwrite.txt");
+    auto g = bssLoadFile<char, false>("testwrite.txt");
     TEST(g.second == 4);
     TEST(!strncmp(g.first.get(), "test", 4));
-    g = bssloadfile<char, true>("testwrite.txt");
+    g = bssLoadFile<char, true>("testwrite.txt");
     TEST(g.second == 5);
     TEST(!strncmp(g.first.get(), "test", 5));
   }
 
-  TEST(bssabs<int8_t>(-1) == 1);
-  TEST(bssabs<int8_t>(-128) == 128);
-  TEST(bssabs<int8_t>(127) == 127);
-  TEST(bssabs<int8_t>(126) == 126);
-  TEST(bssabs<int8_t>(0) == 0);
-  TEST(bssabs<int8_t>(1) == 1);
-  TEST(bssabs<int8_t>(-127) == 127);
+  TEST(bssAbs<int8_t>(-1) == 1);
+  TEST(bssAbs<int8_t>(-128) == 128);
+  TEST(bssAbs<int8_t>(127) == 127);
+  TEST(bssAbs<int8_t>(126) == 126);
+  TEST(bssAbs<int8_t>(0) == 0);
+  TEST(bssAbs<int8_t>(1) == 1);
+  TEST(bssAbs<int8_t>(-127) == 127);
 
-  TEST(bssnegate<uint8_t>(1, 1) == -1);
-  TEST(bssnegate<uint8_t>(128, 1) == -128);
-  TEST(bssnegate<uint8_t>(127, 0) == 127);
-  TEST(bssnegate<uint8_t>(126, 0) == 126);
-  TEST(bssnegate<uint8_t>(0, 0) == 0);
-  TEST(bssnegate<uint8_t>(1, 0) == 1);
-  TEST(bssnegate<uint8_t>(127, 1) == -127);
+  TEST(bssNegate<uint8_t>(1, 1) == -1);
+  TEST(bssNegate<uint8_t>(128, 1) == -128);
+  TEST(bssNegate<uint8_t>(127, 0) == 127);
+  TEST(bssNegate<uint8_t>(126, 0) == 126);
+  TEST(bssNegate<uint8_t>(0, 0) == 0);
+  TEST(bssNegate<uint8_t>(1, 0) == 1);
+  TEST(bssNegate<uint8_t>(127, 1) == -127);
 
   for(uint16_t i = 0; i <= 255; ++i)
     for(uint16_t j = 0; j <= 255; ++j)
       for(uint8_t k = 0; k <= 16; ++k)
       {
-        TEST(__bssmultiplyextract__h<uint8_t>((uint8_t)i, (uint8_t)j, k) == bssmultiplyextract<uint8_t>((uint8_t)i, (uint8_t)j, k));
+        TEST(__bssmultiplyextract__h<uint8_t>((uint8_t)i, (uint8_t)j, k) == bssMultiplyExtract<uint8_t>((uint8_t)i, (uint8_t)j, k));
       }
 
 
@@ -520,7 +520,7 @@ TESTDEF::RETPAIR test_bss_util()
     for(int16_t j = -128; j <= 127; ++j)
       for(int8_t k = 0; k <= 16; ++k)
       {
-        TEST(__bssmultiplyextract__h<int8_t>((int8_t)i, (int8_t)j, k) == bssmultiplyextract<int8_t>((int8_t)i, (int8_t)j, k));
+        TEST(__bssmultiplyextract__h<int8_t>((int8_t)i, (int8_t)j, k) == bssMultiplyExtract<int8_t>((int8_t)i, (int8_t)j, k));
       }
   
   TEST(__bssmultiplyextract__h<uint64_t>(0, 0, 0) == 0);

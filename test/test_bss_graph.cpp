@@ -1,11 +1,11 @@
 // Copyright ©2017 Black Sphere Studios
 // For conditions of distribution and use, see copyright notice in "bss_util.h"
 
-#include "bss_graph.h"
+#include "bss-util/bss_graph.h"
 #include "test.h"
 #include <iostream>
 
-using namespace bss_util;
+using namespace bss;
 
 bool GRAPHACTION(uint16_t s) { return false; }
 bool GRAPHISEDGE(const __edge_MaxFlow<__edge_LowerBound<void>>* e) { return e->capacity>0; }

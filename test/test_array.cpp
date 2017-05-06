@@ -1,16 +1,16 @@
 // Copyright ©2017 Black Sphere Studios
 // For conditions of distribution and use, see copyright notice in "bss_util.h"
 
-#include "cArray.h"
+#include "bss-util/Array.h"
 #include "test.h"
 
-using namespace bss_util;
+using namespace bss;
 
 TESTDEF::RETPAIR test_ARRAY()
 {
   BEGINTEST;
 
-  cArray<int> a(5);
+  Array<int> a(5);
   TEST(a.Capacity() == 5);
   a.Insert(5, 2);
   TEST(a.Capacity() == 6);
@@ -22,8 +22,8 @@ TESTDEF::RETPAIR test_ARRAY()
   TEST(a.Capacity() == 10);
 
   {
-    cArray<int> e(0);
-    cArray<int> b(e);
+    Array<int> e(0);
+    Array<int> b(e);
     b = e;
     e.Insert(5, 0);
     e.Insert(4, 0);
@@ -32,10 +32,10 @@ TESTDEF::RETPAIR test_ARRAY()
     TEST(e.Capacity() == 4);
     int sol[] = { 2,3,4,5 };
     TESTARRAY(sol, return e[i] == sol[i];);
-    cArray<int> c(0);
+    Array<int> c(0);
     c = e;
     TESTARRAY(sol, return c[i] == sol[i];);
-    cArray<int> d(0);
+    Array<int> d(0);
     e = d;
     TEST(!e.Capacity());
     e += d;
@@ -51,18 +51,18 @@ TESTDEF::RETPAIR test_ARRAY()
     TESTARRAY(sol, return e[i] == sol[i];);
   }
 
-  auto f = [](cArray<DEBUG_CDT<true>, uint32_t, CARRAY_SAFE>& arr)->bool {
+  auto f = [](Array<DEBUG_CDT<true>, uint32_t, CARRAY_SAFE>& arr)->bool {
     for(uint32_t i = 0; i < arr.Capacity(); ++i)
       if(arr[i]._index != i)
         return false;
     return true;
   };
-  auto f2 = [](cArray<DEBUG_CDT<true>, uint32_t, CARRAY_SAFE>& arr, uint32_t s) { for(uint32_t i = s; i < arr.Capacity(); ++i) arr[i]._index = i; };
+  auto f2 = [](Array<DEBUG_CDT<true>, uint32_t, CARRAY_SAFE>& arr, uint32_t s) { for(uint32_t i = s; i < arr.Capacity(); ++i) arr[i]._index = i; };
 
   assert(!DEBUG_CDT_SAFE::Tracker.Length());
   {
     DEBUG_CDT<true>::count = 0;
-    cArray<DEBUG_CDT<true>, uint32_t, CARRAY_SAFE> b(10);
+    Array<DEBUG_CDT<true>, uint32_t, CARRAY_SAFE> b(10);
     f2(b, 0);
     b.Remove(5);
     for(uint32_t i = 0; i < 5; ++i) TEST(b[i]._index == i);
@@ -75,7 +75,7 @@ TESTDEF::RETPAIR test_ARRAY()
     TEST(f(b));
     TEST(DEBUG_CDT<true>::count == 19);
     TEST(b.Capacity() == 19);
-    cArray<DEBUG_CDT<true>, uint32_t, CARRAY_SAFE> c(b);
+    Array<DEBUG_CDT<true>, uint32_t, CARRAY_SAFE> c(b);
     TEST(f(c));
     TEST(DEBUG_CDT<true>::count == 38);
     b += c;
@@ -94,16 +94,16 @@ TESTDEF::RETPAIR test_ARRAY()
   TEST(!DEBUG_CDT<true>::count);
   TEST(!DEBUG_CDT_SAFE::Tracker.Length());
 
-  auto f3 = [](cArray<DEBUG_CDT<false>, uint32_t, CARRAY_CONSTRUCT>& arr)->bool {
+  auto f3 = [](Array<DEBUG_CDT<false>, uint32_t, CARRAY_CONSTRUCT>& arr)->bool {
     for(uint32_t i = 0; i < arr.Capacity(); ++i)
       if(arr[i]._index != i)
         return false;
     return true;
   };
-  auto f4 = [](cArray<DEBUG_CDT<false>, uint32_t, CARRAY_CONSTRUCT>& arr, uint32_t s) { for(uint32_t i = s; i < arr.Capacity(); ++i) arr[i]._index = i; };
+  auto f4 = [](Array<DEBUG_CDT<false>, uint32_t, CARRAY_CONSTRUCT>& arr, uint32_t s) { for(uint32_t i = s; i < arr.Capacity(); ++i) arr[i]._index = i; };
   {
     DEBUG_CDT<false>::count = 0;
-    cArray<DEBUG_CDT<false>, uint32_t, CARRAY_CONSTRUCT> b(10);
+    Array<DEBUG_CDT<false>, uint32_t, CARRAY_CONSTRUCT> b(10);
     f4(b, 0);
     b.Remove(5);
     for(uint32_t i = 0; i < 5; ++i) TEST(b[i]._index == i);
@@ -116,7 +116,7 @@ TESTDEF::RETPAIR test_ARRAY()
     TEST(f3(b));
     TEST(DEBUG_CDT<false>::count == 19);
     TEST(b.Capacity() == 19);
-    cArray<DEBUG_CDT<false>, uint32_t, CARRAY_CONSTRUCT> c(b);
+    Array<DEBUG_CDT<false>, uint32_t, CARRAY_CONSTRUCT> c(b);
     TEST(f3(c));
     TEST(DEBUG_CDT<false>::count == 38);
     b += c;

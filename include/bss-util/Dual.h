@@ -4,11 +4,11 @@
 #ifndef __BSS_DUAL_H__
 #define __BSS_DUAL_H__
 
-#include "bss_compare.h"
+#include "bss-util/bss_compare.h"
 #include <cmath>
 #include <assert.h>
 
-namespace bss_util {
+namespace bss {
   // Represents a dual number that can be used for (very inefficient) automatic differentiation.
   template<typename T, int O = 1>
   struct Dual
@@ -92,12 +92,12 @@ namespace bss_util {
 
 // Global operator overloads
 template<typename T, int O>
-inline const bss_util::Dual<T, O> operator +(T l, const bss_util::Dual<T, O>& r) { return bss_util::Dual<T, O>(l) + r; }
+inline const bss::Dual<T, O> operator +(T l, const bss::Dual<T, O>& r) { return bss::Dual<T, O>(l) + r; }
 template<typename T, int O>
-inline const bss_util::Dual<T, O> operator -(T l, const bss_util::Dual<T, O>& r) { return bss_util::Dual<T, O>(l) - r; }
+inline const bss::Dual<T, O> operator -(T l, const bss::Dual<T, O>& r) { return bss::Dual<T, O>(l) - r; }
 template<typename T, int O>
-inline const bss_util::Dual<T, O> operator *(T l, const bss_util::Dual<T, O>& r) { return bss_util::Dual<T, O>(l)*r; }
+inline const bss::Dual<T, O> operator *(T l, const bss::Dual<T, O>& r) { return bss::Dual<T, O>(l)*r; }
 template<typename T, int O>
-inline const bss_util::Dual<T, O> operator /(T l, const bss_util::Dual<T, O>& r) { return bss_util::Dual<T, O>(l) / r; }
+inline const bss::Dual<T, O> operator /(T l, const bss::Dual<T, O>& r) { return bss::Dual<T, O>(l) / r; }
 
 #endif

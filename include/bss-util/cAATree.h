@@ -4,10 +4,10 @@
 #ifndef __C_AA_TREE_H__BSS__
 #define __C_AA_TREE_H__BSS__
 
-#include "bss_compare.h"
-#include "bss_alloc_block.h"
+#include "bss-util/bss_compare.h"
+#include "bss-util/bss_alloc_block.h"
 
-namespace bss_util {
+namespace bss {
   template<typename T>
   struct AANODE
   {
@@ -19,16 +19,16 @@ namespace bss_util {
 
   // An AA tree, similar to a left leaning red-black tree, except not completely stupid.
   template<typename T, char(*CFunc)(const T&, const T&) = CompT<T>, typename Alloc = BlockPolicy<AANODE<T>>>
-  class cAATree : cAllocTracker<Alloc>
+  class AATree : AllocTracker<Alloc>
   {
   public:
-    inline cAATree(Alloc* alloc = 0) : cAllocTracker<Alloc>(alloc), _sentinel(cAllocTracker<Alloc>::_allocate(1))
+    inline AATree(Alloc* alloc = 0) : AllocTracker<Alloc>(alloc), _sentinel(AllocTracker<Alloc>::_allocate(1))
     {
       _sentinel->level = 0;
       _sentinel->left = _sentinel->right = _sentinel;
       _root = _sentinel;
     }
-    inline ~cAATree() { Clear(); cAllocTracker<Alloc>::_deallocate(_sentinel, 1); }
+    inline ~AATree() { Clear(); AllocTracker<Alloc>::_deallocate(_sentinel, 1); }
     inline void Insert(const T& data) { _insert(_root, data); }
     inline bool Remove(const T& data) { return _remove(_root, data); }
     // Gets the node that belongs to the data or returns nullptr if not found.
@@ -62,7 +62,7 @@ namespace bss_util {
       _clear(n->left);
       _clear(n->right);
       n->~AANODE<T>();
-      cAllocTracker<Alloc>::_deallocate(n, 1);
+      AllocTracker<Alloc>::_deallocate(n, 1);
     }
     template<void(*FACTION)(T&)>
     inline void _traverse(AANODE<T>* n)
@@ -96,7 +96,7 @@ namespace bss_util {
     {
       if(n == _sentinel)
       {
-        n = cAllocTracker<Alloc>::_allocate(1);
+        n = AllocTracker<Alloc>::_allocate(1);
         n->left = n->right = _sentinel;
         n->data = data;
         n->level = 1;
@@ -129,7 +129,7 @@ namespace bss_util {
         _deleted->data = n->data;
         _deleted = _sentinel;
         n = n->right;
-        cAllocTracker<Alloc>::_deallocate(_last);
+        AllocTracker<Alloc>::_deallocate(_last);
         _last = _sentinel;
         b = true;
       }

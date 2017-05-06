@@ -1,15 +1,15 @@
 // Copyright ©2017 Black Sphere Studios
 // For conditions of distribution and use, see copyright notice in "bss_util.h"
 
-#include "os.h"
-#include "cTrie.h"
+#include "bss-util/os.h"
+#include "bss-util/Trie.h"
 #include <string.h>
 #include "test.h"
 #ifdef BSS_PLATFORM_WIN32
-#include "bss_win32_includes.h"
+#include "bss-util/bss_win32_includes.h"
 #endif
 
-using namespace bss_util;
+using namespace bss;
 
 TESTDEF::RETPAIR test_OS()
 {
@@ -32,14 +32,14 @@ TESTDEF::RETPAIR test_OS()
   TEST(!FileExistsW(BSS__L("testaskdjlhfs.sdkj")));
 #endif
 
-  //cStr cmd(GetCommandLineW());
-  cStr cmd("\"\"C:/fake/f\"\"ile/p\"ath.txt\"\" -r 2738 283.5 -a\"a\" 3 \"-no indice\"");
+  //Str cmd(GetCommandLineW());
+  Str cmd("\"\"C:/fake/f\"\"ile/p\"ath.txt\"\" -r 2738 283.5 -a\"a\" 3 \"-no indice\"");
   int argc = ToArgV<char>(0, cmd.UnsafeString());
   DYNARRAY(char*, argv, argc);
   ToArgV(argv, cmd.UnsafeString());
   ProcessCmdArgs(argc, argv, [&__testret](const char* const* p, size_t n)
   {
-    static cTrie<uint8_t> t(3, "-r", "-a\"a\"", "-no indice");
+    static Trie<uint8_t> t(3, "-r", "-a\"a\"", "-no indice");
     switch(t[p[0]])
     {
     case 0:
@@ -74,7 +74,7 @@ TESTDEF::RETPAIR test_OS()
   TEST(FolderExists("testdir"));
   TEST(!DelDir("testdir"));
   TEST(!FolderExists("testdir"));
-  std::vector<cStr> files;
+  std::vector<Str> files;
   ListDir(".", files, 1);
   // There should be at least two files, test.exe and bss-util.dll
   TEST(files.size()>2);
@@ -84,7 +84,7 @@ TESTDEF::RETPAIR test_OS()
   //TEST(FolderExists("IGNORE/symlink/"));
   //TEST(FolderExists(BSS__L("IGNORE/symlink/")));
   //{
-  //std::unique_ptr<char[],bssdll_delete<char[]>> p = FileDialog(true,0,BSS__L("test"));
+  //std::unique_ptr<char[],bssDLLDelete<char[]>> p = FileDialog(true,0,BSS__L("test"));
   //}
 
 #ifdef BSS_PLATFORM_WIN32
@@ -96,7 +96,7 @@ TESTDEF::RETPAIR test_OS()
     buf[sz / 2] = 0;
     sz = GetRegistryValue(HKEY_CURRENT_USER, "Control Panel\\Desktop", "CursorBlinkRate", (unsigned char*)buf, (unsigned long)sz);
     TEST(sz >= 0);
-    int blinkrate = atoi(cStr(buf));
+    int blinkrate = atoi(Str(buf));
     TEST(blinkrate > 0);
   }
 
@@ -124,21 +124,21 @@ TESTDEF::RETPAIR test_OS()
   //CPU_Barrier();
 
   auto p = GetFontPath("Arial", 400, false);
-  TEST(!STRICMP(cLog::_trimpath(p.get()), "arial.ttf"));
+  TEST(!STRICMP(Log::_trimpath(p.get()), "arial.ttf"));
   p = GetFontPath("Arial", 500, false);
-  TEST(!STRICMP(cLog::_trimpath(p.get()), "arial.ttf"));
+  TEST(!STRICMP(Log::_trimpath(p.get()), "arial.ttf"));
   p = GetFontPath("Arial", 501, false);
-  TEST(!STRICMP(cLog::_trimpath(p.get()), "arialbd.ttf"));
+  TEST(!STRICMP(Log::_trimpath(p.get()), "arialbd.ttf"));
   p = GetFontPath("Arial", 399, false);
-  TEST(!STRICMP(cLog::_trimpath(p.get()), "arial.ttf"));
+  TEST(!STRICMP(Log::_trimpath(p.get()), "arial.ttf"));
   p = GetFontPath("Arial", 1, false);
-  TEST(!STRICMP(cLog::_trimpath(p.get()), "arial.ttf"));
+  TEST(!STRICMP(Log::_trimpath(p.get()), "arial.ttf"));
   p = GetFontPath("Arial", 600, false);
-  TEST(!STRICMP(cLog::_trimpath(p.get()), "arialbd.ttf"));
+  TEST(!STRICMP(Log::_trimpath(p.get()), "arialbd.ttf"));
   p = GetFontPath("Arial", 600, true);
-  TEST(!STRICMP(cLog::_trimpath(p.get()), "arialbi.ttf"));
+  TEST(!STRICMP(Log::_trimpath(p.get()), "arialbi.ttf"));
   p = GetFontPath("Arial", 500, true);
-  TEST(!STRICMP(cLog::_trimpath(p.get()), "ariali.ttf"));
+  TEST(!STRICMP(Log::_trimpath(p.get()), "ariali.ttf"));
 
   ENDTEST;
 }

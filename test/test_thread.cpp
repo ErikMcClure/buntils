@@ -1,20 +1,20 @@
 // Copyright ©2017 Black Sphere Studios
 // For conditions of distribution and use, see copyright notice in "bss_util.h"
 
-#include "cThread.h"
-#include "bss_algo.h"
-#include "cHighPrecisionTimer.h"
+#include "bss-util/Thread.h"
+#include "bss-util/bss_algo.h"
+#include "bss-util/HighPrecisionTimer.h"
 #include "test.h"
 
-using namespace bss_util;
+using namespace bss;
 
 TESTDEF::RETPAIR test_THREAD()
 {
   BEGINTEST;
   uint64_t m;
-  cThread t([](uint64_t& m) {cThread::Wait(); m = cHighPrecisionTimer::CloseProfiler(m); }, std::ref(m));
+  Thread t([](uint64_t& m) {Thread::Wait(); m = HighPrecisionTimer::CloseProfiler(m); }, std::ref(m));
   TEST(t.join(2) == -1);
-  m = cHighPrecisionTimer::OpenProfiler();
+  m = HighPrecisionTimer::OpenProfiler();
   t.Signal();
   TEST(t.join(1000) != (size_t)-1);
   //std::cout << "\n" << m << std::endl;

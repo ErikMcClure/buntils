@@ -1,10 +1,10 @@
 // Copyright ©2017 Black Sphere Studios
 // For conditions of distribution and use, see copyright notice in "bss_util.h"
 
-#include "cArraySort.h"
+#include "bss-util/ArraySort.h"
 #include "test.h"
 
-using namespace bss_util;
+using namespace bss;
 
 TESTDEF::RETPAIR test_ARRAYSORT()
 {
@@ -13,7 +13,7 @@ TESTDEF::RETPAIR test_ARRAYSORT()
   DEBUG_CDT<true>::count = 0;
 
   {
-    cArraySort<DEBUG_CDT<true>, CompT<DEBUG_CDT<true>>, uint32_t, CARRAY_SAFE> arrtest;
+    ArraySort<DEBUG_CDT<true>, CompT<DEBUG_CDT<true>>, uint32_t, CARRAY_SAFE> arrtest;
     arrtest.Insert(DEBUG_CDT<true>(0));
     arrtest.Insert(DEBUG_CDT<true>(1));
     arrtest.Insert(DEBUG_CDT<true>(2));
@@ -36,16 +36,16 @@ TESTDEF::RETPAIR test_ARRAYSORT()
     TEST(arrtest[2] == 5);
     TEST(arrtest[3] == 7);
 
-    cArraySort<DEBUG_CDT<true>, CompT<DEBUG_CDT<true>>, uint32_t, CARRAY_SAFE> arrtest2;
+    ArraySort<DEBUG_CDT<true>, CompT<DEBUG_CDT<true>>, uint32_t, CARRAY_SAFE> arrtest2;
     arrtest2.Insert(DEBUG_CDT<true>(7));
     arrtest2.Insert(DEBUG_CDT<true>(8));
     arrtest = arrtest2;
   }
   TEST(!DEBUG_CDT<true>::count)
 
-    cArraySort<int> slicetest;
+    ArraySort<int> slicetest;
   int slices[4] = { 0, 1, 2, 3 };
-  slicetest = cArraySlice<int>(slices, 4);
+  slicetest = ArraySlice<int>(slices, 4);
   TEST(slicetest.Length() == 4);
   ENDTEST;
 }

@@ -4,13 +4,13 @@
 #ifndef __BSS_COMPARE_H__
 #define __BSS_COMPARE_H__
 
-#include "bss_defines.h"
+#include "bss-util/bss_defines.h"
 #include <string.h>
 
 #define SGNCOMPARE(left,right) (((left)>(right))-((left)<(right)))
 #define PRICOMPARE(left,right,p) (SGNCOMPARE(left,right)<<p)
 
-namespace bss_util {
+namespace bss {
   template<typename T> // Returns -1,0,1 if l<r,l==r,l>r, respectively
   BSS_FORCEINLINE char CompT(const T& left, const T& right) noexcept { return SGNCOMPARE(left, right); }
 

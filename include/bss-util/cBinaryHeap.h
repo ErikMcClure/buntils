@@ -4,21 +4,21 @@
 #ifndef __C_HEAP_H__BSS__
 #define __C_HEAP_H__BSS__
 
-#include "bss_compare.h"
-#include "cDynArray.h"
+#include "bss-util/bss_compare.h"
+#include "bss-util/DynArray.h"
 #include <memory>
 #include <limits>
 
-namespace bss_util {
+namespace bss {
   template<class T, typename CT_>
   struct MFUNC_DEFAULT { BSS_FORCEINLINE static void MFunc(const T&, CT_, MFUNC_DEFAULT*) {} };
 
   // This is a binary max-heap implemented using an array. Use CompTInv to change it into a min-heap, or to make it use pairs.
   template<class T, typename CT_ = uint32_t, char(*CFunc)(const T&, const T&) = CompT<T>, ARRAY_TYPE ArrayType = CARRAY_SIMPLE, typename Alloc = StaticAllocPolicy<T>, class MFUNC = MFUNC_DEFAULT<T, CT_>>
-  class BSS_COMPILER_DLLEXPORT cBinaryHeap : protected cDynArray<T, CT_, ArrayType, Alloc>, protected MFUNC
+  class BSS_COMPILER_DLLEXPORT BinaryHeap : protected DynArray<T, CT_, ArrayType, Alloc>, protected MFUNC
   {
   protected:
-    typedef cDynArray<T, CT_, ArrayType, Alloc> AT_;
+    typedef DynArray<T, CT_, ArrayType, Alloc> AT_;
     using AT_::_array;
     using AT_::_capacity;
     using AT_::_length;
@@ -27,13 +27,13 @@ namespace bss_util {
 #define CBH_RIGHT(i) ((i<<1)+2)
 
   public:
-    inline cBinaryHeap(const cBinaryHeap& copy) : AT_(copy) {}
-    inline cBinaryHeap(cBinaryHeap&& mov) : AT_(std::move(mov)) {}
-    inline cBinaryHeap() : AT_(0) {}
-    inline cBinaryHeap(const T* src, CT_ length) : AT_(length) { _copy(_array, src, sizeof(T)*length); _length = length; Heapify(_array, _length); }
+    inline BinaryHeap(const BinaryHeap& copy) : AT_(copy) {}
+    inline BinaryHeap(BinaryHeap&& mov) : AT_(std::move(mov)) {}
+    inline BinaryHeap() : AT_(0) {}
+    inline BinaryHeap(const T* src, CT_ length) : AT_(length) { _copy(_array, src, sizeof(T)*length); _length = length; Heapify(_array, _length); }
     template<CT_ SIZE>
-    inline cBinaryHeap(const T(&src)[SIZE]) : AT_(SIZE) { _copy(_array, src, sizeof(T)*SIZE); _length = SIZE; Heapify(_array, _length); }
-    inline ~cBinaryHeap() {}
+    inline BinaryHeap(const T(&src)[SIZE]) : AT_(SIZE) { _copy(_array, src, sizeof(T)*SIZE); _length = SIZE; Heapify(_array, _length); }
+    inline ~BinaryHeap() {}
     inline const T& Peek() { return _array[0]; }
     inline const T& Get(CT_ index) { assert(index < _length); return _array[index]; }
     inline T Pop() { T r = std::move(_array[0]); Remove(0); return std::move(r); }
@@ -58,7 +58,7 @@ namespace bss_util {
 
     // Percolate up through the heap
     template<typename U>
-    static void PercolateUp(T* _array, CT_ _length, CT_ k, U && val, cBinaryHeap* p = 0)
+    static void PercolateUp(T* _array, CT_ _length, CT_ k, U && val, BinaryHeap* p = 0)
     {
       assert(k < _length);
       uint32_t parent;
@@ -76,7 +76,7 @@ namespace bss_util {
     }
     // Percolate down a heap
     template<typename U>
-    static void PercolateDown(T* _array, CT_ length, CT_ k, U && val, cBinaryHeap* p = 0)
+    static void PercolateDown(T* _array, CT_ length, CT_ k, U && val, BinaryHeap* p = 0)
     {
       assert(k < length);
       assert(k < (std::numeric_limits<CT_>::max() >> 1));
@@ -108,8 +108,8 @@ namespace bss_util {
     inline const T* end() const { return _array + _length; }
     inline T* begin() { return _array; }
     inline T* end() { return _array + _length; }
-    inline cBinaryHeap& operator=(const cBinaryHeap& copy) { AT_::operator=(copy); return *this; }
-    inline cBinaryHeap& operator=(cBinaryHeap&& mov) { AT_::operator=(std::move(mov)); return *this; }
+    inline BinaryHeap& operator=(const BinaryHeap& copy) { AT_::operator=(copy); return *this; }
+    inline BinaryHeap& operator=(BinaryHeap&& mov) { AT_::operator=(std::move(mov)); return *this; }
 
     template<CT_ SIZE>
     inline static void Heapify(T(&src)[SIZE]) { Heapify(src, SIZE); }
@@ -140,7 +140,7 @@ namespace bss_util {
     template<typename U>
     inline void _insert(U && val)
     {
-      AT_::_checksize();
+      AT_::_checkSize();
       new(_array + _length) T();
       int k = _length++;
       PercolateUp(_array, _length, k, std::forward<U>(val), this);

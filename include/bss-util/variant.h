@@ -4,7 +4,7 @@
 #ifndef __VARIANT_H__BSS__
 #define __VARIANT_H__BSS__
 
-#include "bss_defines.h"
+#include "bss-util/bss_defines.h"
 #include <type_traits>
 #include <assert.h>
 #include <stddef.h>
@@ -12,7 +12,7 @@
 
 #ifdef BSS_VARIADIC_TEMPLATES
 
-namespace bss_util {
+namespace bss {
 
   template<typename V, typename... Tx>
   struct _variant_op;
@@ -97,9 +97,9 @@ namespace bss_util {
 
   // algebriac union using variadic templates
   template<typename Arg, typename... Args>
-  class BSS_COMPILER_DLLEXPORT variant
+  class BSS_COMPILER_DLLEXPORT Variant
   {
-    typedef variant<Arg, Args...> SELF;
+    typedef Variant<Arg, Args...> SELF;
 
     // Compile-time max sizeof
     template<typename A, typename... Ax>
@@ -132,15 +132,15 @@ namespace bss_util {
     template<typename T, typename U>
     struct resolve
     {
-      inline static void construct(variant& src, U && v)
+      inline static void construct(Variant& src, U && v)
       {
-        static_assert(getpos<T, Arg, Args...>::value != -1, "Type does not exist in variant");
+        static_assert(getpos<T, Arg, Args...>::value != -1, "Type does not exist in Variant");
         src._tag = getpos<T, Arg, Args...>::value;
         new(src._store) T(std::forward<U>(v));
       }
-      inline static void assign(variant& src, U && v)
+      inline static void assign(Variant& src, U && v)
       {
-        static_assert(getpos<T, Arg, Args...>::value != -1, "Type does not exist in variant");
+        static_assert(getpos<T, Arg, Args...>::value != -1, "Type does not exist in Variant");
         if(src._tag == getpos<T, Arg, Args...>::value)
           *reinterpret_cast<T*>(src._store) = std::forward<U>(v);
         else
@@ -152,10 +152,10 @@ namespace bss_util {
     };
 
     template<typename U>
-    struct resolve<variant, U>
+    struct resolve<Variant, U>
     {
-      inline static void construct(variant& src, U && v) { src._tag = v._tag; _variant_op<SELF, Arg, Args...>::template construct<U>(src._tag, src._store, std::forward<U>(v)); }
-      inline static void assign(variant& src, U && v)
+      inline static void construct(Variant& src, U && v) { src._tag = v._tag; _variant_op<SELF, Arg, Args...>::template construct<U>(src._tag, src._store, std::forward<U>(v)); }
+      inline static void assign(Variant& src, U && v)
       {
         if(src._tag == v._tag)
           _variant_op<SELF, Arg, Args...>::template assign<U>(src._tag, src._store, std::forward<U>(v));
@@ -169,32 +169,32 @@ namespace bss_util {
     };
 
   public:
-    variant() : _tag(-1) {}
-    variant(const variant& v) : _tag(v._tag) { _variant_op<SELF, Arg, Args...>::template construct<variant>(_tag, _store, v); }
-    variant(variant&& v) : _tag(v._tag) { _variant_op<SELF, Arg, Args...>::template construct<variant>(_tag, _store, std::move(v)); }
+    Variant() : _tag(-1) {}
+    Variant(const Variant& v) : _tag(v._tag) { _variant_op<SELF, Arg, Args...>::template construct<Variant>(_tag, _store, v); }
+    Variant(Variant&& v) : _tag(v._tag) { _variant_op<SELF, Arg, Args...>::template construct<Variant>(_tag, _store, std::move(v)); }
     template<typename T>
-    explicit variant(const T& t) { _construct(t); }
+    explicit Variant(const T& t) { _construct(t); }
     template<typename T>
-    explicit variant(T&& t) { _construct(std::forward<T>(t)); }
-    ~variant() { _destruct(); }
-    variant& operator=(const variant& right) { _assign(right); return *this; }
-    variant& operator=(variant&& right) { _assign(std::move(right)); return *this; }
+    explicit Variant(T&& t) { _construct(std::forward<T>(t)); }
+    ~Variant() { _destruct(); }
+    Variant& operator=(const Variant& right) { _assign(right); return *this; }
+    Variant& operator=(Variant&& right) { _assign(std::move(right)); return *this; }
     template<typename T>
-    variant& operator=(const T& right) { _assign(right); return *this; }
+    Variant& operator=(const T& right) { _assign(right); return *this; }
     template<typename T>
-    variant& operator=(T&& right) { _assign(std::forward<T>(right)); return *this; }
+    Variant& operator=(T&& right) { _assign(std::forward<T>(right)); return *this; }
 
     template<typename T>
     T& get()
     {
-      static_assert(getpos<T, Arg, Args...>::value != -1, "Type does not exist in variant");
+      static_assert(getpos<T, Arg, Args...>::value != -1, "Type does not exist in Variant");
       assert((getpos<T, Arg, Args...>::value == _tag));
       return *reinterpret_cast<T*>(_store);
     }
     template<typename T>
     const T& get() const
     {
-      static_assert(getpos<T, Arg, Args...>::value != -1, "Type does not exist in variant");
+      static_assert(getpos<T, Arg, Args...>::value != -1, "Type does not exist in Variant");
       assert((getpos<T, Arg, Args...>::value == _tag));
       return *reinterpret_cast<const T*>(_store);
     }
@@ -211,7 +211,7 @@ namespace bss_util {
     template<typename T>
     inline void typeset()
     {
-      static_assert(getpos<T, Arg, Args...>::value != -1, "Type does not exist in variant");
+      static_assert(getpos<T, Arg, Args...>::value != -1, "Type does not exist in Variant");
       _destruct();
       _tag = getpos<T, Arg, Args...>::value;
       new(_store) T();

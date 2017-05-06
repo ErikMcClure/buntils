@@ -1,11 +1,11 @@
 // Copyright ©2017 Black Sphere Studios
 // For conditions of distribution and use, see copyright notice in "bss_util.h"
 
-#include "cKDTree.h"
-#include "bss_alloc_block.h"
+#include "bss-util/KDTree.h"
+#include "bss-util/bss_alloc_block.h"
 #include "test.h"
 
-using namespace bss_util;
+using namespace bss;
 
 struct KDtest {
   float rect[4];
@@ -23,7 +23,7 @@ TESTDEF::RETPAIR test_KDTREE()
 {
   BEGINTEST;
   BlockPolicy<KDNode<KDtest>> alloc;
-  cKDTree<KDtest, BlockPolicy<KDNode<KDtest>>, &KDtest_RECT, &KDtest_LIST, &KDtest_NODE> tree;
+  KDTree<KDtest, BlockPolicy<KDNode<KDtest>>, &KDtest_RECT, &KDtest_LIST, &KDtest_NODE> tree;
   KDtest r1 = { 0,0,1,1,0,0 };
   KDtest r2 = { 1,1,2,2,0,0 };
   KDtest r3 = { 0,0,2,2,0,0 };

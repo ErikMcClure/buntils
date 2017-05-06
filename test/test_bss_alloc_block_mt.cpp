@@ -1,14 +1,14 @@
 // Copyright ©2017 Black Sphere Studios
 // For conditions of distribution and use, see copyright notice in "bss_util.h"
 
-#include "bss_alloc_block_MT.h"
-#include "cThread.h"
+#include "bss-util/bss_alloc_block_MT.h"
+#include "bss-util/Thread.h"
 #include "test_alloc.h"
 
-using namespace bss_util;
+using namespace bss;
 
 template<class T>
-struct MTALLOCWRAP : cLocklessBlockAlloc<T> { inline MTALLOCWRAP(size_t init = 8) : cLocklessBlockAlloc<T>(init) {} inline void Clear() {} };
+struct MTALLOCWRAP : LocklessBlockAlloc<T> { inline MTALLOCWRAP(size_t init = 8) : LocklessBlockAlloc<T>(init) {} inline void Clear() {} };
 
 typedef void(*ALLOCFN)(TESTDEF::RETPAIR&, MTALLOCWRAP<size_t>&);
 TESTDEF::RETPAIR test_bss_ALLOC_BLOCK_LOCKLESS()
@@ -17,10 +17,10 @@ TESTDEF::RETPAIR test_bss_ALLOC_BLOCK_LOCKLESS()
   MTALLOCWRAP<size_t> _alloc(10000);
 
   const int NUM = 16;
-  cThread threads[NUM];
+  Thread threads[NUM];
   startflag.store(false);
   for(int i = 0; i < NUM; ++i)
-    threads[i] = cThread((ALLOCFN)&TEST_ALLOC_MT<MTALLOCWRAP<size_t>, size_t, 50000>, std::ref(__testret), std::ref(_alloc));
+    threads[i] = Thread((ALLOCFN)&TEST_ALLOC_MT<MTALLOCWRAP<size_t>, size_t, 50000>, std::ref(__testret), std::ref(_alloc));
   startflag.store(true);
 
   for(int i = 0; i < NUM; ++i)
@@ -30,7 +30,7 @@ TESTDEF::RETPAIR test_bss_ALLOC_BLOCK_LOCKLESS()
 
   startflag.store(false);
   for(int i = 0; i < NUM; ++i)
-    threads[i] = cThread((ALLOCFN)&TEST_ALLOC_MT<MTALLOCWRAP<size_t>, size_t, 10000>, std::ref(__testret), std::ref(_alloc2));
+    threads[i] = Thread((ALLOCFN)&TEST_ALLOC_MT<MTALLOCWRAP<size_t>, size_t, 10000>, std::ref(__testret), std::ref(_alloc2));
   startflag.store(true);
 
   for(int i = 0; i < NUM; ++i)

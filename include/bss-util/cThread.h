@@ -4,7 +4,7 @@
 #ifndef __C_THREAD_H__BSS__
 #define __C_THREAD_H__BSS__
 
-#include "bss_defines.h"
+#include "bss-util/bss_defines.h"
 #include <assert.h>
 #ifndef BSS_COMPILER_MSC2010
 #include <thread>
@@ -12,26 +12,26 @@
 #include <functional>
 #endif
 #ifdef BSS_PLATFORM_WIN32
-#include "bss_win32_includes.h"
+#include "bss-util/bss_win32_includes.h"
 #include <process.h>
 #else // Assume BSS_PLATFORM_POSIX
 #include <pthread.h>
 #include <signal.h>
 #endif
 
-namespace bss_util {
+namespace bss {
 #ifndef BSS_COMPILER_MSC2010
 #pragma warning(push)
 #pragma warning(disable:4275)
   // This extends std::thread and adds support for joining with a timeout and signaled state
-  class BSS_COMPILER_DLLEXPORT cThread : public std::thread
+  class BSS_COMPILER_DLLEXPORT Thread : public std::thread
   {
 #pragma warning(pop)
-    inline cThread(const cThread&) BSS_DELETEFUNC
-    cThread& operator=(const cThread&) BSS_DELETEFUNCOP
+    inline Thread(const Thread&) BSS_DELETEFUNC
+    Thread& operator=(const Thread&) BSS_DELETEFUNCOP
   public:
     template<class _Fn, class... _Args>
-    explicit cThread(_Fn&& _Fx, _Args&&... _Ax) : std::thread(std::forward<_Fn>(_Fx), std::forward<_Args>(_Ax)...)
+    explicit Thread(_Fn&& _Fx, _Args&&... _Ax) : std::thread(std::forward<_Fn>(_Fx), std::forward<_Args>(_Ax)...)
     {
 #ifdef BSS_PLATFORM_POSIX
       struct sigaction action;
@@ -42,9 +42,9 @@ namespace bss_util {
       sigaction(SIGUSR1, &action, nullptr);
 #endif
     }
-    inline cThread(cThread&& mov) : std::thread(std::move((std::thread&&)mov)) {} // Move constructor only
-    inline cThread() {}
-    inline ~cThread() { if(joinable()) std::thread::join(); } // Ensures we don't crash if the thread hasn't been joined or detached yet.
+    inline Thread(Thread&& mov) : std::thread(std::move((std::thread&&)mov)) {} // Move constructor only
+    inline Thread() {}
+    inline ~Thread() { if(joinable()) std::thread::join(); } // Ensures we don't crash if the thread hasn't been joined or detached yet.
     // Blocks until either the thread has terminated, or 'timeout' milliseconds have elapsed. If a timeout occurs, returns -1.
     BSS_FORCEINLINE size_t join(size_t mstimeout)
     {
@@ -78,10 +78,10 @@ namespace bss_util {
     }
     BSS_FORCEINLINE void join() { std::thread::join(); }
 
-    cThread& operator=(cThread&& mov) { std::thread::operator=(std::move((std::thread&&)mov)); return *this; }
+    Thread& operator=(Thread&& mov) { std::thread::operator=(std::move((std::thread&&)mov)); return *this; }
 
 #ifdef BSS_PLATFORM_WIN32
-    BSS_FORCEINLINE void Signal() { DWORD r = QueueUserAPC(&cThread::_APCactivate, native_handle(), 0); assert(r); }
+    BSS_FORCEINLINE void Signal() { DWORD r = QueueUserAPC(&Thread::_APCactivate, native_handle(), 0); assert(r); }
     BSS_FORCEINLINE static void Wait() { SleepEx(INFINITE, true); }
 
   protected:
@@ -100,24 +100,24 @@ namespace bss_util {
 #endif
   };
 #else // This is for VS2010 which means we only implement this manually for the win32 platform.
-  class BSS_COMPILER_DLLEXPORT cThread
+  class BSS_COMPILER_DLLEXPORT Thread
   {
-    inline cThread(const cThread&) {}
-    cThread& operator=(const cThread&) { return *this; }
+    inline Thread(const Thread&) {}
+    Thread& operator=(const Thread&) { return *this; }
 
   public:
-    inline cThread(cThread&& mov) : _id(mov._id) { mov._id = (size_t)-1; }
-    template<class _Fn> explicit cThread(_Fn&& _Fx) { std::function<void(void)> fn = [&]() { _started.clear(); _Fx(); }; _start(&fn); }
-    template<class _Fn, class A1> cThread(_Fn&& _Fx, A1&& a1) { std::function<void(void)> fn = [&]() { _started.clear(); _Fx(std::forward<A1>(a1)); }; _start(&fn); }
-    template<class _Fn, class A1, class A2> cThread(_Fn&& _Fx, A1&& a1, A2&& a2) { std::function<void(void)> fn = [&]() { _started.clear(); _Fx(std::forward<A1>(a1), std::forward<A2>(a2)); }; _start(&fn); }
-    template<class _Fn, class A1, class A2, class A3> cThread(_Fn&& _Fx, A1&& a1, A2&& a2, A3&& a3) { std::function<void(void)> fn = [&]() { _started.clear(); _Fx(std::forward<A1>(a1), std::forward<A2>(a2), std::forward<A3>(a3)); }; _start(&fn); }
-    template<class _Fn, class A1, class A2, class A3, class A4> cThread(_Fn&& _Fx, A1&& a1, A2&& a2, A3&& a3, A4&& a4) { std::function<void(void)> fn = [&]() { _started.clear(); _Fx(std::forward<A1>(a1), std::forward<A2>(a2), std::forward<A3>(a3), std::forward<A4>(a4)); }; _start(&fn); }
-    template<class _Fn, class A1, class A2, class A3, class A4, class A5> cThread(_Fn&& _Fx, A1&& a1, A2 &&a2, A3&& a3, A4&& a4, A5&& a5) { std::function<void(void)> fn = [&]() { _started.clear(); _Fx(std::forward<A1>(a1), std::forward<A2>(a2), std::forward<A3>(a3), std::forward<A4>(a4), std::forward<A5>(a5)); }; _start(&fn); }
-    inline cThread() : _id((size_t)-1) {}
-    inline ~cThread() { if(joinable()) join(); }
+    inline Thread(Thread&& mov) : _id(mov._id) { mov._id = (size_t)-1; }
+    template<class _Fn> explicit Thread(_Fn&& _Fx) { std::function<void(void)> fn = [&]() { _started.clear(); _Fx(); }; _start(&fn); }
+    template<class _Fn, class A1> Thread(_Fn&& _Fx, A1&& a1) { std::function<void(void)> fn = [&]() { _started.clear(); _Fx(std::forward<A1>(a1)); }; _start(&fn); }
+    template<class _Fn, class A1, class A2> Thread(_Fn&& _Fx, A1&& a1, A2&& a2) { std::function<void(void)> fn = [&]() { _started.clear(); _Fx(std::forward<A1>(a1), std::forward<A2>(a2)); }; _start(&fn); }
+    template<class _Fn, class A1, class A2, class A3> Thread(_Fn&& _Fx, A1&& a1, A2&& a2, A3&& a3) { std::function<void(void)> fn = [&]() { _started.clear(); _Fx(std::forward<A1>(a1), std::forward<A2>(a2), std::forward<A3>(a3)); }; _start(&fn); }
+    template<class _Fn, class A1, class A2, class A3, class A4> Thread(_Fn&& _Fx, A1&& a1, A2&& a2, A3&& a3, A4&& a4) { std::function<void(void)> fn = [&]() { _started.clear(); _Fx(std::forward<A1>(a1), std::forward<A2>(a2), std::forward<A3>(a3), std::forward<A4>(a4)); }; _start(&fn); }
+    template<class _Fn, class A1, class A2, class A3, class A4, class A5> Thread(_Fn&& _Fx, A1&& a1, A2 &&a2, A3&& a3, A4&& a4, A5&& a5) { std::function<void(void)> fn = [&]() { _started.clear(); _Fx(std::forward<A1>(a1), std::forward<A2>(a2), std::forward<A3>(a3), std::forward<A4>(a4), std::forward<A5>(a5)); }; _start(&fn); }
+    inline Thread() : _id((size_t)-1) {}
+    inline ~Thread() { if(joinable()) join(); }
     inline bool joinable() const { return _id != (size_t)-1; }
     inline void detach() { _id = (size_t)-1; }
-    inline void swap(cThread& other) { size_t i = _id; _id = other._id; other._id = i; }
+    inline void swap(Thread& other) { size_t i = _id; _id = other._id; other._id = i; }
     inline size_t native_handle() const { return _id; }
 
     // Blocks until this thread has terminated, and returns the threads exit code
@@ -148,9 +148,9 @@ namespace bss_util {
       return ret;
     }
 
-    inline cThread& operator=(cThread&& mov) { _id = mov._id; mov._id = (size_t)-1; return *this; }
+    inline Thread& operator=(Thread&& mov) { _id = mov._id; mov._id = (size_t)-1; return *this; }
 
-    BSS_FORCEINLINE void Signal() { DWORD r = QueueUserAPC(&cThread::_APCactivate, (HANDLE)native_handle(), 0); assert(r); }
+    BSS_FORCEINLINE void Signal() { DWORD r = QueueUserAPC(&Thread::_APCactivate, (HANDLE)native_handle(), 0); assert(r); }
     BSS_FORCEINLINE static void Wait() { SleepEx(INFINITE, true); }
 
   protected:

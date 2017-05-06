@@ -1,20 +1,20 @@
 // Copyright ©2017 Black Sphere Studios
 // For conditions of distribution and use, see copyright notice in "bss_util.h"
 
-#include "cUBJSON.h"
+#include "bss-util/cUBJSON.h"
 #include <fstream>
 #include "test.h"
 
-using namespace bss_util;
+using namespace bss;
 
 struct ubjsontest2
 {
   int a;
-  cStr c;
+  Str c;
   double d;
 
   template<typename Engine>
-  void Serialize(cSerializer<Engine>& e)
+  void Serialize(Serializer<Engine>& e)
   {
     e.template EvaluateType<ubjsontest2>(
       GenPair("a", a),
@@ -41,16 +41,16 @@ struct ubjsontest
   ubjsontest2 i;
   float x;
   double y;
-  cStr p;
+  Str p;
   int m[3];
   std::string n[2];
   std::vector<int> u;
-  cDynArray<bool> v;
-  cDynArray<cStr, size_t, CARRAY_SAFE> w;
-  cDynArray<ubjsontest2, size_t, CARRAY_SAFE> z;
+  DynArray<bool> v;
+  DynArray<Str, size_t, CARRAY_SAFE> w;
+  DynArray<ubjsontest2, size_t, CARRAY_SAFE> z;
 
   template<typename Engine>
-  void Serialize(cSerializer<Engine>& engine)
+  void Serialize(Serializer<Engine>& engine)
   {
     engine.template EvaluateType<ubjsontest>(
       GenPair("a", (char&)a),
@@ -174,7 +174,7 @@ TESTDEF::RETPAIR test_UBJSON()
   TEST(var1[8].second.get<UBJSONValue::UBJSONObject>()[0].first == "a");
   TEST(var1[8].second.get<UBJSONValue::UBJSONObject>()[0].second.get<uint8_t>() == 9);
   TEST(var1[8].second.get<UBJSONValue::UBJSONObject>()[1].first == "c");
-  TEST(var1[8].second.get<UBJSONValue::UBJSONObject>()[1].second.get<cStr>() == "foo");
+  TEST(var1[8].second.get<UBJSONValue::UBJSONObject>()[1].second.get<Str>() == "foo");
   TEST(var1[8].second.get<UBJSONValue::UBJSONObject>()[2].first == "d");
   TEST(var1[8].second.get<UBJSONValue::UBJSONObject>()[2].second.get<double>() == 10.0);
   TEST(var1[9].first == "x");
@@ -182,7 +182,7 @@ TESTDEF::RETPAIR test_UBJSON()
   TEST(var1[10].first == "y");
   TEST(var1[10].second.is<double>());
   TEST(var1[11].first == "p");
-  TEST(var1[11].second.is<cStr>());
+  TEST(var1[11].second.is<Str>());
   TEST(var1[12].first == "m");
   TEST(var1[12].second.is<UBJSONValue::UBJSONArray>());
   TEST(var1[13].first == "n");

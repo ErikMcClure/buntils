@@ -1,16 +1,16 @@
 // Copyright ©2017 Black Sphere Studios
 // For conditions of distribution and use, see copyright notice in "bss_util.h"
 
-#include "cMap.h"
+#include "bss-util/Map.h"
 #include <algorithm>
 #include "test.h"
 
-using namespace bss_util;
+using namespace bss;
 
 TESTDEF::RETPAIR test_MAP()
 {
   BEGINTEST;
-  cMap<int, uint32_t> test;
+  Map<int, uint32_t> test;
   test.Clear();
   int ins[] = { 0,5,6,237,289,12,3 };
   int get[] = { 0,3,5,6,12 };
@@ -32,7 +32,7 @@ TESTDEF::RETPAIR test_MAP()
   TEST(test.Length() == ((sizeof(ins) / sizeof(int)) - 1));
 
 #ifndef BSS_COMPILER_GCC // Once again, GCC demonstrates its amazing ability to NOT DEFINE ANY FUCKING CONSTRUCTORS
-  cMap<int, FWDTEST> tst;
+  Map<int, FWDTEST> tst;
   tst.Insert(0, FWDTEST());
   FWDTEST lval;
   tst.Insert(1, lval);

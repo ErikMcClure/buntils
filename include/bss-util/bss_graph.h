@@ -4,16 +4,16 @@
 #ifndef __BSS_GRAPH_H__
 #define __BSS_GRAPH_H__
 
-#include "cLinkedArray.h"
-#include "bss_alloc_block.h"
-#include "cDisjointSet.h"
+#include "bss-util/LinkedArray.h"
+#include "bss-util/bss_alloc_block.h"
+#include "bss-util/DisjointSet.h"
 #include "LLBase.h"
 #include <limits.h>
 #ifdef BSS_COMPILER_GCC
 #include <alloca.h>
 #endif
 
-namespace bss_util {
+namespace bss {
   template<typename D>
   struct BSS_COMPILER_DLLEXPORT VoidData { D data; };
   template<>
@@ -28,39 +28,39 @@ namespace bss_util {
   struct BSS_COMPILER_DLLEXPORT Node : VoidData<V> { Edge<E, CT>* to; Edge<E, CT>* from; };
 
   template<typename E> struct __Graph__InternalEdge {
-    static BSS_FORCEINLINE void _getdata(E& target, const VoidData<E>& t) { target = t.data; }
-    static BSS_FORCEINLINE void _setdataE(VoidData<E>& t, const E* d) { t.data = *d; }
+    static BSS_FORCEINLINE void _getData(E& target, const VoidData<E>& t) { target = t.data; }
+    static BSS_FORCEINLINE void _setDataE(VoidData<E>& t, const E* d) { t.data = *d; }
   };
   template<> struct __Graph__InternalEdge<void> {
-    static BSS_FORCEINLINE void _getdata(char& target, const VoidData<void>& t) { target = 1; }
-    static BSS_FORCEINLINE void _setdataE(VoidData<void>& t, const void* d) {}
+    static BSS_FORCEINLINE void _getData(char& target, const VoidData<void>& t) { target = 1; }
+    static BSS_FORCEINLINE void _setDataE(VoidData<void>& t, const void* d) {}
   };
 
   template<typename V, typename CT>
   struct __Graph__InternalVertex {
-    static BSS_FORCEINLINE void _setdataV(VoidData<V>& t, const V* d) { t.data = *d; }
-    static BSS_FORCEINLINE void _setvertex(V* v, CT i, const VoidData<V>& t) { v[i] = t.data; }
-    static BSS_FORCEINLINE const V* _addvertex(const V* v, CT i) { return (v + i); }
+    static BSS_FORCEINLINE void _setDataV(VoidData<V>& t, const V* d) { t.data = *d; }
+    static BSS_FORCEINLINE void _setVertex(V* v, CT i, const VoidData<V>& t) { v[i] = t.data; }
+    static BSS_FORCEINLINE const V* _addVertex(const V* v, CT i) { return (v + i); }
   };
   template<typename CT>
   struct __Graph__InternalVertex<void, CT> {
-    static BSS_FORCEINLINE void _setdataV(VoidData<void>& t, const void* d) {}
-    static BSS_FORCEINLINE void _setvertex(void* v, CT i, const VoidData<void>& t) {}
-    static BSS_FORCEINLINE const void* _addvertex(const void* v, CT i) { return 0; }
+    static BSS_FORCEINLINE void _setDataV(VoidData<void>& t, const void* d) {}
+    static BSS_FORCEINLINE void _setVertex(void* v, CT i, const VoidData<void>& t) {}
+    static BSS_FORCEINLINE const void* _addVertex(const void* v, CT i) { return 0; }
   };
 
   // Represents a graph using an adjacency list. Converts to and from an adjacency matrix representation.
   template<typename E, typename V, typename CT = uint16_t, typename ALLOC = BlockPolicy<Edge<E, CT>>, typename NODEALLOC = StaticAllocPolicy<LINKEDNODE<Node<E, V, CT>, CT>>, ARRAY_TYPE ArrayType = CARRAY_SIMPLE>
-  class Graph : public cAllocTracker<ALLOC>, protected __Graph__InternalEdge<E>, protected __Graph__InternalVertex<V, CT>
+  class Graph : public AllocTracker<ALLOC>, protected __Graph__InternalEdge<E>, protected __Graph__InternalVertex<V, CT>
   {
-    static BSS_FORCEINLINE bool _basecheck(const char* b) { return (*b) != 0; }
-    static BSS_FORCEINLINE LLBase<Edge<E, CT>>& _altget(Edge<E, CT>* p) { return p->alt; }
+    static BSS_FORCEINLINE bool _baseCheck(const char* b) { return (*b) != 0; }
+    static BSS_FORCEINLINE LLBase<Edge<E, CT>>& _altGet(Edge<E, CT>* p) { return p->alt; }
     typedef typename std::conditional<std::is_void<E>::value, char, E>::type EDATA;
-    using __Graph__InternalVertex<V, CT>::_setdataV;
-    using __Graph__InternalVertex<V, CT>::_setvertex;
-    using __Graph__InternalVertex<V, CT>::_addvertex;
-    using __Graph__InternalEdge<E>::_setdataE;
-    using __Graph__InternalEdge<E>::_getdata;
+    using __Graph__InternalVertex<V, CT>::_setDataV;
+    using __Graph__InternalVertex<V, CT>::_setVertex;
+    using __Graph__InternalVertex<V, CT>::_addVertex;
+    using __Graph__InternalEdge<E>::_setDataE;
+    using __Graph__InternalEdge<E>::_getData;
 
     Graph(const Graph&) BSS_DELETEFUNC
       Graph& operator=(const Graph&)BSS_DELETEFUNCOP
@@ -68,7 +68,7 @@ namespace bss_util {
     inline Graph(Graph&& mov) : _nodes(std::move(mov._nodes)), _nedges(mov._nedges) { mov._nedges = 0; }
     inline Graph() : _nodes(0), _nedges(0) {}
     // Build a matrix out of a standard adjacency matrix
-    inline Graph(CT n, const char* M, const V* nodes) : _nodes(n), _nedges(0) { _construct<char, _basecheck>(n, M, nodes); }
+    inline Graph(CT n, const char* M, const V* nodes) : _nodes(n), _nedges(0) { _construct<char, _baseCheck>(n, M, nodes); }
     // Build a matrix out of only a list of nodes
     inline Graph(CT n, const V* nodes) : _nodes(n), _nedges(0) { for(CT i = 0; i < n; ++i) AddNode(nodes + i); }
     inline explicit Graph(CT n) : _nodes(n), _nedges(0) { for(CT i = 0; i < n; ++i) AddNode(); }
@@ -77,30 +77,30 @@ namespace bss_util {
     inline CT NumEdges() const { return _nedges; }
     inline CT Capacity() const { return _nodes.Capacity(); }
     inline Node<E, V, CT>* GetNode(CT index) const { return index < _nodes.Length() ? &_nodes[index] : 0; }
-    inline const cLinkedArray<Node<E, V, CT>, CT, ArrayType, NODEALLOC>& GetNodes() const { return _nodes; }
-    inline cLinkedArray<Node<E, V, CT>, CT, ArrayType, NODEALLOC>& GetNodes() { return _nodes; }
+    inline const LinkedArray<Node<E, V, CT>, CT, ArrayType, NODEALLOC>& GetNodes() const { return _nodes; }
+    inline LinkedArray<Node<E, V, CT>, CT, ArrayType, NODEALLOC>& GetNodes() { return _nodes; }
     inline CT Front() const { return _nodes.Front(); }
     inline CT Back() const { return _nodes.Back(); }
-    inline typename cLinkedArray<Node<E, V, CT>, CT, ArrayType, NODEALLOC>::template cLAIter<true> begin() const { return _nodes.begin(); }
-    inline typename cLinkedArray<Node<E, V, CT>, CT, ArrayType, NODEALLOC>::template cLAIter<true> end() const { return _nodes.end(); }
-    inline typename cLinkedArray<Node<E, V, CT>, CT, ArrayType, NODEALLOC>::template cLAIter<false> begin() { return _nodes.begin(); }
-    inline typename cLinkedArray<Node<E, V, CT>, CT, ArrayType, NODEALLOC>::template cLAIter<false> end() { return _nodes.end(); }
+    inline typename LinkedArray<Node<E, V, CT>, CT, ArrayType, NODEALLOC>::template cLAIter<true> begin() const { return _nodes.begin(); }
+    inline typename LinkedArray<Node<E, V, CT>, CT, ArrayType, NODEALLOC>::template cLAIter<true> end() const { return _nodes.end(); }
+    inline typename LinkedArray<Node<E, V, CT>, CT, ArrayType, NODEALLOC>::template cLAIter<false> begin() { return _nodes.begin(); }
+    inline typename LinkedArray<Node<E, V, CT>, CT, ArrayType, NODEALLOC>::template cLAIter<false> end() { return _nodes.end(); }
     inline CT AddNode() { Node<E, V, CT> aux; memset(&aux, 0, sizeof(Node<E, V, CT>)); return _nodes.Add(aux); }
-    inline CT AddNode(const V* node) { if(!node) return AddNode(); Node<E, V, CT> aux; aux.to = 0; aux.from = 0; _setdataV(aux, node); return _nodes.Add(aux); }
+    inline CT AddNode(const V* node) { if(!node) return AddNode(); Node<E, V, CT> aux; aux.to = 0; aux.from = 0; _setDataV(aux, node); return _nodes.Add(aux); }
     inline Edge<E, CT>* AddEdge(CT from, CT to)
     {
-      Edge<E, CT>* r = cAllocTracker<ALLOC>::_allocate(1);
+      Edge<E, CT>* r = AllocTracker<ALLOC>::_allocate(1);
       r->to = to;
       r->from = from;
       LLAdd(r, _nodes[from].to);
-      AltLLAdd<Edge<E, CT>, &Graph::_altget>(r, _nodes[to].from);
+      AltLLAdd<Edge<E, CT>, &Graph::_altGet>(r, _nodes[to].from);
       ++_nedges;
       return r;
     }
     inline Edge<E, CT>* AddEdge(CT from, CT to, const E* edge)
     {
       Edge<E, CT>* r = AddEdge(from, to);
-      _setdataE(*r, edge);
+      _setDataE(*r, edge);
       return r;
     }
     inline void RemoveNode(CT index)
@@ -113,8 +113,8 @@ namespace bss_util {
     inline void RemoveEdge(Edge<E, CT>* edge)
     {
       LLRemove(edge, _nodes[edge->from].to);
-      AltLLRemove<Edge<E, CT>, &Graph::_altget>(edge, _nodes[edge->to].from);
-      cAllocTracker<ALLOC>::_deallocate(edge);
+      AltLLRemove<Edge<E, CT>, &Graph::_altGet>(edge, _nodes[edge->to].from);
+      AllocTracker<ALLOC>::_deallocate(edge);
       --_nedges;
     }
     template<bool ISEDGE(const E*)>
@@ -129,9 +129,9 @@ namespace bss_util {
       for(CT i = _nodes.Front(); i != (CT)-1; _nodes.Next(i)) hash[i] = k++; // Build up a hash mapping the IDs to monotonically increasing integers.
       for(CT i = _nodes.Front(); i != (CT)-1; _nodes.Next(i))
       {
-        _setvertex(nodes, i, _nodes[i]);
+        _setVertex(nodes, i, _nodes[i]);
         for(cur = _nodes[i].to; cur != 0; cur = cur->next)
-          _getdata(matrix[(hash[i] * len) + hash[cur->to]], *cur);
+          _getData(matrix[(hash[i] * len) + hash[cur->to]], *cur);
       }
       return len;
     }
@@ -151,7 +151,7 @@ namespace bss_util {
     {
       DYNARRAY(CT, k, n);
       for(CT i = 0; i < n; ++i)
-        k[i] = AddNode(_addvertex(nodes, i));
+        k[i] = AddNode(_addVertex(nodes, i));
       for(CT i = 0; i < n; ++i)
       {
         for(CT j = 0; j < n; ++j)
@@ -160,7 +160,7 @@ namespace bss_util {
       }
     }
 
-    cLinkedArray<Node<E, V, CT>, CT, ArrayType, NODEALLOC> _nodes;
+    LinkedArray<Node<E, V, CT>, CT, ArrayType, NODEALLOC> _nodes;
     CT _nedges;
   };
 
@@ -368,7 +368,7 @@ namespace bss_util {
     auto& n = graph.GetNodes();
     if((*FACTION)(root)) return;
     DYNARRAY(CT, aset, graph.Capacity());
-    cDisjointSet<CT, StaticNullPolicy<SST>> set((SST*)aset, graph.Capacity());
+    DisjointSet<CT, StaticNullPolicy<SST>> set((SST*)aset, graph.Capacity());
 
     // Queue up everything next to the root, checking only for edges that connect the root to itself
     size_t l = 0;

@@ -2,11 +2,11 @@
 // For conditions of distribution and use, see copyright notice in "bss_util.h"
 
 #define BSS_ENABLE_PROFILER
-#include "profiler.h"
-#include "bss_algo.h"
+#include "bss-util/profiler.h"
+#include "bss-util/bss_algo.h"
 #include "test.h"
 
-using namespace bss_util;
+using namespace bss;
 
 TESTDEF::RETPAIR test_PROFILE()
 {
@@ -24,7 +24,7 @@ TESTDEF::RETPAIR test_PROFILE()
       testnums[bssRandInt(0, TESTNUM)] += 1;
     }
 
-    auto pr = cHighPrecisionTimer::OpenProfiler();
+    auto pr = HighPrecisionTimer::OpenProfiler();
     for(int i = 0; i < 100000; ++i)
     {
       PROFILE_BLOCK(outer);
@@ -33,7 +33,7 @@ TESTDEF::RETPAIR test_PROFILE()
         testnums[bssRandInt(0, TESTNUM)] += 1;
       }
     }
-    //std::cout << cHighPrecisionTimer::CloseProfiler(pr)/100000.0 << std::endl;
+    //std::cout << HighPrecisionTimer::CloseProfiler(pr)/100000.0 << std::endl;
 
     for(int i = 0; i < 100000; ++i)
     {

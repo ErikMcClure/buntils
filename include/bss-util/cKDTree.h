@@ -4,12 +4,12 @@
 #ifndef __C_KD_TREE_H__BSS__
 #define __C_KD_TREE_H__BSS__
 
-#include "bss_compare.h"
-#include "bss_alloc.h"
+#include "bss-util/bss_compare.h"
+#include "bss-util/bss_alloc.h"
 #include "LLBase.h"
 #include <float.h> // for FLT_MAX on linux
 
-namespace bss_util {
+namespace bss {
   // Node for the KD-tree 
   template<typename T>
   struct KDNode {
@@ -31,21 +31,21 @@ namespace bss_util {
 
   // KD-tree storing arbitrary rectangles. Requires a function turning T into a float[4] reference, LLBASE<T> list, and an action.
   template<typename T, typename Alloc, const float* (*FRECT)(T*), LLBase<T>& (*FLIST)(T*), KDNode<T>*& (*FNODE)(T*)>
-  class cKDTree : protected cAllocTracker<Alloc>
+  class KDTree : protected AllocTracker<Alloc>
   {
-    inline cKDTree(const cKDTree&) BSS_DELETEFUNC
-      inline cKDTree& operator=(const cKDTree&)BSS_DELETEFUNCOP
+    inline KDTree(const KDTree&) BSS_DELETEFUNC
+      inline KDTree& operator=(const KDTree&)BSS_DELETEFUNCOP
   public:
-    inline explicit cKDTree(uint32_t rb = RBTHRESHOLD, Alloc* alloc = 0) : cAllocTracker<Alloc>(alloc), _root(0), _rbthreshold(rb) {}
-    inline cKDTree(cKDTree&& mov) : cAllocTracker<Alloc>(std::move(mov)), _root(mov._root), _rbthreshold(mov._rbthreshold) { mov._root = 0; }
-    inline ~cKDTree() { Clear(); }
-    inline void Clear() { if(_root) _destroynode(_root); _root = 0; }
+    inline explicit KDTree(uint32_t rb = RBTHRESHOLD, Alloc* alloc = 0) : AllocTracker<Alloc>(alloc), _root(0), _rbthreshold(rb) {}
+    inline KDTree(KDTree&& mov) : AllocTracker<Alloc>(std::move(mov)), _root(mov._root), _rbthreshold(mov._rbthreshold) { mov._root = 0; }
+    inline ~KDTree() { Clear(); }
+    inline void Clear() { if(_root) _destroyNode(_root); _root = 0; }
     template<void(*F)(T*)>
     void Traverse(float(&rect)[4]) const { if(_root) _traverse<0, 1, F>(_root, rect); }
     template<typename F>
-    void TraverseAction(float(&rect)[4], F && f) const { if(_root) _traverseaction<0, 1, F>(_root, rect, std::forward<F>(f)); }
+    void TraverseAction(float(&rect)[4], F && f) const { if(_root) _traverseAction<0, 1, F>(_root, rect, std::forward<F>(f)); }
     template<typename F>
-    void TraverseAll(F && f) { _traverseall(_root, std::forward<F>(f)); }
+    void TraverseAll(F && f) { _traverseAll(_root, std::forward<F>(f)); }
     void Insert(T* item)
     {
       KDNode<T>** p = &_root;
@@ -77,14 +77,14 @@ namespace bss_util {
       }
       if(!h)
       {
-        h = _allocnode(parent, axis);
+        h = _allocNode(parent, axis);
         h->total[0] = r[0] + r[2];
         h->total[1] = r[1] + r[3];
         h->num = 1;
         h->div = h->total[axis] / 2;
         *p = h;
       }
-      _insertitem(h, item);
+      _insertItem(h, item);
       if(rb) Rebalance(rb);
     }
     void Remove(T* item)
@@ -93,7 +93,7 @@ namespace bss_util {
       KDNode<T>* rb = 0;
       KDNode<T>* prev = node;
       const float* r = FRECT(item);
-      _removeitem(node, item); // If the node becomes empty, we'll only remove it after a rebalance is triggered
+      _removeItem(node, item); // If the node becomes empty, we'll only remove it after a rebalance is triggered
       ++node->balance; //we're about to subtract one so counter it here for the bottom node (whose balance won't be changed)
 
       while(node)
@@ -108,10 +108,10 @@ namespace bss_util {
 
       if(rb) Rebalance(rb);
     }
-    inline cKDTree& operator=(cKDTree&& mov) // Move assignment operator
+    inline KDTree& operator=(KDTree&& mov) // Move assignment operator
     {
       Clear();
-      cAllocTracker<Alloc>::operator=(std::move(mov));
+      AllocTracker<Alloc>::operator=(std::move(mov));
       _root = mov._root;
       mov._root = 0;
       return *this;
@@ -125,13 +125,13 @@ namespace bss_util {
     }
     inline void InsertRoot(T* item)
     {
-      if(!_root) _root = _allocnode(0, 0);
+      if(!_root) _root = _allocNode(0, 0);
       const float* r;
       r = FRECT(item);
       _root->total[0] += r[0] + r[2];
       _root->total[1] += r[1] + r[3];
       ++_root->num;
-      _insertitem(_root, item);
+      _insertItem(_root, item);
     }
     inline void Solve() { if(_root) _solve(&_root); }
     inline KDNode<T>* GetRoot() { return _root; }
@@ -144,7 +144,7 @@ namespace bss_util {
     void _solve(KDNode<T>** pnode)
     {
       KDNode<T>* node = *pnode;
-      if(!node->num) { _destroynode(node); *pnode = 0; return; }
+      if(!node->num) { _destroyNode(node); *pnode = 0; return; }
       node->div = node->total[node->axis] / (node->num * 2);
 
       KDNode<T>** p;
@@ -160,9 +160,9 @@ namespace bss_util {
         else if(r[node->axis] > node->div) p = &node->right; // Drop into right
         else continue;
         if(!(*p)) // If null create the node
-          *p = _allocnode(node, ((node->axis + 1) & 1));
-        _removeitem(node, item);
-        _insertitem(h = *p, item);
+          *p = _allocNode(node, ((node->axis + 1) & 1));
+        _removeItem(node, item);
+        _insertItem(h = *p, item);
         h->total[0] += r[0] + r[2];
         h->total[1] += r[1] + r[3];
         ++h->num;
@@ -189,7 +189,7 @@ namespace bss_util {
         parents[axis + 2] = node;
         _rebalance(node->left, rect, parents, node->total);
         node->num += node->left->num;
-        _checkdestroy(node->left);
+        _checkDestroy(node->left);
         rect[axis + 2] = r[axis + 2]; // Reset so we don't mess up node below
       }
       if(node->right)
@@ -199,7 +199,7 @@ namespace bss_util {
         parents[axis] = node;
         _rebalance(node->right, rect, parents, node->total);
         node->num += node->right->num;
-        _checkdestroy(node->right);
+        _checkDestroy(node->right);
       }
 
       T* item;
@@ -219,39 +219,39 @@ namespace bss_util {
         node->total[0] -= itemr[0] + itemr[2]; // Remove image from us
         node->total[1] -= itemr[1] + itemr[3];
         --node->num;
-        _removeitem(node, item);
+        _removeItem(node, item);
         par = p[i];
         par->total[0] += itemr[0] + itemr[2]; // Add image to violated parent. We don't worry about the middle, because the rebalance will
         par->total[1] += itemr[1] + itemr[3]; // fix all the intermediate totals and nums for us.
         ++par->num;
-        _insertitem(par, item);
+        _insertItem(par, item);
       }
 
       total[0] += node->total[0]; // Now add our new total back to the parent
       total[1] += node->total[1];
     }
-    inline void _checkdestroy(KDNode<T>*& node)
+    inline void _checkDestroy(KDNode<T>*& node)
     {
       if(!node->num)
       {
         assert(!node->items);
-        _destroynode(node);
+        _destroyNode(node);
         node = 0;
       }
     }
-    inline void _destroynode(KDNode<T>* node)
+    inline void _destroyNode(KDNode<T>* node)
     {
-      if(node->left) _destroynode(node->left);
-      if(node->right) _destroynode(node->right);
-      cAllocTracker<Alloc>::_deallocate(node); //Deallocate node
+      if(node->left) _destroyNode(node->left);
+      if(node->right) _destroyNode(node->right);
+      AllocTracker<Alloc>::_deallocate(node); //Deallocate node
     }
     template<typename F>
-    static void _traverseall(KDNode<T>* node, const F& f)
+    static void _traverseAll(KDNode<T>* node, const F& f)
     {
       if(!node) return;
       f(node->items);
-      _traverseall(node->left, f);
-      _traverseall(node->right, f);
+      _traverseAll(node->left, f);
+      _traverseAll(node->right, f);
     }
     template<char cur, char next, void(*FACTION)(T*)>
     static void _traverse(const KDNode<T>* node, const float(&rect)[4])
@@ -272,7 +272,7 @@ namespace bss_util {
         _traverse<next, cur, FACTION>(node->right, rect);
     }
     template<char cur, char next, typename F>
-    static void _traverseaction(const KDNode<T>* node, const float(&rect)[4], F && f)
+    static void _traverseAction(const KDNode<T>* node, const float(&rect)[4], F && f)
     {
       T* item = node->items;
       const float* r;
@@ -285,19 +285,19 @@ namespace bss_util {
       }
 
       if(node->div >= rect[cur] && node->left != 0)
-        _traverseaction<next, cur>(node->left, rect, std::forward<F>(f));
+        _traverseAction<next, cur>(node->left, rect, std::forward<F>(f));
       if(node->div <= rect[cur + 2] && node->right != 0)
-        _traverseaction<next, cur>(node->right, rect, std::forward<F>(f));
+        _traverseAction<next, cur>(node->right, rect, std::forward<F>(f));
     }
-    inline KDNode<T>* _allocnode(KDNode<T>* parent, char axis)
+    inline KDNode<T>* _allocNode(KDNode<T>* parent, char axis)
     {
-      KDNode<T>* r = cAllocTracker<Alloc>::_allocate(1);
+      KDNode<T>* r = AllocTracker<Alloc>::_allocate(1);
       memset(r, 0, sizeof(KDNode<T>));
       r->parent = parent;
       r->axis = axis;
       return r;
     }
-    inline void _insertitem(KDNode<T>* node, T* item)
+    inline void _insertItem(KDNode<T>* node, T* item)
     {
       LLBase<T>& l = FLIST(item);
       l.next = node->items;
@@ -306,7 +306,7 @@ namespace bss_util {
       node->items = item;
       FNODE(item) = node;
     }
-    inline void _removeitem(KDNode<T>* node, T* item)
+    inline void _removeItem(KDNode<T>* node, T* item)
     {
       FNODE(item) = 0;
       LLBase<T>& l = FLIST(item);

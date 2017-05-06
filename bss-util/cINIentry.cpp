@@ -1,31 +1,31 @@
 // Copyright ©2017 Black Sphere Studios
 // For conditions of distribution and use, see copyright notice in "bss_util.h"
 
-#include "cINIentry.h"
+#include "bss-util/INIentry.h"
 #include <sstream>
 #include <iomanip>
 #include <stdlib.h>
 
-using namespace bss_util;
+using namespace bss;
 
-cINIentry::cINIentry(const cINIentry& mov) : _key(mov._key), _svalue(mov._svalue), _ivalue(mov._ivalue), _dvalue(mov._dvalue)
+INIentry::INIentry(const INIentry& mov) : _key(mov._key), _svalue(mov._svalue), _ivalue(mov._ivalue), _dvalue(mov._dvalue)
 {}
-cINIentry::cINIentry(cINIentry&& mov) : _key(std::move(mov._key)), _svalue(std::move(mov._svalue)), _ivalue(mov._ivalue), _dvalue(mov._dvalue)
+INIentry::INIentry(INIentry&& mov) : _key(std::move(mov._key)), _svalue(std::move(mov._svalue)), _ivalue(mov._ivalue), _dvalue(mov._dvalue)
 {}
-cINIentry::cINIentry() : _ivalue(0), _dvalue(0.0)//,_index(0)
+INIentry::INIentry() : _ivalue(0), _dvalue(0.0)//,_index(0)
 {}
-cINIentry::cINIentry(const char *key, const char *svalue, int64_t ivalue, double dvalue) : _key(key), _svalue(svalue),
+INIentry::INIentry(const char *key, const char *svalue, int64_t ivalue, double dvalue) : _key(key), _svalue(svalue),
 _ivalue(ivalue), _dvalue(dvalue)//,_index(index)
 {}
-cINIentry::cINIentry(const char* key, const char* data) : _key(key)//,_index(index)
+INIentry::INIentry(const char* key, const char* data) : _key(key)//,_index(index)
 {
   SetData(data);
 }
 
-cINIentry::~cINIentry()
+INIentry::~INIentry()
 {}
 
-cINIentry& cINIentry::operator=(cINIentry&& mov)
+INIentry& INIentry::operator=(INIentry&& mov)
 {
   _key = std::move(mov._key);
   _svalue = std::move(mov._svalue);
@@ -34,13 +34,13 @@ cINIentry& cINIentry::operator=(cINIentry&& mov)
   return *this;
 }
 
-bool cINIentry::operator ==(cINIentry &other) const { return STRICMP(_key, other._key) == 0 && STRICMP(_svalue, other._svalue) == 0; }
-bool cINIentry::operator !=(cINIentry &other) const { return STRICMP(_key, other._key) != 0 || STRICMP(_svalue, other._svalue) != 0; }
+bool INIentry::operator ==(INIentry &other) const { return STRICMP(_key, other._key) == 0 && STRICMP(_svalue, other._svalue) == 0; }
+bool INIentry::operator !=(INIentry &other) const { return STRICMP(_key, other._key) != 0 || STRICMP(_svalue, other._svalue) != 0; }
 
-//bool cINIentry<wchar_t>::operator ==(cINIentry &other) const { return WCSICMP(_key,other._key)==0 && WCSICMP(_svalue,other._svalue)==0; }
-//bool cINIentry<wchar_t>::operator !=(cINIentry &other) const { return WCSICMP(_key,other._key)!=0 || WCSICMP(_svalue,other._svalue)!=0; }
+//bool INIentry<wchar_t>::operator ==(INIentry &other) const { return WCSICMP(_key,other._key)==0 && WCSICMP(_svalue,other._svalue)==0; }
+//bool INIentry<wchar_t>::operator !=(INIentry &other) const { return WCSICMP(_key,other._key)!=0 || WCSICMP(_svalue,other._svalue)!=0; }
 
-void cINIentry::SetData(const char* data)
+void INIentry::SetData(const char* data)
 {
   if(!data) return;
   _svalue = data;
@@ -74,7 +74,7 @@ void cINIentry::SetData(const char* data)
 
 /*
 #define char char
-#include "cINIstorage.inl"
+#include "bss-util/INIstorage.inl"
 #undef char
 #define char wchar_t
 #undef FOPEN
@@ -84,11 +84,11 @@ void cINIentry::SetData(const char* data)
 #define strrchr wcsrchr
 #define fputs fputws
 #define INIParser INIParserW
-#define bss_findINIentry bss_wfindINIentry
-#define bss_findINIsection bss_wfindINIsection
-#define bss_initINI bss_winitINI
-#define bss_destroyINI bss_wdestroyINI
-#define bss_parseLine bss_wparseLine
+#define bssFindINIEntry bss_wfindINIentry
+#define bssFindINISection bss_wfindINIsection
+#define bssInitINI bss_winitINI
+#define bssDestroyINI bss_wdestroyINI
+#define bssParseLine bss_wparseLine
 #define fwrite _futfwrite
 
 #define (s) WIDEN(s)
@@ -107,7 +107,7 @@ void cINIentry::SetData(const char* data)
 //#define STR_APT L"a+b"
 //#define STR_LB L"]"
 
-#include "cINIstorage.inl"
+#include "bss-util/INIstorage.inl"
 #undef char
 #undef FOPEN
 #undef strchr*/

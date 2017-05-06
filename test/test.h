@@ -4,11 +4,11 @@
 #ifndef __BSS_TEST_H__
 #define __BSS_TEST_H__
 
-#include "cHash.h"
-#include "bss_log.h"
-#include "lockless.h"
-#include "cStr.h"
-#include "cRefCounter.h"
+#include "bss-util/Hash.h"
+#include "bss-util/bss_log.h"
+#include "bss-util/lockless.h"
+#include "bss-util/Str.h"
+#include "bss-util/RefCounter.h"
 
 #define BSS_ENABLE_PROFILER
 
@@ -27,16 +27,16 @@ struct TESTDEF
 
 const uint16_t TESTNUM = 50000;
 extern uint16_t testnums[TESTNUM];
-extern bss_util::cLog _failedtests; 
+extern bss::Log _failedtests; 
 extern volatile std::atomic<bool> startflag;
 
 #define BEGINTEST TESTDEF::RETPAIR __testret(0,0); DEBUG_CDT_SAFE::_testret = &__testret; DEBUG_CDT_SAFE::Tracker.Clear();
 #define ENDTEST return __testret
 #define FAILEDTEST(t) BSSLOG(_failedtests,1, "Test #",__testret.first," Failed  < ",MAKESTRING(t)," >")
-#define TEST(t) { bss_util::atomic_xadd(&__testret.first); try { if(t) bss_util::atomic_xadd(&__testret.second); else FAILEDTEST(t); } catch(...) { FAILEDTEST(t); } }
-#define TESTERROR(t, e) { bss_util::atomic_xadd(&__testret.first); try { (t); FAILEDTEST(t); } catch(e) { bss_util::atomic_xadd(&__testret.second); } }
+#define TEST(t) { bss::atomic_xadd(&__testret.first); try { if(t) bss::atomic_xadd(&__testret.second); else FAILEDTEST(t); } catch(...) { FAILEDTEST(t); } }
+#define TESTERROR(t, e) { bss::atomic_xadd(&__testret.first); try { (t); FAILEDTEST(t); } catch(e) { bss::atomic_xadd(&__testret.second); } }
 #define TESTERR(t) TESTERROR(t,...)
-#define TESTNOERROR(t) { bss_util::atomic_xadd(&__testret.first); try { (t); bss_util::atomic_xadd(&__testret.second); } catch(...) { FAILEDTEST(t); } }
+#define TESTNOERROR(t) { bss::atomic_xadd(&__testret.first); try { (t); bss::atomic_xadd(&__testret.second); } catch(...) { FAILEDTEST(t); } }
 #define TESTARRAY(t,f) _ITERFUNC(__testret,t,[&](uint32_t i) -> bool { f });
 #define TESTALL(t,f) _ITERALL(__testret,t,[&](uint32_t i) -> bool { f });
 #define TESTCOUNT(c,t) { for(uint32_t i = 0; i < c; ++i) TEST(t) }
@@ -44,7 +44,7 @@ extern volatile std::atomic<bool> startflag;
 #define TESTFOUR(s,a,b,c,d) TEST(((s)[0]==(a)) && ((s)[1]==(b)) && ((s)[2]==(c)) && ((s)[3]==(d)))
 #define TESTTWO(s,a,b) TEST(((s)[0]==(a)) && ((s)[1]==(b)))
 #define TESTALLFOUR(s,a) TESTFOUR(s,a,a,a,a)
-#define TESTRELFOUR(s,a,b,c,d) TEST(bss_util::fcompare((s)[0],(a)) && bss_util::fcompare((s)[1],(b)) && bss_util::fcompare((s)[2],(c)) && bss_util::fcompare((s)[3],(d)))
+#define TESTRELFOUR(s,a,b,c,d) TEST(bss::fCompare((s)[0],(a)) && bss::fCompare((s)[1],(b)) && bss::fCompare((s)[2],(c)) && bss::fCompare((s)[3],(d)))
 
 template<class T, size_t SIZE, class F>
 void _ITERFUNC(TESTDEF::RETPAIR& __testret, T(&t)[SIZE], F f) { for(uint32_t i = 0; i < SIZE; ++i) TEST(f(i)) }
@@ -61,7 +61,7 @@ struct DEBUG_CDT_SAFE
 
   static TESTDEF::RETPAIR* _testret;
   static int count;
-  static bss_util::cHash<int> Tracker;
+  static bss::Hash<int> Tracker;
   static int ID;
   TESTDEF::RETPAIR& __testret;
   DEBUG_CDT_SAFE* isdead;
@@ -110,7 +110,7 @@ struct FWDTEST {
   FWDTEST& operator=(FWDTEST&& right) { return *this; }
 };
 
-struct RCounter : bss_util::cRefCounter
+struct RCounter : bss::RefCounter
 {
   RCounter() {}
   ~RCounter() {}

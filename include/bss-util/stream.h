@@ -13,7 +13,7 @@
 template<class _Traits>
 inline std::basic_ostream<char, _Traits>& operator<<(std::basic_ostream<char, _Traits>& _Ostr, const wchar_t *_Val)
 {
-  _Ostr << Str(_Val).c_str();
+  _Ostr << bss::Str(_Val).c_str();
   return _Ostr;
 }
 

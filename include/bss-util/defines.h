@@ -62,7 +62,7 @@
 #define BSSPOSIX_WCHAR(s) s
 #define BSS__L(x)      x
 #elif defined(BSS_PLATFORM_WIN32)
-#define BSSPOSIX_WCHAR(s) StrW(s).c_str()
+#define BSSPOSIX_WCHAR(s) bss::StrW(s).c_str()
 #define BSS__L(x)      L ## x
 #endif
 
@@ -97,7 +97,7 @@ public: \
 #define VSCPRINTF(format,args) _vscprintf(format,args)
 #define VSCWPRINTF(format,args) _vscwprintf(format,args)
 #define FOPEN(f, path, mode) fopen_s(&f, path, mode)
-#define WFOPEN(f, path, mode) _wfopen_s(&f, StrW(path).c_str(), StrW(mode).c_str())
+#define WFOPEN(f, path, mode) _wfopen_s(&f, bss::StrW(path).c_str(), bss::StrW(mode).c_str())
 #define MEMCPY(dst,size,src,count) memcpy_s(dst,size,src,count)
 #define STRNCPY(dst,size,src,count) strncpy_s(dst,size,src,count)
 #define WCSNCPY(dst,size,src,count) wcsncpy_s(dst,size,src,count)

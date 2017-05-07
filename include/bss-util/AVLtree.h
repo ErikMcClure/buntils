@@ -5,7 +5,7 @@
 #define __AVLTREE_H__BSS__
 
 #include "compare.h"
-#include "alloc.h"
+#include "Alloc.h"
 
 namespace bss {
   template<class KeyData> // If data is non-void, KeyData is std::pair<Key,Data>, otherwise it's just Key

@@ -136,7 +136,7 @@
     <ClCompile Include="ConvertUTF.c" />
     <ClCompile Include="XML.cpp" />
     <ClCompile Include="INIParser.c" />
-    <ClCompile Include="profiler.cpp" />
+    <ClCompile Include="Profiler.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ResourceCompile Include="bss-util.rc" />

@@ -5,9 +5,9 @@
 #define __BSS_ALLOC_GREEDY_H__
 
 #include <atomic>
-#include "alloc.h"
+#include "Alloc.h"
 #include "bss_util.h"
-#include "rwlock.h"
+#include "RWLock.h"
 
 namespace bss {
   struct AFLISTITEM

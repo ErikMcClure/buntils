@@ -535,8 +535,8 @@ BSS_ALIGNED_STRUCT(16) sseVecT<float>
   BSS_FORCEINLINE sseVecT<float> operator>=(const sseVecT<float>& r) const { return sseVecT<float>(BSS_SSE_CMPGTE_PS(xmm, r.xmm)); }
   template<int x, int y, int z, int w>
   BSS_FORCEINLINE sseVecT<float> Shuffle() const { return Shuffle<BSS_SSE_SHUFFLE(x, y, z, w)>(*this); }
-  template<int Shuffle>
-  static sseVecT<float> Shuffle(const sseVecT<float>& x) { return BSS_SSE_CAST_SI128_PS(BSS_SSE_SHUFFLE_EPI32(BSS_SSE_CAST_PS_SI128(x), Shuffle)); }
+  template<int Positions>
+  static sseVecT<float> Shuffle(const sseVecT<float>& x) { return BSS_SSE_CAST_SI128_PS(BSS_SSE_SHUFFLE_EPI32(BSS_SSE_CAST_PS_SI128(x), Positions)); }
   static sseVecT<float> ZeroVector() { return sseVecT<float>(BSS_SSE_SETZERO_PS()); }
   BSS_FORCEINLINE float Sum() const { sseVecT<float> x = BSS_SSE_ADD_PS(xmm, Shuffle<1, 0, 3, 2>()); return BSS_SSE_SS_F32(BSS_SSE_ADD_PS(x, x.Shuffle<2, 3, 0, 1>())); }
 
@@ -577,8 +577,8 @@ BSS_ALIGNED_STRUCT(16) sseVecT<double>
   BSS_FORCEINLINE sseVecT<double> operator>=(const sseVecT<double>& r) const { return sseVecT<double>(BSS_SSE_CMPGTE_PD(xmm, r.xmm)); }
   BSS_FORCEINLINE sseVecT<double> Swap() const { return BSS_SSE_SHUFFLE_PD(xmm, xmm, 1); }
 
-  template<int Shuffle>
-  static sseVecT<double> Shuffle(const sseVecT<double>& x) { return BSS_SSE_CAST_SI128_PD(BSS_SSE_SHUFFLE_EPI32(BSS_SSE_CAST_PD_SI128(x), Shuffle)); }
+  template<int Positions>
+  static sseVecT<double> Shuffle(const sseVecT<double>& x) { return BSS_SSE_CAST_SI128_PD(BSS_SSE_SHUFFLE_EPI32(BSS_SSE_CAST_PD_SI128(x), Positions)); }
   static sseVecT<double> ZeroVector() { return sseVecT<double>(BSS_SSE_SETZERO_PD()); }
   BSS_FORCEINLINE double Sum() const { return BSS_SSE_SD_F64(BSS_SSE_ADD_PD(xmm, Swap())); }
 
@@ -625,12 +625,12 @@ BSS_ALIGNED_STRUCT(16) sseVecT<char>
   BSS_FORCEINLINE void operator>>(BSS_UNALIGNED<char> v) const { BSS_SSE_STORE_USI128((BSS_SSE_M128i*)v._p, xmm); }
   BSS_FORCEINLINE void operator>>(char& v) const { v = BSS_SSE_SI128_SI8(xmm); }
   static sseVecT<char> ZeroVector() { return sseVecT<char>(BSS_SSE_SETZERO_SI128()); }
-  template<int Shuffle>
-  static sseVecT<char> Shuffle(const sseVecT<char>& x) { return BSS_SSE_SHUFFLE_EPI32(x, Shuffle); }
-  template<int Shuffle>
-  static sseVecT<char> ShuffleHi(const sseVecT<char>& x) { return BSS_SSE_SHUFFLEHI_EPI16(x, Shuffle); }
-  template<int Shuffle>
-  static sseVecT<char> ShuffleLo(const sseVecT<char>& x) { return BSS_SSE_SHUFFLELO_EPI16(x, Shuffle); }
+  template<int Positions>
+  static sseVecT<char> Shuffle(const sseVecT<char>& x) { return BSS_SSE_SHUFFLE_EPI32(x, Positions); }
+  template<int Positions>
+  static sseVecT<char> ShuffleHi(const sseVecT<char>& x) { return BSS_SSE_SHUFFLEHI_EPI16(x, Positions); }
+  template<int Positions>
+  static sseVecT<char> ShuffleLo(const sseVecT<char>& x) { return BSS_SSE_SHUFFLELO_EPI16(x, Positions); }
 
   BSS_SSE_M128i8 xmm;
 };
@@ -681,12 +681,12 @@ BSS_ALIGNED_STRUCT(16) sseVecT<int16_t>
   BSS_FORCEINLINE void operator>>(BSS_UNALIGNED<int16_t> v) const { BSS_SSE_STORE_USI128((BSS_SSE_M128i*)v._p, xmm); }
   BSS_FORCEINLINE void operator>>(int16_t& v) const { v = BSS_SSE_SI128_SI16(xmm); }
   static sseVecT<int16_t> ZeroVector() { return sseVecT<int16_t>(BSS_SSE_SETZERO_SI128()); }
-  template<int Shuffle>
-  static sseVecT<int16_t> Shuffle(const sseVecT<int16_t>& x) { return BSS_SSE_SHUFFLE_EPI32(x, Shuffle); }
-  template<int Shuffle>
-  static sseVecT<int16_t> ShuffleHi(const sseVecT<int16_t>& x) { return BSS_SSE_SHUFFLEHI_EPI16(x, Shuffle); }
-  template<int Shuffle>
-  static sseVecT<int16_t> ShuffleLo(const sseVecT<int16_t>& x) { return BSS_SSE_SHUFFLELO_EPI16(x, Shuffle); }
+  template<int Positions>
+  static sseVecT<int16_t> Shuffle(const sseVecT<int16_t>& x) { return BSS_SSE_SHUFFLE_EPI32(x, Positions); }
+  template<int Positions>
+  static sseVecT<int16_t> ShuffleHi(const sseVecT<int16_t>& x) { return BSS_SSE_SHUFFLEHI_EPI16(x, Positions); }
+  template<int Positions>
+  static sseVecT<int16_t> ShuffleLo(const sseVecT<int16_t>& x) { return BSS_SSE_SHUFFLELO_EPI16(x, Positions); }
 
   BSS_SSE_M128i16 xmm;
 };
@@ -751,12 +751,12 @@ BSS_ALIGNED_STRUCT(16) sseVecT<int32_t>
   BSS_FORCEINLINE sseVecT<int> Shuffle() const { return Shuffle<BSS_SSE_SHUFFLE(x, y, z, w)>(*this); }
   BSS_FORCEINLINE int Sum() const { sseVecT<int> x = BSS_SSE_ADD_EPI32(xmm, Shuffle<1, 0, 3, 2>()); return BSS_SSE_SI128_SI32(BSS_SSE_ADD_EPI32(x, x.Shuffle<2, 3, 0, 1>())); }
 
-  template<int Shuffle>
-  static sseVecT<int> Shuffle(const sseVecT<int>& x) { return sseVecT<int>(BSS_SSE_SHUFFLE_EPI32(x.xmm, Shuffle)); }
-  template<int Shuffle>
-  static sseVecT<int> ShuffleHi(const sseVecT<int>& x) { return sseVecT<int>(BSS_SSE_SHUFFLEHI_EPI16(x.xmm, Shuffle)); }
-  template<int Shuffle>
-  static sseVecT<int> ShuffleLo(const sseVecT<int>& x) { return sseVecT<int>(BSS_SSE_SHUFFLELO_EPI16(x.xmm, Shuffle)); }
+  template<int Positions>
+  static sseVecT<int> Shuffle(const sseVecT<int>& x) { return sseVecT<int>(BSS_SSE_SHUFFLE_EPI32(x.xmm, Positions)); }
+  template<int Positions>
+  static sseVecT<int> ShuffleHi(const sseVecT<int>& x) { return sseVecT<int>(BSS_SSE_SHUFFLEHI_EPI16(x.xmm, Positions)); }
+  template<int Positions>
+  static sseVecT<int> ShuffleLo(const sseVecT<int>& x) { return sseVecT<int>(BSS_SSE_SHUFFLELO_EPI16(x.xmm, Positions)); }
 
   BSS_SSE_M128i xmm;
 };
@@ -806,12 +806,12 @@ BSS_ALIGNED_STRUCT(16) sseVecT<int64_t>
   BSS_FORCEINLINE sseVecT<int64_t> Swap() const { return (BSS_SSE_M128i64)BSS_SSE_SHUFFLE_EPI32(xmm, BSS_SSE_SHUFFLE(2, 3, 0, 1)); }
 
   static sseVecT<int64_t> ZeroVector() { return sseVecT<int64_t>(BSS_SSE_SETZERO_SI128()); }
-  template<int Shuffle>
-  static sseVecT<int64_t> Shuffle(const sseVecT<int64_t>& x) { return BSS_SSE_SHUFFLE_EPI32(x, Shuffle); }
-  template<int Shuffle>
-  static sseVecT<int64_t> ShuffleHi(const sseVecT<int64_t>& x) { return BSS_SSE_SHUFFLEHI_EPI16(x, Shuffle); }
-  template<int Shuffle>
-  static sseVecT<int64_t> ShuffleLo(const sseVecT<int64_t>& x) { return BSS_SSE_SHUFFLELO_EPI16(x, Shuffle); }
+  template<int Positions>
+  static sseVecT<int64_t> Shuffle(const sseVecT<int64_t>& x) { return BSS_SSE_SHUFFLE_EPI32(x, Positions); }
+  template<int Positions>
+  static sseVecT<int64_t> ShuffleHi(const sseVecT<int64_t>& x) { return BSS_SSE_SHUFFLEHI_EPI16(x, Positions); }
+  template<int Positions>
+  static sseVecT<int64_t> ShuffleLo(const sseVecT<int64_t>& x) { return BSS_SSE_SHUFFLELO_EPI16(x, Positions); }
 
   BSS_SSE_M128i64 xmm;
 };

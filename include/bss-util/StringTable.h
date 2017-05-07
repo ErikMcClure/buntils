@@ -4,7 +4,7 @@
 #ifndef __STR_TABLE_H__BSS__
 #define __STR_TABLE_H__BSS__
 
-//#include "alloc.h"
+//#include "Alloc.h"
 #include "bss_util.h"
 #include "Array.h"
 #include "Str.h"

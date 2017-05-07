@@ -7,7 +7,7 @@
 #define __TRB_TREE_H__BSS__
 
 #include "compare.h"
-#include "alloc.h"
+#include "Alloc.h"
 #include "LLBase.h"
 
 namespace bss {

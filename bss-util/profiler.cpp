@@ -1,7 +1,7 @@
 // Copyright ©2017 Black Sphere Studios
 // For conditions of distribution and use, see copyright notice in "bss_util.h"
 
-#include "bss-util/profiler.h"
+#include "bss-util/Profiler.h"
 #include "bss-util/Str.h"
 #include "bss-util/ArraySort.h"
 #include "bss-util/GreedyAlloc.h"

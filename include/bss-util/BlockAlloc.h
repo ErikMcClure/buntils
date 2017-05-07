@@ -4,7 +4,7 @@
 #ifndef __BSS_ALLOC_BLOCK_H__
 #define __BSS_ALLOC_BLOCK_H__
 
-#include "alloc.h"
+#include "Alloc.h"
 #include "bss_util.h"
 
 namespace bss {

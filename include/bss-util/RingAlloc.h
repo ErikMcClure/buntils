@@ -6,7 +6,7 @@
 
 #include "lockless.h"
 #include "LLBase.h"
-#include "rwlock.h"
+#include "RWLock.h"
 #include <string.h>
 
 namespace bss {
@@ -123,7 +123,7 @@ namespace bss {
       {
         hold = _list;
         _list = _list->list.next;
-        assert(!hold->lock.ReaderCount()); // verify no memory is being held
+        //assert(!hold->lock.ReaderCount()); // This check only works in single-threaded scenarios for testing purposes. In real world scenarios, ReaderCount can sporadically be nonzero due to attempted readlocks that haven't been undone yet.
         free(hold);
       }
       _gc.p = 0;
@@ -149,7 +149,7 @@ namespace bss {
         if(hold->sz < num) // If a bucket is too small for this allocation, destroy it
         {
           AltLLRemove<Bucket, &_getBucket>(hold, _list);
-          assert(!hold->lock.ReaderCount()); // verify no memory is being held
+          //assert(!hold->lock.ReaderCount()); // This check only works in single-threaded scenarios for testing purposes. In real world scenarios, ReaderCount can sporadically be nonzero due to attempted readlocks that haven't been undone yet.
           free(hold);
         }
         else // Otherwise, break out of the loop using this bucket

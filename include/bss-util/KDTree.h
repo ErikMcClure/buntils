@@ -5,7 +5,7 @@
 #define __KD_TREE_H__BSS__
 
 #include "compare.h"
-#include "alloc.h"
+#include "Alloc.h"
 #include "LLBase.h"
 #include <float.h> // for FLT_MAX on linux
 

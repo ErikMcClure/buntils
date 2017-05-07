@@ -2,7 +2,7 @@
 // For conditions of distribution and use, see copyright notice in "bss_util.h"
 
 #define BSS_ENABLE_PROFILER
-#include "bss-util/profiler.h"
+#include "bss-util/Profiler.h"
 #include "bss-util/algo.h"
 #include "test.h"
 

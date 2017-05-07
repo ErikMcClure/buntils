@@ -4,7 +4,7 @@
 #ifndef __ARRAY_H__BSS__
 #define __ARRAY_H__BSS__
 
-#include "alloc.h"
+#include "Alloc.h"
 #include <string.h>
 #include <initializer_list>
 

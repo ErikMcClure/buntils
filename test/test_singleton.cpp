@@ -12,6 +12,7 @@ struct SINGLETEST : Singleton<SINGLETEST>
   static SINGLETEST* Instance() { return _instance; }
 };
 
+template<>
 SINGLETEST* Singleton<SINGLETEST>::_instance = 0;
 
 TESTDEF::RETPAIR test_SINGLETON()

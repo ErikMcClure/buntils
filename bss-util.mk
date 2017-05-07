@@ -4,7 +4,7 @@ BUILDDIR := bin
 OBJDIR := bin/obj
 C_SRCS := $(wildcard $(SRCDIR)/*.c)
 CXX_SRCS := $(wildcard $(SRCDIR)/*.cpp)
-INCLUDE_DIRS := include/bss-util
+INCLUDE_DIRS := include
 LIBRARY_DIRS := 
 LIBRARIES := rt :libfontconfig.so.1
 

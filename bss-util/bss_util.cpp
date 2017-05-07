@@ -728,12 +728,11 @@ std::unique_ptr<char[], bss::bssDLLDelete<char[]>> bss::GetFontPath(const char* 
       {
         wcscat_s(buf, L"\\");
         wcscat_s(buf, (wchar_t*)path);
-        p = std::move(std::unique_ptr<char[], bss::bssDLLDelete<char[]>>(new char[MAX_PATH * 2]));
+        p.reset(new char[MAX_PATH * 2]);
         UTF16toUTF8(buf, MAX_PATH, p.get(), MAX_PATH * 2);
       }
     }
   }
-
   return std::move(p);
 }
 
@@ -742,20 +741,22 @@ std::unique_ptr<char[], bss::bssDLLDelete<char[]>> bss::GetFontPath(const char* 
 std::unique_ptr<char[], bss::bssDLLDelete<char[]>> bss::GetFontPath(const char* family, int weight, bool italic)
 {
   FcConfig* config = FcInitLoadConfigAndFonts();
-  FcPattern* pat = FcNameParse(reinterpret_cast<const FcChar8*>(family));
+  std::unique_ptr<char[], bss::bssDLLDelete<char[]>> p(nullptr);
+
+  FcPattern* pat = FcNameParse((const FcChar8*)family);
   FcConfigSubstitute(config, pat, FcMatchPattern);
   FcDefaultSubstitute(pat);
 
   // find the font
-  std::unique_ptr<char[], bss::bssDLLDelete<char[]>> p(nullptr);
-  FcPattern* font = FcFontMatch(config, pat, NULL);
+  FcResult result;
+  FcPattern* font = FcFontMatch(config, pat, &result);
   if(font)
   {
     FcChar8* file = NULL;
     if(FcPatternGetString(font, FC_FILE, 0, &file) == FcResultMatch)
     {
       size_t len = strlen((char*)file);
-      p = std::move(std::unique_ptr<char[], bss::bssDLLDelete<char[]>>(new char[len]));
+      p.reset(new char[len]);
       memcpy(p.get(), file, len);
     }
     FcPatternDestroy(font);

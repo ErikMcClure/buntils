@@ -144,7 +144,7 @@ int main(int argc, char** argv)
     { "PriorityQueue.h", &test_PRIORITYQUEUE },
     { "Rational.h", &test_RATIONAL },
     { "RefCounter.h", &test_REFCOUNTER },
-    { "rwlock.h", &test_RWLOCK },
+    { "RWLock.h", &test_RWLOCK },
     { "Singleton.h", &test_SINGLETON },
     { "Str.h", &test_STR },
     { "StringTable.h", &test_STRTABLE },

@@ -1,7 +1,7 @@
 // Copyright ©2017 Black Sphere Studios
 // For conditions of distribution and use, see copyright notice in "bss_util.h"
 
-#include "bss-util/graph.h"
+#include "bss-util/Graph.h"
 #include "test.h"
 #include <iostream>
 

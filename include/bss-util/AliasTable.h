@@ -61,7 +61,7 @@ namespace bss {
       memcpy(_probcopy.get(), problist, sizeof(F)*count);
 
 #ifdef BSS_DEBUG
-      memset(_alias, -1, sizeof(UINT)*_count);
+      bssFillN(_alias, _count, -1);
 #endif
       std::unique_ptr<UINT[]> small(new UINT[_count]); //Small and large stacks as simple arrays
       UINT n_small = 0;

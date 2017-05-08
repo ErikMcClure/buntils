@@ -75,7 +75,7 @@ TESTDEF::RETPAIR test_LOCKLESSQUEUE()
     uint64_t ppp = HighPrecisionTimer::OpenProfiler();
     lq_c = 1;
     lq_pos = 0;
-    memset(lq_end, 0, sizeof(short)*TESTNUM);
+    bssFill(lq_end, 0);
     startflag.store(false);
     threads[0] = Thread((VOIDFN)&_locklessqueue_produce<LLQUEUE_SCSP>, &q);
     threads[1] = Thread((VOIDFN)&_locklessqueue_consume<LLQUEUE_SCSP>, &q);
@@ -96,7 +96,7 @@ TESTDEF::RETPAIR test_LOCKLESSQUEUE()
     {
       lq_c = 1;
       lq_pos = 0;
-      memset(lq_end, 0, sizeof(short)*TESTNUM);
+      bssFill(lq_end, 0);
       LLQUEUE_MCMP q;   // multi consumer multi producer test
       startflag.store(false);
       //threads[0] = std::thread(_locklessqueue_consume<LLQUEUE_MCMP>, &q);

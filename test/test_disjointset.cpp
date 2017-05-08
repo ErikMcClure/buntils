@@ -12,7 +12,7 @@ TESTDEF::RETPAIR test_DISJOINTSET()
   BEGINTEST;
 
   std::pair<uint32_t, uint32_t> E[10]; // Initialize a complete tree with an arbitrary order.
-  memset(E, 0, sizeof(std::pair<uint32_t, uint32_t>) * 10);
+  bssFill(E, 0);
   E[0].first = 1;
   E[1].first = 2;
   E[2].first = 3;

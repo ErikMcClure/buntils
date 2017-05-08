@@ -137,7 +137,7 @@ INIsection& INIstorage::AddSection(const char* name)
 INIsection* INIstorage::_addSection(const char* name)
 {
   _NODE* p = _alloc.alloc(1);
-  memset(p, 0, sizeof(_NODE));
+  bssFill(*p, 0);
   khiter_t iter = _sections.Iterator(name);
 
   if(iter == _sections.End())
@@ -359,7 +359,7 @@ void INIstorage::_copy(const INIstorage& copy)
   while(t)
   {
     _NODE* p = _alloc.alloc(1);
-    memset(p, 0, sizeof(_NODE));
+    bssFill(*p, 0);
     new (&p->val) INIsection(t->val);
     if(!_root)
       _root = _last = p;

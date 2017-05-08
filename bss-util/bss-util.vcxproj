@@ -79,7 +79,7 @@
     <ClInclude Include="..\include\bss-util\ArrayCircular.h" />
     <ClInclude Include="..\include\bss-util\Array.h" />
     <ClInclude Include="..\include\bss-util\ArraySort.h" />
-    <ClInclude Include="..\include\bss-util\AVLtree.h" />
+    <ClInclude Include="..\include\bss-util\AVLTree.h" />
     <ClInclude Include="..\include\bss-util\BinaryHeap.h" />
     <ClInclude Include="..\include\bss-util\BitField.h" />
     <ClInclude Include="..\include\bss-util\BitStream.h" />
@@ -171,7 +171,7 @@
     <ConfigurationType>StaticLibrary</ConfigurationType>
     <CharacterSet>Unicode</CharacterSet>
     <WholeProgramOptimization>false</WholeProgramOptimization>
-    <PlatformToolset>v141</PlatformToolset>
+    <PlatformToolset>v141_xp</PlatformToolset>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release Static|Win32'" Label="Configuration">
     <ConfigurationType>StaticLibrary</ConfigurationType>
@@ -183,7 +183,7 @@
     <ConfigurationType>StaticLibrary</ConfigurationType>
     <CharacterSet>Unicode</CharacterSet>
     <WholeProgramOptimization>true</WholeProgramOptimization>
-    <PlatformToolset>v141</PlatformToolset>
+    <PlatformToolset>v141_xp</PlatformToolset>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'" Label="Configuration">
     <ConfigurationType>DynamicLibrary</ConfigurationType>

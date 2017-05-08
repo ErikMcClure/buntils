@@ -21,7 +21,7 @@ TESTDEF::RETPAIR test_THREADPOOL()
   static const int NUM = 8;
   ThreadPool pool(NUM);
 #ifdef BSS_VARIADIC_TEMPLATES
-  memset(pq_end, 0, sizeof(uint16_t)*TESTNUM);
+  bssFill(pq_end, 0);
   pq_c = 0;
   startflag.store(false, std::memory_order_relaxed);
 

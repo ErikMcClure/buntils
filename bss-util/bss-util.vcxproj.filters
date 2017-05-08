@@ -144,9 +144,6 @@
     <ClInclude Include="..\include\bss-util\BinaryHeap.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="..\include\bss-util\AVLtree.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
     <ClInclude Include="..\include\bss-util\ArraySort.h">
       <Filter>Header Files</Filter>
     </ClInclude>
@@ -232,6 +229,9 @@
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="..\include\bss-util\StringTable.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="..\include\bss-util\AVLTree.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>

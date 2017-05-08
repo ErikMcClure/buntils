@@ -219,7 +219,7 @@ void MATRIX_MULTIPLY(const T(&l)[M][N], const T(&r)[N][P], T(&out)[M][P])
   T b[N][P];
   memcpy(a, l, sizeof(T)*M*N); // ensure if we pass in multiple non-distinct matrices we don't overwrite them.
   memcpy(b, r, sizeof(T)*N*P);
-  memset(out, 0, sizeof(T)*M*P);
+  bssFill(out);
   for(int i = 0; i < M; ++i)
   {
     for(int j = 0; j < P; ++j)
@@ -260,7 +260,7 @@ bool MATRIX_OP_TEST(const T(&x)[M][N], const T(&l)[M][N], const T scalar)
 template<typename T, int M, int N>
 BSS_FORCEINLINE static void MATRIX_DIAGONAL(const T(&v)[M<N ? M : N], T(&out)[M][N])
 {
-  memset(out, 0, sizeof(T)*M*N);
+  bssFill(out);
   for(int i = 0; i < M && i < N; ++i)
     out[i][i] = v[i];
 }

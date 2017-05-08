@@ -94,7 +94,7 @@ namespace bss {
     // Resets the disjoint set
     inline void Reset()
     {
-      memset(_array, -1, sizeof(T)*_capacity); // Initialize all sets to be root nodes of trees of size 1
+      bssFillN(_array, _capacity, -1); // Initialize all sets to be root nodes of trees of size 1
       _numsets = _capacity;
     }
 

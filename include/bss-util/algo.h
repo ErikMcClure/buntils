@@ -404,7 +404,7 @@ namespace bss {
     size_t gh = ((size_t)ceil(h / cell)) + 4;
     std::array<T, 2>* grid = new std::array<T, 2>[gw*gh];      //grid height
     uint64_t* ig = (uint64_t*)grid;
-    memset(grid, 0xFF, gw*gh * sizeof(std::array<T, 2>));
+    bssFillN(grid, gw*gh, 0xFF);
     assert(!(~ig[0]));
 
     RandomQueue<std::array<T, 2>> list;

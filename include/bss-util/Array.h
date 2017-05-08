@@ -55,7 +55,7 @@ namespace bss {
   template<class T, typename CType = size_t>
   inline void InsertRangeSimple(T* a, CType length, CType index, const T* t, CType tsize) noexcept
   {
-    assert(index >= 0 && length >= index);
+    assert(index >= 0 && length >= index && a != 0);
     memmove(a + index + tsize, a + index, sizeof(T)*(length - index));
     memcpy(a + index, t, sizeof(T)*tsize);
   }
@@ -63,7 +63,7 @@ namespace bss {
   template<class T, typename CType = size_t>
   inline void RemoveRangeSimple(T* a, CType length, CType index, CType range) noexcept
   {
-    assert(index >= 0 && length > index);
+    assert(index >= 0 && length > index && a != 0);
     memmove(a + index, a + index + range, sizeof(T)*(length - index - range));
   }
 
@@ -126,7 +126,7 @@ namespace bss {
   };
 
 #ifdef BSS_DEBUG
-#define BSS_DEBUGFILL(p, old, n, Ty) memset(p + bssmin(n, old), 0xfd, (size_t)(((n > old)?(n - old):(old - n))*sizeof(Ty)))
+#define BSS_DEBUGFILL(p, old, n, Ty) if(p) memset(p + bssmin(n, old), 0xfd, (size_t)(((n > old)?(n - old):(old - n))*sizeof(Ty)))
 #else
 #define BSS_DEBUGFILL(p, old, n, Ty)  
 #endif
@@ -139,7 +139,7 @@ namespace bss {
     template<typename U>
     static void _insert(T* a, CType length, CType index, U && t) noexcept
     {
-      assert(index >= 0 && length >= index);
+      assert(index >= 0 && length >= index && a != 0);
       memmove(a + index + 1, a + index, sizeof(T)*(length - index));
       new(a + index) T(std::forward<U>(t));
     }

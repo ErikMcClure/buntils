@@ -33,7 +33,7 @@ namespace bss {
     inline bool DEBUGCHECK()
     {
       uint8_t buf[sizeof(PROF_HEATNODE)];
-      memset(buf, 0xfd, sizeof(PROF_HEATNODE));
+      bssFill(buf, 0xfd);
       for(PROF_HEATNODE* p = _children.begin(); p != _children.end(); ++p)
         if(!memcmp(p, buf, sizeof(PROF_HEATNODE)) || !p->DEBUGCHECK())
         {
@@ -185,7 +185,7 @@ void Profiler::_heatWrite(std::ostream& stream, PROF_HEATNODE& node, uint32_t le
     num += fFastTruncate(std::min(node.avg / mag2, 10.0));
     num += fFastTruncate(std::min(node.avg / mag3, 10.0));
     char bar[BARLENGTH + 1] = {};
-    memset(bar, ' ', BARLENGTH);
+    bssFillN<char>(bar, BARLENGTH, ' ');
     for(uint32_t i = 0; i < num; ++i)
     {
       switch(i / BARLENGTH)
@@ -243,7 +243,7 @@ void Profiler::_timeFormat(std::ostream& stream, double avg, double variance, ui
 PROF_TRIENODE* Profiler::_allocNode()
 {
   PROF_TRIENODE* r = _alloc.alloc(1);
-  memset(r, 0, sizeof(PROF_TRIENODE));
+  bssFill(*r, 0);
   r->total = (uint64_t)-1;
   ++_totalnodes;
   return r;

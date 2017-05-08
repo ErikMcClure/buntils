@@ -68,7 +68,7 @@ namespace bss {
       Reserve(length);
 #ifdef BSS_DEBUG
       if(length > Length())
-        memset(end(), 0xfd, (length - Length()) * sizeof(T));
+        bssFillN<T>(end(), length - Length(), 0xfd);
 #endif
       _length = (length | (_length&COMPACTFLAG));
     }

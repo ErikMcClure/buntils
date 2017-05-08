@@ -178,7 +178,7 @@ namespace bss {
         _deleteNode(hold);
         hold = nexthold;
       }
-      memset(this, 0, sizeof(LinkedList<T, Alloc, useLast, useSize>));
+      bssFill(*this, 0);
     }
 
     inline LLNode<T>* Front() const { return _root; }

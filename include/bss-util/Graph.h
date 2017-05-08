@@ -85,7 +85,7 @@ namespace bss {
     inline typename LinkedArray<Node<E, V, CT>, CT, ArrayType, NODEALLOC>::template cLAIter<true> end() const { return _nodes.end(); }
     inline typename LinkedArray<Node<E, V, CT>, CT, ArrayType, NODEALLOC>::template cLAIter<false> begin() { return _nodes.begin(); }
     inline typename LinkedArray<Node<E, V, CT>, CT, ArrayType, NODEALLOC>::template cLAIter<false> end() { return _nodes.end(); }
-    inline CT AddNode() { Node<E, V, CT> aux; memset(&aux, 0, sizeof(Node<E, V, CT>)); return _nodes.Add(aux); }
+    inline CT AddNode() { Node<E, V, CT> aux; bssFill(aux, 0); return _nodes.Add(aux); }
     inline CT AddNode(const V* node) { if(!node) return AddNode(); Node<E, V, CT> aux; aux.to = 0; aux.from = 0; _setDataV(aux, node); return _nodes.Add(aux); }
     inline Edge<E, CT>* AddEdge(CT from, CT to)
     {
@@ -183,10 +183,10 @@ namespace bss {
     DYNARRAY(CT, height, cap);
     DYNARRAY(PEDGE, seen, cap);
     DYNARRAY(PAIR, v, (len - 2)); //integer based singly-linked list.
-    memset(excess, 0, cap * sizeof(int));
-    memset(height, 0, cap * sizeof(CT));
-    memset(seen, 0, cap * sizeof(PEDGE));
-    memset(v, -1, (len - 2) * sizeof(PAIR));
+    bssFillN(excess, cap);
+    bssFillN(height, cap);
+    bssFillN(seen, cap);
+    bssFillN(v, (len - 2), -1);
     PEDGE edge;
     auto& nodes = graph.GetNodes();
 

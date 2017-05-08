@@ -292,7 +292,7 @@ namespace bss {
     inline KDNode<T>* _allocNode(KDNode<T>* parent, char axis)
     {
       KDNode<T>* r = AllocTracker<Alloc>::_allocate(1);
-      memset(r, 0, sizeof(KDNode<T>));
+      bssFill(*r);
       r->parent = parent;
       r->axis = axis;
       return r;

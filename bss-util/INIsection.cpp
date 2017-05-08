@@ -50,7 +50,7 @@ void INIsection::_copy(const INIsection& copy)
   while(t)
   {
     _NODE* p=_alloc.alloc(1);
-    memset(p,0,sizeof(_NODE));
+    bssFill(*p, 0);
     new (&p->val) INIentry(t->val);
     if(!_root)
       _root=_last=p;
@@ -75,7 +75,7 @@ void INIsection::_copy(const INIsection& copy)
 void INIsection::_addEntry(const char* key, const char* data)
 {
   _NODE* p=_alloc.alloc(1);
-  memset(p,0,sizeof(_NODE));
+  bssFill(*p, 0);
   new (&p->val) INIentry(key,data);
   khiter_t iter=_entries.Iterator(key);
 

@@ -79,17 +79,17 @@ namespace bss {
 
     HashBase(const HashBase& copy)
     {
-      memset(this, 0, sizeof(HashBase));
+      bssFill(*this, 0);
       operator=(copy);
     }
     HashBase(HashBase&& mov)
     {
       memcpy(this, &mov, sizeof(HashBase));
-      memset(&mov, 0, sizeof(HashBase));
+      bssFill(mov, 0);
     }
     explicit HashBase(khint_t n_buckets = 0)
     {
-      memset(this, 0, sizeof(HashBase));
+      bssFill(*this, 0);
       if(n_buckets > 0)
         _resize(n_buckets);
     }
@@ -207,7 +207,7 @@ namespace bss {
       if(keys) Alloc::deallocate((char*)keys);
       if(vals) Alloc::deallocate((char*)vals);
       memcpy(this, &mov, sizeof(HashBase));
-      memset(&mov, 0, sizeof(HashBase));
+      bssFill(mov);
       return *this;
     }
 

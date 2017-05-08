@@ -37,7 +37,7 @@ namespace bss {
       _strings[(stream->gcount() / sizeof(T)) - 1] = '\0'; //make sure the end is a null terminator
 
       _indices.SetCapacity(strccount<T>(_strings, 0, _strings.Capacity()));
-      memset((CT_*)_indices, 0, _indices.Capacity() * sizeof(CT_));
+      bssFillN<CT_>(_indices, _indices.Capacity(), 0);
 
       CT_ j = 1;
       for(CT_ i = 0; i < _strings.Capacity() && j < _indices.Capacity(); ++i)

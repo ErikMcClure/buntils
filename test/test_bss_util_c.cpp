@@ -62,6 +62,27 @@ void testconvfunc(const FROM* from, size_t szfrom, const TO* to, size_t(f)(const
   TEST(target4[len - 1] != 0);
   TEST(arbitrarycomp<TO>(target4, to, len));
 }
+template<typename FROM, typename TO>
+void testconvzero(size_t(f)(const FROM*BSS_RESTRICT, ptrdiff_t, TO*BSS_RESTRICT, size_t), TESTDEF::RETPAIR& __testret)
+{
+  FROM fzero = 0;
+  TO tzero = 0;
+  TO target[1] = { 1 };
+
+  size_t len = f(&fzero, -1, 0, 0);
+  TEST(f(&fzero, -1, target, len) == 1);
+  TEST(target[0] == 0);
+
+  target[0] = 1;
+  len = f(&fzero, 1, 0, 0);
+  TEST(f(&fzero, 1, target, len) == 1);
+  TEST(target[0] == 0);
+
+  target[0] = 1;
+  len = f(&fzero, 0, 0, 0);
+  TEST(f(&fzero, 0, target, len) == 0);
+  TEST(target[0] == 1);
+}
 
 TESTDEF::RETPAIR test_bss_util_c()
 {
@@ -171,6 +192,8 @@ TESTDEF::RETPAIR test_bss_util_c()
 
   testconvfunc<char, int>(conversion1, 10, conversion3, &UTF8toUTF32, __testret);
   testconvfunc<int, char>(conversion3, 10, conversion1, &UTF32toUTF8, __testret);
+  testconvzero<char, int>(&UTF8toUTF32, __testret);
+  testconvzero<int, char>(&UTF32toUTF8, __testret);
 
 #ifdef BSS_PLATFORM_WIN32
   const wchar_t* conversion2 = L"conversion";
@@ -179,6 +202,10 @@ TESTDEF::RETPAIR test_bss_util_c()
   testconvfunc<int, wchar_t>(conversion3, 10, conversion2, &UTF32toUTF16, __testret);
   testconvfunc<wchar_t, char>(conversion2, 10, conversion1, &UTF16toUTF8, __testret);
   testconvfunc<char, wchar_t>(conversion1, 10, conversion2, &UTF8toUTF16, __testret);
+  testconvzero<wchar_t, int>(&UTF16toUTF32, __testret);
+  testconvzero<int, wchar_t>(&UTF32toUTF16, __testret);
+  testconvzero<wchar_t, char>(&UTF16toUTF8, __testret);
+  testconvzero<char, wchar_t>(&UTF8toUTF16, __testret);
 #endif
 
   ENDTEST;

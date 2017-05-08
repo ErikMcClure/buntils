@@ -992,6 +992,28 @@ namespace bss {
     //return a+((T)((b-a)*t)); // This is susceptible to floating point errors when t = 1
   }
 
+  // Type safe memset functions
+  template<typename T>
+  BSS_FORCEINLINE void bssFill(T& p, char val = 0)
+  {
+    memset(&p, val, sizeof(T));
+  }
+  template<typename T, int I>
+  BSS_FORCEINLINE void bssFill(T (&p)[I], int val = 0)
+  {
+    memset(p, val, sizeof(T)*I);
+  }
+  template<typename T, int I, int J>
+  BSS_FORCEINLINE void bssFill(T(&p)[I][J], int val = 0)
+  {
+    memset(p, val, sizeof(T)*I*J);
+  }
+  template<typename T>
+  BSS_FORCEINLINE void bssFillN(T* p, size_t n, char val = 0)
+  {
+    memset(p, val, sizeof(T)*n);
+  }
+
 #ifdef BSS_VARIADIC_TEMPLATES
 
   // Generates a packed sequence of numbers

@@ -31,7 +31,7 @@ void TEST_ALLOC_FUZZER_THREAD(TESTDEF::RETPAIR& __testret, T& _alloc, bss::DynAr
           if(((char)(i + 1) != *(char*)(plist[index].first + i)))
             pass = false;
         }
-        memset(plist[index].first, 0, sizeof(P)*plist[index].second);
+        bssFillN(plist[index].first, plist[index].second);
         _alloc.dealloc(plist[index].first);
         bss::rswap(plist.Back(), plist[index]);
         plist.RemoveLast(); // This technique lets us randomly remove items from the array without having to move large chunks of data by swapping the invalid element with the last one and then removing the last element (which is cheap)
@@ -39,7 +39,7 @@ void TEST_ALLOC_FUZZER_THREAD(TESTDEF::RETPAIR& __testret, T& _alloc, bss::DynAr
     }
     while(plist.Length())
     {
-      memset(plist.Back().first, 0, sizeof(P)*plist.Back().second);
+      bssFillN(plist.Back().first, plist.Back().second);
       _alloc.dealloc(plist.Back().first);
       plist.RemoveLast();
     }

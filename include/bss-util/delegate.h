@@ -16,13 +16,17 @@ namespace bss {
     inline Delegate(std::function<R(Args...)>&& src) BSS_DELETEFUNC // Don't do Delegate([&](){ return; }) or it'll go out of scope.
       typedef R RTYPE;
     typedef R(*FUNCTYPE)(void*, Args...);
+    typedef RTYPE(*COREFUNC)(Args...);
   public:
     inline Delegate(const Delegate& copy) noexcept : _src(copy._src), _stub(copy._stub) {}
     inline Delegate(void* src, R(*stub)(void*, Args...)) noexcept : _src(src), _stub(stub) {}
     inline Delegate(std::function<R(Args...)>& src) noexcept : _src(&src), _stub(&stublambda) {}
+    inline Delegate() noexcept : _src(0), _stub(0) {}
     inline R operator()(Args ... args) const { return (*_stub)(_src, args...); }
     inline Delegate& operator=(const Delegate& right) noexcept { _src = right._src; _stub = right._stub; return *this; }
     inline bool IsEmpty() const noexcept { return _src == 0 || _stub == 0; }
+    inline void* RawSource() const { return _src; }
+    inline FUNCTYPE RawFunc() const { return _stub; }
 
     template<class T, RTYPE(T::*F)(Args...)>
     inline static Delegate From(T* src) noexcept { return Delegate(src, &stub<T, F>); }
@@ -35,10 +39,6 @@ namespace bss {
     template<class T, RTYPE(*F)(const T*, Args...)>
     inline static Delegate FromC(const T* src) noexcept { return Delegate(const_cast<T*>(src), &stubconstC<T, F>); }
 
-  protected:
-    void* _src;
-    R(*_stub)(void*, Args...);
-
     template <class T, RTYPE(T::*F)(Args...)>
     static R stub(void* src, Args... args) { return (static_cast<T*>(src)->*F)(args...); }
     template <class T, RTYPE(T::*F)(Args...) const>
@@ -50,6 +50,11 @@ namespace bss {
     static R stubC(void* src, Args... args) { return (*F)(static_cast<T*>(src), args...); }
     template <class T, RTYPE(*F)(const T*, Args...)>
     static R stubconstC(void* src, Args... args) { return (*F)(static_cast<const T*>(src), args...); }
+    static R stubembed(void* src, Args... args) { return ((COREFUNC)src)(args...); }
+
+  protected:
+    void* _src;
+    R(*_stub)(void*, Args...);
   };
 
   template<typename R, typename... Args>

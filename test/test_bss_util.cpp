@@ -168,16 +168,16 @@ TESTDEF::RETPAIR test_bss_util()
   std::unique_ptr<int[]> ub((int*)0);
   std::string ta("first");
   std::string tb("second");
-  rswap(ia, ib);
+  std::swap(ia, ib);
   TEST(ia == 1);
   TEST(ib == 0);
-  rswap(sa, sb);
+  std::swap(sa, sb);
   TEST((sa == std::pair<int, int>(2, 1)));
   TEST((sb == std::pair<int, int>(1, 2)));
-  rswap(ua, ub);
+  std::swap(ua, ub);
   TEST(ua.get() == 0);
   TEST(ub.get() != 0);
-  rswap(ta, tb);
+  std::swap(ta, tb);
   TEST(ta == "second");
   TEST(tb == "first");
 
@@ -213,7 +213,7 @@ TESTDEF::RETPAIR test_bss_util()
 
   int r[] = { -1,0,2,3,4,5,6 };
   int rr[] = { 6,5,4,3,2,0,-1 };
-  bssReverse(r);
+  std::reverse(std::begin(r), std::end(r));
   TESTARRAY(r, return (r[0] == rr[0]);)
 
     const char* LTRIM = "    trim ";

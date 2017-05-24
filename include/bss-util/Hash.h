@@ -9,6 +9,7 @@
 #include "Array.h"
 #include "Str.h"
 #include <wchar.h>
+#include <utility>
 #include <iterator>
 
 namespace bss {
@@ -299,8 +300,8 @@ namespace bss {
               __ac_set_isempty_false(new_flags, i);
               if(i < n_buckets && __ac_iseither(flags, i) == 0)
               { /* kick out the existing element */
-                rswap(keys[i], key);
-                if(IsMap) rswap(vals[i], val);
+                std::swap(keys[i], key);
+                if(IsMap) std::swap(vals[i], val);
                 __ac_set_isdel_true(flags, i); /* mark it as deleted in the old hash table */
               }
               else // this code only runs if this bucket doesn't exist, so initialize

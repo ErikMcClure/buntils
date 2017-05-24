@@ -136,7 +136,7 @@ TESTDEF::RETPAIR test_bss_algo()
 
   uint32_t nsrc[] = { 0,1,2,3,4,5,10,13,21,2873,3829847,2654435766 };
   uint32_t num[] = { 1,2,4,5,7,8,17,21,34,4647,6193581,4292720341 };
-  transform(nsrc, &fbnext<uint32_t>);
+  std::transform(std::begin(nsrc), std::end(nsrc), nsrc, &fbnext<uint32_t>);
   TESTARRAY(nsrc, return nsrc[i] == num[i];)
 
   //int testmap = { 1, 2, 3, 4, 5, 6, 7, 8, 9, -1 };

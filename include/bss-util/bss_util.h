@@ -29,6 +29,7 @@
 #include <array>
 #include <limits>
 #include <ostream>
+#include <utility>
 #ifdef BSS_PLATFORM_WIN32
 #include <intrin.h>
 #endif
@@ -143,16 +144,7 @@ namespace bss {
       if(string[i] == c) ++ret;
     return ret;
   }
-
-  // template swap function, h should be optimized out by the compiler
-  template<typename T>
-  BSS_FORCEINLINE void rswap(T& p, T& q) noexcept
-  {
-    T h(std::move(p));
-    p = std::move(q);
-    q = std::move(h);
-  }
-
+  
   // This yields mathematically correct integer division (i/div) towards negative infinity, but only if div is a positive integer. This
   // implementation obviously must have integral types for T and D, but can be explicitely specialized to handle vectors or other structs.
   template<typename T, typename D>
@@ -181,16 +173,6 @@ namespace bss {
     static_assert(std::is_floating_point<T>::value, "T must be a floating point type");
     return x - floor(x / m)*m;
   }
-  // Uses rswap to reverse the order of an array
-  template<typename T>
-  inline void bssReverse(T* src, size_t length) noexcept
-  {
-    assert(length > 0);
-    for(size_t i = 0, j = (--length); i < j; j = length - (++i)) // Equivelent to: for(size_t i = 0,j=length-1; i < j; j=length-1-(++i))
-      rswap(src[i], src[j]);
-  }
-  template<typename T, size_t size>
-  BSS_FORCEINLINE void bssReverse(T(&p)[size]) noexcept { bssReverse(p, size); }
 
   /* Trims space from left end of string by returning a different pointer. It is possible to use const char or const wchar_t as a type
      here because the string itself is not modified. */
@@ -336,12 +318,12 @@ namespace bss {
   }
 
   // Flips the endianness of a memory location
-  BSS_FORCEINLINE void FlipEndian(char* target, char n) noexcept
+  BSS_FORCEINLINE void FlipEndian(uint8_t* target, uint8_t n) noexcept
   {
-    char t;
-    char end = (n >> 1);
+    uint8_t t;
+    uint8_t end = (n >> 1);
     --n;
-    for(char i = 0; i < end; ++i)
+    for(uint8_t i = 0; i < end; ++i)
     {
       t = target[n - i];
       target[n - i] = target[i];
@@ -350,13 +332,13 @@ namespace bss {
   }
 
   template<int I>
-  BSS_FORCEINLINE void FlipEndian(char* target) noexcept { FlipEndian((char*)target, I); }
-  template<> BSS_FORCEINLINE void FlipEndian<0>(char* target) noexcept {}
-  template<> BSS_FORCEINLINE void FlipEndian<1>(char* target) noexcept {}
-  template<> BSS_FORCEINLINE void FlipEndian<2>(char* target) noexcept { char t = target[0]; target[0] = target[1]; target[1] = t; }
+  BSS_FORCEINLINE void FlipEndian(uint8_t* target) noexcept { FlipEndian(target, I); }
+  template<> BSS_FORCEINLINE void FlipEndian<0>(uint8_t* target) noexcept {}
+  template<> BSS_FORCEINLINE void FlipEndian<1>(uint8_t* target) noexcept {}
+  template<> BSS_FORCEINLINE void FlipEndian<2>(uint8_t* target) noexcept { uint8_t t = target[0]; target[0] = target[1]; target[1] = t; }
 
   template<typename T>
-  BSS_FORCEINLINE void FlipEndian(T* target) noexcept { FlipEndian<sizeof(T)>((char*)target); }
+  BSS_FORCEINLINE void FlipEndian(T* target) noexcept { FlipEndian<sizeof(T)>(reinterpret_cast<uint8_t*>(target)); }
 
     // This is a bit-shift method of calculating the next number in the fibonacci sequence by approximating the golden ratio with 0.6171875 (1/2 + 1/8 - 1/128)
   template<typename T>

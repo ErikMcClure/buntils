@@ -12,6 +12,7 @@
 #include "DisjointSet.h"
 #include "Delegate.h"
 #include <algorithm>
+#include <utility>
 #include <random>
 #include <array>
 #ifdef BSS_COMPILER_GCC
@@ -241,7 +242,7 @@ namespace bss {
   inline void Shuffle(T* p, CT size, ENGINE& e)
   {
     for(CT i = size; i > 0; --i)
-      rswap<T>(p[i - 1], p[bssrand<CT, ENGINE>(0, i, e)]);
+      std::swap(p[i - 1], p[bssrand<CT, ENGINE>(0, i, e)]);
   }
   template<typename T, typename CT, typename ENGINE, CT size>
   inline void Shuffle(T(&p)[size], ENGINE& e) { Shuffle<T, CT, ENGINE>(p, size, e); }
@@ -255,13 +256,6 @@ namespace bss {
   }
   template<typename T, int size>
   BSS_FORCEINLINE void Shuffle(T(&p)[size]) { Shuffle<T>(p, size); }
-
-  template<class F, typename T, size_t SIZE>
-  BSS_FORCEINLINE void transform(T(&t)[SIZE], T(&result)[SIZE], F func) { std::transform(std::begin(t), std::end(t), result, func); }
-  template<class F, typename T, size_t SIZE>
-  BSS_FORCEINLINE void transform(T(&t)[SIZE], F func) { std::transform(std::begin(t), std::end(t), t, func); }
-  template<class F, typename T, size_t SIZE>
-  BSS_FORCEINLINE void for_each(T(&t)[SIZE], F func) { std::for_each(std::begin(t), std::end(t), func); }
 
   // Random queue that pops a random item instead of the last item.
   template<typename T, typename CType = uint32_t, typename ENGINE = XorshiftEngine<uint64_t>, ARRAY_TYPE ArrayType = ARRAY_SIMPLE, typename Alloc = StaticAllocPolicy<T>>

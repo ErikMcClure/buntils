@@ -8,7 +8,7 @@
 using namespace bss;
 
 bool GRAPHACTION(uint16_t s) { return false; }
-bool GRAPHISEDGE(const __edge_MaxFlow<__edge_LowerBound<void>>* e) { return e->capacity>0; }
+bool GRAPHISEDGE(const internal::__edge_MaxFlow<internal::__edge_LowerBound<void>>* e) { return e->capacity>0; }
 
 template<class G> // debug
 void outgraph(const G& g)
@@ -25,7 +25,10 @@ void outgraph(const G& g)
 TESTDEF::RETPAIR test_bss_GRAPH()
 {
   BEGINTEST;
-
+  using internal::__edge_MaxFlow;
+  using internal::__vertex_Demand;
+  using internal::__edge_LowerBound;
+  
   {
     Graph<void, void> g(6);
 

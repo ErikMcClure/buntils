@@ -7,66 +7,69 @@
 #include "bss-util/GreedyAlloc.h"
 #include <fstream>
 
-using namespace bss;
-
 namespace bss {
+  namespace internal {
   // Static implementation of the standard allocation policy, used for ArrayBase
-  struct PROF_HEATNODE
-  {
-    struct BSS_COMPILER_DLLEXPORT HeatAllocPolicy {
-      static GreedyAlloc _alloc;
-      inline static PROF_HEATNODE* allocate(size_t cnt, const PROF_HEATNODE* p = 0)
-      {
-        auto n = _alloc.allocT<PROF_HEATNODE>(cnt + 1);
-        *((size_t*)n++) = cnt;
-        if(p)
-        {
-          size_t l = *((size_t*)(p - 1));
-          memcpy(n, p, l * sizeof(PROF_HEATNODE));
-          deallocate(const_cast<PROF_HEATNODE*>(p));
-        }
-
-        return n;
-      } static void deallocate(PROF_HEATNODE* p, size_t = 0) { _alloc.dealloc(p - 1); }
-    };
-    static inline char COMP(const PROF_HEATNODE& l, const PROF_HEATNODE& r) { return SGNCOMPARE(r.avg, l.avg); }
-    inline bool DEBUGCHECK()
+    struct PROF_HEATNODE
     {
-      uint8_t buf[sizeof(PROF_HEATNODE)];
-      bssFill(buf, 0xfd);
-      for(PROF_HEATNODE* p = _children.begin(); p != _children.end(); ++p)
-        if(!memcmp(p, buf, sizeof(PROF_HEATNODE)) || !p->DEBUGCHECK())
+      struct BSS_COMPILER_DLLEXPORT HeatAllocPolicy {
+        static GreedyAlloc _alloc;
+        inline static PROF_HEATNODE* allocate(size_t cnt, const PROF_HEATNODE* p = 0)
         {
-          assert(false);
-          return false;
-        }
-      return true;
-    }
-    inline PROF_HEATNODE() : avg(0.0), id(0) {}
-    inline PROF_HEATNODE(PROFILER_INT ID, double Avg) : avg(Avg), id(ID) {}
-    inline PROF_HEATNODE(const PROF_HEATNODE& copy) : _children(copy._children), avg(copy.avg), id(copy.id) {}
-    inline PROF_HEATNODE(PROF_HEATNODE&& mov) : _children(std::move(mov._children)), avg(mov.avg), id(mov.id) {}
-    ArraySort<PROF_HEATNODE, COMP, uint32_t, ARRAY_CONSTRUCT, HeatAllocPolicy> _children;
-    double avg;
-    PROFILER_INT id;
-    PROF_HEATNODE& operator=(PROF_HEATNODE&& mov) { _children = std::move(mov._children); avg = mov.avg; id = mov.id; return *this; }
-    PROF_HEATNODE& operator=(const PROF_HEATNODE& copy) { _children = copy._children; avg = copy.avg; id = copy.id; return *this; }
-  };
-  struct PROF_FLATOUT
-  {
-    double avg;
-    double var;
-    uint64_t total;
-  };
+          auto n = _alloc.allocT<PROF_HEATNODE>(cnt + 1);
+          *((size_t*)n++) = cnt;
+          if(p)
+          {
+            size_t l = *((size_t*)(p - 1));
+            memcpy(n, p, l * sizeof(PROF_HEATNODE));
+            deallocate(const_cast<PROF_HEATNODE*>(p));
+          }
+
+          return n;
+        } static void deallocate(PROF_HEATNODE* p, size_t = 0) { _alloc.dealloc(p - 1); }
+      };
+      static inline char COMP(const PROF_HEATNODE& l, const PROF_HEATNODE& r) { return SGNCOMPARE(r.avg, l.avg); }
+      inline bool DEBUGCHECK()
+      {
+        uint8_t buf[sizeof(PROF_HEATNODE)];
+        bssFill(buf, 0xfd);
+        for(PROF_HEATNODE* p = _children.begin(); p != _children.end(); ++p)
+          if(!memcmp(p, buf, sizeof(PROF_HEATNODE)) || !p->DEBUGCHECK())
+          {
+            assert(false);
+            return false;
+          }
+        return true;
+      }
+      inline PROF_HEATNODE() : avg(0.0), id(0) {}
+      inline PROF_HEATNODE(Profiler::ProfilerInt ID, double Avg) : avg(Avg), id(ID) {}
+      inline PROF_HEATNODE(const PROF_HEATNODE& copy) : _children(copy._children), avg(copy.avg), id(copy.id) {}
+      inline PROF_HEATNODE(PROF_HEATNODE&& mov) : _children(std::move(mov._children)), avg(mov.avg), id(mov.id) {}
+      ArraySort<PROF_HEATNODE, COMP, uint32_t, ARRAY_CONSTRUCT, HeatAllocPolicy> _children;
+      double avg;
+      Profiler::ProfilerInt id;
+      PROF_HEATNODE& operator=(PROF_HEATNODE&& mov) { _children = std::move(mov._children); avg = mov.avg; id = mov.id; return *this; }
+      PROF_HEATNODE& operator=(const PROF_HEATNODE& copy) { _children = copy._children; avg = copy.avg; id = copy.id; return *this; }
+    };
+    struct PROF_FLATOUT
+    {
+      double avg;
+      double var;
+      uint64_t total;
+    };
+  }
 }
 
+using namespace bss;
+using namespace bss::internal;
+
 Profiler Profiler::profiler;
-PROFILER_INT Profiler::total = 0;
+Profiler::ProfilerInt Profiler::total = 0;
 GreedyAlloc PROF_HEATNODE::HeatAllocPolicy::_alloc(128 * sizeof(PROF_HEATNODE));
 
 Profiler::Profiler() : _alloc(32), _data(1), _totalnodes(0) { _trie = _cur = _allocNode(); _data[0] = 0; }
 
-void Profiler::AddData(PROFILER_INT id, ProfilerData* p)
+void Profiler::AddData(ProfilerInt id, ProfilerData* p)
 {
   if(_data.Capacity() <= id)
     _data.SetCapacity(id + 1);
@@ -100,7 +103,7 @@ void Profiler::WriteToStream(std::ostream& stream, uint8_t output)
     if(!avg) return;
     _flatOut(avg, _trie, 0, 0);
     std::sort(avg + 1, avg + _data.Capacity(), [](const PROF_FLATOUT& l, const PROF_FLATOUT& r) -> bool { return l.avg > r.avg; });
-    for(PROFILER_INT i = 1; i < _data.Capacity(); ++i)
+    for(ProfilerInt i = 1; i < _data.Capacity(); ++i)
     {
       stream << '[' << _trimPath(_data[i]->file) << ':' << _data[i]->line << "] " << _data[i]->name << ": ";
       _timeFormat(stream, avg[i].avg, avg[i].var, avg[i].total);
@@ -118,7 +121,7 @@ void Profiler::WriteToStream(std::ostream& stream, uint8_t output)
     _heatWrite(stream, root, -1, _heatFindMax(root));
   }
 }
-void Profiler::_treeOut(std::ostream& stream, PROF_TRIENODE* node, PROFILER_INT id, uint32_t level, PROFILER_INT idlevel)
+void Profiler::_treeOut(std::ostream& stream, PROF_TRIENODE* node, ProfilerInt id, uint32_t level, ProfilerInt idlevel)
 {
   if(!node) return;
   if(node->total != (uint64_t)-1)
@@ -130,10 +133,10 @@ void Profiler::_treeOut(std::ostream& stream, PROF_TRIENODE* node, PROFILER_INT 
     id = 0;
     idlevel = 0;
   }
-  for(PROFILER_INT i = 0; i < 16; ++i)
+  for(ProfilerInt i = 0; i < 16; ++i)
     _treeOut(stream, node->_children[i], id | (i << (4 * idlevel)), level + !id, idlevel + 1);
 }
-void Profiler::_heatOut(PROF_HEATNODE& heat, PROF_TRIENODE* node, PROFILER_INT id, PROFILER_INT idlevel)
+void Profiler::_heatOut(PROF_HEATNODE& heat, PROF_TRIENODE* node, ProfilerInt id, ProfilerInt idlevel)
 {
   if(!node) return;
   if(node->total != (uint64_t)-1)
@@ -143,11 +146,11 @@ void Profiler::_heatOut(PROF_HEATNODE& heat, PROF_TRIENODE* node, PROFILER_INT i
     id = 0;
     idlevel = 0;
 
-    for(PROFILER_INT i = 0; i < 16; ++i)
+    for(ProfilerInt i = 0; i < 16; ++i)
       _heatOut(nheat, node->_children[i], id | (i << (4 * idlevel)), 0);
 
     double total = 0.0; // Create the [code] node
-    for(PROFILER_INT i = 0; i < nheat._children.Length(); ++i)
+    for(ProfilerInt i = 0; i < nheat._children.Length(); ++i)
       total += nheat._children[i].avg;
 
     if(nheat._children.Length() > 0)
@@ -155,13 +158,13 @@ void Profiler::_heatOut(PROF_HEATNODE& heat, PROF_TRIENODE* node, PROFILER_INT i
     assert(heat.DEBUGCHECK());
   }
   else
-    for(PROFILER_INT i = 0; i < 16; ++i)
+    for(ProfilerInt i = 0; i < 16; ++i)
       _heatOut(heat, node->_children[i], id | (i << (4 * idlevel)), idlevel + 1);
 }
 double Profiler::_heatFindMax(PROF_HEATNODE& heat)
 {
   double max = heat.avg;
-  for(PROFILER_INT i = 0; i < heat._children.Length(); ++i)
+  for(ProfilerInt i = 0; i < heat._children.Length(); ++i)
     max = std::max(_heatFindMax(heat._children[i]), max);
   return max;
 }
@@ -199,10 +202,10 @@ void Profiler::_heatWrite(std::ostream& stream, PROF_HEATNODE& node, uint32_t le
   }
   if(node._children.Length() == 1 && !node._children[0].id)
     return;
-  for(PROFILER_INT i = 0; i < node._children.Length(); ++i)
+  for(ProfilerInt i = 0; i < node._children.Length(); ++i)
     _heatWrite(stream, node._children[i], level + 1, max);
 }
-void Profiler::_flatOut(PROF_FLATOUT* avg, PROF_TRIENODE* node, PROFILER_INT id, PROFILER_INT idlevel)
+void Profiler::_flatOut(PROF_FLATOUT* avg, PROF_TRIENODE* node, ProfilerInt id, ProfilerInt idlevel)
 {
   if(!node) return;
   if(node->total != (uint64_t)-1)
@@ -217,7 +220,7 @@ void Profiler::_flatOut(PROF_FLATOUT* avg, PROF_TRIENODE* node, PROFILER_INT id,
     id = 0;
     idlevel = 0;
   }
-  for(PROFILER_INT i = 0; i < 16; ++i)
+  for(ProfilerInt i = 0; i < 16; ++i)
     _flatOut(avg, node->_children[i], id | (i << (4 * idlevel)), idlevel + 1);
 
 }
@@ -225,7 +228,7 @@ const char* Profiler::_trimPath(const char* path)
 {
   const char* r = strrchr(path, '/');
   const char* r2 = strrchr(path, '\\');
-  r = bssmax(r, r2);
+  r = std::max(r, r2);
   return (!r) ? path : (r + 1);
 }
 void Profiler::_timeFormat(std::ostream& stream, double avg, double variance, uint64_t num)
@@ -240,7 +243,7 @@ void Profiler::_timeFormat(std::ostream& stream, double avg, double variance, ui
   else
     stream << avg << " ns";
 }
-PROF_TRIENODE* Profiler::_allocNode()
+Profiler::PROF_TRIENODE* Profiler::_allocNode()
 {
   PROF_TRIENODE* r = _alloc.alloc(1);
   bssFill(*r, 0);

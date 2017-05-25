@@ -10,11 +10,13 @@
 #include <limits>
 
 namespace bss {
-  template<class T, typename CT_>
-  struct MFUNC_DEFAULT { BSS_FORCEINLINE static void MFunc(const T&, CT_, MFUNC_DEFAULT*) {} };
+  namespace internal {
+    template<class T, typename CT_> // This has to be a struct because the priorityheap uses it to inject a new member into the heap.
+    struct MFUNC_DEFAULT { BSS_FORCEINLINE static void MFunc(const T&, CT_, MFUNC_DEFAULT*) {} };
+  }
 
   // This is a binary max-heap implemented using an array. Use CompTInv to change it into a min-heap, or to make it use pairs.
-  template<class T, typename CT_ = uint32_t, char(*CFunc)(const T&, const T&) = CompT<T>, ARRAY_TYPE ArrayType = ARRAY_SIMPLE, typename Alloc = StaticAllocPolicy<T>, class MFUNC = MFUNC_DEFAULT<T, CT_>>
+  template<class T, typename CT_ = uint32_t, char(*CFunc)(const T&, const T&) = CompT<T>, ARRAY_TYPE ArrayType = ARRAY_SIMPLE, typename Alloc = StaticAllocPolicy<T>, class MFUNC = internal::MFUNC_DEFAULT<T, CT_>>
   class BSS_COMPILER_DLLEXPORT BinaryHeap : protected DynArray<T, CT_, ArrayType, Alloc>, protected MFUNC
   {
   protected:

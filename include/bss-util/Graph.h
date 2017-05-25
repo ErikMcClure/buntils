@@ -14,53 +14,57 @@
 #endif
 
 namespace bss {
-  template<typename D>
-  struct BSS_COMPILER_DLLEXPORT VoidData { D data; };
-  template<>
-  struct BSS_COMPILER_DLLEXPORT VoidData<void> {};
+  namespace internal {
+    template<typename D>
+    struct BSS_COMPILER_DLLEXPORT VoidData { D data; };
+    template<>
+    struct BSS_COMPILER_DLLEXPORT VoidData<void> {};
+  }
 
   // DAG edge
   template<typename E, typename CT = uint16_t>
-  struct BSS_COMPILER_DLLEXPORT Edge : LLBase<Edge<E, CT>>, VoidData<E> { CT to; CT from; LLBase<Edge<E, CT>> alt; };
+  struct BSS_COMPILER_DLLEXPORT Edge : LLBase<Edge<E, CT>>, internal::VoidData<E> { CT to; CT from; LLBase<Edge<E, CT>> alt; };
 
   // Node for a DAG.
   template<typename E, typename V, typename CT = uint16_t>
-  struct BSS_COMPILER_DLLEXPORT Node : VoidData<V> { Edge<E, CT>* to; Edge<E, CT>* from; };
+  struct BSS_COMPILER_DLLEXPORT Node : internal::VoidData<V> { Edge<E, CT>* to; Edge<E, CT>* from; };
 
-  template<typename E> struct __Graph__InternalEdge {
-    static BSS_FORCEINLINE void _getData(E& target, const VoidData<E>& t) { target = t.data; }
-    static BSS_FORCEINLINE void _setDataE(VoidData<E>& t, const E* d) { t.data = *d; }
-  };
-  template<> struct __Graph__InternalEdge<void> {
-    static BSS_FORCEINLINE void _getData(char& target, const VoidData<void>& t) { target = 1; }
-    static BSS_FORCEINLINE void _setDataE(VoidData<void>& t, const void* d) {}
-  };
+  namespace internal {
+    template<typename E> struct __Graph__InternalEdge {
+      static BSS_FORCEINLINE void _getData(E& target, const VoidData<E>& t) { target = t.data; }
+      static BSS_FORCEINLINE void _setDataE(VoidData<E>& t, const E* d) { t.data = *d; }
+    };
+    template<> struct __Graph__InternalEdge<void> {
+      static BSS_FORCEINLINE void _getData(char& target, const VoidData<void>& t) { target = 1; }
+      static BSS_FORCEINLINE void _setDataE(VoidData<void>& t, const void* d) {}
+    };
 
-  template<typename V, typename CT>
-  struct __Graph__InternalVertex {
-    static BSS_FORCEINLINE void _setDataV(VoidData<V>& t, const V* d) { t.data = *d; }
-    static BSS_FORCEINLINE void _setVertex(V* v, CT i, const VoidData<V>& t) { v[i] = t.data; }
-    static BSS_FORCEINLINE const V* _addVertex(const V* v, CT i) { return (v + i); }
-  };
-  template<typename CT>
-  struct __Graph__InternalVertex<void, CT> {
-    static BSS_FORCEINLINE void _setDataV(VoidData<void>& t, const void* d) {}
-    static BSS_FORCEINLINE void _setVertex(void* v, CT i, const VoidData<void>& t) {}
-    static BSS_FORCEINLINE const void* _addVertex(const void* v, CT i) { return 0; }
-  };
+    template<typename V, typename CT>
+    struct __Graph__InternalVertex {
+      static BSS_FORCEINLINE void _setDataV(VoidData<V>& t, const V* d) { t.data = *d; }
+      static BSS_FORCEINLINE void _setVertex(V* v, CT i, const VoidData<V>& t) { v[i] = t.data; }
+      static BSS_FORCEINLINE const V* _addVertex(const V* v, CT i) { return (v + i); }
+    };
+    template<typename CT>
+    struct __Graph__InternalVertex<void, CT> {
+      static BSS_FORCEINLINE void _setDataV(VoidData<void>& t, const void* d) {}
+      static BSS_FORCEINLINE void _setVertex(void* v, CT i, const VoidData<void>& t) {}
+      static BSS_FORCEINLINE const void* _addVertex(const void* v, CT i) { return 0; }
+    };
+  }
 
   // Represents a graph using an adjacency list. Converts to and from an adjacency matrix representation.
-  template<typename E, typename V, typename CT = uint16_t, typename ALLOC = BlockPolicy<Edge<E, CT>>, typename NODEALLOC = StaticAllocPolicy<LINKEDNODE<Node<E, V, CT>, CT>>, ARRAY_TYPE ArrayType = ARRAY_SIMPLE>
-  class Graph : public AllocTracker<ALLOC>, protected __Graph__InternalEdge<E>, protected __Graph__InternalVertex<V, CT>
+  template<typename E, typename V, typename CT = uint16_t, typename ALLOC = BlockPolicy<Edge<E, CT>>, typename NODEALLOC = StaticAllocPolicy<internal::LINKEDNODE<Node<E, V, CT>, CT>>, ARRAY_TYPE ArrayType = ARRAY_SIMPLE>
+  class Graph : public AllocTracker<ALLOC>, protected internal::__Graph__InternalEdge<E>, protected internal::__Graph__InternalVertex<V, CT>
   {
     static BSS_FORCEINLINE bool _baseCheck(const char* b) { return (*b) != 0; }
     static BSS_FORCEINLINE LLBase<Edge<E, CT>>& _altGet(Edge<E, CT>* p) { return p->alt; }
     typedef typename std::conditional<std::is_void<E>::value, char, E>::type EDATA;
-    using __Graph__InternalVertex<V, CT>::_setDataV;
-    using __Graph__InternalVertex<V, CT>::_setVertex;
-    using __Graph__InternalVertex<V, CT>::_addVertex;
-    using __Graph__InternalEdge<E>::_setDataE;
-    using __Graph__InternalEdge<E>::_getData;
+    using internal::__Graph__InternalVertex<V, CT>::_setDataV;
+    using internal::__Graph__InternalVertex<V, CT>::_setVertex;
+    using internal::__Graph__InternalVertex<V, CT>::_addVertex;
+    using internal::__Graph__InternalEdge<E>::_setDataE;
+    using internal::__Graph__InternalEdge<E>::_getData;
 
     Graph(const Graph&) BSS_DELETEFUNC
       Graph& operator=(const Graph&)BSS_DELETEFUNCOP
@@ -164,18 +168,20 @@ namespace bss {
     CT _nedges;
   };
 
-  template<typename E>
-  struct BSS_COMPILER_DLLEXPORT __edge_MaxFlow {
-    int flow;
-    int capacity;
-    VoidData<E> d;
-  };
+  namespace internal {
+    template<typename E>
+    struct BSS_COMPILER_DLLEXPORT __edge_MaxFlow {
+      int flow;
+      int capacity;
+      VoidData<E> d;
+    };
+  }
 
   // Implementation of the FIFO push-relabel algorithm for solving a maximum-flow graph in O(V^3) time
   template<typename E, typename V, typename CT, typename ALLOC, typename NODEALLOC, ARRAY_TYPE ArrayType>
-  inline void MaxFlow_PushRelabel(Graph<__edge_MaxFlow<E>, V, CT, ALLOC, NODEALLOC, ArrayType>& graph, CT s, CT t)
+  inline void MaxFlow_PushRelabel(Graph<internal::__edge_MaxFlow<E>, V, CT, ALLOC, NODEALLOC, ArrayType>& graph, CT s, CT t)
   {
-    typedef Edge<__edge_MaxFlow<E>, CT>* PEDGE;
+    typedef Edge<internal::__edge_MaxFlow<E>, CT>* PEDGE;
     typedef std::pair<CT, CT> PAIR;
     CT len = graph.NumNodes(); // Setup
     CT cap = graph.Capacity();
@@ -282,15 +288,17 @@ namespace bss {
     }
   };
 
-  template<typename V>
-  struct BSS_COMPILER_DLLEXPORT __vertex_Demand {
-    int demand;
-    VoidData<V> d;
-  };
+  namespace internal {
+    template<typename V>
+    struct BSS_COMPILER_DLLEXPORT __vertex_Demand {
+      int demand;
+      VoidData<V> d;
+    };
+  }
 
   // Reduces a circulation problem to a maximum-flow graph in O(V) time. Returns nonzero if infeasible.
   template<typename E, typename V, typename CT, typename ALLOC, typename NODEALLOC, ARRAY_TYPE ArrayType>
-  inline int Circulation_MaxFlow(Graph<__edge_MaxFlow<E>, __vertex_Demand<V>, CT, ALLOC, NODEALLOC, ArrayType>& g, CT& s, CT& t)
+  inline int Circulation_MaxFlow(Graph<internal::__edge_MaxFlow<E>, internal::__vertex_Demand<V>, CT, ALLOC, NODEALLOC, ArrayType>& g, CT& s, CT& t)
   {
     int total = 0; // The total demand must be 0
 
@@ -298,7 +306,7 @@ namespace bss {
     int ss = g.AddNode();
     int st = g.AddNode();
     auto& n = g.GetNodes();
-    __edge_MaxFlow<E> edge = { 0 };
+    internal::__edge_MaxFlow<E> edge = { 0 };
 
     for(CT i = n.Front(); i != (CT)-1; n.Next(i))
     {
@@ -323,17 +331,19 @@ namespace bss {
     return total;
   }
 
-  template<typename E>
-  struct BSS_COMPILER_DLLEXPORT __edge_LowerBound {
-    int lowerbound;
-    VoidData<E> d;
-  };
+  namespace internal {
+    template<typename E>
+    struct BSS_COMPILER_DLLEXPORT __edge_LowerBound {
+      int lowerbound;
+      VoidData<E> d;
+    };
+  }
 
   // Reduces a lower-bound circulation problem to a basic circulation problem in O(E) time.
   template<typename E, typename V, typename CT, typename ALLOC, typename NODEALLOC, ARRAY_TYPE ArrayType>
-  inline void LowerBound_Circulation(Graph<__edge_MaxFlow<__edge_LowerBound<E>>, __vertex_Demand<V>, CT, ALLOC, NODEALLOC, ArrayType>& g)
+  inline void LowerBound_Circulation(Graph<internal::__edge_MaxFlow<internal::__edge_LowerBound<E>>, internal::__vertex_Demand<V>, CT, ALLOC, NODEALLOC, ArrayType>& g)
   {
-    Edge<__edge_MaxFlow<__edge_LowerBound<E>>, CT>* e;
+    Edge<internal::__edge_MaxFlow<internal::__edge_LowerBound<E>>, CT>* e;
     auto& n = g.GetNodes();
     int l;
     for(CT i = n.Front(); i != (CT)-1; n.Next(i))

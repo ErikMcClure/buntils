@@ -2,6 +2,8 @@
 // For conditions of distribution and use, see copyright notice in "bss_util.h"
 
 #include "bss-util/bss_util_c.h"
+#include "bss-util/utf_conv.h"
+#include "bss-util/defines.h"
 #include <stdlib.h>
 #include <string.h>
 #include <assert.h>
@@ -17,7 +19,9 @@
 #include <sys/resource.h>
 #endif
  
-extern union bssCPUInfo bssGetCPUInfo()
+const bssVersionInfo bssVersion = { BSS_VERSION_REVISION, BSS_VERSION_MINOR, BSS_VERSION_MAJOR };
+
+union bssCPUInfo bssGetCPUInfo()
 {
   union bssCPUInfo r={0};
   unsigned int info[4] = { 0 };
@@ -113,7 +117,7 @@ extern size_t GetPeakWorkingSet()
 #endif
 }
 
-extern size_t UTF8toUTF16(const char*BSS_RESTRICT input, ptrdiff_t srclen, wchar_t*BSS_RESTRICT output, size_t buflen)
+size_t UTF8toUTF16(const char*BSS_RESTRICT input, ptrdiff_t srclen, wchar_t*BSS_RESTRICT output, size_t buflen)
 {
 #ifdef BSS_PLATFORM_WIN32
   return (size_t)MultiByteToWideChar(CP_UTF8, 0, input, (int)srclen, output, (int)(!output?0:buflen));
@@ -130,7 +134,7 @@ extern size_t UTF8toUTF16(const char*BSS_RESTRICT input, ptrdiff_t srclen, wchar
 }
 
 
-extern size_t UTF16toUTF8(const wchar_t*BSS_RESTRICT input, ptrdiff_t srclen, char*BSS_RESTRICT output, size_t buflen)
+size_t UTF16toUTF8(const wchar_t*BSS_RESTRICT input, ptrdiff_t srclen, char*BSS_RESTRICT output, size_t buflen)
 {
 #ifdef BSS_PLATFORM_WIN32
   return (size_t)WideCharToMultiByte(CP_UTF8, 0, input, (int)srclen, output, (int)(!output ? 0 : buflen), NULL, NULL);

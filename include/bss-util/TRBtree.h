@@ -11,331 +11,333 @@
 #include "LLBase.h"
 
 namespace bss {
+  namespace internal {
   // Generic Threaded Red-black tree node
-  template<class T>
-  struct BSS_COMPILER_DLLEXPORT TRB_NodeBase : LLBase<T>
-  {
-    using LLBase<T>::next;
-    using LLBase<T>::prev;
-
-    inline explicit TRB_NodeBase(T* pNIL, char c = 1) : left(pNIL), right(pNIL), color(c), parent(0) { next = 0; prev = 0; }
-    inline TRB_NodeBase(TRB_NodeBase&& mov, T*& root, T*& first, T*& last, T* pNIL)
+    template<class T>
+    struct BSS_COMPILER_DLLEXPORT TRB_NodeBase : LLBase<T>
     {
-      parent = mov.parent;
-      if(parent)
-      {
-        if(parent->left == &mov) parent->left = this;
-        else if(parent->right == &mov) parent->right = this;
-        else assert(false);
-      }
-      else
-        root = this;
+      using LLBase<T>::next;
+      using LLBase<T>::prev;
 
-      left = mov.left;
-      if(left != pNIL) { assert(left->parent == &mov); left->parent = this; }
-      right = mov.right;
-      if(right != pNIL) { assert(right->parent == &mov); right->parent = this; }
-      next = mov.next;
-      if(next) { assert(next->prev == &mov); next->prev = this; }
-      else { assert(last == &mov); last = this; }
-      prev = mov.prev;
-      if(prev) { assert(prev->next == &mov); prev->next = this; }
-      else { assert(root == &mov); root = this; }
-      color = mov.color;
-      mov.left = pNIL;
-      mov.right = pNIL;
-      mov.next = 0;
-      mov.prev = 0;
-      mov.parent = 0;
-    }
-    T* parent;
-    union {
-      struct {
-        T* left;
-        T* right;
+      inline explicit TRB_NodeBase(T* pNIL, char c = 1) : left(pNIL), right(pNIL), color(c), parent(0) { next = 0; prev = 0; }
+      inline TRB_NodeBase(TRB_NodeBase&& mov, T*& root, T*& first, T*& last, T* pNIL)
+      {
+        parent = mov.parent;
+        if(parent)
+        {
+          if(parent->left == &mov) parent->left = this;
+          else if(parent->right == &mov) parent->right = this;
+          else assert(false);
+        }
+        else
+          root = this;
+
+        left = mov.left;
+        if(left != pNIL) { assert(left->parent == &mov); left->parent = this; }
+        right = mov.right;
+        if(right != pNIL) { assert(right->parent == &mov); right->parent = this; }
+        next = mov.next;
+        if(next) { assert(next->prev == &mov); next->prev = this; }
+        else { assert(last == &mov); last = this; }
+        prev = mov.prev;
+        if(prev) { assert(prev->next == &mov); prev->next = this; }
+        else { assert(root == &mov); root = this; }
+        color = mov.color;
+        mov.left = pNIL;
+        mov.right = pNIL;
+        mov.next = 0;
+        mov.prev = 0;
+        mov.parent = 0;
+      }
+      T* parent;
+      union {
+        struct {
+          T* left;
+          T* right;
+        };
+        T* children[2];
       };
-      T* children[2];
-    };
-    char color; // 0 - black, 1 - red, -1 - duplicate
+      char color; // 0 - black, 1 - red, -1 - duplicate
 
-    static void RemoveNode(T* node, T*& root, T*& first, T*& last, T* pNIL)
-    {
-      if(node->color == -1) { LLRemove(node, first, last); return; }
-      if(node->next && node->next->color == -1)
+      static void RemoveNode(T* node, T*& root, T*& first, T*& last, T* pNIL)
       {
-        _replaceNode(node, node->next, root);
+        if(node->color == -1) { LLRemove(node, first, last); return; }
+        if(node->next && node->next->color == -1)
+        {
+          _replaceNode(node, node->next, root);
+          LLRemove(node, first, last);
+          pNIL->parent = 0;
+          return;
+        }
+
         LLRemove(node, first, last);
+        T*  y;
+        T*  z;
+
+        if(node->left != pNIL && node->right != pNIL)
+          y = _findMin(node->right, pNIL);
+        else
+          y = node;
+
+        z = y->children[y->left == pNIL];
+        z->parent = y->parent;
+
+        if(y->parent != 0)
+          y->parent->children[y == y->parent->right] = z;
+        else
+          root = z;
+
+        bool balance = (y->color == 0);
+
+        if(y != node) _replaceNode(node, y, root);
+        if(balance) _fixDelete(z, root, pNIL);
         pNIL->parent = 0;
-        return;
+        assert(pNIL->color == 0);
       }
 
-      LLRemove(node, first, last);
-      T*  y;
-      T*  z;
-
-      if(node->left != pNIL && node->right != pNIL)
-        y = _findMin(node->right, pNIL);
-      else
-        y = node;
-
-      z = y->children[y->left == pNIL];
-      z->parent = y->parent;
-
-      if(y->parent != 0)
-        y->parent->children[y == y->parent->right] = z;
-      else
-        root = z;
-
-      bool balance = (y->color == 0);
-
-      if(y != node) _replaceNode(node, y, root);
-      if(balance) _fixDelete(z, root, pNIL);
-      pNIL->parent = 0;
-      assert(pNIL->color == 0);
-    }
-
-    template<char(*CFunc)(const T&, const T&)>
-    static void InsertNode(T* node, T*& root, T*& first, T*& last, T* pNIL)
-    {
-      assert(node != pNIL);
-      T* cur = root;
-      T* parent = 0;
-      int c;
-
-      while(cur != pNIL)
+      template<char(*CFunc)(const T&, const T&)>
+      static void InsertNode(T* node, T*& root, T*& first, T*& last, T* pNIL)
       {
-        parent = cur;
-        switch(c = CFunc(*node, *cur))
+        assert(node != pNIL);
+        T* cur = root;
+        T* parent = 0;
+        int c;
+
+        while(cur != pNIL)
         {
-        case -1: cur = cur->left; break;
-        case 1: cur = cur->right; break;
-        default: // duplicate
-          LLInsertAfter(node, cur, last);
-          node->color = -1; //set color to duplicate
-          return; //terminate, we have nothing else to do since this node isn't actually in the tree
-        }
-      }
-
-      if(parent != 0)
-      {
-        node->parent = parent; //set parent
-
-        if(c < 0) //depending on if its less than or greater than the parent, set the appropriate child variable
-        {
-          parent->left = node;
-          LLInsert(node, parent, first); //Then insert into the appropriate side of the list
-        }
-        else
-        {
-          parent->right = node;
-          if(parent->next != 0 && parent->next->color == -1) // This is required to support duplicate nodes
-          { // What can happen is you get here with a value greater than the parent, then try to insert after the parent... but any duplicate values would then be ahead of you.
-            if((parent = _treeNextSub(parent)) == 0) last = LLAddAfter(node, last);
-            else LLInsert(node, parent, first);
-          }
-          else
-            LLInsertAfter(node, parent, last); // If there aren't any duplicate values in front of you, it doesn't matter.
-        }
-        _fixInsert(node, root, pNIL);
-      }
-      else //this is the root node so re-assign
-      {
-        first = last = root = node; //assign to first and last
-        root->color = 0; //root is always black (done below)
-      }
-    }
-
-  protected:
-    static void _leftRotate(T* node, T*& root, T* pNIL)
-    {
-      T* r = node->right;
-
-      node->right = r->left;
-      if(node->right != pNIL) node->right->parent = node;
-      if(r != pNIL) r->parent = node->parent;
-
-      if(node->parent)
-        node->parent->children[node->parent->right == node] = r;
-      else
-        root = r;
-
-      r->left = node;
-      if(node != pNIL) node->parent = r;
-    }
-    static void _rightRotate(T* node, T*& root, T* pNIL)
-    {
-      T* r = node->left;
-
-      node->left = r->right;
-      if(node->left != pNIL) node->left->parent = node;
-      if(r != pNIL) r->parent = node->parent;
-
-      if(node->parent)
-        node->parent->children[node->parent->right == node] = r;
-      else
-        root = r;
-
-      r->right = node;
-      if(node != pNIL) node->parent = r;
-    }
-    inline static void _fixInsert(T* node, T*& root, T* pNIL)
-    {
-      while(node != root && node->parent->color == 1)
-      {
-        if(node->parent == node->parent->parent->left)
-        {
-          T* y = node->parent->parent->right;
-          if(y->color == 1)
+          parent = cur;
+          switch(c = CFunc(*node, *cur))
           {
-            node->parent->color = 0;
-            y->color = 0;
-            node->parent->parent->color = 1;
-            node = node->parent->parent;
+          case -1: cur = cur->left; break;
+          case 1: cur = cur->right; break;
+          default: // duplicate
+            LLInsertAfter(node, cur, last);
+            node->color = -1; //set color to duplicate
+            return; //terminate, we have nothing else to do since this node isn't actually in the tree
+          }
+        }
+
+        if(parent != 0)
+        {
+          node->parent = parent; //set parent
+
+          if(c < 0) //depending on if its less than or greater than the parent, set the appropriate child variable
+          {
+            parent->left = node;
+            LLInsert(node, parent, first); //Then insert into the appropriate side of the list
           }
           else
           {
-            if(node == node->parent->right)
-            {
-              node = node->parent;
-              _leftRotate(node, root, pNIL);
+            parent->right = node;
+            if(parent->next != 0 && parent->next->color == -1) // This is required to support duplicate nodes
+            { // What can happen is you get here with a value greater than the parent, then try to insert after the parent... but any duplicate values would then be ahead of you.
+              if((parent = _treeNextSub(parent)) == 0) last = LLAddAfter(node, last);
+              else LLInsert(node, parent, first);
             }
-
-            node->parent->color = 0;
-            node->parent->parent->color = 1;
-            _rightRotate(node->parent->parent, root, pNIL);
+            else
+              LLInsertAfter(node, parent, last); // If there aren't any duplicate values in front of you, it doesn't matter.
           }
+          _fixInsert(node, root, pNIL);
         }
-        else
+        else //this is the root node so re-assign
         {
-          T* y = node->parent->parent->left;
-          if(y->color == 1)
-          {
-            node->parent->color = 0;
-            y->color = 0;
-            node->parent->parent->color = 1;
-            node = node->parent->parent;
-          }
-          else
-          {
-            if(node == node->parent->left)
-            {
-              node = node->parent;
-              _rightRotate(node, root, pNIL);
-            }
-            node->parent->color = 0;
-            node->parent->parent->color = 1;
-            _leftRotate(node->parent->parent, root, pNIL);
-          }
+          first = last = root = node; //assign to first and last
+          root->color = 0; //root is always black (done below)
         }
       }
 
-      root->color = 0;
-    }
-    inline static void _fixDelete(T* node, T*& root, T* pNIL)
-    {
-      while(node != root && node->color == 0)
+    protected:
+      static void _leftRotate(T* node, T*& root, T* pNIL)
       {
-        if(node == node->parent->left)
+        T* r = node->right;
+
+        node->right = r->left;
+        if(node->right != pNIL) node->right->parent = node;
+        if(r != pNIL) r->parent = node->parent;
+
+        if(node->parent)
+          node->parent->children[node->parent->right == node] = r;
+        else
+          root = r;
+
+        r->left = node;
+        if(node != pNIL) node->parent = r;
+      }
+      static void _rightRotate(T* node, T*& root, T* pNIL)
+      {
+        T* r = node->left;
+
+        node->left = r->right;
+        if(node->left != pNIL) node->left->parent = node;
+        if(r != pNIL) r->parent = node->parent;
+
+        if(node->parent)
+          node->parent->children[node->parent->right == node] = r;
+        else
+          root = r;
+
+        r->right = node;
+        if(node != pNIL) node->parent = r;
+      }
+      inline static void _fixInsert(T* node, T*& root, T* pNIL)
+      {
+        while(node != root && node->parent->color == 1)
         {
-          T* w = node->parent->right;
-          assert(w != pNIL);
-          if(w->color == 1)
+          if(node->parent == node->parent->parent->left)
           {
-            w->color = 0;
-            node->parent->color = 1;
-            _leftRotate(node->parent, root, pNIL);
-            w = node->parent->right;
-          }
-          if(w->left->color == 0 && w->right->color == 0)
-          {
-            w->color = 1;
-            node = node->parent;
+            T* y = node->parent->parent->right;
+            if(y->color == 1)
+            {
+              node->parent->color = 0;
+              y->color = 0;
+              node->parent->parent->color = 1;
+              node = node->parent->parent;
+            }
+            else
+            {
+              if(node == node->parent->right)
+              {
+                node = node->parent;
+                _leftRotate(node, root, pNIL);
+              }
+
+              node->parent->color = 0;
+              node->parent->parent->color = 1;
+              _rightRotate(node->parent->parent, root, pNIL);
+            }
           }
           else
           {
-            if(w->right->color == 0)
+            T* y = node->parent->parent->left;
+            if(y->color == 1)
             {
-              w->left->color = 0;
-              w->color = 1;
-              _rightRotate(w, root, pNIL);
+              node->parent->color = 0;
+              y->color = 0;
+              node->parent->parent->color = 1;
+              node = node->parent->parent;
+            }
+            else
+            {
+              if(node == node->parent->left)
+              {
+                node = node->parent;
+                _rightRotate(node, root, pNIL);
+              }
+              node->parent->color = 0;
+              node->parent->parent->color = 1;
+              _leftRotate(node->parent->parent, root, pNIL);
+            }
+          }
+        }
+
+        root->color = 0;
+      }
+      inline static void _fixDelete(T* node, T*& root, T* pNIL)
+      {
+        while(node != root && node->color == 0)
+        {
+          if(node == node->parent->left)
+          {
+            T* w = node->parent->right;
+            assert(w != pNIL);
+            if(w->color == 1)
+            {
+              w->color = 0;
+              node->parent->color = 1;
+              _leftRotate(node->parent, root, pNIL);
               w = node->parent->right;
             }
-            w->color = node->parent->color;
-            node->parent->color = 0;
-            w->right->color = 0;
-            _leftRotate(node->parent, root, pNIL);
-            node = root;
-          }
-        }
-        else
-        {
-          T* w = node->parent->left;
-          assert(w != pNIL);
-          if(w->color == 1)
-          {
-            w->color = 0;
-            node->parent->color = 1;
-            _rightRotate(node->parent, root, pNIL);
-            w = node->parent->left;
-          }
-          if(w->right->color == 0 && w->left->color == 0)
-          {
-            w->color = 1;
-            node = node->parent;
+            if(w->left->color == 0 && w->right->color == 0)
+            {
+              w->color = 1;
+              node = node->parent;
+            }
+            else
+            {
+              if(w->right->color == 0)
+              {
+                w->left->color = 0;
+                w->color = 1;
+                _rightRotate(w, root, pNIL);
+                w = node->parent->right;
+              }
+              w->color = node->parent->color;
+              node->parent->color = 0;
+              w->right->color = 0;
+              _leftRotate(node->parent, root, pNIL);
+              node = root;
+            }
           }
           else
           {
-            if(w->left->color == 0)
+            T* w = node->parent->left;
+            assert(w != pNIL);
+            if(w->color == 1)
             {
-              w->right->color = 0;
-              w->color = 1;
-              _leftRotate(w, root, pNIL);
+              w->color = 0;
+              node->parent->color = 1;
+              _rightRotate(node->parent, root, pNIL);
               w = node->parent->left;
             }
-            w->color = node->parent->color;
-            node->parent->color = 0;
-            w->left->color = 0;
-            _rightRotate(node->parent, root, pNIL);
-            node = root;
+            if(w->right->color == 0 && w->left->color == 0)
+            {
+              w->color = 1;
+              node = node->parent;
+            }
+            else
+            {
+              if(w->left->color == 0)
+              {
+                w->right->color = 0;
+                w->color = 1;
+                _leftRotate(w, root, pNIL);
+                w = node->parent->left;
+              }
+              w->color = node->parent->color;
+              node->parent->color = 0;
+              w->left->color = 0;
+              _rightRotate(node->parent, root, pNIL);
+              node = root;
+            }
           }
         }
+        node->color = 0;
       }
-      node->color = 0;
-    }
-    inline static void _replaceNode(T* node, T* y, T*& root)
-    {
-      y->color = node->color;
-      y->left = node->left;
-      y->right = node->right;
-      y->parent = node->parent;
+      inline static void _replaceNode(T* node, T* y, T*& root)
+      {
+        y->color = node->color;
+        y->left = node->left;
+        y->right = node->right;
+        y->parent = node->parent;
 
-      if(y->parent != 0)
-        y->parent->children[y->parent->right == node] = y;
-      else
-        root = y;
+        if(y->parent != 0)
+          y->parent->children[y->parent->right == node] = y;
+        else
+          root = y;
 
-      y->left->parent = y;
-      y->right->parent = y;
-    }
-    BSS_FORCEINLINE static T* _findMin(T* node, T* pNIL)
-    {
-      while(node->left != pNIL) node = node->left;
-      return node;
-    }
-    inline static T* _treeNextSub(T* node)
-    {
-      while(node->parent && node != node->parent->left)
-        node = node->parent;
-      return node->parent;
-    }
-  };
+        y->left->parent = y;
+        y->right->parent = y;
+      }
+      BSS_FORCEINLINE static T* _findMin(T* node, T* pNIL)
+      {
+        while(node->left != pNIL) node = node->left;
+        return node;
+      }
+      inline static T* _treeNextSub(T* node)
+      {
+        while(node->parent && node != node->parent->left)
+          node = node->parent;
+        return node->parent;
+      }
+    };
+  }
 
   // Threaded Red-black tree node with a value
   template<class T>
-  struct BSS_COMPILER_DLLEXPORT TRB_Node : TRB_NodeBase<TRB_Node<T>>
+  struct BSS_COMPILER_DLLEXPORT TRB_Node : internal::TRB_NodeBase<TRB_Node<T>>
   {
-    inline explicit TRB_Node(TRB_Node* pNIL) : TRB_NodeBase<TRB_Node<T>>(pNIL, 0) {}
-    inline TRB_Node(T v, TRB_Node* pNIL) : value(v), TRB_NodeBase<TRB_Node<T>>(pNIL) {}
+    inline explicit TRB_Node(TRB_Node* pNIL) : internal::TRB_NodeBase<TRB_Node<T>>(pNIL, 0) {}
+    inline TRB_Node(T v, TRB_Node* pNIL) : value(v), internal::TRB_NodeBase<TRB_Node<T>>(pNIL) {}
     T value;
   };
 

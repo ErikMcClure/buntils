@@ -88,7 +88,7 @@ TESTDEF::RETPAIR test_ANIMATION()
     //a.GetAttribute<3>()->AddKeyFrame(KeyFrame<3>(0.6, [&](){ c.Drop(); }));
     //a.Attach(Delegate<void,AniAttribute*>::From<cAnimObj,&cAnimObj::TypeIDRegFunc>(&obj));
     AniStateDiscrete<RefCounter*> s0(&a0, Delegate<void, RefCounter*>::From<cAnimObj, &cAnimObj::donothing>(&obj));
-    cAniStateInterval<ref_ptr<RefCounter>, RefCounter*> s1(&a1, Delegate<RefCounter*, ref_ptr<RefCounter>>::From<cAnimObj, &cAnimObj::retnothing>(&obj), Delegate<void, RefCounter*>::From<cAnimObj, &cAnimObj::remnothing>(&obj));
+    AniStateInterval<ref_ptr<RefCounter>, RefCounter*> s1(&a1, Delegate<RefCounter*, ref_ptr<RefCounter>>::From<cAnimObj, &cAnimObj::retnothing>(&obj), Delegate<void, RefCounter*>::From<cAnimObj, &cAnimObj::remnothing>(&obj));
     AniStateSmooth<float> s2(&a2, Delegate<void, float>::From<cAnimObj, &cAnimObj::setfloat>(&obj));
 
     auto interall = [&](double t) {

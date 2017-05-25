@@ -8,8 +8,10 @@
 #include <memory> // for std::default_delete<_Ty>
 
 namespace bss {
-  template<class _Ty> // Trick that uses implicit conversion that allows cUniquePtr below to take _Ty* pointers without confusing itself for them.
-  struct BSS_COMPILER_DLLEXPORT OwnerPtrRef { inline OwnerPtrRef(_Ty* p) : _p(p) {} _Ty* _p; };
+  namespace internal {
+    template<class _Ty> // Trick that uses implicit conversion that allows cUniquePtr below to take _Ty* pointers without confusing itself for them.
+    struct BSS_COMPILER_DLLEXPORT OwnerPtrRef { inline OwnerPtrRef(_Ty* p) : _p(p) {} _Ty* _p; };
+  }
 
   // A different kind of pointer handling class that allows copying, but keeps track of whether or not it is actually allowed to delete the given pointer
   template<class _Ty, class _Dy = std::default_delete<_Ty>>
@@ -20,7 +22,7 @@ namespace bss {
     template<class T, class D>
     inline explicit OwnerPtr(OwnerPtr<T, D>& copy) : _p(static_cast<_Ty*>(copy)), _owner(false) {}
     inline OwnerPtr(OwnerPtr&& mov) : _p(mov._p), _owner(mov._owner) { mov._owner = false; }
-    inline explicit OwnerPtr(const OwnerPtrRef<_Ty>& p) : _p(p._p), _owner(p._p != 0) {}
+    inline explicit OwnerPtr(const internal::OwnerPtrRef<_Ty>& p) : _p(p._p), _owner(p._p != 0) {}
     inline explicit OwnerPtr(_Ty& ref) : _p(&ref), _owner(false) {}
     inline OwnerPtr() : _p(0), _owner(false) {}
     inline ~OwnerPtr() { _disown(); }
@@ -36,7 +38,7 @@ namespace bss {
     BSS_FORCEINLINE const _Ty* operator->() const { return _p; }
     BSS_FORCEINLINE _Ty& operator*() { return *_p; }
     BSS_FORCEINLINE const _Ty& operator*() const { return *_p; }
-    inline OwnerPtr& operator=(const OwnerPtrRef<_Ty>& right) { _disown(); _p = right._p; _owner = true; return *this; }
+    inline OwnerPtr& operator=(const internal::OwnerPtrRef<_Ty>& right) { _disown(); _p = right._p; _owner = true; return *this; }
     inline OwnerPtr& operator=(const OwnerPtr& right) { _disown(); _p = right._p; _owner = false; return *this; }
     inline OwnerPtr& operator=(_Ty& ref) { _disown(); _p = &ref; _owner = false; return *this; }
     inline OwnerPtr& operator=(OwnerPtr&& right) { _disown(); _p = right._p; _owner = true; right._owner = false; return *this; }

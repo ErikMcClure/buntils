@@ -8,20 +8,22 @@
 #include "Array.h"
 
 namespace bss {
-  template<class T, typename CType>
-  struct BSS_COMPILER_DLLEXPORT LINKEDNODE
-  {
-    T val;
-    CType next;
-    CType prev;
-  };
+  namespace internal {
+    template<class T, typename CType>
+    struct BSS_COMPILER_DLLEXPORT LINKEDNODE
+    {
+      T val;
+      CType next;
+      CType prev;
+    };
+  }
 
   // Linked list implemented as an array.
-  template<class T, typename CType = size_t, ARRAY_TYPE ArrayType = ARRAY_SIMPLE, typename Alloc = StaticAllocPolicy<LINKEDNODE<T, CType>>>
+  template<class T, typename CType = size_t, ARRAY_TYPE ArrayType = ARRAY_SIMPLE, typename Alloc = StaticAllocPolicy<internal::LINKEDNODE<T, CType>>>
   class BSS_COMPILER_DLLEXPORT LinkedArray
   {
   public:
-    typedef LINKEDNODE<T, CType> TLNODE;
+    typedef internal::LINKEDNODE<T, CType> TLNODE;
     typedef CType CT_;
     typedef T value_type;
 
@@ -160,7 +162,7 @@ namespace bss {
     CT_ _freelist;
 
   private:
-    Array<LINKEDNODE<T, CType>, CType, ArrayType, Alloc> _ref;
+    Array<internal::LINKEDNODE<T, CType>, CType, ArrayType, Alloc> _ref;
   };
 }
 

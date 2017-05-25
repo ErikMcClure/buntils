@@ -18,41 +18,44 @@
 #else
 #define __PROFILE_STATBLOCK(name,str) static bss::Profiler::ProfilerData PROFDATA_##name(str,__FILE__,__LINE__)
 #define __PROFILE_ZONE(name) bss::ProfilerBlock BLOCK_##name(PROFDATA_##name .id, bss::Profiler::profiler.GetCur())
-#define PROFILE_BEGIN(name) __PROFILE_STATBLOCK(name, MAKESTRING(name)); PROF_TRIENODE* PROFCACHE_##name = bss::Profiler::profiler.GetCur(); uint64_t PROFTIME_##name = bss::Profiler::profiler.StartProfile(PROFDATA_##name .id)
+#define PROFILE_BEGIN(name) __PROFILE_STATBLOCK(name, MAKESTRING(name)); bss::Profiler::PROF_TRIENODE* PROFCACHE_##name = bss::Profiler::profiler.GetCur(); uint64_t PROFTIME_##name = bss::Profiler::profiler.StartProfile(PROFDATA_##name .id)
 #define PROFILE_END(name) bss::Profiler::profiler.EndProfile(PROFTIME_##name, PROFCACHE_##name)
 #define PROFILE_BLOCK(name) __PROFILE_STATBLOCK(name, MAKESTRING(name)); __PROFILE_ZONE(name);
 #define PROFILE_FUNC() __PROFILE_STATBLOCK(func, __FUNCTION__); __PROFILE_ZONE(func)
 #define PROFILE_OUTPUT(file,output) bss::Profiler::profiler.WriteToFile(file,output)
 #endif
 
-typedef uint16_t PROFILER_INT;
-
 namespace bss {
-  struct PROF_HEATNODE;
-  struct PROF_FLATOUT;
+  namespace internal {
+    struct PROF_HEATNODE;
+    struct PROF_FLATOUT;
+  }
 
-  struct PROF_TRIENODE
-  {
-    PROF_TRIENODE* _children[16];
-    double avg;
-    double codeavg;
-    //double variance; 
-    uint64_t total; // If total is -1 this isn't a terminating node
-    uint64_t inner;
-  };
   struct BSS_DLLEXPORT Profiler
   {
+    typedef uint16_t ProfilerInt;
+
+    struct PROF_TRIENODE
+    {
+      PROF_TRIENODE* _children[16];
+      double avg;
+      double codeavg;
+      //double variance; 
+      uint64_t total; // If total is -1 this isn't a terminating node
+      uint64_t inner;
+    };
+
     struct ProfilerData
     {
       const char* name;
       const char* file;
       uint32_t line;
-      PROFILER_INT id;
+      ProfilerInt id;
 
       inline ProfilerData(const char* Name, const char* File, uint32_t Line) : name(Name), file(File), line(Line), id(++total) { Profiler::profiler.AddData(id, this); }
     };
 
-    BSS_FORCEINLINE uint64_t StartProfile(PROFILER_INT id)
+    BSS_FORCEINLINE uint64_t StartProfile(ProfilerInt id)
     {
       PROF_TRIENODE** r = &_cur;
       while(id > 0)
@@ -79,34 +82,34 @@ namespace bss {
     }
     BSS_FORCEINLINE PROF_TRIENODE* GetRoot() { return _trie; }
     BSS_FORCEINLINE PROF_TRIENODE* GetCur() { return _cur; }
-    void AddData(PROFILER_INT id, ProfilerData* p);
+    void AddData(ProfilerInt id, ProfilerData* p);
     enum OUTPUT_DATA : uint8_t { OUTPUT_FLAT = 1, OUTPUT_TREE = 2, OUTPUT_HEATMAP = 4, OUTPUT_ALL = 1 | 2 | 4 };
     void WriteToFile(const char* s, uint8_t output);
     void WriteToStream(std::ostream& stream, uint8_t output);
 
     static Profiler profiler;
-    static const PROFILER_INT BUFSIZE = 4096;
+    static const ProfilerInt BUFSIZE = 4096;
 
   private:
     Profiler();
     PROF_TRIENODE* _allocNode();
-    void _treeOut(std::ostream& stream, PROF_TRIENODE* node, PROFILER_INT id, uint32_t level, PROFILER_INT idlevel);
-    void _heatOut(PROF_HEATNODE& heat, PROF_TRIENODE* node, PROFILER_INT id, PROFILER_INT idlevel);
-    void _heatWrite(std::ostream& stream, PROF_HEATNODE& node, uint32_t level, double max);
-    double _heatFindMax(PROF_HEATNODE& heat);
-    static void _flatOut(PROF_FLATOUT* avg, PROF_TRIENODE* node, PROFILER_INT id, PROFILER_INT idlevel);
+    void _treeOut(std::ostream& stream, PROF_TRIENODE* node, ProfilerInt id, uint32_t level, ProfilerInt idlevel);
+    void _heatOut(internal::PROF_HEATNODE& heat, PROF_TRIENODE* node, ProfilerInt id, ProfilerInt idlevel);
+    void _heatWrite(std::ostream& stream, internal::PROF_HEATNODE& node, uint32_t level, double max);
+    double _heatFindMax(internal::PROF_HEATNODE& heat);
+    static void _flatOut(internal::PROF_FLATOUT* avg, PROF_TRIENODE* node, ProfilerInt id, ProfilerInt idlevel);
     static const char* _trimPath(const char* path);
     static void _timeFormat(std::ostream& stream, double avg, double variance, uint64_t num);
-    static PROFILER_INT total;
+    static ProfilerInt total;
 
-    Array<ProfilerData*, PROFILER_INT> _data;
+    Array<ProfilerData*, ProfilerInt> _data;
     PROF_TRIENODE* _trie;
     PROF_TRIENODE* _cur;
     BlockAlloc<PROF_TRIENODE> _alloc;
     uint32_t _totalnodes;
   };
 
-  inline static bool __DEBUG_VERIFY(PROF_TRIENODE* node)
+  inline static bool __DEBUG_VERIFY(Profiler::PROF_TRIENODE* node)
   {
     if(!node) return true;
     if(!std::isfinite(node->avg) || !std::isfinite(node->codeavg))
@@ -121,9 +124,9 @@ namespace bss {
 
   struct ProfilerBlock
   {
-    BSS_FORCEINLINE ProfilerBlock(PROFILER_INT id, PROF_TRIENODE* cache) : _cache(cache), _time(Profiler::profiler.StartProfile(id)) {}
+    BSS_FORCEINLINE ProfilerBlock(Profiler::ProfilerInt id, Profiler::PROF_TRIENODE* cache) : _cache(cache), _time(Profiler::profiler.StartProfile(id)) {}
     BSS_FORCEINLINE ~ProfilerBlock() { Profiler::profiler.EndProfile(_time, _cache); }
-    PROF_TRIENODE* _cache;
+    Profiler::PROF_TRIENODE* _cache;
     uint64_t _time;
   };
 }

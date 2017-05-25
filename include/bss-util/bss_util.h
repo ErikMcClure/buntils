@@ -18,6 +18,7 @@
 #define __BSS_UTIL_H__
 
 #include "bss_util_c.h"
+#include "defines.h"
 #include <assert.h>
 #include <cmath>
 #include <memory>
@@ -39,14 +40,6 @@
 #endif
 
 namespace bss {
-  static const VersionType BSSUTIL_VERSION = { { { BSS_VERSION_MAJOR,BSS_VERSION_MINOR,BSS_VERSION_REVISION } } };
-
-  BSS_COMPILER_DLLEXPORT extern void SetWorkDirToCur(); //Sets the working directory to the actual goddamn location of the EXE instead of the freaking start menu, or possibly the desktop. The possibilities are endless! Fuck you, windows.
-  BSS_COMPILER_DLLEXPORT extern void ForceWin64Crash(); // I can't believe this function exists (forces 64-bit windows to not silently ignore fatal errors)
-  BSS_COMPILER_DLLEXPORT extern unsigned long long bssFileSize(const char* path);
-  BSS_COMPILER_DLLEXPORT extern unsigned long long bssFileSize(const wchar_t* path);
-  BSS_COMPILER_DLLEXPORT extern long GetTimeZoneMinutes(); //Returns the current time zone difference from UTC in minutes
-
   //Useful numbers
   constexpr double PI = 3.141592653589793238462643383279;
   constexpr double PI_HALF = PI*0.5;
@@ -253,57 +246,59 @@ namespace bss {
   }
 
 #ifdef BSS_VARIADIC_TEMPLATES
-  template<typename... A>
-  struct __safeFormat
-  {
-    template<int N, typename Arg, typename... Args>
-    BSS_FORCEINLINE static void helper(std::ostream& o, int n, Arg arg, Args... args)
+  namespace internal {
+    template<typename... A>
+    struct __safeFormat
     {
-      if(sizeof...(Args) == (N - n)) // This works because Args is actually 1 less than the total argument count already.
-        o << arg;
-      else
-        helper<N, Args...>(o, n, args...);
-    }
-    template<int N>
-    BSS_FORCEINLINE static void helper(std::ostream& o, int n) { o << "{INVALID PARAMETER " << n << "}"; }
-
-    template<void(*FN)(std::ostream&, int, A...)>
-    BSS_FORCEINLINE static void F(std::ostream& o, const char* format, A... args)
-    {
-      const char* pos = format;
-      while(format[0])
+      template<int N, typename Arg, typename... Args>
+      BSS_FORCEINLINE static void helper(std::ostream& o, int n, Arg arg, Args... args)
       {
-        if(format[0] == '{' && format[1] >= '0' && format[1] <= '9' && (format[2] == '}' || (format[2] >= '0' && format[2] <= '9' && format[3] == '}')))
+        if(sizeof...(Args) == (N - n)) // This works because Args is actually 1 less than the total argument count already.
+          o << arg;
+        else
+          helper<N, Args...>(o, n, args...);
+      }
+      template<int N>
+      BSS_FORCEINLINE static void helper(std::ostream& o, int n) { o << "{INVALID PARAMETER " << n << "}"; }
+
+      template<void(*FN)(std::ostream&, int, A...)>
+      BSS_FORCEINLINE static void F(std::ostream& o, const char* format, A... args)
+      {
+        const char* pos = format;
+        while(format[0])
         {
-          if(format - pos > 0)
-            o.write(pos, format - pos);
-          int n = 0;
-          if(format[2] == '}')
+          if(format[0] == '{' && format[1] >= '0' && format[1] <= '9' && (format[2] == '}' || (format[2] >= '0' && format[2] <= '9' && format[3] == '}')))
           {
-            n = format[1] - '0';
-            format += 3;
+            if(format - pos > 0)
+              o.write(pos, format - pos);
+            int n = 0;
+            if(format[2] == '}')
+            {
+              n = format[1] - '0';
+              format += 3;
+            }
+            else
+            {
+              n = format[2] - '0';
+              n = (format[1] - '0') * 10;
+              format += 4;
+            }
+            pos = format;
+            FN(o, n, args...);
           }
           else
-          {
-            n = format[2] - '0';
-            n = (format[1] - '0') * 10;
-            format += 4;
-          }
-          pos = format;
-          FN(o, n, args...);
+            ++format;
         }
-        else
-          ++format;
+        if(format - pos > 0)
+          o.write(pos, format - pos);
       }
-      if(format - pos > 0)
-        o.write(pos, format - pos);
-    }
-  };
+    };
+  }
 
   template<typename... Args>
   inline void SafeFormat(std::ostream& o, const char* format, Args... args)
   {
-    __safeFormat<Args...>::template F<&__safeFormat<Args...>::template helper<(sizeof...(Args)-1), Args...>>(o, format, args...);
+    internal::__safeFormat<Args...>::template F<&internal::__safeFormat<Args...>::template helper<(sizeof...(Args)-1), Args...>>(o, format, args...);
   }
 #endif
 
@@ -881,54 +876,56 @@ namespace bss {
     return (x ^ -negate) + negate;
   }
 
-  template<bool ENABLE, typename T>
-  struct __bssabsnegate_h
-  {
-    BSS_FORCEINLINE static typename std::make_unsigned<T>::type _bssabs(T x) { return bssAbs<T>(x); }
-    BSS_FORCEINLINE static void _bssnegate(T& x, T& y, char negate)
+  namespace internal {
+    template<bool ENABLE, typename T>
+    struct _bssabsnegate
     {
-      if(negate)
+      BSS_FORCEINLINE static typename std::make_unsigned<T>::type _bssabs(T x) { return bssAbs<T>(x); }
+      BSS_FORCEINLINE static void _bssnegate(T& x, T& y, char negate)
       {
-        y = ~y + !x; // only add one if the x addition would overflow, which can only happen if x is the maximum value
-        x = ~x + 1;
+        if(negate)
+        {
+          y = ~y + !x; // only add one if the x addition would overflow, which can only happen if x is the maximum value
+          x = ~x + 1;
+        }
       }
+    };
+    template<typename T>
+    struct _bssabsnegate<false, T>
+    {
+      BSS_FORCEINLINE static T _bssabs(T x) { return x; }
+      BSS_FORCEINLINE static void _bssnegate(T& x, T& y, char negate) {}
+    };
+
+    // Double width multiplication followed by a right shift and truncation.
+    template<class T>
+    inline T _bssmultiplyextract(T xs, T ys, T shift) noexcept
+    {
+      typedef typename std::make_unsigned<T>::type U;
+      U x = _bssabsnegate<std::is_signed<T>::value, T>::_bssabs(xs);
+      U y = _bssabsnegate<std::is_signed<T>::value, T>::_bssabs(ys);
+      static const U halfbits = (sizeof(U) << 2);
+      static const U halfmask = ((U)~0) >> halfbits;
+      U a = x >> halfbits, b = x & halfmask;
+      U c = y >> halfbits, d = y & halfmask;
+
+      U ac = a * c;
+      U bc = b * c;
+      U ad = a * d;
+      U bd = b * d;
+
+      U mid34 = (bd >> halfbits) + (bc & halfmask) + (ad & halfmask);
+
+      U high = ac + (bc >> halfbits) + (ad >> halfbits) + (mid34 >> halfbits); // high
+      U low = (mid34 << halfbits) | (bd & halfmask); // low
+      _bssabsnegate<std::is_signed<T>::value, U>::_bssnegate(low, high, (xs < 0) ^ (ys < 0));
+
+      if(shift >= (sizeof(U) << 3))
+        return ((T)high) >> (shift - (sizeof(U) << 3));
+      low = (low >> shift);
+      high = (high << ((sizeof(T) << 3) - shift)) & (-(shift > 0)); // shifting left by 64 bits is undefined, so we use a bit trick to set high to zero if shift is 0 without branching.
+      return (T)(low | high);
     }
-  };
-  template<typename T>
-  struct __bssabsnegate_h<false, T>
-  {
-    BSS_FORCEINLINE static T _bssabs(T x) { return x; }
-    BSS_FORCEINLINE static void _bssnegate(T& x, T& y, char negate) {}
-  };
-
-  // Double width multiplication followed by a right shift and truncation.
-  template<class T>
-  inline T __bssmultiplyextract__h(T xs, T ys, T shift) noexcept
-  {
-    typedef typename std::make_unsigned<T>::type U;
-    U x = __bssabsnegate_h<std::is_signed<T>::value, T>::_bssabs(xs);
-    U y = __bssabsnegate_h<std::is_signed<T>::value, T>::_bssabs(ys);
-    static const U halfbits = (sizeof(U) << 2);
-    static const U halfmask = ((U)~0) >> halfbits;
-    U a = x >> halfbits, b = x & halfmask;
-    U c = y >> halfbits, d = y & halfmask;
-
-    U ac = a * c;
-    U bc = b * c;
-    U ad = a * d;
-    U bd = b * d;
-
-    U mid34 = (bd >> halfbits) + (bc & halfmask) + (ad & halfmask);
-
-    U high = ac + (bc >> halfbits) + (ad >> halfbits) + (mid34 >> halfbits); // high
-    U low = (mid34 << halfbits) | (bd & halfmask); // low
-    __bssabsnegate_h<std::is_signed<T>::value, U>::_bssnegate(low, high, (xs < 0) ^ (ys < 0));
-
-    if(shift >= (sizeof(U) << 3))
-      return ((T)high) >> (shift - (sizeof(U) << 3));
-    low = (low >> shift);
-    high = (high << ((sizeof(T) << 3) - shift)) & (-(shift > 0)); // shifting left by 64 bits is undefined, so we use a bit trick to set high to zero if shift is 0 without branching.
-    return (T)(low | high);
   }
   template<class T>
   BSS_FORCEINLINE T bssMultiplyExtract(T x, T y, T shift) noexcept
@@ -938,9 +935,9 @@ namespace bss {
   }
 #ifndef BSS_HASINT128
   template<>
-  BSS_FORCEINLINE int64_t bssMultiplyExtract<int64_t>(int64_t x, int64_t y, int64_t shift) noexcept { return __bssmultiplyextract__h<int64_t>(x, y, shift); }
+  BSS_FORCEINLINE int64_t bssMultiplyExtract<int64_t>(int64_t x, int64_t y, int64_t shift) noexcept { return internal::_bssmultiplyextract<int64_t>(x, y, shift); }
   template<>
-  BSS_FORCEINLINE uint64_t bssMultiplyExtract<uint64_t>(uint64_t x, uint64_t y, uint64_t shift) noexcept { return __bssmultiplyextract__h<uint64_t>(x, y, shift); }
+  BSS_FORCEINLINE uint64_t bssMultiplyExtract<uint64_t>(uint64_t x, uint64_t y, uint64_t shift) noexcept { return internal::_bssmultiplyextract<uint64_t>(x, y, shift); }
 #endif
 
   template<class I>

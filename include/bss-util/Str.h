@@ -10,46 +10,48 @@
 #include <vector>
 #include <assert.h>
 #include <stddef.h>
-#include "bss_util_c.h"
+#include "utf_conv.h"
+#include "defines.h"
 #ifdef BSS_COMPILER_GCC
 #include <stdio.h>
 #endif
 
 namespace bss {
-/* This is a static class that holds specializations for char and wchar_t string operations */
-  template<class _Ty> class STR_CT {};
+  namespace internal {
+  /* This is a static class that holds specializations for char and wchar_t string operations */
+    template<class _Ty> class STR_CT {};
 
-  template<>
-  class STR_CT<char>
-  {
-  public:
-    typedef char CHAR;
-    typedef wchar_t OTHER_C;
-    typedef int OTHER_C2;
+    template<>
+    class STR_CT<char>
+    {
+    public:
+      typedef char CHAR;
+      typedef wchar_t OTHER_C;
+      typedef int OTHER_C2;
 
-    static BSS_FORCEINLINE const CHAR* SCHR(const CHAR* str, int val) { return strchr(str, val); }
-    static BSS_FORCEINLINE size_t SLEN(const CHAR* str) { return strlen(str); }
-    static BSS_FORCEINLINE CHAR* STOK(CHAR* str, const CHAR* delim, CHAR** context) { return STRTOK(str, delim, context); }
-    static BSS_FORCEINLINE int VPF(CHAR *dest, size_t size, const CHAR *format, va_list args) { return VSNPRINTF(dest, size, format, args); }
-    static BSS_FORCEINLINE int VPCF(const CHAR* str, va_list args) { return VSCPRINTF(str, args); }
-    static BSS_FORCEINLINE size_t CONV(const OTHER_C* src, ptrdiff_t srclen, CHAR* dest, size_t len) { return UTF16toUTF8(src, srclen, dest, len); }
-    static BSS_FORCEINLINE size_t CONV2(const OTHER_C2* src, ptrdiff_t srclen, CHAR* dest, size_t len) { return UTF32toUTF8(src, srclen, dest, len); }
+      static BSS_FORCEINLINE const CHAR* SCHR(const CHAR* str, int val) { return strchr(str, val); }
+      static BSS_FORCEINLINE size_t SLEN(const CHAR* str) { return strlen(str); }
+      static BSS_FORCEINLINE CHAR* STOK(CHAR* str, const CHAR* delim, CHAR** context) { return STRTOK(str, delim, context); }
+      static BSS_FORCEINLINE int VPF(CHAR *dest, size_t size, const CHAR *format, va_list args) { return VSNPRINTF(dest, size, format, args); }
+      static BSS_FORCEINLINE int VPCF(const CHAR* str, va_list args) { return VSCPRINTF(str, args); }
+      static BSS_FORCEINLINE size_t CONV(const OTHER_C* src, ptrdiff_t srclen, CHAR* dest, size_t len) { return UTF16toUTF8(src, srclen, dest, len); }
+      static BSS_FORCEINLINE size_t CONV2(const OTHER_C2* src, ptrdiff_t srclen, CHAR* dest, size_t len) { return UTF32toUTF8(src, srclen, dest, len); }
 
-    static BSS_FORCEINLINE size_t O_SLEN(const OTHER_C* str) { return wcslen(str); }
-    static BSS_FORCEINLINE const CHAR* STREMPTY() { return ""; }
-  };
+      static BSS_FORCEINLINE size_t O_SLEN(const OTHER_C* str) { return wcslen(str); }
+      static BSS_FORCEINLINE const CHAR* STREMPTY() { return ""; }
+    };
 
-  template<>
-  class STR_CT<wchar_t>
-  {
-  public:
-    typedef wchar_t CHAR;
-    typedef char OTHER_C;
-    typedef int OTHER_C2;
+    template<>
+    class STR_CT<wchar_t>
+    {
+    public:
+      typedef wchar_t CHAR;
+      typedef char OTHER_C;
+      typedef int OTHER_C2;
 
-    static BSS_FORCEINLINE const CHAR* SCHR(const CHAR* str, wchar_t val) { return wcschr(str, val); }
-    static BSS_FORCEINLINE size_t SLEN(const CHAR* str) { return wcslen(str); }
-    static BSS_FORCEINLINE CHAR* STOK(CHAR* str, const CHAR* delim, CHAR** context) { return WCSTOK(str, delim, context); }
+      static BSS_FORCEINLINE const CHAR* SCHR(const CHAR* str, wchar_t val) { return wcschr(str, val); }
+      static BSS_FORCEINLINE size_t SLEN(const CHAR* str) { return wcslen(str); }
+      static BSS_FORCEINLINE CHAR* STOK(CHAR* str, const CHAR* delim, CHAR** context) { return WCSTOK(str, delim, context); }
 #ifdef BSS_COMPILER_GCC
   //template<class S> static BSS_FORCEINLINE int VPF(S* str,const CHAR *format, va_list args)
   //{
@@ -59,44 +61,45 @@ namespace bss {
   //  return str->capacity();
   //}
 #else
-    static BSS_FORCEINLINE int VPF(CHAR *dest, size_t size, const CHAR *format, va_list args) { return VSNWPRINTF(dest, size, format, args); }
-    static BSS_FORCEINLINE int VPCF(const CHAR* str, va_list args) { return VSCWPRINTF(str, args); }
+      static BSS_FORCEINLINE int VPF(CHAR *dest, size_t size, const CHAR *format, va_list args) { return VSNWPRINTF(dest, size, format, args); }
+      static BSS_FORCEINLINE int VPCF(const CHAR* str, va_list args) { return VSCWPRINTF(str, args); }
 #endif
-    static BSS_FORCEINLINE size_t CONV(const OTHER_C* src, ptrdiff_t srclen, CHAR* dest, size_t len) { return UTF8toUTF16(src, srclen, dest, len); }
-    static BSS_FORCEINLINE size_t CONV2(const OTHER_C2* src, ptrdiff_t srclen, CHAR* dest, size_t len) { return UTF32toUTF16(src, srclen, dest, len); }
+      static BSS_FORCEINLINE size_t CONV(const OTHER_C* src, ptrdiff_t srclen, CHAR* dest, size_t len) { return UTF8toUTF16(src, srclen, dest, len); }
+      static BSS_FORCEINLINE size_t CONV2(const OTHER_C2* src, ptrdiff_t srclen, CHAR* dest, size_t len) { return UTF32toUTF16(src, srclen, dest, len); }
 
-    static BSS_FORCEINLINE size_t O_SLEN(const OTHER_C* str) { return strlen(str); }
-    static BSS_FORCEINLINE const CHAR* STREMPTY() { return L""; }
-  };
+      static BSS_FORCEINLINE size_t O_SLEN(const OTHER_C* str) { return strlen(str); }
+      static BSS_FORCEINLINE const CHAR* STREMPTY() { return L""; }
+    };
 
-  template<>
-  class STR_CT<int>
-  {
-  public:
-    typedef int CHAR;
-    typedef char OTHER_C;
-    typedef wchar_t OTHER_C2;
-
-    static BSS_FORCEINLINE const CHAR* SCHR(const CHAR* str, int val) { while(*str && *str != val) ++str; return str; }
-    static BSS_FORCEINLINE size_t SLEN(const CHAR* str) { const CHAR* i = str; while(*i) ++i; return (size_t)(i - str); }
-    static BSS_FORCEINLINE CHAR* STOK(CHAR* str, const CHAR* delim, CHAR** context)
+    template<>
+    class STR_CT<int>
     {
-      if(str)
-        *context = str;
-      else
-        **context = *delim;
-      CHAR* r = str = *context;
-      while(*str && *str != *delim) ++str;
-      *str = 0;
-      *context = str;
-      return r;
-    }
-    static BSS_FORCEINLINE size_t CONV(const OTHER_C* src, ptrdiff_t srclen, CHAR* dest, size_t len) { return UTF8toUTF32(src, srclen, dest, len); }
-    static BSS_FORCEINLINE size_t CONV2(const OTHER_C2* src, ptrdiff_t srclen, CHAR* dest, size_t len) { return UTF16toUTF32(src, srclen, dest, len); }
+    public:
+      typedef int CHAR;
+      typedef char OTHER_C;
+      typedef wchar_t OTHER_C2;
 
-    static BSS_FORCEINLINE size_t O_SLEN(const OTHER_C* str) { return strlen(str); }
-    static BSS_FORCEINLINE const CHAR* STREMPTY() { return (const CHAR*)"\0\0\0"; }
-  };
+      static BSS_FORCEINLINE const CHAR* SCHR(const CHAR* str, int val) { while(*str && *str != val) ++str; return str; }
+      static BSS_FORCEINLINE size_t SLEN(const CHAR* str) { const CHAR* i = str; while(*i) ++i; return (size_t)(i - str); }
+      static BSS_FORCEINLINE CHAR* STOK(CHAR* str, const CHAR* delim, CHAR** context)
+      {
+        if(str)
+          *context = str;
+        else
+          **context = *delim;
+        CHAR* r = str = *context;
+        while(*str && *str != *delim) ++str;
+        *str = 0;
+        *context = str;
+        return r;
+      }
+      static BSS_FORCEINLINE size_t CONV(const OTHER_C* src, ptrdiff_t srclen, CHAR* dest, size_t len) { return UTF8toUTF32(src, srclen, dest, len); }
+      static BSS_FORCEINLINE size_t CONV2(const OTHER_C2* src, ptrdiff_t srclen, CHAR* dest, size_t len) { return UTF16toUTF32(src, srclen, dest, len); }
+
+      static BSS_FORCEINLINE size_t O_SLEN(const OTHER_C* str) { return strlen(str); }
+      static BSS_FORCEINLINE const CHAR* STREMPTY() { return (const CHAR*)"\0\0\0"; }
+    };
+  }
 
 #pragma warning(push)
 #pragma warning(disable: 4275)
@@ -104,9 +107,10 @@ namespace bss {
   template<typename T = char, typename Alloc = std::allocator<T>>
   class BSS_COMPILER_DLLEXPORT StrT : public std::basic_string<T, std::char_traits<T>, Alloc> //If the constructors aren't inlined, it causes heap corruption errors because the basic_string constructors are inlined
   { //Note that you can take off BSS_COMPILER_DLLEXPORT but you'll pay for it with even more unnecessary 4251 warnings.
-    typedef typename STR_CT<T>::CHAR CHAR;
-    typedef typename STR_CT<T>::OTHER_C OTHER_C;
-    typedef typename STR_CT<T>::OTHER_C2 OTHER_C2;
+    typedef internal::STR_CT<T> STRCT;
+    typedef typename STRCT::CHAR CHAR;
+    typedef typename STRCT::OTHER_C OTHER_C;
+    typedef typename STRCT::OTHER_C2 OTHER_C2;
     typedef std::basic_string<T, std::char_traits<T>, Alloc> BASE;
 
   public:
@@ -119,8 +123,8 @@ namespace bss {
     template<class U> inline StrT(const StrT<T, U>& copy) : BASE(copy) {}
     template<class U> inline StrT(const StrT<OTHER_C, U>& copy) : BASE() { _convStr(copy.c_str(), copy.size() + 1); }
     template<class U> inline StrT(const StrT<OTHER_C2, U>& copy) : BASE() { _convStr2(copy.c_str(), copy.size() + 1); }
-    inline StrT(const CHAR* string) : BASE(!string ? STR_CT<T>::STREMPTY() : string) {}
-    inline StrT(const CHAR* string, size_t count) : BASE(!string ? STR_CT<T>::STREMPTY() : string, count) {}
+    inline StrT(const CHAR* string) : BASE(!string ? STRCT::STREMPTY() : string) {}
+    inline StrT(const CHAR* string, size_t count) : BASE(!string ? STRCT::STREMPTY() : string, count) {}
     inline StrT(const OTHER_C* text) : BASE() { if(text != 0) _convStr(text, -1); }
     inline StrT(const OTHER_C* text, size_t count) : BASE() { if(text != 0) _convStr(text, count); }
     inline StrT(const OTHER_C2* text) : BASE() { if(text != 0) _convStr2(text, -1); }
@@ -129,12 +133,12 @@ namespace bss {
     {
       for(uint16_t i = 0; i < index; ++i)
       {
-        if(text) text = STR_CT<T>::SCHR(text, (int)delim);
+        if(text) text = STRCT::SCHR(text, (int)delim);
         if(text) text++;
       }
       if(!text) return;
-      const CHAR* end = STR_CT<T>::SCHR(text, (int)delim);
-      if(!end) end = &text[STR_CT<T>::SLEN(text)];
+      const CHAR* end = STRCT::SCHR(text, (int)delim);
+      if(!end) end = &text[STRCT::SLEN(text)];
 
       size_t _length = end - text;
       BASE::reserve(++_length);
@@ -168,7 +172,7 @@ namespace bss {
     inline CHAR* UnsafeString() { return _internalPtr(); } //This is potentially dangerous if the string is modified
                                                             //inline const CHAR* String() const { return _internalPtr(); }
     inline CHAR& GetChar(size_t index) { return BASE::operator[](index); }
-    inline void RecalcSize() { BASE::resize(STR_CT<T>::SLEN(_internalPtr())); }
+    inline void RecalcSize() { BASE::resize(STRCT::SLEN(_internalPtr())); }
     inline StrT Trim() const { StrT r(*this); r = _ltrim(_rtrim(r._internalPtr(), r.size())); return r; }
     inline StrT& ReplaceChar(CHAR search, CHAR replace)
     {
@@ -186,12 +190,12 @@ namespace bss {
       StrT copy(text);
       CHAR delimhold[2] = { delim, 0 };
       CHAR* hold;
-      CHAR* res = STR_CT<T>::STOK(copy.UnsafeString(), delimhold, &hold);
+      CHAR* res = STRCT::STOK(copy.UnsafeString(), delimhold, &hold);
 
       while(res)
       {
         dest.push_back(res);
-        res = STR_CT<T>::STOK(nullptr, delimhold, &hold);
+        res = STRCT::STOK(nullptr, delimhold, &hold);
       }
     }
     static void ExplodeNull(std::vector<StrT> &dest, const CHAR* text)
@@ -213,11 +217,11 @@ namespace bss {
     static size_t ParseTokens(T* str, const T* delim, std::vector<I>& vec, F parser)
     {
       T* ct;
-      T* cur = STR_CT<T>::STOK(str, delim, &ct);
+      T* cur = STRCT::STOK(str, delim, &ct);
       while(cur != 0)
       {
         vec.push_back(parser(cur));
-        cur = STR_CT<T>::STOK(0, delim, &ct);
+        cur = STRCT::STOK(0, delim, &ct);
       }
       return vec.size();
     }
@@ -226,7 +230,7 @@ namespace bss {
     static StrT StripChar(const CHAR* text, const CHAR c)
     {
       StrT r;
-      r.resize(STR_CT<T>::SLEN(text) + 1); // resize doesn't always account for null terminator
+      r.resize(STRCT::SLEN(text) + 1); // resize doesn't always account for null terminator
       size_t i;
       for(i = 0; *text != 0; ++text)
         if(*text != c)
@@ -240,20 +244,20 @@ namespace bss {
     {
       if(!string)
         return StrT<T, Alloc>();
-      //if(STR_CT<T>::SCHR(string, '%')==0) //Do we even need to check our va_list?
+      //if(STRCT::SCHR(string, '%')==0) //Do we even need to check our va_list?
       //  return StrT<T,Alloc>(string);
       StrT<T, Alloc> r;
 #ifdef BSS_COMPILER_GCC // GCC implements va_list in such a way that we actually have to copy it before using it anywhere
       va_list vltemp;
       va_copy(vltemp, vl);
-      size_t _length = (size_t)STR_CT<T>::VPCF(string, vltemp); // If we didn't copy vl here, it would get modified by vsnprintf and blow up.
+      size_t _length = (size_t)STRCT::VPCF(string, vltemp); // If we didn't copy vl here, it would get modified by vsnprintf and blow up.
       va_end(vltemp);
 #else
-      size_t _length = (size_t)STR_CT<T>::VPCF(string, vl); // This ensures VPCF doesn't modify our original va_list
+      size_t _length = (size_t)STRCT::VPCF(string, vl); // This ensures VPCF doesn't modify our original va_list
 #endif
       r.resize(_length + 1);
-      STR_CT<T>::VPF(r.UnsafeString(), r.capacity(), string, vl);
-      r.resize(STR_CT<T>::SLEN(r.c_str()));
+      STRCT::VPF(r.UnsafeString(), r.capacity(), string, vl);
+      r.resize(STRCT::SLEN(r.c_str()));
       return r;
     }
 
@@ -263,19 +267,19 @@ namespace bss {
     BSS_FORCEINLINE const CHAR* _internalPtr() const { return BASE::data(); }
     BSS_FORCEINLINE void _convStr(const OTHER_C* src, ptrdiff_t len)
     {
-      size_t r = STR_CT<T>::CONV(src, len, 0, 0);
+      size_t r = STRCT::CONV(src, len, 0, 0);
       if(r == (size_t)-1) return; // If invalid, bail
       BASE::resize(r); // resize() only adds one for null terminator if it feels like it.
-      r = STR_CT<T>::CONV(src, len, _internalPtr(), BASE::capacity());
+      r = STRCT::CONV(src, len, _internalPtr(), BASE::capacity());
       if(r == (size_t)-1) return; // If somehow still invalid, bail again
       BASE::resize(r - 1); // resize to actual number of characters instead of simply the maximum (disregard null terminator)
     }
     BSS_FORCEINLINE void _convStr2(const OTHER_C2* src, ptrdiff_t len)
     {
-      size_t r = STR_CT<T>::CONV2(src, len, 0, 0);
+      size_t r = STRCT::CONV2(src, len, 0, 0);
       if(r == (size_t)-1) return; // If invalid, bail
       BASE::resize(r); // resize() only adds one for null terminator if it feels like it.
-      r = STR_CT<T>::CONV2(src, len, _internalPtr(), BASE::capacity());
+      r = STRCT::CONV2(src, len, _internalPtr(), BASE::capacity());
       if(r == (size_t)-1) return; // If somehow still invalid, bail again
       BASE::resize(r - 1); // resize to actual number of characters instead of simply the maximum (disregard null terminator)
     }

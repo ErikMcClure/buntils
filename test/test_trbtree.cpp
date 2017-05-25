@@ -57,8 +57,8 @@ bool verify_unique_testnums()
   return true;
 }
 
-//TRB_NodeBase<TRB_Node<int>> TRB_NodeBase<TRB_Node<int>>::NIL(static_cast<TRB_Node<int>*>(&TRB_NodeBase<TRB_Node<int>>::NIL));
-//TRB_Node<int>* TRB_NodeBase<TRB_Node<int>>::pNIL = static_cast<TRB_Node<int>*>(&TRB_NodeBase<TRB_Node<int>>::NIL);
+//internal::TRB_NodeBase<TRB_Node<int>> internal::TRB_NodeBase<TRB_Node<int>>::NIL(static_cast<TRB_Node<int>*>(&internal::TRB_NodeBase<TRB_Node<int>>::NIL));
+//TRB_Node<int>* internal::TRB_NodeBase<TRB_Node<int>>::pNIL = static_cast<TRB_Node<int>*>(&internal::TRB_NodeBase<TRB_Node<int>>::NIL);
 
 TESTDEF::RETPAIR test_TRBTREE()
 {

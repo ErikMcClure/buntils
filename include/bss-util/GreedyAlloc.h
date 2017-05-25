@@ -10,17 +10,17 @@
 #include "RWLock.h"
 
 namespace bss {
-  struct AFLISTITEM
-  {
-    AFLISTITEM* next;
-    size_t size;
-  };
-
   // Lockless dynamic greedy allocator that can allocate any number of bytes
   class BSS_COMPILER_DLLEXPORT GreedyAlloc
   {
     GreedyAlloc(const GreedyAlloc& copy) BSS_DELETEFUNC
-      GreedyAlloc& operator=(const GreedyAlloc& copy) BSS_DELETEFUNCOP
+    GreedyAlloc& operator=(const GreedyAlloc& copy) BSS_DELETEFUNCOP
+
+    struct AFLISTITEM
+    {
+      AFLISTITEM* next;
+      size_t size;
+    };
 
   public:
     inline GreedyAlloc(GreedyAlloc&& mov) : _root(mov._root.load(std::memory_order_relaxed)), _curpos(mov._curpos.load(std::memory_order_relaxed)) { mov._root.store(nullptr, std::memory_order_relaxed); mov._curpos = 0; }

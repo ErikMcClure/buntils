@@ -33,27 +33,32 @@ namespace bss {
 
   struct TOMLValue;
 
-  template<class T, class BASE>
-  struct __TOMLValue__conv
-  {
-    inline static constexpr T&& f(typename std::remove_reference<T>::type& r) { return (static_cast<T&&>(r)); }
-    inline static constexpr T&& f(typename std::remove_reference<T>::type&& r) { return (static_cast<T&&>(r)); }
-  };
-  template<class BASE>
-  struct __TOMLValue__conv<TOMLValue, BASE>
-  {
-    inline static constexpr BASE&& f(std::remove_reference<TOMLValue>::type& r) { return (static_cast<BASE&&>(r)); }
-    inline static constexpr BASE&& f(std::remove_reference<TOMLValue>::type&& r) { return (static_cast<BASE&&>(r)); }
-  };
-  template<class BASE>
-  struct __TOMLValue__conv<const TOMLValue, BASE>
-  {
-    inline static constexpr const BASE&& f(std::remove_reference<const TOMLValue>::type& r) { return (static_cast<const BASE&&>(r)); }
-    inline static constexpr const BASE&& f(std::remove_reference<const TOMLValue>::type&& r) { return (static_cast<const BASE&&>(r)); }
-  };
+  namespace internal {
+    template<class T, class BASE>
+    struct __TOMLValue__conv
+    {
+      inline static constexpr T&& f(typename std::remove_reference<T>::type& r) { return (static_cast<T&&>(r)); }
+      inline static constexpr T&& f(typename std::remove_reference<T>::type&& r) { return (static_cast<T&&>(r)); }
+    };
+    template<class BASE>
+    struct __TOMLValue__conv<TOMLValue, BASE>
+    {
+      inline static constexpr BASE&& f(std::remove_reference<TOMLValue>::type& r) { return (static_cast<BASE&&>(r)); }
+      inline static constexpr BASE&& f(std::remove_reference<TOMLValue>::type&& r) { return (static_cast<BASE&&>(r)); }
+    };
+    template<class BASE>
+    struct __TOMLValue__conv<const TOMLValue, BASE>
+    {
+      inline static constexpr const BASE&& f(std::remove_reference<const TOMLValue>::type& r) { return (static_cast<const BASE&&>(r)); }
+      inline static constexpr const BASE&& f(std::remove_reference<const TOMLValue>::type&& r) { return (static_cast<const BASE&&>(r)); }
+    };
+  }
 
   template<class T>
   void static WriteTOMLBase(Serializer<TOMLEngine>& e, const char* id, const T& obj, std::ostream& s);
+
+  template<class T>
+  void static ParseTOMLBase(Serializer<TOMLEngine>& e, T& obj, std::istream& s);
 
   // Represents an arbitrary TOML value in any of the standard storage types recognized by the format.
   struct TOMLValue : public Variant<Str, double, int64_t, bool, std::chrono::system_clock::time_point, DynArray<TOMLValue, size_t, ARRAY_SAFE>, Hash<Str, TOMLValue, false, ARRAY_SAFE>>
@@ -69,14 +74,14 @@ namespace bss {
     template<typename T>
     explicit TOMLValue(const T& t) : BASE(t) {}
     template<typename T>
-    explicit TOMLValue(T&& t) : BASE(__TOMLValue__conv<T, BASE>::f(t)) {}
+    explicit TOMLValue(T&& t) : BASE(internal::__TOMLValue__conv<T, BASE>::f(t)) {}
     ~TOMLValue() {}
     BASE& operator=(const BASE& right) { BASE::operator=(right); return *this; }
     BASE& operator=(BASE&& right) { BASE::operator=(std::move(right)); return *this; }
     template<typename T>
     BASE& operator=(const T& right) { BASE::operator=(right); return *this; }
     template<typename T>
-    BASE& operator=(T&& right) { BASE::operator=(__TOMLValue__conv<T, BASE>::f(right)); return *this; }
+    BASE& operator=(T&& right) { BASE::operator=(internal::__TOMLValue__conv<T, BASE>::f(right)); return *this; }
 
     template<typename Engine>
     void Serialize(Serializer<Engine>& e)
@@ -91,346 +96,345 @@ namespace bss {
     }
   };
 
-  template<class T>
-  void static ParseTOMLBase(Serializer<TOMLEngine>& e, T& obj, std::istream& s);
+  namespace internal {
+    inline void ParseTOMLEatWhitespace(std::istream& s) { while(!!s && (s.peek() == ' ' || s.peek() == '\t')) s.get(); }
 
-  inline void ParseTOMLEatWhitespace(std::istream& s) { while(!!s && (s.peek() == ' ' || s.peek() == '\t')) s.get(); }
-
-  inline void ParseTOMLEatAllspace(std::istream& s)
-  {
-    while(!!s && (isspace(s.peek()) || s.peek() == '#'))
-      if(s.peek() == '#')
-        while(!!s && s.peek() != '\n' && s.peek() != '\r' && s.peek() != -1)
-          s.get();
-      else
-        s.get();
-  }
-
-  inline void ParseTOMLEatNewline(std::istream& s)
-  {
-    if(s.peek() == '\n')
-      s.get();
-    if(s.peek() == '\r')
+    inline void ParseTOMLEatAllspace(std::istream& s)
     {
-      s.get();
+      while(!!s && (isspace(s.peek()) || s.peek() == '#'))
+        if(s.peek() == '#')
+          while(!!s && s.peek() != '\n' && s.peek() != '\r' && s.peek() != -1)
+            s.get();
+        else
+          s.get();
+    }
+
+    inline void ParseTOMLEatNewline(std::istream& s)
+    {
       if(s.peek() == '\n')
         s.get();
-    }
-  }
-
-  template<bool MULTILINE>
-  inline void ParseTOMLCharacter(std::string& out, std::istream& s)
-  {
-    if(s.peek() == '\'')
-    {
-      s.get();
-      if(!!s || s.peek() == -1)
-        return;
-      if(MULTILINE && (s.peek() == '\n' || s.peek() == '\r'))
-      {
-        ParseTOMLEatNewline(s);
-        ParseTOMLEatWhitespace(s);
-        return;
-      }
-      char buf[9];
-      switch(s.get())
-      {
-      case 'b': out += '\b'; break;
-      case 't': out += '\t'; break;
-      case 'n': out += '\n'; break;
-      case 'f': out += '\f'; break;
-      case 'r': out += '\r'; break;
-      case '"': out += '"'; break;
-      case '\\': out += '\\'; break;
-      case 'u':
-        for(int i = 0; i < 4; ++i) buf[i] = s.get();
-        buf[4] = 0;
-        OutputUnicode(out, strtoul(buf, 0, 16));
-        break;
-      case 'U':
-        for(int i = 0; i < 8; ++i) buf[i] = s.get();
-        buf[8] = 0;
-        OutputUnicode(out, strtoul(buf, 0, 16));
-        break;
-      default:
-        assert(false);
-        break;
-      }
-    }
-    else
-      out += s.get();
-  }
-
-  template<bool MULTILINE, char END, char END2>
-  inline void ParseTOMLString(std::string& buf, std::istream& s)
-  {
-    buf.clear();
-    ParseTOMLEatWhitespace(s);
-    switch(s.peek())
-    {
-    case '"':
-      s.get();
-      if(s.peek() == '"')
+      if(s.peek() == '\r')
       {
         s.get();
-        if(s.peek() == '"' && MULTILINE) // If true this is a multiline string
+        if(s.peek() == '\n')
+          s.get();
+      }
+    }
+
+    template<bool MULTILINE>
+    inline void ParseTOMLCharacter(std::string& out, std::istream& s)
+    {
+      if(s.peek() == '\'')
+      {
+        s.get();
+        if(!!s || s.peek() == -1)
+          return;
+        if(MULTILINE && (s.peek() == '\n' || s.peek() == '\r'))
+        {
+          ParseTOMLEatNewline(s);
+          ParseTOMLEatWhitespace(s);
+          return;
+        }
+        char buf[9];
+        switch(s.get())
+        {
+        case 'b': out += '\b'; break;
+        case 't': out += '\t'; break;
+        case 'n': out += '\n'; break;
+        case 'f': out += '\f'; break;
+        case 'r': out += '\r'; break;
+        case '"': out += '"'; break;
+        case '\\': out += '\\'; break;
+        case 'u':
+          for(int i = 0; i < 4; ++i) buf[i] = s.get();
+          buf[4] = 0;
+          OutputUnicode(out, strtoul(buf, 0, 16));
+          break;
+        case 'U':
+          for(int i = 0; i < 8; ++i) buf[i] = s.get();
+          buf[8] = 0;
+          OutputUnicode(out, strtoul(buf, 0, 16));
+          break;
+        default:
+          assert(false);
+          break;
+        }
+      }
+      else
+        out += s.get();
+    }
+
+    template<bool MULTILINE, char END, char END2>
+    inline void ParseTOMLString(std::string& buf, std::istream& s)
+    {
+      buf.clear();
+      ParseTOMLEatWhitespace(s);
+      switch(s.peek())
+      {
+      case '"':
+        s.get();
+        if(s.peek() == '"')
         {
           s.get();
-          ParseTOMLEatNewline(s);
-          while(!!s)
+          if(s.peek() == '"' && MULTILINE) // If true this is a multiline string
           {
-            if(s.peek() == '"')
+            s.get();
+            ParseTOMLEatNewline(s);
+            while(!!s)
             {
-              s.get();
               if(s.peek() == '"')
               {
                 s.get();
                 if(s.peek() == '"')
-                  break;
+                {
+                  s.get();
+                  if(s.peek() == '"')
+                    break;
+                  buf += '"';
+                }
                 buf += '"';
               }
-              buf += '"';
+              else
+                ParseTOMLCharacter<MULTILINE>(buf, s);
             }
-            else
-              ParseTOMLCharacter<MULTILINE>(buf, s);
           }
-        }
-      } // Otherwise it's an empty string
-      else
-        while(!!s && s.peek() != '\n' && s.peek() != '\r' && s.peek() != '"' && s.peek() != -1)
-          ParseTOMLCharacter<MULTILINE>(buf, s);
-      if(s.peek() == '"')
+        } // Otherwise it's an empty string
+        else
+          while(!!s && s.peek() != '\n' && s.peek() != '\r' && s.peek() != '"' && s.peek() != -1)
+            ParseTOMLCharacter<MULTILINE>(buf, s);
+        if(s.peek() == '"')
+          s.get();
+        break;
+      case '\'':
         s.get();
-      break;
-    case '\'':
-      s.get();
-      if(s.peek() == '\'')
-      {
-        s.get();
-        if(s.peek() == '\'' && MULTILINE) // If true this is a multiline literal string
+        if(s.peek() == '\'')
         {
           s.get();
-          ParseTOMLEatNewline(s);
-          while(!!s)
+          if(s.peek() == '\'' && MULTILINE) // If true this is a multiline literal string
           {
-            char c = s.get();
-            if(c == '\'' && s.peek() == '\'')
+            s.get();
+            ParseTOMLEatNewline(s);
+            while(!!s)
             {
-              c = s.get();
-              if(s.peek() == '\'')
-                break;
-              buf += '\'';
+              char c = s.get();
+              if(c == '\'' && s.peek() == '\'')
+              {
+                c = s.get();
+                if(s.peek() == '\'')
+                  break;
+                buf += '\'';
+              }
+              buf += c;
             }
-            buf += c;
-          }
-        } // Otherwise it's an empty literal string
+          } // Otherwise it's an empty literal string
+        }
+        else
+          while(!!s && s.peek() != '\n' && s.peek() != '\r' && s.peek() != '\'' && s.peek() != -1) buf += s.get();
+        if(s.peek() == '\'')
+          s.get();
+        break;
+      default: // This is a bare string, which cannot be multiline
+      {
+        while(!!s && s.peek() != '\n' && s.peek() != '\r' && s.peek() != END && s.peek() != END2 && s.peek() != -1) buf += s.get();
+        const char* str = buf.data(); // strip whitespace from the end
+        const char* inter = str + buf.size();
+        if(str != inter)
+        {
+          for(; inter > str && *inter < 33; --inter);
+          buf.resize((inter - str) + 1);
+        }
       }
-      else
-        while(!!s && s.peek() != '\n' && s.peek() != '\r' && s.peek() != '\'' && s.peek() != -1) buf += s.get();
-      if(s.peek() == '\'')
-        s.get();
       break;
-    default: // This is a bare string, which cannot be multiline
-    {
-      while(!!s && s.peek() != '\n' && s.peek() != '\r' && s.peek() != END && s.peek() != END2 && s.peek() != -1) buf += s.get();
-      const char* str = buf.data(); // strip whitespace from the end
-      const char* inter = str + buf.size();
-      if(str != inter)
-      {
-        for(; inter > str && *inter < 33; --inter);
-        buf.resize((inter - str) + 1);
       }
     }
-    break;
-    }
-  }
 
-  template<class T, bool A>
-  struct ParseTOMLInternal
-  {
-    static void F(Serializer<TOMLEngine>& e, T& obj, std::istream& s)
+    template<class T, bool A>
+    struct ParseTOMLInternal
     {
-      obj.template Serialize<TOMLEngine>(e);
-    }
-  };
-
-  template<class T> // For arithmetic base types
-  struct ParseTOMLInternal<T, true>
-  {
-    static void F(Serializer<TOMLEngine>& e, T& obj, std::istream& s)
-    {
-      if(s.peek() == '\n' || s.peek() == '\r' || s.peek() == ',') return;
-      if(s.peek() == '"') // if true, we have to attempt to coerce the string to T
+      static void F(Serializer<TOMLEngine>& e, T& obj, std::istream& s)
       {
-        s.get();
-        s >> obj; // grab whatever we can
-        while(!!s && s.peek() != -1 && s.get() != '"'); // eat the rest of the string
-        s.get(); // eat the " character
+        obj.template Serialize<TOMLEngine>(e);
       }
-      else
-        s >> obj;
-    }
-  };
+    };
 
-  template<class T>
-  void ParseTOMLArray(Serializer<TOMLEngine>& e, T& obj, std::istream& s)
-  {
-    int n = 0;
-    if(e.engine.state > 0 && e.in->peek() == '.') // If this happens, we are attempted to access an array
-      return ParseTOMLBase(e, ParseTOMLInternal<T, false>::GetLast(obj), s);
-    if(e.engine.state == 2) // If the state is 2 and not 0, this is a table array.
-      ParseTOMLInternal<T, false>::DoAddCall(e, obj, s, n);
-    else // Otherwise it's a standard inline array
+    template<class T> // For arithmetic base types
+    struct ParseTOMLInternal<T, true>
     {
-      ParseTOMLEatWhitespace(s);
-      if(!s || s.get() != '[') return;
-      ParseTOMLEatAllspace(s);
-      while(!!s && s.peek() != ']' && s.peek() != -1)
+      static void F(Serializer<TOMLEngine>& e, T& obj, std::istream& s)
       {
+        if(s.peek() == '\n' || s.peek() == '\r' || s.peek() == ',') return;
+        if(s.peek() == '"') // if true, we have to attempt to coerce the string to T
+        {
+          s.get();
+          s >> obj; // grab whatever we can
+          while(!!s && s.peek() != -1 && s.get() != '"'); // eat the rest of the string
+          s.get(); // eat the " character
+        }
+        else
+          s >> obj;
+      }
+    };
+
+    template<class T>
+    void ParseTOMLArray(Serializer<TOMLEngine>& e, T& obj, std::istream& s)
+    {
+      int n = 0;
+      if(e.engine.state > 0 && e.in->peek() == '.') // If this happens, we are attempted to access an array
+        return ParseTOMLBase(e, ParseTOMLInternal<T, false>::GetLast(obj), s);
+      if(e.engine.state == 2) // If the state is 2 and not 0, this is a table array.
         ParseTOMLInternal<T, false>::DoAddCall(e, obj, s, n);
-        while(!!s && s.peek() != ',' && s.peek() != ']' && s.peek() != -1) s.get(); // eat everything up to a , or ] character
-        if(!!s && s.peek() == ',' && s.peek() != -1) s.get(); // Only eat comma if it's there.
+      else // Otherwise it's a standard inline array
+      {
+        ParseTOMLEatWhitespace(s);
+        if(!s || s.get() != '[') return;
+        ParseTOMLEatAllspace(s);
+        while(!!s && s.peek() != ']' && s.peek() != -1)
+        {
+          ParseTOMLInternal<T, false>::DoAddCall(e, obj, s, n);
+          while(!!s && s.peek() != ',' && s.peek() != ']' && s.peek() != -1) s.get(); // eat everything up to a , or ] character
+          if(!!s && s.peek() == ',' && s.peek() != -1) s.get(); // Only eat comma if it's there.
+          ParseTOMLEatAllspace(s);
+        }
+      }
+    }
+
+    template<typename F>
+    inline void ParseTOMLTable(Serializer<TOMLEngine>& e, std::istream& s, F f)
+    {
+      ParseTOMLEatAllspace(s);
+      Str buf;
+      while(!!s && s.peek() != '}' && s.peek() != '\n' && s.peek() != '\r' && s.peek() != -1)
+      {
+        ParseTOMLString<false, '=', 0>(buf, s);
+        ParseTOMLEatWhitespace(s);
+        if(!!s && s.peek() == '=')
+        {
+          s.get();
+          e.engine.state = 0;
+          f(e, buf.c_str()); // This will call _findparse by default, or a special function for TOMLValue types
+        }
+        while(!!s && s.peek() != '\n' && s.peek() != '\r' && s.peek() != ',' && s.peek() != '}' && s.peek() != -1) s.get(); // Eat everything until the next comma or the end of the table
+        if(s.peek() == ',') s.get();
+        ParseTOMLEatWhitespace(s);
+      }
+      if(s.peek() == '}') s.get();
+    }
+
+    template<typename F>
+    inline void ParseTOMLPairs(Serializer<TOMLEngine>& e, std::istream& s, F f)
+    {
+      ParseTOMLEatAllspace(s);
+      Str buf;
+      while(!!s && s.peek() != '[' && s.peek() != -1)
+      {
+        ParseTOMLString<false, '=', 0>(buf, s);
+        ParseTOMLEatWhitespace(s);
+        if(!!s && s.peek() == '=')
+        {
+          s.get();
+          e.engine.state = 0;
+          f(e, buf.c_str()); // This will call ParseTOMLBase on the appropriate value.
+          while(!!s && s.peek() != '\n' && s.peek() != '\r' && s.peek() != -1) s.get(); // Eat all remaining characters on this line that weren't parsed.
+        }
         ParseTOMLEatAllspace(s);
       }
     }
-  }
 
-  template<typename F>
-  inline void ParseTOMLTable(Serializer<TOMLEngine>& e, std::istream& s, F f)
-  {
-    ParseTOMLEatAllspace(s);
-    Str buf;
-    while(!!s && s.peek() != '}' && s.peek() != '\n' && s.peek() != '\r' && s.peek() != -1)
+    // This is the primary parsing function valid only for the root of the document. It only parses [tables] and [[table arrays]].
+    template<typename F>
+    inline void ParseTOMLRoot(Serializer<TOMLEngine>& e, std::istream& s, F f)
     {
-      ParseTOMLString<false, '=', 0>(buf, s);
-      ParseTOMLEatWhitespace(s);
-      if(!!s && s.peek() == '=')
+      Str buf;
+      ParseTOMLPairs(e, s, f); // First we parse any root-level key value pairs directly into our target object
+      while(!!s && s.get() == '[') // Then, we start resolving tables
       {
-        s.get();
-        e.engine.state = 0;
-        f(e, buf.c_str()); // This will call _findparse by default, or a special function for TOMLValue types
-      }
-      while(!!s && s.peek() != '\n' && s.peek() != '\r' && s.peek() != ',' && s.peek() != '}' && s.peek() != -1) s.get(); // Eat everything until the next comma or the end of the table
-      if(s.peek() == ',') s.get();
-      ParseTOMLEatWhitespace(s);
-    }
-    if(s.peek() == '}') s.get();
-  }
+        char isarray = s.peek() == '[';
+        if(isarray)
+          s.get();
 
-  template<typename F>
-  inline void ParseTOMLPairs(Serializer<TOMLEngine>& e, std::istream& s, F f)
-  {
-    ParseTOMLEatAllspace(s);
-    Str buf;
-    while(!!s && s.peek() != '[' && s.peek() != -1)
+        // We must navigate through as many nested tables as there are dots, drilling down through the serializer resolver. Then we call ParseTOMLPairs on the final value.
+        e.engine.state = isarray + 1;
+        ParseTOMLString<false, ']', '.'>(buf, s);
+        ParseTOMLEatWhitespace(s);
+        if(!!s && (s.peek() == ']' || s.peek() == '.'))
+          f(e, buf.c_str());
+        while(!!s && s.peek() != '[' && s.peek() != -1) s.get(); // Eat all remaining characters until the next [
+        ParseTOMLEatAllspace(s);
+      }
+    }
+
+    template<class T, typename CType, ARRAY_TYPE ArrayType, typename Alloc>
+    struct ParseTOMLInternal<DynArray<T, CType, ArrayType, Alloc>, false>
     {
-      ParseTOMLString<false, '=', 0>(buf, s);
-      ParseTOMLEatWhitespace(s);
-      if(!!s && s.peek() == '=')
+      static inline T& GetLast(DynArray<T, CType, ArrayType, Alloc>& obj) { assert(obj.Length()); return obj.Back(); }
+      static inline void DoAddCall(Serializer<TOMLEngine>& e, DynArray<T, CType, ArrayType, Alloc>& obj, std::istream& s, int& n)
       {
-        s.get();
-        e.engine.state = 0;
-        f(e, buf.c_str()); // This will call ParseTOMLBase on the appropriate value.
-        while(!!s && s.peek() != '\n' && s.peek() != '\r' && s.peek() != -1) s.get(); // Eat all remaining characters on this line that weren't parsed.
+        obj.AddConstruct();
+        ParseTOMLBase<T>(e, obj.Back(), s);
       }
-      ParseTOMLEatAllspace(s);
-    }
+      static void F(Serializer<TOMLEngine>& e, DynArray<T, CType, ArrayType, Alloc>& obj, std::istream& s)
+      {
+        ParseTOMLArray<DynArray<T, CType, ArrayType, Alloc>>(e, obj, s);
+      }
+    };
+    template<class T, typename CType, ARRAY_TYPE ArrayType, typename Alloc>
+    struct ParseTOMLInternal<Array<T, CType, ArrayType, Alloc>, false>
+    {
+      static inline T& GetLast(Array<T, CType, ArrayType, Alloc>& obj) { assert(obj.Capacity()); return obj.Back(); }
+      static inline void DoAddCall(Serializer<TOMLEngine>& e, Array<T, CType, ArrayType, Alloc>& obj, std::istream& s, int& n)
+      {
+        obj.SetCapacity(obj.Capacity() + 1);
+        ParseTOMLBase<T>(e, obj.Back(), s);
+      }
+      static void F(Serializer<TOMLEngine>& e, Array<T, CType, ArrayType, Alloc>& obj, std::istream& s)
+      {
+        ParseTOMLArray<Array<T, CType, ArrayType, Alloc>>(e, obj, s);
+      }
+    };
+    template<class T, size_t I, bool B> // For fixed-length arrays
+    struct ParseTOMLInternal<T[I], B>
+    {
+      static inline T& GetLast(T(&obj)[I]) { return obj[0]; }
+      static inline void DoAddCall(Serializer<TOMLEngine>& e, T(&obj)[I], std::istream& s, int& n) { if(n < I) ParseTOMLBase<T>(e, obj[n++], s); }
+      static void F(Serializer<TOMLEngine>& e, T(&obj)[I], std::istream& s) { ParseTOMLArray<T[I]>(e, obj, s); }
+    };
+    template<class T, size_t I, bool B> // For fixed-length arrays
+    struct ParseTOMLInternal<std::array<T, I>, B>
+    {
+      static inline T& GetLast(std::array<T, I>& obj) { return obj[0]; }
+      static inline void DoAddCall(Serializer<TOMLEngine>& e, std::array<T, I>& obj, std::istream& s, int& n) { if(n < I) ParseTOMLBase<T>(e, obj[n++], s); }
+      static void F(Serializer<TOMLEngine>& e, std::array<T, I>& obj, std::istream& s) { ParseTOMLArray<std::array<T, I>>(e, obj, s); }
+    };
+    template<class T, typename Alloc>
+    struct ParseTOMLInternal<std::vector<T, Alloc>, false>
+    {
+      static inline T& GetLast(std::vector<T, Alloc>& obj) { assert(obj.size()); return obj.back(); }
+      static inline void DoAddCall(Serializer<TOMLEngine>& e, std::vector<T, Alloc>& obj, std::istream& s, int& n)
+      {
+        obj.push_back(T());
+        ParseTOMLBase<T>(e, obj.back(), s);
+      }
+      static void F(Serializer<TOMLEngine>& e, std::vector<T, Alloc>& obj, std::istream& s)
+      {
+        ParseTOMLArray<std::vector<T, Alloc>>(e, obj, s);
+      }
+    };
   }
-
-  // This is the primary parsing function valid only for the root of the document. It only parses [tables] and [[table arrays]].
-  template<typename F>
-  inline void ParseTOMLRoot(Serializer<TOMLEngine>& e, std::istream& s, F f)
-  {
-    Str buf;
-    ParseTOMLPairs(e, s, f); // First we parse any root-level key value pairs directly into our target object
-    while(!!s && s.get() == '[') // Then, we start resolving tables
-    {
-      char isarray = s.peek() == '[';
-      if(isarray)
-        s.get();
-
-      // We must navigate through as many nested tables as there are dots, drilling down through the serializer resolver. Then we call ParseTOMLPairs on the final value.
-      e.engine.state = isarray + 1;
-      ParseTOMLString<false, ']', '.'>(buf, s);
-      ParseTOMLEatWhitespace(s);
-      if(!!s && (s.peek() == ']' || s.peek() == '.'))
-        f(e, buf.c_str());
-      while(!!s && s.peek() != '[' && s.peek() != -1) s.get(); // Eat all remaining characters until the next [
-      ParseTOMLEatAllspace(s);
-    }
-  }
-
-  template<class T, typename CType, ARRAY_TYPE ArrayType, typename Alloc>
-  struct ParseTOMLInternal<DynArray<T, CType, ArrayType, Alloc>, false>
-  {
-    static inline T& GetLast(DynArray<T, CType, ArrayType, Alloc>& obj) { assert(obj.Length()); return obj.Back(); }
-    static inline void DoAddCall(Serializer<TOMLEngine>& e, DynArray<T, CType, ArrayType, Alloc>& obj, std::istream& s, int& n)
-    {
-      obj.AddConstruct();
-      ParseTOMLBase<T>(e, obj.Back(), s);
-    }
-    static void F(Serializer<TOMLEngine>& e, DynArray<T, CType, ArrayType, Alloc>& obj, std::istream& s)
-    {
-      ParseTOMLArray<DynArray<T, CType, ArrayType, Alloc>>(e, obj, s);
-    }
-  };
-  template<class T, typename CType, ARRAY_TYPE ArrayType, typename Alloc>
-  struct ParseTOMLInternal<Array<T, CType, ArrayType, Alloc>, false>
-  {
-    static inline T& GetLast(Array<T, CType, ArrayType, Alloc>& obj) { assert(obj.Capacity()); return obj.Back(); }
-    static inline void DoAddCall(Serializer<TOMLEngine>& e, Array<T, CType, ArrayType, Alloc>& obj, std::istream& s, int& n)
-    {
-      obj.SetCapacity(obj.Capacity() + 1);
-      ParseTOMLBase<T>(e, obj.Back(), s);
-    }
-    static void F(Serializer<TOMLEngine>& e, Array<T, CType, ArrayType, Alloc>& obj, std::istream& s)
-    {
-      ParseTOMLArray<Array<T, CType, ArrayType, Alloc>>(e, obj, s);
-    }
-  };
-  template<class T, size_t I, bool B> // For fixed-length arrays
-  struct ParseTOMLInternal<T[I], B>
-  {
-    static inline T& GetLast(T(&obj)[I]) { return obj[0]; }
-    static inline void DoAddCall(Serializer<TOMLEngine>& e, T(&obj)[I], std::istream& s, int& n) { if(n < I) ParseTOMLBase<T>(e, obj[n++], s); }
-    static void F(Serializer<TOMLEngine>& e, T(&obj)[I], std::istream& s) { ParseTOMLArray<T[I]>(e, obj, s); }
-  };
-  template<class T, size_t I, bool B> // For fixed-length arrays
-  struct ParseTOMLInternal<std::array<T, I>, B>
-  {
-    static inline T& GetLast(std::array<T, I>& obj) { return obj[0]; }
-    static inline void DoAddCall(Serializer<TOMLEngine>& e, std::array<T, I>& obj, std::istream& s, int& n) { if(n < I) ParseTOMLBase<T>(e, obj[n++], s); }
-    static void F(Serializer<TOMLEngine>& e, std::array<T, I>& obj, std::istream& s) { ParseTOMLArray<std::array<T, I>>(e, obj, s); }
-  };
-  template<class T, typename Alloc>
-  struct ParseTOMLInternal<std::vector<T, Alloc>, false>
-  {
-    static inline T& GetLast(std::vector<T, Alloc>& obj) { assert(obj.size()); return obj.back(); }
-    static inline void DoAddCall(Serializer<TOMLEngine>& e, std::vector<T, Alloc>& obj, std::istream& s, int& n)
-    {
-      obj.push_back(T());
-      ParseTOMLBase<T>(e, obj.back(), s);
-    }
-    static void F(Serializer<TOMLEngine>& e, std::vector<T, Alloc>& obj, std::istream& s)
-    {
-      ParseTOMLArray<std::vector<T, Alloc>>(e, obj, s);
-    }
-  };
 
   template<class T>
   inline void static ParseTOMLBase(Serializer<TOMLEngine>& e, T& obj, std::istream& s)
   {
-    ParseTOMLInternal<T, std::is_arithmetic<T>::value>::F(e, obj, s);
+    internal::ParseTOMLInternal<T, std::is_arithmetic<T>::value>::F(e, obj, s);
   }
   template<>
-  inline void ParseTOMLBase<std::string>(Serializer<TOMLEngine>& e, std::string& target, std::istream& s) { ParseTOMLString<true, 0, 0>(target, s); }
+  inline void ParseTOMLBase<std::string>(Serializer<TOMLEngine>& e, std::string& target, std::istream& s) { internal::ParseTOMLString<true, 0, 0>(target, s); }
   template<>
   inline void ParseTOMLBase<Str>(Serializer<TOMLEngine>& e, Str& target, std::istream& s) { ParseTOMLBase<std::string>(e, target, s); }
   template<>
   inline void ParseTOMLBase<bool>(Serializer<TOMLEngine>& e, bool& target, std::istream& s)
   {
     static const char* val = "true";
-    ParseTOMLEatWhitespace(s);
+    internal::ParseTOMLEatWhitespace(s);
     int pos = 0;
     if(s.peek() >= '0' && s.peek() <= '9')
     {
@@ -462,7 +466,7 @@ namespace bss {
     const std::time_get<char>& tg = std::use_facet<std::time_get<char>>(s.getloc());
     std::tm t = { 0 };
     std::ios_base::iostate err = std::ios_base::goodbit;
-    ParseTOMLEatWhitespace(s);
+    internal::ParseTOMLEatWhitespace(s);
     tg.get(s, 0, s, err, &t, DATE, std::end(DATE) - 1);
     if(err == std::ios_base::goodbit)
     {
@@ -514,14 +518,14 @@ namespace bss {
     {
     case 3:
       target = TOMLValue::TOMLTable();
-      ParseTOMLRoot(e, *e.in, f);
+      internal::ParseTOMLRoot(e, *e.in, f);
       return;
     case 1:
       if(e.in->peek() == '.')
       {
         e.in->get();
         Str buf;
-        ParseTOMLString<false, '.', ']'>(buf, *e.in);
+        internal::ParseTOMLString<false, '.', ']'>(buf, *e.in);
         TOMLValue* v = target.get<TOMLValue::TOMLTable>()[buf];
         if(v)
           ParseTOMLBase<TOMLValue>(e, *v, *e.in);
@@ -529,7 +533,7 @@ namespace bss {
       else if(e.in->peek() == ']')
       {
         e.in->get();
-        ParseTOMLPairs(e, *e.in, f);
+        internal::ParseTOMLPairs(e, *e.in, f);
       }
       else
         assert(false);
@@ -540,7 +544,7 @@ namespace bss {
         e.in->get();
         if(e.in->peek() == ']')
           e.in->get();
-        ParseTOMLPairs(e, *e.in, f);
+        internal::ParseTOMLPairs(e, *e.in, f);
       }
       else
         assert(false);
@@ -549,17 +553,17 @@ namespace bss {
       break;
     }
 
-    ParseTOMLEatWhitespace(s);
+    internal::ParseTOMLEatWhitespace(s);
     switch(s.peek())
     {
     case '{': // inline table
       s.get();
       target = TOMLValue::TOMLTable();
-      ParseTOMLTable(e, *e.in, f);
+      internal::ParseTOMLTable(e, *e.in, f);
       break;
     case '[': // array
       target = TOMLValue::TOMLArray();
-      ParseTOMLInternal<TOMLValue::TOMLArray, false>::F(e, target.get<TOMLValue::TOMLArray>(), s);
+      internal::ParseTOMLInternal<TOMLValue::TOMLArray, false>::F(e, target.get<TOMLValue::TOMLArray>(), s);
       break;
     case '"': // Single or multi-line string
     case '\'': // Single or multi-line literal string
@@ -611,20 +615,20 @@ namespace bss {
     switch(e.engine.state)
     {
     case 3: // If state is 3, this is the initial object serialization.
-      ParseTOMLRoot(e, *e.in, f);
+      internal::ParseTOMLRoot(e, *e.in, f);
       break;
     case 1:
       if(e.in->peek() == '.')
       {
         e.in->get();
         Str buf;
-        ParseTOMLString<false, '.', ']'>(buf, *e.in);
+        internal::ParseTOMLString<false, '.', ']'>(buf, *e.in);
         Serializer<TOMLEngine>::_findparse<Args...>(e, buf.c_str(), t, args);
       }
       else if(e.in->peek() == ']')
       {
         e.in->get();
-        ParseTOMLPairs(e, *e.in, f);
+        internal::ParseTOMLPairs(e, *e.in, f);
       }
       else
         assert(false);
@@ -635,147 +639,149 @@ namespace bss {
         e.in->get();
         if(e.in->peek() == ']')
           e.in->get();
-        ParseTOMLPairs(e, *e.in, f);
+        internal::ParseTOMLPairs(e, *e.in, f);
       }
       else
         assert(false);
       break;
     case 0:
-      ParseTOMLEatWhitespace(*e.in);
+      internal::ParseTOMLEatWhitespace(*e.in);
       if(e.in->peek() == '{')
       {
         e.in->get();
-        ParseTOMLTable(e, *e.in, f);
+        internal::ParseTOMLTable(e, *e.in, f);
       }
       break;
     }
   }
 
-  inline void WriteTOMLId(Serializer<TOMLEngine>& e, const char* id, std::ostream& s)
-  {
-    if(!id || e.engine.state == 2)
+  namespace internal {
+    inline void WriteTOMLId(Serializer<TOMLEngine>& e, const char* id, std::ostream& s)
     {
-      if(e.engine.first)
-        e.engine.first = false;
-      else
-        s << ", ";
+      if(!id || e.engine.state == 2)
+      {
+        if(e.engine.first)
+          e.engine.first = false;
+        else
+          s << ", ";
+      }
+      if(id) s << id << " = ";
     }
-    if(id) s << id << " = ";
-  }
 
-  template<class T>
-  inline void WriteTOMLTables(Serializer<TOMLEngine>& e, const char* id, const T& obj, std::ostream& s)
-  {
-    Str last = e.engine.id;
-    if(e.engine.id.size())
-      e.engine.id += '.';
-    e.engine.id += id;
-    const_cast<T&>(obj).template Serialize<TOMLEngine>(e);
-    e.engine.id = last;
-  }
-
-  template<class T>
-  inline void WriteTOMLArray(Serializer<TOMLEngine>& e, const char* id, const T* obj, size_t size, std::ostream& s)
-  {
-    if(e.engine.state == 1) return;
-    WriteTOMLId(e, id, s);
-    s << '[';
-    e.engine.first = true;
-    for(uint32_t i = 0; i < size; ++i)
-      WriteTOMLBase(e, 0, obj[i], s);
-    s << ']';
-    if(e.engine.state != 2 && id) s << std::endl;
-  }
-
-  template<class T>
-  inline void WriteTOMLPairs(Serializer<TOMLEngine>& e, const char* id, const T& obj, std::ostream& s)
-  {
-    if(e.engine.state == 2) // if we're in state 2 we're writing an inline table
+    template<class T>
+    inline void WriteTOMLTables(Serializer<TOMLEngine>& e, const char* id, const T& obj, std::ostream& s)
     {
-      WriteTOMLId(e, id, s);
-      s << "{ ";
-    }
-    else if(id)
-    {
-      s << '[';
+      Str last = e.engine.id;
       if(e.engine.id.size())
-        s << e.engine.id << '.';
-      s << id << ']' << std::endl;
+        e.engine.id += '.';
+      e.engine.id += id;
+      const_cast<T&>(obj).template Serialize<TOMLEngine>(e);
+      e.engine.id = last;
     }
 
-    e.engine.first = true;
-    const_cast<T&>(obj).template Serialize<TOMLEngine>(e);
-
-    if(e.engine.state == 2)
-      s << " }";
-    else
-      s << std::endl;
-  }
-
-  template<class T, bool B>
-  struct WriteTOMLInternal
-  {
-    static void F(Serializer<TOMLEngine>& e, const char* id, const T& obj, std::ostream& s)
-    {
-      if(e.engine.state == 2 || (!id && !e.engine.state))
-      {
-        uint32_t state = e.engine.state;
-        e.engine.state = 2;
-        WriteTOMLPairs(e, id, obj, s);
-        e.engine.state = state;
-      }
-      else if(!!e.engine.state)
-      {
-        e.engine.state = 0;
-        WriteTOMLPairs(e, id, obj, s);
-        e.engine.state = 1;
-        WriteTOMLTables(e, id, obj, s);
-        e.engine.state = 1;
-      }
-    }
-  };
-
-  template<class T>
-  struct WriteTOMLInternal<T, true>
-  {
-    static void F(Serializer<TOMLEngine>& e, const char* id, const T& obj, std::ostream& s)
+    template<class T>
+    inline void WriteTOMLArray(Serializer<TOMLEngine>& e, const char* id, const T* obj, size_t size, std::ostream& s)
     {
       if(e.engine.state == 1) return;
       WriteTOMLId(e, id, s);
-      s << obj;
+      s << '[';
+      e.engine.first = true;
+      for(uint32_t i = 0; i < size; ++i)
+        WriteTOMLBase(e, 0, obj[i], s);
+      s << ']';
       if(e.engine.state != 2 && id) s << std::endl;
     }
-  };
 
-  template<class T, size_t I, bool B>
-  struct WriteTOMLInternal<T[I], B>
-  {
-    static void F(Serializer<TOMLEngine>& e, const char* id, const T(&obj)[I], std::ostream& s) { WriteTOMLArray<T>(e, id, obj, I, s); }
-  };
-  template<class T, size_t I, bool B>
-  struct WriteTOMLInternal<std::array<T, I>, B>
-  {
-    static void F(Serializer<TOMLEngine>& e, const char* id, const std::array<T, I>& obj, std::ostream& s) { WriteTOMLArray<T>(e, id, obj.data(), I, s); }
-  };
-  template<class T, typename CType, ARRAY_TYPE ArrayType, typename Alloc>
-  struct WriteTOMLInternal<DynArray<T, CType, ArrayType, Alloc>, false>
-  {
-    static void F(Serializer<TOMLEngine>& e, const char* id, const DynArray<T, CType, ArrayType, Alloc>& obj, std::ostream& s) { WriteTOMLArray<T>(e, id, obj, obj.Length(), s); }
-  };
-  template<class T, typename Alloc>
-  struct WriteTOMLInternal<std::vector<T, Alloc>, false>
-  {
-    static void F(Serializer<TOMLEngine>& e, const char* id, const std::vector<T, Alloc>& obj, std::ostream& s) { WriteTOMLArray<T>(e, id, obj.data(), obj.size(), s); }
-  };
+    template<class T>
+    inline void WriteTOMLPairs(Serializer<TOMLEngine>& e, const char* id, const T& obj, std::ostream& s)
+    {
+      if(e.engine.state == 2) // if we're in state 2 we're writing an inline table
+      {
+        WriteTOMLId(e, id, s);
+        s << "{ ";
+      }
+      else if(id)
+      {
+        s << '[';
+        if(e.engine.id.size())
+          s << e.engine.id << '.';
+        s << id << ']' << std::endl;
+      }
+
+      e.engine.first = true;
+      const_cast<T&>(obj).template Serialize<TOMLEngine>(e);
+
+      if(e.engine.state == 2)
+        s << " }";
+      else
+        s << std::endl;
+    }
+
+    template<class T, bool B>
+    struct WriteTOMLInternal
+    {
+      static void F(Serializer<TOMLEngine>& e, const char* id, const T& obj, std::ostream& s)
+      {
+        if(e.engine.state == 2 || (!id && !e.engine.state))
+        {
+          uint32_t state = e.engine.state;
+          e.engine.state = 2;
+          WriteTOMLPairs(e, id, obj, s);
+          e.engine.state = state;
+        }
+        else if(!!e.engine.state)
+        {
+          e.engine.state = 0;
+          WriteTOMLPairs(e, id, obj, s);
+          e.engine.state = 1;
+          WriteTOMLTables(e, id, obj, s);
+          e.engine.state = 1;
+        }
+      }
+    };
+
+    template<class T>
+    struct WriteTOMLInternal<T, true>
+    {
+      static void F(Serializer<TOMLEngine>& e, const char* id, const T& obj, std::ostream& s)
+      {
+        if(e.engine.state == 1) return;
+        WriteTOMLId(e, id, s);
+        s << obj;
+        if(e.engine.state != 2 && id) s << std::endl;
+      }
+    };
+
+    template<class T, size_t I, bool B>
+    struct WriteTOMLInternal<T[I], B>
+    {
+      static void F(Serializer<TOMLEngine>& e, const char* id, const T(&obj)[I], std::ostream& s) { WriteTOMLArray<T>(e, id, obj, I, s); }
+    };
+    template<class T, size_t I, bool B>
+    struct WriteTOMLInternal<std::array<T, I>, B>
+    {
+      static void F(Serializer<TOMLEngine>& e, const char* id, const std::array<T, I>& obj, std::ostream& s) { WriteTOMLArray<T>(e, id, obj.data(), I, s); }
+    };
+    template<class T, typename CType, ARRAY_TYPE ArrayType, typename Alloc>
+    struct WriteTOMLInternal<DynArray<T, CType, ArrayType, Alloc>, false>
+    {
+      static void F(Serializer<TOMLEngine>& e, const char* id, const DynArray<T, CType, ArrayType, Alloc>& obj, std::ostream& s) { WriteTOMLArray<T>(e, id, obj, obj.Length(), s); }
+    };
+    template<class T, typename Alloc>
+    struct WriteTOMLInternal<std::vector<T, Alloc>, false>
+    {
+      static void F(Serializer<TOMLEngine>& e, const char* id, const std::vector<T, Alloc>& obj, std::ostream& s) { WriteTOMLArray<T>(e, id, obj.data(), obj.size(), s); }
+    };
+  }
 
   template<class T>
-  inline void WriteTOMLBase(Serializer<TOMLEngine>& e, const char* id, const T& obj, std::ostream& s) { WriteTOMLInternal<T, std::is_arithmetic<T>::value>::F(e, id, obj, s); }
+  inline void WriteTOMLBase(Serializer<TOMLEngine>& e, const char* id, const T& obj, std::ostream& s) { internal::WriteTOMLInternal<T, std::is_arithmetic<T>::value>::F(e, id, obj, s); }
 
   template<>
   void WriteTOMLBase<std::string>(Serializer<TOMLEngine>& e, const char* id, const std::string& obj, std::ostream& s)
   {
     if(e.engine.state == 1) return;
-    WriteTOMLId(e, id, s);
+    internal::WriteTOMLId(e, id, s);
     s << '"';
     for(uint32_t i = 0; i < obj.size(); ++i)
     {
@@ -801,7 +807,7 @@ namespace bss {
   void WriteTOMLBase<bool>(Serializer<TOMLEngine>& e, const char* id, const bool& obj, std::ostream& s)
   {
     if(e.engine.state == 1) return;
-    WriteTOMLId(e, id, s);
+    internal::WriteTOMLId(e, id, s);
     s << (obj ? "true" : "false");
     if(e.engine.state != 2 && id) s << std::endl;
   }
@@ -810,7 +816,7 @@ namespace bss {
   void WriteTOMLBase<std::chrono::system_clock::time_point>(Serializer<TOMLEngine>& e, const char* id, const std::chrono::system_clock::time_point& obj, std::ostream& s)
   {
     if(e.engine.state == 1) return;
-    WriteTOMLId(e, id, s);
+    internal::WriteTOMLId(e, id, s);
     time_t time = std::chrono::system_clock::to_time_t(obj);
     s << std::put_time(gmtime(&time), "%Y-%m-%dT%H:%M:%S+00:00");
     if(e.engine.state != 2 && id) s << std::endl;

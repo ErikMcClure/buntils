@@ -12,6 +12,7 @@ namespace bss {
   template<class T>
   class BSS_COMPILER_DLLEXPORT LocklessBlockAlloc
   {
+    typedef BlockAllocVoid::FIXEDLIST_NODE NODE;
     LocklessBlockAlloc(const LocklessBlockAlloc& copy) BSS_DELETEFUNC
       LocklessBlockAlloc& operator=(const LocklessBlockAlloc& copy) BSS_DELETEFUNCOP
   public:
@@ -34,7 +35,7 @@ namespace bss {
     }
     inline ~LocklessBlockAlloc()
     {
-      FIXEDLIST_NODE* hold = _root;
+      NODE* hold = _root;
       while((_root = hold))
       {
         hold = _root->next;
@@ -102,7 +103,7 @@ namespace bss {
 #ifdef BSS_DEBUG
     inline bool _validPointer(const void* p) const
     {
-      const FIXEDLIST_NODE* hold = _root;
+      const NODE* hold = _root;
       while(hold)
       {
         if(p >= (hold + 1) && p < (((uint8_t*)(hold + 1)) + hold->size))
@@ -115,14 +116,14 @@ namespace bss {
 #endif
     inline void _allocChunk(size_t nsize) noexcept
     {
-      FIXEDLIST_NODE* retval = reinterpret_cast<FIXEDLIST_NODE*>(malloc(sizeof(FIXEDLIST_NODE) + nsize));
+      NODE* retval = reinterpret_cast<NODE*>(malloc(sizeof(NODE) + nsize));
       retval->next = _root;
       retval->size = nsize;
       _root = retval; // There's a potential race condition on DEBUG mode only where failing to set this first would allow a thread to allocate a new pointer and then delete it before _root got changed, which would then be mistaken for an invalid pointer
       _initChunk(retval);
     }
 
-    inline void _initChunk(const FIXEDLIST_NODE* chunk) noexcept
+    inline void _initChunk(const NODE* chunk) noexcept
     {
       void* hold = 0;
       uint8_t* memend = ((uint8_t*)(chunk + 1)) + chunk->size;
@@ -149,7 +150,7 @@ namespace bss {
 
     BSS_ALIGN(16) volatile bss_PTag<void> _freelist;
     BSS_ALIGN(4) std::atomic_flag _flag;
-    FIXEDLIST_NODE* _root;
+    NODE* _root;
   };
 
   template<typename T>

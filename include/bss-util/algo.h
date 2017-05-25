@@ -20,36 +20,38 @@
 #endif
 
 namespace bss {
+  namespace internal {
   // A generalization of the binary search that allows for auxiliary arguments to be passed into the comparison function
-  template<typename T, typename D, typename CT_, char(*CompEQ)(const char&, const char&), char CompValue, typename... Args>
-  struct binsearch_aux_t {
-    template<char(*CompF)(const D&, const T&, Args...)>
-    inline static CT_ BinarySearchNear(const T* arr, const D& data, CT_ first, CT_ last, Args... args)
-    {
-      typename std::make_signed<CT_>::type c = last - first; // Must be a signed version of whatever CT_ is
-      CT_ c2; //No possible operation can make this negative so we leave it as possibly unsigned.
-      CT_ m;
-      while(c > 0)
+    template<typename T, typename D, typename CT_, char(*CompEQ)(const char&, const char&), char CompValue, typename... Args>
+    struct binsearch_aux_t {
+      template<char(*CompF)(const D&, const T&, Args...)>
+      inline static CT_ BinarySearchNear(const T* arr, const D& data, CT_ first, CT_ last, Args... args)
       {
-        c2 = (c >> 1); // >> 1 is valid here because we check to see that c > 0 beforehand.
-        m = first + c2;
+        typename std::make_signed<CT_>::type c = last - first; // Must be a signed version of whatever CT_ is
+        CT_ c2; //No possible operation can make this negative so we leave it as possibly unsigned.
+        CT_ m;
+        while(c > 0)
+        {
+          c2 = (c >> 1); // >> 1 is valid here because we check to see that c > 0 beforehand.
+          m = first + c2;
 
-        //if(!(_Val < *_Mid))
-        if((*CompEQ)((*CompF)(data, arr[m], args...), CompValue))
-        {	// try top half
-          first = m + 1;
-          c -= c2 + 1;
+          //if(!(_Val < *_Mid))
+          if((*CompEQ)((*CompF)(data, arr[m], args...), CompValue))
+          {	// try top half
+            first = m + 1;
+            c -= c2 + 1;
+          }
+          else
+            c = c2;
         }
-        else
-          c = c2;
+        return first;
       }
-      return first;
-    }
-  };
+    };
+  }
 
   // Performs a binary search on "arr" between first and last. if CompEQ=NEQ and char CompValue=-1, uses an upper bound, otherwise uses lower bound.
   template<typename T, typename D, typename CT_, char(*CompF)(const D&, const T&), char(*CompEQ)(const char&, const char&), char CompValue>
-  BSS_FORCEINLINE CT_ BinarySearchNear(const T* arr, const D& data, CT_ first, CT_ last) { return binsearch_aux_t<T, D, CT_, CompEQ, CompValue>::template BinarySearchNear<CompF>(arr, data, first, last); }
+  BSS_FORCEINLINE CT_ BinarySearchNear(const T* arr, const D& data, CT_ first, CT_ last) { return internal::binsearch_aux_t<T, D, CT_, CompEQ, CompValue>::template BinarySearchNear<CompF>(arr, data, first, last); }
 
   // Either gets the element that matches the value in question or one immediately before the closest match. Could return an invalid -1 value.
   template<typename T, typename CT_, char(*CompF)(const T&, const T&)>
@@ -124,46 +126,48 @@ namespace bss {
     seed[16] = 0;
   }
 
-  template<typename T>
-  class xorshift_engine_base
-  {
-  public:
-    BSS_FORCEINLINE static T base_min() { return std::numeric_limits<T>::min(); }
-    BSS_FORCEINLINE static T base_max() { return std::numeric_limits<T>::max(); }
-    BSS_FORCEINLINE static T base_transform(uint64_t x) { return (T)x; }
-  };
-
-  // DISABLED: There is no nice way of mapping randomly generated values to floating point values because floating point has a log2 distribution and denormals.
-  // Instead, use gencanonical to map generated random integers to a [0.0,1.0) range.
-  /*template<>
-  class xorshift_engine_base<float>
-  {
-  public:
-    BSS_FORCEINLINE static float base_min() { return base_transform(0xFFFFFFFFFFFFFFFF); }
-    BSS_FORCEINLINE static float base_max() { return base_transform(0x7FFFFFFFFFFFFFFF); }
-    BSS_FORCEINLINE static float base_transform(uint64_t x)
+  namespace internal {
+    template<typename T>
+    class xorshift_engine_base
     {
-      uint32_t y=(uint32_t)x;
-      y = (y&0xBFFFFFFF)+0x1F800000; // Mask out the top exponent bit to force exponent to 0-127 range, then add 63 to the exponent to get it in [63,190] range ([-64,63] when biased)
-      return *(float*)(&y); // convert our integer into a float, assuming IEEE format
-    }
-  };
+    public:
+      BSS_FORCEINLINE static T base_min() { return std::numeric_limits<T>::min(); }
+      BSS_FORCEINLINE static T base_max() { return std::numeric_limits<T>::max(); }
+      BSS_FORCEINLINE static T base_transform(uint64_t x) { return (T)x; }
+    };
 
-  template<>
-  class BSS_COMPILER_DLLEXPORT xorshift_engine_base<double>
-  {
-  public:
-    BSS_FORCEINLINE static double base_min() { return base_transform(0xFFFFFFFFFFFFFFFF); }
-    BSS_FORCEINLINE static double base_max() { return base_transform(0x7FFFFFFFFFFFFFFF); }
-    BSS_FORCEINLINE static double base_transform(uint64_t x)
+    // DISABLED: There is no nice way of mapping randomly generated values to floating point values because floating point has a log2 distribution and denormals.
+    // Instead, use gencanonical to map generated random integers to a [0.0,1.0) range.
+    /*template<>
+    class xorshift_engine_base<float>
     {
-      x = (x&0xBFFFFFFFFFFFFFFF)+0x1FF0000000000000; // Mask out the top exponent bit to force exponent to 0-1023 range, then add 511 to the exponent to get it in [511,1534] range ([-512,511] when biased)
-      return *(double*)(&x); // convert our integer into a double, assuming IEEE format
-    }
-  };*/
+    public:
+      BSS_FORCEINLINE static float base_min() { return base_transform(0xFFFFFFFFFFFFFFFF); }
+      BSS_FORCEINLINE static float base_max() { return base_transform(0x7FFFFFFFFFFFFFFF); }
+      BSS_FORCEINLINE static float base_transform(uint64_t x)
+      {
+        uint32_t y=(uint32_t)x;
+        y = (y&0xBFFFFFFF)+0x1F800000; // Mask out the top exponent bit to force exponent to 0-127 range, then add 63 to the exponent to get it in [63,190] range ([-64,63] when biased)
+        return *(float*)(&y); // convert our integer into a float, assuming IEEE format
+      }
+    };
+
+    template<>
+    class BSS_COMPILER_DLLEXPORT xorshift_engine_base<double>
+    {
+    public:
+      BSS_FORCEINLINE static double base_min() { return base_transform(0xFFFFFFFFFFFFFFFF); }
+      BSS_FORCEINLINE static double base_max() { return base_transform(0x7FFFFFFFFFFFFFFF); }
+      BSS_FORCEINLINE static double base_transform(uint64_t x)
+      {
+        x = (x&0xBFFFFFFFFFFFFFFF)+0x1FF0000000000000; // Mask out the top exponent bit to force exponent to 0-1023 range, then add 511 to the exponent to get it in [511,1534] range ([-512,511] when biased)
+        return *(double*)(&x); // convert our integer into a double, assuming IEEE format
+      }
+    };*/
+  }
 
   template<typename T = uint64_t>
-  class BSS_COMPILER_DLLEXPORT XorshiftEngine : protected xorshift_engine_base<T>
+  class BSS_COMPILER_DLLEXPORT XorshiftEngine : protected internal::xorshift_engine_base<T>
   {
   public:
     XorshiftEngine() { seed(); }
@@ -174,10 +178,10 @@ namespace bss {
     void seed(uint64_t s[16]) { for(int i = 0; i < 16; ++i) _state[i] = s[i]; _state[16] = 0; }
     void discard(unsigned long long z) { for(int i = 0; i < z; ++i) xorshift1024star(_state); }
 
-    inline static T min() { return xorshift_engine_base<T>::base_min(); }
-    inline static T max() { return xorshift_engine_base<T>::base_max(); }
+    inline static T min() { return internal::xorshift_engine_base<T>::base_min(); }
+    inline static T max() { return internal::xorshift_engine_base<T>::base_max(); }
 
-    inline T operator()() { return xorshift_engine_base<T>::base_transform(xorshift1024star(_state)); } // Truncate to return_value size.
+    inline T operator()() { return internal::xorshift_engine_base<T>::base_transform(xorshift1024star(_state)); } // Truncate to return_value size.
     bool operator ==(const XorshiftEngine& r) const { for(int i = 0; i < 17; ++i) if(_state[i] != r._state[i]) return false; return true; }
     bool operator !=(const XorshiftEngine& r) const { return !operator==(r); }
 

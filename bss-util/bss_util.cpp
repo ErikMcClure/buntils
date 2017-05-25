@@ -66,14 +66,12 @@ inline bool r_fexists(const wchar_t* path)
   return ((attr&FILE_ATTRIBUTE_DIRECTORY) ^ T_FLAG) != 0;
 }
 
-BSS_COMPILER_DLLEXPORT
-extern bool bss::FileExistsW(const wchar_t* strpath)
+bool bss::FileExistsW(const wchar_t* strpath)
 {
   return r_fexists<1>(strpath);
 }
 
-BSS_COMPILER_DLLEXPORT
-extern bool bss::FolderExistsW(const wchar_t* strpath)
+bool bss::FolderExistsW(const wchar_t* strpath)
 {
   return r_fexists<0>(strpath);
 }
@@ -89,31 +87,27 @@ inline bool r_fexists(const char* path)
 }
 #endif
 
-BSS_COMPILER_DLLEXPORT
-extern bool bss::FolderExists(const char* strpath)
+bool bss::FolderExists(const char* strpath)
 {
   return r_fexists<0>(BSSPOSIX_WCHAR(strpath));
 }
 
-BSS_COMPILER_DLLEXPORT
-extern bool bss::FileExists(const char* strpath)
+bool bss::FileExists(const char* strpath)
 {
   return r_fexists<1>(BSSPOSIX_WCHAR(strpath));
 }
 
-BSS_COMPILER_DLLEXPORT
-extern void bss::SetWorkDirToCur()
+void SetWorkDirToCur()
 {
 #ifdef BSS_PLATFORM_WIN32
-  StrW commands(MAX_PATH);
+  bss::StrW commands(MAX_PATH);
   GetModuleFileNameW(0, commands.UnsafeString(), MAX_PATH);
   commands.UnsafeString()[wcsrchr(commands, '\\') - commands + 1] = '\0';
   SetCurrentDirectoryW(commands);
 #endif
 }
 
-BSS_COMPILER_DLLEXPORT
-extern void bss::ForceWin64Crash()
+void ForceWin64Crash()
 {
 #ifdef BSS_PLATFORM_WIN32
   typedef BOOL(WINAPI *tGetPolicy)(LPDWORD lpFlags);
@@ -131,10 +125,10 @@ extern void bss::ForceWin64Crash()
   // Obviously in linux this function does nothing becuase linux isn't a BROKEN PIECE OF SHIT
 }
 
-BSS_COMPILER_DLLEXPORT extern unsigned long long bss::bssFileSize(const char* path)
+unsigned long long bssFileSize(const char* path)
 {
 #ifdef BSS_PLATFORM_WIN32
-  return bssFileSize(StrW(path).c_str());
+  return bssFileSizeW(bss::StrW(path).c_str());
 #else // BSS_PLATFORM_POSIX
   struct stat path_stat;
   if(::stat(path, &path_stat) != 0 || !S_ISREG(path_stat.st_mode))
@@ -143,7 +137,8 @@ BSS_COMPILER_DLLEXPORT extern unsigned long long bss::bssFileSize(const char* pa
   return (unsigned long long)path_stat.st_size;
 #endif
 }
-BSS_COMPILER_DLLEXPORT extern unsigned long long bss::bssFileSize(const wchar_t* path)
+
+unsigned long long bssFileSizeW(const wchar_t* path)
 {
 #ifdef BSS_PLATFORM_WIN32
   WIN32_FILE_ATTRIBUTE_DATA fad;
@@ -153,12 +148,11 @@ BSS_COMPILER_DLLEXPORT extern unsigned long long bss::bssFileSize(const wchar_t*
 
   return (static_cast<unsigned long long>(fad.nFileSizeHigh) << (sizeof(fad.nFileSizeLow) * 8)) + fad.nFileSizeLow;
 #else // BSS_PLATFORM_POSIX
-  return bssFileSize(Str(path).c_str());
+  return bssFileSize(bss::Str(path).c_str());
 #endif
 }
 
-BSS_COMPILER_DLLEXPORT
-extern std::unique_ptr<char[], bss::bssDLLDelete<char[]>> bss::FileDialog(bool open, unsigned long flags,
+std::unique_ptr<char[], bss::bssDLLDelete<char[]>> bss::FileDialog(bool open, unsigned long flags,
   const char* file, const char* filter, const char* initdir, const char* defext)
 {
 #ifdef BSS_PLATFORM_WIN32 //Windows function
@@ -204,8 +198,8 @@ extern std::unique_ptr<char[], bss::bssDLLDelete<char[]>> bss::FileDialog(bool o
 #endif
 }
 #ifdef BSS_PLATFORM_WIN32 //Windows function
-BSS_COMPILER_DLLEXPORT
-extern std::unique_ptr<char[], bss::bssDLLDelete<char[]>> bss::FileDialog(bool open, unsigned long flags,
+
+std::unique_ptr<char[], bss::bssDLLDelete<char[]>> bss::FileDialog(bool open, unsigned long flags,
   const wchar_t* file, const wchar_t* filter, const wchar_t* initdir, const wchar_t* defext, HWND__* owner)
 {
   wchar_t buf[MAX_PATH];
@@ -213,7 +207,7 @@ extern std::unique_ptr<char[], bss::bssDLLDelete<char[]>> bss::FileDialog(bool o
   StrW curdirsave(buf);
   ZeroMemory(buf, MAX_PATH);
 
-  if(file != 0) WCSNCPY(buf, MAX_PATH, file, bssmin(wcslen(file), MAX_PATH - 1));
+  if(file != 0) WCSNCPY(buf, MAX_PATH, file, std::min<size_t>(wcslen(file), MAX_PATH - 1));
 
   OPENFILENAMEW ofn;
   ZeroMemory(&ofn, sizeof(ofn));
@@ -238,7 +232,7 @@ extern std::unique_ptr<char[], bss::bssDLLDelete<char[]>> bss::FileDialog(bool o
 }
 #endif
 
-extern long bss::GetTimeZoneMinutes()
+long GetTimeZoneMinutes()
 {
 #ifdef BSS_PLATFORM_WIN32
   TIME_ZONE_INFORMATION dtime;
@@ -264,11 +258,11 @@ extern long bss::GetTimeZoneMinutes()
 }
 
 #ifdef BSS_PLATFORM_WIN32
-extern void bss::AlertBox(const char* text, const char* caption, int type)
+void bss::AlertBox(const char* text, const char* caption, int type)
 {
   AlertBoxW(StrW(text), StrW(caption), type);
 }
-extern void bss::AlertBoxW(const wchar_t* text, const wchar_t* caption, int type)
+void bss::AlertBoxW(const wchar_t* text, const wchar_t* caption, int type)
 {
   MessageBoxW(0, text, caption, type);
 }
@@ -277,11 +271,11 @@ extern void bss::AlertBoxW(const wchar_t* text, const wchar_t* caption, int type
 void bss::bssDLLDeleteFunc(void* p) { ::operator delete(p); } // operator delete[] simply calls operator delete when its void*
 
 #ifdef BSS_PLATFORM_WIN32
-extern int bss::CreateDir(const char* path, bool recursive)
+int bss::CreateDir(const char* path, bool recursive)
 {
   return CreateDirW(BSSPOSIX_WCHAR(path), recursive);
 }
-extern int bss::CreateDirW(const wchar_t* path, bool recursive)
+int bss::CreateDirW(const wchar_t* path, bool recursive)
 {
   if(!recursive)
     return -(CreateDirectoryW(path, 0) == 0);
@@ -301,7 +295,7 @@ extern int bss::CreateDirW(const wchar_t* path, bool recursive)
   return 0;
 }
 #else
-extern int bss::CreateDir(const char* path, bool recursive)
+int bss::CreateDir(const char* path, bool recursive)
 {
   if(!recursive)
     return mkdir(path, 0700);
@@ -324,11 +318,11 @@ extern int bss::CreateDir(const char* path, bool recursive)
 #endif
 
 #ifdef BSS_PLATFORM_WIN32
-extern int bss::DelDir(const char* cdir, bool recursive)
+int bss::DelDir(const char* cdir, bool recursive)
 {
   return bss::DelDirW(BSSPOSIX_WCHAR(cdir), recursive);
 }
-extern int bss::DelDirW(const wchar_t* cdir, bool recursive)
+int bss::DelDirW(const wchar_t* cdir, bool recursive)
 {
   if(!recursive)
     return -(RemoveDirectoryW(cdir) == 0);
@@ -381,7 +375,7 @@ int _deldir_func(const char *fpath, const struct stat *sb, int typeflag, struct 
   return remove(fpath);
 }
 
-extern int bss::DelDir(const char* cdir, bool recursive)
+int bss::DelDir(const char* cdir, bool recursive)
 {
   if(!recursive)
     return rmdir(cdir);
@@ -390,7 +384,7 @@ extern int bss::DelDir(const char* cdir, bool recursive)
 #endif
 
 #ifdef BSS_PLATFORM_WIN32 //Windows function
-BSS_COMPILER_DLLEXPORT extern int bss::_listdir(const wchar_t* cdir, void(*fn)(const wchar_t*, std::vector<Str>*), std::vector<Str>* files, char flags)
+ int bss::_listdir(const wchar_t* cdir, void(*fn)(const wchar_t*, std::vector<Str>*), std::vector<Str>* files, char flags)
 {
   WIN32_FIND_DATAW ffd;
   HANDLE hdir = INVALID_HANDLE_VALUE;
@@ -421,7 +415,7 @@ BSS_COMPILER_DLLEXPORT extern int bss::_listdir(const wchar_t* cdir, void(*fn)(c
   return 0;
 }
 #else //Linux function
-BSS_COMPILER_DLLEXPORT extern int bss::ListDir(const char* path, std::vector<Str>& files, char flags) // Setting flags to 1 will do a recursive search. Setting flags to 2 will return directory+file names. Setting flags to 3 will both be recursive and return directory names.
+ int bss::ListDir(const char* path, std::vector<Str>& files, char flags) // Setting flags to 1 will do a recursive search. Setting flags to 2 will return directory+file names. Setting flags to 3 will both be recursive and return directory names.
 {
   DIR* srcdir = opendir(path);
 
@@ -636,32 +630,34 @@ int bss::DelRegistryNodeW(HKEY__* hKeyRoot, const wchar_t* lpSubKey)
   return r_delregnode(hKeyRoot, lpSubKey);
 }
 
-struct BSSFONT
-{
-  BSSFONT(const ENUMLOGFONTEX* fontex, DWORD elftype) : weight((short)fontex->elfLogFont.lfWeight), italic(fontex->elfLogFont.lfItalic != 0), type((char)elftype)
+namespace bss {
+  struct BSSFONT
   {
-    memcpy_s(elfFullName, sizeof(wchar_t)*LF_FULLFACESIZE, fontex->elfFullName, sizeof(wchar_t)*LF_FULLFACESIZE);
-  }
+    BSSFONT(const ENUMLOGFONTEX* fontex, DWORD elftype) : weight((short)fontex->elfLogFont.lfWeight), italic(fontex->elfLogFont.lfItalic != 0), type((char)elftype)
+    {
+      memcpy_s(elfFullName, sizeof(wchar_t)*LF_FULLFACESIZE, fontex->elfFullName, sizeof(wchar_t)*LF_FULLFACESIZE);
+    }
 
-  static char Comp(const BSSFONT& l, const BSSFONT& r)
-  {
-    char ret = SGNCOMPARE(l.italic, r.italic);
-    return !ret ? SGNCOMPARE(l.weight, r.weight) : ret;
-  }
+    static char Comp(const BSSFONT& l, const BSSFONT& r)
+    {
+      char ret = SGNCOMPARE(l.italic, r.italic);
+      return !ret ? SGNCOMPARE(l.weight, r.weight) : ret;
+    }
 
-  WCHAR elfFullName[LF_FULLFACESIZE];
-  short weight;
-  char type;
-  bool italic;
-};
+    typedef bss::ArraySort<BSSFONT, &BSSFONT::Comp> BSSFONTARRAY;
 
-typedef bss::ArraySort<BSSFONT, &BSSFONT::Comp> BSSFONTARRAY;
+    WCHAR elfFullName[LF_FULLFACESIZE];
+    short weight;
+    char type;
+    bool italic;
+  };
+}
 
 int CALLBACK EnumFont_GetFontPath(const LOGFONT *lpelfe, const TEXTMETRIC *lpntme, DWORD FontType, LPARAM lParam)
 {
   const ENUMLOGFONTEX* info = reinterpret_cast<const ENUMLOGFONTEX*>(lpelfe);
-  BSSFONTARRAY* fonts = reinterpret_cast<BSSFONTARRAY*>(lParam);
-  BSSFONT font(info, FontType);
+  bss::BSSFONT::BSSFONTARRAY* fonts = reinterpret_cast<bss::BSSFONT::BSSFONTARRAY*>(lParam);
+  bss::BSSFONT font(info, FontType);
   if(fonts->Find(font) == (size_t)~0)
     fonts->Insert(font);
   return 1;
@@ -693,7 +689,7 @@ std::unique_ptr<char[], bss::bssDLLDelete<char[]>> bss::GetFontPath(const char* 
   LOGFONT font = { 0 };
   font.lfCharSet = DEFAULT_CHARSET;
   UTF8toUTF16(family, -1, font.lfFaceName, LF_FACESIZE - 1);
-  BSSFONTARRAY fonts;
+  bss::BSSFONT::BSSFONTARRAY fonts;
   EnumFontFamiliesExW(hdc, &font, &EnumFont_GetFontPath, reinterpret_cast<LPARAM>(&fonts), 0);
 
   size_t target = 0;
@@ -772,18 +768,6 @@ std::unique_ptr<char[], bss::bssDLLDelete<char[]>> bss::GetFontPath(const char* 
 #include "bss-util/Delegate.h"
 #include "bss-util/Hash.h"
 
-struct testclass
-{
-  void f()
-  {
-
-
-  }
-};
-void ffff() {}
-
-bss::Delegate<void> rrrrr = bss::Delegate<void>::From<testclass, &testclass::f>(0);
-
-bss::Hash<int, testclass, false, bss::ARRAY_SAFE> hashtest;
+bss::Hash<int, bss::Hash<int>, false, bss::ARRAY_SAFE> hashtest;
 static bool testhash = !hashtest[2];
 #endif

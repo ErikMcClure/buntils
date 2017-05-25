@@ -370,99 +370,101 @@ namespace bss {
   }
 #endif
 
+  namespace internal {
   // Multiply an MxN matrix with an NxP matrix to make an MxP matrix.
-  template<typename T, int M, int N, int P>
-  struct BSS_COMPILER_DLLEXPORT __MatrixMultiply
-  {
-    static BSS_FORCEINLINE void MM(const T(&l)[M][N], const T(&r)[N][P], T(&out)[M][P]) noexcept
+    template<typename T, int M, int N, int P>
+    struct BSS_COMPILER_DLLEXPORT __MatrixMultiply
     {
-      T m[M][P];
-      for(int i = 0; i < M; ++i)
+      static BSS_FORCEINLINE void MM(const T(&l)[M][N], const T(&r)[N][P], T(&out)[M][P]) noexcept
       {
-        for(int j = 0; j < P; ++j)
+        T m[M][P];
+        for(int i = 0; i < M; ++i)
         {
-          m[i][j] = l[i][0] * r[0][j];
-          for(int k = 1; k < N; ++k)
-            m[i][j] += l[i][k] * r[k][j];
+          for(int j = 0; j < P; ++j)
+          {
+            m[i][j] = l[i][0] * r[0][j];
+            for(int k = 1; k < N; ++k)
+              m[i][j] += l[i][k] * r[k][j];
+          }
         }
+        for(int i = 0; i < M; ++i) // Done so the compiler can get rid of it if it isn't necessary
+          for(int j = 0; j < P; ++j)
+            out[i][j] = m[i][j];
       }
-      for(int i = 0; i < M; ++i) // Done so the compiler can get rid of it if it isn't necessary
-        for(int j = 0; j < P; ++j)
-          out[i][j] = m[i][j];
-    }
-  };
+    };
 
-  // Standard 4x4 matrix multiplication using SSE2. Intended for row-major matrices, so you'll end up with r*l instead of l*r if your matrices are column major instead.
-  template<>
-  struct BSS_COMPILER_DLLEXPORT __MatrixMultiply<float, 4, 4, 4>
-  {
-    static BSS_FORCEINLINE void MM(const float(&l)[4][4], const float(&r)[4][4], float(&out)[4][4]) noexcept
+    // Standard 4x4 matrix multiplication using SSE2. Intended for row-major matrices, so you'll end up with r*l instead of l*r if your matrices are column major instead.
+    template<>
+    struct BSS_COMPILER_DLLEXPORT __MatrixMultiply<float, 4, 4, 4>
     {
-      sseVec a(r[0]);
-      sseVec b(r[1]);
-      sseVec c(r[2]);
-      sseVec d(r[3]);
+      static BSS_FORCEINLINE void MM(const float(&l)[4][4], const float(&r)[4][4], float(&out)[4][4]) noexcept
+      {
+        sseVec a(r[0]);
+        sseVec b(r[1]);
+        sseVec c(r[2]);
+        sseVec d(r[3]);
 
-      // Note: It's ok if l, r, and out are all the same matrix because of the order they're accessed in.
-      ((a*sseVec(l[0][0])) + (b*sseVec(l[0][1])) + (c*sseVec(l[0][2])) + (d*sseVec(l[0][3]))) >> out[0];
-      ((a*sseVec(l[1][0])) + (b*sseVec(l[1][1])) + (c*sseVec(l[1][2])) + (d*sseVec(l[1][3]))) >> out[1];
-      ((a*sseVec(l[2][0])) + (b*sseVec(l[2][1])) + (c*sseVec(l[2][2])) + (d*sseVec(l[2][3]))) >> out[2];
-      ((a*sseVec(l[3][0])) + (b*sseVec(l[3][1])) + (c*sseVec(l[3][2])) + (d*sseVec(l[3][3]))) >> out[3];
-    }
-  };
+        // Note: It's ok if l, r, and out are all the same matrix because of the order they're accessed in.
+        ((a*sseVec(l[0][0])) + (b*sseVec(l[0][1])) + (c*sseVec(l[0][2])) + (d*sseVec(l[0][3]))) >> out[0];
+        ((a*sseVec(l[1][0])) + (b*sseVec(l[1][1])) + (c*sseVec(l[1][2])) + (d*sseVec(l[1][3]))) >> out[1];
+        ((a*sseVec(l[2][0])) + (b*sseVec(l[2][1])) + (c*sseVec(l[2][2])) + (d*sseVec(l[2][3]))) >> out[2];
+        ((a*sseVec(l[3][0])) + (b*sseVec(l[3][1])) + (c*sseVec(l[3][2])) + (d*sseVec(l[3][3]))) >> out[3];
+      }
+    };
 
-  // It turns out you can efficiently do SSE optimization when multiplying any Mx4 matrix with a 4x4 matrix to yield an Mx4 out matrix.
-  template<int M>
-  struct BSS_COMPILER_DLLEXPORT __MatrixMultiply<float, M, 4, 4>
-  {
-    static BSS_FORCEINLINE void MM(const float(&l)[M][4], const float(&r)[4][4], float(&out)[M][4])
+    // It turns out you can efficiently do SSE optimization when multiplying any Mx4 matrix with a 4x4 matrix to yield an Mx4 out matrix.
+    template<int M>
+    struct BSS_COMPILER_DLLEXPORT __MatrixMultiply<float, M, 4, 4>
     {
-      sseVec a(r[0]);
-      sseVec b(r[1]);
-      sseVec c(r[2]);
-      sseVec d(r[3]);
+      static BSS_FORCEINLINE void MM(const float(&l)[M][4], const float(&r)[4][4], float(&out)[M][4])
+      {
+        sseVec a(r[0]);
+        sseVec b(r[1]);
+        sseVec c(r[2]);
+        sseVec d(r[3]);
 
-      for(int i = 0; i < M; ++i) // Note: It's ok if l, r, and out are all the same matrix because of the order they're accessed in.
-        ((a*sseVec(l[i][0])) + (b*sseVec(l[i][1])) + (c*sseVec(l[i][2])) + (d*sseVec(l[i][3]))) >> out[i];
-    }
-  };
+        for(int i = 0; i < M; ++i) // Note: It's ok if l, r, and out are all the same matrix because of the order they're accessed in.
+          ((a*sseVec(l[i][0])) + (b*sseVec(l[i][1])) + (c*sseVec(l[i][2])) + (d*sseVec(l[i][3]))) >> out[i];
+      }
+    };
 
-  template<int M> // We can't use sseVec<T> because only int32 and floats can fit 4 into a register.
-  struct BSS_COMPILER_DLLEXPORT __MatrixMultiply<int32_t, M, 4, 4>
-  {
-    static BSS_FORCEINLINE void MM(const int32_t(&l)[M][4], const int32_t(&r)[4][4], int32_t(&out)[M][4])
+    template<int M> // We can't use sseVec<T> because only int32 and floats can fit 4 into a register.
+    struct BSS_COMPILER_DLLEXPORT __MatrixMultiply<int32_t, M, 4, 4>
     {
-      sseVeci a(r[0]);
-      sseVeci b(r[1]);
-      sseVeci c(r[2]);
-      sseVeci d(r[3]);
+      static BSS_FORCEINLINE void MM(const int32_t(&l)[M][4], const int32_t(&r)[4][4], int32_t(&out)[M][4])
+      {
+        sseVeci a(r[0]);
+        sseVeci b(r[1]);
+        sseVeci c(r[2]);
+        sseVeci d(r[3]);
 
-      for(int i = 0; i < M; ++i) // Note: It's ok if l, r, and out are all the same matrix because of the order they're accessed in.
-        ((a*sseVeci(l[i][0])) + (b*sseVeci(l[i][1])) + (c*sseVeci(l[i][2])) + (d*sseVeci(l[i][3]))) >> out[i];
+        for(int i = 0; i < M; ++i) // Note: It's ok if l, r, and out are all the same matrix because of the order they're accessed in.
+          ((a*sseVeci(l[i][0])) + (b*sseVeci(l[i][1])) + (c*sseVeci(l[i][2])) + (d*sseVeci(l[i][3]))) >> out[i];
+      }
+    };
+
+    template<>
+    struct BSS_COMPILER_DLLEXPORT __MatrixMultiply<float, 1, 4, 4>
+    {
+      static BSS_FORCEINLINE void MM(const float(&l)[1][4], const float(&r)[4][4], float(&out)[1][4])
+      { // Note: It's ok if l, r, and out are all the same matrix because of the order they're accessed in.
+        ((sseVec(r[0])*sseVec(l[0][0])) + (sseVec(r[1])*sseVec(l[0][1])) + (sseVec(r[2])*sseVec(l[0][2])) + (sseVec(r[3])*sseVec(l[0][3]))) >> out[0];
+      }
+    };
+
+    /*template<int M> // This requires 16-byte alignment on 2x2 matrices and 2D vectors
+    struct __MatrixMultiply<double, M, 2, 2>
+    {
+    static BSS_FORCEINLINE void MM(const double(&l)[M][2], const double(&r)[2][2], double(&out)[M][2])
+    {
+    sseVecd a(r[0]);
+    sseVecd b(r[1]);
+
+    for(int i = 0; i < M; ++i)
+    ((a*sseVecd(l[i][0]))+(b*sseVecd(l[i][1]))) >> out[i];
     }
-  };
-
-  template<>
-  struct BSS_COMPILER_DLLEXPORT __MatrixMultiply<float, 1, 4, 4>
-  {
-    static BSS_FORCEINLINE void MM(const float(&l)[1][4], const float(&r)[4][4], float(&out)[1][4])
-    { // Note: It's ok if l, r, and out are all the same matrix because of the order they're accessed in.
-      ((sseVec(r[0])*sseVec(l[0][0])) + (sseVec(r[1])*sseVec(l[0][1])) + (sseVec(r[2])*sseVec(l[0][2])) + (sseVec(r[3])*sseVec(l[0][3]))) >> out[0];
-    }
-  };
-
-  /*template<int M> // This requires 16-byte alignment on 2x2 matrices and 2D vectors
-  struct __MatrixMultiply<double, M, 2, 2>
-  {
-  static BSS_FORCEINLINE void MM(const double(&l)[M][2], const double(&r)[2][2], double(&out)[M][2])
-  {
-  sseVecd a(r[0]);
-  sseVecd b(r[1]);
-
-  for(int i = 0; i < M; ++i)
-  ((a*sseVecd(l[i][0]))+(b*sseVecd(l[i][1]))) >> out[i];
+    };*/
   }
-  };*/
 
   // Multiply a 1x4 vector on the left with a 4x4 matrix on the right, resulting in a 1x4 vector held in an sseVec.
   template<typename T>
@@ -474,109 +476,111 @@ namespace bss {
   template<typename T, int M, int N, int P>
   BSS_FORCEINLINE void MatrixMultiply(const T(&l)[M][N], const T(&r)[N][P], T(&out)[M][P])
   {
-    __MatrixMultiply<T, M, N, P>::MM(l, r, out);
+    internal::__MatrixMultiply<T, M, N, P>::MM(l, r, out);
+  }
+
+  namespace internal {
+    template<typename T, int N>
+    struct BSS_COMPILER_DLLEXPORT __MatrixDeterminant { };
+
+    template<typename T>
+    struct BSS_COMPILER_DLLEXPORT __MatrixDeterminant<T, 2>
+    {
+      BSS_FORCEINLINE static T MD(const T(&x)[2][2]) { return D(x[0][0], x[0][1], x[1][0], x[1][1]); }
+      BSS_FORCEINLINE static T D(T a, T b, T c, T d) { return (a*d) - (b*c); }
+    };
+
+    template<typename T>
+    struct BSS_COMPILER_DLLEXPORT __MatrixDeterminant<T, 3>
+    {
+      BSS_FORCEINLINE static T MD(const T(&x)[3][3]) { return D(x[0][0], x[0][1], x[0][2], x[1][0], x[1][1], x[1][2], x[2][0], x[2][1], x[2][2]); }
+      BSS_FORCEINLINE static T D(T a, T b, T c, T d, T e, T f, T g, T h, T i) { return a*(e*i - f*h) - b*(i*d - f*g) + c*(d*h - e*g); }
+    };
+
+    template<>
+    struct BSS_COMPILER_DLLEXPORT __MatrixDeterminant<float, 3>
+    {
+      BSS_FORCEINLINE static float MD(const float(&x)[3][3]) { return D(x[0][0], x[0][1], x[0][2], x[1][0], x[1][1], x[1][2], x[2][0], x[2][1], x[2][2]); }
+      BSS_FORCEINLINE static float D(float a, float b, float c, float d, float e, float f, float g, float h, float i)
+      {
+        sseVec u(a, b, c, 0);
+        sseVec v(e, i, d, f);
+        sseVec w(i, d, h, g);
+
+        sseVec r = u*(v*w - v.Shuffle<3, 3, 0, 0>()*w.Shuffle<2, 3, 3, 0>());
+        float out;
+        (r - r.Shuffle<1, 1, 1, 1>() + r.Shuffle<2, 2, 2, 2>()) >> out;
+        return out;
+      }
+    };
+
+    template<typename T>
+    struct BSS_COMPILER_DLLEXPORT __MatrixDeterminant<T, 4>
+    {
+      BSS_FORCEINLINE static T MD(const T(&x)[4][4])
+      {
+        return x[0][0] * __MatrixDeterminant<T, 3>::D(x[1][1], x[1][2], x[1][3],
+          x[2][1], x[2][2], x[2][3],
+          x[3][1], x[3][2], x[3][3]) -
+          x[0][1] * __MatrixDeterminant<T, 3>::D(x[1][0], x[1][2], x[1][3],
+            x[2][0], x[2][2], x[2][3],
+            x[3][0], x[3][2], x[3][3]) +
+          x[0][2] * __MatrixDeterminant<T, 3>::D(x[1][0], x[1][1], x[1][3],
+            x[2][0], x[2][1], x[2][3],
+            x[3][0], x[3][1], x[3][3]) -
+          x[0][3] * __MatrixDeterminant<T, 3>::D(x[1][0], x[1][1], x[1][2],
+            x[2][0], x[2][1], x[2][2],
+            x[3][0], x[3][1], x[3][2]);
+      }
+    };
+
+    template<>
+    struct BSS_COMPILER_DLLEXPORT __MatrixDeterminant<float, 4>
+    {
+      template<uint8_t I>
+      BSS_FORCEINLINE static BSS_SSE_M128 _mm_ror_ps(BSS_SSE_M128 vec) { return (((I) % 4) ? (BSS_SSE_SHUFFLE_PS(vec, vec, _MM_SHUFFLE((uint8_t)(I + 3) % 4, (uint8_t)(I + 2) % 4, (uint8_t)(I + 1) % 4, (uint8_t)(I + 0) % 4))) : vec); }
+      BSS_FORCEINLINE static float MD(const float(&x)[4][4])
+      {
+  //   Copyright (c) 2001 Intel Corporation.
+  //
+  // Permition is granted to use, copy, distribute and prepare derivative works 
+  // of this library for any purpose and without fee, provided, that the above 
+  // copyright notice and this statement appear in all copies.  
+  // Intel makes no representations about the suitability of this software for 
+  // any purpose, and specifically disclaims all warranties. 
+
+        BSS_SSE_M128 Va, Vb, Vc;
+        BSS_SSE_M128 r1, r2, r3, t1, t2, sum;
+        sseVec _L1(x[0]);
+        sseVec _L2(x[1]);
+        sseVec _L3(x[2]);
+        sseVec _L4(x[3]);
+
+        // First, Let's calculate the first four minterms of the first line
+        t1 = _L4; t2 = _mm_ror_ps<1>(_L3);
+        Vc = BSS_SSE_MUL_PS(t2, _mm_ror_ps<0>(t1));                   // V3'·V4
+        Va = BSS_SSE_MUL_PS(t2, _mm_ror_ps<2>(t1));                   // V3'·V4"
+        Vb = BSS_SSE_MUL_PS(t2, _mm_ror_ps<3>(t1));                   // V3'·V4^
+
+        r1 = BSS_SSE_SUB_PS(_mm_ror_ps<1>(Va), _mm_ror_ps<2>(Vc));     // V3"·V4^ - V3^·V4"
+        r2 = BSS_SSE_SUB_PS(_mm_ror_ps<2>(Vb), _mm_ror_ps<0>(Vb));     // V3^·V4' - V3'·V4^
+        r3 = BSS_SSE_SUB_PS(_mm_ror_ps<0>(Va), _mm_ror_ps<1>(Vc));     // V3'·V4" - V3"·V4'
+
+        Va = _mm_ror_ps<1>(_L2);     sum = BSS_SSE_MUL_PS(Va, r1);
+        Vb = _mm_ror_ps<1>(Va);      sum = BSS_SSE_ADD_PS(sum, BSS_SSE_MUL_PS(Vb, r2));
+        Vc = _mm_ror_ps<1>(Vb);      sum = BSS_SSE_ADD_PS(sum, BSS_SSE_MUL_PS(Vc, r3));
+
+        // Now we can calculate the determinant:
+        BSS_SSE_M128 Det = BSS_SSE_MUL_PS(sum, _L1);
+        Det = BSS_SSE_ADD_PS(Det, BSS_SSE_MOVEHL_PS(Det, Det));
+        Det = BSS_SSE_SUB_SS(Det, BSS_SSE_SHUFFLE_PS(Det, Det, 1));
+        return BSS_SSE_SS_F32(Det);
+      }
+    };
   }
 
   template<typename T, int N>
-  struct BSS_COMPILER_DLLEXPORT __MatrixDeterminant { };
-
-  template<typename T>
-  struct BSS_COMPILER_DLLEXPORT __MatrixDeterminant<T, 2>
-  {
-    BSS_FORCEINLINE static T MD(const T(&x)[2][2]) { return D(x[0][0], x[0][1], x[1][0], x[1][1]); }
-    BSS_FORCEINLINE static T D(T a, T b, T c, T d) { return (a*d) - (b*c); }
-  };
-
-  template<typename T>
-  struct BSS_COMPILER_DLLEXPORT __MatrixDeterminant<T, 3>
-  {
-    BSS_FORCEINLINE static T MD(const T(&x)[3][3]) { return D(x[0][0], x[0][1], x[0][2], x[1][0], x[1][1], x[1][2], x[2][0], x[2][1], x[2][2]); }
-    BSS_FORCEINLINE static T D(T a, T b, T c, T d, T e, T f, T g, T h, T i) { return a*(e*i - f*h) - b*(i*d - f*g) + c*(d*h - e*g); }
-  };
-
-  template<>
-  struct BSS_COMPILER_DLLEXPORT __MatrixDeterminant<float, 3>
-  {
-    BSS_FORCEINLINE static float MD(const float(&x)[3][3]) { return D(x[0][0], x[0][1], x[0][2], x[1][0], x[1][1], x[1][2], x[2][0], x[2][1], x[2][2]); }
-    BSS_FORCEINLINE static float D(float a, float b, float c, float d, float e, float f, float g, float h, float i)
-    {
-      sseVec u(a, b, c, 0);
-      sseVec v(e, i, d, f);
-      sseVec w(i, d, h, g);
-
-      sseVec r = u*(v*w - v.Shuffle<3, 3, 0, 0>()*w.Shuffle<2, 3, 3, 0>());
-      float out;
-      (r - r.Shuffle<1, 1, 1, 1>() + r.Shuffle<2, 2, 2, 2>()) >> out;
-      return out;
-    }
-  };
-
-  template<typename T>
-  struct BSS_COMPILER_DLLEXPORT __MatrixDeterminant<T, 4>
-  {
-    BSS_FORCEINLINE static T MD(const T(&x)[4][4])
-    {
-      return x[0][0] * __MatrixDeterminant<T, 3>::D(x[1][1], x[1][2], x[1][3],
-        x[2][1], x[2][2], x[2][3],
-        x[3][1], x[3][2], x[3][3]) -
-        x[0][1] * __MatrixDeterminant<T, 3>::D(x[1][0], x[1][2], x[1][3],
-          x[2][0], x[2][2], x[2][3],
-          x[3][0], x[3][2], x[3][3]) +
-        x[0][2] * __MatrixDeterminant<T, 3>::D(x[1][0], x[1][1], x[1][3],
-          x[2][0], x[2][1], x[2][3],
-          x[3][0], x[3][1], x[3][3]) -
-        x[0][3] * __MatrixDeterminant<T, 3>::D(x[1][0], x[1][1], x[1][2],
-          x[2][0], x[2][1], x[2][2],
-          x[3][0], x[3][1], x[3][2]);
-    }
-  };
-
-  template<>
-  struct BSS_COMPILER_DLLEXPORT __MatrixDeterminant<float, 4>
-  {
-    template<uint8_t I>
-    BSS_FORCEINLINE static BSS_SSE_M128 _mm_ror_ps(BSS_SSE_M128 vec) { return (((I) % 4) ? (BSS_SSE_SHUFFLE_PS(vec, vec, _MM_SHUFFLE((uint8_t)(I + 3) % 4, (uint8_t)(I + 2) % 4, (uint8_t)(I + 1) % 4, (uint8_t)(I + 0) % 4))) : vec); }
-    BSS_FORCEINLINE static float MD(const float(&x)[4][4])
-    {
-//   Copyright (c) 2001 Intel Corporation.
-//
-// Permition is granted to use, copy, distribute and prepare derivative works 
-// of this library for any purpose and without fee, provided, that the above 
-// copyright notice and this statement appear in all copies.  
-// Intel makes no representations about the suitability of this software for 
-// any purpose, and specifically disclaims all warranties. 
-
-      BSS_SSE_M128 Va, Vb, Vc;
-      BSS_SSE_M128 r1, r2, r3, t1, t2, sum;
-      sseVec _L1(x[0]);
-      sseVec _L2(x[1]);
-      sseVec _L3(x[2]);
-      sseVec _L4(x[3]);
-
-      // First, Let's calculate the first four minterms of the first line
-      t1 = _L4; t2 = _mm_ror_ps<1>(_L3);
-      Vc = BSS_SSE_MUL_PS(t2, _mm_ror_ps<0>(t1));                   // V3'·V4
-      Va = BSS_SSE_MUL_PS(t2, _mm_ror_ps<2>(t1));                   // V3'·V4"
-      Vb = BSS_SSE_MUL_PS(t2, _mm_ror_ps<3>(t1));                   // V3'·V4^
-
-      r1 = BSS_SSE_SUB_PS(_mm_ror_ps<1>(Va), _mm_ror_ps<2>(Vc));     // V3"·V4^ - V3^·V4"
-      r2 = BSS_SSE_SUB_PS(_mm_ror_ps<2>(Vb), _mm_ror_ps<0>(Vb));     // V3^·V4' - V3'·V4^
-      r3 = BSS_SSE_SUB_PS(_mm_ror_ps<0>(Va), _mm_ror_ps<1>(Vc));     // V3'·V4" - V3"·V4'
-
-      Va = _mm_ror_ps<1>(_L2);     sum = BSS_SSE_MUL_PS(Va, r1);
-      Vb = _mm_ror_ps<1>(Va);      sum = BSS_SSE_ADD_PS(sum, BSS_SSE_MUL_PS(Vb, r2));
-      Vc = _mm_ror_ps<1>(Vb);      sum = BSS_SSE_ADD_PS(sum, BSS_SSE_MUL_PS(Vc, r3));
-
-      // Now we can calculate the determinant:
-      BSS_SSE_M128 Det = BSS_SSE_MUL_PS(sum, _L1);
-      Det = BSS_SSE_ADD_PS(Det, BSS_SSE_MOVEHL_PS(Det, Det));
-      Det = BSS_SSE_SUB_SS(Det, BSS_SSE_SHUFFLE_PS(Det, Det, 1));
-      return BSS_SSE_SS_F32(Det);
-    }
-  };
-
-  template<typename T, int N>
-  BSS_FORCEINLINE T MatrixDeterminant(const T(&x)[N][N]) { return __MatrixDeterminant<T, N>::MD(x); }
+  BSS_FORCEINLINE T MatrixDeterminant(const T(&x)[N][N]) { return internal::__MatrixDeterminant<T, N>::MD(x); }
 
   template<typename T, int N>
   BSS_FORCEINLINE void FromQuaternion(T(&q)[4], T(&out)[N][N])

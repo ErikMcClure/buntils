@@ -71,6 +71,7 @@
     <ClInclude Include="..\include\bss-util\stream.h" />
     <ClInclude Include="..\include\bss-util\bss_util.h" />
     <ClInclude Include="..\include\bss-util\bss_util_c.h" />
+    <ClInclude Include="..\include\bss-util\utf_conv.h" />
     <ClInclude Include="..\include\bss-util\vector.h" />
     <ClInclude Include="..\include\bss-util\win32_includes.h" />
     <ClInclude Include="..\include\bss-util\AATree.h" />

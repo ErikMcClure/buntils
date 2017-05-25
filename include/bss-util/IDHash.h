@@ -98,7 +98,7 @@ namespace bss {
   };
 
   // This is a reversible wrapper around cIDhash that allows for two-way lookups.
-  template<typename T, typename ST = uint32_t, typename Alloc = StaticAllocPolicy<T>, T INVALID = 0, khint_t(*__hash_func)(const T&) = &_HashHelper<T, false>::hash, bool(*__hash_equal)(const T&, const T&) = &_HashHelper<T, false>::equal>
+  template<typename T, typename ST = uint32_t, typename Alloc = StaticAllocPolicy<T>, T INVALID = 0, khint_t(*__hash_func)(const T&) = &internal::_HashHelper<T, false>::hash, bool(*__hash_equal)(const T&, const T&) = &internal::_HashHelper<T, false>::equal>
   class IDReverse : protected IDHash<T, ST, Alloc, INVALID>
   {
   protected:

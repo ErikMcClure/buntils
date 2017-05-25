@@ -534,6 +534,7 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClCompile Include="test_c.c" />
     <ClCompile Include="test.cpp" />
     <ClCompile Include="test_aatree.cpp" />
     <ClCompile Include="test_aliastable.cpp" />

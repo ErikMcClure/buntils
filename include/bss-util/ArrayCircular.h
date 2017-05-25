@@ -10,11 +10,11 @@
 namespace bss {
   // Simple circular array implementation. Unlike most data structures, CType must be signed instead of unsigned
   template<class T, typename CType = ptrdiff_t, ARRAY_TYPE ArrayType = ARRAY_SIMPLE, typename Alloc = StaticAllocPolicy<T>>
-  class BSS_COMPILER_DLLEXPORT ArrayCircular : protected ArrayBase<T, CType, Alloc>, protected ArrayInternal<T, CType, ArrayType, Alloc>
+  class BSS_COMPILER_DLLEXPORT ArrayCircular : protected ArrayBase<T, CType, Alloc>, protected internal::ArrayInternal<T, CType, ArrayType, Alloc>
   {
   protected:
     typedef CType CT_;
-    typedef ArrayInternal<T, CType, ArrayType, Alloc> BASE;
+    typedef internal::ArrayInternal<T, CType, ArrayType, Alloc> BASE;
     typedef ArrayBase<T, CType, Alloc> AT_;
     using AT_::_capacity;
     using AT_::_array;

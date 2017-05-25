@@ -9,28 +9,30 @@
 #include <stdint.h>
 
 namespace bss {
-  template<typename T>
-  struct BSS_COMPILER_DLLEXPORT _BIT_REF
-  {
-    inline _BIT_REF(T bit, T& bits) : _bit(bit), _bits(bits) {}
-    inline _BIT_REF& operator=(bool right) { _bits = T_SETBIT(_bits, _bit, right, typename std::make_signed<T>::type); return *this; }
-    BSS_FORCEINLINE _BIT_REF& operator=(const _BIT_REF& right) { return operator=((bool)right); }
-    BSS_FORCEINLINE operator bool() const { return (_bits&_bit) != 0; }
-    inline void flip() { _bits ^= _bit; }
-    BSS_FORCEINLINE bool operator!() const { return !operator bool(); }
-    BSS_FORCEINLINE bool operator==(bool right) const { return right == operator bool(); }
-    BSS_FORCEINLINE bool operator!=(bool right) const { return right != operator bool(); }
-    BSS_FORCEINLINE bool operator&&(bool right) const { return right && operator bool(); }
-    BSS_FORCEINLINE bool operator||(bool right) const { return right || operator bool(); }
-    BSS_FORCEINLINE char operator|(char right) const { return right | (char)operator bool(); }
-    BSS_FORCEINLINE char operator&(char right) const { return right & (char)operator bool(); }
-    BSS_FORCEINLINE char operator^(char right) const { return right ^ (char)operator bool(); }
-    BSS_FORCEINLINE std::pair<const T&, T> GetState() const { return std::pair<const T&, T>(_bits, _bit); }
+  namespace internal {
+    template<typename T>
+    struct BSS_COMPILER_DLLEXPORT _BIT_REF
+    {
+      inline _BIT_REF(T bit, T& bits) : _bit(bit), _bits(bits) {}
+      inline _BIT_REF& operator=(bool right) { _bits = T_SETBIT(_bits, _bit, right, typename std::make_signed<T>::type); return *this; }
+      BSS_FORCEINLINE _BIT_REF& operator=(const _BIT_REF& right) { return operator=((bool)right); }
+      BSS_FORCEINLINE operator bool() const { return (_bits&_bit) != 0; }
+      inline void flip() { _bits ^= _bit; }
+      BSS_FORCEINLINE bool operator!() const { return !operator bool(); }
+      BSS_FORCEINLINE bool operator==(bool right) const { return right == operator bool(); }
+      BSS_FORCEINLINE bool operator!=(bool right) const { return right != operator bool(); }
+      BSS_FORCEINLINE bool operator&&(bool right) const { return right && operator bool(); }
+      BSS_FORCEINLINE bool operator||(bool right) const { return right || operator bool(); }
+      BSS_FORCEINLINE char operator|(char right) const { return right | (char)operator bool(); }
+      BSS_FORCEINLINE char operator&(char right) const { return right & (char)operator bool(); }
+      BSS_FORCEINLINE char operator^(char right) const { return right ^ (char)operator bool(); }
+      BSS_FORCEINLINE std::pair<const T&, T> GetState() const { return std::pair<const T&, T>(_bits, _bit); }
 
-  protected:
-    T& _bits;
-    T _bit;
-  };
+    protected:
+      T& _bits;
+      T _bit;
+    };
+  }
 
   // Generic implementation of using an integral type's component bits to store flags.
   template<typename T = uint32_t>
@@ -48,7 +50,7 @@ namespace bss {
 
     inline BitField& operator=(T right) { _bits = right; return *this; }
     BSS_FORCEINLINE bool operator[](T bit) const { return Get(bit); }
-    BSS_FORCEINLINE _BIT_REF<T> operator[](T bit) { return _BIT_REF<T>(bit, _bits); }
+    BSS_FORCEINLINE internal::_BIT_REF<T> operator[](T bit) { return internal::_BIT_REF<T>(bit, _bits); }
     inline operator T() const { return _bits; }
     inline BitField& operator+=(T bit) { _bits |= bit; return *this; }
     inline BitField& operator-=(T bit) { _bits &= (~bit); return *this; }

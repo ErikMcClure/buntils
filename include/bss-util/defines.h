@@ -66,16 +66,6 @@
 #define BSS__L(x)      L ## x
 #endif
 
-#ifndef BSS_STATIC_LIB
-#ifdef BSS_UTIL_EXPORTS
-#define BSS_DLLEXPORT BSS_COMPILER_DLLEXPORT
-#else
-#define BSS_DLLEXPORT BSS_COMPILER_DLLIMPORT
-#endif
-#else
-#define BSS_DLLEXPORT
-#endif
-
 // This is used to implement a check to see if a given function exists in a class
 #define DEFINE_MEMBER_CHECKER(Member)   \
   template<class T> class bss_has_member_##Member \

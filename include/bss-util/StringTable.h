@@ -56,8 +56,8 @@ namespace bss {
     inline const T* GetString(CT_ index) const { assert(index < _indices.Capacity()); return _strings + _indices[index]; }
     inline void AppendString(const char* s)
     {
-      CT_ last = STR_CT<T>::SLEN(_strings + _indices[_indices.Capacity() - 1]) + 1 + _indices[_indices.Capacity() - 1];
-      CT_ sz = STR_CT<T>::SLEN(s) + 1;
+      CT_ last = internal::STR_CT<T>::SLEN(_strings + _indices[_indices.Capacity() - 1]) + 1 + _indices[_indices.Capacity() - 1];
+      CT_ sz = internal::STR_CT<T>::SLEN(s) + 1;
 
       _indices.SetCapacity(_indices.Capacity() + 1);
       _indices[_indices.Capacity() - 1] = last; // Add another indice and set its value appropriately
@@ -108,7 +108,7 @@ namespace bss {
       CT_ sz = 0;
       for(CT_ i = 0; i < size; ++i) //this will cause an infinite loop if someone is dumb enough to set CT_ to an unsigned type and set size equal to -1. If you actually think you could make that mistake, stop using this class.
       {
-        _indices[i] = STR_CT<T>::SLEN(strings[i]) + 1; //include null terminator in length count
+        _indices[i] = internal::STR_CT<T>::SLEN(strings[i]) + 1; //include null terminator in length count
         sz += _indices[i];
       }
       _strings.SetCapacity(sz);

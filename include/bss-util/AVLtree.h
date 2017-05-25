@@ -25,60 +25,62 @@ namespace bss {
     AVLNode& operator =(const AVLNode&) BSS_DELETEFUNCOP
   };
 
+  namespace internal {
   // Adaptive function definitions to allow for an optional Data field
-  template<class Key, class Data>
-  class BSS_COMPILER_DLLEXPORT _AVLTreeDataField
-  {
-  public:
-    typedef std::pair<Key, Data> KeyData;
-    typedef AVLNode<KeyData> Node;
-    typedef Data KeyGet;
-    typedef Data DataGet;
-
-  protected:
-    BSS_FORCEINLINE static void _setData(Node* BSS_RESTRICT old, Node* BSS_RESTRICT cur) { assert(old != cur); if(cur != 0) cur->_key.second = std::move(old->_key.second); }
-    template<typename U>
-    BSS_FORCEINLINE static void _setRaw(U && data, Node* cur) { if(cur != 0) cur->_key.second = std::forward<U>(data); }
-    BSS_FORCEINLINE static KeyGet& _getData(KeyData& cur) { return cur.second; }
-    BSS_FORCEINLINE static Key& _getKey(KeyData& cur) { return cur.first; }
-    BSS_FORCEINLINE static void _swapData(Node* BSS_RESTRICT retval, Node* BSS_RESTRICT root)
+    template<class Key, class Data>
+    class BSS_COMPILER_DLLEXPORT AVLTreeDataField
     {
-      assert(retval != root);
-      if(retval != 0) // We have to actually swap the data so that retval returns the correct data so it can be used in ReplaceKey
+    public:
+      typedef std::pair<Key, Data> KeyData;
+      typedef AVLNode<KeyData> Node;
+      typedef Data KeyGet;
+      typedef Data DataGet;
+
+    protected:
+      BSS_FORCEINLINE static void _setData(Node* BSS_RESTRICT old, Node* BSS_RESTRICT cur) { assert(old != cur); if(cur != 0) cur->_key.second = std::move(old->_key.second); }
+      template<typename U>
+      BSS_FORCEINLINE static void _setRaw(U && data, Node* cur) { if(cur != 0) cur->_key.second = std::forward<U>(data); }
+      BSS_FORCEINLINE static KeyGet& _getData(KeyData& cur) { return cur.second; }
+      BSS_FORCEINLINE static Key& _getKey(KeyData& cur) { return cur.first; }
+      BSS_FORCEINLINE static void _swapData(Node* BSS_RESTRICT retval, Node* BSS_RESTRICT root)
       {
-        Data h(std::move(retval->_key.second));
-        retval->_key.second = std::move(root->_key.second);
-        root->_key.second = std::move(h);
+        assert(retval != root);
+        if(retval != 0) // We have to actually swap the data so that retval returns the correct data so it can be used in ReplaceKey
+        {
+          Data h(std::move(retval->_key.second));
+          retval->_key.second = std::move(root->_key.second);
+          root->_key.second = std::move(h);
+        }
       }
-    }
-  };
+    };
 
-  template<class Key>
-  class BSS_COMPILER_DLLEXPORT _AVLTreeDataField<Key, void>
-  {
-  public:
-    typedef Key KeyData;
-    typedef AVLNode<KeyData> Node;
-    typedef Key KeyGet;
-    typedef char DataGet;
+    template<class Key>
+    class BSS_COMPILER_DLLEXPORT AVLTreeDataField<Key, void>
+    {
+    public:
+      typedef Key KeyData;
+      typedef AVLNode<KeyData> Node;
+      typedef Key KeyGet;
+      typedef char DataGet;
 
-  protected:
-    BSS_FORCEINLINE static void _setData(Node* BSS_RESTRICT old, Node* BSS_RESTRICT cur) {}
-    template<typename U>
-    BSS_FORCEINLINE static void _setRaw(U && data, Node* cur) {}
-    BSS_FORCEINLINE static KeyGet& _getData(KeyData& cur) { return cur; }
-    BSS_FORCEINLINE static Key& _getKey(KeyData& cur) { return cur; }
-    BSS_FORCEINLINE static void _swapData(Node* BSS_RESTRICT retval, Node* BSS_RESTRICT root) {}
-  };
+    protected:
+      BSS_FORCEINLINE static void _setData(Node* BSS_RESTRICT old, Node* BSS_RESTRICT cur) {}
+      template<typename U>
+      BSS_FORCEINLINE static void _setRaw(U && data, Node* cur) {}
+      BSS_FORCEINLINE static KeyGet& _getData(KeyData& cur) { return cur; }
+      BSS_FORCEINLINE static Key& _getKey(KeyData& cur) { return cur; }
+      BSS_FORCEINLINE static void _swapData(Node* BSS_RESTRICT retval, Node* BSS_RESTRICT root) {}
+    };
+  }
 
   // AVL Tree implementation
-  template<class Key, class Data, char(*CFunc)(const Key&, const Key&) = CompT<Key>, typename Alloc = StandardAllocPolicy<typename _AVLTreeDataField<Key, Data>::Node>>
-  class BSS_COMPILER_DLLEXPORT AVLTree : protected AllocTracker<Alloc>, public _AVLTreeDataField<Key, Data>
+  template<class Key, class Data, char(*CFunc)(const Key&, const Key&) = CompT<Key>, typename Alloc = StandardAllocPolicy<typename internal::AVLTreeDataField<Key, Data>::Node>>
+  class BSS_COMPILER_DLLEXPORT AVLTree : protected AllocTracker<Alloc>, public internal::AVLTreeDataField<Key, Data>
   {
     AVLTree(const AVLTree& copy) BSS_DELETEFUNC
     AVLTree& operator=(const AVLTree& copy) BSS_DELETEFUNCOP
   protected:
-    typedef _AVLTreeDataField<Key, Data> Base;
+    typedef internal::AVLTreeDataField<Key, Data> Base;
     typedef typename Base::KeyData KeyData;
     typedef typename Base::Node Node;
     typedef typename Base::KeyGet KeyGet;

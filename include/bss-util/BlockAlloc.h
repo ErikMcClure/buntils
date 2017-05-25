@@ -8,13 +8,6 @@
 #include "bss_util.h"
 
 namespace bss {
-  // Block Chunk Alloc
-  struct FIXEDLIST_NODE
-  {
-    size_t size;
-    FIXEDLIST_NODE* next;
-  };
-
   class BSS_COMPILER_DLLEXPORT BlockAllocVoid
   {
 #ifdef BSS_COMPILER_MSC2010
@@ -24,6 +17,13 @@ namespace bss {
 #endif
     BlockAllocVoid& operator=(const BlockAllocVoid& copy) BSS_DELETEFUNCOP
   public:
+    // Block Chunk Alloc
+    struct FIXEDLIST_NODE
+    {
+      size_t size;
+      FIXEDLIST_NODE* next;
+    };
+
     inline BlockAllocVoid(BlockAllocVoid&& mov) : _root(mov._root), _freelist(mov._freelist), _sz(mov._sz) { mov._root = 0; mov._freelist = 0; }
     inline explicit BlockAllocVoid(size_t sz, size_t init = 8) : _root(0), _freelist(0), _sz(sz)
     {

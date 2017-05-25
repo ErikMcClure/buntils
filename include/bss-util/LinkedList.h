@@ -37,92 +37,94 @@ namespace bss {
     LLNode<T>* cur;
   }; // Remove a node by doing LinkedList.Remove(iter++);
 
+  namespace internal {
   // Adaptive class template for Size usage
-  template<bool size> struct LList_SIZE {};
-  template<> struct LList_SIZE<true> {
-    inline uint32_t Length() const { return _length; }
+    template<bool size> struct LList_SIZE {};
+    template<> struct LList_SIZE<true> {
+      inline uint32_t Length() const { return _length; }
 
-  protected:
-    uint32_t _length;
-    inline void _incsize() { ++_length; }
-    inline void _decsize() { --_length; }
-    inline void _zerosize() { _length = 0; }
-    LList_SIZE() : _length(0) {}
-  };
-  template<> struct LList_SIZE<false> { inline void _incsize() {} inline void _decsize() {} inline void _zerosize() {} };
+    protected:
+      uint32_t _length;
+      inline void _incsize() { ++_length; }
+      inline void _decsize() { --_length; }
+      inline void _zerosize() { _length = 0; }
+      LList_SIZE() : _length(0) {}
+    };
+    template<> struct LList_SIZE<false> { inline void _incsize() {} inline void _decsize() {} inline void _zerosize() {} };
 
-// Adaptive class template for _last usage
-  template<typename T, bool L>
-  struct LList_LAST
-  {
-    inline LLNode<T>* Back() const { return _last; }
-    inline LLNode<T>* Item(T item, LLNode<T>* from = 0, bool backwards = false) const
-    { //if target is 0 we start from the root
-      if(!from) from = _root;
-      LLNode<T>* cur = from;
-      LLNode<T>* rootflip = backwards ? _last : _root;
-      while(cur->item != item)
-      {
-        cur = backwards ? cur->prev : cur->next; //This method of finding an object is such bad practice we just let the CPU optimize this out.
-        if(!cur) cur = rootflip; //return to the flipside value
-        if(cur == from) return 0; //if we have returned to the starting node, the item doesn't exist
+  // Adaptive class template for _last usage
+    template<typename T, bool L>
+    struct LList_LAST
+    {
+      inline LLNode<T>* Back() const { return _last; }
+      inline LLNode<T>* Item(T item, LLNode<T>* from = 0, bool backwards = false) const
+      { //if target is 0 we start from the root
+        if(!from) from = _root;
+        LLNode<T>* cur = from;
+        LLNode<T>* rootflip = backwards ? _last : _root;
+        while(cur->item != item)
+        {
+          cur = backwards ? cur->prev : cur->next; //This method of finding an object is such bad practice we just let the CPU optimize this out.
+          if(!cur) cur = rootflip; //return to the flipside value
+          if(cur == from) return 0; //if we have returned to the starting node, the item doesn't exist
+        }
+        return cur;
       }
-      return cur;
-    }
 
-  protected:
-    inline LList_LAST() : _last(0), _root(0) {}
-    inline LList_LAST(LList_LAST<T, L>&& mov) : _last(mov._last), _root(mov._root) { mov._root = 0; mov._last = 0; }
-    inline void _add(LLNode<T>* node) { if(!_root) { node->next = node->prev = 0; _last = _root = node; } else _last = LLAddAfter<LLNode<T>>(node, _last); }
-    inline void _remove(LLNode<T>* node) { LLRemove<LLNode<T>>(node, _root, _last); }
-    inline LList_LAST<T, L>& operator =(LList_LAST<T, L>&& mov) { _last = mov._last; mov._last = 0; _root = mov._root; mov._root = 0; return *this; }
+    protected:
+      inline LList_LAST() : _last(0), _root(0) {}
+      inline LList_LAST(LList_LAST<T, L>&& mov) : _last(mov._last), _root(mov._root) { mov._root = 0; mov._last = 0; }
+      inline void _add(LLNode<T>* node) { if(!_root) { node->next = node->prev = 0; _last = _root = node; } else _last = LLAddAfter<LLNode<T>>(node, _last); }
+      inline void _remove(LLNode<T>* node) { LLRemove<LLNode<T>>(node, _root, _last); }
+      inline LList_LAST<T, L>& operator =(LList_LAST<T, L>&& mov) { _last = mov._last; mov._last = 0; _root = mov._root; mov._root = 0; return *this; }
 
-    LLNode<T>* _root;
-    LLNode<T>* _last;
-  };
-  template<typename T>
-  struct LList_LAST<T, false>
-  {
-    inline LLNode<T>* Item(T item, LLNode<T>* from = 0) const
-    { //if target is 0 we start from the root
-      if(!from) from = _root;
-      LLNode<T>* cur = from;
-      while(cur->item != item)
-      {
-        cur = cur->next; //This method of finding an object is such bad practice we just let the CPU optimize this out.
-        if(!cur) cur = _root; //return to the flipside value
-        if(cur == from) return 0; //if we have returned to the starting node, the item doesn't exist
+      LLNode<T>* _root;
+      LLNode<T>* _last;
+    };
+    template<typename T>
+    struct LList_LAST<T, false>
+    {
+      inline LLNode<T>* Item(T item, LLNode<T>* from = 0) const
+      { //if target is 0 we start from the root
+        if(!from) from = _root;
+        LLNode<T>* cur = from;
+        while(cur->item != item)
+        {
+          cur = cur->next; //This method of finding an object is such bad practice we just let the CPU optimize this out.
+          if(!cur) cur = _root; //return to the flipside value
+          if(cur == from) return 0; //if we have returned to the starting node, the item doesn't exist
+        }
+        return cur;
       }
-      return cur;
-    }
-  protected:
-    inline LList_LAST() : _root(0) {}
-    inline LList_LAST(LList_LAST<T, false>&& mov) : _root(mov._root) { mov._root = 0; }
-    inline void _remove(LLNode<T>* node) { LLRemove<LLNode<T>>(node, _root); }
-    inline void _add(LLNode<T>* node) { LLAdd<LLNode<T>>(node, _root); }
-    inline LList_LAST<T, false>& operator =(LList_LAST<T, false>&& mov) { _root = mov._root; mov._root = 0; return *this; }
+    protected:
+      inline LList_LAST() : _root(0) {}
+      inline LList_LAST(LList_LAST<T, false>&& mov) : _root(mov._root) { mov._root = 0; }
+      inline void _remove(LLNode<T>* node) { LLRemove<LLNode<T>>(node, _root); }
+      inline void _add(LLNode<T>* node) { LLAdd<LLNode<T>>(node, _root); }
+      inline LList_LAST<T, false>& operator =(LList_LAST<T, false>&& mov) { _root = mov._root; mov._root = 0; return *this; }
 
-    LLNode<T>* _root;
-  };
+      LLNode<T>* _root;
+    };
+  }
 
   // Doubly linked list implementation with _root, optional _last and an optional _length
   template<typename T, typename Alloc = StandardAllocPolicy<LLNode<T>>, bool useLast = false, bool useSize = false>
-  class BSS_COMPILER_DLLEXPORT LinkedList : protected AllocTracker<Alloc>, public LList_SIZE<useSize>, public LList_LAST<T, useLast>
+  class BSS_COMPILER_DLLEXPORT LinkedList : protected AllocTracker<Alloc>, public internal::LList_SIZE<useSize>, public internal::LList_LAST<T, useLast>
   {
   protected:
-    using LList_LAST<T, useLast>::_root;
-    using LList_LAST<T, useLast>::_add;
-    using LList_LAST<T, useLast>::_remove;
-    using LList_SIZE<useSize>::_incsize;
+    using internal::LList_LAST<T, useLast>::_root;
+    using internal::LList_LAST<T, useLast>::_add;
+    using internal::LList_LAST<T, useLast>::_remove;
+    using internal::LList_SIZE<useSize>::_incsize;
 
   public:
     // Constructor, takes an optional allocator instance
     inline explicit LinkedList(Alloc* allocator = 0) : AllocTracker<Alloc>(allocator) {}
     // Copy constructor
     inline LinkedList(const LinkedList<T, Alloc>& copy) : AllocTracker<Alloc>(copy) { operator =(copy); }
-    inline LinkedList(LinkedList<T, Alloc>&& mov) : AllocTracker<Alloc>(std::move(mov)), LList_LAST<T, useLast>(std::move(mov))
+    inline LinkedList(LinkedList<T, Alloc>&& mov) : AllocTracker<Alloc>(std::move(mov)), internal::LList_LAST<T, useLast>(std::move(mov))
     {
-      LList_SIZE<useSize>::operator=(mov);
+      internal::LList_SIZE<useSize>::operator=(mov);
       mov._zerosize();
     }
     // Destructor
@@ -157,7 +159,7 @@ namespace bss {
       _remove(node);
 
       _deleteNode(node); //We don't need our linkedlist wrapper struct anymore so we destroy it
-      LList_SIZE<useSize>::_decsize(); //our size is now down one
+      internal::LList_SIZE<useSize>::_decsize(); //our size is now down one
     }
     inline LLNode<T>* Remove(LLNode<T>* node, bool backwards)
     {
@@ -194,8 +196,8 @@ namespace bss {
     {
       if(&mov == this) return *this;
       Clear();
-      LList_LAST<T, useLast>::operator=(std::move(mov));
-      LList_SIZE<useSize>::operator=(mov);
+      internal::LList_LAST<T, useLast>::operator=(std::move(mov));
+      internal::LList_SIZE<useSize>::operator=(mov);
       mov._zerosize();
       return *this;
     }

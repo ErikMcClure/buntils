@@ -224,7 +224,7 @@ TESTDEF::RETPAIR test_DYNARRAY()
   TEST(!DEBUG_CDT<false>::count);
   TEST(!DEBUG_CDT_SAFE::Tracker.Length());
 
-  cArbitraryArray<uint32_t> u(0);
+  ArbitraryArray<uint32_t> u(0);
   int ua[5] = { 1,2,3,4,5 };
   u.SetElement(ua);
   u.Get<int>(0) = 1;

@@ -11,7 +11,7 @@ namespace bss {
   class BSS_DLLEXPORT INIstorage
   {
   public:
-    typedef _INInode<INIsection> _NODE;
+    typedef INIsection::_INInode<INIsection> _NODE;
 
     // Constructors
     INIstorage(const INIstorage& copy);

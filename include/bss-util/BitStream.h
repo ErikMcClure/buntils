@@ -9,17 +9,19 @@
 #include <iostream>
 
 namespace bss {
-  template<typename STREAM, bool ISOUT>
-  struct __bitstream_internal { BSS_FORCEINLINE static void _flush(STREAM* s, uint8_t buf) { s->write((char*)&buf, 1); } };
+  namespace internal {
+    template<typename STREAM, bool ISOUT>
+    struct bitstream_internal { BSS_FORCEINLINE static void _flush(STREAM* s, uint8_t buf) { s->write((char*)&buf, 1); } };
 
-  template<typename STREAM>
-  struct __bitstream_internal<STREAM, false> { BSS_FORCEINLINE static void _flush(STREAM* s, uint8_t buf) {} };
+    template<typename STREAM>
+    struct bitstream_internal<STREAM, false> { BSS_FORCEINLINE static void _flush(STREAM* s, uint8_t buf) {} };
+  }
 
   // This wraps around an existing stream and flushes to it. Capable of writing and reading with single-bit precision.
   template<typename STREAM = std::iostream>
-  class BSS_COMPILER_DLLEXPORT BitStream : protected __bitstream_internal<STREAM, std::is_base_of<std::ostream, STREAM>::value>
+  class BSS_COMPILER_DLLEXPORT BitStream : protected internal::bitstream_internal<STREAM, std::is_base_of<std::ostream, STREAM>::value>
   {
-    using __bitstream_internal<STREAM, std::is_base_of<std::ostream, STREAM>::value>::_flush;
+    using internal::bitstream_internal<STREAM, std::is_base_of<std::ostream, STREAM>::value>::_flush;
 
   public:
     BitStream(const BitStream& copy) : _base(copy._base), _roffset(copy._roffset), _woffset(copy._woffset), _buf(copy._buf) {}

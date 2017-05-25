@@ -46,14 +46,16 @@ namespace bss {
     T w = ((T)1 & (~(u | v)));
     return (((T)r)*w) | (u*std::numeric_limits<T>::min()) | (v*std::numeric_limits<T>::max());
   }*/
-
-  template<typename T>
-  struct __FixedBits { T bits; };
+  namespace internal {
+    template<typename U>
+    struct __FixedBits { U bits; };
+  }
 
   // Adaptive template based class for doing fixed-point math. Default number of decimal bits is 12 (corresponding to a scaling factor of 2^12)
   template<uint8_t D = 12, typename T = int32_t, bool SATURATE = false>
   class Fixed
   {
+    typedef internal::__FixedBits<T> BITS;
     static_assert(!SATURATE, "Saturation is not implemented.");
     static_assert(std::is_signed<T>::value, "T must be a signed integral type.");
 
@@ -62,7 +64,7 @@ namespace bss {
     template<uint8_t B, typename U, bool S>
     inline Fixed(const Fixed<B, U, S>& copy) : _bits((T)SAFESHIFT(copy.Bits(), B - D)) {}
     inline explicit Fixed(const T v) : _bits(v << D) {}
-    inline Fixed(__FixedBits<T> bits) : _bits(bits.bits) {}
+    inline Fixed(BITS bits) : _bits(bits.bits) {}
     inline explicit Fixed(const float f) : _bits(FixedPtConv<T, D, float>(f)) {}
     inline explicit Fixed(const double f) : _bits(FixedPtConv<T, D, double>(f)) {}
     inline T Bits() const { return _bits; }
@@ -75,8 +77,8 @@ namespace bss {
     template<uint8_t B, typename U, bool S>
     inline Fixed& operator=(const Fixed<B, U, S>& right) { _bits = (T)SAFESHIFT(right.Bits(), B - D); return *this; }
 
-    inline Fixed<(sizeof(T) << 3) - D, T, SATURATE> Reciprocal() const { return Fixed<(sizeof(T) << 3) - D, T, SATURATE>(__FixedBits<T> {fixedpt_recip(_bits) << 2 }); } // Shift to the right because the actual resulting decimal bits is (sizeof(T) << 3) - 2 - B
-    inline Fixed operator -(void) const { return __FixedBits<T> { -_bits }; }
+    inline Fixed<(sizeof(T) << 3) - D, T, SATURATE> Reciprocal() const { return Fixed<(sizeof(T) << 3) - D, T, SATURATE>(BITS {fixedpt_recip(_bits) << 2 }); } // Shift to the right because the actual resulting decimal bits is (sizeof(T) << 3) - 2 - B
+    inline Fixed operator -(void) const { return BITS { -_bits }; }
 
     inline Fixed& operator%=(const Fixed& r) { _bits %= r._bits; return *this; }
     inline Fixed& operator>>=(T r) { _bits >>= r; return *this; }
@@ -100,27 +102,27 @@ namespace bss {
     inline Fixed& operator*=(double r) { _bits = fixedpt_mul<T>(_bits, FixedPtConv<T, D, double>(r), D); return *this; }
     inline Fixed& operator/=(double r) { _bits = fixedpt_div<T>(_bits, FixedPtConv<T, D, double>(r), D); return *this; }
 
-    inline Fixed operator %(const Fixed& r) const { return __FixedBits<T> { _bits % r._bits }; }
-    inline Fixed operator <<(T r) const { return __FixedBits<T> { _bits << r }; }
-    inline Fixed operator >> (T r) const { return __FixedBits<T> { _bits >> r }; }
-    inline Fixed operator+(const Fixed& r) const { return __FixedBits<T> { _bits + r._bits }; }
-    inline Fixed operator-(const Fixed& r) const { return __FixedBits<T> { _bits - r._bits }; }
+    inline Fixed operator %(const Fixed& r) const { return BITS { _bits % r._bits }; }
+    inline Fixed operator <<(T r) const { return BITS { _bits << r }; }
+    inline Fixed operator >> (T r) const { return BITS { _bits >> r }; }
+    inline Fixed operator+(const Fixed& r) const { return BITS { _bits + r._bits }; }
+    inline Fixed operator-(const Fixed& r) const { return BITS { _bits - r._bits }; }
     template<uint8_t B, bool S>
-    inline Fixed operator+(const Fixed<B, T, S>& r) const { return __FixedBits<T> { fixedpt_add<T, D, B>(_bits, r.Bits()) }; }
+    inline Fixed operator+(const Fixed<B, T, S>& r) const { return BITS { fixedpt_add<T, D, B>(_bits, r.Bits()) }; }
     template<uint8_t B, bool S>
-    inline Fixed operator-(const Fixed<B, T, S>& r) const { return __FixedBits<T> { fixedpt_add<T, D, B>(_bits, -r.Bits()) }; }
+    inline Fixed operator-(const Fixed<B, T, S>& r) const { return BITS { fixedpt_add<T, D, B>(_bits, -r.Bits()) }; }
     template<uint8_t B, bool S>
-    inline Fixed operator*(const Fixed<B, T, S>& r) const { return __FixedBits<T> { fixedpt_mul<T>(_bits, r.Bits(), B) }; }
+    inline Fixed operator*(const Fixed<B, T, S>& r) const { return BITS { fixedpt_mul<T>(_bits, r.Bits(), B) }; }
     template<uint8_t B, bool S>
-    inline Fixed operator/(const Fixed<B, T, S>& r) const { return __FixedBits<T> { fixedpt_div<T>(_bits, r.Bits(), B) }; }
-    inline Fixed operator+(float r) const { return __FixedBits<T> { _bits + FixedPtConv<T, D, float>(r) }; }
-    inline Fixed operator-(float r) const { return __FixedBits<T> { _bits - FixedPtConv<T, D, float>(r) }; }
-    inline Fixed operator*(float r) const { return __FixedBits<T> { fixedpt_mul<T>(_bits, FixedPtConv<T, D, float>(r), D) }; }
-    inline Fixed operator/(float r) const { return __FixedBits<T> { fixedpt_div<T>(_bits, FixedPtConv<T, D, float>(r), D) }; }
-    inline Fixed operator+(double r) const { return __FixedBits<T> { _bits + FixedPtConv<T, D, double>(r) }; }
-    inline Fixed operator-(double r) const { return __FixedBits<T> { _bits - FixedPtConv<T, D, double>(r) }; }
-    inline Fixed operator*(double r) const { return __FixedBits<T> { fixedpt_mul<T>(_bits, FixedPtConv<T, D, double>(r), D) }; }
-    inline Fixed operator/(double r) const { return __FixedBits<T> { fixedpt_div<T>(_bits, FixedPtConv<T, D, double>(r), D) }; }
+    inline Fixed operator/(const Fixed<B, T, S>& r) const { return BITS { fixedpt_div<T>(_bits, r.Bits(), B) }; }
+    inline Fixed operator+(float r) const { return BITS { _bits + FixedPtConv<T, D, float>(r) }; }
+    inline Fixed operator-(float r) const { return BITS { _bits - FixedPtConv<T, D, float>(r) }; }
+    inline Fixed operator*(float r) const { return BITS { fixedpt_mul<T>(_bits, FixedPtConv<T, D, float>(r), D) }; }
+    inline Fixed operator/(float r) const { return BITS { fixedpt_div<T>(_bits, FixedPtConv<T, D, float>(r), D) }; }
+    inline Fixed operator+(double r) const { return BITS { _bits + FixedPtConv<T, D, double>(r) }; }
+    inline Fixed operator-(double r) const { return BITS { _bits - FixedPtConv<T, D, double>(r) }; }
+    inline Fixed operator*(double r) const { return BITS { fixedpt_mul<T>(_bits, FixedPtConv<T, D, double>(r), D) }; }
+    inline Fixed operator/(double r) const { return BITS { fixedpt_div<T>(_bits, FixedPtConv<T, D, double>(r), D) }; }
 
     BSS_FORCEINLINE bool operator !=(const Fixed& r) const { return _bits != r._bits; }
     BSS_FORCEINLINE bool operator ==(const Fixed& r) const { return _bits == r._bits; }

@@ -9,27 +9,29 @@
 #include <stdarg.h>
 
 namespace bss {
+  namespace internal {
   // Trie node
-  template<typename T = uint8_t>
-  struct BSS_COMPILER_DLLEXPORT TRIE_NODE__
-  {
-    char chr; // letter that this node has
-    T child; // Pointer to this node's child, if it has one
-    T clen; // Number of siblings this node has
-    T word; // This stores the original index of the word that this node corresponds to, but only if chr is nullptr (indicating the end of a word)
-  };
+    template<typename T = uint8_t>
+    struct BSS_COMPILER_DLLEXPORT TRIE_NODE
+    {
+      char chr; // letter that this node has
+      T child; // Pointer to this node's child, if it has one
+      T clen; // Number of siblings this node has
+      T word; // This stores the original index of the word that this node corresponds to, but only if chr is nullptr (indicating the end of a word)
+    };
 
-  template<typename T, bool IGNORECASE>
-  struct __cTrie_ToLower { static BSS_FORCEINLINE void F(T& c) { c = tolower(c); } };
-  template<typename T>
-  struct __cTrie_ToLower<T, false> { static BSS_FORCEINLINE void F(T& c) {} };
+    template<typename T, bool IGNORECASE>
+    struct _Trie_ToLower { static BSS_FORCEINLINE void F(T& c) { c = tolower(c); } };
+    template<typename T>
+    struct _Trie_ToLower<T, false> { static BSS_FORCEINLINE void F(T& c) {} };
+  }
 
   // A static trie optimized for looking up small collections of words.
   template<typename T = uint8_t, bool IGNORECASE = false>
-  class BSS_COMPILER_DLLEXPORT Trie : protected ArrayBase<TRIE_NODE__<T>, T>
+  class BSS_COMPILER_DLLEXPORT Trie : protected ArrayBase<internal::TRIE_NODE<T>, T>
   {
-    typedef ArrayBase<TRIE_NODE__<T>, T> BASE;
-    typedef TRIE_NODE__<T> TNODE;
+    typedef ArrayBase<internal::TRIE_NODE<T>, T> BASE;
+    typedef internal::TRIE_NODE<T> TNODE;
     using BASE::_array;
     using BASE::_capacity;
     typedef std::pair<T, const char*> PAIR;
@@ -61,7 +63,7 @@ namespace bss {
       char c;
       while((c = *(word++)))
       {
-        __cTrie_ToLower<char, IGNORECASE>::F(c);
+        internal::_Trie_ToLower<char, IGNORECASE>::F(c);
         if(cur->clen > 1) // This is faster than a switch statement
           r = BinarySearchExact<TNODE, char, T, &Trie::_CompTNode>(cur, c, 0, cur->clen);
         else if(cur->clen == 1)
@@ -82,7 +84,7 @@ namespace bss {
       while((len--) > 0)
       {
         c = *(word++);
-        __cTrie_ToLower<char, IGNORECASE>::F(c);
+        internal::_Trie_ToLower<char, IGNORECASE>::F(c);
         if(cur->clen > 1) // This is faster than a switch statement
           r = BinarySearchExact<TNODE, char, T, &Trie::_CompTNode>(cur, c, 0, cur->clen);
         else if(cur->clen == 1)

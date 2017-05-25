@@ -11,7 +11,10 @@
 
 #ifndef BSS_SSE_ENABLED
 #include "bss_util.h"
+#endif
 
+namespace bss {
+#ifndef BSS_SSE_ENABLED
 #define BSS_SSE_M128 std::array<float, 4>
 #define BSS_SSE_M128i8 std::array<int8_t, 16>
 #define BSS_SSE_M128i16 std::array<int16_t, 8>
@@ -822,5 +825,6 @@ typedef sseVecT<char> sseVeci8;
 typedef sseVecT<int16_t> sseVeci16;
 typedef sseVecT<int32_t> sseVeci;
 typedef sseVecT<int64_t> sseVeci64;
+}
 
 #endif

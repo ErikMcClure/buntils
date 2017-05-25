@@ -153,7 +153,7 @@ const char* Logger::_trimPath(const char* path)
 {
   const char* r = strrchr(path, '/');
   const char* r2 = strrchr(path, '\\');
-  r = bssmax(r, r2);
+  r = std::max(r, r2);
   return (!r) ? path : (r + 1);
 }
 void Logger::_levelDefaults()
@@ -173,10 +173,10 @@ int Logger::PrintLogV(const char* source, const char* file, uint32_t line, int8_
 
   va_list vltemp;
   va_copy(vltemp, args);
-  size_t _length = (size_t)STR_CT<char>::VPCF(format, vltemp) + 1; // If we didn't copy vl here, it would get modified by vsnprintf and blow up.
+  size_t _length = (size_t)internal::STR_CT<char>::VPCF(format, vltemp) + 1; // If we didn't copy vl here, it would get modified by vsnprintf and blow up.
   va_end(vltemp);
   DYNARRAY(char, buf, _length);
-  int r = STR_CT<char>::VPF(buf, _length, format, args);
+  int r = internal::STR_CT<char>::VPF(buf, _length, format, args);
   _stream << buf << std::endl;
   return r;
 }
@@ -196,6 +196,6 @@ void Logger::_header(std::ostream& o, int n, const char* source, const char* fil
 std::ostream& Logger::_logHeader(const char* source, const char* file, uint32_t line, const char* level)
 {
   file = _trimPath(file);
-  __safeFormat<const char*, const char*, uint32_t, const char*, long>::F<&_header>(_stream, ((!source && _nullformat != 0) ? _nullformat : _format), source, file, line, level, _tz);
+  internal::__safeFormat<const char*, const char*, uint32_t, const char*, long>::F<&_header>(_stream, ((!source && _nullformat != 0) ? _nullformat : _format), source, file, line, level, _tz);
   return _stream;
 }

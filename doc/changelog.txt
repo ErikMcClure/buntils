@@ -26,6 +26,9 @@
 - Singleton behavior has been changed, and now does not provide Instance() or instantiate the static variable for you to prevent DLL boundary accidents.
 - bssFill added as typesafe alternative to memset()
 - Removed rswap() and bssReverse(), use std::swap and std::reverse instead.
+- Moved internal entites into the "internal" namespace
+- Moved UTF function declarations to utf_conv.h
+- Version info is now an exported symbol, thus accurately reflecting the version of the compiled DLL itself
 
 0.4.7
 -----

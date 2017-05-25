@@ -34,17 +34,19 @@ namespace bss {
     inline PriorityQueue& operator=(PriorityQueue&& mov) { BASE::operator=(std::move(mov)); return *this; }
   };
 
-  template<class T, typename CT_>
-  struct MFUNC_PRIORITY {
-    BSS_FORCEINLINE static void MFunc(const T& item, CT_ i, MFUNC_PRIORITY* p) { p->_subarray[item.first] = i; }
-    Array<CT_, CT_> _subarray;
-  };
+  namespace internal {
+    template<class T, typename CT_>
+    struct MFUNC_PRIORITY {
+      BSS_FORCEINLINE static void MFunc(const T& item, CT_ i, MFUNC_PRIORITY* p) { p->_subarray[item.first] = i; }
+      Array<CT_, CT_> _subarray;
+    };
+  }
 
   template<typename D, typename CT_ = uint32_t, char(*CFunc)(const D&, const D&) = CompT<D>, ARRAY_TYPE ArrayType = ARRAY_SIMPLE, typename Alloc = StaticAllocPolicy<std::pair<CT_, D>>>
-  class BSS_COMPILER_DLLEXPORT PriorityHeap : protected BinaryHeap<std::pair<CT_, D>, CT_, CompTSecond<std::pair<CT_, D>, CFunc>, ArrayType, Alloc, MFUNC_PRIORITY<std::pair<CT_, D>, CT_>>
+  class BSS_COMPILER_DLLEXPORT PriorityHeap : protected BinaryHeap<std::pair<CT_, D>, CT_, CompTSecond<std::pair<CT_, D>, CFunc>, ArrayType, Alloc, internal::MFUNC_PRIORITY<std::pair<CT_, D>, CT_>>
   {
     typedef std::pair<CT_, D> PAIR;
-    typedef BinaryHeap<std::pair<CT_, D>, CT_, CompTSecond<std::pair<CT_, D>, CFunc>, ArrayType, Alloc, MFUNC_PRIORITY<std::pair<CT_, D>, CT_>> BASE;
+    typedef BinaryHeap<std::pair<CT_, D>, CT_, CompTSecond<std::pair<CT_, D>, CFunc>, ArrayType, Alloc, internal::MFUNC_PRIORITY<std::pair<CT_, D>, CT_>> BASE;
     using BASE::_subarray;
   public:
     PriorityHeap(const PriorityHeap& copy) : BASE(copy), _freelist(copy._freelist) { _subarray = copy._subarray; }

@@ -289,17 +289,17 @@ namespace bss {
   };
 
   template<class T>
-  struct cAniLinearData : AniCubicEasing
+  struct AniLinearData : AniCubicEasing
   {
-    static inline T LinearInterpolate(const typename Animation<T, cAniLinearData<T>>::FRAME* v, uint32_t l, uint32_t cur, double t, const T& init)
+    static inline T LinearInterpolate(const typename Animation<T, AniLinearData<T>>::FRAME* v, uint32_t l, uint32_t cur, double t, const T& init)
     {
-      double s = GetProgress<T, cAniLinearData<T>>(v, l, cur, t);
+      double s = GetProgress<T, AniLinearData<T>>(v, l, cur, t);
       return lerp<T>(!cur ? init : v[cur - 1].value, v[cur].value, s);
     }
-    static inline T LinearInterpolateRel(const typename Animation<T, cAniLinearData<T>>::FRAME* v, uint32_t l, uint32_t cur, double t, const T& init)
+    static inline T LinearInterpolateRel(const typename Animation<T, AniLinearData<T>>::FRAME* v, uint32_t l, uint32_t cur, double t, const T& init)
     {
       assert(cur > 0);
-      double s = GetProgress<T, cAniLinearData<T>>(v, l, cur, t);
+      double s = GetProgress<T, AniLinearData<T>>(v, l, cur, t);
       return init + lerp<T>(v[cur - 1].value, v[cur].value, s);
     }
   };
@@ -394,16 +394,16 @@ namespace bss {
   };
 
   template<typename T, typename AUX, typename REF = T, typename QUEUEALLOC = StaticAllocPolicy<std::pair<double, AUX>>>
-  struct BSS_COMPILER_DLLEXPORT cAniStateInterval : public AniStateDiscrete<T, double, REF, AUX>
+  struct BSS_COMPILER_DLLEXPORT AniStateInterval : public AniStateDiscrete<T, double, REF, AUX>
   {
     typedef AniStateDiscrete<T, double, REF, AUX> BASE;
     using BASE::_ani;
     using BASE::_cur;
     using BASE::_time;
-    cAniStateInterval(AniBase* p, Delegate<AUX, REF> d, Delegate<void, AUX> rm) : BASE(p, d), _remove(rm) { assert(_ani->SizeOf() == sizeof(T)); }
+    AniStateInterval(AniBase* p, Delegate<AUX, REF> d, Delegate<void, AUX> rm) : BASE(p, d), _remove(rm) { assert(_ani->SizeOf() == sizeof(T)); }
     template<ARRAY_TYPE ArrayType, typename Alloc>
-    cAniStateInterval(AnimationInterval<T, ArrayType, Alloc>* p, Delegate<AUX, REF> d, Delegate<void, AUX> rm) : BASE(p, d), _remove(rm) {}
-    inline ~cAniStateInterval() { _clearQueue(); }
+    AniStateInterval(AnimationInterval<T, ArrayType, Alloc>* p, Delegate<AUX, REF> d, Delegate<void, AUX> rm) : BASE(p, d), _remove(rm) {}
+    inline ~AniStateInterval() { _clearQueue(); }
     virtual void Reset() { _clearQueue(); BASE::Reset(); }
     virtual bool Interpolate(double delta)
     {

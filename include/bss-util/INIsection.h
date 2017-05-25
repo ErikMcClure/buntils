@@ -13,18 +13,18 @@
 namespace bss {
   class INIstorage;
 
-  // Internal INI linked list node
-  template<class T>
-  struct BSS_COMPILER_DLLEXPORT _INInode : public LLBase<_INInode<T>>
-  {
-    Array<_INInode<T>*> instances; // If this is not the only instance, points to an array of all the other instances
-    T val;
-  };
-
   // Stores an INI section, denoted by [name], as a linked list of entries, also stored as a hash for O(1) time operations.
   class BSS_DLLEXPORT INIsection
   {
   public:
+    // Internal INI linked list node
+    template<class T>
+    struct BSS_COMPILER_DLLEXPORT _INInode : public LLBase<_INInode<T>>
+    {
+      Array<_INInode<T>*> instances; // If this is not the only instance, points to an array of all the other instances
+      T val;
+    };
+
     typedef _INInode<INIentry> _NODE;
     template<class T>
     struct INIiterator : LLIterator<_INInode<T>> {

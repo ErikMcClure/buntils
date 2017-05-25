@@ -508,11 +508,13 @@ TESTDEF::RETPAIR test_bss_util()
   TEST(bssNegate<uint8_t>(1, 0) == 1);
   TEST(bssNegate<uint8_t>(127, 1) == -127);
 
+  using internal::_bssmultiplyextract;
+
   for(uint16_t i = 0; i <= 255; ++i)
     for(uint16_t j = 0; j <= 255; ++j)
       for(uint8_t k = 0; k <= 16; ++k)
       {
-        TEST(__bssmultiplyextract__h<uint8_t>((uint8_t)i, (uint8_t)j, k) == bssMultiplyExtract<uint8_t>((uint8_t)i, (uint8_t)j, k));
+        TEST(_bssmultiplyextract<uint8_t>((uint8_t)i, (uint8_t)j, k) == bssMultiplyExtract<uint8_t>((uint8_t)i, (uint8_t)j, k));
       }
 
 
@@ -520,41 +522,41 @@ TESTDEF::RETPAIR test_bss_util()
     for(int16_t j = -128; j <= 127; ++j)
       for(int8_t k = 0; k <= 16; ++k)
       {
-        TEST(__bssmultiplyextract__h<int8_t>((int8_t)i, (int8_t)j, k) == bssMultiplyExtract<int8_t>((int8_t)i, (int8_t)j, k));
+        TEST(_bssmultiplyextract<int8_t>((int8_t)i, (int8_t)j, k) == bssMultiplyExtract<int8_t>((int8_t)i, (int8_t)j, k));
       }
   
-  TEST(__bssmultiplyextract__h<uint64_t>(0, 0, 0) == 0);
-  TEST(__bssmultiplyextract__h<uint64_t>(1, 1, 0) == 1);
-  TEST(__bssmultiplyextract__h<uint64_t>(1, 1, 1) == 0);
-  TEST(__bssmultiplyextract__h<uint64_t>(1, 1, 64) == 0);
-  TEST(__bssmultiplyextract__h<uint64_t>(0xFFFFFFFFFFFFFFFF, 0xFFFFFFFFFFFFFFFF, 0) == 1);
-  TEST(__bssmultiplyextract__h<uint64_t>(0xFFFFFFFFFFFFFFFF, 0xFFFFFFFFFFFFFFFF, 64) == 0xFFFFFFFFFFFFFFFE);
-  TEST(__bssmultiplyextract__h<uint64_t>(0xFFFFFFFFFFFFFFFF, 0, 0) == 0);
-  TEST(__bssmultiplyextract__h<uint64_t>(0xFFFFFFFFFFFFFFFF, 0, 64) == 0);
-  TEST(__bssmultiplyextract__h<uint64_t>(0xFFFFFFFFFFFFFFFF, 1, 0) == 0xFFFFFFFFFFFFFFFF);
-  TEST(__bssmultiplyextract__h<uint64_t>(0xFFFFFFFFFFFFFFFF, 1, 64) == 0);
-  TEST(__bssmultiplyextract__h<int64_t>(0, 0, 0) == 0);
-  TEST(__bssmultiplyextract__h<int64_t>(1, 1, 0) == 1);
-  TEST(__bssmultiplyextract__h<int64_t>(1, -1, 0) == -1);
-  TEST(__bssmultiplyextract__h<int64_t>(-1, 1, 0) == -1);
-  TEST(__bssmultiplyextract__h<int64_t>(-1, -1, 0) == 1);
-  TEST(__bssmultiplyextract__h<int64_t>(1, 1, 1) == 0);
-  TEST(__bssmultiplyextract__h<int64_t>(-1, -1, 1) == 0);
-  TEST(__bssmultiplyextract__h<int64_t>(1, -1, 1) == -1);
-  TEST(__bssmultiplyextract__h<int64_t>(1, 1, 64) == 0);
-  TEST(__bssmultiplyextract__h<int64_t>(-1, -1, 64) == 0);
-  TEST(__bssmultiplyextract__h<int64_t>(-1, 1, 64) == -1);
-  TEST(__bssmultiplyextract__h<int64_t>(0x7FFFFFFFFFFFFFFF, 0x7FFFFFFFFFFFFFFF, 0) == 1);
-  TEST(__bssmultiplyextract__h<int64_t>(0x7FFFFFFFFFFFFFFF, 0x7FFFFFFFFFFFFFFF, 64) == 0x3FFFFFFFFFFFFFFF);
-  TEST(__bssmultiplyextract__h<int64_t>(0x7FFFFFFFFFFFFFFF, 0, 0) == 0);
-  TEST(__bssmultiplyextract__h<int64_t>(0x7FFFFFFFFFFFFFFF, 0, 64) == 0);
-  TEST(__bssmultiplyextract__h<int64_t>(0x7FFFFFFFFFFFFFFF, 1, 0) == 0x7FFFFFFFFFFFFFFF);
-  TEST(__bssmultiplyextract__h<int64_t>(0x7FFFFFFFFFFFFFFF, 1, 64) == 0);
-  TEST(__bssmultiplyextract__h<int64_t>(0x8000000000000000, 1, 0) == 0x8000000000000000);
-  TEST(__bssmultiplyextract__h<int64_t>(0x8000000000000000, 1, 1) == 0xC000000000000000);
-  TEST(__bssmultiplyextract__h<int64_t>(0x8000000000000000, 1, 64) == -1);
-  TEST(__bssmultiplyextract__h<int64_t>(0x8000000000000000, 0, 0) == 0);
-  TEST(__bssmultiplyextract__h<int64_t>(0x8000000000000000, 0, 64) == 0);
+  TEST(_bssmultiplyextract<uint64_t>(0, 0, 0) == 0);
+  TEST(_bssmultiplyextract<uint64_t>(1, 1, 0) == 1);
+  TEST(_bssmultiplyextract<uint64_t>(1, 1, 1) == 0);
+  TEST(_bssmultiplyextract<uint64_t>(1, 1, 64) == 0);
+  TEST(_bssmultiplyextract<uint64_t>(0xFFFFFFFFFFFFFFFF, 0xFFFFFFFFFFFFFFFF, 0) == 1);
+  TEST(_bssmultiplyextract<uint64_t>(0xFFFFFFFFFFFFFFFF, 0xFFFFFFFFFFFFFFFF, 64) == 0xFFFFFFFFFFFFFFFE);
+  TEST(_bssmultiplyextract<uint64_t>(0xFFFFFFFFFFFFFFFF, 0, 0) == 0);
+  TEST(_bssmultiplyextract<uint64_t>(0xFFFFFFFFFFFFFFFF, 0, 64) == 0);
+  TEST(_bssmultiplyextract<uint64_t>(0xFFFFFFFFFFFFFFFF, 1, 0) == 0xFFFFFFFFFFFFFFFF);
+  TEST(_bssmultiplyextract<uint64_t>(0xFFFFFFFFFFFFFFFF, 1, 64) == 0);
+  TEST(_bssmultiplyextract<int64_t>(0, 0, 0) == 0);
+  TEST(_bssmultiplyextract<int64_t>(1, 1, 0) == 1);
+  TEST(_bssmultiplyextract<int64_t>(1, -1, 0) == -1);
+  TEST(_bssmultiplyextract<int64_t>(-1, 1, 0) == -1);
+  TEST(_bssmultiplyextract<int64_t>(-1, -1, 0) == 1);
+  TEST(_bssmultiplyextract<int64_t>(1, 1, 1) == 0);
+  TEST(_bssmultiplyextract<int64_t>(-1, -1, 1) == 0);
+  TEST(_bssmultiplyextract<int64_t>(1, -1, 1) == -1);
+  TEST(_bssmultiplyextract<int64_t>(1, 1, 64) == 0);
+  TEST(_bssmultiplyextract<int64_t>(-1, -1, 64) == 0);
+  TEST(_bssmultiplyextract<int64_t>(-1, 1, 64) == -1);
+  TEST(_bssmultiplyextract<int64_t>(0x7FFFFFFFFFFFFFFF, 0x7FFFFFFFFFFFFFFF, 0) == 1);
+  TEST(_bssmultiplyextract<int64_t>(0x7FFFFFFFFFFFFFFF, 0x7FFFFFFFFFFFFFFF, 64) == 0x3FFFFFFFFFFFFFFF);
+  TEST(_bssmultiplyextract<int64_t>(0x7FFFFFFFFFFFFFFF, 0, 0) == 0);
+  TEST(_bssmultiplyextract<int64_t>(0x7FFFFFFFFFFFFFFF, 0, 64) == 0);
+  TEST(_bssmultiplyextract<int64_t>(0x7FFFFFFFFFFFFFFF, 1, 0) == 0x7FFFFFFFFFFFFFFF);
+  TEST(_bssmultiplyextract<int64_t>(0x7FFFFFFFFFFFFFFF, 1, 64) == 0);
+  TEST(_bssmultiplyextract<int64_t>(0x8000000000000000, 1, 0) == 0x8000000000000000);
+  TEST(_bssmultiplyextract<int64_t>(0x8000000000000000, 1, 1) == 0xC000000000000000);
+  TEST(_bssmultiplyextract<int64_t>(0x8000000000000000, 1, 64) == -1);
+  TEST(_bssmultiplyextract<int64_t>(0x8000000000000000, 0, 0) == 0);
+  TEST(_bssmultiplyextract<int64_t>(0x8000000000000000, 0, 64) == 0);
 
   std::stringstream ss;
   SafeFormat(ss, "{10} {0}{1} {2}{3}{4}{{5}}{6}0{7}00{8} {9}", 0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10);

@@ -11,10 +11,10 @@
 namespace bss {
   // Dynamic array implemented using ArrayType (should only be used when constructors could potentially not be needed)
   template<class T, typename CType = size_t, ARRAY_TYPE ArrayType = ARRAY_SIMPLE, typename Alloc = StaticAllocPolicy<T>>
-  class BSS_COMPILER_DLLEXPORT DynArray : protected ArrayBase<T, CType, Alloc>, protected ArrayInternal<T, CType, ArrayType, Alloc>
+  class BSS_COMPILER_DLLEXPORT DynArray : protected ArrayBase<T, CType, Alloc>, protected internal::ArrayInternal<T, CType, ArrayType, Alloc>
   {
   protected:
-    typedef ArrayInternal<T, CType, ArrayType, Alloc> BASE;
+    typedef internal::ArrayInternal<T, CType, ArrayType, Alloc> BASE;
     typedef ArrayBase<T, CType, Alloc> AT_;
     using AT_::_array;
     using AT_::_capacity;
@@ -146,6 +146,7 @@ namespace bss {
     typedef ArrayBase<STORE, CType, typename Alloc::template rebind<STORE>::other> AT_;
     typedef typename AT_::CT_ CT_;
     typedef typename AT_::T_ T_;
+    typedef internal::_BIT_REF<STORE> BITREF;
     using AT_::_array;
     using AT_::_capacity;
     static const CT_ DIV_AMT = (sizeof(STORE) << 3);
@@ -212,19 +213,19 @@ namespace bss {
     BSS_FORCEINLINE CT_ Capacity() const { return _capacity*DIV_AMT; }
     BSS_FORCEINLINE bool Front() const { assert(_length > 0); return _array[0]; }
     BSS_FORCEINLINE bool Back() const { assert(_length > 0); return _array[_length - 1]; }
-    BSS_FORCEINLINE _BIT_REF<STORE> Front() { assert(_length > 0); return GetBit(0); }
-    BSS_FORCEINLINE _BIT_REF<STORE> Back() { assert(_length > 0); return GetBit(_length - 1); }
+    BSS_FORCEINLINE BITREF Front() { assert(_length > 0); return GetBit(0); }
+    BSS_FORCEINLINE BITREF Back() { assert(_length > 0); return GetBit(_length - 1); }
     BSS_FORCEINLINE bool operator[](CT_ index) const { assert(index < _length); return GetBitConst(index); }
-    BSS_FORCEINLINE _BIT_REF<STORE> operator[](CT_ index) { assert(index < _length); return GetBit(index); }
+    BSS_FORCEINLINE BITREF operator[](CT_ index) { assert(index < _length); return GetBit(index); }
     // This gets the raw storage byte in such a way that unused bits are always set to zero. Useful for debugging.
     inline STORE GetRawByte(CT_ index) const { assert(index < _capacity); return (index < (_capacity - 1)) ? _array[index] : (_array[index] & ((STORE)(~0) >> ((_capacity*DIV_AMT) - _length))); }
 
-    class BSS_COMPILER_DLLEXPORT _cBIT_ITER : public std::iterator<std::bidirectional_iterator_tag, _BIT_REF<STORE>>
+    class BSS_COMPILER_DLLEXPORT _cBIT_ITER : public std::iterator<std::bidirectional_iterator_tag, BITREF>
     {
     public:
-      inline _cBIT_ITER(const _BIT_REF<STORE>& src) : _bits(const_cast<STORE*>(&src.GetState().first)), _bit(src.GetState().second) {}
-      inline const _BIT_REF<STORE> operator*() const { return _BIT_REF<STORE>(_bit, *_bits); }
-      inline _BIT_REF<STORE> operator*() { return _BIT_REF<STORE>(_bit, *_bits); }
+      inline _cBIT_ITER(const BITREF& src) : _bits(const_cast<STORE*>(&src.GetState().first)), _bit(src.GetState().second) {}
+      inline const BITREF operator*() const { return BITREF(_bit, *_bits); }
+      inline BITREF operator*() { return BITREF(_bit, *_bits); }
       inline _cBIT_ITER& operator++() { _incthis(); return *this; } //prefix
       inline _cBIT_ITER operator++(int) { _cBIT_ITER r(*this); ++*this; return r; } //postfix
       inline _cBIT_ITER& operator--() { _decthis(); return *this; } //prefix
@@ -291,7 +292,7 @@ namespace bss {
     }*/
 
   protected:
-    BSS_FORCEINLINE _BIT_REF<STORE> GetBit(CT_ bitindex) { return _BIT_REF<STORE>(((STORE)1) << (bitindex&MOD_AMT), *(_array + (bitindex / DIV_AMT))); }
+    BSS_FORCEINLINE BITREF GetBit(CT_ bitindex) { return BITREF(((STORE)1) << (bitindex&MOD_AMT), *(_array + (bitindex / DIV_AMT))); }
     BSS_FORCEINLINE bool GetBitConst(CT_ bitindex) const { return (_array[(bitindex / DIV_AMT)] & (((STORE)1) << (bitindex&MOD_AMT))) != 0; }
     BSS_FORCEINLINE static CT_ _maxChunks(CT_ numbits) { return T_NEXTMULTIPLE(numbits, MOD_AMT); }
     inline void _shiftDelete(CT_ index)
@@ -338,7 +339,7 @@ namespace bss {
 
   // A dynamic array that can dynamically adjust the size of each element
   template<typename CT_, typename Alloc = StaticAllocPolicy<uint8_t>>
-  class BSS_COMPILER_DLLEXPORT cArbitraryArray : protected ArrayBase<uint8_t, CT_, Alloc>
+  class BSS_COMPILER_DLLEXPORT ArbitraryArray : protected ArrayBase<uint8_t, CT_, Alloc>
   {
   protected:
     typedef ArrayBase<uint8_t, CT_, Alloc> AT_;
@@ -346,14 +347,14 @@ namespace bss {
     using AT_::_capacity;
 
   public:
-    inline cArbitraryArray(const cArbitraryArray& copy) : AT_(copy._capacity), _length(copy._length), _element(copy._element) { memcpy(_array, copy._array, _length*_element); }
-    inline cArbitraryArray(cArbitraryArray&& mov) : AT_(std::move(mov)), _length(mov._length), _element(mov._element) {}
-    inline cArbitraryArray(CT_ size = 0, CT_ element = 1) : AT_(size*element), _length(0), _element(element) {}
+    inline ArbitraryArray(const ArbitraryArray& copy) : AT_(copy._capacity), _length(copy._length), _element(copy._element) { memcpy(_array, copy._array, _length*_element); }
+    inline ArbitraryArray(ArbitraryArray&& mov) : AT_(std::move(mov)), _length(mov._length), _element(mov._element) {}
+    inline ArbitraryArray(CT_ size = 0, CT_ element = 1) : AT_(size*element), _length(0), _element(element) {}
     template<typename T>
     inline CT_ Add(const T& t)
     {
       if((_length*_element) >= _capacity) AT_::SetCapacity(T_FBNEXT(_length)*_element);
-      memcpy(_array + (_length*_element), &t, bssmin(sizeof(T), _element));
+      memcpy(_array + (_length*_element), &t, std::min<CT_>(sizeof(T), _element));
       return _length++;
     }
     inline void Remove(CT_ index)
@@ -383,7 +384,7 @@ namespace bss {
       _capacity = element*_length;
       uint8_t* narray = !_length ? 0 : (uint8_t*)Alloc::allocate(_capacity);
       memset(narray, 0, _capacity);
-      CT_ m = bssmin(element, _element);
+      CT_ m = std::min<CT_>(element, _element);
       for(CT_ i = 0; i < _length; ++i)
         memcpy(narray + (i*element), _array + (i*_element), m);
       AT_::_free(_array);
@@ -412,8 +413,8 @@ namespace bss {
 
     inline const void* operator[](CT_ index) const { return Get(index); }
     inline void* operator[](CT_ index) { return Get(index); }
-    inline cArbitraryArray& operator=(const cArbitraryArray& copy) { SetCapacityDiscard(copy._capacity); memcpy(_array, copy._array, _capacity); _length = copy._length; _element = copy._element; return *this; }
-    inline cArbitraryArray& operator=(cArbitraryArray&& mov) { AT_::operator=(std::move(mov)); _length = mov._length; _element = mov._element; return *this; }
+    inline ArbitraryArray& operator=(const ArbitraryArray& copy) { SetCapacityDiscard(copy._capacity); memcpy(_array, copy._array, _capacity); _length = copy._length; _element = copy._element; return *this; }
+    inline ArbitraryArray& operator=(ArbitraryArray&& mov) { AT_::operator=(std::move(mov)); _length = mov._length; _element = mov._element; return *this; }
 
   protected:
     CT_ _length; // Total length of the array in number of elements

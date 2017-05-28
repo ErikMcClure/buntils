@@ -21,6 +21,7 @@ struct TOMLtest2
 {
   uint16_t a;
   TOMLtest3 test;
+  std::vector<Str> j;
 
   template<typename Engine>
   void Serialize(Serializer<Engine>& s)
@@ -143,6 +144,7 @@ a = 5 \n\
 \n\
 [[nested]]\n\
 a = 2\n\
+j = [\"C:\\test\", \"/usr/blah\"]\n\
 [nested.test]\n\
 f = 80.9\n\
 \n\

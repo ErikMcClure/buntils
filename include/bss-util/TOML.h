@@ -358,7 +358,12 @@ namespace bss {
         ParseTOMLEatWhitespace(s);
         if(!!s && (s.peek() == ']' || s.peek() == '.'))
           f(e, buf.c_str());
-        while(!!s && s.peek() != '[' && s.peek() != -1) s.get(); // Eat all remaining characters until the next [
+        while (!!s && s.peek() != '[' && s.peek() != -1) // eat lines until we find one that starts with [
+        {
+          while (!!s && s.peek() != '\n' && s.peek() != '\r' && s.peek() != -1)
+            s.get();
+          ParseTOMLEatNewline(s);
+        }
         ParseTOMLEatAllspace(s);
       }
     }
@@ -417,6 +422,20 @@ namespace bss {
       static void F(Serializer<TOMLEngine>& e, std::vector<T, Alloc>& obj, std::istream& s)
       {
         ParseTOMLArray<std::vector<T, Alloc>>(e, obj, s);
+      }
+    };
+
+    template<class T>
+    struct TOMLWrapper
+    {
+      TOMLWrapper(T& ref, const char* id) : Ref(ref), ID(id) {}
+      T& Ref;
+      const char* ID;
+
+      template<typename Engine>
+      void Serialize(Serializer<Engine>& s)
+      {
+        s.template EvaluateType<TOMLWrapper>(GenPair(ID, Ref));
       }
     };
   }
@@ -605,7 +624,10 @@ namespace bss {
   template<typename T>
   void TOMLEngine::Parse(Serializer<TOMLEngine>& e, T& t, const char* id)
   {
-    ParseTOMLBase<T>(e, t, *e.in);
+    if(e.engine.state == 3 && id && id[0])
+      ParseTOMLBase<internal::TOMLWrapper<T>>(e, internal::TOMLWrapper<T>(t, id), *e.in);
+    else
+      ParseTOMLBase<T>(e, t, *e.in);
   }
 
   template<typename... Args>

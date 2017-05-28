@@ -83,15 +83,16 @@ namespace bss {
   protected:
     XMLNode* _addNode(std::unique_ptr<XMLNode> && n);
     XMLValue* _addAttribute(XMLValue && v);
-    static bool _match(std::istream& stream, Str& out, const char* pattern, bool reset = false);
     bool _parse(std::istream& stream, Str& buf);
     void _parseInner(std::istream& stream, Str& buf);
     void _parseAttribute(Str& buf);
+    void _writeAttribute(std::ostream& stream) const;
+    void _write(std::ostream& stream, bool pretty, int depth) const;
+
+    static bool _match(std::istream& stream, Str& out, const char* pattern, bool reset = false);
     static void _parseEntity(std::istream& stream, Str& target);
     static void _evalValue(XMLValue& val);
-    void _writeAttribute(std::ostream& stream) const;
-    static void _writeString(std::ostream& stream, const char* s);
-    void _write(std::ostream& stream, bool pretty, int depth) const;
+    static void _writeString(std::ostream& stream, const char* s, bool attribute);
 
     friend class XMLFile;
 

@@ -625,7 +625,10 @@ namespace bss {
   void TOMLEngine::Parse(Serializer<TOMLEngine>& e, T& t, const char* id)
   {
     if(e.engine.state == 3 && id && id[0])
-      ParseTOMLBase<internal::TOMLWrapper<T>>(e, internal::TOMLWrapper<T>(t, id), *e.in);
+    {
+      internal::TOMLWrapper<T> wrap(t, id);
+      ParseTOMLBase<internal::TOMLWrapper<T>>(e, wrap, *e.in);
+    }
     else
       ParseTOMLBase<T>(e, t, *e.in);
   }

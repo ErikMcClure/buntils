@@ -124,10 +124,10 @@ namespace bss {
     template<bool MULTILINE>
     inline void ParseTOMLCharacter(std::string& out, std::istream& s)
     {
-      if(s.peek() == '\'')
+      if(s.peek() == '\\')
       {
         s.get();
-        if(!!s || s.peek() == -1)
+        if(!s || s.peek() == -1)
           return;
         if(MULTILINE && (s.peek() == '\n' || s.peek() == '\r'))
         {

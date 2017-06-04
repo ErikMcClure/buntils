@@ -219,7 +219,7 @@ static char isLegalUTF8(const unsigned char *source, int length) {
   return 1;
 }
 
-BSS_COMPILER_DLLEXPORT
+BSS_DLLEXPORT
 extern int itoa_r(int val, char* buf, int size, unsigned int radix)
 {
   int t;

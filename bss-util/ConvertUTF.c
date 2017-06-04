@@ -110,7 +110,7 @@ static const UTF8 firstByteMark[7] = { 0x00, 0x00, 0xC0, 0xE0, 0xF0, 0xF8, 0xFC 
 * into an inline function.
 */
 
-BSS_COMPILER_DLLEXPORT size_t UTF32toUTF16(const int*BSS_RESTRICT input, ptrdiff_t srclen, wchar_t*BSS_RESTRICT output, size_t buflen)
+BSS_DLLEXPORT size_t UTF32toUTF16(const int*BSS_RESTRICT input, ptrdiff_t srclen, wchar_t*BSS_RESTRICT output, size_t buflen)
 {
   if(!srclen) return 0;
   char result = 0;
@@ -183,7 +183,7 @@ BSS_COMPILER_DLLEXPORT size_t UTF32toUTF16(const int*BSS_RESTRICT input, ptrdiff
   return (size_t)(((wchar_t*)target) - output);
 }
 
-BSS_COMPILER_DLLEXPORT size_t UTF16toUTF32(const wchar_t*BSS_RESTRICT input, ptrdiff_t srclen, int*BSS_RESTRICT output, size_t buflen)
+BSS_DLLEXPORT size_t UTF16toUTF32(const wchar_t*BSS_RESTRICT input, ptrdiff_t srclen, int*BSS_RESTRICT output, size_t buflen)
 {
   if(!srclen) return 0;
   char result = 0;
@@ -249,7 +249,7 @@ BSS_COMPILER_DLLEXPORT size_t UTF16toUTF32(const wchar_t*BSS_RESTRICT input, ptr
 
 /* --------------------------------------------------------------------- */
 
-BSS_COMPILER_DLLEXPORT size_t UTF32toUTF8(const int*BSS_RESTRICT input, ptrdiff_t srclen, char*BSS_RESTRICT output, size_t buflen)
+BSS_DLLEXPORT size_t UTF32toUTF8(const int*BSS_RESTRICT input, ptrdiff_t srclen, char*BSS_RESTRICT output, size_t buflen)
 {
   if(!srclen) return 0;
   char result = 0;
@@ -397,7 +397,7 @@ char isLegalUTF8Sequence(const UTF8 *source, const UTF8 *sourceEnd)
 }
 
 /* --------------------------------------------------------------------- */
-BSS_COMPILER_DLLEXPORT size_t UTF8toUTF32(const char*BSS_RESTRICT input, ptrdiff_t srclen, int*BSS_RESTRICT output, size_t buflen)
+BSS_DLLEXPORT size_t UTF8toUTF32(const char*BSS_RESTRICT input, ptrdiff_t srclen, int*BSS_RESTRICT output, size_t buflen)
 {
   if(!srclen) return 0;
   char result = 0;

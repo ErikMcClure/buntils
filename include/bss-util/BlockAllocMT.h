@@ -36,6 +36,7 @@ namespace bss {
     inline ~LocklessBlockAlloc()
     {
       NODE* hold = _root;
+
       while((_root = hold))
       {
         hold = _root->next;
@@ -51,6 +52,7 @@ namespace bss {
       bss_PTag<void> ret = { 0, 0 };
       bss_PTag<void> nval;
       asmcasr<bss_PTag<void>>(&_freelist, ret, ret, ret);
+
       for(;;)
       {
         if(!ret.p)
@@ -64,9 +66,12 @@ namespace bss {
           asmcasr<bss_PTag<void>>(&_freelist, ret, ret, ret); // we could put this in the while loop but then you have to set nval to ret and it's just as messy
           continue;
         }
+
         nval.p = *((void**)ret.p);
         nval.tag = ret.tag + 1;
-        if(asmcasr<bss_PTag<void>>(&_freelist, nval, ret, ret)) break;
+
+        if(asmcasr<bss_PTag<void>>(&_freelist, nval, ret, ret))
+          break;
       }
 
       //assert(_validPointer(ret));
@@ -127,11 +132,13 @@ namespace bss {
     {
       void* hold = 0;
       uint8_t* memend = ((uint8_t*)(chunk + 1)) + chunk->size;
+
       for(uint8_t* memref = (uint8_t*)(chunk + 1); memref < memend; memref += sizeof(T))
       {
         *((void**)(memref)) = hold;
         hold = memref;
       }
+
       _setFreeList(hold, (void*)(chunk + 1)); // The target here is different because normally, the first block (at chunk+1) would point to whatever _freelist used to be. However, since we are lockless, _freelist could not be 0 at the time we insert this, so we have to essentially go backwards and set the first one to whatever freelist is NOW, before setting freelist to the one on the end.
     }
 
@@ -140,6 +147,7 @@ namespace bss {
       bss_PTag<void> prev = { 0, 0 };
       bss_PTag<void> nval = { p, 0 };
       asmcasr<bss_PTag<void>>(&_freelist, prev, prev, prev);
+
       do
       {
         nval.tag = prev.tag + 1;

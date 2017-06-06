@@ -35,6 +35,7 @@ namespace bss {
   {
     inline KDTree(const KDTree&) BSS_DELETEFUNC
       inline KDTree& operator=(const KDTree&)BSS_DELETEFUNCOP
+
   public:
     inline explicit KDTree(uint32_t rb = RBTHRESHOLD, Alloc* alloc = 0) : AllocTracker<Alloc>(alloc), _root(0), _rbthreshold(rb) {}
     inline KDTree(KDTree&& mov) : AllocTracker<Alloc>(std::move(mov)), _root(mov._root), _rbthreshold(mov._rbthreshold) { mov._root = 0; }
@@ -54,11 +55,13 @@ namespace bss {
       KDNode<T>* rb = 0;
       const float* r = FRECT(item);
       char axis = 0;
+
       while(h = *p)
       {
         h->total[0] += r[0] + r[2];
         h->total[1] += r[1] + r[3];
         h->num++;
+
         if(r[axis + 2] < h->div)
         { // Drop into left
           h->balance -= 1;
@@ -71,10 +74,14 @@ namespace bss {
         }
         else //insert here
           break;
+
         axis = ((axis + 1) & 1);
         parent = h;
-        if(!rb && (abs(h->balance * 100) / h->num) > _rbthreshold) rb = h;
+
+        if(!rb && (abs(h->balance * 100) / h->num) > _rbthreshold)
+          rb = h;
       }
+
       if(!h)
       {
         h = _allocNode(parent, axis);
@@ -85,7 +92,9 @@ namespace bss {
         *p = h;
       }
       _insertItem(h, item);
-      if(rb) Rebalance(rb);
+
+      if(rb)
+        Rebalance(rb);
     }
     void Remove(T* item)
     { // run up tree, adjust balance and check for rebalancing
@@ -102,7 +111,9 @@ namespace bss {
         node->total[0] -= r[0] + r[2];
         node->total[1] -= r[1] + r[3];
         node->balance += ((node->left == prev) ? 1 : -1); // This is the inverse balance value
-        if(node->num > 0 && (abs(node->balance * 100) / node->num) > _rbthreshold) rb = node; // It's possible for --node->num to leave it at 0
+
+        if(node->num > 0 && (abs(node->balance * 100) / node->num) > _rbthreshold)
+          rb = node; // It's possible for --node->num to leave it at 0
         node = node->parent;
       }
 
@@ -125,7 +136,9 @@ namespace bss {
     }
     inline void InsertRoot(T* item)
     {
-      if(!_root) _root = _allocNode(0, 0);
+      if(!_root)
+        _root = _allocNode(0, 0);
+
       const float* r;
       r = FRECT(item);
       _root->total[0] += r[0] + r[2];
@@ -144,7 +157,13 @@ namespace bss {
     void _solve(KDNode<T>** pnode)
     {
       KDNode<T>* node = *pnode;
-      if(!node->num) { _destroyNode(node); *pnode = 0; return; }
+
+      if(!node->num) 
+      { 
+        _destroyNode(node);
+        *pnode = 0;
+        return;
+      }
       node->div = node->total[node->axis] / (node->num * 2);
 
       KDNode<T>** p;
@@ -152,15 +171,18 @@ namespace bss {
       const float* r;
       T* item;
       T* next = node->items;
+
       while((item = next))
       {
         next = FLIST(item).next;
         r = FRECT(item);
+
         if(r[node->axis + 2] < node->div) p = &node->left; // Drop into left
         else if(r[node->axis] > node->div) p = &node->right; // Drop into right
         else continue;
         if(!(*p)) // If null create the node
           *p = _allocNode(node, ((node->axis + 1) & 1));
+
         _removeItem(node, item);
         _insertItem(h = *p, item);
         h->total[0] += r[0] + r[2];
@@ -182,6 +204,7 @@ namespace bss {
       float rect[4] = { r[0], r[1], r[2], r[3] }; // Run down through the tree, resetting all the divider lines to whatever the current total is.
       KDNode<T>* parents[4] = { p[0], p[1], p[2], p[3] };
       char axis = node->axis;
+
       if(node->left)
       {
         node->num -= node->left->num;
@@ -192,6 +215,7 @@ namespace bss {
         _checkDestroy(node->left);
         rect[axis + 2] = r[axis + 2]; // Reset so we don't mess up node below
       }
+
       if(node->right)
       {
         node->num -= node->right->num;
@@ -207,15 +231,18 @@ namespace bss {
       const float* itemr;
       KDNode<T>* par;
       char i;
+
       while(item = next)
       {
         next = FLIST(item).next;
         itemr = FRECT(item);
+
         if(itemr[0] < r[0]) i = 0; // Check for a violation. We don't bother checking to see if there are multiple violations, because 
         if(itemr[1] < r[1]) i = 1; // if that happens, we'll catch it on our way back up the stack.
         if(itemr[2] > r[2]) i = 2;
         if(itemr[3] > r[3]) i = 3;
         else continue;
+
         node->total[0] -= itemr[0] + itemr[2]; // Remove image from us
         node->total[1] -= itemr[1] + itemr[3];
         --node->num;
@@ -249,6 +276,7 @@ namespace bss {
     static void _traverseAll(KDNode<T>* node, const F& f)
     {
       if(!node) return;
+
       f(node->items);
       _traverseAll(node->left, f);
       _traverseAll(node->right, f);
@@ -258,6 +286,7 @@ namespace bss {
     {
       T* item = node->items;
       const float* r;
+
       while(item)
       {
         r = FRECT(item);
@@ -276,6 +305,7 @@ namespace bss {
     {
       T* item = node->items;
       const float* r;
+
       while(item)
       {
         r = FRECT(item);
@@ -302,7 +332,10 @@ namespace bss {
       LLBase<T>& l = FLIST(item);
       l.next = node->items;
       l.prev = 0;
-      if(node->items) FLIST(node->items).prev = item;
+
+      if(node->items)
+        FLIST(node->items).prev = item;
+
       node->items = item;
       FNODE(item) = node;
     }

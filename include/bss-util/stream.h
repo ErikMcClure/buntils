@@ -34,7 +34,13 @@ namespace bss {
     inline void ClearTargets() { sync(); _targets.clear(); } //_wtargets.clear(); }
 
 #ifndef BSS_COMPILER_GCC
-    inline StreamSplitter& operator =(StreamSplitter&& right) { std::basic_stringbuf<char>::operator=(std::move(right)); _targets = std::move(right._targets); /*_wtargets=std::move(right._wtargets);*/ return *this; }
+    inline StreamSplitter& operator =(StreamSplitter&& right) 
+    { 
+      std::basic_stringbuf<char>::operator=(std::move(right));
+      _targets = std::move(right._targets); 
+      /*_wtargets=std::move(right._wtargets);*/
+      return *this; 
+    }
 #endif
 
   protected:

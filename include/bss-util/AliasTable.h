@@ -26,13 +26,23 @@ namespace bss {
       mov._count = 0;
     }
     // Constructs a new table from a list of probabilities of type F (defaults to double)
-    AliasTable(const F* problist, UINT count, ENGINE& e = bss_getdefaultengine()) : _alias(0), _prob(0), _count(0), _fdist(0, (F)1), _engine(e) { _getTable(problist, count); }
+    AliasTable(const F* problist, UINT count, ENGINE& e = bss_getdefaultengine()) : _alias(0), _prob(0), _count(0),
+      _fdist(0, (F)1), _engine(e) 
+    { 
+      _getTable(problist, count);
+    }
     template<UINT I>
-    explicit AliasTable(const F(&problist)[I], ENGINE& e = bss_getdefaultengine()) : _alias(0), _prob(0), _count(0), _fdist(0, (F)1), _engine(e) { _getTable(problist, I); }
+    explicit AliasTable(const F(&problist)[I], ENGINE& e = bss_getdefaultengine()) : _alias(0), _prob(0), _count(0),
+      _fdist(0, (F)1), _engine(e)
+    { 
+      _getTable(problist, I); 
+    }
     ~AliasTable()
     {
-      if(_alias != 0) delete[] _alias;
-      if(_prob != 0) delete[] _prob;
+      if(_alias != 0)
+        delete[] _alias;
+      if(_prob != 0)
+        delete[] _prob;
     }
     // Gets a new random integer using ENGINE (defaults to xorshift) over a uniform integer distribution
     BSS_FORCEINLINE UINT Get()
@@ -98,12 +108,14 @@ namespace bss {
         _prob[large[--n_large]] = 1.0;
       while(n_small != 0)
         _prob[small[--n_small]] = 1.0;
+
 #ifdef BSS_DEBUG
       for(UINT i = 0; i < _count; ++i)
         assert(_alias[i] < _count || (_prob[i] == 1.0));
       for(UINT i = 0; i < _count; ++i)
         assert(_prob[i] <= 1.0);
 #endif
+
       _dist = std::uniform_int_distribution<UINT>(0, _count - 1);
     }
 

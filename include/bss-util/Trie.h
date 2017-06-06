@@ -64,13 +64,16 @@ namespace bss {
       while((c = *(word++)))
       {
         internal::_Trie_ToLower<char, IGNORECASE>::F(c);
+
         if(cur->clen > 1) // This is faster than a switch statement
           r = BinarySearchExact<TNODE, char, T, &Trie::_CompTNode>(cur, c, 0, cur->clen);
         else if(cur->clen == 1)
           r = (T)-(cur->chr != c);
         else
           return (T)-1;
-        if(r == (T)-1) return (T)-1;
+
+        if(r == (T)-1) 
+          return (T)-1;
         cur = _array + cur[r].child;
       }
       return cur->word;
@@ -85,13 +88,16 @@ namespace bss {
       {
         c = *(word++);
         internal::_Trie_ToLower<char, IGNORECASE>::F(c);
+
         if(cur->clen > 1) // This is faster than a switch statement
           r = BinarySearchExact<TNODE, char, T, &Trie::_CompTNode>(cur, c, 0, cur->clen);
         else if(cur->clen == 1)
           r = (T)-(cur->chr != c);
         else
           return (T)-1;
-        if(r == (T)-1) return (T)-1;
+
+        if(r == (T)-1) 
+          return (T)-1;
         cur = _array + cur[r].child;
       }
       return cur->word;
@@ -109,7 +115,13 @@ namespace bss {
     {
       _fill(0, num);
       DYNARRAY(PAIR, s, num);
-      for(T i = 0; i < num; ++i) { s[i].first = i; s[i].second = initstr[i]; }
+
+      for(T i = 0; i < num; ++i) 
+      {
+        s[i].first = i;
+        s[i].second = initstr[i]; 
+      }
+
       SORTING_HEAP::HeapSort(s, num); // sort into alphabetical order
       _init(num, s, 0, 0); // Put into our recursive initializer
     }
@@ -128,8 +140,16 @@ namespace bss {
     {
       T r = cnt - 1;
       char c = str[0].second[level];
-      if(IGNORECASE) c = tolower(c);
-      if(!c) { _checkSize(r + 1); _array[r + 1].word = str[0].first; ++str; --len; } // The only place we'll recieve the end of the word is in our starting position due to alphabetical order
+      if(IGNORECASE)
+        c = tolower(c);
+
+      if(!c) // The only place we'll recieve the end of the word is in our starting position due to alphabetical order
+      {
+        _checkSize(r + 1);
+        _array[r + 1].word = str[0].first; 
+        ++str;
+        --len; 
+      }
 
       char l = 0;
       for(T i = 0; i < len; ++i) //first pass so we can assemble top level nodes here
@@ -140,15 +160,18 @@ namespace bss {
         assert(_array[r].clen < (std::numeric_limits<T>::max() - 2));
         ++_array[r].clen;
       }
+
       len = (++r) - cnt;
       ++level;
       T last = r;
+
       for(T i = cnt; i < last; ++i) // Second pass that generates children
       {
         _array[i].child = r;
         r = _init(_array[i].clen, str, r, level);
         str += _array[i].clen;
       }
+
       _array[cnt].clen = len;
       return !len ? 1 + r : r;
     }

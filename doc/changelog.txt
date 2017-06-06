@@ -7,16 +7,17 @@
 - Added AttemptRLock(), AttemptStrictLock() to RWLock
 - Removed thread-specific debug assertions in RWLock to allow complex usage
 - Rewrote ring allocator with a per-bucket RWLock
-- Rewrote cThreadPool to actually work properly
-- Added Future class that utilizes cThreadPool
+- Added a Semaphore class to Thread and removed Thread Signal()/Wait()
+- Rewrote ThreadPool to actually work properly
+- Added Future class that utilizes ThreadPool
 - Added SafeFormat() function which allows you to format output to an std::ostream via "{0}{1}" notation
-- Rewrote cLog class for more customizability, adding source parameter, maximum error level, and formatting.
+- Rewrote Logger class for more customizability, adding source parameter, maximum error level, and formatting.
 - Removed fastcall because it doesn't do anything on 64-bit platforms
 - Removed BSS_EXPLICITSTATIC by fixing BSS_FORCEINLINE on clang/GCC, and removing spurious static keywords
 - Added GetFontPath() for windows
 - Updated khash.h and the corresponding cHash templatized version of it.
-- Added cCompactArray for creating simplistic arrays that avoid heap allocation as much as possible
-- Moved FACTION to Traverse() in cKDtree
+- Added CompactArray for creating simplistic arrays that avoid heap allocation as much as possible
+- Moved FACTION to Traverse() in KDtree
 - cTRBTree can now be used statically, and properly calls destructors
 - changed include folder structure for vcpkg compatibility
 - inverted include order on tests to catch header file mistakes
@@ -30,6 +31,7 @@
 - Moved UTF function declarations to utf_conv.h
 - Version info is now an exported symbol, thus accurately reflecting the version of the compiled DLL itself
 - Fixed minor bugs in XML and TOML parsers
+- Added install/uninstall to makefile
 
 0.4.7
 -----

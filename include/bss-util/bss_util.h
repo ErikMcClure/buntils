@@ -973,7 +973,7 @@ namespace bss {
 
   // Type safe memset functions
   template<typename T>
-  BSS_FORCEINLINE void bssFill(T& p, char val = 0)
+  BSS_FORCEINLINE void bssFill(T& p, unsigned char val = 0)
   {
     memset(&p, val, sizeof(T));
   }
@@ -988,7 +988,7 @@ namespace bss {
     memset(p, val, sizeof(T)*I*J);
   }
   template<typename T>
-  BSS_FORCEINLINE void bssFillN(T* p, size_t n, char val = 0)
+  BSS_FORCEINLINE void bssFillN(T* p, size_t n, unsigned char val = 0)
   {
     memset(p, val, sizeof(T)*n);
   }

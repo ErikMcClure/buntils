@@ -37,7 +37,12 @@ namespace bss {
       typedef Data DataGet;
 
     protected:
-      BSS_FORCEINLINE static void _setData(Node* BSS_RESTRICT old, Node* BSS_RESTRICT cur) { assert(old != cur); if(cur != 0) cur->_key.second = std::move(old->_key.second); }
+      BSS_FORCEINLINE static void _setData(Node* BSS_RESTRICT old, Node* BSS_RESTRICT cur)
+      { 
+        assert(old != cur);
+        if(cur != 0)
+          cur->_key.second = std::move(old->_key.second);
+      }
       template<typename U>
       BSS_FORCEINLINE static void _setRaw(U && data, Node* cur) { if(cur != 0) cur->_key.second = std::forward<U>(data); }
       BSS_FORCEINLINE static KeyGet& _getData(KeyData& cur) { return cur.second; }
@@ -128,12 +133,14 @@ namespace bss {
     {
       char change = 0;
       Node* node = _remove(key, &_root, change);
+
       if(node != 0)
       {
         node->~Node();
         AllocTracker<Alloc>::_deallocate(node, 1);
         return true;
       }
+
       return false;
     }
     inline bool ReplaceKey(const Key oldkey, const Key newkey)
@@ -141,12 +148,14 @@ namespace bss {
       char change = 0;
       Node* old = _remove(oldkey, &_root, change);
       Node* cur = _insert(newkey, &_root, change);
+
       if(old != 0)
       {
         Base::_setData(old, cur);
         old->~Node();
         AllocTracker<Alloc>::_deallocate(old, 1);
       }
+
       return (cur != 0);
     }
 
@@ -156,7 +165,9 @@ namespace bss {
     template<typename F>
     BSS_FORCEINLINE static void _traverse(F lambda, Node* node)
     {
-      if(!node) return;
+      if(!node)
+        return;
+
       _traverse<F>(lambda, node->_left);
       lambda(node->_key);
       _traverse<F>(lambda, node->_right);
@@ -164,7 +175,9 @@ namespace bss {
 
     inline void _clear(Node* node)
     {
-      if(!node) return;
+      if(!node)
+        return;
+
       _clear(node->_left);
       _clear(node->_right);
       node->~Node();
@@ -199,6 +212,7 @@ namespace bss {
     Node* _insert(Key key, Node** proot, char& change) //recursive insertion function
     {
       Node* root = *proot;
+
       if(!root)
       {
         root = AllocTracker<Alloc>::_allocate(1);
@@ -211,6 +225,7 @@ namespace bss {
 
       char result = CFunc(Base::_getKey(root->_key), key);
       Node* retval = 0;
+
       if(result < 0)
         retval = _insert(key, &root->_left, change);
       else if(result > 0)
@@ -220,6 +235,7 @@ namespace bss {
         change = 0;
         return 0;
       }
+
       result *= change;
       root->_balance += result;
       change = (result && root->_balance) ? (1 - _rebalance(proot)) : 0;
@@ -229,6 +245,7 @@ namespace bss {
     inline Node* _find(const Key& key) const
     {
       Node* cur = _root;
+
       while(cur)
       {
         switch(CFunc(Base::_getKey(cur->_key), key)) //This is faster then if/else statements because FUCK IF I KNOW!
@@ -246,6 +263,7 @@ namespace bss {
     {
       Node* prev = 0;
       Node* cur = _root;
+
       while(cur)
       {
         prev = cur;
@@ -263,6 +281,7 @@ namespace bss {
     {
       Node* _root = *root;
       char retval = 0;
+
       if(_root->_balance < -1)
       {
         if(_root->_left->_balance == 1) // LR
@@ -293,12 +312,14 @@ namespace bss {
           _leftRotate(root);
         }
       }
+
       return retval;
     }
 
     Node* _remove(const Key& key, Node** proot, char& change) //recursive removal function
     {
       Node* root = *proot;
+
       if(!root)
       {
         change = 0;
@@ -307,6 +328,7 @@ namespace bss {
 
       char result = CFunc(Base::_getKey(root->_key), key);
       Node* retval = 0;
+
       if(result < 0)
       {
         retval = _remove(key, &root->_left, change);

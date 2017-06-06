@@ -23,13 +23,15 @@ namespace bss {
   namespace internal {
   // A generalization of the binary search that allows for auxiliary arguments to be passed into the comparison function
     template<typename T, typename D, typename CT_, char(*CompEQ)(const char&, const char&), char CompValue, typename... Args>
-    struct binsearch_aux_t {
+    struct binsearch_aux_t
+    {
       template<char(*CompF)(const D&, const T&, Args...)>
       inline static CT_ BinarySearchNear(const T* arr, const D& data, CT_ first, CT_ last, Args... args)
       {
         typename std::make_signed<CT_>::type c = last - first; // Must be a signed version of whatever CT_ is
         CT_ c2; //No possible operation can make this negative so we leave it as possibly unsigned.
         CT_ m;
+
         while(c > 0)
         {
           c2 = (c >> 1); // >> 1 is valid here because we check to see that c > 0 beforehand.
@@ -44,6 +46,7 @@ namespace bss {
           else
             c = c2;
         }
+
         return first;
       }
     };
@@ -80,6 +83,7 @@ namespace bss {
     --l; // Done so l can be an exclusive size parameter even though the algorithm is inclusive.
     CT_ m; // While f and l must be signed ints or the algorithm breaks, m does not.
     char r;
+
     while(l >= f) // This only works when l is an inclusive max indice
     {
       m = f + ((l - f) >> 1); // Done to avoid overflow on large numbers. >> 1 is valid because l must be >= f so this can't be negative
@@ -91,6 +95,7 @@ namespace bss {
       else
         return m;
     }
+
     return (CT_)-1;
   }
 
@@ -173,16 +178,35 @@ namespace bss {
     XorshiftEngine() { seed(); }
     explicit XorshiftEngine(uint64_t s) { seed(s); }
     explicit XorshiftEngine(uint64_t s[16]) { seed(s); }
-    void seed() { std::random_device rd; GenXor1024Seed(rd(), _state); }
+    void seed()
+    { 
+      std::random_device rd;
+      GenXor1024Seed(rd(), _state);
+    }
     void seed(uint64_t s) { GenXor1024Seed(s, _state); }
-    void seed(uint64_t s[16]) { for(int i = 0; i < 16; ++i) _state[i] = s[i]; _state[16] = 0; }
-    void discard(unsigned long long z) { for(int i = 0; i < z; ++i) xorshift1024star(_state); }
+    void seed(uint64_t s[16])
+    { 
+      for(int i = 0; i < 16; ++i)
+        _state[i] = s[i];
+      _state[16] = 0;
+    }
+    void discard(unsigned long long z)
+    { 
+      for(int i = 0; i < z; ++i)
+        xorshift1024star(_state);
+    }
 
     inline static T min() { return internal::xorshift_engine_base<T>::base_min(); }
     inline static T max() { return internal::xorshift_engine_base<T>::base_max(); }
 
     inline T operator()() { return internal::xorshift_engine_base<T>::base_transform(xorshift1024star(_state)); } // Truncate to return_value size.
-    bool operator ==(const XorshiftEngine& r) const { for(int i = 0; i < 17; ++i) if(_state[i] != r._state[i]) return false; return true; }
+    bool operator ==(const XorshiftEngine& r) const
+    {
+      for(int i = 0; i < 17; ++i)
+        if(_state[i] != r._state[i])
+          return false;
+      return true;
+    }
     bool operator !=(const XorshiftEngine& r) const { return !operator==(r); }
 
     typedef T result_type;
@@ -202,8 +226,7 @@ namespace bss {
   template<typename T, class ENGINE, typename ET>
   inline T __bss_gencanonical(ENGINE& e, ET _Emin)
   {	// scale random value to [0, 1), integer engine
-    return ((e() - _Emin)
-      / ((T)e.max() - (T)_Emin + (T)1));
+    return ((e() - _Emin) / ((T)e.max() - (T)_Emin + (T)1));
   }
 
   template<typename T, typename ENGINE>
@@ -277,7 +300,13 @@ namespace bss {
     explicit RandomQueue(CT_ size = 0, ENGINE& e = bss_getdefaultengine()) : AT_(size), _e(e) {}
     inline void Push(const T& t) { AT_::Add(t); }
     inline void Push(T&& t) { AT_::Add(std::move(t)); }
-    inline T Pop() { CT_ i = bssrand<CT_, ENGINE>(0, _length, _e); T r = std::move(_array[i]); Remove(i); return r; }
+    inline T Pop()
+    {
+      CT_ i = bssrand<CT_, ENGINE>(0, _length, _e);
+      T r = std::move(_array[i]);
+      Remove(i);
+      return r;
+    }
     inline void Remove(CT_ index) { _array[index] = std::move(_array[--_length]); }
     inline bool Empty() const { return !_length; }
     inline void Clear() { _length = 0; }
@@ -310,40 +339,41 @@ namespace bss {
     NormalZig(int iC = ZIGNOR_C, T dV = 9.91256303526217e-3, T dR = ZIGNOR_R, ENGINE& e = bss_getdefaultengine()) :  // (R * phi(R) + Pr(X>=R)) * sqrt(2\pi)
       _e(e), _dist(0, 0x7F), _rdist(0, 1.0)
     {
-      int i; T f;
-      f = exp(T(-0.5) * (dR * dR));
+      T f = exp(T(-0.5) * (dR * dR));
       s_adZigX[0] = dV / f; /* [0] is bottom block: V / f(R) */
       s_adZigX[1] = dR;
       s_adZigX[iC] = 0;
-      for(i = 2; i < iC; ++i)
+
+      for(int i = 2; i < iC; ++i)
       {
         s_adZigX[i] = sqrt(-2 * log(dV / s_adZigX[i - 1] + f));
         f = exp(T(-0.5) * (s_adZigX[i] * s_adZigX[i]));
       }
-      for(i = 0; i < iC; ++i)
+
+      for(int i = 0; i < iC; ++i)
         s_adZigR[i] = s_adZigX[i + 1] / s_adZigX[i];
     }
 
     T DRanNormalTail(T dMin, int iNegative)
     {
       T x, y;
+
       do
       {
         x = log(_rdist(_e)) / dMin;
         y = log(_rdist(_e));
       } while(-2 * y < x * x);
+
       return iNegative ? x - dMin : dMin - x;
     }
 
     // Returns a random normally distributed number using the ziggurat method
     T Get()
     {
-      uint32_t i;
-      T x, u, f0, f1;
       for(;;)
       {
-        u = 2 * _rdist(_e) - 1;
-        i = _dist(_e); // get random number between 0 and 0x7F
+        T u = 2 * _rdist(_e) - 1;
+        uint32_t i = _dist(_e); // get random number between 0 and 0x7F
         /* first try the rectangular boxes */
         if(fabs(u) < s_adZigR[i])
           return u * s_adZigX[i];
@@ -351,9 +381,9 @@ namespace bss {
         if(i == 0)
           return DRanNormalTail(ZIGNOR_R, u < 0);
         /* is this a sample from the wedges? */
-        x = u * s_adZigX[i];
-        f0 = exp(T(-0.5) * (s_adZigX[i] * s_adZigX[i] - x * x));
-        f1 = exp(T(-0.5) * (s_adZigX[i + 1] * s_adZigX[i + 1] - x * x));
+        T x = u * s_adZigX[i];
+        T f0 = exp(T(-0.5) * (s_adZigX[i] * s_adZigX[i] - x * x));
+        T f1 = exp(T(-0.5) * (s_adZigX[i + 1] * s_adZigX[i + 1] - x * x));
         if(f1 + _rdist(_e) * (f0 - f1) < 1.0)
           return x;
       }
@@ -374,6 +404,7 @@ namespace bss {
       f2(rect);
       return;
     }
+
     uint8_t axis = depth % 2;
     T div = lerp(rect[axis], rect[2 + axis], f3(depth, rect));
     T r1[4] = { rect[0], rect[1], rect[2], rect[3] };
@@ -420,6 +451,7 @@ namespace bss {
     while(!list.Empty())
     {
       auto point = list.Pop();
+
       for(uint32_t i = 0; i < pointsPerIteration; i++)
       {
         radius = mindist*((T)bssRandReal(1, 2)); //random point between mindist and 2*mindist
@@ -536,19 +568,25 @@ namespace bss {
   template<typename T, bool(*FACTION)(T*), T* (*LCHILD)(T*), T* (*RCHILD)(T*)> // return true to quit
   inline void BreadthFirstTree(T* root, size_t n)
   {
-    if(!n) return;
+    if(!n)
+      return;
+
     if(n == 1)
     {
       FACTION(root);
       return;
     }
+
     n = (n / 2) + 1;
     DYNARRAY(T*, queue, n);
     queue[0] = root;
     size_t l = 1;
+
     for(size_t i = 0; i != l; i = (i + 1) % n)
     {
-      if(FACTION(queue[i])) return;
+      if(FACTION(queue[i]))
+        return;
+
       queue[l] = LCHILD(queue[i]); //Enqueue the children
       l = (l + (size_t)(queue[l] != 0)) % n;
       queue[l] = RCHILD(queue[i]);
@@ -602,6 +640,7 @@ namespace bss {
   inline void SplitCubic(T t, const T(&P0)[I], const T(&P1)[I], const T(&P2)[I], const T(&P3)[I], T(&N1)[I], T(&N2)[I], T(&N3)[I], T(&R1)[I], T(&R2)[I])
   {
     T F[I]; // A = P0, B = P1, C = P2, D = P3, E = N1, F, G = R2, H = N2, J = R1, K = N3
+
     for(int i = 0; i < I; ++i)
     {
       N1[i] = lerp<T>(P0[i], P1[i], t); // lerp(A+B)
@@ -641,12 +680,14 @@ namespace bss {
     T a[2];
     T b[2];
     T c[2];
+
     for(int i = 0; i < 2; ++i)
     {
       a[i] = P1[i] - P0[i];
       b[i] = P2[i] - P1[i] - a[i];
       c[i] = P3[i] - P2[i] - a[i] - 2 * b[i];
     }
+
     SolveQuadratic<T>(b[0] * c[1] - b[1] * c[0], a[0] * c[1] - a[1] * c[0], a[0] * b[1] - a[1] * b[0], r);
   }
 
@@ -662,11 +703,13 @@ namespace bss {
 
     T r = 0;
     T M;
+
     for(int i = 0; i < I; ++i) // 3·C_1 - 3·C_2 - P_1 + P_2
     {
       M = 3 * P1[i] - 3 * P2[i] - P0[i] + P3[i];
       r += M*M;
     }
+
     return term * FastSqrt<T>(r);
   }
 
@@ -694,6 +737,7 @@ namespace bss {
         C[i] = (3 * (N2[i] + N1[i]) - N3[i] - P0[i]) / 4;
       fn(P0, C, N3);
     }
+
     // Check second section: N3, R1, R2, P3
     if(ApproxCubicError<T, 2>(N3, R1, R2, P3) > maxerror)
     {
@@ -730,6 +774,7 @@ namespace bss {
     T p3 = p*p*p;
     T d = q*q + 4 * p3 / 27;
     T offset = -a / 3;
+
     if(d >= 0)
     { // Single solution
       T z = FastSqrt<T>(d);
@@ -740,6 +785,7 @@ namespace bss {
       r[0] = offset + u + v;
       return 1;
     }
+
     T u = FastSqrt<T>(-p / 3);
     T v = acos(-FastSqrt<T>(-27 / p3) * q / 2) / 3;
     T m = cos(v), n = sin(v)*((T)1.732050808);
@@ -754,6 +800,7 @@ namespace bss {
   inline bool NewtonRaphson(T& result, T estimate, TF F, TDF dF, T epsilon, uint32_t maxiterations = 20)
   {
     T x = estimate;
+
     for(uint32_t i = 0; i < maxiterations; ++i)
     {
       T f = F(x);
@@ -764,6 +811,7 @@ namespace bss {
       }
       x = x - (f / dF(x));
     }
+
     return false; // We failed to converge to the required error bound within the given number of iterations
   }
 
@@ -775,6 +823,7 @@ namespace bss {
     for(uint32_t i = 0; i < maxiterations; ++i)
     {
       T f = F(x);
+
       if(fSmall(f, epsilon)) // If we're close enough to zero, return x
         return x;
 
@@ -797,6 +846,7 @@ namespace bss {
   {
     static_assert(N <= 5, "Too many points for Guassian Quadrature!");
     static_assert(N < 1, "Too few points for Guassian Quadrature!");
+
     static const T points[5][5] = {
       0, 0, 0, 0, 0,
       -sqrt(1.0 / 3.0), sqrt(1.0 / 3.0), 0, 0, 0,
@@ -804,6 +854,7 @@ namespace bss {
       -sqrt((3.0 / 7.0) - ((2.0 / 7.0)*sqrt(6.0 / 5.0))), sqrt((3.0 / 7.0) - ((2.0 / 7.0)*sqrt(6.0 / 5.0))), -sqrt((3.0 / 7.0) + ((2.0 / 7.0)*sqrt(6.0 / 5.0))), sqrt((3.0 / 7.0) + ((2.0 / 7.0)*sqrt(6.0 / 5.0))), 0,
       0, -sqrt(5.0 - 2.0*sqrt(10.0 / 7.0)) / 3.0, sqrt(5.0 - 2.0*sqrt(10.0 / 7.0)) / 3.0, -sqrt(5.0 + 2.0*sqrt(10.0 / 7.0)) / 3.0, sqrt(5.0 + 2.0*sqrt(10.0 / 7.0)) / 3.0,
     };
+
     static const T weights[5][5] = {
       2.0, 0, 0, 0, 0,
       1.0, 1.0, 0, 0, 0,
@@ -815,6 +866,7 @@ namespace bss {
     T scale = (b - a) / 2.0;
     T avg = (a + b) / 2.0;
     T r = weights[N - 1][0] * f(scale * points[N - 1][0] + avg, args...);
+
     for(int i = 1; i < N; ++i)
       r += weights[N - 1][i] * f(scale * points[N - 1][i] + avg, args...);
 
@@ -825,7 +877,9 @@ namespace bss {
   inline size_t Base64Encode(const uint8_t* src, size_t cnt, char* out)
   {
     size_t cn = ((cnt / 3) << 2) + (cnt % 3) + (cnt % 3 != 0);
-    if(!out) return cn;
+
+    if(!out)
+      return cn;
 
     /*const uint32_t* ints = (const uint32_t*)src;
     size_t s = (cnt - (cnt % 12))/4;
@@ -855,6 +909,7 @@ namespace bss {
     size_t c = 0;
     size_t s = cnt - (cnt % 3);
     size_t i;
+
     for(i = 0; i < s; i += 3)
     {
       out[c++] = code[((src[i + 0] & 0b11111100) >> 2)];
@@ -866,10 +921,13 @@ namespace bss {
       //out[c++] = code[((src[i + 1] & 0b11110000) >> 4) | ((src[i + 2] & 0b00000011) << 4)];
       //out[c++] = code[((src[i + 2] & 0b11111100) >> 2)];
     }
+
     if(i < cnt)
     {
       out[c++] = code[((src[i] & 0b11111100) >> 2)];
-      if((i + 1) >= cnt) out[c++] = code[((src[i + 0] & 0b00000011) << 4)];
+
+      if((i + 1) >= cnt)
+        out[c++] = code[((src[i + 0] & 0b00000011) << 4)];
       else
       {
         out[c++] = code[((src[i + 0] & 0b00000011) << 4) | ((src[i + 1] & 0b11110000) >> 4)];
@@ -881,9 +939,12 @@ namespace bss {
 
   inline size_t Base64Decode(const char* src, size_t cnt, uint8_t* out)
   {
-    if((cnt & 0b11) == 1) return 0; // You cannot have a legal base64 encode of this length.
+    if((cnt & 0b11) == 1)
+      return 0; // You cannot have a legal base64 encode of this length.
+
     size_t cn = ((cnt >> 2) * 3) + (cnt & 0b11) - ((cnt & 0b11) != 0);
-    if(!out) return cn;
+    if(!out)
+      return cn;
 
     size_t i = 0;
     size_t c = 0;
@@ -891,14 +952,18 @@ namespace bss {
     0,1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20,21,22,23,24,25,0,0,0,0,63,0,
     26,27,28,29,30,31,32,33,34,35,36,37,38,39,40,41,42,43,44,45,46,47,48,49,50,51 };
     size_t s = cnt & (~0b11);
+
     for(; i < s; i += 4)
     {
       out[c++] = (map[src[i + 0] - '-'] << 2) | (map[src[i + 1] - '-'] >> 4);
       out[c++] = (map[src[i + 1] - '-'] << 4) | (map[src[i + 2] - '-'] >> 2);
       out[c++] = (map[src[i + 2] - '-'] << 6) | (map[src[i + 3] - '-']);
     }
-    if(++i < cnt) out[c++] = (map[src[i - 1] - '-'] << 2) | (map[src[i] - '-'] >> 4); // we do ++i here even though i was already valid because the first character requires TWO source characters, not 1.
-    if(++i < cnt) out[c++] = (map[src[i - 1] - '-'] << 4) | (map[src[i] - '-'] >> 2);
+
+    if(++i < cnt) // we do ++i here even though i was already valid because the first character requires TWO source characters, not 1.
+      out[c++] = (map[src[i - 1] - '-'] << 2) | (map[src[i] - '-'] >> 4); 
+    if(++i < cnt)
+      out[c++] = (map[src[i - 1] - '-'] << 4) | (map[src[i] - '-'] >> 2);
     return c;
   }
 }

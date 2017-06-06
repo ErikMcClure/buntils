@@ -16,14 +16,50 @@
 #include <process.h>
 #else // Assume BSS_PLATFORM_POSIX
 #include <pthread.h>
-#include <signal.h>
+#include <semaphore.h>
 #endif
 
 namespace bss {
 #ifndef BSS_COMPILER_MSC2010
 #pragma warning(push)
 #pragma warning(disable:4275)
-  // This extends std::thread and adds support for joining with a timeout and signaled state
+  // Cross-platform implementation of a semaphore, initialized to 0 (locked).
+  class Semaphore
+  {
+  public:
+#ifdef BSS_PLATFORM_WIN32
+    inline Semaphore(Semaphore&& mov) : _sem(mov._sem) { mov._sem = NULL; }
+    inline Semaphore() : _sem(CreateSemaphore(NULL, 0, 65535, NULL)) {}
+    inline ~Semaphore() { if(_sem != NULL) CloseHandle(_sem); }
+    // Unlocks the semaphore by incrementing the current value
+    inline bool Notify(uint16_t count = 1)
+    { 
+      LONG prev;
+      return ReleaseSemaphore(_sem, count, &prev) != 0;
+    }
+    // Waits on the semaphore by waiting until it can decrement the value by 1 (which requires the semaphore is greater than zero).
+    inline bool Wait() { return WaitForSingleObject(_sem, INFINITE) != WAIT_FAILED; }
+
+  protected:
+    HANDLE _sem;
+#else
+    inline Semaphore(Semaphore&& mov) : _sem(mov._sem) { sem_init(&mov._sem, 0, 0); }
+    inline Semaphore() { sem_init(&_sem, 0, 0); }
+    inline ~Semaphore() { }
+    inline bool Notify(uint16_t count = 1) 
+    { 
+      for(uint16_t i = 0; i < count; ++i)
+        if(sem_post(&_sem))
+          return false;
+      return true; 
+    }
+    inline bool Wait() { return !sem_wait(&_sem); }
+
+  protected:
+    sem_t _sem;
+#endif
+  };
+  // This extends std::thread and adds support for joining with a timeout
   class BSS_COMPILER_DLLEXPORT Thread : public std::thread
   {
 #pragma warning(pop)
@@ -31,20 +67,14 @@ namespace bss {
     Thread& operator=(const Thread&) BSS_DELETEFUNCOP
   public:
     template<class _Fn, class... _Args>
-    explicit Thread(_Fn&& _Fx, _Args&&... _Ax) : std::thread(std::forward<_Fn>(_Fx), std::forward<_Args>(_Ax)...)
-    {
-#ifdef BSS_PLATFORM_POSIX
-      struct sigaction action;
-
-      action.sa_handler = ___catcher;
-      action.sa_flags = 0;
-      sigfillset(&action.sa_mask);
-      sigaction(SIGUSR1, &action, nullptr);
-#endif
-    }
-    inline Thread(Thread&& mov) : std::thread(std::move((std::thread&&)mov)) {} // Move constructor only
-    inline Thread() {}
-    inline ~Thread() { if(joinable()) std::thread::join(); } // Ensures we don't crash if the thread hasn't been joined or detached yet.
+    explicit Thread(_Fn&& _Fx, _Args&&... _Ax) : std::thread(std::forward<_Fn>(_Fx), std::forward<_Args>(_Ax)...) {}
+    inline Thread(Thread&& mov) : std::thread(std::move((std::thread&&)mov)) { } // Move constructor only
+    inline Thread() { }
+    inline ~Thread()
+    { 
+      if(joinable()) // Ensures we don't crash if the thread hasn't been joined or detached yet.
+        std::thread::join();
+    } 
     // Blocks until either the thread has terminated, or 'timeout' milliseconds have elapsed. If a timeout occurs, returns -1.
     BSS_FORCEINLINE size_t join(size_t mstimeout)
     {
@@ -58,6 +88,7 @@ namespace bss {
         std::thread::join();
 #else // BSS_PLATFORM_POSIX
         struct timespec ts;
+
         if(!mstimeout || clock_gettime(CLOCK_REALTIME, &ts) == -1)
         {
           if(pthread_tryjoin_np(native_handle(), (void**)&ret) != 0) // If failed, thread is either still busy or something blew up, so return -1
@@ -70,6 +101,7 @@ namespace bss {
           if(pthread_timedjoin_np(native_handle(), (void**)&ret, &ts) != 0) // size_t is defined as being big enough to hold a pointer
             return (size_t)-1;
         }
+
         *((std::thread::id*)(this)) = std::thread::id();// Insanely horrible hack to manually make the ID not joinable
 #endif
       }
@@ -79,25 +111,6 @@ namespace bss {
     BSS_FORCEINLINE void join() { std::thread::join(); }
 
     Thread& operator=(Thread&& mov) { std::thread::operator=(std::move((std::thread&&)mov)); return *this; }
-
-#ifdef BSS_PLATFORM_WIN32
-    BSS_FORCEINLINE void Signal() { DWORD r = QueueUserAPC(&Thread::_APCactivate, native_handle(), 0); assert(r); }
-    BSS_FORCEINLINE static void Wait() { SleepEx(INFINITE, true); }
-
-  protected:
-    inline static void BSS_COMPILER_STDCALL _APCactivate(ULONG_PTR) {}
-#else
-    BSS_FORCEINLINE void Signal() { pthread_kill(native_handle(), SIGUSR1); }
-    inline static int Wait()
-    {
-      sigset_t sigset;
-      sigemptyset(&sigset);
-      pselect(0, nullptr, nullptr, nullptr, nullptr, &sigset);
-    }
-
-  protected:
-    static void ___catcher(int sig) {}
-#endif
   };
 #else // This is for VS2010 which means we only implement this manually for the win32 platform.
   class BSS_COMPILER_DLLEXPORT Thread
@@ -150,11 +163,7 @@ namespace bss {
 
     inline Thread& operator=(Thread&& mov) { _id = mov._id; mov._id = (size_t)-1; return *this; }
 
-    BSS_FORCEINLINE void Signal() { DWORD r = QueueUserAPC(&Thread::_APCactivate, (HANDLE)native_handle(), 0); assert(r); }
-    BSS_FORCEINLINE static void Wait() { SleepEx(INFINITE, true); }
-
   protected:
-    inline static void BSS_COMPILER_STDCALL _APCactivate(ULONG_PTR) {}
     inline static uint32_t __stdcall _threadwrap(void* arg) { std::function<void(void)> fn = *(std::function<void(void)>*)arg; fn(); return 0; }
     BSS_FORCEINLINE void _start(void* arg)
     {

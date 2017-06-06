@@ -24,7 +24,11 @@ namespace bss {
     BSS_FORCEINLINE T D() const { return _d; }
     inline void Simplify()
     {
-      if(!_n) { _d = 1; return; }
+      if(!_n) 
+      { 
+        _d = 1;
+        return; 
+      }
 
       T gcd = GCD<T>(_n, _d);
       _n /= gcd;
@@ -89,7 +93,8 @@ namespace bss {
       T r_n = r._n;
       T r_d = r._d;
 
-      if(!_n) return *this;
+      if(!_n)
+        return *this;
 
       T gcd1 = GCD<T>(_n, r_n);
       T gcd2 = GCD<T>(r_d, _d);

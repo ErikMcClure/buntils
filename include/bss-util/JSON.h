@@ -120,7 +120,10 @@ namespace bss {
       case 't': str += '\t'; break;
       case 'u':
         char buf[5];
-        for(int i = 0; i < 4; ++i) buf[i] = src.get();
+
+        for(int i = 0; i < 4; ++i)
+          buf[i] = src.get();
+
         buf[4] = 0;
         OutputUnicode(str, strtoul(buf, 0, 16));
         break;
@@ -137,17 +140,28 @@ namespace bss {
       ParseJSONEatWhitespace(s);
       while(!!s && s.peek() != '}' && s.peek() != -1)
       {
-        if(!s || s.get() != '"' || s.peek() == -1) continue;
+        if(!s || s.get() != '"' || s.peek() == -1)
+          continue;
+
         buf.clear(); // clear buffer to hold name
-        while(!!s && s.peek() != '"' && s.peek() != -1) ParseJSONEatCharacter(buf, s);
-        if(s) s.get(); // eat " character
+        while(!!s && s.peek() != '"' && s.peek() != -1)
+          ParseJSONEatCharacter(buf, s);
+        if(s)
+          s.get(); // eat " character
+
         ParseJSONEatWhitespace(s);
-        if(s.get() != ':') continue;
+        if(s.get() != ':')
+          continue;
+
         ParseJSONEatWhitespace(s);
         f(e, buf.c_str());
         //Serializer<JSONEngine>::_findparse(e, buf.c_str(), t, args);
-        while(!!s && s.peek() != ',' && s.peek() != '}' && s.peek() != -1) s.get(); // eat everything up to a , or } character
-        if(!!s && s.peek() == ',') s.get(); // Only eat comma if it's there.
+
+        while(!!s && s.peek() != ',' && s.peek() != '}' && s.peek() != -1) // eat everything up to a , or } character
+          s.get(); 
+        if(!!s && s.peek() == ',') // Only eat comma if it's there.
+          s.get(); 
+
         ParseJSONEatWhitespace(s);
       }
       if(s.peek() == '}') s.get(); // eat the closing brace
@@ -176,7 +190,9 @@ namespace bss {
     {
       static void F(Serializer<JSONEngine>& e, T& obj, std::istream& s)
       {
-        if(s.peek() == ',' || s.peek() == ']' || s.peek() == '}') return;
+        if(s.peek() == ',' || s.peek() == ']' || s.peek() == '}')
+          return;
+
         if(s.peek() == '"') // if true, we have to attempt to coerce the string to T
         {
           s.get();
@@ -192,14 +208,20 @@ namespace bss {
     void ParseJSONArray(Serializer<JSONEngine>& e, T& obj, std::istream& s)
     {
       ParseJSONEatWhitespace(s);
-      if(!s || s.get() != '[') return;
+
+      if(!s || s.get() != '[')
+        return;
+
       ParseJSONEatWhitespace(s);
       int n = 0;
+
       while(!!s && s.peek() != ']' && s.peek() != -1)
       {
         ParseJSONInternal<T, false>::DoAddCall(e, obj, s, n);
-        while(!!s && s.peek() != ',' && s.peek() != ']' && s.peek() != -1) s.get(); // eat everything up to a , or ] character
-        if(!!s && s.peek() == ',' && s.peek() != -1) s.get(); // Only eat comma if it's there.
+        while(!!s && s.peek() != ',' && s.peek() != ']' && s.peek() != -1) // eat everything up to a , or ] character
+          s.get(); 
+        if(!!s && s.peek() == ',' && s.peek() != -1) // Only eat comma if it's there.
+          s.get(); 
         ParseJSONEatWhitespace(s);
       }
     }
@@ -284,17 +306,22 @@ namespace bss {
   inline void ParseJSONBase<std::string>(Serializer<JSONEngine>& e, std::string& target, std::istream& s)
   {
     target.clear();
-    if(s.peek() == ',' || s.peek() == ']' || s.peek() == '}') return;
+
+    if(s.peek() == ',' || s.peek() == ']' || s.peek() == '}')
+      return;
+
     char c = s.get();
     if(c != '"')
     {
       target += c;
-      while(!!s && s.peek() != ',' && s.peek() != '}' && s.peek() != ']' && s.peek() != -1) target += s.get();
+      while(!!s && s.peek() != ',' && s.peek() != '}' && s.peek() != ']' && s.peek() != -1)
+        target += s.get();
       return;
     }
 
     while(!!s && s.peek() != '"' && s.peek() != -1)
       internal::ParseJSONEatCharacter(target, s);
+
     s.get(); // eat last " character
   }
   template<>
@@ -304,6 +331,7 @@ namespace bss {
   {
     static const char* val = "true";
     int pos = 0;
+
     if(s.peek() >= '0' && s.peek() <= '9')
     {
       uint64_t num;
@@ -311,6 +339,7 @@ namespace bss {
       target = num != 0; // If it's numeric, record the value as false if 0 and true otherwise.
       return;
     }
+
     while(!!s && s.peek() != ',' && s.peek() != '}' && s.peek() != ']' && s.peek() != -1 && pos < 4)
     {
       if(s.get() != val[pos++])
@@ -358,6 +387,7 @@ namespace bss {
       Str buf;
       ParseJSONBase<Str>(e, buf, s);
       const char* dot = strchr(buf.c_str(), '.');
+
       if(dot)
         target = (double)strtod(buf.c_str(), 0);
       else
@@ -395,13 +425,15 @@ namespace bss {
           s << std::endl;
           WriteJSONTabs(s, pretty);
         }
+
         s << '"' << id << '"' << ": ";
       }
     }
 
     static void WriteJSONComma(std::ostream& s, uint32_t& pretty)
     {
-      if(pretty & 0x80000000) s << ',';
+      if(pretty & 0x80000000)
+        s << ',';
       pretty |= 0x80000000;
     }
 
@@ -412,19 +444,27 @@ namespace bss {
     {
       //static_assert(HAS_MEMBER(T, SerializeJSON), "T must implement void SerializeJSON(std::ostream&, uint32_t&) const");
       WriteJSONComma(s, pretty);
-      if(!id && WriteJSONIsPretty(pretty)) s << std::endl;
+
+      if(!id && WriteJSONIsPretty(pretty))
+        s << std::endl;
+
       WriteJSONId(id, s, pretty);
-      if(!id && WriteJSONIsPretty(pretty)) WriteJSONTabs(s, pretty);
+
+      if(!id && WriteJSONIsPretty(pretty))
+        WriteJSONTabs(s, pretty);
+
       s << '{';
       uint32_t oldpretty = pretty;
       e.engine.pretty = WriteJSONPretty(pretty);
       const_cast<T&>(obj).template Serialize<JSONEngine>(e);
       e.engine.pretty = oldpretty;
+
       if(WriteJSONIsPretty(pretty))
       {
         s << std::endl;
         WriteJSONTabs(s, pretty);
       }
+
       s << '}';
       s.flush();
     }
@@ -453,8 +493,10 @@ namespace bss {
       WriteJSONId(id, s, pretty);
       uint32_t npretty = WriteJSONPretty(pretty);
       s << '[';
+
       for(uint32_t i = 0; i < size; ++i)
         WriteJSONBase(e, 0, obj[i], s, npretty);
+
       s << ']';
     }
 
@@ -490,6 +532,7 @@ namespace bss {
     internal::WriteJSONComma(s, pretty);
     internal::WriteJSONId(id, s, pretty);
     s << '"';
+
     for(uint32_t i = 0; i < obj.size(); ++i)
     {
       switch(obj[i])
@@ -505,6 +548,7 @@ namespace bss {
       default: s << obj[i]; break;
       }
     }
+
     s << '"';
   }
 

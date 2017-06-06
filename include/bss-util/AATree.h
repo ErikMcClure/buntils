@@ -28,13 +28,18 @@ namespace bss {
       _sentinel->left = _sentinel->right = _sentinel;
       _root = _sentinel;
     }
-    inline ~AATree() { Clear(); AllocTracker<Alloc>::_deallocate(_sentinel, 1); }
+    inline ~AATree()
+    { 
+      Clear(); 
+      AllocTracker<Alloc>::_deallocate(_sentinel, 1); 
+    }
     inline void Insert(const T& data) { _insert(_root, data); }
     inline bool Remove(const T& data) { return _remove(_root, data); }
     // Gets the node that belongs to the data or returns nullptr if not found.
     inline AANODE<T>* Get(const T& data)
     {
       AANODE<T>* cur = _root;
+
       while(cur != _sentinel)
       {
         switch(CFunc(data, cur->data))
@@ -102,6 +107,7 @@ namespace bss {
         n->level = 1;
         return;
       }
+
       if(CFunc(data, n->data) < 0)
         _insert(n->left, data);
       else
@@ -112,18 +118,20 @@ namespace bss {
     }
     inline bool _remove(AANODE<T>*& n, const T& data)
     {
-      if(n == _sentinel) return false;
+      if(n == _sentinel)
+        return false;
+
       _last = n;
       bool b = false;
+
       if(CFunc(data, n->data) < 0)
-      {
         b = _remove(n->left, data);
-      }
       else
       {
         _deleted = n;
         b = _remove(n->right, data);
       }
+
       if(n == _last && _deleted != _sentinel && !CFunc(data, _deleted->data))
       {
         _deleted->data = n->data;
@@ -144,6 +152,7 @@ namespace bss {
         _split(n);
         _split(n->right);
       }
+
       return b;
     }
 

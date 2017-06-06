@@ -142,6 +142,7 @@ namespace bss {
       inline static void assign(Variant& src, U && v)
       {
         static_assert(getpos<T, Arg, Args...>::value != -1, "Type does not exist in Variant");
+
         if(src._tag == getpos<T, Arg, Args...>::value)
           *reinterpret_cast<T*>(src._store) = std::forward<U>(v);
         else

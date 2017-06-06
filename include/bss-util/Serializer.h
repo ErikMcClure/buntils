@@ -48,8 +48,10 @@ namespace bss {
     {
       //static_assert(HAS_MEMBER(T, Serialize), "T must implement template<class E> void Serialize(Serializer<E>&)");
       static Trie<uint16_t> t(sizeof...(Args), (args.first)...);
+
       if(out) // Serializing
         int X[] = { (engine.template Serialize<Args>(*this, args.second, args.first), 0)... };
+
       if(in) // Parsing
       {
         if(Engine::Ordered())

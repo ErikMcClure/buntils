@@ -33,19 +33,25 @@ namespace bss {
       const uint8_t* d = (const uint8_t*)source;
       int k = 0;
       int i;
+
       for(i = bits; i >= 8; i -= 8)
       {
         _buf |= (d[k] << _woffset);
         _base->put(_buf);
         _buf = (d[k++] >> (8 - _woffset));
       }
-      if(!i) return;
+
+      if(!i)
+        return;
+
       _buf |= (d[k] << _woffset);
+
       if((_woffset + i) >= 8) // We ran over our current character
       {
         _base->put(_buf);
         _buf = (d[k] >> (8 - _woffset));
       }
+
       _woffset = ((_woffset + i) & 7);
       _buf = (_buf&((1 << _woffset) - 1)); // This zeros out all bits we didn't assign in _buf
     }
@@ -57,20 +63,26 @@ namespace bss {
       uint8_t b;
       int k = 0;
       int i;
+
       for(i = bits; i >= 8; i -= 8)
       {
         d[k] = (_base->peek() >> _roffset);
         _base->get(*((char*)&b));
         d[k++] |= (_base->peek() << (8 - _roffset));
       }
-      if(!i) return;
+
+      if(!i)
+        return;
+
       d[k] |= (_base->peek() >> _roffset);
+
       if((_roffset + i) >= 8) // We ran over our current character
       {
         _base->get(*((char*)&b));
         if((_roffset + i) > 8) // We do this so we don't accidentally peek into an invalid character
           d[k] |= (_base->peek() << (8 - _roffset));
       }
+
       _roffset = ((_roffset + i) & 7);
       d[k] = (d[k] & ((1 << i) - 1)); // This zeros out all bits we didn't assign
     }

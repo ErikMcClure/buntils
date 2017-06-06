@@ -42,6 +42,7 @@ namespace bss {
     {
       assert(index < _ref.Capacity());
       TLNODE& pcur = _ref[index];
+
       if(pcur.next == (CT_)-1) _end = pcur.prev; //you're the end, reassign
       else _ref[pcur.next].prev = pcur.prev;
       if(pcur.prev == (CT_)-1) _start = pcur.next; //you're the root, reassign
@@ -53,8 +54,21 @@ namespace bss {
     }
     inline CT_ Length() const { return _length; }
     inline CT_ Capacity() const { return _ref.Capacity(); }
-    inline void Reserve(CT_ size) { if(size < _ref.Capacity()) return; CT_ hold = _ref.Capacity(); _ref.SetCapacity(size); _setupChunk(hold); }
-    inline void Clear() { _freelist = _start = _end = -1; _length = 0; _setupChunk(0); }
+    inline void Reserve(CT_ size) 
+    {
+      if(size < _ref.Capacity())
+        return;
+
+      CT_ hold = _ref.Capacity(); 
+      _ref.SetCapacity(size);
+      _setupChunk(hold); 
+    }
+    inline void Clear() 
+    { 
+      _freelist = _start = _end = -1;
+      _length = 0; 
+      _setupChunk(0);
+    }
     BSS_FORCEINLINE void Next(CT_& ref) const { ref = _ref[ref].next; }
     BSS_FORCEINLINE void Prev(CT_& ref) const { ref = _ref[ref].prev; }
     BSS_FORCEINLINE CT_ Front() const { return _start; }
@@ -70,7 +84,9 @@ namespace bss {
     BSS_FORCEINLINE const T& operator [](CT_ index) const { return GetItem(index); }
 
     // Iterator for LinkedArray
-    template<bool ISCONST, typename U = typename std::conditional<ISCONST, typename std::add_const<T>::type, T>::type, typename D = typename std::conditional<ISCONST, typename std::add_const<LinkedArray>::type, LinkedArray>::type>
+    template<bool ISCONST,
+      typename U = typename std::conditional<ISCONST, typename std::add_const<T>::type, T>::type,
+      typename D = typename std::conditional<ISCONST, typename std::add_const<LinkedArray>::type, LinkedArray>::type>
     class BSS_COMPILER_DLLEXPORT cLAIter : public std::iterator<std::bidirectional_iterator_tag, typename D::value_type, ptrdiff_t, U*, U&>
     {
     public:
@@ -150,7 +166,9 @@ namespace bss {
     }
     inline CT_ _insertPrep()
     {
-      if(_freelist == (CT_)-1) Reserve(fbnext(_ref.Capacity()));
+      if(_freelist == (CT_)-1)
+        Reserve(fbnext(_ref.Capacity()));
+
       CT_ cur = _freelist;
       _freelist = _ref[_freelist].next; //increment freelist
       return cur;

@@ -378,6 +378,7 @@ namespace bss {
       static BSS_FORCEINLINE void MM(const T(&l)[M][N], const T(&r)[N][P], T(&out)[M][P]) noexcept
       {
         T m[M][P];
+
         for(int i = 0; i < M; ++i)
         {
           for(int j = 0; j < P; ++j)
@@ -387,6 +388,7 @@ namespace bss {
               m[i][j] += l[i][k] * r[k][j];
           }
         }
+
         for(int i = 0; i < M; ++i) // Done so the compiler can get rid of it if it isn't necessary
           for(int j = 0; j < P; ++j)
             out[i][j] = m[i][j];

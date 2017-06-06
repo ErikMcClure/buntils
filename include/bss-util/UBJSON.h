@@ -124,6 +124,7 @@ namespace bss {
         }
         break;
       }
+
       if(ret < 0)
         throw std::runtime_error("Negative length is not allowed.");
       return ret;
@@ -137,6 +138,7 @@ namespace bss {
         s.get(); // eat '$'
         type = s.get();
       }
+
       if(!!s && s.peek() == UBJSONTuple::TYPE_COUNT)
       {
         s.get(); // eat '#'
@@ -151,14 +153,17 @@ namespace bss {
     inline void ParseUBJSONObj(Serializer<UBJSONEngine>& e, char ty, F f)
     {
       std::istream& s = *e.in;
+
       if(ty != 0 && ty != UBJSONTuple::TYPE_OBJECT) // Sanity check
         throw std::runtime_error("Expecting a type other than object in the object parsing function!");
       if(!ty && (s.get() != UBJSONTuple::TYPE_OBJECT))
         throw std::runtime_error("Expected object, found invalid character");
+
       Str buf;
       char backup = e.engine.type;
       e.engine.type = 0;
       int64_t count = ParseUBJSONTypeCount(s, e.engine.type);
+
       while(!!s && (count < 0 || count>0) && (count > 0 || s.peek() != UBJSONTuple::TYPE_OBJECT_END) && s.peek() != -1)
       {
         int64_t length = ParseUBJSONLength(s);
@@ -168,8 +173,10 @@ namespace bss {
         buf.UnsafeString()[length] = 0;
         f(e, buf.c_str());
       }
+
       e.engine.type = backup;
-      if(!!s && count < 0 && s.peek() == UBJSONTuple::TYPE_OBJECT_END) s.get(); // If we were looking for the OBJECT_END symbol, eat it.
+      if(!!s && count < 0 && s.peek() == UBJSONTuple::TYPE_OBJECT_END) 
+        s.get(); // If we were looking for the OBJECT_END symbol, eat it.
     }
 
     template<class T, class BASE>
@@ -237,8 +244,10 @@ namespace bss {
 
         s.put(UBJSONTuple::TYPE_COUNT);
         WriteUBJSONBase<size_t>(e, 0, v.Length(), s, 0);
+
         for(auto& i : v)
           WriteUBJSONBase<UBJSONValue>(e, i.first, i.second, s, type);
+
         e.engine.endobject = false;
         //return false;
       }
@@ -280,7 +289,10 @@ namespace bss {
       case UBJSONTuple::TYPE_STRING:
         tuple.length = ParseUBJSONLength(s);
         tuple.String = new char[(size_t)tuple.length + 1];
-        if(tuple.length > 0) s.read(tuple.String, tuple.length);
+
+        if(tuple.length > 0) 
+          s.read(tuple.String, tuple.length);
+
         tuple.String[tuple.length] = 0;
         break;
       }
@@ -510,6 +522,7 @@ namespace bss {
         throw std::runtime_error("Expecting a type other than object in the object serializing function!");
       if(!ty)
         s.put(UBJSONTuple::TYPE_OBJECT);
+
       const_cast<T&>(obj).template Serialize<UBJSONEngine>(e);
       if(e.engine.endobject)
       //if(obj.SerializeUBJSON(s))
@@ -598,7 +611,8 @@ namespace bss {
     {
       static inline const char F(const T& v)
       {
-        if(v.template is<Arg>()) return WriteUBJSONType<Arg>::t;
+        if(v.template is<Arg>())
+          return WriteUBJSONType<Arg>::t;
         return __UBJSONVariantType<T, Args...>::F(v);
       }
     };
@@ -607,7 +621,8 @@ namespace bss {
     {
       static inline const char F(const T& v)
       {
-        if(v.template is<Arg>()) return WriteUBJSONType<Arg>::t;
+        if(v.template is<Arg>())
+          return WriteUBJSONType<Arg>::t;
         return 0;
       }
     };
@@ -641,7 +656,8 @@ namespace bss {
     {
       static void F(Serializer<UBJSONEngine>& e, const T(&obj)[I], std::ostream& s, char ty)
       {
-        if(!ty) s.put(UBJSONTuple::TYPE_ARRAY);
+        if(!ty) 
+          s.put(UBJSONTuple::TYPE_ARRAY);
         WriteUBJSONArray<T, const T*>(e, (const T*)obj, (const char*)obj, I, s, WriteUBJSONType<T>::t);
       }
     };
@@ -651,7 +667,8 @@ namespace bss {
     {
       static void F(Serializer<UBJSONEngine>& e, const DynArray<T, CType, ArrayType, Alloc>& obj, std::ostream& s, char ty)
       {
-        if(!ty) s.put(UBJSONTuple::TYPE_ARRAY);
+        if(!ty) 
+          s.put(UBJSONTuple::TYPE_ARRAY);
         WriteUBJSONArray<T>(e, obj, (const char*)obj.begin(), obj.Length(), s, WriteUBJSONType<T>::t);
       }
     };
@@ -661,7 +678,8 @@ namespace bss {
     {
       static void F(Serializer<UBJSONEngine>& e, const DynArray<bool, CType, ArrayType, Alloc>& obj, std::ostream& s, char ty)
       {
-        if(!ty) s.put(UBJSONTuple::TYPE_ARRAY);
+        if(!ty) 
+          s.put(UBJSONTuple::TYPE_ARRAY);
         WriteUBJSONArray<bool>(e, obj, 0, obj.Length(), s, 0);
       }
     };
@@ -671,7 +689,8 @@ namespace bss {
     {
       static void F(Serializer<UBJSONEngine>& e, const std::vector<T, Alloc>& obj, std::ostream& s, char ty)
       {
-        if(!ty) s.put(UBJSONTuple::TYPE_ARRAY);
+        if(!ty)
+          s.put(UBJSONTuple::TYPE_ARRAY);
         WriteUBJSONArray<T>(e, obj, (const char*)obj.data(), obj.size(), s, WriteUBJSONType<T>::t);
       }
     };
@@ -730,7 +749,9 @@ namespace bss {
               type = 0;
 
           assert(!ty || ty == UBJSONTuple::TYPE_ARRAY);
-          if(!ty) s.put(UBJSONTuple::TYPE_ARRAY);
+          if(!ty) 
+            s.put(UBJSONTuple::TYPE_ARRAY);
+
           WriteUBJSONArray<UBJSONValue, const UBJSONValue*>(e, (const UBJSONValue*)v, 0, v.Length(), s, type);
           break;
         }
@@ -745,13 +766,15 @@ namespace bss {
     {
       if(!type)
         s.put(UBJSONTuple::TYPE_STRING);
+
       WriteUBJSONBase<size_t>(e, len, s);
       s.write(str, len);
     }
 
     inline void WriteUBJSONId(Serializer<UBJSONEngine>& e, const char* id, std::ostream& s)
     {
-      if(id) WriteUBJSONString(e, id, strlen(id), s, UBJSONTuple::TYPE_STRING);
+      if(id) 
+        WriteUBJSONString(e, id, strlen(id), s, UBJSONTuple::TYPE_STRING);
     }
   }
 

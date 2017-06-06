@@ -18,8 +18,10 @@ namespace bss {
     BSS_FORCEINLINE int Drop()
     {
       assert(_refs > 0);
+
       if(--_refs > 0)
         return _refs;
+
       DestroyThis();
       return 0;
     }
@@ -58,8 +60,26 @@ namespace bss {
     inline T& operator*() noexcept { return *_p; }
     inline const T& operator*() const noexcept { return *_p; }
     inline ref_ptr& operator=(const ref_ptr& right) { return operator=(right._p); }
-    inline ref_ptr& operator=(ref_ptr&& right) { if(_p != 0) _p->Drop(); _p = right._p; right._p = 0; return *this; }
-    inline ref_ptr& operator=(T* right) { if(_p != 0) _p->Drop(); _p = right; if(_p != 0) _p->Grab(); return *this; }
+    inline ref_ptr& operator=(ref_ptr&& right)
+    {
+      if(_p != 0) 
+        _p->Drop();
+
+      _p = right._p;
+      right._p = 0; 
+      return *this; 
+    }
+    inline ref_ptr& operator=(T* right)
+    { 
+      if(_p != 0) 
+        _p->Drop();
+
+      _p = right; 
+      if(_p != 0) 
+        _p->Grab(); 
+
+      return *this; 
+    }
 
   protected:
     T* _p;

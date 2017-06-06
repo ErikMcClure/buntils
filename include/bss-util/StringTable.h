@@ -43,7 +43,12 @@ namespace bss {
       for(CT_ i = 0; i < _strings.Capacity() && j < _indices.Capacity(); ++i)
       {
         ++_indices[j];
-        if(!_strings[i]) { ++j; if(j < _indices.Capacity()) _indices[j] = _indices[j - 1]; }
+        if(!_strings[i]) 
+        { 
+          ++j;
+          if(j < _indices.Capacity()) 
+            _indices[j] = _indices[j - 1];
+        }
       }
     }
     // Destructor
@@ -91,7 +96,8 @@ namespace bss {
       _strings += right._strings;
       _indices += right._indices;
 
-      for(; i < _indices.Capacity(); ++i) _indices[i] += byteadd; //remaps indexes
+      for(; i < _indices.Capacity(); ++i)
+        _indices[i] += byteadd; //remaps indexes
 
       return *this;
     }
@@ -106,15 +112,17 @@ namespace bss {
 
       _indices.SetCapacity(size);
       CT_ sz = 0;
+
       for(CT_ i = 0; i < size; ++i) //this will cause an infinite loop if someone is dumb enough to set CT_ to an unsigned type and set size equal to -1. If you actually think you could make that mistake, stop using this class.
       {
         _indices[i] = internal::STR_CT<T>::SLEN(strings[i]) + 1; //include null terminator in length count
         sz += _indices[i];
       }
-      _strings.SetCapacity(sz);
 
+      _strings.SetCapacity(sz);
       CT_ curlength = 0;
       CT_ hold;
+
       for(CT_ i = 0; i < size; ++i) //this loop does two things - it copies the strings over, and it sets the index values to the correct ones while discarding intermediate lengths
       {
         hold = _indices[i];

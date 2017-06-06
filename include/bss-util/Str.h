@@ -136,9 +136,13 @@ namespace bss {
         if(text) text = STRCT::SCHR(text, (int)delim);
         if(text) text++;
       }
-      if(!text) return;
+
+      if(!text)
+        return;
+
       const CHAR* end = STRCT::SCHR(text, (int)delim);
-      if(!end) end = &text[STRCT::SLEN(text)];
+      if(!end)
+        end = &text[STRCT::SLEN(text)];
 
       size_t _length = end - text;
       BASE::reserve(++_length);
@@ -178,15 +182,19 @@ namespace bss {
     {
       CHAR* pmod = _internalPtr();
       size_t sz = BASE::size();
+
       for(size_t i = 0; i < sz; ++i)
         if(pmod[i] == search)
           pmod[i] = replace;
+
       return *this;
     }
 
     static void Explode(std::vector<StrT> &dest, const CHAR delim, const CHAR* text)
     {
-      if(!delim) return ExplodeNull(dest, text);
+      if(!delim)
+        return ExplodeNull(dest, text);
+
       StrT copy(text);
       CHAR delimhold[2] = { delim, 0 };
       CHAR* hold;
@@ -200,7 +208,9 @@ namespace bss {
     }
     static void ExplodeNull(std::vector<StrT> &dest, const CHAR* text)
     {
-      if(!text) return;
+      if(!text)
+        return;
+
       while(*text)
       {
         dest.push_back(text);
@@ -218,11 +228,13 @@ namespace bss {
     {
       T* ct;
       T* cur = STRCT::STOK(str, delim, &ct);
+
       while(cur != 0)
       {
         vec.push_back(parser(cur));
         cur = STRCT::STOK(0, delim, &ct);
       }
+
       return vec.size();
     }
 
@@ -232,9 +244,11 @@ namespace bss {
       StrT r;
       r.resize(STRCT::SLEN(text) + 1); // resize doesn't always account for null terminator
       size_t i;
+
       for(i = 0; *text != 0; ++text)
         if(*text != c)
           r.UnsafeString()[i++] = *text;
+
       r.UnsafeString()[i] = 0;
       r.RecalcSize();
       return r;
@@ -244,6 +258,7 @@ namespace bss {
     {
       if(!string)
         return StrT<T, Alloc>();
+
       //if(STRCT::SCHR(string, '%')==0) //Do we even need to check our va_list?
       //  return StrT<T,Alloc>(string);
       StrT<T, Alloc> r;
@@ -268,19 +283,27 @@ namespace bss {
     BSS_FORCEINLINE void _convStr(const OTHER_C* src, ptrdiff_t len)
     {
       size_t r = STRCT::CONV(src, len, 0, 0);
-      if(r == (size_t)-1) return; // If invalid, bail
+      if(r == (size_t)-1)
+        return; // If invalid, bail
+
       BASE::resize(r); // resize() only adds one for null terminator if it feels like it.
       r = STRCT::CONV(src, len, _internalPtr(), BASE::capacity());
-      if(r == (size_t)-1) return; // If somehow still invalid, bail again
+      if(r == (size_t)-1)
+        return; // If somehow still invalid, bail again
+
       BASE::resize(r - 1); // resize to actual number of characters instead of simply the maximum (disregard null terminator)
     }
     BSS_FORCEINLINE void _convStr2(const OTHER_C2* src, ptrdiff_t len)
     {
       size_t r = STRCT::CONV2(src, len, 0, 0);
-      if(r == (size_t)-1) return; // If invalid, bail
+      if(r == (size_t)-1)
+        return; // If invalid, bail
+
       BASE::resize(r); // resize() only adds one for null terminator if it feels like it.
       r = STRCT::CONV2(src, len, _internalPtr(), BASE::capacity());
-      if(r == (size_t)-1) return; // If somehow still invalid, bail again
+      if(r == (size_t)-1)
+        return; // If somehow still invalid, bail again
+
       BASE::resize(r - 1); // resize to actual number of characters instead of simply the maximum (disregard null terminator)
     }
 
@@ -351,6 +374,7 @@ namespace bss {
       _Left.append(_Right);
       return (std::move(_Left));
     }
+
     _Right.insert(0, _Left);
     return (std::move(_Right));
   }

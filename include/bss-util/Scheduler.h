@@ -30,9 +30,11 @@ namespace bss {
     inline void Update()
     {
       HighPrecisionTimer::Update();
+
       while(BASE::Peek().first <= _time)
       {
         double r = BASE::Peek().second();
+
         if(r == 0.0)
           BASE::Remove(0);
         else

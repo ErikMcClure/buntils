@@ -24,6 +24,7 @@ namespace bss {
     Logger(const Logger& copy) = delete;
 #endif
     Logger& operator=(const Logger& right) BSS_DELETEFUNCOP
+
   public:
     // Move semantics only
     Logger(Logger&& mov);
@@ -84,6 +85,7 @@ namespace bss {
     {
       if(level >= _maxlevel)
         return;
+
       SafeFormat<Args...>(LogHeader(source, file, line, level), format, args...);
       _stream << std::endl;
     }

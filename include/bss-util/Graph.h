@@ -127,13 +127,20 @@ namespace bss {
     {
       CT len = _nodes.Length();
       Edge<E, CT>* cur = 0;
-      if(!matrix) return len;
+
+      if(!matrix)
+        return len;
+
       DYNARRAY(CT, hash, _nodes.Capacity());
       CT k = 0;
-      for(CT i = _nodes.Front(); i != (CT)-1; _nodes.Next(i)) hash[i] = k++; // Build up a hash mapping the IDs to monotonically increasing integers.
+
+      for(CT i = _nodes.Front(); i != (CT)-1; _nodes.Next(i))
+        hash[i] = k++; // Build up a hash mapping the IDs to monotonically increasing integers.
+
       for(CT i = _nodes.Front(); i != (CT)-1; _nodes.Next(i))
       {
         _setVertex(nodes, i, _nodes[i]);
+
         for(cur = _nodes[i].to; cur != 0; cur = cur->next)
           _getData(matrix[(hash[i] * len) + hash[cur->to]], *cur);
       }
@@ -142,7 +149,13 @@ namespace bss {
 
     inline const Node<E, V, CT>& operator[](CT index) const { return _nodes[index]; }
     inline Node<E, V, CT>& operator[](CT index) { return _nodes[index]; }
-    inline Graph& operator=(Graph&& mov) { _nodes = std::move(mov._nodes); _nedges = mov._nedges; mov._nedges = 0; return *this; }
+    inline Graph& operator=(Graph&& mov) 
+    { 
+      _nodes = std::move(mov._nodes); 
+      _nedges = mov._nedges; 
+      mov._nedges = 0; 
+      return *this; 
+    }
     typedef CT CT_;
     typedef E E_;
     typedef V V_;
@@ -154,8 +167,10 @@ namespace bss {
     void _construct(CT n, const D* M, const V* nodes)
     {
       DYNARRAY(CT, k, n);
+
       for(CT i = 0; i < n; ++i)
         k[i] = AddNode(_addVertex(nodes, i));
+
       for(CT i = 0; i < n; ++i)
       {
         for(CT j = 0; j < n; ++j)
@@ -202,9 +217,11 @@ namespace bss {
     CT root;
     CT* plast = &root;
     CT k = 0; // Build a list of all vertices except s and t
+
     for(CT i = nodes.Front(); i != (CT)-1; nodes.Next(i))
     {
       seen[k] = nodes[i].to;
+
       if(i != s && i != t)
       {
         *plast = k;
@@ -212,6 +229,7 @@ namespace bss {
         plast = &v[k++].second;
       }
     }
+
     assert(k == (len - 2));
 
     // Push as much flow as possible from s
@@ -225,15 +243,18 @@ namespace bss {
     CT last = -1;
     CT lh;
     CT target;
+
     for(CT c = root; c != (CT)-1;)
     {
       k = v[c].first;
       lh = height[k];
+
       while(excess[k] > 0) // Discharge current vertex
       {
         if(!seen[k]) //If seen is null, we tried all our neighbors so relabel
         {
           send = INT_MAX;
+
           for(edge = nodes[k].to; edge != 0; edge = edge->next)
           { // First we try to send it forward
             if(edge->data.capacity - edge->data.flow > 0)
@@ -242,13 +263,16 @@ namespace bss {
               height[k] = send + 1; // we have to do this in here because if there is no valid relabel, the height can't change.
             }
           }
+
           if(send == INT_MAX) // If this is true, our forward relabel failed, so that means we need to try to push things backwards
           {
             for(edge = nodes[k].from; edge != 0; edge = edge->alt.next)
             {
               if(edge->data.flow > 0)
               { // Negate the flow and set capacity to 0 because we're going backwards
-                if(height[edge->from] < send) send = height[edge->from];
+                if(height[edge->from] < send)
+                  send = height[edge->from];
+
                 height[k] = send + 1;
               }
             }
@@ -256,15 +280,19 @@ namespace bss {
           }
           else
             seen[k] = nodes[k].to;
+
           continue;
         }
         if(excess[k] > 0)
         {// If possible, do a push. We must check whether our current edge is backwards or not
           send = (seen[k]->from == k) ? seen[k]->data.capacity - seen[k]->data.flow : seen[k]->data.flow;
           target = (seen[k]->from == k) ? seen[k]->to : seen[k]->from;
+
           if(height[k] > height[target] && send > 0)
           { // If possible, do a push
-            if(excess[k] < send) send = excess[k]; // send an amount equal to min(excess, capacity - flow)
+            if(excess[k] < send)
+              send = excess[k]; // send an amount equal to min(excess, capacity - flow)
+
             seen[k]->data.flow += (seen[k]->from == k) ? send : -send; // Negate if the edge is backwards
             excess[target] += send;
             excess[k] -= send;
@@ -272,6 +300,7 @@ namespace bss {
         }
         seen[k] = (seen[k]->from == k) ? seen[k]->next : seen[k]->alt.next;
       }
+
       if(lh != height[k]) // If the height changed...
       {
         if(last != (CT)-1)  // Move vertex to start of the list, if it's not there already
@@ -280,9 +309,11 @@ namespace bss {
           v[c].second = root;
           root = c;
         }
+
         c = root; // restart traversal at start of list
         continue;
       }
+
       last = c;
       c = v[c].second;
     }
@@ -314,6 +345,7 @@ namespace bss {
       {
         d = n[i].data.demand;
         total += d;
+
         if(d < 0)
         {// This is a source
           edge.capacity = -d;
@@ -326,6 +358,7 @@ namespace bss {
         }
       }
     }
+
     s = ss;
     t = st;
     return total;
@@ -376,7 +409,10 @@ namespace bss {
     typedef typename std::make_signed<CT>::type SST;
     typedef Edge<typename G::E_, CT> E;
     auto& n = graph.GetNodes();
-    if((*FACTION)(root)) return;
+
+    if((*FACTION)(root))
+      return;
+
     DYNARRAY(CT, aset, graph.Capacity());
     DisjointSet<CT, StaticNullPolicy<SST>> set((SST*)aset, graph.Capacity());
 
@@ -390,8 +426,11 @@ namespace bss {
 
     for(size_t i = 0; i != l; ++i) // Go through the queue
     {
-      if(FACTION(queue[i])) return;
+      if(FACTION(queue[i]))
+        return;
+
       set.Union(root, queue[i]);
+
       for(E* edge = n[queue[i]].to; edge != 0; edge = edge->next)
       {
         if(set.Find(edge->to) != root) //Enqueue the children if they aren't already in the set.

@@ -20,7 +20,10 @@ namespace bss {
 
   public:
     // Construct a disjoint set with num initial sets
-    inline DisjointSet(const DisjointSet& copy) : ARRAY(copy.Capacity()), _numsets(copy._numsets) { memcpy(_array, copy._array, _capacity); }
+    inline DisjointSet(const DisjointSet& copy) : ARRAY(copy.Capacity()), _numsets(copy._numsets) 
+    { 
+      memcpy(_array, copy._array, _capacity); 
+    }
     inline DisjointSet(DisjointSet&& mov) : ARRAY(std::move(mov)), _numsets(mov._numsets) { mov._numsets = 0; }
     inline explicit DisjointSet(T num) : ARRAY(num) { Reset(); }
     inline DisjointSet(T_* overload, T num) : ARRAY(0)
@@ -61,12 +64,14 @@ namespace bss {
       assert(x < _capacity);
 
       T_ r = x;
-      while(_array[r] >= 0) r = _array[r]; // Find set name x belongs to
+      while(_array[r] >= 0)
+        r = _array[r]; // Find set name x belongs to
 
       T_ t;
       if(x != r)
       { // Do path compression
         t = _array[x];
+
         while(t != r)
         {
           _array[x] = r;
@@ -83,13 +88,20 @@ namespace bss {
     // Returns true if x is a valid set name
     inline bool IsSetName(T x) { return x < _capacity && _array[x] < 0; }
     // Returns the number of elements in a given set. Returns -1 on failure.
-    inline T NumElements(T set) { if(set >= _capacity) return -1; return -_array[Find(set)]; } // Number of elements is simply the weight of the root node
+    inline T NumElements(T set) 
+    { 
+      if(set >= _capacity) 
+        return -1; 
+      return -_array[Find(set)]; // Number of elements is simply the weight of the root node
+    } 
     // Adds n elements to the disjoint set.
     inline void AddSets(T n)
     {
       T i = _capacity;
       SetCapacity(_capacity + n);
-      for(; i < _capacity; ++i) _array[i] = -1;
+
+      for(; i < _capacity; ++i)
+        _array[i] = -1;
     }
     // Resets the disjoint set
     inline void Reset()
@@ -102,7 +114,10 @@ namespace bss {
     inline std::unique_ptr<T[]> GetElements(T set)
     {
       T len = NumElements(set);
-      if(len < 0) return std::unique_ptr<T[]>();
+
+      if(len < 0)
+        return std::unique_ptr<T[]>();
+
       T* ret = new T[len];
       T j = GetElements(set, ret);
       assert(j <= len);
@@ -140,10 +155,12 @@ namespace bss {
       DYNARRAY(T_, arr, numverts); // Allocate everything on the stack
       DisjointSet<T, StaticNullPolicy<T_>> set(arr, numverts);
       T num = 0;
+
       for(; edges != edgeslast; ++edges)
       {
         T_ a = set.Find((*edges).first);
         T_ b = set.Find((*edges).second);
+
         if(a != b)
         {
           out[num++] = *edges;
@@ -151,12 +168,24 @@ namespace bss {
           assert(inv);
         }
       }
+
       assert(num < numverts);
       return num; // If the edges are disconnected it'll return a forest of minimum spanning trees with a number of edges less than n-1.
     }
 
-    inline DisjointSet& operator=(const DisjointSet& copy) { SetCapacityDiscard(copy._capacity); memcpy(_array, copy._array, _capacity * sizeof(T)); _numsets = copy._numsets; return *this; }
-    inline DisjointSet& operator=(DisjointSet&& mov) { ARRAY::operator=(std::move(mov)); _numsets = mov._numsets; return *this; }
+    inline DisjointSet& operator=(const DisjointSet& copy) 
+    {
+      SetCapacityDiscard(copy._capacity);
+      memcpy(_array, copy._array, _capacity * sizeof(T));
+      _numsets = copy._numsets;
+      return *this;
+    }
+    inline DisjointSet& operator=(DisjointSet&& mov) 
+    {
+      ARRAY::operator=(std::move(mov)); 
+      _numsets = mov._numsets;
+      return *this;
+    }
 
   protected:
     BSS_FORCEINLINE bool _invalidIndex(T s) const { return s >= _capacity || _array[s] >= 0; }

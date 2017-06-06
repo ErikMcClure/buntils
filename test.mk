@@ -8,7 +8,7 @@ INCLUDE_DIRS := include
 LIBRARY_DIRS := 
 LIBRARIES := bss-util rt pthread
 
-CPPFLAGS += -w -std=gnu++11 -pthread
+CPPFLAGS += -w -std=c++11 -pthread
 LDFLAGS += -L./bin/
 
 include base.mk

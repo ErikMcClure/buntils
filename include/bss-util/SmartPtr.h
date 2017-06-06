@@ -38,10 +38,35 @@ namespace bss {
     BSS_FORCEINLINE const _Ty* operator->() const { return _p; }
     BSS_FORCEINLINE _Ty& operator*() { return *_p; }
     BSS_FORCEINLINE const _Ty& operator*() const { return *_p; }
-    inline OwnerPtr& operator=(const internal::OwnerPtrRef<_Ty>& right) { _disown(); _p = right._p; _owner = true; return *this; }
-    inline OwnerPtr& operator=(const OwnerPtr& right) { _disown(); _p = right._p; _owner = false; return *this; }
-    inline OwnerPtr& operator=(_Ty& ref) { _disown(); _p = &ref; _owner = false; return *this; }
-    inline OwnerPtr& operator=(OwnerPtr&& right) { _disown(); _p = right._p; _owner = true; right._owner = false; return *this; }
+    inline OwnerPtr& operator=(const internal::OwnerPtrRef<_Ty>& right) 
+    { 
+      _disown();
+      _p = right._p; 
+      _owner = true;
+      return *this; 
+    }
+    inline OwnerPtr& operator=(const OwnerPtr& right)
+    {
+      _disown();
+      _p = right._p;
+      _owner = false;
+      return *this;
+    }
+    inline OwnerPtr& operator=(_Ty& ref) 
+    {
+      _disown();
+      _p = &ref;
+      _owner = false;
+      return *this;
+    }
+    inline OwnerPtr& operator=(OwnerPtr&& right)
+    { 
+      _disown(); 
+      _p = right._p; 
+      _owner = true; 
+      right._owner = false;
+      return *this; 
+    }
 
   protected:
     BSS_FORCEINLINE void _disown() const { if(_owner) { _Dy::operator()(_p); } }

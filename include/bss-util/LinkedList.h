@@ -143,7 +143,8 @@ namespace bss {
     // Inserts the item before the given node. If the given node is null, appends the item to the end of the list
     inline LLNode<T>* Insert(T item, LLNode<T>* target)
     {
-      if(!target) return Add(item);
+      if(!target)
+        return Add(item);
 
       LLNode<T>* hold = _createNode(item, target->prev, target);
       if(target->prev != 0) target->prev->next = hold;
@@ -174,12 +175,14 @@ namespace bss {
     {
       LLNode<T>* hold = _root;
       LLNode<T>* nexthold;
+
       while(hold)
       {
         nexthold = hold->next;
         _deleteNode(hold);
         hold = nexthold;
       }
+
       bssFill(*this, 0);
     }
 
@@ -194,7 +197,9 @@ namespace bss {
     template<typename U, bool V>
     inline LinkedList& operator =(LinkedList<T, U, useLast, V>&& mov)
     {
-      if(&mov == this) return *this;
+      if(&mov == this)
+        return *this;
+
       Clear();
       internal::LList_LAST<T, useLast>::operator=(std::move(mov));
       internal::LList_SIZE<useSize>::operator=(mov);
@@ -206,6 +211,7 @@ namespace bss {
     {
       for(LLNode<T>* cur = right._root; cur != 0; cur = cur->next)
         Add(cur->item);
+
       return *this;
     }
     inline const LinkedList operator +(const LinkedList& add) const

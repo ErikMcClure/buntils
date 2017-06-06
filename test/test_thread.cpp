@@ -12,10 +12,12 @@ TESTDEF::RETPAIR test_THREAD()
 {
   BEGINTEST;
   uint64_t m;
-  Thread t([](uint64_t& m) {Thread::Wait(); m = HighPrecisionTimer::CloseProfiler(m); }, std::ref(m));
+  Semaphore s;
+
+  Thread t([](uint64_t& m, Semaphore& s) { s.Wait(); m = HighPrecisionTimer::CloseProfiler(m); }, std::ref(m), std::ref(s));
   TEST(t.join(2) == -1);
   m = HighPrecisionTimer::OpenProfiler();
-  t.Signal();
+  s.Notify();
   TEST(t.join(1000) != (size_t)-1);
   //std::cout << "\n" << m << std::endl;
   //while(i > 0)

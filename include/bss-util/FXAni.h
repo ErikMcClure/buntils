@@ -34,6 +34,7 @@ namespace bss {
     {
       _time += delta;
       bool finish = (_length == 0.0);
+
       for(auto& p : _anistates)
       {
         if(_time >= p.delay)
@@ -50,6 +51,7 @@ namespace bss {
         else // if we haven't even created the state it obviously isn't finished
           finish = false;
       }
+
       return finish || (_length > 0 && _time >= _length);
     }
 
@@ -108,10 +110,12 @@ namespace bss {
     static bool InterpolateObjects(double delta, LinkedArray<FXObject<FXManager>*>& objs, ALLOCOBJ& allocobj, ALLOCSTATE& allocstate)
     {
       bool finish = true;
+
       for(size_t i = objs.Front(); i != -1; )
       {
         size_t hold = i;
         objs.Next(i);
+
         if(objs[hold]->Interpolate(delta))
         {
           objs[hold]->~FXObject<FXManager>();
@@ -121,6 +125,7 @@ namespace bss {
         else
           finish = false;
       }
+
       return finish;
     }
     STATE* SpawnState(OBJ& obj, ANI& ani)
@@ -252,10 +257,10 @@ namespace bss {
       FXANI* fxani = static_cast<FXANI*>(_ani);
       _time += delta;
       Def* def = (Def*)_ani->GetArray();
+
       while(_cur < _ani->GetSize() && def[_cur].time <= _time)
       {
-        FXOBJ* obj = fxani->CreateFXObj(_cur++, _time);
-        if(obj)
+        if(FXOBJ* obj = fxani->CreateFXObj(_cur++, _time))
           _objs.Add(obj);
       }
 

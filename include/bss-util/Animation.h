@@ -72,9 +72,22 @@ namespace bss {
     Animation(const Animation& copy) : AniBase(copy), _frames(copy._frames), _f(copy._f) {}
     Animation(const FRAME* src, uint32_t len, FUNC f = 0) : AniBase(sizeof(T)), _f(f) { Set(src, len); }
     virtual ~Animation() {}
-    inline uint32_t Add(const FRAME& frame) { uint32_t r = _frames.Insert(frame); _calc = _frames.Back().time; return r; }
-    inline uint32_t Add(double time, const T& value) { FRAME f = { time, value }; return Add(f); }
-    inline void Set(const FRAME* src, uint32_t len) { _frames = ArraySlice<const FRAME, uint32_t>(src, len); _calc = _frames.Back().time; }
+    inline uint32_t Add(const FRAME& frame)
+    { 
+      uint32_t r = _frames.Insert(frame);
+      _calc = _frames.Back().time;
+      return r;
+    }
+    inline uint32_t Add(double time, const T& value)
+    { 
+      FRAME f = { time, value };
+      return Add(f);
+    }
+    inline void Set(const FRAME* src, uint32_t len)
+    { 
+      _frames = ArraySlice<const FRAME, uint32_t>(src, len);
+      _calc = _frames.Back().time;
+    }
     inline const FRAME& Get(uint32_t index) const { return _frames[index]; }
     inline bool Remove(uint32_t index) { return _frames.Remove(index); }
     virtual uint32_t GetSize() const { return _frames.Length(); }
@@ -110,10 +123,29 @@ namespace bss {
     AnimationInterval(AnimationInterval&& mov) : BASE(std::move(mov)) {}
     AnimationInterval(const typename BASE::FRAME* src, uint32_t len, typename BASE::FUNC f = 0) : BASE(src, len, f) { _recalcLength(); }
     virtual ~AnimationInterval() {}
-    inline uint32_t Add(const typename BASE::FRAME& frame) { uint32_t r = BASE::Add(frame); _checkIndex(r); return r; }
-    inline uint32_t Add(double time, const T& value, const double& data) { typename BASE::FRAME f = { time, value, data }; return Add(f); }
-    inline void Set(const typename BASE::FRAME* src, uint32_t len) { BASE::Set(src, len); _recalcLength(); }
-    inline bool Remove(uint32_t index) { bool r = BASE::Remove(index); if(r) _recalcLength(); return r; }
+    inline uint32_t Add(const typename BASE::FRAME& frame)
+    { 
+      uint32_t r = BASE::Add(frame);
+      _checkIndex(r);
+      return r;
+    }
+    inline uint32_t Add(double time, const T& value, const double& data)
+    { 
+      typename BASE::FRAME f = { time, value, data };
+      return Add(f);
+    }
+    inline void Set(const typename BASE::FRAME* src, uint32_t len)
+    { 
+      BASE::Set(src, len);
+      _recalcLength();
+    }
+    inline bool Remove(uint32_t index)
+    { 
+      bool r = BASE::Remove(index);
+      if(r)
+        _recalcLength();
+      return r;
+    }
     virtual AniBase* Clone() const { return new AnimationInterval(*this); }
 
     AnimationInterval& operator=(AnimationInterval&& mov) { BASE::operator=(std::move(mov)); return *this; }
@@ -199,14 +231,17 @@ namespace bss {
       auto v = (typename Animation<T, D>::FRAME*)_ani->GetArray();
       double loop = _ani->GetLoop();
       double length = _ani->GetLength();
+
       while(_cur < svar && v[_cur].time <= _time)
         _set(v[_cur++].value); // We call all the discrete values because many discrete values are interdependent on each other.
+
       if(_time >= length && loop >= 0.0) // We do the loop check down here because we need to finish calling all the discrete values on the end of the animation before looping
       {
         _cur = 0; // We can't call Reset() here because _time contains information we need.
         _time = fmod(_time - length, length - loop);// + loop; // instead of adding loop here we just pass loop into Interpolate, which adds it.
         return Interpolate(loop); // because we used fmod, it is impossible for this to result in another loop.
       }
+
       return _time < length;
     }
 
@@ -239,13 +274,16 @@ namespace bss {
       auto f = (typename Animation<T, D>::FUNC)_ani->GetFunc();
       double loop = _ani->GetLoop();
       double length = _ani->GetLength();
+
       if(_time >= length && loop >= 0.0)
       {
         _cur = 0;
         _time = fmod(_time - length, length - loop) + loop;
       }
 
-      while(_cur < svar && v[_cur].time <= _time) ++_cur;
+      while(_cur < svar && v[_cur].time <= _time)
+        ++_cur;
+
       if(_cur >= svar)
       { //Resolve the animation, but only if there was more than 1 keyframe, otherwise we'll break it.
         if(svar > 1)
@@ -256,6 +294,7 @@ namespace bss {
         double hold = !_cur ? 0.0 : v[_cur - 1].time;
         BASE::_set(f(v, svar, _cur, (_time - hold) / (v[_cur].time - hold), _init));
       }
+
       return _time < length;
     }
 
@@ -318,11 +357,13 @@ namespace bss {
     {
       U r;
       U a = (U)0;
+
       for(int i = 0; i < I; ++i)
       {
         r = BezierD<U>(s, p0[i], p1[i], p2[i]);
         a += r * r;
       }
+
       return FastSqrt<U>(r);
     }
     static inline T QuadraticInterpolateBase(const typename Animation<T, AniQuadData<T, LENGTH>>::FRAME* v, uint32_t l, uint32_t cur, double t, const T& init)
@@ -360,11 +401,13 @@ namespace bss {
     {
       U r;
       U a = (U)0;
+
       for(int i = 0; i < I; ++i)
       {
         r = BezierD<U>(s, p0[i], p1[i], p2[i], p3[i]);
         a += r * r;
       }
+
       return FastSqrt<U>(r);
     }
     static inline T CubicInterpolateBase(const typename Animation<T, AniCubicData<T, LENGTH>>::FRAME* v, uint32_t l, uint32_t cur, double t, const T& init)
@@ -415,6 +458,7 @@ namespace bss {
 
       while(_cur < svar && v[_cur].time <= _time)
         _addToQueue(v[_cur++]); // We call all the discrete values because many discrete values are interdependent on each other.
+
       if(_time >= length && loop >= 0.0) // We do the loop check down here because we need to finish calling all the discrete values on the end of the animation before looping
       {
         _cur = 0; // We can't call Reset() here because _time contains information we need.
@@ -422,8 +466,10 @@ namespace bss {
         _time = fmod(_time - length, length - loop);// + loop; // instead of adding loop here we just pass loop into Interpolate, which adds it.
         return Interpolate(loop); // because we used fmod, it is impossible for this to result in another loop.
       }
+
       while(!_queue.Empty() && _queue.Peek().first <= _time)
         _remove(_queue.Pop().second);
+
       return _time < length;
     }
   protected:
@@ -434,6 +480,7 @@ namespace bss {
       while(!_queue.Empty()) // Correctly remove everything currently on the queue
         _remove(_queue.Pop().second);
     }
+
     Delegate<void, AUX> _remove; //Delegate for removal
     PriorityQueue<double, AUX, CompT<double>, uint32_t, ARRAY_SIMPLE, QUEUEALLOC> _queue;
   };

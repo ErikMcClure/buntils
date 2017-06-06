@@ -52,12 +52,16 @@ namespace bss {
       uint32_t line;
       ProfilerInt id;
 
-      inline ProfilerData(const char* Name, const char* File, uint32_t Line) : name(Name), file(File), line(Line), id(++total) { Profiler::profiler.AddData(id, this); }
+      inline ProfilerData(const char* Name, const char* File, uint32_t Line) : name(Name), file(File), line(Line), id(++total) 
+      { 
+        Profiler::profiler.AddData(id, this); 
+      }
     };
 
     BSS_FORCEINLINE uint64_t StartProfile(ProfilerInt id)
     {
       PROF_TRIENODE** r = &_cur;
+
       while(id > 0)
       {
         r = &(*r)->_children[id % 16];
@@ -65,6 +69,7 @@ namespace bss {
         if(!*r)
           *r = _allocNode();
       }
+
       _cur = *r;
       if(_cur->total == (uint64_t)-1)
         _cur->total = 0;
@@ -111,14 +116,16 @@ namespace bss {
 
   inline static bool __DEBUG_VERIFY(Profiler::PROF_TRIENODE* node)
   {
-    if(!node) return true;
+    if(!node)
+      return true;
+
     if(!std::isfinite(node->avg) || !std::isfinite(node->codeavg))
-    {
       return false;
-    }
+
     for(int i = 0; i < 16; ++i)
       if(!__DEBUG_VERIFY(node->_children[i]))
         return false;
+
     return true;
   }
 

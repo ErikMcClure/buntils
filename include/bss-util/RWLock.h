@@ -42,6 +42,7 @@ namespace bss {
     {
       if(asmbts<size_t>((size_t*)&l, WBIT)) // If another writer already has the lock, give up
         return false;
+
       //assert(debugEmplace());
       while((l.load(std::memory_order_relaxed)&WMASK) > 0); // Wait for any remaining readers to flush
       return true;
@@ -83,6 +84,7 @@ namespace bss {
         l.fetch_sub(ONE_READER, std::memory_order_release);
         return false;
       }
+
       //assert(debugEmplace());
       return true;
     }
@@ -108,6 +110,7 @@ namespace bss {
       assert((l.load(std::memory_order_relaxed)&WMASK) > 0);
       if(asmbts<size_t>((size_t*)&l, WBIT))
         return false;
+
       //assert(debugCount() == 1);
       while((l.load(std::memory_order_relaxed)&WMASK) > ONE_READER); // Only flush to a single read lock, which will be our own
       return true;

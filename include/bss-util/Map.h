@@ -9,7 +9,11 @@
 
 namespace bss {
   // A map class implemented as an associative sorted array
-  template<class Key, class Data, char(*CFunc)(const Key&, const Key&) = CompT<Key>, typename CType = size_t, ARRAY_TYPE ArrayType = ARRAY_SIMPLE, typename Alloc = StaticAllocPolicy<std::pair<Key, Data>>>
+  template<class Key,
+    class Data,
+    char(*CFunc)(const Key&, const Key&) = CompT<Key>,
+    typename CType = size_t, ARRAY_TYPE ArrayType = ARRAY_SIMPLE,
+    typename Alloc = StaticAllocPolicy<std::pair<Key, Data>>>
   class BSS_COMPILER_DLLEXPORT Map : protected ArraySort<std::pair<Key, Data>, CompTFirst<std::pair<Key, Data>, CFunc>, CType, ArrayType, Alloc>
   {
   protected:
@@ -35,7 +39,12 @@ namespace bss {
     BSS_FORCEINLINE CT_ RemoveIndex(CT_ index) { return cArraySort_t::Remove(index); }
     BSS_FORCEINLINE CT_ Replace(CT_ index, CKEYREF key, constref data) { return cArraySort_t::ReplaceData(index, pair_t(key, data)); }
     BSS_FORCEINLINE CT_ Replace(CT_ index, CKEYREF key, Data&& data) { return cArraySort_t::ReplaceData(index, pair_t(key, std::move(data))); }
-    inline CT_ ReplaceKey(CT_ index, CKEYREF key) { if(index < 0 || index >= Length()) return (CT_)(-1); return cArraySort_t::ReplaceData(index, pair_t(key, _array[index].second)); }
+    inline CT_ ReplaceKey(CT_ index, CKEYREF key) 
+    {
+      if(index < 0 || index >= Length())
+        return (CT_)(-1); 
+      return cArraySort_t::ReplaceData(index, pair_t(key, _array[index].second));
+    }
     BSS_FORCEINLINE CKEYREF KeyIndex(CT_ index) const { return cArraySort_t::operator [](index).first; }
     BSS_FORCEINLINE const Data& DataIndex(CT_ index) const { return cArraySort_t::operator [](index).second; }
     BSS_FORCEINLINE CT_ Length() const { return cArraySort_t::Length(); }

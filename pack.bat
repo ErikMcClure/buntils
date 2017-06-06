@@ -28,7 +28,7 @@ XCOPY "bin\bss-util*.pdb" "..\Packages\bss-util\bin" /C /I /Y
 XCOPY "bin32\bss-util*.dll" "..\Packages\bss-util\bin32" /C /I /Y
 XCOPY "bin32\bss-util*.lib" "..\Packages\bss-util\bin32" /C /I /Y
 XCOPY "bin32\bss-util*.pdb" "..\Packages\bss-util\bin32" /C /I /Y
-XCOPY "bin\test*.exe" "..\Packages\bss-util\bin" /C /I /Y
-XCOPY "bin32\test*.exe" "..\Packages\bss-util\bin32" /C /I /Y
+XCOPY "bin\test.exe" "..\Packages\bss-util\bin" /C /I /Y
+XCOPY "bin32\test.exe" "..\Packages\bss-util\bin32" /C /I /Y
 
 Pause

@@ -77,7 +77,10 @@ namespace bss {
     template<uint8_t B, typename U, bool S>
     inline Fixed& operator=(const Fixed<B, U, S>& right) { _bits = (T)SAFESHIFT(right.Bits(), B - D); return *this; }
 
-    inline Fixed<(sizeof(T) << 3) - D, T, SATURATE> Reciprocal() const { return Fixed<(sizeof(T) << 3) - D, T, SATURATE>(BITS {fixedpt_recip(_bits) << 2 }); } // Shift to the right because the actual resulting decimal bits is (sizeof(T) << 3) - 2 - B
+    inline Fixed<(sizeof(T) << 3) - D, T, SATURATE> Reciprocal() const
+    { 
+      return Fixed<(sizeof(T) << 3) - D, T, SATURATE>(BITS {fixedpt_recip(_bits) << 2 }); // Shift to the right because the actual resulting decimal bits is (sizeof(T) << 3) - 2 - B
+    } 
     inline Fixed operator -(void) const { return BITS { -_bits }; }
 
     inline Fixed& operator%=(const Fixed& r) { _bits %= r._bits; return *this; }

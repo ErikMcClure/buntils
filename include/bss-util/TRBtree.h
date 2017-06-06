@@ -23,6 +23,7 @@ namespace bss {
       inline TRB_NodeBase(TRB_NodeBase&& mov, T*& root, T*& first, T*& last, T* pNIL)
       {
         parent = mov.parent;
+
         if(parent)
         {
           if(parent->left == &mov) parent->left = this;
@@ -42,6 +43,7 @@ namespace bss {
         prev = mov.prev;
         if(prev) { assert(prev->next == &mov); prev->next = this; }
         else { assert(root == &mov); root = this; }
+
         color = mov.color;
         mov.left = pNIL;
         mov.right = pNIL;
@@ -129,6 +131,7 @@ namespace bss {
           else
           {
             parent->right = node;
+
             if(parent->next != 0 && parent->next->color == -1) // This is required to support duplicate nodes
             { // What can happen is you get here with a value greater than the parent, then try to insert after the parent... but any duplicate values would then be ahead of you.
               if((parent = _treeNextSub(parent)) == 0) last = LLAddAfter(node, last);
@@ -186,6 +189,7 @@ namespace bss {
           if(node->parent == node->parent->parent->left)
           {
             T* y = node->parent->parent->right;
+
             if(y->color == 1)
             {
               node->parent->color = 0;
@@ -209,6 +213,7 @@ namespace bss {
           else
           {
             T* y = node->parent->parent->left;
+
             if(y->color == 1)
             {
               node->parent->color = 0;
@@ -223,6 +228,7 @@ namespace bss {
                 node = node->parent;
                 _rightRotate(node, root, pNIL);
               }
+
               node->parent->color = 0;
               node->parent->parent->color = 1;
               _leftRotate(node->parent->parent, root, pNIL);
@@ -261,6 +267,7 @@ namespace bss {
                 _rightRotate(w, root, pNIL);
                 w = node->parent->right;
               }
+
               w->color = node->parent->color;
               node->parent->color = 0;
               w->right->color = 0;
@@ -293,6 +300,7 @@ namespace bss {
                 _leftRotate(w, root, pNIL);
                 w = node->parent->left;
               }
+
               w->color = node->parent->color;
               node->parent->color = 0;
               w->left->color = 0;
@@ -384,7 +392,9 @@ namespace bss {
     // Removes the given node. Returns false if node is null
     BSS_FORCEINLINE bool Remove(TRB_Node<T>* node)
     {
-      if(!node) return false;
+      if(!node) 
+        return false;
+
       TRB_Node<T>::RemoveNode(node, _root, _first, _last, &NIL);
       node->~TRB_Node();
       AllocTracker<Alloc>::_deallocate(node, 1);

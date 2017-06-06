@@ -367,10 +367,15 @@ namespace bss {
     inline void RemoveLast() { --_length; }
     inline void SetElement(const void* newarray, CT_ element, CT_ num) // num is a count of how many elements are in the array
     {
-      if(((uint8_t*)newarray) == _array) return;
+      if(((uint8_t*)newarray) == _array)
+        return;
+
       _element = element;
       _length = num;
-      if((_length*_element) > _capacity) AT_::SetCapacityDiscard(_length*_element);
+
+      if((_length*_element) > _capacity)
+        AT_::SetCapacityDiscard(_length*_element);
+
       if(_array)
         memcpy(_array, newarray, element*num);
     }
@@ -380,13 +385,17 @@ namespace bss {
     BSS_FORCEINLINE void SetElement(const T(&newarray)[NUM]) { SetElement(newarray, sizeof(T), NUM); }
     void SetElement(CT_ element)
     {
-      if(element == _element) return;
+      if(element == _element)
+        return;
+
       _capacity = element*_length;
       uint8_t* narray = !_length ? 0 : (uint8_t*)Alloc::allocate(_capacity);
       memset(narray, 0, _capacity);
       CT_ m = std::min<CT_>(element, _element);
+
       for(CT_ i = 0; i < _length; ++i)
         memcpy(narray + (i*element), _array + (i*_element), m);
+
       AT_::_free(_array);
       _array = narray;
       _element = element;
@@ -413,8 +422,21 @@ namespace bss {
 
     inline const void* operator[](CT_ index) const { return Get(index); }
     inline void* operator[](CT_ index) { return Get(index); }
-    inline ArbitraryArray& operator=(const ArbitraryArray& copy) { SetCapacityDiscard(copy._capacity); memcpy(_array, copy._array, _capacity); _length = copy._length; _element = copy._element; return *this; }
-    inline ArbitraryArray& operator=(ArbitraryArray&& mov) { AT_::operator=(std::move(mov)); _length = mov._length; _element = mov._element; return *this; }
+    inline ArbitraryArray& operator=(const ArbitraryArray& copy) 
+    { 
+      SetCapacityDiscard(copy._capacity); 
+      memcpy(_array, copy._array, _capacity);
+      _length = copy._length; 
+      _element = copy._element;
+      return *this; 
+    }
+    inline ArbitraryArray& operator=(ArbitraryArray&& mov) 
+    { 
+      AT_::operator=(std::move(mov)); 
+      _length = mov._length;
+      _element = mov._element; 
+      return *this; 
+    }
 
   protected:
     CT_ _length; // Total length of the array in number of elements

@@ -23,7 +23,11 @@ namespace bss {
   public:
     // Constructors
     inline ArrayCircular(const ArrayCircular& copy) : AT_(0), _cur(-1), _length(0) { operator=(copy); }
-    inline ArrayCircular(ArrayCircular&& mov) : AT_(std::move(mov)), _cur(mov._cur), _length(mov._length) { mov._cur = -1; mov._length = 0; }
+    inline ArrayCircular(ArrayCircular&& mov) : AT_(std::move(mov)), _cur(mov._cur), _length(mov._length)
+    { 
+      mov._cur = -1;
+      mov._length = 0;
+    }
     inline explicit ArrayCircular(CType size = 0) : AT_(size), _cur(-1), _length(0) {}
     inline ~ArrayCircular() { Clear(); }
     BSS_FORCEINLINE void Push(const T& item) { _push<const T&>(item); }
@@ -128,6 +132,7 @@ namespace bss {
     inline void _push(U && item)
     {
       _cur = ((_cur + 1) % _capacity);
+
       if(_length < _capacity)
       {
         new(_array + _cur) T(std::forward<U>(item));

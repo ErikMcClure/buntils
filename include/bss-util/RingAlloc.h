@@ -50,19 +50,25 @@ namespace bss {
       size_t n = num + sizeof(Node);
       Bucket* cur;
       size_t r, rend;
+
       for(;;)
       {
         cur = _cur.load(std::memory_order_acquire);
+
         if(!cur->lock.AttemptRLock()) // If this fails we probably got a bucket that was in the middle of being recycled
           continue;
+
         r = cur->reserved.fetch_add(n, std::memory_order_acq_rel);
         rend = r + n;
+
         if(rend > cur->sz) // If we went over the limit, we'll have to grab another bucket
         {
           cur->reserved.fetch_sub(n, std::memory_order_release);
           cur->lock.RUnlock();
+
           if(!r) // If r was zero, it's theoretically possible for this bucket to get orphaned, so we send it into the _checkRecycle function
             _checkRecycle(cur); // Even if someone else acquires the lock before this runs, either the allocation will succeed or this check will
+
           if(!_lock.test_and_set(std::memory_order_acq_rel))
           {
             _cur.store(_genBucket(n), std::memory_order_release);
@@ -119,6 +125,7 @@ namespace bss {
     void _clear()
     {
       Bucket* hold;
+
       while(_list != 0)
       {
         hold = _list;
@@ -126,6 +133,7 @@ namespace bss {
         //assert(!hold->lock.ReaderCount()); // This check only works in single-threaded scenarios for testing purposes. In real world scenarios, ReaderCount can sporadically be nonzero due to attempted readlocks that haven't been undone yet.
         free(hold);
       }
+
       _gc.p = 0;
       _gc.tag = 0;
       _cur.store(0, std::memory_order_release);
@@ -133,19 +141,22 @@ namespace bss {
     // It is crucial that only allocation sizes are passed into this, or the ring allocator will simply keep allocating larger and larger buckets forever
     Bucket* _genBucket(size_t num) noexcept
     {
-      if(_lastsize < num) _lastsize = num;
+      if(_lastsize < num)
+        _lastsize = num;
 
       // If there are buckets in _gc, see if they are big enough. If they aren't, throw them out
       bss_PTag<Bucket> prev = { 0, 0 };
       bss_PTag<Bucket> nval = { 0, 0 };
       asmcasr<bss_PTag<Bucket>>(&_gc, prev, prev, prev);
       Bucket* hold;
+
       while((hold = prev.p) != 0)
       {
         nval.p = prev.p->next;
         nval.tag = prev.tag + 1;
         if(!asmcasr<bss_PTag<Bucket>>(&_gc, nval, prev, prev)) // Loop until we atomically extract the first bucket from GC
           continue;
+
         if(hold->sz < num) // If a bucket is too small for this allocation, destroy it
         {
           AltLLRemove<Bucket, &_getBucket>(hold, _list);

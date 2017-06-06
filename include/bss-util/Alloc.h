@@ -69,6 +69,7 @@ namespace bss {
     class AllocTrackerBase
     {
       typedef typename _Ax::pointer pointer;
+
     public:
       inline AllocTrackerBase(const AllocTrackerBase& copy) : _allocator(copy._alloc_extern ? copy._allocator : new _Ax()), _alloc_extern(copy._alloc_extern) {}
       inline AllocTrackerBase(AllocTrackerBase&& mov) : _allocator(mov._allocator), _alloc_extern(mov._alloc_extern) { mov._alloc_extern = true; }
@@ -77,8 +78,27 @@ namespace bss {
       inline pointer _allocate(size_t cnt, const pointer p = 0) noexcept { return _allocator->allocate(cnt, p); }
       inline void _deallocate(pointer p, size_t s = 0) noexcept { _allocator->deallocate(p, s); }
 
-      inline AllocTrackerBase& operator =(const AllocTrackerBase& copy) noexcept { if(&copy == this) return *this; if(!_alloc_extern) delete _allocator; _allocator = copy._alloc_extern ? copy._allocator : new _Ax(); _alloc_extern = copy._alloc_extern; return *this; }
-      inline AllocTrackerBase& operator =(AllocTrackerBase&& mov) noexcept { if(&mov == this) return *this; if(!_alloc_extern) delete _allocator; _allocator = mov._allocator; _alloc_extern = mov._alloc_extern; mov._alloc_extern = true; return *this; }
+      inline AllocTrackerBase& operator =(const AllocTrackerBase& copy) noexcept
+      { 
+        if(&copy == this) 
+          return *this; 
+        if(!_alloc_extern) 
+          delete _allocator; 
+        _allocator = copy._alloc_extern ? copy._allocator : new _Ax(); 
+        _alloc_extern = copy._alloc_extern; 
+        return *this;
+      }
+      inline AllocTrackerBase& operator =(AllocTrackerBase&& mov) noexcept
+      { 
+        if(&mov == this) 
+          return *this; 
+        if(!_alloc_extern) 
+          delete _allocator; 
+        _allocator = mov._allocator; 
+        _alloc_extern = mov._alloc_extern; 
+        mov._alloc_extern = true; 
+        return *this; 
+      }
 
     protected:
       _Ax* _allocator;
@@ -90,6 +110,7 @@ namespace bss {
     class AllocTrackerBase<T, StandardAllocPolicy<T>>
     {
       typedef typename StandardAllocPolicy<T>::pointer pointer;
+
     public:
       inline explicit AllocTrackerBase(StandardAllocPolicy<T>* ptr = 0) {}
       inline pointer _allocate(size_t cnt, const pointer = 0) noexcept { return (T*)malloc(cnt * sizeof(T)); }
@@ -102,6 +123,7 @@ namespace bss {
   class AllocTracker : public internal::AllocTrackerBase<typename _Ax::value_type, _Ax>
   {
     typedef internal::AllocTrackerBase<typename _Ax::value_type, _Ax> BASE;
+
   public:
     inline AllocTracker(const AllocTracker& copy) : BASE(copy) {}
     inline AllocTracker(AllocTracker&& mov) : BASE(std::move(mov)) {}

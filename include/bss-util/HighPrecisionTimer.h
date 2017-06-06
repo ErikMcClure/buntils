@@ -52,7 +52,12 @@ namespace bss {
     // Resets the time to 0 (preserves delta)
     inline void ResetTime() { _time = 0; _nsTime = 0; }
     // Resets the delta to 0, and resamples the timer.
-    inline void ResetDelta() { _queryTime(&_curTime); _delta = 0; _nsDelta = 0; }
+    inline void ResetDelta() 
+    {
+      _queryTime(&_curTime);
+      _delta = 0; 
+      _nsDelta = 0; 
+    }
 
     // Converts two nanosecond counts to seconds and returns the difference as a double.
     BSS_FORCEINLINE static double NanosecondDiff(uint64_t now, uint64_t old) { return (now - old) / 1000000000.0; }

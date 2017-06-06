@@ -662,8 +662,10 @@ namespace bss {
       if(e.in->peek() == ']')
       {
         e.in->get();
+
         if(e.in->peek() == ']')
           e.in->get();
+
         internal::ParseTOMLPairs(e, *e.in, f);
       }
       else
@@ -671,6 +673,7 @@ namespace bss {
       break;
     case 0:
       internal::ParseTOMLEatWhitespace(*e.in);
+
       if(e.in->peek() == '{')
       {
         e.in->get();
@@ -697,6 +700,7 @@ namespace bss {
     inline void WriteTOMLTables(Serializer<TOMLEngine>& e, const char* id, const T& obj, std::ostream& s)
     {
       Str last = e.engine.id;
+
       if(e.engine.id.size())
         e.engine.id += '.';
       e.engine.id += id;
@@ -707,12 +711,16 @@ namespace bss {
     template<class T>
     inline void WriteTOMLArray(Serializer<TOMLEngine>& e, const char* id, const T* obj, size_t size, std::ostream& s)
     {
-      if(e.engine.state == 1) return;
+      if(e.engine.state == 1)
+        return;
+
       WriteTOMLId(e, id, s);
       s << '[';
       e.engine.first = true;
+
       for(uint32_t i = 0; i < size; ++i)
         WriteTOMLBase(e, 0, obj[i], s);
+
       s << ']';
       if(e.engine.state != 2 && id) s << std::endl;
     }
@@ -770,10 +778,13 @@ namespace bss {
     {
       static void F(Serializer<TOMLEngine>& e, const char* id, const T& obj, std::ostream& s)
       {
-        if(e.engine.state == 1) return;
+        if(e.engine.state == 1)
+          return;
+
         WriteTOMLId(e, id, s);
         s << obj;
-        if(e.engine.state != 2 && id) s << std::endl;
+        if(e.engine.state != 2 && id)
+          s << std::endl;
       }
     };
 
@@ -805,9 +816,12 @@ namespace bss {
   template<>
   void WriteTOMLBase<std::string>(Serializer<TOMLEngine>& e, const char* id, const std::string& obj, std::ostream& s)
   {
-    if(e.engine.state == 1) return;
+    if(e.engine.state == 1)
+      return;
+
     internal::WriteTOMLId(e, id, s);
     s << '"';
+
     for(uint32_t i = 0; i < obj.size(); ++i)
     {
       switch(obj[i])
@@ -822,8 +836,10 @@ namespace bss {
       default: s << obj[i]; break;
       }
     }
+
     s << '"';
-    if(e.engine.state != 2 && id) s << std::endl;
+    if(e.engine.state != 2 && id)
+      s << std::endl;
   }
 
   template<>
@@ -831,20 +847,26 @@ namespace bss {
   template<>
   void WriteTOMLBase<bool>(Serializer<TOMLEngine>& e, const char* id, const bool& obj, std::ostream& s)
   {
-    if(e.engine.state == 1) return;
+    if(e.engine.state == 1) 
+      return;
+
     internal::WriteTOMLId(e, id, s);
     s << (obj ? "true" : "false");
-    if(e.engine.state != 2 && id) s << std::endl;
+    if(e.engine.state != 2 && id) 
+      s << std::endl;
   }
 #ifdef BSS_COMPILER_HAS_TIME_GET
   template<>
   void WriteTOMLBase<std::chrono::system_clock::time_point>(Serializer<TOMLEngine>& e, const char* id, const std::chrono::system_clock::time_point& obj, std::ostream& s)
   {
-    if(e.engine.state == 1) return;
+    if(e.engine.state == 1) 
+      return;
+
     internal::WriteTOMLId(e, id, s);
     time_t time = std::chrono::system_clock::to_time_t(obj);
     s << std::put_time(gmtime(&time), "%Y-%m-%dT%H:%M:%S+00:00");
-    if(e.engine.state != 2 && id) s << std::endl;
+    if(e.engine.state != 2 && id) 
+      s << std::endl;
   }
 #endif
 

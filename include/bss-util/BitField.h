@@ -14,7 +14,11 @@ namespace bss {
     struct BSS_COMPILER_DLLEXPORT _BIT_REF
     {
       inline _BIT_REF(T bit, T& bits) : _bit(bit), _bits(bits) {}
-      inline _BIT_REF& operator=(bool right) { _bits = T_SETBIT(_bits, _bit, right, typename std::make_signed<T>::type); return *this; }
+      inline _BIT_REF& operator=(bool right) 
+      { 
+        _bits = T_SETBIT(_bits, _bit, right, typename std::make_signed<T>::type); 
+        return *this; 
+      }
       BSS_FORCEINLINE _BIT_REF& operator=(const _BIT_REF& right) { return operator=((bool)right); }
       BSS_FORCEINLINE operator bool() const { return (_bits&_bit) != 0; }
       inline void flip() { _bits ^= _bit; }
@@ -40,7 +44,7 @@ namespace bss {
   {
   public:
     // Initializes the bitfield with the given flag values, if any
-    inline explicit BitField(T init = 0) : _bits(init) {}
+    inline explicit BitField(T bits = 0) : _bits(bits) {}
     // Sets the entire bitfield to the given value
     BSS_FORCEINLINE void Set(T bits) { _bits = bits; }
     BSS_FORCEINLINE void Set(T bits, T mask) { _bits ^= (bits ^ (_bits&mask)); }

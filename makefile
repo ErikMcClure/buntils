@@ -18,3 +18,9 @@ distclean:
 debug:
 	make debug -f bss-util.mk
 	make debug -f test.mk
+
+install: all
+	make install -f bss-util.mk
+  
+uninstall:
+	make uninstall -f bss-util.mk

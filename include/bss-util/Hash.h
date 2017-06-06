@@ -40,7 +40,10 @@ namespace bss {
               new(n + i) T(std::move(src[i]));
           }
         }
-        if(src) Alloc::deallocate((char*)src);
+
+        if(src) 
+          Alloc::deallocate((char*)src);
+
         return n;
       }
     };
@@ -99,9 +102,12 @@ namespace bss {
     ~HashBase()
     {
       Clear(); // calls all destructors.
-      if(flags) Alloc::deallocate((char*)flags);
-      if(keys) Alloc::deallocate((char*)keys);
-      if(vals) Alloc::deallocate((char*)vals);
+      if(flags) 
+        Alloc::deallocate((char*)flags);
+      if(keys) 
+        Alloc::deallocate((char*)keys);
+      if(vals) 
+        Alloc::deallocate((char*)vals);
     }
 
     template<bool U = IsMap>
@@ -126,6 +132,7 @@ namespace bss {
           if(!__ac_iseither(flags, i))
           {
             keys[i].~Key();
+
             if(IsMap)
               vals[i].~Data();
           }
@@ -158,13 +165,17 @@ namespace bss {
     inline bool Remove(const Key& key)
     {
       khiter_t iterator = Iterator(key);
-      if(n_buckets == iterator) return false; // This isn't ExistsIter because _get will return n_buckets if key doesn't exist
+      if(n_buckets == iterator) // This isn't ExistsIter because _get will return n_buckets if key doesn't exist
+        return false; 
+
       _delete(iterator);
       return true;
     }
     inline bool RemoveIter(khiter_t iterator)
     {
-      if(!ExistsIter(iterator)) return false;
+      if(!ExistsIter(iterator))
+        return false;
+
       _delete(iterator);
       return true;
     }
@@ -178,7 +189,16 @@ namespace bss {
     inline typename std::enable_if<U, GET>::type operator[](const Key& key) const { return Get(key); }
     inline bool operator()(const Key& key) const { return Exists(key); }
     template<bool U = IsMap>
-    inline typename std::enable_if<U, bool>::type operator()(const Key& key, Data& v) const { khiter_t i = Iterator(key); if(!ExistsIter(i)) return false; v = vals[i]; return true; }
+    inline typename std::enable_if<U, bool>::type operator()(const Key& key, Data& v) const 
+    { 
+      khiter_t i = Iterator(key); 
+
+      if(!ExistsIter(i)) 
+        return false; 
+
+      v = vals[i];
+      return true; 
+    }
 
     HashBase& operator =(const HashBase& copy)
     {
@@ -192,6 +212,7 @@ namespace bss {
         if(!__ac_iseither(flags, i))
         {
           new(keys + i) Key((const Key&)copy.keys[i]);
+
           if(IsMap)
             new(vals + i) Data((const Data&)copy.vals[i]);
         }
@@ -426,10 +447,38 @@ namespace bss {
   template<class T> BSS_FORCEINLINE khint_t KH_INT_HASHFUNC(T key) { return (khint32_t)key; }
   template<> BSS_FORCEINLINE khint_t KH_INT_HASHFUNC<unsigned int>(unsigned int key) { return kh_int_hash_func2(key); }
   template<> BSS_FORCEINLINE khint_t KH_INT_HASHFUNC<int>(int key) { return kh_int_hash_func2(key); }
-  inline khint_t KH_STR_HASHFUNC(const char * s) { khint_t h = *s; if(h) for(++s; *s; ++s) h = (h << 5) - h + *s; return h; }
-  inline khint_t KH_STRINS_HASHFUNC(const char *s) { khint_t h = ((*s) > 64 && (*s) < 91) ? (*s) + 32 : *s;	if(h) for(++s; *s; ++s) h = (h << 5) - h + (((*s) > 64 && (*s) < 91) ? (*s) + 32 : *s); return h; }
-  inline khint_t KH_STRW_HASHFUNC(const wchar_t * s) { khint_t h = *s; if(h) for(++s; *s; ++s) h = (h << 5) - h + *s; return h; }
-  inline khint_t KH_STRWINS_HASHFUNC(const wchar_t *s) { khint_t h = towlower(*s); if(h) for(++s; *s; ++s) h = (h << 5) - h + towlower(*s); return h; }
+  inline khint_t KH_STR_HASHFUNC(const char * s) 
+  {
+    khint_t h = *s; 
+    if(h) 
+      for(++s; *s; ++s) 
+        h = (h << 5) - h + *s;
+    return h; 
+  }
+  inline khint_t KH_STRINS_HASHFUNC(const char *s) 
+  { 
+    khint_t h = ((*s) > 64 && (*s) < 91) ? (*s) + 32 : *s;	
+    if(h) 
+      for(++s; *s; ++s) 
+        h = (h << 5) - h + (((*s) > 64 && (*s) < 91) ? (*s) + 32 : *s);
+    return h;
+  }
+  inline khint_t KH_STRW_HASHFUNC(const wchar_t * s) 
+  { 
+    khint_t h = *s; 
+    if(h) 
+      for(++s; *s; ++s) 
+        h = (h << 5) - h + *s; 
+    return h; 
+  }
+  inline khint_t KH_STRWINS_HASHFUNC(const wchar_t *s) 
+  { 
+    khint_t h = towlower(*s);
+    if(h) 
+      for(++s; *s; ++s) 
+        h = (h << 5) - h + towlower(*s);
+    return h; 
+  }
   template<class T>
   BSS_FORCEINLINE khint_t KH_POINTER_HASHFUNC(T p)
   {
@@ -495,9 +544,15 @@ namespace bss {
 
   // Generic hash definition
   template<typename K, typename T = void, bool ins = false, ARRAY_TYPE ArrayType = ARRAY_SIMPLE, typename Alloc = StaticAllocPolicy<char>>
-  class BSS_COMPILER_DLLEXPORT Hash : public HashBase<K, typename std::conditional<std::is_void<T>::value, char, T>::type, !std::is_void<T>::value, &internal::_HashHelper<K, ins>::hash, &internal::_HashHelper<K, ins>::equal, ArrayType, Alloc>
+  class BSS_COMPILER_DLLEXPORT Hash : public HashBase<K, typename std::conditional<std::is_void<T>::value, char, T>::type,
+    !std::is_void<T>::value, &internal::_HashHelper<K, ins>::hash, &internal::_HashHelper<K, ins>::equal, ArrayType, Alloc>
   {
-    typedef HashBase<K, typename std::conditional<std::is_void<T>::value, char, T>::type, !std::is_void<T>::value, &internal::_HashHelper<K, ins>::hash, &internal::_HashHelper<K, ins>::equal, ArrayType, Alloc> BASE;
+    typedef HashBase<K,
+      typename std::conditional<std::is_void<T>::value, char, T>::type,
+      !std::is_void<T>::value, &internal::_HashHelper<K, ins>::hash,
+      &internal::_HashHelper<K, ins>::equal,
+      ArrayType,
+      Alloc> BASE;
 
   public:
     inline Hash(const Hash& copy) : BASE(copy) {}

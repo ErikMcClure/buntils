@@ -42,7 +42,12 @@ namespace bss {
 
   protected:
     template<typename U>
-    void _push(U && value) { if(_length >= BASE::_capacity) BASE::SetCapacity(T_FBNEXT(_length)); BASE::_push(std::forward<U>(value)); }
+    void _push(U && value) 
+    { 
+      if(_length >= BASE::_capacity)
+        BASE::SetCapacity(T_FBNEXT(_length));
+      BASE::_push(std::forward<U>(value)); 
+    }
   };
 }
 

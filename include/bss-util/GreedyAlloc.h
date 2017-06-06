@@ -32,6 +32,7 @@ namespace bss {
     {
       _lock.Lock();
       AFLISTITEM* hold = _root.load(std::memory_order_relaxed);
+
       while((_root = hold))
       {
         hold = hold->next;
@@ -50,12 +51,14 @@ namespace bss {
 #endif
       size_t r;
       AFLISTITEM* root;
+
       for(;;)
       {
         _lock.RLock();
         r = _curpos.fetch_add(_sz, std::memory_order_relaxed);
         size_t rend = r + _sz;
         root = _root.load(std::memory_order_relaxed);
+
         if(rend >= root->size)
         {
           if(_lock.AttemptUpgrade())
@@ -86,11 +89,13 @@ namespace bss {
       _lock.RLock();
       AFLISTITEM* cur = _root.load(std::memory_order_relaxed);
       bool found = false;
+
       while(cur)
       {
         if(p >= (cur + 1) && p < (((char*)(cur + 1)) + cur->size)) { found = true; break; }
         cur = cur->next;
       }
+
       _lock.RUnlock();
       assert(found);
       //memset(p,0xFEEEFEEE,sizeof(T)); //No way to know how big this is
@@ -100,9 +105,13 @@ namespace bss {
     {
       _lock.Lock();
       AFLISTITEM* root = _root.load(std::memory_order_acquire);
-      if(!root->next) return _lock.Unlock();
+
+      if(!root->next)
+        return _lock.Unlock();
+
       size_t nsize = 0;
       AFLISTITEM* hold;
+
       while(root)
       {
         hold = root->next;
@@ -110,6 +119,7 @@ namespace bss {
         free(root);
         root = hold;
       }
+
       _root.store(nullptr, std::memory_order_release);
       _allocChunk(nsize); //consolidates all memory into one chunk to try and take advantage of data locality
       _curpos.store(0, std::memory_order_relaxed);

@@ -43,11 +43,21 @@ namespace bss {
       auto end = list.end();
       CT j = 0;
       CT l = Length();
+
       for(auto i = list.begin(); i != end && j < l; ++i)
         new(_array + (j++)) T(*i);
     }
-    inline ~CompactArray() { if(!(_length&COMPACTFLAG) && _array != 0) Alloc::deallocate(_array); }
-    inline CT Add(T t) { Reserve((_length&COMPACTMASK) + 1); new(end()) T(t); return (_length++)&COMPACTMASK; }
+    inline ~CompactArray() 
+    { 
+      if(!(_length&COMPACTFLAG) && _array != 0)
+        Alloc::deallocate(_array);
+    }
+    inline CT Add(T t) 
+    {
+      Reserve((_length&COMPACTMASK) + 1); 
+      new(end()) T(t); 
+      return (_length++)&COMPACTMASK; 
+    }
     inline void Remove(CT index) { RemoveRangeSimple<T, CT>(begin(), (_length--)&COMPACTMASK, index, 1); }
     BSS_FORCEINLINE void RemoveLast() { Remove(Length() - 1); }
     BSS_FORCEINLINE void Insert(T t, CT index = 0)
@@ -77,12 +87,15 @@ namespace bss {
       if(capacity > I)
       {
         capacity = T_FBNEXT(capacity);
+
         if(_length&COMPACTFLAG)
         {
           T* a = Alloc::allocate(capacity, 0);
           _length = (_length&COMPACTMASK);
+
           if(_length)
             MEMCPY(a, capacity * sizeof(T), _internal, _length * sizeof(T));
+
           _array = a;
           _capacity = capacity;
         }
@@ -122,7 +135,11 @@ namespace bss {
       mov._length = COMPACTFLAG;
       return *this;
     }
-    inline CompactArray& operator=(const ArraySlice<const T, CT>& copy) { Set(copy); return *this; }
+    inline CompactArray& operator=(const ArraySlice<const T, CT>& copy) 
+    { 
+      Set(copy); 
+      return *this; 
+    }
 
   protected:
     union

@@ -57,6 +57,7 @@ namespace bss {
     inline bool Pop(T& result)
     {
       QNODE* div = _div.load(std::memory_order_acquire);
+
       if(div != _last.load(std::memory_order_relaxed))
       {
         result = std::move(div->next->item); 	// try to use move semantics if possible
@@ -64,6 +65,7 @@ namespace bss {
         internal::LocklessQueue_Length<LENGTH>::_decLength(); // Decrement length if we're tracking it
         return true;
       }
+
       return false;
     }
     inline bool Peek() { return _div.load(std::memory_order_relaxed) != _last.load(std::memory_order_relaxed); }
@@ -122,9 +124,11 @@ namespace bss {
     inline bool Pop(T& result)
     {
       if(!_div->next) return false; // Remove some contending pressure
+
       while(_cflag.test_and_set(std::memory_order_acquire));
       QNODE* ref = _div;
       QNODE* n = _div->next;
+
       if(n != 0)
       {
         result = std::move(n->item); 	// try to use move semantics if possible
@@ -135,6 +139,7 @@ namespace bss {
         internal::LocklessQueue_Length<LENGTH>::_decLength(); // If we are tracking length, atomically decrement it
         return true;
       }
+
       _cflag.clear(std::memory_order_release);
       return false;
     }

@@ -75,12 +75,14 @@ namespace bss {
     {
       size_t nsize = 0;
       FIXEDLIST_NODE* hold = _root;
+
       while((_root = hold) != 0)
       {
         nsize += hold->size;
         hold = _root->next;
         free(_root);
       }
+
       _freelist = 0; // There's this funny story about a time where I forgot to put this in here and then wondered why everything blew up.
       _allocChunk(nsize); // Note that nsize is in bytes
     }
@@ -103,7 +105,9 @@ namespace bss {
     inline void _allocChunk(size_t nsize) noexcept
     {
       FIXEDLIST_NODE* retval = reinterpret_cast<FIXEDLIST_NODE*>(malloc(sizeof(FIXEDLIST_NODE) + nsize));
-      if(!retval) return;
+      if(!retval)
+        return;
+
       retval->next = _root;
       retval->size = nsize;
       //#pragma message(TODO "DEBUG REMOVE")
@@ -115,6 +119,7 @@ namespace bss {
     BSS_FORCEINLINE void _initChunk(const FIXEDLIST_NODE* chunk) noexcept
     {
       uint8_t* memend = ((uint8_t*)(chunk + 1)) + chunk->size;
+
       for(uint8_t* memref = (((uint8_t*)(chunk + 1))); memref < memend; memref += _sz)
       {
         *((void**)(memref)) = _freelist;

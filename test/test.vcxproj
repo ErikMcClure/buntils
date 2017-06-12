@@ -86,6 +86,7 @@
     <CharacterSet>NotSet</CharacterSet>
     <WholeProgramOptimization>true</WholeProgramOptimization>
     <PlatformToolset>v141_xp</PlatformToolset>
+    <VcpkgTriplet>x86-windows-static</VcpkgTriplet>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'" Label="Configuration">
     <ConfigurationType>Application</ConfigurationType>
@@ -104,6 +105,7 @@
     <CharacterSet>NotSet</CharacterSet>
     <WholeProgramOptimization>true</WholeProgramOptimization>
     <PlatformToolset>v141_xp</PlatformToolset>
+    <VcpkgTriplet>x64-windows-static</VcpkgTriplet>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'" Label="Configuration">
     <ConfigurationType>Application</ConfigurationType>
@@ -114,6 +116,8 @@
     <ConfigurationType>Application</ConfigurationType>
     <CharacterSet>NotSet</CharacterSet>
     <PlatformToolset>v141_xp</PlatformToolset>
+    <VcpkgTriplet>x86-windows-static</VcpkgTriplet>
+    <VcpkgConfiguration>Debug</VcpkgConfiguration>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'" Label="Configuration">
     <ConfigurationType>Application</ConfigurationType>
@@ -124,6 +128,8 @@
     <ConfigurationType>Application</ConfigurationType>
     <CharacterSet>NotSet</CharacterSet>
     <PlatformToolset>v141_xp</PlatformToolset>
+    <VcpkgTriplet>x64-windows-static</VcpkgTriplet>
+    <VcpkgConfiguration>Debug</VcpkgConfiguration>
   </PropertyGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.props" />
   <ImportGroup Label="ExtensionSettings">

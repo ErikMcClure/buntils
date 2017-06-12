@@ -168,6 +168,7 @@
     <WholeProgramOptimization>false</WholeProgramOptimization>
     <PlatformToolset>v141_xp</PlatformToolset>
     <VcpkgTriplet>x86-windows-static</VcpkgTriplet>
+    <VcpkgConfiguration>Debug</VcpkgConfiguration>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug-Static|x64'" Label="Configuration">
     <ConfigurationType>StaticLibrary</ConfigurationType>
@@ -175,6 +176,7 @@
     <WholeProgramOptimization>false</WholeProgramOptimization>
     <PlatformToolset>v141_xp</PlatformToolset>
     <VcpkgTriplet>x64-windows-static</VcpkgTriplet>
+    <VcpkgConfiguration>Debug</VcpkgConfiguration>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release-Static|Win32'" Label="Configuration">
     <ConfigurationType>StaticLibrary</ConfigurationType>

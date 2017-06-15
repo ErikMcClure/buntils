@@ -91,7 +91,7 @@ int main(int argc, char** argv)
   bssRandSeed(seed);
   //profile_ring_alloc();
 
-  for(int i = 0; i<TESTNUM; ++i)
+  for(uint16_t i = 0; i<TESTNUM; ++i)
     testnums[i] = i;
   Shuffle(testnums); 
 
@@ -163,20 +163,20 @@ int main(int argc, char** argv)
 
   const size_t NUMTESTS = sizeof(tests) / sizeof(TESTDEF);
 
-  std::cout << "Black Sphere Studios - Utility Library v" << (uint32_t)bssVersion.Major << '.' << (uint32_t)bssVersion.Minor << '.' <<
-    (uint32_t)bssVersion.Revision << ": Unit Tests\nCopyright (c)2017 Black Sphere Studios\n" << std::endl;
-  assert(bssVersion.version == (bssVersion.Major << 24) + (bssVersion.Minor << 16) + bssVersion.Revision);
+  std::cout << "Black Sphere Studios - Utility Library v" << (size_t)bssVersion.Major << '.' << (size_t)bssVersion.Minor << '.' <<
+    (size_t)bssVersion.Revision << ": Unit Tests\nCopyright (c)2017 Black Sphere Studios\n" << std::endl;
+  assert(bssVersion.version == ((uint64_t)bssVersion.Major << 48) + ((uint64_t)bssVersion.Minor << 32) + ((uint64_t)bssVersion.Revision << 16));
   const int COLUMNS[3] = { 24, 11, 8 };
   printf("%-*s %-*s %-*s\n", COLUMNS[0], "Test Name", COLUMNS[1], "Subtests", COLUMNS[2], "Pass/Fail");
 
   TESTDEF::RETPAIR numpassed;
-  std::vector<uint32_t> failures;
+  std::vector<size_t> failures;
 #ifndef BSS_ISOLATE_TEST
-  for(uint32_t i = 0; i < NUMTESTS; ++i)
+  for(size_t i = 0; i < NUMTESTS; ++i)
   {
 #else
     {
-      uint32_t i = BSS_ISOLATE_TEST;
+      size_t i = BSS_ISOLATE_TEST;
 #endif
       numpassed = tests[i].FUNC(); //First is total, second is succeeded
       if(numpassed.first != numpassed.second) failures.push_back(i);
@@ -189,7 +189,7 @@ int main(int argc, char** argv)
     else
     {
       std::cout << "\nThe following tests failed (seed = " << seed << "): " << std::endl;
-      for(uint32_t i = 0; i < failures.size(); i++)
+      for(size_t i = 0; i < failures.size(); i++)
         std::cout << "  " << tests[failures[i]].NAME << std::endl;
       std::cout << "\nThese failures indicate either a misconfiguration on your system, or a potential bug.\n\nA detailed list of failed tests was written to failedtests.txt" << std::endl;
     }

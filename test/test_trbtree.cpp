@@ -28,7 +28,7 @@ void serialize_testnum(const char* file)
 {
   std::fstream f;
   f.open(file, std::ios::trunc | std::ios::out);
-  for(int i = 0; i < TESTNUM; ++i)
+  for(size_t i = 0; i < TESTNUM; ++i)
     f << testnums[i] << std::endl;
   f.close();
 }
@@ -36,7 +36,7 @@ void deserialize_testnum(const char* file)
 {
   std::fstream f;
   f.open(file, std::ios::in);
-  for(int i = 0; i < TESTNUM && !f.eof(); ++i)
+  for(size_t i = 0; i < TESTNUM && !f.eof(); ++i)
   {
     f >> testnums[i];
     f.get();
@@ -48,7 +48,7 @@ bool verify_unique_testnums()
 {
   Hash<int, char, false> hash;
 
-  for(int i = 0; i<TESTNUM; ++i)
+  for(size_t i = 0; i<TESTNUM; ++i)
   {
     if(hash.Exists(testnums[i]))
       return false;
@@ -70,7 +70,7 @@ TESTDEF::RETPAIR test_TRBTREE()
   Shuffle(testnums);
 
   blah.Clear();
-  for(int i = 0; i<TESTNUM; ++i)
+  for(size_t i = 0; i<TESTNUM; ++i)
     blah.Insert(testnums[i]);
 
   assert(verifytree(blah.Front(), same));
@@ -79,7 +79,7 @@ TESTDEF::RETPAIR test_TRBTREE()
 
     Shuffle(testnums);
   int num = 0;
-  for(int i = 0; i<TESTNUM; ++i)
+  for(size_t i = 0; i<TESTNUM; ++i)
   {
     auto p = blah.Get(testnums[i]);
     if(p != 0)
@@ -93,10 +93,10 @@ TESTDEF::RETPAIR test_TRBTREE()
   blah.Insert(4);
 
   Shuffle(testnums);
-  for(int i = 0; i<TESTNUM; ++i)
+  for(size_t i = 0; i<TESTNUM; ++i)
     blah.Insert(testnums[i]);
   Shuffle(testnums);
-  for(int i = 0; i<TESTNUM; ++i)
+  for(size_t i = 0; i<TESTNUM; ++i)
     blah.Insert(testnums[i]);
 
   TEST(verifytree(blah.Front(), same));
@@ -106,7 +106,7 @@ TESTDEF::RETPAIR test_TRBTREE()
   num = 0;
   int n2 = 0;
   int n3 = 0;
-  for(int i = 0; i<TESTNUM; ++i)
+  for(size_t i = 0; i<TESTNUM; ++i)
   {
     num += (blah.Get(testnums[i]) != 0);
     n2 += blah.Remove(testnums[i]);

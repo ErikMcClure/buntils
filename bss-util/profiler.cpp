@@ -45,7 +45,7 @@ namespace bss {
       inline PROF_HEATNODE(Profiler::ProfilerInt ID, double Avg) : avg(Avg), id(ID) {}
       inline PROF_HEATNODE(const PROF_HEATNODE& copy) : _children(copy._children), avg(copy.avg), id(copy.id) {}
       inline PROF_HEATNODE(PROF_HEATNODE&& mov) : _children(std::move(mov._children)), avg(mov.avg), id(mov.id) {}
-      ArraySort<PROF_HEATNODE, COMP, uint32_t, ARRAY_CONSTRUCT, HeatAllocPolicy> _children;
+      ArraySort<PROF_HEATNODE, COMP, size_t, ARRAY_CONSTRUCT, HeatAllocPolicy> _children;
       double avg;
       Profiler::ProfilerInt id;
       PROF_HEATNODE& operator=(PROF_HEATNODE&& mov) { _children = std::move(mov._children); avg = mov.avg; id = mov.id; return *this; }
@@ -121,12 +121,12 @@ void Profiler::WriteToStream(std::ostream& stream, uint8_t output)
     _heatWrite(stream, root, -1, _heatFindMax(root));
   }
 }
-void Profiler::_treeOut(std::ostream& stream, PROF_TRIENODE* node, ProfilerInt id, uint32_t level, ProfilerInt idlevel)
+void Profiler::_treeOut(std::ostream& stream, PROF_TRIENODE* node, ProfilerInt id, size_t level, ProfilerInt idlevel)
 {
   if(!node) return;
   if(node->total != (uint64_t)-1)
   {
-    for(uint32_t i = 0; i < level * 2; ++i) stream.put(' ');
+    for(size_t i = 0; i < level * 2; ++i) stream.put(' ');
     stream << '[' << _trimPath(_data[id]->file) << ':' << _data[id]->line << "] " << _data[id]->name << ": ";
     _timeFormat(stream, node->avg, 0.0, node->total);
     stream << std::endl;
@@ -168,13 +168,13 @@ double Profiler::_heatFindMax(PROF_HEATNODE& heat)
     max = std::max(_heatFindMax(heat._children[i]), max);
   return max;
 }
-void Profiler::_heatWrite(std::ostream& stream, PROF_HEATNODE& node, uint32_t level, double max)
+void Profiler::_heatWrite(std::ostream& stream, PROF_HEATNODE& node, size_t level, double max)
 {
   static const int BARLENGTH = 10;
 
-  if(level != (uint32_t)-1)
+  if(level != (size_t)-1)
   {
-    for(uint32_t i = 0; i < level * 2; ++i) stream.put(' ');
+    for(size_t i = 0; i < level * 2; ++i) stream.put(' ');
     if(!node.id)
       stream << "[code]: ";
     else
@@ -184,12 +184,12 @@ void Profiler::_heatWrite(std::ostream& stream, PROF_HEATNODE& node, uint32_t le
     double mag1 = pow(max, 1.0 / 4.0);
     double mag2 = pow(max, 2.0 / 4.0);
     double mag3 = pow(max, 3.0 / 4.0);
-    uint32_t num = fFastTruncate(std::min(node.avg / mag1, 10.0));
+    size_t num = fFastTruncate(std::min(node.avg / mag1, 10.0));
     num += fFastTruncate(std::min(node.avg / mag2, 10.0));
     num += fFastTruncate(std::min(node.avg / mag3, 10.0));
     char bar[BARLENGTH + 1] = {};
     bssFillN<char>(bar, BARLENGTH, ' ');
-    for(uint32_t i = 0; i < num; ++i)
+    for(size_t i = 0; i < num; ++i)
     {
       switch(i / BARLENGTH)
       {

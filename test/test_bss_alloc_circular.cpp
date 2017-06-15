@@ -20,11 +20,11 @@ TESTDEF::RETPAIR test_bss_ALLOC_RING()
   const int NUM = 16;
   Thread threads[NUM];
   startflag.store(false);
-  for(int i = 0; i < NUM; ++i)
+  for(size_t i = 0; i < NUM; ++i)
     threads[i] = Thread((CIRCALLOCFN)&TEST_ALLOC_MT<MTCIRCALLOCWRAP<size_t>, size_t, 1000>, std::ref(__testret), std::ref(_alloc));
   startflag.store(true);
 
-  for(int i = 0; i < NUM; ++i)
+  for(size_t i = 0; i < NUM; ++i)
     threads[i].join();
 
   ENDTEST;

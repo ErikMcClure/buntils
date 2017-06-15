@@ -11,7 +11,7 @@ namespace bss {
   template<typename K,
     typename D,
     char(*CFunc)(const K&, const K&) = CompT<K>,
-    typename CT_ = uint32_t, ARRAY_TYPE ArrayType = ARRAY_SIMPLE,
+    typename CT_ = size_t, ARRAY_TYPE ArrayType = ARRAY_SIMPLE,
     typename Alloc = StaticAllocPolicy<std::pair<K, D>>>
   class BSS_COMPILER_DLLEXPORT PriorityQueue : protected BinaryHeap<std::pair<K, D>, CT_, CompTFirst<std::pair<K, D>, CFunc>, ArrayType, Alloc>
   {
@@ -47,7 +47,7 @@ namespace bss {
   }
 
   template<typename D,
-    typename CT_ = uint32_t,
+    typename CT_ = size_t,
     char(*CFunc)(const D&, const D&) = CompT<D>,
     ARRAY_TYPE ArrayType = ARRAY_SIMPLE,
     typename Alloc = StaticAllocPolicy<std::pair<CT_, D>>>

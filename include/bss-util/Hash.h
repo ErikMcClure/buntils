@@ -161,7 +161,7 @@ namespace bss {
     inline bool SetValue(khiter_t iterator, Data&& newvalue) { return _setvalue<Data&&>(iterator, std::move(newvalue)); }
     inline bool Set(const Key& key, const Data& newvalue) { return _setvalue<const Data&>(Iterator(key), newvalue); }
     inline bool Set(const Key& key, Data&& newvalue) { return _setvalue<Data&&>(Iterator(key), std::move(newvalue)); }
-    inline void SetCapacity(uint32_t size) { if(n_buckets < size) _resize(size); }
+    inline void SetCapacity(khint_t size) { if(n_buckets < size) _resize(size); }
     inline bool Remove(const Key& key)
     {
       khiter_t iterator = Iterator(key);
@@ -179,8 +179,8 @@ namespace bss {
       _delete(iterator);
       return true;
     }
-    inline uint32_t Length() const { return size; }
-    inline uint32_t Capacity() const { return n_buckets; }
+    inline khint_t Length() const { return size; }
+    inline khint_t Capacity() const { return n_buckets; }
     inline khiter_t Start() const { return 0; }
     inline khiter_t End() const { return n_buckets; }
     inline bool ExistsIter(khiter_t iterator) const { return (iterator < n_buckets) && !__ac_iseither(flags, iterator); }
@@ -528,7 +528,7 @@ namespace bss {
     template<> BSS_FORCEINLINE bool KH_AUTOINS_EQUALFUNC<StrW>(StrW const& a, StrW const& b) { return WCSICMP(a, b) == 0; }
 #endif
 
-    template<typename T, bool I> struct __cKh_KHGET { typedef typename std::remove_pointer<T>::type* KHGET; static const uint32_t INV = 0; };
+    template<typename T, bool I> struct __cKh_KHGET { typedef typename std::remove_pointer<T>::type* KHGET; static const size_t INV = 0; };
     template<typename T> struct __cKh_KHGET<T, true> { typedef T KHGET; static const KHGET INV = (KHGET)-1; };
     template<typename T> struct KHGET_cKh : __cKh_KHGET<T, std::is_integral<T>::value> { typedef typename __cKh_KHGET<T, std::is_integral<T>::value>::KHGET KHGET; };
     template<> struct KHGET_cKh<void> { typedef char KHGET; static const KHGET INV = (KHGET)-1; };
@@ -557,7 +557,7 @@ namespace bss {
   public:
     inline Hash(const Hash& copy) : BASE(copy) {}
     inline Hash(Hash&& mov) : BASE(std::move(mov)) {}
-    inline Hash(uint32_t size = 0) : BASE(size) {}
+    inline Hash(khint_t size = 0) : BASE(size) {}
 
     inline Hash& operator =(const Hash& right) { BASE::operator=(right); return *this; }
     inline Hash& operator =(Hash&& mov) { BASE::operator=(std::move(mov)); return *this; }

@@ -83,7 +83,7 @@ TESTDEF::RETPAIR test_bss_GRAPH()
     int res[] = { g[s].to->data.flow, g[s].to->next->data.flow, g[o].to->data.flow, g[o].to->next->data.flow,
       g[p].to->data.flow, g[q].to->data.flow, g[q].to->next->data.flow, g[r].to->data.flow };
     int resref[] = { 2,3,3,0,2,2,1,3 };
-    for(int i = 0; i < sizeof(res) / sizeof(int); ++i) TEST(res[i] == resref[i]);
+    for(size_t i = 0; i < sizeof(res) / sizeof(int); ++i) TEST(res[i] == resref[i]);
   }
 
   {
@@ -104,7 +104,7 @@ TESTDEF::RETPAIR test_bss_GRAPH()
     g.RemoveNode(t);
     int res[] = { g[0].to->data.flow, g[0].to->next->data.flow, g[1].to->data.flow, g[1].to->next->data.flow, g[2].to->data.flow };
     int resref[] = { 1,2,2,2,2 };
-    for(int i = 0; i < sizeof(res) / sizeof(int); ++i) TEST(res[i] == resref[i]);
+    for(size_t i = 0; i < sizeof(res) / sizeof(int); ++i) TEST(res[i] == resref[i]);
   }
 
   {
@@ -126,7 +126,7 @@ TESTDEF::RETPAIR test_bss_GRAPH()
     g.RemoveNode(t);
     int res[] = { g[0].to->data.flow, g[0].to->next->data.flow, g[1].to->data.flow, g[1].to->next->data.flow, g[2].to->data.flow };
     int resref[] = { 3,0,2,1,2 }; // This adds the edges in a different order so we get the other legal answer
-    for(int i = 0; i < sizeof(res) / sizeof(int); ++i) TEST(res[i] == resref[i]);
+    for(size_t i = 0; i < sizeof(res) / sizeof(int); ++i) TEST(res[i] == resref[i]);
   }
 
   {

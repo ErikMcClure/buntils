@@ -124,11 +124,11 @@ TESTDEF::RETPAIR test_bss_util()
   TEST(GetBitMask<uint32_t>(-30, 0) == 0xFFFFFFFD);
   TEST(GetBitMask<uint32_t>(-12, -1) == 0xFFF00000);
   TEST(GetBitMask<uint32_t>(-15, -12) == 0x001e0000);
-  for(uint32_t i = 0; i < 8; ++i)
+  for(int i = 0; i < 8; ++i)
     TEST(GetBitMask<uint8_t>(i) == (1 << i));
-  for(uint32_t i = 0; i < 32; ++i)
+  for(int i = 0; i < 32; ++i)
     TEST(GetBitMask<uint32_t>(i) == (1 << i));
-  for(uint32_t i = 0; i < 64; ++i)
+  for(int i = 0; i < 64; ++i)
     TEST(GetBitMask<unsigned long long>(i) == (((uint64_t)1) << i));
 
   int bits = 9;
@@ -142,7 +142,7 @@ TESTDEF::RETPAIR test_bss_util()
   strreplace(const_cast<char*>(cpan.c_str()), 'm', '?');
   TEST(!strchr(cpan.c_str(), 'm') && strchr(cpan.c_str(), '?') != 0);
   std::basic_string<bsschar, std::char_traits<bsschar>, std::allocator<bsschar>> pan;
-  for(uint32_t i = 0; i < NPANGRAMS; ++i)
+  for(size_t i = 0; i < NPANGRAMS; ++i)
   {
     pan = PANGRAMS[i];
     bsschar f = pan[((i + 7) << 3) % pan.length()];
@@ -319,24 +319,24 @@ TESTDEF::RETPAIR test_bss_util()
   //float b;
   //double sqrt_avg=0;
   //float NUMBERS[100000];
-  //for(uint32_t i = 0; i < 100000; ++i)
+  //for(size_t i = 0; i < 100000; ++i)
   //  NUMBERS[i]=bssRandReal(2,4);
 
   //uint64_t p=HighPrecisionTimer::OpenProfiler();
   //CPU_Barrier();
   //for(uint32_t j = 0; j < 10; ++j)
   //{
-  //for(uint32_t i = 0; i < 100000; ++i)
+  //for(size_t i = 0; i < 100000; ++i)
   //{
   //  a=NUMBERS[i];
   //  b=std::sqrtf(a);
   //}
-  //for(uint32_t i = 0; i < 100000; ++i)
+  //for(size_t i = 0; i < 100000; ++i)
   //{
   //  a=NUMBERS[i];
   //  b=FastSqrtsse(a);
   //}
-  //for(uint32_t i = 0; i < 100000; ++i)
+  //for(size_t i = 0; i < 100000; ++i)
   //{
   //  a=NUMBERS[i];
   //  b=FastSqrt(a);
@@ -363,13 +363,13 @@ TESTDEF::RETPAIR test_bss_util()
 
   //static const int NUM=100000;
   //float _numrand[NUM];
-  //for(uint32_t i = 0; i < NUM; ++i)
+  //for(size_t i = 0; i < NUM; ++i)
   //  _numrand[i]=bssRandReal(0,100.0f);
 
   //int add=0;
   //uint64_t prof = HighPrecisionTimer::OpenProfiler();
   //CPU_Barrier();
-  //for(uint32_t i = 0; i < NUM; ++i)
+  //for(size_t i = 0; i < NUM; ++i)
   //  //add+=(int)_numrand[i];
   //  add+=fFastTruncate(_numrand[i]);
   //CPU_Barrier();

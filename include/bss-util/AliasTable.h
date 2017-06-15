@@ -8,7 +8,7 @@
 
 namespace bss {
   // Implementation of the Alias method, based off Keith Schwarz's code, found here: http://www.keithschwarz.com/darts-dice-coins/
-  template<typename UINT = uint32_t, typename F = double, typename ENGINE = XorshiftEngine<uint64_t>>
+  template<typename UINT = size_t, typename F = double, typename ENGINE = XorshiftEngine<uint64_t>>
   class AliasTable
   {
   public:
@@ -86,8 +86,8 @@ namespace bss {
           small[n_small++] = i;
       }
 
-      int l;
-      int g;
+      UINT l;
+      UINT g;
       while(n_small != 0 && n_large != 0) //In a perfect world, small always empties before large, but our world isn't, so we check both
       {
         l = small[--n_small];

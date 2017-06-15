@@ -250,11 +250,13 @@
 
 typedef union BSS_VERSION_INFO {
   struct {
+    unsigned short Build;
     unsigned short Revision;
-    unsigned char Minor;
-    unsigned char Major;
+    unsigned short Minor;
+    unsigned short Major;
   };
-  unsigned int version;
+  unsigned short v[4];
+  unsigned long long version;
 } bssVersionInfo;
 
 #endif

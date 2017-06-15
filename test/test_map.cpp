@@ -18,11 +18,11 @@ TESTDEF::RETPAIR test_MAP()
   uint32_t count = 0;
   TESTARRAY(ins, return test.Insert(ins[i], count++) != -1;);
   std::sort(std::begin(ins), std::end(ins));
-  for(uint32_t i = 0; i < test.Length(); ++i)
+  for(size_t i = 0; i < test.Length(); ++i)
   {
     TEST(test.KeyIndex(i) == ins[i]);
   }
-  for(int i = 0; i < sizeof(get) / sizeof(int); ++i)
+  for(size_t i = 0; i < sizeof(get) / sizeof(int); ++i)
   {
     TEST(test[test.Get(get[i])] == res[i]);
   }

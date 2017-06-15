@@ -165,7 +165,7 @@ void Logger::_levelDefaults()
   SetLevel(4, "INFO: ");
   SetLevel(5, "DEBUG: ");
 }
-int Logger::PrintLogV(const char* source, const char* file, uint32_t line, int8_t level, const char* format, va_list args)
+int Logger::PrintLogV(const char* source, const char* file, size_t line, int8_t level, const char* format, va_list args)
 {
   if(level >= _maxlevel)
     return 0;
@@ -180,7 +180,7 @@ int Logger::PrintLogV(const char* source, const char* file, uint32_t line, int8_
   _stream << buf << std::endl;
   return r;
 }
-void Logger::_header(std::ostream& o, int n, const char* source, const char* file, uint32_t line, const char* level, long tz)
+void Logger::_header(std::ostream& o, int n, const char* source, const char* file, size_t line, const char* level, long tz)
 {
   switch(n)
   {
@@ -193,9 +193,9 @@ void Logger::_header(std::ostream& o, int n, const char* source, const char* fil
   }
 }
 
-std::ostream& Logger::_logHeader(const char* source, const char* file, uint32_t line, const char* level)
+std::ostream& Logger::_logHeader(const char* source, const char* file, size_t line, const char* level)
 {
   file = _trimPath(file);
-  internal::__safeFormat<const char*, const char*, uint32_t, const char*, long>::F<&_header>(_stream, ((!source && _nullformat != 0) ? _nullformat : _format), source, file, line, level, _tz);
+  internal::__safeFormat<const char*, const char*, size_t, const char*, long>::F<&_header>(_stream, ((!source && _nullformat != 0) ? _nullformat : _format), source, file, line, level, _tz);
   return _stream;
 }

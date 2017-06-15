@@ -164,7 +164,7 @@ namespace bss {
     inline Thread& operator=(Thread&& mov) { _id = mov._id; mov._id = (size_t)-1; return *this; }
 
   protected:
-    inline static uint32_t __stdcall _threadwrap(void* arg) { std::function<void(void)> fn = *(std::function<void(void)>*)arg; fn(); return 0; }
+    inline static size_t __stdcall _threadwrap(void* arg) { std::function<void(void)> fn = *(std::function<void(void)>*)arg; fn(); return 0; }
     BSS_FORCEINLINE void _start(void* arg)
     {
       _started.test_and_set();

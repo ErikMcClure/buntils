@@ -381,7 +381,7 @@ namespace bss {
     }
     template<typename T> // num is a count of how many elements are in the array
     BSS_FORCEINLINE void SetElement(const T* newarray, CT_ num) { SetElement(newarray, sizeof(T), num); }
-    template<typename T, uint32_t NUM>
+    template<typename T, int NUM>
     BSS_FORCEINLINE void SetElement(const T(&newarray)[NUM]) { SetElement(newarray, sizeof(T), NUM); }
     void SetElement(CT_ element)
     {

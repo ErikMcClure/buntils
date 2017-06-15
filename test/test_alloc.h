@@ -14,7 +14,7 @@ void TEST_ALLOC_FUZZER_THREAD(TESTDEF::RETPAIR& __testret, T& _alloc, bss::DynAr
   for(int j = 0; j<5; ++j)
   {
     bool pass = true;
-    for(int i = 0; i < TRIALS; ++i)
+    for(size_t i = 0; i < TRIALS; ++i)
     {
       if(bss::bssRandInt(0, 10)<5 || plist.Length()<3)
       {

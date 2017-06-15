@@ -308,7 +308,7 @@ TESTDEF::RETPAIR test_bss_SSE()
   }
 
   //int megatest[TESTNUM*10];
-  //for(uint32_t i = 0; i<TESTNUM*10; ++i)
+  //for(size_t i = 0; i<TESTNUM*10; ++i)
   //  megatest[i]=log2(i);
 
   //for(int k=0; k < 30; ++k)
@@ -320,7 +320,7 @@ TESTDEF::RETPAIR test_bss_SSE()
   //prof=HighPrecisionTimer::OpenProfiler();
   //CPU_Barrier();
   //int v;
-  //for(int i = 0; i < 1000000; i+=8) {
+  //for(size_t i = 0; i < 1000000; i+=8) {
   //  v=PriComp(megatest[i+0],megatest[i+1],megatest[i+2],megatest[i+3],megatest[i+4],megatest[i+5],megatest[i+6],megatest[i+7]);
   //  l+=SGNCOMPARE(v,0);
   //}
@@ -331,7 +331,7 @@ TESTDEF::RETPAIR test_bss_SSE()
   //int l2=0;
   //prof=HighPrecisionTimer::OpenProfiler();
   //CPU_Barrier();
-  //for(int i = 0; i < 1000000; i+=8)
+  //for(size_t i = 0; i < 1000000; i+=8)
   //{
   //  if(megatest[i]!=megatest[i+1]) {
   //    l2+=SGNCOMPARE(megatest[i],megatest[i+1]);
@@ -358,7 +358,7 @@ TESTDEF::RETPAIR test_bss_SSE()
   //float rotation,left,right,top,bottom,x,y;
 
   //float testfloats[7*10000];
-  //for(int i = 0; i < 7*10000; ++i)
+  //for(size_t i = 0; i < 7*10000; ++i)
   //  testfloats[i]=0.1*i;
 
   //float res[4];

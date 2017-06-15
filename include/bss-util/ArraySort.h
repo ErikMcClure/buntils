@@ -31,7 +31,7 @@ namespace bss {
       return loc;
     }
     inline void Clear() { _array.Clear(); }
-    inline void Discard(uint32_t num) { _array.SetLength((num > _array.Length()) ? 0 : (_array.Length() - num)); }
+    inline void Discard(CType num) { _array.SetLength((num > _array.Length()) ? 0 : (_array.Length() - num)); }
     BSS_FORCEINLINE bool Empty() const { return _array.Empty(); }
     BSS_FORCEINLINE void Reserve(CT_ capacity) { _array.Reserve(capacity); }
     BSS_FORCEINLINE CT_ Length() const { return _array.Length(); }

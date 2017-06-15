@@ -13,7 +13,7 @@
 #define BSS_ENABLE_PROFILER
 
 #ifdef BSS_PLATFORM_WIN32
-#define BSS_PFUNC_PRE uint32_t BSS_COMPILER_STDCALL
+#define BSS_PFUNC_PRE size_t BSS_COMPILER_STDCALL
 #else
 #define BSS_PFUNC_PRE void*
 #endif
@@ -25,7 +25,7 @@ struct TESTDEF
   RETPAIR(*FUNC)();
 };
 
-const uint16_t TESTNUM = 50000;
+const size_t TESTNUM = 50000;
 extern uint16_t testnums[TESTNUM];
 extern bss::Logger _failedtests;
 extern volatile std::atomic<bool> startflag;
@@ -37,19 +37,19 @@ extern volatile std::atomic<bool> startflag;
 #define TESTERROR(t, e) { bss::atomic_xadd(&__testret.first); try { (t); FAILEDTEST(t); } catch(e) { bss::atomic_xadd(&__testret.second); } }
 #define TESTERR(t) TESTERROR(t,...)
 #define TESTNOERROR(t) { bss::atomic_xadd(&__testret.first); try { (t); bss::atomic_xadd(&__testret.second); } catch(...) { FAILEDTEST(t); } }
-#define TESTARRAY(t,f) _ITERFUNC(__testret,t,[&](uint32_t i) -> bool { f });
-#define TESTALL(t,f) _ITERALL(__testret,t,[&](uint32_t i) -> bool { f });
-#define TESTCOUNT(c,t) { for(uint32_t i = 0; i < c; ++i) TEST(t) }
-#define TESTCOUNTALL(c,t) { bool __val=true; for(uint32_t i = 0; i < c; ++i) __val=__val&&(t); TEST(__val); }
+#define TESTARRAY(t,f) _ITERFUNC(__testret,t,[&](size_t i) -> bool { f });
+#define TESTALL(t,f) _ITERALL(__testret,t,[&](size_t i) -> bool { f });
+#define TESTCOUNT(c,t) { for(size_t i = 0; i < c; ++i) TEST(t) }
+#define TESTCOUNTALL(c,t) { bool __val=true; for(size_t i = 0; i < c; ++i) __val=__val&&(t); TEST(__val); }
 #define TESTFOUR(s,a,b,c,d) TEST(((s)[0]==(a)) && ((s)[1]==(b)) && ((s)[2]==(c)) && ((s)[3]==(d)))
 #define TESTTWO(s,a,b) TEST(((s)[0]==(a)) && ((s)[1]==(b)))
 #define TESTALLFOUR(s,a) TESTFOUR(s,a,a,a,a)
 #define TESTRELFOUR(s,a,b,c,d) TEST(bss::fCompare((s)[0],(a)) && bss::fCompare((s)[1],(b)) && bss::fCompare((s)[2],(c)) && bss::fCompare((s)[3],(d)))
 
 template<class T, size_t SIZE, class F>
-void _ITERFUNC(TESTDEF::RETPAIR& __testret, T(&t)[SIZE], F f) { for(uint32_t i = 0; i < SIZE; ++i) TEST(f(i)) }
+void _ITERFUNC(TESTDEF::RETPAIR& __testret, T(&t)[SIZE], F f) { for(size_t i = 0; i < SIZE; ++i) TEST(f(i)) }
 template<class T, size_t SIZE, class F>
-void _ITERALL(TESTDEF::RETPAIR& __testret, T(&t)[SIZE], F f) { bool __val = true; for(uint32_t i = 0; i < SIZE; ++i) __val = __val && (f(i)); TEST(__val); }
+void _ITERALL(TESTDEF::RETPAIR& __testret, T(&t)[SIZE], F f) { bool __val = true; for(size_t i = 0; i < SIZE; ++i) __val = __val && (f(i)); TEST(__val); }
 
 struct DEBUG_CDT_SAFE
 {

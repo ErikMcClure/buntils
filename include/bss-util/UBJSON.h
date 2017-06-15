@@ -646,7 +646,7 @@ namespace bss {
         s.write(data, size * sizeof(E)); //sizeof(E) should be 1 here but we multiply it anyway
       else
       {
-        for(uint32_t i = 0; i < size; ++i)
+        for(size_t i = 0; i < size; ++i)
           WriteUBJSONBase<E>(e, obj[i], s, type);
       }
     }

@@ -62,7 +62,7 @@ namespace bss {
     Logger& operator=(Logger&& right);
     inline operator std::ostream&() { return _stream; }
 
-    inline int PrintLog(const char* source, const char* file, uint32_t line, int8_t level, const char* format, ...)
+    inline int PrintLog(const char* source, const char* file, size_t line, int8_t level, const char* format, ...)
     {
       va_list vl;
       va_start(vl, format);
@@ -70,18 +70,18 @@ namespace bss {
       va_end(vl);
       return r;
     }
-    int PrintLogV(const char* source, const char* file, uint32_t line, int8_t level, const char* format, va_list args);
+    int PrintLogV(const char* source, const char* file, size_t line, int8_t level, const char* format, va_list args);
 
 #ifdef BSS_VARIADIC_TEMPLATES
     template<typename... Args>
-    BSS_FORCEINLINE void Log(const char* source, const char* file, uint32_t line, int8_t level, Args... args)
+    BSS_FORCEINLINE void Log(const char* source, const char* file, size_t line, int8_t level, Args... args)
     {
       if(level >= _maxlevel)
         return;
       _writeLog(LogHeader(source, file, line, level), args...);
     }
     template<typename... Args>
-    BSS_FORCEINLINE void LogFormat(const char* source, const char* file, uint32_t line, int8_t level, const char* format, Args... args)
+    BSS_FORCEINLINE void LogFormat(const char* source, const char* file, size_t line, int8_t level, const char* format, Args... args)
     {
       if(level >= _maxlevel)
         return;
@@ -90,7 +90,7 @@ namespace bss {
       _stream << std::endl;
     }
 #endif
-    BSS_FORCEINLINE std::ostream& LogHeader(const char* source, const char* file, uint32_t line, int8_t level)
+    BSS_FORCEINLINE std::ostream& LogHeader(const char* source, const char* file, size_t line, int8_t level)
     {
       assert(level < _levels.Capacity());
       return _logHeader(source, file, line, (level < 0) ? "" : _levels[level]);
@@ -106,8 +106,8 @@ namespace bss {
     static inline void _writeLog(std::ostream& o, Arg arg, Args... args) { o << arg; _writeLog(o, args...); }
     static inline void _writeLog(std::ostream& o) { o << std::endl; }
 #endif
-    std::ostream& _logHeader(const char* source, const char* file, uint32_t line, const char* level);
-    static void _header(std::ostream& o, int n, const char* source, const char* file, uint32_t line, const char* level, long tz);
+    std::ostream& _logHeader(const char* source, const char* file, size_t line, const char* level);
+    static void _header(std::ostream& o, int n, const char* source, const char* file, size_t line, const char* level, long tz);
     static bool _writeDateTime(long timezone, std::ostream& log, bool timeonly);
     void _levelDefaults();
 

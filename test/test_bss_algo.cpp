@@ -39,9 +39,9 @@ TESTDEF::RETPAIR test_bss_algo()
     NormalZig<128> zig; // TAKE OFF EVERY ZIG!
     float rect[4] = { 0,100,1000,2000 };
     StochasticSubdivider<float>(rect,
-      [](uint32_t d, const float(&r)[4]) -> double { return 1.0 - 10.0 / (d + 10.0) + 0.5 / (((r[2] - r[0])*(r[3] - r[1])) + 0.5); },
+      [](size_t d, const float(&r)[4]) -> double { return 1.0 - 10.0 / (d + 10.0) + 0.5 / (((r[2] - r[0])*(r[3] - r[1])) + 0.5); },
       [](const float(&r)[4]) {},
-      [&](uint32_t d, const float(&r)[4]) -> double { return zig(); });
+      [&](size_t d, const float(&r)[4]) -> double { return zig(); });
 
     PoissonDiskSample<float>(rect, 4.0f, [](float* f)->float { return f[0] + f[1]; });
     //TEST(QuadraticBSpline<double,double>(1.0,2.0,4.0,8.0)==4.0);
@@ -148,14 +148,14 @@ TESTDEF::RETPAIR test_bss_algo()
   // This can be used to test the distribution of a random engine to verify it is uniform
   //XorshiftEngine<double> dtest;
   /*double vals[10000];
-  for(int i = 0; i < sizeof(vals) / sizeof(double); ++i)
+  for(size_t i = 0; i < sizeof(vals) / sizeof(double); ++i)
     vals[i] = bssRandReal(0.0, 1.0);
     //vals[i] = dtest();
 
   double vmin = vals[0];
   double vmax = vals[0];
   double vavg = vals[0];
-  for(int i = 1; i < sizeof(vals) / sizeof(double); ++i)
+  for(size_t i = 1; i < sizeof(vals) / sizeof(double); ++i)
   {
     vmin = std::min(vmin, vals[i]);
     vmax = std::max(vmax, vals[i]);
@@ -165,7 +165,7 @@ TESTDEF::RETPAIR test_bss_algo()
   double chunk = vmax / 25.0 - vmin / 25.0;
   int buckets[25] = { 0 };
 
-  for(int i = 0; i < sizeof(vals) / sizeof(double); ++i)
+  for(size_t i = 0; i < sizeof(vals) / sizeof(double); ++i)
   {
     int k = (int)floor((vals[i] / chunk) - (vmin / chunk));
     if(k < 0) k = 0;
@@ -174,7 +174,7 @@ TESTDEF::RETPAIR test_bss_algo()
   }
 
   std::cout << std::endl;
-  for(int i = 0; i < sizeof(buckets) / sizeof(int); ++i)
+  for(size_t i = 0; i < sizeof(buckets) / sizeof(int); ++i)
     std::cout << buckets[i] << std::endl;*/
 
   ENDTEST;

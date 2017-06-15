@@ -11,7 +11,7 @@
 
 namespace bss {
   // This is a simple ID hash intended for pointers, which can optionally be compressed to eliminate holes.
-  template<typename T, typename ST = uint32_t, typename Alloc = StaticAllocPolicy<T>, T INVALID = 0>
+  template<typename T, typename ST = size_t, typename Alloc = StaticAllocPolicy<T>, T INVALID = 0>
   class IDHash : protected ArrayBase<T, ST, Alloc>
   {
     static_assert(sizeof(ST) <= sizeof(T), "T must not be smaller than ST");
@@ -99,7 +99,7 @@ namespace bss {
 
   // This is a reversible wrapper around cIDhash that allows for two-way lookups.
   template<typename T, 
-    typename ST = uint32_t, 
+    typename ST = size_t,
     typename Alloc = StaticAllocPolicy<T>, 
     T INVALID = 0, 
     khint_t(*__hash_func)(const T&) = &internal::_HashHelper<T, false>::hash, bool(*__hash_equal)(const T&, const T&) = &internal::_HashHelper<T, false>::equal>

@@ -75,7 +75,7 @@ TESTDEF::RETPAIR test_XML()
   TEST(compare == compare2);
 
   // Ensure that, even if we can't recover from various errors, the parser does not crash or go into an infinite loop due to bad data
-  for(uint32_t i = 1; i < strXML.length(); ++i)
+  for(size_t i = 1; i < strXML.length(); ++i)
   {
     XMLFile x(strXML.substr(0, i).c_str());
     TEST(xml.GetName() != 0); //keep this from getting optimized out
@@ -84,7 +84,7 @@ TESTDEF::RETPAIR test_XML()
   // Feed in an enormous amount of random gibberish to try and crash the parser
   const int AMOUNT = 1000000;
   Str s(AMOUNT);
-  for(int i = 0; i < AMOUNT; ++i)
+  for(size_t i = 0; i < AMOUNT; ++i)
     s += RANDINTGEN(33, 63);
 
   XMLFile x(s);

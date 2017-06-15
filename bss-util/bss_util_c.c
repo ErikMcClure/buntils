@@ -19,7 +19,7 @@
 #include <sys/resource.h>
 #endif
  
-const bssVersionInfo bssVersion = { BSS_VERSION_REVISION, BSS_VERSION_MINOR, BSS_VERSION_MAJOR };
+const bssVersionInfo bssVersion = { 0, BSS_VERSION_REVISION, BSS_VERSION_MINOR, BSS_VERSION_MAJOR };
 
 union bssCPUInfo bssGetCPUInfo()
 {

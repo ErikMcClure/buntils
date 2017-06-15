@@ -17,7 +17,7 @@ namespace bss {
 
   // This is a binary max-heap implemented using an array. Use CompTInv to change it into a min-heap, or to make it use pairs.
   template<class T,
-    typename CT_ = uint32_t,
+    typename CT_ = size_t,
     char(*CFunc)(const T&, const T&) = CompT<T>,
     ARRAY_TYPE ArrayType = ARRAY_SIMPLE,
     typename Alloc = StaticAllocPolicy<T>,
@@ -82,7 +82,7 @@ namespace bss {
     static void PercolateUp(T* _array, CT_ _length, CT_ k, U && val, BinaryHeap* p = 0)
     {
       assert(k < _length);
-      uint32_t parent;
+      CT_ parent;
 
       while(k > 0)
       {
@@ -170,7 +170,7 @@ namespace bss {
     {
       AT_::_checkSize();
       new(_array + _length) T();
-      int k = _length++;
+      CT_ k = _length++;
       PercolateUp(_array, _length, k, std::forward<U>(val), this);
     }
 
@@ -199,7 +199,7 @@ namespace bss {
   //  //const BINHEAP_CELL& last=BINHEAP_CELL(key(),0);
   //  BINHEAP_CELL& right=cur;
   //  BINHEAP_CELL& left=cur;
-  //  int index=0;
+  //  CT_ index=0;
 
   //  while(true)
   //  {

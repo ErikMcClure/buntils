@@ -82,7 +82,7 @@ namespace bss {
       Node* ret = (Node*)(((char*)(cur + 1)) + r);
 #ifdef BSS_DEBUG
       uint8_t* check = (uint8_t*)ret;
-      for(uint32_t i = 0; i < n; ++i) assert(check[i] == 0xfc);
+      for(size_t i = 0; i < n; ++i) assert(check[i] == 0xfc);
 #endif
       ret->sz = n;
       ret->p = cur;

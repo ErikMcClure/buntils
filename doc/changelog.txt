@@ -2,6 +2,12 @@
 * Black Sphere Studios Utility Library Changelog *
 **************************************************
 
+0.5.1
+-----
+- Replace most instances of uint32_t with size_t
+- Static build now works with vcpkg
+- bssVersionInfo was changed to a 64-bit int with 4 16 bit integers, which makes it easier to serialize/deserialize as an array
+
 0.5.0
 -----
 - Added AttemptRLock(), AttemptStrictLock() to RWLock

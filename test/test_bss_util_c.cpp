@@ -87,11 +87,19 @@ void testconvzero(size_t(f)(const FROM*BSS_RESTRICT, ptrdiff_t, TO*BSS_RESTRICT,
 TESTDEF::RETPAIR test_bss_util_c()
 {
   BEGINTEST;
+  static_assert(sizeof(bssVersionInfo) == sizeof(unsigned long long), "bssVersionInfo is the wrong size!");
+  bssVersionInfo test = { 1, 2, 3, 4 };
+  TEST(test.version == 0x4000300020001);
+  TEST(test.v[0] == 1);
+  TEST(test.v[1] == 2);
+  TEST(test.v[2] == 3);
+  TEST(test.v[3] == 4);
+
   //_MM_SET_DENORMALS_ZERO_MODE(_MM_DENORMALS_ZERO_ON);
   //int a=0;
   //uint64_t prof = HighPrecisionTimer::OpenProfiler();
   //CPU_Barrier();
-  //for(int i = 0; i < 1000000; ++i) {
+  //for(size_t i = 0; i < 1000000; ++i) {
   //  a+= bssRandInt(9,12);
   //}
   //CPU_Barrier();
@@ -101,7 +109,7 @@ TESTDEF::RETPAIR test_bss_util_c()
   //  float aaaa = 0;
   //  uint64_t prof = HighPrecisionTimer::OpenProfiler();
   //  CPU_Barrier();
-  //  for(int i = 0; i < TESTNUM; ++i)
+  //  for(size_t i = 0; i < TESTNUM; ++i)
   //    aaaa += bssFMod<float>(-1.0f, testnums[i]+PIf);
   //  CPU_Barrier();
   //  std::cout << HighPrecisionTimer::CloseProfiler(prof) << std::endl;
@@ -154,14 +162,14 @@ TESTDEF::RETPAIR test_bss_util_c()
   int outstr[1024];
   wchar_t wstr[1024];
   char instr[1024];
-  for(int i = 0; i < 1023; ++i) instr[i] = (char)bssRandInt(0, 256);
+  for(size_t i = 0; i < 1023; ++i) instr[i] = (char)bssRandInt(0, 256);
   instr[1023] = 0;
 
   size_t len = UTF8toUTF32(instr, -1, 0, 0);
   TEST(len < 1024);
   TEST(UTF8toUTF32(instr, -1, outstr, len) <= len);
 
-  for(int i = 0; i < 255; ++i) outstr[i] = (int)bssRandInt(0, 0xFFFFFFFF);
+  for(size_t i = 0; i < 255; ++i) outstr[i] = (int)bssRandInt(0, 0xFFFFFFFF);
   outstr[255] = 0;
 
   len = UTF32toUTF8(outstr, -1, 0, 0);
@@ -169,7 +177,7 @@ TESTDEF::RETPAIR test_bss_util_c()
   TEST(UTF32toUTF8(outstr, -1, instr, len) <= len);
 
 #ifdef BSS_PLATFORM_WIN32
-  for(int i = 0; i < sizeof(PANGRAMS) / sizeof(const bsschar*); ++i)
+  for(size_t i = 0; i < sizeof(PANGRAMS) / sizeof(const bsschar*); ++i)
   {
     size_t l = UTF16toUTF32(PANGRAMS[i], -1, 0, 0);
     assert(l < 1024);

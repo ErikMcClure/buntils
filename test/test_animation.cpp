@@ -81,7 +81,7 @@ TESTDEF::RETPAIR test_ANIMATION()
 
     //Animation<StaticAllocPolicy<char>> aa;
     //aa.Deserialize(ss);
-    //for(int i = 0; i<6; ++i) c.Grab(); // compensate for the pointer we just copied over
+    //for(size_t i = 0; i<6; ++i) c.Grab(); // compensate for the pointer we just copied over
 
     cAnimObj obj;
     //a.GetAttribute<3>()->AddKeyFrame(KeyFrame<3>(0.0, [&](){ c.Grab(); obj.test++; }));

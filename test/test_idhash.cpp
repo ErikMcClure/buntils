@@ -11,13 +11,13 @@ TESTDEF::RETPAIR test_IDHASH()
   BEGINTEST;
 
   {
-    IDHash<int> hash(3);
+    IDHash<ptrdiff_t> hash(3);
     TEST(hash.Length() == 0);
     TEST(hash.MaxID() == 0);
-    uint32_t a = hash.Add(5);
-    uint32_t b = hash.Add(6);
-    uint32_t c = hash.Add(7);
-    uint32_t d = hash.Add(8);
+    ptrdiff_t a = hash.Add(5);
+    ptrdiff_t b = hash.Add(6);
+    ptrdiff_t c = hash.Add(7);
+    ptrdiff_t d = hash.Add(8);
     TEST(hash.Length() == 4);
     TEST(hash.MaxID() == 3);
     TEST(a == 0);
@@ -35,11 +35,11 @@ TESTDEF::RETPAIR test_IDHASH()
     TEST(hash.MaxID() == 3);
     TEST(b == 1);
     TEST(hash[b] == 9);
-    IDHash<int> hash2(hash);
+    IDHash<ptrdiff_t> hash2(hash);
     TEST(hash2.Length() == 4);
     TEST(hash2.MaxID() == 3);
     TEST(hash2[b] == 9);
-    IDHash<int> hash3(std::move(hash));
+    IDHash<ptrdiff_t> hash3(std::move(hash));
     TEST(hash3.Length() == 4);
     TEST(hash3.MaxID() == 3);
     TEST(hash3[b] == 9);
@@ -57,8 +57,8 @@ TESTDEF::RETPAIR test_IDHASH()
     uint32_t h = hash.Add(8);
     TEST(hash.Length() == 8);
     TEST(hash.MaxID() == 7);
-    for(int i = 0; i<8; ++i) TEST(hash[i] == (i + 1));
-    for(int i = 0; i<8; ++i) TEST(hash.Lookup(i + 1) == i);
+    for(size_t i = 0; i<8; ++i) TEST(hash[i] == (i + 1));
+    for(size_t i = 0; i<8; ++i) TEST(hash.Lookup(i + 1) == i);
     hash.Remove(b);
     hash.Remove(d);
     hash.Remove(e);

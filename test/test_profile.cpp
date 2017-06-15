@@ -14,7 +14,7 @@ TESTDEF::RETPAIR test_PROFILE()
   { // If you don't scope the PROFILE_FUNC, it won't actually return until AFTER PROFILE_OUTPUT gets called.
     PROFILE_FUNC();
 
-    for(int i = 0; i < 100000; ++i)
+    for(size_t i = 0; i < 100000; ++i)
     {
       CPU_Barrier();
       __PROFILE_STATBLOCK(control, MAKESTRING(control));
@@ -25,7 +25,7 @@ TESTDEF::RETPAIR test_PROFILE()
     }
 
     auto pr = HighPrecisionTimer::OpenProfiler();
-    for(int i = 0; i < 100000; ++i)
+    for(size_t i = 0; i < 100000; ++i)
     {
       PROFILE_BLOCK(outer);
       {
@@ -35,7 +35,7 @@ TESTDEF::RETPAIR test_PROFILE()
     }
     //std::cout << HighPrecisionTimer::CloseProfiler(pr)/100000.0 << std::endl;
 
-    for(int i = 0; i < 100000; ++i)
+    for(size_t i = 0; i < 100000; ++i)
     {
       PROFILE_BEGIN(beginend);
       testnums[bssRandInt(0, TESTNUM)] += 1;

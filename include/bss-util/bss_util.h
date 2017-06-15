@@ -920,7 +920,7 @@ namespace bss {
       U low = (mid34 << halfbits) | (bd & halfmask); // low
       _bssabsnegate<std::is_signed<T>::value, U>::_bssnegate(low, high, (xs < 0) ^ (ys < 0));
 
-      if(shift >= (sizeof(U) << 3))
+      if(shift >= (T)(sizeof(U) << 3))
         return ((T)high) >> (shift - (sizeof(U) << 3));
       low = (low >> shift);
       high = (high << ((sizeof(T) << 3) - shift)) & (-(shift > 0)); // shifting left by 64 bits is undefined, so we use a bit trick to set high to zero if shift is 0 without branching.

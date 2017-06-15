@@ -26,7 +26,7 @@ namespace bss {
     template<typename... Args>
     static void ParseMany(Serializer<TOMLEngine>& e, const Trie<uint16_t>& t, std::tuple<Args...>& args);
 
-    uint32_t state;
+    size_t state;
     Str id;
     bool first;
   };
@@ -718,7 +718,7 @@ namespace bss {
       s << '[';
       e.engine.first = true;
 
-      for(uint32_t i = 0; i < size; ++i)
+      for(size_t i = 0; i < size; ++i)
         WriteTOMLBase(e, 0, obj[i], s);
 
       s << ']';
@@ -757,7 +757,7 @@ namespace bss {
       {
         if(e.engine.state == 2 || (!id && !e.engine.state))
         {
-          uint32_t state = e.engine.state;
+          size_t state = e.engine.state;
           e.engine.state = 2;
           WriteTOMLPairs(e, id, obj, s);
           e.engine.state = state;
@@ -822,7 +822,7 @@ namespace bss {
     internal::WriteTOMLId(e, id, s);
     s << '"';
 
-    for(uint32_t i = 0; i < obj.size(); ++i)
+    for(size_t i = 0; i < obj.size(); ++i)
     {
       switch(obj[i])
       {

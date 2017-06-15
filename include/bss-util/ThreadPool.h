@@ -29,7 +29,7 @@ namespace bss {
     {
       mov._run.store(0, std::memory_order_release);
     }
-    explicit ThreadPool(uint32_t count) : _falloc(sizeof(TASK) * 20), _run(0), _tasks(0)
+    explicit ThreadPool(size_t count) : _falloc(sizeof(TASK) * 20), _run(0), _tasks(0)
     {
       AddThreads(count);
     }
@@ -44,15 +44,15 @@ namespace bss {
       _lock.Notify(_threads.Length());
       while(_run.load(std::memory_order_acquire) < 0);
     }
-    void AddTask(FN f, void* arg, uint32_t instances = 1)
+    void AddTask(FN f, void* arg, size_t instances = 1)
     {
       if(!instances)
-        instances = (uint32_t)_threads.Length();
+        instances = (size_t)_threads.Length();
 
       TASK task(f, arg);
       _tasks.fetch_add(instances, std::memory_order_release);
 
-      for(uint32_t i = 0; i < instances; ++i)
+      for(size_t i = 0; i < instances; ++i)
         _tasklist.Push(task);
 
       _lock.Notify(instances);
@@ -69,9 +69,9 @@ namespace bss {
     }
 #endif
 
-    void AddThreads(uint32_t num = 1)
+    void AddThreads(size_t num = 1)
     {
-      for(uint32_t i = 0; i < num; ++i)
+      for(size_t i = 0; i < num; ++i)
       {
         _run.fetch_add(1, std::memory_order_release);
         _threads.AddConstruct(_worker, std::ref(*this));
@@ -88,11 +88,11 @@ namespace bss {
 
       while(_tasks.load(std::memory_order_relaxed) > 0); // Wait until all tasks actually stop processing
     }
-    inline uint32_t Busy() const { return _tasks.load(std::memory_order_relaxed); }
+    inline size_t Busy() const { return _tasks.load(std::memory_order_relaxed); }
 
-    static unsigned int IdealWorkerCount()
+    static size_t IdealWorkerCount()
     {
-      unsigned int c = std::thread::hardware_concurrency();
+      size_t c = std::thread::hardware_concurrency();
       return c <= 1 ? 1 : (c - 1);
     }
 
@@ -124,9 +124,9 @@ namespace bss {
     }
 #endif
 
-    MicroLockQueue<TASK, uint32_t> _tasklist;
-    std::atomic<uint32_t> _tasks; // Count of tasks still being processed (this includes tasks that have been removed from the queue, but haven't finished yet)
-    DynArray<Thread, uint32_t, ARRAY_MOVE> _threads;
+    MicroLockQueue<TASK, size_t> _tasklist;
+    std::atomic<size_t> _tasks; // Count of tasks still being processed (this includes tasks that have been removed from the queue, but haven't finished yet)
+    DynArray<Thread, size_t, ARRAY_MOVE> _threads;
     std::atomic<int32_t> _run;
     Semaphore _lock;
     RingAllocVoid _falloc;

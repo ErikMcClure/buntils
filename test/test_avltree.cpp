@@ -21,27 +21,27 @@ TESTDEF::RETPAIR test_AVLTREE()
   AVLTree<int, int, CompT<int>, BlockPolicy<AVLNode<std::pair<int, int>>>> avlblah(&fixedavl);
 
   //uint64_t prof=HighPrecisionTimer::OpenProfiler();
-  for(int i = 0; i<TESTNUM; ++i)
+  for(size_t i = 0; i<TESTNUM; ++i)
     avlblah.Insert(testnums[i], testnums[i]);
   //std::cout << HighPrecisionTimer::CloseProfiler(prof) << std::endl;
 
   Shuffle(testnums);
   //prof=HighPrecisionTimer::OpenProfiler();
   uint32_t c = 0;
-  for(int i = 0; i<TESTNUM; ++i)
+  for(size_t i = 0; i<TESTNUM; ++i)
     c += (avlblah.GetRef(testnums[i]) != 0);
   TEST(c == TESTNUM);
   //std::cout << HighPrecisionTimer::CloseProfiler(prof) << std::endl;
 
   Shuffle(testnums);
   //prof=HighPrecisionTimer::OpenProfiler();
-  for(int i = 0; i<TESTNUM; ++i)
+  for(size_t i = 0; i<TESTNUM; ++i)
     avlblah.Remove(testnums[i]);
   //std::cout << HighPrecisionTimer::CloseProfiler(prof) << std::endl;
   avlblah.Clear();
 
   c = 0;
-  for(int i = 0; i<TESTNUM; ++i) // Test that no numbers are in the tree
+  for(size_t i = 0; i<TESTNUM; ++i) // Test that no numbers are in the tree
     c += (avlblah.GetRef(testnums[i]) == 0);
   TEST(c == TESTNUM);
 
@@ -65,7 +65,7 @@ TESTDEF::RETPAIR test_AVLTREE()
     BlockAlloc<DEBUG_CDT<false>> dalloc(TESTNUM);
     typedef std::unique_ptr<DEBUG_CDT<false>, std::function<void(DEBUG_CDT<false>*)>> AVL_D;
     AVLTree<int, AVL_D, CompT<int>, BlockPolicy<AVLNode<std::pair<int, AVL_D>>>> dtree;
-    for(int i = 0; i<TESTNUM; ++i)
+    for(size_t i = 0; i<TESTNUM; ++i)
     {
       auto dp = dalloc.alloc(1);
       new(dp)DEBUG_CDT<false>(testnums[i]);
@@ -74,20 +74,20 @@ TESTDEF::RETPAIR test_AVLTREE()
 
     Shuffle(testnums);
     c = 0;
-    for(int i = 0; i<TESTNUM; ++i)
+    for(size_t i = 0; i<TESTNUM; ++i)
       c += (dtree.GetRef(testnums[i]) != 0);
     TEST(c == TESTNUM);
 
     Shuffle(testnums);
     c = 0;
-    for(int i = 0; i<TESTNUM; ++i)
+    for(size_t i = 0; i<TESTNUM; ++i)
       c += dtree.ReplaceKey(testnums[i], testnums[i]);
     TEST(c == TESTNUM);
 
     Shuffle(testnums);
     c = 0;
     AVL_D* r;
-    for(int i = 0; i<TESTNUM; ++i)
+    for(size_t i = 0; i<TESTNUM; ++i)
     {
       if((r = dtree.GetRef(testnums[i])) != 0)
         c += ((*r->get()) == testnums[i]);
@@ -95,11 +95,11 @@ TESTDEF::RETPAIR test_AVLTREE()
     TEST(c == TESTNUM);
 
     Shuffle(testnums);
-    for(int i = 0; i<TESTNUM; ++i)
+    for(size_t i = 0; i<TESTNUM; ++i)
       dtree.Remove(testnums[i]);
 
     c = 0;
-    for(int i = 0; i<TESTNUM; ++i)
+    for(size_t i = 0; i<TESTNUM; ++i)
       c += (dtree.GetRef(testnums[i]) == 0);
     TEST(c == TESTNUM);
     TEST(!DEBUG_CDT<false>::count)
@@ -109,21 +109,21 @@ TESTDEF::RETPAIR test_AVLTREE()
     AVLTree<int, void, CompT<int>, BlockPolicy<AVLNode<int>>> avlblah2;
 
   //uint64_t prof=HighPrecisionTimer::OpenProfiler();
-  for(int i = 0; i<TESTNUM; ++i)
+  for(size_t i = 0; i<TESTNUM; ++i)
     avlblah2.Insert(testnums[i]);
   //std::cout << HighPrecisionTimer::CloseProfiler(prof) << std::endl;
 
   Shuffle(testnums);
   //prof=HighPrecisionTimer::OpenProfiler();
   c = 0;
-  for(int i = 0; i<TESTNUM; ++i)
+  for(size_t i = 0; i<TESTNUM; ++i)
     c += ((avlblah2.GetRef(testnums[i]) != 0)&(avlblah2.Get(testnums[i], -1) == testnums[i]));
   TEST(c == TESTNUM);
   //std::cout << HighPrecisionTimer::CloseProfiler(prof) << std::endl;
 
   Shuffle(testnums);
   //prof=HighPrecisionTimer::OpenProfiler();
-  for(int i = 0; i<TESTNUM; ++i)
+  for(size_t i = 0; i<TESTNUM; ++i)
     avlblah2.Remove(testnums[i]);
   //std::cout << HighPrecisionTimer::CloseProfiler(prof) << std::endl;
   avlblah2.Clear();

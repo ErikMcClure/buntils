@@ -30,7 +30,7 @@ TESTDEF::RETPAIR test_BINARYHEAP()
 
   std::vector<int> b;
   BinaryHeap<int> c;
-  for(uint32_t i = 0; i < a2_SZ; ++i)
+  for(size_t i = 0; i < a2_SZ; ++i)
   {
     b.push_back(a[i]);
     std::push_heap(b.begin(), b.end());
@@ -42,7 +42,7 @@ TESTDEF::RETPAIR test_BINARYHEAP()
   std::for_each(c.begin(), c.end(), [](int& a) { a += 1; });
   arrtest(&b[0], c, c.Length());
 
-  for(uint32_t i = 0; i < a2_SZ; ++i)
+  for(size_t i = 0; i < a2_SZ; ++i)
   {
     std::pop_heap(b.begin(), b.end() - i);
     c.Remove(0);

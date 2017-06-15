@@ -93,7 +93,7 @@ memset(arr, 0, sizeof(void*)*MAX);
 const int NUM = 8;
 Thread threads[NUM];
 startflag.store(false);
-for(int i = 0; i < NUM; ++i)
+for(size_t i = 0; i < NUM; ++i)
 threads[i] = Thread((i%2)?&profile_pop<Alloc, MAX>:&profile_push<Alloc, MAX, SZ>, std::ref(a), arr);
 
 auto prof = HighPrecisionTimer::OpenProfiler();
@@ -102,7 +102,7 @@ startflag.store(true);
 while(startflag.load(std::memory_order_acquire));
 uint64_t diff = HighPrecisionTimer::CloseProfiler(prof);
 
-for(int i = 0; i < NUM; ++i)
+for(size_t i = 0; i < NUM; ++i)
 threads[i].join();
 
 return diff;
@@ -156,7 +156,7 @@ uint32_t* zp3=vals+2;
 uint32_t* zp4=vals+3;
 uint32_t* zp5=vals+4;
 OBJSWAP_TEST o[6] = { {1},{2},{3},{4},{5},{6} };
-for(uint32_t i = 0; i < 5; ++i)
+for(size_t i = 0; i < 5; ++i)
 {
 switch(PSWAP(vals+i,5,zp,zp2,zp3,zp4,zp5))
 {
@@ -306,7 +306,7 @@ std::cout<<std::endl;
 //}
 //
 //int sum=0;
-//for(int i = 0; i < prime_divisors.size(); ++i) sum+=prime_divisors[i];
+//for(size_t i = 0; i < prime_divisors.size(); ++i) sum+=prime_divisors[i];
 
 //	return 0;
 //}
@@ -316,7 +316,7 @@ int rometoint(std::string roman) {
   int ascii = 0;
   std::unique_ptr<int[]> cache(new int[roman.length()]);
 
-  for(uint32_t i = 0; i < roman.length(); i++)
+  for(size_t i = 0; i < roman.length(); i++)
   {
     ascii = int(toupper(roman[i]));
 
@@ -354,7 +354,7 @@ int rometoint(std::string roman) {
     return (cache[0]);
   }
 
-  for(uint32_t i = 0; i < (roman.length() - 1); i++)
+  for(size_t i = 0; i < (roman.length() - 1); i++)
   {
     if(cache[i] >= cache[i + 1])
     {
@@ -374,7 +374,7 @@ int rometoint(std::string roman) {
 //{
 //  int mid = length/2;
 //  --length;
-//  for(int i = 0; i <= mid; ++i)
+//  for(size_t i = 0; i <= mid; ++i)
 //    if(begin[i]!=begin[length-i]) return false;
 //
 //  return true;
@@ -385,7 +385,7 @@ inline bool isprime(int number)
 {
   if(number % 2 == 0) return number == 2;
   int stop = number / 2;
-  for(int i = 3; i < stop; ++i)
+  for(size_t i = 3; i < stop; ++i)
     if(number%i == 0) return false;
   return true;
 }
@@ -400,7 +400,7 @@ inline bool isprime(int number)
 //double t=0;
 //uint32_t steps=100;
 //double step=5.0/steps;
-//for(uint32_t i = 0; i < steps; ++i)
+//for(size_t i = 0; i < steps; ++i)
 //{
 //  double fx = 1 - x*x;
 //  //x = x + fx*step;
@@ -430,7 +430,7 @@ char* inttoroman(int in)
   }
 
   char* str = new char[charnum + 1];
-  for(int i = 0; i<charnum + 1; ++i) str[i] = 0;
+  for(size_t i = 0; i<charnum + 1; ++i) str[i] = 0;
 
   int count = -1;
   while(in >= 1000) { str[++count] = 'M'; in -= 1000; };

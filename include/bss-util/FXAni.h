@@ -166,7 +166,7 @@ namespace bss {
 
     FXAni(FXMANAGER* manager) : _manager(manager), AniBase(sizeof(Def)) {}
     template<typename T, typename D, ARRAY_TYPE ArrayType = ARRAY_SAFE>
-    size_t AddAnimation(const AniFrame<T, D>* src, uint32_t len, typename Animation<T, D>::FUNC f = 0)
+    size_t AddAnimation(const AniFrame<T, D>* src, size_t len, typename Animation<T, D>::FUNC f = 0)
     {
       return _animations.AddConstruct(Animation<T, D, ArrayType>(src, len, f));
     }
@@ -185,7 +185,7 @@ namespace bss {
       AniMap map = { def, ani, delay };
       _mapping.Insert(map);
     }
-    virtual uint32_t GetSize() const { return (uint32_t)_defs.Length(); }
+    virtual size_t GetSize() const { return (size_t)_defs.Length(); }
     virtual const void* GetArray() const { return _defs.begin(); }
     virtual void* GetFunc() const { return 0; }
     virtual AniBase* Clone() const { return new FXAni(*this); }

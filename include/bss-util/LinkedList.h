@@ -41,10 +41,10 @@ namespace bss {
   // Adaptive class template for Size usage
     template<bool size> struct LList_SIZE {};
     template<> struct LList_SIZE<true> {
-      inline uint32_t Length() const { return _length; }
+      inline size_t Length() const { return _length; }
 
     protected:
-      uint32_t _length;
+      size_t _length;
       inline void _incsize() { ++_length; }
       inline void _decsize() { --_length; }
       inline void _zerosize() { _length = 0; }

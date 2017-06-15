@@ -52,7 +52,7 @@ TESTDEF::RETPAIR test_ARRAY()
   }
 
   auto f = [](Array<DEBUG_CDT<true>, uint32_t, ARRAY_SAFE>& arr)->bool {
-    for(uint32_t i = 0; i < arr.Capacity(); ++i)
+    for(size_t i = 0; i < arr.Capacity(); ++i)
       if(arr[i]._index != i)
         return false;
     return true;
@@ -65,8 +65,8 @@ TESTDEF::RETPAIR test_ARRAY()
     Array<DEBUG_CDT<true>, uint32_t, ARRAY_SAFE> b(10);
     f2(b, 0);
     b.Remove(5);
-    for(uint32_t i = 0; i < 5; ++i) TEST(b[i]._index == i);
-    for(uint32_t i = 5; i < b.Capacity(); ++i) TEST(b[i]._index == (i + 1));
+    for(size_t i = 0; i < 5; ++i) TEST(b[i]._index == i);
+    for(size_t i = 5; i < b.Capacity(); ++i) TEST(b[i]._index == (i + 1));
     TEST(b.Capacity() == 9);
     TEST(DEBUG_CDT<true>::count == 9);
     f2(b, 0);
@@ -79,14 +79,14 @@ TESTDEF::RETPAIR test_ARRAY()
     TEST(f(c));
     TEST(DEBUG_CDT<true>::count == 38);
     b += c;
-    for(uint32_t i = 0; i < 19; ++i) TEST(b[i]._index == i);
-    for(uint32_t i = 19; i < 38; ++i) TEST(b[i]._index == (i - 19));
+    for(size_t i = 0; i < 19; ++i) TEST(b[i]._index == i);
+    for(size_t i = 19; i < 38; ++i) TEST(b[i]._index == (i - 19));
     TEST(DEBUG_CDT<true>::count == 57);
     b + c;
     f2(b, 0);
     b.Insert(DEBUG_CDT<true>(), 5);
-    for(uint32_t i = 0; i < 5; ++i) TEST(b[i]._index == i);
-    for(uint32_t i = 6; i < b.Capacity(); ++i) TEST(b[i]._index == (i - 1));
+    for(size_t i = 0; i < 5; ++i) TEST(b[i]._index == i);
+    for(size_t i = 6; i < b.Capacity(); ++i) TEST(b[i]._index == (i - 1));
     TEST(DEBUG_CDT<true>::count == 58);
     b.Insert(DEBUG_CDT<true>(), b.Capacity());
     TEST(DEBUG_CDT<true>::count == 59);
@@ -95,7 +95,7 @@ TESTDEF::RETPAIR test_ARRAY()
   TEST(!DEBUG_CDT_SAFE::Tracker.Length());
 
   auto f3 = [](Array<DEBUG_CDT<false>, uint32_t, ARRAY_CONSTRUCT>& arr)->bool {
-    for(uint32_t i = 0; i < arr.Capacity(); ++i)
+    for(size_t i = 0; i < arr.Capacity(); ++i)
       if(arr[i]._index != i)
         return false;
     return true;
@@ -106,8 +106,8 @@ TESTDEF::RETPAIR test_ARRAY()
     Array<DEBUG_CDT<false>, uint32_t, ARRAY_CONSTRUCT> b(10);
     f4(b, 0);
     b.Remove(5);
-    for(uint32_t i = 0; i < 5; ++i) TEST(b[i]._index == i);
-    for(uint32_t i = 5; i < b.Capacity(); ++i) TEST(b[i]._index == (i + 1));
+    for(size_t i = 0; i < 5; ++i) TEST(b[i]._index == i);
+    for(size_t i = 5; i < b.Capacity(); ++i) TEST(b[i]._index == (i + 1));
     TEST(b.Capacity() == 9);
     TEST(DEBUG_CDT<false>::count == 9);
     f4(b, 0);
@@ -120,14 +120,14 @@ TESTDEF::RETPAIR test_ARRAY()
     TEST(f3(c));
     TEST(DEBUG_CDT<false>::count == 38);
     b += c;
-    for(uint32_t i = 0; i < 19; ++i) TEST(b[i]._index == i);
-    for(uint32_t i = 19; i < 38; ++i) TEST(b[i]._index == (i - 19));
+    for(size_t i = 0; i < 19; ++i) TEST(b[i]._index == i);
+    for(size_t i = 19; i < 38; ++i) TEST(b[i]._index == (i - 19));
     TEST(DEBUG_CDT<false>::count == 57);
     b + c;
     f4(b, 0);
     b.Insert(DEBUG_CDT<false>(), 5);
-    for(uint32_t i = 0; i < 5; ++i) TEST(b[i]._index == i);
-    for(uint32_t i = 6; i < b.Capacity(); ++i) TEST(b[i]._index == (i - 1));
+    for(size_t i = 0; i < 5; ++i) TEST(b[i]._index == i);
+    for(size_t i = 6; i < b.Capacity(); ++i) TEST(b[i]._index == (i - 1));
     TEST(DEBUG_CDT<false>::count == 58);
     b.Insert(DEBUG_CDT<false>(), b.Capacity());
     TEST(DEBUG_CDT<false>::count == 59);

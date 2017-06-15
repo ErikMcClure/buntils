@@ -26,11 +26,11 @@ bool TESTVECTOR_EQUALITY<double>(double l, double r)
   return fCompare(l, r, 100LL);
 }
 
-#define TESTVECTOR(vec, arr, __testret) for(int i = 0; i < N; ++i) { TEST(TESTVECTOR_EQUALITY(vec.v[i],arr[i])); }
+#define TESTVECTOR(vec, arr, __testret) for(size_t i = 0; i < N; ++i) { TEST(TESTVECTOR_EQUALITY(vec.v[i],arr[i])); }
 
 template<typename T, int N>
 void TESTVALUES_To(T(&out)[N], T(&in)[N]) {
-  for(int i = 0; i < N; ++i) out[i] = in[i];
+  for(size_t i = 0; i < N; ++i) out[i] = in[i];
 }
 
 static const int NUMANSWERS = 18;
@@ -124,7 +124,7 @@ static const double* VAnswers[6] = { 0, 0, (const double*)Answers2, (const doubl
 template<typename T, int N> void VECTOR_N_TEST(TESTDEF::RETPAIR& __testret)
 {
   T ans[NUMANSWERS][N];
-  for(int i = 0; i < NUMANSWERS; ++i)
+  for(size_t i = 0; i < NUMANSWERS; ++i)
     for(int j = 0; j < N; ++j)
       ans[i][j] = (T)VAnswers[N][i*N + j];
 
@@ -180,7 +180,7 @@ template<typename T, int N> void VECTOR_N_TEST(TESTDEF::RETPAIR& __testret)
   if(!std::is_integral<T>::value)
   {
     e = c.Normalize();
-    for(int i = 0; i < N; ++i) { TEST(e.v[i] == (ans[12][i] / l)); }
+    for(size_t i = 0; i < N; ++i) { TEST(e.v[i] == (ans[12][i] / l)); }
   }
 }
 template<typename T> void VECTOR2_CROSS_TEST(TESTDEF::RETPAIR& __testret)
@@ -196,13 +196,13 @@ template<typename T> void VECTOR3_CROSS_TEST(TESTDEF::RETPAIR& __testret)
   Vector<T, 3> v2(1, 2, 3);
   Vector<T, 3> a = v.Cross(v2);
   T ans[3] = { (T)3, (T)-6, (T)3 };
-  for(int i = 0; i < 3; ++i) { TEST(a.v[i] == ans[i]); }
+  for(size_t i = 0; i < 3; ++i) { TEST(a.v[i] == ans[i]); }
 }
 
 template<typename T, int M, int N, T(*op)(const T& l, const T& r)>
 void MATRIX_COMPONENT_OP(const T(&l)[M][N], const T(&r)[M][N], T(&out)[M][N])
 {
-  for(int i = 0; i < M; ++i)
+  for(size_t i = 0; i < M; ++i)
     for(int j = 0; j < N; ++j)
       out[i][j] = op(l[i][j], r[i][j]);
 }
@@ -220,7 +220,7 @@ void MATRIX_MULTIPLY(const T(&l)[M][N], const T(&r)[N][P], T(&out)[M][P])
   memcpy(a, l, sizeof(T)*M*N); // ensure if we pass in multiple non-distinct matrices we don't overwrite them.
   memcpy(b, r, sizeof(T)*N*P);
   bssFill(out);
-  for(int i = 0; i < M; ++i)
+  for(size_t i = 0; i < M; ++i)
   {
     for(int j = 0; j < P; ++j)
     {
@@ -240,7 +240,7 @@ bool MATRIX_OP_TEST(const T(&x)[M][N], const T(&l)[M][N], const T(&r)[M][N])
   T out[M][N];
   MATRIX_COMPONENT_OP<T, M, N, op>(l, r, out);
 
-  for(int i = 0; i < M; ++i)
+  for(size_t i = 0; i < M; ++i)
     for(int j = 0; j < N; ++j)
       if(!MAT_OP_COMPFUNC(out[i][j], x[i][j]))
         return false;
@@ -253,7 +253,7 @@ bool MATRIX_OP_TEST(const T(&x)[M][N], const T(&l)[M][N], const T scalar)
 {
   T out[M][N];
   T* set = (T*)out;
-  for(int i = 0; i < M*N; ++i) set[i] = scalar;
+  for(size_t i = 0; i < M*N; ++i) set[i] = scalar;
   return MATRIX_OP_TEST<T, M, N, op>(x, l, out);
 }
 
@@ -261,14 +261,14 @@ template<typename T, int M, int N>
 BSS_FORCEINLINE static void MATRIX_DIAGONAL(const T(&v)[M<N ? M : N], T(&out)[M][N])
 {
   bssFill(out);
-  for(int i = 0; i < M && i < N; ++i)
+  for(size_t i = 0; i < M && i < N; ++i)
     out[i][i] = v[i];
 }
 
 template<typename T, int M, int N>
 bool MATRIX_COMPARE(const T(&l)[M][N], const T(&r)[M][N], int diff = 1)
 {
-  for(int i = 0; i < M; ++i)
+  for(size_t i = 0; i < M; ++i)
     for(int j = 0; j < N; ++j)
       if(!fCompareSmall(l[i][j], r[i][j], diff))
         return false;
@@ -284,13 +284,13 @@ void MATRIX_M_N_TEST(TESTDEF::RETPAIR& __testret)
   Matrix<T, M, N> d;
   Matrix<T, M, N> e;
 
-  for(int i = 0; i < M; ++i)
+  for(size_t i = 0; i < M; ++i)
     for(int j = 0; j < N; ++j)
       a.v[i][j] = (T)((i*M) + j + 1);
-  for(int i = 0; i < M; ++i)
+  for(size_t i = 0; i < M; ++i)
     for(int j = 0; j < N; ++j)
       b.v[i][j] = (T)((i*M) + j + (M*N) + 1);
-  for(int i = 0; i < M; ++i)
+  for(size_t i = 0; i < M; ++i)
     for(int j = 0; j < N; ++j)
       c.v[i][j] = (T)7;
 
@@ -344,7 +344,7 @@ void MATRIX_M_N_TEST(TESTDEF::RETPAIR& __testret)
   Matrix<T, M, N>::Transpose(a.v, t2.v);
   TEST(t1 == t2);
   Vector<T, (M<N ? M : N)> diag;
-  for(int i = 0; i < (M<N ? M : N); ++i)
+  for(size_t i = 0; i < (M<N ? M : N); ++i)
     diag.v[i] = (T)(i + 1);
   MATRIX_DIAGONAL<T, M, N>(diag.v, d.v);
   Matrix<T, M, N>::Diagonal(diag.v, e.v);
@@ -364,11 +364,11 @@ void MATRIX_M_N_TEST(TESTDEF::RETPAIR& __testret)
   Vector<T, N> r1;
   Vector<T, M> rr1;
   Vector<T, M> rrr1;
-  for(int i = 0; i < N; ++i) r1.v[i] = (T)(i + 1);
+  for(size_t i = 0; i < N; ++i) r1.v[i] = (T)(i + 1);
   Vector<T, M> r2;
   Vector<T, N> rr2;
   Vector<T, N> rrr2;
-  for(int i = 0; i < M; ++i) r2.v[i] = (T)(i + 1);
+  for(size_t i = 0; i < M; ++i) r2.v[i] = (T)(i + 1);
 
   Matrix<T, N, N> s1;
   Matrix<T, N, N> ss1;

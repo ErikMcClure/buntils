@@ -40,7 +40,7 @@ TESTDEF::RETPAIR test_THREADPOOL()
 
     std::sort(std::begin(pq_end), std::end(pq_end));
     bool check = true;
-    for(int i = 0; i < TESTNUM; ++i)
+    for(size_t i = 0; i < TESTNUM; ++i)
       check = (pq_end[i] == i) && check;
     TEST(check);
 #endif

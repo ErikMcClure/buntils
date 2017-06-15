@@ -20,7 +20,7 @@ TESTDEF::RETPAIR test_TRIE()
   /*
   Str randcstr[200];
   const char* randstr[200];
-  for(uint32_t i = 0; i < 200; ++i)
+  for(size_t i = 0; i < 200; ++i)
   {
     for(uint32_t j = bssRandInt(2,20); j>0; --j)
       randcstr[i]+=(char)bssRandInt('a','z');
@@ -28,13 +28,13 @@ TESTDEF::RETPAIR test_TRIE()
   }
   Trie<uint32_t> t0(50,randstr);
   Hash<const char*,uint8_t> hashtest;
-  for(uint32_t i = 0; i < 50; ++i)
+  for(size_t i = 0; i < 50; ++i)
     hashtest.Insert(randstr[i],i);
   uint32_t dm;
   Shuffle(testnums);
   auto prof = HighPrecisionTimer::OpenProfiler();
   CPU_Barrier();
-  for(uint32_t i = 0; i < TESTNUM; ++i)
+  for(size_t i = 0; i < TESTNUM; ++i)
     dm=hashtest[randstr[testnums[i]%200]];
     //dm= t0[randstr[testnums[i]%200]];
     //dm=t[strs[testnums[i]%10]];
@@ -43,7 +43,7 @@ TESTDEF::RETPAIR test_TRIE()
   std::cout << dm << "\nTIME:" << res << std::endl;
   */
 
-  for(uint32_t i = 0; i < 9; ++i)
+  for(size_t i = 0; i < 9; ++i)
   {
     switch(t[strs[i]]) // Deliberatly meant to test for one failure
     {
@@ -75,7 +75,7 @@ TESTDEF::RETPAIR test_TRIE()
   Trie<uint8_t, false> tcase(10, casestr);
   Trie<uint8_t, true> tins(10, "tIck", "On", "tEX", "ROT", "RO", "ti", "ONtick", "ONdestROY", "te", "tick");
 
-  for(uint32_t i = 0; i < 11; ++i)
+  for(size_t i = 0; i < 11; ++i)
   {
     switch(tcase[casestr[i]]) // Deliberatly meant to test for one failure
     {
@@ -108,7 +108,7 @@ TESTDEF::RETPAIR test_TRIE()
   TEST(tcase[strs[9]] == 9);
   TEST(tins["rot"] == 3);
 
-  for(uint32_t i = 0; i < 9; ++i)
+  for(size_t i = 0; i < 9; ++i)
   {
     switch(tins[strs[i]]) // Deliberatly meant to test for one failure
     {

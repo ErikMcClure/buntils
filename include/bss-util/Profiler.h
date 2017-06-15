@@ -49,10 +49,10 @@ namespace bss {
     {
       const char* name;
       const char* file;
-      uint32_t line;
+      size_t line;
       ProfilerInt id;
 
-      inline ProfilerData(const char* Name, const char* File, uint32_t Line) : name(Name), file(File), line(Line), id(++total) 
+      inline ProfilerData(const char* Name, const char* File, size_t Line) : name(Name), file(File), line(Line), id(++total)
       { 
         Profiler::profiler.AddData(id, this); 
       }
@@ -98,9 +98,9 @@ namespace bss {
   private:
     Profiler();
     PROF_TRIENODE* _allocNode();
-    void _treeOut(std::ostream& stream, PROF_TRIENODE* node, ProfilerInt id, uint32_t level, ProfilerInt idlevel);
+    void _treeOut(std::ostream& stream, PROF_TRIENODE* node, ProfilerInt id, size_t level, ProfilerInt idlevel);
     void _heatOut(internal::PROF_HEATNODE& heat, PROF_TRIENODE* node, ProfilerInt id, ProfilerInt idlevel);
-    void _heatWrite(std::ostream& stream, internal::PROF_HEATNODE& node, uint32_t level, double max);
+    void _heatWrite(std::ostream& stream, internal::PROF_HEATNODE& node, size_t level, double max);
     double _heatFindMax(internal::PROF_HEATNODE& heat);
     static void _flatOut(internal::PROF_FLATOUT* avg, PROF_TRIENODE* node, ProfilerInt id, ProfilerInt idlevel);
     static const char* _trimPath(const char* path);
@@ -111,7 +111,7 @@ namespace bss {
     PROF_TRIENODE* _trie;
     PROF_TRIENODE* _cur;
     BlockAlloc<PROF_TRIENODE> _alloc;
-    uint32_t _totalnodes;
+    size_t _totalnodes;
   };
 
   inline static bool __DEBUG_VERIFY(Profiler::PROF_TRIENODE* node)

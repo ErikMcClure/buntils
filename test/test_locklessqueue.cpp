@@ -84,7 +84,7 @@ TESTDEF::RETPAIR test_LOCKLESSQUEUE()
     threads[1].join();
     //std::cout << '\n' << HighPrecisionTimer::CloseProfiler(ppp) << std::endl;
     bool check = true;
-    for(int i = 0; i < TESTNUM; ++i)
+    for(size_t i = 0; i < TESTNUM; ++i)
       check = check && (lq_end[i] == i + 1);
     TEST(check);
   }
@@ -100,17 +100,17 @@ TESTDEF::RETPAIR test_LOCKLESSQUEUE()
       LLQUEUE_MCMP q;   // multi consumer multi producer test
       startflag.store(false);
       //threads[0] = std::thread(_locklessqueue_consume<LLQUEUE_MCMP>, &q);
-      //for(int i=1; i<j; ++i)
+      //for(size_t i=1; i<j; ++i)
       //  threads[i] = std::thread(_locklessqueue_produce<LLQUEUE_MCMP>, &q);
-      for(int i = 0; i<j; ++i)
+      for(size_t i = 0; i<j; ++i)
         threads[i] = Thread((i & 1) ? _locklessqueue_produce<LLQUEUE_MCMP> : _locklessqueue_consume<LLQUEUE_MCMP>, &q);
       startflag.store(true);
-      for(int i = 0; i<j; ++i)
+      for(size_t i = 0; i<j; ++i)
         threads[i].join();
 
       std::sort(std::begin(lq_end), std::end(lq_end));
       bool check = true;
-      for(int i = 0; i < TESTNUM - 1; ++i)
+      for(size_t i = 0; i < TESTNUM - 1; ++i)
       {
         check = check && (lq_end[i] == i + 1);
       }

@@ -397,7 +397,7 @@ namespace bss {
 
   // Randomly subdivides a rectangular area into smaller rects of varying size. F1 takes (depth,rect) and returns how likely it is that a branch will terminate.
   template<typename T, typename F1, typename F2, typename F3> // F2 takes (const float (&rect)[4]) and is called when a branch terminates on a rect.
-  inline void StochasticSubdivider(const T(&rect)[4], const F1& f1, const F2& f2, const F3& f3, uint32_t depth = 0) // F3 returns a random number from [0,1]
+  inline void StochasticSubdivider(const T(&rect)[4], const F1& f1, const F2& f2, const F3& f3, size_t depth = 0) // F3 returns a random number from [0,1]
   {
     if(bssRandReal(0, 1.0) < f1(depth, rect))
     {
@@ -423,7 +423,7 @@ namespace bss {
 
   // Implementation of Fast Poisson Disk Sampling by Robert Bridson
   template<typename T, typename F>
-  inline void PoissonDiskSample(T(&rect)[4], T mindist, F && f, uint32_t pointsPerIteration = 30)
+  inline void PoissonDiskSample(T(&rect)[4], T mindist, F && f, size_t pointsPerIteration = 30)
   {
     //Create the grid
     T cell = mindist / (T)SQRT_TWO;
@@ -452,7 +452,7 @@ namespace bss {
     {
       auto point = list.Pop();
 
-      for(uint32_t i = 0; i < pointsPerIteration; i++)
+      for(size_t i = 0; i < pointsPerIteration; i++)
       {
         radius = mindist*((T)bssRandReal(1, 2)); //random point between mindist and 2*mindist
         angle = (T)bssRandReal(0, PI_DOUBLE);
@@ -797,11 +797,11 @@ namespace bss {
 
   // Uses Newton's method to find the root of F given it's derivative dF. Returns false if it fails to converge within the given error range.
   template<typename T, typename TF, typename TDF>
-  inline bool NewtonRaphson(T& result, T estimate, TF F, TDF dF, T epsilon, uint32_t maxiterations = 20)
+  inline bool NewtonRaphson(T& result, T estimate, TF F, TDF dF, T epsilon, size_t maxiterations = 20)
   {
     T x = estimate;
 
-    for(uint32_t i = 0; i < maxiterations; ++i)
+    for(size_t i = 0; i < maxiterations; ++i)
     {
       T f = F(x);
       if(fSmall(f, epsilon)) // If we're close enough to zero, return our value
@@ -817,10 +817,10 @@ namespace bss {
 
   // A hybrid method that combines both Newton's method and the bisection method, using the bisection method to improve the guess until Newton's method finally starts to converge.
   template<typename T, typename TF, typename TDF>
-  inline T NewtonRaphsonBisection(T estimate, T min, T max, TF F, TDF dF, T epsilon, uint32_t maxiterations = 50)
+  inline T NewtonRaphsonBisection(T estimate, T min, T max, TF F, TDF dF, T epsilon, size_t maxiterations = 50)
   {
     T x = estimate;
-    for(uint32_t i = 0; i < maxiterations; ++i)
+    for(size_t i = 0; i < maxiterations; ++i)
     {
       T f = F(x);
 

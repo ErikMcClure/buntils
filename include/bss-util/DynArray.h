@@ -18,6 +18,8 @@ namespace bss {
     typedef ArrayBase<T, CType, Alloc> AT_;
     using AT_::_array;
     using AT_::_capacity;
+    template<class U, typename C, ARRAY_TYPE AT, typename A>
+    friend class StreamBufDynArray;
 
   public:
     typedef typename AT_::CT_ CT_;
@@ -25,7 +27,7 @@ namespace bss {
 
     inline DynArray(const DynArray& copy) : AT_(copy._capacity), _length(copy._length) { BASE::_copy(_array, copy._array, _length); }
     inline DynArray(DynArray&& mov) : AT_(std::move(mov)), _length(mov._length) { mov._length = 0; }
-    inline DynArray(const ArraySlice<const T, CType>& slice) : AT_(slice.length), _length(slice.length) { BASE::_copy(_array, slice.start, slice.length); }
+    inline explicit DynArray(const Slice<const T, CType>& slice) : AT_(slice.length), _length(slice.length) { BASE::_copy(_array, slice.start, slice.length); }
     inline explicit DynArray(CT_ capacity = 0) : AT_(capacity), _length(0) {}
     inline DynArray(const std::initializer_list<T>& list) : AT_(list.size()), _length(0)
     {
@@ -48,7 +50,7 @@ namespace bss {
     BSS_FORCEINLINE void RemoveLast() { Remove(_length - 1); }
     BSS_FORCEINLINE void Insert(const T_& t, CT_ index = 0) { _insert(t, index); }
     BSS_FORCEINLINE void Insert(T_&& t, CT_ index = 0) { _insert(std::move(t), index); }
-    BSS_FORCEINLINE void Set(const ArraySlice<const T, CType>& slice) { Set(slice.start, slice.length); }
+    BSS_FORCEINLINE void Set(const Slice<const T, CType>& slice) { Set(slice.start, slice.length); }
     BSS_FORCEINLINE void Set(const T* p, CType n)
     {
       BASE::_setLength(_array, _length, 0);
@@ -77,7 +79,7 @@ namespace bss {
     BSS_FORCEINLINE const T_* end() const noexcept { return _array + _length; }
     BSS_FORCEINLINE T_* begin() noexcept { return _array; }
     BSS_FORCEINLINE T_* end() noexcept { return _array + _length; }
-    BSS_FORCEINLINE ArraySlice<T_, CT_> GetSlice() const noexcept { return AT_::GetSlice(); }
+    BSS_FORCEINLINE Slice<T_, CT_> GetSlice() const noexcept { return AT_::GetSlice(); }
 #if defined(BSS_64BIT) && defined(BSS_DEBUG) 
     BSS_FORCEINLINE T_& operator [](uint64_t i) { assert(i < _length); return _array[i]; } // for some insane reason, this works on 64-bit, but not on 32-bit
     BSS_FORCEINLINE const T_& operator [](uint64_t i) const { assert(i < _length); return _array[i]; }
@@ -104,7 +106,7 @@ namespace bss {
       return *this;
     }
     inline DynArray& operator=(DynArray&& mov) { BASE::_setLength(_array, _length, 0); AT_::operator=(std::move(mov)); _length = mov._length; mov._length = 0; return *this; }
-    inline DynArray& operator=(const ArraySlice<const T, CType>& copy) { Set(copy); return *this; }
+    inline DynArray& operator=(const Slice<const T, CType>& copy) { Set(copy); return *this; }
     inline DynArray& operator +=(const DynArray& add)
     {
       BASE::_setCapacity(*this, _length, _length + add._length);

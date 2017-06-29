@@ -6,6 +6,7 @@
 *.VC.db
 *.VC.opendb
 *.log
+*.vcxproj.user
 /bin/
 /bin32/
 /bss-util/x64/

@@ -30,6 +30,8 @@ enum TEST_ENUM : char {
 
 struct ubjsontest
 {
+  typedef Variant<ubjsontest2, double> VAR;
+
   TEST_ENUM a;
   short b;
   int c;
@@ -48,6 +50,7 @@ struct ubjsontest
   DynArray<bool> v;
   DynArray<Str, size_t, ARRAY_SAFE> w;
   DynArray<ubjsontest2, size_t, ARRAY_SAFE> z;
+  std::vector<VAR> var;
 
   template<typename Engine>
   void Serialize(Serializer<Engine>& engine)
@@ -70,7 +73,8 @@ struct ubjsontest
       GenPair("u", u),
       GenPair("v", v),
       GenPair("w", w),
-      GenPair("z", z)
+      GenPair("z", z),
+      GenPair("var", var)
       );
   }
 };
@@ -115,19 +119,38 @@ void VerifyUBJSON(const ubjsontest& t1, const ubjsontest& t2, TESTDEF::RETPAIR& 
     TEST(t1.z[i].c == t2.z[i].c);
     TEST(t1.z[i].d == t2.z[i].d);
   }
+
+  TEST(t1.var.size() == t2.var.size());
+  for(size_t i = 0; i < t1.var.size(); ++i)
+  {
+    TEST(t1.var[i].tag() == t2.var[i].tag());
+    switch(t1.var[i].tag())
+    {
+    case ubjsontest::VAR::Type<ubjsontest2>::value:
+      TEST(t1.var[i].get<ubjsontest2>().a == t2.var[i].get<ubjsontest2>().a);
+      TEST(t1.var[i].get<ubjsontest2>().c == t2.var[i].get<ubjsontest2>().c);
+      TEST(t1.var[i].get<ubjsontest2>().d == t2.var[i].get<ubjsontest2>().d);
+      break;
+    case ubjsontest::VAR::Type<double>::value:
+      TEST(t1.var[i].get<double>() == t2.var[i].get<double>());
+      break;
+    }
+  }
 }
 
 TESTDEF::RETPAIR test_UBJSON()
 {
   BEGINTEST;
   ubjsontest t1 = { TEST_ENUM_VALUE, -2, 3, -4, 253, 30000, 7, 8,
-  { 9, "foo", 10.0 }, 11.0f, 12.0, "bar",
-  { 13, 14, 15 },
-  { "fizz", "buzz" },
-  { 16, 17, 18, 19, 20 },
-  { true, false, true, false, false, true },
-  { "stuff", "crap", "things" },
-  { { 21, "22", 23.0 }, { 24, "25", 26.0 } } };
+    { 9, "foo", 10.0 }, 11.0f, 12.0, "bar",
+    { 13, 14, 15 },
+    { "fizz", "buzz" },
+    { 16, 17, 18, 19, 20 },
+    { true, false, true, false, false, true },
+    { "stuff", "crap", "things" },
+    { { 21, "22", 23.0 }, { 24, "25", 26.0 } },
+    { ubjsontest::VAR(ubjsontest2{ 27, "28", 29.0 }), ubjsontest::VAR(30.0) },
+  };
   
   std::fstream fso("out.ubj", std::ios_base::out | std::ios_base::trunc | std::ios_base::binary);
   WriteUBJSON<ubjsontest>(t1, fso);
@@ -146,7 +169,7 @@ TESTDEF::RETPAIR test_UBJSON()
   fsi2.close();
   TEST(val.is<UBJSONValue::UBJSONObject>());
   auto& var1 = val.get<UBJSONValue::UBJSONObject>();
-  TEST(var1.Length() == 18);
+  TEST(var1.Length() == 19);
   TEST(var1[0].first == "a");
   TEST(var1[0].second.is<uint8_t>());
   TEST(var1[0].second.get<uint8_t>() == 1);
@@ -195,6 +218,8 @@ TESTDEF::RETPAIR test_UBJSON()
   TEST(var1[16].second.is<UBJSONValue::UBJSONArray>());
   TEST(var1[17].first == "z");
   TEST(var1[17].second.is<UBJSONValue::UBJSONArray>());
+  TEST(var1[18].first == "var");
+  TEST(var1[18].second.is<UBJSONValue::UBJSONArray>());
 
   std::fstream fso2("out2.ubj", std::ios_base::out | std::ios_base::trunc | std::ios_base::binary);
   WriteUBJSON<UBJSONValue>(val, fso2);

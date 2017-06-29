@@ -55,7 +55,7 @@ TESTDEF::RETPAIR test_DYNARRAY()
   TEST(y[1] == 3);
   TEST(y[2] == 2);
 
-  z = ArraySlice<int>(zvars, 5);
+  z = Slice<int>(zvars, 5);
   TEST(z.Length() == 5);
   TEST(z[3] == 1);
   DynArray<char> n(2);
@@ -245,40 +245,6 @@ TESTDEF::RETPAIR test_DYNARRAY()
   u.SetElement(7);
   TEST(u.Get<int>(5) == 7);
   TEST(u.Get<int>(6) == 8);
-
-  DynArray<uint8_t> dbuf;
-  {
-    DynArrayIBuf<uint8_t> dynbuf(dbuf);
-    std::istream dynstream(&dynbuf);
-    TEST(dynstream.get() == -1);
-    TEST(dynstream.eof());
-  }
-  dbuf.Add('h');
-  {
-    DynArrayIBuf<uint8_t> dynbuf(dbuf);
-    std::istream dynstream(&dynbuf);
-    TEST(dynstream.get() == 'h');
-    dynstream.unget();
-    TEST(dynstream.peek() == 'h');
-    TEST(dynstream.peek() == 'h');
-    TEST(dynstream.get() == 'h');
-    TEST(dynstream.get() == -1);
-    TEST(dynstream.eof());
-  }
-  dbuf.Add('e');
-  dbuf.Add('l');
-  dbuf.Add('l');
-  dbuf.Add('o');
-  {
-    DynArrayIBuf<uint8_t> dynbuf(dbuf);
-    std::istream dynstream(&dynbuf);
-    char buf[8] = { 0 };
-    dynstream.get(buf, 8);
-    TEST(dynstream.gcount() == 5);
-    TEST(!strcmp(buf, "hello"));
-    TEST(dynstream.peek() == -1);
-    TEST(dynstream.eof());
-  }
 
   //cBitArray<uint8_t> bits;
   DynArray<bool> bits;

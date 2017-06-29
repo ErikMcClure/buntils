@@ -78,7 +78,7 @@ int DEBUG_CDT_SAFE::count = 0;
 int DEBUG_CDT_SAFE::ID = 0;
 bss::Hash<int> DEBUG_CDT_SAFE::Tracker;
 
-//#define BSS_ISOLATE_TEST 52
+#define BSS_ISOLATE_TEST 12
 
 // --- Begin main testing function ---
 int main(int argc, char** argv)
@@ -109,7 +109,7 @@ int main(int argc, char** argv)
     { "Dual.h", &test_bss_DUAL },
     { "FixedPt.h", &test_bss_FIXEDPT },
     { "sseVec.h", &test_bss_SSE },
-    { "stream.h", &test_STREAMSPLITTER },
+    { "stream.h", &test_STREAM },
     { "Graph.h", &test_bss_GRAPH },
     { "vector.h", &test_VECTOR },
     { "AliasTable.h", &test_ALIASTABLE },

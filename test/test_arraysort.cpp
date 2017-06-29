@@ -45,7 +45,7 @@ TESTDEF::RETPAIR test_ARRAYSORT()
 
     ArraySort<int> slicetest;
   int slices[4] = { 0, 1, 2, 3 };
-  slicetest = ArraySlice<int>(slices, 4);
+  slicetest = Slice<int>(slices, 4);
   TEST(slicetest.Length() == 4);
   ENDTEST;
 }

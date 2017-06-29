@@ -31,7 +31,7 @@ namespace bss {
 
       mov._length = COMPACTFLAG;
     }
-    inline CompactArray(const ArraySlice<const T, CT>& slice) : _capacity(0), _length(COMPACTFLAG)
+    inline explicit CompactArray(const Slice<const T, CT>& slice) : _capacity(0), _length(COMPACTFLAG)
     {
       SetLength(slice.length);
       MEMCPY(begin(), (_length&COMPACTMASK) * sizeof(T), slice.start, slice.length * sizeof(T));
@@ -65,7 +65,7 @@ namespace bss {
       Reserve((_length&COMPACTMASK) + 1);
       InsertRangeSimple<T, CT>(begin(), (_length++)&COMPACTMASK, index, &t, 1);
     }
-    BSS_FORCEINLINE void Set(const ArraySlice<const T, CT>& slice) { Set(slice.start, slice.length); }
+    BSS_FORCEINLINE void Set(const Slice<const T, CT>& slice) { Set(slice.start, slice.length); }
     BSS_FORCEINLINE void Set(const T* p, CT n)
     {
       SetLength(n);
@@ -116,7 +116,7 @@ namespace bss {
     BSS_FORCEINLINE const T* end() const noexcept { return begin() + Length(); }
     BSS_FORCEINLINE T* begin() noexcept { return (_length&COMPACTFLAG) ? _internal : _array; }
     BSS_FORCEINLINE T* end() noexcept { return begin() + Length(); }
-    BSS_FORCEINLINE ArraySlice<T, CT> GetSlice() const noexcept { return ArraySlice<T, CT>(begin(), Length()); }
+    BSS_FORCEINLINE Slice<T, CT> GetSlice() const noexcept { return Slice<T, CT>(begin(), Length()); }
     BSS_FORCEINLINE operator T*() { return begin(); }
     BSS_FORCEINLINE operator const T*() const { return begin(); }
     inline CompactArray& operator=(const CompactArray& copy)
@@ -135,7 +135,7 @@ namespace bss {
       mov._length = COMPACTFLAG;
       return *this;
     }
-    inline CompactArray& operator=(const ArraySlice<const T, CT>& copy) 
+    inline CompactArray& operator=(const Slice<const T, CT>& copy) 
     { 
       Set(copy); 
       return *this; 

@@ -594,7 +594,7 @@
     <ClCompile Include="test_smartptr.cpp" />
     <ClCompile Include="test_stack.cpp" />
     <ClCompile Include="test_str.cpp" />
-    <ClCompile Include="test_streamsplitter.cpp" />
+    <ClCompile Include="test_stream.cpp" />
     <ClCompile Include="test_strtable.cpp" />
     <ClCompile Include="test_thread.cpp" />
     <ClCompile Include="test_threadpool.cpp" />

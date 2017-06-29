@@ -85,7 +85,7 @@ namespace bss {
     }
     inline void Set(const FRAME* src, size_t len)
     { 
-      _frames = ArraySlice<const FRAME, size_t>(src, len);
+      _frames = Slice<const FRAME>(src, len);
       _calc = _frames.Back().time;
     }
     inline const FRAME& Get(size_t index) const { return _frames[index]; }

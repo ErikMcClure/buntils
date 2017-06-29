@@ -10,41 +10,50 @@
 
 namespace bss {
   template<class T, typename CType = size_t>
-  struct BSS_COMPILER_DLLEXPORT ArraySlice
+  struct BSS_COMPILER_DLLEXPORT Slice
   {
-    ArraySlice(const ArraySlice& copy) : start(copy.start), length(copy.length) {}
-    ArraySlice(T* s, CType l) : start(s), length(l) {}
-    ArraySlice() {}
-    inline ArraySlice& operator=(const ArraySlice& right)
+    inline Slice(const Slice& copy) : start(copy.start), length(copy.length) {}
+    inline Slice(T* s, CType l) : start(s), length(l) {}
+    template<int N>
+    inline explicit Slice(T (&s)[N]) : start(s), length(N) {}
+    inline Slice() {}
+    inline Slice& operator=(const Slice& right)
     { 
       start = right.start;
       length = right.length;
       return *this;
     }
-    inline ArraySlice& operator++()
+    inline Slice& operator++() // prefix
     { 
       assert(length > 0);
       ++start;
       --length;
       return *this;
     }
-    inline ArraySlice operator++(int) { assert(length > 0); return ArraySlice(start + 1, length - 1); }
-    inline const ArraySlice operator()(CType start) const { return operator()(start, length); }
-    inline const ArraySlice operator()(CType start, CType end) const { return operator()(start, length); }
-    inline ArraySlice operator()(CType start) { return operator()(start, length); }
-    inline ArraySlice operator()(CType start, CType end)
+    inline Slice operator++(int) //postfix
+    { 
+      assert(length > 0); 
+      Slice r = *this;
+      ++start;
+      --length;
+      return r; 
+    }
+    inline const Slice operator()(CType start) const { return operator()(start, length); }
+    inline const Slice operator()(CType start, CType end) const { return operator()(start, length); }
+    inline Slice operator()(CType start) { return operator()(start, length); }
+    inline Slice operator()(CType start, CType end)
     {
       assert(abs(start) < length);
       assert(end <= length);
       start = bssMod(start, length);
       if(end <= 0) end = length - end;
       assert(end >= start);
-      return ArraySlice(start + start, end - start);
+      return Slice(start + start, end - start);
     }
-    inline bool operator!() const { return !start || !length; }
-    inline operator bool() const { return Valid(); }
+    inline bool operator!() const noexcept { return !start || !length; }
+    inline operator Slice<const T>() const noexcept { return Slice<const T>(start, length); }
 
-    BSS_FORCEINLINE bool Valid() const { return start != 0 && length != 0; }
+    BSS_FORCEINLINE bool Valid() const noexcept { return start != 0 && length != 0; }
     BSS_FORCEINLINE const T& Front() const { assert(length > 0); return start[0]; }
     BSS_FORCEINLINE const T& Back() const { assert(length > 0); return start[length - 1]; }
     BSS_FORCEINLINE T& Front() { assert(length > 0); return start[0]; }
@@ -55,8 +64,6 @@ namespace bss {
     BSS_FORCEINLINE T* end() noexcept { return start + length; }
     BSS_FORCEINLINE T& operator [](CType i) noexcept { assert(i < length); return start[i]; }
     BSS_FORCEINLINE const T& operator [](CType i) const noexcept { assert(i < length); return start[i]; }
-
-    inline operator ArraySlice<const T, CType>() const { return ArraySlice<const T, CType>(start, length); }
 
     T* start;
     CType length;
@@ -121,7 +128,7 @@ namespace bss {
       mov._capacity = 0;
       return *this;
     }
-    inline ArraySlice<T, CType> GetSlice() const noexcept { return ArraySlice<T, CType>(_array, _capacity); }
+    inline Slice<T, CType> GetSlice() const noexcept { return Slice<T, CType>(_array, _capacity); }
 
   protected:
     static inline T* _getAlloc(CT_ n, T* prev = 0) noexcept
@@ -308,7 +315,7 @@ namespace bss {
       _capacity = c;
     }
     inline explicit Array(CT_ capacity = 0) : AT_(capacity) { BASE::_setLength(_array, 0, _capacity); }
-    inline Array(const ArraySlice<const T, CType>& slice) : AT_(slice.length) { BASE::_copy(_array, slice.begin, slice.length); }
+    inline explicit Array(const Slice<const T, CType>& slice) : AT_(slice.length) { BASE::_copy(_array, slice.begin, slice.length); }
     inline ~Array() { BASE::_setLength(_array, _capacity, 0); }
     BSS_FORCEINLINE CT_ Add(const T_& item) { _insert(item, _capacity); return _capacity - 1; }
     BSS_FORCEINLINE CT_ Add(T_&& item) { _insert(std::move(item), _capacity); return _capacity - 1; }
@@ -319,7 +326,7 @@ namespace bss {
     BSS_FORCEINLINE void RemoveLast() { Remove(_capacity - 1); }
     BSS_FORCEINLINE void Insert(const T_& item, CT_ index = 0) { _insert(item, index); }
     BSS_FORCEINLINE void Insert(T_&& item, CT_ index = 0) { _insert(std::move(item), index); }
-    BSS_FORCEINLINE void Set(const ArraySlice<const T, CType>& slice) { Set(slice.start, slice.length); }
+    BSS_FORCEINLINE void Set(const Slice<const T, CType>& slice) { Set(slice.start, slice.length); }
     BSS_FORCEINLINE void Set(const T_* p, CT_ n)
     {
       BASE::_setLength(_array, _capacity, 0);
@@ -328,7 +335,7 @@ namespace bss {
     }
     BSS_FORCEINLINE bool Empty() const noexcept { return !_capacity; }
     BSS_FORCEINLINE void Clear() noexcept { SetCapacity(0); }
-    inline ArraySlice<T, CType> GetSlice() const noexcept { return ArraySlice<T, CType>(_array, _capacity); }
+    inline Slice<T, CType> GetSlice() const noexcept { return Slice<T, CType>(_array, _capacity); }
     BSS_FORCEINLINE void SetCapacity(CT_ capacity) noexcept
     {
       if(capacity == _capacity) return;
@@ -373,7 +380,7 @@ namespace bss {
       AT_::operator=(std::move(mov));
       return *this;
     }
-    BSS_FORCEINLINE Array& operator=(const ArraySlice<const T, CType>& copy) noexcept
+    BSS_FORCEINLINE Array& operator=(const Slice<const T, CType>& copy) noexcept
     { 
       Set(copy);
       return *this;

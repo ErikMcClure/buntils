@@ -20,7 +20,7 @@ namespace bss {
 
     inline ArraySort(const ArraySort& copy) : _array(copy._array) {}
     inline ArraySort(ArraySort&& mov) : _array(std::move(mov._array)) {}
-    inline ArraySort(const ArraySlice<const T, CType>& slice) : _array(slice) {}
+    inline explicit ArraySort(const Slice<const T, CType>& slice) : _array(slice) {}
     inline explicit ArraySort(CT_ size = 0) : _array(size) {}
     inline ~ArraySort() {}
     BSS_FORCEINLINE CT_ Insert(constref item) { CT_ loc = _insert(item); _array.Insert(item, loc); return loc; }
@@ -44,7 +44,7 @@ namespace bss {
     inline const T* end() const noexcept { return _array.end(); }
     inline T* begin() noexcept { return _array.begin(); }
     inline T* end() noexcept { return _array.end(); }
-    BSS_FORCEINLINE ArraySlice<T, CT_> GetSlice() const noexcept { return _array.GetSlice(); }
+    BSS_FORCEINLINE Slice<T, CT_> GetSlice() const noexcept { return _array.GetSlice(); }
 
     CT_ ReplaceData(CT_ index, constref item)
     {
@@ -88,7 +88,7 @@ namespace bss {
     BSS_FORCEINLINE T& operator [](CT_ index) { return _array[index]; }
     inline ArraySort& operator=(const ArraySort& right) { _array = right._array; return *this; }
     inline ArraySort& operator=(ArraySort&& mov) { _array = std::move(mov._array); return *this; }
-    inline ArraySort& operator=(const ArraySlice<const T, CType>& copy) { _array = copy; return *this; }
+    inline ArraySort& operator=(const Slice<const T, CType>& copy) { _array = copy; return *this; }
 
   protected:
     template<typename U>

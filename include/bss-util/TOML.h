@@ -262,16 +262,19 @@ namespace bss {
     {
       static void F(Serializer<TOMLEngine>& e, T& obj, std::istream& s)
       {
-        if(s.peek() == '\n' || s.peek() == '\r' || s.peek() == ',') return;
+        if(s.peek() == '\n' || s.peek() == '\r' || s.peek() == ',')
+          return;
+        typename std::conditional<sizeof(T) <= 2, int, T>::type o; // Prevent the stream from trying to read a number as an actual character
         if(s.peek() == '"') // if true, we have to attempt to coerce the string to T
         {
           s.get();
-          s >> obj; // grab whatever we can
+          s >> o; // grab whatever we can
           while(!!s && s.peek() != -1 && s.get() != '"'); // eat the rest of the string
           s.get(); // eat the " character
         }
         else
-          s >> obj;
+          s >> o;
+        obj = o;
       }
     };
 
@@ -782,7 +785,7 @@ namespace bss {
           return;
 
         WriteTOMLId(e, id, s);
-        s << obj;
+        s << (typename std::conditional<sizeof(T) <= 2, int, T>::type)obj; // Converts all smaller numbers to integers to avoid character insertion bullshit
         if(e.engine.state != 2 && id)
           s << std::endl;
       }

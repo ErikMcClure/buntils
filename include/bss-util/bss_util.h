@@ -993,6 +993,14 @@ namespace bss {
     memset(p, val, sizeof(T)*n);
   }
 
+  template<class T, class SUBCLASS>
+  void memsubset(T* p, int v) { memset(reinterpret_cast<char*>(p) + sizeof(SUBCLASS), v, sizeof(T) - sizeof(SUBCLASS)); }
+  template<class T, class SUBCLASS>
+  void memsubcpy(T* dest, const T* src)
+  {
+    MEMCPY(((char*)dest) + sizeof(SUBCLASS), sizeof(T) - sizeof(SUBCLASS), ((char*)src) + sizeof(SUBCLASS), sizeof(T) - sizeof(SUBCLASS));
+  }
+
 #ifdef BSS_VARIADIC_TEMPLATES
 
   // Generates a packed sequence of numbers

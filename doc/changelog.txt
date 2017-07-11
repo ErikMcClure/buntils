@@ -11,6 +11,7 @@
 - DynArray streams have been replaced by a generic read-only array stream and a read-write DynArray stream
 - Added a functional buffer stream 
 - Renamed ArraySlice to Slice and improved support
+- Added memsubset()
 
 0.5.0
 -----

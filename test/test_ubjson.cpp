@@ -156,7 +156,7 @@ TESTDEF::RETPAIR test_UBJSON()
   WriteUBJSON<ubjsontest>(t1, fso);
   fso.close();
 
-  ubjsontest t2 = { TEST_ENUM_VALUE, 0, 0, 0, 0, 0, 0, 0, {0}, 0, 0, "", {0,0,0}, {"",""}, {0}, {0}, {""}, {ubjsontest2{}} };
+  ubjsontest t2 = { TEST_ENUM_VALUE, 0, 0, 0, 0, 0, 0, 0, {0}, 0, 0, "", {0,0,0}, {"",""} };
   std::fstream fsi("out.ubj", std::ios_base::in | std::ios_base::binary);
   ParseUBJSON<ubjsontest>(t2, fsi);
   fsi.close();
@@ -225,7 +225,7 @@ TESTDEF::RETPAIR test_UBJSON()
   WriteUBJSON<UBJSONValue>(val, fso2);
   fso2.close();
 
-  ubjsontest t3 = { TEST_ENUM_VALUE, 0, 0, 0, 0, 0, 0, 0, { 0 }, 0, 0, "", { 0,0,0 }, { "","" }, { 0 }, { 0 }, { "" }, { ubjsontest2 {} } };
+  ubjsontest t3 = { TEST_ENUM_VALUE, 0, 0, 0, 0, 0, 0, 0,{ 0 }, 0, 0, "",{ 0,0,0 },{ "","" } };
   std::fstream fsi3("out2.ubj", std::ios_base::in | std::ios_base::binary);
   ParseUBJSON<ubjsontest>(t3, fsi3);
   fsi3.close();

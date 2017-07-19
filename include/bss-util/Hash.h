@@ -13,6 +13,9 @@
 #include <iterator>
 
 namespace bss {
+  template<class Engine>
+  class Serializer;
+
   namespace internal {
     template<class T, ARRAY_TYPE ArrayType, typename Alloc>
     struct _HashBaseAlloc
@@ -203,6 +206,14 @@ namespace bss {
     HashBase& operator =(const HashBase& copy)
     {
       Clear();
+      if(!copy.n_buckets)
+      {
+        if(flags) Alloc::deallocate((char*)flags);
+        if(keys) Alloc::deallocate((char*)keys);
+        if(vals) Alloc::deallocate((char*)vals);
+        bssFill(*this, 0);
+        return *this;
+      }
       _resize(copy.n_buckets);
       assert(n_buckets == copy.n_buckets);
       memcpy(flags, copy.flags, n_buckets);
@@ -260,6 +271,16 @@ namespace bss {
 
     inline cHash_Iter begin() const { return cHash_Iter(*this, Start()); }
     inline cHash_Iter end() const { return cHash_Iter(*this, End()); }
+
+    template<typename Engine>
+    void Serialize(Serializer<Engine>& e)
+    {
+      if(e.out)
+      {
+        for(auto i : *this)
+          Serializer<Engine>::ActionBind<Data>::template Serialize(e, *GetValue(i), (const char*)GetKey(i));
+      }
+    }
 
   protected:
     template<typename U, typename V>
@@ -547,6 +568,7 @@ namespace bss {
   class BSS_COMPILER_DLLEXPORT Hash : public HashBase<K, typename std::conditional<std::is_void<T>::value, char, T>::type,
     !std::is_void<T>::value, &internal::_HashHelper<K, ins>::hash, &internal::_HashHelper<K, ins>::equal, ArrayType, Alloc>
   {
+  public:
     typedef HashBase<K,
       typename std::conditional<std::is_void<T>::value, char, T>::type,
       !std::is_void<T>::value, &internal::_HashHelper<K, ins>::hash,
@@ -554,7 +576,6 @@ namespace bss {
       ArrayType,
       Alloc> BASE;
 
-  public:
     inline Hash(const Hash& copy) : BASE(copy) {}
     inline Hash(Hash&& mov) : BASE(std::move(mov)) {}
     inline Hash(khint_t size = 0) : BASE(size) {}

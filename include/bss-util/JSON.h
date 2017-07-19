@@ -45,26 +45,6 @@ namespace bss {
   template<>
   inline void WriteJSONBase<JSONValue>(Serializer<JSONEngine>& e, const char* id, const JSONValue& obj, std::ostream& s, size_t& pretty);
 
-  namespace internal {
-    template<class T, class BASE>
-    struct __JSONValue__conv
-    {
-      inline static constexpr T&& f(typename std::remove_reference<T>::type& r) { return (static_cast<T&&>(r)); }
-      inline static constexpr T&& f(typename std::remove_reference<T>::type&& r) { return (static_cast<T&&>(r)); }
-    };
-    template<class BASE>
-    struct __JSONValue__conv<JSONValue, BASE>
-    {
-      inline static constexpr BASE&& f(std::remove_reference<JSONValue>::type& r) { return (static_cast<BASE&&>(r)); }
-      inline static constexpr BASE&& f(std::remove_reference<JSONValue>::type&& r) { return (static_cast<BASE&&>(r)); }
-    };
-    template<class BASE>
-    struct __JSONValue__conv<const JSONValue, BASE>
-    {
-      inline static constexpr const BASE&& f(std::remove_reference<const JSONValue>::type& r) { return (static_cast<const BASE&&>(r)); }
-      inline static constexpr const BASE&& f(std::remove_reference<const JSONValue>::type&& r) { return (static_cast<const BASE&&>(r)); }
-    };
-  }
   struct JSONValue : public Variant<Str, double, int64_t, bool, DynArray<JSONValue, size_t, ARRAY_SAFE>, DynArray<std::pair<Str, JSONValue>, size_t, ARRAY_SAFE>>
   {
     typedef DynArray<JSONValue, size_t, ARRAY_SAFE> JSONArray;
@@ -78,14 +58,14 @@ namespace bss {
     template<typename T>
     explicit JSONValue(const T& t) : BASE(t) {}
     template<typename T>
-    explicit JSONValue(T&& t) : BASE(internal::__JSONValue__conv<T, BASE>::f(t)) {}
+    explicit JSONValue(T&& t) : BASE(ConvRef<JSONValue>::Value<T, BASE>::f(t)) {}
     ~JSONValue() {}
     BASE& operator=(const BASE& right) { BASE::operator=(right); return *this; }
     BASE& operator=(BASE&& right) { BASE::operator=(std::move(right)); return *this; }
     template<typename T>
     BASE& operator=(const T& right) { BASE::operator=(right); return *this; }
     template<typename T>
-    BASE& operator=(T&& right) { BASE::operator=(internal::__JSONValue__conv<T, BASE>::f(right)); return *this; }
+    BASE& operator=(T&& right) { BASE::operator=(ConvRef<JSONValue>::Value<T, BASE>::f(right)); return *this; }
 
     template<typename Engine>
     void Serialize(Serializer<Engine>& s)
@@ -157,7 +137,7 @@ namespace bss {
 
         ParseJSONEatWhitespace(s);
         f(e, buf.c_str());
-        //Serializer<JSONEngine>::_findparse(e, buf.c_str(), t, args);
+        //Serializer<JSONEngine>::FindParse(e, buf.c_str(), t, args);
 
         while(!!s && s.peek() != ',' && s.peek() != '}' && s.peek() != -1) // eat everything up to a , or } character
           s.get(); 
@@ -294,7 +274,7 @@ namespace bss {
   template<typename... Args>
   void JSONEngine::ParseMany(Serializer<JSONEngine>& e, const Trie<uint16_t>& t, std::tuple<Args...>& args)
   {
-    internal::ParseJSONObject(e, [&t, &args](Serializer<JSONEngine>& e, const char* id) { Serializer<JSONEngine>::_findparse(e, id, t, args); });
+    internal::ParseJSONObject(e, [&t, &args](Serializer<JSONEngine>& e, const char* id) { Serializer<JSONEngine>::FindParse(e, id, t, args); });
   }
 
   template<class T>

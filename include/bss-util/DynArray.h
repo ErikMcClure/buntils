@@ -167,6 +167,7 @@ namespace bss {
     }
     inline ~DynArray() {}
     BSS_FORCEINLINE CT_ Add(bool t) { _checkSize(); GetBit(_length++) = t; return _length - 1; }
+    BSS_FORCEINLINE CT_ AddConstruct() { _checkSize(); _array[_length] = false; return _length++; }
     inline void Remove(CT_ index)
     {
       assert(index < _length);
@@ -217,7 +218,7 @@ namespace bss {
     BSS_FORCEINLINE bool Back() const { assert(_length > 0); return _array[_length - 1]; }
     BSS_FORCEINLINE BITREF Front() { assert(_length > 0); return GetBit(0); }
     BSS_FORCEINLINE BITREF Back() { assert(_length > 0); return GetBit(_length - 1); }
-    BSS_FORCEINLINE bool operator[](CT_ index) const { assert(index < _length); return GetBitConst(index); }
+    BSS_FORCEINLINE bool operator[](CT_ index) const { assert(index < _length); return (_array[(index / DIV_AMT)] & (((STORE)1) << (index&MOD_AMT))) != 0; }
     BSS_FORCEINLINE BITREF operator[](CT_ index) { assert(index < _length); return GetBit(index); }
     // This gets the raw storage byte in such a way that unused bits are always set to zero. Useful for debugging.
     inline STORE GetRawByte(CT_ index) const { assert(index < _capacity); return (index < (_capacity - 1)) ? _array[index] : (_array[index] & ((STORE)(~0) >> ((_capacity*DIV_AMT) - _length))); }
@@ -226,7 +227,7 @@ namespace bss {
     {
     public:
       inline _cBIT_ITER(const BITREF& src) : _bits(const_cast<STORE*>(&src.GetState().first)), _bit(src.GetState().second) {}
-      inline const BITREF operator*() const { return BITREF(_bit, *_bits); }
+      inline bool operator*() const { return (bool)BITREF(_bit, *_bits); }
       inline BITREF operator*() { return BITREF(_bit, *_bits); }
       inline _cBIT_ITER& operator++() { _incthis(); return *this; } //prefix
       inline _cBIT_ITER operator++(int) { _cBIT_ITER r(*this); ++*this; return r; } //postfix
@@ -263,8 +264,8 @@ namespace bss {
       STORE _bit;
     };
 
-    BSS_FORCEINLINE const _cBIT_ITER begin() const { return GetBitConst(0); }
-    BSS_FORCEINLINE const _cBIT_ITER end() const { return GetBitConst(_length); }
+    BSS_FORCEINLINE const _cBIT_ITER begin() const { return GetBit(0); }
+    BSS_FORCEINLINE const _cBIT_ITER end() const { return GetBit(_length); }
     BSS_FORCEINLINE _cBIT_ITER begin() { return GetBit(0); }
     BSS_FORCEINLINE _cBIT_ITER end() { return GetBit(_length); }
 
@@ -294,8 +295,7 @@ namespace bss {
     }*/
 
   protected:
-    BSS_FORCEINLINE BITREF GetBit(CT_ bitindex) { return BITREF(((STORE)1) << (bitindex&MOD_AMT), *(_array + (bitindex / DIV_AMT))); }
-    BSS_FORCEINLINE bool GetBitConst(CT_ bitindex) const { return (_array[(bitindex / DIV_AMT)] & (((STORE)1) << (bitindex&MOD_AMT))) != 0; }
+    BSS_FORCEINLINE BITREF GetBit(CT_ bitindex) const { return BITREF(((STORE)1) << (bitindex&MOD_AMT), *(_array + (bitindex / DIV_AMT))); }
     BSS_FORCEINLINE static CT_ _maxChunks(CT_ numbits) { return T_NEXTMULTIPLE(numbits, MOD_AMT); }
     inline void _shiftDelete(CT_ index)
     {

@@ -13,6 +13,9 @@
 #ifdef BSS_VARIADIC_TEMPLATES
 
 namespace bss {
+  template<class Engine>
+  class Serializer;
+
   namespace internal {
     template<typename V, typename... Tx>
     struct _variant_op;
@@ -228,6 +231,13 @@ namespace bss {
 
     template<typename T>
     struct pubgetpos : getpos<T, Arg, Args...> { };
+
+    template<typename Engine>
+    void Serialize(Serializer<Engine>& e)
+    {
+      Serializer<Engine>::ActionVariantRef<Arg, Args...> ref(*this);
+      e.template EvaluateType<Variant>(GenPair("t", _tag), GenPair("o", ref));
+    }
 
   protected:
     template<typename U>

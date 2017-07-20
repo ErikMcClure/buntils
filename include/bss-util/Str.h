@@ -328,6 +328,14 @@ namespace bss {
 #else
   typedef Str TStr;
 #endif
+
+  // This is a slightly more useful ToString method that performs a no-op on actual strings
+  template<typename T>
+  BSS_FORCEINLINE std::string ToString(T v) { return std::to_string(v); }
+
+  template<> BSS_FORCEINLINE std::string ToString<const char*>(const char* v) { return v; }
+  template<> BSS_FORCEINLINE std::string ToString<std::string>(std::string v) { return v; }
+  template<> BSS_FORCEINLINE std::string ToString<Str>(Str v) { return v; }
 }
 
 // This allows Str to inherit all the string operations

@@ -160,6 +160,13 @@ namespace bss {
     inline typename std::enable_if<U, Data&>::type UnsafeValue(khiter_t i) const { return vals[i]; }
     template<bool U = IsMap>
     inline typename std::enable_if<U, Data&>::type& MutableValue(khiter_t i) { return vals[i]; }
+    template<bool U = IsMap>
+    inline typename std::enable_if<U, Data>::type* PointerValue(khiter_t i) 
+    {
+      if(!ExistsIter(i))
+        return nullptr;
+      return &vals[i]; 
+    }
     inline bool SetValue(khiter_t iterator, const Data& newvalue) { return _setvalue<const Data&>(iterator, newvalue); }
     inline bool SetValue(khiter_t iterator, Data&& newvalue) { return _setvalue<Data&&>(iterator, std::move(newvalue)); }
     inline bool Set(const Key& key, const Data& newvalue) { return _setvalue<const Data&>(Iterator(key), newvalue); }
@@ -278,7 +285,7 @@ namespace bss {
       if(e.out)
       {
         for(auto i : *this)
-          Serializer<Engine>::ActionBind<Data>::template Serialize(e, *GetValue(i), (const char*)GetKey(i));
+          Serializer<Engine>::template ActionBind<Data>::Serialize(e, vals[i], ToString<Key>(keys[i]).c_str());
       }
     }
 

@@ -4,7 +4,7 @@
 #include "bss-util/JSON.h"
 #include <fstream>
 #include "test.h"
-/*
+
 using namespace bss;
 
 struct JSONtest2
@@ -34,6 +34,7 @@ struct JSONtest
   bool btrue;
   bool bfalse;
   float fixed[3];
+  Hash<int, int> hash;
 
   template<typename Engine>
   void Serialize(Serializer<Engine>& s)
@@ -51,7 +52,8 @@ struct JSONtest
       GenPair("nested2", nested2),
       GenPair("btrue", btrue),
       GenPair("bfalse", bfalse),
-      GenPair("fixed", fixed)
+      GenPair("fixed", fixed),
+      GenPair("hash", hash)
       );
   }
 };
@@ -89,12 +91,16 @@ void dotest_JSON(JSONtest& o, TESTDEF::RETPAIR& __testret)
   TEST(o.nestarray.Length() == 2);
   TEST(o.nestarray[1].b == 34);
   TEST(o.nested2.value.Length() == 0);
+  TEST(o.hash.Length() == 3);
+  TEST(o.hash[40] == 44);
+  TEST(o.hash[41] == 45);
+  TEST(o.hash[42] == 46);
 }
 
 TESTDEF::RETPAIR test_JSON()
 {
   BEGINTEST;
-  const char* json = "{ \"a\": -5, \"b\": 342  ,\"c\":23.7193 , \"btrue\": true, \"bfalse\": false, \"fixed\": [0.2, 23.1, -3, 4.0], \"test\":\"\\u01A8string {,};[]\\\"st\\\"'\\\n\\\r\\/\\u0FA8nb\\\"\", \"nested\" : { \"value\": [ { }, { } ], \"ia\":[  -1,2 ] }, \"foo\": [5 ,6, 4,2 ,  2,3,], \"bar\": [3.3,1.6543,0.49873,90, 4], \"foobar\":[\"moar\",\"\"], \"nestarray\": [null, { \"a\":, \"b\":34, }], \"nested2\": null }";
+  const char* json = "{ \"a\": -5, \"b\": 342  ,\"c\":23.7193 , \"btrue\": true, \"bfalse\": false, \"fixed\": [0.2, 23.1, -3, 4.0], \"test\":\"\\u01A8string {,};[]\\\"st\\\"'\\\n\\\r\\/\\u0FA8nb\\\"\", \"nested\" : { \"value\": [ { }, { } ], \"ia\":[  -1,2 ] }, \"foo\": [5 ,6, 4,2 ,  2,3,], \"bar\": [3.3,1.6543,0.49873,90, 4], \"foobar\":[\"moar\",\"\"], \"nestarray\": [null, { \"a\":, \"b\":34, }], \"nested2\": null, \"hash\": { \"40\" : 44, \"41\" : 45, \"42\" : 46, } }";
   JSONtest o;
   o.btrue = false;
   o.bfalse = true;
@@ -128,7 +134,7 @@ TESTDEF::RETPAIR test_JSON()
   fs3.close();
 
   auto& var1 = var.get<JSONValue::JSONObject>();
-  TEST(var1.Length() == 13);
+  TEST(var1.Length() == 14);
   TEST(var1[0].first == "a");
   TEST(var1[0].second.is<int64_t>());
   TEST(var1[1].first == "b");
@@ -210,6 +216,3 @@ TESTDEF::RETPAIR test_JSON()
   }
   ENDTEST;
 }
-*/
-
-TESTDEF::RETPAIR test_JSON() { BEGINTEST; ENDTEST; }

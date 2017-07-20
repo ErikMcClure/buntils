@@ -17,6 +17,13 @@ namespace bss {
   class Serializer;
 
   namespace internal {
+    namespace serializer {
+      template<typename... Args>
+      struct ActionVariantRef;
+    }
+  }
+
+  namespace internal {
     template<typename V, typename... Tx>
     struct _variant_op;
 
@@ -235,8 +242,8 @@ namespace bss {
     template<typename Engine>
     void Serialize(Serializer<Engine>& e)
     {
-      Serializer<Engine>::ActionVariantRef<Arg, Args...> ref(*this);
-      e.template EvaluateType<Variant>(GenPair("t", _tag), GenPair("o", ref));
+      internal::serializer::ActionVariantRef<Arg, Args...> ref(*this);
+      e.template EvaluateType<Variant>(std::pair<const char*, int&>("t", _tag), std::pair<const char*, internal::serializer::ActionVariantRef<Arg, Args...>&>("o", ref));
     }
 
   protected:

@@ -12,6 +12,7 @@
 - Renamed ArraySlice to Slice and improved support
 - Added memsubset()
 - Serializer completely rewritten, now natively supports hashes and variants for all implementations
+- Added fsign()
 
 0.5.0
 -----

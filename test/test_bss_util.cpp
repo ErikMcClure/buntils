@@ -300,6 +300,25 @@ TESTDEF::RETPAIR test_bss_util()
     TEST(!fCompare(0.1, 0.1 + DBL_EPSILON*0.1))
     TEST(!fCompare(0.1, DBL_EPSILON))
 
+    TEST(fsign(0.0f) == 1.0f);
+    TEST(fsign(1.0f) == 1.0f);
+    TEST(fsign(5.0f) == 1.0f);
+    TEST(fsign(987421594.2387f) == 1.0f);
+    TEST(fsign(0.0001) == 1.0f);
+    TEST(fsign(-1.0f) == -1.0f);
+    TEST(fsign(-5.0f) == -1.0f);
+    TEST(fsign(-4857928.2738f) == -1.0f);
+    TEST(fsign(-0.0001f) == -1.0f);
+    TEST(fsign(0.0) == 1.0);
+    TEST(fsign(1.0) == 1.0);
+    TEST(fsign(5.0) == 1.0);
+    TEST(fsign(987421594.2387) == 1.0);
+    TEST(fsign(0.0001) == 1.0);
+    TEST(fsign(-1.0) == -1.0);
+    TEST(fsign(-5.0) == -1.0);
+    TEST(fsign(-4857928.2738) == -1.0);
+    TEST(fsign(-0.0001) == -1.0);
+
     // This tests our average aggregation formula, which lets you average extremely large numbers while maintaining a fair amount of precision.
     uint64_t total = 0;
   uint32_t nc;

@@ -71,6 +71,7 @@ namespace bss {
     inline std::pair<Key, Data>& Front() { return _array.Front(); }
     inline const std::pair<Key, Data>& Back() const { return _array.Back(); }
     inline std::pair<Key, Data>& Back() { return _array.Back(); }
+    BSS_FORCEINLINE Slice<std::pair<Key, Data>, CT_> GetSlice() const noexcept { return _array.GetSlice(); }
 
     inline Map& operator =(const Map& right) { cArraySort_t::operator =(right); return *this; }
     inline Map& operator =(Map&& right) { cArraySort_t::operator =(std::move(right)); return *this; }

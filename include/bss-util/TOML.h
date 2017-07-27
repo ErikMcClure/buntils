@@ -444,7 +444,7 @@ namespace bss {
     {
     case 3:
       target = TOMLValue::TOMLTable();
-      Serializer<TOMLEngine>::ActionBind<TOMLValue::TOMLTable>::template Parse(e, target.get<TOMLValue::TOMLTable>(), 0);
+      Serializer<TOMLEngine>::ActionBind<TOMLValue::TOMLTable>::Parse(e, target.get<TOMLValue::TOMLTable>(), 0);
       return;
     case 1:
       if(e.in->peek() == '.')
@@ -459,7 +459,7 @@ namespace bss {
       else if(e.in->peek() == ']')
       {
         target = TOMLValue::TOMLTable();
-        Serializer<TOMLEngine>::ActionBind<TOMLValue::TOMLTable>::template Parse(e, target.get<TOMLValue::TOMLTable>(), 0);
+        Serializer<TOMLEngine>::ActionBind<TOMLValue::TOMLTable>::Parse(e, target.get<TOMLValue::TOMLTable>(), 0);
       }
       else
         assert(false);
@@ -468,7 +468,7 @@ namespace bss {
       if(e.in->peek() == ']')
       {
         target = TOMLValue::TOMLTable();
-        Serializer<TOMLEngine>::ActionBind<TOMLValue::TOMLTable>::template Parse(e, target.get<TOMLValue::TOMLTable>(), 0);
+        Serializer<TOMLEngine>::ActionBind<TOMLValue::TOMLTable>::Parse(e, target.get<TOMLValue::TOMLTable>(), 0);
       }
       else
         assert(false);
@@ -482,11 +482,11 @@ namespace bss {
     {
     case '{': // inline table
       target = TOMLValue::TOMLTable();
-      Serializer<TOMLEngine>::ActionBind<TOMLValue::TOMLTable>::template Parse(e, target.get<TOMLValue::TOMLTable>(), 0);
+      Serializer<TOMLEngine>::ActionBind<TOMLValue::TOMLTable>::Parse(e, target.get<TOMLValue::TOMLTable>(), 0);
       break;
     case '[': // array
       target = TOMLValue::TOMLArray();
-      Serializer<TOMLEngine>::ActionBind<TOMLValue::TOMLArray>::template Parse(e, target.get<TOMLValue::TOMLArray>(), 0);
+      Serializer<TOMLEngine>::ActionBind<TOMLValue::TOMLArray>::Parse(e, target.get<TOMLValue::TOMLArray>(), 0);
       break;
     case '"': // Single or multi-line string
     case '\'': // Single or multi-line literal string

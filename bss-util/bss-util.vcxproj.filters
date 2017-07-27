@@ -180,9 +180,6 @@
     <ClInclude Include="..\include\bss-util\defines.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="..\include\bss-util\data.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
     <ClInclude Include="..\include\bss-util\compiler.h">
       <Filter>Header Files</Filter>
     </ClInclude>
@@ -235,6 +232,12 @@
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="..\include\bss-util\utf_conv.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="..\include\bss-util\Geometry.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="..\include\bss-util\Collision.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>

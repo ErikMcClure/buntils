@@ -79,7 +79,7 @@ namespace bss {
     BSS_FORCEINLINE const T_* end() const noexcept { return _array + _length; }
     BSS_FORCEINLINE T_* begin() noexcept { return _array; }
     BSS_FORCEINLINE T_* end() noexcept { return _array + _length; }
-    BSS_FORCEINLINE Slice<T_, CT_> GetSlice() const noexcept { return AT_::GetSlice(); }
+    BSS_FORCEINLINE Slice<T, CT_> GetSlice() const noexcept { return Slice<T, CType>(_array, _length); }
 #if defined(BSS_64BIT) && defined(BSS_DEBUG) 
     BSS_FORCEINLINE T_& operator [](uint64_t i) { assert(i < _length); return _array[i]; } // for some insane reason, this works on 64-bit, but not on 32-bit
     BSS_FORCEINLINE const T_& operator [](uint64_t i) const { assert(i < _length); return _array[i]; }

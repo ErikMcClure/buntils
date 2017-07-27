@@ -159,6 +159,8 @@ int main(int argc, char** argv)
     { "os.h", &test_OS },
     { "profile.h", &test_PROFILE },
     { "Variant.h", &test_VARIANT },
+    { "Collision.h", &test_COLLISION },
+    { "Geometry.h", &test_GEOMETRY },
   };
 
   const size_t NUMTESTS = sizeof(tests) / sizeof(TESTDEF);

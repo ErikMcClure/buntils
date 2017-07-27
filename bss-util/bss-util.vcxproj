@@ -53,13 +53,14 @@
   <ItemGroup>
     <ClInclude Include="..\include\bss-util\algo.h" />
     <ClInclude Include="..\include\bss-util\Alloc.h" />
+    <ClInclude Include="..\include\bss-util\Collision.h" />
+    <ClInclude Include="..\include\bss-util\Geometry.h" />
     <ClInclude Include="..\include\bss-util\GreedyAlloc.h" />
     <ClInclude Include="..\include\bss-util\RingAlloc.h" />
     <ClInclude Include="..\include\bss-util\BlockAlloc.h" />
     <ClInclude Include="..\include\bss-util\BlockAllocMT.h" />
     <ClInclude Include="..\include\bss-util\compare.h" />
     <ClInclude Include="..\include\bss-util\compiler.h" />
-    <ClInclude Include="..\include\bss-util\data.h" />
     <ClInclude Include="..\include\bss-util\defines.h" />
     <ClInclude Include="..\include\bss-util\Graph.h" />
     <ClInclude Include="..\include\bss-util\Logger.h" />

@@ -4,7 +4,7 @@
 #ifndef __VARIANT_H__BSS__
 #define __VARIANT_H__BSS__
 
-#include "defines.h"
+#include "compiler.h"
 #include <type_traits>
 #include <assert.h>
 #include <stddef.h>

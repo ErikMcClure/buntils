@@ -128,7 +128,6 @@ namespace bss {
       mov._capacity = 0;
       return *this;
     }
-    inline Slice<T, CType> GetSlice() const noexcept { return Slice<T, CType>(_array, _capacity); }
 
   protected:
     static inline T* _getAlloc(CT_ n, T* prev = 0) noexcept

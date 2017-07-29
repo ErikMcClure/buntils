@@ -4,12 +4,9 @@
 #ifndef __BSS_ALGO_H__
 #define __BSS_ALGO_H__
 
-#include "bss_util.h"
 #include "compare.h"
 #include "sseVec.h"
-#include "vector.h"
 #include "DynArray.h"
-#include "DisjointSet.h"
 #include "Delegate.h"
 #include <algorithm>
 #include <utility>
@@ -536,19 +533,6 @@ namespace bss {
       p[1] * (m[0][1] * t3 + m[1][1] * t2 + m[2][1] * t + m[3][1]) +
       p[2] * (m[0][2] * t3 + m[1][2] * t2 + m[2][2] * t + m[3][2]) +
       p[3] * (m[0][3] * t3 + m[1][3] * t2 + m[2][3] * t + m[3][3]);
-  }
-
-  // This implements all possible B-spline functions using a given matrix m, optimized for floats
-  inline float GenericBSpline(float t, const float(&p)[4], const float(&m)[4][4])
-  {
-    float a[4] = { t*t*t, t*t, t, 1 };
-    sseVec r = MatrixMultiply1x4<float>(a, m);
-    r *= sseVec(p);
-    sseVec r2 = r;
-    sseVec::Shuffle<0xB1>(r2);
-    r += r2;
-    sseVec::Shuffle<0x1B>(r2);
-    return BSS_SSE_SS_F32(r + r2);
   }
 
   // Implementation of a bezier curve. The B-spline matrix for this is

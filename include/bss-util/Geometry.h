@@ -28,8 +28,13 @@ namespace bss {
     template<class U>
     inline NSphere& operator=(const NSphere<U, N>& other) { c = other.c; r = other.r; return *this; }
 
-    Vector<T, N> c;
-    T r;
+    union {
+      struct {
+        Vector<T, N> c;
+        T r;
+      };
+      T v[N + 1];
+    };
   };
 
   // A circle as a 2 dimensional sphere
@@ -67,15 +72,19 @@ namespace bss {
 
     template<class U>
     inline NSphere& operator=(const NSphere<U, 2>& other) { c = other.c; r = other.r; return *this; }
-
     union {
-      Vector<T, 2> c;
       struct {
-        T x;
-        T y;
+        union {
+          Vector<T, 2> c;
+          struct {
+            T x;
+            T y;
+          };
+        };
+        T r;
       };
+      T v[3];
     };
-    T r;
   };
 
   // Traditional 3 dimensional sphere
@@ -102,14 +111,19 @@ namespace bss {
     inline NSphere& operator=(const NSphere<U, 3>& other) { c = other.c; r = other.r; return *this; }
 
     union {
-      Vector<T, 3> c;
       struct {
-        T x;
-        T y;
-        T z;
+        union {
+          Vector<T, 3> c;
+          struct {
+            T x;
+            T y;
+            T z;
+          };
+        };
+        T r;
       };
+      T v[4];
     };
-    T r;
   };
 
   template<class T> using Circle = NSphere<T, 2>;
@@ -120,6 +134,7 @@ namespace bss {
   struct LineN
   {
     typedef Vector<T, N> V;
+    inline LineN() {}
     template<class U>
     inline LineN(const LineN<U, N>& other) : p1(other.p1), p2(other.p2) {}
     inline LineN(const V& P1, const V& P2) : p1(P1), p2(P2) {}
@@ -129,8 +144,13 @@ namespace bss {
     template<class U>
     inline LineN& operator=(const LineN<U, N>& other) { p1 = other.p1; p2 = other.p2; }
 
-    V p1;
-    V p2;
+    union {
+      struct {
+        V p1;
+        V p2;
+      };
+      T v[N * 2];
+    };
   };
 
   // 2D line
@@ -138,6 +158,7 @@ namespace bss {
   struct LineN<T, 2>
   {
     typedef Vector<T, 2> V;
+    inline LineN() {}
     template<class U>
     inline LineN(const LineN<U, 2>& other) : p1(other.p1), p2(other.p2) {}
     inline LineN(const V& P1, const V& P2) : p1(P1), p2(P2) {}
@@ -162,6 +183,7 @@ namespace bss {
         T x2;
         T y2;
       };
+      T v[4];
     };
   };
 
@@ -170,6 +192,7 @@ namespace bss {
   struct LineN<T, 3>
   {
     typedef Vector<T, 3> V;
+    inline LineN() {}
     template<class U>
     inline LineN(const LineN<U, 3>& other) : p1(other.p1), p2(other.p2) {}
     inline LineN(const V& P1, const V& P2) : p1(P1), p2(P2) {}
@@ -194,6 +217,7 @@ namespace bss {
         T y2;
         T z2;
       };
+      T v[6];
     };
   };
   template<class T> using Line = LineN<T, 2>;
@@ -366,6 +390,7 @@ namespace bss {
         T a;
         T b;
       };
+      T v[4];
     };
   };
 
@@ -378,6 +403,7 @@ namespace bss {
     inline CircleSector(const CircleSector<U>& other) : x((T)other.x), y((T)other.y), inner((T)other.inner), outer((T)other.outer), min((T)other.min), range((T)other.range) {}
     inline CircleSector(T X, T Y, T Inner, T Outer, T Min, T Range) : x(X), y(Y), inner(Inner), outer(Outer), min(bssFMod<T>(Min, (T)PI_DOUBLE)), range(Range) {}
     inline CircleSector(const V& Pos, T Inner, T Outer, T Min, T Range) : x(Pos.x), y(Pos.y), inner(Inner), outer(Outer), min(bssFMod<T>(Min, (T)PI_DOUBLE)), range(Range) {}
+    inline CircleSector() {}
     inline T Area() const { return (T)((outer*outer - inner*inner)*range*0.5); }
     inline T ArcLengthOuter() const { return range*outer; }
     inline T ArcLengthInner() const { return range*inner; }
@@ -385,17 +411,22 @@ namespace bss {
 
     union {
       struct {
-        V pos;
+        union {
+          struct {
+            V pos;
+          };
+          struct {
+            T x;
+            T y;
+          };
+        };
+        T outer;
+        T inner;
+        T min; // Must be in the range [0,2PI]
+        T range; // Must be positive
       };
-      struct {
-        T x;
-        T y;
-      };
+      T v[6];
     };
-    T inner;
-    T outer;
-    T min; // Must be in the range [0,2PI]
-    T range; // Must be positive
 
     inline bool IntersectPolygon(const V* vertices, size_t num)
     {
@@ -460,7 +491,7 @@ namespace bss {
       return false; // If we have no intersections, there is no way we could be inside the circle.
     }
 
-    inline bool CircleSegmentCollide(T X, T Y, T Inner, T Outer, T Min, T Range)
+    inline bool CircleSectorCollide(T X, T Y, T Inner, T Outer, T Min, T Range)
     {
       X -= x;
       Y -= y;
@@ -552,7 +583,7 @@ namespace bss {
       T s = sin(angle);
       T x1 = (c * inner) - X;
       T y1 = -(s * inner) - Y;
-      if(LineSegmentRadiusIntersect(x1, y1, (c * outer) - X, -(s * outer) - Y, R))
+      if(LineSegmentRadiusCollide(x1, y1, (c * outer) - X, -(s * outer) - Y, R))
         return true;
       return x1*x1 + y1*y1 < R*R; // check for containment
     }
@@ -610,6 +641,7 @@ namespace bss {
 
     inline Polygon(const Polygon<T>& copy) : _verts(copy._verts) {}
     inline Polygon(Polygon<T>&& mov) : _verts(std::move(mov._verts)) {}
+    inline Polygon() {}
     template<class U>
     inline Polygon(const Polygon<U>& other) : _verts(other._verts.Capacity()) { for(size_t i = 0; i < other._verts.Capacity(); ++i) _verts[i] = other._verts[i]; }
     inline Polygon(const V* vertices, size_t num) : _verts(num) { if(_verts != 0) memcpy(_verts.begin(), vertices, _verts.Capacity() * sizeof(V)); }
@@ -643,8 +675,12 @@ namespace bss {
         _verts[i] = right._verts[i];
       return *this;
     }
+    inline const V& operator[](size_t i) const { return _verts[i]; }
+    inline V& operator[](size_t i) { return _verts[i]; }
 
     inline const V* GetVertices() const { return _verts; }
+    inline Array<V>& GetArray() { return _verts; }
+    inline const Array<V>& GetArray() const { return _verts; }
     inline size_t GetCount() const { return _verts.Capacity(); }
     inline const V* begin() const { return _verts.begin(); }
     inline const V* end() const { return _verts.end(); }

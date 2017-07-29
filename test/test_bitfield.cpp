@@ -39,5 +39,25 @@ TESTDEF::RETPAIR test_BITFIELD()
   TEST(t == 3);
   t.Set(5, -1);
   TEST(t == 5);
+
+  const int GROUP1 = 0b1100;
+  const int GROUP2 = 0b11;
+  BitField<int> g;
+  g(GROUP1) = 3;
+  TEST(!g(GROUP1));
+  TEST(!g.Get());
+  TEST(g(GROUP1) == 0);
+  g(GROUP1) = (3 << 2);
+  TEST(!!g(GROUP1));
+  TEST(g(GROUP1) == (3 << 2));
+  TEST(g.GetGroup(GROUP1) == (3 << 2));
+  g.GetGroup(GROUP1) = (2 << 2);
+  TEST(g.Get() == (2 << 2));
+  g(GROUP2) = 3;
+  TEST(g(GROUP1) == (2 << 2));
+  TEST(g(GROUP2) == 3);
+  TEST(g.Get() == ((2 << 2) | 3));
+  g(GROUP1) = 0;
+  TEST(g.Get() == 3);
   ENDTEST;
 }

@@ -252,6 +252,8 @@ namespace bss {
         s.get();
       ParseJSONEatWhitespace(s);
     }
+    if(s.peek() == ']')
+      s.get();
   }
   template<typename T>
   void JSONEngine::ParseNumber(Serializer<JSONEngine>& e, T& obj, const char* id)

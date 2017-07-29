@@ -35,6 +35,12 @@ struct JSONtest
   bool bfalse;
   float fixed[3];
   Hash<int, int> hash;
+  Matrix<int, 2, 3> matrix;
+  Polygon<int> polygon;
+  Triangle<int> triangle;
+  CircleSector<int> sector;
+  Circle<int> circle;
+  Ellipse<int> ellipse;
 
   template<typename Engine>
   void Serialize(Serializer<Engine>& s)
@@ -53,7 +59,13 @@ struct JSONtest
       GenPair("btrue", btrue),
       GenPair("bfalse", bfalse),
       GenPair("fixed", fixed),
-      GenPair("hash", hash)
+      GenPair("hash", hash),
+      GenPair("matrix", matrix),
+      GenPair("polygon", polygon),
+      GenPair("triangle", triangle),
+      GenPair("sector", sector),
+      GenPair("circle", circle),
+      GenPair("ellipse", ellipse)
       );
   }
 };
@@ -95,12 +107,49 @@ void dotest_JSON(JSONtest& o, TESTDEF::RETPAIR& __testret)
   TEST(o.hash[40] == 44);
   TEST(o.hash[41] == 45);
   TEST(o.hash[42] == 46);
+  TEST(o.matrix.v[0][0] == 1);
+  TEST(o.matrix.v[0][1] == 2);
+  TEST(o.matrix.v[0][2] == 3);
+  TEST(o.matrix.v[1][0] == 4);
+  TEST(o.matrix.v[1][1] == 5);
+  TEST(o.matrix.v[1][2] == 6);
+  TEST(o.polygon[0].x == 1);
+  TEST(o.polygon[0].y == 2);
+  TEST(o.polygon[1].x == 3);
+  TEST(o.polygon[1].y == 4);
+  TEST(o.polygon[2].x == 5);
+  TEST(o.polygon[2].y == 6);
+  TEST(o.triangle.v[0].x == 1);
+  TEST(o.triangle.v[0].y == 2);
+  TEST(o.triangle.v[1].x == 3);
+  TEST(o.triangle.v[1].y == 4);
+  TEST(o.triangle.v[2].x == 5);
+  TEST(o.triangle.v[2].y == 6);
+  TEST(o.sector.v[0] == 1);
+  TEST(o.sector.v[1] == 2);
+  TEST(o.sector.v[2] == 3);
+  TEST(o.sector.v[3] == 4);
+  TEST(o.sector.v[4] == 5);
+  TEST(o.sector.v[5] == 6);
+  TEST(o.sector.x == 1);
+  TEST(o.sector.y == 2);
+  TEST(o.sector.outer == 3);
+  TEST(o.sector.inner == 4);
+  TEST(o.sector.min == 5);
+  TEST(o.sector.range == 6);
+  TEST(o.circle.v[0] == 1);
+  TEST(o.circle.v[1] == 2);
+  TEST(o.circle.v[2] == 3);
+  TEST(o.ellipse.v[0] == 1);
+  TEST(o.ellipse.v[1] == 2);
+  TEST(o.ellipse.v[2] == 3);
+  TEST(o.ellipse.v[3] == 4);
 }
 
 TESTDEF::RETPAIR test_JSON()
 {
   BEGINTEST;
-  const char* json = "{ \"a\": -5, \"b\": 342  ,\"c\":23.7193 , \"btrue\": true, \"bfalse\": false, \"fixed\": [0.2, 23.1, -3, 4.0], \"test\":\"\\u01A8string {,};[]\\\"st\\\"'\\\n\\\r\\/\\u0FA8nb\\\"\", \"nested\" : { \"value\": [ { }, { } ], \"ia\":[  -1,2 ] }, \"foo\": [5 ,6, 4,2 ,  2,3,], \"bar\": [3.3,1.6543,0.49873,90, 4], \"foobar\":[\"moar\",\"\"], \"nestarray\": [null, { \"a\":, \"b\":34, }], \"nested2\": null, \"hash\": { \"40\" : 44, \"41\" : 45, \"42\" : 46, } }";
+  const char* json = "{ \"a\": -5, \"b\": 342  ,\"c\":23.7193 , \"btrue\": true, \"bfalse\": false, \"fixed\": [0.2, 23.1, -3, 4.0], \"test\":\"\\u01A8string {,};[]\\\"st\\\"'\\\n\\\r\\/\\u0FA8nb\\\"\", \"nested\" : { \"value\": [ { }, { } ], \"ia\":[  -1,2 ] }, \"foo\": [5 ,6, 4,2 ,  2,3,], \"bar\": [3.3,1.6543,0.49873,90, 4], \"foobar\":[\"moar\",\"\"], \"nestarray\": [null, { \"a\":, \"b\":34, }], \"nested2\": null, \"hash\": { \"40\" : 44, \"41\" : 45, \"42\" : 46, }, \"matrix\": [ [1,2,3],[4,5,6] ], \"polygon\": [[1,2],[3,4],[5,6]], \"triangle\": [[1,2],[3,4],[5,6]], \"sector\": [1,2,3,4,5,6], \"circle\": [1,2,3], \"ellipse\": [1,2,3,4] }";
   JSONtest o;
   o.btrue = false;
   o.bfalse = true;
@@ -134,7 +183,7 @@ TESTDEF::RETPAIR test_JSON()
   fs3.close();
 
   auto& var1 = var.get<JSONValue::JSONObject>();
-  TEST(var1.Length() == 14);
+  TEST(var1.Length() == 20);
   TEST(var1[0].first == "a");
   TEST(var1[0].second.is<int64_t>());
   TEST(var1[1].first == "b");

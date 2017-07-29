@@ -524,7 +524,7 @@ namespace bss {
     template<typename T> struct KH_AUTO_HELPER<T, 4> { BSS_FORCEINLINE static khint_t hash(T k) { return KH_INT64_HASHFUNC((int64_t)k); } };
 
     template<typename T>
-    BSS_FORCEINLINE khint_t KH_AUTO_HASHFUNC(const T& k) { return KH_AUTO_HELPER<T, std::is_pointer<T>::value + (std::is_integral<T>::value * 2 * (1 + (sizeof(T) == 8)))>::hash(k); }
+    BSS_FORCEINLINE khint_t KH_AUTO_HASHFUNC(const T& k) { return KH_AUTO_HELPER<T, std::is_pointer<T>::value + ((std::is_enum<T>::value | std::is_integral<T>::value) * 2 * (1 + (sizeof(T) == 8)))>::hash(k); }
     template<> BSS_FORCEINLINE khint_t KH_AUTO_HASHFUNC<Str>(const Str& k) { return KH_STR_HASHFUNC(k); }
     template<> BSS_FORCEINLINE khint_t KH_AUTO_HASHFUNC<const char*>(const char* const& k) { return KH_STR_HASHFUNC(k); }
     template<> BSS_FORCEINLINE khint_t KH_AUTO_HASHFUNC<char*>(char* const& k) { return KH_STR_HASHFUNC(k); }

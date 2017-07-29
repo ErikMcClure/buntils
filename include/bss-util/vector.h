@@ -1203,6 +1203,18 @@ namespace bss {
   template<> inline Vector<float, 4>& operator *=<float, 4>(Vector<float, 4>& l, const float r) { (sseVec(l.v)*sseVec(r, r, r, r)) >> l.v; return l; }
   template<> inline Vector<float, 4>& operator /=<float, 4>(Vector<float, 4>& l, const float r) { (sseVec(l.v) / sseVec(r, r, r, r)) >> l.v; return l; }
 
+  // This implements all possible B-spline functions using a given matrix m, optimized for floats
+  inline float GenericBSpline(float t, const float(&p)[4], const float(&m)[4][4])
+  {
+    float a[4] = { t*t*t, t*t, t, 1 };
+    sseVec r = MatrixMultiply1x4<float>(a, m);
+    r *= sseVec(p);
+    sseVec r2 = r;
+    sseVec::Shuffle<0xB1>(r2);
+    r += r2;
+    sseVec::Shuffle<0x1B>(r2);
+    return BSS_SSE_SS_F32(r + r2);
+  }
 }
 
 

@@ -11,6 +11,7 @@
 #include "Trie.h"
 #include "Variant.h"
 #include "Hash.h"
+#include "Geometry.h"
 
 namespace bss {
   //DEFINE_MEMBER_CHECKER(Serialize); // doesn't seem to work for template functions
@@ -337,6 +338,65 @@ namespace bss {
         {
           __ActionVariant<Engine, Variant<Args...>, Args...>::Serialize(e, obj._ref, id);
         }
+      };
+
+      // Vector and Matrix
+      template<class Engine, class T, int N>
+      struct Action<Engine, Vector<T, N>, false>
+      {
+        static inline void Parse(Serializer<Engine>& e, Vector<T, N>& obj, const char* id) { Engine::template ParseArray<T[N], T>(e, obj.v, id); }
+        static inline void Serialize(Serializer<Engine>& e, const Vector<T, N>& obj, const char* id) { Engine::template SerializeArray<T[N]>(e, obj.v, N, id); }
+      };
+
+      template<class Engine, class T, int M, int N>
+      struct Action<Engine, Matrix<T, M, N>, false>
+      {
+        static inline void Parse(Serializer<Engine>& e, Matrix<T, M, N>& obj, const char* id) { Engine::template ParseArray<T[M][N], T[M]>(e, obj.v, id); }
+        static inline void Serialize(Serializer<Engine>& e, const Matrix<T, M, N>& obj, const char* id) { Engine::template SerializeArray<T[M][N]>(e, obj.v, N, id); }
+      };
+
+      // Geometric primitives
+      template<class Engine, class T, int N>
+      struct Action<Engine, NSphere<T, N>, false>
+      {
+        static inline void Parse(Serializer<Engine>& e, NSphere<T, N>& obj, const char* id) { Engine::template ParseArray<T[N+1], T>(e, obj.v, id); }
+        static inline void Serialize(Serializer<Engine>& e, const NSphere<T, N>& obj, const char* id) { Engine::template SerializeArray<T[N+1]>(e, obj.v, N+1, id); }
+      };
+      template<class Engine, class T, int N>
+      struct Action<Engine, LineN<T, N>, false>
+      {
+        static inline void Parse(Serializer<Engine>& e, LineN<T, N>& obj, const char* id) { Engine::template ParseArray<T[N*2], T>(e, obj.v, id); }
+        static inline void Serialize(Serializer<Engine>& e, const LineN<T, N>& obj, const char* id) { Engine::template SerializeArray<T[N*2]>(e, obj.v, N*2, id); }
+      };
+      template<class Engine, class T>
+      struct Action<Engine, Rect<T>, false>
+      {
+        static inline void Parse(Serializer<Engine>& e, Rect<T>& obj, const char* id) { Engine::template ParseArray<T[4], T>(e, obj.ltrb, id); }
+        static inline void Serialize(Serializer<Engine>& e, const Rect<T>& obj, const char* id) { Engine::template SerializeArray<T[4]>(e, obj.ltrb, 4, id); }
+      };
+      template<class Engine, class T>
+      struct Action<Engine, Triangle<T>, false>
+      {
+        static inline void Parse(Serializer<Engine>& e, Triangle<T>& obj, const char* id) { Engine::template ParseArray<Vector<T, 2>[3], Vector<T, 2>>(e, obj.v, id); }
+        static inline void Serialize(Serializer<Engine>& e, const Triangle<T>& obj, const char* id) { Engine::template SerializeArray<Vector<T, 2>[3]>(e, obj.v, 3, id); }
+      };
+      template<class Engine, class T>
+      struct Action<Engine, Ellipse<T>, false>
+      {
+        static inline void Parse(Serializer<Engine>& e, Ellipse<T>& obj, const char* id) { Engine::template ParseArray<T[4], T>(e, obj.v, id); }
+        static inline void Serialize(Serializer<Engine>& e, const Ellipse<T>& obj, const char* id) { Engine::template SerializeArray<T[4]>(e, obj.v, 4, id); }
+      };
+      template<class Engine, class T>
+      struct Action<Engine, CircleSector<T>, false>
+      {
+        static inline void Parse(Serializer<Engine>& e, CircleSector<T>& obj, const char* id) { Engine::template ParseArray<T[6], T>(e, obj.v, id); }
+        static inline void Serialize(Serializer<Engine>& e, const CircleSector<T>& obj, const char* id) { Engine::template SerializeArray<T[6]>(e, obj.v, 6, id); }
+      };
+      template<class Engine, class T>
+      struct Action<Engine, Polygon<T>, false>
+      {
+        static inline void Parse(Serializer<Engine>& e, Polygon<T>& obj, const char* id) { Engine::template ParseArray<Array<Vector<T, 2>>, T>(e, obj.GetArray(), id); }
+        static inline void Serialize(Serializer<Engine>& e, const Polygon<T>& obj, const char* id) { Engine::template SerializeArray<Array<Vector<T, 2>>>(e, obj.GetArray(), obj.GetArray().Capacity(), id); }
       };
     }
   }

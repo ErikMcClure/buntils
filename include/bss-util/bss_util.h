@@ -1014,14 +1014,6 @@ namespace bss {
     MEMCPY(((char*)dest) + sizeof(SUBCLASS), sizeof(T) - sizeof(SUBCLASS), ((char*)src) + sizeof(SUBCLASS), sizeof(T) - sizeof(SUBCLASS));
   }
 
-#ifdef BSS_VARIADIC_TEMPLATES
-
-  // Generates a packed sequence of numbers
-  template<int ...> struct bssSeq {};
-  template<int N, int ...S> struct bssSeq_gens : bssSeq_gens<N - 1, N - 1, S...> {};
-  template<int ...S> struct bssSeq_gens<0, S...> { typedef bssSeq<S...> type; };
-#endif
-
   BSS_COMPILER_DLLEXPORT extern void bssDLLDeleteFunc(void* p);
 
   //unique_ptr deleter class that forces the deletion to occur in this DLL

@@ -6,9 +6,14 @@
 
 using namespace bss;
 
+static_assert(std::is_member_pointer<void(TESTDEF::*)()>::value, "member failure");
+
 TESTDEF::RETPAIR test_HASH()
 {
   BEGINTEST;
+  Hash<int, void(TESTDEF::*)()> membertest;
+  void(TESTDEF::*a)() = membertest[0];
+
   //cKhash<int, char,false,KH_INT_HASHFUNC,KH_INT_EQUALFUNC<int>,KH_INT_VALIDATEPTR<int>> hashtest;
   //hashtest.Insert(21354,0);
   //hashtest.Insert(34623,0);

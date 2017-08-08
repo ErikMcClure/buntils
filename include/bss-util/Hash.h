@@ -84,7 +84,7 @@ namespace bss {
   public:
     typedef Key KEY;
     typedef Data DATA;
-    typedef typename internal::_HashBaseGET<Data, std::is_integral<Data>::value | std::is_pointer<Data>::value>::GET GET;
+    typedef typename internal::_HashBaseGET<Data, std::is_integral<Data>::value | std::is_pointer<Data>::value | std::is_member_pointer<Data>::value>::GET GET;
 
     HashBase(const HashBase& copy)
     {
@@ -152,7 +152,7 @@ namespace bss {
       static const GET INVALID = internal::_HashBaseInvalid<GET, std::is_integral<GET>::value>::INVALID();
       if(!ExistsIter(i))
         return INVALID;
-      return internal::_HashBaseGET<Data, std::is_integral<Data>::value | std::is_pointer<Data>::value>::F(vals[i]);
+      return internal::_HashBaseGET<Data, std::is_integral<Data>::value | std::is_pointer<Data>::value | std::is_member_pointer<Data>::value>::F(vals[i]);
     }
     template<bool U = IsMap>
     inline typename std::enable_if<U, GET>::type Get(const Key& key) const { return GetValue(Iterator(key)); }
@@ -524,7 +524,7 @@ namespace bss {
     template<typename T> struct KH_AUTO_HELPER<T, 4> { BSS_FORCEINLINE static khint_t hash(T k) { return KH_INT64_HASHFUNC((int64_t)k); } };
 
     template<typename T>
-    BSS_FORCEINLINE khint_t KH_AUTO_HASHFUNC(const T& k) { return KH_AUTO_HELPER<T, std::is_pointer<T>::value + ((std::is_enum<T>::value | std::is_integral<T>::value) * 2 * (1 + (sizeof(T) == 8)))>::hash(k); }
+    BSS_FORCEINLINE khint_t KH_AUTO_HASHFUNC(const T& k) { return KH_AUTO_HELPER<T, (std::is_pointer<T>::value | std::is_member_pointer<T>::value) + ((std::is_enum<T>::value | std::is_integral<T>::value) * 2 * (1 + (sizeof(T) == 8)))>::hash(k); }
     template<> BSS_FORCEINLINE khint_t KH_AUTO_HASHFUNC<Str>(const Str& k) { return KH_STR_HASHFUNC(k); }
     template<> BSS_FORCEINLINE khint_t KH_AUTO_HASHFUNC<const char*>(const char* const& k) { return KH_STR_HASHFUNC(k); }
     template<> BSS_FORCEINLINE khint_t KH_AUTO_HASHFUNC<char*>(char* const& k) { return KH_STR_HASHFUNC(k); }

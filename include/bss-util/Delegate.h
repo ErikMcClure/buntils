@@ -61,26 +61,26 @@ namespace bss {
   struct StoreFunction : std::tuple<Args...>
   {
     inline StoreFunction(R(*f)(Args...), Args&&... args) : std::tuple<Args...>(std::forward<Args>(args)...), _f(f) {}
-    BSS_FORCEINLINE R Call() const { return _unpack(typename bssSeq_gens<sizeof...(Args)>::type()); }
+    BSS_FORCEINLINE R Call() const { return _unpack(std::index_sequence_for<Args...>{}); }
     BSS_FORCEINLINE R operator()() const { return Call(); }
 
     R(*_f)(Args...);
 
   private:
-    template<int ...S> BSS_FORCEINLINE R _unpack(bssSeq<S...>) const { return _f(std::get<S>(*this) ...); }
+    template<size_t ...S> BSS_FORCEINLINE R _unpack(std::index_sequence<S...>) const { return _f(std::get<S>(*this) ...); }
   };
 
   template<typename R, typename... Args>
   struct StoreDelegate : std::tuple<Args...>
   {
     inline StoreDelegate(Delegate<R, Args...> fn, Args&&... args) : std::tuple<Args...>(std::forward<Args>(args)...), _fn(fn) {}
-    BSS_FORCEINLINE R Call() const { return _unpack(typename bssSeq_gens<sizeof...(Args)>::type()); }
+    BSS_FORCEINLINE R Call() const { return _unpack(std::index_sequence_for<Args...>{}); }
     BSS_FORCEINLINE R operator()() const { return Call(); }
 
     Delegate<R, Args...> _fn;
 
   private:
-    template<int ...S> BSS_FORCEINLINE R _unpack(bssSeq<S...>) const { return _fn(std::get<S>(*this) ...); }
+    template<size_t ...S> BSS_FORCEINLINE R _unpack(std::index_sequence<S...>) const { return _fn(std::get<S>(*this) ...); }
   };
 
   template<typename R, typename... Args>

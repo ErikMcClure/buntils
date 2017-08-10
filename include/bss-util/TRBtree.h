@@ -146,6 +146,9 @@ namespace bss {
         {
           first = last = root = node; //assign to first and last
           root->color = 0; //root is always black (done below)
+          root->next = 0;
+          root->prev = 0;
+          root->parent = 0;
         }
       }
 

@@ -16,6 +16,7 @@
 - Added Collision.h with 2D collision algorithms between different shapes
 - Added Geometry.h with N-dimensional and 2D shape objects
 - Added bit groups to BitField
+- Remove bssSeq and use standardized std::index_sequence instead
 
 0.5.0
 -----

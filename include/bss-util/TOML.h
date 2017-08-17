@@ -141,11 +141,14 @@ namespace bss {
       s.get();
       if(!s || s.peek() == -1)
         return;
-      if(MULTILINE && (s.peek() == '\n' || s.peek() == '\r'))
+      if constexpr(MULTILINE)
       {
-        ParseTOMLEatNewline(s);
-        ParseTOMLEatWhitespace(s);
-        return;
+        if(s.peek() == '\n' || s.peek() == '\r')
+        {
+          ParseTOMLEatNewline(s);
+          ParseTOMLEatWhitespace(s);
+          return;
+        }
       }
       char buf[9];
       switch(s.get())

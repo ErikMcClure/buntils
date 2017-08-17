@@ -327,10 +327,17 @@ namespace bss {
   }
 
   template<int I>
-  BSS_FORCEINLINE void FlipEndian(uint8_t* target) noexcept { FlipEndian(target, I); }
-  template<> BSS_FORCEINLINE void FlipEndian<0>(uint8_t* target) noexcept {}
-  template<> BSS_FORCEINLINE void FlipEndian<1>(uint8_t* target) noexcept {}
-  template<> BSS_FORCEINLINE void FlipEndian<2>(uint8_t* target) noexcept { uint8_t t = target[0]; target[0] = target[1]; target[1] = t; }
+  BSS_FORCEINLINE void FlipEndian(uint8_t* target) noexcept 
+  { 
+    if constexpr(I == 2)
+    {
+      uint8_t t = target[0];
+      target[0] = target[1];
+      target[1] = t;
+    }
+    else if constexpr(I > 2)
+      FlipEndian(target, I); 
+  }
 
   template<typename T>
   BSS_FORCEINLINE void FlipEndian(T* target) noexcept { FlipEndian<sizeof(T)>(reinterpret_cast<uint8_t*>(target)); }
@@ -731,7 +738,7 @@ namespace bss {
     std::unique_ptr<T[]> a(new T[ln + !!nullterminate]);
     fread(a.get(), sizeof(T), ln, f);
     fclose(f);
-    if(nullterminate)
+    if constexpr(nullterminate)
       a[ln] = 0;
     return std::pair<std::unique_ptr<T[]>, size_t>(std::move(a), ln + !!nullterminate);
   }
@@ -874,13 +881,16 @@ namespace bss {
     return r;
   }
 
-  template<class T>
-  inline typename std::make_unsigned<T>::type bssAbs(T x) noexcept
+  template<class T, bool U = std::is_signed<T>::value>
+  BSS_FORCEINLINE typename std::enable_if<U, typename std::make_unsigned<T>::type>::type bssAbs(T x) noexcept
   {
     static_assert(std::is_signed<T>::value, "T must be signed for this to work properly.");
     T const mask = x >> ((sizeof(T) << 3) - 1); // Uses a bit twiddling hack to take absolute value without branching: https://graphics.stanford.edu/~seander/bithacks.html#IntegerAbs
     return (x + mask) ^ mask;
   }
+
+  template<class T, bool U = std::is_signed<T>::value>
+  BSS_FORCEINLINE typename std::enable_if<!U, T>::type bssAbs(T x) noexcept { return x; }
 
   template<class T>
   inline typename std::make_signed<T>::type bssNegate(T x, char negate) noexcept
@@ -890,33 +900,13 @@ namespace bss {
   }
 
   namespace internal {
-    template<bool ENABLE, typename T>
-    struct _bssabsnegate
-    {
-      BSS_FORCEINLINE static typename std::make_unsigned<T>::type _bssabs(T x) { return bssAbs<T>(x); }
-      BSS_FORCEINLINE static void _bssnegate(T& x, T& y, char negate)
-      {
-        if(negate)
-        {
-          y = ~y + !x; // only add one if the x addition would overflow, which can only happen if x is the maximum value
-          x = ~x + 1;
-        }
-      }
-    };
-    template<typename T>
-    struct _bssabsnegate<false, T>
-    {
-      BSS_FORCEINLINE static T _bssabs(T x) { return x; }
-      BSS_FORCEINLINE static void _bssnegate(T& x, T& y, char negate) {}
-    };
-
     // Double width multiplication followed by a right shift and truncation.
     template<class T>
     inline T _bssmultiplyextract(T xs, T ys, T shift) noexcept
     {
       typedef typename std::make_unsigned<T>::type U;
-      U x = _bssabsnegate<std::is_signed<T>::value, T>::_bssabs(xs);
-      U y = _bssabsnegate<std::is_signed<T>::value, T>::_bssabs(ys);
+      U x = bssAbs<T>(xs);
+      U y = bssAbs<T>(ys);
       static const U halfbits = (sizeof(U) << 2);
       static const U halfmask = ((U)~0) >> halfbits;
       U a = x >> halfbits, b = x & halfmask;
@@ -931,7 +921,14 @@ namespace bss {
 
       U high = ac + (bc >> halfbits) + (ad >> halfbits) + (mid34 >> halfbits); // high
       U low = (mid34 << halfbits) | (bd & halfmask); // low
-      _bssabsnegate<std::is_signed<T>::value, U>::_bssnegate(low, high, (xs < 0) ^ (ys < 0));
+      if constexpr(std::is_signed<T>::value)
+      {
+        if((xs < 0) ^ (ys < 0))
+        {
+          high = ~high + !low; // only add one if the x addition would overflow, which can only happen if x is the maximum value
+          low = ~low + 1;
+        }
+      }
 
       if(shift >= (T)(sizeof(U) << 3))
         return ((T)high) >> (shift - (sizeof(U) << 3));

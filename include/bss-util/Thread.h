@@ -32,10 +32,10 @@ namespace bss {
     inline Semaphore() : _sem(CreateSemaphore(NULL, 0, 65535, NULL)) {}
     inline ~Semaphore() { if(_sem != NULL) CloseHandle(_sem); }
     // Unlocks the semaphore by incrementing the current value
-    inline bool Notify(uint16_t count = 1)
+    inline bool Notify(size_t count = 1)
     { 
       LONG prev;
-      return ReleaseSemaphore(_sem, count, &prev) != 0;
+      return ReleaseSemaphore(_sem, (LONG)count, &prev) != 0;
     }
     // Waits on the semaphore by waiting until it can decrement the value by 1 (which requires the semaphore is greater than zero).
     inline bool Wait() { return WaitForSingleObject(_sem, INFINITE) != WAIT_FAILED; }
@@ -46,9 +46,9 @@ namespace bss {
     inline Semaphore(Semaphore&& mov) : _sem(mov._sem) { sem_init(&mov._sem, 0, 0); }
     inline Semaphore() { sem_init(&_sem, 0, 0); }
     inline ~Semaphore() { }
-    inline bool Notify(uint16_t count = 1) 
+    inline bool Notify(size_t count = 1)
     { 
-      for(uint16_t i = 0; i < count; ++i)
+      for(size_t i = 0; i < count; ++i)
         if(sem_post(&_sem))
           return false;
       return true; 

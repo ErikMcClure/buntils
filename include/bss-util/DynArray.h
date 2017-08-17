@@ -28,7 +28,8 @@ namespace bss {
     inline DynArray(const DynArray& copy) : AT_(copy._capacity), _length(copy._length) { BASE::_copy(_array, copy._array, _length); }
     inline DynArray(DynArray&& mov) : AT_(std::move(mov)), _length(mov._length) { mov._length = 0; }
     inline explicit DynArray(const Slice<const T, CType>& slice) : AT_(slice.length), _length(slice.length) { BASE::_copy(_array, slice.start, slice.length); }
-    inline explicit DynArray(CT_ capacity = 0) : AT_(capacity), _length(0) {}
+    inline explicit DynArray(CT_ capacity) : AT_(capacity), _length(0) {}
+    inline DynArray() : AT_(0), _length(0) {}
     inline DynArray(const std::initializer_list<T>& list) : AT_(list.size()), _length(0)
     {
       auto end = list.end();
@@ -158,7 +159,8 @@ namespace bss {
   public:
     inline DynArray(const DynArray& copy) : AT_(copy._capacity), _length(copy._length) { memcpy(_array, copy._array, copy._capacity * sizeof(STORE)); }
     inline DynArray(DynArray&& mov) : AT_(std::move(mov)), _length(mov._length) { mov._length = 0; }
-    inline explicit DynArray(CT_ capacity = 0) : AT_(_maxChunks(capacity) / DIV_AMT), _length(0) {}
+    inline explicit DynArray(CT_ capacity) : AT_(_maxChunks(capacity) / DIV_AMT), _length(0) {}
+    inline DynArray() : AT_(0), _length(0) {}
     inline DynArray(const std::initializer_list<bool>& list) : AT_(_maxChunks(list.size()) / DIV_AMT), _length(0)
     {
       auto end = list.end();

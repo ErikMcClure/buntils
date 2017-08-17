@@ -57,12 +57,6 @@ namespace bss {
       inline static T* _realloc(khint8_t* flags, T* src, khint_t new_n_buckets, khint_t n_buckets) noexcept { return _HashBaseAlloc<T, ARRAY_SAFE, Alloc>(flags, src, new_n_buckets, n_buckets); }
     };
 
-    template<class T, bool integral>
-    struct _HashBaseInvalid { static const T INVALID() { return (T)0; } };
-
-    template<class T>
-    struct _HashBaseInvalid<T, true> { static const T INVALID() { return (T)~0; } };
-
     template<class T, bool value>
     struct _HashBaseGET { typedef T GET; static BSS_FORCEINLINE GET F(T& s) { return s; } };
 
@@ -136,7 +130,7 @@ namespace bss {
           {
             keys[i].~Key();
 
-            if(IsMap)
+            if constexpr(IsMap)
               vals[i].~Data();
           }
         }
@@ -149,9 +143,13 @@ namespace bss {
     template<bool U = IsMap>
     inline typename std::enable_if<U, GET>::type GetValue(khiter_t i) const
     {
-      static const GET INVALID = internal::_HashBaseInvalid<GET, std::is_integral<GET>::value>::INVALID();
       if(!ExistsIter(i))
-        return INVALID;
+      {
+        if constexpr(std::is_integral<GET>::value)
+          return (GET)~0;
+        else
+          return (GET)0;
+      }
       return internal::_HashBaseGET<Data, std::is_integral<Data>::value | std::is_pointer<Data>::value>::F(vals[i]);
     }
     template<bool U = IsMap>
@@ -231,7 +229,7 @@ namespace bss {
         {
           new(keys + i) Key((const Key&)copy.keys[i]);
 
-          if(IsMap)
+          if constexpr(IsMap)
             new(vals + i) Data((const Data&)copy.vals[i]);
         }
       }
@@ -321,7 +319,7 @@ namespace bss {
             Key *new_keys = internal::_HashBaseAlloc<Key, ArrayType, Alloc>::_realloc(flags, keys, new_n_buckets, n_buckets);
             if(!new_keys) { Alloc::deallocate((char*)new_flags); return -1; }
             keys = new_keys;
-            if(IsMap)
+            if constexpr(IsMap)
             {
               Data *new_vals = internal::_HashBaseAlloc<Data, ArrayType, Alloc>::_realloc(flags, vals, new_n_buckets, n_buckets);
               if(!new_vals) { Alloc::deallocate((char*)new_flags); return -1; }
@@ -337,10 +335,10 @@ namespace bss {
           if(__ac_iseither(flags, j) == 0)
           {
             Key key(std::move(keys[j]));
-            Data val;
+            [[maybe_unused]] Data val;
             khint_t new_mask;
             new_mask = new_n_buckets - 1;
-            if(IsMap) val = std::move(vals[j]);
+            if constexpr(IsMap) val = std::move(vals[j]);
             __ac_set_isdel_true(flags, j);
             while(1)
             { /* kick-out process; sort of like in Cuckoo hashing */
@@ -352,13 +350,13 @@ namespace bss {
               if(i < n_buckets && __ac_iseither(flags, i) == 0)
               { /* kick out the existing element */
                 std::swap(keys[i], key);
-                if(IsMap) std::swap(vals[i], val);
+                if constexpr(IsMap) std::swap(vals[i], val);
                 __ac_set_isdel_true(flags, i); /* mark it as deleted in the old hash table */
               }
               else // this code only runs if this bucket doesn't exist, so initialize
               {
                 new(keys + i) Key(std::move(key));
-                if(IsMap) new(vals + i) Data(std::move(val));
+                if constexpr(IsMap) new(vals + i) Data(std::move(val));
                 break;
               }
             }
@@ -367,7 +365,7 @@ namespace bss {
         if(n_buckets > new_n_buckets)
         { /* shrink the hash table */
           keys = internal::_HashBaseAlloc<Key, ArrayType, Alloc>::_realloc(flags, keys, new_n_buckets, n_buckets);
-          if(IsMap)
+          if constexpr(IsMap)
             vals = internal::_HashBaseAlloc<Data, ArrayType, Alloc>::_realloc(flags, vals, new_n_buckets, n_buckets);
         }
         Alloc::deallocate((char*)flags); /* free the working space */
@@ -457,7 +455,7 @@ namespace bss {
       if(x != n_buckets && !__ac_iseither(flags, x))
       {
         keys[x].~Key();
-        if(IsMap)
+        if constexpr(IsMap)
           vals[x].~Data();
         __ac_set_isdel_true(flags, x);
         --size;

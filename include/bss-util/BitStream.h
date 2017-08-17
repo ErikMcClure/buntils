@@ -9,20 +9,10 @@
 #include <iostream>
 
 namespace bss {
-  namespace internal {
-    template<typename STREAM, bool ISOUT>
-    struct bitstream_internal { BSS_FORCEINLINE static void _flush(STREAM* s, uint8_t buf) { s->write((char*)&buf, 1); } };
-
-    template<typename STREAM>
-    struct bitstream_internal<STREAM, false> { BSS_FORCEINLINE static void _flush(STREAM* s, uint8_t buf) {} };
-  }
-
   // This wraps around an existing stream and flushes to it. Capable of writing and reading with single-bit precision.
   template<typename STREAM = std::iostream>
-  class BSS_COMPILER_DLLEXPORT BitStream : protected internal::bitstream_internal<STREAM, std::is_base_of<std::ostream, STREAM>::value>
+  class BSS_COMPILER_DLLEXPORT BitStream
   {
-    using internal::bitstream_internal<STREAM, std::is_base_of<std::ostream, STREAM>::value>::_flush;
-
   public:
     BitStream(const BitStream& copy) : _base(copy._base), _roffset(copy._roffset), _woffset(copy._woffset), _buf(copy._buf) {}
     BitStream(BitStream&& mov) : _base(mov._base), _roffset(mov._roffset), _woffset(mov._woffset), _buf(mov._buf) { mov._base = 0; }
@@ -98,6 +88,11 @@ namespace bss {
     BitStream& operator>>(T& v) { Read<T>(v); return *this; }
 
   protected:
+    template<bool U = std::is_base_of<std::ostream, STREAM>::value>
+    BSS_FORCEINLINE static typename std::enable_if<U, void>::type _flush(STREAM* s, uint8_t buf) { s->write((char*)&buf, 1); }
+    template<bool U = std::is_base_of<std::ostream, STREAM>::value>
+    BSS_FORCEINLINE static typename std::enable_if<!U, void>::type _flush(STREAM* s, uint8_t buf) { }
+
     STREAM* _base;
     uint8_t _buf;
     uint8_t _roffset; // Offset from current reading position in bits

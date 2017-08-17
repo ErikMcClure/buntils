@@ -518,6 +518,10 @@ TESTDEF::RETPAIR test_bss_util()
   TEST(bssAbs<int8_t>(0) == 0);
   TEST(bssAbs<int8_t>(1) == 1);
   TEST(bssAbs<int8_t>(-127) == 127);
+  TEST(bssAbs<uint8_t>(127) == 127);
+  TEST(bssAbs<uint8_t>(126) == 126);
+  TEST(bssAbs<uint8_t>(0) == 0);
+  TEST(bssAbs<uint8_t>(1) == 1);
 
   TEST(bssNegate<uint8_t>(1, 1) == -1);
   TEST(bssNegate<uint8_t>(128, 1) == -128);

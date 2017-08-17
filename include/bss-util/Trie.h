@@ -19,11 +19,6 @@ namespace bss {
       T clen; // Number of siblings this node has
       T word; // This stores the original index of the word that this node corresponds to, but only if chr is nullptr (indicating the end of a word)
     };
-
-    template<typename T, bool IGNORECASE>
-    struct _Trie_ToLower { static BSS_FORCEINLINE void F(T& c) { c = tolower(c); } };
-    template<typename T>
-    struct _Trie_ToLower<T, false> { static BSS_FORCEINLINE void F(T& c) {} };
   }
 
   // A static trie optimized for looking up small collections of words.
@@ -63,7 +58,8 @@ namespace bss {
       char c;
       while((c = *(word++)))
       {
-        internal::_Trie_ToLower<char, IGNORECASE>::F(c);
+        if constexpr(IGNORECASE)
+          c = tolower(c);
 
         if(cur->clen > 1) // This is faster than a switch statement
           r = BinarySearchExact<TNODE, char, T, &Trie::_CompTNode>(cur, c, 0, cur->clen);
@@ -87,7 +83,8 @@ namespace bss {
       while((len--) > 0)
       {
         c = *(word++);
-        internal::_Trie_ToLower<char, IGNORECASE>::F(c);
+        if constexpr(IGNORECASE)
+          c = tolower(c);
 
         if(cur->clen > 1) // This is faster than a switch statement
           r = BinarySearchExact<TNODE, char, T, &Trie::_CompTNode>(cur, c, 0, cur->clen);

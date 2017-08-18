@@ -18,7 +18,7 @@ md "..\Packages\bss-util\bin32"
 md "..\Packages\bss-util\test"
 
 XCOPY "*.md" "..\Packages\bss-util" /C /I /Y
-XCOPY "LICENSE*.txt" "..\Packages\bss-util" /C /I /Y
+XCOPY "LICENSE*" "..\Packages\bss-util" /C /I /Y
 XCOPY "include\*.h" "..\Packages\bss-util\include" /S /C /I /R /Y
 XCOPY "bin\bss-util*.dll" "..\Packages\bss-util\bin" /C /I /Y
 XCOPY "bin\bss-util*.lib" "..\Packages\bss-util\bin" /C /I /Y

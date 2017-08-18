@@ -110,7 +110,7 @@ namespace bss {
       template<class Engine, class Key, class Data, khint_t(*__hash_func)(const Key&), bool(*__hash_equal)(const Key&, const Key&), ARRAY_TYPE ArrayType, typename Alloc>
       struct KeyValueInsert
       {
-        typedef HashBase<Key, Data, true, __hash_func, __hash_equal, ArrayType, Alloc> T;
+        typedef HashBase<Key, Data, __hash_func, __hash_equal, ArrayType, Alloc> T;
 
         KeyValueInsert(T& obj) : _obj(obj) {}
         BSS_FORCEINLINE void operator()(Serializer<Engine>& e, const char* id)
@@ -237,10 +237,10 @@ namespace bss {
           Engine::template SerializeArray<Array<T, CType, ArrayType, Alloc>>(e, obj, obj.Capacity(), id);
         }
       };
-      template<class Engine, class Key, class Data, khint_t(*__hash_func)(const Key&), bool(*__hash_equal)(const Key&, const Key&), ARRAY_TYPE ArrayType, typename Alloc>
-      struct Action<Engine, HashBase<Key, Data, false, __hash_func, __hash_equal, ArrayType, Alloc>, false> // Hashes that are just sets can be treated as arrays.
+      template<class Engine, class Key, khint_t(*__hash_func)(const Key&), bool(*__hash_equal)(const Key&, const Key&), ARRAY_TYPE ArrayType, typename Alloc>
+      struct Action<Engine, HashBase<Key, void, __hash_func, __hash_equal, ArrayType, Alloc>, false> // Hashes that are just sets can be treated as arrays.
       {
-        typedef HashBase<Key, Data, false, __hash_func, __hash_equal, ArrayType, Alloc> E;
+        typedef HashBase<Key, void, __hash_func, __hash_equal, ArrayType, Alloc> E;
         static inline Key& Last(E& obj) { assert(obj.Length()); return *obj.begin(); }
         static inline void Add(Serializer<Engine>& e, E& obj, int& n)
         {
@@ -259,9 +259,9 @@ namespace bss {
       };
 
       template<class Engine, class Key, class Data, khint_t(*__hash_func)(const Key&), bool(*__hash_equal)(const Key&, const Key&), ARRAY_TYPE ArrayType, typename Alloc>
-      struct Action<Engine, HashBase<Key, Data, true, __hash_func, __hash_equal, ArrayType, Alloc>, false>
+      struct Action<Engine, HashBase<Key, Data, __hash_func, __hash_equal, ArrayType, Alloc>, false>
       {
-        typedef HashBase<Key, Data, true, __hash_func, __hash_equal, ArrayType, Alloc> E;
+        typedef HashBase<Key, Data, __hash_func, __hash_equal, ArrayType, Alloc> E;
         typedef KeyValueInsert<Engine, Key, Data, __hash_func, __hash_equal, ArrayType, Alloc> F;
         static inline Key& Last(E& obj) { assert(false); return *obj.begin(); }
         static inline void Add(Serializer<Engine>& e, E& obj, int& n) { assert(false); }

@@ -467,16 +467,16 @@ namespace bss {
   { 
     if constexpr(sizeof(T) == sizeof(khint64_t))
     {
-      khint64_t i = *reinterpret_cast<khint64_t*>(&key);
+      khint64_t i = *reinterpret_cast<const khint64_t*>(&key);
       return kh_int64_hash_func(i);
     }
     else if constexpr(sizeof(T) == sizeof(khint_t))
     {
-      khint_t i = *reinterpret_cast<khint_t*>(&key);
+      khint_t i = *reinterpret_cast<const khint_t*>(&key);
       return kh_int_hash_func2(i);
     }
     else
-      return static_cast<khint32_t>(key);
+      return static_cast<const khint32_t>(key);
   }
   template<class T, bool IgnoreCase>
   inline khint_t KH_STR_HASH(const T* s) = delete;

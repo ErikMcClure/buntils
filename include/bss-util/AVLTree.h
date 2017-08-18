@@ -21,8 +21,8 @@ namespace bss {
     int _balance;
 
   private:
-    inline AVLNode(const AVLNode&) BSS_DELETEFUNC // This is to keep the compiler from defining a copy or assignment constructor that could conflict with move-only structures, like unique_ptr
-    AVLNode& operator =(const AVLNode&) BSS_DELETEFUNCOP
+    inline AVLNode(const AVLNode&) = delete; // This is to keep the compiler from defining a copy or assignment constructor that could conflict with move-only structures, like unique_ptr
+    AVLNode& operator =(const AVLNode&) = delete;
   };
 
   namespace internal {
@@ -82,8 +82,8 @@ namespace bss {
   template<class Key, class Data, char(*CFunc)(const Key&, const Key&) = CompT<Key>, typename Alloc = StandardAllocPolicy<typename internal::AVLTreeDataField<Key, Data>::Node>>
   class BSS_COMPILER_DLLEXPORT AVLTree : protected AllocTracker<Alloc>, public internal::AVLTreeDataField<Key, Data>
   {
-    AVLTree(const AVLTree& copy) BSS_DELETEFUNC
-    AVLTree& operator=(const AVLTree& copy) BSS_DELETEFUNCOP
+    AVLTree(const AVLTree& copy) = delete;
+    AVLTree& operator=(const AVLTree& copy) = delete;
   protected:
     typedef internal::AVLTreeDataField<Key, Data> Base;
     typedef typename Base::KeyData KeyData;

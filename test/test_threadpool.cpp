@@ -23,7 +23,6 @@ TESTDEF::RETPAIR test_THREADPOOL()
   {
     static const int NUM = 8;
     ThreadPool pool(NUM);
-#ifdef BSS_VARIADIC_TEMPLATES
     bssFill(pq_end, 0);
     pq_c = 0;
     initcount = 0;
@@ -43,7 +42,6 @@ TESTDEF::RETPAIR test_THREADPOOL()
     for(size_t i = 0; i < TESTNUM; ++i)
       check = (pq_end[i] == i) && check;
     TEST(check);
-#endif
   }
 
   ENDTEST;

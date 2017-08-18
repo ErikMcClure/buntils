@@ -10,8 +10,6 @@
 #include <stddef.h>
 #include <utility>
 
-#ifdef BSS_VARIADIC_TEMPLATES
-
 namespace bss {
   template<class Engine>
   class Serializer;
@@ -265,5 +263,4 @@ namespace bss {
   };
 }
 
-#endif
 #endif

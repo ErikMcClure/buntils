@@ -45,8 +45,8 @@ namespace bss {
   class LocklessQueue : public internal::LocklessQueue_Length<LENGTH>
   {
     typedef internal::LQ_QNode<T> QNODE;
-    LocklessQueue(const LocklessQueue&) BSS_DELETEFUNC
-      LocklessQueue& operator=(const LocklessQueue&)BSS_DELETEFUNCOP
+    LocklessQueue(const LocklessQueue&) = delete;
+      LocklessQueue& operator=(const LocklessQueue&)= delete;
 
   public:
     LocklessQueue(LocklessQueue&& mov) : internal::LocklessQueue_Length<LENGTH>(std::move(mov)), _div(mov._div), _last(mov._last), _first(mov._first), _alloc(std::move(mov._alloc)) { mov._div = mov._last = mov._first = 0; }
@@ -112,8 +112,8 @@ namespace bss {
   class MicroLockQueue : public internal::LocklessQueue_Length<LENGTH>
   {
     typedef internal::LQ_QNode<T> QNODE;
-    MicroLockQueue(const MicroLockQueue&) BSS_DELETEFUNC
-      MicroLockQueue& operator=(const MicroLockQueue&) BSS_DELETEFUNCOP
+    MicroLockQueue(const MicroLockQueue&) = delete;
+      MicroLockQueue& operator=(const MicroLockQueue&) = delete;
 
   public:
     MicroLockQueue(MicroLockQueue&& mov) : internal::LocklessQueue_Length<LENGTH>(std::move(mov)), _div(mov._div), _last(mov._last), _alloc(std::move(mov._alloc)) { mov._div = mov._last = 0; _cflag.clear(std::memory_order_relaxed);  _pflag.clear(std::memory_order_relaxed); }
@@ -180,7 +180,7 @@ namespace bss {
   class MicroLockQueue : public internal::LocklessQueue_Length<LENGTH>
   {
   public:
-    MicroLockQueue(const MicroLockQueue&) BSS_DELETEFUNC
+    MicroLockQueue(const MicroLockQueue&) = delete;
     MicroLockQueue(MicroLockQueue&& mov) : internal::LocklessQueue_Length<LENGTH>(std::move(mov)), _div(mov._div), _last(mov._last), _alloc(std::move(mov._alloc)) { mov._div=mov._last=0; }
     inline MicroLockQueue() { _last.store(_div.p = _alloc.alloc(1), std::memory_order_relaxed); new(_div.p) QNODE(); assert(_last.is_lock_free());}
     inline ~MicroLockQueue() { } // Don't need to clean up because the allocator will destroy everything by itself
@@ -205,7 +205,7 @@ namespace bss {
       return false;
     }
 
-    MicroLockQueue& operator=(const MicroLockQueue&) BSS_DELETEFUNCOP
+    MicroLockQueue& operator=(const MicroLockQueue&) = delete;
     inline MicroLockQueue& operator=(MicroLockQueue&& mov)
     {
         _div=mov._div;

@@ -18,12 +18,8 @@ namespace bss {
   // Log class that can be converted into a stream and redirected to various different stream targets
   class BSS_DLLEXPORT Logger
   {
-#ifdef BSS_COMPILER_MSC2010
-    Logger(const Logger& copy) : _stream(std::_Noinit) {}
-#else
     Logger(const Logger& copy) = delete;
-#endif
-    Logger& operator=(const Logger& right) BSS_DELETEFUNCOP
+    Logger& operator=(const Logger& right) = delete;
 
   public:
     // Move semantics only
@@ -72,7 +68,6 @@ namespace bss {
     }
     int PrintLogV(const char* source, const char* file, size_t line, int8_t level, const char* format, va_list args);
 
-#ifdef BSS_VARIADIC_TEMPLATES
     template<typename... Args>
     BSS_FORCEINLINE void Log(const char* source, const char* file, size_t line, int8_t level, Args... args)
     {
@@ -89,7 +84,6 @@ namespace bss {
       SafeFormat<Args...>(LogHeader(source, file, line, level), format, args...);
       _stream << std::endl;
     }
-#endif
     BSS_FORCEINLINE std::ostream& LogHeader(const char* source, const char* file, size_t line, int8_t level)
     {
       assert(level < _levels.Capacity());
@@ -101,11 +95,9 @@ namespace bss {
     static const char* DEFAULTNULLFORMAT;
 
   protected:
-#ifdef BSS_VARIADIC_TEMPLATES
     template<typename Arg, typename... Args>
     static inline void _writeLog(std::ostream& o, Arg arg, Args... args) { o << arg; _writeLog(o, args...); }
     static inline void _writeLog(std::ostream& o) { o << std::endl; }
-#endif
     std::ostream& _logHeader(const char* source, const char* file, size_t line, const char* level);
     static void _header(std::ostream& o, int n, const char* source, const char* file, size_t line, const char* level, long tz);
     static bool _writeDateTime(long timezone, std::ostream& log, bool timeonly);

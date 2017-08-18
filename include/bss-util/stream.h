@@ -24,8 +24,8 @@ namespace bss {
 #pragma warning(disable:4251)
   class BSS_COMPILER_DLLEXPORT StreamSplitter : public std::basic_stringbuf<char>
   {
-    inline StreamSplitter(const StreamSplitter& copy) BSS_DELETEFUNC
-      inline StreamSplitter& operator =(const StreamSplitter& right) BSS_DELETEFUNCOP
+    inline StreamSplitter(const StreamSplitter& copy) = delete;
+      inline StreamSplitter& operator =(const StreamSplitter& right) = delete;
   public:
 #ifndef BSS_COMPILER_GCC
     inline StreamSplitter(StreamSplitter&& mov) : std::basic_stringbuf<char>(std::move(mov)), _targets(std::move(mov._targets)) {}//, _wtargets(move(copy._wtargets)) {}
@@ -64,8 +64,8 @@ namespace bss {
   template<class T>
   class BSS_COMPILER_DLLEXPORT StreamBufArray : public std::streambuf
   {
-    inline StreamBufArray(const StreamBufArray& copy) BSS_DELETEFUNC
-    inline StreamBufArray& operator =(const StreamBufArray& right) BSS_DELETEFUNCOP
+    inline StreamBufArray(const StreamBufArray& copy) = delete;
+    inline StreamBufArray& operator =(const StreamBufArray& right) = delete;
 
   public:
     StreamBufArray(StreamBufArray&& mov) : std::streambuf(std::move(mov)), _begin(mov._begin), _cur(mov._cur), _end(mov._end)
@@ -137,8 +137,8 @@ namespace bss {
   class BSS_COMPILER_DLLEXPORT StreamBufDynArray : public std::streambuf
   {
     typedef DynArray<T, CType, ArrayType, Alloc> D;
-    inline StreamBufDynArray(const StreamBufDynArray& copy) BSS_DELETEFUNC
-    inline StreamBufDynArray& operator =(const StreamBufDynArray& right) BSS_DELETEFUNCOP
+    inline StreamBufDynArray(const StreamBufDynArray& copy) = delete;
+    inline StreamBufDynArray& operator =(const StreamBufDynArray& right) = delete;
 
   public:
     StreamBufDynArray(StreamBufDynArray&& mov) : std::streambuf(std::move(mov)), _ref(mov._ref){}
@@ -229,8 +229,8 @@ namespace bss {
   // Generic read/write streambuffer that performs an operation on the input and output.
   class StreamBufFunction : public std::streambuf
   {
-    inline StreamBufFunction(const StreamBufFunction& copy) BSS_DELETEFUNC
-    inline StreamBufFunction& operator =(const StreamBufFunction& right) BSS_DELETEFUNCOP
+    inline StreamBufFunction(const StreamBufFunction& copy) = delete;
+    inline StreamBufFunction& operator =(const StreamBufFunction& right) = delete;
 
   public:
     StreamBufFunction(StreamBufFunction&& mov) : std::streambuf(std::move(mov)) {}

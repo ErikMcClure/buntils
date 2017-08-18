@@ -19,8 +19,8 @@ namespace bss {
     typedef void(*FN)(void*);
     typedef std::pair<FN, void*> TASK;
 
-    ThreadPool(const ThreadPool&) BSS_DELETEFUNC
-      ThreadPool& operator=(const ThreadPool&) BSS_DELETEFUNCOP
+    ThreadPool(const ThreadPool&) = delete;
+    ThreadPool& operator=(const ThreadPool&) = delete;
 
   public:
     ThreadPool(ThreadPool&& mov) : _falloc(std::move(mov._falloc)), _run(mov._run.load(std::memory_order_relaxed)),
@@ -58,7 +58,6 @@ namespace bss {
       _lock.Notify(instances);
     }
 
-#ifdef BSS_VARIADIC_TEMPLATES
     template<typename R, typename ...Args>
     void AddFunc(R(*f)(Args...), Args... args)
     {
@@ -67,7 +66,6 @@ namespace bss {
       fn->second = &_falloc; // This could just be a pointer to this thread pool, but it's easier if it's a direct pointer to the allocator we need.
       AddTask(_callfn<R, Args...>, fn);
     }
-#endif
 
     void AddThreads(size_t num = 1)
     {
@@ -113,7 +111,6 @@ namespace bss {
       pool._run.fetch_add(1, std::memory_order_release);
     }
 
-#ifdef BSS_VARIADIC_TEMPLATES
     template<typename R, typename ...Args>
     static void _callfn(void* p)
     {
@@ -122,7 +119,6 @@ namespace bss {
       fn->first.~StoreFunction();
       fn->second->dealloc(fn);
     }
-#endif
 
     MicroLockQueue<TASK, size_t> _tasklist;
     std::atomic<size_t> _tasks; // Count of tasks still being processed (this includes tasks that have been removed from the queue, but haven't finished yet)

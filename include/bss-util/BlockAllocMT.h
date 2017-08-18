@@ -13,8 +13,8 @@ namespace bss {
   class BSS_COMPILER_DLLEXPORT LocklessBlockAlloc
   {
     typedef BlockAllocVoid::FIXEDLIST_NODE NODE;
-    LocklessBlockAlloc(const LocklessBlockAlloc& copy) BSS_DELETEFUNC
-      LocklessBlockAlloc& operator=(const LocklessBlockAlloc& copy) BSS_DELETEFUNCOP
+    LocklessBlockAlloc(const LocklessBlockAlloc& copy) = delete;
+      LocklessBlockAlloc& operator=(const LocklessBlockAlloc& copy) = delete;
   public:
     inline LocklessBlockAlloc(LocklessBlockAlloc&& mov) : _root(mov._root)
     {
@@ -164,8 +164,8 @@ namespace bss {
   template<typename T>
   class BSS_COMPILER_DLLEXPORT LocklessBlockPolicy : protected LocklessBlockAlloc<T>
   {
-    LocklessBlockPolicy(const LocklessBlockPolicy& copy) BSS_DELETEFUNC
-      LocklessBlockPolicy& operator=(const LocklessBlockPolicy& copy) BSS_DELETEFUNCOP
+    LocklessBlockPolicy(const LocklessBlockPolicy& copy) = delete;
+      LocklessBlockPolicy& operator=(const LocklessBlockPolicy& copy) = delete;
 
   public:
     typedef T* pointer;

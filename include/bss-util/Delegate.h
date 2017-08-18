@@ -9,11 +9,10 @@
 
 namespace bss {
   // Delegate class using variadic templates
-#ifdef BSS_VARIADIC_TEMPLATES
   template<typename R, typename... Args>
   class BSS_COMPILER_DLLEXPORT Delegate
   {
-    inline Delegate(std::function<R(Args...)>&& src) BSS_DELETEFUNC // Don't do Delegate([&](){ return; }) or it'll go out of scope.
+    inline Delegate(std::function<R(Args...)>&& src) = delete; // Don't do Delegate([&](){ return; }) or it'll go out of scope.
       typedef R RTYPE;
     typedef R(*FUNCTYPE)(void*, Args...);
     typedef RTYPE(*COREFUNC)(Args...);
@@ -101,65 +100,6 @@ namespace bss {
   BSS_FORCEINLINE DeferDelegate<R, Args...> defer(Delegate<R, Args...> fn, Args&&... args) { return DeferDelegate<R, Args...>(fn, std::forward<Args>(args)...); }
   template<typename R, class... Args>
   BSS_FORCEINLINE DeferFunction<R, Args...> defer(R(*stub)(Args...), Args&&... args) { return DeferFunction<R, Args...>(stub, std::forward<Args>(args)...); }
-
-#else
-  template<typename R = void, typename T1 = void, typename T2 = void, typename T3 = void, typename T4 = void, typename T5 = void>
-  class BSS_COMPILER_DLLEXPORT Delegate {};
-
-  // Delegate class done via macros because Microsoft is full of shit.
-  template<typename R>
-  class BSS_COMPILER_DLLEXPORT Delegate<R, void, void, void, void>
-  {
-    inline Delegate(std::function<R(void)>&& src) { assert(false); } // Don't do Delegate([&](){ return; }) or it'll go out of scope.
-  public:
-    inline Delegate(const Delegate& copy) : _src(copy._src), _stub(copy._stub) {}
-    inline Delegate(void* src, R(*stub)(void*)) : _src(src), _stub(stub) {}
-    inline Delegate(std::function<R(void)>& src) : _src(&src), _stub(&stublambda) {}
-    inline R operator()(void) const { return (*_stub)(_src); }
-    inline Delegate& operator=(const Delegate& right) { _src = right._src; _stub = right._stub; return *this; }
-
-    template<class T, R(MSC_FASTCALL T::*GCC_FASTCALL F)(void)>
-    inline static Delegate From(T* src) { return Delegate(src, &stub<T, F>); }
-    template<class T, R(MSC_FASTCALL T::*GCC_FASTCALL F)(void) const>
-    inline static Delegate From(const T* src) { return Delegate(const_cast<T*>(src), &stubconst<T, F>); }
-
-  protected:
-    void* _src;
-    R(*_stub)(void*);
-
-    template <class T, R(MSC_FASTCALL T::*GCC_FASTCALL F)(void)>
-    static R stub(void* src) { return (static_cast<T*>(src)->*F)(); }
-    template <class T, R(MSC_FASTCALL T::*GCC_FASTCALL F)(void) const>
-    static R stubconst(void* src) { return (static_cast<const T*>(src)->*F)(); }
-    static R stublambda(void* src) { return (*static_cast<std::function<R(void)>*>(src))(); }
-  };
-
-#define BUILD_DELEGATE(T1,T2,T3,T4,TLIST,ARGLIST,ARGS,...) template<typename R,__VA_ARGS__> \
-  class BSS_COMPILER_DLLEXPORT Delegate<R,T1,T2,T3,T4> \
-  { \
-  public: \
-    inline Delegate(void* src, R (*stub)(void*,TLIST)) : _src(src), _stub(stub) {} \
-    inline Delegate(std::function<R(TLIST)>& src):_src(&src), _stub(&stublambda) {} \
-    R operator()(ARGLIST) const { return (*_stub)(_src,ARGS); } \
-    template<class T, R (MSC_FASTCALL T::*GCC_FASTCALL F)(TLIST)> \
-    inline static Delegate From(T* src) { return Delegate(src, &stub<T, F>); } \
-    template<class T, R (MSC_FASTCALL T::*GCC_FASTCALL F)(TLIST) const> \
-    inline static Delegate From(const T* src) { return Delegate(const_cast<T*>(src), &stubconst<T, F>); } \
-  protected: \
-    void* _src; \
-    R (*_stub)(void*,TLIST); \
-    template <class T, R (MSC_FASTCALL T::*GCC_FASTCALL F)(TLIST)> \
-    static R stub(void* src, ARGLIST) { return (static_cast<T*>(src)->*F)(ARGS); } \
-    template <class T, R (MSC_FASTCALL T::*GCC_FASTCALL F)(TLIST) const> \
-    static R stubconst(void* src, ARGLIST) { return (static_cast<const T*>(src)->*F)(ARGS); } \
-    static R stublambda(void* src, ARGLIST) { return (*static_cast<std::function<R(TLIST)>*>(src))(ARGS); } \
-  }
-
-  BUILD_DELEGATE(T1, void, void, void, CONCAT(T1), CONCAT(T1 t1), CONCAT(t1), typename T1);
-  BUILD_DELEGATE(T1, T2, void, void, CONCAT(T1, T2), CONCAT(T1 t1, T2 t2), CONCAT(t1, t2), typename T1, typename T2);
-  BUILD_DELEGATE(T1, T2, T3, void, CONCAT(T1, T2, T3), CONCAT(T1 t1, T2 t2, T3 t3), CONCAT(t1, t2, t3), typename T1, typename T2, typename T3);
-  BUILD_DELEGATE(T1, T2, T3, T4, CONCAT(T1, T2, T3, T4), CONCAT(T1 t1, T2 t2, T3 t3, T4 t4), CONCAT(t1, t2, t3, t4), typename T1, typename T2, typename T3, typename T4);
-#endif
 }
 
 #endif

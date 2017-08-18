@@ -13,8 +13,8 @@ namespace bss {
   // Lockless dynamic greedy allocator that can allocate any number of bytes
   class BSS_COMPILER_DLLEXPORT GreedyAlloc
   {
-    GreedyAlloc(const GreedyAlloc& copy) BSS_DELETEFUNC
-    GreedyAlloc& operator=(const GreedyAlloc& copy) BSS_DELETEFUNCOP
+    GreedyAlloc(const GreedyAlloc& copy) = delete;
+    GreedyAlloc& operator=(const GreedyAlloc& copy) = delete;
 
     struct AFLISTITEM
     {

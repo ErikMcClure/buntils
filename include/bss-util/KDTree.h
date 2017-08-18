@@ -33,8 +33,8 @@ namespace bss {
   template<typename T, typename Alloc, const float* (*FRECT)(T*), LLBase<T>& (*FLIST)(T*), KDNode<T>*& (*FNODE)(T*)>
   class KDTree : protected AllocTracker<Alloc>
   {
-    inline KDTree(const KDTree&) BSS_DELETEFUNC
-      inline KDTree& operator=(const KDTree&)BSS_DELETEFUNCOP
+    inline KDTree(const KDTree&) = delete;
+      inline KDTree& operator=(const KDTree&)= delete;
 
   public:
     inline explicit KDTree(uint32_t rb = RBTHRESHOLD, Alloc* alloc = 0) : AllocTracker<Alloc>(alloc), _root(0), _rbthreshold(rb) {}

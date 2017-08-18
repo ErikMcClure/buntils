@@ -17,46 +17,6 @@ namespace bss {
   class Serializer;
 
   namespace internal {
-    template<class T, ARRAY_TYPE ArrayType, typename Alloc>
-    struct _HashBaseAlloc
-    {
-      inline static T* _realloc(khint8_t* flags, T* src, khint_t new_n_buckets, khint_t n_buckets) noexcept { return (T*)Alloc::allocate(new_n_buckets * sizeof(T), (char*)src); }
-    };
-
-    template<class T, typename Alloc>
-    struct _HashBaseAlloc<T, ARRAY_CONSTRUCT, Alloc>
-    {
-      inline static T* _realloc(khint8_t* flags, T* src, khint_t new_n_buckets, khint_t n_buckets) noexcept { return (T*)Alloc::allocate(new_n_buckets * sizeof(T), (char*)src); }
-    };
-
-    template<class T, typename Alloc>
-    struct _HashBaseAlloc<T, ARRAY_SAFE, Alloc>
-    {
-      inline static T* _realloc(khint8_t* flags, T* src, khint_t new_n_buckets, khint_t n_buckets) noexcept
-      {
-        T* n = (T*)Alloc::allocate(new_n_buckets * sizeof(T), 0);
-        if(n != nullptr)
-        {
-          for(khint_t i = 0; i < n_buckets; ++i)
-          {
-            if(!__ac_iseither(flags, i))
-              new(n + i) T(std::move(src[i]));
-          }
-        }
-
-        if(src) 
-          Alloc::deallocate((char*)src);
-
-        return n;
-      }
-    };
-
-    template<class T, typename Alloc>
-    struct _HashBaseAlloc<T, ARRAY_MOVE, Alloc>
-    {
-      inline static T* _realloc(khint8_t* flags, T* src, khint_t new_n_buckets, khint_t n_buckets) noexcept { return _HashBaseAlloc<T, ARRAY_SAFE, Alloc>(flags, src, new_n_buckets, n_buckets); }
-    };
-
     template<class T, bool value>
     struct _HashBaseGET { typedef T GET; static BSS_FORCEINLINE GET F(T& s) { return s; } };
 
@@ -72,13 +32,15 @@ namespace bss {
 #endif
   }
 
-  template<class Key, class Data, bool IsMap, khint_t(*__hash_func)(const Key&), bool(*__hash_equal)(const Key&, const Key&), ARRAY_TYPE ArrayType = ARRAY_SIMPLE, typename Alloc = StaticAllocPolicy<char>>
+  template<class Key, class Data, khint_t(*__hash_func)(const Key&), bool(*__hash_equal)(const Key&, const Key&), ARRAY_TYPE ArrayType = ARRAY_SIMPLE, typename Alloc = StaticAllocPolicy<char>>
   class HashBase
   {
   public:
+    static constexpr bool IsMap = !std::is_void<Data>::value;
     typedef Key KEY;
     typedef Data DATA;
-    typedef typename internal::_HashBaseGET<Data, std::is_integral<Data>::value | std::is_pointer<Data>::value | std::is_member_pointer<Data>::value>::GET GET;
+    typedef typename std::conditional<IsMap, Data, char>::type FakeData;
+    typedef typename internal::_HashBaseGET<FakeData, std::is_integral<FakeData>::value | std::is_pointer<FakeData>::value | std::is_member_pointer<FakeData>::value>::GET GET;
 
     HashBase(const HashBase& copy)
     {
@@ -108,13 +70,13 @@ namespace bss {
     }
 
     template<bool U = IsMap>
-    inline typename std::enable_if<U, khiter_t>::type Insert(const Key& key, const Data& value) { return _insert<const Key&, const Data&>(key, value); }
+    inline typename std::enable_if<U, khiter_t>::type Insert(const Key& key, const FakeData& value) { return _insert<const Key&, const Data&>(key, value); }
     template<bool U = IsMap>
-    inline typename std::enable_if<U, khiter_t>::type Insert(const Key& key, Data&& value) { return _insert<const Key&, Data&&>(key, std::move(value)); }
+    inline typename std::enable_if<U, khiter_t>::type Insert(const Key& key, FakeData&& value) { return _insert<const Key&, Data&&>(key, std::move(value)); }
     template<bool U = IsMap>
-    inline typename std::enable_if<U, khiter_t>::type Insert(Key&& key, const Data& value) { return _insert<Key&&, const Data&>(std::move(key), value); }
+    inline typename std::enable_if<U, khiter_t>::type Insert(Key&& key, const FakeData& value) { return _insert<Key&&, const Data&>(std::move(key), value); }
     template<bool U = IsMap>
-    inline typename std::enable_if<U, khiter_t>::type Insert(Key&& key, Data&& value) { return _insert<Key&&, Data&&>(std::move(key), std::move(value)); }
+    inline typename std::enable_if<U, khiter_t>::type Insert(Key&& key, FakeData&& value) { return _insert<Key&&, Data&&>(std::move(key), std::move(value)); }
     template<bool U = IsMap>
     inline typename std::enable_if<!U, khiter_t>::type Insert(const Key& key) { int r; return _put<const Key&>(key, &r); }
     template<bool U = IsMap>
@@ -155,20 +117,24 @@ namespace bss {
     template<bool U = IsMap>
     inline typename std::enable_if<U, GET>::type Get(const Key& key) const { return GetValue(Iterator(key)); }
     template<bool U = IsMap>
-    inline typename std::enable_if<U, Data&>::type UnsafeValue(khiter_t i) const { return vals[i]; }
+    inline typename std::enable_if<U, FakeData&>::type UnsafeValue(khiter_t i) const { return vals[i]; }
     template<bool U = IsMap>
-    inline typename std::enable_if<U, Data&>::type& MutableValue(khiter_t i) { return vals[i]; }
+    inline typename std::enable_if<U, FakeData&>::type& MutableValue(khiter_t i) { return vals[i]; }
     template<bool U = IsMap>
-    inline typename std::enable_if<U, Data>::type* PointerValue(khiter_t i) 
+    inline typename std::enable_if<U, FakeData>::type* PointerValue(khiter_t i)
     {
       if(!ExistsIter(i))
         return nullptr;
       return &vals[i]; 
     }
-    inline bool SetValue(khiter_t iterator, const Data& newvalue) { return _setvalue<const Data&>(iterator, newvalue); }
-    inline bool SetValue(khiter_t iterator, Data&& newvalue) { return _setvalue<Data&&>(iterator, std::move(newvalue)); }
-    inline bool Set(const Key& key, const Data& newvalue) { return _setvalue<const Data&>(Iterator(key), newvalue); }
-    inline bool Set(const Key& key, Data&& newvalue) { return _setvalue<Data&&>(Iterator(key), std::move(newvalue)); }
+    template<bool U = IsMap>
+    inline typename std::enable_if<U, bool>::type SetValue(khiter_t iterator, const FakeData& newvalue) { return _setvalue<const Data&>(iterator, newvalue); }
+    template<bool U = IsMap>
+    inline typename std::enable_if<U, bool>::type SetValue(khiter_t iterator, FakeData&& newvalue) { return _setvalue<Data&&>(iterator, std::move(newvalue)); }
+    template<bool U = IsMap>
+    inline typename std::enable_if<U, bool>::type Set(const Key& key, const FakeData& newvalue) { return _setvalue<const Data&>(Iterator(key), newvalue); }
+    template<bool U = IsMap>
+    inline typename std::enable_if<U, bool>::type Set(const Key& key, FakeData&& newvalue) { return _setvalue<Data&&>(Iterator(key), std::move(newvalue)); }
     inline void SetCapacity(khint_t size) { if(n_buckets < size) _resize(size); }
     inline bool Remove(const Key& key)
     {
@@ -197,7 +163,7 @@ namespace bss {
     inline typename std::enable_if<U, GET>::type operator[](const Key& key) const { return Get(key); }
     inline bool operator()(const Key& key) const { return Exists(key); }
     template<bool U = IsMap>
-    inline typename std::enable_if<U, bool>::type operator()(const Key& key, Data& v) const 
+    inline typename std::enable_if<U, bool>::type operator()(const Key& key, FakeData& v) const
     { 
       khiter_t i = Iterator(key); 
 
@@ -280,10 +246,13 @@ namespace bss {
     template<typename Engine>
     void Serialize(Serializer<Engine>& e)
     {
-      if(e.out)
+      if constexpr(IsMap)
       {
-        for(auto i : *this)
-          Serializer<Engine>::template ActionBind<Data>::Serialize(e, vals[i], ToString<Key>(keys[i]).c_str());
+        if(e.out)
+        {
+          for(auto i : *this)
+            Serializer<Engine>::template ActionBind<Data>::Serialize(e, vals[i], ToString<Key>(keys[i]).c_str());
+        }
       }
     }
 
@@ -316,12 +285,12 @@ namespace bss {
           memset(new_flags, 2, new_n_buckets);
           if(n_buckets < new_n_buckets)
           {	/* expand */
-            Key *new_keys = internal::_HashBaseAlloc<Key, ArrayType, Alloc>::_realloc(flags, keys, new_n_buckets, n_buckets);
+            Key *new_keys = _realloc<Key>(flags, keys, new_n_buckets, n_buckets);
             if(!new_keys) { Alloc::deallocate((char*)new_flags); return -1; }
             keys = new_keys;
             if constexpr(IsMap)
             {
-              Data *new_vals = internal::_HashBaseAlloc<Data, ArrayType, Alloc>::_realloc(flags, vals, new_n_buckets, n_buckets);
+              Data *new_vals = _realloc<Data>(flags, vals, new_n_buckets, n_buckets);
               if(!new_vals) { Alloc::deallocate((char*)new_flags); return -1; }
               vals = new_vals;
             }
@@ -335,7 +304,7 @@ namespace bss {
           if(__ac_iseither(flags, j) == 0)
           {
             Key key(std::move(keys[j]));
-            [[maybe_unused]] Data val;
+            [[maybe_unused]] FakeData val;
             khint_t new_mask;
             new_mask = new_n_buckets - 1;
             if constexpr(IsMap) val = std::move(vals[j]);
@@ -364,9 +333,9 @@ namespace bss {
         }
         if(n_buckets > new_n_buckets)
         { /* shrink the hash table */
-          keys = internal::_HashBaseAlloc<Key, ArrayType, Alloc>::_realloc(flags, keys, new_n_buckets, n_buckets);
+          keys = _realloc<Key>(flags, keys, new_n_buckets, n_buckets);
           if constexpr(IsMap)
-            vals = internal::_HashBaseAlloc<Data, ArrayType, Alloc>::_realloc(flags, vals, new_n_buckets, n_buckets);
+            vals = _realloc<Data>(flags, vals, new_n_buckets, n_buckets);
         }
         Alloc::deallocate((char*)flags); /* free the working space */
         flags = new_flags;
@@ -461,6 +430,30 @@ namespace bss {
         --size;
       }
     }
+    template<typename T>
+    inline static T* _realloc(khint8_t* flags, T* src, khint_t new_n_buckets, khint_t n_buckets) noexcept
+    {
+      if constexpr(ArrayType == ARRAY_SIMPLE || ArrayType == ARRAY_CONSTRUCT)
+        return (T*)Alloc::allocate(new_n_buckets * sizeof(T), (char*)src);
+      else if(ArrayType == ARRAY_SAFE || ArrayType == ARRAY_MOVE)
+      {
+        T* n = (T*)Alloc::allocate(new_n_buckets * sizeof(T), 0);
+        if(n != nullptr)
+        {
+          for(khint_t i = 0; i < n_buckets; ++i)
+          {
+            if(!__ac_iseither(flags, i))
+              new(n + i) T(std::move(src[i]));
+          }
+        }
+
+        if(src)
+          Alloc::deallocate((char*)src);
+
+        return n;
+      }
+    }
+
     khint_t n_buckets, size, n_occupied, upper_bound;
     khint8_t* flags;
     Key* keys;
@@ -468,12 +461,28 @@ namespace bss {
   };
 
   template<typename T>
-  BSS_FORCEINLINE bool KH_INT_EQUALFUNC(T const& a, T const& b) { return a == b; }
-  inline khint_t KH_INT64_HASHFUNC(int64_t key) { return kh_int64_hash_func(key); }
-  template<class T> BSS_FORCEINLINE khint_t KH_INT_HASHFUNC(T key) { return (khint32_t)key; }
-  template<> BSS_FORCEINLINE khint_t KH_INT_HASHFUNC<unsigned int>(unsigned int key) { return kh_int_hash_func2(key); }
-  template<> BSS_FORCEINLINE khint_t KH_INT_HASHFUNC<int>(int key) { return kh_int_hash_func2(key); }
-  inline khint_t KH_STR_HASHFUNC(const char * s) 
+  BSS_FORCEINLINE bool KH_DEFAULT_EQUAL(T const& a, T const& b) { return a == b; }
+  template<class T> 
+  BSS_FORCEINLINE khint_t KH_INT_HASH(T key)
+  { 
+    if constexpr(sizeof(T) == sizeof(khint64_t))
+    {
+      khint64_t i = *reinterpret_cast<khint64_t*>(&key);
+      return kh_int64_hash_func(i);
+    }
+    else if constexpr(sizeof(T) == sizeof(khint_t))
+    {
+      khint_t i = *reinterpret_cast<khint_t*>(&key);
+      return kh_int_hash_func2(i);
+    }
+    else
+      return static_cast<khint32_t>(key);
+  }
+  template<class T, bool IgnoreCase>
+  inline khint_t KH_STR_HASH(const T* s) = delete;
+
+  template<>
+  inline khint_t KH_STR_HASH<char, false>(const char * s)
   {
     khint_t h = *s; 
     if(h) 
@@ -481,7 +490,8 @@ namespace bss {
         h = (h << 5) - h + *s;
     return h; 
   }
-  inline khint_t KH_STRINS_HASHFUNC(const char *s) 
+  template<>
+  inline khint_t KH_STR_HASH<char, true>(const char *s)
   { 
     khint_t h = ((*s) > 64 && (*s) < 91) ? (*s) + 32 : *s;	
     if(h) 
@@ -489,7 +499,8 @@ namespace bss {
         h = (h << 5) - h + (((*s) > 64 && (*s) < 91) ? (*s) + 32 : *s);
     return h;
   }
-  inline khint_t KH_STRW_HASHFUNC(const wchar_t * s) 
+  template<>
+  inline khint_t KH_STR_HASH<wchar_t, false>(const wchar_t * s)
   { 
     khint_t h = *s; 
     if(h) 
@@ -497,7 +508,8 @@ namespace bss {
         h = (h << 5) - h + *s; 
     return h; 
   }
-  inline khint_t KH_STRWINS_HASHFUNC(const wchar_t *s) 
+  template<>
+  inline khint_t KH_STR_HASH<wchar_t, true>(const wchar_t *s)
   { 
     khint_t h = towlower(*s);
     if(h) 
@@ -505,81 +517,66 @@ namespace bss {
         h = (h << 5) - h + towlower(*s);
     return h; 
   }
-  template<class T>
-  BSS_FORCEINLINE khint_t KH_POINTER_HASHFUNC(T p)
-  {
-#ifdef BSS_64BIT
-    return KH_INT64_HASHFUNC((int64_t)p);
-#else
-    return (khint32_t)p;
-#endif
-  }
 
   namespace internal {
-    template<typename T, int I> struct KH_AUTO_HELPER { };
-    template<typename T> struct KH_AUTO_HELPER<T, 1> { BSS_FORCEINLINE static khint_t hash(T k) { return KH_POINTER_HASHFUNC<T>(k); } };
-    template<typename T> struct KH_AUTO_HELPER<T, 2> { BSS_FORCEINLINE static khint_t hash(T k) { return KH_INT_HASHFUNC<T>(k); } };
-    template<typename T> struct KH_AUTO_HELPER<T, 4> { BSS_FORCEINLINE static khint_t hash(T k) { return KH_INT64_HASHFUNC((int64_t)k); } };
+    template<typename T>
+    BSS_FORCEINLINE khint_t KH_AUTO_HASH(const T& k) { return KH_INT_HASH<T>(k); }
+    template<> BSS_FORCEINLINE khint_t KH_AUTO_HASH<std::string>(const std::string& k) { return KH_STR_HASH<char, false>(k.c_str()); }
+    template<> BSS_FORCEINLINE khint_t KH_AUTO_HASH<Str>(const Str& k) { return KH_STR_HASH<char, false>(k.c_str()); }
+    template<> BSS_FORCEINLINE khint_t KH_AUTO_HASH<const char*>(const char* const& k) { return KH_STR_HASH<char, false>(k); }
+    template<> BSS_FORCEINLINE khint_t KH_AUTO_HASH<char*>(char* const& k) { return KH_STR_HASH<char, false>(k); }
+    template<> BSS_FORCEINLINE khint_t KH_AUTO_HASH<const wchar_t*>(const wchar_t* const& k) { return KH_STR_HASH<wchar_t, false>(k); }
+    template<> BSS_FORCEINLINE khint_t KH_AUTO_HASH<wchar_t*>(wchar_t* const& k) { return KH_STR_HASH<wchar_t, false>(k); }
+    template<> BSS_FORCEINLINE khint_t KH_AUTO_HASH<double>(const double& k) { return KH_INT_HASH(k); }
+    template<> BSS_FORCEINLINE khint_t KH_AUTO_HASH<float>(const float& k) { return KH_INT_HASH(k); }
+    template<typename T> BSS_FORCEINLINE khint_t KH_AUTOINS_HASH(const T& k) { return KH_STR_HASH<char, true>(k); }
+    template<> BSS_FORCEINLINE khint_t KH_AUTOINS_HASH<std::string>(const std::string& k) { return KH_STR_HASH<char, true>(k.c_str()); }
+    template<> BSS_FORCEINLINE khint_t KH_AUTOINS_HASH<Str>(const Str& k) { return KH_STR_HASH<char, true>(k.c_str()); }
+    template<> BSS_FORCEINLINE khint_t KH_AUTOINS_HASH<const wchar_t*>(const wchar_t* const& k) { return KH_STR_HASH<wchar_t, true>(k); }
+    template<> BSS_FORCEINLINE khint_t KH_AUTOINS_HASH<wchar_t*>(wchar_t* const& k) { return KH_STR_HASH<wchar_t, true>(k); }
 
     template<typename T>
-    BSS_FORCEINLINE khint_t KH_AUTO_HASHFUNC(const T& k) { return KH_AUTO_HELPER<T, (std::is_pointer<T>::value | std::is_member_pointer<T>::value) + ((std::is_enum<T>::value | std::is_integral<T>::value) * 2 * (1 + (sizeof(T) == 8)))>::hash(k); }
-    template<> BSS_FORCEINLINE khint_t KH_AUTO_HASHFUNC<Str>(const Str& k) { return KH_STR_HASHFUNC(k); }
-    template<> BSS_FORCEINLINE khint_t KH_AUTO_HASHFUNC<const char*>(const char* const& k) { return KH_STR_HASHFUNC(k); }
-    template<> BSS_FORCEINLINE khint_t KH_AUTO_HASHFUNC<char*>(char* const& k) { return KH_STR_HASHFUNC(k); }
-    template<> BSS_FORCEINLINE khint_t KH_AUTO_HASHFUNC<const wchar_t*>(const wchar_t* const& k) { return KH_STRW_HASHFUNC(k); }
-    template<> BSS_FORCEINLINE khint_t KH_AUTO_HASHFUNC<wchar_t*>(wchar_t* const& k) { return KH_STRW_HASHFUNC(k); }
-    template<> BSS_FORCEINLINE khint_t KH_AUTO_HASHFUNC<double>(const double& k) { return KH_INT64_HASHFUNC(*(int64_t*)&k); }
-    template<> BSS_FORCEINLINE khint_t KH_AUTO_HASHFUNC<float>(const float& k) { return *(khint32_t*)&k; }
-    template<typename T> BSS_FORCEINLINE khint_t KH_AUTOINS_HASHFUNC(const T& k) { return KH_STRINS_HASHFUNC(k); }
-    template<> BSS_FORCEINLINE khint_t KH_AUTOINS_HASHFUNC<Str>(const Str& k) { return KH_STRINS_HASHFUNC(k); }
-    template<> BSS_FORCEINLINE khint_t KH_AUTOINS_HASHFUNC<const wchar_t*>(const wchar_t* const& k) { return KH_STRWINS_HASHFUNC(k); }
-    template<> BSS_FORCEINLINE khint_t KH_AUTOINS_HASHFUNC<wchar_t*>(wchar_t* const& k) { return KH_STRWINS_HASHFUNC(k); }
-
-    template<typename U, typename V> struct KH_AUTO_HELPER<std::pair<U, V>, 0> { BSS_FORCEINLINE static khint_t hash(std::pair<U, V> k) { return KH_INT64_HASHFUNC(uint64_t(KH_AUTO_HASHFUNC<U>(k.first)) | (uint64_t(KH_AUTO_HASHFUNC<V>(k.second)) << 32)); } };
-
-    template<typename T>
-    BSS_FORCEINLINE bool KH_AUTO_EQUALFUNC(T const& a, T const& b) { return a == b; }
-    template<> BSS_FORCEINLINE bool KH_AUTO_EQUALFUNC<Str>(Str const& a, Str const& b) { return strcmp(a, b) == 0; }
-    template<> BSS_FORCEINLINE bool KH_AUTO_EQUALFUNC<const char*>(const char* const& a, const char* const& b) { return strcmp(a, b) == 0; }
-    template<> BSS_FORCEINLINE bool KH_AUTO_EQUALFUNC<const wchar_t*>(const wchar_t* const& a, const wchar_t* const& b) { return wcscmp(a, b) == 0; }
-    template<typename T> BSS_FORCEINLINE bool KH_AUTOINS_EQUALFUNC(T const& a, T const& b) { return STRICMP(a, b) == 0; }
-    template<> BSS_FORCEINLINE bool KH_AUTOINS_EQUALFUNC<Str>(Str const& a, Str const& b) { return STRICMP(a, b) == 0; }
-    template<> BSS_FORCEINLINE bool KH_AUTOINS_EQUALFUNC<const wchar_t*>(const wchar_t* const& a, const wchar_t* const& b) { return WCSICMP(a, b) == 0; }
-    template<> BSS_FORCEINLINE bool KH_AUTOINS_EQUALFUNC<wchar_t*>(wchar_t* const& a, wchar_t* const& b) { return WCSICMP(a, b) == 0; }
+    BSS_FORCEINLINE bool KH_AUTO_EQUAL(T const& a, T const& b) { return a == b; }
+    template<> BSS_FORCEINLINE bool KH_AUTO_EQUAL<std::string>(std::string const& a, std::string const& b) { return strcmp(a.c_str(), b.c_str()) == 0; }
+    template<> BSS_FORCEINLINE bool KH_AUTO_EQUAL<Str>(Str const& a, Str const& b) { return strcmp(a, b) == 0; }
+    template<> BSS_FORCEINLINE bool KH_AUTO_EQUAL<const char*>(const char* const& a, const char* const& b) { return strcmp(a, b) == 0; }
+    template<> BSS_FORCEINLINE bool KH_AUTO_EQUAL<const wchar_t*>(const wchar_t* const& a, const wchar_t* const& b) { return wcscmp(a, b) == 0; }
+    template<typename T> BSS_FORCEINLINE bool KH_AUTOINS_EQUAL(T const& a, T const& b) { return STRICMP(a, b) == 0; }
+    template<> BSS_FORCEINLINE bool KH_AUTOINS_EQUAL<std::string>(std::string const& a, std::string const& b) { return STRICMP(a.c_str(), b.c_str()) == 0; }
+    template<> BSS_FORCEINLINE bool KH_AUTOINS_EQUAL<Str>(Str const& a, Str const& b) { return STRICMP(a, b) == 0; }
+    template<> BSS_FORCEINLINE bool KH_AUTOINS_EQUAL<const wchar_t*>(const wchar_t* const& a, const wchar_t* const& b) { return WCSICMP(a, b) == 0; }
+    template<> BSS_FORCEINLINE bool KH_AUTOINS_EQUAL<wchar_t*>(wchar_t* const& a, wchar_t* const& b) { return WCSICMP(a, b) == 0; }
 
 #ifdef BSS_PLATFORM_WIN32
-    template<> BSS_FORCEINLINE khint_t KH_AUTO_HASHFUNC<StrW>(const StrW& k) { return KH_STRW_HASHFUNC(k); }
-    template<> BSS_FORCEINLINE khint_t KH_AUTOINS_HASHFUNC<StrW>(const StrW& k) { return KH_STRWINS_HASHFUNC(k); }
-    template<> BSS_FORCEINLINE bool KH_AUTO_EQUALFUNC<StrW>(StrW const& a, StrW const& b) { return wcscmp(a, b) == 0; }
-    template<> BSS_FORCEINLINE bool KH_AUTOINS_EQUALFUNC<StrW>(StrW const& a, StrW const& b) { return WCSICMP(a, b) == 0; }
+    template<> BSS_FORCEINLINE khint_t KH_AUTO_HASH<StrW>(const StrW& k) { return KH_STR_HASH<wchar_t, false>(k); }
+    template<> BSS_FORCEINLINE khint_t KH_AUTOINS_HASH<StrW>(const StrW& k) { return KH_STR_HASH<wchar_t, true>(k); }
+    template<> BSS_FORCEINLINE bool KH_AUTO_EQUAL<StrW>(StrW const& a, StrW const& b) { return wcscmp(a, b) == 0; }
+    template<> BSS_FORCEINLINE bool KH_AUTOINS_EQUAL<StrW>(StrW const& a, StrW const& b) { return WCSICMP(a, b) == 0; }
 #endif
 
-    template<typename T, bool I> struct __cKh_KHGET { typedef typename std::remove_pointer<T>::type* KHGET; static const size_t INV = 0; };
-    template<typename T> struct __cKh_KHGET<T, true> { typedef T KHGET; static const KHGET INV = (KHGET)-1; };
-    template<typename T> struct KHGET_cKh : __cKh_KHGET<T, std::is_integral<T>::value> { typedef typename __cKh_KHGET<T, std::is_integral<T>::value>::KHGET KHGET; };
-    template<> struct KHGET_cKh<void> { typedef char KHGET; static const KHGET INV = (KHGET)-1; };
-    template<typename T, bool ins> struct _HashHelper {
-      BSS_FORCEINLINE static khint_t hash(const T& k) { return KH_AUTO_HASHFUNC<T>(k); }
-      BSS_FORCEINLINE static bool equal(const T& a, const T& b) { return KH_AUTO_EQUALFUNC<T>(a, b); }
+    template<typename T, bool ins> 
+    struct _HashHelper {
+      BSS_FORCEINLINE static khint_t hash(const T& k) { return KH_AUTO_HASH<T>(k); }
+      BSS_FORCEINLINE static bool equal(const T& a, const T& b) { return KH_AUTO_EQUAL<T>(a, b); }
     };
-    template<typename T> struct _HashHelper<T, true> {
-      BSS_FORCEINLINE static khint_t hash(const T& k) { return KH_AUTOINS_HASHFUNC<T>(k); }
-      BSS_FORCEINLINE static bool equal(const T& a, const T& b) { return KH_AUTOINS_EQUALFUNC<T>(a, b); }
+    template<typename T> 
+    struct _HashHelper<T, true> {
+      BSS_FORCEINLINE static khint_t hash(const T& k) { return KH_AUTOINS_HASH<T>(k); }
+      BSS_FORCEINLINE static bool equal(const T& a, const T& b) { return KH_AUTOINS_EQUAL<T>(a, b); }
+    };
+    template<typename U, typename V>
+    struct _HashHelper<std::pair<U, V>, false> {
+      BSS_FORCEINLINE static khint_t hash(const std::pair<U, V>& k) { return KH_INT_HASH<uint64_t>(uint64_t(KH_AUTO_HASH<U>(k.first)) | (uint64_t(KH_AUTO_HASH<V>(k.second)) << 32)); }
+      BSS_FORCEINLINE static bool equal(const std::pair<U, V>& a, const std::pair<U, V>& b) { return KH_AUTO_EQUAL<U>(a.first, b.first) && KH_AUTO_EQUAL<V>(a.second, b.second); }
     };
   }
 
   // Generic hash definition
   template<typename K, typename T = void, bool ins = false, ARRAY_TYPE ArrayType = ARRAY_SIMPLE, typename Alloc = StaticAllocPolicy<char>>
-  class BSS_COMPILER_DLLEXPORT Hash : public HashBase<K, typename std::conditional<std::is_void<T>::value, char, T>::type,
-    !std::is_void<T>::value, &internal::_HashHelper<K, ins>::hash, &internal::_HashHelper<K, ins>::equal, ArrayType, Alloc>
+  class BSS_COMPILER_DLLEXPORT Hash : public HashBase<K, T, &internal::_HashHelper<K, ins>::hash, &internal::_HashHelper<K, ins>::equal, ArrayType, Alloc>
   {
   public:
-    typedef HashBase<K,
-      typename std::conditional<std::is_void<T>::value, char, T>::type,
-      !std::is_void<T>::value, &internal::_HashHelper<K, ins>::hash,
-      &internal::_HashHelper<K, ins>::equal,
-      ArrayType,
-      Alloc> BASE;
+    typedef HashBase<K, T, &internal::_HashHelper<K, ins>::hash, &internal::_HashHelper<K, ins>::equal, ArrayType, Alloc> BASE;
 
     inline Hash(const Hash& copy) : BASE(copy) {}
     inline Hash(Hash&& mov) : BASE(std::move(mov)) {}
@@ -589,7 +586,7 @@ namespace bss {
     inline Hash& operator =(Hash&& mov) { BASE::operator=(std::move(mov)); return *this; }
     inline bool operator()(const K& key) const { return BASE::operator()(key); }
     template<bool U = !std::is_void<T>::value>
-    inline typename std::enable_if<U, bool>::type operator()(const K& key, typename BASE::DATA& v) const { return BASE::operator()(key, v); }
+    inline typename std::enable_if<U, bool>::type operator()(const K& key, typename BASE::FakeData& v) const { return BASE::operator()(key, v); }
     template<bool U = !std::is_void<T>::value>
     inline typename std::enable_if<U, typename BASE::GET>::type operator[](const K& key) const { return BASE::operator[](key); }
   };

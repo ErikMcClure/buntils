@@ -277,7 +277,7 @@ namespace bss {
     }
 
   private:
-    void operator[](std::allocator<char>&) BSS_DELETEFUNC
+    void operator[](std::allocator<char>&) = delete;
     BSS_FORCEINLINE CHAR* _internalPtr() { return const_cast<CHAR*>(BASE::data()); }
     BSS_FORCEINLINE const CHAR* _internalPtr() const { return BASE::data(); }
     BSS_FORCEINLINE void _convStr(const OTHER_C* src, ptrdiff_t len)

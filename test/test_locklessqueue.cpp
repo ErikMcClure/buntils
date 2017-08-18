@@ -89,10 +89,10 @@ TESTDEF::RETPAIR test_LOCKLESSQUEUE()
     TEST(check);
   }
 
-  for(int k = 0; k < 1; ++k)
+  for(size_t k = 0; k < 1; ++k)
   {
     typedef MicroLockQueue<uint16_t, size_t> LLQUEUE_MCMP;
-    for(int j = 2; j <= NUMTHREADS; j = fbnext(j))
+    for(size_t j = 2; j <= NUMTHREADS; j = fbnext(j))
     {
       lq_c = 1;
       lq_pos = 0;

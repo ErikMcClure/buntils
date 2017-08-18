@@ -145,7 +145,7 @@ namespace bss {
   protected:
     inline void _flip(size_t id, size_t nid) { _hash.Set(_array[id], nid); }
 
-    HashBase<T, ST, true, __hash_func, __hash_equal> _hash;
+    HashBase<T, ST, __hash_func, __hash_equal> _hash;
   };
 }
 

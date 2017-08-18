@@ -356,8 +356,8 @@ namespace bss {
   template<typename T, char(*CFunc)(const T&, const T&) = CompT<T>, typename Alloc = StandardAllocPolicy<TRB_Node<T>>>
   class BSS_COMPILER_DLLEXPORT TRBtree : protected AllocTracker<Alloc>
   {
-    inline TRBtree(const TRBtree&) BSS_DELETEFUNC
-      inline TRBtree& operator=(const TRBtree&) BSS_DELETEFUNCOP
+    inline TRBtree(const TRBtree&) = delete;
+      inline TRBtree& operator=(const TRBtree&) = delete;
 
       BSS_FORCEINLINE static char CompNode(const TRB_Node<T>& l, const TRB_Node<T>& r) { return CFunc(l.value, r.value); }
 

@@ -10,12 +10,8 @@
 namespace bss {
   class BSS_COMPILER_DLLEXPORT BlockAllocVoid
   {
-#ifdef BSS_COMPILER_MSC2010
-    BlockAllocVoid(const BlockAllocVoid& copy) : _freelist(0), _root(0), _sz(0) { assert(false); }
-#else
     BlockAllocVoid(const BlockAllocVoid& copy) = delete;
-#endif
-    BlockAllocVoid& operator=(const BlockAllocVoid& copy) BSS_DELETEFUNCOP
+    BlockAllocVoid& operator=(const BlockAllocVoid& copy) = delete;
   public:
     // Block Chunk Alloc
     struct FIXEDLIST_NODE
@@ -135,8 +131,8 @@ namespace bss {
   template<class T>
   class BSS_COMPILER_DLLEXPORT BlockAlloc : public BlockAllocVoid
   {
-    BlockAlloc(const BlockAlloc& copy) BSS_DELETEFUNC
-      BlockAlloc& operator=(const BlockAlloc& copy) BSS_DELETEFUNCOP
+    BlockAlloc(const BlockAlloc& copy) = delete;
+      BlockAlloc& operator=(const BlockAlloc& copy) = delete;
   public:
     inline BlockAlloc(BlockAlloc&& mov) : BlockAllocVoid(std::move(mov)) {}
     inline explicit BlockAlloc(size_t init = 8) : BlockAllocVoid(sizeof(T), init) { static_assert((sizeof(T) >= sizeof(void*)), "T cannot be less than the size of a pointer"); }
@@ -146,8 +142,8 @@ namespace bss {
   template<typename T>
   class BSS_COMPILER_DLLEXPORT BlockPolicy : protected BlockAlloc<T>
   {
-    BlockPolicy(const BlockPolicy& copy) BSS_DELETEFUNC
-      BlockPolicy& operator=(const BlockPolicy& copy) BSS_DELETEFUNCOP
+    BlockPolicy(const BlockPolicy& copy) = delete;
+      BlockPolicy& operator=(const BlockPolicy& copy) = delete;
   public:
     typedef T* pointer;
     typedef T value_type;

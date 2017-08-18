@@ -14,12 +14,6 @@ TESTDEF::RETPAIR test_HASH()
   Hash<int, void(TESTDEF::*)()> membertest;
   void(TESTDEF::*a)() = membertest[0];
 
-  //cKhash<int, char,false,KH_INT_HASHFUNC,KH_INT_EQUALFUNC<int>,KH_INT_VALIDATEPTR<int>> hashtest;
-  //hashtest.Insert(21354,0);
-  //hashtest.Insert(34623,0);
-  //hashtest.Insert(52,0);
-  //hashtest.Insert(1,0);
-  //int r=hashtest.GetIterKey(hashtest.GetIterator(1));
   {
     Hash<int, Logger*> hasherint;
     hasherint.Insert(25, &_failedtests);

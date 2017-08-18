@@ -10,9 +10,7 @@
 #ifdef BSS_COMPILER_MSC
 #include <intrin.h>
 #endif
-#ifndef BSS_COMPILER_MSC2010
 #include <atomic>
-#endif
 
 #ifdef BSS_CPU_x86
 #define BSSASM_PREG ECX
@@ -432,84 +430,4 @@ namespace bss {
  //defined(BSS_CPU_x86_64) || defined(BSS_CPU_x86)
 }
 
-#ifdef BSS_COMPILER_MSC2010
-namespace std {
-  enum memory_order {
-    memory_order_relaxed,
-    memory_order_consume,
-    memory_order_acquire,
-    memory_order_release,
-    memory_order_acq_rel,
-    memory_order_seq_cst
-  };
-  // Re-implements just enough of atomic_flag for it to work with our data structures
-  struct BSS_COMPILER_DLLEXPORT atomic_flag
-  {
-    atomic_flag() {}
-    bool test_and_set(memory_order _Order = memory_order_seq_cst) volatile
-    {
-      return _interlockedbittestandset((volatile long*)&_My_flag, 0) != 0;
-    }
-    bool test_and_set(memory_order _Order = memory_order_seq_cst)
-    {	// atomically set *this to true and return previous value
-      return _interlockedbittestandset((volatile long*)&_My_flag, 0) != 0;
-    }
-    void clear(memory_order _Order = memory_order_seq_cst) volatile
-    {	// atomically clear *this
-      _Atomic_store_4((volatile unsigned long *)&_My_flag, 0, _Order);
-    }
-    void clear(memory_order _Order = memory_order_seq_cst)
-    {	// atomically clear *this
-      _Atomic_store_4((volatile unsigned long *)&_My_flag, 0, _Order);
-    }
-
-  private:
-    long _My_flag;
-
-    atomic_flag(const atomic_flag&) BSS_DELETEFUNC
-      atomic_flag& operator=(const atomic_flag&) BSS_DELETEFUNCOP
-
-      inline void _Atomic_store_4(volatile unsigned long *_Tgt, unsigned long _Value, memory_order _Order) volatile
-    {	/* store _Value atomically */
-      switch(_Order)
-      {
-      case memory_order_relaxed:
-        *_Tgt = _Value;
-        break;
-      case memory_order_release:
-        _ReadWriteBarrier();
-        *_Tgt = _Value;
-        break;
-      case memory_order_seq_cst:
-        _InterlockedExchange((volatile long *)_Tgt, _Value);
-        break;
-      }
-    }
-  };
-  template<class T>
-  struct atomic
-  {
-    atomic(const atomic&) BSS_DELETEFUNC
-      atomic& operator=(const atomic&) BSS_DELETEFUNCOP
-
-  public:
-    inline atomic() {}
-    inline atomic(T v) : _val(v) {}
-
-    inline T operator=(T _Right) { _val = _Right; return _val; }
-    inline T operator=(T _Right) volatile { _val = _Right; return _val; }
-    inline T fetch_add(T arg, memory_order = memory_order_seq_cst) { return atomic_xadd<T>(&_val, arg); }
-    inline T fetch_add(T arg, memory_order = memory_order_seq_cst) volatile { return atomic_xadd<T>(&_val, arg); }
-    inline T load(memory_order = memory_order_seq_cst) { T r = _val; _ReadWriteBarrier(); return r; }
-    inline T load(memory_order = memory_order_seq_cst) volatile { T r = _val; _ReadWriteBarrier(); return r; }
-    inline void store(T arg, memory_order = memory_order_seq_cst) { atomic_xchg<T>(&_val, arg); }
-    inline void store(T arg, memory_order = memory_order_seq_cst) volatile { atomic_xchg<T>(&_val, arg); }
-    inline T exchange(T arg, memory_order = memory_order_seq_cst) { return atomic_xchg<T>(&_val, arg); }
-    inline T exchange(T arg, memory_order = memory_order_seq_cst) volatile { return atomic_xchg<T>(&_val, arg); }
-
-  protected:
-    volatile T _val;
-  };
-}
-#endif
 #endif

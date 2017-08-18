@@ -66,8 +66,8 @@ namespace bss {
     using internal::__Graph__InternalEdge<E>::_setDataE;
     using internal::__Graph__InternalEdge<E>::_getData;
 
-    Graph(const Graph&) BSS_DELETEFUNC
-      Graph& operator=(const Graph&)BSS_DELETEFUNCOP
+    Graph(const Graph&) = delete;
+      Graph& operator=(const Graph&)= delete;
   public:
     inline Graph(Graph&& mov) : _nodes(std::move(mov._nodes)), _nedges(mov._nedges) { mov._nedges = 0; }
     inline Graph() : _nodes(0), _nedges(0) {}

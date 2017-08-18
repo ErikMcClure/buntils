@@ -311,64 +311,64 @@ std::cout<<std::endl;
 //	return 0;
 //}
 
-int rometoint(std::string roman) {
-  int total = 0;
-  int ascii = 0;
-  std::unique_ptr<int[]> cache(new int[roman.length()]);
-
-  for(size_t i = 0; i < roman.length(); i++)
-  {
-    ascii = int(toupper(roman[i]));
-
-    switch(ascii)
-    {
-    case 73:
-      cache[i] = 1;
-      break;
-    case 86:
-      cache[i] = 5;
-      break;
-    case 88:
-      cache[i] = 10;
-      break;
-    case 76:
-      cache[i] = 50;
-      break;
-    case 67:
-      cache[i] = 100;
-      break;
-    case 68:
-      cache[i] = 500;
-      break;
-    case 77:
-      cache[i] = 1000;
-      break;
-    default:
-      cache[i] = 0;
-      break;
-    }
-  }
-
-  if(roman.length() == 1)
-  {
-    return (cache[0]);
-  }
-
-  for(size_t i = 0; i < (roman.length() - 1); i++)
-  {
-    if(cache[i] >= cache[i + 1])
-    {
-      total += cache[i];
-    }
-    else
-    {
-      total -= cache[i];
-    }
-  }
-
-  total += cache[roman.length() - 1];
-  return (total);
-}
+//int rometoint(std::string roman) {
+//  int total = 0;
+//  int ascii = 0;
+//  std::unique_ptr<int[]> cache(new int[roman.length()]);
+//
+//  for(size_t i = 0; i < roman.length(); i++)
+//  {
+//    ascii = int(toupper(roman[i]));
+//
+//    switch(ascii)
+//    {
+//    case 73:
+//      cache[i] = 1;
+//      break;
+//    case 86:
+//      cache[i] = 5;
+//      break;
+//    case 88:
+//      cache[i] = 10;
+//      break;
+//    case 76:
+//      cache[i] = 50;
+//      break;
+//    case 67:
+//      cache[i] = 100;
+//      break;
+//    case 68:
+//      cache[i] = 500;
+//      break;
+//    case 77:
+//      cache[i] = 1000;
+//      break;
+//    default:
+//      cache[i] = 0;
+//      break;
+//    }
+//  }
+//
+//  if(roman.length() == 1)
+//  {
+//    return (cache[0]);
+//  }
+//
+//  for(size_t i = 0; i < (roman.length() - 1); i++)
+//  {
+//    if(cache[i] >= cache[i + 1])
+//    {
+//      total += cache[i];
+//    }
+//    else
+//    {
+//      total -= cache[i];
+//    }
+//  }
+//
+//  total += cache[roman.length() - 1];
+//  return (total);
+//}
 
 //inline bool backwardscheck(const char* begin, int length)
 //{
@@ -381,14 +381,14 @@ int rometoint(std::string roman) {
 //}
 
 // This is painfully slow and I don't even know why its here.
-inline bool isprime(int number)
-{
-  if(number % 2 == 0) return number == 2;
-  int stop = number / 2;
-  for(size_t i = 3; i < stop; ++i)
-    if(number%i == 0) return false;
-  return true;
-}
+//inline bool isprime(int number)
+//{
+//  if(number % 2 == 0) return number == 2;
+//  int stop = number / 2;
+//  for(size_t i = 3; i < stop; ++i)
+//    if(number%i == 0) return false;
+//  return true;
+//}
 
 //inline int addrecursive(int start,int prev)
 //{
@@ -413,40 +413,40 @@ inline bool isprime(int number)
 //std::cin.get();
 //return 0;
 
-char* inttoroman(int in)
-{
-  int charnum = 0;
-  int i2 = 0;
-  int hold = in;
-
-  for(int j = 1000; j>0; j /= 5)
-  {
-    charnum += (i2 = (hold / j));
-    hold -= i2*j;
-    j /= 2;
-    if(!j) break;
-    charnum += (i2 = (hold / j));
-    hold -= i2*j;
-  }
-
-  char* str = new char[charnum + 1];
-  for(size_t i = 0; i<charnum + 1; ++i) str[i] = 0;
-
-  int count = -1;
-  while(in >= 1000) { str[++count] = 'M'; in -= 1000; };
-  while(in >= 900) { str[++count] = 'C'; str[++count] = 'M'; in -= 900; };
-  while(in >= 500) { str[++count] = 'D'; in -= 500; };
-  while(in >= 400) { str[++count] = 'C'; str[++count] = 'D'; in -= 400; };
-  while(in >= 100) { str[++count] = 'C'; in -= 100; };
-  while(in >= 90) { str[++count] = 'X'; str[++count] = 'C'; in -= 90; };
-  while(in >= 50) { str[++count] = 'L'; in -= 50; };
-  while(in >= 40) { str[++count] = 'X'; str[++count] = 'L'; in -= 40; };
-  while(in >= 10) { str[++count] = 'X'; in -= 10; };
-  while(in >= 9) { str[++count] = 'I'; str[++count] = 'X'; in -= 9; };
-  while(in >= 5) { str[++count] = 'V'; in -= 5; };
-  while(in >= 4) { str[++count] = 'I'; str[++count] = 'V'; in -= 4; };
-  while(in >= 1) { str[++count] = 'I'; in -= 1; };
-
-  return str;
-}
+//char* inttoroman(int in)
+//{
+//  int charnum = 0;
+//  int i2 = 0;
+//  int hold = in;
+//
+//  for(int j = 1000; j>0; j /= 5)
+//  {
+//    charnum += (i2 = (hold / j));
+//    hold -= i2*j;
+//    j /= 2;
+//    if(!j) break;
+//    charnum += (i2 = (hold / j));
+//    hold -= i2*j;
+//  }
+//
+//  char* str = new char[charnum + 1];
+//  for(size_t i = 0; i<charnum + 1; ++i) str[i] = 0;
+//
+//  int count = -1;
+//  while(in >= 1000) { str[++count] = 'M'; in -= 1000; };
+//  while(in >= 900) { str[++count] = 'C'; str[++count] = 'M'; in -= 900; };
+//  while(in >= 500) { str[++count] = 'D'; in -= 500; };
+//  while(in >= 400) { str[++count] = 'C'; str[++count] = 'D'; in -= 400; };
+//  while(in >= 100) { str[++count] = 'C'; in -= 100; };
+//  while(in >= 90) { str[++count] = 'X'; str[++count] = 'C'; in -= 90; };
+//  while(in >= 50) { str[++count] = 'L'; in -= 50; };
+//  while(in >= 40) { str[++count] = 'X'; str[++count] = 'L'; in -= 40; };
+//  while(in >= 10) { str[++count] = 'X'; in -= 10; };
+//  while(in >= 9) { str[++count] = 'I'; str[++count] = 'X'; in -= 9; };
+//  while(in >= 5) { str[++count] = 'V'; in -= 5; };
+//  while(in >= 4) { str[++count] = 'I'; str[++count] = 'V'; in -= 4; };
+//  while(in >= 1) { str[++count] = 'I'; in -= 1; };
+//
+//  return str;
+//}
 

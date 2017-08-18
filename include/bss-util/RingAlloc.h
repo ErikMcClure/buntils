@@ -237,8 +237,8 @@ namespace bss {
   template<class T>
   class BSS_COMPILER_DLLEXPORT RingAlloc : public RingAllocVoid
   {
-    RingAlloc(const RingAlloc& copy) BSS_DELETEFUNC
-      RingAlloc& operator=(const RingAlloc& copy) BSS_DELETEFUNCOP
+    RingAlloc(const RingAlloc& copy) = delete;
+      RingAlloc& operator=(const RingAlloc& copy) = delete;
 
   public:
     inline RingAlloc(RingAlloc&& mov) : RingAllocVoid(std::move(mov)) {}
@@ -250,8 +250,8 @@ namespace bss {
   template<typename T>
   class BSS_COMPILER_DLLEXPORT RingPolicy : protected RingAlloc<T>
   {
-    RingPolicy(const RingPolicy& copy) BSS_DELETEFUNC
-      RingPolicy& operator=(const RingPolicy& copy) BSS_DELETEFUNCOP
+    RingPolicy(const RingPolicy& copy) = delete;
+      RingPolicy& operator=(const RingPolicy& copy) = delete;
 
   public:
     typedef T* pointer;

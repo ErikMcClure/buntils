@@ -245,7 +245,6 @@ namespace bss {
     fn(cur, len);
   }
 
-#ifdef BSS_VARIADIC_TEMPLATES
   namespace internal {
     template<typename... A>
     struct __safeFormat
@@ -300,7 +299,6 @@ namespace bss {
   {
     internal::__safeFormat<Args...>::template F<&internal::__safeFormat<Args...>::template helper<(sizeof...(Args)-1), Args...>>(o, format, args...);
   }
-#endif
 
   // Converts 32-bit unicode int to a series of utf8 encoded characters, appending them to the string
   inline void OutputUnicode(std::string& s, int c) noexcept

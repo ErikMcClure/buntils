@@ -10,8 +10,8 @@ namespace bss {
   template<class T>
   class BSS_COMPILER_DLLEXPORT Singleton //exported to make VC++ shut up
   {
-    inline Singleton(const Singleton&) BSS_DELETEFUNC
-    inline Singleton& operator=(const Singleton&) BSS_DELETEFUNCOP
+    inline Singleton(const Singleton&) = delete;
+    inline Singleton& operator=(const Singleton&) = delete;
   public:
     inline Singleton(Singleton&& mov) { if(_instance == static_cast<T*>(&mov)) _instance = static_cast<T*>(this); }
     inline Singleton() { _instance = static_cast<T*>(this); }

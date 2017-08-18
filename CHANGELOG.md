@@ -1,25 +1,23 @@
-﻿**************************************************
-* Black Sphere Studios Utility Library Changelog *
-**************************************************
+﻿# Black Sphere Studios Utility Library Changelog
 
-0.5.1
------
-- Replace most instances of uint32_t with size_t
+## 0.5.1
+- Replace most instances of `uint32_t` with `size_t`
 - Static build now works with vcpkg
-- bssVersionInfo was changed to a 64-bit int with 4 16 bit integers, which makes it easier to serialize/deserialize as an array
-- DynArray streams have been replaced by a generic read-only array stream and a read-write DynArray stream
+- `bssVersionInfo` was changed to a 64-bit int with 4 16 bit integers, which makes it easier to serialize/deserialize as an array
+- `DynArray` streams have been replaced by a generic read-only array stream and a read-write `DynArray` stream
 - Added a functional buffer stream 
-- Renamed ArraySlice to Slice and improved support
-- Added memsubset()
+- Renamed `ArraySlice` to `Slice` and improved support
+- Added `memsubset()`
 - Serializer completely rewritten, now natively supports hashes and variants for all implementations
-- Added fsign()
-- Added Collision.h with 2D collision algorithms between different shapes
-- Added Geometry.h with N-dimensional and 2D shape objects
+- Added `fsign()`
+- Added `Collision.h` with 2D collision algorithms between different shapes
+- Added `Geometry.h` with N-dimensional and 2D shape objects
 - Added bit groups to BitField
-- Remove bssSeq and use standardized std::index_sequence instead
+- Remove `bssSeq` and use standardized `std::index_sequence` instead
+- Drop all attempts to support VS2010 and remove legacy code
+- Simplify template boilerplate with `if constexpr`
 
-0.5.0
------
+## 0.5.0
 - Added AttemptRLock(), AttemptStrictLock() to RWLock
 - Removed thread-specific debug assertions in RWLock to allow complex usage
 - Rewrote ring allocator with a per-bucket RWLock
@@ -49,8 +47,7 @@
 - Fixed minor bugs in XML and TOML parsers
 - Added install/uninstall to makefile
 
-0.4.7
------
+## 0.4.7
 - AVL tree Insert now returns a pointer on success or null on failure
 - Added Gauss–Legendre quadrature for approximating integrals
 - Added C-style object functions to delegate.h
@@ -76,8 +73,7 @@
 - Made greedy allocator threadsafe
 - Replaced Ring Allocator's reader writer lock with RWLock
 
-0.4.6
------
+## 0.4.6
 - Added override specifiers whenever possible
 - Removed cDef.h
 - Added iteration to cArraySlice, added more GetSlice methods
@@ -95,8 +91,7 @@
 - Rewrote cHash to support ARRAY_TYPE and proper safe types, and added hash support for cStr.
 - Fixed parsing bug in cXML and added more tests
 
-0.4.5
------
+## 0.4.5
 - Added variant class, an algebriac data type implemented in variant.h
 - Added bool array support and tests to UBJSON
 - Added support for variants in both UBJSON and JSON parsing and serialization.
@@ -120,8 +115,7 @@
 - Add noexcept for some simpler functions
 - Added a hash generation function for std::pair in cHash
 
-0.4.4
------
+## 0.4.4
 - Fixed static keywords on explicit template specializations. 
 - Fixed divide by zero error in bss_profiler.
 - Created a #define version of fbnext that can be used instead of the template version, then removed bss_util references from several files.
@@ -162,8 +156,7 @@
 - Moved Graph into a ::graph namespace to reduce name collision problems.
 - cBitArray has been supplanted by cDynArray<bool>, which now specializes to an efficient bit array representation.
 
-0.4.3
------
+## 0.4.3
 - Added version of Get() to cTrie that takes a string length parameter for non-null terminated strings.
 - Fixed header includes
 - Removed cCmdLineArgs and replaced it with a simple GetWindowsArgV() function and ProcessCmdArgs()
@@ -180,8 +173,7 @@
 - Added a high performance custom profiler in profiler.h and removed Shiny
 - Added a time interpolation helper function
 
-0.4.2
-------
+## 0.4.2
 - Removed CLASSPROP from bss_defines.h
 - Adjusted a few of the type shortcuts in bss_defines.h
 - Made animation keyframes more efficient and added the ability to set all keyframes for a certain attribute at once.
@@ -231,8 +223,7 @@
 - Added cThreadPool, cTaskPool, and StoredFunction
 - Renamed cBSS_Queue.h -> bss_queue.h and cBSS_Queue -> cQueue, and did the same for cBSS_Stack. bss_fixedpt.h is now FixedPt.h and bss_dual is now Dual.h
 
-0.4.1
-------
+## 0.4.1
 - cDynArray now supports + and += operations and derives its array as a protected member
 - cDynArray no longer tries to return something from its Insert function. An assertion in the _insert function was also fixed.
 - Added unit test for cDynArray
@@ -279,8 +270,7 @@
 - Removed fFastDoubleRound and it's siblings, changed fFastRound to always use SSE2 instructions because they're faster, added fFastTruncate using SSE2 instructions (but if your compiler isn't stupid, it should use SSE automatically)
 - Updated shinyprofiler to a new version, adjusting it's headers so it compiles in GCC and uses bss_util's static lib export and import options
 
-0.4
-------
+## 0.4
 - Added SetSizeDiscard() to cArraySimple
 - Made ismap actually do something on the cKhash specializations
 - Removed check for null pointers on cKhash. If this is really required it should be absorbed into the hash and equality functions.
@@ -319,8 +309,7 @@
 - Changed how namespaces were dealt with in cSettings and switched out cmdhash for a global variable because GCC hates it less
 - Compiling via makefile using GCC on linux systems is now fully supported!
 
-0.3.84
-------
+## 0.3.84
 - Tweaked internal constant names to be less likely to collide with reserved identifiers
 - Added GetEntryNode() and GetSectionNode()
 - Added bss_util.rc so windows builds contain version/copyright information.
@@ -355,8 +344,7 @@
 - Removed cTaskStack and cMutex
 - cCmdLineArgs now always parses unicode windows arguments and puts them into a UTF-8 encoded string.
 
-0.3.83
-------
+## 0.3.83
 - Added ForceWin64Crash(), which is a function that shouldn't exist but is necessary to prevent 64-bit Windows 7 from pretending crashes that occur over a kernal barrier never happened, which causes undefined, insanely weird and unpredictable behavior.
 - Fixed the project to throw on Win32 errors to bypass AFX stack corruption bugs in the debugger.
 - Changed how cAllocTracker works
@@ -397,8 +385,7 @@
 - Removed using namespace std; from StreamSplitter and fixed broken namespace references
 - StreamSplitter, bss_Log, and bss_debuginfo now only have move semantics. For GCC, StreamSplitter has NO move or copy constructors (because stream_buf doesn't).
 
-0.3.82
-------
+## 0.3.82
 - Added windows-specific Registry manipulation functions
 - Fixed bug in AdditiveFixedAllocator that over-allocated memory when consolidating
 - Added AdditiveVariableAllocator
@@ -438,8 +425,7 @@
 - Added unit testing.
 - Fixed extremely subtle bug in cINIStorage and several other bugs
 
-0.3.81
-------
+## 0.3.81
 - Added CLASS_PROP_VAL and CLASS_PROP_WRITEONLY_VAL for value-type class property generation
 - Added smaller valued log2() overloads (ushort and uchar)
 - Changed cSettings CMD parsing to simply interprete the existence of a boolean flag as setting the value to true
@@ -470,6 +456,5 @@
 - Added GetBitMask and C equivelent
 - Changed cArraySimple to require cArrayWrap to be accessible (reduces inheritance issues)
 
-0.3.8
------
+## 0.3.8
 - Initial Public Release

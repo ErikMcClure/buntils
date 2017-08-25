@@ -8,6 +8,10 @@
 
 using namespace bss;
 
+static_assert(std::is_same<make_integral<ARRAY_TYPE>::type, uint8_t>::value, "ARRAY_TYPE does not have underlying type of uint8_t");
+static_assert(std::is_same<make_integral<char>::type, char>::value, "type not preserved");
+static_assert(std::is_same<make_integral<void*>::type, void*>::value, "type not preserved");
+
 template<uint8_t B, int64_t SMIN, int64_t SMAX, uint64_t UMIN, uint64_t UMAX, typename T>
 inline void TEST_BitLimit()
 {

@@ -54,6 +54,15 @@ namespace bss {
   constexpr float FLT_EPS = 1.192092896e-07F;
   constexpr double DBL_EPS = 2.2204460492503131e-016;
 
+  namespace internal {
+    template<class T, bool B>
+    struct __make_integral { using type = T; };
+    template<class T>
+    struct __make_integral<T, true> { using type = typename std::underlying_type<T>::type; };
+  }
+  template<class T>
+  struct make_integral : internal::__make_integral<T, std::is_enum<T>::value> {};
+
   // Get max size of an arbitrary number of bits, either signed or unsigned (assuming one's or two's complement implementation)
   template<uint8_t BITS>
   struct BitLimit
@@ -694,9 +703,10 @@ namespace bss {
   }
 
   // Counts the number of bits in v (up to 128-bit types) using the parallel method detailed here: http://graphics.stanford.edu/~seander/bithacks.html#CountBitsSetParallel
-  template<typename T>
-  inline uint8_t BitCount(T v) noexcept
+  template<typename Tx>
+  inline uint8_t BitCount(Tx v) noexcept
   {
+    typedef typename make_integral<Tx>::type T;
     static_assert(std::is_integral<T>::value, "T must be integral");
     v = v - ((v >> 1) & (T)~(T)0 / 3);                           // temp
     v = (v & (T)~(T)0 / 15 * 3) + ((v >> 2) & (T)~(T)0 / 15 * 3);      // temp

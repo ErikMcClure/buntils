@@ -55,11 +55,27 @@ namespace bss {
       };
 
       // Classifies types by action performed (value, integer, key-value pair, array)
-      template<class Engine, class T, bool B>
+      template<class Engine, class T>
       struct Action // Arbitrary value
       {
-        static inline void Parse(Serializer<Engine>& e, T& t, const char* id) { Engine::template Parse<T>(e, t, id); }
-        static inline void Serialize(Serializer<Engine>& e, const T& t, const char* id) { Engine::template Serialize<T>(e, t, id); }
+        static inline void Parse(Serializer<Engine>& e, T& t, const char* id)
+        { 
+          if constexpr(std::is_arithmetic<T>::value)
+            Engine::template ParseNumber<T>(e, t, id); 
+          else if constexpr(std::is_enum<T>::value)
+            Engine::template ParseNumber<make_integral<T>::type>(e, reinterpret_cast<make_integral<T>::type&>(t), id);
+          else
+            Engine::template Parse<T>(e, t, id);
+        }
+        static inline void Serialize(Serializer<Engine>& e, const T& t, const char* id)
+        { 
+          if constexpr(std::is_arithmetic<T>::value)
+            Engine::template SerializeNumber<T>(e, t, id);
+          else if constexpr(std::is_enum<T>::value)
+            Engine::template SerializeNumber<make_integral<T>::type>(e, reinterpret_cast<const make_integral<T>::type&>(t), id);
+          else
+            Engine::template Serialize<T>(e, t, id);
+        }
       };
 
       template<class Engine, typename... Args>
@@ -82,7 +98,7 @@ namespace bss {
         {
           std::pair<Key, Value> pair;
           pair.first = id;
-          Action<Engine, Value, std::is_arithmetic<Value>::value>::Parse(e, pair.second, id);
+          Action<Engine, Value>::Parse(e, pair.second, id);
           _obj.Add(pair);
         }
 
@@ -99,9 +115,9 @@ namespace bss {
       struct Extract<T, true> { // If Key is arithmetic, convert to an integer from the string
         inline static typename T::KEY GetKey(const char* id) {
           std::istringstream ss(id);
-          typename T::KEY key;
+          typename make_integral<typename T::KEY>::type key;
           ss >> key;
-          return key;
+          return typename T::KEY(key);
         }
         inline static typename T::DATA* Get(T& obj, const char* id) { return obj.PointerValue(obj.Iterator(GetKey(id))); }
         inline static typename T::DATA* Insert(T& obj, const char* id) { return obj.PointerValue(obj.Insert(GetKey(id), typename T::DATA())); }
@@ -115,62 +131,55 @@ namespace bss {
         KeyValueInsert(T& obj) : _obj(obj) {}
         BSS_FORCEINLINE void operator()(Serializer<Engine>& e, const char* id)
         {
-          Data* v = Extract<T, std::is_arithmetic<Key>::value>::Get(_obj, id);
+          Data* v = Extract<T, std::is_arithmetic<Key>::value | std::is_enum<Key>::value>::Get(_obj, id);
           if(!v)
-            v = Extract<T, std::is_arithmetic<Key>::value>::Insert(_obj, id);
+            v = Extract<T, std::is_arithmetic<Key>::value | std::is_enum<Key>::value>::Insert(_obj, id);
           if(v)
-            Action<Engine, Data, std::is_arithmetic<Data>::value>::Parse(e, *v, id);
+            Action<Engine, Data>::Parse(e, *v, id);
         }
 
       protected:
         T& _obj;
       };
 
-      template<class Engine, class T>
-      struct Action<Engine, T, true> // Integer or float value (seperated to simplify template overloads)
-      {
-        static inline void Parse(Serializer<Engine>& e, T& t, const char* id) { Engine::template ParseNumber<T>(e, t, id); }
-        static inline void Serialize(Serializer<Engine>& e, T t, const char* id) { Engine::template SerializeNumber<T>(e, t, id); }
-      };
-
       template<class Engine>
-      struct Action<Engine, bool, true> // Boolean value (is classified as an integer and must be captured here)
+      struct Action<Engine, bool> // Boolean value (is classified as an integer and must be captured here)
       {
         static inline void Parse(Serializer<Engine>& e, bool& t, const char* id) { Engine::ParseBool(e, t, id); }
         static inline void Serialize(Serializer<Engine>& e, bool t, const char* id) { Engine::SerializeBool(e, t, id); }
       };
 
       template<class Engine, class STORE>
-      struct Action<Engine, internal::_BIT_REF<STORE>, false> // Bit reference used in some classes
+      struct Action<Engine, internal::_BIT_REF<STORE>> // Bit reference used in some classes
       {
         static inline void Parse(Serializer<Engine>& e, internal::_BIT_REF<STORE>& t, const char* id) { bool b = t; Engine::ParseBool(e, b, id); t = b; }
         static inline void Serialize(Serializer<Engine>& e, internal::_BIT_REF<STORE> t, const char* id) { Engine::SerializeBool(e, t, id); }
       };
 
-      template<class Engine, class T, size_t I, bool B> // For fixed-length arrays
-      struct Action<Engine, T[I], B>
+      template<class Engine, class T, size_t I> // For fixed-length arrays
+      struct Action<Engine, T[I]>
       {
         static inline T& Last(T(&obj)[I]) { return obj[0]; }
-        static inline void Add(Serializer<Engine>& e, T(&obj)[I], int& n) { if(n < I) Action<Engine, T, std::is_arithmetic<T>::value>::Parse(e, obj[n++], 0); }
+        static inline void Add(Serializer<Engine>& e, T(&obj)[I], int& n) { if(n < I) Action<Engine, T>::Parse(e, obj[n++], 0); }
         static inline void Parse(Serializer<Engine>& e, T(&obj)[I], const char* id) { Engine::template ParseArray<T[I], T>(e, obj, id); }
         static inline void Serialize(Serializer<Engine>& e, const T(&obj)[I], const char* id) { Engine::template SerializeArray<T[I]>(e, obj, I, id); }
       };
-      template<class Engine, class T, size_t I, bool B> // For fixed-length arrays
-      struct Action<Engine, std::array<T, I>, B>
+      template<class Engine, class T, size_t I> // For fixed-length arrays
+      struct Action<Engine, std::array<T, I>>
       {
         static inline T& Last(std::array<T, I>& obj) { return obj[0]; }
-        static inline void Add(Serializer<Engine>& e, std::array<T, I>& obj, int& n) { if(n < I) Action<Engine, T, std::is_arithmetic<T>::value>::Parse(e, obj[n++], 0); }
+        static inline void Add(Serializer<Engine>& e, std::array<T, I>& obj, int& n) { if(n < I) Action<Engine, T>::Parse(e, obj[n++], 0); }
         static inline void Parse(Serializer<Engine>& e, std::array<T, I>& obj, const char* id) { Engine::template ParseArray<std::array<T, I>, T>(e, obj, id); }
         static inline void Serialize(Serializer<Engine>& e, const std::array<T, I>& obj, const char* id) { Engine::template SerializeArray<std::array<T, I>>(e, obj, I, id); }
       };
       template<class Engine, class T, typename Alloc>
-      struct Action<Engine, std::vector<T, Alloc>, false>
+      struct Action<Engine, std::vector<T, Alloc>>
       {
         static inline T& Last(std::vector<T, Alloc>& obj) { assert(obj.size()); return obj.back(); }
         static inline void Add(Serializer<Engine>& e, std::vector<T, Alloc>& obj, int& n)
         {
           obj.push_back(T());
-          Action<Engine, T, std::is_arithmetic<T>::value>::Parse(e, obj.back(), 0);
+          Action<Engine, T>::Parse(e, obj.back(), 0);
         }
         static inline void Parse(Serializer<Engine>& e, std::vector<T, Alloc>& obj, const char* id)
         {
@@ -182,13 +191,13 @@ namespace bss {
         }
       };
       template<class Engine, class E, typename CType, ARRAY_TYPE ArrayType, typename Alloc>
-      struct Action<Engine, DynArray<E, CType, ArrayType, Alloc>, false>
+      struct Action<Engine, DynArray<E, CType, ArrayType, Alloc>>
       {
         static inline E& Last(DynArray<E, CType, ArrayType, Alloc>& obj) { assert(obj.Length()); return obj.Back(); }
         static inline void Add(Serializer<Engine>& e, DynArray<E, CType, ArrayType, Alloc>& obj, int& n)
         {
           obj.AddConstruct();
-          Action<Engine, E, std::is_arithmetic<E>::value>::Parse(e, obj.Back(), 0);
+          Action<Engine, E>::Parse(e, obj.Back(), 0);
         }
         static inline void Parse(Serializer<Engine>& e, DynArray<E, CType, ArrayType, Alloc>& obj, const char* id)
         {
@@ -200,13 +209,13 @@ namespace bss {
         }
       };
       template<class Engine, typename CType, ARRAY_TYPE ArrayType, typename Alloc>
-      struct Action<Engine, DynArray<bool, CType, ArrayType, Alloc>, false>
+      struct Action<Engine, DynArray<bool, CType, ArrayType, Alloc>>
       {
         static inline bool& Last(DynArray<bool, CType, ArrayType, Alloc>& obj) { assert(false); return *((bool*)~0); } // this should never be called on a boolean array
         static inline void Add(Serializer<Engine>& e, DynArray<bool, CType, ArrayType, Alloc>& obj, int& n)
         {
           bool b;
-          Action<Engine, bool, std::is_arithmetic<bool>::value>::Parse(e, b, 0);
+          Action<Engine, bool>::Parse(e, b, 0);
           obj.Add(b);
         }
         static inline void Parse(Serializer<Engine>& e, DynArray<bool, CType, ArrayType, Alloc>& obj, const char* id)
@@ -220,13 +229,13 @@ namespace bss {
       };
 
       template<class Engine, class T, typename CType, ARRAY_TYPE ArrayType, typename Alloc>
-      struct Action<Engine, Array<T, CType, ArrayType, Alloc>, false>
+      struct Action<Engine, Array<T, CType, ArrayType, Alloc>>
       {
         static inline T& Last(Array<T, CType, ArrayType, Alloc>& obj) { assert(obj.Capacity()); return obj.Back(); }
         static inline void Add(Serializer<Engine>& e, Array<T, CType, ArrayType, Alloc>& obj, int& n)
         {
           obj.SetCapacity(obj.Capacity() + 1);
-          Action<Engine, T, std::is_arithmetic<T>::value>::Parse(e, obj.Back(), 0);
+          Action<Engine, T>::Parse(e, obj.Back(), 0);
         }
         static inline void Parse(Serializer<Engine>& e, Array<T, CType, ArrayType, Alloc>& obj, const char* id)
         {
@@ -238,14 +247,14 @@ namespace bss {
         }
       };
       template<class Engine, class Key, khint_t(*__hash_func)(const Key&), bool(*__hash_equal)(const Key&, const Key&), ARRAY_TYPE ArrayType, typename Alloc>
-      struct Action<Engine, HashBase<Key, void, __hash_func, __hash_equal, ArrayType, Alloc>, false> // Hashes that are just sets can be treated as arrays.
+      struct Action<Engine, HashBase<Key, void, __hash_func, __hash_equal, ArrayType, Alloc>> // Hashes that are just sets can be treated as arrays.
       {
         typedef HashBase<Key, void, __hash_func, __hash_equal, ArrayType, Alloc> E;
         static inline Key& Last(E& obj) { assert(obj.Length()); return *obj.begin(); }
         static inline void Add(Serializer<Engine>& e, E& obj, int& n)
         {
           Key key;
-          Action<Engine, Key, std::is_arithmetic<Key>::value>::Parse(e, key, 0);
+          Action<Engine, Key>::Parse(e, key, 0);
           obj.Insert(std::move(key));
         }
         static inline void Parse(Serializer<Engine>& e, E& obj, const char* id)
@@ -259,7 +268,7 @@ namespace bss {
       };
 
       template<class Engine, class Key, class Data, khint_t(*__hash_func)(const Key&), bool(*__hash_equal)(const Key&, const Key&), ARRAY_TYPE ArrayType, typename Alloc>
-      struct Action<Engine, HashBase<Key, Data, __hash_func, __hash_equal, ArrayType, Alloc>, false>
+      struct Action<Engine, HashBase<Key, Data, __hash_func, __hash_equal, ArrayType, Alloc>>
       {
         typedef HashBase<Key, Data, __hash_func, __hash_equal, ArrayType, Alloc> E;
         typedef KeyValueInsert<Engine, Key, Data, __hash_func, __hash_equal, ArrayType, Alloc> F;
@@ -274,7 +283,7 @@ namespace bss {
 
       // Forward Hash<> specializations to the underlying HashBase specializations
       template<class Engine, typename K, typename T, bool ins, ARRAY_TYPE ArrayType, typename Alloc>
-      struct Action<Engine, Hash<K, T, ins, ArrayType, Alloc>, false> : Action<Engine, typename Hash<K, T, ins, ArrayType, Alloc>::BASE, false> {};
+      struct Action<Engine, Hash<K, T, ins, ArrayType, Alloc>> : Action<Engine, typename Hash<K, T, ins, ArrayType, Alloc>::BASE> {};
 
       template<class Engine, class T, typename Arg, typename... Args>
       struct __ActionVariant
@@ -285,7 +294,7 @@ namespace bss {
           {
             new (&obj) T(); // Set _Tag to -1
             obj.template typeset<Arg>(); // Properly construct type
-            Action<Engine, Arg, std::is_arithmetic<Arg>::value>::Parse(e, obj.template get<Arg>(), id);
+            Action<Engine, Arg>::Parse(e, obj.template get<Arg>(), id);
           }
           else
             __ActionVariant<Engine, T, Args...>::Parse(e, obj, id);
@@ -293,7 +302,7 @@ namespace bss {
         static inline void Serialize(Serializer<Engine>& e, const T& obj, const char* id)
         {
           if(obj.template is<Arg>())
-            Action<Engine, Arg, std::is_arithmetic<Arg>::value>::Serialize(e, obj.template get<Arg>(), id);
+            Action<Engine, Arg>::Serialize(e, obj.template get<Arg>(), id);
           else
             __ActionVariant<Engine, T, Args...>::Serialize(e, obj, id);
         }
@@ -307,13 +316,13 @@ namespace bss {
           {
             new (&obj) T();
             obj.template typeset<Arg>();
-            Action<Engine, Arg, std::is_arithmetic<Arg>::value>::Parse(e, obj.template get<Arg>(), id);
+            Action<Engine, Arg>::Parse(e, obj.template get<Arg>(), id);
           }
         }
         static inline void Serialize(Serializer<Engine>& e, const T& obj, const char* id)
         {
           if(obj.template is<Arg>())
-            Action<Engine, Arg, std::is_arithmetic<Arg>::value>::Serialize(e, obj.template get<Arg>(), id);
+            Action<Engine, Arg>::Serialize(e, obj.template get<Arg>(), id);
           else
             assert(obj.tag() == -1);
         }
@@ -328,7 +337,7 @@ namespace bss {
       };
 
       template<class Engine, typename... Args>
-      struct Action<Engine, ActionVariantRef<Args...>, false>
+      struct Action<Engine, ActionVariantRef<Args...>>
       {
         static inline void Parse(Serializer<Engine>& e, ActionVariantRef<Args...>& obj, const char* id)
         {
@@ -342,14 +351,14 @@ namespace bss {
 
       // Vector and Matrix
       template<class Engine, class T, int N>
-      struct Action<Engine, Vector<T, N>, false>
+      struct Action<Engine, Vector<T, N>>
       {
         static inline void Parse(Serializer<Engine>& e, Vector<T, N>& obj, const char* id) { Engine::template ParseArray<T[N], T>(e, obj.v, id); }
         static inline void Serialize(Serializer<Engine>& e, const Vector<T, N>& obj, const char* id) { Engine::template SerializeArray<T[N]>(e, obj.v, N, id); }
       };
 
       template<class Engine, class T, int M, int N>
-      struct Action<Engine, Matrix<T, M, N>, false>
+      struct Action<Engine, Matrix<T, M, N>>
       {
         static inline void Parse(Serializer<Engine>& e, Matrix<T, M, N>& obj, const char* id) { Engine::template ParseArray<T[M][N], T[M]>(e, obj.v, id); }
         static inline void Serialize(Serializer<Engine>& e, const Matrix<T, M, N>& obj, const char* id) { Engine::template SerializeArray<T[M][N]>(e, obj.v, N, id); }
@@ -357,45 +366,45 @@ namespace bss {
 
       // Geometric primitives
       template<class Engine, class T, int N>
-      struct Action<Engine, NSphere<T, N>, false>
+      struct Action<Engine, NSphere<T, N>>
       {
         static inline void Parse(Serializer<Engine>& e, NSphere<T, N>& obj, const char* id) { Engine::template ParseArray<T[N+1], T>(e, obj.v, id); }
         static inline void Serialize(Serializer<Engine>& e, const NSphere<T, N>& obj, const char* id) { Engine::template SerializeArray<T[N+1]>(e, obj.v, N+1, id); }
       };
       template<class Engine, class T, int N>
-      struct Action<Engine, LineN<T, N>, false>
+      struct Action<Engine, LineN<T, N>>
       {
         static inline void Parse(Serializer<Engine>& e, LineN<T, N>& obj, const char* id) { Engine::template ParseArray<T[N*2], T>(e, obj.v, id); }
         static inline void Serialize(Serializer<Engine>& e, const LineN<T, N>& obj, const char* id) { Engine::template SerializeArray<T[N*2]>(e, obj.v, N*2, id); }
       };
       template<class Engine, class T>
-      struct Action<Engine, Rect<T>, false>
+      struct Action<Engine, Rect<T>>
       {
         static inline void Parse(Serializer<Engine>& e, Rect<T>& obj, const char* id) { Engine::template ParseArray<T[4], T>(e, obj.ltrb, id); }
         static inline void Serialize(Serializer<Engine>& e, const Rect<T>& obj, const char* id) { Engine::template SerializeArray<T[4]>(e, obj.ltrb, 4, id); }
       };
       template<class Engine, class T>
-      struct Action<Engine, Triangle<T>, false>
+      struct Action<Engine, Triangle<T>>
       {
         static inline void Parse(Serializer<Engine>& e, Triangle<T>& obj, const char* id) { Engine::template ParseArray<Vector<T, 2>[3], Vector<T, 2>>(e, obj.v, id); }
         static inline void Serialize(Serializer<Engine>& e, const Triangle<T>& obj, const char* id) { Engine::template SerializeArray<Vector<T, 2>[3]>(e, obj.v, 3, id); }
       };
       template<class Engine, class T>
-      struct Action<Engine, Ellipse<T>, false>
+      struct Action<Engine, Ellipse<T>>
       {
         static inline void Parse(Serializer<Engine>& e, Ellipse<T>& obj, const char* id) { Engine::template ParseArray<T[4], T>(e, obj.v, id); }
         static inline void Serialize(Serializer<Engine>& e, const Ellipse<T>& obj, const char* id) { Engine::template SerializeArray<T[4]>(e, obj.v, 4, id); }
       };
       template<class Engine, class T>
-      struct Action<Engine, CircleSector<T>, false>
+      struct Action<Engine, CircleSector<T>>
       {
         static inline void Parse(Serializer<Engine>& e, CircleSector<T>& obj, const char* id) { Engine::template ParseArray<T[6], T>(e, obj.v, id); }
         static inline void Serialize(Serializer<Engine>& e, const CircleSector<T>& obj, const char* id) { Engine::template SerializeArray<T[6]>(e, obj.v, 6, id); }
       };
       template<class Engine, class T>
-      struct Action<Engine, Polygon<T>, false>
+      struct Action<Engine, Polygon<T>>
       {
-        static inline void Parse(Serializer<Engine>& e, Polygon<T>& obj, const char* id) { Engine::template ParseArray<Array<Vector<T, 2>>, T>(e, obj.GetArray(), id); }
+        static inline void Parse(Serializer<Engine>& e, Polygon<T>& obj, const char* id) { Engine::template ParseArray<Array<Vector<T, 2>>, Vector<T, 2>>(e, obj.GetArray(), id); }
         static inline void Serialize(Serializer<Engine>& e, const Polygon<T>& obj, const char* id) { Engine::template SerializeArray<Array<Vector<T, 2>>>(e, obj.GetArray(), obj.GetArray().Capacity(), id); }
       };
     }
@@ -415,7 +424,7 @@ namespace bss {
     std::istream* in;
 
 
-    template<class T> using ActionBind = internal::serializer::Action<Engine, T, std::is_arithmetic<T>::value>;
+    template<class T> using ActionBind = internal::serializer::Action<Engine, T>;
 
     template<typename T>
     void Serialize(const T& obj, std::ostream& s, const char* name = 0)

@@ -40,7 +40,7 @@ namespace bss {
     typedef Key KEY;
     typedef Data DATA;
     typedef typename std::conditional<IsMap, Data, char>::type FakeData;
-    typedef typename internal::_HashBaseGET<FakeData, std::is_integral<FakeData>::value | std::is_pointer<FakeData>::value | std::is_member_pointer<FakeData>::value>::GET GET;
+    typedef typename internal::_HashBaseGET<FakeData, std::is_integral<FakeData>::value | std::is_enum<FakeData>::value | std::is_pointer<FakeData>::value | std::is_member_pointer<FakeData>::value>::GET GET;
 
     HashBase(const HashBase& copy)
     {
@@ -109,10 +109,13 @@ namespace bss {
       {
         if constexpr(std::is_integral<GET>::value)
           return (GET)~0;
-        else
-          return (GET)0;
+        if constexpr(std::is_enum<GET>::value) // If we try to combine this into the if statement above, VC++ gets confused
+          return (GET)~0;
+        if constexpr(std::is_pointer<GET>::value | std::is_member_pointer<GET>::value)
+          return nullptr;
+        return GET{ 0 };
       }
-      return internal::_HashBaseGET<Data, std::is_integral<Data>::value | std::is_pointer<Data>::value | std::is_member_pointer<Data>::value>::F(vals[i]);
+      return internal::_HashBaseGET<Data, std::is_integral<Data>::value | std::is_enum<Data>::value | std::is_pointer<Data>::value | std::is_member_pointer<Data>::value>::F(vals[i]);
     }
     template<bool U = IsMap>
     inline typename std::enable_if<U, GET>::type Get(const Key& key) const { return GetValue(Iterator(key)); }

@@ -334,6 +334,7 @@
       <RuntimeTypeInfo>false</RuntimeTypeInfo>
       <MinimalRebuild>true</MinimalRebuild>
       <SmallerTypeCheck>true</SmallerTypeCheck>
+      <LanguageStandard>stdcpplatest</LanguageStandard>
     </ClCompile>
     <Link>
       <AdditionalDependencies>psapi.lib;shlwapi.lib;%(AdditionalDependencies)</AdditionalDependencies>
@@ -360,6 +361,7 @@
       <RuntimeTypeInfo>false</RuntimeTypeInfo>
       <BasicRuntimeChecks>EnableFastChecks</BasicRuntimeChecks>
       <MinimalRebuild>true</MinimalRebuild>
+      <LanguageStandard>stdcpplatest</LanguageStandard>
     </ClCompile>
     <Link>
       <AdditionalDependencies>psapi.lib;shlwapi.lib;%(AdditionalDependencies)</AdditionalDependencies>
@@ -393,6 +395,7 @@
       <FloatingPointModel>Fast</FloatingPointModel>
       <RuntimeTypeInfo>false</RuntimeTypeInfo>
       <StringPooling>true</StringPooling>
+      <LanguageStandard>stdcpplatest</LanguageStandard>
     </ClCompile>
     <Link>
       <AdditionalDependencies>psapi.lib;shlwapi.lib;%(AdditionalDependencies)</AdditionalDependencies>
@@ -428,6 +431,7 @@
       <StringPooling>true</StringPooling>
       <PrecompiledHeaderFile />
       <AdditionalOptions>-Wno-ignored-attributes -Wno-unused-function</AdditionalOptions>
+      <LanguageStandard>stdcpplatest</LanguageStandard>
     </ClCompile>
     <Link>
       <AdditionalDependencies>psapi.lib;shlwapi.lib;%(AdditionalDependencies)</AdditionalDependencies>
@@ -464,6 +468,7 @@
       <ExceptionHandling>Sync</ExceptionHandling>
       <DisableLanguageExtensions>false</DisableLanguageExtensions>
       <RuntimeTypeInfo>false</RuntimeTypeInfo>
+      <LanguageStandard>stdcpplatest</LanguageStandard>
     </ClCompile>
     <Link>
       <AdditionalDependencies>psapi.lib;shlwapi.lib;%(AdditionalDependencies)</AdditionalDependencies>
@@ -501,6 +506,7 @@
       <RuntimeTypeInfo>false</RuntimeTypeInfo>
       <AdditionalOptions>-Wno-ignored-attributes -Wno-unused-function</AdditionalOptions>
       <PrecompiledHeaderFile />
+      <LanguageStandard>stdcpplatest</LanguageStandard>
     </ClCompile>
     <Link>
       <AdditionalDependencies>psapi.lib;shlwapi.lib;%(AdditionalDependencies)</AdditionalDependencies>
@@ -532,6 +538,7 @@
       <WarningLevel>Level3</WarningLevel>
       <DebugInformationFormat>ProgramDatabase</DebugInformationFormat>
       <ProgramDataBaseFileName>$(TargetDir)$(TargetName).pdb</ProgramDataBaseFileName>
+      <LanguageStandard>stdcpplatest</LanguageStandard>
     </ClCompile>
     <Lib>
       <AdditionalDependencies>psapi.lib;Shlwapi.lib;%(AdditionalDependencies)</AdditionalDependencies>
@@ -555,6 +562,7 @@
       <WarningLevel>Level3</WarningLevel>
       <DebugInformationFormat>ProgramDatabase</DebugInformationFormat>
       <ProgramDataBaseFileName>$(TargetDir)$(TargetName).pdb</ProgramDataBaseFileName>
+      <LanguageStandard>stdcpplatest</LanguageStandard>
     </ClCompile>
     <Lib>
       <AdditionalDependencies>psapi.lib;Shlwapi.lib;%(AdditionalDependencies)</AdditionalDependencies>
@@ -574,6 +582,7 @@
       <WarningLevel>Level3</WarningLevel>
       <DebugInformationFormat>EditAndContinue</DebugInformationFormat>
       <ProgramDataBaseFileName>$(TargetDir)$(TargetName).pdb</ProgramDataBaseFileName>
+      <LanguageStandard>stdcpplatest</LanguageStandard>
     </ClCompile>
     <Lib>
       <AdditionalDependencies>psapi.lib;Shlwapi.lib;%(AdditionalDependencies)</AdditionalDependencies>
@@ -593,6 +602,7 @@
       <WarningLevel>Level3</WarningLevel>
       <DebugInformationFormat>ProgramDatabase</DebugInformationFormat>
       <ProgramDataBaseFileName>$(TargetDir)$(TargetName).pdb</ProgramDataBaseFileName>
+      <LanguageStandard>stdcpplatest</LanguageStandard>
     </ClCompile>
     <Lib>
       <AdditionalDependencies>psapi.lib;Shlwapi.lib;%(AdditionalDependencies)</AdditionalDependencies>
@@ -615,6 +625,7 @@
       </PrecompiledHeader>
       <WarningLevel>Level3</WarningLevel>
       <DebugInformationFormat>ProgramDatabase</DebugInformationFormat>
+      <LanguageStandard>stdcpplatest</LanguageStandard>
     </ClCompile>
     <Link>
       <AdditionalDependencies>psapi.lib;shlwapi.lib;%(AdditionalDependencies)</AdditionalDependencies>
@@ -644,6 +655,7 @@
       </PrecompiledHeader>
       <WarningLevel>Level3</WarningLevel>
       <DebugInformationFormat>ProgramDatabase</DebugInformationFormat>
+      <LanguageStandard>stdcpplatest</LanguageStandard>
     </ClCompile>
     <Link>
       <AdditionalDependencies>psapi.lib;shlwapi.lib;%(AdditionalDependencies)</AdditionalDependencies>
@@ -660,12 +672,6 @@
     <PostBuildEvent>
       <Message>Copy include files to vcpkg folder</Message>
     </PostBuildEvent>
-    <ClCompile>
-      <LanguageStandard Condition="'$(Configuration)|$(Platform)'=='Release-STD|Win32'">stdcpplatest</LanguageStandard>
-    </ClCompile>
-    <ClCompile>
-      <LanguageStandard Condition="'$(Configuration)|$(Platform)'=='Release-STD|x64'">stdcpplatest</LanguageStandard>
-    </ClCompile>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(VcpkgEnabled)'=='Release|true'">
     <PostBuildEvent>
@@ -675,12 +681,6 @@ xcopy "$(TargetDir)$(TargetName).pdb" "$(VcpkgRoot)bin" /c /y /q /i  2&gt;nul 1&
 xcopy "..\include\*.h" "$(VcpkgRoot)include" /c /y /q /i /s  2&gt;nul 1&gt;nul
 EXIT 0</Command>
     </PostBuildEvent>
-    <ClCompile>
-      <LanguageStandard Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">stdcpplatest</LanguageStandard>
-    </ClCompile>
-    <ClCompile>
-      <LanguageStandard Condition="'$(Configuration)|$(Platform)'=='Release|x64'">stdcpplatest</LanguageStandard>
-    </ClCompile>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(VcpkgEnabled)'=='Release-Static|true'">
     <PostBuildEvent>
@@ -688,12 +688,6 @@ EXIT 0</Command>
 xcopy "$(TargetDir)$(TargetName).pdb" "$(VcpkgRoot)lib" /c /y /q /i
 xcopy "..\include\*.h" "$(VcpkgRoot)include" /c /y /q /i /s</Command>
     </PostBuildEvent>
-    <ClCompile>
-      <LanguageStandard Condition="'$(Configuration)|$(Platform)'=='Release-Static|Win32'">stdcpplatest</LanguageStandard>
-    </ClCompile>
-    <ClCompile>
-      <LanguageStandard Condition="'$(Configuration)|$(Platform)'=='Release-Static|x64'">stdcpplatest</LanguageStandard>
-    </ClCompile>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(VcpkgEnabled)'=='Debug|true'">
     <PostBuildEvent>
@@ -703,12 +697,6 @@ xcopy "$(TargetDir)$(TargetName).pdb" "$(VcpkgRoot)debug\bin" /c /y /q /i
 xcopy "..\include\*.h" "$(VcpkgRoot)include" /c /y /q /i /s
 EXIT 0</Command>
     </PostBuildEvent>
-    <ClCompile>
-      <LanguageStandard Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">stdcpplatest</LanguageStandard>
-    </ClCompile>
-    <ClCompile>
-      <LanguageStandard Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">stdcpplatest</LanguageStandard>
-    </ClCompile>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(VcpkgEnabled)'=='Debug-Static|true'">
     <PostBuildEvent>
@@ -716,12 +704,6 @@ EXIT 0</Command>
 xcopy "$(TargetDir)$(TargetName).pdb" "$(VcpkgRoot)debug\lib" /c /y /q /i
 xcopy "..\include\*.h" "$(VcpkgRoot)include" /c /y /q /i /s</Command>
     </PostBuildEvent>
-    <ClCompile>
-      <LanguageStandard Condition="'$(Configuration)|$(Platform)'=='Debug-Static|Win32'">stdcpplatest</LanguageStandard>
-    </ClCompile>
-    <ClCompile>
-      <LanguageStandard Condition="'$(Configuration)|$(Platform)'=='Debug-Static|x64'">stdcpplatest</LanguageStandard>
-    </ClCompile>
   </ItemDefinitionGroup>
   <!--<ItemDefinitionGroup Condition="'$(VcpkgEnabled)' == 'true'">
     <Link>

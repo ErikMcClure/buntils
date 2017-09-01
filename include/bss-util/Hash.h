@@ -340,7 +340,8 @@ namespace bss {
           if constexpr(IsMap)
             vals = _realloc<Data>(flags, vals, new_n_buckets, n_buckets);
         }
-        Alloc::deallocate((char*)flags); /* free the working space */
+        if(flags)
+          Alloc::deallocate((char*)flags); /* free the working space */
         flags = new_flags;
         n_buckets = new_n_buckets;
         n_occupied = size;

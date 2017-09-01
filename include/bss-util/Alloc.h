@@ -10,8 +10,30 @@
 #include <assert.h>
 
 namespace bss {
-  // An implementation of a standard allocation policy
-  template<typename T>
+  // Align should be a power of two for platform independence.
+  inline void* aligned_realloc(void* p, size_t size, size_t align)
+  {
+#ifdef BSS_PLATFORM_WIN32
+    return _aligned_realloc(p, size, align);
+#else
+    void* n = aligned_alloc(align, size);
+    memcpy(n, p, malloc_usable_size(p));
+    free(p);
+    return n;
+#endif
+  }
+
+  inline void aligned_free(void* p)
+  {
+#ifdef BSS_PLATFORM_WIN32
+    _aligned_free(p);
+#else
+    free(p);
+#endif
+  }
+
+  // An implementation of a standard allocation policy, with optional alignment
+  template<typename T, int ALIGN = 0>
   struct BSS_COMPILER_DLLEXPORT StandardAllocPolicy {
     typedef T* pointer;
     typedef T value_type;
@@ -20,13 +42,23 @@ namespace bss {
 
     inline pointer allocate(size_t cnt, const pointer p = nullptr) noexcept
     {
-//return reinterpret_cast<pointer>(::operator new(cnt * sizeof (T))); // note that while operator new does not call a constructor (it can't), it's much easier to override for leak tests.
-      return reinterpret_cast<pointer>(realloc(p, cnt * sizeof(T)));
+      if constexpr(ALIGN > alignof(void*)) // realloc/malloc always return pointer-size aligned memory anyway
+        return reinterpret_cast<pointer>(_aligned_realloc(p, cnt * sizeof(T), ALIGN));
+      else
+        return reinterpret_cast<pointer>(realloc(p, cnt * sizeof(T)));
     }
-    //inline void deallocate(pointer p, size_t = 0) { ::operator delete(p); }
-    inline void deallocate(pointer p, size_t = 0) noexcept { free(p); }
+    inline void deallocate(pointer p, size_t = 0) noexcept
+    {
+      assert(p != 0);
+      if constexpr(ALIGN > alignof(void*))
+        aligned_free(p);
+      else
+        free(p);
+    }
     inline size_t max_size() const noexcept { return ((size_t)(-1) / sizeof(T)); }
   };
+  template<typename T>
+  struct BSS_COMPILER_DLLEXPORT AlignedStandardAllocPolicy : StandardAllocPolicy<T, alignof(T)> { };
 
   // Implementation of a null allocation policy. Doesn't free anything, always returns 0 on all allocations.
   template<typename T>
@@ -42,15 +74,31 @@ namespace bss {
   };
 
   // Static implementation of the standard allocation policy, used for ArrayBase
-  template<typename T>
+  template<typename T, int ALIGN = 0>
   struct BSS_COMPILER_DLLEXPORT StaticAllocPolicy {
     typedef T* pointer;
     typedef T value_type;
     template<typename U> struct rebind { typedef StaticAllocPolicy<U> other; };
 
-    inline static pointer allocate(size_t cnt, const pointer p = nullptr) noexcept { return reinterpret_cast<pointer>(realloc(p, cnt * sizeof(T))); }
-    inline static void deallocate(pointer p, size_t = 0) noexcept { free(p); }
+    inline static pointer allocate(size_t cnt, const pointer p = nullptr) noexcept
+    {
+      if constexpr(ALIGN > alignof(void*)) // realloc/malloc always return pointer-size aligned memory anyway
+        return reinterpret_cast<pointer>(_aligned_realloc(p, cnt * sizeof(T), ALIGN));
+      else
+        return reinterpret_cast<pointer>(realloc(p, cnt * sizeof(T)));
+    }
+    inline static void deallocate(pointer p, size_t = 0) noexcept 
+    { 
+      assert(p != 0);
+      if constexpr(ALIGN > alignof(void*))
+        aligned_free(p);
+      else
+        free(p); 
+    }
   };
+
+  template<typename T>
+  struct BSS_COMPILER_DLLEXPORT AlignedStaticAllocPolicy : StaticAllocPolicy<T, alignof(T)> { };
 
   // Static null allocator. Doesn't free anything, always returns 0 on all allocations.
   template<typename T>
@@ -62,9 +110,9 @@ namespace bss {
     inline static pointer allocate(size_t cnt, const pointer = nullptr) noexcept { return nullptr; }
     inline static void deallocate(pointer p, size_t = 0) noexcept {}
   };
-  
+
   namespace internal {
-  // Internal class used by AllocTracker
+    // Internal class used by AllocTracker
     template<typename T, typename _Ax>
     class AllocTrackerBase
     {
@@ -79,25 +127,25 @@ namespace bss {
       inline void _deallocate(pointer p, size_t s = 0) noexcept { _allocator->deallocate(p, s); }
 
       inline AllocTrackerBase& operator =(const AllocTrackerBase& copy) noexcept
-      { 
-        if(&copy == this) 
-          return *this; 
-        if(!_alloc_extern) 
-          delete _allocator; 
-        _allocator = copy._alloc_extern ? copy._allocator : new _Ax(); 
-        _alloc_extern = copy._alloc_extern; 
+      {
+        if(&copy == this)
+          return *this;
+        if(!_alloc_extern)
+          delete _allocator;
+        _allocator = copy._alloc_extern ? copy._allocator : new _Ax();
+        _alloc_extern = copy._alloc_extern;
         return *this;
       }
       inline AllocTrackerBase& operator =(AllocTrackerBase&& mov) noexcept
-      { 
-        if(&mov == this) 
-          return *this; 
-        if(!_alloc_extern) 
-          delete _allocator; 
-        _allocator = mov._allocator; 
-        _alloc_extern = mov._alloc_extern; 
-        mov._alloc_extern = true; 
-        return *this; 
+      {
+        if(&mov == this)
+          return *this;
+        if(!_alloc_extern)
+          delete _allocator;
+        _allocator = mov._allocator;
+        _alloc_extern = mov._alloc_extern;
+        mov._alloc_extern = true;
+        return *this;
       }
 
     protected:

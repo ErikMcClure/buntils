@@ -136,7 +136,7 @@ INIsection& INIstorage::AddSection(const char* name)
 
 INIsection* INIstorage::_addSection(const char* name)
 {
-  _NODE* p = _alloc.alloc(1);
+  _NODE* p = _alloc.Alloc(1);
   bssFill(*p, 0);
   khiter_t iter = _sections.Iterator(name);
 
@@ -196,7 +196,7 @@ bool INIstorage::RemoveSection(const char* name, size_t instance)
     }
 
     secnode->~_NODE(); // Calling this destructor is important in case the node has an unused array that needs to be freed
-    _alloc.dealloc(secnode);
+    _alloc.Dealloc(secnode);
     _ini->erase((const char*)chunk.start - _ini->c_str(), ((const char*)chunk.end - (const char*)chunk.start) + 1);
     return true;
   }
@@ -267,7 +267,7 @@ char INIstorage::EditEntry(const char* section, const char* key, const char* nva
       entroot->instances.Remove(keyinstance - 1);
 
     entnode->~_SNODE(); // Calling this destructor is important in case the node has an unused array that needs to be freed
-    INIsection::_alloc.dealloc(entnode);
+    INIsection::_alloc.Dealloc(entnode);
     const char* end = strchr((const char*)chunk.end, '\n'); // Now we remove it from the actual INI
     end = !end ? (const char*)chunk.end : end + 1;
     _ini->erase((const char*)chunk.start - _ini->c_str(), end - (const char*)chunk.start);
@@ -344,7 +344,7 @@ void INIstorage::_destroy()
   {
     t = _root->next;
     _root->~_NODE();
-    _alloc.dealloc(_root);
+    _alloc.Dealloc(_root);
     _root = t;
   }
   _last = 0;
@@ -358,7 +358,7 @@ void INIstorage::_copy(const INIstorage& copy)
   size_t c = 0;
   while(t)
   {
-    _NODE* p = _alloc.alloc(1);
+    _NODE* p = _alloc.Alloc(1);
     bssFill(*p, 0);
     new (&p->val) INIsection(t->val);
     if(!_root)

@@ -61,7 +61,7 @@ namespace bss {
     template<typename R, typename ...Args>
     void AddFunc(R(*f)(Args...), Args... args)
     {
-      std::pair<StoreFunction<R, Args...>, RingAllocVoid*>* fn = _falloc.allocT<std::pair<StoreFunction<R, Args...>, RingAllocVoid*>>();
+      std::pair<StoreFunction<R, Args...>, RingAllocVoid*>* fn = _falloc.AllocT<std::pair<StoreFunction<R, Args...>, RingAllocVoid*>>();
       new (&fn->first) StoreFunction<R, Args...>(f, std::forward<Args>(args)...);
       fn->second = &_falloc; // This could just be a pointer to this thread pool, but it's easier if it's a direct pointer to the allocator we need.
       AddTask(_callfn<R, Args...>, fn);
@@ -117,7 +117,7 @@ namespace bss {
       std::pair<StoreFunction<R, Args...>, RingAllocVoid*>* fn = (std::pair<StoreFunction<R, Args...>, RingAllocVoid*>*)p;
       fn->first.Call();
       fn->first.~StoreFunction();
-      fn->second->dealloc(fn);
+      fn->second->Dealloc(fn);
     }
 
     MicroLockQueue<TASK, size_t> _tasklist;

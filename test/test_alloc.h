@@ -19,7 +19,7 @@ void TEST_ALLOC_FUZZER_THREAD(TESTDEF::RETPAIR& __testret, T& _alloc, bss::DynAr
       if(bss::bssRandInt(0, 10)<5 || plist.Length()<3)
       {
         size_t sz = (size_t)bss::bssRandInt(1, MAXSIZE);
-        P* test = (P*)_alloc.alloc(sz);
+        P* test = (P*)_alloc.Alloc(sz);
         for(size_t i = 0; i<sz; ++i) *(char*)(test + i) = (char)(i + 1);
         plist.Add(std::pair<P*, size_t>(test, sz));
       }
@@ -32,7 +32,7 @@ void TEST_ALLOC_FUZZER_THREAD(TESTDEF::RETPAIR& __testret, T& _alloc, bss::DynAr
             pass = false;
         }
         bss::bssFillN(plist[index].first, plist[index].second);
-        _alloc.dealloc(plist[index].first);
+        _alloc.Dealloc(plist[index].first);
         std::swap(plist.Back(), plist[index]);
         plist.RemoveLast(); // This technique lets us randomly remove items from the array without having to move large chunks of data by swapping the invalid element with the last one and then removing the last element (which is cheap)
       }
@@ -40,7 +40,7 @@ void TEST_ALLOC_FUZZER_THREAD(TESTDEF::RETPAIR& __testret, T& _alloc, bss::DynAr
     while(plist.Length())
     {
       bss::bssFillN(plist.Back().first, plist.Back().second);
-      _alloc.dealloc(plist.Back().first);
+      _alloc.Dealloc(plist.Back().first);
       plist.RemoveLast();
     }
     TEST(pass);

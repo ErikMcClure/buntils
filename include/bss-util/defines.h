@@ -113,6 +113,8 @@ public: \
 #define LOADDYNLIB(s) LoadLibraryA(s)
 #define GETDYNFUNC(p,s) GetProcAddress((HMODULE)p, s)
 #define FREEDYNLIB(p) FreeLibrary((HMODULE)p)
+#define ALIGNEDALLOC(size, align) _aligned_malloc(size, align)
+#define ALIGNEDFREE(p) _aligned_free(p)
 #else
 #ifdef BSS_PLATFORM_MINGW
 #define TIME64(ptime) _time64(ptime)
@@ -154,6 +156,8 @@ public: \
 #define LOADDYNLIB(s) dlopen(s, RTLD_LAZY)
 #define GETDYNFUNC(p,s) dlsym(p,s)
 #define FREEDYNLIB(p) dlclose(p)
+#define ALIGNEDALLOC(size, align) aligned_alloc(align, size)
+#define ALIGNEDFREE(p) free(p)
 #endif
 
 #endif

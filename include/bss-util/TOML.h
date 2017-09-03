@@ -275,8 +275,10 @@ namespace bss {
       if(!!s && s.peek() == '=')
       {
         s.get();
+        size_t state = e.engine.state;
         e.engine.state = 0;
         f(e, buf.c_str()); // This will call FindParse by default, or a special function for TOMLValue types
+        e.engine.state = state;
       }
       while(!!s && s.peek() != '\n' && s.peek() != '\r' && s.peek() != ',' && s.peek() != '}' && s.peek() != -1) s.get(); // Eat everything until the next comma or the end of the table
       if(s.peek() == ',') s.get();
@@ -297,8 +299,10 @@ namespace bss {
       if(!!s && s.peek() == '=')
       {
         s.get();
+        size_t state = e.engine.state;
         e.engine.state = 0;
         f(e, buf.c_str()); // This will call ParseTOMLBase on the appropriate value.
+        e.engine.state = state;
         while(!!s && s.peek() != '\n' && s.peek() != '\r' && s.peek() != -1) s.get(); // Eat all remaining characters on this line that weren't parsed.
       }
       ParseTOMLEatAllspace(s);
@@ -750,7 +754,7 @@ namespace bss {
 #endif
 
   template<class T>
-  inline void WriteTOML(const T& obj, std::ostream& s) { Serializer<TOMLEngine> e; e.engine.state = 1; e.Serialize<T>(obj, s, 0); }
+  inline void WriteTOML(const T& obj, std::ostream& s) { Serializer<TOMLEngine> e; size_t state = e.engine.state; e.engine.state = 1; e.Serialize<T>(obj, s, 0); e.engine.state = state; }
   template<class T>
   inline void WriteTOML(const T& obj, const char* file) { std::ofstream fs(file, std::ios_base::out | std::ios_base::trunc | std::ios_base::binary); WriteTOML<T>(obj, fs); }
 

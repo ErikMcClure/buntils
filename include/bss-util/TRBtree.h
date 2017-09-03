@@ -12,7 +12,7 @@
 
 namespace bss {
   namespace internal {
-  // Generic Threaded Red-black tree node
+    // Generic Threaded Red-black tree node
     template<class T>
     struct BSS_COMPILER_DLLEXPORT TRB_NodeBase : LLBase<T>
     {
@@ -356,15 +356,26 @@ namespace bss {
   template<typename T, char(*CFunc)(const T&, const T&) = CompT<T>, typename Alloc = StandardAllocPolicy<TRB_Node<T>>>
   class BSS_COMPILER_DLLEXPORT TRBtree : protected AllocTracker<Alloc>
   {
-    inline TRBtree(const TRBtree&) = delete;
-      inline TRBtree& operator=(const TRBtree&) = delete;
-
-      BSS_FORCEINLINE static char CompNode(const TRB_Node<T>& l, const TRB_Node<T>& r) { return CFunc(l.value, r.value); }
+    BSS_FORCEINLINE static char CompNode(const TRB_Node<T>& l, const TRB_Node<T>& r) { return CFunc(l.value, r.value); }
 
   public:
-    inline explicit TRBtree(Alloc* allocator = 0) : AllocTracker<Alloc>(allocator), _first(0), _last(0), _root(&NIL), NIL(&NIL) {}
+    inline TRBtree(TRBtree&& mov) : _first(mov._first), _last(mov._last), _root(mov._root), NIL(mov.NIL)
+    {
+      mov._first = 0;
+      mov._last = 0;
+      mov.NIL = new TRB_Node<T>(0);
+      mov.NIL->left = mov.NIL;
+      mov.NIL->right = mov.NIL;
+      mov._root = mov.NIL;
+    }
+    inline explicit TRBtree(Alloc* allocator = 0) : AllocTracker<Alloc>(allocator), _first(0), _last(0), NIL(new TRB_Node<T>(0)), _root(0)
+    {
+      NIL->left = NIL;
+      NIL->right = NIL;
+      _root = NIL;
+    }
     // Destructor
-    inline ~TRBtree() { Clear(); }
+    inline ~TRBtree() { Clear(); delete NIL; }
     // Clears the tree
     inline void Clear()
     {
@@ -376,29 +387,29 @@ namespace bss {
 
       _first = 0;
       _last = 0;
-      _root = &NIL;
+      _root = NIL;
     }
     // Retrieves a given node by key if it exists
-    BSS_FORCEINLINE TRB_Node<T>* Get(const T& value) const { return GetNode(value, _root, &NIL); }
+    BSS_FORCEINLINE TRB_Node<T>* Get(const T& value) const { return GetNode(value, _root, NIL); }
     // Retrieves the node closest to the given key.
-    BSS_FORCEINLINE TRB_Node<T>* GetNear(const T& value, bool before = true) const { return GetNodeNear(value, before, _root, &NIL); }
+    BSS_FORCEINLINE TRB_Node<T>* GetNear(const T& value, bool before = true) const { return GetNodeNear(value, before, _root, NIL); }
     // Inserts a key with the associated data
     BSS_FORCEINLINE TRB_Node<T>* Insert(const T& value)
     {
       TRB_Node<T>* node = AllocTracker<Alloc>::_allocate(1);
-      new(node) TRB_Node<T>(value, &NIL);
-      TRB_Node<T>::template InsertNode<CompNode>(node, _root, _first, _last, &NIL);
+      new(node) TRB_Node<T>(value, NIL);
+      TRB_Node<T>::template InsertNode<CompNode>(node, _root, _first, _last, NIL);
       return node;
     }
     // Searches for a node with the given key and removes it if found, otherwise returns false.
-    BSS_FORCEINLINE bool Remove(const T& value) { return Remove(GetNode(value, _root, &NIL)); }
+    BSS_FORCEINLINE bool Remove(const T& value) { return Remove(GetNode(value, _root, NIL)); }
     // Removes the given node. Returns false if node is null
     BSS_FORCEINLINE bool Remove(TRB_Node<T>* node)
     {
-      if(!node) 
+      if(!node)
         return false;
 
-      TRB_Node<T>::RemoveNode(node, _root, _first, _last, &NIL);
+      TRB_Node<T>::RemoveNode(node, _root, _first, _last, NIL);
       node->~TRB_Node();
       AllocTracker<Alloc>::_deallocate(node, 1);
       return true;
@@ -412,6 +423,21 @@ namespace bss {
     inline LLIterator<const TRB_Node<T>> end() const { return LLIterator<const TRB_Node<T>>(0); }
     inline LLIterator<TRB_Node<T>> begin() { return LLIterator<TRB_Node<T>>(_first); }
     inline LLIterator<TRB_Node<T>> end() { return LLIterator<TRB_Node<T>>(0); }
+
+    inline TRBtree& operator=(TRBtree&& mov)
+    {
+      Clear();
+      TRB_Node<T>* nil = NIL;
+      _first = mov._first;
+      _last = mov._last;
+      _root = mov._root;
+      NIL = mov.NIL;
+      mov._first = 0;
+      mov._last = 0;
+      mov.NIL = nil;
+      mov._root = mov.NIL;
+      return *this;
+    }
 
     static TRB_Node<T>* GetNode(const T& x, TRB_Node<T>* const& root, TRB_Node<T>* pNIL)
     {
@@ -456,7 +482,7 @@ namespace bss {
     TRB_Node<T>*  _first;
     TRB_Node<T>*  _last;
     TRB_Node<T>*  _root;
-    mutable TRB_Node<T> NIL;
+    TRB_Node<T>* NIL;
   };
 }
 

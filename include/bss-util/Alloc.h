@@ -8,6 +8,7 @@
 #include <memory>
 #include <malloc.h> // Must be included because GCC is weird
 #include <assert.h>
+#include <string.h>
 
 namespace bss {
   // Align should be a power of two for platform independence.
@@ -20,15 +21,6 @@ namespace bss {
     memcpy(n, p, malloc_usable_size(p));
     free(p);
     return n;
-#endif
-  }
-
-  inline void aligned_free(void* p)
-  {
-#ifdef BSS_PLATFORM_WIN32
-    _aligned_free(p);
-#else
-    free(p);
 #endif
   }
 
@@ -51,7 +43,7 @@ namespace bss {
     {
       assert(p != 0);
       if constexpr(ALIGN > alignof(void*))
-        aligned_free(p);
+        ALIGNEDFREE(p);
       else
         free(p);
     }
@@ -91,7 +83,7 @@ namespace bss {
     { 
       assert(p != 0);
       if constexpr(ALIGN > alignof(void*))
-        aligned_free(p);
+        ALIGNEDFREE(p);
       else
         free(p); 
     }

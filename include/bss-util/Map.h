@@ -14,12 +14,12 @@ namespace bss {
     char(*CFunc)(const Key&, const Key&) = CompT<Key>,
     typename CType = size_t, ARRAY_TYPE ArrayType = ARRAY_SIMPLE,
     typename Alloc = StaticAllocPolicy<std::pair<Key, Data>>>
-  class BSS_COMPILER_DLLEXPORT Map : protected ArraySort<std::pair<Key, Data>, CompTFirst<std::pair<Key, Data>, CFunc>, CType, ArrayType, Alloc>
+  class BSS_COMPILER_DLLEXPORT Map : protected ArraySort<std::pair<Key, Data>, CompTFirst<Key, Data, CFunc>, CType, ArrayType, Alloc>
   {
   protected:
     typedef CType CT_;
     typedef std::pair<Key, Data> pair_t;
-    typedef ArraySort<pair_t, CompTFirst<pair_t, CFunc>, CT_, ArrayType, Alloc> cArraySort_t;
+    typedef ArraySort<pair_t, CompTFirst<Key, Data, CFunc>, CT_, ArrayType, Alloc> cArraySort_t;
     typedef const Data& constref;
     typedef const Key& CKEYREF;
     using cArraySort_t::_array;

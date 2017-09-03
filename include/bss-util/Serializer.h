@@ -63,7 +63,7 @@ namespace bss {
           if constexpr(std::is_arithmetic<T>::value)
             Engine::template ParseNumber<T>(e, t, id); 
           else if constexpr(std::is_enum<T>::value)
-            Engine::template ParseNumber<make_integral<T>::type>(e, reinterpret_cast<make_integral<T>::type&>(t), id);
+            Engine::template ParseNumber<typename make_integral<T>::type>(e, reinterpret_cast<typename make_integral<T>::type&>(t), id);
           else
             Engine::template Parse<T>(e, t, id);
         }
@@ -72,7 +72,7 @@ namespace bss {
           if constexpr(std::is_arithmetic<T>::value)
             Engine::template SerializeNumber<T>(e, t, id);
           else if constexpr(std::is_enum<T>::value)
-            Engine::template SerializeNumber<make_integral<T>::type>(e, reinterpret_cast<const make_integral<T>::type&>(t), id);
+            Engine::template SerializeNumber<typename make_integral<T>::type>(e, reinterpret_cast<const typename make_integral<T>::type&>(t), id);
           else
             Engine::template Serialize<T>(e, t, id);
         }

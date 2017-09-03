@@ -40,11 +40,11 @@ namespace bss {
       }
     }
     template<typename T>
-    inline T* allocT(size_t num) noexcept
+    inline T* AllocT(size_t num) noexcept
     {
-      return (T*)alloc(num * sizeof(T));
+      return (T*)Alloc(num * sizeof(T));
     }
-    inline void* alloc(size_t _sz) noexcept
+    inline void* Alloc(size_t _sz) noexcept
     {
 #ifdef BSS_DISABLE_CUSTOM_ALLOCATORS
       return malloc(_sz);
@@ -80,7 +80,7 @@ namespace bss {
       _lock.RUnlock();
       return retval;
     }
-    void dealloc(void* p) noexcept
+    void Dealloc(void* p) noexcept
     {
 #ifdef BSS_DISABLE_CUSTOM_ALLOCATORS
       delete p; return;
@@ -162,8 +162,8 @@ namespace bss {
     inline GreedyPolicy() {}
     inline ~GreedyPolicy() {}
 
-    inline pointer allocate(std::size_t cnt, const pointer = 0) noexcept { return GreedyAlloc::allocT<T>(cnt); }
-    inline void deallocate(pointer p, std::size_t num = 0) noexcept {}
+    inline pointer allocate(std::size_t cnt, const pointer = 0) noexcept { return GreedyAlloc::AllocT<T>(cnt); }
+    inline void deallocate(pointer p, std::size_t num = 0) noexcept { GreedyAlloc::Dealloc(p); }
     inline void clear() noexcept { GreedyAlloc::Clear(); } //done for functor reasons, has no effect here
   };
 }

@@ -30,7 +30,7 @@ namespace bss {
     using BASE::_array;
     using BASE::_capacity;
     typedef std::pair<T, const char*> PAIR;
-    typedef typename std::conditional<IGNORECASE, BinaryHeap<PAIR, T, CompTSecond<PAIR, CompIStr<const char*>>>, BinaryHeap<PAIR, T, CompTSecond<PAIR, CompStr<const char*>>>>::type SORTING_HEAP;
+    typedef typename std::conditional<IGNORECASE, BinaryHeap<PAIR, T, CompTSecond<T, const char*, CompIStr<const char*>>>, BinaryHeap<PAIR, T, CompTSecond<T, const char*, CompStr<const char*>>>>::type SORTING_HEAP;
 
   public:
     inline Trie(Trie&& mov) : BASE(std::move(mov)), _length(mov._length) { mov._length = 0; }

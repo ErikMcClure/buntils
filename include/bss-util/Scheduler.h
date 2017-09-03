@@ -10,9 +10,9 @@
 namespace bss {
   // Scheduler object that lets you schedule events that happen x milliseconds into the future. If the event returns a number greater than 0,it will be rescheduled. 
   template<typename F, typename ST = size_t> //std::function<double(void)>
-  class BSS_COMPILER_DLLEXPORT Scheduler : protected HighPrecisionTimer, protected BinaryHeap<std::pair<double, F>, ST, CompTFirst<std::pair<double, F>, CompTInv<double>>, ARRAY_SAFE>
+  class BSS_COMPILER_DLLEXPORT Scheduler : protected HighPrecisionTimer, protected BinaryHeap<std::pair<double, F>, ST, CompTFirst<double, F, CompTInv<double>>, ARRAY_SAFE>
   {
-    typedef BinaryHeap<std::pair<double, F>, ST, CompTFirst<std::pair<double, F>, CompTInv<double>>, ARRAY_SAFE> BASE;
+    typedef BinaryHeap<std::pair<double, F>, ST, CompTFirst<double, F, CompTInv<double>>, ARRAY_SAFE> BASE;
   public:
     // Constructor
     inline Scheduler() {}

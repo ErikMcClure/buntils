@@ -50,7 +50,7 @@ namespace bss {
 
   public:
     LocklessQueue(LocklessQueue&& mov) : internal::LocklessQueue_Length<LENGTH>(std::move(mov)), _div(mov._div), _last(mov._last), _first(mov._first), _alloc(std::move(mov._alloc)) { mov._div = mov._last = mov._first = 0; }
-    inline LocklessQueue() { _div = _last = _first = _alloc.alloc(1); new((QNODE*)_first) QNODE(); /*assert(_last.is_lock_free()); assert(_div.is_lock_free());*/ } // bug in GCC doesn't define is_lock_free
+    inline LocklessQueue() { _div = _last = _first = _alloc.Alloc(1); new((QNODE*)_first) QNODE(); /*assert(_last.is_lock_free()); assert(_div.is_lock_free());*/ } // bug in GCC doesn't define is_lock_free
     inline ~LocklessQueue() {} // Don't need to clean up because the allocator will destroy everything by itself
     BSS_FORCEINLINE void Push(const T& t) { _produce<const T&>(t); }
     BSS_FORCEINLINE void Push(T&& t) { _produce<T&&>(std::move(t)); }
@@ -86,7 +86,7 @@ namespace bss {
     void _produce(U && t)
     {
       QNODE* last = _last.load(std::memory_order_acquire);
-      last->next = _alloc.alloc(1);
+      last->next = _alloc.Alloc(1);
       new((QNODE*)last->next) QNODE(std::forward<U>(t));
       _last.store(last->next, std::memory_order_release); // publish it
       internal::LocklessQueue_Length<LENGTH>::_incLength(); // If we are tracking length, atomically increment it
@@ -97,7 +97,7 @@ namespace bss {
         tmp = _first;
         _first = _first->next;
         tmp->~QNODE(); // We have to let item clean itself up
-        _alloc.dealloc(tmp);
+        _alloc.Dealloc(tmp);
       }
     }
 
@@ -117,7 +117,7 @@ namespace bss {
 
   public:
     MicroLockQueue(MicroLockQueue&& mov) : internal::LocklessQueue_Length<LENGTH>(std::move(mov)), _div(mov._div), _last(mov._last), _alloc(std::move(mov._alloc)) { mov._div = mov._last = 0; _cflag.clear(std::memory_order_relaxed);  _pflag.clear(std::memory_order_relaxed); }
-    inline MicroLockQueue() { _last = _div = _alloc.alloc(1); new(_div)QNODE(); _cflag.clear(std::memory_order_relaxed);  _pflag.clear(std::memory_order_relaxed); }
+    inline MicroLockQueue() { _last = _div = _alloc.Alloc(1); new(_div)QNODE(); _cflag.clear(std::memory_order_relaxed);  _pflag.clear(std::memory_order_relaxed); }
     inline ~MicroLockQueue() {} // Don't need to clean up because the allocator will destroy everything by itself
     BSS_FORCEINLINE void Push(const T& t) { _produce<const T&>(t); }
     BSS_FORCEINLINE void Push(T&& t) { _produce<T&&>(std::move(t)); }
@@ -135,7 +135,7 @@ namespace bss {
         _div = n;
         _cflag.clear(std::memory_order_release);
         ref->~QNODE(); // We have to let item clean itself up
-        _alloc.dealloc(ref);
+        _alloc.Dealloc(ref);
         internal::LocklessQueue_Length<LENGTH>::_decLength(); // If we are tracking length, atomically decrement it
         return true;
       }
@@ -158,7 +158,7 @@ namespace bss {
     template<typename U>
     void _produce(U && t)
     {
-      QNODE* nval = _alloc.alloc(1);
+      QNODE* nval = _alloc.Alloc(1);
       new(nval) QNODE(std::forward<U>(t));
 
       while(_pflag.test_and_set(std::memory_order_acquire));
@@ -182,7 +182,7 @@ namespace bss {
   public:
     MicroLockQueue(const MicroLockQueue&) = delete;
     MicroLockQueue(MicroLockQueue&& mov) : internal::LocklessQueue_Length<LENGTH>(std::move(mov)), _div(mov._div), _last(mov._last), _alloc(std::move(mov._alloc)) { mov._div=mov._last=0; }
-    inline MicroLockQueue() { _last.store(_div.p = _alloc.alloc(1), std::memory_order_relaxed); new(_div.p) QNODE(); assert(_last.is_lock_free());}
+    inline MicroLockQueue() { _last.store(_div.p = _alloc.Alloc(1), std::memory_order_relaxed); new(_div.p) QNODE(); assert(_last.is_lock_free());}
     inline ~MicroLockQueue() { } // Don't need to clean up because the allocator will destroy everything by itself
     BSS_FORCEINLINE void Push(const T& t) { _produce<const T&>(t); }
     BSS_FORCEINLINE void Push(T&& t) { _produce<T&&>(std::move(t)); }
@@ -198,7 +198,7 @@ namespace bss {
         if(!asmcasr<bss_PTag<QNODE>>(&_div, nval, ref, ref)) continue;
         result = std::move(ref.p->item); 	// try to use move semantics if possible
         ref.p->~QNODE(); // We have to let item clean itself up
-        _alloc.dealloc(ref.p);
+        _alloc.Dealloc(ref.p);
         internal::LocklessQueue_Length<LENGTH>::_decLength(); // Decrement length if we're tracking it
         return true;
       }
@@ -218,7 +218,7 @@ namespace bss {
     template<typename U>
     void _produce(U && t)
     {
-      QNODE* nval = _alloc.alloc(1);
+      QNODE* nval = _alloc.Alloc(1);
       new(nval) QNODE();
 
       while(!asmcas<QNODE*>(&_last.load(std::memory_order_relaxed)->next, nval, 0)); //This doesn't work because of a race condition where this thread loads _last, then another producer pushes through a new _last and a consume thread then destroys the _last we just loaded, and we end up writing to an undefined location.

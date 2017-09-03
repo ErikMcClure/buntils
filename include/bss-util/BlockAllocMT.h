@@ -13,8 +13,6 @@ namespace bss {
   class BSS_COMPILER_DLLEXPORT LocklessBlockAlloc
   {
     typedef BlockAllocVoid::FIXEDLIST_NODE NODE;
-    LocklessBlockAlloc(const LocklessBlockAlloc& copy) = delete;
-      LocklessBlockAlloc& operator=(const LocklessBlockAlloc& copy) = delete;
   public:
     inline LocklessBlockAlloc(LocklessBlockAlloc&& mov) : _root(mov._root)
     {
@@ -43,7 +41,7 @@ namespace bss {
         free(_root);
       }
     }
-    inline T* alloc(size_t num) noexcept
+    inline T* Alloc(size_t num) noexcept
     {
       assert(num == 1);
 #ifdef BSS_DISABLE_CUSTOM_ALLOCATORS
@@ -77,7 +75,7 @@ namespace bss {
       //assert(_validPointer(ret));
       return (T*)ret.p;
     }
-    inline void dealloc(void* p) noexcept
+    inline void Dealloc(void* p) noexcept
     {
 #ifdef BSS_DISABLE_CUSTOM_ALLOCATORS
       free(p); return;
@@ -164,9 +162,6 @@ namespace bss {
   template<typename T>
   class BSS_COMPILER_DLLEXPORT LocklessBlockPolicy : protected LocklessBlockAlloc<T>
   {
-    LocklessBlockPolicy(const LocklessBlockPolicy& copy) = delete;
-      LocklessBlockPolicy& operator=(const LocklessBlockPolicy& copy) = delete;
-
   public:
     typedef T* pointer;
     typedef T value_type;
@@ -177,8 +172,10 @@ namespace bss {
     inline LocklessBlockPolicy() {}
     inline ~LocklessBlockPolicy() {}
 
-    inline pointer allocate(size_t cnt, const pointer = 0) noexcept { return LocklessBlockAlloc<T>::alloc(cnt); }
-    inline void deallocate(pointer p, size_t num = 0) noexcept { return LocklessBlockAlloc<T>::dealloc(p); }
+    LocklessBlockPolicy& operator=(LocklessBlockPolicy&& mov) { LocklessBlockAlloc<T>::operator=(std::move(mov)); return *this; }
+
+    inline pointer allocate(size_t cnt, const pointer = 0) noexcept { return LocklessBlockAlloc<T>::Alloc(cnt); }
+    inline void deallocate(pointer p, size_t num = 0) noexcept { return LocklessBlockAlloc<T>::Dealloc(p); }
   };
 }
 

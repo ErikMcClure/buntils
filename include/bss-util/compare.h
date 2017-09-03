@@ -6,6 +6,7 @@
 
 #include "defines.h"
 #include <string.h>
+#include <utility>
 
 #define SGNCOMPARE(left,right) (((left)>(right))-((left)<(right)))
 #define PRICOMPARE(left,right,p) (SGNCOMPARE(left,right)<<p)
@@ -29,11 +30,11 @@ namespace bss {
   template<typename T>
   BSS_FORCEINLINE char CompT_NEQ(const T& left, const T& right) noexcept { return (left != right); }
 
-  template<typename T, char(*CompF)(const typename T::first_type&, const typename T::first_type&)>
-  BSS_FORCEINLINE char CompTFirst(const T& left, const T& right) noexcept { return CompF(left.first, right.first); }
+  template<typename T1, typename T2, char(*CompF)(const T1&, const T1&)>
+  BSS_FORCEINLINE char CompTFirst(const std::pair<T1,T2>& left, const std::pair<T1, T2>& right) noexcept { return CompF(left.first, right.first); }
 
-  template<typename T, char(*CompF)(const typename T::second_type&, const typename T::second_type&)>
-  BSS_FORCEINLINE char CompTSecond(const T& left, const T& right) noexcept { return CompF(left.second, right.second); }
+  template<typename T1, typename T2, char(*CompF)(const T2&, const T2&)>
+  BSS_FORCEINLINE char CompTSecond(const std::pair<T1, T2>& left, const std::pair<T1, T2>& right) noexcept { return CompF(left.second, right.second); }
 
   template<typename T>
   BSS_FORCEINLINE char CompStr(const T& left, const T& right)

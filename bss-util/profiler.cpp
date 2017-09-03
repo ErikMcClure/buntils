@@ -16,7 +16,7 @@ namespace bss {
         static GreedyAlloc _alloc;
         inline static PROF_HEATNODE* allocate(size_t cnt, const PROF_HEATNODE* p = 0)
         {
-          auto n = _alloc.allocT<PROF_HEATNODE>(cnt + 1);
+          auto n = _alloc.AllocT<PROF_HEATNODE>(cnt + 1);
           *((size_t*)n++) = cnt;
           if(p)
           {
@@ -26,7 +26,7 @@ namespace bss {
           }
 
           return n;
-        } static void deallocate(PROF_HEATNODE* p, size_t = 0) { _alloc.dealloc(p - 1); }
+        } static void deallocate(PROF_HEATNODE* p, size_t = 0) { _alloc.Dealloc(p - 1); }
       };
       static inline char COMP(const PROF_HEATNODE& l, const PROF_HEATNODE& r) { return SGNCOMPARE(r.avg, l.avg); }
       inline bool DEBUGCHECK()
@@ -245,7 +245,7 @@ void Profiler::_timeFormat(std::ostream& stream, double avg, double variance, ui
 }
 Profiler::PROF_TRIENODE* Profiler::_allocNode()
 {
-  PROF_TRIENODE* r = _alloc.alloc(1);
+  PROF_TRIENODE* r = _alloc.Alloc(1);
   bssFill(*r, 0);
   r->total = (uint64_t)-1;
   ++_totalnodes;

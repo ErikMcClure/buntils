@@ -36,7 +36,7 @@ void INIsection::_destroy()
   {
     t=_root->next;
     _root->~_NODE();
-    _alloc.dealloc(_root);
+    _alloc.Dealloc(_root);
     _root=t;
   }
   _last=0;
@@ -49,7 +49,7 @@ void INIsection::_copy(const INIsection& copy)
   size_t c=0;
   while(t)
   {
-    _NODE* p=_alloc.alloc(1);
+    _NODE* p=_alloc.Alloc(1);
     bssFill(*p, 0);
     new (&p->val) INIentry(t->val);
     if(!_root)
@@ -74,7 +74,7 @@ void INIsection::_copy(const INIsection& copy)
 
 void INIsection::_addEntry(const char* key, const char* data)
 {
-  _NODE* p=_alloc.alloc(1);
+  _NODE* p=_alloc.Alloc(1);
   bssFill(*p, 0);
   new (&p->val) INIentry(key,data);
   khiter_t iter=_entries.Iterator(key);

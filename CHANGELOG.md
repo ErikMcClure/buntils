@@ -16,6 +16,8 @@
 - Remove `bssSeq` and use standardized `std::index_sequence` instead
 - Drop all attempts to support VS2010 and remove legacy code
 - Simplify template boilerplate with `if constexpr`
+- Add aligned allocator support
+- Add move semantics to TRBTree
 
 ## 0.5.0
 - Added AttemptRLock(), AttemptStrictLock() to RWLock

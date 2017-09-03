@@ -13,10 +13,10 @@ namespace bss {
     char(*CFunc)(const K&, const K&) = CompT<K>,
     typename CT_ = size_t, ARRAY_TYPE ArrayType = ARRAY_SIMPLE,
     typename Alloc = StaticAllocPolicy<std::pair<K, D>>>
-  class BSS_COMPILER_DLLEXPORT PriorityQueue : protected BinaryHeap<std::pair<K, D>, CT_, CompTFirst<std::pair<K, D>, CFunc>, ArrayType, Alloc>
+  class BSS_COMPILER_DLLEXPORT PriorityQueue : protected BinaryHeap<std::pair<K, D>, CT_, CompTFirst<K, D, CFunc>, ArrayType, Alloc>
   {
     typedef std::pair<K, D> PAIR;
-    typedef BinaryHeap<std::pair<K, D>, CT_, CompTFirst<std::pair<K, D>, CFunc>, ArrayType, Alloc> BASE;
+    typedef BinaryHeap<std::pair<K, D>, CT_, CompTFirst<K, D, CFunc>, ArrayType, Alloc> BASE;
 
   public:
     PriorityQueue(const PriorityQueue& copy) : BASE(copy) {}
@@ -51,10 +51,10 @@ namespace bss {
     char(*CFunc)(const D&, const D&) = CompT<D>,
     ARRAY_TYPE ArrayType = ARRAY_SIMPLE,
     typename Alloc = StaticAllocPolicy<std::pair<CT_, D>>>
-  class BSS_COMPILER_DLLEXPORT PriorityHeap : protected BinaryHeap<std::pair<CT_, D>, CT_, CompTSecond<std::pair<CT_, D>, CFunc>, ArrayType, Alloc, internal::MFUNC_PRIORITY<std::pair<CT_, D>, CT_>>
+  class BSS_COMPILER_DLLEXPORT PriorityHeap : protected BinaryHeap<std::pair<CT_, D>, CT_, CompTSecond<CT_, D, CFunc>, ArrayType, Alloc, internal::MFUNC_PRIORITY<std::pair<CT_, D>, CT_>>
   {
     typedef std::pair<CT_, D> PAIR;
-    typedef BinaryHeap<std::pair<CT_, D>, CT_, CompTSecond<std::pair<CT_, D>, CFunc>, ArrayType, Alloc, internal::MFUNC_PRIORITY<std::pair<CT_, D>, CT_>> BASE;
+    typedef BinaryHeap<std::pair<CT_, D>, CT_, CompTSecond<CT_, D, CFunc>, ArrayType, Alloc, internal::MFUNC_PRIORITY<std::pair<CT_, D>, CT_>> BASE;
     using BASE::_subarray;
 
   public:

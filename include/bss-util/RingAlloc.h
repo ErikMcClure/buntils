@@ -45,7 +45,7 @@ namespace bss {
     }
     ~RingAllocVoid() { _clear(); }
 
-    inline void* alloc(size_t num) noexcept
+    inline void* Alloc(size_t num) noexcept
     {
       size_t n = num + sizeof(Node);
       Bucket* cur;
@@ -89,9 +89,9 @@ namespace bss {
       return ret + 1;
     }
     template<class T>
-    inline T* allocT(size_t count = 1) noexcept { return (T*)alloc(sizeof(T)*count); }
+    inline T* AllocT(size_t count = 1) noexcept { return (T*)Alloc(sizeof(T)*count); }
 
-    inline void dealloc(void* p) noexcept
+    inline void Dealloc(void* p) noexcept
     {
       Node* n = ((Node*)p) - 1;
       Bucket* b = n->p; // grab bucket pointer before we annihilate the node
@@ -243,7 +243,7 @@ namespace bss {
   public:
     inline RingAlloc(RingAlloc&& mov) : RingAllocVoid(std::move(mov)) {}
     inline explicit RingAlloc(size_t init = 8) : RingAllocVoid(init) {}
-    inline T* alloc(size_t num) noexcept { return (T*)RingAllocVoid::alloc(num * sizeof(T)); }
+    inline T* Alloc(size_t num) noexcept { return (T*)RingAllocVoid::Alloc(num * sizeof(T)); }
     inline RingAlloc& operator=(RingAlloc&& mov) noexcept { RingAllocVoid::operator=(std::move(mov)); return *this; }
   };
 
@@ -265,8 +265,8 @@ namespace bss {
     inline ~RingPolicy() {}
     inline RingPolicy& operator=(RingPolicy&& mov) noexcept { RingAlloc<T>::operator=(std::move(mov)); return *this; }
 
-    inline pointer allocate(size_t cnt, const pointer = 0) noexcept { return RingAlloc<T>::alloc(cnt); }
-    inline void deallocate(pointer p, size_t num = 0) noexcept { return RingAlloc<T>::dealloc(p); }
+    inline pointer allocate(size_t cnt, const pointer = 0) noexcept { return RingAlloc<T>::Alloc(cnt); }
+    inline void deallocate(pointer p, size_t num = 0) noexcept { return RingAlloc<T>::Dealloc(p); }
   };
 }
 

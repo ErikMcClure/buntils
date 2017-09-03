@@ -109,11 +109,12 @@ namespace bss {
       {
         if constexpr(std::is_integral<GET>::value)
           return (GET)~0;
-        if constexpr(std::is_enum<GET>::value) // If we try to combine this into the if statement above, VC++ gets confused
+        else if constexpr(std::is_enum<GET>::value) // If we try to combine this into the if statement above, VC++ gets confused
           return (GET)~0;
-        if constexpr(std::is_pointer<GET>::value | std::is_member_pointer<GET>::value)
+        else if constexpr(std::is_pointer<GET>::value | std::is_member_pointer<GET>::value)
           return nullptr;
-        return GET{ 0 };
+        else
+          return GET{ 0 };
       }
       return internal::_HashBaseGET<Data, std::is_integral<Data>::value | std::is_enum<Data>::value | std::is_pointer<Data>::value | std::is_member_pointer<Data>::value>::F(vals[i]);
     }

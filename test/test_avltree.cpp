@@ -67,9 +67,9 @@ TESTDEF::RETPAIR test_AVLTREE()
     AVLTree<int, AVL_D, CompT<int>, BlockPolicy<AVLNode<std::pair<int, AVL_D>>>> dtree;
     for(size_t i = 0; i<TESTNUM; ++i)
     {
-      auto dp = dalloc.alloc(1);
+      auto dp = dalloc.Alloc(1);
       new(dp)DEBUG_CDT<false>(testnums[i]);
-      dtree.Insert(testnums[i], AVL_D(dp, [&](DEBUG_CDT<false>* p) {p->~DEBUG_CDT<false>(); dalloc.dealloc(p); }));
+      dtree.Insert(testnums[i], AVL_D(dp, [&](DEBUG_CDT<false>* p) {p->~DEBUG_CDT<false>(); dalloc.Dealloc(p); }));
     }
 
     Shuffle(testnums);

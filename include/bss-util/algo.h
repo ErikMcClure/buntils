@@ -683,14 +683,14 @@ namespace bss {
     // If we choose C = (3·C2 - P2 + 3·C1 - P1)/4 we get f(t) = t·(1 - t)·½(6·t - 1)|(3·C_1 - 3·C_2 - P_1 + P_2)|
     // f'(t) = -½(2·t(9·t - 7) + 1) |(3·C_1 - 3·C_2 - P_1 + P_2)| = 0 -> -½(2·t(9·t - 7) + 1) = 0 -> 2·t(9·t - 7) = -1
     // Solving the derivative for 0 to maximize the error value, we get t = (1/18)(7±sqrt(31)). Only the + result is inside [0,1], so we plug that into t·(1 - t)·½(6·t - 1) = 77/486+(31 sqrt(31))/972 ~ 0.336008945728118
-    const double term = 0.336008945728118;
+    const T term = (T)0.336008945728118;
 
     T r = 0;
     T M;
 
     for(int i = 0; i < I; ++i) // 3·C_1 - 3·C_2 - P_1 + P_2
     {
-      M = 3 * P1[i] - 3 * P2[i] - P0[i] + P3[i];
+      M = T(3) * P1[i] - T(3) * P2[i] - P0[i] + P3[i];
       r += M*M;
     }
 
@@ -742,7 +742,7 @@ namespace bss {
   {
     T r[2];
     CubicInflectionPoints<T>(P0, P1, P2, P3, r);
-    T t[3] = { 0.0, (r[0] >= 0.0 && r[0] <= 1.0) ? r[0] : ((r[1] >= 0.0 && r[1] <= 1.0) ? r[1] : 0.5), 1.0 };
+    T t[3] = { (T)0.0, (r[0] >= (T)0.0 && r[0] <= (T)1.0) ? r[0] : ((r[1] >= (T)0.0 && r[1] <= (T)1.0) ? r[1] : (T)0.5), (T)1.0 };
     ApproxCubicR<T, FN>(t, P0, P1, P2, P3, fn, maxerror); // Call recursive function that does the actual splitting
   }
 

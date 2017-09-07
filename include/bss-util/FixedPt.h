@@ -60,11 +60,11 @@ namespace bss {
     static_assert(std::is_signed<T>::value, "T must be a signed integral type.");
 
   public:
-    inline Fixed(const Fixed& copy) : _bits(copy._bits) {}
+    inline constexpr Fixed(const Fixed& copy) : _bits(copy._bits) {}
     template<uint8_t B, typename U, bool S>
     inline Fixed(const Fixed<B, U, S>& copy) : _bits((T)SAFESHIFT(copy.Bits(), B - D)) {}
-    inline explicit Fixed(const T v) : _bits(v << D) {}
-    inline Fixed(BITS bits) : _bits(bits.bits) {}
+    inline constexpr explicit Fixed(const T v) : _bits(v << D) {}
+    inline constexpr Fixed(BITS bits) : _bits(bits.bits) {}
     inline explicit Fixed(const float f) : _bits(FixedPtConv<T, D, float>(f)) {}
     inline explicit Fixed(const double f) : _bits(FixedPtConv<T, D, double>(f)) {}
     inline T Bits() const { return _bits; }

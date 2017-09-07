@@ -17,6 +17,34 @@ struct TOMLtest3
     s.template EvaluateType<TOMLtest3>(GenPair("f", f));
   }
 };
+
+struct Hitbox {
+  bss::DynArray<bss::CircleSector<float>> circles;
+  bss::DynArray<bss::Rect<float>> rects;
+  bss::DynArray<bss::Polygon<float>> polygons;
+
+  template<typename Engine>
+  void Serialize(bss::Serializer<Engine>& e)
+  {
+    e.template EvaluateType<Hitbox>(
+      bss::GenPair("circles", circles),
+      bss::GenPair("rects", rects),
+      bss::GenPair("polygons", polygons)
+      );
+  }
+};
+
+struct AttackData {
+  Hitbox box;
+
+  template<typename Engine>
+  void Serialize(bss::Serializer<Engine>& e)
+  {
+    e.template EvaluateType<Hitbox>(bss::GenPair("box", box));
+  }
+};
+
+
 struct TOMLtest2
 {
   uint16_t a;
@@ -45,6 +73,7 @@ struct TOMLtest
   std::array<bool, 2> g;
   DynArray<TOMLtest2> nested;
   TOMLtest2 inlinetest;
+  bss::DynArray<AttackData> Attacks;
 #ifdef BSS_COMPILER_HAS_TIME_GET
   std::chrono::system_clock::time_point date;
 #endif
@@ -68,8 +97,8 @@ struct TOMLtest
 #ifdef BSS_COMPILER_HAS_TIME_GET
       GenPair("date", date),
 #endif
-      GenPair("inlinetest", inlinetest)
-
+      GenPair("inlinetest", inlinetest),
+      GenPair("Attacks", Attacks)
       );
   }
 };
@@ -117,6 +146,17 @@ void dotest_TOML(TOMLtest& o, TESTDEF::RETPAIR& __testret)
   TEST(o.nested[0].test.f == 80.9f);
   TEST(o.nested[1].a == 3);
   TEST(o.nested[1].test.f == -12.21f);
+  TEST(o.Attacks.Length() == 2);
+  for(size_t i = 0; i < o.Attacks.Length(); ++i)
+  {
+    TEST(o.Attacks[i].box.circles.Length() == 1);
+    TEST(o.Attacks[i].box.circles[0].x == 0);
+    TEST(o.Attacks[i].box.circles[0].y == 0);
+    TEST(o.Attacks[i].box.circles[0].outer == 100);
+    TEST(o.Attacks[i].box.circles[0].inner == 0);
+    TEST(fCompare(o.Attacks[i].box.circles[0].min, 5.18319f, 1000));
+    TEST(fCompare(o.Attacks[i].box.circles[0].range, 2.2f, 1000));
+  }
 }
 
 TESTDEF::RETPAIR test_TOML()
@@ -138,6 +178,7 @@ ThirD\"\"\", 'fOURTh']\n\
 g = [false, true]\n\
 inlinetest = { a = 6, test = { f = 123.456 } }\n\
 date = 2006-01-02T15:04:05-07:00 \n\
+Attacks = [{ box = { circles = [[0, 0, 100, 0, 5.18319, 2.2]], rects = [], polygons = [] }}, { box = { circles = [[0, 0, 100, 0, 5.18319, 2.2]], rects = [], polygons = [] }}]\n\
 \n\
 [test2] \n\
 a = 5 \n\

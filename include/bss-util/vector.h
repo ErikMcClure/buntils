@@ -639,12 +639,13 @@ namespace bss {
   template<typename T, int N>
   struct BSS_COMPILER_DLLEXPORT Vector
   {
+
     template<typename U>
-    inline Vector(const Vector<U, N>& copy) { for(int i = 0; i < N; ++i) v[i] = (T)copy.v[i]; }
-    inline explicit Vector(T scalar) { for(int i = 0; i < N; ++i) v[i] = scalar; }
-    inline explicit Vector(const T(&e)[N]) { for(int i = 0; i < N; ++i) v[i] = e[i]; }
+    inline constexpr Vector(const Vector<U, N>& copy) { for(int i = 0; i < N; ++i) v[i] = (T)copy.v[i]; }
+    inline explicit constexpr Vector(T scalar) { for(int i = 0; i < N; ++i) v[i] = scalar; }
+    inline explicit constexpr Vector(const T(&e)[N]) { for(int i = 0; i < N; ++i) v[i] = e[i]; }
     inline Vector(const std::initializer_list<T>& e) { int k = 0; for(const T* i = e.begin(); i != e.end() && k < N; ++i) v[k++] = *i; }
-    inline Vector() {}
+    inline constexpr Vector() {}
     inline T Length() const { return FastSqrt<T>(Dot(*this)); }
     inline Vector<T, N> Normalize() const { Vector<T, N> ret(*this); NVectorNormalize(v, ret.v); return ret; }
     inline Vector<T, N> Abs() const { Vector<T, N> ret(*this); NVectorAbs(v, ret.v); return ret; }
@@ -667,12 +668,12 @@ namespace bss {
   struct BSS_COMPILER_DLLEXPORT Vector<T, 2>
   {
     template<typename U>
-    inline Vector(const Vector<U, 2>& copy) : x((T)copy.v[0]), y((T)copy.v[1]) {}
-    inline explicit Vector(T scalar) : x(scalar), y(scalar) {}
-    inline explicit Vector(const T(&e)[2]) : x(e[0]), y(e[1]) {}
+    inline constexpr Vector(const Vector<U, 2>& copy) : x((T)copy.v[0]), y((T)copy.v[1]) {}
+    inline explicit constexpr Vector(T scalar) : x(scalar), y(scalar) {}
+    inline explicit constexpr Vector(const T(&e)[2]) : x(e[0]), y(e[1]) {}
     inline Vector(const std::initializer_list<T>& e) { int k = 0; for(const T* i = e.begin(); i != e.end() && k < 2; ++i) v[k++] = *i; }
-    inline Vector(T X, T Y) : x(X), y(Y) {}
-    inline Vector() {}
+    inline constexpr Vector(T X, T Y) : x(X), y(Y) {}
+    inline constexpr Vector() {}
     inline T Length() const { return FastSqrt<T>(Dot(*this)); }
     inline Vector<T, 2> Normalize() const { T l = Length(); return Vector<T, 2>(x / l, y / l); }
     inline Vector<T, 2> Abs() const { return Vector<T, 2>(NVectorAbsCall(x), NVectorAbsCall(y)); }
@@ -709,12 +710,12 @@ namespace bss {
   struct BSS_COMPILER_DLLEXPORT Vector<T, 3>
   {
     template<typename U>
-    inline Vector(const Vector<U, 3>& copy) : x((T)copy.v[0]), y((T)copy.v[1]), z((T)copy.v[2]) {}
-    inline explicit Vector(T scalar) : x(scalar), y(scalar), z(scalar) {}
-    inline explicit Vector(const T(&e)[3]) : x(e[0]), y(e[1]), z(e[2]) {}
+    inline constexpr Vector(const Vector<U, 3>& copy) : x((T)copy.v[0]), y((T)copy.v[1]), z((T)copy.v[2]) {}
+    inline explicit constexpr Vector(T scalar) : x(scalar), y(scalar), z(scalar) {}
+    inline explicit constexpr Vector(const T(&e)[3]) : x(e[0]), y(e[1]), z(e[2]) {}
     inline Vector(const std::initializer_list<T>& e) { int k = 0; for(const T* i = e.begin(); i != e.end() && k < 3; ++i) v[k++] = *i; }
-    inline Vector(T X, T Y, T Z) : x(X), y(Y), z(Z) {}
-    inline Vector() {}
+    inline constexpr Vector(T X, T Y, T Z) : x(X), y(Y), z(Z) {}
+    inline constexpr Vector() {}
     inline T Length() const { return FastSqrt((x*x) + (y*y) + (z*z)); }
     inline Vector<T, 3> Normalize() const { T l = Length(); return Vector<T, 3>(x / l, y / l, z / l); }
     inline Vector<T, 3> Abs() const { return Vector<T, 3>(NVectorAbsCall(x), NVectorAbsCall(y), NVectorAbsCall(z)); }
@@ -751,12 +752,12 @@ namespace bss {
   struct BSS_COMPILER_DLLEXPORT Vector<T, 4>
   {
     template<typename U>
-    inline Vector(const Vector<U, 4>& copy) : x((T)copy.v[0]), y((T)copy.v[1]), z((T)copy.v[2]), w((T)copy.v[3]) {}
-    inline explicit Vector(T scalar) : x(scalar), y(scalar), z(scalar), w(scalar) {}
-    inline explicit Vector(const T(&e)[4]) : x(e[0]), y(e[1]), z(e[2]), w(e[3]) {}
+    inline constexpr Vector(const Vector<U, 4>& copy) : x((T)copy.v[0]), y((T)copy.v[1]), z((T)copy.v[2]), w((T)copy.v[3]) {}
+    inline explicit constexpr Vector(T scalar) : x(scalar), y(scalar), z(scalar), w(scalar) {}
+    inline explicit constexpr Vector(const T(&e)[4]) : x(e[0]), y(e[1]), z(e[2]), w(e[3]) {}
     inline Vector(const std::initializer_list<T>& e) { int k = 0; for(const T* i = e.begin(); i != e.end() && k < 4; ++i) v[k++] = *i; }
-    inline Vector(T X, T Y, T Z, T W) : x(X), y(Y), z(Z), w(W) {}
-    inline Vector() {}
+    inline constexpr Vector(T X, T Y, T Z, T W) : x(X), y(Y), z(Z), w(W) {}
+    inline constexpr Vector() {}
     inline T Length() const { return FastSqrt<T>(Dot(*this)); }
     inline Vector<T, 4> Normalize() const { Vector<T, 4> r; NVectorNormalize<T, 4>(v, r.v); return r; }
     inline Vector<T, 4> Abs() const { return Vector<T, 4>(NVectorAbsCall(x), NVectorAbsCall(y), NVectorAbsCall(z), NVectorAbsCall(w)); }
@@ -834,7 +835,7 @@ namespace bss {
     inline Matrix(const Matrix<U, M, N>& copy) { T* p = v; U* cp = copy.v; for(int i = 0; i < M*N; ++i) p[i] = (T)cp[i]; }
     inline Matrix(const std::initializer_list<T>& l) { assert(l.size() == (M*N)); T* p = (T*)v; int k = 0; for(const T* i = l.begin(); i != l.end() && k < M*N; ++i) p[k++] = *i; }
     inline explicit Matrix(const T(&m)[M][N]) { memcpy(v, m, sizeof(T)*M*N); }
-    inline Matrix() {}
+    inline constexpr Matrix() {}
     inline void Transpose(T(&out)[N][M]) const { Transpose(v, out); }
     inline void Transpose(Matrix& mat) const { Transpose(v, mat.v); }
     inline Matrix<T, M, N> Transpose() const { Matrix<T, M, N> m; Transpose(v, m.v); return m; }
@@ -883,7 +884,7 @@ namespace bss {
     inline Matrix(const Matrix<U, 2, 2>& copy) : a((T)copy.a), b((T)copy.b), c((T)copy.c), d((T)copy.d) {}
     inline Matrix(const std::initializer_list<T>& l) { assert(l.size() == (2 * 2)); T* p = (T*)v; int k = 0; for(const T* i = l.begin(); i != l.end() && k < 2 * 2; ++i) p[k++] = *i; }
     inline explicit Matrix(const T(&m)[2][2]) : a(m[0][0]), b(m[0][1]), c(m[1][0]), d(m[1][1]) {}
-    inline Matrix() {}
+    inline constexpr Matrix() {}
     inline void Transpose(Matrix& mat) const { Transpose(mat.v); }
     inline void Transpose(T(&out)[2][2]) const { SetSubMatrix<T, 2, 2, true>::M2x2(out, a, b, c, d); }
     inline Matrix Transpose() const { Matrix m; Transpose(v, m.v); return m; }
@@ -926,7 +927,7 @@ namespace bss {
     inline Matrix(const Matrix<U, 3, 3>& copy) : a((T)copy.a), b((T)copy.b), c((T)copy.c), d((T)copy.d), e((T)copy.e), f((T)copy.f), g((T)copy.g), h((T)copy.h), i((T)copy.i) {}
     inline Matrix(const std::initializer_list<T>& l) { assert(l.size() == (3 * 3)); T* p = (T*)v; int k = 0; for(const T* j = l.begin(); j != l.end() && k < 3 * 3; ++j) p[k++] = *j; }
     inline explicit Matrix(const T(&m)[3][3]) : a(m[0][0]), b(m[0][1]), c(m[0][2]), d(m[1][0]), e(m[1][1]), f(m[1][2]), g(m[2][0]), h(m[2][1]), i(m[2][2]) {}
-    inline Matrix() {}
+    inline constexpr Matrix() {}
     inline void Transpose(Matrix& mat) const { Transpose(mat.v); }
     inline void Transpose(T(&out)[3][3]) const { SetSubMatrix<T, 3, 3, true>::M3x3(out, a, b, c, d, e, f, g, h, i); }
     inline Matrix Transpose() const { Matrix m; Transpose(v, m.v); return m; }
@@ -1007,7 +1008,7 @@ namespace bss {
     inline Matrix(const Matrix<U, 4, 4>& copy) : a((T)copy.a), b((T)copy.b), c((T)copy.c), d((T)copy.d), e((T)copy.e), f((T)copy.f), g((T)copy.g), h((T)copy.h), i((T)copy.i), j((T)copy.j), k((T)copy.k), l((T)copy.l), m((T)copy.m), n((T)copy.n), o((T)copy.o), p((T)copy.p) {}
     inline Matrix(const std::initializer_list<T>& l) { assert(l.size() == (4 * 4)); T* p = (T*)v; int k = 0; for(const T* u = l.begin(); u != l.end() && k < 4 * 4; ++u) p[k++] = *u; }
     inline explicit Matrix(const T(&m)[4][4]) { memcpy(v, m, sizeof(T) * 4 * 4); }
-    inline Matrix() {}
+    inline constexpr Matrix() {}
     inline void Transpose(Matrix& mat) const { Transpose(mat.v); }
     inline void Transpose(T(&out)[4][4]) const { SetSubMatrix<T, 4, 4, true>::M4x4(out, a, b, c, d, e, f, g, h, i, j, k, l, m, n, o, p); }
     inline Matrix Transpose() const { Matrix m; Transpose(v, m.v); return m; }

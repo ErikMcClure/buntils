@@ -13,10 +13,10 @@ namespace bss {
   struct NSphere
   {
     template<typename U>
-    inline NSphere(const NSphere<U, N>& copy) : c(copy.c), r(copy.r) { }
-    inline explicit NSphere(const Vector<T, N>& center, T radius) : c(center), r(radius) { }
-    inline explicit NSphere(const T(&e)[N], T radius) : c(e), r(radius) { }
-    inline NSphere() {}
+    inline constexpr NSphere(const NSphere<U, N>& copy) : c(copy.c), r(copy.r) { }
+    inline constexpr explicit NSphere(const Vector<T, N>& center, T radius) : c(center), r(radius) { }
+    inline constexpr explicit NSphere(const T(&e)[N], T radius) : c(e), r(radius) { }
+    inline constexpr NSphere() {}
     inline T Diameter() const { return r * 2; }
     inline T Radius() const { return r; }
     inline bool ContainsPoint(const Vector<T, N>& p) const { return SphereContainsPoint<T, N>(p, c, r); }
@@ -42,11 +42,11 @@ namespace bss {
   struct NSphere<T, 2>
   {
     template<typename U>
-    inline NSphere(const NSphere<U, 2>& copy) : c(copy.c), r(copy.r) { }
-    inline explicit NSphere(const Vector<T, 2>& center, T radius) : c(center), r(radius) { }
-    inline explicit NSphere(T x, T y, T radius) : c(x, y), r(radius) { }
-    inline explicit NSphere(const T(&e)[2], T radius) : c(e), r(radius) { }
-    inline NSphere() {}
+    inline constexpr NSphere(const NSphere<U, 2>& copy) : c(copy.c), r(copy.r) { }
+    inline constexpr explicit NSphere(const Vector<T, 2>& center, T radius) : c(center), r(radius) { }
+    inline constexpr explicit NSphere(T x, T y, T radius) : c(x, y), r(radius) { }
+    inline constexpr explicit NSphere(const T(&e)[2], T radius) : c(e), r(radius) { }
+    inline constexpr NSphere() {}
     inline T Area() const { return r * r * (T)PI; }
     inline T Circumference() const { return r * 2 * (T)PI; }
     inline T Diameter() const { return r * 2; }
@@ -92,11 +92,11 @@ namespace bss {
   struct NSphere<T, 3>
   {
     template<typename U>
-    inline NSphere(const NSphere<U, 3>& copy) : c(copy.c), r(copy.r) { }
-    inline explicit NSphere(const Vector<T, 3>& center, T radius) : c(center), r(radius) { }
-    inline explicit NSphere(T x, T y, T z, T radius) : c(x, y, z), r(radius) { }
-    inline explicit NSphere(const T(&e)[3], T radius) : c(e), r(radius) { }
-    inline NSphere() {}
+    inline constexpr NSphere(const NSphere<U, 3>& copy) : c(copy.c), r(copy.r) { }
+    inline constexpr explicit NSphere(const Vector<T, 3>& center, T radius) : c(center), r(radius) { }
+    inline constexpr explicit NSphere(T x, T y, T z, T radius) : c(x, y, z), r(radius) { }
+    inline constexpr explicit NSphere(const T(&e)[3], T radius) : c(e), r(radius) { }
+    inline constexpr NSphere() {}
     inline T Volume() const { return (4 * r * r * r * (T)PI) / 3; }
     inline T SurfaceArea() const { return r * r * 4 * (T)PI; }
     inline T Diameter() const { return r * 2; }
@@ -134,10 +134,10 @@ namespace bss {
   struct LineN
   {
     typedef Vector<T, N> V;
-    inline LineN() {}
+    inline constexpr LineN() {}
     template<class U>
-    inline LineN(const LineN<U, N>& other) : p1(other.p1), p2(other.p2) {}
-    inline LineN(const V& P1, const V& P2) : p1(P1), p2(P2) {}
+    inline constexpr LineN(const LineN<U, N>& other) : p1(other.p1), p2(other.p2) {}
+    inline constexpr LineN(const V& P1, const V& P2) : p1(P1), p2(P2) {}
     BSS_FORCEINLINE T Length() const { return p1.Distance(p2); }
     inline V ParametricPoint(T s) const { return p1 + (p2 - p1)*s; }
 
@@ -158,12 +158,12 @@ namespace bss {
   struct LineN<T, 2>
   {
     typedef Vector<T, 2> V;
-    inline LineN() {}
+    inline constexpr LineN() {}
     template<class U>
-    inline LineN(const LineN<U, 2>& other) : p1(other.p1), p2(other.p2) {}
-    inline LineN(const V& P1, const V& P2) : p1(P1), p2(P2) {}
-    inline LineN(T X1, T Y1, T X2, T Y2) : x1(X1), y1(Y1), x2(X2), y2(Y2) {}
-    inline LineN(const V& P1, T X2, T Y2) : p1(P1), x2(X2), y2(Y2) {}
+    inline constexpr LineN(const LineN<U, 2>& other) : p1(other.p1), p2(other.p2) {}
+    inline constexpr LineN(const V& P1, const V& P2) : p1(P1), p2(P2) {}
+    inline constexpr LineN(T X1, T Y1, T X2, T Y2) : x1(X1), y1(Y1), x2(X2), y2(Y2) {}
+    inline constexpr LineN(const V& P1, T X2, T Y2) : p1(P1), x2(X2), y2(Y2) {}
     BSS_FORCEINLINE T Length() const { return Dist<T>(x1, y1, x2, y2); }
     BSS_FORCEINLINE V ParametricPoint(T s) const { return p1 + (p2 - p1)*s; }
     BSS_FORCEINLINE LineN Rotate(T r, const V& center) const { return Rotate(r, center.x, center.y); }
@@ -192,12 +192,12 @@ namespace bss {
   struct LineN<T, 3>
   {
     typedef Vector<T, 3> V;
-    inline LineN() {}
+    inline constexpr LineN() {}
     template<class U>
-    inline LineN(const LineN<U, 3>& other) : p1(other.p1), p2(other.p2) {}
-    inline LineN(const V& P1, const V& P2) : p1(P1), p2(P2) {}
-    inline LineN(T X1, T Y1, T Z1, T X2, T Y2, T Z2) : x1(X1), y1(Y1), z1(Z1), x2(X2), y2(Y2), z2(Z2) {}
-    inline LineN(const V& P1, T X2, T Y2, T Z2) : p1(P1), x2(X2), y2(Y2), z2(Z2) {}
+    inline constexpr LineN(const LineN<U, 3>& other) : p1(other.p1), p2(other.p2) {}
+    inline constexpr LineN(const V& P1, const V& P2) : p1(P1), p2(P2) {}
+    inline constexpr LineN(T X1, T Y1, T Z1, T X2, T Y2, T Z2) : x1(X1), y1(Y1), z1(Z1), x2(X2), y2(Y2), z2(Z2) {}
+    inline constexpr LineN(const V& P1, T X2, T Y2, T Z2) : p1(P1), x2(X2), y2(Y2), z2(Z2) {}
     inline T Length() const { return p1.Distance(p2); }
     inline V ParametricPoint(T s) const { return p1 + (p2 - p1)*s; }
 
@@ -229,13 +229,13 @@ namespace bss {
   {
     typedef Vector<T, 2> V;
 
-    inline Rect() {} //The following constructors allow for implicit conversion between rect types
-    inline Rect(const Rect& other) : left(other.left), top(other.top), right(other.right), bottom(other.bottom) {}
+    inline constexpr Rect() {} //The following constructors allow for implicit conversion between rect types
+    inline constexpr Rect(const Rect& other) : left(other.left), top(other.top), right(other.right), bottom(other.bottom) {}
     template<class U>
-    inline Rect(const Rect<U>& other) : left((T)other.left), top((T)other.top), right((T)other.right), bottom((T)other.bottom) {}
-    inline Rect(T Left, T Top, T Right, T Bottom) : left(Left), top(Top), right(Right), bottom(Bottom) {}
-    inline Rect(T X, T Y, const V& dim) : left(X), top(Y), right(X + dim.x), bottom(Y + dim.y) {}
-    inline Rect(const V& pos, const V& dim) : left(pos.x), top(pos.y), right(pos.x + dim.x), bottom(pos.y + dim.y) {}
+    inline constexpr Rect(const Rect<U>& other) : left((T)other.left), top((T)other.top), right((T)other.right), bottom((T)other.bottom) {}
+    inline constexpr Rect(T Left, T Top, T Right, T Bottom) : left(Left), top(Top), right(Right), bottom(Bottom) {}
+    inline constexpr Rect(T X, T Y, const V& dim) : left(X), top(Y), right(X + dim.x), bottom(Y + dim.y) {}
+    inline constexpr Rect(const V& pos, const V& dim) : left(pos.x), top(pos.y), right(pos.x + dim.x), bottom(pos.y + dim.y) {}
     inline explicit Rect(const V& v) : left(v.x), top(v.y), right(v.x), bottom(v.y) {}
     inline explicit Rect(const sseVecT<T>& v) { v >> ltrb; }
     inline explicit Rect(const T(&rectarray)[4]) : left(rectarray[0]), top(rectarray[1]), right(rectarray[2]), bottom(rectarray[3]) {}
@@ -349,9 +349,9 @@ namespace bss {
   struct Triangle
   {
     typedef Vector<T, 2> V;
-    inline Triangle() { }
+    inline constexpr Triangle() { }
     template<class U>
-    inline Triangle(const Triangle<U>& other) { for(int i = 0; i < 3; ++i) v[i] = other.v[i]; }
+    inline constexpr Triangle(const Triangle<U>& other) { for(int i = 0; i < 3; ++i) v[i] = other.v[i]; }
     inline T Area() const { return (v[1] - v[0]).Cross(v[2] - v[0]) / ((T)2); }
     BSS_FORCEINLINE bool ContainsPoint(T X, T Y) const { return TriangleContainsPoint(v, X, Y); }
 
@@ -363,14 +363,14 @@ namespace bss {
   struct Ellipse
   {
     typedef Vector<T, 2> V;
-    inline Ellipse() {}
+    inline constexpr Ellipse() {}
     template<class U>
-    inline Ellipse(const Ellipse<U>& other) : pos(other.pos), axes(other.axes) {}
+    inline constexpr Ellipse(const Ellipse<U>& other) : pos(other.pos), axes(other.axes) {}
     template<class U>
-    inline explicit Ellipse(const Circle<U>& other) : pos(other.pos), axes(other.r) {}
-    inline Ellipse(T X, T Y, T A, T B) : pos(X, Y), axes(A, B) {}
-    inline Ellipse(const V& Pos, T A, T B) : pos(Pos), axes(A, B) {}
-    inline Ellipse(const V& Pos, const V& Axes) : pos(Pos), axes(Axes) {}
+    inline explicit constexpr Ellipse(const Circle<U>& other) : pos(other.pos), axes(other.r) {}
+    inline constexpr Ellipse(T X, T Y, T A, T B) : pos(X, Y), axes(A, B) {}
+    inline constexpr Ellipse(const V& Pos, T A, T B) : pos(Pos), axes(A, B) {}
+    inline constexpr Ellipse(const V& Pos, const V& Axes) : pos(Pos), axes(Axes) {}
     inline T Area() const { return (T)(PI*a*b); }
     BSS_FORCEINLINE bool ContainsPoint(T X, T Y) const { return EllipseContainsPoint(x, y, a, b, X, Y); }
     BSS_FORCEINLINE void NearestPoint(T X, T Y, T& outX, T& outY) const { return EllipseNearestPoint(a, b, X - x, Y - y, outX, outY); }
@@ -400,10 +400,10 @@ namespace bss {
   {
     typedef Vector<T, 2> V;
     template<class U>
-    inline CircleSector(const CircleSector<U>& other) : x((T)other.x), y((T)other.y), inner((T)other.inner), outer((T)other.outer), min((T)other.min), range((T)other.range) {}
-    inline CircleSector(T X, T Y, T Inner, T Outer, T Min, T Range) : x(X), y(Y), inner(Inner), outer(Outer), min(bssFMod<T>(Min, (T)PI_DOUBLE)), range(Range) {}
-    inline CircleSector(const V& Pos, T Inner, T Outer, T Min, T Range) : x(Pos.x), y(Pos.y), inner(Inner), outer(Outer), min(bssFMod<T>(Min, (T)PI_DOUBLE)), range(Range) {}
-    inline CircleSector() {}
+    inline constexpr CircleSector(const CircleSector<U>& other) : x((T)other.x), y((T)other.y), inner((T)other.inner), outer((T)other.outer), min((T)other.min), range((T)other.range) {}
+    inline constexpr CircleSector(T X, T Y, T Inner, T Outer, T Min, T Range) : x(X), y(Y), inner(Inner), outer(Outer), min(bssFMod<T>(Min, (T)PI_DOUBLE)), range(Range) {}
+    inline constexpr CircleSector(const V& Pos, T Inner, T Outer, T Min, T Range) : x(Pos.x), y(Pos.y), inner(Inner), outer(Outer), min(bssFMod<T>(Min, (T)PI_DOUBLE)), range(Range) {}
+    inline constexpr CircleSector() {}
     inline T Area() const { return (T)((outer*outer - inner*inner)*range*0.5); }
     inline T ArcLengthOuter() const { return range*outer; }
     inline T ArcLengthInner() const { return range*inner; }

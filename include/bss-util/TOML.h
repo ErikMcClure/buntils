@@ -625,6 +625,7 @@ namespace bss {
 
     std::ostream& s = *e.out;
     WriteTOMLId(e, id, s);
+    bool old = e.engine.first;
     s << '[';
     e.engine.first = true;
 
@@ -635,6 +636,7 @@ namespace bss {
 
     s << ']';
     if(e.engine.state != 2 && id) s << std::endl;
+    e.engine.first = old;
   }
 
   template<class T>

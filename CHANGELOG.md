@@ -18,6 +18,7 @@
 - Simplify template boilerplate with `if constexpr`
 - Add aligned allocator support
 - Add move semantics to TRBTree
+- Added constexpr support
 
 ## 0.5.0
 - Added AttemptRLock(), AttemptStrictLock() to RWLock

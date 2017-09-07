@@ -13,7 +13,8 @@ namespace bss {
     template<typename T>
     struct BSS_COMPILER_DLLEXPORT _BIT_REF
     {
-      inline _BIT_REF(T bit, T& bits) : _bit(bit), _bits(bits) {}
+      inline constexpr _BIT_REF(const _BIT_REF& copy) = default;
+      inline constexpr _BIT_REF(T bit, T& bits) : _bit(bit), _bits(bits) {}
       BSS_FORCEINLINE _BIT_REF& operator=(bool right)
       { 
         _bits = T_SETBIT(_bits, _bit, right, typename std::make_signed<T>::type); 
@@ -40,7 +41,8 @@ namespace bss {
     template<typename T>
     struct BSS_COMPILER_DLLEXPORT _BIT_GROUP
     {
-      inline _BIT_GROUP(T group, T& bits) : _group(group), _bits(bits) {}
+      inline constexpr _BIT_GROUP(const _BIT_GROUP& copy) = default;
+      inline constexpr _BIT_GROUP(T group, T& bits) : _group(group), _bits(bits) {}
       BSS_FORCEINLINE _BIT_GROUP& operator=(T right)
       {
         _bits = ((_bits&(~_group)) | (right&_group));
@@ -64,7 +66,8 @@ namespace bss {
   {
   public:
     // Initializes the bitfield with the given flag values, if any
-    inline explicit BitField(T bits = 0) : _bits(bits) {}
+    inline constexpr BitField(const BitField& copy) = default;
+    inline constexpr explicit BitField(T bits = 0) : _bits(bits) {}
     // Sets the entire bitfield to the given value
     BSS_FORCEINLINE void Set(T bits) { _bits = bits; }
     BSS_FORCEINLINE void Set(T bits, T mask) { _bits ^= (bits ^ (_bits&mask)); }

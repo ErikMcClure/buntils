@@ -349,7 +349,10 @@ namespace bss {
   {
     inline explicit TRB_Node(TRB_Node* pNIL) : internal::TRB_NodeBase<TRB_Node<T>>(pNIL, 0) {}
     inline TRB_Node(T v, TRB_Node* pNIL) : value(v), internal::TRB_NodeBase<TRB_Node<T>>(pNIL) {}
+#pragma warning(push)
+#pragma warning(disable:4251)
     T value;
+#pragma warning(pop)
   };
 
   // Threaded Red-black tree implementation

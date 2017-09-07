@@ -14,8 +14,8 @@ namespace bss {
   struct Dual
   {
     template<typename U>
-    inline Dual(const Dual<U, O>& copy) : _x((T)copy._x), _dx(copy._dx) {}
-    inline Dual(T x = 0, const Dual<T, O - 1>& dx = 0) : _x(x), _dx(dx) {}
+    inline constexpr Dual(const Dual<U, O>& copy) : _x((T)copy._x), _dx(copy._dx) {}
+    inline constexpr Dual(T x = 0, const Dual<T, O - 1>& dx = 0) : _x(x), _dx(dx) {}
 
     inline Dual operator+(T r) const { return operator+(Dual(r)); }
     inline Dual operator-(T r) const { return operator-(Dual(r)); }
@@ -55,8 +55,8 @@ namespace bss {
   template<typename T>
   struct Dual<T, 0>
   {
-    inline Dual(T x, T dx) : _x(x) {}
-    inline Dual(T x = 0) : _x(x) {}
+    inline constexpr Dual(T x, T dx) : _x(x) {}
+    inline constexpr Dual(T x = 0) : _x(x) {}
     inline Dual operator+(const Dual& r) const { return Dual(_x + r._x); }
     inline Dual operator-(const Dual& r) const { return Dual(_x - r._x); }
     inline Dual operator*(const Dual& r) const { return Dual(_x*r._x); }

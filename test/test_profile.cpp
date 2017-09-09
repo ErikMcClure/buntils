@@ -17,7 +17,7 @@ TESTDEF::RETPAIR test_PROFILE()
     for(size_t i = 0; i < 100000; ++i)
     {
       CPU_Barrier();
-      __PROFILE_STATBLOCK(control, MAKESTRING(control));
+      __PROFILE_STATBLOCK(control, TXT(control));
       CPU_Barrier();
       __PROFILE_ZONE(control);
       CPU_Barrier();

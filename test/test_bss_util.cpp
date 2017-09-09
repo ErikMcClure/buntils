@@ -15,14 +15,14 @@ static_assert(std::is_same<make_integral<void*>::type, void*>::value, "type not 
 template<uint8_t B, int64_t SMIN, int64_t SMAX, uint64_t UMIN, uint64_t UMAX, typename T>
 inline void TEST_BitLimit()
 {
-  static_assert(std::is_same<T, typename BitLimit<B>::SIGNED>::value, "BitLimit failure" MAKESTRING(B));
-  static_assert(std::is_same<typename std::make_unsigned<T>::type, typename BitLimit<B>::UNSIGNED>::value, "BitLimit failure" MAKESTRING(B));
+  static_assert(std::is_same<T, typename BitLimit<B>::SIGNED>::value, "BitLimit failure" TXT(B));
+  static_assert(std::is_same<typename std::make_unsigned<T>::type, typename BitLimit<B>::UNSIGNED>::value, "BitLimit failure" TXT(B));
 #ifndef BSS_COMPILER_CLANG // Clang refuses to recognize this as constant
-  static_assert(BitLimit<B>::SIGNED_MIN == SMIN, "BitLimit failure" MAKESTRING(B));
+  static_assert(BitLimit<B>::SIGNED_MIN == SMIN, "BitLimit failure" TXT(B));
 #endif
-  static_assert(BitLimit<B>::SIGNED_MAX == SMAX, "BitLimit failure" MAKESTRING(B));
-  static_assert(BitLimit<B>::UNSIGNED_MIN == UMIN, "BitLimit failure" MAKESTRING(B));
-  static_assert(BitLimit<B>::UNSIGNED_MAX == UMAX, "BitLimit failure" MAKESTRING(B));
+  static_assert(BitLimit<B>::SIGNED_MAX == SMAX, "BitLimit failure" TXT(B));
+  static_assert(BitLimit<B>::UNSIGNED_MIN == UMIN, "BitLimit failure" TXT(B));
+  static_assert(BitLimit<B>::UNSIGNED_MAX == UMAX, "BitLimit failure" TXT(B));
 }
 
 template<class T>
@@ -51,29 +51,29 @@ TESTDEF::RETPAIR test_bss_util()
   //TEST(bssFileSize(StrW(fbuf))!=0);
   TESTNOERROR(GetTimeZoneMinutes());
 
-  static_assert(std::is_same<BitLimit<sizeof(uint8_t) << 3>::SIGNED, char>::value, "Test Failure Line #" MAKESTRING(__LINE__));
-  static_assert(std::is_same<BitLimit<sizeof(uint16_t) << 3>::SIGNED, short>::value, "Test Failure Line #" MAKESTRING(__LINE__));
-  static_assert(std::is_same<BitLimit<sizeof(int) << 3>::SIGNED, int>::value, "Test Failure Line #" MAKESTRING(__LINE__));
-  static_assert(std::is_same<BitLimit<sizeof(char) << 3>::UNSIGNED, uint8_t>::value, "Test Failure Line #" MAKESTRING(__LINE__));
-  static_assert(std::is_same<BitLimit<sizeof(short) << 3>::UNSIGNED, uint16_t>::value, "Test Failure Line #" MAKESTRING(__LINE__));
-  static_assert(std::is_same<BitLimit<sizeof(uint32_t) << 3>::UNSIGNED, uint32_t>::value, "Test Failure Line #" MAKESTRING(__LINE__));
-  static_assert(std::is_same<BitLimit<sizeof(double) << 3>::SIGNED, int64_t>::value, "Test Failure Line #" MAKESTRING(__LINE__));
-  static_assert(std::is_same<BitLimit<sizeof(float) << 3>::SIGNED, int>::value, "Test Failure Line #" MAKESTRING(__LINE__));
-  static_assert(std::is_same<BitLimit<sizeof(double) << 3>::UNSIGNED, uint64_t>::value, "Test Failure Line #" MAKESTRING(__LINE__));
-  static_assert(std::is_same<BitLimit<sizeof(float) << 3>::UNSIGNED, uint32_t>::value, "Test Failure Line #" MAKESTRING(__LINE__));
-  //static_assert(std::is_same<BitLimit<sizeof(long double)<<3>::SIGNED, int64_t>::value, "Test Failure Line #" MAKESTRING(__LINE__)); // long double is not a well defined type
-  //static_assert(std::is_same<BitLimit<sizeof(long double)<<3>::UNSIGNED, uint64_t>::value, "Test Failure Line #" MAKESTRING(__LINE__));
-  static_assert(T_CHARGETMSB(0) == 0, "Test Failure Line #" MAKESTRING(__LINE__));
-  static_assert(T_CHARGETMSB(1) == 1, "Test Failure Line #" MAKESTRING(__LINE__));
-  static_assert(T_CHARGETMSB(2) == 2, "Test Failure Line #" MAKESTRING(__LINE__));
-  static_assert(T_CHARGETMSB(3) == 2, "Test Failure Line #" MAKESTRING(__LINE__));
-  static_assert(T_CHARGETMSB(4) == 4, "Test Failure Line #" MAKESTRING(__LINE__));
-  static_assert(T_CHARGETMSB(7) == 4, "Test Failure Line #" MAKESTRING(__LINE__));
-  static_assert(T_CHARGETMSB(8) == 8, "Test Failure Line #" MAKESTRING(__LINE__));
-  static_assert(T_CHARGETMSB(20) == 16, "Test Failure Line #" MAKESTRING(__LINE__));
-  static_assert(T_CHARGETMSB(84) == 64, "Test Failure Line #" MAKESTRING(__LINE__));
-  static_assert(T_CHARGETMSB(189) == 128, "Test Failure Line #" MAKESTRING(__LINE__));
-  static_assert(T_CHARGETMSB(255) == 128, "Test Failure Line #" MAKESTRING(__LINE__));
+  static_assert(std::is_same<BitLimit<sizeof(uint8_t) << 3>::SIGNED, char>::value, "Test Failure Line #" TXT(__LINE__));
+  static_assert(std::is_same<BitLimit<sizeof(uint16_t) << 3>::SIGNED, short>::value, "Test Failure Line #" TXT(__LINE__));
+  static_assert(std::is_same<BitLimit<sizeof(int) << 3>::SIGNED, int>::value, "Test Failure Line #" TXT(__LINE__));
+  static_assert(std::is_same<BitLimit<sizeof(char) << 3>::UNSIGNED, uint8_t>::value, "Test Failure Line #" TXT(__LINE__));
+  static_assert(std::is_same<BitLimit<sizeof(short) << 3>::UNSIGNED, uint16_t>::value, "Test Failure Line #" TXT(__LINE__));
+  static_assert(std::is_same<BitLimit<sizeof(uint32_t) << 3>::UNSIGNED, uint32_t>::value, "Test Failure Line #" TXT(__LINE__));
+  static_assert(std::is_same<BitLimit<sizeof(double) << 3>::SIGNED, int64_t>::value, "Test Failure Line #" TXT(__LINE__));
+  static_assert(std::is_same<BitLimit<sizeof(float) << 3>::SIGNED, int>::value, "Test Failure Line #" TXT(__LINE__));
+  static_assert(std::is_same<BitLimit<sizeof(double) << 3>::UNSIGNED, uint64_t>::value, "Test Failure Line #" TXT(__LINE__));
+  static_assert(std::is_same<BitLimit<sizeof(float) << 3>::UNSIGNED, uint32_t>::value, "Test Failure Line #" TXT(__LINE__));
+  //static_assert(std::is_same<BitLimit<sizeof(long double)<<3>::SIGNED, int64_t>::value, "Test Failure Line #" TXT(__LINE__)); // long double is not a well defined type
+  //static_assert(std::is_same<BitLimit<sizeof(long double)<<3>::UNSIGNED, uint64_t>::value, "Test Failure Line #" TXT(__LINE__));
+  static_assert(T_CHARGETMSB(0) == 0, "Test Failure Line #" TXT(__LINE__));
+  static_assert(T_CHARGETMSB(1) == 1, "Test Failure Line #" TXT(__LINE__));
+  static_assert(T_CHARGETMSB(2) == 2, "Test Failure Line #" TXT(__LINE__));
+  static_assert(T_CHARGETMSB(3) == 2, "Test Failure Line #" TXT(__LINE__));
+  static_assert(T_CHARGETMSB(4) == 4, "Test Failure Line #" TXT(__LINE__));
+  static_assert(T_CHARGETMSB(7) == 4, "Test Failure Line #" TXT(__LINE__));
+  static_assert(T_CHARGETMSB(8) == 8, "Test Failure Line #" TXT(__LINE__));
+  static_assert(T_CHARGETMSB(20) == 16, "Test Failure Line #" TXT(__LINE__));
+  static_assert(T_CHARGETMSB(84) == 64, "Test Failure Line #" TXT(__LINE__));
+  static_assert(T_CHARGETMSB(189) == 128, "Test Failure Line #" TXT(__LINE__));
+  static_assert(T_CHARGETMSB(255) == 128, "Test Failure Line #" TXT(__LINE__));
 
   //Note that these tests CAN fail if trying to compile to an unsupported or buggy platform that doesn't have two's complement.
   TEST(TBitLimit<long long>::SIGNED_MIN == std::numeric_limits<long long>::min());

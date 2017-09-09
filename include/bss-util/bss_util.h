@@ -377,13 +377,13 @@ namespace bss {
   // Returns -1.0 if the sign bit is negative, or 1.0 if it is positive.
   BSS_FORCEINLINE float fsign(float f) noexcept
   {
-    uint32_t i = reinterpret_cast<uint32_t&>(f)&(1u << ((sizeof(float) << 3) - 1)) | 0x3f800000;
+    uint32_t i = (reinterpret_cast<uint32_t&>(f)&(1u << ((sizeof(float) << 3) - 1))) | 0x3f800000;
     return reinterpret_cast<float&>(i);
   }
 
   BSS_FORCEINLINE double fsign(double f) noexcept
   {
-    uint64_t i = reinterpret_cast<uint64_t&>(f)&(1ULL << ((sizeof(double) << 3) - 1)) | 0x3FF0000000000000;
+    uint64_t i = (reinterpret_cast<uint64_t&>(f)&(1ULL << ((sizeof(double) << 3) - 1))) | 0x3FF0000000000000;
     return reinterpret_cast<double&>(i);
   }
 

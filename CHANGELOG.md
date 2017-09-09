@@ -19,6 +19,7 @@
 - Add aligned allocator support
 - Add move semantics to TRBTree
 - Added constexpr support
+- Added XML serializer engine
 
 ## 0.5.0
 - Added AttemptRLock(), AttemptStrictLock() to RWLock

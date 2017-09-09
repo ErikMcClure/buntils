@@ -101,7 +101,7 @@ namespace bss {
       }
     }
     inline khiter_t Iterator(const Key& key) const { return _get(key); }
-    inline const Key& GetKey(khiter_t i) { return keys[i]; }
+    inline const Key& GetKey(khiter_t i) const { return keys[i]; }
     template<bool U = IsMap>
     inline typename std::enable_if<U, GET>::type GetValue(khiter_t i) const
     {
@@ -221,18 +221,18 @@ namespace bss {
       return *this;
     }
 
-    class BSS_TEMPLATE_DLLEXPORT cHash_Iter : public std::iterator<std::bidirectional_iterator_tag, khiter_t>
+    class BSS_TEMPLATE_DLLEXPORT HashIterator : public std::iterator<std::bidirectional_iterator_tag, khiter_t>
     {
     public:
-      inline explicit cHash_Iter(const HashBase& src) : _src(&src), cur(0) { _chknext(); }
-      inline cHash_Iter(const HashBase& src, khiter_t start) : _src(&src), cur(start) { _chknext(); }
+      inline explicit HashIterator(const HashBase& src) : _src(&src), cur(0) { _chknext(); }
+      inline HashIterator(const HashBase& src, khiter_t start) : _src(&src), cur(start) { _chknext(); }
       inline khiter_t operator*() const { return cur; }
-      inline cHash_Iter& operator++() { ++cur; _chknext(); return *this; } //prefix
-      inline cHash_Iter operator++(int) { cHash_Iter r(*this); ++*this; return r; } //postfix
-      inline cHash_Iter& operator--() { while((--cur) < _src->End() && !_src->ExistsIter(cur)); return *this; } //prefix
-      inline cHash_Iter operator--(int) { cHash_Iter r(*this); --*this; return r; } //postfix
-      inline bool operator==(const cHash_Iter& _Right) const { return (cur == _Right.cur); }
-      inline bool operator!=(const cHash_Iter& _Right) const { return (cur != _Right.cur); }
+      inline HashIterator& operator++() { ++cur; _chknext(); return *this; } //prefix
+      inline HashIterator operator++(int) { HashIterator r(*this); ++*this; return r; } //postfix
+      inline HashIterator& operator--() { while((--cur) < _src->End() && !_src->ExistsIter(cur)); return *this; } //prefix
+      inline HashIterator operator--(int) { HashIterator r(*this); --*this; return r; } //postfix
+      inline bool operator==(const HashIterator& _Right) const { return (cur == _Right.cur); }
+      inline bool operator!=(const HashIterator& _Right) const { return (cur != _Right.cur); }
       inline bool operator!() const { return !IsValid(); }
       inline bool IsValid() { return cur < _src->End(); }
 
@@ -244,8 +244,8 @@ namespace bss {
       const HashBase* _src;
     };
 
-    inline cHash_Iter begin() const { return cHash_Iter(*this, Start()); }
-    inline cHash_Iter end() const { return cHash_Iter(*this, End()); }
+    inline HashIterator begin() const { return HashIterator(*this, Start()); }
+    inline HashIterator end() const { return HashIterator(*this, End()); }
 
     template<typename Engine>
     void Serialize(Serializer<Engine>& e)

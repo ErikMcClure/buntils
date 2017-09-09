@@ -6,10 +6,10 @@
 
 using namespace bss;
 
-#define INI_E(s,k,v,nk,ns) TEST(!ini.EditEntry(MAKESTRING(s),MAKESTRING(k),MAKESTRING(v),nk,ns))
-#define INI_NE(s,k,v,nk,ns) TEST(ini.EditEntry(MAKESTRING(s),MAKESTRING(k),MAKESTRING(v),nk,ns)<0)
-#define INI_R(s,k,nk,ns) TEST(!ini.EditEntry(MAKESTRING(s),MAKESTRING(k),0,nk,ns))
-#define INI_G(s,k,nk,ns) TEST(!ini.EditEntry(MAKESTRING(s),MAKESTRING(k),MAKESTRING(v),nk,ns))
+#define INI_E(s,k,v,nk,ns) TEST(!ini.EditEntry(TXT(s),TXT(k),TXT(v),nk,ns))
+#define INI_NE(s,k,v,nk,ns) TEST(ini.EditEntry(TXT(s),TXT(k),TXT(v),nk,ns)<0)
+#define INI_R(s,k,nk,ns) TEST(!ini.EditEntry(TXT(s),TXT(k),0,nk,ns))
+#define INI_G(s,k,nk,ns) TEST(!ini.EditEntry(TXT(s),TXT(k),TXT(v),nk,ns))
 
 TESTDEF::RETPAIR test_INISTORAGE()
 {

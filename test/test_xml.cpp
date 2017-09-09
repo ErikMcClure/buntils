@@ -3,9 +3,110 @@
 
 #include "bss-util/XML.h"
 #include <fstream>
+#include <sstream>
 #include "test.h"
 
 using namespace bss;
+
+struct XMLtest3
+{
+  float f;
+
+  template<typename Engine>
+  void Serialize(Serializer<Engine>& s)
+  {
+    s.template EvaluateType<XMLtest3>(GenPair("f", f));
+  }
+};
+
+
+struct XMLtest2
+{
+  uint16_t a;
+  std::vector<XMLtest3> test;
+
+  template<typename Engine>
+  void Serialize(Serializer<Engine>& s)
+  {
+    s.template EvaluateType<XMLtest2>(GenPair("a", a), GenPair("test", test));
+  }
+};
+
+struct XMLtest
+{
+  int64_t a;
+  uint16_t b;
+  double c;
+  Str test;
+  XMLtest2 test2;
+  bool btrue;
+  bool bfalse;
+  DynArray<double> d;
+  int e[3];
+  std::vector<Str> f;
+  std::array<bool, 2> g;
+  DynArray<XMLtest2> nested;
+
+  template<typename Engine>
+  void Serialize(Serializer<Engine>& s)
+  {
+    s.template EvaluateType<XMLtest>(
+      GenPair("a", a),
+      GenPair("b", b),
+      GenPair("c", c),
+      GenPair("test", test),
+      GenPair("test2", test2),
+      GenPair("btrue", btrue),
+      GenPair("bfalse", bfalse),
+      GenPair("d", d),
+      GenPair("e", e),
+      GenPair("f", f),
+      GenPair("g", g),
+      GenPair("nested", nested)
+      );
+  }
+};
+
+void dotest_XML(XMLtest& o, TESTDEF::RETPAIR& __testret)
+{
+  TEST(o.a == -1);
+  TEST(o.b == 2);
+  TEST(o.c == 0.28);
+  TEST(o.btrue == true);
+  TEST(o.bfalse == false);
+  TEST(o.test == "tEsT");
+  TEST(o.d.Length() == 6);
+  TEST(o.d[0] == 1e-6);
+  TEST(o.d[1] == -2.0);
+  TEST(o.d[2] == 0.3);
+  TEST(o.d[3] == 0.1);
+  TEST(o.d[4] == 1.0);
+  TEST(o.d[5] == -2.0);
+  TEST(o.e[0] == -2);
+  TEST(o.e[1] == 100);
+  TEST(o.e[2] == 8);
+  TEST(o.f.size() == 4);
+  TEST(!strcmp(o.f[0], "\"first\""));
+  TEST(!strcmp(o.f[1], "SECOND"));
+  TEST(!strcmp(o.f[2], "ThirD"));
+  TEST(!strcmp(o.f[3], "fOURTh"));
+  TEST(!o.g[0]);
+  TEST(o.g[1]);
+  TEST(o.test2.a == 5);
+  TEST(o.test2.test.size() == 2);
+  TEST(o.test2.test[0].f == -3.5f);
+  TEST(o.test2.test[1].f == 14.6f);
+  TEST(o.nested.Length() == 3);
+  TEST(o.nested[0].a == 2);
+  TEST(o.nested[0].test.size() == 2);
+  TEST(o.nested[0].test[0].f == 80.9f);
+  TEST(o.nested[0].test[1].f == -91.2f);
+  TEST(o.nested[1].a == 3);
+  TEST(o.nested[1].test.size() == 1);
+  TEST(o.nested[1].test[0].f == -12.21f);
+  TEST(o.nested[2].a == 4);
+  TEST(o.nested[2].test.size() == 0);
+}
 
 TESTDEF::RETPAIR test_XML()
 {
@@ -31,7 +132,6 @@ TESTDEF::RETPAIR test_XML()
   TEST(!test2[1]->GetAttributeInt("roomid"));
   TEST(!test2[1]->GetAttributeString(0));
   TEST(!test2[1]->GetAttributeInt(0));
-
 
   Str strXML = "<?xml version=\"1.0\" encoding=\"UTF-8\"?><foo>abc&amp;<bar></bar>zxy<bar2><!-- comment --></bar2  ><   bar/> <  test    />  <!-- comment --><test test=\"attr\" /><!-- comment --></foo> <foo again=\"true\" fail></foo> <bobasdfghqwertyuiopasdfzcvxnm></bobasdfghqwertyuiopasdfzcvxnm><!-- comment --><foo test=\"test\" test=\"success\" /><!-- comment -->";
   XMLFile xml(strXML);
@@ -74,6 +174,54 @@ TESTDEF::RETPAIR test_XML()
   Str compare2(bssLoadFile<char, true>("test.xml").first.get());
   TEST(compare == compare2);
 
+  Str objtest = TXT(
+    <?xml version="1.0" encoding="UTF-8"?>
+    <xmltest a="-1" b="2" c="0.28" test="tEsT" btrue="true" bfalse="false">
+      <test2 a="5">
+        <test f="-3.5" />
+        <test f="14.6" />
+      </test2>
+      <d>1e-6</d>
+      <d>-2.0</d>
+      <d>0.3</d>
+      <d>0.1</d>
+      <d>1.0</d>
+      <d>-2.0</d>
+      <e>-2</e>
+      <e>100</e>
+      <e>8</e>
+      <f>"first"</f>
+      <f>SECOND</f>
+      <f>ThirD</f>
+      <f>fOURTh</f>
+      <g>false</g>
+      <g>true</g>
+      <nested a="2">
+        <test f="80.9" />
+        <test f="-91.2" />
+      </nested>
+      <nested a="3">
+        <test f="-12.21" />
+      </nested>
+      <nested a = "4" />
+    </xmltest>
+  );
+
+  {
+    Serializer<XMLEngine> s;
+    XMLtest obj;
+    std::istringstream ss(objtest);
+    s.Parse(obj, ss, "xmltest");
+    dotest_XML(obj, __testret);
+
+    std::stringstream ss2;
+    s.Serialize(obj, ss2, "xmltest");
+    
+    XMLtest obj2;
+    s.Parse(obj2, ss2, "xmltest");
+    dotest_XML(obj2, __testret);
+  }
+
   // Ensure that, even if we can't recover from various errors, the parser does not crash or go into an infinite loop due to bad data
   for(size_t i = 1; i < strXML.length(); ++i)
   {
@@ -89,5 +237,6 @@ TESTDEF::RETPAIR test_XML()
 
   XMLFile x(s);
   TEST(x.GetName() != 0);
+
   ENDTEST;
 }

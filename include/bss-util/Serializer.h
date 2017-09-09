@@ -14,7 +14,7 @@
 #include "Geometry.h"
 
 namespace bss {
-  //DEFINE_MEMBER_CHECKER(Serialize); // doesn't seem to work for template functions
+  //DEFINE_MEMBER_CHECKER(Serialize); // doesn't work for template functions
 
   template<class T>
   std::pair<const char*, T&> GenPair(const char* l, T& r) { return std::pair<const char*, T&>(l, r); }
@@ -25,11 +25,16 @@ namespace bss {
   namespace internal {
     namespace serializer {
       template<class T>
-      struct Swapper
+      struct PushValue
       {
-        explicit Swapper(T v) : value(v) {}
-        T Set(T v) { T old = value; value = v; return old; }
-        T value;
+        inline PushValue(PushValue&&) = delete;
+        inline PushValue(const PushValue&) = delete;
+        inline PushValue(T& src, T nvalue) noexcept : _value(src), _src(src) { src = nvalue; }
+        inline ~PushValue() { _src = _value; }
+
+      private:
+        T _value;
+        T& _src;
       };
 
       template<class E>
@@ -60,7 +65,9 @@ namespace bss {
       {
         static inline void Parse(Serializer<Engine>& e, T& t, const char* id)
         { 
-          if constexpr(std::is_arithmetic<T>::value)
+          if constexpr(std::is_same<bool, T>::value)
+            Engine::ParseBool(e, t, id);
+          else if constexpr(std::is_arithmetic<T>::value)
             Engine::template ParseNumber<T>(e, t, id); 
           else if constexpr(std::is_enum<T>::value)
             Engine::template ParseNumber<typename make_integral<T>::type>(e, reinterpret_cast<typename make_integral<T>::type&>(t), id);
@@ -69,7 +76,9 @@ namespace bss {
         }
         static inline void Serialize(Serializer<Engine>& e, const T& t, const char* id)
         { 
-          if constexpr(std::is_arithmetic<T>::value)
+          if constexpr(std::is_same<bool, T>::value)
+            Engine::SerializeBool(e, t, id);
+          else if constexpr(std::is_arithmetic<T>::value)
             Engine::template SerializeNumber<T>(e, t, id);
           else if constexpr(std::is_enum<T>::value)
             Engine::template SerializeNumber<typename make_integral<T>::type>(e, reinterpret_cast<const typename make_integral<T>::type&>(t), id);
@@ -140,13 +149,6 @@ namespace bss {
 
       protected:
         T& _obj;
-      };
-
-      template<class Engine>
-      struct Action<Engine, bool> // Boolean value (is classified as an integer and must be captured here)
-      {
-        static inline void Parse(Serializer<Engine>& e, bool& t, const char* id) { Engine::ParseBool(e, t, id); }
-        static inline void Serialize(Serializer<Engine>& e, bool t, const char* id) { Engine::SerializeBool(e, t, id); }
       };
 
       template<class Engine, class STORE>
@@ -423,7 +425,6 @@ namespace bss {
     std::ostream* out;
     std::istream* in;
 
-
     template<class T> using ActionBind = internal::serializer::Action<Engine, T>;
 
     template<typename T>
@@ -431,7 +432,9 @@ namespace bss {
     {
       out = &s;
       in = 0;
+      Engine::Begin(*this);
       ActionBind<T>::Serialize(*this, obj, name);
+      Engine::End(*this);
     }
 
     template<typename T>
@@ -439,13 +442,14 @@ namespace bss {
     {
       out = 0;
       in = &s;
+      Engine::Begin(*this);
       ActionBind<T>::Parse(*this, obj, name);
+      Engine::End(*this);
     }
 
     template<typename T, typename... Args>
     inline void EvaluateType(std::pair<const char*, Args&>... args)
     {
-      //static_assert(HAS_MEMBER(T, Serialize), "T must implement template<class E> void Serialize(Serializer<E>&)");
       static Trie<uint16_t> t(sizeof...(Args), (args.first)...);
 
       if(out) // Serializing
@@ -573,6 +577,8 @@ namespace bss {
   {
   public:
     static constexpr bool Ordered() { return false; }
+    static void Begin(Serializer<EmptyEngine>& e) {}
+    static void End(Serializer<EmptyEngine>& e) {}
     template<typename T>
     static void Serialize(Serializer<EmptyEngine>& e, const T& t, const char* id) { }
     template<typename T>
@@ -582,7 +588,7 @@ namespace bss {
     static void SerializeBool(Serializer<EmptyEngine>& e, bool t, const char* id) { }
     template<typename T>
     static void Parse(Serializer<EmptyEngine>& e, T& t, const char* id) { }
-    template<typename T, typename E, E& (*Last)(T&), void (*Add)(Serializer<EmptyEngine>&, T&, int&)>
+    template<typename T, typename E>
     static void ParseArray(Serializer<EmptyEngine>& e, T& obj, const char* id) {}
     template<typename T>
     static void ParseNumber(Serializer<EmptyEngine>& e, T& t, const char* id) {}

@@ -11,8 +11,25 @@ using namespace bss;
 
 XMLFile::XMLFile(const XMLFile& copy) : XMLNode(copy) {}
 XMLFile::XMLFile(XMLFile&& mov) : XMLNode(std::move(mov)) {}
-XMLFile::XMLFile(const char* source) { _name = "xml"; if(source) { Str buf; std::istringstream ss(source); _initialParse(ss, buf); _parseInner(ss, buf); } }
-XMLFile::XMLFile(std::istream& stream) { _name = "xml"; Str buf; _initialParse(stream, buf); _parseInner(stream, buf); }
+XMLFile::XMLFile(const char* source) { _name = "xml"; Read(source); }
+XMLFile::XMLFile(std::istream& stream) { _name = "xml"; Read(stream); }
+XMLFile::XMLFile() { _name = "xml"; }
+
+void XMLFile::Read(const char* source)
+{
+  if(source) 
+  { 
+    std::istringstream ss(source); 
+    Read(ss); 
+  }
+}
+
+void XMLFile::Read(std::istream& stream)
+{
+  Str buf; 
+  _initialParse(stream, buf); 
+  _parseInner(stream, buf);
+}
 
 void XMLFile::_initialParse(std::istream& stream, Str& buf)
 {
@@ -117,6 +134,13 @@ bool XMLNode::RemoveAttribute(const char* name) { return RemoveAttribute(_attrha
 void XMLNode::SetValue(double value) { _value.Float = value; _value.Integer = (int64_t)value; _value.String = std::to_string(value); }
 void XMLNode::SetValue(int64_t value) { _value.Integer = value; _value.Float = (double)value; _value.String = std::to_string(value); }
 void XMLNode::SetValue(const char* value) { _value.String = value; _evalValue(_value); }
+void XMLNode::Clear()
+{
+  _nodes.Clear();
+  _nodehash.Clear();
+  _attributes.Clear();
+  _attrhash.Clear();
+}
 
 XMLNode* XMLNode::_addNode(std::unique_ptr<XMLNode> && n)
 {

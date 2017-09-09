@@ -20,6 +20,8 @@ namespace bss {
   public:
     JSONEngine() : pretty(0) {}
     static constexpr bool Ordered() { return false; }
+    static void Begin(Serializer<JSONEngine>& e) {}
+    static void End(Serializer<JSONEngine>& e) {}
     template<typename T>
     static void Serialize(Serializer<JSONEngine>& e, const T& t, const char* id);
     template<typename T>
@@ -380,10 +382,10 @@ namespace bss {
       WriteJSONTabs(s, pretty);
 
     s << '{';
-    size_t oldpretty = pretty;
-    e.engine.pretty = WriteJSONPretty(pretty);
-    const_cast<T&>(obj).template Serialize<JSONEngine>(e);
-    e.engine.pretty = oldpretty;
+    {
+      internal::serializer::PushValue<size_t> push(e.engine.pretty, WriteJSONPretty(pretty));
+      const_cast<T&>(obj).template Serialize<JSONEngine>(e);
+    }
 
     if(WriteJSONIsPretty(pretty))
     {
@@ -457,16 +459,14 @@ namespace bss {
     std::ostream& s = *e.out;
     WriteJSONComma(s, e.engine.pretty);
     WriteJSONId(id, s, e.engine.pretty);
-    size_t old = e.engine.pretty;
-    e.engine.pretty = WriteJSONPretty(e.engine.pretty);
+    internal::serializer::PushValue<size_t> push(e.engine.pretty, WriteJSONPretty(e.engine.pretty));
     s << '[';
 
     auto begin = std::begin(obj);
     auto end = std::end(obj);
     for(; begin != end; ++begin)
       Serializer<JSONEngine>::ActionBind<typename std::remove_const<typename std::remove_reference<decltype(*begin)>::type>::type>::Serialize(e, *begin, 0);
-
-    e.engine.pretty = old;
+    
     s << ']';
   }
   template<typename T>

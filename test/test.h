@@ -32,7 +32,7 @@ extern volatile std::atomic<bool> startflag;
 
 #define BEGINTEST TESTDEF::RETPAIR __testret(0,0); DEBUG_CDT_SAFE::_testret = &__testret; DEBUG_CDT_SAFE::Tracker.Clear();
 #define ENDTEST return __testret
-#define FAILEDTEST(t) BSSLOG(_failedtests,1, "Test #",__testret.first," Failed  < ",MAKESTRING(t)," >")
+#define FAILEDTEST(t) BSSLOG(_failedtests,1, "Test #",__testret.first," Failed  < ",TXT(t)," >")
 #define TEST(t) { bss::atomic_xadd(&__testret.first); try { if(t) bss::atomic_xadd(&__testret.second); else FAILEDTEST(t); } catch(...) { FAILEDTEST(t); } }
 #define TESTERROR(t, e) { bss::atomic_xadd(&__testret.first); try { (t); FAILEDTEST(t); } catch(e) { bss::atomic_xadd(&__testret.second); } }
 #define TESTERR(t) TESTERROR(t,...)

@@ -19,10 +19,10 @@
 // Use the following defines to force TODO items as warnings in the compile. VC++ currently does not support "messages" despite having
 // them as a category in the error list.
 // Usage: #pragma message(TODO "Clean up code here")
-#define MAKESTRING2(x) #x
-#define MAKESTRING(x) MAKESTRING2(x)
-#define TODO __FILE__ "(" MAKESTRING(__LINE__) ") : warning (TODO): "
-#define NOTICE __FILE__ "(" MAKESTRING(__LINE__) ") : warning (NOTICE): "
+#define __TXT(x) x
+#define TXT(x) __TXT(#x)
+#define TODO __FILE__ "(" TXT(__LINE__) ") : warning (TODO): "
+#define NOTICE __FILE__ "(" TXT(__LINE__) ") : warning (NOTICE): "
 #define WIDEN2(x) L ## x 
 #define WIDEN(x) WIDEN2(x) 
 #ifndef __WFILE__
@@ -66,9 +66,21 @@
 #define BSS__L(x)      L ## x
 #endif
 
+#define GEN_FUNCTION_CHECK(FUNC)   \
+template<typename T, typename R, typename ... Args> \
+class has_##FUNC \
+{ \
+  template <typename U, R(U::*)(Args...)> struct Check; \
+  template <typename U> static char func(Check<U, &U::FUNC> *); \
+  template <typename U> static int func(...); \
+public: \
+  typedef bss_has_function_##FUNC type; \
+  enum { value = sizeof(func<T>(0)) == sizeof(char) };\
+};
+
 // This is used to implement a check to see if a given function exists in a class
 #define DEFINE_MEMBER_CHECKER(Member)   \
-  template<class T> class bss_has_member_##Member \
+  template<class T> class has_##Member \
 { \
 struct big { char a[2]; }; \
   template<class C> static big  probe(decltype(&C::Member)); \
@@ -76,8 +88,6 @@ struct big { char a[2]; }; \
 public: \
   static const bool value = sizeof(probe<T>(nullptr)) > 1; \
 }
-
-#define HAS_MEMBER(Class, Member)           bss_has_member_##Member<Class>::value
 
 #ifdef BSS_PLATFORM_WIN32
 #define TIME64(ptime) _time64(ptime)

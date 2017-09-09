@@ -18,9 +18,9 @@
 #else
 #define __PROFILE_STATBLOCK(name,str) static bss::Profiler::ProfilerData PROFDATA_##name(str,__FILE__,__LINE__)
 #define __PROFILE_ZONE(name) bss::ProfilerBlock BLOCK_##name(PROFDATA_##name .id, bss::Profiler::profiler.GetCur())
-#define PROFILE_BEGIN(name) __PROFILE_STATBLOCK(name, MAKESTRING(name)); bss::Profiler::PROF_TRIENODE* PROFCACHE_##name = bss::Profiler::profiler.GetCur(); uint64_t PROFTIME_##name = bss::Profiler::profiler.StartProfile(PROFDATA_##name .id)
+#define PROFILE_BEGIN(name) __PROFILE_STATBLOCK(name, TXT(name)); bss::Profiler::PROF_TRIENODE* PROFCACHE_##name = bss::Profiler::profiler.GetCur(); uint64_t PROFTIME_##name = bss::Profiler::profiler.StartProfile(PROFDATA_##name .id)
 #define PROFILE_END(name) bss::Profiler::profiler.EndProfile(PROFTIME_##name, PROFCACHE_##name)
-#define PROFILE_BLOCK(name) __PROFILE_STATBLOCK(name, MAKESTRING(name)); __PROFILE_ZONE(name);
+#define PROFILE_BLOCK(name) __PROFILE_STATBLOCK(name, TXT(name)); __PROFILE_ZONE(name);
 #define PROFILE_FUNC() __PROFILE_STATBLOCK(func, __FUNCTION__); __PROFILE_ZONE(func)
 #define PROFILE_OUTPUT(file,output) bss::Profiler::profiler.WriteToFile(file,output)
 #endif

@@ -362,23 +362,26 @@ namespace bss {
     BSS_FORCEINLINE static char CompNode(const TRB_Node<T>& l, const TRB_Node<T>& r) { return CFunc(l.value, r.value); }
 
   public:
-    inline TRBtree(TRBtree&& mov) : _first(mov._first), _last(mov._last), _root(mov._root), NIL(mov.NIL)
+    inline TRBtree(TRBtree&& mov) : AllocTracker<Alloc>(std::move(mov)), _first(mov._first), _last(mov._last), _root(mov._root), NIL(mov.NIL)
     {
       mov._first = 0;
       mov._last = 0;
-      mov.NIL = new TRB_Node<T>(0);
+      mov.NIL = AllocTracker<Alloc>::_allocate(1);
+      new (NIL) TRB_Node<T>(0);
       mov.NIL->left = mov.NIL;
       mov.NIL->right = mov.NIL;
       mov._root = mov.NIL;
     }
-    inline explicit TRBtree(Alloc* allocator = 0) : AllocTracker<Alloc>(allocator), _first(0), _last(0), NIL(new TRB_Node<T>(0)), _root(0)
+    inline explicit TRBtree(Alloc* allocator = 0) : AllocTracker<Alloc>(allocator), _first(0), _last(0), NIL(0), _root(0)
     {
+      NIL = AllocTracker<Alloc>::_allocate(1);
+      new (NIL) TRB_Node<T>(0);
       NIL->left = NIL;
       NIL->right = NIL;
       _root = NIL;
     }
     // Destructor
-    inline ~TRBtree() { Clear(); delete NIL; }
+    inline ~TRBtree() { Clear(); NIL->~TRB_Node(); AllocTracker<Alloc>::_deallocate(NIL, 1); }
     // Clears the tree
     inline void Clear()
     {

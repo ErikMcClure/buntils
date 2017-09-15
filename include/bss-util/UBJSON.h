@@ -518,25 +518,14 @@ namespace bss {
     template<> struct WriteUBJSONType<UBJSONValue::UBJSONObject> { static const UBJSONEngine::TYPE t = UBJSONEngine::TYPE_OBJECT; };
 
     template<class T, typename Arg, typename... Args>
-    struct __UBJSONVariantType
+    static inline const UBJSONEngine::TYPE __GetUBJSONVariantType(const T& v)
     {
-      static inline const UBJSONEngine::TYPE F(const T& v)
-      {
-        if(v.template is<Arg>())
-          return WriteUBJSONType<Arg>::t;
-        return __UBJSONVariantType<T, Args...>::F(v);
-      }
-    };
-    template<class T, typename Arg>
-    struct __UBJSONVariantType<T, Arg>
-    {
-      static inline const UBJSONEngine::TYPE F(const T& v)
-      {
-        if(v.template is<Arg>())
-          return WriteUBJSONType<Arg>::t;
-        return UBJSONEngine::TYPE_NONE;
-      }
-    };
+      if(v.template is<Arg>())
+        return WriteUBJSONType<Arg>::t;
+      else if constexpr(sizeof...(Args) > 0)
+        return __GetUBJSONVariantType<T, Args...>(v);
+      return UBJSONEngine::TYPE_NONE;
+    }
 
     template<typename T>
     inline void WriteUBJSONArray(Serializer<UBJSONEngine>& e, const T& obj, size_t size, const char* id, UBJSONEngine::TYPE ty)
@@ -624,7 +613,7 @@ namespace bss {
   }
 
   template<typename... Args>
-  inline const UBJSONEngine::TYPE GetUBJSONVariantType(const Variant<Args...>& v) { return internal::__UBJSONVariantType<Variant<Args...>, Args...>::F(v); }
+  inline const UBJSONEngine::TYPE GetUBJSONVariantType(const Variant<Args...>& v) { return internal::__GetUBJSONVariantType<Variant<Args...>, Args...>(v); }
 
   template<class T>
   inline void WriteUBJSONBase(Serializer<UBJSONEngine>& e, const char* id, const T& obj, std::ostream& s, UBJSONEngine::TYPE type) { UBJSONEngine::WriteUBJSONId(e, id, s); internal::WriteUBJSONObject<T>(e, obj, s, type); }

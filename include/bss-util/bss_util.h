@@ -97,14 +97,14 @@ namespace bss {
 
   // template inferred version of T_GETBIT and T_GETBITRANGE
   template<class T>
-  inline T GetBitMask(int bit) noexcept { return T_GETBIT(T, bit); }
+  inline constexpr T GetBitMask(int bit) noexcept { return T_GETBIT(T, bit); }
   template<class T>
-  inline T GetBitMask(int low, int high) noexcept { return T_GETBITRANGE(T, low, high); }
+  inline constexpr T GetBitMask(int low, int high) noexcept { return T_GETBITRANGE(T, low, high); }
   template<class T>
   BSS_FORCEINLINE T bssSetBit(T word, T bit, bool v) noexcept { return (((word) & (~(bit))) | ((T)(-(typename std::make_signed<T>::type)v) & (bit))); }
 
   template<class T>
-  BSS_FORCEINLINE bool bssGetBit(T* p, size_t index) { return (p[index / (sizeof(T) << 3)] & (1 << (index % (sizeof(T) << 3)))) != 0; }
+  BSS_FORCEINLINE constexpr bool bssGetBit(T* p, size_t index) { return (p[index / (sizeof(T) << 3)] & (1 << (index % (sizeof(T) << 3)))) != 0; }
 
   // Replaces one character with another in a string
   template<typename T>
@@ -204,6 +204,12 @@ namespace bss {
   {
     return strrtrim(strltrim(str));
   }
+
+  template<typename T>
+  BSS_FORCEINLINE constexpr T max_args(T arg) noexcept { return arg; }
+
+  template<typename T, typename ...Tx>
+  BSS_FORCEINLINE constexpr T max_args(T arg, Tx... args) noexcept { return std::max<T>(arg, max_args<Tx...>(args...)); }
 
   template<typename T>
   inline int ToArgV(T** argv, T* cmdline)
@@ -351,7 +357,7 @@ namespace bss {
 
     // This is a bit-shift method of calculating the next number in the fibonacci sequence by approximating the golden ratio with 0.6171875 (1/2 + 1/8 - 1/128)
   template<typename T>
-  BSS_FORCEINLINE T fbnext(T x) noexcept
+  BSS_FORCEINLINE constexpr T fbnext(T x) noexcept
   {
     static_assert(std::is_integral<T>::value, "T must be integral");
     return T_FBNEXT(x);
@@ -360,7 +366,7 @@ namespace bss {
 
   // Gets the sign of any integer (0 is assumed to be positive)
   template<typename T>
-  BSS_FORCEINLINE T tsign(T n) noexcept
+  BSS_FORCEINLINE constexpr T tsign(T n) noexcept
   {
     static_assert(std::is_integral<T>::value, "T must be a signed integer.");
     static_assert(std::is_signed<T>::value, "T must be a signed integer.");
@@ -369,7 +375,7 @@ namespace bss {
 
   // Gets the sign of any number, where a value of 0 returns 0
   template<typename T>
-  BSS_FORCEINLINE char tsignzero(T n) noexcept
+  BSS_FORCEINLINE constexpr char tsignzero(T n) noexcept
   {
     return (n > 0) - (n < 0);
   }
@@ -649,7 +655,7 @@ namespace bss {
 
   // Distance calculation (squared)
   template<typename T>
-  BSS_FORCEINLINE T DistSqr(T X, T Y, T x, T y) noexcept
+  BSS_FORCEINLINE constexpr T DistSqr(T X, T Y, T x, T y) noexcept
   {
     T tx = X - x, ty = Y - y; return (tx*tx) + (ty*ty); //It doesn't matter if you use temporary values for floats, but it does if you use ints (for unknown reasons)
   }
@@ -663,7 +669,7 @@ namespace bss {
 
   // Average aggregation without requiring a total variable that can overflow. Nextnum should be the current avg count incremented by 1.
   template<typename T, typename CT_> // T must be float or double, CT_ must be integral
-  BSS_FORCEINLINE T bssAvg(T curavg, T nvalue, CT_ nextnum) noexcept
+  BSS_FORCEINLINE constexpr T bssAvg(T curavg, T nvalue, CT_ nextnum) noexcept
   { // USAGE: avg = bssAvg<double, int>(avg, value, ++total);
     static_assert(std::is_integral<CT_>::value, "CT_ must be integral");
     static_assert(std::is_floating_point<T>::value, "T must be float, double, or long double");
@@ -983,7 +989,7 @@ namespace bss {
 
   // Basic lerp function with no bounds checking
   template<class T, class D = double>
-  BSS_FORCEINLINE T lerp(T a, T b, D t) noexcept
+  BSS_FORCEINLINE constexpr T lerp(T a, T b, D t) noexcept
   {
     return T((D(1.0) - t)*a) + T(t*b);
     //return a+((T)((b-a)*t)); // This is susceptible to floating point errors when t = 1

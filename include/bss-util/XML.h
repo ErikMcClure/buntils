@@ -9,6 +9,7 @@
 #include "LLBase.h"
 #include "Str.h"
 #include "Serializer.h"
+#include <sstream>
 
 namespace bss {
   // Represents an XML value converted to various forms.

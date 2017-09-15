@@ -311,121 +311,121 @@ namespace bss {
     return internal::ASMBTR_PICK<T, sizeof(T)>::asmbtr(pval, bit);
   }
 
-//  
-//#ifdef BSS_CPU_x86_64
-//  template<typename T>
-//  struct ASMCAS_REGPICK_WRITE<T,16>
-//  {
-//    inline static uint8_t BSS_FORCEINLINE asmcas(volatile T *dest, T newval, T oldval)
-//    {
-//      uint8_t rval;
-//      __asm { 
-//        lea rsi,oldval; 
-//        lea rdi,newval; 
-//        mov rax,[rsi]; 
-//        mov rdx,8[rsi]; 
-//        mov rbx,[rdi]; 
-//        mov rcx,8[rdi]; 
-//        mov rsi,dest; 
-//        //lock CMPXCHG16B [rsi] is equivalent to the following except that it's atomic:
-//        //ZeroFlag = (rdx:rax == *rsi); 
-//        //if (ZeroFlag) *rsi = rcx:rbx; 
-//        //else rdx:rax = *rsi; 
-//        lock CMPXCHG16B [rsi];
-//        sete rval;
-//      } 
-//      return rval;
-//    }
-//  };
-//#endif
-//#define ASMCAS_REGPICK_READ_MACRO(SIZE,REG_D,REG_A) template<typename T> \
-//  struct ASMCAS_REGPICK_READ<T,SIZE> \
-//  { \
-//    inline static uint8_t BSS_FORCEINLINE asmcas(volatile T *pval, T newval, T oldval) \
-//    { \
-//      ASMCAS_FSTMOV(REG_D) \
-//      __asm mov REG_A, oldval \
-//      __asm lock cmpxchg [BSSASM_PREG], REG_D \
-//    }; \
-//  }
-//  
-//  ASMCAS_REGPICK_READ_MACRO(1,DL,AL);
-//  ASMCAS_REGPICK_READ_MACRO(2,DX,AX);
-//  ASMCAS_REGPICK_READ_MACRO(4,EDX,EAX);
-//#ifdef BSS_CPU_x86_64
-//  ASMCAS_REGPICK_READ_MACRO(8,RDX,RAX);
-//#endif
-//
-//#ifdef BSS_CPU_x86
-//  template<typename T>
-//  struct ASMCAS_REGPICK_READ<T,8>
-//  {
-//  public:
-//    inline static BSS_FORCEINLINE T asmcas(volatile T *dest, T newval, T oldval)
-//    {
-//      __asm { 
-//        lea esi,oldval; 
-//        lea edi,newval; 
-//        mov eax,[esi]; 
-//        mov edx,4[esi]; 
-//        mov ebx,[edi]; 
-//        mov ecx,4[edi]; 
-//        mov esi,dest; 
-//        //lock CMPXCHG8B [esi] is equivalent to the following except that it's atomic: 
-//        //ZeroFlag = (edx:eax == *esi); 
-//        //if (ZeroFlag) *esi = ecx:ebx; 
-//        //else edx:eax = *esi; 
-//        lock CMPXCHG8B [esi];
-//      } 
-//    }
-//  };
-//#endif
-//
-//#ifdef BSS_CPU_x86_64
-//  template<typename T>
-//  struct ASMCAS_REGPICK_READ<T,16>
-//  {
-//  public:
-//    inline static T asmcas(volatile T *dest, T newval, T oldval)
-//    {
-//      __asm { 
-//        lea rsi,oldval; 
-//        lea rdi,newval; 
-//        mov rax,[rsi]; 
-//        mov rdx,8[rsi]; 
-//        mov rbx,[rdi]; 
-//        mov rcx,8[rdi]; 
-//        mov rsi,dest; 
-//        //lock CMPXCHG16B [rsi] is equivalent to the following except that it's atomic: 
-//        //ZeroFlag = (rdx:rax == *rsi); 
-//        //if (ZeroFlag) *rsi = rcx:rbx; 
-//        //else rdx:rax = *rsi; 
-//        lock CMPXCHG16B [rsi];
-//      } 
-//    }
-//  };
-//#endif
+  /*
+#ifdef BSS_CPU_x86_64
+  template<typename T>
+  struct ASMCAS_REGPICK_WRITE<T,16>
+  {
+    inline static uint8_t BSS_FORCEINLINE asmcas(volatile T *dest, T newval, T oldval)
+    {
+      uint8_t rval;
+      __asm { 
+        lea rsi,oldval; 
+        lea rdi,newval; 
+        mov rax,[rsi]; 
+        mov rdx,8[rsi]; 
+        mov rbx,[rdi]; 
+        mov rcx,8[rdi]; 
+        mov rsi,dest; 
+        //lock CMPXCHG16B [rsi] is equivalent to the following except that it's atomic:
+        //ZeroFlag = (rdx:rax == *rsi); 
+        //if (ZeroFlag) *rsi = rcx:rbx; 
+        //else rdx:rax = *rsi; 
+        lock CMPXCHG16B [rsi];
+        sete rval;
+      } 
+      return rval;
+    }
+  };
+#endif
+#define ASMCAS_REGPICK_READ_MACRO(SIZE,REG_D,REG_A) template<typename T> \
+  struct ASMCAS_REGPICK_READ<T,SIZE> \
+  { \
+    inline static uint8_t BSS_FORCEINLINE asmcas(volatile T *pval, T newval, T oldval) \
+    { \
+      ASMCAS_FSTMOV(REG_D) \
+      __asm mov REG_A, oldval \
+      __asm lock cmpxchg [BSSASM_PREG], REG_D \
+    }; \
+  }
+  
+  ASMCAS_REGPICK_READ_MACRO(1,DL,AL);
+  ASMCAS_REGPICK_READ_MACRO(2,DX,AX);
+  ASMCAS_REGPICK_READ_MACRO(4,EDX,EAX);
+#ifdef BSS_CPU_x86_64
+  ASMCAS_REGPICK_READ_MACRO(8,RDX,RAX);
+#endif
 
-  /* Assembly level 8-byte compare exchange operation. Compare with old value if you want to know if it succeeded */
-  //inline int64_t asmcas8b(volatile int64_t *dest,int64_t newval,int64_t oldval) 
-  //{ 
-  //  //value returned in eax::edx 
-  //  __asm { 
-  //    lea esi,oldval; 
-  //    lea edi,newval; 
-  //    mov eax,[esi]; 
-  //    mov edx,4[esi]; 
-  //    mov ebx,[edi]; 
-  //    mov ecx,4[edi]; 
-  //    mov esi,dest; 
-  //    //lock CMPXCHG8B [esi] is equivalent to the following except 
-  //    //that it's atomic: 
-  //    //ZeroFlag = (edx:eax == *esi); 
-  //    //if (ZeroFlag) *esi = ecx:ebx; 
-  //    //else edx:eax = *esi; 
-  //    lock CMPXCHG8B [esi]; 
-  //  } 
-  //}
+#ifdef BSS_CPU_x86
+  template<typename T>
+  struct ASMCAS_REGPICK_READ<T,8>
+  {
+  public:
+    inline static BSS_FORCEINLINE T asmcas(volatile T *dest, T newval, T oldval)
+    {
+      __asm { 
+        lea esi,oldval; 
+        lea edi,newval; 
+        mov eax,[esi]; 
+        mov edx,4[esi]; 
+        mov ebx,[edi]; 
+        mov ecx,4[edi]; 
+        mov esi,dest; 
+        //lock CMPXCHG8B [esi] is equivalent to the following except that it's atomic: 
+        //ZeroFlag = (edx:eax == *esi); 
+        //if (ZeroFlag) *esi = ecx:ebx; 
+        //else edx:eax = *esi; 
+        lock CMPXCHG8B [esi];
+      } 
+    }
+  };
+#endif
+
+#ifdef BSS_CPU_x86_64
+  template<typename T>
+  struct ASMCAS_REGPICK_READ<T,16>
+  {
+  public:
+    inline static T asmcas(volatile T *dest, T newval, T oldval)
+    {
+      __asm { 
+        lea rsi,oldval; 
+        lea rdi,newval; 
+        mov rax,[rsi]; 
+        mov rdx,8[rsi]; 
+        mov rbx,[rdi]; 
+        mov rcx,8[rdi]; 
+        mov rsi,dest; 
+        //lock CMPXCHG16B [rsi] is equivalent to the following except that it's atomic: 
+        //ZeroFlag = (rdx:rax == *rsi); 
+        //if (ZeroFlag) *rsi = rcx:rbx; 
+        //else rdx:rax = *rsi; 
+        lock CMPXCHG16B [rsi];
+      } 
+    }
+  };
+#endif
+
+  // Assembly level 8-byte compare exchange operation. Compare with old value if you want to know if it succeeded
+  inline int64_t asmcas8b(volatile int64_t *dest,int64_t newval,int64_t oldval) 
+  { 
+    //value returned in eax::edx 
+    __asm { 
+      lea esi,oldval; 
+      lea edi,newval; 
+      mov eax,[esi]; 
+      mov edx,4[esi]; 
+      mov ebx,[edi]; 
+      mov ecx,4[edi]; 
+      mov esi,dest; 
+      //lock CMPXCHG8B [esi] is equivalent to the following except 
+      //that it's atomic: 
+      //ZeroFlag = (edx:eax == *esi); 
+      //if (ZeroFlag) *esi = ecx:ebx; 
+      //else edx:eax = *esi; 
+      lock CMPXCHG8B [esi]; 
+    } 
+  }*/
 #endif
  //defined(BSS_CPU_x86_64) || defined(BSS_CPU_x86)
 }

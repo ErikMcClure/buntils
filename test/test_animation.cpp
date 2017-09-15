@@ -1,7 +1,7 @@
 // Copyright ©2017 Black Sphere Studios
 // For conditions of distribution and use, see copyright notice in "bss_util.h"
 
-#include "bss-util/FXAni.h"
+#include "bss-util/Animation.h"
 #include "bss-util/Variant.h"
 #include "test.h"
 #include <memory>
@@ -25,52 +25,30 @@ struct cAnimObj
   const float& getfloat() { return fl; }
 };
 
-typedef Variant<double> FX_DEF;
-typedef Variant<DEBUG_CDT<true>, DEBUG_CDT<false>> FX_OBJ;
-typedef Variant<Animation<float>> FX_ANI;
-typedef Variant<AniStateDiscrete<float>> FX_STATE;
-
-double anidefcreate(const FX_DEF& def, FX_OBJ& obj)
-{
-  double d = def.get<double>();
-  if(d >= 0.0)
-    obj = DEBUG_CDT<true>();
-  else
-    obj = DEBUG_CDT<false>();
-  return abs(d);
-}
-
-void anidefmap(FX_ANI& ani, FX_STATE& state, FX_OBJ& obj)
-{
-  if(ani.is<Animation<float>>())
-  {
-    Delegate<void, float> d(0, 0);
-    if(obj.is<DEBUG_CDT<true>>())
-      d = Delegate<void, float>::From<DEBUG_CDT<true>, &DEBUG_CDT<true>::donothing>(&obj.get<DEBUG_CDT<true>>());
-    else
-      d = Delegate<void, float>::From<DEBUG_CDT<false>, &DEBUG_CDT<false>::donothing>(&obj.get<DEBUG_CDT<false>>());
-    state = AniStateDiscrete<float>(&ani.get<Animation<float>>(), d);
-  }
-}
 TESTDEF::RETPAIR test_ANIMATION()
 {
   BEGINTEST;
   RCounter c;
   {
-    c.Grab();
-    Animation<RefCounter*> a0;
-    a0.Add(0.0, &c);
-    a0.Add(1.1, &c);
-    a0.Add(2.0, &c);
-    AnimationInterval<ref_ptr<RefCounter>> a1;
-    a1.Add(0.0, &c, 1.5);
-    a1.Add(1.0, &c, 0.5);
-    a1.Add(1.5, &c, 0.5);
-    Animation<float> a2(&AniStateSmooth<float>::LerpInterpolate);
-    a2.Add(0.0, 0.0f);
-    a2.Add(1.0, 1.0f);
-    a2.Add(2.0, 2.0f);
+    typedef AniData<RefCounter*, void, ARRAY_SAFE> PtrAni;
+    typedef AniDataInterval<ref_ptr<RefCounter>, ARRAY_SAFE> RefAni;
+    typedef AniDataSmooth<float> FloatAni;
 
+    c.Grab();
+    Animation<PtrAni> a0;
+    a0.Add<PtrAni>(0.0, &c);
+    a0.Add<PtrAni>(1.1, &c);
+    a0.Add<PtrAni>(2.0, &c);
+    Animation<RefAni> a1;
+    a1.Get<RefAni>().Add(0.0, &c, 1.5);
+    a1.Get<RefAni>().Add(1.0, &c, 0.5);
+    a1.Get<RefAni>().Add(1.5, &c, 0.5);
+    a1.SetLength(); // We can't use the helper functions here so recalculate length
+    Animation<FloatAni> a2;
+    a2.Add<FloatAni>(0.0, 0.0f);
+    a2.Add<FloatAni>(1.0, 1.0f);
+    a2.Add<FloatAni>(2.0, 2.0f);
+    a2.Get<FloatAni>().SetInterpolation(&FloatAni::LerpInterpolate);
     TEST(a0.GetLength() == 2.0);
     TEST(a1.GetLength() == 2.0);
     TEST(a2.GetLength() == 2.0);
@@ -87,9 +65,13 @@ TESTDEF::RETPAIR test_ANIMATION()
     //a.GetAttribute<3>()->AddKeyFrame(KeyFrame<3>(0.0, [&](){ c.Grab(); obj.test++; }));
     //a.GetAttribute<3>()->AddKeyFrame(KeyFrame<3>(0.6, [&](){ c.Drop(); }));
     //a.Attach(Delegate<void,AniAttribute*>::From<cAnimObj,&cAnimObj::TypeIDRegFunc>(&obj));
-    AniStateDiscrete<RefCounter*> s0(&a0, Delegate<void, RefCounter*>::From<cAnimObj, &cAnimObj::donothing>(&obj));
-    AniStateInterval<ref_ptr<RefCounter>, RefCounter*> s1(&a1, Delegate<RefCounter*, ref_ptr<RefCounter>>::From<cAnimObj, &cAnimObj::retnothing>(&obj), Delegate<void, RefCounter*>::From<cAnimObj, &cAnimObj::remnothing>(&obj));
-    AniStateSmooth<float> s2(&a2, Delegate<void, float>::From<cAnimObj, &cAnimObj::setfloat>(&obj));
+    AniState<cAnimObj, Animation<PtrAni>, AniStateDiscrete<cAnimObj, PtrAni, RefCounter*, &cAnimObj::donothing>> s0(&obj, &a0);
+    AniState<cAnimObj, Animation<RefAni>, AniStateInterval<cAnimObj, RefAni, ref_ptr<RefCounter>, RefCounter*, &cAnimObj::retnothing, &cAnimObj::remnothing>> s1(&obj, &a1);
+    AniState<cAnimObj, Animation<FloatAni>, AniStateSmooth<cAnimObj, FloatAni, float, &cAnimObj::setfloat>> s2(&obj, &a2);
+
+    static_assert(sizeof(Animation<PtrAni>::template State<AniStateBase>) == sizeof(s0), "MAXSIZE should be sizeof(s0)");
+    static_assert(sizeof(Animation<RefAni>::template State<AniStateBase>) == sizeof(s1), "MAXSIZE should be sizeof(s1)");
+    static_assert(sizeof(Animation<FloatAni>::template State<AniStateBase>) == sizeof(s2), "MAXSIZE should be sizeof(s2)");
 
     auto interall = [&](double t) {
       s0.Interpolate(t);
@@ -172,32 +154,5 @@ TESTDEF::RETPAIR test_ANIMATION()
   }
   TEST(c.Grab() == 2);
 
-  ENDTEST;
-}
-
-TESTDEF::RETPAIR test_FX_ANI()
-{
-  BEGINTEST;
-  DEBUG_CDT<true>::count = 0;
-
-  {
-    typedef FXAni<FX_DEF, FX_OBJ, anidefcreate, FX_ANI, FX_STATE, anidefmap> FXANI;
-    AniFrame<float, void> frames[2] = { { -1.0f,0.0 }, { 0.0f,1.0 } };
-    FXANI::FXMANAGER manager;
-    FXANI _test(&manager);
-    _test.AddDef(FX_DEF(1.0), 0.0, true);
-    _test.AddDef(FX_DEF(-1.0), 3.0, true);
-    _test.AddDef(FX_DEF(0.0), 0.0, false);
-    _test.AddDef(FX_DEF(-2.0), 1.0, false);
-    _test.AddAnimation<float, void>(frames, 2, 0);
-    _test.AddMapping(0, 0, 0.0);
-    _test.AddMapping(1, 0, 2.0);
-    _test.AddMapping(2, 0, 1.0);
-    _test.AddMapping(3, 0, 0.0);
-    FXAniState<FXANI> fxstate(&_test);
-    fxstate.Interpolate(1);
-    fxstate.Interpolate(5);
-    fxstate.Interpolate(1);
-  }
   ENDTEST;
 }

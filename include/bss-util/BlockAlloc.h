@@ -34,11 +34,16 @@ namespace bss {
         free(hold);
       }
     }
-    inline void* Alloc(size_t num) noexcept
+    inline const FIXEDLIST_NODE* GetRoot() const { return _root; }
+    BSS_FORCEINLINE size_t GetSize() const { return _sz; }
+    template<class T>
+    BSS_FORCEINLINE T* AllocT(size_t num) noexcept { return static_cast<T*>(Alloc(num * sizeof(T))); }
+    BSS_FORCEINLINE void* Alloc() noexcept { return Alloc(_sz); }
+    inline void* Alloc(size_t bytes) noexcept
     {
-      assert(num == 1);
+      assert(bytes <= _sz);
 #ifdef BSS_DISABLE_CUSTOM_ALLOCATORS
-      return malloc(num*_sz);
+      return malloc(bytes);
 #endif
       if(!_freelist)
       {
@@ -133,13 +138,28 @@ namespace bss {
     const size_t _sz;
   };
 
+  template<size_t SIZE>
+  class BSS_COMPILER_DLLEXPORT BlockAllocSize : protected BlockAllocVoid
+  {
+    inline BlockAllocSize(BlockAllocSize&& mov) : BlockAllocVoid(std::move(mov)) {}
+    inline explicit BlockAllocSize(size_t init = 8) : BlockAllocVoid(SIZE, init) { static_assert((SIZE >= sizeof(void*)), "SIZE cannot be less than the size of a pointer"); }
+    template<class T>
+    BSS_FORCEINLINE T* Alloc(size_t num = 1) { static_assert((sizeof(T) <= SIZE), "sizeof(T) must be less than SIZE"); return BlockAllocVoid::AllocT<T>(num); }
+    template<class T>
+    BSS_FORCEINLINE void Dealloc(T* p) noexcept { static_assert((sizeof(T) <= SIZE), "sizeof(T) must be less than SIZE"); BlockAllocVoid::Dealloc(p); }
+    BSS_FORCEINLINE void Clear() { BlockAllocVoid::Clear(); }
+    BlockAllocSize& operator=(BlockAllocSize&& mov) { BlockAllocVoid::operator=(std::move(mov)); return *this; }
+  };
+
   template<class T>
-  class BSS_COMPILER_DLLEXPORT BlockAlloc : public BlockAllocVoid
+  class BSS_COMPILER_DLLEXPORT BlockAlloc : protected BlockAllocVoid
   {
   public:
     inline BlockAlloc(BlockAlloc&& mov) : BlockAllocVoid(std::move(mov)) {}
     inline explicit BlockAlloc(size_t init = 8) : BlockAllocVoid(sizeof(T), init) { static_assert((sizeof(T) >= sizeof(void*)), "T cannot be less than the size of a pointer"); }
-    inline T* Alloc(size_t num) noexcept { return (T*)BlockAllocVoid::Alloc(num); }
+    BSS_FORCEINLINE T* Alloc(size_t num = 1) noexcept { return BlockAllocVoid::AllocT<T>(num); }
+    BSS_FORCEINLINE void Dealloc(T* p) noexcept { BlockAllocVoid::Dealloc(p); }
+    BSS_FORCEINLINE void Clear() { BlockAllocVoid::Clear(); }
     BlockAlloc& operator=(BlockAlloc&& mov) { BlockAllocVoid::operator=(std::move(mov)); return *this; }
   };
 
@@ -158,8 +178,8 @@ namespace bss {
 
     BlockPolicy& operator=(BlockPolicy&& mov) { BlockAlloc<T>::operator=(std::move(mov)); return *this; }
 
-    inline pointer allocate(size_t cnt, const pointer = 0) noexcept { return BlockAlloc<T>::Alloc(cnt); }
-    inline void deallocate(pointer p, size_t num = 0) noexcept { return BlockAlloc<T>::Dealloc(p); }
+    BSS_FORCEINLINE pointer allocate(size_t cnt, const pointer = 0) noexcept { return BlockAlloc<T>::Alloc(cnt); }
+    BSS_FORCEINLINE void deallocate(pointer p, size_t num = 0) noexcept { return BlockAlloc<T>::Dealloc(p); }
   };
 }
 

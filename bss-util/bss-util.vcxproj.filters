@@ -123,9 +123,6 @@
     <ClInclude Include="..\include\bss-util\Hash.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="..\include\bss-util\FXAni.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
     <ClInclude Include="..\include\bss-util\DynArray.h">
       <Filter>Header Files</Filter>
     </ClInclude>

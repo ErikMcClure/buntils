@@ -104,18 +104,18 @@ namespace bss {
     };
   }
 
+  // Compile-time max sizeof
+  template<typename A, typename... Ax>
+  struct max_sizeof { static constexpr size_t value = (max_sizeof<Ax...>::value > sizeof(A)) ? max_sizeof<Ax...>::value : sizeof(A); };
+
+  template<typename A>
+  struct max_sizeof<A> { static constexpr size_t value = sizeof(A); };
+
   // algebriac union using variadic templates
   template<typename Arg, typename... Args>
   class BSS_COMPILER_DLLEXPORT Variant
   {
     typedef Variant<Arg, Args...> SELF;
-
-    // Compile-time max sizeof
-    template<typename A, typename... Ax>
-    struct max_sizeof { static constexpr size_t value = (max_sizeof<Ax...>::value > sizeof(A)) ? max_sizeof<Ax...>::value : sizeof(A); };
-
-    template<typename A>
-    struct max_sizeof<A> { static constexpr size_t value = sizeof(A); };
 
     // Compile-time max alignment
     template<typename A, typename... Ax>

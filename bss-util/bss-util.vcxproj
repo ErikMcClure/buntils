@@ -87,7 +87,6 @@
     <ClInclude Include="..\include\bss-util\BitStream.h" />
     <ClInclude Include="..\include\bss-util\DisjointSet.h" />
     <ClInclude Include="..\include\bss-util\DynArray.h" />
-    <ClInclude Include="..\include\bss-util\FXAni.h" />
     <ClInclude Include="..\include\bss-util\HighPrecisionTimer.h" />
     <ClInclude Include="..\include\bss-util\IDHash.h" />
     <ClInclude Include="..\include\bss-util\INIentry.h" />

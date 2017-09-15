@@ -607,6 +607,8 @@ TESTDEF::RETPAIR test_bss_util()
   ss.str("");
   SafeFormat(ss, "0{000} {%}{s0}");
   TEST(ss.str() == "0{000} {%}{s0}");
+  ss.str("");
+  SafeFormat(ss, "{0}", 0, 1, 2);
 
   ENDTEST;
 }

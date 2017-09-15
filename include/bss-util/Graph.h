@@ -69,7 +69,7 @@ namespace bss {
     Graph(const Graph&) = delete;
       Graph& operator=(const Graph&)= delete;
   public:
-    inline Graph(Graph&& mov) : _nodes(std::move(mov._nodes)), _nedges(mov._nedges) { mov._nedges = 0; }
+    inline Graph(Graph&& mov) : AllocTracker<ALLOC>(std::move(mov)), _nodes(std::move(mov._nodes)), _nedges(mov._nedges) { mov._nedges = 0; }
     inline Graph() : _nodes(0), _nedges(0) {}
     // Build a matrix out of a standard adjacency matrix
     inline Graph(CT n, const char* M, const V* nodes) : _nodes(n), _nedges(0) { _construct<char, _baseCheck>(n, M, nodes); }

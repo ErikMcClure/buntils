@@ -286,50 +286,7 @@ namespace bss {
       // Forward Hash<> specializations to the underlying HashBase specializations
       template<class Engine, typename K, typename T, bool ins, ARRAY_TYPE ArrayType, typename Alloc>
       struct Action<Engine, Hash<K, T, ins, ArrayType, Alloc>> : Action<Engine, typename Hash<K, T, ins, ArrayType, Alloc>::BASE> {};
-
-      template<class Engine, class T, typename Arg, typename... Args>
-      struct __ActionVariant
-      {
-        static inline void Parse(Serializer<Engine>& e, T& obj, const char* id)
-        {
-          if(obj.template is<Arg>())
-          {
-            new (&obj) T(); // Set _Tag to -1
-            obj.template typeset<Arg>(); // Properly construct type
-            Action<Engine, Arg>::Parse(e, obj.template get<Arg>(), id);
-          }
-          else
-            __ActionVariant<Engine, T, Args...>::Parse(e, obj, id);
-        }
-        static inline void Serialize(Serializer<Engine>& e, const T& obj, const char* id)
-        {
-          if(obj.template is<Arg>())
-            Action<Engine, Arg>::Serialize(e, obj.template get<Arg>(), id);
-          else
-            __ActionVariant<Engine, T, Args...>::Serialize(e, obj, id);
-        }
-      };
-      template<class Engine, class T, typename Arg>
-      struct __ActionVariant<Engine, T, Arg>
-      {
-        static inline void Parse(Serializer<Engine>& e, T& obj, const char* id)
-        {
-          if(obj.template is<Arg>())
-          {
-            new (&obj) T();
-            obj.template typeset<Arg>();
-            Action<Engine, Arg>::Parse(e, obj.template get<Arg>(), id);
-          }
-        }
-        static inline void Serialize(Serializer<Engine>& e, const T& obj, const char* id)
-        {
-          if(obj.template is<Arg>())
-            Action<Engine, Arg>::Serialize(e, obj.template get<Arg>(), id);
-          else
-            assert(obj.tag() == -1);
-        }
-      };
-
+      
       template<typename... Args>
       struct ActionVariantRef
       {
@@ -341,13 +298,36 @@ namespace bss {
       template<class Engine, typename... Args>
       struct Action<Engine, ActionVariantRef<Args...>>
       {
+        template<typename A, typename... Ax>
+        static inline void _parse(Serializer<Engine>& e, Variant<Args...>& obj, const char* id)
+        {
+          if(obj.template is<A>())
+          {
+            new (&obj) Variant<Args...>(); // Set _Tag to -1
+            obj.template typeset<A>(); // Properly construct type
+            Action<Engine, A>::Parse(e, obj.template get<A>(), id);
+          }
+          else if constexpr(sizeof...(Ax) > 0)
+            _parse<Ax...>(e, obj, id);
+        }
+        template<typename A, typename... Ax>
+        static inline void _serialize(Serializer<Engine>& e, const Variant<Args...>& obj, const char* id)
+        {
+          if(obj.template is<A>())
+            Action<Engine, A>::Serialize(e, obj.template get<A>(), id);
+          else if constexpr(sizeof...(Ax) > 0)
+            _serialize<Ax...>(e, obj, id);
+          else
+            assert(obj.tag() == -1);
+        }
+
         static inline void Parse(Serializer<Engine>& e, ActionVariantRef<Args...>& obj, const char* id)
         {
-          __ActionVariant<Engine, Variant<Args...>, Args...>::Parse(e, obj._ref, id);
+          _parse<Args...>(e, obj._ref, id);
         }
         static inline void Serialize(Serializer<Engine>& e, const ActionVariantRef<Args...>& obj, const char* id)
         {
-          __ActionVariant<Engine, Variant<Args...>, Args...>::Serialize(e, obj._ref, id);
+          _serialize<Args...>(e, obj._ref, id);
         }
       };
 

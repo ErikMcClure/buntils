@@ -422,13 +422,14 @@ namespace bss {
   template<typename T, typename F>
   inline void PoissonDiskSample(T(&rect)[4], T mindist, F && f, size_t pointsPerIteration = 30)
   {
+    typedef std::array<T, 2> GRID;
     //Create the grid
     T cell = mindist / (T)SQRT_TWO;
     T w = rect[2] - rect[0];
     T h = rect[3] - rect[1];
     size_t gw = ((size_t)ceil(w / cell)) + 4; //gives us buffer room so we don't have to worry about going outside the grid
     size_t gh = ((size_t)ceil(h / cell)) + 4;
-    std::array<T, 2>* grid = new std::array<T, 2>[gw*gh];      //grid height
+    DYNARRAY(GRID, grid, (gw*gh));    //grid height
     uint64_t* ig = (uint64_t*)grid;
     bssFillN(grid, gw*gh, 0xFF);
     assert(!(~ig[0]));
@@ -497,11 +498,11 @@ namespace bss {
     return (p1*(1 - 2 * t + t2) + p2*(1 + 2 * t - 2 * t2) + p3*t2) / ((D)2.0);
   }
 
-  // Implementation of a uniform cubic B-spline interpolation. A uniform cubic B-spline matrix is:
-  //                / -1  3 -3  1 \         / p1 \
-  // [t^3,t²,t,1] * |  3 -6  3  0 | * 1/6 * | p2 |
-  //                | -3  0  3  0 |         | p3 |
-  //                \  1  4  1  0 /         \ p4 /
+  /* Implementation of a uniform cubic B-spline interpolation. A uniform cubic B-spline matrix is:
+                  / -1  3 -3  1 \         / p1 \
+   [t^3,t²,t,1] * |  3 -6  3  0 | * 1/6 * | p2 |
+                  | -3  0  3  0 |         | p3 |
+                  \  1  4  1  0 /         \ p4 / */
   template<typename T, typename D>
   inline T UniformCubicBSpline(D t, const T& p1, const T& p2, const T& p3, const T& p4)
   {
@@ -510,11 +511,11 @@ namespace bss {
     return (p1*(1 - 3 * t + 3 * t2 - t3) + p2*(4 - 6 * t2 + 3 * t3) + p3*(1 + 3 * t + 3 * t2 - 3 * t3) + (p4*t3)) / ((D)6.0);
   }
 
-  // Implementation of a basic cubic interpolation. The B-spline matrix for this is
-  //                / -1  3 -3  1 \       / p1 \
-  // [t^3,t²,t,1] * |  2 -5  4 -1 | * ½ * | p2 |
-  //                | -1  0  1  0 |       | p3 |
-  //                \  0  2  0  0 /       \ p4 /
+  /* Implementation of a basic cubic interpolation. The B-spline matrix for this is
+                  / -1  3 -3  1 \       / p1 \
+   [t^3,t²,t,1] * |  2 -5  4 -1 | * ½ * | p2 |
+                  | -1  0  1  0 |       | p3 |
+                  \  0  2  0  0 /       \ p4 /  */
   template<typename T, typename D>
   inline T CubicBSpline(D t, const T& p1, const T& p2, const T& p3, const T& p4)
   {
@@ -535,11 +536,11 @@ namespace bss {
       p[3] * (m[0][3] * t3 + m[1][3] * t2 + m[2][3] * t + m[3][3]);
   }
 
-  // Implementation of a bezier curve. The B-spline matrix for this is
-  //                / -1  3 -3  1 \   / p1 \
-      // [t^3,t²,t,1] * |  3 -6  3  0 | * | p2 |
-  //                | -3  3  0  0 |   | p3 |
-  //                \  1  0  0  0 /   \ p4 /
+  /* Implementation of a bezier curve. The B-spline matrix for this is
+                  / -1  3 -3  1 \   / p1 \
+   [t^3,t²,t,1] * |  3 -6  3  0 | * | p2 |
+                  | -3  3  0  0 |   | p3 |
+                  \  1  0  0  0 /   \ p4 /  */
   template<typename T, typename D>
   inline T BezierCurve(D t, const T& p1, const T& p2, const T& p3, const T& p4)
   {

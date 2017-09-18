@@ -35,28 +35,28 @@ template<typename FROM, typename TO>
 void testconvfunc(const FROM* from, size_t szfrom, const TO* to, size_t(f)(const FROM*BSS_RESTRICT, ptrdiff_t, TO*BSS_RESTRICT, size_t), TESTDEF::RETPAIR& __testret)
 {
   size_t len = f(from, -1, 0, 0);
-  DYNARRAY(TO, target1, len);
+  VARARRAY(TO, target1, len);
   len = f(from, -1, target1, len);
   TEST(len == szfrom + 1);
   TEST(target1[len - 1] == 0);
   TEST(arbitrarycomp<TO>(target1, to));
 
   len = f(from, szfrom + 1, 0, 0);
-  DYNARRAY(TO, target2, len);
+  VARARRAY(TO, target2, len);
   len = f(from, szfrom + 1, target2, len);
   TEST(len == szfrom + 1);
   TEST(target2[len - 1] == 0);
   TEST(arbitrarycomp<TO>(target2, to));
 
   len = f(from, szfrom, 0, 0);
-  DYNARRAY(TO, target3, len);
+  VARARRAY(TO, target3, len);
   len = f(from, szfrom, target3, len);
   TEST(len == szfrom);
   TEST(target3[len - 1] != 0);
   TEST(arbitrarycomp<TO>(target3, to, len));
 
   len = f(from, szfrom - 1, 0, 0);
-  DYNARRAY(TO, target4, len);
+  VARARRAY(TO, target4, len);
   len = f(from, szfrom - 1, target4, len);
   TEST(len == szfrom - 1);
   TEST(target4[len - 1] != 0);

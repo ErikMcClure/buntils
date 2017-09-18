@@ -14,7 +14,7 @@ namespace bss {
   class TOMLEngine
   {
   public:
-    TOMLEngine() : state(3), first(false) {}
+    TOMLEngine() : state(STATE_BEGIN), first(false) {}
     static constexpr bool Ordered() { return false; }
     static void Begin(Serializer<TOMLEngine>& e) {}
     static void End(Serializer<TOMLEngine>& e) {}
@@ -64,7 +64,7 @@ namespace bss {
       std::ostream& s = *e.out;
       WriteTOMLId(e, id, s);
       s << (t ? "true" : "false");
-      if(e.engine.state != 2 && id)
+      if(e.engine.state != STATE_INLINE_TABLE && id)
         s << std::endl;
     }
 
@@ -102,7 +102,7 @@ namespace bss {
 
     static void WriteTOMLId(Serializer<TOMLEngine>& e, const char* id, std::ostream& s)
     {
-      if(!id || e.engine.state == 2)
+      if(!id || e.engine.state == STATE_INLINE_TABLE)
       {
         if(e.engine.first)
           e.engine.first = false;
@@ -130,7 +130,8 @@ namespace bss {
       }
     };
 
-    size_t state;
+    enum STATE : uint16_t { STATE_NORMAL, STATE_TABLE, STATE_INLINE_TABLE, STATE_BEGIN };
+    uint16_t state;
     Str id;
     bool first;
   };
@@ -277,7 +278,7 @@ namespace bss {
       if(!!s && s.peek() == '=')
       {
         s.get();
-        internal::serializer::PushValue<size_t> push(e.engine.state, 0);
+        internal::serializer::PushValue<decltype(e.engine.state)> push(e.engine.state, STATE_NORMAL);
         f(e, buf.c_str()); // This will call FindParse by default, or a special function for TOMLValue types
       }
       while(!!s && s.peek() != '\n' && s.peek() != '\r' && s.peek() != ',' && s.peek() != '}' && s.peek() != -1) s.get(); // Eat everything until the next comma or the end of the table
@@ -299,7 +300,7 @@ namespace bss {
       if(!!s && s.peek() == '=')
       {
         s.get();
-        internal::serializer::PushValue<size_t> push(e.engine.state, 0);
+        internal::serializer::PushValue<decltype(e.engine.state)> push(e.engine.state, STATE_NORMAL);
         f(e, buf.c_str()); // This will call ParseTOMLBase on the appropriate value.
         while(!!s && s.peek() != '\n' && s.peek() != '\r' && s.peek() != -1) s.get(); // Eat all remaining characters on this line that weren't parsed.
       }
@@ -444,11 +445,11 @@ namespace bss {
   {
     switch(e.engine.state)
     {
-    case 3:
+    case TOMLEngine::STATE_BEGIN:
       target = TOMLValue::TOMLTable();
       Serializer<TOMLEngine>::ActionBind<TOMLValue::TOMLTable>::Parse(e, target.get<TOMLValue::TOMLTable>(), 0);
       return;
-    case 1:
+    case TOMLEngine::STATE_TABLE:
       if(e.in->peek() == '.')
       {
         e.in->get();
@@ -466,7 +467,7 @@ namespace bss {
       else
         assert(false);
       return;
-    case 2:
+    case TOMLEngine::STATE_INLINE_TABLE:
       if(e.in->peek() == ']')
       {
         target = TOMLValue::TOMLTable();
@@ -530,7 +531,7 @@ namespace bss {
   template<typename T>
   void TOMLEngine::Parse(Serializer<TOMLEngine>& e, T& t, const char* id)
   {
-    if(e.engine.state == 3 && id && id[0])
+    if(e.engine.state == STATE_BEGIN && id && id[0])
     {
       TOMLWrapper<T> wrap(t, id);
       ParseTOMLBase<TOMLWrapper<T>>(e, wrap, *e.in);
@@ -544,9 +545,9 @@ namespace bss {
   {
     int n = 0;
     std::istream& s = *e.in;
-    if(e.engine.state > 0 && e.in->peek() == '.') // If this happens, we are attempting to access an array
+    if(e.engine.state > STATE_NORMAL && e.in->peek() == '.') // If this happens, we are attempting to access an array
       return Serializer<TOMLEngine>::ActionBind<E>::Parse(e, Serializer<TOMLEngine>::ActionBind<T>::Last(obj), id);
-    if(e.engine.state == 2) // If the state is 2 and not 0, this is a table array.
+    if(e.engine.state == STATE_INLINE_TABLE) // If the state is 2 and not 0, this is a table array.
       Serializer<TOMLEngine>::ActionBind<T>::Add(e, obj, n);
     else // Otherwise it's a standard inline array
     {
@@ -568,10 +569,10 @@ namespace bss {
   {
     switch(e.engine.state)
     {
-    case 3: // If state is 3, this is the initial object serialization.
+    case STATE_BEGIN: // this is the initial object serialization.
       ParseTOMLRoot(e, *e.in, f);
       break;
-    case 1:
+    case STATE_TABLE:
       if(e.in->peek() == '.')
       {
         e.in->get();
@@ -587,7 +588,7 @@ namespace bss {
       else
         assert(false);
       break;
-    case 2:
+    case STATE_INLINE_TABLE:
       if(e.in->peek() == ']')
       {
         e.in->get();
@@ -600,7 +601,7 @@ namespace bss {
       else
         assert(false);
       break;
-    case 0:
+    case STATE_NORMAL:
       ParseTOMLEatWhitespace(*e.in);
 
       if(e.in->peek() == '{')
@@ -615,7 +616,7 @@ namespace bss {
   template<typename T>
   void TOMLEngine::SerializeArray(Serializer<TOMLEngine>& e, const T& t, size_t size, const char* id)
   {
-    if(e.engine.state == 1)
+    if(e.engine.state == STATE_TABLE)
       return;
 
     std::ostream& s = *e.out;
@@ -629,19 +630,19 @@ namespace bss {
       Serializer<TOMLEngine>::ActionBind<typename std::remove_const<typename std::remove_reference<decltype(*begin)>::type>::type>::Serialize(e, *begin, 0);
 
     s << ']';
-    if(e.engine.state != 2 && id)
+    if(e.engine.state != STATE_INLINE_TABLE && id)
       s << std::endl;
   }
 
   template<class T>
   void TOMLEngine::SerializeNumber(Serializer<TOMLEngine>& e, T obj, const char* id)
   {
-    if(e.engine.state == 1)
+    if(e.engine.state == STATE_TABLE)
       return;
     std::ostream& s = *e.out;
     WriteTOMLId(e, id, s);
     s << (typename std::conditional<sizeof(T) <= 2, int, T>::type)obj; // Converts all smaller numbers to integers to avoid character insertion bullshit
-    if(e.engine.state != 2 && id)
+    if(e.engine.state != STATE_INLINE_TABLE && id)
       s << std::endl;
   }
 
@@ -660,7 +661,7 @@ namespace bss {
   template<class T>
   void TOMLEngine::WriteTOMLPairs(Serializer<TOMLEngine>& e, const char* id, const T& obj, std::ostream& s)
   {
-    if(e.engine.state == 2) // if we're in state 2 we're writing an inline table
+    if(e.engine.state == STATE_INLINE_TABLE) // if we're in state 2 we're writing an inline table
     {
       WriteTOMLId(e, id, s);
       s << "{ ";
@@ -676,14 +677,14 @@ namespace bss {
     e.engine.first = true;
     const_cast<T&>(obj).template Serialize<TOMLEngine>(e);
 
-    if(e.engine.state == 2)
+    if(e.engine.state == STATE_INLINE_TABLE)
       s << " }";
     else
       s << std::endl;
   }
 
   template<class T>
-  inline void WriteTOML(const T& obj, std::ostream& s) { Serializer<TOMLEngine> e; internal::serializer::PushValue<size_t> push(e.engine.state, 1); e.Serialize<T>(obj, s, 0); }
+  inline void WriteTOML(const T& obj, std::ostream& s) { Serializer<TOMLEngine> e; internal::serializer::PushValue<decltype(e.engine.state)> push(e.engine.state, TOMLEngine::STATE_TABLE); e.Serialize<T>(obj, s, 0); }
   template<class T>
   inline void WriteTOML(const T& obj, const char* file) { std::ofstream fs(file, std::ios_base::out | std::ios_base::trunc | std::ios_base::binary); WriteTOML<T>(obj, fs); }
 
@@ -694,7 +695,7 @@ namespace bss {
 
     if constexpr(std::is_base_of<std::string, T>::value)
     {
-      if(e.engine.state == 1)
+      if(e.engine.state == STATE_TABLE)
         return;
 
       TOMLEngine::WriteTOMLId(e, id, s);
@@ -716,36 +717,36 @@ namespace bss {
       }
 
       s << '"';
-      if(e.engine.state != 2 && id)
+      if(e.engine.state != STATE_INLINE_TABLE && id)
         s << std::endl;
     }
 #ifdef BSS_COMPILER_HAS_TIME_GET
     else if constexpr(std::is_base_of<std::chrono::system_clock::time_point, T>::value)
     {
-      if(e.engine.state == 1)
+      if(e.engine.state == STATE_TABLE)
         return;
 
       TOMLEngine::WriteTOMLId(e, id, s);
       time_t time = std::chrono::system_clock::to_time_t(obj);
       s << std::put_time(gmtime(&time), "%Y-%m-%dT%H:%M:%S+00:00");
-      if(e.engine.state != 2 && id)
+      if(e.engine.state != STATE_INLINE_TABLE && id)
         s << std::endl;
     }
 #endif
     else
     {
-      if(e.engine.state == 2 || (!id && !e.engine.state))
+      if(e.engine.state == STATE_INLINE_TABLE || (!id && !e.engine.state))
       {
-        internal::serializer::PushValue<size_t> push(e.engine.state, 2);
+        internal::serializer::PushValue<decltype(e.engine.state)> push(e.engine.state, STATE_INLINE_TABLE);
         TOMLEngine::WriteTOMLPairs(e, id, obj, s);
       }
       else if(!!e.engine.state)
       {
-        e.engine.state = 0;
+        e.engine.state = STATE_NORMAL;
         TOMLEngine::WriteTOMLPairs(e, id, obj, s);
-        e.engine.state = 1;
+        e.engine.state = STATE_TABLE;
         TOMLEngine::WriteTOMLTables(e, id, obj, s);
-        e.engine.state = 1;
+        e.engine.state = STATE_TABLE;
       }
     }
   }

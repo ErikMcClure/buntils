@@ -429,9 +429,9 @@ namespace bss {
     T h = rect[3] - rect[1];
     size_t gw = ((size_t)ceil(w / cell)) + 4; //gives us buffer room so we don't have to worry about going outside the grid
     size_t gh = ((size_t)ceil(h / cell)) + 4;
-    DYNARRAY(GRID, grid, (gw*gh));    //grid height
-    uint64_t* ig = (uint64_t*)grid;
-    bssFillN(grid, gw*gh, 0xFF);
+    VARARRAY(GRID, grid, (gw*gh));    //grid height
+    uint64_t* ig = reinterpret_cast<uint64_t*>((GRID*)grid);
+    bssFillN<GRID>(grid, gw*gh, 0xFF);
     assert(!(~ig[0]));
 
     RandomQueue<std::array<T, 2>> list;
@@ -563,7 +563,7 @@ namespace bss {
     }
 
     n = (n / 2) + 1;
-    DYNARRAY(T*, queue, n);
+    VARARRAY(T*, queue, n);
     queue[0] = root;
     size_t l = 1;
 

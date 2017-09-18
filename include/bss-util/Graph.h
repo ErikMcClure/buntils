@@ -131,7 +131,7 @@ namespace bss {
       if(!matrix)
         return len;
 
-      DYNARRAY(CT, hash, _nodes.Capacity());
+      VARARRAY(CT, hash, _nodes.Capacity());
       CT k = 0;
 
       for(CT i = _nodes.Front(); i != (CT)-1; _nodes.Next(i))
@@ -166,7 +166,7 @@ namespace bss {
     template<typename D, bool(*ISEDGE)(const D*)>
     void _construct(CT n, const D* M, const V* nodes)
     {
-      DYNARRAY(CT, k, n);
+      VARARRAY(CT, k, n);
 
       for(CT i = 0; i < n; ++i)
         k[i] = AddNode(_addVertex(nodes, i));
@@ -200,14 +200,14 @@ namespace bss {
     typedef std::pair<CT, CT> PAIR;
     CT len = graph.NumNodes(); // Setup
     CT cap = graph.Capacity();
-    DYNARRAY(int, excess, cap);
-    DYNARRAY(CT, height, cap);
-    DYNARRAY(PEDGE, seen, cap);
-    DYNARRAY(PAIR, v, (len - 2)); //integer based singly-linked list.
-    bssFillN(excess, cap);
-    bssFillN(height, cap);
-    bssFillN(seen, cap);
-    bssFillN(v, (len - 2), -1);
+    VARARRAY(int, excess, cap);
+    VARARRAY(CT, height, cap);
+    VARARRAY(PEDGE, seen, cap);
+    VARARRAY(PAIR, v, (len - 2)); //integer based singly-linked list.
+    bssFillN<int>(excess, cap);
+    bssFillN<CT>(height, cap);
+    bssFillN<PEDGE>(seen, cap);
+    bssFillN<PAIR>(v, (len - 2), -1);
     PEDGE edge;
     auto& nodes = graph.GetNodes();
 
@@ -397,7 +397,7 @@ namespace bss {
   template<typename G, bool(*FACTION)(typename G::CT_)>
   inline void BreadthFirstGraph(G& graph, typename G::CT_ root)
   {
-    DYNARRAY(typename G::CT_, queue, graph.NumNodes());
+    VARARRAY(typename G::CT_, queue, graph.NumNodes());
     BreadthFirstGraph<G, FACTION>(graph, root, queue);
   }
 
@@ -413,8 +413,8 @@ namespace bss {
     if((*FACTION)(root))
       return;
 
-    DYNARRAY(CT, aset, graph.Capacity());
-    DisjointSet<CT, StaticNullPolicy<SST>> set((SST*)aset, graph.Capacity());
+    VARARRAY(CT, aset, graph.Capacity());
+    DisjointSet<CT, StaticNullPolicy<SST>> set(reinterpret_cast<SST*>((CT*)aset), graph.Capacity());
 
     // Queue up everything next to the root, checking only for edges that connect the root to itself
     size_t l = 0;

@@ -402,6 +402,78 @@ namespace bss {
       BASE::_insert(_array, length, index, std::forward<U>(item));
     }
   };
+
+  template<typename T, typename... S> // You should specify the axes in the order Z, Y, X, since the LAST one is contiguous.
+  class ArrayMultiRef
+  {
+    template<int N, typename Arg, typename... Args>
+    static void _getIndice(ptrdiff_t& i, std::tuple<S...>& t, Arg arg, Args... args)
+    {
+      if constexpr(N == 0)
+      {
+        i = arg;
+        _getIndice<N + 1, Args...>(i, t, args...);
+      }
+      else if constexpr(sizeof...(Args) > 0)
+      {
+        i = arg + std::get<N>(t)*i;
+        _getIndice<N + 1, Args...>(i, t, args...);
+      }
+      else
+        i = arg + std::get<N>(t)*i;
+    }
+
+  public:
+    ArrayMultiRef(const ArrayMultiRef&) = default;
+    ArrayMultiRef(T* p, S... s) : _indices(s...), _p(p) {}
+    BSS_FORCEINLINE ptrdiff_t GetIndice(S... s) { ptrdiff_t i; _getIndice<0, S...>(i, _indices, s...); return i; }
+
+    inline bool operator !() const noexcept { return !_p; }
+    inline bool operator ==(const T* right) const noexcept { return _p == right; }
+    inline bool operator !=(const T* right) const noexcept { return _p != right; }
+    inline operator T*() noexcept { return _p; }
+    inline operator const T*() const noexcept { return _p; }
+    inline T* operator->() noexcept { return _p; }
+    inline const T* operator->() const noexcept { return _p; }
+    inline T& operator()(S... s) noexcept { return _p[GetIndice(s...)]; }
+    inline const T& operator()(S... s) const noexcept { return _p[GetIndice(s...)]; }
+
+  protected:
+    T* _p;
+    std::tuple<S...> _indices;
+  };
+
+  namespace internal {
+    // A stack-based variable array
+    template<typename T>
+    class VariableArray
+    {
+    public:
+      VariableArray(VariableArray&&) = delete;
+      VariableArray(const VariableArray&) = delete;
+      VariableArray(size_t n, T* p) : _p(p ? p : (T*)malloc(n * sizeof(T))), _heap(!p) {}
+      ~VariableArray() { if(_heap) free(_p); }
+
+      inline bool operator !() const noexcept { return !_p; }
+      inline bool operator ==(const T* right) const noexcept { return _p == right; }
+      inline bool operator !=(const T* right) const noexcept { return _p != right; }
+      inline operator T*() noexcept { return _p; }
+      inline operator const T*() const noexcept { return _p; }
+      inline T* operator->() noexcept { return _p; }
+      inline const T* operator->() const noexcept { return _p; }
+      inline T& operator*() noexcept { return *_p; }
+      inline const T& operator*() const noexcept { return *_p; }
+
+      VariableArray& operator=(VariableArray&&) = delete;
+      VariableArray& operator=(const VariableArray&) = delete;
+
+    protected:
+      T* _p;
+      bool _heap;
+    };
+  }
 }
+
+#define VARARRAY(Type,Name,n) bss::internal::VariableArray<Type> Name((n), (((n) * sizeof(Type)) > 0xFFFF) ? nullptr : (Type*)ALLOCA((n)*sizeof(Type)));
 
 #endif

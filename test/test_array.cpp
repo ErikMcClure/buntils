@@ -135,5 +135,23 @@ TESTDEF::RETPAIR test_ARRAY()
   TEST(!DEBUG_CDT<false>::count);
   TEST(!DEBUG_CDT_SAFE::Tracker.Length());
 
+  {
+    int abc[2][3][4] = { 0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23 };
+    ArrayMultiRef<int, int, int, int> ref((int*)abc, 2, 3, 4);
+    auto f = [](int z, int y, int x) { return x + 4 * (y + 3 * z); };
+    TEST(f(0, 0, 0) == abc[0][0][0]);
+    TEST(f(1, 2, 3) == abc[1][2][3]);
+    TEST(f(1, 0, 3) == abc[1][0][3]);
+    TEST(ref.GetIndice(0, 0, 0) == f(0, 0, 0));
+    TEST(ref.GetIndice(1, 2, 3) == f(1, 2, 3));
+    TEST(ref.GetIndice(1, 0, 3) == f(1, 0, 3));
+    TEST(ref(0, 0, 0) == abc[0][0][0]);
+    TEST(ref(1, 2, 3) == abc[1][2][3]);
+    TEST(ref(1, 0, 3) == abc[1][0][3]);
+    for(int z = 0; z < 2; ++z)
+      for(int y = 0; y < 3; ++y)
+        for(int x = 0; x < 4; ++x)
+          TEST(ref(z, y, x) == abc[z][y][x]);
+  }
   ENDTEST;
 }

@@ -78,17 +78,7 @@ int DEBUG_CDT_SAFE::count = 0;
 int DEBUG_CDT_SAFE::ID = 0;
 bss::Hash<int> DEBUG_CDT_SAFE::Tracker;
 
-//#define BSS_ISOLATE_TEST 16
-
-std::vector<std::string> makeStringVector(int numArgs, std::string something, ...) {
-  va_list listPointer;
-  va_start(listPointer, something);
-  std::vector<std::string> made;
-  for(int a = 0; a < numArgs; a++)
-    made.push_back(va_arg(listPointer, std::string));
-  va_end(listPointer);
-  return made;
-}
+#define BSS_ISOLATE_TEST 18
 
 // --- Begin main testing function ---
 int main(int argc, char** argv)
@@ -104,9 +94,6 @@ int main(int argc, char** argv)
   for(uint16_t i = 0; i<TESTNUM; ++i)
     testnums[i] = i;
   Shuffle(testnums); 
-
-  auto test = makeStringVector(1, "blah", std::string("blah2"));
-  printf(test[0].c_str());
 
   // For best results on windows, add the test application to Application Verifier before going through the tests.
   TESTDEF tests[] = {

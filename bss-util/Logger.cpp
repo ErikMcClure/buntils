@@ -175,7 +175,7 @@ int Logger::PrintLogV(const char* source, const char* file, size_t line, int8_t 
   va_copy(vltemp, args);
   size_t _length = (size_t)internal::STR_CT<char>::VPCF(format, vltemp) + 1; // If we didn't copy vl here, it would get modified by vsnprintf and blow up.
   va_end(vltemp);
-  DYNARRAY(char, buf, _length);
+  VARARRAY(char, buf, _length);
   int r = internal::STR_CT<char>::VPF(buf, _length, format, args);
   _stream << buf << std::endl;
   return r;

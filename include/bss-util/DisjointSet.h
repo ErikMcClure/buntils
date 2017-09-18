@@ -152,7 +152,7 @@ namespace bss {
     template<class ITER>
     static T MinSpanningTree(T numverts, ITER edges, ITER edgeslast, std::pair<T, T>* out)
     {
-      DYNARRAY(T_, arr, numverts); // Allocate everything on the stack
+      VARARRAY(T_, arr, numverts); // Allocate everything on the stack
       DisjointSet<T, StaticNullPolicy<T_>> set(arr, numverts);
       T num = 0;
 

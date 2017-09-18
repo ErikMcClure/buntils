@@ -38,7 +38,7 @@ namespace bss {
     inline Trie(T num, ...) : BASE(num), _length(num)
     {
       _fill(0, num);
-      DYNARRAY(PAIR, s, num);
+      VARARRAY(PAIR, s, num);
       va_list vl;
       va_start(vl, num);
       for(T i = 0; i < num; ++i) { s[i].first = i; s[i].second = va_arg(vl, const char*); }
@@ -111,7 +111,7 @@ namespace bss {
     void _construct(T num, const char* const* initstr)
     {
       _fill(0, num);
-      DYNARRAY(PAIR, s, num);
+      VARARRAY(PAIR, s, num);
 
       for(T i = 0; i < num; ++i) 
       {

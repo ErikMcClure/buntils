@@ -38,7 +38,7 @@ TESTDEF::RETPAIR test_DISJOINTSET()
   s.Union(2, 4);
   s.Union(1, 2);
   TEST((s.NumElements(3) == 4));
-  DYNARRAY(uint32_t, elements, s.NumElements(3));
+  VARARRAY(uint32_t, elements, s.NumElements(3));
   TEST((s.GetElements(3, elements) == 4));
   TEST(elements[0] == 1);
   TEST(elements[1] == 2);

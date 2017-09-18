@@ -20,6 +20,8 @@
 - Add move semantics to TRBTree
 - Added constexpr support
 - Added XML serializer engine
+- Restructure animations
+- Rename DYNARRAY to VARARRAY and make it fall back to heap allocation above 65535 bytes.
 
 ## 0.5.0
 - Added AttemptRLock(), AttemptStrictLock() to RWLock

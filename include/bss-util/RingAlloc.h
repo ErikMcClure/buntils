@@ -162,6 +162,7 @@ namespace bss {
           AltLLRemove<Bucket, &_getBucket>(hold, _list);
           //assert(!hold->lock.ReaderCount()); // This check only works in single-threaded scenarios for testing purposes. In real world scenarios, ReaderCount can sporadically be nonzero due to attempted readlocks that haven't been undone yet.
           free(hold);
+          prev = nval;
         }
         else // Otherwise, break out of the loop using this bucket
           break;

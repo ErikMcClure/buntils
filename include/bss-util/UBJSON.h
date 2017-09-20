@@ -363,12 +363,12 @@ namespace bss {
     if(!ty && (s.get() != UBJSONEngine::TYPE_ARRAY))
       throw std::runtime_error("Expected array, found invalid character");
     int num = 0;
-    UBJSONEngine::TYPE type = UBJSONEngine::TYPE_NONE;
-    int64_t count = UBJSONEngine::ParseTypeCount(s, type);
-    internal::serializer::PushValue<TYPE> push(e.engine.type, type);
+    ty = UBJSONEngine::TYPE_NONE;
+    int64_t count = UBJSONEngine::ParseTypeCount(s, ty);
+    internal::serializer::PushValue<TYPE> push(e.engine.type, ty);
     if(count <= 0 ||
-      type == UBJSONEngine::TYPE_NONE || 
-      (type != UBJSONEngine::TYPE_CHAR && type != UBJSONEngine::TYPE_UINT8 && type != UBJSONEngine::TYPE_INT8) ||
+      ty == UBJSONEngine::TYPE_NONE ||
+      (ty != UBJSONEngine::TYPE_CHAR && ty != UBJSONEngine::TYPE_UINT8 && ty != UBJSONEngine::TYPE_INT8) ||
       !Serializer<UBJSONEngine>::template Bulk<T>::Read(e, obj, count)) // attempt mass read in if we have a 1 byte type and a count
     {
       while(!!s && (count > 0 || count < 0) && (count > 0 || s.peek() != UBJSONEngine::TYPE_ARRAY_END) && s.peek() != -1)

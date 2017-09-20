@@ -120,6 +120,7 @@ namespace bss {
     inline void _allocChunk(size_t nsize) noexcept
     {
       NODE* retval = reinterpret_cast<NODE*>(malloc(sizeof(NODE) + nsize));
+      assert(retval != 0);
       retval->next = _root;
       retval->size = nsize;
       _root = retval; // There's a potential race condition on DEBUG mode only where failing to set this first would allow a thread to allocate a new pointer and then delete it before _root got changed, which would then be mistaken for an invalid pointer

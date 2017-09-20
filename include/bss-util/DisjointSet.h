@@ -88,7 +88,7 @@ namespace bss {
     // Returns true if x is a valid set name
     inline bool IsSetName(T x) { return x < _capacity && _array[x] < 0; }
     // Returns the number of elements in a given set. Returns -1 on failure.
-    inline T NumElements(T set) 
+    inline T_ NumElements(T set) 
     { 
       if(set >= _capacity) 
         return -1; 
@@ -113,7 +113,7 @@ namespace bss {
     // Returns an array containing the elements in the given set.
     inline std::unique_ptr<T[]> GetElements(T set)
     {
-      T len = NumElements(set);
+      T_ len = NumElements(set);
 
       if(len < 0)
         return std::unique_ptr<T[]>();
@@ -125,9 +125,10 @@ namespace bss {
     }
 
     // Fills target with the elements of the given set. target must be at least NumElements(set) long. If target is null, returns NumElements(set)
-    inline T GetElements(T set, T* target)
+    inline T_ GetElements(T set, T* target)
     {
-      if(!target) return NumElements(set);
+      if(!target)
+        return NumElements(set);
       set = Find(set); // Get the root element of our set
       T j = 0;
 

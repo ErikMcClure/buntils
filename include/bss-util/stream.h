@@ -233,20 +233,19 @@ namespace bss {
     inline StreamBufFunction& operator =(const StreamBufFunction& right) = delete;
 
   public:
-    StreamBufFunction(StreamBufFunction&& mov) : std::streambuf(std::move(mov)) {}
+    StreamBufFunction(StreamBufFunction&&) = default;
     StreamBufFunction(std::istream& in, size_t bufsize = DEFAULTBUFSIZE) : _ibuf(new char[bufsize]), _obuf(new char[bufsize]), _sz(bufsize), _in(&in), _out(0)
     {
-      setg(_obuf + _sz, _obuf + _sz, _obuf + _sz);
+      setg(_obuf.get() + _sz, _obuf.get() + _sz, _obuf.get() + _sz);
     }
     StreamBufFunction(std::ostream& out, size_t bufsize = DEFAULTBUFSIZE) : _ibuf(new char[bufsize]), _obuf(new char[bufsize]), _sz(bufsize), _in(0), _out(&out)
     {
-      setp(_obuf + _sz, _obuf + _sz);
+      setp(_obuf.get() + _sz, _obuf.get() + _sz);
     }
     ~StreamBufFunction()
     {
-      delete[] _ibuf;
-      delete[] _obuf;
     }
+    StreamBufFunction& operator=(StreamBufFunction&&) = default;
 
     static const size_t DEFAULTBUFSIZE = (std::size_t)1 << 18;
 
@@ -310,8 +309,8 @@ namespace bss {
     virtual void _onwrite() = 0; // should read input from _in when appropriate.
     virtual void _onread() = 0; // should write output to _out when appropriate.
 
-    char* _ibuf;
-    char* _obuf;
+    std::unique_ptr<char[]> _ibuf;
+    std::unique_ptr<char[]> _obuf;
     size_t _sz;
     std::istream* _in;
     std::ostream* _out;

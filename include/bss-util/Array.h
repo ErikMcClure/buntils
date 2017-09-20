@@ -38,17 +38,17 @@ namespace bss {
       --length;
       return r; 
     }
-    inline const Slice operator()(CType start) const { return operator()(start, length); }
-    inline const Slice operator()(CType start, CType end) const { return operator()(start, length); }
-    inline Slice operator()(CType start) { return operator()(start, length); }
-    inline Slice operator()(CType start, CType end)
+    inline const Slice operator()(CType begin) const { return operator()(begin, length); }
+    inline const Slice operator()(CType begin, CType end) const { return operator()(begin, length); }
+    inline Slice operator()(CType begin) { return operator()(begin, length); }
+    inline Slice operator()(CType begin, CType end)
     {
-      assert(abs(start) < length);
+      assert(abs(begin) < length);
       assert(end <= length);
-      start = bssMod(start, length);
+      begin = bssMod(begin, length);
       if(end <= 0) end = length - end;
       assert(end >= start);
-      return Slice(start + start, end - start);
+      return Slice(start + begin, end - begin);
     }
     inline bool operator!() const noexcept { return !start || !length; }
     inline operator Slice<const T>() const noexcept { return Slice<const T>(start, length); }

@@ -32,7 +32,7 @@ namespace bss {
   {
   public:
     // Starts the timer and takes an initial sample. If you want to reset the time or delta to zero later, call ResetTime() or ResetDelta()
-    HighPrecisionTimer(const HighPrecisionTimer& copy);
+    HighPrecisionTimer(const HighPrecisionTimer& copy) = default;
     HighPrecisionTimer();
     // Resamples the timer, updating the current time and setting the delta to the difference between the last time and the current time.
     double Update();
@@ -59,6 +59,7 @@ namespace bss {
       _nsDelta = 0; 
     }
 
+    HighPrecisionTimer& operator=(const HighPrecisionTimer&) = default;
     // Converts two nanosecond counts to seconds and returns the difference as a double.
     BSS_FORCEINLINE static double NanosecondDiff(uint64_t now, uint64_t old) { return (now - old) / 1000000000.0; }
 

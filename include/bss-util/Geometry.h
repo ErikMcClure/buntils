@@ -237,7 +237,7 @@ namespace bss {
     inline constexpr Rect(T X, T Y, const V& dim) : left(X), top(Y), right(X + dim.x), bottom(Y + dim.y) {}
     inline constexpr Rect(const V& pos, const V& dim) : left(pos.x), top(pos.y), right(pos.x + dim.x), bottom(pos.y + dim.y) {}
     inline explicit Rect(const V& v) : left(v.x), top(v.y), right(v.x), bottom(v.y) {}
-    inline explicit Rect(const sseVecT<T>& v) { v >> ltrb; }
+    inline explicit Rect(const sseVecT<T>& v) { v.Set(ltrb); }
     inline explicit Rect(const T(&rectarray)[4]) : left(rectarray[0]), top(rectarray[1]), right(rectarray[2]), bottom(rectarray[3]) {}
     inline T Area() const { return (right - left)*(bottom - top); }
     inline Rect Abs() const { return Rect(abs(left), abs(top), abs(right), abs(bottom)); }
@@ -295,14 +295,14 @@ namespace bss {
     inline Rect& operator -=(const T other) { left -= other; top -= other; right -= other; bottom -= other; return *this; }
     inline Rect& operator *=(const T other) { left *= other; top *= other; right *= other; bottom *= other; return *this; }
     inline Rect& operator /=(const T other) { left /= other; top /= other; right /= other; bottom /= other; return *this; }
-    //inline Rect& operator +=(const Rect& other) { (sseVecT<T>(ltrb)+sseVecT<T>(other.ltrb))>>ltrb; return *this; }
-    //inline Rect& operator -=(const Rect& other) { (sseVecT<T>(ltrb)-sseVecT<T>(other.ltrb))>>ltrb; return *this; }
-    //inline Rect& operator *=(const Rect& other) { (sseVecT<T>(ltrb)*sseVecT<T>(other.ltrb))>>ltrb; return *this; }
-    //inline Rect& operator /=(const Rect& other) { (sseVecT<T>(ltrb)/sseVecT<T>(other.ltrb))>>ltrb; return *this; }
-    //inline Rect& operator +=(const T other) { (sseVecT<T>(ltrb)+sseVecT<T>(other))>>ltrb; return *this; }
-    //inline Rect& operator -=(const T other) { (sseVecT<T>(ltrb)-sseVecT<T>(other))>>ltrb; return *this; }
-    //inline Rect& operator *=(const T other) { (sseVecT<T>(ltrb)*sseVecT<T>(other))>>ltrb; return *this; }
-    //inline Rect& operator /=(const T other) { (sseVecT<T>(ltrb)/sseVecT<T>(other))>>ltrb; return *this; }
+    //inline Rect& operator +=(const Rect& other) { (sseVecT<T>(ltrb)+sseVecT<T>(other.ltrb)).Set(ltrb); return *this; }
+    //inline Rect& operator -=(const Rect& other) { (sseVecT<T>(ltrb)-sseVecT<T>(other.ltrb)).Set(ltrb); return *this; }
+    //inline Rect& operator *=(const Rect& other) { (sseVecT<T>(ltrb)*sseVecT<T>(other.ltrb)).Set(ltrb); return *this; }
+    //inline Rect& operator /=(const Rect& other) { (sseVecT<T>(ltrb)/sseVecT<T>(other.ltrb)).Set(ltrb); return *this; }
+    //inline Rect& operator +=(const T other) { (sseVecT<T>(ltrb)+sseVecT<T>(other)).Set(ltrb); return *this; }
+    //inline Rect& operator -=(const T other) { (sseVecT<T>(ltrb)-sseVecT<T>(other)).Set(ltrb); return *this; }
+    //inline Rect& operator *=(const T other) { (sseVecT<T>(ltrb)*sseVecT<T>(other)).Set(ltrb); return *this; }
+    //inline Rect& operator /=(const T other) { (sseVecT<T>(ltrb)/sseVecT<T>(other)).Set(ltrb); return *this; }
 
     inline Rect operator -() const { return Rect(-left, -top, -right, -bottom); }
 
@@ -315,7 +315,7 @@ namespace bss {
     BSS_FORCEINLINE bool operator >=(const Rect &other) const { return !operator<(other); }
     BSS_FORCEINLINE bool operator <=(const Rect &other) const { return !operator>(other); }
 
-    inline Rect& operator =(const sseVecT<T>& _right) { _right >> ltrb; return *this; }
+    inline Rect& operator =(const sseVecT<T>& _right) { _right.Set(ltrb); return *this; }
     inline Rect& operator =(const Rect& _right) { left = _right.left; top = _right.top; right = _right.right;  bottom = _right.bottom; return *this; }
     template<class U>
     inline Rect& operator =(const Rect<U>& _right) { left = (T)_right.left; top = (T)_right.top; right = (T)_right.right; bottom = (T)_right.bottom; return *this; }

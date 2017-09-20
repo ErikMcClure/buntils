@@ -205,12 +205,12 @@ std::unique_ptr<char[], bss::bssDLLDelete<char[]>> bss::FileDialog(bool open, un
   wchar_t buf[MAX_PATH];
   GetCurrentDirectoryW(MAX_PATH, buf);
   StrW curdirsave(buf);
-  ZeroMemory(buf, MAX_PATH);
+  bssFill(buf);
 
   if(file != 0) WCSNCPY(buf, MAX_PATH, file, std::min<size_t>(wcslen(file), MAX_PATH - 1));
 
   OPENFILENAMEW ofn;
-  ZeroMemory(&ofn, sizeof(ofn));
+  bssFill(ofn);
 
   ofn.lStructSize = sizeof(OPENFILENAMEW);
   ofn.hwndOwner = owner;

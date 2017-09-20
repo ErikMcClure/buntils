@@ -18,13 +18,7 @@ namespace bss {
       memcpy(_alias, copy._alias, sizeof(UINT)*copy._count);
       memcpy(_prob, copy._prob, sizeof(UINT)*copy._count);
     }
-    AliasTable(AliasTable&& mov) : _alias(mov._alias), _prob(mov._prob), _count(mov._count), _dist(std::move(mov._dist)),
-      _fdist(std::move(mov._fdist)), _engine(std::move(mov._engine))
-    {
-      mov._alias = 0;
-      mov._prob = 0;
-      mov._count = 0;
-    }
+    AliasTable(AliasTable&& mov) = default;
     // Constructs a new table from a list of probabilities of type F (defaults to double)
     AliasTable(const F* problist, UINT count, ENGINE& e = bss_getdefaultengine()) : _alias(0), _prob(0), _count(0),
       _fdist(0, (F)1), _engine(e) 
@@ -37,13 +31,7 @@ namespace bss {
     { 
       _getTable(problist, I); 
     }
-    ~AliasTable()
-    {
-      if(_alias != 0)
-        delete[] _alias;
-      if(_prob != 0)
-        delete[] _prob;
-    }
+    ~AliasTable() {}
     // Gets a new random integer using ENGINE (defaults to xorshift) over a uniform integer distribution
     BSS_FORCEINLINE UINT Get()
     {
@@ -57,21 +45,34 @@ namespace bss {
     inline UINT* GetAliases() const { return _alias; }
     inline UINT GetCount() const { return _count; }
 
+    inline AliasTable& operator=(const AliasTable& copy)
+    {
+      _count = copy._count;
+      _dist = copy._dist;
+      _fdist = copy._fdist;
+      _alias = new UINT[copy._count];
+      _prob = new F[copy._count];
+      memcpy(_alias, copy._alias, sizeof(UINT)*copy._count);
+      memcpy(_prob, copy._prob, sizeof(UINT)*copy._count);
+      return *this;
+    }
+    inline AliasTable& operator=(AliasTable&& mov) = default;
+
   protected:
     void _getTable(const F* problist, UINT count)
     {
       if(!problist || !count)
         return;
       _count = count; //this is done here so a failure results in _count=0
-      _prob = new F[_count];
-      _alias = new UINT[_count];
+      _prob.reset(new F[_count]);
+      _alias.reset(new UINT[_count]);
       F average = ((F)1.0) / _count;
 
       std::unique_ptr<F[]> _probcopy(new F[_count]); //Temporary copy of probabilities (seperate from our stored ones)
       memcpy(_probcopy.get(), problist, sizeof(F)*count);
 
 #ifdef BSS_DEBUG
-      bssFillN(_alias, _count, -1);
+      bssFillN<UINT>(_alias.get(), _count, -1);
 #endif
       std::unique_ptr<UINT[]> small(new UINT[_count]); //Small and large stacks as simple arrays
       UINT n_small = 0;
@@ -119,8 +120,8 @@ namespace bss {
       _dist = std::uniform_int_distribution<UINT>(0, _count - 1);
     }
 
-    UINT* _alias;
-    F* _prob;
+    std::unique_ptr<UINT[]> _alias;
+    std::unique_ptr<F[]> _prob;
     UINT _count;
     ENGINE& _engine;
     std::uniform_int_distribution<UINT> _dist;

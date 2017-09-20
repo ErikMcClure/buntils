@@ -267,7 +267,7 @@ namespace bss {
       return *this;
     }
 
-    static inline T NoInterpolate(const FRAME* v, size_t s, size_t cur, double t, const T& init) { size_t i = cur - (t != 1.0); return (i < 0) ? init : v[i].value; }
+    static inline T NoInterpolate(const FRAME* v, size_t s, size_t cur, double t, const T& init) { ptrdiff_t i = ptrdiff_t(cur) - (t != 1.0); return (i < 0) ? init : v[i].value; }
     static inline T NoInterpolateRel(const FRAME* v, size_t s, size_t cur, double t, const T& init) { assert(cur > 0); return init + v[cur - (t != 1.0)].value; }
     static inline T LerpInterpolate(const FRAME* v, size_t s, size_t cur, double t, const T& init) { return lerp<T>(!cur ? init : v[cur - 1].value, v[cur].value, t); }
     static inline T LerpInterpolateRel(const FRAME* v, size_t s, size_t cur, double t, const T& init) { assert(cur > 0); return init + lerp<T>(v[cur - 1].value, v[cur].value, t); }
@@ -283,7 +283,7 @@ namespace bss {
     typedef AniData<T, double, ArrayType, Alloc> BASE;
     typedef typename BASE::FRAME FRAME;
     using BASE::_frames;
-    AniDataInterval() {}
+    AniDataInterval() : _end(0.0) {}
     AniDataInterval(AniDataInterval&& mov) : BASE(std::move(mov)) {}
     AniDataInterval(const AniDataInterval& copy) : BASE(copy) {}
     AniDataInterval(const FRAME* src, size_t len) : BASE(src, len) {}

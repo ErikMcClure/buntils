@@ -18,8 +18,13 @@ namespace bss {
       FIXEDLIST_NODE* next;
     };
 
-    inline BlockAllocVoid(BlockAllocVoid&& mov) : _root(mov._root), _freelist(mov._freelist), _sz(mov._sz) { mov._root = 0; mov._freelist = 0; }
-    inline explicit BlockAllocVoid(size_t sz, size_t init = 8) : _root(0), _freelist(0), _sz(sz)
+    inline BlockAllocVoid(BlockAllocVoid&& mov) : _root(mov._root), _freelist(mov._freelist), _sz(mov._sz), _align(mov._align), _alignsize(mov._alignsize)
+    {
+      mov._root = 0;
+      mov._freelist = 0;
+    }
+    inline explicit BlockAllocVoid(size_t sz, size_t init = 8, size_t align = alignof(max_align_t)) : _root(0), _freelist(0), _sz(sz), _align(align), 
+      _alignsize(AlignSize(sizeof(FIXEDLIST_NODE), align))
     {
       assert(sz >= sizeof(void*));
       _allocChunk(init*_sz);
@@ -31,19 +36,20 @@ namespace bss {
       {
         hold = _root;
         _root = _root->next;
-        free(hold);
+        ALIGNEDFREE(hold);
       }
     }
     inline const FIXEDLIST_NODE* GetRoot() const { return _root; }
     BSS_FORCEINLINE size_t GetSize() const { return _sz; }
     template<class T>
-    BSS_FORCEINLINE T* AllocT(size_t num) noexcept { return static_cast<T*>(Alloc(num * sizeof(T))); }
-    BSS_FORCEINLINE void* Alloc() noexcept { return Alloc(_sz); }
-    inline void* Alloc(size_t bytes) noexcept
+    BSS_FORCEINLINE T* AllocT(size_t num) noexcept { return static_cast<T*>(Alloc(num * sizeof(T), alignof(T))); }
+    BSS_FORCEINLINE void* Alloc() noexcept { return Alloc(_sz, _align); }
+    inline void* Alloc(size_t bytes, size_t align = alignof(max_align_t)) noexcept
     {
       assert(bytes <= _sz);
+      assert(align <= _align);
 #ifdef BSS_DISABLE_CUSTOM_ALLOCATORS
-      return malloc(bytes);
+      return ALIGNEDALLOC(bytes, align);
 #endif
       if(!_freelist)
       {
@@ -79,7 +85,7 @@ namespace bss {
       {
         nsize += hold->size;
         hold = _root->next;
-        free(_root);
+        ALIGNEDFREE(_root);
       }
 
       _freelist = 0; // There's this funny story about a time where I forgot to put this in here and then wondered why everything blew up.
@@ -88,10 +94,15 @@ namespace bss {
 
     inline BlockAllocVoid& operator=(BlockAllocVoid&& mov)
     {
-      this->~BlockAllocVoid(); // Only safe because there's no inheritance and no virtual functions
-      new (this) BlockAllocVoid(std::move(mov));
+      if(this != &mov)
+      {
+        this->~BlockAllocVoid(); // Only safe because there's no inheritance and no virtual functions
+        new (this) BlockAllocVoid(std::move(mov));
+      }
       return *this;
     }
+
+    BSS_FORCEINLINE static constexpr size_t AlignSize(size_t sz, size_t align) { return ((sz / align) + ((sz % align) != 0))*align; }
 
   protected:
 #ifdef BSS_DEBUG
@@ -100,8 +111,8 @@ namespace bss {
       const FIXEDLIST_NODE* hold = _root;
       while(hold)
       {
-        if(p >= (hold + 1) && p < (((uint8_t*)(hold + 1)) + hold->size))
-          return ((((uint8_t*)p) - ((uint8_t*)(hold + 1))) % _sz) == 0; //the pointer should be an exact multiple of _sz
+        if(p >= (reinterpret_cast<const uint8_t*>(hold) + _alignsize) && p < (reinterpret_cast<const uint8_t*>(hold) + _alignsize + hold->size))
+          return ((((uint8_t*)p) - (reinterpret_cast<const uint8_t*>(hold) + _alignsize)) % _sz) == 0; //the pointer should be an exact multiple of _sz
 
         hold = hold->next;
       }
@@ -110,7 +121,7 @@ namespace bss {
 #endif
     inline void _allocChunk(size_t nsize) noexcept
     {
-      FIXEDLIST_NODE* retval = reinterpret_cast<FIXEDLIST_NODE*>(malloc(sizeof(FIXEDLIST_NODE) + nsize));
+      FIXEDLIST_NODE* retval = reinterpret_cast<FIXEDLIST_NODE*>(ALIGNEDALLOC(_alignsize + nsize, _align));
       if(!retval)
         return;
 
@@ -122,11 +133,11 @@ namespace bss {
       _root = retval;
     }
 
-    BSS_FORCEINLINE void _initChunk(const FIXEDLIST_NODE* chunk) noexcept
+    BSS_FORCEINLINE void _initChunk(FIXEDLIST_NODE* chunk) noexcept
     {
-      uint8_t* memend = ((uint8_t*)(chunk + 1)) + chunk->size;
+      uint8_t* memend = reinterpret_cast<uint8_t*>(chunk) + _alignsize + chunk->size;
 
-      for(uint8_t* memref = (((uint8_t*)(chunk + 1))); memref < memend; memref += _sz)
+      for(uint8_t* memref = reinterpret_cast<uint8_t*>(chunk) + _alignsize; memref < memend; memref += _sz)
       {
         *((void**)(memref)) = _freelist;
         _freelist = memref;
@@ -136,15 +147,22 @@ namespace bss {
     FIXEDLIST_NODE* _root;
     void* _freelist;
     const size_t _sz;
+    const size_t _align;
+    const size_t _alignsize; // sizeof(FIXEDLIST_NODE) expanded to have alignment _align
   };
 
-  template<size_t SIZE>
+  template<size_t SIZE, size_t ALIGN>
   class BSS_COMPILER_DLLEXPORT BlockAllocSize : protected BlockAllocVoid
   {
     inline BlockAllocSize(BlockAllocSize&& mov) : BlockAllocVoid(std::move(mov)) {}
-    inline explicit BlockAllocSize(size_t init = 8) : BlockAllocVoid(SIZE, init) { static_assert((SIZE >= sizeof(void*)), "SIZE cannot be less than the size of a pointer"); }
+    inline explicit BlockAllocSize(size_t init = 8) : BlockAllocVoid(SIZE, init, ALIGN) { static_assert((SIZE >= sizeof(void*)), "SIZE cannot be less than the size of a pointer"); }
     template<class T>
-    BSS_FORCEINLINE T* Alloc(size_t num = 1) { static_assert((sizeof(T) <= SIZE), "sizeof(T) must be less than SIZE"); return BlockAllocVoid::AllocT<T>(num); }
+    BSS_FORCEINLINE T* Alloc(size_t num = 1)
+    {
+      static_assert((sizeof(T) <= SIZE), "sizeof(T) must be less than SIZE");
+      static_assert((alignof(T) <= ALIGN), "alignof(T) must be less than ALIGN");
+      return BlockAllocVoid::AllocT<T>(num);
+    }
     template<class T>
     BSS_FORCEINLINE void Dealloc(T* p) noexcept { static_assert((sizeof(T) <= SIZE), "sizeof(T) must be less than SIZE"); BlockAllocVoid::Dealloc(p); }
     BSS_FORCEINLINE void Clear() { BlockAllocVoid::Clear(); }
@@ -156,7 +174,7 @@ namespace bss {
   {
   public:
     inline BlockAlloc(BlockAlloc&& mov) : BlockAllocVoid(std::move(mov)) {}
-    inline explicit BlockAlloc(size_t init = 8) : BlockAllocVoid(sizeof(T), init) { static_assert((sizeof(T) >= sizeof(void*)), "T cannot be less than the size of a pointer"); }
+    inline explicit BlockAlloc(size_t init = 8) : BlockAllocVoid(sizeof(T), init, alignof(T)) { static_assert((sizeof(T) >= sizeof(void*)), "T cannot be less than the size of a pointer"); }
     BSS_FORCEINLINE T* Alloc(size_t num = 1) noexcept { return BlockAllocVoid::AllocT<T>(num); }
     BSS_FORCEINLINE void Dealloc(T* p) noexcept { BlockAllocVoid::Dealloc(p); }
     BSS_FORCEINLINE void Clear() { BlockAllocVoid::Clear(); }

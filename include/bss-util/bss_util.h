@@ -294,7 +294,7 @@ namespace bss {
             else
             {
               n = format[2] - '0';
-              n = (format[1] - '0') * 10;
+              n += (format[1] - '0') * 10;
               format += 4;
             }
             pos = format;

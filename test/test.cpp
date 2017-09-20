@@ -78,7 +78,7 @@ int DEBUG_CDT_SAFE::count = 0;
 int DEBUG_CDT_SAFE::ID = 0;
 bss::Hash<int> DEBUG_CDT_SAFE::Tracker;
 
-#define BSS_ISOLATE_TEST 18
+//#define BSS_ISOLATE_TEST 5
 
 // --- Begin main testing function ---
 int main(int argc, char** argv)
@@ -87,7 +87,7 @@ int main(int argc, char** argv)
   SetWorkDirToCur();
   _failedtests.AddTarget("failedtests.txt");
   uint64_t seed = (uint64_t)time(nullptr);
-  //seed = 1489803649;
+  seed = 1489803649;
   bssRandSeed(seed);
   //profile_ring_alloc();
 

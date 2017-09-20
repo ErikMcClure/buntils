@@ -132,7 +132,7 @@ namespace bss {
 
     enum STATE : uint16_t { STATE_NORMAL, STATE_TABLE, STATE_INLINE_TABLE, STATE_BEGIN };
     uint16_t state;
-    Str id;
+    Str lastid;
     bool first;
   };
 
@@ -649,13 +649,13 @@ namespace bss {
   template<class T>
   void TOMLEngine::WriteTOMLTables(Serializer<TOMLEngine>& e, const char* id, const T& obj, std::ostream& s)
   {
-    Str last = e.engine.id;
+    Str last = e.engine.lastid;
 
-    if(e.engine.id.size())
-      e.engine.id += '.';
-    e.engine.id += id;
+    if(e.engine.lastid.size())
+      e.engine.lastid += '.';
+    e.engine.lastid += id;
     const_cast<T&>(obj).template Serialize<TOMLEngine>(e);
-    e.engine.id = last;
+    e.engine.lastid = last;
   }
 
   template<class T>
@@ -669,8 +669,8 @@ namespace bss {
     else if(id)
     {
       s << '[';
-      if(e.engine.id.size())
-        s << e.engine.id << '.';
+      if(e.engine.lastid.size())
+        s << e.engine.lastid << '.';
       s << id << ']' << std::endl;
     }
 

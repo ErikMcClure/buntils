@@ -392,7 +392,8 @@ namespace bss {
 
       _capacity = element*_length;
       uint8_t* narray = !_length ? 0 : (uint8_t*)Alloc::allocate(_capacity);
-      memset(narray, 0, _capacity);
+      if(narray)
+        memset(narray, 0, _capacity);
       CT_ m = std::min<CT_>(element, _element);
 
       for(CT_ i = 0; i < _length; ++i)

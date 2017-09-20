@@ -90,13 +90,13 @@ void Profiler::WriteToStream(std::ostream& stream, uint8_t output)
   }
 #endif
 
-  if(output | OUTPUT_TREE)
+  if(output & OUTPUT_TREE)
   {
     stream << "BSS Profiler Tree Output: " << std::endl;
     _treeOut(stream, _trie, 0, -1, 0);
     stream << std::endl << std::endl;
   }
-  if(output | OUTPUT_FLAT)
+  if(output & OUTPUT_FLAT)
   {
     stream << "BSS Profiler Flat Output: " << std::endl;
     PROF_FLATOUT* avg = (PROF_FLATOUT*)calloc(_data.Capacity(), sizeof(PROF_FLATOUT));
@@ -113,7 +113,7 @@ void Profiler::WriteToStream(std::ostream& stream, uint8_t output)
     stream << std::endl << std::endl;
   }
   PROF_HEATNODE::HeatAllocPolicy::_alloc.Clear();
-  if(output | OUTPUT_HEATMAP)
+  if(output & OUTPUT_HEATMAP)
   {
     PROF_HEATNODE root;
     _heatOut(root, _trie, 0, 0);

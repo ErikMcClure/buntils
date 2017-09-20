@@ -18,8 +18,11 @@ namespace bss {
     return _aligned_realloc(p, size, align);
 #else
     void* n = aligned_alloc(align, size);
-    memcpy(n, p, malloc_usable_size(p));
-    free(p);
+    if(p)
+    {
+      memcpy(n, p, malloc_usable_size(p));
+      free(p);
+    }
     return n;
 #endif
   }

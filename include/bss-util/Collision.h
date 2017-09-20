@@ -196,7 +196,7 @@ namespace bss {
   }
 
   template<class T>
-  inline int RayRadiusCollide(T X1, T Y1, T X2, T Y2, T r)
+  inline bool RayRadiusCollide(T X1, T Y1, T X2, T Y2, T r)
   {
     T t[2];
     int n = LineRadiusParametricIntersect<T>(X1, Y1, X2, Y2, r, t[0], t[1]);
@@ -206,7 +206,7 @@ namespace bss {
   }
 
   template<class T>
-  inline int LineSegmentRadiusCollide(T X1, T Y1, T X2, T Y2, T r)
+  inline bool LineSegmentRadiusCollide(T X1, T Y1, T X2, T Y2, T r)
   {
     T t[2];
     int n = LineRadiusParametricIntersect<T>(X1, Y1, X2, Y2, r, t[0], t[1]);
@@ -460,7 +460,7 @@ namespace bss {
   /**************** Triangle ****************/
 
   template<typename T> //Uses the standard barycentric method to figure out point inclusion
-  inline bool TriangleContainsPoint(Vector<T, 2>(&p)[2], T X, T Y) 
+  inline bool TriangleContainsPoint(Vector<T, 2>(&p)[3], T X, T Y) 
   {
     Vector<T, 2> v0(p[2]);
     Vector<T, 2> v1(p[1]);
@@ -600,7 +600,8 @@ namespace bss {
 
     for(size_t i = 0, k = 0, j = n - 1; i<n; j = i++)
     {
-      k = ((++k) % n);
+      ++k;
+      k = (k % n);
       z = ((p[i].x - p[j].x) * (p[k].y - p[i].y)) - ((p[i].y - p[j].y) * (p[k].x - p[i].x));
       flag |= ((z<0) | ((z>0) << 1));
     }

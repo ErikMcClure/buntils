@@ -111,21 +111,21 @@ namespace bss {
   template<typename A>
   struct max_sizeof<A> { static constexpr size_t value = sizeof(A); };
 
+  // Compile-time max alignment
+  template<typename A, typename... Ax>
+  struct max_alignof {
+    static constexpr size_t value = (max_alignof<Ax...>::value > alignof(A)) ? max_alignof<Ax...>::value : alignof(A);
+    typedef std::conditional<(max_alignof<Ax...>::value > alignof(A)), A, typename max_alignof<Ax...>::type> type;
+  };
+
+  template<typename A>
+  struct max_alignof<A> { static constexpr size_t value = alignof(A); typedef A type; };
+
   // algebriac union using variadic templates
   template<typename Arg, typename... Args>
   class BSS_COMPILER_DLLEXPORT Variant
   {
     typedef Variant<Arg, Args...> SELF;
-
-    // Compile-time max alignment
-    template<typename A, typename... Ax>
-    struct max_alignof {
-      static constexpr size_t value = (max_alignof<Ax...>::value > alignof(A)) ? max_alignof<Ax...>::value : alignof(A);
-      typedef std::conditional<(max_alignof<Ax...>::value > alignof(A)), A, typename max_alignof<Ax...>::type> type;
-    };
-
-    template<typename A>
-    struct max_alignof<A> { static constexpr size_t value = alignof(A); typedef A type; };
 
     template<typename X, typename... Ts> struct getpos;
 

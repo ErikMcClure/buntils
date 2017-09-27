@@ -78,7 +78,7 @@ int DEBUG_CDT_SAFE::count = 0;
 int DEBUG_CDT_SAFE::ID = 0;
 bss::Hash<int> DEBUG_CDT_SAFE::Tracker;
 
-//#define BSS_ISOLATE_TEST 5
+#define BSS_ISOLATE_TEST 8
 
 // --- Begin main testing function ---
 int main(int argc, char** argv)
@@ -105,6 +105,7 @@ int main(int argc, char** argv)
     { "RingAlloc.h", &test_bss_ALLOC_RING },
     { "BlockAlloc.h", &test_bss_ALLOC_BLOCK },
     { "BlockAllocMT.h", &test_bss_ALLOC_BLOCK_LOCKLESS },
+    { "GreedyBlockAlloc.h", &test_bss_ALLOC_GREEDY_BLOCK },
     { "bss_depracated.h", &test_bss_deprecated },
     { "Dual.h", &test_bss_DUAL },
     { "FixedPt.h", &test_bss_FIXEDPT },

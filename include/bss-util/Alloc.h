@@ -27,6 +27,8 @@ namespace bss {
 #endif
   }
 
+  BSS_FORCEINLINE static constexpr size_t AlignSize(size_t sz, size_t align) { return ((sz / align) + ((sz % align) != 0))*align; }
+
   // An implementation of a standard allocation policy, with optional alignment
   template<typename T, int ALIGN = 0>
   struct BSS_COMPILER_DLLEXPORT StandardAllocPolicy {

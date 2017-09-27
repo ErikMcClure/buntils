@@ -237,6 +237,9 @@
     <ClInclude Include="..\include\bss-util\Collision.h">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="..\include\bss-util\GreedyBlockAlloc.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="bss_util.cpp">

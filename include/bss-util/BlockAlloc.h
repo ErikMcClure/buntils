@@ -12,10 +12,10 @@ namespace bss {
   {
   public:
     // Block Chunk Alloc
-    struct FIXEDLIST_NODE
+    struct Node
     {
       size_t size;
-      FIXEDLIST_NODE* next;
+      Node* next;
     };
 
     inline BlockAllocVoid(BlockAllocVoid&& mov) : _root(mov._root), _freelist(mov._freelist), _sz(mov._sz), _align(mov._align), _alignsize(mov._alignsize)
@@ -23,15 +23,15 @@ namespace bss {
       mov._root = 0;
       mov._freelist = 0;
     }
-    inline explicit BlockAllocVoid(size_t sz, size_t init = 8, size_t align = alignof(max_align_t)) : _root(0), _freelist(0), _sz(sz), _align(align), 
-      _alignsize(AlignSize(sizeof(FIXEDLIST_NODE), align))
+    inline explicit BlockAllocVoid(size_t sz, size_t init = 8, size_t align = 1) : _root(0), _freelist(0), _sz(AlignSize(sz, align)), _align(align),
+      _alignsize(AlignSize(sizeof(Node), align))
     {
       assert(sz >= sizeof(void*));
       _allocChunk(init*_sz);
     }
     inline ~BlockAllocVoid()
     {
-      FIXEDLIST_NODE* hold;
+      Node* hold;
       while(_root != nullptr)
       {
         hold = _root;
@@ -39,12 +39,12 @@ namespace bss {
         ALIGNEDFREE(hold);
       }
     }
-    inline const FIXEDLIST_NODE* GetRoot() const { return _root; }
+    inline const Node* GetRoot() const { return _root; }
     BSS_FORCEINLINE size_t GetSize() const { return _sz; }
     template<class T>
     BSS_FORCEINLINE T* AllocT(size_t num) noexcept { return static_cast<T*>(Alloc(num * sizeof(T), alignof(T))); }
     BSS_FORCEINLINE void* Alloc() noexcept { return Alloc(_sz, _align); }
-    inline void* Alloc(size_t bytes, size_t align = alignof(max_align_t)) noexcept
+    inline void* Alloc(size_t bytes, size_t align = 1) noexcept
     {
       assert(bytes <= _sz);
       assert(align <= _align);
@@ -79,7 +79,7 @@ namespace bss {
     void Clear()
     {
       size_t nsize = 0;
-      FIXEDLIST_NODE* hold = _root;
+      Node* hold = _root;
 
       while((_root = hold) != 0)
       {
@@ -102,13 +102,11 @@ namespace bss {
       return *this;
     }
 
-    BSS_FORCEINLINE static constexpr size_t AlignSize(size_t sz, size_t align) { return ((sz / align) + ((sz % align) != 0))*align; }
-
   protected:
 #ifdef BSS_DEBUG
     bool _validPointer(const void* p) const
     {
-      const FIXEDLIST_NODE* hold = _root;
+      const Node* hold = _root;
       while(hold)
       {
         if(p >= (reinterpret_cast<const uint8_t*>(hold) + _alignsize) && p < (reinterpret_cast<const uint8_t*>(hold) + _alignsize + hold->size))
@@ -121,7 +119,7 @@ namespace bss {
 #endif
     inline void _allocChunk(size_t nsize) noexcept
     {
-      FIXEDLIST_NODE* retval = reinterpret_cast<FIXEDLIST_NODE*>(ALIGNEDALLOC(_alignsize + nsize, _align));
+      Node* retval = reinterpret_cast<Node*>(ALIGNEDALLOC(_alignsize + nsize, _align));
       if(!retval)
         return;
 
@@ -133,7 +131,7 @@ namespace bss {
       _root = retval;
     }
 
-    BSS_FORCEINLINE void _initChunk(FIXEDLIST_NODE* chunk) noexcept
+    BSS_FORCEINLINE void _initChunk(Node* chunk) noexcept
     {
       uint8_t* memend = reinterpret_cast<uint8_t*>(chunk) + _alignsize + chunk->size;
 
@@ -144,11 +142,11 @@ namespace bss {
       }
     }
 
-    FIXEDLIST_NODE* _root;
+    Node* _root;
     void* _freelist;
     const size_t _sz;
     const size_t _align;
-    const size_t _alignsize; // sizeof(FIXEDLIST_NODE) expanded to have alignment _align
+    const size_t _alignsize; // sizeof(Node) expanded to have alignment _align
   };
 
   template<size_t SIZE, size_t ALIGN>
@@ -160,7 +158,7 @@ namespace bss {
     BSS_FORCEINLINE T* Alloc(size_t num = 1)
     {
       static_assert((sizeof(T) <= SIZE), "sizeof(T) must be less than SIZE");
-      static_assert((alignof(T) <= ALIGN), "alignof(T) must be less than ALIGN");
+      static_assert((alignof(T) <= ALIGN) && !(ALIGN % alignof(T)), "alignof(T) must be less than ALIGN and be a multiple of it");
       return BlockAllocVoid::AllocT<T>(num);
     }
     template<class T>

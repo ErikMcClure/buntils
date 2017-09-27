@@ -12,7 +12,7 @@ namespace bss {
   template<class T>
   class BSS_COMPILER_DLLEXPORT LocklessBlockAlloc
   {
-    typedef BlockAllocVoid::FIXEDLIST_NODE NODE;
+    typedef BlockAllocVoid::Node Node;
   public:
     inline LocklessBlockAlloc(LocklessBlockAlloc&& mov) : _root(mov._root)
     {
@@ -33,7 +33,7 @@ namespace bss {
     }
     inline ~LocklessBlockAlloc()
     {
-      NODE* hold = _root;
+      Node* hold = _root;
 
       while((_root = hold))
       {
@@ -106,7 +106,7 @@ namespace bss {
 #ifdef BSS_DEBUG
     inline bool _validPointer(const void* p) const
     {
-      const NODE* hold = _root;
+      const Node* hold = _root;
       while(hold)
       {
         if(p >= (hold + 1) && p < (((uint8_t*)(hold + 1)) + hold->size))
@@ -119,7 +119,7 @@ namespace bss {
 #endif
     inline void _allocChunk(size_t nsize) noexcept
     {
-      NODE* retval = reinterpret_cast<NODE*>(malloc(sizeof(NODE) + nsize));
+      Node* retval = reinterpret_cast<Node*>(malloc(sizeof(Node) + nsize));
       assert(retval != 0);
       retval->next = _root;
       retval->size = nsize;
@@ -127,7 +127,7 @@ namespace bss {
       _initChunk(retval);
     }
 
-    inline void _initChunk(const NODE* chunk) noexcept
+    inline void _initChunk(const Node* chunk) noexcept
     {
       void* hold = 0;
       uint8_t* memend = ((uint8_t*)(chunk + 1)) + chunk->size;
@@ -157,7 +157,7 @@ namespace bss {
 
     BSS_ALIGN(16) volatile bss_PTag<void> _freelist;
     BSS_ALIGN(4) std::atomic_flag _flag;
-    NODE* _root;
+    Node* _root;
   };
 
   template<typename T>

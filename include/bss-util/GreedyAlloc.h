@@ -16,27 +16,33 @@ namespace bss {
     GreedyAlloc(const GreedyAlloc& copy) = delete;
     GreedyAlloc& operator=(const GreedyAlloc& copy) = delete;
 
-    struct AFLISTITEM
+    struct Node
     {
-      AFLISTITEM* next;
+      Node* next;
       size_t size;
     };
 
   public:
-    inline GreedyAlloc(GreedyAlloc&& mov) : _root(mov._root.load(std::memory_order_relaxed)), _curpos(mov._curpos.load(std::memory_order_relaxed)) { mov._root.store(nullptr, std::memory_order_relaxed); mov._curpos = 0; }
-    inline explicit GreedyAlloc(size_t init = 64) : _root(0), _curpos(0)
+    inline GreedyAlloc(GreedyAlloc&& mov) : _root(mov._root.load(std::memory_order_relaxed)), _curpos(mov._curpos.load(std::memory_order_relaxed)), 
+      _alignsize(mov._alignsize), _align(mov._align)
+    { 
+      mov._root.store(nullptr, std::memory_order_relaxed);
+      mov._curpos = 0; 
+    }
+    inline explicit GreedyAlloc(size_t init = 64, size_t align = 1) : _root(0), _curpos(0), _align(align),
+      _alignsize(AlignSize(sizeof(Node), align))
     {
       _allocChunk(init);
     }
     inline ~GreedyAlloc()
     {
       _lock.Lock();
-      AFLISTITEM* hold = _root.load(std::memory_order_relaxed);
+      Node* hold = _root.load(std::memory_order_relaxed);
 
       while((_root = hold))
       {
         hold = hold->next;
-        free(_root.load(std::memory_order_relaxed));
+        ALIGNEDFREE(_root.load(std::memory_order_relaxed));
       }
     }
     template<typename T>
@@ -44,19 +50,20 @@ namespace bss {
     {
       return (T*)Alloc(num * sizeof(T));
     }
-    inline void* Alloc(size_t _sz) noexcept
+    inline void* Alloc(size_t sz) noexcept
     {
+      sz = AlignSize(sz, _align);
 #ifdef BSS_DISABLE_CUSTOM_ALLOCATORS
-      return malloc(_sz);
+      return ALIGNEDALLOC(sz, _align);
 #endif
       size_t r;
-      AFLISTITEM* root;
+      Node* root;
 
       for(;;)
       {
         _lock.RLock();
-        r = _curpos.fetch_add(_sz, std::memory_order_relaxed);
-        size_t rend = r + _sz;
+        r = _curpos.fetch_add(sz, std::memory_order_relaxed);
+        size_t rend = r + sz;
         root = _root.load(std::memory_order_relaxed);
 
         if(rend >= root->size)
@@ -75,24 +82,24 @@ namespace bss {
         else
           break;
       }
-
-      void* retval = ((char*)(root + 1)) + r;
+      
+      void* retval = reinterpret_cast<uint8_t*>(root) + _alignsize + r;
       _lock.RUnlock();
       return retval;
     }
     void Dealloc(void* p) noexcept
     {
 #ifdef BSS_DISABLE_CUSTOM_ALLOCATORS
-      delete p; return;
+      ALIGNEDFREE(p); return;
 #endif
 #ifdef BSS_DEBUG
       _lock.RLock();
-      AFLISTITEM* cur = _root.load(std::memory_order_relaxed);
+      Node* cur = _root.load(std::memory_order_relaxed);
       bool found = false;
 
       while(cur)
       {
-        if(p >= (cur + 1) && p < (((char*)(cur + 1)) + cur->size)) { found = true; break; }
+        if(p >= (reinterpret_cast<uint8_t*>(cur) + _alignsize) && p < (reinterpret_cast<uint8_t*>(cur) + _alignsize + cur->size)) { found = true; break; }
         cur = cur->next;
       }
 
@@ -104,52 +111,54 @@ namespace bss {
     void Clear() noexcept
     {
       _lock.Lock();
-      AFLISTITEM* root = _root.load(std::memory_order_acquire);
+      Node* root = _root.load(std::memory_order_acquire);
+      _curpos.store(0, std::memory_order_relaxed);
 
       if(!root->next)
         return _lock.Unlock();
 
       size_t nsize = 0;
-      AFLISTITEM* hold;
+      Node* hold;
 
       while(root)
       {
         hold = root->next;
         nsize += root->size;
-        free(root);
+        ALIGNEDFREE(root);
         root = hold;
       }
 
       _root.store(nullptr, std::memory_order_release);
       _allocChunk(nsize); //consolidates all memory into one chunk to try and take advantage of data locality
-      _curpos.store(0, std::memory_order_relaxed);
       _lock.Unlock();
     }
   protected:
     BSS_FORCEINLINE void _allocChunk(size_t nsize) noexcept
     {
-      AFLISTITEM* retval = reinterpret_cast<AFLISTITEM*>(malloc(sizeof(AFLISTITEM) + nsize));
+      Node* retval = reinterpret_cast<Node*>(ALIGNEDALLOC(_alignsize + nsize, _align));
       assert(retval != 0);
       retval->next = _root.load(std::memory_order_acquire);
       retval->size = nsize;
-      assert(_prepDEBUG(retval));
+      assert(_prepDEBUG(retval, _alignsize));
       _root.store(retval, std::memory_order_release);
     }
 #ifdef BSS_DEBUG
-    BSS_FORCEINLINE static bool _prepDEBUG(AFLISTITEM* root) noexcept
+    BSS_FORCEINLINE static bool _prepDEBUG(Node* root, size_t alignsize) noexcept
     {
       if(!root) return false;
-      memset(root + 1, 0xfd, root->size);
+      memset(reinterpret_cast<uint8_t*>(root) + alignsize, 0xfd, root->size);
       return true;
     }
 #endif
 
 #pragma warning(push)
 #pragma warning(disable:4251)
-    std::atomic<AFLISTITEM*> _root;
+    std::atomic<Node*> _root;
     std::atomic<size_t> _curpos;
 #pragma warning(pop)
     RWLock _lock;
+    const size_t _align;
+    const size_t _alignsize;
   };
 
   template<typename T>
@@ -160,7 +169,7 @@ namespace bss {
     template<typename U>
     struct rebind { typedef GreedyPolicy<U> other; };
 
-    inline GreedyPolicy() {}
+    inline GreedyPolicy(size_t init = 8) : GreedyAlloc(init * sizeof(T), alignof(T)) {}
     inline ~GreedyPolicy() {}
 
     inline pointer allocate(std::size_t cnt, const pointer = 0) noexcept { return GreedyAlloc::AllocT<T>(cnt); }

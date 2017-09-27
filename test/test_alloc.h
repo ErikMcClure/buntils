@@ -47,6 +47,13 @@ void TEST_ALLOC_FUZZER_THREAD(TESTDEF::RETPAIR& __testret, T& _alloc, bss::DynAr
     plist.Clear(); // BOY I SHOULD PROBABLY CLEAR THIS BEFORE I PANIC ABOUT INVALID MEMORY ALLOCATIONS, HUH?
     _alloc.Clear();
   }
+
+  CPU_Barrier();
+  P* test = (P*)_alloc.Alloc(1);
+  CPU_Barrier();
+  _alloc.Dealloc(test);
+  CPU_Barrier();
+  _alloc.Clear();
 }
 
 template<class T, typename P, int MAXSIZE, int TRIALS>

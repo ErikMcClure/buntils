@@ -100,7 +100,12 @@ namespace bss {
     {
       //assert(debugCount() == 1);
       assert((l.load(std::memory_order_relaxed)&WMASK) > 0);
-      while(asmbts<size_t>((size_t*)&l, WBIT)); // Acquire the write lock with acquire/release semantics, because this must have come after an initial RLock()
+      while(asmbts<size_t>((size_t*)&l, WBIT)) // Attempt to acquire the write lock
+      {
+        RUnlock(); // if we fail, we MUST release our own read lock so the other writer can proceed.
+        while(l.load(std::memory_order_relaxed)&WFLAG); // Wait until the writer flag is no longer set before looping for another attempt
+        l.fetch_add(ONE_READER, std::memory_order_acquire); // Acquire a read lock before our next upgrade attempt - if the attempt fails, we'll release this.
+      }
       while((l.load(std::memory_order_relaxed)&WMASK) > ONE_READER); // Only flush to a single read lock, which will be our own
     }
 

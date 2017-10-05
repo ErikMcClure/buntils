@@ -31,14 +31,12 @@ namespace bss {
   public:
     RingAllocVoid(RingAllocVoid&& mov) : _gc(mov._gc), _lastsize(mov._lastsize), _list(mov._list)
     {
-      _lock.clear(std::memory_order_release);
       _cur.store(mov._cur.load(std::memory_order_acquire), std::memory_order_release);
       mov._cur.store(0, std::memory_order_release);
       mov._list = 0;
     }
     explicit RingAllocVoid(size_t sz) : _lastsize(sz), _list(0)
     {
-      _lock.clear(std::memory_order_release);
       _gc.p = 0;
       _gc.tag = 0;
       _cur.store(_genBucket(sz), std::memory_order_release);
@@ -53,10 +51,14 @@ namespace bss {
 
       for(;;)
       {
+        _lock.RLock();
         cur = _cur.load(std::memory_order_acquire);
-
+        
         if(!cur->lock.AttemptRLock()) // If this fails we probably got a bucket that was in the middle of being recycled
+        {
+          _lock.RUnlock();
           continue;
+        }
 
         r = cur->reserved.fetch_add(n, std::memory_order_acq_rel);
         rend = r + n;
@@ -69,14 +71,18 @@ namespace bss {
           if(!r) // If r was zero, it's theoretically possible for this bucket to get orphaned, so we send it into the _checkRecycle function
             _checkRecycle(cur); // Even if someone else acquires the lock before this runs, either the allocation will succeed or this check will
 
-          if(!_lock.test_and_set(std::memory_order_acq_rel))
+          if(_lock.AttemptUpgrade())
           {
             _cur.store(_genBucket(n), std::memory_order_release);
-            _lock.clear(std::memory_order_release);
+            _lock.Downgrade();
           }
+          _lock.RUnlock();
         }
         else
+        {
+          _lock.RUnlock();
           break;
+        }
       }
 
       Node* ret = (Node*)(((char*)(cur + 1)) + r);
@@ -98,13 +104,17 @@ namespace bss {
 #ifdef BSS_DEBUG
       memset(n, 0xfc, n->sz); // n->sz is the entire size of the node, including the node itself.
 #endif
+      _lock.RLock();
       b->lock.RUnlock();
       _checkRecycle(b);
+      _lock.RUnlock();
     }
     inline void Clear()
     {
       _clear();
+      _lock.Lock();
       _cur.store(_genBucket(_lastsize), std::memory_order_release);
+      _lock.Unlock();
     }
 
     RingAllocVoid& operator=(RingAllocVoid&& mov) noexcept
@@ -136,7 +146,9 @@ namespace bss {
 
       _gc.p = 0;
       _gc.tag = 0;
+      _lock.Lock();
       _cur.store(0, std::memory_order_release);
+      _lock.Unlock();
     }
     // It is crucial that only allocation sizes are passed into this, or the ring allocator will simply keep allocating larger and larger buckets forever
     Bucket* _genBucket(size_t num) noexcept
@@ -197,17 +209,17 @@ namespace bss {
       {
         if(b == _cur.load(std::memory_order_acquire)) // If this appears to be the current bucket, we can't recycle it
         {
-          if(!_lock.test_and_set(std::memory_order_acq_rel)) // So we attempt to acquire the lock for the _cur object
+          if(_lock.AttemptUpgrade()) // So we attempt to acquire the lock for the _cur object
           {
             if(b == _cur.load(std::memory_order_acquire)) // If we get the lock, verify we are still the current bucket
             {
               b->reserved.store(0, std::memory_order_release); // If we are, we can "recycle" this bucket by just resetting the reserved to 0.
               b->lock.Unlock(); // Now we can unlock because we have been "recycled" into the current bucket.
-              _lock.clear(std::memory_order_release);
+              _lock.Downgrade();
               return;
             }
-            _lock.clear(std::memory_order_release); // Otherwise, drop the lock and recycle as normal
-          }
+            _lock.Downgrade(); // Otherwise, drop the lock and recycle as normal
+          } // If we fail to get the lock, this just means _cur must have been replaced, so we can recycle this bucket
         }
         _recycle(b);
       }
@@ -229,7 +241,7 @@ namespace bss {
 #pragma warning(push)
 #pragma warning(disable:4251)
     BSS_ALIGN(16) std::atomic<Bucket*> _cur; // Current bucket
-    BSS_ALIGN(64) std::atomic_flag _lock; // GC lock
+    BSS_ALIGN(64) RWLock _lock;
 #pragma warning(pop)
     size_t _lastsize; // Last size used for a bucket.
     Bucket* _list; // root of permanent list of all buckets.

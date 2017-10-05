@@ -14,6 +14,7 @@ namespace bss {
   public:
     // Increments and returns the reference counter
     BSS_FORCEINLINE int Grab() noexcept { return ++_refs; }
+    BSS_FORCEINLINE int Grab(int num) noexcept { return _refs += num; }
     // Decrements the reference counter and calls delete this; if it is equal to or less then 0
     BSS_FORCEINLINE int Drop()
     {

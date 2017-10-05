@@ -19,7 +19,7 @@ INIsection::INIsection(INIsection&& mov) : _name(std::move(mov._name)),_index(mo
   mov._root=0;
   mov._last=0;
 }
-INIsection::INIsection() : _index((size_t)-1), _parent(0), _root(0), _last(0)
+INIsection::INIsection() : _index((size_t)~0), _parent(0), _root(0), _last(0)
 {
 }
 INIsection::INIsection(const char* name, INIstorage* parent, size_t index) : _name(name), _index(index), _parent(parent), _root(0),_last(0)

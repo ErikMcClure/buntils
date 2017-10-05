@@ -143,7 +143,7 @@ namespace bss {
   class XMLEngine
   {
   public:
-    XMLEngine() : pretty(true), arrayID(0), cur(0), curvalue(0), curindices(0){}
+    XMLEngine() : pretty(true), arrayID(0), cur(0), curvalue(0), curindices(0) {}
     static constexpr bool Ordered() { return false; }
     static void Begin(Serializer<XMLEngine>& e)
     {

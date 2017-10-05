@@ -172,7 +172,7 @@ void Profiler::_heatWrite(std::ostream& stream, PROF_HEATNODE& node, size_t leve
 {
   static const int BARLENGTH = 10;
 
-  if(level != (size_t)-1)
+  if(level != (size_t)~0)
   {
     for(size_t i = 0; i < level * 2; ++i) stream.put(' ');
     if(!node.id)

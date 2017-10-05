@@ -18,7 +18,7 @@ TESTDEF::RETPAIR test_THREAD()
   TEST(t.join(2) == -1);
   m = HighPrecisionTimer::OpenProfiler();
   s.Notify();
-  TEST(t.join(1000) != (size_t)-1);
+  TEST(t.join(1000) != (size_t)~0);
   //std::cout << "\n" << m << std::endl;
   //while(i > 0)
   //{

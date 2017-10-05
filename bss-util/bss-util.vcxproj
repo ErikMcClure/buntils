@@ -57,6 +57,7 @@
     <ClInclude Include="..\include\bss-util\Geometry.h" />
     <ClInclude Include="..\include\bss-util\GreedyAlloc.h" />
     <ClInclude Include="..\include\bss-util\GreedyBlockAlloc.h" />
+    <ClInclude Include="..\include\bss-util\literals.h" />
     <ClInclude Include="..\include\bss-util\RingAlloc.h" />
     <ClInclude Include="..\include\bss-util\BlockAlloc.h" />
     <ClInclude Include="..\include\bss-util\BlockAllocMT.h" />
@@ -126,6 +127,7 @@
     <ClInclude Include="..\include\bss-util\Profiler.h" />
     <ClInclude Include="..\include\bss-util\RWLock.h" />
     <ClInclude Include="..\include\bss-util\Variant.h" />
+    <ClInclude Include="..\include\bss-util\XorshiftEngine.h" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="Logger.cpp" />

@@ -23,6 +23,7 @@
 - Restructure animations
 - Rename DYNARRAY to VARARRAY and make it fall back to heap allocation above 65535 bytes.
 - Remove extraction operator from SSE and replace with Set()
+- Move Xorshift implementation to XorshiftEngine.h, switch to std::generate_canonical
 
 ## 0.5.0
 - Added AttemptRLock(), AttemptStrictLock() to RWLock

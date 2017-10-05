@@ -591,6 +591,7 @@
     <ClCompile Include="test_kdtree.cpp" />
     <ClCompile Include="test_linkedarray.cpp" />
     <ClCompile Include="test_linkedlist.cpp" />
+    <ClCompile Include="test_literals.cpp" />
     <ClCompile Include="test_lockless.cpp" />
     <ClCompile Include="test_locklessqueue.cpp" />
     <ClCompile Include="test_map.cpp" />

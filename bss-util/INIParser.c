@@ -238,7 +238,7 @@ INICHUNK bssFindINISection(const void* data, size_t length, const char* section,
   const char* line;
   const char* tc;
   const char* sec;
-  size_t curinstance = (size_t)-1;
+  size_t curinstance = (size_t)~0;
   INICHUNK retval;
   memset(&retval, 0, sizeof(INICHUNK));
 
@@ -272,7 +272,7 @@ INICHUNK bssFindINIEntry(INICHUNK section, const char* key, size_t instance)
   const char* line;
   const char* tc;
   const char* sec;
-  size_t curinstance = (size_t)-1;
+  size_t curinstance = (size_t)~0;
   INICHUNK retval;
   memset(&retval, 0, sizeof(INICHUNK));
 

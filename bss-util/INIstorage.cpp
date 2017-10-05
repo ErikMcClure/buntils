@@ -206,13 +206,13 @@ bool INIstorage::RemoveSection(const char* name, size_t instance)
 char INIstorage::EditEntry(const char* section, const char* key, const char* nvalue, size_t keyinstance, size_t secinstance)
 {
   if(!_ini) _openINI();
-  if(secinstance == (size_t)-1)
+  if(secinstance == (size_t)~0)
     secinstance = AddSection(section)._index;
 
   khiter_t iter = _sections.Iterator(section);
   if(iter == _sections.End()) return -1; //if it doesn't exist at this point, fail
   _NODE* secnode = _sections.UnsafeValue(iter);
-  //if(secinstance==(size_t)-1) secinstance=secnode->instances.Capacity()-1; //This is now done at the start of the function
+  //if(secinstance==(size_t)~0) secinstance=secnode->instances.Capacity()-1; //This is now done at the start of the function
   if(secinstance > secnode->instances.Capacity()) return -2; //if secinstance is not valid, fail
   if(secinstance > 0)
     secnode = secnode->instances[secinstance - 1];
@@ -221,7 +221,7 @@ char INIstorage::EditEntry(const char* section, const char* key, const char* nva
   INICHUNK chunk = bssFindINISection(_ini->c_str(), _ini->size(), section, secinstance);
   if(!chunk.start) return -3; //if we can't find it in the INI, fail
 
-  if(keyinstance == (size_t)-1) //insertion
+  if(keyinstance == (size_t)~0) //insertion
   {
     psec->_addEntry(key, nvalue);
     //_ini->reserve(_ini->size()+strlen(key)+strlen(nvalue)+2); // This is incredibly stupid. It invalidates all our pointers causing strange horrifying bugs.

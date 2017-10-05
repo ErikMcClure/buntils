@@ -34,6 +34,7 @@ extern volatile std::atomic<bool> startflag;
 #define ENDTEST return __testret
 #define FAILEDTEST(t) BSSLOG(_failedtests,1, "Test #",__testret.first," Failed  < ",TXT(t)," >")
 #define TEST(t) { bss::atomic_xadd(&__testret.first); try { if(t) bss::atomic_xadd(&__testret.second); else FAILEDTEST(t); } catch(...) { FAILEDTEST(t); } }
+#define TESTSTATIC(t) static_assert(t, "Failed: " TXT(t))
 #define TESTERROR(t, e) { bss::atomic_xadd(&__testret.first); try { (t); FAILEDTEST(t); } catch(e) { bss::atomic_xadd(&__testret.second); } }
 #define TESTERR(t) TESTERROR(t,...)
 #define TESTNOERROR(t) { bss::atomic_xadd(&__testret.first); try { (t); bss::atomic_xadd(&__testret.second); } catch(...) { FAILEDTEST(t); } }
@@ -155,6 +156,7 @@ TESTDEF::RETPAIR test_JSON();
 TESTDEF::RETPAIR test_KDTREE();
 TESTDEF::RETPAIR test_LINKEDARRAY();
 TESTDEF::RETPAIR test_LINKEDLIST();
+TESTDEF::RETPAIR test_LITERALS();
 TESTDEF::RETPAIR test_LOCKLESS();
 TESTDEF::RETPAIR test_LOCKLESSQUEUE();
 TESTDEF::RETPAIR test_MAP();

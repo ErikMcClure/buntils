@@ -112,7 +112,7 @@ namespace bss {
   {
     static_assert(std::is_integral<T>::value, "T must be integral");
     if(!string) return 0;
-    size_t curpos = (size_t)-1; //this will wrap around to 0 when we increment
+    size_t curpos = (size_t)~0; //this will wrap around to 0 when we increment
 
     while(string[++curpos] != '\0') //replace until the null-terminator
       if(string[curpos] == find)

@@ -78,7 +78,7 @@ int DEBUG_CDT_SAFE::count = 0;
 int DEBUG_CDT_SAFE::ID = 0;
 bss::Hash<int> DEBUG_CDT_SAFE::Tracker;
 
-#define BSS_ISOLATE_TEST 8
+//#define BSS_ISOLATE_TEST 8
 
 // --- Begin main testing function ---
 int main(int argc, char** argv)
@@ -138,6 +138,7 @@ int main(int argc, char** argv)
     { "Hash.h", &test_HASH },
     { "LinkedArray.h", &test_LINKEDARRAY },
     { "LinkedList.h", &test_LINKEDLIST },
+    { "literals.h", &test_LITERALS },
     { "lockless.h", &test_LOCKLESS },
     { "LocklessQueue.h", &test_LOCKLESSQUEUE },
     { "Map.h", &test_MAP },

@@ -73,12 +73,12 @@ namespace bss {
     // Blocks until either the thread has terminated, or 'timeout' milliseconds have elapsed. If a timeout occurs, returns -1.
     BSS_FORCEINLINE size_t join(size_t mstimeout)
     {
-      size_t ret = (size_t)-1;
+      size_t ret = (size_t)~0;
       if(joinable())
       {
 #ifdef BSS_PLATFORM_WIN32
         if(WaitForSingleObject((HANDLE)native_handle(), (DWORD)mstimeout) != 0)
-          return (size_t)-1;
+          return (size_t)~0;
         GetExitCodeThread((HANDLE)native_handle(), (DWORD*)&ret); // size_t is gaurenteed to be big enough to hold DWORD
         std::thread::join();
 #else // BSS_PLATFORM_POSIX
@@ -87,14 +87,14 @@ namespace bss {
         if(!mstimeout || clock_gettime(CLOCK_REALTIME, &ts) == -1)
         {
           if(pthread_tryjoin_np(native_handle(), (void**)&ret) != 0) // If failed, thread is either still busy or something blew up, so return -1
-            return (size_t)-1;
+            return (size_t)~0;
         }
         else
         {
           ts.tv_sec += mstimeout / 1000;
           ts.tv_nsec += (mstimeout % 1000) * 1000000;
           if(pthread_timedjoin_np(native_handle(), (void**)&ret, &ts) != 0) // size_t is defined as being big enough to hold a pointer
-            return (size_t)-1;
+            return (size_t)~0;
         }
 
         *((std::thread::id*)(this)) = std::thread::id();// Insanely horrible hack to manually make the ID not joinable

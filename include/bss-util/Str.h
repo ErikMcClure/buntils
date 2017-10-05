@@ -283,12 +283,12 @@ namespace bss {
     BSS_FORCEINLINE void _convStr(const OTHER_C* src, ptrdiff_t len)
     {
       size_t r = STRCT::CONV(src, len, 0, 0);
-      if(r == (size_t)-1)
+      if(r == (size_t)~0)
         return; // If invalid, bail
 
       BASE::resize(r); // resize() only adds one for null terminator if it feels like it.
       r = STRCT::CONV(src, len, _internalPtr(), BASE::capacity());
-      if(r == (size_t)-1)
+      if(r == (size_t)~0)
         return; // If somehow still invalid, bail again
 
       BASE::resize(r - 1); // resize to actual number of characters instead of simply the maximum (disregard null terminator)
@@ -296,12 +296,12 @@ namespace bss {
     BSS_FORCEINLINE void _convStr2(const OTHER_C2* src, ptrdiff_t len)
     {
       size_t r = STRCT::CONV2(src, len, 0, 0);
-      if(r == (size_t)-1)
+      if(r == (size_t)~0)
         return; // If invalid, bail
 
       BASE::resize(r); // resize() only adds one for null terminator if it feels like it.
       r = STRCT::CONV2(src, len, _internalPtr(), BASE::capacity());
-      if(r == (size_t)-1)
+      if(r == (size_t)~0)
         return; // If somehow still invalid, bail again
 
       BASE::resize(r - 1); // resize to actual number of characters instead of simply the maximum (disregard null terminator)

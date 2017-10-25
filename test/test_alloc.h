@@ -48,11 +48,11 @@ void TEST_ALLOC_FUZZER_THREAD(TESTDEF::RETPAIR& __testret, T& _alloc, bss::DynAr
     _alloc.Clear();
   }
 
-  CPU_Barrier();
+  bss::CPU_Barrier();
   P* test = (P*)_alloc.Alloc(1);
-  CPU_Barrier();
+  bss::CPU_Barrier();
   _alloc.Dealloc(test);
-  CPU_Barrier();
+  bss::CPU_Barrier();
   _alloc.Clear();
 }
 

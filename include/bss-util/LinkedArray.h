@@ -54,7 +54,7 @@ namespace bss {
     }
     inline CT_ Length() const { return _length; }
     inline CT_ Capacity() const { return _ref.Capacity(); }
-    inline void Reserve(CT_ size) 
+    inline void SetCapacity(CT_ size)
     {
       if(size < _ref.Capacity())
         return;
@@ -167,7 +167,7 @@ namespace bss {
     inline CT_ _insertPrep()
     {
       if(_freelist == (CT_)-1)
-        Reserve(fbnext(_ref.Capacity()));
+        SetCapacity(fbnext(_ref.Capacity()));
 
       CT_ cur = _freelist;
       _freelist = _ref[_freelist].next; //increment freelist

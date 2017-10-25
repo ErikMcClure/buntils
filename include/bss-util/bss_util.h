@@ -158,6 +158,18 @@ namespace bss {
     return (i / div) - ((i < 0)&((i%div) != 0)); // If i is negative and has a nonzero remainder, subtract one to correct the truncation.
   }
 
+  // Performs a compile-time safe shift (positive number shifts left, negative number shifts right), preventing undefined behavior.
+  template<typename T, int S>
+  BSS_FORCEINLINE T SafeShift(T v) noexcept
+  {
+    if constexpr(S > 0)
+      return (v << S);
+    else if constexpr(S < 0)
+      return (v >> (-S));
+    else
+      return v;
+  }
+
   // Performs a mathematically correct modulo, unlike the modulo operator, which doesn't actually perform modulo, it performs a remainder operation. THANKS GUYS!
   template<typename T> //T must be integral
   BSS_FORCEINLINE T bssMod(T x, T m) noexcept

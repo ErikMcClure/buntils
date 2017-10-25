@@ -10,11 +10,11 @@
 namespace bss {
   // Represents a disjoint set data structure that uses path compression.
   template<typename T = size_t, typename ALLOC = StaticAllocPolicy<typename std::make_signed<T>::type>>
-  class BSS_COMPILER_DLLEXPORT DisjointSet : protected ArrayBase<typename std::make_signed<T>::type, T, ALLOC>
+  class BSS_COMPILER_DLLEXPORT DisjointSet : protected ArrayBase<typename std::make_signed<T>::type, T, ARRAY_SIMPLE, ALLOC>
   {
   protected:
-    typedef ArrayBase<typename std::make_signed<T>::type, T, ALLOC> ARRAY;
-    typedef typename ARRAY::T_ T_;
+    typedef ArrayBase<typename std::make_signed<T>::type, T, ARRAY_SIMPLE, ALLOC> ARRAY;
+    typedef typename ARRAY::Ty Ty;
     using ARRAY::_array;
     using ARRAY::_capacity;
 
@@ -26,9 +26,9 @@ namespace bss {
     }
     inline DisjointSet(DisjointSet&& mov) : ARRAY(std::move(mov)), _numsets(mov._numsets) { mov._numsets = 0; }
     inline explicit DisjointSet(T num) : ARRAY(num) { Reset(); }
-    inline DisjointSet(T_* overload, T num) : ARRAY(0)
+    inline DisjointSet(Ty* overload, T num) : ARRAY(0)
     { // This let's you use an outside array
-      int v = std::is_same<ALLOC, StaticNullPolicy<T_>>::value;
+      int v = std::is_same<ALLOC, StaticNullPolicy<Ty>>::value;
       assert(v != 0); //You must use StaticNullPolicy if you overload the array pointer
       _array = overload;
       _capacity = num;
@@ -40,8 +40,8 @@ namespace bss {
       if(_invalidIndex(set1) || _invalidIndex(set2))
         return false;
 
-      T_ w1 = _array[set1];
-      T_ w2 = _array[set2];
+      Ty w1 = _array[set1];
+      Ty w2 = _array[set2];
 
       if(w1 > w2)
       { // Weights are negated, so -w1 < -w2 can be rewritten as w1 > w2
@@ -59,15 +59,15 @@ namespace bss {
     }
 
     // Returns the set name that x belongs to.
-    inline T_ Find(T x)
+    inline Ty Find(T x)
     {
       assert(x < _capacity);
 
-      T_ r = x;
+      Ty r = x;
       while(_array[r] >= 0)
         r = _array[r]; // Find set name x belongs to
 
-      T_ t;
+      Ty t;
       if(x != r)
       { // Do path compression
         t = _array[x];
@@ -88,7 +88,7 @@ namespace bss {
     // Returns true if x is a valid set name
     inline bool IsSetName(T x) { return x < _capacity && _array[x] < 0; }
     // Returns the number of elements in a given set. Returns -1 on failure.
-    inline T_ NumElements(T set) 
+    inline Ty NumElements(T set) 
     { 
       if(set >= _capacity) 
         return -1; 
@@ -113,7 +113,7 @@ namespace bss {
     // Returns an array containing the elements in the given set.
     inline std::unique_ptr<T[]> GetElements(T set)
     {
-      T_ len = NumElements(set);
+      Ty len = NumElements(set);
 
       if(len < 0)
         return std::unique_ptr<T[]>();
@@ -125,7 +125,7 @@ namespace bss {
     }
 
     // Fills target with the elements of the given set. target must be at least NumElements(set) long. If target is null, returns NumElements(set)
-    inline T_ GetElements(T set, T* target)
+    inline Ty GetElements(T set, T* target)
     {
       if(!target)
         return NumElements(set);
@@ -153,14 +153,14 @@ namespace bss {
     template<class ITER>
     static T MinSpanningTree(T numverts, ITER edges, ITER edgeslast, std::pair<T, T>* out)
     {
-      VARARRAY(T_, arr, numverts); // Allocate everything on the stack
-      DisjointSet<T, StaticNullPolicy<T_>> set(arr, numverts);
+      VARARRAY(Ty, arr, numverts); // Allocate everything on the stack
+      DisjointSet<T, StaticNullPolicy<Ty>> set(arr, numverts);
       T num = 0;
 
       for(; edges != edgeslast; ++edges)
       {
-        T_ a = set.Find((*edges).first);
-        T_ b = set.Find((*edges).second);
+        Ty a = set.Find((*edges).first);
+        Ty b = set.Find((*edges).second);
 
         if(a != b)
         {

@@ -10,34 +10,30 @@
 namespace bss {
   // Array that uses a inline stack for smaller arrays before allocating something on the heap. Can only be used with simple data.
   template<class T, int I = 2, class CT = size_t, typename Alloc = StaticAllocPolicy<T>>
-  class BSS_COMPILER_DLLEXPORT CompactArray
+  class BSS_COMPILER_DLLEXPORT CompactArray final
   {
     static_assert(std::is_unsigned<CT>::value, "CT must be unsigned");
-    static const CT COMPACTMASK = (((CT)(~0)) >> 1);
-    static const CT COMPACTFLAG = ~(((CT)(~0)) >> 1);
+    static const CT COMPACTFLAG = CT(1) << ((sizeof(CT) << 3) - 1);
+    static const CT COMPACTMASK = ~COMPACTFLAG;
 
   public:
-    inline CompactArray(const CompactArray& copy) : _capacity(0), _length(COMPACTFLAG)
+    inline CompactArray(const CompactArray& copy) : _length(COMPACTFLAG)
     {
-      SetLength(copy._length&COMPACTMASK);
-      MEMCPY(begin(), (_length&COMPACTMASK) * sizeof(T), copy.begin(), (copy._length&COMPACTMASK) * sizeof(T));
+      SetLength(copy.Length());
+      MEMCPY(begin(), Length() * sizeof(T), copy.begin(), copy.Length() * sizeof(T));
     }
-    inline CompactArray(CompactArray&& mov) : _array(0), _capacity(mov._capacity), _length(mov._length)
+    inline CompactArray(CompactArray&& mov)
     {
-      if(_length&COMPACTFLAG)
-        MEMCPY(_internal, I * sizeof(T), mov._internal, (mov._length&COMPACTMASK) * sizeof(T));
-      else
-        _array = mov._array;
-
+      MEMCPY(this, sizeof(CompactArray), &mov, sizeof(CompactArray));
       mov._length = COMPACTFLAG;
     }
-    inline explicit CompactArray(const Slice<const T, CT>& slice) : _capacity(0), _length(COMPACTFLAG)
+    inline explicit CompactArray(const Slice<const T, CT>& slice) : _length(COMPACTFLAG)
     {
       SetLength(slice.length);
-      MEMCPY(begin(), (_length&COMPACTMASK) * sizeof(T), slice.start, slice.length * sizeof(T));
+      MEMCPY(begin(), Length() * sizeof(T), slice.start, slice.length * sizeof(T));
     }
-    inline CompactArray() : _array(0), _capacity(0), _length(COMPACTFLAG) {}
-    inline CompactArray(const std::initializer_list<T>& list) : _capacity(0), _length(COMPACTFLAG)
+    inline CompactArray() : _length(COMPACTFLAG) { }
+    inline CompactArray(const std::initializer_list<T>& list) : _length(COMPACTFLAG)
     {
       SetLength(list.size());
       auto end = list.end();
@@ -54,7 +50,7 @@ namespace bss {
     }
     inline CT Add(T t) 
     {
-      Reserve((_length&COMPACTMASK) + 1); 
+      SetCapacity(Length() + 1);
       new(end()) T(t); 
       return (_length++)&COMPACTMASK; 
     }
@@ -62,27 +58,27 @@ namespace bss {
     BSS_FORCEINLINE void RemoveLast() { Remove(Length() - 1); }
     BSS_FORCEINLINE void Insert(T t, CT index = 0)
     {
-      Reserve((_length&COMPACTMASK) + 1);
+      SetCapacity(Length() + 1);
       InsertRangeSimple<T, CT>(begin(), (_length++)&COMPACTMASK, index, &t, 1);
     }
     BSS_FORCEINLINE void Set(const Slice<const T, CT>& slice) { Set(slice.start, slice.length); }
     BSS_FORCEINLINE void Set(const T* p, CT n)
     {
       SetLength(n);
-      MEMCPY(begin(), (_length&COMPACTMASK) * sizeof(T), p, n * sizeof(T));
+      MEMCPY(begin(), Length() * sizeof(T), p, n * sizeof(T));
     }
-    BSS_FORCEINLINE bool Empty() const { return !(_length&COMPACTMASK); }
+    BSS_FORCEINLINE bool Empty() const { return !Length(); }
     BSS_FORCEINLINE void Clear() { _length = (_length&COMPACTFLAG); }
     inline void SetLength(CT length)
     {
-      Reserve(length);
+      SetCapacity(length);
 #ifdef BSS_DEBUG
       if(length > Length())
         bssFillN<T>(end(), length - Length(), 0xfd);
 #endif
       _length = (length | (_length&COMPACTFLAG));
     }
-    inline void Reserve(CT capacity)
+    inline void SetCapacity(CT capacity)
     {
       if(capacity > I)
       {
@@ -91,7 +87,7 @@ namespace bss {
         if(_length&COMPACTFLAG)
         {
           T* a = Alloc::allocate(capacity, 0);
-          _length = (_length&COMPACTMASK);
+          _length = Length();
 
           if(_length)
             MEMCPY(a, capacity * sizeof(T), _internal, _length * sizeof(T));
@@ -121,17 +117,15 @@ namespace bss {
     BSS_FORCEINLINE operator const T*() const { return begin(); }
     inline CompactArray& operator=(const CompactArray& copy)
     {
-      SetLength(copy._length&COMPACTMASK);
-      MEMCPY(begin(), (_length&COMPACTMASK) * sizeof(T), copy.begin(), (copy._length&COMPACTMASK) * sizeof(T));
+      SetLength(copy.Length());
+      MEMCPY(begin(), Length() * sizeof(T), copy.begin(), copy.Length() * sizeof(T));
       return *this;
     }
     inline CompactArray& operator=(CompactArray&& mov)
     {
-      if(_length&COMPACTFLAG)
-        MEMCPY(_internal, I * sizeof(T), mov._internal, (mov._length&COMPACTMASK) * sizeof(T));
-      else
-        _array = mov._array;
-
+      if(!(_length&COMPACTFLAG) && _array != 0)
+        Alloc::deallocate(_array);
+      MEMCPY(this, sizeof(CompactArray), &mov, sizeof(CompactArray));
       mov._length = COMPACTFLAG;
       return *this;
     }

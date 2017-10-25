@@ -7,6 +7,7 @@
 #include "compiler.h"
 #include <limits.h>
 #include <stdint.h>
+#include <random>
 
 namespace bss {
   // Implementation of an xorshift64star generator. x serves as the generator state, which should initially be set to the RNG seed.

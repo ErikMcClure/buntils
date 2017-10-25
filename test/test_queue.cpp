@@ -44,11 +44,15 @@ TESTDEF::RETPAIR test_BSS_QUEUE()
   TEST(q2.Peek() == 7);
   q2 = q;
   TEST(q2.Peek() == 6);
+  TEST(q.Peek() == 6);
   q.Push(7);
   q.Push(8);
   q.Push(9);
+  TEST(q.Peek() == 6);
   q.Push(10);
+  TEST(q.Peek() == 6);
   q.Push(11);
+  TEST(q.Peek() == 6);
   q2 = q;
   TEST(q2.Peek() == 6);
   TEST(q2.Pop() == 6);

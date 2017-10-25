@@ -15,7 +15,7 @@ namespace bss {
   inline double FixedPtConvd(T i) { static const T SMIN = bssmax(0, S - 53); return ((double)(i >> S)) + (((i&(((T)1 << S) - 1)) >> SMIN) / (double)((T)1 << (S - SMIN))); }
 
   template<typename T, T S_X, T S_Y>
-  inline T fixedpt_add(T x, T y) { return x + SAFESHIFT(y, S_X - S_Y); }
+  inline T fixedpt_add(T x, T y) { return x + SafeShift<T, S_X - S_Y>(y); }
   template<typename T>
   inline T fixedpt_mul(T x, T y, T S_Y) { return bssMultiplyExtract<T>(x, y, S_Y); } // The result has a scaling factor of 2^S_X * 2^S_Y = 2^(S_X + S_Y). To convert this back into 2^S_X, we divide by 2^S_Y, which is equivilent to shifting right by S_Y
   //inline T fixedpt_mul(T x, T y) { typedef typename BitLimit<sizeof(T) << 4>::SIGNED U; return ((U)x * (U)y) >> S_Y; }
@@ -62,7 +62,7 @@ namespace bss {
   public:
     inline constexpr Fixed(const Fixed& copy) : _bits(copy._bits) {}
     template<uint8_t B, typename U, bool S>
-    inline Fixed(const Fixed<B, U, S>& copy) : _bits((T)SAFESHIFT(copy.Bits(), B - D)) {}
+    inline Fixed(const Fixed<B, U, S>& copy) : _bits((T)SafeShift<T, B - D>(copy.Bits())) {}
     inline constexpr explicit Fixed(const T v) : _bits(v << D) {}
     inline constexpr Fixed(BITS bits) : _bits(bits.bits) {}
     inline explicit Fixed(const float f) : _bits(FixedPtConv<T, D, float>(f)) {}
@@ -75,7 +75,7 @@ namespace bss {
 
     inline Fixed& operator=(const Fixed& right) { _bits = right._bits; return *this; }
     template<uint8_t B, typename U, bool S>
-    inline Fixed& operator=(const Fixed<B, U, S>& right) { _bits = (T)SAFESHIFT(right.Bits(), B - D); return *this; }
+    inline Fixed& operator=(const Fixed<B, U, S>& right) { _bits = (T)SafeShift<T, B - D>(right.Bits()); return *this; }
 
     inline Fixed<(sizeof(T) << 3) - D, T, SATURATE> Reciprocal() const
     { 

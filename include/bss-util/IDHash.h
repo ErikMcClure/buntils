@@ -12,18 +12,18 @@
 namespace bss {
   // This is a simple ID hash intended for pointers, which can optionally be compressed to eliminate holes.
   template<typename T, typename ST = size_t, typename Alloc = StaticAllocPolicy<T>, T INVALID = 0>
-  class IDHash : protected ArrayBase<T, ST, Alloc>
+  class IDHash : protected ArrayBase<T, ST, ARRAY_SIMPLE, Alloc>
   {
     static_assert(sizeof(ST) <= sizeof(T), "T must not be smaller than ST");
 
   protected:
-    using ArrayBase<T, ST, Alloc>::_array;
-    using ArrayBase<T, ST, Alloc>::_capacity;
+    using ArrayBase<T, ST, ARRAY_SIMPLE, Alloc>::_array;
+    using ArrayBase<T, ST, ARRAY_SIMPLE, Alloc>::_capacity;
 
   public:
-    IDHash(const IDHash& copy) : ArrayBase<T, ST, Alloc>(copy._capacity), _max(copy._max), _length(copy._length), _freelist(copy._freelist) { memcpy(_array, copy._array, _capacity * sizeof(T)); }
-    IDHash(IDHash&& mov) : ArrayBase<T, ST, Alloc>(std::move(mov)), _max(mov._max), _length(mov._length), _freelist(mov._freelist) { mov._max = 0; mov._length = 0; mov._freelist = (ST)-1; }
-    explicit IDHash(ST reserve = 0) : ArrayBase<T, ST, Alloc>(reserve), _max(0), _length(0), _freelist((ST)-1) { _fixfreelist(0); }
+    IDHash(const IDHash& copy) : ArrayBase<T, ST, ARRAY_SIMPLE, Alloc>(copy._capacity), _max(copy._max), _length(copy._length), _freelist(copy._freelist) { memcpy(_array, copy._array, _capacity * sizeof(T)); }
+    IDHash(IDHash&& mov) : ArrayBase<T, ST, ARRAY_SIMPLE, Alloc>(std::move(mov)), _max(mov._max), _length(mov._length), _freelist(mov._freelist) { mov._max = 0; mov._length = 0; mov._freelist = (ST)-1; }
+    explicit IDHash(ST reserve = 0) : ArrayBase<T, ST, ARRAY_SIMPLE, Alloc>(reserve), _max(0), _length(0), _freelist((ST)-1) { _fixfreelist(0); }
     virtual ~IDHash() {}
     virtual ST Add(T item)
     {
@@ -71,8 +71,8 @@ namespace bss {
       _max = _length - 1; // Reset max value to one less than _length
     }
 
-    inline IDHash& operator=(const IDHash& copy) { ArrayBase<T, ST, Alloc>::operator=(copy); _max = copy._max; _length = copy._length; _freelist = copy._freelist; return *this; }
-    inline IDHash& operator=(IDHash&& mov) { ArrayBase<T, ST, Alloc>::operator=(std::move(mov)); _max = mov._max; _length = mov._length; _freelist = mov._freelist; return *this; }
+    inline IDHash& operator=(const IDHash& copy) { ArrayBase<T, ST, ARRAY_SIMPLE, Alloc>::operator=(copy); _max = copy._max; _length = copy._length; _freelist = copy._freelist; return *this; }
+    inline IDHash& operator=(IDHash&& mov) { ArrayBase<T, ST, ARRAY_SIMPLE, Alloc>::operator=(std::move(mov)); _max = mov._max; _length = mov._length; _freelist = mov._freelist; return *this; }
     inline T& operator[](ST id) { return _array[id]; }
     inline const T& operator[](ST id) const { return _array[id]; }
 
@@ -80,7 +80,7 @@ namespace bss {
     BSS_FORCEINLINE void _grow()
     {
       ST oldsize = _capacity;
-      ArrayBase<T, ST, Alloc>::SetCapacity(fbnext(_capacity));
+      ArrayBase<T, ST, ARRAY_SIMPLE, Alloc>::_setCapacity(fbnext(_capacity));
       _fixfreelist(oldsize);
     }
     inline void _fixfreelist(ST start)

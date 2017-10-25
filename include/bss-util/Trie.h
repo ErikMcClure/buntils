@@ -26,9 +26,9 @@ namespace bss {
   class BSS_COMPILER_DLLEXPORT Trie : protected ArrayBase<internal::TRIE_NODE<T>, T>
   {
     typedef ArrayBase<internal::TRIE_NODE<T>, T> BASE;
-    typedef internal::TRIE_NODE<T> TNODE;
     using BASE::_array;
     using BASE::_capacity;
+    typedef internal::TRIE_NODE<T> TNODE;
     typedef std::pair<T, const char*> PAIR;
     typedef typename std::conditional<IGNORECASE, BinaryHeap<PAIR, T, CompTSecond<T, const char*, CompIStr<const char*>>>, BinaryHeap<PAIR, T, CompTSecond<T, const char*, CompStr<const char*>>>>::type SORTING_HEAP;
 
@@ -132,7 +132,7 @@ namespace bss {
         _array[i].chr = 0;
       }
     }
-    BSS_FORCEINLINE void _checkSize(T r) { assert(r < (std::numeric_limits<T>::max() - 2)); if(r >= _capacity) { T s = _capacity; BASE::SetCapacity(_capacity << 1); _fill(s, _capacity); } }
+    BSS_FORCEINLINE void _checkSize(T r) { assert(r < (std::numeric_limits<T>::max() - 2)); if(r >= _capacity) { T s = _capacity; BASE::_setCapacity(_capacity << 1); _fill(s, _capacity); } }
     T _init(T len, PAIR const* str, T cnt, T level)
     {
       T r = cnt - 1;

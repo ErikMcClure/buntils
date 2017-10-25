@@ -384,7 +384,7 @@ int bss::DelDir(const char* cdir, bool recursive)
 #endif
 
 #ifdef BSS_PLATFORM_WIN32 //Windows function
- int bss::_listdir(const wchar_t* cdir, void(*fn)(const wchar_t*, std::vector<Str>*), std::vector<Str>* files, char flags)
+int bss::_listdir(const wchar_t* cdir, void(*fn)(const wchar_t*, std::vector<Str>*), std::vector<Str>* files, char flags)
 {
   WIN32_FIND_DATAW ffd;
   HANDLE hdir = INVALID_HANDLE_VALUE;
@@ -415,7 +415,7 @@ int bss::DelDir(const char* cdir, bool recursive)
   return 0;
 }
 #else //Linux function
- int bss::ListDir(const char* path, std::vector<Str>& files, char flags) // Setting flags to 1 will do a recursive search. Setting flags to 2 will return directory+file names. Setting flags to 3 will both be recursive and return directory names.
+int bss::ListDir(const char* path, std::vector<Str>& files, char flags) // Setting flags to 1 will do a recursive search. Setting flags to 2 will return directory+file names. Setting flags to 3 will both be recursive and return directory names.
 {
   DIR* srcdir = opendir(path);
 

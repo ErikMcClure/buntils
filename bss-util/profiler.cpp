@@ -45,7 +45,7 @@ namespace bss {
       inline PROF_HEATNODE(Profiler::ProfilerInt ID, double Avg) : avg(Avg), id(ID) {}
       inline PROF_HEATNODE(const PROF_HEATNODE& copy) : _children(copy._children), avg(copy.avg), id(copy.id) {}
       inline PROF_HEATNODE(PROF_HEATNODE&& mov) : _children(std::move(mov._children)), avg(mov.avg), id(mov.id) {}
-      ArraySort<PROF_HEATNODE, COMP, size_t, ARRAY_CONSTRUCT, HeatAllocPolicy> _children;
+      ArraySort<struct PROF_HEATNODE, COMP, size_t, ARRAY_CONSTRUCT, HeatAllocPolicy> _children;
       double avg;
       Profiler::ProfilerInt id;
       PROF_HEATNODE& operator=(PROF_HEATNODE&& mov) { _children = std::move(mov._children); avg = mov.avg; id = mov.id; return *this; }

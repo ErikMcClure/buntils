@@ -11,7 +11,7 @@ TESTDEF::RETPAIR test_LINKEDARRAY()
   BEGINTEST;
   LinkedArray<int> _arr;
   size_t a = _arr.Add(4);
-  _arr.Reserve(2);
+  _arr.SetCapacity(2);
   size_t b = _arr.InsertAfter(6, a);
   _arr.InsertBefore(5, b);
   TEST(_arr.Length() == 3);

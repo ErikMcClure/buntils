@@ -10,25 +10,24 @@
 namespace bss {
   // Simple circular array implementation. Unlike most data structures, CType must be signed instead of unsigned
   template<class T, typename CType = ptrdiff_t, ARRAY_TYPE ArrayType = ARRAY_SIMPLE, typename Alloc = StaticAllocPolicy<T>>
-  class BSS_COMPILER_DLLEXPORT ArrayCircular : protected ArrayBase<T, CType, Alloc>, protected internal::ArrayInternal<T, CType, ArrayType, Alloc>
+  class BSS_COMPILER_DLLEXPORT ArrayCircular : protected ArrayBase<T, CType, ArrayType, Alloc>
   {
   protected:
     typedef CType CT_;
-    typedef internal::ArrayInternal<T, CType, ArrayType, Alloc> BASE;
-    typedef ArrayBase<T, CType, Alloc> AT_;
-    using AT_::_capacity;
-    using AT_::_array;
+    typedef ArrayBase<T, CType, ArrayType, Alloc> BASE;
+    using BASE::_array;
+    using BASE::_capacity;
     static_assert(std::is_signed<CType>::value, "CType must be signed");
 
   public:
     // Constructors
-    inline ArrayCircular(const ArrayCircular& copy) : AT_(0), _cur(-1), _length(0) { operator=(copy); }
-    inline ArrayCircular(ArrayCircular&& mov) : AT_(std::move(mov)), _cur(mov._cur), _length(mov._length)
+    inline ArrayCircular(const ArrayCircular& copy) : BASE(0), _cur(-1), _length(0) { operator=(copy); }
+    inline ArrayCircular(ArrayCircular&& mov) : BASE(std::move(mov)), _cur(mov._cur), _length(mov._length)
     { 
       mov._cur = -1;
       mov._length = 0;
     }
-    inline explicit ArrayCircular(CType size = 0) : AT_(size), _cur(-1), _length(0) {}
+    inline explicit ArrayCircular(CType size = 0) : BASE(size), _cur(-1), _length(0) {}
     inline ~ArrayCircular() { Clear(); }
     BSS_FORCEINLINE void Push(const T& item) { _push<const T&>(item); }
     BSS_FORCEINLINE void Push(T&& item) { _push<T&&>(std::move(item)); }
@@ -76,11 +75,11 @@ namespace bss {
       if(nsize < _capacity)
       {
         Clear(); // Getting the right destructors here is complicated and trying to preserve the array when it's shrinking is meaningless.
-        AT_::SetCapacityDiscard(nsize);
+        BASE::_setCapacityDiscard(nsize);
       }
       else if(nsize > _capacity)
       {
-        T* n = AT_::_getAlloc(nsize);
+        T* n = BASE::_getAlloc(nsize);
         if(_cur - _length >= -1) // If true the chunk is contiguous
           BASE::_copyMove(n + _cur - _length + 1, _array + _cur - _length + 1, _length);
         else
@@ -89,7 +88,7 @@ namespace bss {
           BASE::_copyMove(n + bssMod<CType>(_cur - _length + 1, nsize), _array + i, _capacity - i);
           BASE::_copyMove(n, _array, _cur + 1);
         }
-        AT_::_free(_array);
+        BASE::_free(_array);
         _array = n;
         _capacity = nsize;
       }
@@ -99,7 +98,7 @@ namespace bss {
     inline ArrayCircular& operator=(const ArrayCircular& right)
     {
       Clear();
-      AT_::SetCapacityDiscard(right._capacity);
+      BASE::_setCapacityDiscard(right._capacity);
       _cur = right._cur;
       _length = right._length;
 
@@ -119,7 +118,7 @@ namespace bss {
     inline ArrayCircular& operator=(ArrayCircular&& right)
     {
       Clear();
-      AT_::operator=(std::move(right));
+      BASE::operator=(std::move(right));
       _cur = right._cur;
       _length = right._length;
       right._length = 0;

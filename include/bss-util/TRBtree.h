@@ -63,6 +63,7 @@ namespace bss {
 
       static void RemoveNode(T* node, T*& root, T*& first, T*& last, T* pNIL)
       {
+        assert(node != pNIL);
         if(node->color == -1) { LLRemove(node, first, last); return; }
         if(node->next && node->next->color == -1)
         {
@@ -101,6 +102,11 @@ namespace bss {
       static void InsertNode(T* node, T*& root, T*& first, T*& last, T* pNIL)
       {
         assert(node != pNIL);
+        node->color = 1;
+        node->next = 0;
+        node->prev = 0;
+        node->left = pNIL;
+        node->right = pNIL;
         T* cur = root;
         T* parent = 0;
         int c;
@@ -150,6 +156,27 @@ namespace bss {
           root->prev = 0;
           root->parent = 0;
         }
+      }
+
+      inline static int DEBUGVERIFY(const TRB_NodeBase<T>* n, const TRB_NodeBase<T>* NIL)
+      {
+        if(n == NIL)
+          return n->color == 0 ? 1 : -1;
+        if(n->color == 1 && (n->left->color != 0 || n->right->color != 0))
+          return -1;
+        if(n->left != NIL && n->left->parent != n)
+          return -1;
+        if(n->right != NIL && n->right->parent != n)
+          return -1;
+        if(n->next && n->next->prev != n)
+          return -1;
+        if(n->prev && n->prev->next != n)
+          return -1;
+        int l = DEBUGVERIFY(n->left, NIL);
+        int r = DEBUGVERIFY(n->right, NIL);
+        if(l < 0 || r < 0 || r != l)
+          return -1;
+        return l + (n->color == 0);
       }
 
     protected:
@@ -256,6 +283,7 @@ namespace bss {
               _leftRotate(node->parent, root, pNIL);
               w = node->parent->right;
             }
+            assert(w != pNIL);
             if(w->left->color == 0 && w->right->color == 0)
             {
               w->color = 1;
@@ -289,6 +317,7 @@ namespace bss {
               _rightRotate(node->parent, root, pNIL);
               w = node->parent->left;
             }
+            assert(w != pNIL);
             if(w->right->color == 0 && w->left->color == 0)
             {
               w->color = 1;
@@ -399,6 +428,8 @@ namespace bss {
     BSS_FORCEINLINE TRB_Node<T>* Get(const T& value) const { return GetNode(value, _root, NIL); }
     // Retrieves the node closest to the given key.
     BSS_FORCEINLINE TRB_Node<T>* GetNear(const T& value, bool before = true) const { return GetNodeNear(value, before, _root, NIL); }
+    // Gets the root node
+    BSS_FORCEINLINE const TRB_Node<T>* GetRoot() const { return _root; }
     // Inserts a key with the associated data
     BSS_FORCEINLINE TRB_Node<T>* Insert(const T& value)
     {
@@ -484,6 +515,7 @@ namespace bss {
         return (res > 0 && parent->next) ? parent->next : parent;
     }
 
+    inline int DEBUGVERIFY() { return TRB_Node<T>::DEBUGVERIFY(_root, NIL); }
   protected:
     TRB_Node<T>*  _first;
     TRB_Node<T>*  _last;

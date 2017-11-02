@@ -53,7 +53,7 @@ namespace bss {
       {
         _lock.RLock();
         cur = _cur.load(std::memory_order_acquire);
-        
+
         if(!cur->lock.AttemptRLock()) // If this fails we probably got a bucket that was in the middle of being recycled
         {
           _lock.RUnlock();
@@ -251,20 +251,20 @@ namespace bss {
   class BSS_COMPILER_DLLEXPORT RingAlloc : public RingAllocVoid
   {
     RingAlloc(const RingAlloc& copy) = delete;
-      RingAlloc& operator=(const RingAlloc& copy) = delete;
+    RingAlloc& operator=(const RingAlloc& copy) = delete;
 
   public:
-    inline RingAlloc(RingAlloc&& mov) : RingAllocVoid(std::move(mov)) {}
+    inline RingAlloc(RingAlloc&& mov) = default;
     inline explicit RingAlloc(size_t init = 8) : RingAllocVoid(init) {}
     inline T* Alloc(size_t num) noexcept { return (T*)RingAllocVoid::Alloc(num * sizeof(T)); }
-    inline RingAlloc& operator=(RingAlloc&& mov) noexcept { RingAllocVoid::operator=(std::move(mov)); return *this; }
+    inline RingAlloc& operator=(RingAlloc&& mov) noexcept = default;
   };
 
   template<typename T>
   class BSS_COMPILER_DLLEXPORT RingPolicy : protected RingAlloc<T>
   {
     RingPolicy(const RingPolicy& copy) = delete;
-      RingPolicy& operator=(const RingPolicy& copy) = delete;
+    RingPolicy& operator=(const RingPolicy& copy) = delete;
 
   public:
     typedef T* pointer;
@@ -272,11 +272,11 @@ namespace bss {
     template<typename U>
     struct rebind { typedef RingPolicy<U> other; };
 
-    inline RingPolicy(RingPolicy&& mov) : RingAlloc<T>(std::move(mov)) {}
+    inline RingPolicy(RingPolicy&& mov) = default;
     inline RingPolicy() {}
     inline explicit RingPolicy(size_t init) : RingAlloc<T>(init) {}
     inline ~RingPolicy() {}
-    inline RingPolicy& operator=(RingPolicy&& mov) noexcept { RingAlloc<T>::operator=(std::move(mov)); return *this; }
+    inline RingPolicy& operator=(RingPolicy&& mov) noexcept = default;
 
     inline pointer allocate(size_t cnt, const pointer = 0) noexcept { return RingAlloc<T>::Alloc(cnt); }
     inline void deallocate(pointer p, size_t num = 0) noexcept { return RingAlloc<T>::Dealloc(p); }

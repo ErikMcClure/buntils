@@ -19,8 +19,8 @@ namespace bss {
     typedef BinaryHeap<std::pair<K, D>, CT_, CompTFirst<K, D, CFunc>, ArrayType, Alloc> BASE;
 
   public:
-    PriorityQueue(const PriorityQueue& copy) : BASE(copy) {}
-    PriorityQueue(PriorityQueue&& mov) : BASE(std::move(mov)) {}
+    PriorityQueue(const PriorityQueue& copy) = default;
+    PriorityQueue(PriorityQueue&& mov) = default;
     PriorityQueue() {}
     ~PriorityQueue() {}
     BSS_FORCEINLINE void Push(const K& key, D value) { BASE::Insert(PAIR(key, value)); }
@@ -34,8 +34,8 @@ namespace bss {
     BSS_FORCEINLINE void Clear() { BASE::Clear(); }
     inline CT_ Length() { return BASE::_length; }
 
-    inline PriorityQueue& operator=(const PriorityQueue& copy) { BASE::operator=(copy); return *this; }
-    inline PriorityQueue& operator=(PriorityQueue&& mov) { BASE::operator=(std::move(mov)); return *this; }
+    inline PriorityQueue& operator=(const PriorityQueue& copy) = default;
+    inline PriorityQueue& operator=(PriorityQueue&& mov) = default;
   };
 
   namespace internal {

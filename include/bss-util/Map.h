@@ -26,8 +26,8 @@ namespace bss {
 
   public:
     explicit Map(CT_ init = 1) : cArraySort_t(init) {}
-    Map(const Map& copy) : cArraySort_t(copy) {}
-    Map(Map&& mov) : cArraySort_t(std::move(mov)) {}
+    Map(const Map& copy) = default;
+    Map(Map&& mov) = default;
     //~Map() {}
     BSS_FORCEINLINE void Clear() { cArraySort_t::Clear(); }
     BSS_FORCEINLINE void Discard(CType num) { cArraySort_t::Discard(num); }
@@ -73,8 +73,8 @@ namespace bss {
     inline std::pair<Key, Data>& Back() { return _array.Back(); }
     BSS_FORCEINLINE Slice<std::pair<Key, Data>, CT_> GetSlice() const noexcept { return _array.GetSlice(); }
 
-    inline Map& operator =(const Map& right) { cArraySort_t::operator =(right); return *this; }
-    inline Map& operator =(Map&& right) { cArraySort_t::operator =(std::move(right)); return *this; }
+    inline Map& operator =(const Map& right) = default;
+    inline Map& operator =(Map&& right) = default;
     inline constref operator [](CT_ index) const { return cArraySort_t::operator [](index).second; }
     inline Data& operator [](CT_ index) { return cArraySort_t::operator [](index).second; }
   };

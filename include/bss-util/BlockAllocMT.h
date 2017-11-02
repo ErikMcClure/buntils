@@ -169,11 +169,11 @@ namespace bss {
     template<typename U>
     struct rebind { typedef LocklessBlockPolicy<U> other; };
 
-    inline LocklessBlockPolicy(LocklessBlockPolicy&& mov) : LocklessBlockAlloc<T>(std::move(mov)) {}
+    inline LocklessBlockPolicy(LocklessBlockPolicy&& mov) = default;
     inline LocklessBlockPolicy() {}
     inline ~LocklessBlockPolicy() {}
 
-    LocklessBlockPolicy& operator=(LocklessBlockPolicy&& mov) { LocklessBlockAlloc<T>::operator=(std::move(mov)); return *this; }
+    LocklessBlockPolicy& operator=(LocklessBlockPolicy&& mov) = default;
 
     inline pointer allocate(size_t cnt, const pointer = 0) noexcept { return LocklessBlockAlloc<T>::Alloc(cnt); }
     inline void deallocate(pointer p, size_t num = 0) noexcept { return LocklessBlockAlloc<T>::Dealloc(p); }

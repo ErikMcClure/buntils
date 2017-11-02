@@ -16,8 +16,8 @@ namespace bss {
     using BASE::_length;
 
   public:
-    inline Queue(const Queue& copy) : BASE(copy) {}
-    inline Queue(Queue&& mov) : BASE(std::move(mov)) {}
+    inline Queue(const Queue& copy) = default;
+    inline Queue(Queue&& mov) = default;
     inline explicit Queue(CType init = 0) : BASE(init) {}
     inline ~Queue() {}
     // Pushes a value into the queue in FIFO order.
@@ -37,8 +37,8 @@ namespace bss {
     // Returns how many items are currently in the queue. Calling Pop or Peek when this is 0 is illegal.
     BSS_FORCEINLINE CType Length() const { return _length; }
 
-    inline Queue& operator=(const Queue& copy) { BASE::operator=(copy); return *this; }
-    inline Queue& operator=(Queue&& mov) { BASE::operator=(std::move(mov)); return *this; }
+    inline Queue& operator=(const Queue& copy) = default;
+    inline Queue& operator=(Queue&& mov) = default;
 
   protected:
     template<typename U>

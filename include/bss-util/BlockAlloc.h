@@ -153,7 +153,7 @@ namespace bss {
   class BSS_COMPILER_DLLEXPORT BlockAllocSize : protected BlockAllocVoid
   {
   public:
-    inline BlockAllocSize(BlockAllocSize&& mov) : BlockAllocVoid(std::move(mov)) {}
+    inline BlockAllocSize(BlockAllocSize&& mov) = default;
     inline explicit BlockAllocSize(size_t init = 8) : BlockAllocVoid(SIZE, init, ALIGN) { static_assert((SIZE >= sizeof(void*)), "SIZE cannot be less than the size of a pointer"); }
     template<class T>
     BSS_FORCEINLINE T* Alloc(size_t num = 1)
@@ -165,7 +165,7 @@ namespace bss {
     template<class T>
     BSS_FORCEINLINE void Dealloc(T* p) noexcept { static_assert((sizeof(T) <= SIZE), "sizeof(T) must be less than SIZE"); BlockAllocVoid::Dealloc(p); }
     BSS_FORCEINLINE void Clear() { BlockAllocVoid::Clear(); }
-    BlockAllocSize& operator=(BlockAllocSize&& mov) { BlockAllocVoid::operator=(std::move(mov)); return *this; }
+    BlockAllocSize& operator=(BlockAllocSize&& mov) = default;
   };
 
   template<class T>
@@ -189,11 +189,11 @@ namespace bss {
     template<typename U>
     struct rebind { typedef BlockPolicy<U> other; };
 
-    inline BlockPolicy(BlockPolicy&& mov) : BlockAlloc<T>(std::move(mov)) {}
+    inline BlockPolicy(BlockPolicy&& mov) = default;
     inline BlockPolicy() {}
     inline ~BlockPolicy() {}
 
-    BlockPolicy& operator=(BlockPolicy&& mov) { BlockAlloc<T>::operator=(std::move(mov)); return *this; }
+    BlockPolicy& operator=(BlockPolicy&& mov) = default;
 
     BSS_FORCEINLINE pointer allocate(size_t cnt, const pointer = 0) noexcept { return BlockAlloc<T>::Alloc(cnt); }
     BSS_FORCEINLINE void deallocate(pointer p, size_t num = 0) noexcept { return BlockAlloc<T>::Dealloc(p); }

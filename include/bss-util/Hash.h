@@ -61,11 +61,11 @@ namespace bss {
     ~HashBase()
     {
       Clear(); // calls all destructors.
-      if(flags) 
+      if(flags)
         Alloc::deallocate((char*)flags);
-      if(keys) 
+      if(keys)
         Alloc::deallocate((char*)keys);
-      if(vals) 
+      if(vals)
         Alloc::deallocate((char*)vals);
     }
 
@@ -129,7 +129,7 @@ namespace bss {
     {
       if(!ExistsIter(i))
         return nullptr;
-      return &vals[i]; 
+      return &vals[i];
     }
     template<bool U = IsMap>
     inline typename std::enable_if<U, bool>::type SetValue(khiter_t iterator, const FakeData& newvalue) { return _setvalue<const Data&>(iterator, newvalue); }
@@ -144,7 +144,7 @@ namespace bss {
     {
       khiter_t iterator = Iterator(key);
       if(n_buckets == iterator) // This isn't ExistsIter because _get will return n_buckets if key doesn't exist
-        return false; 
+        return false;
 
       _delete(iterator);
       return true;
@@ -168,49 +168,54 @@ namespace bss {
     inline bool operator()(const Key& key) const { return Exists(key); }
     template<bool U = IsMap>
     inline typename std::enable_if<U, bool>::type operator()(const Key& key, FakeData& v) const
-    { 
-      khiter_t i = Iterator(key); 
+    {
+      khiter_t i = Iterator(key);
 
-      if(!ExistsIter(i)) 
-        return false; 
+      if(!ExistsIter(i))
+        return false;
 
       v = vals[i];
-      return true; 
+      return true;
     }
 
-    HashBase& operator =(const HashBase& copy)
+    HashBase& operator=(const HashBase& copy)
     {
-      Clear();
-      if(!copy.n_buckets)
+      if constexpr(ArrayType != ARRAY_MOVE)
       {
-        if(flags) Alloc::deallocate((char*)flags);
-        if(keys) Alloc::deallocate((char*)keys);
-        if(vals) Alloc::deallocate((char*)vals);
-        bssFill(*this, 0);
-        return *this;
-      }
-      _resize(copy.n_buckets);
-      assert(n_buckets == copy.n_buckets);
-      memcpy(flags, copy.flags, n_buckets);
-
-      for(khint_t i = 0; i < n_buckets; ++i)
-      {
-        if(!__ac_iseither(flags, i))
+        Clear();
+        if(!copy.n_buckets)
         {
-          new(keys + i) Key((const Key&)copy.keys[i]);
-
-          if constexpr(IsMap)
-            new(vals + i) Data((const Data&)copy.vals[i]);
+          if(flags) Alloc::deallocate((char*)flags);
+          if(keys) Alloc::deallocate((char*)keys);
+          if(vals) Alloc::deallocate((char*)vals);
+          bssFill(*this, 0);
+          return *this;
         }
-      }
+        _resize(copy.n_buckets);
+        assert(n_buckets == copy.n_buckets);
+        memcpy(flags, copy.flags, n_buckets);
+        for(khint_t i = 0; i < n_buckets; ++i)
+        {
+          if(!__ac_iseither(copy.flags, i))
+          {
+            new(keys + i) Key((const Key&)copy.keys[i]);
 
-      assert(n_buckets == copy.n_buckets);
-      size = copy.size;
-      n_occupied = copy.n_occupied;
-      upper_bound = copy.upper_bound;
+            if constexpr(IsMap)
+              new(vals + i) Data((const Data&)copy.vals[i]);
+          }
+        }
+
+        assert(n_buckets == copy.n_buckets);
+        size = copy.size;
+        n_occupied = copy.n_occupied;
+        upper_bound = copy.upper_bound;
+      }
+      else
+        assert(false);
       return *this;
     }
-    HashBase& operator =(HashBase&& mov)
+
+    HashBase& operator=(HashBase&& mov)
     {
       Clear();
       if(flags) Alloc::deallocate((char*)flags);
@@ -311,7 +316,7 @@ namespace bss {
             [[maybe_unused]] FakeData val;
             khint_t new_mask;
             new_mask = new_n_buckets - 1;
-            if constexpr(IsMap) val = std::move(vals[j]);
+            if constexpr(IsMap)val = std::move(vals[j]);
             __ac_set_isdel_true(flags, j);
             while(1)
             { /* kick-out process; sort of like in Cuckoo hashing */
@@ -323,7 +328,7 @@ namespace bss {
               if(i < n_buckets && __ac_iseither(flags, i) == 0)
               { /* kick out the existing element */
                 std::swap(keys[i], key);
-                if constexpr(IsMap) std::swap(vals[i], val);
+                if constexpr(IsMap)std::swap(vals[i], val);
                 __ac_set_isdel_true(flags, i); /* mark it as deleted in the old hash table */
               }
               else // this code only runs if this bucket doesn't exist, so initialize
@@ -467,9 +472,9 @@ namespace bss {
 
   template<typename T>
   BSS_FORCEINLINE bool KH_DEFAULT_EQUAL(T const& a, T const& b) { return a == b; }
-  template<class T> 
+  template<class T>
   BSS_FORCEINLINE khint_t KH_INT_HASH(T key)
-  { 
+  {
     if constexpr(sizeof(T) == sizeof(khint64_t))
     {
       khint64_t i = *reinterpret_cast<const khint64_t*>(&key);
@@ -489,38 +494,38 @@ namespace bss {
   template<>
   inline khint_t KH_STR_HASH<char, false>(const char * s)
   {
-    khint_t h = *s; 
-    if(h) 
-      for(++s; *s; ++s) 
+    khint_t h = *s;
+    if(h)
+      for(++s; *s; ++s)
         h = (h << 5) - h + *s;
-    return h; 
+    return h;
   }
   template<>
   inline khint_t KH_STR_HASH<char, true>(const char *s)
-  { 
-    khint_t h = ((*s) > 64 && (*s) < 91) ? (*s) + 32 : *s;	
-    if(h) 
-      for(++s; *s; ++s) 
+  {
+    khint_t h = ((*s) > 64 && (*s) < 91) ? (*s) + 32 : *s;
+    if(h)
+      for(++s; *s; ++s)
         h = (h << 5) - h + (((*s) > 64 && (*s) < 91) ? (*s) + 32 : *s);
     return h;
   }
   template<>
   inline khint_t KH_STR_HASH<wchar_t, false>(const wchar_t * s)
-  { 
-    khint_t h = *s; 
-    if(h) 
-      for(++s; *s; ++s) 
-        h = (h << 5) - h + *s; 
-    return h; 
+  {
+    khint_t h = *s;
+    if(h)
+      for(++s; *s; ++s)
+        h = (h << 5) - h + *s;
+    return h;
   }
   template<>
   inline khint_t KH_STR_HASH<wchar_t, true>(const wchar_t *s)
-  { 
+  {
     khint_t h = towlower(*s);
-    if(h) 
-      for(++s; *s; ++s) 
+    if(h)
+      for(++s; *s; ++s)
         h = (h << 5) - h + towlower(*s);
-    return h; 
+    return h;
   }
 
   namespace internal {
@@ -559,12 +564,12 @@ namespace bss {
     template<> BSS_FORCEINLINE bool KH_AUTOINS_EQUAL<StrW>(StrW const& a, StrW const& b) { return WCSICMP(a, b) == 0; }
 #endif
 
-    template<typename T, bool ins> 
+    template<typename T, bool ins>
     struct _HashHelper {
       BSS_FORCEINLINE static khint_t hash(const T& k) { return KH_AUTO_HASH<T>(k); }
       BSS_FORCEINLINE static bool equal(const T& a, const T& b) { return KH_AUTO_EQUAL<T>(a, b); }
     };
-    template<typename T> 
+    template<typename T>
     struct _HashHelper<T, true> {
       BSS_FORCEINLINE static khint_t hash(const T& k) { return KH_AUTOINS_HASH<T>(k); }
       BSS_FORCEINLINE static bool equal(const T& a, const T& b) { return KH_AUTOINS_EQUAL<T>(a, b); }
@@ -583,12 +588,12 @@ namespace bss {
   public:
     typedef HashBase<K, T, &internal::_HashHelper<K, ins>::hash, &internal::_HashHelper<K, ins>::equal, ArrayType, Alloc> BASE;
 
-    inline Hash(const Hash& copy) : BASE(copy) {}
-    inline Hash(Hash&& mov) : BASE(std::move(mov)) {}
+    inline Hash(const Hash& copy) = default;
+    inline Hash(Hash&& mov) = default;
     inline Hash(khint_t size = 0) : BASE(size) {}
 
-    inline Hash& operator =(const Hash& right) { BASE::operator=(right); return *this; }
-    inline Hash& operator =(Hash&& mov) { BASE::operator=(std::move(mov)); return *this; }
+    inline Hash& operator =(const Hash& right) = default;
+    inline Hash& operator =(Hash&& mov) = default;
     inline bool operator()(const K& key) const { return BASE::operator()(key); }
     template<bool U = !std::is_void<T>::value>
     inline typename std::enable_if<U, bool>::type operator()(const K& key, typename BASE::FakeData& v) const { return BASE::operator()(key, v); }

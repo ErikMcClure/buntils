@@ -60,7 +60,7 @@ namespace bss {
   class BSS_COMPILER_DLLEXPORT AniState : public AniStateBase
   {
   public:
-    AniState(T* dest, A* ani) : _dest(dest), _ani(ani) {}
+    AniState(T* dest, const A* ani) : _dest(dest), _ani(ani) {}
     virtual ~AniState() { Reset(); } // Call Reset() up here, otherwise the virtual call isn't properly evaluated
     virtual void Reset() override
     {
@@ -89,15 +89,17 @@ namespace bss {
     inline std::tuple<Args...>& States() { return _states; }
     inline const std::tuple<Args...>& States() const { return _states; }
 
+    typedef T Ty;
+
   protected:
-    template<size_t ...S> BSS_FORCEINLINE void _interpolate(std::index_sequence<S...>) { int X[] = { (std::get<S>(_states).template Interpolate<A>(_ani, _dest, _time), 0)... }; }
-    template<size_t ...S> BSS_FORCEINLINE void _reset(std::index_sequence<S...>) { int X[] = { (std::get<S>(_states).Reset(_dest), 0)... }; }
+    template<size_t ...S> BSS_FORCEINLINE void _interpolate(std::index_sequence<S...>) { int X[] = { (std::get<S>(_states).template Interpolate<A, T>(_ani, _dest, _time), 0)... }; }
+    template<size_t ...S> BSS_FORCEINLINE void _reset(std::index_sequence<S...>) { int X[] = { (std::get<S>(_states).template Reset<T>(_dest), 0)... }; }
 
 #pragma warning(push)
 #pragma warning(disable:4251)
     std::tuple<Args...> _states;
 #pragma warning(pop)
-    A* _ani;
+    const A* _ani;
     T* _dest;
   };
 
@@ -107,15 +109,16 @@ namespace bss {
     typedef typename D::FRAME FRAME;
 
     AniStateDiscrete() : _cur(0) {}
-    void Reset(T* dest) { _cur = 0; }
-    template<typename A>
-    void Interpolate(A* ani, T* dest, double t)
+    template<typename U>
+    void Reset(U* dest) { _cur = 0; }
+    template<typename A, typename U>
+    void Interpolate(const A* ani, U* dest, double t)
     {
-      D& data = ani->template Get<D>();
+      const D& data = ani->template Get<D>();
       Slice<const FRAME> frames = data.Frames();
 
       while(_cur < frames.length && frames[_cur].time <= t)
-        (dest->*FN)(frames[_cur++].value); // We call all the discrete values because many discrete values are interdependent on each other.
+        (static_cast<T*>(dest)->*FN)(frames[_cur++].value); // We call all the discrete values because many discrete values are interdependent on each other.
     }
 
   protected:
@@ -130,12 +133,13 @@ namespace bss {
     typedef decltype(FRAME::value) VALUE;
 
     AniStateSmooth() : _cur(0) {}
-    void Reset(T* dest) { _cur = 0; }
+    template<typename U>
+    void Reset(U* dest) { _cur = 0; }
     void SetInit(const VALUE& v) { _init = v; }
-    template<typename A>
-    void Interpolate(A* ani, T* dest, double t)
+    template<typename A, typename U>
+    void Interpolate(const A* ani, U* dest, double t)
     {
-      D& data = ani->template Get<D>();
+      const D& data = ani->template Get<D>();
       Slice<const FRAME> frames = data.Frames();
       INTERPOLATE f = data.GetInterpolation();
       assert(f != 0);
@@ -146,12 +150,12 @@ namespace bss {
       if(_cur >= frames.length)
       { //Resolve the animation, but only if there was more than 1 keyframe, otherwise we'll break it.
         if(frames.length > 1)
-          (dest->*FN)(f(frames.start, frames.length, frames.length - 1, 1.0, _init));
+          (static_cast<T*>(dest)->*FN)(f(frames.start, frames.length, frames.length - 1, 1.0, _init));
       }
       else
       {
         double hold = !_cur ? 0.0 : frames[_cur - 1].time;
-        (dest->*FN)(f(frames.start, frames.length, _cur, (t - hold) / (frames[_cur].time - hold), _init));
+        (static_cast<T*>(dest)->*FN)(f(frames.start, frames.length, _cur, (t - hold) / (frames[_cur].time - hold), _init));
       }
     }
 
@@ -166,18 +170,19 @@ namespace bss {
     typedef typename D::FRAME FRAME;
 
     AniStateInterval() : _cur(0) {}
-    void Reset(T* dest) { _clearQueue(dest); _cur = 0; }
-    template<typename A>
-    void Interpolate(A* ani, T* dest, double t)
+    template<typename U>
+    void Reset(U* dest) { _clearQueue(static_cast<T*>(dest)); _cur = 0; }
+    template<typename A, typename U>
+    void Interpolate(const A* ani, U* dest, double t)
     {
-      D& data = ani->template Get<D>();
+      const D& data = ani->template Get<D>();
       Slice<const FRAME> frames = data.Frames();
 
       while(_cur < frames.length && frames[_cur].time <= t)
-        _addToQueue(dest, frames[_cur++]); // We call all the discrete values because many discrete values are interdependent on each other.
+        _addToQueue(static_cast<T*>(dest), frames[_cur++]); // We call all the discrete values because many discrete values are interdependent on each other.
 
       while(!_queue.Empty() && _queue.Peek().first <= t)
-        (dest->*REMOVE)(_queue.Pop().second);
+        (static_cast<T*>(dest)->*REMOVE)(_queue.Pop().second);
     }
 
   protected:
@@ -193,15 +198,16 @@ namespace bss {
     size_t _cur;
   };
 
-  template<typename T, typename D = void, ARRAY_TYPE ArrayType = ARRAY_SIMPLE, typename Alloc = StaticAllocPolicy<AniFrame<T, D>>>
+  template<typename T, typename D = void, ARRAY_TYPE ArrayType = ARRAY_SIMPLE, int DATAID = 0, typename Alloc = StaticAllocPolicy<AniFrame<T, D>>>
   struct BSS_COMPILER_DLLEXPORT AniData
   {
+    typedef AniStateDiscrete<AniStateBase, AniData, T, nullptr> STATE;
     typedef AniFrame<T, D> FRAME;
 
     AniData() {}
     AniData(AniData&& mov) : _frames(std::move(mov._frames)) {}
     AniData(const AniData& copy) : _frames(copy._frames) {}
-    AniData(const FRAME* src, size_t len){ Set(src, len); }
+    AniData(const FRAME* src, size_t len) { Set(src, len); }
     BSS_FORCEINLINE double Begin() const { return !_frames.Length() ? 0.0 : _frames.Front().time; }
     BSS_FORCEINLINE double End() const { return !_frames.Length() ? 0.0 : _frames.Back().time; }
     BSS_FORCEINLINE Slice<const FRAME> Frames() const { return _frames.GetSlice(); }
@@ -238,10 +244,11 @@ namespace bss {
     ArraySort<FRAME, CompAniFrame, size_t, ArrayType, Alloc> _frames;
   };
 
-  template<typename T, typename D = void, ARRAY_TYPE ArrayType = ARRAY_SIMPLE, typename Alloc = StaticAllocPolicy<AniFrame<T, D>>>
-  struct BSS_COMPILER_DLLEXPORT AniDataSmooth : AniData<T, D, ArrayType, Alloc>
+  template<typename T, typename D = void, ARRAY_TYPE ArrayType = ARRAY_SIMPLE, int DATAID = 0, typename Alloc = StaticAllocPolicy<AniFrame<T, D>>>
+  struct BSS_COMPILER_DLLEXPORT AniDataSmooth : AniData<T, D, ArrayType, DATAID, Alloc>
   {
-    typedef AniData<T, D, ArrayType, Alloc> BASE;
+    typedef AniStateSmooth<AniStateBase, AniDataSmooth, T, nullptr> STATE;
+    typedef AniData<T, D, ArrayType, DATAID, Alloc> BASE;
     typedef typename BASE::FRAME FRAME;
     typedef T(*INTERPOLATE)(const FRAME*, size_t, size_t, double, const T&);
 
@@ -276,11 +283,11 @@ namespace bss {
     INTERPOLATE _interpolate;
   };
 
-  template<typename T, ARRAY_TYPE ArrayType = ARRAY_SIMPLE, typename Alloc = StaticAllocPolicy<AniFrame<T, double>>>
-  struct BSS_COMPILER_DLLEXPORT AniDataInterval : AniData<T, double, ArrayType, Alloc>
+  template<typename T, ARRAY_TYPE ArrayType = ARRAY_SIMPLE, int DATAID = 0, typename Alloc = StaticAllocPolicy<AniFrame<T, double>>>
+  struct BSS_COMPILER_DLLEXPORT AniDataInterval : AniData<T, double, ArrayType, DATAID, Alloc>
   {
     typedef AniStateInterval<AniStateBase, AniDataInterval, T, char, nullptr, nullptr, StaticAllocPolicy<std::pair<double, char>>> STATE;
-    typedef AniData<T, double, ArrayType, Alloc> BASE;
+    typedef AniData<T, double, ArrayType, DATAID, Alloc> BASE;
     typedef typename BASE::FRAME FRAME;
     using BASE::_frames;
     AniDataInterval() : _end(0.0) {}
@@ -386,26 +393,6 @@ namespace bss {
     double _loop;
   };
 
-  // This should be overriden to map a concrete type to it's state type for a given AniData type.
-  template<class T, class D>
-  struct AniMap { typedef void type; };
-
-  // These example instantiations also act as shims so we can calculate the size of any given AniState
-  template<typename T, typename D, ARRAY_TYPE ArrayType, typename Alloc>
-  struct AniMap<AniStateBase, AniData<T, D, ArrayType, Alloc>> { 
-    typedef AniStateDiscrete<AniStateBase, AniData<T, D, ArrayType, Alloc>, T, nullptr> type;
-  };
-
-  template<typename T, typename D, ARRAY_TYPE ArrayType, typename Alloc>
-  struct AniMap<AniStateBase, AniDataSmooth<T, D, ArrayType, Alloc>> {
-    typedef AniStateSmooth<AniStateBase, AniDataSmooth<T, D, ArrayType, Alloc>, T, nullptr> type;
-  };
-
-  template<typename T, ARRAY_TYPE ArrayType, typename Alloc>
-  struct AniMap<AniStateBase, AniDataInterval<T, ArrayType, Alloc>> {
-    typedef AniStateInterval<AniStateBase, AniDataInterval<T, ArrayType, Alloc>, T, char, nullptr, nullptr, StaticAllocPolicy<std::pair<double, char>>> type;
-  };
-
 #pragma warning(push)
 #pragma warning(disable:4251)
   template<typename... Args>
@@ -417,18 +404,19 @@ namespace bss {
     Animation(double length, double loop) : AnimationBase(length, loop) {}
     Animation(const Animation& ani) : AnimationBase(ani), std::tuple<Args...>(ani) {}
     Animation(Animation&& ani) : AnimationBase(std::move(ani)), std::tuple<Args...>(std::move(ani)) {}
-    inline virtual void SetLength(double length = -1.0) override 
+    inline virtual void SetLength(double length = -1.0) override
     {
-      _length = length; 
-      _calc = _calclength(std::index_sequence_for<Args...>{}); 
+      _length = length;
+      _calc = _calclength(std::index_sequence_for<Args...>{});
     }
     template<class T>
-    inline const T& Get() const { return std::get<T>(*this); }
+    inline const T& Get() const { static_assert(std::disjunction<std::is_same<T, Args>...>::value, "T is not in this Animation type!"); return std::get<T>(*this); }
     template<class T>
-    inline T& Get() { return std::get<T>(*this); }
+    inline T& Get() { static_assert(std::disjunction<std::is_same<T, Args>...>::value, "T is not in this Animation type!"); return std::get<T>(*this); }
     template<class T>
     BSS_FORCEINLINE size_t Add(const typename T::FRAME& frame)
     {
+      static_assert(std::disjunction<std::is_same<T, Args>...>::value, "T is not in this Animation type!");
       size_t r = std::get<T>(*this).Add(frame);
       _checklength<T>();
       return r;
@@ -436,6 +424,7 @@ namespace bss {
     template<class T>
     BSS_FORCEINLINE size_t Add(double time, const typename T::FRAME::VALUE& value)
     {
+      static_assert(std::disjunction<std::is_same<T, Args>...>::value, "T is not in this Animation type!");
       size_t r = std::get<T>(*this).Add(time, value);
       _checklength<T>();
       return r;
@@ -443,6 +432,7 @@ namespace bss {
     template<class T>
     inline bool Remove(size_t index)
     {
+      static_assert(std::disjunction<std::is_same<T, Args>...>::value, "T is not in this Animation type!");
       if(!std::get<T>(*this).Remove(index))
         return false;
       _calc = _calclength(std::index_sequence_for<Args...>{});
@@ -451,6 +441,7 @@ namespace bss {
     template<class T>
     inline void Set(const typename T::FRAME* src, size_t len)
     {
+      static_assert(std::disjunction<std::is_same<T, Args>...>::value, "T is not in this Animation type!");
       std::get<T>().Set(src, len);
       _calc = _calclength(std::index_sequence_for<Args...>{});
     }
@@ -468,8 +459,8 @@ namespace bss {
       return *this;
     }
 
-    template<class T>
-    using State = AniState<T, Animation<Args...>, typename AniMap<T, Args>::type...>;
+    static const int STATESIZE = sizeof(AniState<AniStateBase, Animation<Args...>, typename Args::STATE...>);
+    static const int STATEALIGN = alignof(AniState<AniStateBase, Animation<Args...>, typename Args::STATE...>);
 
   protected:
     template<size_t ...S> BSS_FORCEINLINE double _calclength(std::index_sequence<S...>) const { return bss::max_args((std::get<S>(*this).End())...); }

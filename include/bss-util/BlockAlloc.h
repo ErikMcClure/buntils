@@ -152,6 +152,7 @@ namespace bss {
   template<size_t SIZE, size_t ALIGN>
   class BSS_COMPILER_DLLEXPORT BlockAllocSize : protected BlockAllocVoid
   {
+  public:
     inline BlockAllocSize(BlockAllocSize&& mov) : BlockAllocVoid(std::move(mov)) {}
     inline explicit BlockAllocSize(size_t init = 8) : BlockAllocVoid(SIZE, init, ALIGN) { static_assert((SIZE >= sizeof(void*)), "SIZE cannot be less than the size of a pointer"); }
     template<class T>

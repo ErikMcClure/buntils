@@ -69,9 +69,9 @@ TESTDEF::RETPAIR test_ANIMATION()
     AniState<cAnimObj, Animation<RefAni>, AniStateInterval<cAnimObj, RefAni, ref_ptr<RefCounter>, RefCounter*, &cAnimObj::retnothing, &cAnimObj::remnothing>> s1(&obj, &a1);
     AniState<cAnimObj, Animation<FloatAni>, AniStateSmooth<cAnimObj, FloatAni, float, &cAnimObj::setfloat>> s2(&obj, &a2);
 
-    static_assert(sizeof(Animation<PtrAni>::template State<AniStateBase>) == sizeof(s0), "MAXSIZE should be sizeof(s0)");
-    static_assert(sizeof(Animation<RefAni>::template State<AniStateBase>) == sizeof(s1), "MAXSIZE should be sizeof(s1)");
-    static_assert(sizeof(Animation<FloatAni>::template State<AniStateBase>) == sizeof(s2), "MAXSIZE should be sizeof(s2)");
+    static_assert(Animation<PtrAni>::STATESIZE == sizeof(s0), "STATESIZE should be sizeof(s0)");
+    static_assert(Animation<RefAni>::STATESIZE == sizeof(s1), "STATESIZE should be sizeof(s1)");
+    static_assert(Animation<FloatAni>::STATESIZE == sizeof(s2), "STATESIZE should be sizeof(s2)");
 
     auto interall = [&](double t) {
       s0.Interpolate(t);

@@ -70,10 +70,11 @@ TESTDEF::RETPAIR test_TRBTREE()
   Shuffle(testnums);
 
   blah.Clear();
-  for(size_t i = 0; i<TESTNUM; ++i)
+  for(size_t i = 0; i < TESTNUM; ++i)
     blah.Insert(testnums[i]);
 
   assert(verifytree(blah.Front(), same));
+  TEST(blah.DEBUGVERIFY() >= 0);
   TEST(!blah.Get(-1));
   TEST(!blah.Get(TESTNUM + 1));
 
@@ -100,6 +101,7 @@ TESTDEF::RETPAIR test_TRBTREE()
     blah.Insert(testnums[i]);
 
   TEST(verifytree(blah.Front(), same));
+  TEST(blah.DEBUGVERIFY() >= 0);
   TEST(same == (TESTNUM * 2));
 
   Shuffle(testnums);
@@ -117,6 +119,7 @@ TESTDEF::RETPAIR test_TRBTREE()
   TEST(num == TESTNUM);
   TEST(n2 == TESTNUM * 3);
   TEST(n3 == TESTNUM);
+  TEST(blah.DEBUGVERIFY() >= 0);
 
   //std::cout << HighPrecisionTimer::CloseProfiler(prof) << std::endl;
   ENDTEST;

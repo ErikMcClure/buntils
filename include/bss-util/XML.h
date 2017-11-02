@@ -129,8 +129,8 @@ namespace bss {
     void Read(const char* source);
     void Read(std::istream& stream);
 
-    inline XMLFile& operator=(const XMLFile& copy) { XMLNode::operator=(copy); return *this; }
-    inline XMLFile& operator=(XMLFile&& mov) { XMLNode::operator=(mov); return *this; }
+    inline XMLFile& operator=(const XMLFile& copy) = default;
+    inline XMLFile& operator=(XMLFile&& mov) = default;
     BSS_FORCEINLINE const XMLNode* operator[](size_t index) const { return GetNode(index); }
     BSS_FORCEINLINE const XMLNode* operator[](const char* name) const { return GetNode(name); }
     BSS_FORCEINLINE const XMLValue* operator()(size_t index) const { return GetAttribute(index); }

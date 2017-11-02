@@ -291,8 +291,8 @@ namespace bss {
     typedef typename BASE::FRAME FRAME;
     using BASE::_frames;
     AniDataInterval() : _end(0.0) {}
-    AniDataInterval(AniDataInterval&& mov) : BASE(std::move(mov)) {}
-    AniDataInterval(const AniDataInterval& copy) : BASE(copy) {}
+    AniDataInterval(AniDataInterval&& mov) : BASE(std::move(mov)), _end(mov._end) { mov._end = 0.0f; }
+    AniDataInterval(const AniDataInterval& copy) : BASE(copy), _end(copy._end) {}
     AniDataInterval(const FRAME* src, size_t len) : BASE(src, len) {}
     BSS_FORCEINLINE double End() const { return _end; }
     BSS_FORCEINLINE Slice<const FRAME> Frames() const { return _frames.GetSlice(); }

@@ -34,8 +34,8 @@ namespace bss {
 #define CBH_RIGHT(i) ((i<<1)+2)
 
   public:
-    inline BinaryHeap(const BinaryHeap& copy) : AT_(copy) {}
-    inline BinaryHeap(BinaryHeap&& mov) : AT_(std::move(mov)) {}
+    inline BinaryHeap(const BinaryHeap& copy) = default;
+    inline BinaryHeap(BinaryHeap&& mov) = default;
     inline BinaryHeap() : AT_(0) {}
     inline BinaryHeap(const T* src, CT_ length) : AT_(length)
     { 
@@ -134,8 +134,8 @@ namespace bss {
     inline const T* end() const { return _array + _length; }
     inline T* begin() { return _array; }
     inline T* end() { return _array + _length; }
-    inline BinaryHeap& operator=(const BinaryHeap& copy) { AT_::operator=(copy); return *this; }
-    inline BinaryHeap& operator=(BinaryHeap&& mov) { AT_::operator=(std::move(mov)); return *this; }
+    inline BinaryHeap& operator=(const BinaryHeap&) = default;
+    inline BinaryHeap& operator=(BinaryHeap&&) = default;
 
     template<CT_ SIZE>
     inline static void Heapify(T(&src)[SIZE]) { Heapify(src, SIZE); }

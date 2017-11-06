@@ -236,14 +236,15 @@
       <MinimalRebuild>true</MinimalRebuild>
       <BasicRuntimeChecks>EnableFastChecks</BasicRuntimeChecks>
       <RuntimeLibrary>MultiThreadedDebug</RuntimeLibrary>
-      <PrecompiledHeader>
-      </PrecompiledHeader>
+      <PrecompiledHeader>Use</PrecompiledHeader>
       <WarningLevel>Level3</WarningLevel>
       <DebugInformationFormat>ProgramDatabase</DebugInformationFormat>
       <RuntimeTypeInfo>false</RuntimeTypeInfo>
       <ExceptionHandling>Sync</ExceptionHandling>
       <FloatingPointModel>Fast</FloatingPointModel>
       <LanguageStandard>stdcpplatest</LanguageStandard>
+      <PrecompiledHeaderFile>test.h</PrecompiledHeaderFile>
+      <PrecompiledHeaderOutputFile>%(PrecompiledHeaderFile)32.pch</PrecompiledHeaderOutputFile>
     </ClCompile>
     <Link>
       <GenerateDebugInformation>true</GenerateDebugInformation>
@@ -283,13 +284,14 @@
       <PreprocessorDefinitions>_SCL_SECURE_NO_WARNINGS;WIN32;_DEBUG;_CONSOLE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <BasicRuntimeChecks>EnableFastChecks</BasicRuntimeChecks>
       <RuntimeLibrary>MultiThreadedDebug</RuntimeLibrary>
-      <PrecompiledHeader>
-      </PrecompiledHeader>
+      <PrecompiledHeader>Use</PrecompiledHeader>
       <WarningLevel>Level3</WarningLevel>
       <DebugInformationFormat>ProgramDatabase</DebugInformationFormat>
       <RuntimeTypeInfo>false</RuntimeTypeInfo>
       <DisableLanguageExtensions>false</DisableLanguageExtensions>
       <LanguageStandard>stdcpplatest</LanguageStandard>
+      <PrecompiledHeaderFile>test.h</PrecompiledHeaderFile>
+      <PrecompiledHeaderOutputFile>%(PrecompiledHeaderFile).pch</PrecompiledHeaderOutputFile>
     </ClCompile>
     <Link>
       <GenerateDebugInformation>true</GenerateDebugInformation>
@@ -326,8 +328,7 @@
       <PreprocessorDefinitions>_SCL_SECURE_NO_WARNINGS;WIN32;NDEBUG;_CONSOLE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <RuntimeLibrary>MultiThreaded</RuntimeLibrary>
       <FunctionLevelLinking>false</FunctionLevelLinking>
-      <PrecompiledHeader>
-      </PrecompiledHeader>
+      <PrecompiledHeader>Use</PrecompiledHeader>
       <WarningLevel>Level3</WarningLevel>
       <DebugInformationFormat>ProgramDatabase</DebugInformationFormat>
       <ExceptionHandling>Sync</ExceptionHandling>
@@ -339,6 +340,8 @@
       <FloatingPointModel>Fast</FloatingPointModel>
       <RuntimeTypeInfo>false</RuntimeTypeInfo>
       <LanguageStandard>stdcpplatest</LanguageStandard>
+      <PrecompiledHeaderFile>test.h</PrecompiledHeaderFile>
+      <PrecompiledHeaderOutputFile>%(PrecompiledHeaderFile)32.pch</PrecompiledHeaderOutputFile>
     </ClCompile>
     <Link>
       <GenerateDebugInformation>true</GenerateDebugInformation>
@@ -423,8 +426,7 @@
       <PreprocessorDefinitions>_SCL_SECURE_NO_WARNINGS;WIN32;NDEBUG;_CONSOLE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <RuntimeLibrary>MultiThreaded</RuntimeLibrary>
       <FunctionLevelLinking>false</FunctionLevelLinking>
-      <PrecompiledHeader>
-      </PrecompiledHeader>
+      <PrecompiledHeader>Use</PrecompiledHeader>
       <WarningLevel>Level3</WarningLevel>
       <DebugInformationFormat>ProgramDatabase</DebugInformationFormat>
       <ExceptionHandling>Sync</ExceptionHandling>
@@ -436,6 +438,8 @@
       <FloatingPointModel>Fast</FloatingPointModel>
       <RuntimeTypeInfo>false</RuntimeTypeInfo>
       <LanguageStandard>stdcpplatest</LanguageStandard>
+      <PrecompiledHeaderFile>test.h</PrecompiledHeaderFile>
+      <PrecompiledHeaderOutputFile>%(PrecompiledHeaderFile).pch</PrecompiledHeaderOutputFile>
     </ClCompile>
     <Link>
       <GenerateDebugInformation>true</GenerateDebugInformation>
@@ -551,8 +555,18 @@
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClCompile Include="test_bss_alloc_greedy_block.cpp" />
-    <ClCompile Include="test_c.c" />
-    <ClCompile Include="test.cpp" />
+    <ClCompile Include="test_c.c">
+      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|x64'">NotUsing</PrecompiledHeader>
+      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">NotUsing</PrecompiledHeader>
+      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">NotUsing</PrecompiledHeader>
+      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">NotUsing</PrecompiledHeader>
+    </ClCompile>
+    <ClCompile Include="test.cpp">
+      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Create</PrecompiledHeader>
+      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">Create</PrecompiledHeader>
+      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">Create</PrecompiledHeader>
+      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|x64'">Create</PrecompiledHeader>
+    </ClCompile>
     <ClCompile Include="test_aatree.cpp" />
     <ClCompile Include="test_aliastable.cpp" />
     <ClCompile Include="test_animation.cpp" />

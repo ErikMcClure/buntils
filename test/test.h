@@ -9,6 +9,7 @@
 #include "bss-util/lockless.h"
 #include "bss-util/Str.h"
 #include "bss-util/RefCounter.h"
+#include "bss-util/algo.h"
 
 #define BSS_ENABLE_PROFILER
 

@@ -471,7 +471,7 @@ namespace bss {
   };
 
   template<typename T>
-  BSS_FORCEINLINE bool KH_DEFAULT_EQUAL(T const& a, T const& b) { return a == b; }
+  BSS_FORCEINLINE bool KH_DEFAULT_EQUAL(const T& a, const T& b) { return a == b; }
   template<class T>
   BSS_FORCEINLINE khint_t KH_INT_HASH(T key)
   {
@@ -528,65 +528,71 @@ namespace bss {
     return h;
   }
 
-  namespace internal {
-    template<typename T>
-    BSS_FORCEINLINE khint_t KH_AUTO_HASH(const T& k) { return KH_INT_HASH<T>(k); }
-    template<> BSS_FORCEINLINE khint_t KH_AUTO_HASH<std::string>(const std::string& k) { return KH_STR_HASH<char, false>(k.c_str()); }
-    template<> BSS_FORCEINLINE khint_t KH_AUTO_HASH<Str>(const Str& k) { return KH_STR_HASH<char, false>(k.c_str()); }
-    template<> BSS_FORCEINLINE khint_t KH_AUTO_HASH<const char*>(const char* const& k) { return KH_STR_HASH<char, false>(k); }
-    template<> BSS_FORCEINLINE khint_t KH_AUTO_HASH<char*>(char* const& k) { return KH_STR_HASH<char, false>(k); }
-    template<> BSS_FORCEINLINE khint_t KH_AUTO_HASH<const wchar_t*>(const wchar_t* const& k) { return KH_STR_HASH<wchar_t, false>(k); }
-    template<> BSS_FORCEINLINE khint_t KH_AUTO_HASH<wchar_t*>(wchar_t* const& k) { return KH_STR_HASH<wchar_t, false>(k); }
-    template<> BSS_FORCEINLINE khint_t KH_AUTO_HASH<double>(const double& k) { return KH_INT_HASH(k); }
-    template<> BSS_FORCEINLINE khint_t KH_AUTO_HASH<float>(const float& k) { return KH_INT_HASH(k); }
-    template<typename T> BSS_FORCEINLINE khint_t KH_AUTOINS_HASH(const T& k) { return KH_STR_HASH<char, true>(k); }
-    template<> BSS_FORCEINLINE khint_t KH_AUTOINS_HASH<std::string>(const std::string& k) { return KH_STR_HASH<char, true>(k.c_str()); }
-    template<> BSS_FORCEINLINE khint_t KH_AUTOINS_HASH<Str>(const Str& k) { return KH_STR_HASH<char, true>(k.c_str()); }
-    template<> BSS_FORCEINLINE khint_t KH_AUTOINS_HASH<const wchar_t*>(const wchar_t* const& k) { return KH_STR_HASH<wchar_t, true>(k); }
-    template<> BSS_FORCEINLINE khint_t KH_AUTOINS_HASH<wchar_t*>(wchar_t* const& k) { return KH_STR_HASH<wchar_t, true>(k); }
+  template<class T, bool IgnoreCase>
+  inline bool KH_STR_EQUAL(const T* a, const T* b) = delete;
 
-    template<typename T>
-    BSS_FORCEINLINE bool KH_AUTO_EQUAL(T const& a, T const& b) { return a == b; }
-    template<> BSS_FORCEINLINE bool KH_AUTO_EQUAL<std::string>(std::string const& a, std::string const& b) { return strcmp(a.c_str(), b.c_str()) == 0; }
-    template<> BSS_FORCEINLINE bool KH_AUTO_EQUAL<Str>(Str const& a, Str const& b) { return strcmp(a, b) == 0; }
-    template<> BSS_FORCEINLINE bool KH_AUTO_EQUAL<const char*>(const char* const& a, const char* const& b) { return strcmp(a, b) == 0; }
-    template<> BSS_FORCEINLINE bool KH_AUTO_EQUAL<const wchar_t*>(const wchar_t* const& a, const wchar_t* const& b) { return wcscmp(a, b) == 0; }
-    template<typename T> BSS_FORCEINLINE bool KH_AUTOINS_EQUAL(T const& a, T const& b) { return STRICMP(a, b) == 0; }
-    template<> BSS_FORCEINLINE bool KH_AUTOINS_EQUAL<std::string>(std::string const& a, std::string const& b) { return STRICMP(a.c_str(), b.c_str()) == 0; }
-    template<> BSS_FORCEINLINE bool KH_AUTOINS_EQUAL<Str>(Str const& a, Str const& b) { return STRICMP(a, b) == 0; }
-    template<> BSS_FORCEINLINE bool KH_AUTOINS_EQUAL<const wchar_t*>(const wchar_t* const& a, const wchar_t* const& b) { return WCSICMP(a, b) == 0; }
-    template<> BSS_FORCEINLINE bool KH_AUTOINS_EQUAL<wchar_t*>(wchar_t* const& a, wchar_t* const& b) { return WCSICMP(a, b) == 0; }
+  template<> inline bool KH_STR_EQUAL<char, false>(const char* a, const char* b) { return strcmp(a, b) == 0; }
+  template<> inline bool KH_STR_EQUAL<wchar_t, false>(const wchar_t* a, const wchar_t* b) { return wcscmp(a, b) == 0; }
+  template<> inline bool KH_STR_EQUAL<char, true>(const char* a, const char* b) { return STRICMP(a, b) == 0; }
+  template<> inline bool KH_STR_EQUAL<wchar_t, true>(const wchar_t* a, const wchar_t* b) { return WCSICMP(a, b) == 0; }
 
-#ifdef BSS_PLATFORM_WIN32
-    template<> BSS_FORCEINLINE khint_t KH_AUTO_HASH<StrW>(const StrW& k) { return KH_STR_HASH<wchar_t, false>(k); }
-    template<> BSS_FORCEINLINE khint_t KH_AUTOINS_HASH<StrW>(const StrW& k) { return KH_STR_HASH<wchar_t, true>(k); }
-    template<> BSS_FORCEINLINE bool KH_AUTO_EQUAL<StrW>(StrW const& a, StrW const& b) { return wcscmp(a, b) == 0; }
-    template<> BSS_FORCEINLINE bool KH_AUTOINS_EQUAL<StrW>(StrW const& a, StrW const& b) { return WCSICMP(a, b) == 0; }
-#endif
+  template<typename T, bool INS = false>
+  BSS_FORCEINLINE khint_t KH_AUTO_HASH(const T& k);
 
-    template<typename T, bool ins>
-    struct _HashHelper {
-      BSS_FORCEINLINE static khint_t hash(const T& k) { return KH_AUTO_HASH<T>(k); }
-      BSS_FORCEINLINE static bool equal(const T& a, const T& b) { return KH_AUTO_EQUAL<T>(a, b); }
-    };
-    template<typename T>
-    struct _HashHelper<T, true> {
-      BSS_FORCEINLINE static khint_t hash(const T& k) { return KH_AUTOINS_HASH<T>(k); }
-      BSS_FORCEINLINE static bool equal(const T& a, const T& b) { return KH_AUTOINS_EQUAL<T>(a, b); }
-    };
-    template<typename U, typename V>
-    struct _HashHelper<std::pair<U, V>, false> {
-      BSS_FORCEINLINE static khint_t hash(const std::pair<U, V>& k) { return KH_INT_HASH<uint64_t>(uint64_t(KH_AUTO_HASH<U>(k.first)) | (uint64_t(KH_AUTO_HASH<V>(k.second)) << 32)); }
-      BSS_FORCEINLINE static bool equal(const std::pair<U, V>& a, const std::pair<U, V>& b) { return KH_AUTO_EQUAL<U>(a.first, b.first) && KH_AUTO_EQUAL<V>(a.second, b.second); }
-    };
+  template<typename T, int I>
+  inline khint_t KH_MULTI_HASH(const T& k)
+  {
+    if constexpr(I > 0)
+      return KH_INT_HASH<uint64_t>(uint64_t(KH_MULTI_HASH<T, I - 1>(k)) | (uint64_t(KH_AUTO_HASH<std::tuple_element_t<I, T>>(std::get<I>(k))) << 32));
+    else if constexpr(I == 0)
+      return KH_AUTO_HASH<std::tuple_element_t<0, T>>(std::get<0>(k));
+  }
+
+  template<typename T, int I>
+  inline khint_t KH_MULTI_EQUAL(const T& a, const T& b)
+  { 
+    if constexpr(I > 0)
+      return (std::get<I>(a) == std::get<I>(b)) && KH_MULTI_EQUAL<T, I - 1>(a, b);
+    else if constexpr(I == 0)
+      return std::get<0>(a) == std::get<0>(b);
+  }
+
+  template<typename T, bool INS>
+  BSS_FORCEINLINE khint_t KH_AUTO_HASH(const T& k)
+  {
+    if constexpr(std::is_same<T, char*>::value || std::is_same<T, wchar_t*>::value || std::is_same<T, const char*>::value || std::is_same<T, const wchar_t*>::value)
+      return KH_STR_HASH<std::remove_const_t<std::remove_pointer_t<T>>, INS>(k);
+    else if constexpr(std::is_base_of<std::string, T>::value)
+      return KH_STR_HASH<char, INS>(k.c_str());
+    else if constexpr(std::is_base_of<std::basic_string<wchar_t>, T>::value)
+      return KH_STR_HASH<wchar_t, INS>(k.c_str());
+    else if constexpr(is_specialization_of<T, std::tuple>::value || is_specialization_of<T, std::pair>::value)
+      return KH_MULTI_HASH<T, std::tuple_size<T>::value - 1>(k);
+    else
+      return KH_INT_HASH<T>(k);
+  }
+
+  template<typename T, bool INS = false>
+  BSS_FORCEINLINE bool KH_AUTO_EQUAL(const T& a, const T& b)
+  {
+    if constexpr(std::is_same<T, char*>::value || std::is_same<T, wchar_t*>::value || std::is_same<T, const char*>::value || std::is_same<T, const wchar_t*>::value)
+      return KH_STR_EQUAL<std::remove_const_t<std::remove_pointer_t<T>>, INS>(a, b);
+    else if constexpr(std::is_base_of<std::string, T>::value)
+      return KH_STR_EQUAL<char, INS>(a.c_str(), b.c_str());
+    else if constexpr(std::is_base_of<std::basic_string<wchar_t>, T>::value)
+      return KH_STR_EQUAL<wchar_t, INS>(a.c_str(), b.c_str());
+    else if constexpr(is_specialization_of<T, std::tuple>::value || is_specialization_of<T, std::pair>::value)
+      return KH_MULTI_EQUAL<T, std::tuple_size<T>::value - 1>(a, b);
+    else
+      return KH_DEFAULT_EQUAL<T>(a, b);
   }
 
   // Generic hash definition
   template<typename K, typename T = void, bool ins = false, ARRAY_TYPE ArrayType = ARRAY_SIMPLE, typename Alloc = StaticAllocPolicy<char>>
-  class BSS_COMPILER_DLLEXPORT Hash : public HashBase<K, T, &internal::_HashHelper<K, ins>::hash, &internal::_HashHelper<K, ins>::equal, ArrayType, Alloc>
+  class BSS_COMPILER_DLLEXPORT Hash : public HashBase<K, T, &KH_AUTO_HASH<K, ins>, &KH_AUTO_EQUAL<K, ins>, ArrayType, Alloc>
   {
   public:
-    typedef HashBase<K, T, &internal::_HashHelper<K, ins>::hash, &internal::_HashHelper<K, ins>::equal, ArrayType, Alloc> BASE;
+    typedef HashBase<K, T, &KH_AUTO_HASH<K, ins>, &KH_AUTO_EQUAL<K, ins>, ArrayType, Alloc> BASE;
 
     inline Hash(const Hash& copy) = default;
     inline Hash(Hash&& mov) = default;

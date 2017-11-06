@@ -39,6 +39,9 @@ namespace bss {
   template<typename T1, typename T2, char(*CompF)(const T1&, const T1&) = &CompT<T1>, char(*CompS)(const T2&, const T2&) = &CompT<T2>>
   BSS_FORCEINLINE char CompTBoth(const std::pair<T1, T2>& left, const std::pair<T1, T2>& right) noexcept { char c = CompF(left.first, right.first); return !c ? CompS(left.second, right.second) : c; }
 
+  template<typename T, int I = 0, char(*CompF)(const std::tuple_element_t<I, T>&, const std::tuple_element_t<I, T>&) = &CompT<std::tuple_element_t<I, T>>>
+  BSS_FORCEINLINE char CompTuple(const T& left, const T& right) { return CompF(std::get<I>(left), std::get<I>(right)); }
+  
   template<typename T>
   BSS_FORCEINLINE char CompStr(const T& left, const T& right)
   {

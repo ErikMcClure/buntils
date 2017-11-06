@@ -1,10 +1,10 @@
 // Copyright ©2017 Black Sphere Studios
 // For conditions of distribution and use, see copyright notice in "bss_util.h"
 
+#include "test.h"
 #include "bss-util/os.h"
 #include "bss-util/Trie.h"
 #include <string.h>
-#include "test.h"
 #ifdef BSS_PLATFORM_WIN32
 #include "bss-util/win32_includes.h"
 #endif
@@ -39,19 +39,18 @@ TESTDEF::RETPAIR test_OS()
   ToArgV((char**)argv, cmd.UnsafeString());
   ProcessCmdArgs(argc, argv, [&__testret](const char* const* p, size_t n)
   {
-    static Trie<uint8_t> t(3, "-r", "-a\"a\"", "-no indice");
-    switch(t[p[0]])
+    switch(hash_fnv1a(p[0]))
     {
-    case 0:
+    case hash_fnv1a("-r"):
       TEST(n == 3);
       TEST(atof(p[1]) == 2738.0);
       TEST(atof(p[2]) == 283.5);
       break;
-    case 1:
+    case hash_fnv1a("-a\"a\""):
       TEST(n == 2);
       TEST(atoi(p[1]) == 3);
       break;
-    case 2:
+    case hash_fnv1a("-no indice"):
       TEST(n == 1);
       break;
     default:

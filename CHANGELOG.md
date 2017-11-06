@@ -1,8 +1,12 @@
 ﻿# Black Sphere Studios Utility Library Changelog
 
 ## 0.5.2
-- Use constexpr ifs to massively simplify Variant implementation
-- Allow Hash to work with ARRAY_MOVE properly
+- Use constexpr ifs to massively simplify `Variant` implementation
+- Allow Hash to work with `ARRAY_MOVE` properly
+- Add compile-time FNV hash 
+- Simplified `Hash` implementation and added `std::tuple` support
+- Switched `Map` to use `std::tuple` so it can be iterated over with `for(auto[k,v] : map)`
+- Added precompiled header to makefile and visual studio projects
 
 ## 0.5.1
 - Replace most instances of `uint32_t` with `size_t`

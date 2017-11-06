@@ -1,8 +1,8 @@
 // Copyright ©2017 Black Sphere Studios
 // For conditions of distribution and use, see copyright notice in "bss_util.h"
 
-#include "bss-util/Hash.h"
 #include "test.h"
+#include "bss-util/Hash.h"
 
 using namespace bss;
 
@@ -25,6 +25,7 @@ TESTDEF::RETPAIR test_HASH()
     hasher.Insert("Video", (Logger*)5);
     hasher.SetCapacity(100);
     hasher.Insert("Physics", 0);
+
     Logger* check = hasher.Get("Video");
     TEST(check == (Logger*)5);
     check = hasher.Get("Video");

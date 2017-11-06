@@ -1,8 +1,8 @@
 // Copyright ©2017 Black Sphere Studios
 // For conditions of distribution and use, see copyright notice in "bss_util.h"
 
-#include "bss-util/INIstorage.h"
 #include "test.h"
+#include "bss-util/INIstorage.h"
 
 using namespace bss;
 

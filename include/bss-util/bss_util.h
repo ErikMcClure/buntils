@@ -1007,6 +1007,27 @@ namespace bss {
     //return a+((T)((b-a)*t)); // This is susceptible to floating point errors when t = 1
   }
 
+  // post: https://notes.underscorediscovery.com/constexpr-fnv1a/
+  inline constexpr uint32_t hash_fnv1a(const char* const str, const uint32_t value = 0x811c9dc5) noexcept {
+#pragma warning(push)
+#pragma warning(disable:4307)
+    return (str[0] == '\0') ? value : hash_fnv1a(&str[1], (value ^ uint32_t(str[0])) * 0x1000193);
+#pragma warning(pop)
+  }
+
+  inline constexpr uint64_t hash64_fnv1a(const char* const str, const uint64_t value = 0xcbf29ce484222325) noexcept {
+#pragma warning(push)
+#pragma warning(disable:4307)
+    return (str[0] == '\0') ? value : hash64_fnv1a(&str[1], (value ^ uint64_t(str[0])) * 0x100000001b3);
+#pragma warning(pop)
+  }
+
+  // template helper is_specialization_of, which isn't included in the standard library yet
+  template <typename T, template <typename...> class Template>
+  struct is_specialization_of : std::false_type {};
+  template <template <typename...> class Template, typename... Args>
+  struct is_specialization_of<Template<Args...>, Template> : std::true_type {};
+
   // Type safe memset functions
   template<typename T>
   BSS_FORCEINLINE void bssFill(T& p, unsigned char val = 0)

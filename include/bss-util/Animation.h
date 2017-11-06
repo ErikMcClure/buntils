@@ -15,6 +15,7 @@ namespace bss {
   struct AniFrame
   {
     typedef T VALUE;
+    typedef D DATA;
 
     double time;
     T value;
@@ -25,6 +26,7 @@ namespace bss {
   struct AniFrame<T, void>
   {
     typedef T VALUE;
+    typedef void DATA;
 
     double time;
     T value;
@@ -60,6 +62,8 @@ namespace bss {
   class BSS_COMPILER_DLLEXPORT AniState : public AniStateBase
   {
   public:
+    typedef decltype(std::tuple_cat(std::declval<typename std::conditional<std::is_same<void, typename Args::VALUE>::value, std::tuple<>, std::tuple<typename Args::VALUE>>::type>()...)) VALUES;
+
     AniState(T* dest, const A* ani) : _dest(dest), _ani(ani) {}
     virtual ~AniState() { Reset(); } // Call Reset() up here, otherwise the virtual call isn't properly evaluated
     virtual void Reset() override
@@ -88,12 +92,38 @@ namespace bss {
     }
     inline std::tuple<Args...>& States() { return _states; }
     inline const std::tuple<Args...>& States() const { return _states; }
+    inline VALUES GetValues() const { VALUES v; _getvalues<0, Args...>(v); return v; }
+    inline void SetValues(VALUES& values) { _setvalues<0, Args...>(values); }
 
     typedef T Ty;
 
   protected:
     template<size_t ...S> BSS_FORCEINLINE void _interpolate(std::index_sequence<S...>) { int X[] = { (std::get<S>(_states).template Interpolate<A, T>(_ani, _dest, _time), 0)... }; }
     template<size_t ...S> BSS_FORCEINLINE void _reset(std::index_sequence<S...>) { int X[] = { (std::get<S>(_states).template Reset<T>(_dest), 0)... }; }
+    template<int I, typename X, typename... Xs>
+    BSS_FORCEINLINE void _getvalues(VALUES& v) const
+    {
+      if constexpr(sizeof...(Xs) > 0 && std::is_same<typename X::VALUE, void>::value)
+        _getvalues<I, Xs...>(v);
+      else if constexpr(!std::is_same<typename X::VALUE, void>::value)
+      {
+        std::get<I>(v) = std::get<X>(_states).GetInit();
+        if constexpr(sizeof...(Xs) > 0)
+          _getvalues<I + 1, Xs...>(v);
+      }
+    }
+    template<int I, typename X, typename... Xs>
+    BSS_FORCEINLINE void _setvalues(VALUES& v)
+    {
+      if constexpr(sizeof...(Xs) > 0 && std::is_same<typename X::VALUE, void>::value)
+        _setvalues<I, Xs...>(v);
+      else if constexpr(!std::is_same<typename X::VALUE, void>::value)
+      {
+        std::get<X>(_states).SetInit(std::get<I>(v));
+        if constexpr(sizeof...(Xs) > 0)
+          _setvalues<I + 1, Xs...>(v);
+      }
+    }
 
 #pragma warning(push)
 #pragma warning(disable:4251)
@@ -107,6 +137,7 @@ namespace bss {
   struct BSS_COMPILER_DLLEXPORT AniStateDiscrete
   {
     typedef typename D::FRAME FRAME;
+    typedef void VALUE;
 
     AniStateDiscrete() : _cur(0) {}
     template<typename U>
@@ -136,13 +167,13 @@ namespace bss {
     template<typename U>
     void Reset(U* dest) { _cur = 0; }
     void SetInit(const VALUE& v) { _init = v; }
+    const VALUE& GetInit() const { return _init; }
     template<typename A, typename U>
     void Interpolate(const A* ani, U* dest, double t)
     {
       const D& data = ani->template Get<D>();
       Slice<const FRAME> frames = data.Frames();
       INTERPOLATE f = data.GetInterpolation();
-      assert(f != 0);
 
       while(_cur < frames.length && frames[_cur].time <= t)
         ++_cur;
@@ -150,10 +181,14 @@ namespace bss {
       if(_cur >= frames.length)
       { //Resolve the animation, but only if there was more than 1 keyframe, otherwise we'll break it.
         if(frames.length > 1)
+        {
+          assert(f != 0); // We only check if f is NULL if there are actually frames to process
           (static_cast<T*>(dest)->*FN)(f(frames.start, frames.length, frames.length - 1, 1.0, _init));
+        }
       }
       else
       {
+        assert(f != 0);
         double hold = !_cur ? 0.0 : frames[_cur - 1].time;
         (static_cast<T*>(dest)->*FN)(f(frames.start, frames.length, _cur, (t - hold) / (frames[_cur].time - hold), _init));
       }
@@ -168,6 +203,7 @@ namespace bss {
   struct BSS_COMPILER_DLLEXPORT AniStateInterval
   {
     typedef typename D::FRAME FRAME;
+    typedef void VALUE;
 
     AniStateInterval() : _cur(0) {}
     template<typename U>
@@ -276,8 +312,8 @@ namespace bss {
 
     static inline T NoInterpolate(const FRAME* v, size_t s, size_t cur, double t, const T& init) { ptrdiff_t i = ptrdiff_t(cur) - (t != 1.0); return (i < 0) ? init : v[i].value; }
     static inline T NoInterpolateRel(const FRAME* v, size_t s, size_t cur, double t, const T& init) { assert(cur > 0); return init + v[cur - (t != 1.0)].value; }
-    static inline T LerpInterpolate(const FRAME* v, size_t s, size_t cur, double t, const T& init) { return lerp<T>(!cur ? init : v[cur - 1].value, v[cur].value, t); }
-    static inline T LerpInterpolateRel(const FRAME* v, size_t s, size_t cur, double t, const T& init) { assert(cur > 0); return init + lerp<T>(v[cur - 1].value, v[cur].value, t); }
+    static inline T LerpInterpolate(const FRAME* v, size_t s, size_t cur, double t, const T& init) { return lerp<T, float>(!cur ? init : v[cur - 1].value, v[cur].value, (float)t); }
+    static inline T LerpInterpolateRel(const FRAME* v, size_t s, size_t cur, double t, const T& init) { assert(cur > 0); return init + lerp<T, float>(v[cur - 1].value, v[cur].value, (float)t); }
 
   protected:
     INTERPOLATE _interpolate;
@@ -469,13 +505,15 @@ namespace bss {
 
   struct AniCubicEasing
   {
+    AniCubicEasing() : t1(0), s1(0), t2(1.0), s2(1.0) {}
+    AniCubicEasing(double T1, double S1, double T2, double S2) : t1(T1), s1(S1), t2(T2), s2(S2) {}
     static inline double TimeBezier(double s, double p1, double p2) { double inv = 1.0 - s; return 3.0*inv*inv*s*p1 + 3.0*inv*s*s*p2 + s*s*s; }
     static inline double TimeBezierD(double s, double p1, double p2) { double inv = 1.0 - s; return 3.0*inv*inv*(p1)+6.0*inv*s*(p2 - p1) + inv*s*s*p2 + 3.0*s*s*(1.0 - p2); }
 
     template<class T, class D>
     static inline double GetProgress(const AniFrame<T, D>* v, size_t l, size_t cur, double t)
     {
-      AniCubicEasing& data = v[cur].data;
+      const AniCubicEasing& data = v[cur].data;
       auto f = [&](double s) -> double { return TimeBezier(s, data.t1, data.t2) - t; };
       auto fd = [&](double s) -> double { return TimeBezierD(s, data.t1, data.t2); };
       double p = NewtonRaphsonBisection<double>(t, 0.0, 1.0, f, fd, FLT_EPS);
@@ -490,22 +528,30 @@ namespace bss {
   template<class T>
   struct AniLinearData : AniCubicEasing
   {
+    AniLinearData() {}
+    AniLinearData(const AniLinearData&) = default;
+    AniLinearData(const AniCubicEasing& copy) : AniCubicEasing(copy) {}
+    AniLinearData(double T1, double S1, double T2, double S2) : AniCubicEasing(T1, S1, T2, S2) {}
     static inline T LinearInterpolate(const AniFrame<T, AniLinearData<T>>* v, size_t l, size_t cur, double t, const T& init)
     {
       double s = GetProgress<T, AniLinearData<T>>(v, l, cur, t);
-      return lerp<T>(!cur ? init : v[cur - 1].value, v[cur].value, s);
+      return lerp<T, float>(!cur ? init : v[cur - 1].value, v[cur].value, (float)s);
     }
     static inline T LinearInterpolateRel(const AniFrame<T, AniLinearData<T>>* v, size_t l, size_t cur, double t, const T& init)
     {
       assert(cur > 0);
       double s = GetProgress<T, AniLinearData<T>>(v, l, cur, t);
-      return init + lerp<T>(v[cur - 1].value, v[cur].value, s);
+      return init + lerp<T, float>(v[cur - 1].value, v[cur].value, (float)s);
     }
   };
 
   template<class T, double(*LENGTH)(const T&, const T&, const T&)>
   struct AniQuadData : AniCubicEasing
   {
+    AniQuadData() {}
+    AniQuadData(const AniQuadData&) = default;
+    AniQuadData(const AniCubicEasing& copy) : AniCubicEasing(copy) {}
+    AniQuadData(double T1, double S1, double T2, double S2) : AniCubicEasing(T1, S1, T2, S2) {}
     template<class U>
     static inline U Bezier(double s, const U& p0, const U& p1, const U& p2) { double inv = 1.0 - s; return inv*inv*p0 + 2.0*inv*s*p1 + s*s*p2; }
     template<class U>
@@ -551,6 +597,11 @@ namespace bss {
   template<class T, double(*LENGTH)(const T&, const T&, const T&, const T&)>
   struct AniCubicData : AniCubicEasing
   {
+    AniCubicData() {}
+    AniCubicData(const AniCubicData&) = default;
+    AniCubicData(const AniCubicEasing& copy) : AniCubicEasing(copy) {}
+    AniCubicData(double T1, double S1, double T2, double S2) : AniCubicEasing(T1, S1, T2, S2) {}
+
     static inline T Bezier(double s, const T& p0, const T& p1, const T& p2, const T& p3) { double inv = 1.0 - s; return inv*inv*inv*p0 + 3.0*inv*inv*s*p1 + 3.0*inv*s*s*p2 + s*s*s*p3; }
     template<class U>
     static inline U BezierD(double s, const U& p0, const U& p1, const U& p2, const U& p3) { double inv = 1.0 - s; return 3.0*inv*inv*(p1 - p0) + 6.0*inv*s*(p2 - p1) + 3.0*inv*s*s*(p3 - p2); }

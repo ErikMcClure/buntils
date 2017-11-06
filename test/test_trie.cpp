@@ -1,9 +1,9 @@
 // Copyright ©2017 Black Sphere Studios
 // For conditions of distribution and use, see copyright notice in "bss_util.h"
 
+#include "test.h"
 #include "bss-util/Trie.h"
 #include "bss-util/algo.h"
-#include "test.h"
 
 using namespace bss;
 
@@ -42,6 +42,39 @@ TESTDEF::RETPAIR test_TRIE()
   auto res = HighPrecisionTimer::CloseProfiler(prof);
   std::cout << dm << "\nTIME:" << res << std::endl;
   */
+
+  /*
+  constexpr char* randcstr[10] = { "aj32k4SX90xj", "k24ht4ki2@j", "fa9udj", "ljafkl3a2k3K", "zkjslww", "xnwmwnps", "lhisknw", "tjdksnx", "nhjnxiw", "yhwwonzlk28" };
+  Trie<uint32_t> t0(9, randcstr);
+  uint32_t dm;
+  Shuffle(testnums);
+  auto prof = HighPrecisionTimer::OpenProfiler();
+  Hash<const char*, uint8_t> hashtest;
+  for(size_t i = 0; i < 9; ++i)
+    hashtest.Insert(randcstr[i], i);
+  CPU_Barrier();
+  for(size_t i = 0; i < TESTNUM; ++i)
+  {
+    switch(hash_fnv1a(randcstr[testnums[i] % 10]))
+    {
+    case hash_fnv1a(randcstr[0]): dm = 8; break;
+    case hash_fnv1a(randcstr[1]): dm = 28; break;
+    case hash_fnv1a(randcstr[2]): dm = 16; break;
+    case hash_fnv1a(randcstr[3]): dm = 3; break;
+    case hash_fnv1a(randcstr[4]): dm = 5; break;
+    case hash_fnv1a(randcstr[5]): dm = 1; break;
+    case hash_fnv1a(randcstr[6]): dm = 0; break;
+    case hash_fnv1a(randcstr[7]): dm = 17; break;
+    case hash_fnv1a(randcstr[8]): dm = 29; break;
+    default: dm = -1; break;
+    }
+    //dm= t0[randcstr[testnums[i]%10]];
+    //dm = hashtest[randcstr[testnums[i] % 10]];
+  }
+
+  CPU_Barrier();
+  auto res = HighPrecisionTimer::CloseProfiler(prof);
+  std::cout << dm << "\nTIME:" << res << std::endl;*/
 
   for(size_t i = 0; i < 9; ++i)
   {

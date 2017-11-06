@@ -1,11 +1,11 @@
 // Copyright ©2017 Black Sphere Studios
 // For conditions of distribution and use, see copyright notice in "bss_util.h"
 
+#include "test.h"
 #include "bss-util/TRBtree.h"
 #include "bss-util/algo.h"
 #include "bss-util/BlockAlloc.h"
 #include <fstream>
-#include "test.h"
 
 using namespace bss;
 

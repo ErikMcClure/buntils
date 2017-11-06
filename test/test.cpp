@@ -78,7 +78,7 @@ int DEBUG_CDT_SAFE::count = 0;
 int DEBUG_CDT_SAFE::ID = 0;
 bss::Hash<int> DEBUG_CDT_SAFE::Tracker;
 
-#define BSS_ISOLATE_TEST 55
+//#define BSS_ISOLATE_TEST 38
 
 // --- Begin main testing function ---
 int main(int argc, char** argv)
@@ -93,7 +93,7 @@ int main(int argc, char** argv)
 
   for(uint16_t i = 0; i<TESTNUM; ++i)
     testnums[i] = i;
-  Shuffle(testnums); 
+  Shuffle(testnums);
 
   // For best results on windows, add the test application to Application Verifier before going through the tests.
   TESTDEF tests[] = {

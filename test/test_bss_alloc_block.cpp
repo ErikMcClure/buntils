@@ -1,8 +1,9 @@
 // Copyright ©2017 Black Sphere Studios
 // For conditions of distribution and use, see copyright notice in "bss_util.h"
 
-#include "bss-util/BlockAlloc.h"
+#include "test.h"
 #include "test_alloc.h"
+#include "bss-util/BlockAlloc.h"
 
 using namespace bss;
 

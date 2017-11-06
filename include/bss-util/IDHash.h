@@ -102,7 +102,7 @@ namespace bss {
     typename ST = size_t,
     typename Alloc = StaticAllocPolicy<T>, 
     T INVALID = 0, 
-    khint_t(*__hash_func)(const T&) = &internal::_HashHelper<T, false>::hash, bool(*__hash_equal)(const T&, const T&) = &internal::_HashHelper<T, false>::equal>
+    khint_t(*__hash_func)(const T&) = &KH_AUTO_HASH<T, false>, bool(*__hash_equal)(const T&, const T&) = &KH_AUTO_EQUAL<T, false>>
   class IDReverse : protected IDHash<T, ST, Alloc, INVALID>
   {
   protected:

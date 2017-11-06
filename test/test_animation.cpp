@@ -1,9 +1,9 @@
 // Copyright ©2017 Black Sphere Studios
 // For conditions of distribution and use, see copyright notice in "bss_util.h"
 
+#include "test.h"
 #include "bss-util/Animation.h"
 #include "bss-util/Variant.h"
-#include "test.h"
 #include <memory>
 
 using namespace bss;
@@ -68,6 +68,13 @@ TESTDEF::RETPAIR test_ANIMATION()
     AniState<cAnimObj, Animation<PtrAni>, AniStateDiscrete<cAnimObj, PtrAni, RefCounter*, &cAnimObj::donothing>> s0(&obj, &a0);
     AniState<cAnimObj, Animation<RefAni>, AniStateInterval<cAnimObj, RefAni, ref_ptr<RefCounter>, RefCounter*, &cAnimObj::retnothing, &cAnimObj::remnothing>> s1(&obj, &a1);
     AniState<cAnimObj, Animation<FloatAni>, AniStateSmooth<cAnimObj, FloatAni, float, &cAnimObj::setfloat>> s2(&obj, &a2);
+
+    s2.SetValues(std::tuple<float>{ 15.0f });
+    auto v0 = s0.GetValues();
+    auto v1 = s1.GetValues();
+    auto v2 = s2.GetValues();
+    static_assert(std::is_same<std::tuple<float>, decltype(v2)>::value, "Wrong VALUE tuple");
+    TEST(std::get<0>(v2) == 15.0f);
 
     static_assert(Animation<PtrAni>::STATESIZE == sizeof(s0), "STATESIZE should be sizeof(s0)");
     static_assert(Animation<RefAni>::STATESIZE == sizeof(s1), "STATESIZE should be sizeof(s1)");

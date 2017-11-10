@@ -9,7 +9,7 @@
 
 namespace bss {
   // Simple circular array implementation. Unlike most data structures, CType must be signed instead of unsigned
-  template<class T, typename CType = ptrdiff_t, ARRAY_TYPE ArrayType = ARRAY_SIMPLE, typename Alloc = StaticAllocPolicy<T>>
+  template<class T, typename CType = ptrdiff_t, ARRAY_TYPE ArrayType = ARRAY_SIMPLE, typename Alloc = StandardAllocator<T>>
   class BSS_COMPILER_DLLEXPORT ArrayCircular : protected ArrayBase<T, CType, ArrayType, Alloc>
   {
   protected:
@@ -21,12 +21,14 @@ namespace bss {
 
   public:
     // Constructors
-    inline ArrayCircular(const ArrayCircular& copy) : BASE(0), _cur(-1), _length(0) { operator=(copy); }
+    inline ArrayCircular(const ArrayCircular& copy) : BASE(0, copy), _cur(-1), _length(0) { operator=(copy); }
     inline ArrayCircular(ArrayCircular&& mov) : BASE(std::move(mov)), _cur(mov._cur), _length(mov._length)
     { 
       mov._cur = -1;
       mov._length = 0;
     }
+    template<bool U = std::is_void_v<typename Alloc::policy_type>, std::enable_if_t<!U, int> = 0>
+    inline ArrayCircular(CType size, typename Alloc::policy_type* policy) : BASE(size, policy), _cur(-1), _length(0) {}
     inline explicit ArrayCircular(CType size = 0) : BASE(size), _cur(-1), _length(0) {}
     inline ~ArrayCircular() { Clear(); }
     BSS_FORCEINLINE void Push(const T& item) { _push<const T&>(item); }
@@ -79,7 +81,7 @@ namespace bss {
       }
       else if(nsize > _capacity)
       {
-        T* n = BASE::_getAlloc(nsize);
+        T* n = BASE::_getAlloc(nsize, 0, 0);
         if(_cur - _length >= -1) // If true the chunk is contiguous
           BASE::_copyMove(n + _cur - _length + 1, _array + _cur - _length + 1, _length);
         else

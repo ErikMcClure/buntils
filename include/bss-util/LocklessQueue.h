@@ -41,17 +41,36 @@ namespace bss {
   }
 
   // Single-producer single-consumer lockless queue implemented in such a way that it can use a normal single-threaded allocator
-  template<typename T, typename LENGTH = void>
-  class LocklessQueue : public internal::LocklessQueue_Length<LENGTH>
+  template<typename T, typename LENGTH = void, typename Alloc = PolymorphicAllocator<internal::LQ_QNode<T>, BlockPolicy>>
+  class LocklessQueue : public internal::LocklessQueue_Length<LENGTH>, public Alloc
   {
     typedef internal::LQ_QNode<T> QNODE;
     LocklessQueue(const LocklessQueue&) = delete;
-      LocklessQueue& operator=(const LocklessQueue&)= delete;
+    LocklessQueue& operator=(const LocklessQueue&) = delete;
 
   public:
-    LocklessQueue(LocklessQueue&& mov) : internal::LocklessQueue_Length<LENGTH>(std::move(mov)), _div(mov._div), _last(mov._last), _first(mov._first), _alloc(std::move(mov._alloc)) { mov._div = mov._last = mov._first = 0; }
-    inline LocklessQueue() { _div = _last = _first = _alloc.Alloc(1); new((QNODE*)_first) QNODE(); /*assert(_last.is_lock_free()); assert(_div.is_lock_free());*/ } // bug in GCC doesn't define is_lock_free
-    inline ~LocklessQueue() {} // Don't need to clean up because the allocator will destroy everything by itself
+    LocklessQueue(LocklessQueue&& mov) : Alloc(std::move(mov)), internal::LocklessQueue_Length<LENGTH>(std::move(mov)), _div(mov._div), _last(mov._last), _first(mov._first) { mov._div = mov._last = mov._first = 0; }
+    template<bool U = std::is_void_v<typename Alloc::policy_type>, std::enable_if_t<!U, int> = 0>
+    inline LocklessQueue(typename Alloc::policy_type* policy) : Alloc(policy)
+    {
+      _div = _last = _first = Alloc::allocate(1);
+      new((QNODE*)_first) QNODE();
+    }
+    inline LocklessQueue()
+    {
+      _div = _last = _first = Alloc::allocate(1);
+      new((QNODE*)_first) QNODE();
+      /*assert(_last.is_lock_free()); assert(_div.is_lock_free());*/   // bug in GCC doesn't define is_lock_free
+    }
+    inline ~LocklessQueue()
+    {
+      while(QNODE* tmp = _first)
+      {
+        _first = _first->next;
+        tmp->~QNODE();
+        Alloc::deallocate(tmp, 1);
+      }
+    }
     BSS_FORCEINLINE void Push(const T& t) { _produce<const T&>(t); }
     BSS_FORCEINLINE void Push(T&& t) { _produce<T&&>(std::move(t)); }
     inline bool Pop(T& result)
@@ -72,10 +91,10 @@ namespace bss {
 
     inline LocklessQueue& operator=(LocklessQueue&& mov)
     {
+      Alloc::operator=(std::move(mov));
       _div = mov._div;
       _last = mov._last;
       _first = mov._first;
-      _alloc = std::move(mov._alloc);
       mov._div = mov._last = mov._first = 0;
       internal::LocklessQueue_Length<LENGTH>::operator=(std::move(mov));
       return *this;
@@ -86,7 +105,7 @@ namespace bss {
     void _produce(U && t)
     {
       QNODE* last = _last.load(std::memory_order_acquire);
-      last->next = _alloc.Alloc(1);
+      last->next = Alloc::allocate(1);
       new((QNODE*)last->next) QNODE(std::forward<U>(t));
       _last.store(last->next, std::memory_order_release); // publish it
       internal::LocklessQueue_Length<LENGTH>::_incLength(); // If we are tracking length, atomically increment it
@@ -97,28 +116,54 @@ namespace bss {
         tmp = _first;
         _first = _first->next;
         tmp->~QNODE(); // We have to let item clean itself up
-        _alloc.Dealloc(tmp);
+        Alloc::deallocate(tmp, 1);
       }
     }
 
-    BlockAlloc<QNODE> _alloc;
     QNODE* _first;
     BSS_ALIGN(64) std::atomic<QNODE*> _div; // Align to try and get them on different cache lines
     BSS_ALIGN(64) std::atomic<QNODE*> _last;
   };
 
   // Multi-producer Multi-consumer microlock queue using a multithreaded allocator
-  template<typename T, typename LENGTH = void>
-  class MicroLockQueue : public internal::LocklessQueue_Length<LENGTH>
+  template<typename T, typename LENGTH = void, typename Alloc = PolymorphicAllocator<internal::LQ_QNode<T>, LocklessBlockPolicy>>
+  class MicroLockQueue : public internal::LocklessQueue_Length<LENGTH>, Alloc
   {
     typedef internal::LQ_QNode<T> QNODE;
     MicroLockQueue(const MicroLockQueue&) = delete;
-      MicroLockQueue& operator=(const MicroLockQueue&) = delete;
+    MicroLockQueue& operator=(const MicroLockQueue&) = delete;
 
   public:
-    MicroLockQueue(MicroLockQueue&& mov) : internal::LocklessQueue_Length<LENGTH>(std::move(mov)), _div(mov._div), _last(mov._last), _alloc(std::move(mov._alloc)) { mov._div = mov._last = 0; _cflag.clear(std::memory_order_relaxed);  _pflag.clear(std::memory_order_relaxed); }
-    inline MicroLockQueue() { _last = _div = _alloc.Alloc(1); new(_div)QNODE(); _cflag.clear(std::memory_order_relaxed);  _pflag.clear(std::memory_order_relaxed); }
-    inline ~MicroLockQueue() {} // Don't need to clean up because the allocator will destroy everything by itself
+    MicroLockQueue(MicroLockQueue&& mov) : Alloc(std::move(mov)), internal::LocklessQueue_Length<LENGTH>(std::move(mov)), _div(mov._div), _last(mov._last)
+    {
+      mov._div = mov._last = 0;
+      _cflag.clear(std::memory_order_relaxed);
+      _pflag.clear(std::memory_order_relaxed);
+    }
+    template<bool U = std::is_void_v<typename Alloc::policy_type>, std::enable_if_t<!U, int> = 0>
+    inline explicit MicroLockQueue(typename Alloc::policy_type* policy) : Alloc(policy)
+    {
+      _last = _div = Alloc::allocate(1);
+      new(_div)QNODE();
+      _cflag.clear(std::memory_order_relaxed);
+      _pflag.clear(std::memory_order_relaxed);
+    }
+    inline MicroLockQueue()
+    {
+      _last = _div = Alloc::allocate(1);
+      new(_div)QNODE();
+      _cflag.clear(std::memory_order_relaxed);
+      _pflag.clear(std::memory_order_relaxed);
+    }
+    inline ~MicroLockQueue()
+    {
+      while(QNODE* tmp = _div)
+      {
+        _div = _div->next;
+        tmp->~QNODE();
+        Alloc::deallocate(tmp, 1);
+      }
+    }
     BSS_FORCEINLINE void Push(const T& t) { _produce<const T&>(t); }
     BSS_FORCEINLINE void Push(T&& t) { _produce<T&&>(std::move(t)); }
     inline bool Pop(T& result)
@@ -135,7 +180,7 @@ namespace bss {
         _div = n;
         _cflag.clear(std::memory_order_release);
         ref->~QNODE(); // We have to let item clean itself up
-        _alloc.Dealloc(ref);
+        Alloc::deallocate(ref, 1);
         internal::LocklessQueue_Length<LENGTH>::_decLength(); // If we are tracking length, atomically decrement it
         return true;
       }
@@ -146,9 +191,9 @@ namespace bss {
     inline bool Peek() { return _div->next != 0; }
     inline MicroLockQueue& operator=(MicroLockQueue&& mov)
     {
+      Alloc::operator=(std::move(mov));
       _div = mov._div;
       _last = mov._last;
-      _alloc = std::move(mov._alloc);
       _cflag.clear(std::memory_order_release);
       mov._div = mov._last = 0;
       internal::LocklessQueue_Length<LENGTH>::operator=(std::move(mov));
@@ -158,7 +203,7 @@ namespace bss {
     template<typename U>
     void _produce(U && t)
     {
-      QNODE* nval = _alloc.Alloc(1);
+      QNODE* nval = Alloc::allocate(1);
       new(nval) QNODE(std::forward<U>(t));
 
       while(_pflag.test_and_set(std::memory_order_acquire));
@@ -168,7 +213,6 @@ namespace bss {
       internal::LocklessQueue_Length<LENGTH>::_incLength(); // If we are tracking length, atomically increment it
     }
 
-    LocklessBlockAlloc<QNODE> _alloc;
     BSS_ALIGN(64) QNODE* _div; // Align to try and get them on different cache lines
     BSS_ALIGN(64) QNODE* _last;
     BSS_ALIGN(64) std::atomic_flag _cflag;

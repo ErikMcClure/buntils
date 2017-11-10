@@ -94,20 +94,23 @@ namespace bss {
   enum ARRAY_TYPE : uint8_t { ARRAY_SIMPLE = 0, ARRAY_CONSTRUCT = 1, ARRAY_SAFE = 2, ARRAY_MOVE = 3 };
 
   // Handles the very basic operations of an array. Constructor management is done by classes that inherit this class.
-  template<class T, typename CType = size_t, ARRAY_TYPE ArrayType = ARRAY_SIMPLE, typename Alloc = StaticAllocPolicy<T>>
-  class BSS_COMPILER_DLLEXPORT ArrayBase
+  template<class T, typename CType = size_t, ARRAY_TYPE ArrayType = ARRAY_SIMPLE, typename Alloc = StandardAllocator<T>>
+  class BSS_COMPILER_DLLEXPORT ArrayBase : protected Alloc
   {
   public:
     typedef CType CT; // There are cases when you need access to these types even if you don't inherit (see RandomQueue in bss_algo.h)
     typedef T Ty;
     static_assert(std::is_integral<CT>::value, "CType must be integral");
 
-    inline ArrayBase(ArrayBase&& mov) : _array(mov._array), _capacity(mov._capacity)
+    inline ArrayBase(ArrayBase&& mov) : Alloc(std::move(mov)), _array(mov._array), _capacity(mov._capacity)
     {
       mov._array = 0;
       mov._capacity = 0;
     }
-    inline explicit ArrayBase(CT capacity) : _array(_getAlloc(capacity)), _capacity(capacity) {}
+    inline ArrayBase(CT capacity, const Alloc& copy) : Alloc(copy), _array(0), _capacity(0) { _array = _getAlloc(capacity, 0, 0); _capacity = capacity; }
+    template<bool U = std::is_void_v<typename Alloc::policy_type>, std::enable_if_t<!U, int> = 0>
+    inline ArrayBase(CT capacity, typename Alloc::policy_type* policy) : Alloc(policy), _array(0), _capacity(0) { _array = _getAlloc(capacity, 0, 0); _capacity = capacity; }
+    inline explicit ArrayBase(CT capacity) : _array(0), _capacity(0) { _array = _getAlloc(capacity, 0, 0); _capacity = capacity; }
     inline ArrayBase() : _array(0), _capacity(0) {}
     inline ~ArrayBase()
     {
@@ -116,6 +119,7 @@ namespace bss {
     ArrayBase& operator=(ArrayBase&& mov) noexcept
     {
       _free(_array);
+      Alloc::operator=(std::move(mov));
       _array = mov._array;
       _capacity = mov._capacity;
       mov._array = 0;
@@ -126,15 +130,15 @@ namespace bss {
   protected:
     BSS_FORCEINLINE void _setCapacity(CT capacity) noexcept
     { 
-      if(capacity > _capacity)
-        _array = _getAlloc(capacity, _array);
+      assert((_capacity != 0) == (_array != 0));
+      _array = _getAlloc(capacity, _array, _capacity);
       _capacity = capacity;
     }
     BSS_FORCEINLINE void _setCapacityDiscard(CT capacity) noexcept
     {
       _free(_array);
+      _array = _getAlloc(capacity, 0, 0);
       _capacity = capacity;
-      _array = _getAlloc(_capacity, 0);
     }
 
     static void _setLength(T* dest, CType old, CType n) noexcept
@@ -159,7 +163,7 @@ namespace bss {
         _setCapacity(capacity);
       else if constexpr(ArrayType == ARRAY_SAFE || ArrayType == ARRAY_MOVE)
       {
-        T* n = _getAlloc(capacity, 0);
+        T* n = _getAlloc(capacity, 0, 0);
         if(n != nullptr)
           _copyMove(n, _array, bssmin(length, capacity));
         _free(_array);
@@ -168,16 +172,17 @@ namespace bss {
       }
     }
 
-    static inline T* _getAlloc(CT n, T* prev = 0) noexcept
+    inline T* _getAlloc(CT n, T* prev, CT old) noexcept
     {
+      assert((_capacity != 0) == (_array != 0));
       if(!n)
       {
         _free(prev);
         return 0;
       }
-      return (T*)Alloc::allocate((size_t)n, prev);
+      return (T*)Alloc::allocate((size_t)n, prev, old);
     }
-    static BSS_FORCEINLINE void _free(T* p) noexcept { if(p) Alloc::deallocate(p); }
+    BSS_FORCEINLINE void _free(T* p) noexcept { if(p) Alloc::deallocate(p, _capacity); }
     // static_assert(!std::is_polymorphic<T>::value, "memcpy can't be used on type with vtable"); // Can't use this check because it becomes impossible to declare an array of the type the array itself is in.
     static void _copyMove(T* BSS_RESTRICT dest, T* BSS_RESTRICT src, CType n) noexcept
     {
@@ -253,7 +258,7 @@ namespace bss {
   };
 
   // Wrapper for underlying arrays that expose the array, making them independently usable without blowing up everything that inherits them
-  template<class T, typename CType = size_t, ARRAY_TYPE ArrayType = ARRAY_SIMPLE, typename Alloc = StaticAllocPolicy<T>>
+  template<class T, typename CType = size_t, ARRAY_TYPE ArrayType = ARRAY_SIMPLE, typename Alloc = StandardAllocator<T>>
   class BSS_COMPILER_DLLEXPORT Array : protected ArrayBase<T, CType, ArrayType, Alloc>
   {
   protected:
@@ -264,7 +269,7 @@ namespace bss {
     using BASE::_capacity;
 
   public:
-    inline Array(const Array& copy) : BASE(copy._capacity) { BASE::_copy(_array, copy._array, _capacity); } // We have to declare this because otherwise its interpreted as deleted
+    inline Array(const Array& copy) : BASE(copy._capacity, copy) { BASE::_copy(_array, copy._array, _capacity); } // We have to declare this because otherwise its interpreted as deleted
     inline Array(Array&& mov) : BASE(std::move(mov)) {}
     inline Array(const std::initializer_list<T>& list) : BASE(list.size())
     {
@@ -272,8 +277,10 @@ namespace bss {
       CT c = 0;
       for(auto i = list.begin(); i != end && c < _capacity; ++i)
         new(_array + (c++)) T(*i);
-      _capacity = c;
+      BASE::_setCapacity(c, _capacity);
     }
+    template<bool U = std::is_void_v<typename Alloc::policy_type>, std::enable_if_t<!U, int> = 0>
+    inline Array(CT capacity, typename Alloc::policy_type* policy) : BASE(capacity, policy) { BASE::_setLength(_array, 0, _capacity); }
     inline explicit Array(CT capacity = 0) : BASE(capacity) { BASE::_setLength(_array, 0, _capacity); }
     inline explicit Array(const Slice<const T, CT>& slice) : BASE(slice.length) { BASE::_copy(_array, slice.begin, slice.length); }
     inline ~Array() { BASE::_setLength(_array, _capacity, 0); }
@@ -281,7 +288,8 @@ namespace bss {
     BSS_FORCEINLINE CT Add(T&& item) { _insert(std::move(item), _capacity); return _capacity - 1; }
     BSS_FORCEINLINE void Remove(CT index)
     {
-      BASE::_remove(_array, _capacity--, index); // we don't bother reallocating the array because it got smaller, so we just ignore part of it.
+      BASE::_remove(_array, _capacity, index); // we don't bother reallocating the array because it got smaller, so we just ignore part of it.
+      BASE::_setCapacity(_capacity - 1, _capacity);
     }
     BSS_FORCEINLINE void RemoveLast() { Remove(_capacity - 1); }
     BSS_FORCEINLINE void Insert(const T& item, CT index = 0) { _insert(item, index); }
@@ -409,11 +417,27 @@ namespace bss {
     template<typename T>
     class VariableArray
     {
+      static const size_t HEAPFLAG = (size_t(1) << ((sizeof(size_t) << 3) - 1));
+      static const size_t HEAPMASK = ~HEAPFLAG;
     public:
       VariableArray(VariableArray&&) = delete;
       VariableArray(const VariableArray&) = delete;
-      VariableArray(size_t n, T* p) : _p(p ? p : (T*)malloc(n * sizeof(T))), _heap(!p) {}
-      ~VariableArray() { if(_heap) free(_p); }
+      VariableArray(size_t n, T* p) : _p(p ? p : (T*)malloc(n * sizeof(T))), _heap((size_t(!p) << ((sizeof(size_t) << 3) - 1)) | (n&HEAPMASK)) {
+        if constexpr(!std::is_trivially_default_constructible<T>::value)
+          for(size_t i = 0; i < n; ++i)
+            new(p + i) T();
+      }
+      ~VariableArray()
+      {
+        if constexpr(!std::is_trivially_destructible<T>::value)
+        {
+          size_t n = _heap&HEAPMASK;
+          for(size_t i = 0; i < n; ++i)
+            _p[i].~T();
+        }
+        if(_heap&HEAPFLAG)
+          free(_p); 
+      }
 
       inline bool operator !() const noexcept { return !_p; }
       inline bool operator ==(const T* right) const noexcept { return _p == right; }
@@ -430,7 +454,7 @@ namespace bss {
 
     protected:
       T* _p;
-      bool _heap;
+      size_t _heap;
     };
   }
 }

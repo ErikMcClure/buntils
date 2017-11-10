@@ -54,8 +54,8 @@ namespace bss {
   }
 
   // Represents a graph using an adjacency list. Converts to and from an adjacency matrix representation.
-  template<typename E, typename V, typename CT = uint16_t, typename ALLOC = BlockPolicy<Edge<E, CT>>, typename NODEALLOC = StaticAllocPolicy<internal::LINKEDNODE<Node<E, V, CT>, CT>>, ARRAY_TYPE ArrayType = ARRAY_SIMPLE>
-  class Graph : public AllocTracker<ALLOC>, protected internal::__Graph__InternalEdge<E>, protected internal::__Graph__InternalVertex<V, CT>
+  template<typename E, typename V, typename CT = uint16_t, typename Alloc = PolymorphicAllocator<Edge<E, CT>, BlockPolicy>, typename NODEALLOC = StandardAllocator<internal::LINKEDNODE<Node<E, V, CT>, CT>>, ARRAY_TYPE ArrayType = ARRAY_SIMPLE>
+  class Graph : public Alloc, protected internal::__Graph__InternalEdge<E>, protected internal::__Graph__InternalVertex<V, CT>
   {
     static BSS_FORCEINLINE bool _baseCheck(const char* b) { return (*b) != 0; }
     static BSS_FORCEINLINE LLBase<Edge<E, CT>>& _altGet(Edge<E, CT>* p) { return p->alt; }
@@ -69,7 +69,9 @@ namespace bss {
     Graph(const Graph&) = delete;
       Graph& operator=(const Graph&)= delete;
   public:
-    inline Graph(Graph&& mov) : AllocTracker<ALLOC>(std::move(mov)), _nodes(std::move(mov._nodes)), _nedges(mov._nedges) { mov._nedges = 0; }
+    inline Graph(Graph&& mov) : Alloc(std::move(mov)), _nodes(std::move(mov._nodes)), _nedges(mov._nedges) { mov._nedges = 0; }
+    template<bool U = std::is_void_v<typename Alloc::policy_type>, std::enable_if_t<!U, int> = 0>
+    inline explicit Graph(typename Alloc::policy_type* policy) : Alloc(policy), _nodes(0), _nedges(0) {}
     inline Graph() : _nodes(0), _nedges(0) {}
     // Build a matrix out of a standard adjacency matrix
     inline Graph(CT n, const char* M, const V* nodes) : _nodes(n), _nedges(0) { _construct<char, _baseCheck>(n, M, nodes); }
@@ -93,7 +95,7 @@ namespace bss {
     inline CT AddNode(const V* node) { if(!node) return AddNode(); Node<E, V, CT> aux; aux.to = 0; aux.from = 0; _setDataV(aux, node); return _nodes.Add(aux); }
     inline Edge<E, CT>* AddEdge(CT from, CT to)
     {
-      Edge<E, CT>* r = AllocTracker<ALLOC>::_allocate(1);
+      Edge<E, CT>* r = Alloc::allocate(1);
       r->to = to;
       r->from = from;
       LLAdd(r, _nodes[from].to);
@@ -118,7 +120,7 @@ namespace bss {
     {
       LLRemove(edge, _nodes[edge->from].to);
       AltLLRemove<Edge<E, CT>, &Graph::_altGet>(edge, _nodes[edge->to].from);
-      AllocTracker<ALLOC>::_deallocate(edge);
+      Alloc::deallocate(edge, 1);
       --_nedges;
     }
     template<bool ISEDGE(const E*)>
@@ -151,6 +153,7 @@ namespace bss {
     inline Node<E, V, CT>& operator[](CT index) { return _nodes[index]; }
     inline Graph& operator=(Graph&& mov) 
     { 
+      Alloc::operator=(std::move(mov));
       _nodes = std::move(mov._nodes); 
       _nedges = mov._nedges; 
       mov._nedges = 0; 
@@ -414,7 +417,7 @@ namespace bss {
       return;
 
     VARARRAY(CT, aset, graph.Capacity());
-    DisjointSet<CT, StaticNullPolicy<SST>> set(reinterpret_cast<SST*>((CT*)aset), graph.Capacity());
+    DisjointSet<CT, NullAllocator<SST>> set(reinterpret_cast<SST*>((CT*)aset), graph.Capacity());
 
     // Queue up everything next to the root, checking only for edges that connect the root to itself
     size_t l = 0;

@@ -5,7 +5,7 @@
 #define __AVLTREE_H__BSS__
 
 #include "compare.h"
-#include "Alloc.h"
+#include "BlockAlloc.h"
 
 namespace bss {
   template<class KeyData> // If data is non-void, KeyData is std::pair<Key,Data>, otherwise it's just Key
@@ -79,8 +79,8 @@ namespace bss {
   }
 
   // AVL Tree implementation
-  template<class Key, class Data, char(*CFunc)(const Key&, const Key&) = CompT<Key>, typename Alloc = StandardAllocPolicy<typename internal::AVLTreeDataField<Key, Data>::Node>>
-  class BSS_COMPILER_DLLEXPORT AVLTree : protected AllocTracker<Alloc>, public internal::AVLTreeDataField<Key, Data>
+  template<class Key, class Data, char(*CFunc)(const Key&, const Key&) = CompT<Key>, typename Alloc = PolymorphicAllocator<typename internal::AVLTreeDataField<Key, Data>::Node, BlockPolicy>>
+  class BSS_COMPILER_DLLEXPORT AVLTree : protected Alloc, public internal::AVLTreeDataField<Key, Data>
   {
     AVLTree(const AVLTree& copy) = delete;
     AVLTree& operator=(const AVLTree& copy) = delete;
@@ -92,8 +92,10 @@ namespace bss {
     typedef typename Base::DataGet DataGet;
 
   public:
-    inline AVLTree(AVLTree&& mov) : AllocTracker<Alloc>(std::move(mov)), _root(mov._root) { mov._root = 0; }
-    inline AVLTree(Alloc* allocator = 0) : AllocTracker<Alloc>(allocator), _root(0) {}
+    inline AVLTree(AVLTree&& mov) : Alloc(std::move(mov)), _root(mov._root) { mov._root = 0; }
+    template<bool U = std::is_void_v<typename Alloc::policy_type>, std::enable_if_t<!U, int> = 0>
+    inline explicit AVLTree(typename Alloc::policy_type* policy) : Alloc(policy), _root(0) {}
+    inline AVLTree() : _root(0) {}
     inline ~AVLTree() { Clear(); }
     inline void Clear() { _clear(_root); _root = 0; }
     inline Node* GetRoot() { return _root; }
@@ -137,7 +139,7 @@ namespace bss {
       if(node != 0)
       {
         node->~Node();
-        AllocTracker<Alloc>::_deallocate(node, 1);
+        Alloc::deallocate(node, 1);
         return true;
       }
 
@@ -153,7 +155,7 @@ namespace bss {
       {
         Base::_setData(old, cur);
         old->~Node();
-        AllocTracker<Alloc>::_deallocate(old, 1);
+        Alloc::deallocate(old, 1);
       }
 
       return (cur != 0);
@@ -181,7 +183,7 @@ namespace bss {
       _clear(node->_left);
       _clear(node->_right);
       node->~Node();
-      AllocTracker<Alloc>::_deallocate(node, 1);
+      Alloc::deallocate(node, 1);
     }
 
     static void _leftRotate(Node** pnode)
@@ -215,7 +217,7 @@ namespace bss {
 
       if(!root)
       {
-        root = AllocTracker<Alloc>::_allocate(1);
+        root = Alloc::allocate(1);
         *proot = root;
         new(root) Node();
         Base::_getKey(root->_key) = key;

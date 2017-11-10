@@ -78,7 +78,7 @@ int DEBUG_CDT_SAFE::count = 0;
 int DEBUG_CDT_SAFE::ID = 0;
 bss::Hash<int> DEBUG_CDT_SAFE::Tracker;
 
-//#define BSS_ISOLATE_TEST 38
+//#define BSS_ISOLATE_TEST 8
 
 // --- Begin main testing function ---
 int main(int argc, char** argv)
@@ -87,7 +87,7 @@ int main(int argc, char** argv)
   SetWorkDirToCur();
   _failedtests.AddTarget("failedtests.txt");
   uint64_t seed = (uint64_t)time(nullptr);
-  seed = 1489803649;
+  //seed = 1489803649;
   bssRandSeed(seed);
   //profile_ring_alloc();
 
@@ -101,10 +101,11 @@ int main(int argc, char** argv)
     { "bss_util.h", &test_bss_util },
     { "Log.h", &test_bss_LOG },
     { "algo.h", &test_bss_algo },
-    { "GreedyAlloc.h", &test_bss_ALLOC_ADDITIVE },
+    { "GreedyAlloc.h", &test_bss_ALLOC_GREEDY },
     { "RingAlloc.h", &test_bss_ALLOC_RING },
     { "BlockAlloc.h", &test_bss_ALLOC_BLOCK },
     { "BlockAllocMT.h", &test_bss_ALLOC_BLOCK_LOCKLESS },
+    { "CacheAlloc.h", &test_bss_ALLOC_CACHE },
     { "GreedyBlockAlloc.h", &test_bss_ALLOC_GREEDY_BLOCK },
     { "bss_depracated.h", &test_bss_deprecated },
     { "Dual.h", &test_bss_DUAL },

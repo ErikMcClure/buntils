@@ -57,7 +57,10 @@ struct DEBUG_CDT_SAFE
 {
   DEBUG_CDT_SAFE(const DEBUG_CDT_SAFE& copy) : _safe(copy._safe), __testret(*_testret) { isdead = this; }
   explicit DEBUG_CDT_SAFE(bool safe) : _safe(safe), __testret(*_testret) { isdead = this; }
-  ~DEBUG_CDT_SAFE() { if(_safe) TEST(isdead == this) }
+  ~DEBUG_CDT_SAFE() { 
+    if(_safe) 
+      TEST(isdead == this) 
+  }
 
   inline DEBUG_CDT_SAFE& operator=(const DEBUG_CDT_SAFE& right) { return *this; }
 
@@ -132,8 +135,9 @@ TESTDEF::RETPAIR test_COMPACTARRAY();
 TESTDEF::RETPAIR test_bss_algo();
 TESTDEF::RETPAIR test_bss_ALLOC_BLOCK();
 TESTDEF::RETPAIR test_bss_ALLOC_BLOCK_LOCKLESS();
+TESTDEF::RETPAIR test_bss_ALLOC_CACHE();
 TESTDEF::RETPAIR test_bss_ALLOC_RING();
-TESTDEF::RETPAIR test_bss_ALLOC_ADDITIVE();
+TESTDEF::RETPAIR test_bss_ALLOC_GREEDY();
 TESTDEF::RETPAIR test_bss_ALLOC_GREEDY_BLOCK();
 TESTDEF::RETPAIR test_bss_deprecated();
 TESTDEF::RETPAIR test_bss_GRAPH();

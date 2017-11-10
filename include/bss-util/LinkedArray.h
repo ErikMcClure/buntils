@@ -19,7 +19,7 @@ namespace bss {
   }
 
   // Linked list implemented as an array.
-  template<class T, typename CType = size_t, ARRAY_TYPE ArrayType = ARRAY_SIMPLE, typename Alloc = StaticAllocPolicy<internal::LINKEDNODE<T, CType>>>
+  template<class T, typename CType = size_t, ARRAY_TYPE ArrayType = ARRAY_SIMPLE, typename Alloc = StandardAllocator<internal::LINKEDNODE<T, CType>>>
   class BSS_COMPILER_DLLEXPORT LinkedArray
   {
   public:
@@ -30,6 +30,8 @@ namespace bss {
     inline LinkedArray() : _ref(1), _length(0), _start(-1), _end(-1), _freelist(-1) { _setupChunk(0); }
     inline LinkedArray(const LinkedArray& copy) : _ref(copy._ref), _length(copy._length), _start(copy._start), _end(copy._end), _freelist(copy._freelist) {}
     inline LinkedArray(LinkedArray&& mov) : _ref(std::move(mov._ref)), _length(mov._length), _start(mov._start), _end(mov._end), _freelist(mov._freelist) { mov._ref = 1; mov._length = 0; mov._start = mov._end = -1 = mov._freelist = -1; }
+    template<bool U = std::is_void_v<typename Alloc::policy_type>, std::enable_if_t<!U, int> = 0>
+    inline LinkedArray(CT_ size, typename Alloc::policy_type* policy) : _ref(size, policy), _length(0), _start(-1), _end(-1), _freelist(-1) { _setupChunk(0); }
     inline explicit LinkedArray(CT_ size) : _ref(size), _length(0), _start(-1), _end(-1), _freelist(-1) { _setupChunk(0); }
     inline ~LinkedArray() {}
     BSS_FORCEINLINE CT_ Add(const T& item) { return InsertAfter(item, _end); }

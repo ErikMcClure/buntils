@@ -7,6 +7,9 @@
 - Simplified `Hash` implementation and added `std::tuple` support
 - Switched `Map` to use `std::tuple` so it can be iterated over with `for(auto[k,v] : map)`
 - Added precompiled header to makefile and visual studio projects
+- VARARRAY now constructs and destructs nontrivial types
+- Unified static/stateful allocators and require reallocations to input the correct old size
+- Added CacheAlloc
 
 ## 0.5.1
 - Replace most instances of `uint32_t` with `size_t`

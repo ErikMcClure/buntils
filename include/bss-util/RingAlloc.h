@@ -256,30 +256,9 @@ namespace bss {
   public:
     inline RingAlloc(RingAlloc&& mov) = default;
     inline explicit RingAlloc(size_t init = 8) : RingAllocVoid(init) {}
-    inline T* Alloc(size_t num) noexcept { return (T*)RingAllocVoid::Alloc(num * sizeof(T)); }
+    inline T* allocate(size_t cnt, const T* p = 0, size_t old = 0) noexcept { assert(!p); return (T*)RingAllocVoid::Alloc(cnt * sizeof(T)); }
+    inline void deallocate(T* p, size_t num = 0) noexcept { return RingAllocVoid::Dealloc(p); }
     inline RingAlloc& operator=(RingAlloc&& mov) noexcept = default;
-  };
-
-  template<typename T>
-  class BSS_COMPILER_DLLEXPORT RingPolicy : protected RingAlloc<T>
-  {
-    RingPolicy(const RingPolicy& copy) = delete;
-    RingPolicy& operator=(const RingPolicy& copy) = delete;
-
-  public:
-    typedef T* pointer;
-    typedef T value_type;
-    template<typename U>
-    struct rebind { typedef RingPolicy<U> other; };
-
-    inline RingPolicy(RingPolicy&& mov) = default;
-    inline RingPolicy() {}
-    inline explicit RingPolicy(size_t init) : RingAlloc<T>(init) {}
-    inline ~RingPolicy() {}
-    inline RingPolicy& operator=(RingPolicy&& mov) noexcept = default;
-
-    inline pointer allocate(size_t cnt, const pointer = 0) noexcept { return RingAlloc<T>::Alloc(cnt); }
-    inline void deallocate(pointer p, size_t num = 0) noexcept { return RingAlloc<T>::Dealloc(p); }
   };
 }
 

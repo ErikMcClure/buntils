@@ -75,7 +75,7 @@ namespace bss {
     void _copy(const INIsection& copy);
 
     static INIentry _entrysentinel;
-    static LocklessBlockAlloc<_NODE> _alloc;
+    static LocklessBlockPolicy<_NODE> _alloc;
 
     Str _name;
     size_t _index;

@@ -9,25 +9,9 @@
 
 namespace bss {
   namespace internal {
-  // Static implementation of the standard allocation policy, used for ArrayBase
     struct PROF_HEATNODE
     {
-      struct BSS_COMPILER_DLLEXPORT HeatAllocPolicy {
-        static GreedyAlloc _alloc;
-        inline static PROF_HEATNODE* allocate(size_t cnt, const PROF_HEATNODE* p = 0)
-        {
-          auto n = _alloc.AllocT<PROF_HEATNODE>(cnt + 1);
-          *((size_t*)n++) = cnt;
-          if(p)
-          {
-            size_t l = *((size_t*)(p - 1));
-            memcpy(n, p, l * sizeof(PROF_HEATNODE));
-            deallocate(const_cast<PROF_HEATNODE*>(p));
-          }
-
-          return n;
-        } static void deallocate(PROF_HEATNODE* p, size_t = 0) { _alloc.Dealloc(p - 1); }
-      };
+      static GreedyPolicy<struct PROF_HEATNODE> _alloc;
       static inline char COMP(const PROF_HEATNODE& l, const PROF_HEATNODE& r) { return SGNCOMPARE(r.avg, l.avg); }
       inline bool DEBUGCHECK()
       {
@@ -45,7 +29,7 @@ namespace bss {
       inline PROF_HEATNODE(Profiler::ProfilerInt ID, double Avg) : avg(Avg), id(ID) {}
       inline PROF_HEATNODE(const PROF_HEATNODE& copy) : _children(copy._children), avg(copy.avg), id(copy.id) {}
       inline PROF_HEATNODE(PROF_HEATNODE&& mov) : _children(std::move(mov._children)), avg(mov.avg), id(mov.id) {}
-      ArraySort<struct PROF_HEATNODE, COMP, size_t, ARRAY_CONSTRUCT, HeatAllocPolicy> _children;
+      ArraySort<struct PROF_HEATNODE, COMP, size_t, ARRAY_CONSTRUCT, PolymorphicAllocator<struct PROF_HEATNODE, GreedyPolicy>> _children;
       double avg;
       Profiler::ProfilerInt id;
       PROF_HEATNODE& operator=(PROF_HEATNODE&& mov) { _children = std::move(mov._children); avg = mov.avg; id = mov.id; return *this; }
@@ -63,9 +47,9 @@ namespace bss {
 using namespace bss;
 using namespace bss::internal;
 
-Profiler Profiler::profiler;
+GreedyPolicy<struct PROF_HEATNODE> PROF_HEATNODE::_alloc(128 * sizeof(PROF_HEATNODE));
 Profiler::ProfilerInt Profiler::total = 0;
-GreedyAlloc PROF_HEATNODE::HeatAllocPolicy::_alloc(128 * sizeof(PROF_HEATNODE));
+Profiler Profiler::profiler;
 
 Profiler::Profiler() : _alloc(32), _data(1), _totalnodes(0) { _trie = _cur = _allocNode(); _data[0] = 0; }
 
@@ -112,7 +96,7 @@ void Profiler::WriteToStream(std::ostream& stream, uint8_t output)
     free(avg);
     stream << std::endl << std::endl;
   }
-  PROF_HEATNODE::HeatAllocPolicy::_alloc.Clear();
+  PROF_HEATNODE::_alloc.Clear();
   if(output & OUTPUT_HEATMAP)
   {
     PROF_HEATNODE root;
@@ -245,7 +229,7 @@ void Profiler::_timeFormat(std::ostream& stream, double avg, double variance, ui
 }
 Profiler::PROF_TRIENODE* Profiler::_allocNode()
 {
-  PROF_TRIENODE* r = _alloc.Alloc(1);
+  PROF_TRIENODE* r = _alloc.allocate(1);
   bssFill(*r, 0);
   r->total = (uint64_t)-1;
   ++_totalnodes;

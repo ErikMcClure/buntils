@@ -6,8 +6,8 @@
 
 using namespace bss;
 
-template<bool L, bool S>
-bool cmplist(LinkedList<int, StandardAllocPolicy<LLNode<int>>, L, S>& list, const char* nums)
+template<typename Alloc, bool L, bool S>
+bool cmplist(LinkedList<int, Alloc, L, S>& list, const char* nums)
 {
   auto cur = list.begin();
   bool r = true;
@@ -19,7 +19,7 @@ bool cmplist(LinkedList<int, StandardAllocPolicy<LLNode<int>>, L, S>& list, cons
 TESTDEF::RETPAIR test_LINKEDLIST()
 {
   BEGINTEST;
-  LinkedList<int, StandardAllocPolicy<LLNode<int>>, true, true> test;
+  LinkedList<int, StandardAllocator<LLNode<int>>, true, true> test;
   LLNode<int>* llp[5];
 
   llp[0] = test.Add(1);
@@ -42,7 +42,7 @@ TESTDEF::RETPAIR test_LINKEDLIST()
   TEST(cmplist(test, "230"));
   TEST(test.Length() == 3);
 
-  LinkedList<int, StandardAllocPolicy<LLNode<int>>, false, true> test2;
+  LinkedList<int, StandardAllocator<LLNode<int>>, false, true> test2;
 
   llp[0] = test2.Add(1);
   TEST(cmplist(test2, "1"));
@@ -64,7 +64,7 @@ TESTDEF::RETPAIR test_LINKEDLIST()
   TEST(cmplist(test2, "032"));
   TEST(test2.Length() == 3);
 
-  LinkedList<int, StandardAllocPolicy<LLNode<int>>> test3;
+  LinkedList<int> test3;
 
   llp[0] = test3.Add(1);
   TEST(cmplist(test3, "1"));

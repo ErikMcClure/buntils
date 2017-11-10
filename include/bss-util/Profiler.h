@@ -110,7 +110,7 @@ namespace bss {
     Array<ProfilerData*, ProfilerInt> _data;
     PROF_TRIENODE* _trie;
     PROF_TRIENODE* _cur;
-    BlockAlloc<PROF_TRIENODE> _alloc;
+    BlockPolicy<PROF_TRIENODE> _alloc;
     size_t _totalnodes;
   };
 

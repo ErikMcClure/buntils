@@ -13,7 +13,7 @@ namespace bss {
     class Data,
     char(*CFunc)(const Key&, const Key&) = CompT<Key>,
     typename CType = size_t, ARRAY_TYPE ArrayType = ARRAY_SIMPLE,
-    typename Alloc = StaticAllocPolicy<std::tuple<Key, Data>>>
+    typename Alloc = StandardAllocator<std::tuple<Key, Data>>>
   class BSS_COMPILER_DLLEXPORT Map : protected ArraySort<std::tuple<Key, Data>, &CompTuple<std::tuple<Key, Data>, 0, CFunc>, CType, ArrayType, Alloc>
   {
   protected:

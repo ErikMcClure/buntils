@@ -10,18 +10,18 @@
 namespace bss {
   /* Multi-producer multi-consumer lockless fixed size allocator */
   template<class T>
-  class BSS_COMPILER_DLLEXPORT LocklessBlockAlloc
+  class BSS_COMPILER_DLLEXPORT LocklessBlockPolicy
   {
-    typedef BlockAllocVoid::Node Node;
+    typedef BlockAlloc::Node Node;
   public:
-    inline LocklessBlockAlloc(LocklessBlockAlloc&& mov) : _root(mov._root)
+    inline LocklessBlockPolicy(LocklessBlockPolicy&& mov) : _root(mov._root)
     {
       _freelist.p = mov._freelist.p;
       _freelist.tag = mov._freelist.tag;
       mov._freelist.p = mov._root = 0;
       _flag.clear(std::memory_order_relaxed);
     }
-    inline explicit LocklessBlockAlloc(size_t init = 8) : _root(0)
+    inline explicit LocklessBlockPolicy(size_t init = 8) : _root(0)
     {
       _flag.clear(std::memory_order_relaxed);
       //contention=0;
@@ -31,7 +31,7 @@ namespace bss {
       static_assert((sizeof(bss_PTag<void>) == (sizeof(void*) * 2)), "ABAPointer isn't twice the size of a pointer!");
       _allocChunk(init * sizeof(T));
     }
-    inline ~LocklessBlockAlloc()
+    inline ~LocklessBlockPolicy()
     {
       Node* hold = _root;
 
@@ -41,9 +41,9 @@ namespace bss {
         free(_root);
       }
     }
-    inline T* Alloc(size_t num) noexcept
+    inline T* allocate(size_t num, const T* p = 0, size_t old = 0) noexcept
     {
-      assert(num == 1);
+      assert(num == 1 && !p);
 #ifdef BSS_DISABLE_CUSTOM_ALLOCATORS
       return bssMalloc<T>(num);
 #endif
@@ -75,7 +75,7 @@ namespace bss {
       //assert(_validPointer(ret));
       return (T*)ret.p;
     }
-    inline void Dealloc(void* p) noexcept
+    inline void deallocate(T* p, size_t num = 0) noexcept
     {
 #ifdef BSS_DISABLE_CUSTOM_ALLOCATORS
       free(p); return;
@@ -90,7 +90,7 @@ namespace bss {
       //  *((void**)p)=(void*)_freelist;
     }
 
-    LocklessBlockAlloc& operator=(LocklessBlockAlloc&& mov) noexcept
+    LocklessBlockPolicy& operator=(LocklessBlockPolicy&& mov) noexcept
     {
       _root = mov._root;
       _freelist.p = mov._freelist.p;
@@ -158,25 +158,6 @@ namespace bss {
     BSS_ALIGN(16) volatile bss_PTag<void> _freelist;
     BSS_ALIGN(4) std::atomic_flag _flag;
     Node* _root;
-  };
-
-  template<typename T>
-  class BSS_COMPILER_DLLEXPORT LocklessBlockPolicy : protected LocklessBlockAlloc<T>
-  {
-  public:
-    typedef T* pointer;
-    typedef T value_type;
-    template<typename U>
-    struct rebind { typedef LocklessBlockPolicy<U> other; };
-
-    inline LocklessBlockPolicy(LocklessBlockPolicy&& mov) = default;
-    inline LocklessBlockPolicy() {}
-    inline ~LocklessBlockPolicy() {}
-
-    LocklessBlockPolicy& operator=(LocklessBlockPolicy&& mov) = default;
-
-    inline pointer allocate(size_t cnt, const pointer = 0) noexcept { return LocklessBlockAlloc<T>::Alloc(cnt); }
-    inline void deallocate(pointer p, size_t num = 0) noexcept { return LocklessBlockAlloc<T>::Dealloc(p); }
   };
 }
 

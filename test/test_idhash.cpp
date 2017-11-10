@@ -46,7 +46,7 @@ TESTDEF::RETPAIR test_IDHASH()
   }
 
   {
-    IDReverse<int, uint32_t, StaticAllocPolicy<int>, -1> hash;
+    IDReverse<int, uint32_t, StandardAllocator<int>, -1> hash;
     uint32_t a = hash.Add(1);
     uint32_t b = hash.Add(2);
     uint32_t c = hash.Add(3);

@@ -10,7 +10,7 @@
 
 namespace bss {
   // A dynamic array that keeps its contents sorted using insertion sort and uses a binary search to retrieve items.
-  template<typename T, char(*CFunc)(const T&, const T&) = &CompT<T>, typename CType = size_t, ARRAY_TYPE ArrayType = ARRAY_SIMPLE, typename Alloc = StaticAllocPolicy<T>>
+  template<typename T, char(*CFunc)(const T&, const T&) = &CompT<T>, typename CType = size_t, ARRAY_TYPE ArrayType = ARRAY_SIMPLE, typename Alloc = StandardAllocator<T>>
   class BSS_COMPILER_DLLEXPORT ArraySort
   {
   public:
@@ -21,6 +21,8 @@ namespace bss {
     inline ArraySort(const ArraySort& copy) : _array(copy._array) {}
     inline ArraySort(ArraySort&& mov) : _array(std::move(mov._array)) {}
     inline explicit ArraySort(const Slice<const T, CType>& slice) : _array(slice) {}
+    template<bool U = std::is_void_v<typename Alloc::policy_type>, std::enable_if_t<!U, int> = 0>
+    inline ArraySort(CT_ size, typename Alloc::policy_type* policy) : _array(size, policy) {}
     inline explicit ArraySort(CT_ size = 0) : _array(size) {}
     inline ~ArraySort() {}
     BSS_FORCEINLINE CT_ Insert(constref item) { CT_ loc = _insert(item); _array.Insert(item, loc); return loc; }

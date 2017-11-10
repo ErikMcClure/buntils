@@ -9,27 +9,29 @@
 
 namespace bss {
   // Represents a disjoint set data structure that uses path compression.
-  template<typename T = size_t, typename ALLOC = StaticAllocPolicy<typename std::make_signed<T>::type>>
-  class BSS_COMPILER_DLLEXPORT DisjointSet : protected ArrayBase<typename std::make_signed<T>::type, T, ARRAY_SIMPLE, ALLOC>
+  template<typename T = size_t, typename Alloc = StandardAllocator<typename std::make_signed<T>::type>>
+  class BSS_COMPILER_DLLEXPORT DisjointSet : protected ArrayBase<typename std::make_signed<T>::type, T, ARRAY_SIMPLE, Alloc>
   {
   protected:
-    typedef ArrayBase<typename std::make_signed<T>::type, T, ARRAY_SIMPLE, ALLOC> ARRAY;
+    typedef ArrayBase<typename std::make_signed<T>::type, T, ARRAY_SIMPLE, Alloc> ARRAY;
     typedef typename ARRAY::Ty Ty;
     using ARRAY::_array;
     using ARRAY::_capacity;
 
   public:
     // Construct a disjoint set with num initial sets
-    inline DisjointSet(const DisjointSet& copy) : ARRAY(copy.Capacity()), _numsets(copy._numsets) 
+    inline DisjointSet(const DisjointSet& copy) : ARRAY(copy.Capacity(), copy), _numsets(copy._numsets) 
     { 
       memcpy(_array, copy._array, _capacity); 
     }
     inline DisjointSet(DisjointSet&& mov) : ARRAY(std::move(mov)), _numsets(mov._numsets) { mov._numsets = 0; }
+    template<bool U = std::is_void_v<typename Alloc::policy_type>, std::enable_if_t<!U, int> = 0>
+    inline DisjointSet(T num, typename Alloc::policy_type* policy) : ARRAY(num, policy) { Reset(); }
     inline explicit DisjointSet(T num) : ARRAY(num) { Reset(); }
     inline DisjointSet(Ty* overload, T num) : ARRAY(0)
     { // This let's you use an outside array
-      int v = std::is_same<ALLOC, StaticNullPolicy<Ty>>::value;
-      assert(v != 0); //You must use StaticNullPolicy if you overload the array pointer
+      int v = std::is_same<Alloc, NullAllocator<Ty>>::value;
+      assert(v != 0); //You must use NullAllocator if you overload the array pointer
       _array = overload;
       _capacity = num;
       Reset();
@@ -154,7 +156,7 @@ namespace bss {
     static T MinSpanningTree(T numverts, ITER edges, ITER edgeslast, std::pair<T, T>* out)
     {
       VARARRAY(Ty, arr, numverts); // Allocate everything on the stack
-      DisjointSet<T, StaticNullPolicy<Ty>> set(arr, numverts);
+      DisjointSet<T, NullAllocator<Ty>> set(arr, numverts);
       T num = 0;
 
       for(; edges != edgeslast; ++edges)

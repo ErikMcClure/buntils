@@ -3,8 +3,9 @@
 
 #include "test.h"
 #include "bss-util/bss_util_c.h"
-#include <functional>
 #include "bss-util/algo.h"
+#include <functional>
+#include <thread>
 
 using namespace bss;
 
@@ -120,8 +121,8 @@ TESTDEF::RETPAIR test_bss_util_c()
   b = std::move(std::function<void()>([]() { return; }));
 
   bssCPUInfo info = bssGetCPUInfo();
-  TEST(info.cores>0);
-  TEST(info.SSE>2); // You'd better support at least SSE2
+  TEST(info.cores == std::thread::hardware_concurrency());
+  TEST(info.sse>2); // You'd better support at least SSE2
 #ifdef BSS_64BIT
   TEST(info.flags & 2); // You also have to support cmpxchg16b or lockless.h will explode
 #else

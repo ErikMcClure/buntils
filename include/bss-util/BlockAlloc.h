@@ -8,7 +8,7 @@
 #include "bss_util.h"
 
 namespace bss {
-  class BSS_COMPILER_DLLEXPORT BlockAllocVoid
+  class BSS_COMPILER_DLLEXPORT BlockAlloc
   {
   public:
     // Block Chunk Alloc
@@ -18,18 +18,18 @@ namespace bss {
       Node* next;
     };
 
-    inline BlockAllocVoid(BlockAllocVoid&& mov) : _root(mov._root), _freelist(mov._freelist), _sz(mov._sz), _align(mov._align), _alignsize(mov._alignsize)
+    inline BlockAlloc(BlockAlloc&& mov) : _root(mov._root), _freelist(mov._freelist), _sz(mov._sz), _align(mov._align), _alignsize(mov._alignsize)
     {
       mov._root = 0;
       mov._freelist = 0;
     }
-    inline explicit BlockAllocVoid(size_t sz, size_t init = 8, size_t align = 1) : _root(0), _freelist(0), _sz(AlignSize(sz, align)), _align(align),
+    inline explicit BlockAlloc(size_t sz, size_t init = 8, size_t align = 1) : _root(0), _freelist(0), _sz(AlignSize(sz, align)), _align(align),
       _alignsize(AlignSize(sizeof(Node), align))
     {
       assert(sz >= sizeof(void*));
       _allocChunk(init*_sz);
     }
-    inline ~BlockAllocVoid()
+    inline ~BlockAlloc()
     {
       Node* hold;
       while(_root != nullptr)
@@ -42,7 +42,7 @@ namespace bss {
     inline const Node* GetRoot() const { return _root; }
     BSS_FORCEINLINE size_t GetSize() const { return _sz; }
     template<class T>
-    BSS_FORCEINLINE T* AllocT(size_t num) noexcept { return static_cast<T*>(Alloc(num * sizeof(T), alignof(T))); }
+    BSS_FORCEINLINE T* AllocT(size_t num) noexcept { return reinterpret_cast<T*>(Alloc(num * sizeof(T), alignof(T))); }
     BSS_FORCEINLINE void* Alloc() noexcept { return Alloc(_sz, _align); }
     inline void* Alloc(size_t bytes, size_t align = 1) noexcept
     {
@@ -92,12 +92,12 @@ namespace bss {
       _allocChunk(nsize); // Note that nsize is in bytes
     }
 
-    inline BlockAllocVoid& operator=(BlockAllocVoid&& mov)
+    inline BlockAlloc& operator=(BlockAlloc&& mov)
     {
       if(this != &mov)
       {
-        this->~BlockAllocVoid(); // Only safe because there's no inheritance and no virtual functions
-        new (this) BlockAllocVoid(std::move(mov));
+        this->~BlockAlloc(); // Only safe because there's no inheritance and no virtual functions
+        new (this) BlockAlloc(std::move(mov));
       }
       return *this;
     }
@@ -150,53 +150,33 @@ namespace bss {
   };
 
   template<size_t SIZE, size_t ALIGN>
-  class BSS_COMPILER_DLLEXPORT BlockAllocSize : protected BlockAllocVoid
+  struct BSS_COMPILER_DLLEXPORT BlockPolicySize : protected BlockAlloc
   {
-  public:
-    inline BlockAllocSize(BlockAllocSize&& mov) = default;
-    inline explicit BlockAllocSize(size_t init = 8) : BlockAllocVoid(SIZE, init, ALIGN) { static_assert((SIZE >= sizeof(void*)), "SIZE cannot be less than the size of a pointer"); }
+    inline BlockPolicySize(BlockPolicySize&& mov) = default;
+    inline explicit BlockPolicySize(size_t init = 8) : BlockAlloc(SIZE, init, ALIGN) { static_assert((SIZE >= sizeof(void*)), "SIZE cannot be less than the size of a pointer"); }
     template<class T>
-    BSS_FORCEINLINE T* Alloc(size_t num = 1)
+    BSS_FORCEINLINE T* allocate(size_t cnt, const T* p = 0)
     {
+      assert(!p);
       static_assert((sizeof(T) <= SIZE), "sizeof(T) must be less than SIZE");
       static_assert((alignof(T) <= ALIGN) && !(ALIGN % alignof(T)), "alignof(T) must be less than ALIGN and be a multiple of it");
-      return BlockAllocVoid::AllocT<T>(num);
+      return BlockAlloc::AllocT<T>(cnt);
     }
     template<class T>
-    BSS_FORCEINLINE void Dealloc(T* p) noexcept { static_assert((sizeof(T) <= SIZE), "sizeof(T) must be less than SIZE"); BlockAllocVoid::Dealloc(p); }
-    BSS_FORCEINLINE void Clear() { BlockAllocVoid::Clear(); }
-    BlockAllocSize& operator=(BlockAllocSize&& mov) = default;
+    BSS_FORCEINLINE void deallocate(T* p, size_t num = 0) noexcept { BlockAlloc::Dealloc(p); }
+    BSS_FORCEINLINE void Clear() { BlockAlloc::Clear(); }
+    BlockPolicySize& operator=(BlockPolicySize&& mov) = default;
   };
 
   template<class T>
-  class BSS_COMPILER_DLLEXPORT BlockAlloc : protected BlockAllocVoid
+  struct BSS_COMPILER_DLLEXPORT BlockPolicy : protected BlockAlloc
   {
-  public:
-    inline BlockAlloc(BlockAlloc&& mov) : BlockAllocVoid(std::move(mov)) {}
-    inline explicit BlockAlloc(size_t init = 8) : BlockAllocVoid(sizeof(T), init, alignof(T)) { static_assert((sizeof(T) >= sizeof(void*)), "T cannot be less than the size of a pointer"); }
-    BSS_FORCEINLINE T* Alloc(size_t num = 1) noexcept { return BlockAllocVoid::AllocT<T>(num); }
-    BSS_FORCEINLINE void Dealloc(T* p) noexcept { BlockAllocVoid::Dealloc(p); }
-    BSS_FORCEINLINE void Clear() { BlockAllocVoid::Clear(); }
-    BlockAlloc& operator=(BlockAlloc&& mov) { BlockAllocVoid::operator=(std::move(mov)); return *this; }
-  };
-
-  template<typename T>
-  class BSS_COMPILER_DLLEXPORT BlockPolicy : protected BlockAlloc<T>
-  {
-  public:
-    typedef T* pointer;
-    typedef T value_type;
-    template<typename U>
-    struct rebind { typedef BlockPolicy<U> other; };
-
-    inline BlockPolicy(BlockPolicy&& mov) = default;
-    inline BlockPolicy() {}
-    inline ~BlockPolicy() {}
-
-    BlockPolicy& operator=(BlockPolicy&& mov) = default;
-
-    BSS_FORCEINLINE pointer allocate(size_t cnt, const pointer = 0) noexcept { return BlockAlloc<T>::Alloc(cnt); }
-    BSS_FORCEINLINE void deallocate(pointer p, size_t num = 0) noexcept { return BlockAlloc<T>::Dealloc(p); }
+    inline BlockPolicy(BlockPolicy&& mov) : BlockAlloc(std::move(mov)) {}
+    inline explicit BlockPolicy(size_t init = 8) : BlockAlloc(sizeof(T), init, alignof(T)) { static_assert((sizeof(T) >= sizeof(void*)), "T cannot be less than the size of a pointer"); }
+    BSS_FORCEINLINE T* allocate(size_t cnt, const T* p = 0, size_t old = 0) noexcept { assert(!p); return BlockAlloc::AllocT<T>(cnt); }
+    BSS_FORCEINLINE void deallocate(T* p, size_t num = 0) noexcept { BlockAlloc::Dealloc(p); }
+    BSS_FORCEINLINE void Clear() { BlockAlloc::Clear(); }
+    BlockPolicy& operator=(BlockPolicy&& mov) { BlockAlloc::operator=(std::move(mov)); return *this; }
   };
 }
 

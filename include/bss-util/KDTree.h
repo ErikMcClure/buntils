@@ -5,7 +5,7 @@
 #define __KD_TREE_H__BSS__
 
 #include "compare.h"
-#include "Alloc.h"
+#include "BlockAlloc.h"
 #include "LLBase.h"
 #include <float.h> // for FLT_MAX on linux
 
@@ -30,15 +30,17 @@ namespace bss {
   };
 
   // KD-tree storing arbitrary rectangles. Requires a function turning T into a float[4] reference, LLBASE<T> list, and an action.
-  template<typename T, typename Alloc, const float* (*FRECT)(T*), LLBase<T>& (*FLIST)(T*), KDNode<T>*& (*FNODE)(T*)>
-  class KDTree : protected AllocTracker<Alloc>
+  template<typename T, const float* (*FRECT)(T*), LLBase<T>& (*FLIST)(T*), KDNode<T>*& (*FNODE)(T*), typename Alloc = PolymorphicAllocator<KDNode<T>, BlockPolicy>>
+  class KDTree : protected Alloc
   {
     inline KDTree(const KDTree&) = delete;
-      inline KDTree& operator=(const KDTree&)= delete;
+    inline KDTree& operator=(const KDTree&)= delete;
 
   public:
-    inline explicit KDTree(uint32_t rb = RBTHRESHOLD, Alloc* alloc = 0) : AllocTracker<Alloc>(alloc), _root(0), _rbthreshold(rb) {}
-    inline KDTree(KDTree&& mov) : AllocTracker<Alloc>(std::move(mov)), _root(mov._root), _rbthreshold(mov._rbthreshold) { mov._root = 0; }
+    template<bool U = std::is_void_v<typename Alloc::policy_type>, std::enable_if_t<!U, int> = 0>
+    inline KDTree(uint32_t rb, typename Alloc::policy_type* policy) : Alloc(policy), _root(0), _rbthreshold(rb) {}
+    inline explicit KDTree(uint32_t rb = RBTHRESHOLD) : _root(0), _rbthreshold(rb) {}
+    inline KDTree(KDTree&& mov) : Alloc(std::move(mov)), _root(mov._root), _rbthreshold(mov._rbthreshold) { mov._root = 0; }
     inline ~KDTree() { Clear(); }
     inline void Clear() { if(_root) _destroyNode(_root); _root = 0; }
     template<void(*F)(T*)>
@@ -122,7 +124,7 @@ namespace bss {
     inline KDTree& operator=(KDTree&& mov) // Move assignment operator
     {
       Clear();
-      AllocTracker<Alloc>::operator=(std::move(mov));
+      Alloc::operator=(std::move(mov));
       _root = mov._root;
       mov._root = 0;
       return *this;
@@ -270,7 +272,7 @@ namespace bss {
     {
       if(node->left) _destroyNode(node->left);
       if(node->right) _destroyNode(node->right);
-      AllocTracker<Alloc>::_deallocate(node); //Deallocate node
+      Alloc::deallocate(node, 1); //Deallocate node
     }
     template<typename F>
     static void _traverseAll(KDNode<T>* node, const F& f)
@@ -321,7 +323,7 @@ namespace bss {
     }
     inline KDNode<T>* _allocNode(KDNode<T>* parent, char axis)
     {
-      KDNode<T>* r = AllocTracker<Alloc>::_allocate(1);
+      KDNode<T>* r = Alloc::allocate(1);
       bssFill(*r);
       r->parent = parent;
       r->axis = axis;

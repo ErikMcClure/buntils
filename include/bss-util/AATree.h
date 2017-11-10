@@ -5,7 +5,7 @@
 #define __AA_TREE_H__BSS__
 
 #include "compare.h"
-#include "BlockAlloc.h"
+#include "BlockAllocMT.h"
 
 namespace bss {
   template<typename T>
@@ -18,20 +18,27 @@ namespace bss {
   };
 
   // An AA tree, similar to a left leaning red-black tree, except not completely stupid.
-  template<typename T, char(*CFunc)(const T&, const T&) = CompT<T>, typename Alloc = BlockPolicy<AANODE<T>>>
-  class AATree : AllocTracker<Alloc>
+  template<typename T, char(*CFunc)(const T&, const T&) = CompT<T>, typename Alloc = PolymorphicAllocator<AANODE<T>, BlockPolicy>>
+  class AATree : Alloc
   {
   public:
-    inline AATree(Alloc* alloc = 0) : AllocTracker<Alloc>(alloc), _sentinel(AllocTracker<Alloc>::_allocate(1))
+    inline AATree() : _sentinel(Alloc::allocate(1))
+    {
+      _sentinel->level = 0;
+      _sentinel->left = _sentinel->right = _sentinel;
+      _root = _sentinel;
+    }
+    template<bool U = std::is_void_v<typename Alloc::policy_type>, std::enable_if_t<!U, int> = 0>
+    inline AATree(typename Alloc::policy_type* policy) : Alloc(policy), _sentinel(Alloc::allocate(1))
     {
       _sentinel->level = 0;
       _sentinel->left = _sentinel->right = _sentinel;
       _root = _sentinel;
     }
     inline ~AATree()
-    { 
-      Clear(); 
-      AllocTracker<Alloc>::_deallocate(_sentinel, 1); 
+    {
+      Clear();
+      Alloc::deallocate(_sentinel, 1);
     }
     inline void Insert(const T& data) { _insert(_root, data); }
     inline bool Remove(const T& data) { return _remove(_root, data); }
@@ -67,7 +74,7 @@ namespace bss {
       _clear(n->left);
       _clear(n->right);
       n->~AANODE<T>();
-      AllocTracker<Alloc>::_deallocate(n, 1);
+      Alloc::deallocate(n, 1);
     }
     template<void(*FACTION)(T&)>
     inline void _traverse(AANODE<T>* n)
@@ -101,7 +108,7 @@ namespace bss {
     {
       if(n == _sentinel)
       {
-        n = AllocTracker<Alloc>::_allocate(1);
+        n = Alloc::allocate(1);
         n->left = n->right = _sentinel;
         n->data = data;
         n->level = 1;
@@ -137,7 +144,7 @@ namespace bss {
         _deleted->data = n->data;
         _deleted = _sentinel;
         n = n->right;
-        AllocTracker<Alloc>::_deallocate(_last);
+        Alloc::deallocate(_last);
         _last = _sentinel;
         b = true;
       }

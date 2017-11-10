@@ -10,6 +10,6 @@ using namespace bss;
 TESTDEF::RETPAIR test_bss_ALLOC_BLOCK()
 {
   BEGINTEST;
-  TEST_ALLOC_FUZZER<BlockAlloc<size_t>, size_t, 1, 10000>(__testret);
+  TEST_ALLOC_FUZZER<BlockPolicy, size_t, 1, 10000>(__testret);
   ENDTEST;
 }

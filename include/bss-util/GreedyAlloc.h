@@ -92,19 +92,8 @@ namespace bss {
 #ifdef BSS_DISABLE_CUSTOM_ALLOCATORS
       ALIGNEDFREE(p); return;
 #endif
+      assert(_verifyDEBUG(p));
 #ifdef BSS_DEBUG
-      _lock.RLock();
-      Node* cur = _root.load(std::memory_order_relaxed);
-      bool found = false;
-
-      while(cur)
-      {
-        if(p >= (reinterpret_cast<uint8_t*>(cur) + _alignsize) && p < (reinterpret_cast<uint8_t*>(cur) + _alignsize + cur->size)) { found = true; break; }
-        cur = cur->next;
-      }
-
-      _lock.RUnlock();
-      assert(found);
       //memset(p,0xFEEEFEEE,sizeof(T)); //No way to know how big this is
 #endif
     }
@@ -132,6 +121,18 @@ namespace bss {
       _allocChunk(nsize); //consolidates all memory into one chunk to try and take advantage of data locality
       _lock.Unlock();
     }
+
+    GreedyAlloc& operator=(GreedyAlloc&& mov)
+    {
+      _root.store(mov._root.load(std::memory_order_relaxed), std::memory_order_relaxed);
+      _curpos.store(mov._curpos.load(std::memory_order_relaxed), std::memory_order_relaxed);
+      assert(_align == mov._align);
+      assert(_alignsize == mov._alignsize);
+      mov._root.store(nullptr, std::memory_order_relaxed);
+      mov._curpos = 0;
+      return *this;
+    }
+
   protected:
     BSS_FORCEINLINE void _allocChunk(size_t nsize) noexcept
     {
@@ -141,6 +142,21 @@ namespace bss {
       retval->size = nsize;
       assert(_prepDEBUG(retval, _alignsize));
       _root.store(retval, std::memory_order_release);
+    }
+    bool _verifyDEBUG(void* p)
+    {
+      _lock.RLock();
+      Node* cur = _root.load(std::memory_order_relaxed);
+      bool found = false;
+
+      while(cur)
+      {
+        if(p >= (reinterpret_cast<uint8_t*>(cur) + _alignsize) && p < (reinterpret_cast<uint8_t*>(cur) + _alignsize + cur->size)) { found = true; break; }
+        cur = cur->next;
+      }
+
+      _lock.RUnlock();
+      return found;
     }
 #ifdef BSS_DEBUG
     BSS_FORCEINLINE static bool _prepDEBUG(Node* root, size_t alignsize) noexcept
@@ -162,19 +178,25 @@ namespace bss {
   };
 
   template<typename T>
-  class BSS_COMPILER_DLLEXPORT GreedyPolicy : protected GreedyAlloc {
-  public:
-    typedef T* pointer;
-    typedef T value_type;
-    template<typename U>
-    struct rebind { typedef GreedyPolicy<U> other; };
-
-    inline GreedyPolicy(size_t init = 8) : GreedyAlloc(init * sizeof(T), alignof(T)) {}
-    inline ~GreedyPolicy() {}
-
-    inline pointer allocate(std::size_t cnt, const pointer = 0) noexcept { return GreedyAlloc::AllocT<T>(cnt); }
-    inline void deallocate(pointer p, std::size_t num = 0) noexcept { GreedyAlloc::Dealloc(p); }
-    inline void clear() noexcept { GreedyAlloc::Clear(); } //done for functor reasons, has no effect here
+  struct BSS_COMPILER_DLLEXPORT GreedyPolicy : protected GreedyAlloc
+  {
+    GreedyPolicy() = default;
+    inline explicit GreedyPolicy(size_t init, size_t align = 1) : GreedyAlloc(init, align) {}
+    inline T* allocate(std::size_t cnt, T* p = 0, size_t old = 0) noexcept
+    { 
+      if(cnt < old)
+        return p;
+      T* n = GreedyAlloc::AllocT<T>(cnt); 
+      if(p)
+      {
+        assert(old > 0);
+        MEMCPY(n, cnt * sizeof(T), p, old * sizeof(T));
+        GreedyAlloc::Dealloc(p);
+      }
+      return n;
+    }
+    inline void deallocate(T* p, std::size_t num = 0) noexcept { GreedyAlloc::Dealloc(p); }
+    inline void Clear() noexcept { GreedyAlloc::Clear(); }
   };
 }
 

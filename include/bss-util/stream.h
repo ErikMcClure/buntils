@@ -133,7 +133,7 @@ namespace bss {
   };
 
   // Read and write stream for DynArray
-  template<class T, typename CType = size_t, ARRAY_TYPE ArrayType = ARRAY_SIMPLE, typename Alloc = StaticAllocPolicy<T>>
+  template<class T, typename CType = size_t, ARRAY_TYPE ArrayType = ARRAY_SIMPLE, typename Alloc = StandardAllocator<T>>
   class BSS_COMPILER_DLLEXPORT StreamBufDynArray : public std::streambuf
   {
     typedef DynArray<T, CType, ArrayType, Alloc> D;

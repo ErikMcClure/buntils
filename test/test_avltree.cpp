@@ -18,7 +18,7 @@ TESTDEF::RETPAIR test_AVLTREE()
   BEGINTEST;
 
   BlockPolicy<AVLNode<std::pair<int, int>>> fixedavl;
-  AVLTree<int, int, CompT<int>, BlockPolicy<AVLNode<std::pair<int, int>>>> avlblah(&fixedavl);
+  AVLTree<int, int, CompT<int>, PolymorphicAllocator<AVLNode<std::pair<int, int>>, BlockPolicy>> avlblah(&fixedavl);
 
   //uint64_t prof=HighPrecisionTimer::OpenProfiler();
   for(size_t i = 0; i<TESTNUM; ++i)
@@ -62,14 +62,14 @@ TESTDEF::RETPAIR test_AVLTREE()
 
   {
     Shuffle(testnums);
-    BlockAlloc<DEBUG_CDT<false>> dalloc(TESTNUM);
+    BlockPolicy<DEBUG_CDT<false>> dalloc(TESTNUM);
     typedef std::unique_ptr<DEBUG_CDT<false>, std::function<void(DEBUG_CDT<false>*)>> AVL_D;
-    AVLTree<int, AVL_D, CompT<int>, BlockPolicy<AVLNode<std::pair<int, AVL_D>>>> dtree;
+    AVLTree<int, AVL_D, CompT<int>, PolymorphicAllocator<AVLNode<std::pair<int, AVL_D>>, BlockPolicy>> dtree;
     for(size_t i = 0; i<TESTNUM; ++i)
     {
-      auto dp = dalloc.Alloc(1);
+      auto dp = dalloc.allocate(1);
       new(dp)DEBUG_CDT<false>(testnums[i]);
-      dtree.Insert(testnums[i], AVL_D(dp, [&](DEBUG_CDT<false>* p) {p->~DEBUG_CDT<false>(); dalloc.Dealloc(p); }));
+      dtree.Insert(testnums[i], AVL_D(dp, [&](DEBUG_CDT<false>* p) {p->~DEBUG_CDT<false>(); dalloc.deallocate(p, 1); }));
     }
 
     Shuffle(testnums);
@@ -106,7 +106,7 @@ TESTDEF::RETPAIR test_AVLTREE()
   }
   TEST(!DEBUG_CDT<false>::count)
 
-    AVLTree<int, void, CompT<int>, BlockPolicy<AVLNode<int>>> avlblah2;
+    AVLTree<int, void, CompT<int>, PolymorphicAllocator<AVLNode<int>, BlockPolicy>> avlblah2;
 
   //uint64_t prof=HighPrecisionTimer::OpenProfiler();
   for(size_t i = 0; i<TESTNUM; ++i)

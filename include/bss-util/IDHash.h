@@ -11,7 +11,7 @@
 
 namespace bss {
   // This is a simple ID hash intended for pointers, which can optionally be compressed to eliminate holes.
-  template<typename T, typename ST = size_t, typename Alloc = StaticAllocPolicy<T>, T INVALID = 0>
+  template<typename T, typename ST = size_t, typename Alloc = StandardAllocator<T>, T INVALID = 0>
   class IDHash : protected ArrayBase<T, ST, ARRAY_SIMPLE, Alloc>
   {
     static_assert(sizeof(ST) <= sizeof(T), "T must not be smaller than ST");
@@ -21,7 +21,7 @@ namespace bss {
     using ArrayBase<T, ST, ARRAY_SIMPLE, Alloc>::_capacity;
 
   public:
-    IDHash(const IDHash& copy) : ArrayBase<T, ST, ARRAY_SIMPLE, Alloc>(copy._capacity), _max(copy._max), _length(copy._length), _freelist(copy._freelist) { memcpy(_array, copy._array, _capacity * sizeof(T)); }
+    IDHash(const IDHash& copy) : ArrayBase<T, ST, ARRAY_SIMPLE, Alloc>(copy._capacity, copy), _max(copy._max), _length(copy._length), _freelist(copy._freelist) { memcpy(_array, copy._array, _capacity * sizeof(T)); }
     IDHash(IDHash&& mov) : ArrayBase<T, ST, ARRAY_SIMPLE, Alloc>(std::move(mov)), _max(mov._max), _length(mov._length), _freelist(mov._freelist) { mov._max = 0; mov._length = 0; mov._freelist = (ST)-1; }
     explicit IDHash(ST reserve = 0) : ArrayBase<T, ST, ARRAY_SIMPLE, Alloc>(reserve), _max(0), _length(0), _freelist((ST)-1) { _fixfreelist(0); }
     virtual ~IDHash() {}
@@ -100,7 +100,7 @@ namespace bss {
   // This is a reversible wrapper around cIDhash that allows for two-way lookups.
   template<typename T, 
     typename ST = size_t,
-    typename Alloc = StaticAllocPolicy<T>, 
+    typename Alloc = StandardAllocator<T>, 
     T INVALID = 0, 
     khint_t(*__hash_func)(const T&) = &KH_AUTO_HASH<T, false>, bool(*__hash_equal)(const T&, const T&) = &KH_AUTO_EQUAL<T, false>>
   class IDReverse : protected IDHash<T, ST, Alloc, INVALID>

@@ -23,7 +23,7 @@ TESTDEF::RETPAIR test_KDTREE()
 {
   BEGINTEST;
   BlockPolicy<KDNode<KDtest>> alloc;
-  KDTree<KDtest, BlockPolicy<KDNode<KDtest>>, &KDtest_RECT, &KDtest_LIST, &KDtest_NODE> tree;
+  KDTree<KDtest, &KDtest_RECT, &KDtest_LIST, &KDtest_NODE, PolymorphicAllocator<KDNode<KDtest>, BlockPolicy>> tree;
   KDtest r1 = { 0,0,1,1,0,0 };
   KDtest r2 = { 1,1,2,2,0,0 };
   KDtest r3 = { 0,0,2,2,0,0 };

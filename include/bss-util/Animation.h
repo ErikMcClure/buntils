@@ -93,9 +93,10 @@ namespace bss {
     inline std::tuple<Args...>& States() { return _states; }
     inline const std::tuple<Args...>& States() const { return _states; }
     inline VALUES GetValues() const { VALUES v; _getvalues<0, Args...>(v); return v; }
-    inline void SetValues(VALUES& values) { _setvalues<0, Args...>(values); }
+    inline void SetValues(const VALUES& values) { _setvalues<0, Args...>(values); }
 
     typedef T Ty;
+    typedef A ANI;
 
   protected:
     template<size_t ...S> BSS_FORCEINLINE void _interpolate(std::index_sequence<S...>) { int X[] = { (std::get<S>(_states).template Interpolate<A, T>(_ani, _dest, _time), 0)... }; }
@@ -113,7 +114,7 @@ namespace bss {
       }
     }
     template<int I, typename X, typename... Xs>
-    BSS_FORCEINLINE void _setvalues(VALUES& v)
+    BSS_FORCEINLINE void _setvalues(const VALUES& v)
     {
       if constexpr(sizeof...(Xs) > 0 && std::is_same<typename X::VALUE, void>::value)
         _setvalues<I, Xs...>(v);
@@ -199,7 +200,7 @@ namespace bss {
     size_t _cur;
   };
 
-  template<typename T, typename D, typename REF, typename AUX, AUX(T::*FN)(REF), void(T::*REMOVE)(AUX), typename QUEUEALLOC = StaticAllocPolicy<std::pair<double, AUX>>>
+  template<typename T, typename D, typename REF, typename AUX, AUX(T::*FN)(REF), void(T::*REMOVE)(AUX), typename QUEUEALLOC = StandardAllocator<std::pair<double, AUX>>>
   struct BSS_COMPILER_DLLEXPORT AniStateInterval
   {
     typedef typename D::FRAME FRAME;
@@ -234,7 +235,7 @@ namespace bss {
     size_t _cur;
   };
 
-  template<typename T, typename D = void, ARRAY_TYPE ArrayType = ARRAY_SIMPLE, int DATAID = 0, typename Alloc = StaticAllocPolicy<AniFrame<T, D>>>
+  template<typename T, typename D = void, ARRAY_TYPE ArrayType = ARRAY_SIMPLE, int DATAID = 0, typename Alloc = StandardAllocator<AniFrame<T, D>>>
   struct BSS_COMPILER_DLLEXPORT AniData
   {
     typedef AniStateDiscrete<AniStateBase, AniData, T, nullptr> STATE;
@@ -280,7 +281,7 @@ namespace bss {
     ArraySort<FRAME, CompAniFrame, size_t, ArrayType, Alloc> _frames;
   };
 
-  template<typename T, typename D = void, ARRAY_TYPE ArrayType = ARRAY_SIMPLE, int DATAID = 0, typename Alloc = StaticAllocPolicy<AniFrame<T, D>>>
+  template<typename T, typename D = void, ARRAY_TYPE ArrayType = ARRAY_SIMPLE, int DATAID = 0, typename Alloc = StandardAllocator<AniFrame<T, D>>>
   struct BSS_COMPILER_DLLEXPORT AniDataSmooth : AniData<T, D, ArrayType, DATAID, Alloc>
   {
     typedef AniStateSmooth<AniStateBase, AniDataSmooth, T, nullptr> STATE;
@@ -319,10 +320,10 @@ namespace bss {
     INTERPOLATE _interpolate;
   };
 
-  template<typename T, ARRAY_TYPE ArrayType = ARRAY_SIMPLE, int DATAID = 0, typename Alloc = StaticAllocPolicy<AniFrame<T, double>>>
+  template<typename T, ARRAY_TYPE ArrayType = ARRAY_SIMPLE, int DATAID = 0, typename Alloc = StandardAllocator<AniFrame<T, double>>>
   struct BSS_COMPILER_DLLEXPORT AniDataInterval : AniData<T, double, ArrayType, DATAID, Alloc>
   {
-    typedef AniStateInterval<AniStateBase, AniDataInterval, T, char, nullptr, nullptr, StaticAllocPolicy<std::pair<double, char>>> STATE;
+    typedef AniStateInterval<AniStateBase, AniDataInterval, T, char, nullptr, nullptr, StandardAllocator<std::pair<double, char>>> STATE;
     typedef AniData<T, double, ArrayType, DATAID, Alloc> BASE;
     typedef typename BASE::FRAME FRAME;
     using BASE::_frames;

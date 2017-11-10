@@ -20,7 +20,7 @@ namespace bss {
     typename CT_ = size_t,
     char(*CFunc)(const T&, const T&) = CompT<T>,
     ARRAY_TYPE ArrayType = ARRAY_SIMPLE,
-    typename Alloc = StaticAllocPolicy<T>,
+    typename Alloc = StandardAllocator<T>,
     class MFUNC = internal::MFUNC_DEFAULT<T, CT_>>
   class BSS_COMPILER_DLLEXPORT BinaryHeap : protected DynArray<T, CT_, ArrayType, Alloc>, protected MFUNC
   {
@@ -36,6 +36,8 @@ namespace bss {
   public:
     inline BinaryHeap(const BinaryHeap& copy) = default;
     inline BinaryHeap(BinaryHeap&& mov) = default;
+    template<bool U = std::is_void_v<typename Alloc::policy_type>, std::enable_if_t<!U, int> = 0>
+    inline explicit BinaryHeap(typename Alloc::policy_type* policy) : AT_(0, policy) {}
     inline BinaryHeap() : AT_(0) {}
     inline BinaryHeap(const T* src, CT_ length) : AT_(length)
     { 

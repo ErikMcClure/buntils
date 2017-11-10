@@ -12,7 +12,7 @@ namespace bss {
     typename D,
     char(*CFunc)(const K&, const K&) = CompT<K>,
     typename CT_ = size_t, ARRAY_TYPE ArrayType = ARRAY_SIMPLE,
-    typename Alloc = StaticAllocPolicy<std::pair<K, D>>>
+    typename Alloc = StandardAllocator<std::pair<K, D>>>
   class BSS_COMPILER_DLLEXPORT PriorityQueue : protected BinaryHeap<std::pair<K, D>, CT_, CompTFirst<K, D, CFunc>, ArrayType, Alloc>
   {
     typedef std::pair<K, D> PAIR;
@@ -21,6 +21,8 @@ namespace bss {
   public:
     PriorityQueue(const PriorityQueue& copy) = default;
     PriorityQueue(PriorityQueue&& mov) = default;
+    template<bool U = std::is_void_v<typename Alloc::policy_type>, std::enable_if_t<!U, int> = 0>
+    explicit PriorityQueue(typename Alloc::policy_type* policy) : BASE(policy) {}
     PriorityQueue() {}
     ~PriorityQueue() {}
     BSS_FORCEINLINE void Push(const K& key, D value) { BASE::Insert(PAIR(key, value)); }
@@ -50,7 +52,7 @@ namespace bss {
     typename CT_ = size_t,
     char(*CFunc)(const D&, const D&) = CompT<D>,
     ARRAY_TYPE ArrayType = ARRAY_SIMPLE,
-    typename Alloc = StaticAllocPolicy<std::pair<CT_, D>>>
+    typename Alloc = StandardAllocator<std::pair<CT_, D>>>
   class BSS_COMPILER_DLLEXPORT PriorityHeap : protected BinaryHeap<std::pair<CT_, D>, CT_, CompTSecond<CT_, D, CFunc>, ArrayType, Alloc, internal::MFUNC_PRIORITY<std::pair<CT_, D>, CT_>>
   {
     typedef std::pair<CT_, D> PAIR;
@@ -60,6 +62,8 @@ namespace bss {
   public:
     PriorityHeap(const PriorityHeap& copy) : BASE(copy), _freelist(copy._freelist) { _subarray = copy._subarray; }
     PriorityHeap(PriorityHeap&& mov) : BASE(std::move(mov)), _freelist(mov._freelist) { _subarray = std::move(mov._subarray); }
+    template<bool U = std::is_void_v<typename Alloc::policy_type>, std::enable_if_t<!U, int> = 0>
+    explicit PriorityHeap(typename Alloc::policy_type* policy) : BASE(policy), _freelist((CT_)-1) {}
     PriorityHeap() : _freelist((CT_)-1) {}
     ~PriorityHeap() {}
     BSS_FORCEINLINE CT_ Push(const D& value) { CT_ k = _getNext(); BASE::Insert(PAIR(k, value)); return k; }

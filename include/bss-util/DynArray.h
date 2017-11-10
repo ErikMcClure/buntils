@@ -10,7 +10,7 @@
 
 namespace bss {
   // Dynamic array implemented using ArrayType (should only be used when constructors could potentially not be needed)
-  template<class T, typename CType = size_t, ARRAY_TYPE ArrayType = ARRAY_SIMPLE, typename Alloc = StaticAllocPolicy<T>>
+  template<class T, typename CType = size_t, ARRAY_TYPE ArrayType = ARRAY_SIMPLE, typename Alloc = StandardAllocator<T>>
   class BSS_COMPILER_DLLEXPORT DynArray : protected ArrayBase<T, CType, ArrayType, Alloc>
   {
   protected:
@@ -24,9 +24,11 @@ namespace bss {
     typedef typename BASE::CT CT;
     typedef typename BASE::Ty Ty;
 
-    inline DynArray(const DynArray& copy) : BASE(copy._capacity), _length(copy._length) { BASE::_copy(_array, copy._array, _length); }
+    inline DynArray(const DynArray& copy) : BASE(copy._capacity, copy), _length(copy._length) { BASE::_copy(_array, copy._array, _length); }
     inline DynArray(DynArray&& mov) : BASE(std::move(mov)), _length(mov._length) { mov._length = 0; }
     inline explicit DynArray(const Slice<const T, CType>& slice) : BASE(slice.length), _length(slice.length) { BASE::_copy(_array, slice.start, slice.length); }
+    template<bool U = std::is_void_v<typename Alloc::policy_type>, std::enable_if_t<!U, int> = 0>
+    inline DynArray(CT capacity, typename Alloc::policy_type* policy) : BASE(capacity, policy), _length(0) {}
     inline explicit DynArray(CT capacity) : BASE(capacity), _length(0) {}
     inline DynArray() : BASE(0), _length(0) {}
     inline DynArray(const std::initializer_list<T>& list) : BASE(list.size()), _length(0)
@@ -137,13 +139,13 @@ namespace bss {
 
     CT _length;
   };
-
+  
   template<typename CType, ARRAY_TYPE ArrayType, typename Alloc>
-  class BSS_COMPILER_DLLEXPORT DynArray<bool, CType, ArrayType, Alloc> : protected ArrayBase<uint8_t, CType, ArrayType, typename Alloc::template rebind<uint8_t>::other>
+  class BSS_COMPILER_DLLEXPORT DynArray<bool, CType, ArrayType, Alloc> : protected ArrayBase<uint8_t, CType, ArrayType, typename Alloc::template rebind<uint8_t>>
   {
   protected:
     typedef uint8_t STORE;
-    typedef ArrayBase<STORE, CType, ArrayType, typename Alloc::template rebind<STORE>::other> BASE;
+    typedef ArrayBase<STORE, CType, ArrayType, typename Alloc::template rebind<uint8_t>> BASE;
     typedef typename BASE::CT CT;
     typedef typename BASE::Ty Ty;
     typedef internal::_BIT_REF<STORE> BITREF;
@@ -339,7 +341,7 @@ namespace bss {
   };
 
   // A dynamic array that can dynamically adjust the size of each element
-  template<typename CType, typename Alloc = StaticAllocPolicy<uint8_t>>
+  template<typename CType, typename Alloc = StandardAllocator<uint8_t>>
   class BSS_COMPILER_DLLEXPORT ArbitraryArray : protected ArrayBase<uint8_t, CType, ARRAY_SIMPLE, Alloc>
   {
   protected:
@@ -391,10 +393,10 @@ namespace bss {
       if(element == _element)
         return;
 
-      _capacity = element*_length;
-      uint8_t* narray = !_length ? 0 : (uint8_t*)Alloc::allocate(_capacity);
+      CT capacity = element*_length;
+      uint8_t* narray = !_length ? 0 : (uint8_t*)Alloc::allocate(capacity);
       if(narray)
-        memset(narray, 0, _capacity);
+        memset(narray, 0, capacity);
       CT m = std::min<CT>(element, _element);
 
       for(CT i = 0; i < _length; ++i)
@@ -402,6 +404,7 @@ namespace bss {
 
       BASE::_free(_array);
       _array = narray;
+      _capacity = capacity;
       _element = element;
       assert(element > 0);
     }

@@ -11,6 +11,6 @@ TESTDEF::RETPAIR test_bss_ALLOC_GREEDY_BLOCK()
 {
   typedef BSS_ALIGN(16) float Matrix[2];
   BEGINTEST;
-  TEST_ALLOC_FUZZER<GreedyBlockAlloc<Matrix>, Matrix, 400, 10000>(__testret);
+  TEST_ALLOC_FUZZER<GreedyBlockPolicy, Matrix, 400, 10000>(__testret);
   ENDTEST;
 }

@@ -108,8 +108,8 @@ namespace bss {
   }
 
   // Doubly linked list implementation with _root, optional _last and an optional _length
-  template<typename T, typename Alloc = StandardAllocPolicy<LLNode<T>>, bool useLast = false, bool useSize = false>
-  class BSS_COMPILER_DLLEXPORT LinkedList : protected AllocTracker<Alloc>, public internal::LList_SIZE<useSize>, public internal::LList_LAST<T, useLast>
+  template<typename T, typename Alloc = StandardAllocator<LLNode<T>>, bool useLast = false, bool useSize = false>
+  class BSS_COMPILER_DLLEXPORT LinkedList : protected Alloc, public internal::LList_SIZE<useSize>, public internal::LList_LAST<T, useLast>
   {
   protected:
     using internal::LList_LAST<T, useLast>::_root;
@@ -119,10 +119,12 @@ namespace bss {
 
   public:
     // Constructor, takes an optional allocator instance
-    inline explicit LinkedList(Alloc* allocator = 0) : AllocTracker<Alloc>(allocator) {}
+    template<bool U = std::is_void_v<typename Alloc::policy_type>, std::enable_if_t<!U, int> = 0>
+    inline explicit LinkedList(typename Alloc::policy_type* policy) : Alloc(policy) {}
+    inline LinkedList() {}
     // Copy constructor
-    inline LinkedList(const LinkedList<T, Alloc>& copy) : AllocTracker<Alloc>(copy) { operator =(copy); }
-    inline LinkedList(LinkedList<T, Alloc>&& mov) : AllocTracker<Alloc>(std::move(mov)), internal::LList_LAST<T, useLast>(std::move(mov))
+    inline LinkedList(const LinkedList<T, Alloc>& copy) : Alloc(copy) { operator =(copy); }
+    inline LinkedList(LinkedList<T, Alloc>&& mov) : Alloc(std::move(mov)), internal::LList_LAST<T, useLast>(std::move(mov))
     {
       internal::LList_SIZE<useSize>::operator=(mov);
       mov._zerosize();
@@ -132,7 +134,7 @@ namespace bss {
     // Appends the item to the end of the list
     inline LLNode<T>* Add(T item)
     {
-      LLNode<T>* node = AllocTracker<Alloc>::_allocate(1);
+      LLNode<T>* node = Alloc::allocate(1);
       node->item = item;
       _add(node);
       _incsize(); //increment size by one
@@ -224,14 +226,14 @@ namespace bss {
   protected:
     inline LLNode<T>* _createNode(T _item, LLNode<T>* _prev = 0, LLNode<T>* _next = 0)
     {
-      LLNode<T>* retval = AllocTracker<Alloc>::_allocate(1);
+      LLNode<T>* retval = Alloc::allocate(1);
       retval->item = _item;
       retval->prev = _prev;
       retval->next = _next;
       return retval;
     }
 
-    inline void _deleteNode(LLNode<T>* target) { AllocTracker<Alloc>::_deallocate(target, 1); }
+    inline void _deleteNode(LLNode<T>* target) { Alloc::deallocate(target, 1); }
   };
 }
 

@@ -50,6 +50,14 @@ namespace bss {
     INIstorage& operator=(INIstorage&& mov);
     inline const char* GetPath() const { return _path; } //gets path to folder this INI was in
     inline INIentry& GetEntry(const char *section, const char* key, size_t keyinstance = 0, size_t secinstance = 0) const { INIentry* ret = GetEntryPtr(section, key, keyinstance, secinstance); return !ret ? INIsection::_entrysentinel : *ret; }
+    void DEBUGTEST()
+    {
+      for(khiter_t i : _sections)
+      {
+        auto& p = _sections.UnsafeValue(i)->instances;
+        assert(!p.Capacity() == !p.begin());
+      }
+    }
 
   protected:
     friend class INIsection;
@@ -62,7 +70,7 @@ namespace bss {
     void _destroy();
 
     static INIsection _sectionsentinel;
-    static LocklessBlockAlloc<_NODE> _alloc;
+    static LocklessBlockPolicy<_NODE> _alloc;
 
     Hash<const char*, _NODE*, true> _sections;
     Str _path; //holds path to INI

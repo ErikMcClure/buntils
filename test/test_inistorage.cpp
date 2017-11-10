@@ -35,13 +35,21 @@ TESTDEF::RETPAIR test_INISTORAGE()
     }
   };
   auto fn3 = [&]() {
+    ini.DEBUGTEST();
     ini.AddSection("1");
+    ini.DEBUGTEST();
     INI_E(1, a, 1, -1, 0);
+    ini.DEBUGTEST();
     INI_E(1, a, 2, -1, 0);
+    ini.DEBUGTEST();
     INI_E(1, a, 3, -1, 0);
+    ini.DEBUGTEST();
     INI_E(1, a, 4, -1, 0);
+    ini.DEBUGTEST();
     INI_E(1, b, 1, -1, 0);
+    ini.DEBUGTEST();
     ini.AddSection("2");
+    ini.DEBUGTEST();
     INI_E(2, a, 1, -1, 0);
     INI_E(2, a, 2, -1, 0);
     INI_E(2, b, 1, -1, 0);
@@ -198,10 +206,14 @@ TESTDEF::RETPAIR test_INISTORAGE()
   ini.RemoveSection("2", 0);
   TEST(fn4("2", 0)); // Catches index decrementing errors
   TEST(fn4("2", 1));
+  ini.DEBUGTEST();
   ini.RemoveSection("2", 1);
+  ini.DEBUGTEST();
 
   ini.EndINIEdit();
+  ini.DEBUGTEST();
   fn2("[1]\nb=2\nc=4\n\n[2]\n\n");
+  ini.DEBUGTEST();
 
   fn3();
   ini.EndINIEdit();

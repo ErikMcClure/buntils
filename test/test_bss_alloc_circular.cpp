@@ -15,18 +15,7 @@ typedef void(*CIRCALLOCFN)(TESTDEF::RETPAIR&, MTCIRCALLOCWRAP<size_t>&);
 TESTDEF::RETPAIR test_bss_ALLOC_RING()
 {
   BEGINTEST;
-  TEST_ALLOC_FUZZER<RingAlloc<size_t>, size_t, 200, 1000>(__testret);
-  MTCIRCALLOCWRAP<size_t> _alloc;
-
-  const int NUM = 16;
-  Thread threads[NUM];
-  startflag.store(false);
-  for(size_t i = 0; i < NUM; ++i)
-    threads[i] = Thread((CIRCALLOCFN)&TEST_ALLOC_MT<MTCIRCALLOCWRAP<size_t>, size_t, 1000>, std::ref(__testret), std::ref(_alloc));
-  startflag.store(true);
-
-  for(size_t i = 0; i < NUM; ++i)
-    threads[i].join();
-
+  TEST_ALLOC_FUZZER<RingAlloc, size_t, 200, 5000>(__testret);
+  TEST_ALLOC_MT<MTCIRCALLOCWRAP, size_t, 200, 10000>(__testret);
   ENDTEST;
 }

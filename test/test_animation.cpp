@@ -57,7 +57,7 @@ TESTDEF::RETPAIR test_ANIMATION()
     //std::stringstream ss;
     //a.Serialize(ss);
 
-    //Animation<StaticAllocPolicy<char>> aa;
+    //Animation<StandardAllocator<char>> aa;
     //aa.Deserialize(ss);
     //for(size_t i = 0; i<6; ++i) c.Grab(); // compensate for the pointer we just copied over
 
@@ -146,7 +146,7 @@ TESTDEF::RETPAIR test_ANIMATION()
     c.Drop();
 
     //{
-    //  Animation<StaticAllocPolicy<char>> b(a);
+    //  Animation<StandardAllocator<char>> b(a);
     //  obj.test=0;
     //  b.Attach(Delegate<void, AniAttribute*>::From<cAnimObj, &cAnimObj::TypeIDRegFunc>(&obj));
     //  TEST(obj.test==0);

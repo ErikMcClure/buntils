@@ -9,20 +9,20 @@
 
 namespace bss {
   // Array that uses a inline stack for smaller arrays before allocating something on the heap. Can only be used with simple data.
-  template<class T, int I = 2, class CT = size_t, typename Alloc = StaticAllocPolicy<T>>
-  class BSS_COMPILER_DLLEXPORT CompactArray final
+  template<class T, int I = 2, class CT = size_t, typename Alloc = StandardAllocator<T>>
+  class BSS_COMPILER_DLLEXPORT CompactArray final : Alloc
   {
     static_assert(std::is_unsigned<CT>::value, "CT must be unsigned");
     static const CT COMPACTFLAG = CT(1) << ((sizeof(CT) << 3) - 1);
     static const CT COMPACTMASK = ~COMPACTFLAG;
 
   public:
-    inline CompactArray(const CompactArray& copy) : _length(COMPACTFLAG)
+    inline CompactArray(const CompactArray& copy) : Alloc(copy), _length(COMPACTFLAG)
     {
       SetLength(copy.Length());
       MEMCPY(begin(), Length() * sizeof(T), copy.begin(), copy.Length() * sizeof(T));
     }
-    inline CompactArray(CompactArray&& mov)
+    inline CompactArray(CompactArray&& mov) : Alloc(std::move(mov))
     {
       MEMCPY(this, sizeof(CompactArray), &mov, sizeof(CompactArray));
       mov._length = COMPACTFLAG;
@@ -32,6 +32,8 @@ namespace bss {
       SetLength(slice.length);
       MEMCPY(begin(), Length() * sizeof(T), slice.start, slice.length * sizeof(T));
     }
+    template<bool U = std::is_void_v<typename Alloc::policy_type>, std::enable_if_t<!U, int> = 0>
+    inline explicit CompactArray(typename Alloc::policy_type* policy) : Alloc(policy), _length(COMPACTFLAG) { }
     inline CompactArray() : _length(COMPACTFLAG) { }
     inline CompactArray(const std::initializer_list<T>& list) : _length(COMPACTFLAG)
     {
@@ -46,7 +48,7 @@ namespace bss {
     inline ~CompactArray() 
     { 
       if(!(_length&COMPACTFLAG) && _array != 0)
-        Alloc::deallocate(_array);
+        Alloc::deallocate(_array, _capacity);
     }
     inline CT Add(T t) 
     {
@@ -97,7 +99,7 @@ namespace bss {
         }
         else
         {
-          _array = Alloc::allocate(capacity, _array);
+          _array = Alloc::allocate(capacity, _array, _capacity);
           _capacity = capacity;
         }
       }
@@ -124,7 +126,8 @@ namespace bss {
     inline CompactArray& operator=(CompactArray&& mov)
     {
       if(!(_length&COMPACTFLAG) && _array != 0)
-        Alloc::deallocate(_array);
+        Alloc::deallocate(_array, _capacity);
+      Alloc::operator=(std::move(mov));
       MEMCPY(this, sizeof(CompactArray), &mov, sizeof(CompactArray));
       mov._length = COMPACTFLAG;
       return *this;

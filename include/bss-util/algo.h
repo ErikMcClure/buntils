@@ -143,7 +143,7 @@ namespace bss {
   BSS_FORCEINLINE void Shuffle(T(&p)[size]) { Shuffle<T>(p, size); }
 
   // Random queue that pops a random item instead of the last item.
-  template<typename T, typename CType = uint32_t, typename ENGINE = XorshiftEngine<uint64_t>, ARRAY_TYPE ArrayType = ARRAY_SIMPLE, typename Alloc = StaticAllocPolicy<T>>
+  template<typename T, typename CType = uint32_t, typename ENGINE = XorshiftEngine<uint64_t>, ARRAY_TYPE ArrayType = ARRAY_SIMPLE, typename Alloc = StandardAllocator<T>>
   class BSS_COMPILER_DLLEXPORT RandomQueue : protected DynArray<T, CType, ArrayType, Alloc>
   {
   protected:

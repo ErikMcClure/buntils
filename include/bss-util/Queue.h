@@ -8,7 +8,7 @@
 
 namespace bss {
   // Fast, tiny circular array-based queue. Pop and Peek are only valid if there is an item in the stack; this check must be done by the user.
-  template<class T, typename CType = ptrdiff_t, ARRAY_TYPE ArrayType = ARRAY_SIMPLE, typename Alloc = StaticAllocPolicy<T>>
+  template<class T, typename CType = ptrdiff_t, ARRAY_TYPE ArrayType = ARRAY_SIMPLE, typename Alloc = StandardAllocator<T>>
   class BSS_COMPILER_DLLEXPORT Queue : protected ArrayCircular<T, CType, ArrayType, Alloc>
   {
   protected:
@@ -18,6 +18,8 @@ namespace bss {
   public:
     inline Queue(const Queue& copy) = default;
     inline Queue(Queue&& mov) = default;
+    template<bool U = std::is_void_v<typename Alloc::policy_type>, std::enable_if_t<!U, int> = 0>
+    inline Queue(CType init, typename Alloc::policy_type* policy) : BASE(init, policy) {}
     inline explicit Queue(CType init = 0) : BASE(init) {}
     inline ~Queue() {}
     // Pushes a value into the queue in FIFO order.

@@ -7,6 +7,16 @@
 
 using namespace bss;
 
+struct BAREARRAYTEST
+{
+  void* p;
+  size_t c;
+  size_t l;
+};
+
+static_assert(!std::is_polymorphic<DynArray<int>>::value, "DynArray shouldn't be polymorphic!");
+static_assert(sizeof(DynArray<int>) == sizeof(BAREARRAYTEST), "Alloc isn't zero sized!");
+
 TESTDEF::RETPAIR test_DYNARRAY()
 {
   BEGINTEST;

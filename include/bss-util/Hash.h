@@ -17,56 +17,50 @@ namespace bss {
   class Serializer;
 
   namespace internal {
-    template<class T, bool value>
-    struct _HashBaseGET { typedef T GET; static BSS_FORCEINLINE GET F(T& s) { return s; } };
-
-    template<class T>
-    struct _HashBaseGET<T, false> { typedef T* GET; static BSS_FORCEINLINE GET F(T& s) { return &s; } };
-
-    template<>
-    struct _HashBaseGET<Str, false> { typedef const char* GET; static BSS_FORCEINLINE GET F(Str& s) { return s.c_str(); } };
-
+    template<class T> struct _HashBaseGET { typedef T* GET; static BSS_FORCEINLINE GET F(T& s) { return &s; } };
+    template<class T> struct _HashBaseGET<std::unique_ptr<T>> { typedef T* GET; static BSS_FORCEINLINE GET F(std::unique_ptr<T>& s) { return s.get(); } };
+    template<> struct _HashBaseGET<Str> { typedef const char* GET; static BSS_FORCEINLINE GET F(Str& s) { return s.c_str(); } };
+    template<> struct _HashBaseGET<std::string> { typedef const char* GET; static BSS_FORCEINLINE GET F(std::string& s) { return s.c_str(); } };
 #ifdef BSS_PLATFORM_WIN32
-    template<>
-    struct _HashBaseGET<StrW, false> { typedef const wchar_t* GET; static BSS_FORCEINLINE GET F(StrW& s) { return s.c_str(); } };
+    template<> struct _HashBaseGET<StrW> { typedef const wchar_t* GET; static BSS_FORCEINLINE GET F(StrW& s) { return s.c_str(); } };
+    template<> struct _HashBaseGET<std::wstring> { typedef const wchar_t* GET; static BSS_FORCEINLINE GET F(std::wstring& s) { return s.c_str(); } };
 #endif
   }
 
-  template<class Key, class Data, khint_t(*__hash_func)(const Key&), bool(*__hash_equal)(const Key&, const Key&), ARRAY_TYPE ArrayType = ARRAY_SIMPLE, typename Alloc = StaticAllocPolicy<char>>
-  class HashBase
+  template<class Key, class Data, khint_t(*__hash_func)(const Key&), bool(*__hash_equal)(const Key&, const Key&), ARRAY_TYPE ArrayType = ARRAY_SIMPLE, typename Alloc = StandardAllocator<char>>
+  class HashBase : Alloc
   {
   public:
     static constexpr bool IsMap = !std::is_void<Data>::value;
     typedef Key KEY;
     typedef Data DATA;
     typedef typename std::conditional<IsMap, Data, char>::type FakeData;
-    typedef typename internal::_HashBaseGET<FakeData, std::is_integral<FakeData>::value | std::is_enum<FakeData>::value | std::is_pointer<FakeData>::value | std::is_member_pointer<FakeData>::value>::GET GET;
+    typedef std::conditional_t<std::is_integral_v<FakeData> || std::is_enum_v<FakeData> || std::is_pointer_v<FakeData> || std::is_member_pointer_v<FakeData>, FakeData, typename internal::_HashBaseGET<FakeData>::GET> GET;
 
-    HashBase(const HashBase& copy)
+    HashBase(const HashBase& copy) : Alloc(copy), n_buckets(0), flags(0), keys(0), vals(0), size(0), n_occupied(0), upper_bound(0)
     {
-      bssFill(*this, 0);
-      operator=(copy);
+      _docopy(copy);
     }
-    HashBase(HashBase&& mov)
+    HashBase(HashBase&& mov) : Alloc(std::move(mov))
     {
       memcpy(this, &mov, sizeof(HashBase));
       bssFill(mov, 0);
     }
-    explicit HashBase(khint_t n_buckets = 0)
+    template<bool U = std::is_void_v<typename Alloc::policy_type>, std::enable_if_t<!U, int> = 0>
+    HashBase(khint_t n_buckets, typename Alloc::policy_type* policy) : Alloc(policy), n_buckets(0), flags(0), keys(0), vals(0), size(0), n_occupied(0), upper_bound(0)
     {
-      bssFill(*this, 0);
+      if(n_buckets > 0)
+        _resize(n_buckets);
+    }
+    explicit HashBase(khint_t n_buckets = 0) : n_buckets(0), flags(0), keys(0), vals(0), size(0), n_occupied(0), upper_bound(0)
+    {
       if(n_buckets > 0)
         _resize(n_buckets);
     }
     ~HashBase()
     {
       Clear(); // calls all destructors.
-      if(flags)
-        Alloc::deallocate((char*)flags);
-      if(keys)
-        Alloc::deallocate((char*)keys);
-      if(vals)
-        Alloc::deallocate((char*)vals);
+      _freeall();
     }
 
     template<bool U = IsMap>
@@ -116,7 +110,10 @@ namespace bss {
         else
           return GET{ 0 };
       }
-      return internal::_HashBaseGET<Data, std::is_integral<Data>::value | std::is_enum<Data>::value | std::is_pointer<Data>::value | std::is_member_pointer<Data>::value>::F(vals[i]);
+      if constexpr(std::is_integral_v<FakeData> || std::is_enum_v<FakeData> || std::is_pointer_v<FakeData> || std::is_member_pointer_v<FakeData>)
+        return vals[i];
+      else
+        return internal::_HashBaseGET<FakeData>::F(vals[i]);
     }
     template<bool U = IsMap>
     inline typename std::enable_if<U, GET>::type Get(const Key& key) const { return GetValue(Iterator(key)); }
@@ -180,47 +177,22 @@ namespace bss {
 
     HashBase& operator=(const HashBase& copy)
     {
-      if constexpr(ArrayType != ARRAY_MOVE)
+      Clear();
+      if(!copy.n_buckets)
       {
-        Clear();
-        if(!copy.n_buckets)
-        {
-          if(flags) Alloc::deallocate((char*)flags);
-          if(keys) Alloc::deallocate((char*)keys);
-          if(vals) Alloc::deallocate((char*)vals);
-          bssFill(*this, 0);
-          return *this;
-        }
-        _resize(copy.n_buckets);
-        assert(n_buckets == copy.n_buckets);
-        memcpy(flags, copy.flags, n_buckets);
-        for(khint_t i = 0; i < n_buckets; ++i)
-        {
-          if(!__ac_iseither(copy.flags, i))
-          {
-            new(keys + i) Key((const Key&)copy.keys[i]);
-
-            if constexpr(IsMap)
-              new(vals + i) Data((const Data&)copy.vals[i]);
-          }
-        }
-
-        assert(n_buckets == copy.n_buckets);
-        size = copy.size;
-        n_occupied = copy.n_occupied;
-        upper_bound = copy.upper_bound;
+        _freeall();
+        bssFill(*this, 0);
+        return *this;
       }
-      else
-        assert(false);
+      _docopy(copy);
       return *this;
     }
 
     HashBase& operator=(HashBase&& mov)
     {
       Clear();
-      if(flags) Alloc::deallocate((char*)flags);
-      if(keys) Alloc::deallocate((char*)keys);
-      if(vals) Alloc::deallocate((char*)vals);
+      _freeall();
+      Alloc::operator=(std::move(mov));
       memcpy(this, &mov, sizeof(HashBase));
       bssFill(mov);
       return *this;
@@ -266,6 +238,43 @@ namespace bss {
     }
 
   protected:
+    inline void _freeall()
+    {
+      if(flags) Alloc::deallocate((char*)flags, n_buckets);
+      if(keys) Alloc::deallocate((char*)keys, n_buckets * sizeof(Key));
+      if constexpr(IsMap)
+      {
+        if(vals) Alloc::deallocate((char*)vals, n_buckets * sizeof(Data));
+      }
+      else
+        assert(vals == 0);
+    }
+    inline void _docopy(const HashBase& copy)
+    {
+      if constexpr(ArrayType != ARRAY_MOVE)
+      {
+        _resize(copy.n_buckets);
+        assert(n_buckets == copy.n_buckets);
+        memcpy(flags, copy.flags, n_buckets);
+        for(khint_t i = 0; i < n_buckets; ++i)
+        {
+          if(!__ac_iseither(copy.flags, i))
+          {
+            new(keys + i) Key((const Key&)copy.keys[i]);
+
+            if constexpr(IsMap)
+              new(vals + i) Data((const Data&)copy.vals[i]);
+          }
+        }
+
+        assert(n_buckets == copy.n_buckets);
+        size = copy.size;
+        n_occupied = copy.n_occupied;
+        upper_bound = copy.upper_bound;
+      }
+      else
+        assert(false);
+    }
     template<typename U, typename V>
     inline khiter_t _insert(U && key, V && value)
     {
@@ -294,13 +303,13 @@ namespace bss {
           memset(new_flags, 2, new_n_buckets);
           if(n_buckets < new_n_buckets)
           {	/* expand */
-            Key *new_keys = _realloc<Key>(flags, keys, new_n_buckets, n_buckets);
-            if(!new_keys) { Alloc::deallocate((char*)new_flags); return -1; }
+            Key *new_keys = _realloc<Key>(flags, keys, new_n_buckets);
+            if(!new_keys) { Alloc::deallocate((char*)new_flags, new_n_buckets); return -1; }
             keys = new_keys;
             if constexpr(IsMap)
             {
-              Data *new_vals = _realloc<Data>(flags, vals, new_n_buckets, n_buckets);
-              if(!new_vals) { Alloc::deallocate((char*)new_flags); return -1; }
+              Data *new_vals = _realloc<Data>(flags, vals, new_n_buckets);
+              if(!new_vals) { Alloc::deallocate((char*)new_flags, new_n_buckets); return -1; }
               vals = new_vals;
             }
           } /* otherwise shrink */
@@ -342,12 +351,12 @@ namespace bss {
         }
         if(n_buckets > new_n_buckets)
         { /* shrink the hash table */
-          keys = _realloc<Key>(flags, keys, new_n_buckets, n_buckets);
+          keys = _realloc<Key>(flags, keys, new_n_buckets);
           if constexpr(IsMap)
-            vals = _realloc<Data>(flags, vals, new_n_buckets, n_buckets);
+            vals = _realloc<Data>(flags, vals, new_n_buckets);
         }
         if(flags)
-          Alloc::deallocate((char*)flags); /* free the working space */
+          Alloc::deallocate((char*)flags, n_buckets); /* free the working space */
         flags = new_flags;
         n_buckets = new_n_buckets;
         n_occupied = size;
@@ -441,10 +450,10 @@ namespace bss {
       }
     }
     template<typename T>
-    inline static T* _realloc(khint8_t* flags, T* src, khint_t new_n_buckets, khint_t n_buckets) noexcept
+    inline T* _realloc(khint8_t* flags, T* src, khint_t new_n_buckets) noexcept
     {
       if constexpr(ArrayType == ARRAY_SIMPLE || ArrayType == ARRAY_CONSTRUCT)
-        return (T*)Alloc::allocate(new_n_buckets * sizeof(T), (char*)src);
+        return (T*)Alloc::allocate(new_n_buckets * sizeof(T), (char*)src, n_buckets * sizeof(T));
       else if(ArrayType == ARRAY_SAFE || ArrayType == ARRAY_MOVE)
       {
         T* n = (T*)Alloc::allocate(new_n_buckets * sizeof(T), 0);
@@ -458,7 +467,7 @@ namespace bss {
         }
 
         if(src)
-          Alloc::deallocate((char*)src);
+          Alloc::deallocate((char*)src, n_buckets * sizeof(T));
 
         return n;
       }
@@ -550,7 +559,7 @@ namespace bss {
 
   template<typename T, int I>
   inline khint_t KH_MULTI_EQUAL(const T& a, const T& b)
-  { 
+  {
     if constexpr(I > 0)
       return (std::get<I>(a) == std::get<I>(b)) && KH_MULTI_EQUAL<T, I - 1>(a, b);
     else if constexpr(I == 0)
@@ -588,7 +597,7 @@ namespace bss {
   }
 
   // Generic hash definition
-  template<typename K, typename T = void, bool ins = false, ARRAY_TYPE ArrayType = ARRAY_SIMPLE, typename Alloc = StaticAllocPolicy<char>>
+  template<typename K, typename T = void, bool ins = false, ARRAY_TYPE ArrayType = ARRAY_SIMPLE, typename Alloc = StandardAllocator<char>>
   class BSS_COMPILER_DLLEXPORT Hash : public HashBase<K, T, &KH_AUTO_HASH<K, ins>, &KH_AUTO_EQUAL<K, ins>, ArrayType, Alloc>
   {
   public:
@@ -596,7 +605,9 @@ namespace bss {
 
     inline Hash(const Hash& copy) = default;
     inline Hash(Hash&& mov) = default;
-    inline Hash(khint_t size = 0) : BASE(size) {}
+    template<bool U = std::is_void_v<typename Alloc::policy_type>, std::enable_if_t<!U, int> = 0>
+    inline Hash(khint_t size, typename Alloc::policy_type* policy) : BASE(size, policy) {}
+    inline explicit Hash(khint_t size = 0) : BASE(size) {}
 
     inline Hash& operator =(const Hash& right) = default;
     inline Hash& operator =(Hash&& mov) = default;

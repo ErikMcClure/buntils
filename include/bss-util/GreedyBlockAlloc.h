@@ -10,7 +10,7 @@
 namespace bss {
   // A simplified single-threaded greedy allocator specifically designed for high-speed block allocations.
   template<class T>
-  class BSS_COMPILER_DLLEXPORT GreedyBlockAlloc
+  class BSS_COMPILER_DLLEXPORT GreedyBlockPolicy
   {
   public:
     // Block Chunk Alloc
@@ -23,17 +23,17 @@ namespace bss {
       char align[alignof(T)];
     };
 
-    inline GreedyBlockAlloc(GreedyBlockAlloc&& mov) : _root(mov._root), _curpos(mov._curpos)
+    inline GreedyBlockPolicy(GreedyBlockPolicy&& mov) : _root(mov._root), _curpos(mov._curpos)
     {
       mov._root = 0;
       mov._curpos = 0;
     }
-    inline explicit GreedyBlockAlloc(size_t init = 8) : _root(0), _curpos(0)
+    inline explicit GreedyBlockPolicy(size_t init = 8) : _root(0), _curpos(0)
     {
       _allocChunk(init);
     }
 
-    inline ~GreedyBlockAlloc()
+    inline ~GreedyBlockPolicy()
     {
       Node* hold = _root;
 
@@ -43,8 +43,9 @@ namespace bss {
         ALIGNEDFREE(_root);
       }
     }
-    inline T* Alloc(size_t sz = 1) noexcept
+    inline T* allocate(size_t sz, const T* ptr = 0, size_t old = 0) noexcept
     {
+      assert(!ptr);
       sz = AlignSize(sz * sizeof(T), alignof(T));
 #ifdef BSS_DISABLE_CUSTOM_ALLOCATORS
       return ALIGNEDALLOC(sz * sizeof(T), alignof(T));
@@ -61,7 +62,7 @@ namespace bss {
       assert(!(reinterpret_cast<size_t>(p) % alignof(T)));
       return p;
     }
-    void Dealloc(void* p) noexcept
+    inline void deallocate(void* p, size_t num = 0) noexcept
     {
 #ifdef BSS_DISABLE_CUSTOM_ALLOCATORS
       ALIGNEDFREE(p);

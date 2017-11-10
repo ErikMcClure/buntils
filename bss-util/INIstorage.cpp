@@ -13,7 +13,7 @@
 using namespace bss;
 
 INIsection INIstorage::_sectionsentinel;
-LocklessBlockAlloc<INIstorage::_NODE> INIstorage::_alloc;
+LocklessBlockPolicy<INIstorage::_NODE> INIstorage::_alloc;
 
 template<typename T>
 const T* ltrimstr(const T* str)
@@ -136,7 +136,7 @@ INIsection& INIstorage::AddSection(const char* name)
 
 INIsection* INIstorage::_addSection(const char* name)
 {
-  _NODE* p = _alloc.Alloc(1);
+  _NODE* p = _alloc.allocate(1);
   bssFill(*p, 0);
   khiter_t iter = _sections.Iterator(name);
 
@@ -151,7 +151,7 @@ INIsection* INIstorage::_addSection(const char* name)
   }
   else
   {
-    assert(_last != 0 && _root != 0);
+    assert(_last != 0 && _root != 0 && _sections.ExistsIter(iter));
     _NODE* r = _sections.UnsafeValue(iter);
     _NODE* t = !r->instances.Capacity() ? r : r->instances.Back();
     LLInsertAfter(p, t, _last);
@@ -196,7 +196,7 @@ bool INIstorage::RemoveSection(const char* name, size_t instance)
     }
 
     secnode->~_NODE(); // Calling this destructor is important in case the node has an unused array that needs to be freed
-    _alloc.Dealloc(secnode);
+    _alloc.deallocate(secnode, 1);
     _ini->erase((const char*)chunk.start - _ini->c_str(), ((const char*)chunk.end - (const char*)chunk.start) + 1);
     return true;
   }
@@ -267,7 +267,7 @@ char INIstorage::EditEntry(const char* section, const char* key, const char* nva
       entroot->instances.Remove(keyinstance - 1);
 
     entnode->~_SNODE(); // Calling this destructor is important in case the node has an unused array that needs to be freed
-    INIsection::_alloc.Dealloc(entnode);
+    INIsection::_alloc.deallocate(entnode, 1);
     const char* end = strchr((const char*)chunk.end, '\n'); // Now we remove it from the actual INI
     end = !end ? (const char*)chunk.end : end + 1;
     _ini->erase((const char*)chunk.start - _ini->c_str(), end - (const char*)chunk.start);
@@ -344,7 +344,7 @@ void INIstorage::_destroy()
   {
     t = _root->next;
     _root->~_NODE();
-    _alloc.Dealloc(_root);
+    _alloc.deallocate(_root, 1);
     _root = t;
   }
   _last = 0;
@@ -358,7 +358,7 @@ void INIstorage::_copy(const INIstorage& copy)
   size_t c = 0;
   while(t)
   {
-    _NODE* p = _alloc.Alloc(1);
+    _NODE* p = _alloc.allocate(1);
     bssFill(*p, 0);
     new (&p->val) INIsection(t->val);
     if(!_root)

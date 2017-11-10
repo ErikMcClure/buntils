@@ -153,7 +153,7 @@ TESTDEF::RETPAIR test_HASH()
   safe.Insert(2874984, nullptr);
   safe.Insert(-28383, nullptr);
   safe.Insert(8, nullptr);
-  TEST(safe[2] != 0);
+  TEST(safe.Exists(2));
   TEST(safe(0));
   TEST(safe(2));
   TEST(safe(-3));
@@ -198,6 +198,42 @@ TESTDEF::RETPAIR test_HASH()
   safe = std::move(safe3);
   TEST(safe(2));
   TEST(safe(9));
+  }
+  {
+    Hash<int, Str> h;
+    h.Insert(0, "test");
+    h.Insert(1, "test2");
+    TEST(!strcmp(h[0], "test"));
+    TEST(!strcmp(h[1], "test2"));
+    TEST(h[2] == 0);
+    static_assert(std::is_same<decltype(h[0]), const char*>::value, "wrong GET type");
+  }
+  {
+    Hash<int, std::string> h;
+    h.Insert(0, "test");
+    h.Insert(1, "test2");
+    TEST(!strcmp(h[0], "test"));
+    TEST(!strcmp(h[1], "test2"));
+    TEST(h[2] == 0);
+    static_assert(std::is_same<decltype(h[0]), const char*>::value, "wrong GET type");
+  }
+  {
+    Hash<int, void*> h;
+    h.Insert(0, 0);
+    h.Insert(1, &h);
+    TEST(h[0] == 0);
+    TEST(h[1] == &h);
+    TEST(h[2] == 0);
+    static_assert(std::is_same<decltype(h[0]), void*>::value, "wrong GET type");
+  }
+  {
+    Hash<int, std::unique_ptr<int>, false, ARRAY_MOVE> h;
+    h.Insert(0, std::unique_ptr<int>(new int(1)));
+    h.Insert(1, std::unique_ptr<int>(new int(2)));
+    TEST(*h[0] == 1);
+    TEST(*h[1] == 2);
+    TEST(h[2] == 0);
+    static_assert(std::is_same<decltype(h[0]), int*>::value, "wrong GET type");
   }
   ENDTEST;
 }

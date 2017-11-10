@@ -8,12 +8,14 @@
 
 namespace bss {
   // Fast, tiny array-based stack. Pop and Top are only valid if there is an item in the stack; this check must be done by the user.
-  template<class T, typename CType = size_t, ARRAY_TYPE ArrayType = ARRAY_SIMPLE, typename Alloc = StaticAllocPolicy<T>>
+  template<class T, typename CType = size_t, ARRAY_TYPE ArrayType = ARRAY_SIMPLE, typename Alloc = StandardAllocator<T>>
   class BSS_COMPILER_DLLEXPORT Stack
   {
   public:
     inline Stack(const Stack& copy) : _array(copy) {}
     inline Stack(Stack&& mov) : _array(std::move(mov)) {}
+    template<bool U = std::is_void_v<typename Alloc::policy_type>, std::enable_if_t<!U, int> = 0>
+    inline Stack(CType init, typename Alloc::policy_type* policy) : _array(init, policy) {}
     inline explicit Stack(CType init = 0) : _array(init) {}
     inline ~Stack() {}
     // Pushes an item on to the stack in LIFO order.

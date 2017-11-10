@@ -21,7 +21,7 @@ TESTDEF::RETPAIR test_THREADPOOL()
 {
   BEGINTEST;
   {
-    static const int NUM = 8;
+    unsigned int NUM = std::thread::hardware_concurrency();
     ThreadPool pool(NUM);
     bssFill(pq_end, 0);
     pq_c = 0;

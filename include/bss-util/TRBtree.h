@@ -385,39 +385,48 @@ namespace bss {
   };
 
   // Threaded Red-black tree implementation
-  template<typename T, char(*CFunc)(const T&, const T&) = CompT<T>, typename Alloc = StandardAllocPolicy<TRB_Node<T>>>
-  class BSS_COMPILER_DLLEXPORT TRBtree : protected AllocTracker<Alloc>
+  template<typename T, char(*CFunc)(const T&, const T&) = CompT<T>, typename Alloc = StandardAllocator<TRB_Node<T>>>
+  class BSS_COMPILER_DLLEXPORT TRBtree : protected Alloc
   {
     BSS_FORCEINLINE static char CompNode(const TRB_Node<T>& l, const TRB_Node<T>& r) { return CFunc(l.value, r.value); }
 
   public:
-    inline TRBtree(TRBtree&& mov) : AllocTracker<Alloc>(std::move(mov)), _first(mov._first), _last(mov._last), _root(mov._root), NIL(mov.NIL)
+    inline TRBtree(TRBtree&& mov) : Alloc(std::move(mov)), _first(mov._first), _last(mov._last), _root(mov._root), NIL(mov.NIL)
     {
       mov._first = 0;
       mov._last = 0;
-      mov.NIL = AllocTracker<Alloc>::_allocate(1);
+      mov.NIL = Alloc::allocate(1);
       new (NIL) TRB_Node<T>(0);
       mov.NIL->left = mov.NIL;
       mov.NIL->right = mov.NIL;
       mov._root = mov.NIL;
     }
-    inline explicit TRBtree(Alloc* allocator = 0) : AllocTracker<Alloc>(allocator), _first(0), _last(0), NIL(0), _root(0)
+    template<bool U = std::is_void_v<typename Alloc::policy_type>, std::enable_if_t<!U, int> = 0>
+    inline explicit TRBtree(typename Alloc::policy_type* policy) : Alloc(policy), _first(0), _last(0), NIL(0), _root(0)
     {
-      NIL = AllocTracker<Alloc>::_allocate(1);
+      NIL = Alloc::allocate(1);
+      new (NIL) TRB_Node<T>(0);
+      NIL->left = NIL;
+      NIL->right = NIL;
+      _root = NIL;
+    }
+    inline TRBtree() : _first(0), _last(0), NIL(0), _root(0)
+    {
+      NIL = Alloc::allocate(1);
       new (NIL) TRB_Node<T>(0);
       NIL->left = NIL;
       NIL->right = NIL;
       _root = NIL;
     }
     // Destructor
-    inline ~TRBtree() { Clear(); NIL->~TRB_Node(); AllocTracker<Alloc>::_deallocate(NIL, 1); }
+    inline ~TRBtree() { Clear(); NIL->~TRB_Node(); Alloc::deallocate(NIL, 1); }
     // Clears the tree
     inline void Clear()
     {
       for(auto i = begin(); i.IsValid();) // Walk through the tree using the linked list and deallocate everything
       {
         (*i)->~TRB_Node();
-        AllocTracker<Alloc>::_deallocate(*(i++), 1);
+        Alloc::deallocate(*(i++), 1);
       }
 
       _first = 0;
@@ -433,7 +442,7 @@ namespace bss {
     // Inserts a key with the associated data
     BSS_FORCEINLINE TRB_Node<T>* Insert(const T& value)
     {
-      TRB_Node<T>* node = AllocTracker<Alloc>::_allocate(1);
+      TRB_Node<T>* node = Alloc::allocate(1);
       new(node) TRB_Node<T>(value, NIL);
       TRB_Node<T>::template InsertNode<CompNode>(node, _root, _first, _last, NIL);
       return node;
@@ -448,7 +457,7 @@ namespace bss {
 
       TRB_Node<T>::RemoveNode(node, _root, _first, _last, NIL);
       node->~TRB_Node();
-      AllocTracker<Alloc>::_deallocate(node, 1);
+      Alloc::deallocate(node, 1);
       return true;
     }
     // Returns first element

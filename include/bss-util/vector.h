@@ -7,8 +7,12 @@
 #include "bss_util.h"
 #include "sseVec.h"
 #include <initializer_list>
+#include <array>
 
 namespace bss {
+  template<class Engine>
+  class Serializer;
+
   // Find the dot product of two n-dimensional vectors
   template<typename T, int N>
   BSS_FORCEINLINE T NVectorDot(const T(&l)[N], const T(&r)[N])
@@ -370,107 +374,6 @@ namespace bss {
   }
 #endif
 
-  namespace internal {
-  // Multiply an MxN matrix with an NxP matrix to make an MxP matrix.
-    template<typename T, int M, int N, int P>
-    struct BSS_COMPILER_DLLEXPORT __MatrixMultiply
-    {
-      static BSS_FORCEINLINE void MM(const T(&l)[M][N], const T(&r)[N][P], T(&out)[M][P]) noexcept
-      {
-        T m[M][P];
-
-        for(int i = 0; i < M; ++i)
-        {
-          for(int j = 0; j < P; ++j)
-          {
-            m[i][j] = l[i][0] * r[0][j];
-            for(int k = 1; k < N; ++k)
-              m[i][j] += l[i][k] * r[k][j];
-          }
-        }
-
-        for(int i = 0; i < M; ++i) // Done so the compiler can get rid of it if it isn't necessary
-          for(int j = 0; j < P; ++j)
-            out[i][j] = m[i][j];
-      }
-    };
-
-    // Standard 4x4 matrix multiplication using SSE2. Intended for row-major matrices, so you'll end up with r*l instead of l*r if your matrices are column major instead.
-    template<>
-    struct BSS_COMPILER_DLLEXPORT __MatrixMultiply<float, 4, 4, 4>
-    {
-      static BSS_FORCEINLINE void MM(const float(&l)[4][4], const float(&r)[4][4], float(&out)[4][4]) noexcept
-      {
-        assert(!(((size_t)l) % 16));
-        assert(!(((size_t)r) % 16));
-        assert(!(((size_t)out) % 16));
-        sseVec a(r[0]);
-        sseVec b(r[1]);
-        sseVec c(r[2]);
-        sseVec d(r[3]);
-
-        // Note: It's ok if l, r, and out are all the same matrix because of the order they're accessed in.
-        ((a*sseVec(l[0][0])) + (b*sseVec(l[0][1])) + (c*sseVec(l[0][2])) + (d*sseVec(l[0][3]))).Set(out[0]);
-        ((a*sseVec(l[1][0])) + (b*sseVec(l[1][1])) + (c*sseVec(l[1][2])) + (d*sseVec(l[1][3]))).Set(out[1]);
-        ((a*sseVec(l[2][0])) + (b*sseVec(l[2][1])) + (c*sseVec(l[2][2])) + (d*sseVec(l[2][3]))).Set(out[2]);
-        ((a*sseVec(l[3][0])) + (b*sseVec(l[3][1])) + (c*sseVec(l[3][2])) + (d*sseVec(l[3][3]))).Set(out[3]);
-      }
-    };
-
-    // It turns out you can efficiently do SSE optimization when multiplying any Mx4 matrix with a 4x4 matrix to yield an Mx4 out matrix.
-    template<int M>
-    struct BSS_COMPILER_DLLEXPORT __MatrixMultiply<float, M, 4, 4>
-    {
-      static BSS_FORCEINLINE void MM(const float(&l)[M][4], const float(&r)[4][4], float(&out)[M][4])
-      {
-        sseVec a(r[0]);
-        sseVec b(r[1]);
-        sseVec c(r[2]);
-        sseVec d(r[3]);
-
-        for(int i = 0; i < M; ++i) // Note: It's ok if l, r, and out are all the same matrix because of the order they're accessed in.
-          ((a*sseVec(l[i][0])) + (b*sseVec(l[i][1])) + (c*sseVec(l[i][2])) + (d*sseVec(l[i][3]))) >> out[i];
-      }
-    };
-
-    template<int M> // We can't use sseVec<T> because only int32 and floats can fit 4 into a register.
-    struct BSS_COMPILER_DLLEXPORT __MatrixMultiply<int32_t, M, 4, 4>
-    {
-      static BSS_FORCEINLINE void MM(const int32_t(&l)[M][4], const int32_t(&r)[4][4], int32_t(&out)[M][4])
-      {
-        sseVeci a(r[0]);
-        sseVeci b(r[1]);
-        sseVeci c(r[2]);
-        sseVeci d(r[3]);
-
-        for(int i = 0; i < M; ++i) // Note: It's ok if l, r, and out are all the same matrix because of the order they're accessed in.
-          ((a*sseVeci(l[i][0])) + (b*sseVeci(l[i][1])) + (c*sseVeci(l[i][2])) + (d*sseVeci(l[i][3]))).Set(out[i]);
-      }
-    };
-
-    template<>
-    struct BSS_COMPILER_DLLEXPORT __MatrixMultiply<float, 1, 4, 4>
-    {
-      static BSS_FORCEINLINE void MM(const float(&l)[1][4], const float(&r)[4][4], float(&out)[1][4])
-      { // Note: It's ok if l, r, and out are all the same matrix because of the order they're accessed in.
-        ((sseVec(r[0])*sseVec(l[0][0])) + (sseVec(r[1])*sseVec(l[0][1])) + (sseVec(r[2])*sseVec(l[0][2])) + (sseVec(r[3])*sseVec(l[0][3]))).Set(out[0]);
-      }
-    };
-
-    /*template<int M> // This requires 16-byte alignment on 2x2 matrices and 2D vectors
-    struct __MatrixMultiply<double, M, 2, 2>
-    {
-    static BSS_FORCEINLINE void MM(const double(&l)[M][2], const double(&r)[2][2], double(&out)[M][2])
-    {
-    sseVecd a(r[0]);
-    sseVecd b(r[1]);
-
-    for(int i = 0; i < M; ++i)
-    ((a*sseVecd(l[i][0]))+(b*sseVecd(l[i][1]))) >> out[i];
-    }
-    };*/
-  }
-
   // Multiply a 1x4 vector on the left with a 4x4 matrix on the right, resulting in a 1x4 vector held in an sseVec.
   template<typename T>
   BSS_FORCEINLINE sseVecT<T> MatrixMultiply1x4(const T(&l)[4], const T(&r)[4][4])
@@ -481,7 +384,50 @@ namespace bss {
   template<typename T, int M, int N, int P>
   BSS_FORCEINLINE void MatrixMultiply(const T(&l)[M][N], const T(&r)[N][P], T(&out)[M][P])
   {
-    internal::__MatrixMultiply<T, M, N, P>::MM(l, r, out);
+    if constexpr(N == 4 && P == 4 && (std::is_same_v<T, float> || std::is_same_v<T, int32_t>))
+    {
+      typedef sseVecT<T> SSE;
+      assert(!(((size_t)l) % 16));
+      assert(!(((size_t)r) % 16));
+      assert(!(((size_t)out) % 16));
+      SSE a(r[0]);
+      SSE b(r[1]);
+      SSE c(r[2]);
+      SSE d(r[3]);
+
+      if constexpr(M == 1)
+        ((a*SSE(l[0][0])) + (b*SSE(l[0][1])) + (c*SSE(l[0][2])) + (d*SSE(l[0][3]))).Set(out[0]);
+      else if constexpr(M == 4)
+      {
+        ((a*SSE(l[0][0])) + (b*SSE(l[0][1])) + (c*SSE(l[0][2])) + (d*SSE(l[0][3]))).Set(out[0]);
+        ((a*SSE(l[1][0])) + (b*SSE(l[1][1])) + (c*SSE(l[1][2])) + (d*SSE(l[1][3]))).Set(out[1]);
+        ((a*SSE(l[2][0])) + (b*SSE(l[2][1])) + (c*SSE(l[2][2])) + (d*SSE(l[2][3]))).Set(out[2]);
+        ((a*SSE(l[3][0])) + (b*SSE(l[3][1])) + (c*SSE(l[3][2])) + (d*SSE(l[3][3]))).Set(out[3]);
+      }
+      else
+      {
+        for(int i = 0; i < M; ++i) // Note: It's ok if l, r, and out are all the same matrix because of the order they're accessed in.
+          ((a*SSE(l[i][0])) + (b*SSE(l[i][1])) + (c*SSE(l[i][2])) + (d*SSE(l[i][3]))).Set(out[i]);
+      }
+    }
+    else
+    {
+      T m[M][P];
+
+      for(int i = 0; i < M; ++i)
+      {
+        for(int j = 0; j < P; ++j)
+        {
+          m[i][j] = l[i][0] * r[0][j];
+          for(int k = 1; k < N; ++k)
+            m[i][j] += l[i][k] * r[k][j];
+        }
+      }
+
+      for(int i = 0; i < M; ++i) // Done so the compiler can get rid of it if it isn't necessary
+        for(int j = 0; j < P; ++j)
+          out[i][j] = m[i][j];
+    }
   }
 
   namespace internal {
@@ -546,13 +492,13 @@ namespace bss {
       BSS_FORCEINLINE static BSS_SSE_M128 _mm_ror_ps(BSS_SSE_M128 vec) { return (((I) % 4) ? (BSS_SSE_SHUFFLE_PS(vec, vec, _MM_SHUFFLE((uint8_t)(I + 3) % 4, (uint8_t)(I + 2) % 4, (uint8_t)(I + 1) % 4, (uint8_t)(I + 0) % 4))) : vec); }
       BSS_FORCEINLINE static float MD(const float(&x)[4][4])
       {
-  //   Copyright (c) 2001 Intel Corporation.
-  //
-  // Permition is granted to use, copy, distribute and prepare derivative works 
-  // of this library for any purpose and without fee, provided, that the above 
-  // copyright notice and this statement appear in all copies.  
-  // Intel makes no representations about the suitability of this software for 
-  // any purpose, and specifically disclaims all warranties. 
+        //   Copyright (c) 2001 Intel Corporation.
+        //
+        // Permition is granted to use, copy, distribute and prepare derivative works 
+        // of this library for any purpose and without fee, provided, that the above 
+        // copyright notice and this statement appear in all copies.  
+        // Intel makes no representations about the suitability of this software for 
+        // any purpose, and specifically disclaims all warranties. 
 
         BSS_SSE_M128 Va, Vb, Vc;
         BSS_SSE_M128 r1, r2, r3, t1, t2, sum;
@@ -647,6 +593,7 @@ namespace bss {
     inline constexpr Vector(const Vector<U, N>& copy) { for(int i = 0; i < N; ++i) v[i] = (T)copy.v[i]; }
     inline explicit constexpr Vector(T scalar) { for(int i = 0; i < N; ++i) v[i] = scalar; }
     inline explicit constexpr Vector(const T(&e)[N]) { for(int i = 0; i < N; ++i) v[i] = e[i]; }
+    inline explicit constexpr Vector(const std::array<T, N>& e) { for(int i = 0; i < N; ++i) v[i] = e[i]; }
     inline Vector(const std::initializer_list<T>& e) { int k = 0; for(const T* i = e.begin(); i != e.end() && k < N; ++i) v[k++] = *i; }
     inline constexpr Vector() {}
     inline T Length() const { return FastSqrt<T>(Dot(*this)); }
@@ -659,6 +606,15 @@ namespace bss {
 
     inline Vector<T, N>& operator=(const Vector<T, N>& r) { for(int i = 0; i < N; ++i) v[i] = r.v[i]; return *this; }
     template<typename U> inline Vector<T, N>& operator=(const Vector<U, N>& r) { for(int i = 0; i < N; ++i) v[i] = (T)r.v[i]; return *this; }
+    template<int... K> BSS_FORCEINLINE Vector<T, sizeof...(K)> Swizzle() const
+    {
+      static_assert(sizeof...(K) <= N, "Too many swizzles!");
+      return T[sizeof...(K)]{ v[K]... };
+    }
+
+    typedef T SerializerArray;
+    template<typename Engine>
+    void Serialize(Serializer<Engine>& s, const char* id) { s.EvaluateFixedArray(v, id); }
 
     union {
       T v[N];
@@ -674,6 +630,7 @@ namespace bss {
     inline constexpr Vector(const Vector<U, 2>& copy) : x((T)copy.v[0]), y((T)copy.v[1]) {}
     inline explicit constexpr Vector(T scalar) : x(scalar), y(scalar) {}
     inline explicit constexpr Vector(const T(&e)[2]) : x(e[0]), y(e[1]) {}
+    inline explicit constexpr Vector(const std::array<T, 2>& e) : x(e[0]), y(e[1]) {}
     inline Vector(const std::initializer_list<T>& e) { int k = 0; for(const T* i = e.begin(); i != e.end() && k < 2; ++i) v[k++] = *i; }
     inline constexpr Vector(T X, T Y) : x(X), y(Y) {}
     inline constexpr Vector() {}
@@ -701,6 +658,10 @@ namespace bss {
 
     inline Vector<T, 2> yx() const { return Vector<T, 2>(y, x); }
 
+    typedef T SerializerArray;
+    template<typename Engine>
+    void Serialize(Serializer<Engine>& s, const char* id) { s.EvaluateFixedArray(v, id); }
+
     union {
       T v[2];
       T v_column[2][1];
@@ -716,6 +677,7 @@ namespace bss {
     inline constexpr Vector(const Vector<U, 3>& copy) : x((T)copy.v[0]), y((T)copy.v[1]), z((T)copy.v[2]) {}
     inline explicit constexpr Vector(T scalar) : x(scalar), y(scalar), z(scalar) {}
     inline explicit constexpr Vector(const T(&e)[3]) : x(e[0]), y(e[1]), z(e[2]) {}
+    inline explicit constexpr Vector(const std::array<T, 3>& e) : x(e[0]), y(e[1]), z(e[2]) {}
     inline Vector(const std::initializer_list<T>& e) { int k = 0; for(const T* i = e.begin(); i != e.end() && k < 3; ++i) v[k++] = *i; }
     inline constexpr Vector(T X, T Y, T Z) : x(X), y(Y), z(Z) {}
     inline constexpr Vector() {}
@@ -730,6 +692,10 @@ namespace bss {
     template<int K> inline void Outer(const Vector<T, K>& r, T(&out)[3][K]) const { MatrixMultiply<T, 3, 1, K>(v_column, r.v_row, out); }
 
     template<typename U> inline Vector<T, 3>& operator=(const Vector<U, 3>& r) { x = (T)r.x; y = (T)r.y; z = (T)r.z; return *this; }
+
+    typedef T SerializerArray;
+    template<typename Engine>
+    void Serialize(Serializer<Engine>& s, const char* id) { s.EvaluateFixedArray(v, id); }
 
     inline Vector<T, 2> xz() const { return Vector<T, 2>(x, z); }
     inline Vector<T, 2> zx() const { return Vector<T, 2>(z, x); }
@@ -758,6 +724,7 @@ namespace bss {
     inline constexpr Vector(const Vector<U, 4>& copy) : x((T)copy.v[0]), y((T)copy.v[1]), z((T)copy.v[2]), w((T)copy.v[3]) {}
     inline explicit constexpr Vector(T scalar) : x(scalar), y(scalar), z(scalar), w(scalar) {}
     inline explicit constexpr Vector(const T(&e)[4]) : x(e[0]), y(e[1]), z(e[2]), w(e[3]) {}
+    inline explicit constexpr Vector(const std::array<T, 4>& e) : x(e[0]), y(e[1]), z(e[2]), w(e[3]) {}
     inline Vector(const std::initializer_list<T>& e) { int k = 0; for(const T* i = e.begin(); i != e.end() && k < 4; ++i) v[k++] = *i; }
     inline constexpr Vector(T X, T Y, T Z, T W) : x(X), y(Y), z(Z), w(W) {}
     inline constexpr Vector() {}
@@ -770,6 +737,10 @@ namespace bss {
     template<int K> inline void Outer(const Vector<T, K>& r, T(&out)[4][K]) const { MatrixMultiply<T, 4, 1, K>(v_column, r.v_row, out); }
 
     template<typename U> inline Vector<T, 4>& operator=(const Vector<U, 4>& r) { x = (T)r.x; y = (T)r.y; z = (T)r.z; w = (T)r.w; return *this; }
+
+    typedef T SerializerArray;
+    template<typename Engine>
+    void Serialize(Serializer<Engine>& s, const char* id) { s.EvaluateFixedArray(v, id); }
 
     // SWIZZLES!!!!
     inline Vector<T, 2> xz() const { return Vector<T, 2>(x, z); }
@@ -877,6 +848,10 @@ namespace bss {
       return m;
     }
 
+    typedef T SerializerArray;
+    template<typename Engine>
+    void Serialize(Serializer<Engine>& s, const char* id) { s.EvaluateFixedArray(v, id); }
+
     T v[M][N];
   };
 
@@ -916,6 +891,10 @@ namespace bss {
     BSS_FORCEINLINE static void Identity(Matrix<T, 2, 2>& n) { Identity(n.v); }
     BSS_FORCEINLINE static void Identity(T(&n)[2][2]) { Diagonal(1, 1, n); }
     BSS_FORCEINLINE static Matrix Identity() { Matrix m; Identity(m); return m; }
+
+    typedef T SerializerArray;
+    template<typename Engine>
+    void Serialize(Serializer<Engine>& s, const char* id) { s.EvaluateFixedArray(v, id); }
 
     union {
       T v[2][2];
@@ -998,6 +977,10 @@ namespace bss {
     static BSS_FORCEINLINE void Identity(T(&m)[3][3]) { Diagonal(1, 1, 1, m); }
     static BSS_FORCEINLINE Matrix Identity() { Matrix m; Identity(m); return m; }
 
+    typedef T SerializerArray;
+    template<typename Engine>
+    void Serialize(Serializer<Engine>& s, const char* id) { s.EvaluateFixedArray(v, id); }
+
     union {
       T v[3][3];
       struct { T a, b, c, d, e, f, g, h, i; };
@@ -1068,6 +1051,10 @@ namespace bss {
     static BSS_FORCEINLINE void Identity(Matrix<T, 4, 4>& m) { Identity(m.v); }
     static BSS_FORCEINLINE void Identity(T(&m)[4][4]) { Diagonal(1, 1, 1, 1, m); }
     static BSS_FORCEINLINE Matrix Identity() { Matrix m; Identity(m); return m; }
+
+    typedef T SerializerArray;
+    template<typename Engine>
+    void Serialize(Serializer<Engine>& s, const char* id) { s.EvaluateFixedArray(v, id); }
 
     BSS_ALIGNED_UNION(16)
     {
@@ -1200,11 +1187,11 @@ namespace bss {
 
   template<> inline Vector<float, 4>& operator +=<float, float, 4>(Vector<float, 4>& l, const Vector<float, 4>& r) { (sseVec(l.v) + sseVec(r.v)).Set(l.v); return l; }
   template<> inline Vector<float, 4>& operator -=<float, float, 4>(Vector<float, 4>& l, const Vector<float, 4>& r) { (sseVec(l.v) - sseVec(r.v)).Set(l.v); return l; }
-  template<> inline Vector<float, 4>& operator *=<float, float, 4>(Vector<float, 4>& l, const Vector<float, 4>& r) { (sseVec(l.v)*sseVec(r.v)).Set(l.v); return l; }
+  template<> inline Vector<float, 4>& operator *=<float, float, 4>(Vector<float, 4>& l, const Vector<float, 4>& r) { (sseVec(l.v) * sseVec(r.v)).Set(l.v); return l; }
   template<> inline Vector<float, 4>& operator /=<float, float, 4>(Vector<float, 4>& l, const Vector<float, 4>& r) { (sseVec(l.v) / sseVec(r.v)).Set(l.v); return l; }
   template<> inline Vector<float, 4>& operator +=<float, 4>(Vector<float, 4>& l, const float r) { (sseVec(l.v) + sseVec(r, r, r, r)).Set(l.v); return l; }
   template<> inline Vector<float, 4>& operator -=<float, 4>(Vector<float, 4>& l, const float r) { (sseVec(l.v) - sseVec(r, r, r, r)).Set(l.v); return l; }
-  template<> inline Vector<float, 4>& operator *=<float, 4>(Vector<float, 4>& l, const float r) { (sseVec(l.v)*sseVec(r, r, r, r)).Set(l.v); return l; }
+  template<> inline Vector<float, 4>& operator *=<float, 4>(Vector<float, 4>& l, const float r) { (sseVec(l.v) * sseVec(r, r, r, r)).Set(l.v); return l; }
   template<> inline Vector<float, 4>& operator /=<float, 4>(Vector<float, 4>& l, const float r) { (sseVec(l.v) / sseVec(r, r, r, r)).Set(l.v); return l; }
 
   // This implements all possible B-spline functions using a given matrix m, optimized for floats

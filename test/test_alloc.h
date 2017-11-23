@@ -108,7 +108,7 @@ void TEST_ALLOC_MT(TESTDEF::RETPAIR& __testret, Args... args)
       threads[i] = bss::Thread(&TEST_ALLOC_FUZZER_THREAD<A, T, MAXSIZE, TRIALS, false>, std::ref(__testret), std::ref(_alloc), i + 1);
     startflag.store(true);
 
-    for(size_t i = 0; i < NUM; ++i)
+    for(int i = 0; i < NUM; ++i)
       threads[i].join();
 
     _alloc.Clear();

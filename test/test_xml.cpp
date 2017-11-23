@@ -13,7 +13,7 @@ struct XMLtest3
   float f;
 
   template<typename Engine>
-  void Serialize(Serializer<Engine>& s)
+  void Serialize(Serializer<Engine>& s, const char*)
   {
     s.template EvaluateType<XMLtest3>(GenPair("f", f));
   }
@@ -26,7 +26,7 @@ struct XMLtest2
   std::vector<XMLtest3> test;
 
   template<typename Engine>
-  void Serialize(Serializer<Engine>& s)
+  void Serialize(Serializer<Engine>& s, const char*)
   {
     s.template EvaluateType<XMLtest2>(GenPair("a", a), GenPair("test", test));
   }
@@ -46,9 +46,10 @@ struct XMLtest
   std::vector<Str> f;
   std::array<bool, 2> g;
   DynArray<XMLtest2, size_t, ARRAY_SAFE> nested;
+  std::tuple<short, Str, double> tuple;
 
   template<typename Engine>
-  void Serialize(Serializer<Engine>& s)
+  void Serialize(Serializer<Engine>& s, const char*)
   {
     s.template EvaluateType<XMLtest>(
       GenPair("a", a),
@@ -62,7 +63,8 @@ struct XMLtest
       GenPair("e", e),
       GenPair("f", f),
       GenPair("g", g),
-      GenPair("nested", nested)
+      GenPair("nested", nested),
+      GenPair("tuple", tuple)
       );
   }
 };
@@ -106,6 +108,10 @@ void dotest_XML(XMLtest& o, TESTDEF::RETPAIR& __testret)
   TEST(o.nested[1].test[0].f == -12.21f);
   TEST(o.nested[2].a == 4);
   TEST(o.nested[2].test.size() == 0);
+  auto[a, b, c] = o.tuple;
+  TEST(a == -3);
+  TEST(b == "2");
+  TEST(c == 1.0);
 }
 
 TESTDEF::RETPAIR test_XML()
@@ -204,6 +210,9 @@ TESTDEF::RETPAIR test_XML()
         <test f="-12.21" />
       </nested>
       <nested a = "4" />
+      <tuple>-3</tuple>
+      <tuple>2</tuple>
+      <tuple>1.0</tuple>
     </xmltest>
   );
 

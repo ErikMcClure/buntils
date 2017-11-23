@@ -16,6 +16,7 @@ namespace bss {
     inline constexpr NSphere(const NSphere<U, N>& copy) : c(copy.c), r(copy.r) { }
     inline constexpr explicit NSphere(const Vector<T, N>& center, T radius) : c(center), r(radius) { }
     inline constexpr explicit NSphere(const T(&e)[N], T radius) : c(e), r(radius) { }
+    inline constexpr explicit NSphere(const std::array<T, N>& e, T radius) : c(e), r(radius) { }
     inline constexpr NSphere() {}
     inline T Diameter() const { return r * 2; }
     inline T Radius() const { return r; }
@@ -27,6 +28,10 @@ namespace bss {
 
     template<class U>
     inline NSphere& operator=(const NSphere<U, N>& other) { c = other.c; r = other.r; return *this; }
+
+    typedef T SerializerArray;
+    template<typename Engine>
+    void Serialize(Serializer<Engine>& s, const char* id) { s.EvaluateFixedArray(v, id); }
 
     union {
       struct {
@@ -46,6 +51,7 @@ namespace bss {
     inline constexpr explicit NSphere(const Vector<T, 2>& center, T radius) : c(center), r(radius) { }
     inline constexpr explicit NSphere(T x, T y, T radius) : c(x, y), r(radius) { }
     inline constexpr explicit NSphere(const T(&e)[2], T radius) : c(e), r(radius) { }
+    inline constexpr explicit NSphere(const std::array<T, 2>& e, T radius) : c(e), r(radius) { }
     inline constexpr NSphere() {}
     inline T Area() const { return r * r * (T)PI; }
     inline T Circumference() const { return r * 2 * (T)PI; }
@@ -72,6 +78,11 @@ namespace bss {
 
     template<class U>
     inline NSphere& operator=(const NSphere<U, 2>& other) { c = other.c; r = other.r; return *this; }
+
+    typedef T SerializerArray;
+    template<typename Engine>
+    void Serialize(Serializer<Engine>& s, const char* id) { s.EvaluateFixedArray(v, id); }
+
     union {
       struct {
         union {
@@ -96,6 +107,7 @@ namespace bss {
     inline constexpr explicit NSphere(const Vector<T, 3>& center, T radius) : c(center), r(radius) { }
     inline constexpr explicit NSphere(T x, T y, T z, T radius) : c(x, y, z), r(radius) { }
     inline constexpr explicit NSphere(const T(&e)[3], T radius) : c(e), r(radius) { }
+    inline constexpr explicit NSphere(const std::array<T, 3>& e, T radius) : c(e), r(radius) { }
     inline constexpr NSphere() {}
     inline T Volume() const { return (4 * r * r * r * (T)PI) / 3; }
     inline T SurfaceArea() const { return r * r * 4 * (T)PI; }
@@ -109,6 +121,10 @@ namespace bss {
 
     template<class U>
     inline NSphere& operator=(const NSphere<U, 3>& other) { c = other.c; r = other.r; return *this; }
+
+    typedef T SerializerArray;
+    template<typename Engine>
+    void Serialize(Serializer<Engine>& s, const char* id) { s.EvaluateFixedArray(v, id); }
 
     union {
       struct {
@@ -144,6 +160,10 @@ namespace bss {
     template<class U>
     inline LineN& operator=(const LineN<U, N>& other) { p1 = other.p1; p2 = other.p2; }
 
+    typedef T SerializerArray;
+    template<typename Engine>
+    void Serialize(Serializer<Engine>& s, const char* id) { s.EvaluateFixedArray(v, id); }
+
     union {
       struct {
         V p1;
@@ -171,6 +191,10 @@ namespace bss {
 
     template<class U>
     inline LineN& operator=(const LineN<U, 2>& other) { p1 = other.p1; p2 = other.p2; }
+
+    typedef T SerializerArray;
+    template<typename Engine>
+    void Serialize(Serializer<Engine>& s, const char* id) { s.EvaluateFixedArray(v, id); }
 
     union {
       struct {
@@ -203,6 +227,10 @@ namespace bss {
 
     template<class U>
     inline LineN& operator=(const LineN<U, 3>& other) { p1 = other.p1; p2 = other.p2; }
+
+    typedef T SerializerArray;
+    template<typename Engine>
+    void Serialize(Serializer<Engine>& s, const char* id) { s.EvaluateFixedArray(v, id); }
 
     union {
       struct {
@@ -239,6 +267,7 @@ namespace bss {
     inline explicit Rect(const V& v) : left(v.x), top(v.y), right(v.x), bottom(v.y) {}
     inline explicit Rect(const sseVecT<T>& v) { v.Set(ltrb); }
     inline explicit Rect(const T(&rectarray)[4]) : left(rectarray[0]), top(rectarray[1]), right(rectarray[2]), bottom(rectarray[3]) {}
+    inline explicit Rect(const std::array<T, 4>& rectarray) : left(rectarray[0]), top(rectarray[1]), right(rectarray[2]), bottom(rectarray[3]) {}
     inline T Area() const { return (right - left)*(bottom - top); }
     inline Rect Abs() const { return Rect(abs(left), abs(top), abs(right), abs(bottom)); }
     inline Circle<T> BoundingCircle() const { V center = topleft + bottomright; center /= (T)2; return Circle<T>(center, Dist<T>(center.x, center.y, topleft.x, topleft.y)); }
@@ -266,7 +295,7 @@ namespace bss {
     BSS_FORCEINLINE bool CircleCollide(const Circle<T>& c) const { return RectCircleCollide<T>(left, top, right, bottom, c.x, c.y, c.r); }
     BSS_FORCEINLINE bool LineCollide(T X1, T Y1, T X2, T Y2) const { return RectLineCollide<T>(left, top, right, bottom, X1, Y1, X2, Y2); }
     BSS_FORCEINLINE bool LineCollide(const V& p1, const V& p2) const { return RectLineCollide<T>(left, top, right, bottom, p1.x, p1.y, p2.x, p2.y); }
-    BSS_FORCEINLINE bool LineCollide(const Line<T>& l) const { return RectLineCollide<T>(left, top, right, bottom, l.x1, l.y1, l.x2, l.y2);}
+    BSS_FORCEINLINE bool LineCollide(const Line<T>& l) const { return RectLineCollide<T>(left, top, right, bottom, l.x1, l.y1, l.x2, l.y2); }
     BSS_FORCEINLINE bool RectCollide(T Left, T Top, T Right, T Bottom) const { return RectRectCollide<T>(left, top, right, bottom, Left, Top, Right, Bottom); }
     BSS_FORCEINLINE bool RectCollide(const Rect& r) const { return RectRectCollide<T>(left, top, right, bottom, r.left, r.top, r.right, r.bottom); }
 
@@ -320,6 +349,10 @@ namespace bss {
     template<class U>
     inline Rect& operator =(const Rect<U>& _right) { left = (T)_right.left; top = (T)_right.top; right = (T)_right.right; bottom = (T)_right.bottom; return *this; }
 
+    typedef T SerializerArray;
+    template<typename Engine>
+    void Serialize(Serializer<Engine>& s, const char* id) { s.EvaluateFixedArray(ltrb, id); }
+
     union {
       struct {
         V topleft;
@@ -328,7 +361,7 @@ namespace bss {
       struct {
         T left;
         T top;
-        T right; 
+        T right;
         T bottom;
       };
       T ltrb[4];
@@ -338,10 +371,10 @@ namespace bss {
   template<class T>
   inline void RectExpandTo(Rect<T>& r, const Vector<T, 2>& p)
   {
-    if(p.x<r.left) r.left = p.x;
-    else if(p.x>r.right) r.right = p.x;
-    if(p.y<r.top) r.top = p.y;
-    else if(p.y>r.bottom) r.bottom = p.y;
+    if(p.x < r.left) r.left = p.x;
+    else if(p.x > r.right) r.right = p.x;
+    if(p.y < r.top) r.top = p.y;
+    else if(p.y > r.bottom) r.bottom = p.y;
   }
 
   // 2D Triangle
@@ -354,6 +387,10 @@ namespace bss {
     inline constexpr Triangle(const Triangle<U>& other) { for(int i = 0; i < 3; ++i) v[i] = other.v[i]; }
     inline T Area() const { return (v[1] - v[0]).Cross(v[2] - v[0]) / ((T)2); }
     BSS_FORCEINLINE bool ContainsPoint(T X, T Y) const { return TriangleContainsPoint(v, X, Y); }
+
+    typedef T SerializerArray;
+    template<typename Engine>
+    void Serialize(Serializer<Engine>& s, const char* id) { s.EvaluateFixedArray(v, id); }
 
     V v[3];
   };
@@ -378,6 +415,10 @@ namespace bss {
     BSS_FORCEINLINE bool RectCollide(const Rect<T>& r) const { return EllipseRectCollide(x, y, a, b, r.left, r.top, r.right, r.bottom); }
     BSS_FORCEINLINE bool CircleCollide(T X, T Y, T R) const { return EllipseCircleCollide(x, y, a, b, X, Y, R); }
     BSS_FORCEINLINE bool CircleCollide(const Circle<T>& c) const { return EllipseCircleCollide(x, y, a, b, c.x, c.y, c.r); }
+
+    typedef T SerializerArray;
+    template<typename Engine>
+    void Serialize(Serializer<Engine>& s, const char* id) { s.EvaluateFixedArray(v, id); }
 
     union {
       struct {
@@ -408,6 +449,10 @@ namespace bss {
     inline T ArcLengthOuter() const { return range*outer; }
     inline T ArcLengthInner() const { return range*inner; }
     inline bool ContainsPoint(T X, T Y) { return RadiusSectorContainsPoint(X - x, Y - y, inner, outer, min, range); }
+
+    typedef T SerializerArray;
+    template<typename Engine>
+    void Serialize(Serializer<Engine>& s, const char* id) { s.EvaluateFixedArray(v, id); }
 
     union {
       struct {
@@ -626,7 +671,7 @@ namespace bss {
   template<class T>
   inline Rect<T> PolygonAABB(const Vector<T, 2>* verts, size_t num)
   {
-    assert(num>1); //you can't be a 1D object or this is invalid
+    assert(num > 1); //you can't be a 1D object or this is invalid
     Rect<T> retval(verts[0].x, verts[0].y, verts[0].x, verts[0].y);
     for(size_t i = 1; i < num; ++i)
       RectExpandTo(retval, verts[i]);
@@ -655,13 +700,13 @@ namespace bss {
     inline V Centroid() const { return PolygonCentroid<T>(_verts.begin(), _verts.Capacity()); }
     inline Rect<T> AABB() const { return PolygonAABB<T>(_verts.begin(), _verts.Capacity()); }
     inline bool IsConvex() const { return PolygonIsConvex<T>(_verts.begin(), _verts.Capacity()); }
-    
+
     inline bool ContainsPoint(const Vector<T, 2>& point) const { return PolygonContainsPoint<T>(point, _verts.begin(), _verts.Capacity()); }
     inline bool ConvexContainsPoint(const Vector<T, 2>& point) const { return ConvexPolygonContainsPoint<T>(point, _verts.begin(), _verts.Capacity()); }
     inline void CenterPolygon()
     {
       V c = Centroid();
-      for(size_t i = 0; i<_verts.Capacity(); ++i)
+      for(size_t i = 0; i < _verts.Capacity(); ++i)
         _verts[i] -= c;
     }
 
@@ -695,6 +740,10 @@ namespace bss {
     }
     template<size_t N>
     inline void SetVertices(const V(&vertices)[N]) { SetVertices(vertices, N); }
+
+    typedef T SerializerArray;
+    template<typename Engine>
+    void Serialize(Serializer<Engine>& s, const char* id) { _verts.Serialize(s, id); }
 
   protected:
     Array<V> _verts;

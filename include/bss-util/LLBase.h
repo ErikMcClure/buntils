@@ -148,8 +148,9 @@ namespace bss {
   class BSS_COMPILER_DLLEXPORT LLIterator : public std::iterator<std::bidirectional_iterator_tag, T, ptrdiff_t, T*, T*>
   {
   protected:
-    typedef typename std::iterator<std::bidirectional_iterator_tag, T, ptrdiff_t, T*, T*>::pointer pointer;
-    typedef typename std::iterator<std::bidirectional_iterator_tag, T, ptrdiff_t, T*, T*>::reference reference;
+    using std::iterator<std::bidirectional_iterator_tag, T, ptrdiff_t, T*, T*>::pointer;
+    using std::iterator<std::bidirectional_iterator_tag, T, ptrdiff_t, T*, T*>::reference;
+
   public:
     inline LLIterator() : cur(0) {}
     inline explicit LLIterator(T* node) : cur(node) {}

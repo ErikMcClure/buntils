@@ -19,7 +19,7 @@ TESTDEF::RETPAIR test_HASH()
     hasherint.Insert(25, &_failedtests);
     hasherint.Get(25);
     hasherint.Remove(25);
-    Hash<const char*, Logger*, true> hasher;
+    HashIns<const char*, Logger*> hasher;
     TEST(!hasher[""]);
     hasher.Insert("", &_failedtests);
     hasher.Insert("Video", (Logger*)5);
@@ -30,10 +30,10 @@ TESTDEF::RETPAIR test_HASH()
     TEST(check == (Logger*)5);
     check = hasher.Get("Video");
     TEST(check == (Logger*)5);
-    Hash<const char*, Logger*, true> hasher2(hasher);
+    HashIns<const char*, Logger*> hasher2(hasher);
     check = hasher2.Get("Video");
     TEST(check == (Logger*)5);
-    Hash<const char*, Logger*, true> hasher3(std::move(hasher));
+    HashIns<const char*, Logger*> hasher3(std::move(hasher));
     check = hasher2.Get("Video");
     TEST(check == (Logger*)5);
     //uint64_t diff = HighPrecisionTimer::CloseProfiler(ID);
@@ -48,6 +48,11 @@ TESTDEF::RETPAIR test_HASH()
       set.Insert(&set);
       set.GetKey(0);
       TEST(set.Exists(0));
+      size_t count = 0;
+      for(auto k : set)
+        count++;
+      TEST(set.Length() == 5);
+      TEST(set.Length() == count);
     }
     {
       Hash<int, int> val;
@@ -64,6 +69,10 @@ TESTDEF::RETPAIR test_HASH()
       TEST(val[4] == -3);
       val.Remove(-3);
       TEST(val[-3] == -1);
+      size_t count = 0;
+      for(auto [k, v] : val)
+        count++;
+      TEST(val.Length() == count);
     }
     {
       typedef std::pair<uint64_t, int32_t> HASHTESTPAIR;
@@ -80,7 +89,7 @@ TESTDEF::RETPAIR test_HASH()
       TEST(!set.Exists(HASHTESTPAIR(3, -1)));
     }
     {
-      Hash<int, DEBUG_CDT<true>, false, ARRAY_SAFE> safe;
+      Hash<int, DEBUG_CDT<true>, ARRAY_SAFE> safe;
       TEST(!safe[2]);
       safe.Insert(0, DEBUG_CDT<true>());
       safe.Insert(2, DEBUG_CDT<true>());
@@ -144,7 +153,7 @@ TESTDEF::RETPAIR test_HASH()
   }
 
   {
-  Hash<int, std::unique_ptr<int>, false, ARRAY_MOVE> safe;
+  Hash<int, std::unique_ptr<int>, ARRAY_MOVE> safe;
   TEST(!safe[2]);
   safe.Insert(0, nullptr);
   safe.Insert(2, nullptr);
@@ -182,7 +191,7 @@ TESTDEF::RETPAIR test_HASH()
   TEST(!safe(10));
   TEST(safe(9));
 
-  Hash<int, std::unique_ptr<int>, false, ARRAY_MOVE> safe3(std::move(safe));
+  Hash<int, std::unique_ptr<int>, ARRAY_MOVE> safe3(std::move(safe));
   TEST(!safe3(8));
   TEST(safe3(2));
   TEST(!safe3(10));
@@ -227,7 +236,7 @@ TESTDEF::RETPAIR test_HASH()
     static_assert(std::is_same<decltype(h[0]), void*>::value, "wrong GET type");
   }
   {
-    Hash<int, std::unique_ptr<int>, false, ARRAY_MOVE> h;
+    Hash<int, std::unique_ptr<int>, ARRAY_MOVE> h;
     h.Insert(0, std::unique_ptr<int>(new int(1)));
     h.Insert(1, std::unique_ptr<int>(new int(2)));
     TEST(*h[0] == 1);

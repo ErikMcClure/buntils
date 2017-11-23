@@ -768,6 +768,6 @@ std::unique_ptr<char[], bss::bssDLLDelete<char[]>> bss::GetFontPath(const char* 
 #include "bss-util/Delegate.h"
 #include "bss-util/Hash.h"
 
-bss::Hash<int, bss::Hash<int>, false, bss::ARRAY_SAFE> hashtest;
+bss::Hash<int, bss::Hash<int>, bss::ARRAY_SAFE> hashtest;
 static bool testhash = !hashtest[2];
 #endif

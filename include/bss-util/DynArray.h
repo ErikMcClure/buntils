@@ -26,7 +26,7 @@ namespace bss {
 
     inline DynArray(const DynArray& copy) : BASE(copy._capacity, copy), _length(copy._length) { BASE::_copy(_array, copy._array, _length); }
     inline DynArray(DynArray&& mov) : BASE(std::move(mov)), _length(mov._length) { mov._length = 0; }
-    inline explicit DynArray(const Slice<const T, CType>& slice) : BASE(slice.length), _length(slice.length) { BASE::_copy(_array, slice.start, slice.length); }
+    inline explicit DynArray(const Slice<const T, CT>& slice) : BASE(slice.length), _length(slice.length) { BASE::_copy(_array, slice.start, slice.length); }
     template<bool U = std::is_void_v<typename Alloc::policy_type>, std::enable_if_t<!U, int> = 0>
     inline DynArray(CT capacity, typename Alloc::policy_type* policy) : BASE(capacity, policy), _length(0) {}
     inline explicit DynArray(CT capacity) : BASE(capacity), _length(0) {}
@@ -50,8 +50,8 @@ namespace bss {
     BSS_FORCEINLINE void RemoveLast() { Remove(_length - 1); }
     BSS_FORCEINLINE void Insert(const T& t, CT index = 0) { _insert(t, index); }
     BSS_FORCEINLINE void Insert(T&& t, CT index = 0) { _insert(std::move(t), index); }
-    BSS_FORCEINLINE void Set(const Slice<const T, CType>& slice) { Set(slice.start, slice.length); }
-    BSS_FORCEINLINE void Set(const T* p, CType n)
+    BSS_FORCEINLINE void Set(const Slice<const T, CT>& slice) { Set(slice.start, slice.length); }
+    BSS_FORCEINLINE void Set(const T* p, CT n)
     {
       BASE::_setLength(_array, _length, 0);
       if(n > _capacity)
@@ -79,14 +79,14 @@ namespace bss {
     BSS_FORCEINLINE const T* end() const noexcept { return _array + _length; }
     BSS_FORCEINLINE T* begin() noexcept { return _array; }
     BSS_FORCEINLINE T* end() noexcept { return _array + _length; }
-    BSS_FORCEINLINE Slice<T, CT> GetSlice() const noexcept { return Slice<T, CType>(_array, _length); }
+    BSS_FORCEINLINE Slice<T, CT> GetSlice() const noexcept { return Slice<T, CT>(_array, _length); }
 #if defined(BSS_64BIT) && defined(BSS_DEBUG) 
     BSS_FORCEINLINE T& operator [](uint64_t i) { assert(i < _length); return _array[i]; } // for some insane reason, this works on 64-bit, but not on 32-bit
     BSS_FORCEINLINE const T& operator [](uint64_t i) const { assert(i < _length); return _array[i]; }
 #endif
     BSS_FORCEINLINE operator T*() { return _array; }
     BSS_FORCEINLINE operator const T*() const { return _array; }
-    inline DynArray& operator=(const Array<T, CType, ArrayType, Alloc>& copy)
+    inline DynArray& operator=(const Array<T, CT, ArrayType, Alloc>& copy)
     {
       BASE::_setLength(_array, _length, 0);
       if(copy._capacity > _capacity)
@@ -95,7 +95,7 @@ namespace bss {
       _length = copy._capacity;
       return *this;
     }
-    inline DynArray& operator=(Array<T, CType, ArrayType, Alloc>&& mov) { BASE::_setLength(_array, _length, 0); BASE::operator=(std::move(mov)); _length = mov._capacity; return *this; }
+    inline DynArray& operator=(Array<T, CT, ArrayType, Alloc>&& mov) { BASE::_setLength(_array, _length, 0); BASE::operator=(std::move(mov)); _length = mov._capacity; return *this; }
     inline DynArray& operator=(const DynArray& copy)
     {
       BASE::_setLength(_array, _length, 0);
@@ -106,7 +106,7 @@ namespace bss {
       return *this;
     }
     inline DynArray& operator=(DynArray&& mov) { BASE::_setLength(_array, _length, 0); BASE::operator=(std::move(mov)); _length = mov._length; mov._length = 0; return *this; }
-    inline DynArray& operator=(const Slice<const T, CType>& copy) { Set(copy); return *this; }
+    inline DynArray& operator=(const Slice<const T, CT>& copy) { Set(copy); return *this; }
     inline DynArray& operator +=(const DynArray& add)
     {
       BASE::_setCapacity(_length + add._length, _length);
@@ -122,10 +122,33 @@ namespace bss {
       r._length = _length + add._length;
       return r;
     }
+    typedef std::conditional_t<internal::is_pair_array<T>::value, void, T> SerializerArray;
+    template<typename Engine>
+    void Serialize(Serializer<Engine>& s, const char* id)
+    {
+      if constexpr(!internal::is_pair_array<T>::value)
+        s.template EvaluateArray<DynArray, T, &_serializeAdd<Engine>, CT, &DynArray::SetLength>(*this, _length, id);
+      else
+        s.template EvaluateKeyValue<DynArray>(*this, [this](Serializer<Engine>& e, const char* name) { _serializeInsert(e, name); });
+    }
 
   protected:
+    template<typename Engine, bool U = internal::is_pair_array<T>::value>
+    inline std::enable_if_t<U> _serializeInsert(Serializer<Engine>& e, const char* name)
+    {
+      T pair;
+      std::get<0>(pair) = name;
+      Serializer<Engine>::template ActionBind<remove_cvref_t<std::tuple_element_t<1, T>>>::Parse(e, std::get<1>(pair), name);
+      Add(pair);
+    }
+    template<typename Engine>
+    inline static void _serializeAdd(Serializer<Engine>& e, DynArray& obj, int& n)
+    {
+      obj.AddConstruct();
+      Serializer<Engine>::template ActionBind<T>::Parse(e, obj.Back(), 0);
+    }
     template<typename U>
-    inline void _insert(U && data, CType index)
+    inline void _insert(U && data, CT index)
     {
       _checkSize();
       BASE::_insert(_array, _length++, index, std::forward<U>(data));
@@ -224,51 +247,10 @@ namespace bss {
     // This gets the raw storage byte in such a way that unused bits are always set to zero. Useful for debugging.
     inline STORE GetRawByte(CT index) const { assert(index < _capacity); return (index < (_capacity - 1)) ? _array[index] : (_array[index] & ((STORE)(~0) >> ((_capacity*DIV_AMT) - _length))); }
 
-    class BSS_COMPILER_DLLEXPORT _cBIT_ITER : public std::iterator<std::bidirectional_iterator_tag, BITREF>
-    {
-    public:
-      inline _cBIT_ITER(const BITREF& src) : _bits(const_cast<STORE*>(&src.GetState().first)), _bit(src.GetState().second) {}
-      inline bool operator*() const { return (bool)BITREF(_bit, *_bits); }
-      inline BITREF operator*() { return BITREF(_bit, *_bits); }
-      inline _cBIT_ITER& operator++() { _incthis(); return *this; } //prefix
-      inline _cBIT_ITER operator++(int) { _cBIT_ITER r(*this); ++*this; return r; } //postfix
-      inline _cBIT_ITER& operator--() { _decthis(); return *this; } //prefix
-      inline _cBIT_ITER operator--(int) { _cBIT_ITER r(*this); --*this; return r; } //postfix
-      inline const _cBIT_ITER& operator++() const { _incthis(); return *this; } //prefix
-      inline const _cBIT_ITER operator++(int) const { _cBIT_ITER r(*this); ++*this; return r; } //postfix
-      inline const _cBIT_ITER& operator--() const { _decthis(); return *this; } //prefix
-      inline const _cBIT_ITER operator--(int) const { _cBIT_ITER r(*this); --*this; return r; } //postfix
-      inline bool operator==(const _cBIT_ITER& _Right) const { return (_bits == _Right._bits) && (_bit == _Right._bit); }
-      inline bool operator!=(const _cBIT_ITER& _Right) const { return !operator==(_Right); }
-
-    protected:
-      void _incthis()
-      {
-        _bit = (_bit << 1);
-        if(!_bit)
-        {
-          ++_bits;
-          _bit = 1;
-        }
-      }
-      void _decthis()
-      {
-        _bit = (_bit >> 1);
-        if(!_bit)
-        {
-          --_bits;
-          _bit = (1 << MOD_AMT);
-        }
-      }
-
-      STORE* _bits;
-      STORE _bit;
-    };
-
-    BSS_FORCEINLINE const _cBIT_ITER begin() const { return GetBit(0); }
-    BSS_FORCEINLINE const _cBIT_ITER end() const { return GetBit(_length); }
-    BSS_FORCEINLINE _cBIT_ITER begin() { return GetBit(0); }
-    BSS_FORCEINLINE _cBIT_ITER end() { return GetBit(_length); }
+    BSS_FORCEINLINE const internal::_BIT_ITER<STORE> begin() const { return GetBit(0); }
+    BSS_FORCEINLINE const internal::_BIT_ITER<STORE> end() const { return GetBit(_length); }
+    BSS_FORCEINLINE internal::_BIT_ITER<STORE> begin() { return GetBit(0); }
+    BSS_FORCEINLINE internal::_BIT_ITER<STORE> end() { return GetBit(_length); }
 
     inline DynArray& operator=(const DynArray& copy)
     {
@@ -295,7 +277,21 @@ namespace bss {
       return r;
     }*/
 
+    typedef Ty SerializerArray;
+    template<typename Engine>
+    void Serialize(Serializer<Engine>& s, const char* id)
+    {
+      s.template EvaluateArray<DynArray, bool, &_serializeAdd<Engine>, STORE, nullptr>(*this, _length, id);
+    }
+
   protected:
+    template<typename Engine>
+    inline static void _serializeAdd(Serializer<Engine>& e, DynArray& obj, int& n)
+    {
+      bool b;
+      Serializer<Engine>::template ActionBind<bool>::Parse(e, b, 0);
+      obj.Add(b);
+    }
     BSS_FORCEINLINE BITREF GetBit(CT bitindex) const { return BITREF(((STORE)1) << (bitindex&MOD_AMT), *(_array + (bitindex / DIV_AMT))); }
     BSS_FORCEINLINE static CT _maxChunks(CT numbits) { return T_NEXTMULTIPLE(numbits, MOD_AMT); }
     inline void _shiftDelete(CT index)
@@ -388,6 +384,8 @@ namespace bss {
     BSS_FORCEINLINE void SetElement(const T* newarray, CT num) { SetElement(newarray, sizeof(T), num); }
     template<typename T, int NUM>
     BSS_FORCEINLINE void SetElement(const T(&newarray)[NUM]) { SetElement(newarray, sizeof(T), NUM); }
+    template<typename T, int NUM>
+    BSS_FORCEINLINE void SetElement(const std::array<T, NUM>& newarray) { SetElement(newarray.data(), sizeof(T), NUM); }
     void SetElement(CT element)
     {
       if(element == _element)

@@ -4,6 +4,7 @@
 #include "test.h"
 #include "bss-util/JSON.h"
 #include <fstream>
+#include "bss-util/Geometry.h"
 
 using namespace bss;
 
@@ -13,7 +14,7 @@ struct JSONtest2
   std::array<int, 2> ia;
 
   template<typename Engine>
-  void Serialize(Serializer<Engine>& s)
+  void Serialize(Serializer<Engine>& s, const char*)
   {
     s.template EvaluateType<JSONtest2>(GenPair("value", value), GenPair("ia", ia));
   }
@@ -41,9 +42,10 @@ struct JSONtest
   CircleSector<int> sector;
   Circle<int> circle;
   Ellipse<int> ellipse;
+  std::tuple<short, Str, double> tuple;
 
   template<typename Engine>
-  void Serialize(Serializer<Engine>& s)
+  void Serialize(Serializer<Engine>& s, const char*)
   {
     s.template EvaluateType<JSONtest>(
       GenPair("a", a),
@@ -65,7 +67,8 @@ struct JSONtest
       GenPair("triangle", triangle),
       GenPair("sector", sector),
       GenPair("circle", circle),
-      GenPair("ellipse", ellipse)
+      GenPair("ellipse", ellipse),
+      GenPair("tuple", tuple)
       );
   }
 };
@@ -144,12 +147,16 @@ void dotest_JSON(JSONtest& o, TESTDEF::RETPAIR& __testret)
   TEST(o.ellipse.v[1] == 2);
   TEST(o.ellipse.v[2] == 3);
   TEST(o.ellipse.v[3] == 4);
+  auto[a, b, c] = o.tuple;
+  TEST(a == 1);
+  TEST(b == "2");
+  TEST(c == 3.0);
 }
 
 TESTDEF::RETPAIR test_JSON()
 {
   BEGINTEST;
-  const char* json = "{ \"a\": -5, \"b\": 342  ,\"c\":23.7193 , \"btrue\": true, \"bfalse\": false, \"fixed\": [0.2, 23.1, -3, 4.0], \"test\":\"\\u01A8string {,};[]\\\"st\\\"'\\\n\\\r\\/\\u0FA8nb\\\"\", \"nested\" : { \"value\": [ { }, { } ], \"ia\":[  -1,2 ] }, \"foo\": [5 ,6, 4,2 ,  2,3,], \"bar\": [3.3,1.6543,0.49873,90, 4], \"foobar\":[\"moar\",\"\"], \"nestarray\": [null, { \"a\":, \"b\":34, }], \"nested2\": null, \"hash\": { \"40\" : 44, \"41\" : 45, \"42\" : 46, }, \"matrix\": [ [1,2,3],[4,5,6] ], \"polygon\": [[1,2],[3,4],[5,6]], \"triangle\": [[1,2],[3,4],[5,6]], \"sector\": [1,2,3,4,5,6], \"circle\": [1,2,3], \"ellipse\": [1,2,3,4] }";
+  const char* json = "{ \"a\": -5, \"b\": 342  ,\"c\":23.7193 , \"btrue\": true, \"bfalse\": false, \"fixed\": [0.2, 23.1, -3, 4.0], \"test\":\"\\u01A8string {,};[]\\\"st\\\"'\\\n\\\r\\/\\u0FA8nb\\\"\", \"nested\" : { \"value\": [ { }, { } ], \"ia\":[  -1,2 ] }, \"foo\": [5 ,6, 4,2 ,  2,3,], \"bar\": [3.3,1.6543,0.49873,90, 4], \"foobar\":[\"moar\",\"\"], \"nestarray\": [null, { \"a\":, \"b\":34, }], \"nested2\": null, \"hash\": { \"40\" : 44, \"41\" : 45, \"42\" : 46, }, \"matrix\": [ [1,2,3],[4,5,6] ], \"polygon\": [[1,2],[3,4],[5,6]], \"triangle\": [[1,2],[3,4],[5,6]], \"sector\": [1,2,3,4,5,6], \"circle\": [1,2,3], \"ellipse\": [1,2,3,4], \"tuple\":[1, \"2\", 3.0] }";
   JSONtest o;
   o.btrue = false;
   o.bfalse = true;
@@ -183,7 +190,7 @@ TESTDEF::RETPAIR test_JSON()
   fs3.close();
 
   auto& var1 = var.get<JSONValue::JSONObject>();
-  TEST(var1.Length() == 20);
+  TEST(var1.Length() == 21);
   TEST(var1[0].first == "a");
   TEST(var1[0].second.is<int64_t>());
   TEST(var1[1].first == "b");

@@ -129,7 +129,7 @@ namespace bss {
     BSS_ALIGN(16) RWLock _cachelock;
     const size_t _maxsize;
     const size_t _debugalign;
-    Hash<size_t, bss_PTag<void>, false, ARRAY_SIMPLE, StandardAllocator<char, 16>> _cache; // Each size in the hash points to a freelist for allocations of that size
+    HashIns<size_t, bss_PTag<void>, ARRAY_SIMPLE, StandardAllocator<char, 16>> _cache; // Each size in the hash points to a freelist for allocations of that size
   };
 
 

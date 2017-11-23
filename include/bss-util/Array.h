@@ -5,10 +5,15 @@
 #define __ARRAY_H__BSS__
 
 #include "Alloc.h"
+#include "bss_util.h"
 #include <string.h>
 #include <initializer_list>
 
 namespace bss {
+  template<class Engine>
+  class Serializer;
+
+  // Represents an array slice, similar to span<T>.
   template<class T, typename CType = size_t>
   struct BSS_COMPILER_DLLEXPORT Slice
   {
@@ -362,7 +367,31 @@ namespace bss {
     }
     BSS_FORCEINLINE Array operator +(const Array& add) const noexcept { Array r(*this); return (r += add); }
 
+    typedef std::conditional_t<internal::is_pair_array<T>::value, void, T> SerializerArray;
+    template<typename Engine>
+    void Serialize(Serializer<Engine>& s, const char* id)
+    {
+      if constexpr(!internal::is_pair_array<T>::value)
+        s.template EvaluateArray<Array, T, &_serializeAdd, CT, &Array::SetCapacity>(*this, _capacity, id);
+      else
+        s.template EvaluateKeyValue<Array>(*this, [this](Serializer<Engine>& e, const char* name) { _serializeInsert(e, name); });
+    }
+
   protected:
+    template<typename Engine, bool U = internal::is_pair_array<T>::value>
+    inline std::enable_if_t<U> _serializeInsert(Serializer<Engine>& e, const char* name)
+    {
+      T pair;
+      std::get<0>(pair) = name;
+      Serializer<Engine>::template ActionBind<remove_cvref_t<std::tuple_element_t<1, T>>>::Parse(e, std::get<1>(pair), name);
+      Add(pair);
+    }
+    template<typename Engine>
+    inline static void _serializeAdd(Serializer<Engine>& e, Array& obj, int& n)
+    {
+      obj.SetCapacity(obj.Capacity() + 1);
+      Serializer<Engine>::template ActionBind<T>::Parse(e, obj.Back(), 0);
+    }
     template<typename U>
     inline void _insert(U && item, CT index)
     {

@@ -112,7 +112,7 @@ namespace bss {
     struct Type { static constexpr int value = getpos<T, Arg, Args...>::value; };
 
     template<typename Engine>
-    void Serialize(Serializer<Engine>& e)
+    void Serialize(Serializer<Engine>& e, const char*)
     {
       internal::serializer::ActionVariantRef<Arg, Args...> ref(*this);
       e.template EvaluateType<Variant>(std::pair<const char*, int&>("t", _tag), std::pair<const char*, internal::serializer::ActionVariantRef<Arg, Args...>&>("o", ref));
@@ -122,7 +122,7 @@ namespace bss {
     template<typename U>
     inline void _construct(U && v)
     { 
-      typedef typename std::remove_const<typename std::remove_reference<U>::type>::type T;
+      typedef remove_cvref_t<U> T;
       if constexpr(std::is_same<T, Variant>::value)
       {
         _tag = v._tag;
@@ -139,7 +139,7 @@ namespace bss {
     template<typename U>
     inline void _assign(U && v)
     { 
-      typedef typename std::remove_const<typename std::remove_reference<U>::type>::type T;
+      typedef remove_cvref_t<U> T;
       if constexpr(std::is_same<T, Variant>::value)
       {
         if(_tag == v._tag)

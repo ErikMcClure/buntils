@@ -3,6 +3,7 @@
 
 #include "test.h"
 #include "bss-util/TOML.h"
+#include "bss-util/Geometry.h"
 #include <fstream>
 
 using namespace bss;
@@ -12,24 +13,24 @@ struct TOMLtest3
   float f;
 
   template<typename Engine>
-  void Serialize(Serializer<Engine>& s)
+  void Serialize(Serializer<Engine>& s, const char*)
   {
     s.template EvaluateType<TOMLtest3>(GenPair("f", f));
   }
 };
 
 struct Hitbox {
-  bss::DynArray<bss::CircleSector<float>> circles;
-  bss::DynArray<bss::Rect<float>> rects;
-  bss::DynArray<bss::Polygon<float>> polygons;
+  DynArray<CircleSector<float>> circles;
+  DynArray<Rect<float>> rects;
+  DynArray<Polygon<float>> polygons;
 
   template<typename Engine>
-  void Serialize(bss::Serializer<Engine>& e)
+  void Serialize(Serializer<Engine>& e, const char*)
   {
     e.template EvaluateType<Hitbox>(
-      bss::GenPair("circles", circles),
-      bss::GenPair("rects", rects),
-      bss::GenPair("polygons", polygons)
+      GenPair("circles", circles),
+      GenPair("rects", rects),
+      GenPair("polygons", polygons)
       );
   }
 };
@@ -38,9 +39,9 @@ struct AttackData {
   Hitbox box;
 
   template<typename Engine>
-  void Serialize(bss::Serializer<Engine>& e)
+  void Serialize(Serializer<Engine>& e, const char*)
   {
-    e.template EvaluateType<Hitbox>(bss::GenPair("box", box));
+    e.template EvaluateType<Hitbox>(GenPair("box", box));
   }
 };
 
@@ -52,7 +53,7 @@ struct TOMLtest2
   std::vector<Str> j;
 
   template<typename Engine>
-  void Serialize(Serializer<Engine>& s)
+  void Serialize(Serializer<Engine>& s, const char*)
   {
     s.template EvaluateType<TOMLtest2>(GenPair("a", a), GenPair("test", test));
   }
@@ -73,13 +74,14 @@ struct TOMLtest
   std::array<bool, 2> g;
   DynArray<TOMLtest2> nested;
   TOMLtest2 inlinetest;
-  bss::DynArray<AttackData> Attacks;
+  DynArray<AttackData> Attacks;
+  std::tuple<short, Str, double> tuple;
 #ifdef BSS_COMPILER_HAS_TIME_GET
   std::chrono::system_clock::time_point date;
 #endif
 
   template<typename Engine>
-  void Serialize(Serializer<Engine>& s)
+  void Serialize(Serializer<Engine>& s, const char* id)
   {
     s.template EvaluateType<TOMLtest>(
       GenPair("a", a),
@@ -94,6 +96,7 @@ struct TOMLtest
       GenPair("f", f),
       GenPair("g", g),
       GenPair("nested", nested),
+      GenPair("tuple", tuple),
 #ifdef BSS_COMPILER_HAS_TIME_GET
       GenPair("date", date),
 #endif
@@ -157,6 +160,10 @@ void dotest_TOML(TOMLtest& o, TESTDEF::RETPAIR& __testret)
     TEST(fCompare(o.Attacks[i].box.circles[0].min, 5.18319f, 1000));
     TEST(fCompare(o.Attacks[i].box.circles[0].range, 2.2f, 1000));
   }
+  auto[a, b, c] = o.tuple;
+  TEST(a == -3);
+  TEST(b == "2");
+  TEST(c == 1.0);
 }
 
 TESTDEF::RETPAIR test_TOML()
@@ -179,6 +186,7 @@ g = [false, true]\n\
 inlinetest = { a = 6, test = { f = 123.456 } }\n\
 date = 2006-01-02T15:04:05-07:00 \n\
 Attacks = [{ box = { circles = [[0, 0, 100, 0, 5.18319, 2.2]], rects = [], polygons = [] }}, { box = { circles = [[0, 0, 100, 0, 5.18319, 2.2]], rects = [], polygons = [] }}]\n\
+tuple = [ -3, \"2\", 1.0 ]\n\
 \n\
 [test2] \n\
 a = 5 \n\

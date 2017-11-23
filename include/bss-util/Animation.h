@@ -20,6 +20,16 @@ namespace bss {
     double time;
     T value;
     D data; // Additional data for animation specific operations, like interpolation
+
+    template<typename Engine>
+    void Serialize(Serializer<Engine>& e, const char*)
+    {
+      e.template EvaluateType<SerializerTest>(
+        GenPair("time", time),
+        GenPair("value", value),
+        GenPair("data", data)
+        );
+    }
   };
 
   template<typename T>
@@ -30,6 +40,15 @@ namespace bss {
 
     double time;
     T value;
+
+    template<typename Engine>
+    void Serialize(Serializer<Engine>& e, const char*)
+    {
+      e.template EvaluateType<SerializerTest>(
+        GenPair("time", time),
+        GenPair("value", value)
+        );
+    }
   };
 
   class BSS_COMPILER_DLLEXPORT AniStateBase
@@ -277,6 +296,12 @@ namespace bss {
 
     BSS_FORCEINLINE static char CompAniFrame(const FRAME& left, const FRAME& right) { return SGNCOMPARE(left.time, right.time); }
 
+    template<typename Engine>
+    void Serialize(Serializer<Engine>& e, const char*)
+    {
+      e.template EvaluateType<AniData>(GenPair("frame", _frames));
+    }
+
   protected:
     ArraySort<FRAME, CompAniFrame, size_t, ArrayType, Alloc> _frames;
   };
@@ -496,6 +521,17 @@ namespace bss {
       return *this;
     }
 
+    template<typename Engine>
+    void Serialize(Serializer<Engine>& e, const char*)
+    {
+      e.template EvaluateType<AniLinearData<T>>(
+        GenPair("length", _length),
+        GenPair("calc", _calc),
+        GenPair("loop", _loop),
+        GenPair("data", (std::tuple<Args...>&)*this),
+        );
+    }
+
     static const int STATESIZE = sizeof(AniState<AniStateBase, Animation<Args...>, typename Args::STATE...>);
     static const int STATEALIGN = alignof(AniState<AniStateBase, Animation<Args...>, typename Args::STATE...>);
 
@@ -543,6 +579,17 @@ namespace bss {
       assert(cur > 0);
       double s = GetProgress<T, AniLinearData<T>>(v, l, cur, t);
       return init + lerp<T, float>(v[cur - 1].value, v[cur].value, (float)s);
+    }
+
+    template<typename Engine>
+    void Serialize(Serializer<Engine>& e, const char*)
+    {
+      e.template EvaluateType<AniLinearData<T>>(
+        GenPair("t1", t1),
+        GenPair("s1", s1),
+        GenPair("t2", t2),
+        GenPair("s2", s2),
+        );
     }
   };
 
@@ -592,6 +639,19 @@ namespace bss {
       assert(cur > 0);
       return init + QuadraticInterpolateBase(v, l, cur, t, init);
     }
+
+    template<typename Engine>
+    void Serialize(Serializer<Engine>& e, const char*)
+    {
+      e.template EvaluateType<AniQuadData<T>>(
+        GenPair("t1", t1),
+        GenPair("s1", s1),
+        GenPair("t2", t2),
+        GenPair("s2", s2),
+        GenPair("cp", cp),
+        );
+    }
+
     T cp;
   };
 
@@ -642,6 +702,19 @@ namespace bss {
     {
       assert(cur > 0);
       return init + CubicInterpolateBase(v, l, cur, t, init);
+    }
+
+    template<typename Engine>
+    void Serialize(Serializer<Engine>& e, const char*)
+    {
+      e.template EvaluateType<AniCubicData<T>>(
+        GenPair("t1", t1),
+        GenPair("s1", s1),
+        GenPair("p1", p1),
+        GenPair("t2", t2),
+        GenPair("s2", s2),
+        GenPair("p2", p2),
+        );
     }
 
     T p1;

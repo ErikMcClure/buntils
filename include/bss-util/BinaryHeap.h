@@ -11,24 +11,26 @@
 
 namespace bss {
   namespace internal {
-    template<class T, typename CT_> // This has to be a struct because the priorityheap uses it to inject a new member into the heap.
-    struct MFUNC_DEFAULT { BSS_FORCEINLINE static void MFunc(const T&, CT_, MFUNC_DEFAULT*) {} };
+    template<class T, typename CType> // This has to be a struct because the priorityheap uses it to inject a new member into the heap.
+    struct MFUNC_DEFAULT { BSS_FORCEINLINE static void MFunc(const T&, CType, MFUNC_DEFAULT*) {} };
   }
 
   // This is a binary max-heap implemented using an array. Use CompTInv to change it into a min-heap, or to make it use pairs.
   template<class T,
-    typename CT_ = size_t,
+    typename CType = size_t,
     char(*CFunc)(const T&, const T&) = CompT<T>,
     ARRAY_TYPE ArrayType = ARRAY_SIMPLE,
     typename Alloc = StandardAllocator<T>,
-    class MFUNC = internal::MFUNC_DEFAULT<T, CT_>>
-  class BSS_COMPILER_DLLEXPORT BinaryHeap : protected DynArray<T, CT_, ArrayType, Alloc>, protected MFUNC
+    class MFUNC = internal::MFUNC_DEFAULT<T, CType>>
+  class BSS_COMPILER_DLLEXPORT BinaryHeap : protected DynArray<T, CType, ArrayType, Alloc>, protected MFUNC
   {
   protected:
-    typedef DynArray<T, CT_, ArrayType, Alloc> AT_;
-    using AT_::_array;
-    using AT_::_capacity;
-    using AT_::_length;
+    typedef DynArray<T, CType, ArrayType, Alloc> BASE;
+    typedef typename BASE::CT CT;
+    typedef typename BASE::Ty Ty;
+    using BASE::_array;
+    using BASE::_capacity;
+    using BASE::_length;
 #define CBH_PARENT(i) ((i-1)/2)
 #define CBH_LEFT(i) ((i<<1)+1)
 #define CBH_RIGHT(i) ((i<<1)+2)
@@ -37,54 +39,51 @@ namespace bss {
     inline BinaryHeap(const BinaryHeap& copy) = default;
     inline BinaryHeap(BinaryHeap&& mov) = default;
     template<bool U = std::is_void_v<typename Alloc::policy_type>, std::enable_if_t<!U, int> = 0>
-    inline explicit BinaryHeap(typename Alloc::policy_type* policy) : AT_(0, policy) {}
-    inline BinaryHeap() : AT_(0) {}
-    inline BinaryHeap(const T* src, CT_ length) : AT_(length)
+    inline explicit BinaryHeap(typename Alloc::policy_type* policy) : BASE(0, policy) {}
+    inline BinaryHeap() : BASE(0) {}
+    inline BinaryHeap(const T* src, CT length) : BASE(length)
     { 
       _copy(_array, src, sizeof(T)*length);
       _length = length;
       Heapify(_array, _length);
     }
-    template<CT_ SIZE>
-    inline BinaryHeap(const T(&src)[SIZE]) : AT_(SIZE)
-    {
-      _copy(_array, src, sizeof(T)*SIZE); 
-      _length = SIZE; 
-      Heapify(_array, _length); 
-    }
+    template<CT I>
+    inline explicit BinaryHeap(const T(&src)[I]) : BinaryHeap(src, I) {}
+    template<CT I>
+    inline explicit BinaryHeap(const std::array<T, I>& src) : BinaryHeap(src, I) {}
     inline ~BinaryHeap() {}
     inline const T& Peek() { return _array[0]; }
-    inline const T& Get(CT_ index) { assert(index < _length); return _array[index]; }
+    inline const T& Get(CT index) { assert(index < _length); return _array[index]; }
     inline T Pop() {
       T r = std::move(_array[0]); 
       Remove(0); 
       return std::move(r);
     }
     inline bool Empty() { return !_length; }
-    inline CT_ Length() { return _length; }
+    inline CT Length() { return _length; }
     inline void Clear() { _length = 0; }
     // Inserts a value
     inline void Insert(const T& val) { _insert(val); }
     inline void Insert(T&& val) { _insert(std::move(val)); }
     // Sets a key and percolates
-    inline bool Set(CT_ index, const T& val) { return _set(index, val); }
-    inline bool Set(CT_ index, T&& val) { return _set(index, std::move(val)); }
+    inline bool Set(CT index, const T& val) { return _set(index, val); }
+    inline bool Set(CT index, T&& val) { return _set(index, std::move(val)); }
     // To remove a node, we replace it with the last item in the heap and then percolate down
-    inline bool Remove(CT_ index)
+    inline bool Remove(CT index)
     {
       if(index >= _length) return false; //We don't have to copy _array[_length - 1] because it stays valid during the percolation
       if(_length > 1) //We can't percolate down if there's nothing in the array! 
         PercolateDown(_array, _length - 1, index, _array[_length - 1], this);
-      AT_::RemoveLast();
+      BASE::RemoveLast();
       return true;
     }
 
     // Percolate up through the heap
     template<typename U>
-    static void PercolateUp(T* _array, CT_ _length, CT_ k, U && val, BinaryHeap* p = 0)
+    static void PercolateUp(T* _array, CT _length, CT k, U && val, BinaryHeap* p = 0)
     {
       assert(k < _length);
-      CT_ parent;
+      CT parent;
 
       while(k > 0)
       {
@@ -100,11 +99,11 @@ namespace bss {
     }
     // Percolate down a heap
     template<typename U>
-    static void PercolateDown(T* _array, CT_ length, CT_ k, U && val, BinaryHeap* p = 0)
+    static void PercolateDown(T* _array, CT length, CT k, U && val, BinaryHeap* p = 0)
     {
       assert(k < length);
-      assert(k < (std::numeric_limits<CT_>::max() >> 1));
-      CT_ i;
+      assert(k < (std::numeric_limits<CT>::max() >> 1));
+      CT i;
 
       for(i = CBH_RIGHT(k); i < length; i = CBH_RIGHT(i))
       {
@@ -117,7 +116,7 @@ namespace bss {
         _array[k] = std::move(_array[i]);
         MFUNC::MFunc(_array[k], k, p);
         k = i;
-        assert(k < (std::numeric_limits<CT_>::max() >> 1));
+        assert(k < (std::numeric_limits<CT>::max() >> 1));
       }
 
       if(i >= length && --i < length && CFunc(val, _array[i]) <= 0) //Check if left child is also invalid (can only happen at the very end of the array)
@@ -139,21 +138,21 @@ namespace bss {
     inline BinaryHeap& operator=(const BinaryHeap&) = default;
     inline BinaryHeap& operator=(BinaryHeap&&) = default;
 
-    template<CT_ SIZE>
+    template<CT SIZE>
     inline static void Heapify(T(&src)[SIZE]) { Heapify(src, SIZE); }
-    inline static void Heapify(T* src, CT_ length)
+    inline static void Heapify(T* src, CT length)
     {
       T store;
 
-      for(CT_ i = length / 2; i > 0;)
+      for(CT i = length / 2; i > 0;)
       {
         store = src[--i];
         PercolateDown(src, length, i, store);
       }
     }
-    template<CT_ SIZE>
+    template<CT SIZE>
     inline static void HeapSort(T(&src)[SIZE]) { HeapSort(src, SIZE); }
-    inline static void HeapSort(T* src, CT_ length)
+    inline static void HeapSort(T* src, CT length)
     {
       Heapify(src, length);
       T store;
@@ -166,19 +165,23 @@ namespace bss {
       }
     }
 
+    using BASE::SerializerArray;
+    template<typename Engine>
+    void Serialize(Serializer<Engine>& s, const char* id) { BASE::Serialize<Engine>(s, id); }
+
   protected:
     template<typename U>
     inline void _insert(U && val)
     {
-      AT_::_checkSize();
+      BASE::_checkSize();
       new(_array + _length) T();
-      CT_ k = _length++;
+      CT k = _length++;
       PercolateUp(_array, _length, k, std::forward<U>(val), this);
     }
 
     // Sets a key and percolates
     template<typename U>
-    inline bool _set(CT_ index, U && val)
+    inline bool _set(CT index, U && val)
     {
       if(index >= _length)
         return false;
@@ -201,7 +204,7 @@ namespace bss {
   //  //const BINHEAP_CELL& last=BINHEAP_CELL(key(),0);
   //  BINHEAP_CELL& right=cur;
   //  BINHEAP_CELL& left=cur;
-  //  CT_ index=0;
+  //  CT index=0;
 
   //  while(true)
   //  {

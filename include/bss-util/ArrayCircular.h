@@ -13,11 +13,12 @@ namespace bss {
   class BSS_COMPILER_DLLEXPORT ArrayCircular : protected ArrayBase<T, CType, ArrayType, Alloc>
   {
   protected:
-    typedef CType CT_;
     typedef ArrayBase<T, CType, ArrayType, Alloc> BASE;
+    typedef typename BASE::CT CT;
+    typedef typename BASE::Ty Ty;
     using BASE::_array;
     using BASE::_capacity;
-    static_assert(std::is_signed<CType>::value, "CType must be signed");
+    static_assert(std::is_signed<CT>::value, "CType must be signed");
 
   public:
     // Constructors
@@ -28,8 +29,8 @@ namespace bss {
       mov._length = 0;
     }
     template<bool U = std::is_void_v<typename Alloc::policy_type>, std::enable_if_t<!U, int> = 0>
-    inline ArrayCircular(CType size, typename Alloc::policy_type* policy) : BASE(size, policy), _cur(-1), _length(0) {}
-    inline explicit ArrayCircular(CType size = 0) : BASE(size), _cur(-1), _length(0) {}
+    inline ArrayCircular(CT size, typename Alloc::policy_type* policy) : BASE(size, policy), _cur(-1), _length(0) {}
+    inline explicit ArrayCircular(CT size = 0) : BASE(size), _cur(-1), _length(0) {}
     inline ~ArrayCircular() { Clear(); }
     BSS_FORCEINLINE void Push(const T& item) { _push<const T&>(item); }
     BSS_FORCEINLINE void Push(T&& item) { _push<T&&>(std::move(item)); }
@@ -39,13 +40,13 @@ namespace bss {
       --_length;
       T r(std::move(_array[_cur]));
       _array[_cur].~T();
-      _cur = bssMod<CType>(_cur - 1, _capacity);
+      _cur = bssMod<CT>(_cur - 1, _capacity);
       return r;
     }
     inline T PopBack()
     {
       assert(_length > 0);
-      CType l = _modIndex(--_length);
+      CT l = _modIndex(--_length);
       T r(std::move(_array[l]));
       _array[l].~T();
       return r;
@@ -54,8 +55,8 @@ namespace bss {
     inline T& Front() { assert(_length > 0); return _array[_cur]; }
     inline const T& Back() const { assert(_length > 0); return _array[_modIndex(_length - 1)]; }
     inline T& Back() { assert(_length > 0); return _array[_modIndex(_length - 1)]; }
-    inline CType Capacity() const { return _capacity; }
-    inline CType Length() const { return _length; }
+    inline CT Capacity() const { return _capacity; }
+    inline CT Length() const { return _length; }
     inline void Clear()
     {
       if(_length == _capacity) // Dump the whole thing
@@ -64,7 +65,7 @@ namespace bss {
         BASE::_setLength(_array + _cur - _length + 1, _length, 0);
       else // We have two seperate chunks that must be dealt with
       {
-        CType i = _modIndex(_length - 1);
+        CT i = _modIndex(_length - 1);
         BASE::_setLength(_array + i, _capacity - i, 0);
         BASE::_setLength(_array, _cur + 1, 0); // We can only have two seperate chunks if it crosses over the 0 mark at some point, so this always starts at 0
       }
@@ -72,7 +73,7 @@ namespace bss {
       _length = 0;
       _cur = -1;
     }
-    inline void SetCapacity(CType nsize) // Will preserve the array but only if it got larger
+    inline void SetCapacity(CT nsize) // Will preserve the array but only if it got larger
     {
       if(nsize < _capacity)
       {
@@ -86,8 +87,8 @@ namespace bss {
           BASE::_copyMove(n + _cur - _length + 1, _array + _cur - _length + 1, _length);
         else
         {
-          CType i = _modIndex(_length - 1);
-          BASE::_copyMove(n + bssMod<CType>(_cur - _length + 1, nsize), _array + i, _capacity - i);
+          CT i = _modIndex(_length - 1);
+          BASE::_copyMove(n + bssMod<CT>(_cur - _length + 1, nsize), _array + i, _capacity - i);
           BASE::_copyMove(n, _array, _cur + 1);
         }
         BASE::_free(_array);
@@ -95,8 +96,8 @@ namespace bss {
         _capacity = nsize;
       }
     }
-    BSS_FORCEINLINE T& operator[](CType index) { return _array[_modIndex(index)]; } // an index of 0 is the most recent item pushed into the circular array.
-    BSS_FORCEINLINE const T& operator[](CType index) const { return _array[_modIndex(index)]; }
+    BSS_FORCEINLINE T& operator[](CT index) { return _array[_modIndex(index)]; } // an index of 0 is the most recent item pushed into the circular array.
+    BSS_FORCEINLINE const T& operator[](CT index) const { return _array[_modIndex(index)]; }
     inline ArrayCircular& operator=(const ArrayCircular& right)
     {
       Clear();
@@ -110,7 +111,7 @@ namespace bss {
         BASE::_copy(_array + _cur - _length + 1, right._array + _cur - _length + 1, _length);
       else // We have two seperate chunks that must be dealt with
       {
-        CType i = _modIndex(_length - 1);
+        CT i = _modIndex(_length - 1);
         BASE::_copy(_array + i, right._array + i, _capacity - i);
         BASE::_copy(_array, right._array, _cur + 1);
       }
@@ -128,7 +129,54 @@ namespace bss {
       return *this;
     }
 
+    struct BSS_TEMPLATE_DLLEXPORT CircularIterator : public std::iterator<std::bidirectional_iterator_tag, T>
+    {
+      inline CircularIterator(CT c, const ArrayCircular* s) : cur(c), src(s) { }
+      inline const T& operator*() const { return (*src)[cur]; }
+      inline T& operator*() { return const_cast<ArrayCircular&>(*src)[cur]; }
+      inline CircularIterator& operator++() { ++cur; return *this; } //prefix
+      inline CircularIterator operator++(int) { CircularIterator r(*this); ++*this; return r; } //postfix
+      inline CircularIterator& operator--() { --cur; return *this; }
+      inline CircularIterator operator--(int) { CircularIterator r(*this); --*this; return r; } //postfix
+      inline bool operator==(const CircularIterator& _Right) const { return (cur == _Right.cur); }
+      inline bool operator!=(const CircularIterator& _Right) const { return (cur != _Right.cur); }
+
+      CT cur;
+      const ArrayCircular* src;
+    };
+
+    BSS_FORCEINLINE const CircularIterator begin() const { return CircularIterator(0, this); }
+    BSS_FORCEINLINE const CircularIterator end() const { return CircularIterator(_length, this); }
+    BSS_FORCEINLINE CircularIterator begin() { return CircularIterator(0, this); }
+    BSS_FORCEINLINE CircularIterator end() { return CircularIterator(_length, this); }
+
+    typedef std::conditional_t<internal::is_pair_array<T>::value, void, T> SerializerArray;
+    template<typename Engine>
+    void Serialize(Serializer<Engine>& s, const char* id)
+    {
+      if constexpr(!internal::is_pair_array<T>::value)
+        s.template EvaluateArray<ArrayCircular, T, &_serializeAdd<Engine>, CT, nullptr>(*this, _length, id);
+      else
+        s.template EvaluateKeyValue<ArrayCircular>(*this, [this](Serializer<Engine>& e, const char* name) { _serializeInsert(e, name); });
+    }
+
   protected:
+    template<typename Engine, bool U = internal::is_pair_array<T>::value>
+    inline std::enable_if_t<U> _serializeInsert(Serializer<Engine>& e, const char* name)
+    {
+      T pair;
+      std::get<0>(pair) = name;
+      Serializer<Engine>::template ActionBind<remove_cvref_t<std::tuple_element_t<1, T>>>::Parse(e, std::get<1>(pair), name);
+      Push(pair);
+    }
+    template<typename Engine>
+    inline static void _serializeAdd(Serializer<Engine>& e, ArrayCircular& obj, int& n)
+    {
+      T x;
+      Serializer<Engine>::template ActionBind<T>::Parse(e, x, 0);
+      Push(x);
+    }
+
     template<typename U> // Note that _cur+1 can never be negative so we don't need to use bssMod
     inline void _push(U && item)
     {
@@ -142,10 +190,10 @@ namespace bss {
       else
         _array[_cur] = std::forward<U>(item);
     }
-    BSS_FORCEINLINE CType _modIndex(CType index) { return bssMod<CType>(_cur - index, _capacity); }
+    BSS_FORCEINLINE CT _modIndex(CT index) { return bssMod<CT>(_cur - index, _capacity); }
 
-    CType _cur;
-    CType _length;
+    CT _cur;
+    CT _length;
   };
 }
 

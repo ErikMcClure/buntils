@@ -66,7 +66,7 @@ namespace bss {
     BSS_FORCEINLINE const XMLValue& GetValue() const { return _value; }
     BSS_FORCEINLINE XMLValue& GetValue() { return _value; }
     BSS_FORCEINLINE void SetName(const char* name) { _name = name; }
-    BSS_FORCEINLINE const Hash<Str, size_t, false, ARRAY_SAFE>& NodeHash() const { return _nodehash; }
+    BSS_FORCEINLINE const Hash<Str, size_t, ARRAY_SAFE>& NodeHash() const { return _nodehash; }
     void Clear();
     XMLNode* AddNode(const XMLNode& node);
     XMLNode* AddNode(const char* name);
@@ -108,9 +108,9 @@ namespace bss {
     friend class XMLFile;
 
     DynArray<std::unique_ptr<XMLNode>, size_t, ARRAY_MOVE> _nodes;
-    Hash<Str, size_t, false, ARRAY_SAFE> _nodehash;
+    Hash<Str, size_t, ARRAY_SAFE> _nodehash;
     DynArray<XMLValue, size_t, ARRAY_MOVE> _attributes;
-    Hash<Str, size_t, false, ARRAY_SAFE> _attrhash;
+    Hash<Str, size_t, ARRAY_SAFE> _attrhash;
     XMLValue _value;
     Str _name;
   };
@@ -172,7 +172,8 @@ namespace bss {
       else
       {
         internal::serializer::PushValue<XMLNode*> push(e.engine.cur, e.engine.cur->AddNode(!id ? e.engine.arrayID : id));
-        const_cast<T&>(t).template Serialize<XMLEngine>(e);
+        static_assert(internal::serializer::is_serializable<XMLEngine, T>::value, "object missing Serialize<Engine>(Serializer<Engine>&, const char*) function!");
+        const_cast<T&>(t).template Serialize<XMLEngine>(e, id);
       }
     }
     template<typename T>
@@ -182,7 +183,13 @@ namespace bss {
       auto begin = std::begin(t);
       auto end = std::end(t);
       for(; begin != end; ++begin)
-        Serializer<XMLEngine>::ActionBind<typename std::remove_const<typename std::remove_reference<decltype(*begin)>::type>::type>::Serialize(e, *begin, 0);
+        Serializer<XMLEngine>::ActionBind<remove_cvref_t<decltype(*begin)>>::Serialize(e, *begin, 0);
+    }
+    template<typename T, size_t... S>
+    static void SerializeTuple(Serializer<XMLEngine>& e, const T& t, const char* id, std::index_sequence<S...>)
+    {
+      internal::serializer::PushValue<const char*> push(e.engine.arrayID, id);
+      int X[] = { (Serializer<XMLEngine>::ActionBind<std::tuple_element_t<S, T>>::Serialize(e, std::get<S>(t), 0),0)... };
     }
     template<typename T>
     static void SerializeNumber(Serializer<XMLEngine>& e, T t, const char* id)
@@ -218,10 +225,13 @@ namespace bss {
         if constexpr(std::is_base_of<std::string, T>::value)
           obj = e.engine.curvalue->String;
         else
-          obj.template Serialize<XMLEngine>(e);
+        {
+          static_assert(internal::serializer::is_serializable<XMLEngine, T>::value, "object missing Serialize<Engine>(Serializer<Engine>&, const char*) function!");
+          obj.template Serialize<XMLEngine>(e, id);
+        }
       }
     }
-    template<typename T, typename E>
+    template<typename T, typename E, void (*Add)(Serializer<XMLEngine>& e, T& obj, int& n), bool (*Read)(Serializer<XMLEngine>& e, T& obj, int64_t count)>
     static void ParseArray(Serializer<XMLEngine>& e, T& obj, const char* id)
     {
       if(id && !e.engine.curvalue)
@@ -234,7 +244,7 @@ namespace bss {
           {
             internal::serializer::PushValue<XMLNode*> push1(e.engine.cur, begin[0].get());
             internal::serializer::PushValue<XMLValue*> push2(e.engine.curvalue, &e.engine.cur->GetValue());
-            Serializer<XMLEngine>::ActionBind<T>::Add(e, obj, n);
+            Add(e, obj, n);
           }
       }
       else
@@ -242,7 +252,7 @@ namespace bss {
         khiter_t i = e.engine.curindices->Iterator(e.engine.cur->GetName());
         if(!e.engine.curindices->ExistsIter(i))
           i = e.engine.curindices->Insert(e.engine.cur->GetName(), 0);
-        Serializer<XMLEngine>::ActionBind<T>::Add(e, obj, e.engine.curindices->MutableValue(i));
+        Add(e, obj, e.engine.curindices->MutableValue(i));
       }
     }
     template<typename T>

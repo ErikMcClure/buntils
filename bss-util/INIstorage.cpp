@@ -1,9 +1,8 @@
 // Copyright ©2017 Black Sphere Studios
 // For conditions of distribution and use, see copyright notice in "bss_util.h"
 
+#include "bss-util/bss_util.h"
 #include "bss-util/INIstorage.h"
-#include "bss-util/bss_util_c.h"
-#include "bss-util/Str.h"
 #include "bss-util/INIparse.h"
 #include <sstream>
 #include <iomanip>
@@ -140,7 +139,7 @@ INIsection* INIstorage::_addSection(const char* name)
   bssFill(*p, 0);
   khiter_t iter = _sections.Iterator(name);
 
-  if(iter == _sections.End())
+  if(iter == _sections.Back())
   {
     new (&p->val) INIsection(name, this, 0);
     _sections.Insert(p->val.GetName(), p);
@@ -169,7 +168,7 @@ bool INIstorage::RemoveSection(const char* name, size_t instance)
   INICHUNK chunk = bssFindINISection(*_ini, _ini->size(), name, instance);
   khiter_t iter = _sections.Iterator(name);
 
-  if(iter != _sections.End() && chunk.start != 0)
+  if(iter != _sections.Back() && chunk.start != 0)
   {
     _NODE* secnode = _sections.UnsafeValue(iter);
     _NODE* secroot = secnode;
@@ -210,7 +209,7 @@ char INIstorage::EditEntry(const char* section, const char* key, const char* nva
     secinstance = AddSection(section)._index;
 
   khiter_t iter = _sections.Iterator(section);
-  if(iter == _sections.End()) return -1; //if it doesn't exist at this point, fail
+  if(iter == _sections.Back()) return -1; //if it doesn't exist at this point, fail
   _NODE* secnode = _sections.UnsafeValue(iter);
   //if(secinstance==(size_t)~0) secinstance=secnode->instances.Capacity()-1; //This is now done at the start of the function
   if(secinstance > secnode->instances.Capacity()) return -2; //if secinstance is not valid, fail
@@ -241,7 +240,7 @@ char INIstorage::EditEntry(const char* section, const char* key, const char* nva
   typedef INIsection::_NODE _SNODE; //This makes things a bit easier
 
   iter = psec->_entries.Iterator(key);
-  if(iter == psec->_entries.End()) return -4; //if key doesn't exist at this point, fail
+  if(iter == psec->_entries.Back()) return -4; //if key doesn't exist at this point, fail
   _SNODE* entnode = psec->_entries.UnsafeValue(iter);
   _SNODE* entroot = entnode;
   if(keyinstance > entnode->instances.Capacity()) return -5; //if keyinstance is not valid, fail
@@ -274,7 +273,7 @@ char INIstorage::EditEntry(const char* section, const char* key, const char* nva
   }
   else //edit
   {
-    entnode->val.SetData(nvalue);
+    entnode->val.Set(nvalue);
     const char* start = strchr((const char*)chunk.start, '=');
     if(!start) return -6; //if this happens something is borked
     //start=ltrimstr(++start);

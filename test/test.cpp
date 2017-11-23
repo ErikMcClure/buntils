@@ -78,7 +78,7 @@ int DEBUG_CDT_SAFE::count = 0;
 int DEBUG_CDT_SAFE::ID = 0;
 bss::Hash<int> DEBUG_CDT_SAFE::Tracker;
 
-//#define BSS_ISOLATE_TEST 8
+//#define BSS_ISOLATE_TEST 58
 
 // --- Begin main testing function ---
 int main(int argc, char** argv)
@@ -130,7 +130,6 @@ int main(int argc, char** argv)
     { "DisjointSet.h", &test_DISJOINTSET },
     { "DynArray.h", &test_DYNARRAY },
     { "HighPrecisionTimer.h", &test_HIGHPRECISIONTIMER },
-    { "IDHash.h", &test_IDHASH },
     { "Scheduler.h", &test_SCHEDULER },
     { "INIstorage.h", &test_INISTORAGE },
     { "KDTree.h", &test_KDTREE },
@@ -145,6 +144,7 @@ int main(int argc, char** argv)
     { "Map.h", &test_MAP },
     { "PriorityQueue.h", &test_PRIORITYQUEUE },
     { "Rational.h", &test_RATIONAL },
+    { "RandomQueue.h", &test_RANDOMQUEUE },
     { "RefCounter.h", &test_REFCOUNTER },
     { "RWLock.h", &test_RWLOCK },
     { "Singleton.h", &test_SINGLETON },

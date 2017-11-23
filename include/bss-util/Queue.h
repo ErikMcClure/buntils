@@ -42,6 +42,10 @@ namespace bss {
     inline Queue& operator=(const Queue& copy) = default;
     inline Queue& operator=(Queue&& mov) = default;
 
+    using BASE::SerializerArray;
+    template<typename Engine>
+    void Serialize(Serializer<Engine>& s, const char* id) { BASE::Serialize<Engine>(s, id); }
+
   protected:
     template<typename U>
     void _push(U && value) 

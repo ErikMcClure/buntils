@@ -8,58 +8,22 @@
 
 namespace bss {
   // Implementation of the Alias method, based off Keith Schwarz's code, found here: http://www.keithschwarz.com/darts-dice-coins/
-  template<typename UINT = size_t, typename F = double, typename ENGINE = XorshiftEngine<uint64_t>>
+  template<typename UINT = size_t, typename F = double>
   class AliasTable
   {
   public:
     AliasTable(const AliasTable& copy) : _alias(new UINT[copy._count]), _prob(new F[copy._count]), _count(copy._count),
-      _dist(copy._dist), _fdist(copy._fdist), _engine(copy._engine)
+      _dist(copy._dist), _fdist(copy._fdist)
     {
       memcpy(_alias, copy._alias, sizeof(UINT)*copy._count);
       memcpy(_prob, copy._prob, sizeof(UINT)*copy._count);
     }
-    AliasTable(AliasTable&& mov) = default;
+    AliasTable(AliasTable&& mov) : _prob(std::move(mov._prob)), _alias(std::move(mov._alias)),
+      _dist(std::move(mov._dist)), _fdist(std::move(mov._fdist)), _count(mov._count)
+    {}
+    AliasTable() : _alias(0), _prob(0), _count(0), _fdist(0, (F)1) {}
     // Constructs a new table from a list of probabilities of type F (defaults to double)
-    AliasTable(const F* problist, UINT count, ENGINE& e = bss_getdefaultengine()) : _alias(0), _prob(0), _count(0),
-      _fdist(0, (F)1), _engine(e) 
-    { 
-      _getTable(problist, count);
-    }
-    template<UINT I>
-    explicit AliasTable(const F(&problist)[I], ENGINE& e = bss_getdefaultengine()) : _alias(0), _prob(0), _count(0),
-      _fdist(0, (F)1), _engine(e)
-    { 
-      _getTable(problist, I); 
-    }
-    ~AliasTable() {}
-    // Gets a new random integer using ENGINE (defaults to xorshift) over a uniform integer distribution
-    BSS_FORCEINLINE UINT Get()
-    {
-      UINT c = _dist(_engine);
-      UINT r = (_fdist(_engine) <= _prob[c]) ? c : _alias[c]; // must be <= to ensure it's ALWAYS true if _prob[c]==1.0
-      assert(r < _count);
-      return r;
-    }
-    BSS_FORCEINLINE UINT operator()(void) { return Get(); }
-    inline F* GetProbabilities() const { return _prob; }
-    inline UINT* GetAliases() const { return _alias; }
-    inline UINT GetCount() const { return _count; }
-
-    inline AliasTable& operator=(const AliasTable& copy)
-    {
-      _count = copy._count;
-      _dist = copy._dist;
-      _fdist = copy._fdist;
-      _alias = new UINT[copy._count];
-      _prob = new F[copy._count];
-      memcpy(_alias, copy._alias, sizeof(UINT)*copy._count);
-      memcpy(_prob, copy._prob, sizeof(UINT)*copy._count);
-      return *this;
-    }
-    inline AliasTable& operator=(AliasTable&& mov) = default;
-
-  protected:
-    void _getTable(const F* problist, UINT count)
+    AliasTable(const F* problist, UINT count) : _alias(0), _prob(0), _count(0), _fdist(0, (F)1)
     {
       if(!problist || !count)
         return;
@@ -119,11 +83,53 @@ namespace bss {
 
       _dist = std::uniform_int_distribution<UINT>(0, _count - 1);
     }
+    template<UINT I>
+    explicit AliasTable(const F(&problist)[I]) : AliasTable(problist, I) {}
+    template<UINT I>
+    explicit AliasTable(const std::array<F, I>& problist) : AliasTable(problist.data(), I) {}
+    ~AliasTable() {}
+    // Gets a new random integer using ENGINE (defaults to xorshift) over a uniform integer distribution
+    template<typename ENGINE>
+    BSS_FORCEINLINE UINT Get(ENGINE& e) const
+    {
+      UINT c = _dist(e);
+      UINT r = (_fdist(e) <= _prob[c]) ? c : _alias[c]; // must be <= to ensure it's ALWAYS true if _prob[c]==1.0
+      assert(r < _count);
+      return r;
+    }
+    BSS_FORCEINLINE UINT Get() const { return Get(bss_getdefaultengine()); }
+    template<typename ENGINE>
+    BSS_FORCEINLINE UINT operator()(ENGINE& e) const { return Get<ENGINE>(e); }
+    BSS_FORCEINLINE UINT operator()(void) const { return Get(); }
+    inline F* GetProbabilities() const { return _prob; }
+    inline UINT* GetAliases() const { return _alias; }
+    inline UINT GetCount() const { return _count; }
 
+    inline AliasTable& operator=(const AliasTable& copy)
+    {
+      _count = copy._count;
+      _dist = copy._dist;
+      _fdist = copy._fdist;
+      _alias.reset(new UINT[copy._count]);
+      _prob.reset(new F[copy._count]);
+      memcpy(_alias.get(), copy._alias.get(), sizeof(UINT)*copy._count);
+      memcpy(_prob.get(), copy._prob.get(), sizeof(UINT)*copy._count);
+      return *this;
+    }
+    inline AliasTable& operator=(AliasTable&& mov)
+    {
+      _count = mov._count;
+      _dist = std::move(mov._dist);
+      _fdist = std::move(mov._fdist);
+      _alias = std::move(mov._alias);
+      _prob = std::move(mov._prob);
+      return *this;
+    }
+
+  protected:
     std::unique_ptr<UINT[]> _alias;
     std::unique_ptr<F[]> _prob;
     UINT _count;
-    ENGINE& _engine;
     std::uniform_int_distribution<UINT> _dist;
     std::uniform_real_distribution<F> _fdist;
   };

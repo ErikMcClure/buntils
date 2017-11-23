@@ -26,6 +26,8 @@ namespace bss {
     static void Serialize(Serializer<JSONEngine>& e, const T& t, const char* id);
     template<typename T>
     static void SerializeArray(Serializer<JSONEngine>& e, const T& t, size_t size, const char* id);
+    template<typename T, size_t... S>
+    static void SerializeTuple(Serializer<JSONEngine>& e, const T& t, const char* id, std::index_sequence<S...>);
     template<typename T>
     static void SerializeNumber(Serializer<JSONEngine>& e, T t, const char* id);
     static void SerializeBool(Serializer<JSONEngine>& e, bool t, const char* id)
@@ -37,7 +39,7 @@ namespace bss {
 
     template<typename T>
     static void Parse(Serializer<JSONEngine>& e, T& t, const char* id);
-    template<typename T, typename E>
+    template<typename T, typename E, void (*Add)(Serializer<JSONEngine>& e, T& obj, int& n), bool (*Read)(Serializer<JSONEngine>& e, T& obj, int64_t count)>
     static void ParseArray(Serializer<JSONEngine>& e, T& obj, const char* id);
     template<typename T>
     static void ParseNumber(Serializer<JSONEngine>& e, T& t, const char* id);
@@ -141,19 +143,6 @@ namespace bss {
     static const size_t PRETTYFLAG = size_t(1) << ((sizeof(size_t) << 3) - 1);
   };
 
-  template<class T>
-  inline void ParseJSONBase(Serializer<JSONEngine>& e, T& obj, std::istream& s);
-
-  struct JSONValue;
-  template<>
-  inline void ParseJSONBase<JSONValue>(Serializer<JSONEngine>& e, JSONValue& target, std::istream& s);
-
-  template<class T>
-  inline void WriteJSONBase(Serializer<JSONEngine>& e, const char* id, const T& obj, std::ostream& s);
-
-  template<>
-  inline void WriteJSONBase<JSONValue>(Serializer<JSONEngine>& e, const char* id, const JSONValue& obj, std::ostream& s);
-
   struct JSONValue : public Variant<Str, double, int64_t, bool, DynArray<JSONValue, size_t, ARRAY_SAFE>, DynArray<std::pair<Str, JSONValue>, size_t, ARRAY_SAFE>>
   {
     typedef DynArray<JSONValue, size_t, ARRAY_SAFE> JSONArray;
@@ -175,18 +164,6 @@ namespace bss {
     BASE& operator=(const T& right) { BASE::operator=(right); return *this; }
     template<typename T>
     BASE& operator=(T&& right) { BASE::operator=(internal::serializer::ConvRef<JSONValue>::Value<T, BASE>::f(right)); return *this; }
-
-    template<typename Engine>
-    void Serialize(Serializer<Engine>& s)
-    {
-      assert(BASE::template is<JSONObject>());
-      if(s.out)
-      {
-        auto& v = BASE::template get<JSONObject>();
-        for(auto& e : v)
-          WriteJSONBase<JSONValue>(s, e.first.c_str(), e.second, *s.out);
-      }
-    }
   };
 
   template<typename F>
@@ -214,7 +191,6 @@ namespace bss {
 
       ParseJSONEatWhitespace(s);
       f(e, buf.c_str());
-      //Serializer<JSONEngine>::FindParse(e, buf.c_str(), t, args);
 
       while(!!s && s.peek() != ',' && s.peek() != '}' && s.peek() != -1) // eat everything up to a , or } character
         s.get();
@@ -226,67 +202,16 @@ namespace bss {
     if(s.peek() == '}') s.get(); // eat the closing brace
   }
 
-  template<typename T>
-  void JSONEngine::Parse(Serializer<JSONEngine>& e, T& t, const char* id) { ParseJSONBase<T>(e, t, *e.in); }
-  template<typename F>
-  void JSONEngine::ParseMany(Serializer<JSONEngine>& e, F && f)
-  {
-    ParseJSONObject<F>(e, f);
-  }
-  template<typename T, typename E>
-  void JSONEngine::ParseArray(Serializer<JSONEngine>& e, T& obj, const char* id)
-  {
-    std::istream& s = *e.in;
-    ParseJSONEatWhitespace(s);
-
-    if(!s || s.get() != '[')
-      return;
-
-    ParseJSONEatWhitespace(s);
-    int n = 0;
-
-    while(!!s && s.peek() != ']' && s.peek() != -1)
-    {
-      Serializer<JSONEngine>::ActionBind<T>::Add(e, obj, n);
-      while(!!s && s.peek() != ',' && s.peek() != ']' && s.peek() != -1) // eat everything up to a , or ] character
-        s.get();
-      if(!!s && s.peek() == ',' && s.peek() != -1) // Only eat comma if it's there.
-        s.get();
-      ParseJSONEatWhitespace(s);
-    }
-    if(s.peek() == ']')
-      s.get();
-  }
-  template<typename T>
-  void JSONEngine::ParseNumber(Serializer<JSONEngine>& e, T& obj, const char* id)
-  {
-    std::istream& s = *e.in;
-    if(s.peek() == ',' || s.peek() == ']' || s.peek() == '}')
-      return;
-
-    if(s.peek() == '"') // if true, we have to attempt to coerce the string to T
-    {
-      s.get();
-      s >> obj; // grab whatever we can
-      while(!!s && s.peek() != -1 && s.get() != '"'); // eat the rest of the string
-      s.get(); // eat the " character
-    }
-    else
-      s >> obj;
-  }
-
   template<class T>
-  inline void ParseJSONBase(Serializer<JSONEngine>& e, T& obj, std::istream& s) { obj.template Serialize<JSONEngine>(e); }
+  inline void ParseJSONBase(Serializer<JSONEngine>& e, T& obj, std::istream& s)
+  { 
+    static_assert(internal::serializer::is_serializable<JSONEngine, T>::value, "object missing Serialize<Engine>(Serializer<Engine>&, const char*) function!");
+    obj.template Serialize<JSONEngine>(e, 0);
+  }
   template<class T>
   inline void ParseJSON(T& obj, std::istream& s) { Serializer<JSONEngine> e; e.Parse<T>(obj, s, 0); }
   template<class T>
   inline void ParseJSON(T& obj, const char* s) { std::istringstream ss(s); ParseJSON<T>(obj, ss); }
-
-  template<>
-  inline void ParseJSONBase<JSONValue::JSONObject>(Serializer<JSONEngine>& e, JSONValue::JSONObject& target, std::istream& s)
-  {
-    JSONEngine::ParseJSONObject(e, internal::serializer::KeyValueArray<JSONEngine, Str, JSONValue>(target));
-  }
 
   template<>
   inline void ParseJSONBase<std::string>(Serializer<JSONEngine>& e, std::string& target, std::istream& s)
@@ -321,11 +246,11 @@ namespace bss {
     {
     case '{':
       target = JSONValue::JSONObject();
-      ParseJSONBase<JSONValue::JSONObject>(e, target.get<JSONValue::JSONObject>(), s);
+      Serializer<JSONEngine>::template ActionBind<JSONValue::JSONObject>::Parse(e, target.get<JSONValue::JSONObject>(), 0);
       break;
     case '[':
       target = JSONValue::JSONArray();
-      Serializer<JSONEngine>::ActionBind<JSONValue::JSONArray>::Parse(e, target.get<JSONValue::JSONArray>(), 0);
+      Serializer<JSONEngine>::template ActionBind<JSONValue::JSONArray>::Parse(e, target.get<JSONValue::JSONArray>(), 0);
       break;
     case '"':
       target = Str();
@@ -367,6 +292,54 @@ namespace bss {
     }
     }
   }
+  template<typename T>
+  void JSONEngine::Parse(Serializer<JSONEngine>& e, T& t, const char* id) { ParseJSONBase<T>(e, t, *e.in); }
+  template<typename F>
+  void JSONEngine::ParseMany(Serializer<JSONEngine>& e, F && f)
+  {
+    ParseJSONObject<F>(e, f);
+  }
+  template<typename T, typename E, void(*Add)(Serializer<JSONEngine>& e, T& obj, int& n), bool(*Read)(Serializer<JSONEngine>& e, T& obj, int64_t count)>
+  void JSONEngine::ParseArray(Serializer<JSONEngine>& e, T& obj, const char* id)
+  {
+    std::istream& s = *e.in;
+    ParseJSONEatWhitespace(s);
+
+    if(!s || s.get() != '[')
+      return;
+
+    ParseJSONEatWhitespace(s);
+    int n = 0;
+
+    while(!!s && s.peek() != ']' && s.peek() != -1)
+    {
+      Add(e, obj, n);
+      while(!!s && s.peek() != ',' && s.peek() != ']' && s.peek() != -1) // eat everything up to a , or ] character
+        s.get();
+      if(!!s && s.peek() == ',' && s.peek() != -1) // Only eat comma if it's there.
+        s.get();
+      ParseJSONEatWhitespace(s);
+    }
+    if(s.peek() == ']')
+      s.get();
+  }
+  template<typename T>
+  void JSONEngine::ParseNumber(Serializer<JSONEngine>& e, T& obj, const char* id)
+  {
+    std::istream& s = *e.in;
+    if(s.peek() == ',' || s.peek() == ']' || s.peek() == '}')
+      return;
+
+    if(s.peek() == '"') // if true, we have to attempt to coerce the string to T
+    {
+      s.get();
+      s >> obj; // grab whatever we can
+      while(!!s && s.peek() != -1 && s.get() != '"'); // eat the rest of the string
+      s.get(); // eat the " character
+    }
+    else
+      s >> obj;
+  }
 
   template<class T>
   void JSONEngine::WriteJSONObject(Serializer<JSONEngine>& e, const char* id, const T& obj, std::ostream& s, size_t& pretty)
@@ -384,7 +357,8 @@ namespace bss {
     s << '{';
     {
       internal::serializer::PushValue<size_t> push(e.engine.pretty, WriteJSONPretty(pretty));
-      const_cast<T&>(obj).template Serialize<JSONEngine>(e);
+      static_assert(internal::serializer::is_serializable<JSONEngine, T>::value, "object missing Serialize<Engine>(Serializer<Engine>&, const char*) function!");
+      const_cast<T&>(obj).template Serialize<JSONEngine>(e, id);
     }
 
     if(WriteJSONIsPretty(pretty))
@@ -441,15 +415,15 @@ namespace bss {
   {
     switch(obj.tag())
     {
-    case JSONValue::Type<Str>::value: Serializer<JSONEngine>::ActionBind<Str>::Serialize(e, obj.get<Str>(), id); break;
-    case JSONValue::Type<double>::value: Serializer<JSONEngine>::ActionBind<double>::Serialize(e, obj.get<double>(), id); break;
-    case JSONValue::Type<int64_t>::value: Serializer<JSONEngine>::ActionBind<int64_t>::Serialize(e, obj.get<int64_t>(), id); break;
-    case JSONValue::Type<bool>::value: Serializer<JSONEngine>::ActionBind<bool>::Serialize(e, obj.get<bool>(), id); break;
+    case JSONValue::Type<Str>::value: Serializer<JSONEngine>::template ActionBind<Str>::Serialize(e, obj.get<Str>(), id); break;
+    case JSONValue::Type<double>::value: Serializer<JSONEngine>::template ActionBind<double>::Serialize(e, obj.get<double>(), id); break;
+    case JSONValue::Type<int64_t>::value: Serializer<JSONEngine>::template ActionBind<int64_t>::Serialize(e, obj.get<int64_t>(), id); break;
+    case JSONValue::Type<bool>::value: Serializer<JSONEngine>::template ActionBind<bool>::Serialize(e, obj.get<bool>(), id); break;
     case JSONValue::Type<JSONValue::JSONArray>::value:
-      Serializer<JSONEngine>::ActionBind<JSONValue::JSONArray>::Serialize(e, obj.get<JSONValue::JSONArray>(), id);
+      Serializer<JSONEngine>::template ActionBind<JSONValue::JSONArray>::Serialize(e, obj.get<JSONValue::JSONArray>(), id);
       break;
     case JSONValue::Type<JSONValue::JSONObject>::value:
-      JSONEngine::WriteJSONObject<JSONValue>(e, id, obj, s, e.engine.pretty);
+      Serializer<JSONEngine>::template ActionBind<JSONValue::JSONObject>::Serialize(e, obj.get<JSONValue::JSONObject>(), id);
       break;
     }
   }
@@ -465,10 +439,24 @@ namespace bss {
     auto begin = std::begin(obj);
     auto end = std::end(obj);
     for(; begin != end; ++begin)
-      Serializer<JSONEngine>::ActionBind<typename std::remove_const<typename std::remove_reference<decltype(*begin)>::type>::type>::Serialize(e, *begin, 0);
+      Serializer<JSONEngine>::template ActionBind<remove_cvref_t<decltype(*begin)>>::Serialize(e, *begin, 0);
     
     s << ']';
   }
+  template<typename T, size_t... S>
+  void JSONEngine::SerializeTuple(Serializer<JSONEngine>& e, const T& t, const char* id, std::index_sequence<S...>)
+  {
+    std::ostream& s = *e.out;
+    WriteJSONComma(s, e.engine.pretty);
+    WriteJSONId(id, s, e.engine.pretty);
+    internal::serializer::PushValue<size_t> push(e.engine.pretty, WriteJSONPretty(e.engine.pretty));
+    s << '[';
+
+    int X[] = { (Serializer<JSONEngine>::template ActionBind<std::tuple_element_t<S, T>>::Serialize(e, std::get<S>(t), 0), 0)... };
+
+    s << ']';
+  }
+
   template<typename T>
   void JSONEngine::SerializeNumber(Serializer<JSONEngine>& e, T obj, const char* id)
   {

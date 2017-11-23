@@ -6,8 +6,6 @@
 
 #include "compare.h"
 #include "sseVec.h"
-#include "DynArray.h"
-#include "Delegate.h"
 #include "XorshiftEngine.h"
 #include <algorithm>
 #include <utility>
@@ -64,6 +62,9 @@ namespace bss {
   template<typename T, typename CT_, char(*CompF)(const T&, const T&), CT_ I>
   BSS_FORCEINLINE CT_ BinarySearchBefore(const T(&arr)[I], const T& data) { return BinarySearchBefore<T, CT_, CompF>(arr, I, data); }
 
+  template<typename T, typename CT_, char(*CompF)(const T&, const T&), CT_ I>
+  BSS_FORCEINLINE CT_ BinarySearchBefore(const std::array<T, I>& arr, const T& data) { return BinarySearchBefore<T, CT_, CompF>(arr, I, data); }
+
   // Either gets the element that matches the value in question or one immediately after the closest match.
   template<typename T, typename CT_, char(*CompF)(const T&, const T&)>
   BSS_FORCEINLINE CT_ BinarySearchAfter(const T* arr, const T& data, CT_ first, CT_ last) { return BinarySearchNear<T, T, CT_, CompF, CompT_EQ<char>, 1>(arr, data, first, last); }
@@ -73,6 +74,8 @@ namespace bss {
 
   template<typename T, typename CT_, char(*CompF)(const T&, const T&), CT_ I>
   BSS_FORCEINLINE CT_ BinarySearchAfter(const T(&arr)[I], const T& data) { return BinarySearchAfter<T, CT_, CompF>(arr, I, data); }
+  template<typename T, typename CT_, char(*CompF)(const T&, const T&), CT_ I>
+  BSS_FORCEINLINE CT_ BinarySearchAfter(const std::array<T, I>& arr, const T& data) { return BinarySearchAfter<T, CT_, CompF>(arr, I, data); }
 
   // Returns index of the item, if it exists, or -1
   template<typename T, typename D, typename CT_, char(*CompF)(const T&, const D&)>
@@ -107,9 +110,9 @@ namespace bss {
     return std::generate_canonical<T, std::numeric_limits<T>::digits, ENGINE>(e);
   }
 
-  inline XorshiftEngine<uint64_t>& bss_getdefaultengine()
+  inline XorshiftEngine64& bss_getdefaultengine()
   {
-    static XorshiftEngine<uint64_t> e;
+    static XorshiftEngine64 e;
     return e;
   }
 
@@ -141,50 +144,6 @@ namespace bss {
   }
   template<typename T, int size>
   BSS_FORCEINLINE void Shuffle(T(&p)[size]) { Shuffle<T>(p, size); }
-
-  // Random queue that pops a random item instead of the last item.
-  template<typename T, typename CType = uint32_t, typename ENGINE = XorshiftEngine<uint64_t>, ARRAY_TYPE ArrayType = ARRAY_SIMPLE, typename Alloc = StandardAllocator<T>>
-  class BSS_COMPILER_DLLEXPORT RandomQueue : protected DynArray<T, CType, ArrayType, Alloc>
-  {
-  protected:
-    typedef CType CT_;
-    typedef DynArray<T, CType, ArrayType, Alloc> AT_;
-    using AT_::_array;
-    using AT_::_length;
-
-  public:
-    RandomQueue(const RandomQueue& copy) : AT_(copy), _e(copy._e) {}
-    RandomQueue(RandomQueue&& mov) : AT_(std::move(mov)), _e(mov._e) {}
-    explicit RandomQueue(CT_ size = 0, ENGINE& e = bss_getdefaultengine()) : AT_(size), _e(e) {}
-    inline void Push(const T& t) { AT_::Add(t); }
-    inline void Push(T&& t) { AT_::Add(std::move(t)); }
-    inline T Pop()
-    {
-      CT_ i = bssrand<CT_, ENGINE>(0, _length, _e);
-      T r = std::move(_array[i]);
-      Remove(i);
-      return r;
-    }
-    inline void Remove(CT_ index) { _array[index] = std::move(_array[--_length]); }
-    inline bool Empty() const { return !_length; }
-    inline void Clear() { _length = 0; }
-    inline void SetLength(CT_ length) { AT_::SetLength(length); }
-    inline CT_ Length() const { return _length; }
-    inline const T* begin() const { return _array; }
-    inline const T* end() const { return _array + _length; }
-    inline T* begin() { return _array; }
-    inline T* end() { return _array + _length; }
-
-    inline operator T*() { return _array; }
-    inline operator const T*() const { return _array; }
-    inline RandomQueue& operator=(const RandomQueue& copy) { AT_::operator=(copy); return *this; }
-    inline RandomQueue& operator=(RandomQueue&& mov) { AT_::operator=(std::move(mov)); return *this; }
-    inline RandomQueue& operator +=(const RandomQueue& add) { AT_::operator+=(add); return *this; }
-    inline const RandomQueue operator +(const RandomQueue& add) const { RandomQueue r(*this); return (r += add); }
-
-  protected:
-    ENGINE& _e;
-  };
 
   static const double ZIGNOR_R = 3.442619855899;
 
@@ -271,84 +230,6 @@ namespace bss {
     r2[2 + axis] = div;
     StochasticSubdivider(r1, f1, f2, f3, ++depth);
     StochasticSubdivider(r2, f1, f2, f3, depth);
-  }
-
-  template<typename T>
-  BSS_FORCEINLINE size_t _PDS_imageToGrid(const std::array<T, 2>& pt, T cell, size_t gw, T(&rect)[4])
-  {
-    return (size_t)((pt[0] - rect[0]) / cell) + gw*(size_t)((pt[1] - rect[1]) / cell) + 2 + gw + gw;
-  }
-
-  // Implementation of Fast Poisson Disk Sampling by Robert Bridson
-  template<typename T, typename F>
-  inline void PoissonDiskSample(T(&rect)[4], T mindist, F && f, size_t pointsPerIteration = 30)
-  {
-    typedef std::array<T, 2> GRID;
-    //Create the grid
-    T cell = mindist / (T)SQRT_TWO;
-    T w = rect[2] - rect[0];
-    T h = rect[3] - rect[1];
-    size_t gw = ((size_t)ceil(w / cell)) + 4; //gives us buffer room so we don't have to worry about going outside the grid
-    size_t gh = ((size_t)ceil(h / cell)) + 4;
-    VARARRAY(GRID, grid, (gw*gh));    //grid height
-    uint64_t* ig = reinterpret_cast<uint64_t*>((GRID*)grid);
-    bssFillN<GRID>(grid, gw*gh, 0xFF);
-    assert(!(~ig[0]));
-
-    RandomQueue<std::array<T, 2>> list;
-    std::array<T, 2> pt = { (T)bssRandReal(rect[0], rect[2]), (T)bssRandReal(rect[1], rect[3]) };
-
-    //update containers 
-    list.Push(pt);
-    f(pt.data());
-    grid[_PDS_imageToGrid<T>(pt, cell, gw, rect)] = pt;
-
-    T mindistsq = mindist*mindist;
-    T radius, angle;
-    size_t center, edge;
-    //generate other points from points in queue.
-    while(!list.Empty())
-    {
-      auto point = list.Pop();
-
-      for(size_t i = 0; i < pointsPerIteration; i++)
-      {
-        radius = mindist*((T)bssRandReal(1, 2)); //random point between mindist and 2*mindist
-        angle = (T)bssRandReal(0, PI_DOUBLE);
-        pt[0] = point[0] + radius * cos(angle); //the new point is generated around the point (x, y)
-        pt[1] = point[1] + radius * sin(angle);
-
-        if(pt[0] > rect[0] && pt[0]<rect[2] && pt[1]>rect[1] && pt[1] < rect[3]) //Ensure point is inside recT
-        {
-          center = _PDS_imageToGrid<T>(pt, cell, gw, rect); // If another point is in the neighborhood, abort this point.
-          edge = center - gw - gw;
-          assert(edge > 0);
-#define POISSONSAMPLE_CHECK(edge) if((~ig[edge])!=0 && DistSqr(grid[edge][0],grid[edge][1],pt[0],pt[1])<mindistsq) continue
-          POISSONSAMPLE_CHECK(edge - 1);
-          POISSONSAMPLE_CHECK(edge);
-          POISSONSAMPLE_CHECK(edge + 1);
-          edge += gw;
-          if(~(ig[edge - 1] & ig[edge] & ig[edge + 1])) continue;
-          POISSONSAMPLE_CHECK(edge - 2);
-          POISSONSAMPLE_CHECK(edge + 2);
-          edge += gw;
-          if(~(ig[edge - 1] & ig[edge] & ig[edge + 1])) continue;
-          POISSONSAMPLE_CHECK(edge - 2);
-          POISSONSAMPLE_CHECK(edge + 2);
-          edge += gw;
-          if(~(ig[edge - 1] & ig[edge] & ig[edge + 1])) continue;
-          POISSONSAMPLE_CHECK(edge - 2);
-          POISSONSAMPLE_CHECK(edge + 2);
-          edge += gw;
-          POISSONSAMPLE_CHECK(edge - 1);
-          POISSONSAMPLE_CHECK(edge);
-          POISSONSAMPLE_CHECK(edge + 1);
-          list.Push(pt);
-          f(pt.data());
-          grid[center] = pt;
-        }
-      }
-    }
   }
 
   // Implementation of a uniform quadratic B-spline interpolation

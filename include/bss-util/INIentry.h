@@ -10,13 +10,15 @@ namespace bss {
   // Stores an INI entry and allows it to be accessed via multiple type translations
   struct BSS_DLLEXPORT INIentry
   {
-    INIentry(const INIentry& copy);
-    INIentry(INIentry&& mov);
+    INIentry(const INIentry&) = default;
+    INIentry(INIentry&&) = default;
     INIentry();
     INIentry(const char* key, const char* svalue, int64_t ivalue, double dvalue);
     INIentry(const char* key, const char* data);
     ~INIentry();
-    void SetData(const char* data);
+    void Set(const char* data);
+    void SetInt(int64_t data);
+    void SetFloat(double data);
     BSS_FORCEINLINE const char* GetKey() const { return _key; }
     //BSS_FORCEINLINE uint32_t GetIndex() const { return _index; }
     BSS_FORCEINLINE const char* GetString() const { return _svalue; }
@@ -40,8 +42,12 @@ namespace bss {
     BSS_FORCEINLINE operator const char*() const { return _svalue; }
 
     bool operator ==(INIentry &other) const; //these can't be inlined because the compare function is different.
-    bool operator !=(INIentry &other) const;
-    INIentry& operator=(INIentry&& mov);
+    inline bool operator !=(INIentry &other) const { return !operator==(other); }
+    INIentry& operator=(INIentry&&) = default;
+    INIentry& operator=(const INIentry&) = default;
+    inline INIentry& operator=(const char* s) { Set(s); return *this; }
+    inline INIentry& operator=(int64_t s) { SetInt(s); return *this; }
+    inline INIentry& operator=(double s) { SetFloat(s); return *this; }
 
   private:
     Str _key;

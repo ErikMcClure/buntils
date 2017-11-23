@@ -14,7 +14,7 @@ struct ubjsontest2
   double d;
 
   template<typename Engine>
-  void Serialize(Serializer<Engine>& e)
+  void Serialize(Serializer<Engine>& e, const char*)
   {
     e.template EvaluateType<ubjsontest2>(
       GenPair("a", a),
@@ -51,9 +51,10 @@ struct ubjsontest
   DynArray<Str, size_t, ARRAY_SAFE> w;
   DynArray<ubjsontest2, size_t, ARRAY_SAFE> z;
   std::vector<VAR> var;
+  std::tuple<short, Str, double> tuple;
 
   template<typename Engine>
-  void Serialize(Serializer<Engine>& engine)
+  void Serialize(Serializer<Engine>& engine, const char*)
   {
     engine.template EvaluateType<ubjsontest>(
       GenPair("a", (char&)a),
@@ -74,7 +75,8 @@ struct ubjsontest
       GenPair("v", v),
       GenPair("w", w),
       GenPair("z", z),
-      GenPair("var", var)
+      GenPair("var", var),
+      GenPair("tuple", tuple)
       );
   }
 };
@@ -136,6 +138,12 @@ void VerifyUBJSON(const ubjsontest& t1, const ubjsontest& t2, TESTDEF::RETPAIR& 
       break;
     }
   }
+
+  auto[a1, b1, c1] = t1.tuple;
+  auto[a2, b2, c2] = t2.tuple;
+  TEST(a1 == a2);
+  TEST(b1 == b2);
+  TEST(c1 == c2);
 }
 
 TESTDEF::RETPAIR test_UBJSON()
@@ -150,6 +158,7 @@ TESTDEF::RETPAIR test_UBJSON()
     { "stuff", "crap", "things" },
     { { 21, "22", 23.0 }, { 24, "25", 26.0 } },
     { ubjsontest::VAR(ubjsontest2{ 27, "28", 29.0 }), ubjsontest::VAR(30.0) },
+    { 31, "32", 33.0 }
   };
   
   std::fstream fso("out.ubj", std::ios_base::out | std::ios_base::trunc | std::ios_base::binary);
@@ -169,7 +178,7 @@ TESTDEF::RETPAIR test_UBJSON()
   fsi2.close();
   TEST(val.is<UBJSONValue::UBJSONObject>());
   auto& var1 = val.get<UBJSONValue::UBJSONObject>();
-  TEST(var1.Length() == 19);
+  TEST(var1.Length() == 20);
   TEST(var1[0].first == "a");
   TEST(var1[0].second.is<uint8_t>());
   TEST(var1[0].second.get<uint8_t>() == 1);
@@ -220,6 +229,8 @@ TESTDEF::RETPAIR test_UBJSON()
   TEST(var1[17].second.is<UBJSONValue::UBJSONArray>());
   TEST(var1[18].first == "var");
   TEST(var1[18].second.is<UBJSONValue::UBJSONArray>());
+  TEST(var1[19].first == "tuple");
+  TEST(var1[19].second.is<UBJSONValue::UBJSONArray>());
 
   std::fstream fso2("out2.ubj", std::ios_base::out | std::ios_base::trunc | std::ios_base::binary);
   WriteUBJSON<UBJSONValue>(val, fso2);

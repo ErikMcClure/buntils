@@ -81,7 +81,7 @@ namespace bss {
     size_t _index;
     _NODE* _root;
     _NODE* _last;
-    Hash<const char*, _NODE*, true> _entries;
+    HashIns<const char*, _NODE*> _entries;
     INIstorage* _parent;
   };
 }

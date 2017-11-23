@@ -9,9 +9,12 @@
 
 namespace bss {
   // Array that uses a inline stack for smaller arrays before allocating something on the heap. Can only be used with simple data.
-  template<class T, int I = 2, class CT = size_t, typename Alloc = StandardAllocator<T>>
+  template<class T, int I = 2, class CType = size_t, typename Alloc = StandardAllocator<T>>
   class BSS_COMPILER_DLLEXPORT CompactArray final : Alloc
   {
+  protected:
+    typedef T Ty;
+    typedef CType CT;
     static_assert(std::is_unsigned<CT>::value, "CT must be unsigned");
     static const CT COMPACTFLAG = CT(1) << ((sizeof(CT) << 3) - 1);
     static const CT COMPACTMASK = ~COMPACTFLAG;
@@ -138,7 +141,21 @@ namespace bss {
       return *this; 
     }
 
+    typedef T SerializerArray;
+    template<typename Engine>
+    void Serialize(Serializer<Engine>& s, const char* id)
+    {
+      s.template EvaluateArray<CompactArray, T, &_serializeAdd<Engine>, CT, &CompactArray::SetLength>(*this, Length(), id);
+    }
+
   protected:
+    template<typename Engine>
+    inline static void _serializeAdd(Serializer<Engine>& e, CompactArray& obj, int& n)
+    {
+      obj.SetLength(obj.Length() + 1);
+      Serializer<Engine>::template ActionBind<T>::Parse(e, obj.Back(), 0);
+    }
+
     union
     {
       struct {

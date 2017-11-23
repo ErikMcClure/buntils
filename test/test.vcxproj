@@ -600,7 +600,6 @@
     <ClCompile Include="test_geometry.cpp" />
     <ClCompile Include="test_hash.cpp" />
     <ClCompile Include="test_highprecisiontimer.cpp" />
-    <ClCompile Include="test_idhash.cpp" />
     <ClCompile Include="test_inistorage.cpp" />
     <ClCompile Include="test_json.cpp" />
     <ClCompile Include="test_kdtree.cpp" />
@@ -614,6 +613,7 @@
     <ClCompile Include="test_priorityqueue.cpp" />
     <ClCompile Include="test_profile.cpp" />
     <ClCompile Include="test_queue.cpp" />
+    <ClCompile Include="test_randomqueue.cpp" />
     <ClCompile Include="test_rational.cpp" />
     <ClCompile Include="test_refcounter.cpp" />
     <ClCompile Include="test_rwlock.cpp" />

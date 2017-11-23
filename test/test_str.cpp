@@ -42,6 +42,25 @@ TESTDEF::RETPAIR test_STR()
   TEST(!strcmp(Str(BSS__L("Törkylempijävongahdus")), "TÃ¶rkylempijÃ¤vongahdus"));
 #endif
 
+  VARARRAY(char, test2, 6);
+  char* test3 = test2;
+  const char* test4 = "test4";
+
+  static_assert(std::is_same_v<decltype(ToString(s)), const Str&>, "Invalid ToString specialization");
+  static_assert(std::is_same_v<decltype(ToString("test")), const char(&)[5]>, "Invalid ToString specialization");
+  static_assert(std::is_same_v<decltype(ToString(test3)), char* const&>, "Invalid ToString specialization");
+  static_assert(std::is_same_v<decltype(ToString(test4)), const char* const&>, "Invalid ToString specialization");
+  TEST(&ToString(s) == &s);
+  TEST(ToString(std::string("test")) == "test");
+  TEST(ToString(Str("test")) == "test");
+  TEST(ToString(test3) == test3);
+  TEST(ToString(test4) == test4);
+  TEST(ToString(3) == "3");
+  TEST(ToString(3ULL) == "3");
+  TEST(ToString((size_t)3) == "3");
+  TEST(ToString((short)-3) == "-3");
+  TEST(ToString(0) == "0");
+  
   s4.GetChar(6) = 'b';
   TEST(!strcmp(s4, "blah  bblah"));
   s4.GetChar(0) = 'a';
@@ -123,4 +142,6 @@ TESTDEF::RETPAIR test_STR()
   TEST(u32[1] == 'k');
   TEST(u32[2] == 'l');
   ENDTEST;
+
+
 }

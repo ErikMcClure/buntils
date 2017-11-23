@@ -17,46 +17,47 @@ namespace bss {
   class BSS_COMPILER_DLLEXPORT Map : protected ArraySort<std::tuple<Key, Data>, &CompTuple<std::tuple<Key, Data>, 0, CFunc>, CType, ArrayType, Alloc>
   {
   protected:
-    typedef CType CT_;
     typedef std::tuple<Key, Data> pair_t;
-    typedef ArraySort<pair_t, &CompTuple<pair_t, 0, CFunc>, CT_, ArrayType, Alloc> BASE;
+    typedef ArraySort<pair_t, &CompTuple<pair_t, 0, CFunc>, CT, ArrayType, Alloc> BASE;
     typedef const Data& constref;
     typedef const Key& CKEYREF;
     using BASE::_array;
+    typedef typename BASE::CT CT;
+    typedef typename BASE::Ty Ty;
 
   public:
-    explicit Map(CT_ init = 1) : BASE(init) {}
+    explicit Map(CT init = 1) : BASE(init) {}
     Map(const Map& copy) = default;
     Map(Map&& mov) = default;
     //~Map() {}
     BSS_FORCEINLINE void Clear() { BASE::Clear(); }
-    BSS_FORCEINLINE void Discard(CType num) { BASE::Discard(num); }
-    BSS_FORCEINLINE CT_ Insert(CKEYREF key, constref data) { return BASE::Insert(pair_t(key, data)); }
-    BSS_FORCEINLINE CT_ Insert(CKEYREF key, Data&& data) { return BASE::Insert(pair_t(key, std::move(data))); }
-    inline CT_ Get(CKEYREF key) const 
+    BSS_FORCEINLINE void Discard(CT num) { BASE::Discard(num); }
+    BSS_FORCEINLINE CT Insert(CKEYREF key, constref data) { return BASE::Insert(pair_t(key, data)); }
+    BSS_FORCEINLINE CT Insert(CKEYREF key, Data&& data) { return BASE::Insert(pair_t(key, std::move(data))); }
+    inline CT Get(CKEYREF key) const 
     {
-      CT_ retval = GetNear(key, true);
-      return (retval != (CT_)(-1) && !CFunc(std::get<0>(_array[retval]), key)) ? retval : (CT_)(-1);
+      CT retval = GetNear(key, true);
+      return (retval != (CT)(-1) && !CFunc(std::get<0>(_array[retval]), key)) ? retval : (CT)(-1);
     }
     inline constref GetData(CKEYREF key) const { return DataIndex(GetNear(key, true)); } //this has no checking
-    inline constref DataIndex(CT_ index) const { return std::get<1>(_array[index]); }
-    inline CKEYREF KeyIndex(CT_ index) const { return std::get<0>(_array[index]); }
-    inline CT_ Remove(CKEYREF key) { CT_ retval = Get(key); BASE::Remove(retval); return retval; }
-    BSS_FORCEINLINE CT_ RemoveIndex(CT_ index) { return BASE::Remove(index); }
-    BSS_FORCEINLINE CT_ Replace(CT_ index, CKEYREF key, constref data) { return BASE::ReplaceData(index, pair_t(key, data)); }
-    BSS_FORCEINLINE CT_ Replace(CT_ index, CKEYREF key, Data&& data) { return BASE::ReplaceData(index, pair_t(key, std::move(data))); }
-    inline CT_ ReplaceKey(CT_ index, CKEYREF key) 
+    inline constref DataIndex(CT index) const { return std::get<1>(_array[index]); }
+    inline CKEYREF KeyIndex(CT index) const { return std::get<0>(_array[index]); }
+    inline CT Remove(CKEYREF key) { CT retval = Get(key); BASE::Remove(retval); return retval; }
+    BSS_FORCEINLINE CT RemoveIndex(CT index) { return BASE::Remove(index); }
+    BSS_FORCEINLINE CT Replace(CT index, CKEYREF key, constref data) { return BASE::ReplaceData(index, pair_t(key, data)); }
+    BSS_FORCEINLINE CT Replace(CT index, CKEYREF key, Data&& data) { return BASE::ReplaceData(index, pair_t(key, std::move(data))); }
+    inline CT ReplaceKey(CT index, CKEYREF key) 
     {
       if(index < 0 || index >= Length())
-        return (CT_)(-1); 
+        return (CT)(-1); 
       return BASE::ReplaceData(index, pair_t(key, std::get<1>(_array[index])));
     }
-    BSS_FORCEINLINE CT_ Length() const { return BASE::Length(); }
-    BSS_FORCEINLINE void Expand(CT_ size) { BASE::Expand(size); }
-    inline CT_ Set(CKEYREF key, constref data)
+    BSS_FORCEINLINE CT Length() const { return BASE::Length(); }
+    BSS_FORCEINLINE void Expand(CT size) { BASE::Expand(size); }
+    inline CT Set(CKEYREF key, constref data)
     {
-      CT_ retval = GetNear(key, true);
-      if(retval != (CT_)(-1))
+      CT retval = GetNear(key, true);
+      if(retval != (CT)(-1))
       {
         auto&[k, v] = _array[retval];
         if(!CFunc(k, key))
@@ -65,10 +66,10 @@ namespace bss {
       return retval;
     }
     BSS_FORCEINLINE static char mapComp(const Key& a, const pair_t& b) { return CFunc(a, std::get<0>(b)); }
-    CT_ GetNear(CKEYREF key, bool before) const
+    CT GetNear(CKEYREF key, bool before) const
     {
-      CT_ retval = before ? (BinarySearchNear<pair_t, Key, CT_, mapComp, CompT_NEQ<char>, -1>(_array.begin(), key, 0, Length()) - 1) : BinarySearchNear<pair_t, Key, CT_, mapComp, CompT_EQ<char>, 1>(_array.begin(), key, 0, Length());
-      return (retval < Length()) ? retval : (CT_)(-1); // This is only needed for before=false in case it returns a value outside the range.
+      CT retval = before ? (BinarySearchNear<pair_t, Key, CT, mapComp, CompT_NEQ<char>, -1>(_array.begin(), key, 0, Length()) - 1) : BinarySearchNear<pair_t, Key, CT, mapComp, CompT_EQ<char>, 1>(_array.begin(), key, 0, Length());
+      return (retval < Length()) ? retval : (CT)(-1); // This is only needed for before=false in case it returns a value outside the range.
     }
     inline const pair_t* begin() const { return _array.begin(); }
     inline const pair_t* end() const { return _array.end(); }
@@ -78,14 +79,18 @@ namespace bss {
     inline pair_t& Front() { return _array.Front(); }
     inline const pair_t& Back() const { return _array.Back(); }
     inline pair_t& Back() { return _array.Back(); }
-    BSS_FORCEINLINE Slice<pair_t, CT_> GetSlice() const noexcept { return _array.GetSlice(); }
+    BSS_FORCEINLINE Slice<pair_t, CT> GetSlice() const noexcept { return _array.GetSlice(); }
 
     inline Map& operator =(const Map& right) = default;
     inline Map& operator =(Map&& right) = default;
-    inline const pair_t& operator [](CT_ index) const { return _array[index]; }
-    inline pair_t& operator [](CT_ index) { return _array[index]; }
-    inline constref operator ()(CT_ index) const { return std::get<1>(_array[index]); }
-    inline Data& operator ()(CT_ index) { return std::get<1>(_array[index]); }
+    inline const pair_t& operator [](CT index) const { return _array[index]; }
+    inline pair_t& operator [](CT index) { return _array[index]; }
+    inline constref operator ()(CT index) const { return std::get<1>(_array[index]); }
+    inline Data& operator ()(CT index) { return std::get<1>(_array[index]); }
+
+    using BASE::SerializerArray;
+    template<typename Engine>
+    void Serialize(Serializer<Engine>& s, const char* id) { BASE::Serialize<Engine>(s, id); }
   };
 }
 

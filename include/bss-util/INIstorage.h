@@ -52,9 +52,9 @@ namespace bss {
     inline INIentry& GetEntry(const char *section, const char* key, size_t keyinstance = 0, size_t secinstance = 0) const { INIentry* ret = GetEntryPtr(section, key, keyinstance, secinstance); return !ret ? INIsection::_entrysentinel : *ret; }
     void DEBUGTEST()
     {
-      for(khiter_t i : _sections)
+      for(auto[k,v] : _sections)
       {
-        auto& p = _sections.UnsafeValue(i)->instances;
+        auto& p = v->instances;
         assert(!p.Capacity() == !p.begin());
       }
     }
@@ -72,7 +72,7 @@ namespace bss {
     static INIsection _sectionsentinel;
     static LocklessBlockPolicy<_NODE> _alloc;
 
-    Hash<const char*, _NODE*, true> _sections;
+    HashIns<const char*, _NODE*> _sections;
     Str _path; //holds path to INI
     Str _filename; //holds INI filename;
     Str* _ini; //holds entire INI file. Made a pointer so we can distinguish between an empty INI file and an unopened file.

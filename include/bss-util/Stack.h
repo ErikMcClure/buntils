@@ -42,6 +42,10 @@ namespace bss {
     inline const T& operator[](CType i) const { return _array[i]; }
     inline T& operator[](CType i) { return _array[i]; }
 
+    typedef typename DynArray<T, CType, ArrayType, Alloc>::SerializerArray SerializerArray;
+    template<typename Engine>
+    void Serialize(Serializer<Engine>& s, const char* id) { _array.Serialize<Engine>(s, id); }
+
   protected:
     DynArray<T, CType, ArrayType, Alloc> _array;
   };

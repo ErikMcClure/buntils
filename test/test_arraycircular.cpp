@@ -16,6 +16,11 @@ TESTDEF::RETPAIR test_ARRAYCIRCULAR()
     a.Push(i);
   TEST(a.Length() == 25);
 
+  {
+    int i = 25;
+    for(auto v : a)
+      TEST(v == --i);
+  }
   TEST(a.Pop() == 24);
   TEST(a.Pop() == 23);
   a.Push(987);
@@ -33,6 +38,12 @@ TESTDEF::RETPAIR test_ARRAYCIRCULAR()
   a.Push(25); //This should overwrite 0
   TEST(a[0] == 25);
   TEST(a[-1] == 0);
+
+  {
+    int i = 26;
+    for(auto v : a)
+      TEST(v == --i);
+  }
 
   //const ArrayCircular<int>& b=a;
   //b[0]=5; // Should cause error

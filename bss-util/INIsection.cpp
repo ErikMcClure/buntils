@@ -1,6 +1,7 @@
 // Copyright ©2017 Black Sphere Studios
 // For conditions of distribution and use, see copyright notice in "bss_util.h"
 
+#include "bss-util/bss_util.h"
 #include "bss-util/INIstorage.h"
 #include <memory.h>
 
@@ -79,7 +80,7 @@ void INIsection::_addEntry(const char* key, const char* data)
   new (&p->val) INIentry(key,data);
   khiter_t iter=_entries.Iterator(key);
 
-  if(iter==_entries.End())
+  if(iter==_entries.Back())
   {
     _entries.Insert(p->val.GetKey(),p);
     if(!_root)

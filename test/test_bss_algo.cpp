@@ -44,7 +44,6 @@ TESTDEF::RETPAIR test_bss_algo()
       [](const float(&r)[4]) {},
       [&](size_t d, const float(&r)[4]) -> double { return zig(); });
 
-    PoissonDiskSample<float>(rect, 4.0f, [](float* f)->float { return f[0] + f[1]; });
     //TEST(QuadraticBSpline<double,double>(1.0,2.0,4.0,8.0)==4.0);
     double res = CubicBSpline<double, double>(0.0, 2.0, 4.0, 8.0, 16.0);
     TEST(res == 4.0);

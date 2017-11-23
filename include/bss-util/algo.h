@@ -7,6 +7,7 @@
 #include "compare.h"
 #include "sseVec.h"
 #include "XorshiftEngine.h"
+#include "Array.h"
 #include <algorithm>
 #include <utility>
 #include <random>

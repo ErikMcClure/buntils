@@ -24,7 +24,7 @@ namespace bss {
     template<typename Engine>
     void Serialize(Serializer<Engine>& e, const char*)
     {
-      e.template EvaluateType<SerializerTest>(
+      e.template EvaluateType<AniFrame>(
         GenPair("time", time),
         GenPair("value", value),
         GenPair("data", data)
@@ -44,7 +44,7 @@ namespace bss {
     template<typename Engine>
     void Serialize(Serializer<Engine>& e, const char*)
     {
-      e.template EvaluateType<SerializerTest>(
+      e.template EvaluateType<AniFrame>(
         GenPair("time", time),
         GenPair("value", value)
         );
@@ -524,11 +524,11 @@ namespace bss {
     template<typename Engine>
     void Serialize(Serializer<Engine>& e, const char*)
     {
-      e.template EvaluateType<AniLinearData<T>>(
+      e.template EvaluateType<Animation>(
         GenPair("length", _length),
         GenPair("calc", _calc),
         GenPair("loop", _loop),
-        GenPair("data", (std::tuple<Args...>&)*this),
+        GenPair("data", (std::tuple<Args...>&)*this)
         );
     }
 
@@ -584,11 +584,11 @@ namespace bss {
     template<typename Engine>
     void Serialize(Serializer<Engine>& e, const char*)
     {
-      e.template EvaluateType<AniLinearData<T>>(
+      e.template EvaluateType<AniLinearData>(
         GenPair("t1", t1),
         GenPair("s1", s1),
         GenPair("t2", t2),
-        GenPair("s2", s2),
+        GenPair("s2", s2)
         );
     }
   };
@@ -643,12 +643,12 @@ namespace bss {
     template<typename Engine>
     void Serialize(Serializer<Engine>& e, const char*)
     {
-      e.template EvaluateType<AniQuadData<T>>(
+      e.template EvaluateType<AniQuadData>(
         GenPair("t1", t1),
         GenPair("s1", s1),
         GenPair("t2", t2),
         GenPair("s2", s2),
-        GenPair("cp", cp),
+        GenPair("cp", cp)
         );
     }
 
@@ -707,13 +707,13 @@ namespace bss {
     template<typename Engine>
     void Serialize(Serializer<Engine>& e, const char*)
     {
-      e.template EvaluateType<AniCubicData<T>>(
+      e.template EvaluateType<AniCubicData>(
         GenPair("t1", t1),
         GenPair("s1", s1),
         GenPair("p1", p1),
         GenPair("t2", t2),
         GenPair("s2", s2),
-        GenPair("p2", p2),
+        GenPair("p2", p2)
         );
     }
 

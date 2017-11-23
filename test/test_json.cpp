@@ -73,6 +73,8 @@ struct JSONtest
   }
 };
 
+static_assert(internal::serializer::is_serializable<JSONEngine, JSONtest>::value, "object missing Serialize<Engine>(Serializer<Engine>&, const char*) function!");
+
 void dotest_JSON(JSONtest& o, TESTDEF::RETPAIR& __testret)
 {
   TEST(o.a == -5);

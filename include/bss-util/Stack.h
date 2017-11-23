@@ -44,7 +44,7 @@ namespace bss {
 
     typedef typename DynArray<T, CType, ArrayType, Alloc>::SerializerArray SerializerArray;
     template<typename Engine>
-    void Serialize(Serializer<Engine>& s, const char* id) { _array.Serialize<Engine>(s, id); }
+    void Serialize(Serializer<Engine>& s, const char* id) { _array.template Serialize<Engine>(s, id); }
 
   protected:
     DynArray<T, CType, ArrayType, Alloc> _array;

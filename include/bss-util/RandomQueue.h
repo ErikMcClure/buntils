@@ -54,7 +54,7 @@ namespace bss {
 
     using BASE::SerializerArray;
     template<typename Engine>
-    void Serialize(Serializer<Engine>& s, const char* id) { BASE::Serialize<Engine>(s, id); }
+    void Serialize(Serializer<Engine>& s, const char* id) { BASE::template Serialize<Engine>(s, id); }
   };
 
   namespace internal {

@@ -18,7 +18,7 @@ namespace bss {
   {
   protected:
     typedef std::tuple<Key, Data> pair_t;
-    typedef ArraySort<pair_t, &CompTuple<pair_t, 0, CFunc>, CT, ArrayType, Alloc> BASE;
+    typedef ArraySort<pair_t, &CompTuple<pair_t, 0, CFunc>, CType, ArrayType, Alloc> BASE;
     typedef const Data& constref;
     typedef const Key& CKEYREF;
     using BASE::_array;
@@ -90,7 +90,7 @@ namespace bss {
 
     using BASE::SerializerArray;
     template<typename Engine>
-    void Serialize(Serializer<Engine>& s, const char* id) { BASE::Serialize<Engine>(s, id); }
+    void Serialize(Serializer<Engine>& s, const char* id) { BASE::template Serialize<Engine>(s, id); }
   };
 }
 

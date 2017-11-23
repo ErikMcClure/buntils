@@ -8,6 +8,7 @@
 #include <tuple>
 #include <array>
 #include <vector>
+#include <type_traits>
 #include "Trie.h"
 #include "Variant.h"
 #include "BitField.h"
@@ -62,8 +63,7 @@ namespace bss {
       template<class, class = void> struct is_serializer_array : std::false_type {};
       template<class T> struct is_serializer_array<T, std::void_t<typename T::SerializerArray>> : std::bool_constant<!std::is_void_v<typename T::SerializerArray>> {};
 
-      template<class E, class, class = void> struct is_serializable : std::false_type {};
-      template<class E, class T> struct is_serializable<E, T, std::void_t<decltype(std::declval<T>().Serialize<E>(std::declval<Serializer<E>>(), std::declval<const char*>()))>> : std::true_type {};
+      template<class E, class T, class V = void> struct is_serializable : std::false_type {};
 
       // Classifies types by action performed (value, integer, key-value pair, array)
       template<class Engine, class T>
@@ -127,14 +127,14 @@ namespace bss {
       template<class Engine, class T, size_t I> // For fixed-length arrays
       struct Action<Engine, T[I]>
       {
-        static inline void Parse(Serializer<Engine>& e, T(&obj)[I], const char* id) { Engine::template ParseArray<T[I], T, &Serializer<Engine>::FixedAdd<T[I]>, &Serializer<Engine>::FixedRead<T[I]>>(e, obj, id); }
+        static inline void Parse(Serializer<Engine>& e, T(&obj)[I], const char* id) { Engine::template ParseArray<T[I], T, &Serializer<Engine>::template FixedAdd<T[I]>, &Serializer<Engine>::template FixedRead<T[I]>>(e, obj, id); }
         static inline void Serialize(Serializer<Engine>& e, const T(&obj)[I], const char* id) { Engine::template SerializeArray<T[I]>(e, obj, I, id); }
       };
 
       template<class Engine, class T, size_t I> // For fixed-length arrays
       struct Action<Engine, std::array<T, I>>
       {
-        static inline void Parse(Serializer<Engine>& e, std::array<T, I>& obj, const char* id) { Engine::template ParseArray<std::array<T, I>, T, &Serializer<Engine>::FixedAdd<std::array<T, I>>, &Serializer<Engine>::FixedRead<std::array<T, I>>>(e, obj, id); }
+        static inline void Parse(Serializer<Engine>& e, std::array<T, I>& obj, const char* id) { Engine::template ParseArray<std::array<T, I>, T, &Serializer<Engine>::template FixedAdd<std::array<T, I>>, &Serializer<Engine>::template FixedRead<std::array<T, I>>>(e, obj, id); }
         static inline void Serialize(Serializer<Engine>& e, const std::array<T, I>& obj, const char* id) { Engine::template SerializeArray<std::array<T, I>>(e, obj, I, id); }
       };
 
@@ -306,7 +306,12 @@ namespace bss {
         Engine::template SerializeArray<T>(*this, obj, length, id);
 
       if(in)
-        Engine::template ParseArray<T, E, Add, &DynamicRead<T, C, SET>>(*this, obj, id);
+      {
+        if(SET == nullptr) // Due to a bug in GCC, it doesn't think this is a constant expression
+          Engine::template ParseArray<T, E, Add, &DisabledRead<T>>(*this, obj, id);
+        else
+          Engine::template ParseArray<T, E, Add, &DynamicRead<T, C, SET>>(*this, obj, id);
+      }
     }
 
     template<typename T, int I>
@@ -339,16 +344,14 @@ namespace bss {
     template<class T>
     static inline bool FixedRead(Serializer<Engine>& e, T& obj, int64_t count) { return e.BulkRead(std::begin(obj), std::end(obj), count); }
 
+    template<class T>
+    static inline bool DisabledRead(Serializer<Engine>& e, T& obj, int64_t count) { return false; }
+
     template<class T, class C, void (T::*SET)(C)>
     static inline bool DynamicRead(Serializer<Engine>& e, T& obj, int64_t count)
     {
-      if constexpr(SET == nullptr)
-        return false;
-      else
-      {
-        (obj.*SET)(count);
-        return e.BulkRead(std::begin(obj), std::end(obj), count);
-      }
+      (obj.*SET)(count);
+      return e.BulkRead(std::begin(obj), std::end(obj), count);
     }
 
     template<class T>
@@ -385,6 +388,12 @@ namespace bss {
         return false;
     }
   };
+
+  namespace internal {
+    namespace serializer { // This is used by Serializer, but std::declval requires a complete type, so we have to put the partial specialization below Serializer
+      template<class E, class T> struct is_serializable<E, T, std::void_t<decltype(std::declval<T>().template Serialize<E>(std::declval<Serializer<E>&>(), ""))>> : std::true_type {};
+    }
+  }
 
   // Reference engine for serializers
   class EmptyEngine

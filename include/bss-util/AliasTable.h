@@ -130,8 +130,8 @@ namespace bss {
     std::unique_ptr<UINT[]> _alias;
     std::unique_ptr<F[]> _prob;
     UINT _count;
-    std::uniform_int_distribution<UINT> _dist;
-    std::uniform_real_distribution<F> _fdist;
+    mutable std::uniform_int_distribution<UINT> _dist;
+    mutable std::uniform_real_distribution<F> _fdist;
   };
 }
 

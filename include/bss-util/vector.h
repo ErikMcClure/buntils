@@ -609,7 +609,7 @@ namespace bss {
     template<int... K> BSS_FORCEINLINE Vector<T, sizeof...(K)> Swizzle() const
     {
       static_assert(sizeof...(K) <= N, "Too many swizzles!");
-      return T[sizeof...(K)]{ v[K]... };
+      return std::array<T, sizeof...(K)>{ v[K]... };
     }
 
     typedef T SerializerArray;

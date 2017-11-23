@@ -147,15 +147,11 @@ namespace bss {
   template<typename T>
   class BSS_COMPILER_DLLEXPORT LLIterator : public std::iterator<std::bidirectional_iterator_tag, T, ptrdiff_t, T*, T*>
   {
-  protected:
-    using std::iterator<std::bidirectional_iterator_tag, T, ptrdiff_t, T*, T*>::pointer;
-    using std::iterator<std::bidirectional_iterator_tag, T, ptrdiff_t, T*, T*>::reference;
-
   public:
     inline LLIterator() : cur(0) {}
     inline explicit LLIterator(T* node) : cur(node) {}
-    inline reference operator*() const { return cur; }
-    inline pointer operator->() const { return cur; }
+    inline T* operator*() const { return cur; }
+    inline T* operator->() const { return cur; }
     inline LLIterator& operator++() { cur = cur->next; return *this; } //prefix
     inline LLIterator operator++(int) { LLIterator r = *this; ++*this; return r; } //postfix
     inline LLIterator& operator--() { cur = cur->prev; return *this; } //prefix

@@ -344,9 +344,10 @@ namespace bss {
       inline HashIterator operator++(int) { HashIterator r(*this); ++*this; return r; } //postfix
       inline HashIterator& operator--()   //prefix
       {
-        static_assert(std::is_signed<khiter_t>::value, "khiter_t not signed!");
-        while((--cur) >= 0 && !src->_exists(cur));
-        if(cur < 0) cur = src->n_buckets;
+        std::make_unsigned_t<khiter_t> c = cur; // This is complicated because khiter_t could be signed or unsigned
+        while((--c) < src->n_buckets && !src->_exists(c));
+        if(c > src->n_buckets) c = src->n_buckets; 
+        cur = c;
         return *this;
       } 
       inline HashIterator operator--(int) { HashIterator r(*this); --*this; return r; } //postfix
@@ -368,7 +369,7 @@ namespace bss {
     void Serialize(Serializer<Engine>& s, const char* id)
     {
       if constexpr(!IsMap)
-        s.template EvaluateArray<Hash, T, &_serializeAdd<Engine>, size_t, nullptr>(*this, _length, id);
+        s.template EvaluateArray<Hash, Key, &_serializeAdd<Engine>, size_t, nullptr>(*this, size, id);
       else
         s.template EvaluateKeyValue<Hash>(*this, [this](Serializer<Engine>& e, const char* name)
       {

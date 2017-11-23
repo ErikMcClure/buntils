@@ -114,9 +114,6 @@
     <ClInclude Include="..\include\bss-util\INIentry.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="..\include\bss-util\IDHash.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
     <ClInclude Include="..\include\bss-util\HighPrecisionTimer.h">
       <Filter>Header Files</Filter>
     </ClInclude>
@@ -247,6 +244,9 @@
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="..\include\bss-util\CacheAlloc.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="..\include\bss-util\RandomQueue.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>

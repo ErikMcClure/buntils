@@ -329,13 +329,16 @@ namespace bss {
   typedef Str TStr;
 #endif
 
-  // This is a slightly more useful ToString method that performs a no-op on actual strings
-  template<typename T>
-  BSS_FORCEINLINE std::string ToString(T v) { return std::to_string(v); }
+  // This is a slightly more useful ToString method that performs a true no-op on actual strings
 
-  template<> BSS_FORCEINLINE std::string ToString<const char*>(const char* v) { return v; }
-  template<> BSS_FORCEINLINE std::string ToString<std::string>(std::string v) { return v; }
-  template<> BSS_FORCEINLINE std::string ToString<Str>(Str v) { return v; }
+  template<typename T>
+  BSS_FORCEINLINE std::conditional_t<std::is_same_v<std::decay_t<T>, char*> || std::is_same_v<std::decay_t<T>, const char*> || std::is_same_v<T, Str>, const T&, Str> ToString(const T& v)
+  { 
+    if constexpr(std::is_same_v<std::decay_t<T>, char*> || std::is_same_v<std::decay_t<T>, const char*> ||  std::is_base_of_v<std::string, T>)
+      return v;
+    else
+      return std::to_string(v);
+  }
 }
 
 // This allows Str to inherit all the string operations

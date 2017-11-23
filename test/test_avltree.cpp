@@ -5,6 +5,7 @@
 #include "bss-util/AVLTree.h"
 #include "bss-util/BlockAlloc.h"
 #include "bss-util/algo.h"
+#include <functional>
 
 using namespace bss;
 

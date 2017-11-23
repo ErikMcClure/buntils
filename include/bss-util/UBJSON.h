@@ -28,7 +28,7 @@ namespace bss {
     static void Parse(Serializer<UBJSONEngine>& e, T& t, const char* id);
     template<typename F>
     static void ParseMany(Serializer<UBJSONEngine>& e, F && f);
-    template<typename T, typename E>
+    template<typename T, typename E, void (*Add)(Serializer<UBJSONEngine>& e, T& obj, int& n), bool (*Read)(Serializer<UBJSONEngine>& e, T& obj, int64_t count)>
     static void ParseArray(Serializer<UBJSONEngine>& e, T& obj, const char* id);
     template<typename T>
     static void ParseNumber(Serializer<UBJSONEngine>& e, T& t, const char* id);
@@ -56,6 +56,8 @@ namespace bss {
     static void Serialize(Serializer<UBJSONEngine>& e, const T& t, const char* id);
     template<typename T>
     static void SerializeArray(Serializer<UBJSONEngine>& e, const T& obj, size_t size, const char* id);
+    template<typename T, size_t... S>
+    static void SerializeTuple(Serializer<UBJSONEngine>& e, const T& t, const char* id, std::index_sequence<S...>);
     template<typename T>
     static void SerializeNumber(Serializer<UBJSONEngine>& e, T t, const char* id);
     static void SerializeBool(Serializer<UBJSONEngine>& e, bool t, const char* id) 
@@ -185,7 +187,7 @@ namespace bss {
 
       while(!!s && (count < 0 || count>0) && (count > 0 || s.peek() != TYPE_OBJECT_END) && s.peek() != -1)
       {
-        int64_t length = UBJSONEngine::ParseLength(s);
+        size_t length = (size_t)UBJSONEngine::ParseLength(s);
         --count;
         buf.reserve(length + 1);
         s.read(buf.UnsafeString(), length);
@@ -296,7 +298,7 @@ namespace bss {
     BASE& operator=(T&& right) { BASE::operator=(internal::serializer::ConvRef<UBJSONValue>::Value<T, BASE>::f(right)); return *this; }
 
     template<typename Engine>
-    void Serialize(Serializer<Engine>& e)
+    void Serialize(Serializer<Engine>& e, const char*)
     {
       assert(is<UBJSONObject>());
       if(e.out)
@@ -353,7 +355,7 @@ namespace bss {
     }
   }
 
-  template<typename T, typename E>
+  template<typename T, typename E, void (*Add)(Serializer<UBJSONEngine>& e, T& obj, int& n), bool (*Read)(Serializer<UBJSONEngine>& e, T& obj, int64_t count)>
   void UBJSONEngine::ParseArray(Serializer<UBJSONEngine>& e, T& obj, const char* id)
   {
     UBJSONEngine::TYPE ty = e.engine.type;
@@ -369,11 +371,11 @@ namespace bss {
     if(count <= 0 ||
       ty == UBJSONEngine::TYPE_NONE ||
       (ty != UBJSONEngine::TYPE_CHAR && ty != UBJSONEngine::TYPE_UINT8 && ty != UBJSONEngine::TYPE_INT8) ||
-      !Serializer<UBJSONEngine>::template Bulk<T>::Read(e, obj, count)) // attempt mass read in if we have a 1 byte type and a count
+      !Read(e, obj, count)) // attempt mass read in if we have a 1 byte type and a count
     {
       while(!!s && (count > 0 || count < 0) && (count > 0 || s.peek() != UBJSONEngine::TYPE_ARRAY_END) && s.peek() != -1)
       {
-        Serializer<UBJSONEngine>::ActionBind<T>::Add(e, obj, num);
+        Add(e, obj, num);
         --count;
       }
       if(!!s && count < 0 && s.peek() == UBJSONEngine::TYPE_ARRAY_END) s.get(); // If we were looking for the ARRAY_END symbol, eat it.
@@ -383,7 +385,8 @@ namespace bss {
   template<class T>
   inline void ParseUBJSONBase(Serializer<UBJSONEngine>& e, T& obj, std::istream& s)
   {
-    obj.template Serialize<UBJSONEngine>(e);
+    static_assert(internal::serializer::is_serializable<UBJSONEngine, T>::value, "object missing Serialize<Engine>(Serializer<Engine>&, const char*) function!");
+    obj.template Serialize<UBJSONEngine>(e, 0);
   }
 
   template<>
@@ -433,9 +436,12 @@ namespace bss {
     }
       break;
     case UBJSONEngine::TYPE_OBJECT:
+    {
       obj = UBJSONValue::UBJSONObject();
-      UBJSONEngine::ParseObj(e, UBJSONEngine::TYPE_OBJECT, internal::serializer::KeyValueArray<UBJSONEngine, Str, UBJSONValue>(obj.get<UBJSONValue::UBJSONObject>()));
+      internal::serializer::PushValue<UBJSONEngine::TYPE> push(e.engine.type, UBJSONEngine::TYPE_OBJECT);
+      Serializer<UBJSONEngine>::ActionBind<UBJSONValue::UBJSONObject>::Parse(e, obj.get<UBJSONValue::UBJSONObject>(), 0);
       break;
+    }
     case UBJSONEngine::TYPE_CHAR:
     case UBJSONEngine::TYPE_INT8: obj = tuple.Int8; break;
     case UBJSONEngine::TYPE_UINT8: obj = tuple.UInt8; break;
@@ -468,10 +474,10 @@ namespace bss {
         throw std::runtime_error("Expecting a type other than object in the object serializing function!");
 
       internal::serializer::PushValue<UBJSONEngine::TYPE> push(e.engine.type, UBJSONEngine::TYPE_NONE);
-      const_cast<T&>(obj).template Serialize<UBJSONEngine>(e);
+      static_assert(internal::serializer::is_serializable<UBJSONEngine, T>::value, "object missing Serialize<Engine>(Serializer<Engine>&, const char*) function!");
+      const_cast<T&>(obj).template Serialize<UBJSONEngine>(e, 0);
 
       if(e.engine.endobject)
-      //if(obj.SerializeUBJSON(s))
         s.put(UBJSONEngine::TYPE_OBJECT_END);
     }
 
@@ -554,13 +560,13 @@ namespace bss {
         Serializer<UBJSONEngine>::ActionBind<size_t>::Serialize(e, size, 0);
       }
 
-      if(ty != UBJSONEngine::TYPE_CHAR || ty != UBJSONEngine::TYPE_UINT8 || ty != UBJSONEngine::TYPE_INT8 || !Serializer<UBJSONEngine>::Bulk<T>::Write(e, obj, size))
+      if(ty != UBJSONEngine::TYPE_CHAR || ty != UBJSONEngine::TYPE_UINT8 || ty != UBJSONEngine::TYPE_INT8 || !e.BulkWrite(std::begin(obj), std::end(obj), size))
       {
         auto begin = std::begin(obj);
         auto end = std::end(obj);
         internal::serializer::PushValue<UBJSONEngine::TYPE> push(e.engine.type, ty);
         for(; begin != end; ++begin)
-          Serializer<UBJSONEngine>::ActionBind<typename std::remove_const<typename std::remove_reference<decltype(*begin)>::type>::type>::Serialize(e, *begin, 0);
+          Serializer<UBJSONEngine>::ActionBind<remove_cvref_t<decltype(*begin)>>::Serialize(e, *begin, 0);
       }
     }
   }
@@ -568,8 +574,26 @@ namespace bss {
   template<typename T>
   void UBJSONEngine::SerializeArray(Serializer<UBJSONEngine>& e, const T& obj, size_t size, const char* id)
   {
-    TYPE ty = internal::WriteUBJSONType<typename std::remove_const<typename std::remove_reference<decltype(*std::begin(obj))>::type>::type>::t; // This is assigned to whatever type our actual array resolves to
+    TYPE ty = internal::WriteUBJSONType<remove_cvref_t<decltype(*std::begin(obj))>>::t; // This is assigned to whatever type our actual array resolves to
     internal::WriteUBJSONArray<T>(e, obj, size, id, ty);
+  }
+
+  template<typename T, size_t... S>
+  void UBJSONEngine::SerializeTuple(Serializer<UBJSONEngine>& e, const T& t, const char* id, std::index_sequence<S...>)
+  {
+    std::ostream& s = *e.out;
+    UBJSONEngine::WriteUBJSONId(e, id, s);
+
+    if(!e.engine.type)
+      s.put(UBJSONEngine::TYPE_ARRAY);
+    else
+      assert(e.engine.type == UBJSONEngine::TYPE_ARRAY);
+    static_assert(sizeof...(S) > 0);
+    s.put(UBJSONEngine::TYPE_COUNT);
+
+    internal::serializer::PushValue<UBJSONEngine::TYPE> push(e.engine.type, UBJSONEngine::TYPE_NONE);
+    Serializer<UBJSONEngine>::ActionBind<size_t>::Serialize(e, sizeof...(S), 0);
+    int X[] = { (Serializer<UBJSONEngine>::ActionBind<std::tuple_element_t<S, T>>::Serialize(e, std::get<S>(t), 0), 0)... };
   }
 
   template<typename T>

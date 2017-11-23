@@ -46,7 +46,7 @@ void deserialize_testnum(const char* file)
 
 bool verify_unique_testnums()
 {
-  Hash<int, char, false> hash;
+  Hash<int, char> hash;
 
   for(size_t i = 0; i<TESTNUM; ++i)
   {

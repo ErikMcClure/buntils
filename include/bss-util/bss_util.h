@@ -59,6 +59,10 @@ namespace bss {
     struct __make_integral { using type = T; };
     template<class T>
     struct __make_integral<T, true> { using type = typename std::underlying_type<T>::type; };
+
+    template<class> struct is_pair_array : std::false_type {};
+    template<class K, class V> struct is_pair_array<std::pair<K, V>> : std::true_type {};
+    template<class K, class V> struct is_pair_array<std::tuple<K, V>> : std::true_type {};
   }
   template<class T>
   struct make_integral : internal::__make_integral<T, std::is_enum<T>::value> {};
@@ -1009,24 +1013,27 @@ namespace bss {
 
   // post: https://notes.underscorediscovery.com/constexpr-fnv1a/
   inline constexpr uint32_t hash_fnv1a(const char* const str, const uint32_t value = 0x811c9dc5) noexcept {
-#pragma warning(push)
-#pragma warning(disable:4307)
-    return (str[0] == '\0') ? value : hash_fnv1a(&str[1], (value ^ uint32_t(str[0])) * 0x1000193);
-#pragma warning(pop)
+    return (str[0] == '\0') ? value : hash_fnv1a(&str[1], uint32_t(uint64_t(value ^ uint32_t(str[0])) * 0x1000193ULL));
   }
 
   inline constexpr uint64_t hash64_fnv1a(const char* const str, const uint64_t value = 0xcbf29ce484222325) noexcept {
-#pragma warning(push)
-#pragma warning(disable:4307)
-    return (str[0] == '\0') ? value : hash64_fnv1a(&str[1], (value ^ uint64_t(str[0])) * 0x100000001b3);
-#pragma warning(pop)
+    return (str[0] == '\0') ? value : hash64_fnv1a(&str[1], uint32_t(uint64_t(value ^ uint64_t(str[0])) * 0x100000001b3ULL));
   }
 
-  // template helper is_specialization_of, which isn't included in the standard library yet
+  // template helper is_specialization_of, which can check if T is a specialization of any type that takes a variadic number of arguments (variant, tuple, etc.)
   template <typename T, template <typename...> class Template>
   struct is_specialization_of : std::false_type {};
   template <template <typename...> class Template, typename... Args>
   struct is_specialization_of<Template<Args...>, Template> : std::true_type {};
+
+  template <typename T>
+  struct is_specialization_of_array : std::false_type {};
+  template <typename T, int N>
+  struct is_specialization_of_array<std::array<T, N>> : std::true_type {};
+
+  // Implements remove_cvref from the C++20 standard
+  template<class T> struct remove_cvref { typedef std::remove_cv_t<std::remove_reference_t<T>> type; };
+  template<class T> using remove_cvref_t = typename remove_cvref<T>::type;
 
   // Type safe memset functions
   template<typename T>
@@ -1038,6 +1045,11 @@ namespace bss {
   BSS_FORCEINLINE void bssFill(T (&p)[I], int val = 0)
   {
     memset(p, val, sizeof(T)*I);
+  }
+  template<typename T, int I>
+  BSS_FORCEINLINE void bssFill(std::array<T, I>& p, int val = 0)
+  {
+    memset(p.data(), val, sizeof(T)*I);
   }
   template<typename T, int I, int J>
   BSS_FORCEINLINE void bssFill(T(&p)[I][J], int val = 0)

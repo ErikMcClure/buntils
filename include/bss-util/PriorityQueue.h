@@ -38,6 +38,10 @@ namespace bss {
 
     inline PriorityQueue& operator=(const PriorityQueue& copy) = default;
     inline PriorityQueue& operator=(PriorityQueue&& mov) = default;
+
+    using BASE::SerializerArray;
+    template<typename Engine>
+    void Serialize(Serializer<Engine>& s, const char* id) { BASE::Serialize<Engine>(s, id); }
   };
 
   namespace internal {
@@ -91,6 +95,10 @@ namespace bss {
       _freelist = mov._freelist; 
       return *this; 
     }
+
+    using BASE::SerializerArray;
+    template<typename Engine>
+    void Serialize(Serializer<Engine>& s, const char* id) { BASE::Serialize<Engine>(s, id); }
 
   protected:
     CT_ _getNext()

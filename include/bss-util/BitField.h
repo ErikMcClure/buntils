@@ -58,6 +58,48 @@ namespace bss {
       T& _bits;
       T _group;
     };
+
+    template<typename T>
+    class BSS_COMPILER_DLLEXPORT _BIT_ITER : public std::iterator<std::bidirectional_iterator_tag, _BIT_REF<T>>
+    {
+    public:
+      inline _BIT_ITER(const _BIT_REF<T>& src) : _bits(const_cast<T*>(&src.GetState().first)), _bit(src.GetState().second) {}
+      inline bool operator*() const { return (bool)_BIT_REF<T>(_bit, *_bits); }
+      inline _BIT_REF<T> operator*() { return _BIT_REF<T>(_bit, *_bits); }
+      inline _BIT_ITER& operator++() { _incthis(); return *this; } //prefix
+      inline _BIT_ITER operator++(int) { _BIT_ITER r(*this); ++*this; return r; } //postfix
+      inline _BIT_ITER& operator--() { _decthis(); return *this; } //prefix
+      inline _BIT_ITER operator--(int) { _BIT_ITER r(*this); --*this; return r; } //postfix
+      inline const _BIT_ITER& operator++() const { _incthis(); return *this; } //prefix
+      inline const _BIT_ITER operator++(int) const { _BIT_ITER r(*this); ++*this; return r; } //postfix
+      inline const _BIT_ITER& operator--() const { _decthis(); return *this; } //prefix
+      inline const _BIT_ITER operator--(int) const { _BIT_ITER r(*this); --*this; return r; } //postfix
+      inline bool operator==(const _BIT_ITER& _Right) const { return (_bits == _Right._bits) && (_bit == _Right._bit); }
+      inline bool operator!=(const _BIT_ITER& _Right) const { return !operator==(_Right); }
+
+    protected:
+      void _incthis()
+      {
+        _bit = (_bit << 1);
+        if(!_bit)
+        {
+          ++_bits;
+          _bit = 1;
+        }
+      }
+      void _decthis()
+      {
+        _bit = (_bit >> 1);
+        if(!_bit)
+        {
+          --_bits;
+          _bit = (1 << ((sizeof(T) << 3) - 1));
+        }
+      }
+
+      T* _bits;
+      T _bit;
+    };
   }
 
   // Generic implementation of using an integral type's component bits to store flags.

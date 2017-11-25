@@ -160,87 +160,97 @@ TESTDEF::RETPAIR test_UBJSON()
     { ubjsontest::VAR(ubjsontest2{ 27, "28", 29.0 }), ubjsontest::VAR(30.0) },
     { 31, "32", 33.0 }
   };
-  
-  std::fstream fso("out.ubj", std::ios_base::out | std::ios_base::trunc | std::ios_base::binary);
-  WriteUBJSON<ubjsontest>(t1, fso);
-  fso.close();
 
-  ubjsontest t2 = { TEST_ENUM_VALUE, 0, 0, 0, 0, 0, 0, 0, {0}, 0, 0, "", {0,0,0}, {"",""} };
-  std::fstream fsi("out.ubj", std::ios_base::in | std::ios_base::binary);
-  ParseUBJSON<ubjsontest>(t2, fsi);
-  fsi.close();
+  {
+    Serializer<UBJSONEngine> s;
+    std::fstream fso("out.ubj", std::ios_base::out | std::ios_base::trunc | std::ios_base::binary);
+    s.Serialize(t1, fso);
+  }
 
-  VerifyUBJSON(t1, t2, __testret);
+  {
+    Serializer<UBJSONEngine> s;
+    ubjsontest t2 = { TEST_ENUM_VALUE, 0, 0, 0, 0, 0, 0, 0, {0}, 0, 0, "", {0,0,0}, {"",""} };
+    std::fstream fsi("out.ubj", std::ios_base::in | std::ios_base::binary);
+    s.Parse(t2, fsi);
+    fsi.close();
 
-  std::fstream fsi2("out.ubj", std::ios_base::in | std::ios_base::binary);
-  UBJSONValue val;
-  ParseUBJSON<UBJSONValue>(val, fsi2);
-  fsi2.close();
-  TEST(val.is<UBJSONValue::UBJSONObject>());
-  auto& var1 = val.get<UBJSONValue::UBJSONObject>();
+    VerifyUBJSON(t1, t2, __testret);
+  }
+
+  UBJSONTuple val;
+  {
+    std::fstream fsi2("out.ubj", std::ios_base::in | std::ios_base::binary);
+    Serializer<UBJSONEngine> s;
+    s.Parse<UBJSONTuple>(val, fsi2);
+  }
+  TEST(val.Type == UBJSONTuple::TYPE_OBJECT);
+  auto& var1 = val.Object;
   TEST(var1.Length() == 20);
   TEST(var1[0].first == "a");
-  TEST(var1[0].second.is<uint8_t>());
-  TEST(var1[0].second.get<uint8_t>() == 1);
+  TEST(var1[0].second.Type == UBJSONTuple::TYPE_UINT8);
+  TEST(var1[0].second.UInt8 == 1);
   TEST(var1[1].first == "b");
-  TEST(var1[1].second.is<char>());
-  TEST(var1[1].second.get<char>() == -2);
+  TEST(var1[1].second.Type == UBJSONTuple::TYPE_INT8);
+  TEST(var1[1].second.Int8 == -2);
   TEST(var1[2].first == "c");
-  TEST(var1[2].second.is<uint8_t>());
-  TEST(var1[2].second.get<uint8_t>() == 3);
+  TEST(var1[2].second.Type == UBJSONTuple::TYPE_UINT8);
+  TEST(var1[2].second.UInt8 == 3);
   TEST(var1[3].first == "d");
-  TEST(var1[3].second.is<char>());
-  TEST(var1[3].second.get<char>() == -4);
+  TEST(var1[3].second.Type == UBJSONTuple::TYPE_INT8);
+  TEST(var1[3].second.Int8 == -4);
   TEST(var1[4].first == "e");
-  TEST(var1[4].second.is<uint8_t>());
-  TEST(var1[4].second.get<uint8_t>() == 253);
+  TEST(var1[4].second.Type == UBJSONTuple::TYPE_UINT8);
+  TEST(var1[4].second.UInt8 == 253);
   TEST(var1[5].first == "f");
-  TEST(var1[5].second.is<int16_t>());
-  TEST(var1[5].second.get<int16_t>() == 30000);
+  TEST(var1[5].second.Type == UBJSONTuple::TYPE_INT16);
+  TEST(var1[5].second.Int16 == 30000);
   TEST(var1[6].first == "g");
-  TEST(var1[6].second.is<uint8_t>());
+  TEST(var1[6].second.Type == UBJSONTuple::TYPE_UINT8);
   TEST(var1[7].first == "h");
-  TEST(var1[7].second.is<uint8_t>());
+  TEST(var1[7].second.Type == UBJSONTuple::TYPE_UINT8);
   TEST(var1[8].first == "i");
-  TEST(var1[8].second.is<UBJSONValue::UBJSONObject>());
-  TEST(var1[8].second.get<UBJSONValue::UBJSONObject>()[0].first == "a");
-  TEST(var1[8].second.get<UBJSONValue::UBJSONObject>()[0].second.get<uint8_t>() == 9);
-  TEST(var1[8].second.get<UBJSONValue::UBJSONObject>()[1].first == "c");
-  TEST(var1[8].second.get<UBJSONValue::UBJSONObject>()[1].second.get<Str>() == "foo");
-  TEST(var1[8].second.get<UBJSONValue::UBJSONObject>()[2].first == "d");
-  TEST(var1[8].second.get<UBJSONValue::UBJSONObject>()[2].second.get<double>() == 10.0);
+  TEST(var1[8].second.Type == UBJSONTuple::TYPE_OBJECT);
+  TEST(var1[8].second.Object[0].first == "a");
+  TEST(var1[8].second.Object[0].second.UInt8 == 9);
+  TEST(var1[8].second.Object[1].first == "c");
+  TEST(var1[8].second.Object[1].second.String == Str("foo"));
+  TEST(var1[8].second.Object[2].first == "d");
+  TEST(var1[8].second.Object[2].second.Double == 10.0);
   TEST(var1[9].first == "x");
-  TEST(var1[9].second.is<float>());
+  TEST(var1[9].second.Type == UBJSONTuple::TYPE_FLOAT);
   TEST(var1[10].first == "y");
-  TEST(var1[10].second.is<double>());
+  TEST(var1[10].second.Type == UBJSONTuple::TYPE_DOUBLE);
   TEST(var1[11].first == "p");
-  TEST(var1[11].second.is<Str>());
+  TEST(var1[11].second.Type == UBJSONTuple::TYPE_STRING);
   TEST(var1[12].first == "m");
-  TEST(var1[12].second.is<UBJSONValue::UBJSONArray>());
+  TEST(var1[12].second.Type == UBJSONTuple::TYPE_ARRAY);
   TEST(var1[13].first == "n");
-  TEST(var1[13].second.is<UBJSONValue::UBJSONArray>());
+  TEST(var1[13].second.Type == UBJSONTuple::TYPE_ARRAY);
   TEST(var1[14].first == "u");
-  TEST(var1[14].second.is<UBJSONValue::UBJSONArray>());
+  TEST(var1[14].second.Type == UBJSONTuple::TYPE_ARRAY);
   TEST(var1[15].first == "v");
-  TEST(var1[15].second.is<UBJSONValue::UBJSONArray>());
+  TEST(var1[15].second.Type == UBJSONTuple::TYPE_ARRAY);
   TEST(var1[16].first == "w");
-  TEST(var1[16].second.is<UBJSONValue::UBJSONArray>());
+  TEST(var1[16].second.Type == UBJSONTuple::TYPE_ARRAY);
   TEST(var1[17].first == "z");
-  TEST(var1[17].second.is<UBJSONValue::UBJSONArray>());
+  TEST(var1[17].second.Type == UBJSONTuple::TYPE_ARRAY);
   TEST(var1[18].first == "var");
-  TEST(var1[18].second.is<UBJSONValue::UBJSONArray>());
+  TEST(var1[18].second.Type == UBJSONTuple::TYPE_ARRAY);
   TEST(var1[19].first == "tuple");
-  TEST(var1[19].second.is<UBJSONValue::UBJSONArray>());
-
-  std::fstream fso2("out2.ubj", std::ios_base::out | std::ios_base::trunc | std::ios_base::binary);
-  WriteUBJSON<UBJSONValue>(val, fso2);
-  fso2.close();
+  TEST(var1[19].second.Type == UBJSONTuple::TYPE_ARRAY);
+  
+  {
+    std::fstream fso2("out2.ubj", std::ios_base::out | std::ios_base::trunc | std::ios_base::binary);
+    Serializer<UBJSONEngine> s;
+    s.Serialize(val, fso2);
+  }
 
   ubjsontest t3 = { TEST_ENUM_VALUE, 0, 0, 0, 0, 0, 0, 0,{ 0 }, 0, 0, "",{ 0,0,0 },{ "","" } };
-  std::fstream fsi3("out2.ubj", std::ios_base::in | std::ios_base::binary);
-  ParseUBJSON<ubjsontest>(t3, fsi3);
-  fsi3.close();
-
+  {
+    std::fstream fsi3("out2.ubj", std::ios_base::in | std::ios_base::binary);
+    Serializer<UBJSONEngine> s;
+    s.Parse<ubjsontest>(t3, fsi3);
+  }
   VerifyUBJSON(t1, t3, __testret);
 
   ENDTEST;

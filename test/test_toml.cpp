@@ -51,11 +51,17 @@ struct TOMLtest2
   uint16_t a;
   TOMLtest3 test;
   std::vector<Str> j;
+  TOMLtest3 testarray;
 
   template<typename Engine>
   void Serialize(Serializer<Engine>& s, const char*)
   {
-    s.template EvaluateType<TOMLtest2>(GenPair("a", a), GenPair("test", test));
+    s.template EvaluateType<TOMLtest2>(
+      GenPair("a", a),
+      GenPair("test", test),
+      GenPair("j", j),
+      GenPair("testarray", testarray)
+      );
   }
 };
 
@@ -72,7 +78,7 @@ struct TOMLtest
   int e[3];
   std::vector<Str> f;
   std::array<bool, 2> g;
-  DynArray<TOMLtest2> nested;
+  DynArray<TOMLtest2, size_t, ARRAY_SAFE> nested;
   TOMLtest2 inlinetest;
   DynArray<AttackData> Attacks;
   std::tuple<short, Str, double> tuple;
@@ -170,26 +176,25 @@ TESTDEF::RETPAIR test_TOML()
 {
   BEGINTEST;
 
-  const char* tomlfile = " \
-a = -1 \n\
-b = 2 \n\
-c = 0.28 \n\
-test = 'test string' \n\
-btrue = true \n\
-bfalse = false \n\
-d = [1e-6, -2.0,.3, 0.1, +1, -2] \n\
+  const char tomlfile[] = "\
+a = -1\n\
+b = 2\n\
+c = 0.28\n\
+test = 'test string'\n\
+btrue = true\n\
+bfalse = false\n\
+d = [1e-6, -2.0,.3, 0.1, +1, -2]\n\
 e = [-2, 100, \n\
-  +8] \n\
-f = [\"first\", '''SECOND''', \"\"\"\n\
-ThirD\"\"\", 'fOURTh']\n\
+  +8]\n\
+f = [\"first\", '''SECOND''', \"\"\"\nThirD\"\"\", 'fOURTh']\n\
 g = [false, true]\n\
 inlinetest = { a = 6, test = { f = 123.456 } }\n\
-date = 2006-01-02T15:04:05-07:00 \n\
+date = 2006-01-02T15:04:05-07:00\n\
 Attacks = [{ box = { circles = [[0, 0, 100, 0, 5.18319, 2.2]], rects = [], polygons = [] }}, { box = { circles = [[0, 0, 100, 0, 5.18319, 2.2]], rects = [], polygons = [] }}]\n\
 tuple = [ -3, \"2\", 1.0 ]\n\
 \n\
-[test2] \n\
-a = 5 \n\
+[test2]\n\
+a = 5\n\
 \n\
 [[nested]]\n\
 a = 2\n\
@@ -201,9 +206,16 @@ f = 80.9\n\
 a = 3\n\
 [nested.test]\n\
 f = -12.21\n\
+[[nested.testarray]]\n\
+f = -45.54\n\
+[[nested.testarray]]\n\
+f = -56.65\n\
 \n\
-[test2.test] \n\
-f = -3.5";
+[test2.test]\n\
+f = -3.5\n\
+";
+
+  const char tomlfile2[] = "nested = [{ a = 2, test = { f = 80.9 }, j = [\"C:\\test\", \"/usr/blah\"], testarray = { f = 0 } }, { a = 3, test = { f = -12.21 }, j = [], testarray = { f = -56.65 } }]";
 
   TOMLtest tomltest;
   ParseTOML(tomltest, tomlfile);

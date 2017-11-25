@@ -449,6 +449,7 @@ namespace bss {
   template<>
   inline void ParseTOMLBase<TOMLValue>(Serializer<TOMLEngine>& e, TOMLValue& target, std::istream& s)
   {
+    auto test = e.in->peek();
     switch(e.engine.state)
     {
     case TOMLEngine::STATE_BEGIN:
@@ -474,7 +475,16 @@ namespace bss {
         assert(false);
       return;
     case TOMLEngine::STATE_INLINE_TABLE:
-      if(e.in->peek() == ']')
+      if(e.in->peek() == '.')
+      {
+        e.in->get();
+        Str buf;
+        TOMLEngine::ParseTOMLString<false, '.', ']'>(buf, *e.in);
+        TOMLValue* v = target.get<TOMLValue::TOMLTable>()[buf];
+        if(v)
+          ParseTOMLBase<TOMLValue>(e, *v, *e.in);
+      }
+      else if(e.in->peek() == ']')
       {
         target = TOMLValue::TOMLTable();
         Serializer<TOMLEngine>::ActionBind<TOMLValue::TOMLTable>::Parse(e, target.get<TOMLValue::TOMLTable>(), 0);
@@ -598,7 +608,14 @@ namespace bss {
         assert(false);
       break;
     case STATE_INLINE_TABLE:
-      if(e.in->peek() == ']')
+      if(e.in->peek() == '.')
+      {
+        e.in->get();
+        Str buf;
+        ParseTOMLString<false, '.', ']'>(buf, *e.in);
+        f(e, buf.c_str());
+      }
+      else if(e.in->peek() == ']')
       {
         e.in->get();
 

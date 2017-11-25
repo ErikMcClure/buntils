@@ -45,10 +45,10 @@ namespace bss {
         }
         assert(_cache.ExistsIter(i));
         bss_PTag<void>& freelist = _cache.MutableValue(i);
-        assert(!freelist.p || _verifyDEBUG(freelist.p));
         bss_PTag<void> ret = { 0, 0 };
         bss_PTag<void> nval;
         asmcasr<bss_PTag<void>>(&freelist, ret, ret, ret);
+        assert(!ret.p || _verifyDEBUG(ret.p));
 
         for(;;)
         {

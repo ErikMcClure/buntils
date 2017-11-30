@@ -143,7 +143,7 @@ TESTDEF::RETPAIR test_bss_util()
 
   std::string cpan(PANGRAM);
 
-  strreplace(const_cast<char*>(cpan.c_str()), 'm', '?');
+  strreplace(cpan.data(), 'm', '?');
   TEST(!strchr(cpan.c_str(), 'm') && strchr(cpan.c_str(), '?') != 0);
   std::basic_string<bsschar, std::char_traits<bsschar>, std::allocator<bsschar>> pan;
   for(size_t i = 0; i < NPANGRAMS; ++i)
@@ -152,7 +152,7 @@ TESTDEF::RETPAIR test_bss_util()
     bsschar f = pan[((i + 7) << 3) % pan.length()];
     bsschar r = pan[((((i * 13) >> 3) + 13) << 3) % pan.length()];
     if(f == r) r = pan[pan.length() - 1];
-    strreplace<bsschar>(const_cast<bsschar*>(pan.c_str()), f, r);
+    strreplace<bsschar>(pan.data(), f, r);
 #ifdef BSS_PLATFORM_WIN32
     TEST(!wcschr(pan.c_str(), f) && wcschr(pan.c_str(), r) != 0);
 #else

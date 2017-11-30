@@ -44,7 +44,7 @@ namespace bss {
           _cachelock.Downgrade();
         }
         assert(_cache.ExistsIter(i));
-        bss_PTag<void>& freelist = _cache.MutableValue(i);
+        bss_PTag<void>& freelist = _cache.Value(i);
         bss_PTag<void> ret = { 0, 0 };
         bss_PTag<void> nval;
         asmcasr<bss_PTag<void>>(&freelist, ret, ret, ret);
@@ -98,7 +98,7 @@ namespace bss {
 #endif
         khiter_t i = _cache.Iterator(sz);
         assert(_cache.ExistsIter(i));
-        _setFreeList(&_cache.MutableValue(i), p, p);
+        _setFreeList(&_cache.Value(i), p, p);
         _cachelock.RUnlock();
       }
     }
@@ -158,7 +158,7 @@ namespace bss {
       _cachelock.RLock();
       for(khiter_t i : _cache)
       {
-        void* p = _cache.MutableValue(i).p;
+        void* p = _cache.Value(i).p;
         while(p)
         {
           if(!_verifyDEBUG(p))

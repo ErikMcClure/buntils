@@ -468,6 +468,16 @@ namespace bss {
           free(_p); 
       }
 
+      BSS_FORCEINLINE size_t Length() const noexcept { return _heap&HEAPMASK; }
+      BSS_FORCEINLINE const T* begin() const noexcept { return _p; }
+      BSS_FORCEINLINE const T* end() const noexcept { return _p + Length(); }
+      BSS_FORCEINLINE T* begin() noexcept { return _p; }
+      BSS_FORCEINLINE T* end() noexcept { return _p + Length(); }
+      BSS_FORCEINLINE const T& Front() const { assert(Length() > 0); return _p[0]; }
+      BSS_FORCEINLINE const T& Back() const { assert(Length() > 0); return _p[Length() - 1]; }
+      BSS_FORCEINLINE T& Front() { assert(Length() > 0); return _p[0]; }
+      BSS_FORCEINLINE T& Back() { assert(Length() > 0); return _p[Length() - 1]; }
+      inline Slice<T, size_t> GetSlice() const noexcept { return Slice<T, size_t>(_p, Length()); }
       inline bool operator !() const noexcept { return !_p; }
       inline bool operator ==(const T* right) const noexcept { return _p == right; }
       inline bool operator !=(const T* right) const noexcept { return _p != right; }

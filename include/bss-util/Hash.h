@@ -245,9 +245,9 @@ namespace bss {
     template<bool U = IsMap>
     inline typename std::enable_if<U, GET>::type Get(const Key& key) const { return GetValue(Iterator(key)); }
     template<bool U = IsMap>
-    inline typename std::enable_if<U, FakeData&>::type UnsafeValue(khiter_t i) const { return vals[i]; }
+    inline typename std::enable_if<U, const FakeData&>::type Value(khiter_t i) const { return vals[i]; }
     template<bool U = IsMap>
-    inline typename std::enable_if<U, FakeData&>::type& MutableValue(khiter_t i) { return vals[i]; }
+    inline typename std::enable_if<U, FakeData&>::type Value(khiter_t i) { return vals[i]; }
     template<bool U = IsMap>
     inline typename std::enable_if<U, FakeData>::type* PointerValue(khiter_t i)
     {
@@ -326,17 +326,19 @@ namespace bss {
     }
 
     friend struct HashIterator;
+    template<typename U>
     struct BSS_TEMPLATE_DLLEXPORT HashIterator : public std::iterator<std::bidirectional_iterator_tag, 
-      std::conditional_t<IsMap, std::tuple<Key, FakeData>, Key>,
+      std::conditional_t<IsMap, std::tuple<Key, U>, Key>,
       ptrdiff_t, 
-      std::conditional_t<IsMap, std::tuple<const Key&, FakeData&>, const Key&>,
-      std::conditional_t<IsMap, std::tuple<const Key*, FakeData*>, const Key*>>
+      std::conditional_t<IsMap, std::tuple<const Key&, U&>, const Key&>,
+      std::conditional_t<IsMap, std::tuple<const Key*, U*>, const Key*>>
     {
-      inline HashIterator(khiter_t c, const Hash* s) : cur(c), src(s) { _next(); }
-      inline std::conditional_t<IsMap, std::tuple<const Key&, FakeData&>, const Key&> operator*() const
+      typedef std::conditional_t<std::is_const_v<U>, const Hash*, Hash*> PTR;
+      inline HashIterator(khiter_t c, PTR s) : cur(c), src(s) { _next(); }
+      inline std::conditional_t<IsMap, std::tuple<const Key&, U&>, const Key&> operator*() const
       {
         if constexpr(IsMap)
-          return { src->GetKey(cur), src->UnsafeValue(cur) };
+          return { src->GetKey(cur), src->Value(cur) };
         else
           return src->GetKey(cur);
       }
@@ -355,14 +357,16 @@ namespace bss {
       inline bool operator!=(const HashIterator& _Right) const { return (cur != _Right.cur); }
 
       khiter_t cur;
-      const Hash* src;
+      PTR src;
 
     protected:
       inline void _next() { while(cur < src->n_buckets && !src->_exists(cur)) ++cur; }
     };
 
-    BSS_FORCEINLINE HashIterator begin() const { return HashIterator(Front(), this); }
-    BSS_FORCEINLINE HashIterator end() const { return HashIterator(Back(), this); }
+    BSS_FORCEINLINE HashIterator<const FakeData> begin() const { return HashIterator<const FakeData>(Front(), this); }
+    BSS_FORCEINLINE HashIterator<const FakeData> end() const { return HashIterator<const FakeData>(Back(), this); }
+    BSS_FORCEINLINE HashIterator<FakeData> begin() { return HashIterator<FakeData>(Front(), this); }
+    BSS_FORCEINLINE HashIterator<FakeData> end() { return HashIterator<FakeData>(Back(), this); }
 
     typedef std::conditional_t<IsMap, void, Key> SerializerArray;
     template<typename Engine>

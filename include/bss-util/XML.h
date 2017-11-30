@@ -252,7 +252,7 @@ namespace bss {
         khiter_t i = e.engine.curindices->Iterator(e.engine.cur->GetName());
         if(!e.engine.curindices->ExistsIter(i))
           i = e.engine.curindices->Insert(e.engine.cur->GetName(), 0);
-        Add(e, obj, e.engine.curindices->MutableValue(i));
+        Add(e, obj, e.engine.curindices->Value(i));
       }
     }
     template<typename T>

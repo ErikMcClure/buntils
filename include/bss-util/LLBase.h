@@ -159,7 +159,7 @@ namespace bss {
     inline bool operator==(const LLIterator& _Right) const { return (cur == _Right.cur); }
     inline bool operator!=(const LLIterator& _Right) const { return (cur != _Right.cur); }
     inline bool operator!() const { return !cur; }
-    inline bool IsValid() { return cur != 0; }
+    inline bool IsValid() const { return cur != 0; }
 
     T* cur;
   };

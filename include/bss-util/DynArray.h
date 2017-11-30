@@ -247,10 +247,10 @@ namespace bss {
     // This gets the raw storage byte in such a way that unused bits are always set to zero. Useful for debugging.
     inline STORE GetRawByte(CT index) const { assert(index < _capacity); return (index < (_capacity - 1)) ? _array[index] : (_array[index] & ((STORE)(~0) >> ((_capacity*DIV_AMT) - _length))); }
 
-    BSS_FORCEINLINE const internal::_BIT_ITER<STORE> begin() const { return GetBit(0); }
-    BSS_FORCEINLINE const internal::_BIT_ITER<STORE> end() const { return GetBit(_length); }
-    BSS_FORCEINLINE internal::_BIT_ITER<STORE> begin() { return GetBit(0); }
-    BSS_FORCEINLINE internal::_BIT_ITER<STORE> end() { return GetBit(_length); }
+    BSS_FORCEINLINE internal::_BIT_ITER<const BITREF> begin() const { return GetBit(0); }
+    BSS_FORCEINLINE internal::_BIT_ITER<const BITREF> end() const { return GetBit(_length); }
+    BSS_FORCEINLINE internal::_BIT_ITER<BITREF> begin() { return GetBit(0); }
+    BSS_FORCEINLINE internal::_BIT_ITER<BITREF> end() { return GetBit(_length); }
 
     inline DynArray& operator=(const DynArray& copy)
     {

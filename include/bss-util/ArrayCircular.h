@@ -129,11 +129,13 @@ namespace bss {
       return *this;
     }
 
-    struct BSS_TEMPLATE_DLLEXPORT CircularIterator : public std::iterator<std::bidirectional_iterator_tag, T>
+    template<bool CONST>
+    struct BSS_TEMPLATE_DLLEXPORT CircularIterator : public std::iterator<std::bidirectional_iterator_tag, std::conditional_t<CONST, const T, T>>
     {
-      inline CircularIterator(CT c, const ArrayCircular* s) : cur(c), src(s) { }
-      inline const T& operator*() const { return (*src)[cur]; }
-      inline T& operator*() { return const_cast<ArrayCircular&>(*src)[cur]; }
+      typedef std::conditional_t<CONST, const ArrayCircular*, ArrayCircular*> ptr;
+
+      inline CircularIterator(CT c, ptr s) : cur(c), src(s) { }
+      inline std::conditional_t<CONST, const T&, T&> operator*() { return (*src)[cur]; }
       inline CircularIterator& operator++() { ++cur; return *this; } //prefix
       inline CircularIterator operator++(int) { CircularIterator r(*this); ++*this; return r; } //postfix
       inline CircularIterator& operator--() { --cur; return *this; }
@@ -142,13 +144,13 @@ namespace bss {
       inline bool operator!=(const CircularIterator& _Right) const { return (cur != _Right.cur); }
 
       CT cur;
-      const ArrayCircular* src;
+      ptr src;
     };
 
-    BSS_FORCEINLINE const CircularIterator begin() const { return CircularIterator(0, this); }
-    BSS_FORCEINLINE const CircularIterator end() const { return CircularIterator(_length, this); }
-    BSS_FORCEINLINE CircularIterator begin() { return CircularIterator(0, this); }
-    BSS_FORCEINLINE CircularIterator end() { return CircularIterator(_length, this); }
+    BSS_FORCEINLINE CircularIterator<true> begin() const { return CircularIterator<true>(0, this); }
+    BSS_FORCEINLINE CircularIterator<true> end() const { return CircularIterator<true>(_length, this); }
+    BSS_FORCEINLINE CircularIterator<false> begin() { return CircularIterator<false>(0, this); }
+    BSS_FORCEINLINE CircularIterator<false> end() { return CircularIterator<false>(_length, this); }
 
     typedef std::conditional_t<internal::is_pair_array<T>::value, void, T> SerializerArray;
     template<typename Engine>
@@ -190,7 +192,7 @@ namespace bss {
       else
         _array[_cur] = std::forward<U>(item);
     }
-    BSS_FORCEINLINE CT _modIndex(CT index) { return bssMod<CT>(_cur - index, _capacity); }
+    BSS_FORCEINLINE CT _modIndex(CT index) const { return bssMod<CT>(_cur - index, _capacity); }
 
     CT _cur;
     CT _length;

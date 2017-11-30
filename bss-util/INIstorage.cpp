@@ -151,7 +151,7 @@ INIsection* INIstorage::_addSection(const char* name)
   else
   {
     assert(_last != 0 && _root != 0 && _sections.ExistsIter(iter));
-    _NODE* r = _sections.UnsafeValue(iter);
+    _NODE* r = _sections.Value(iter);
     _NODE* t = !r->instances.Capacity() ? r : r->instances.Back();
     LLInsertAfter(p, t, _last);
     r->instances.Insert(p, r->instances.Capacity());
@@ -170,7 +170,7 @@ bool INIstorage::RemoveSection(const char* name, size_t instance)
 
   if(iter != _sections.Back() && chunk.start != 0)
   {
-    _NODE* secnode = _sections.UnsafeValue(iter);
+    _NODE* secnode = _sections.Value(iter);
     _NODE* secroot = secnode;
     if(instance > secnode->instances.Capacity()) return false; //if keyinstance is not valid, fail
     if(instance != 0)
@@ -210,7 +210,7 @@ char INIstorage::EditEntry(const char* section, const char* key, const char* nva
 
   khiter_t iter = _sections.Iterator(section);
   if(iter == _sections.Back()) return -1; //if it doesn't exist at this point, fail
-  _NODE* secnode = _sections.UnsafeValue(iter);
+  _NODE* secnode = _sections.Value(iter);
   //if(secinstance==(size_t)~0) secinstance=secnode->instances.Capacity()-1; //This is now done at the start of the function
   if(secinstance > secnode->instances.Capacity()) return -2; //if secinstance is not valid, fail
   if(secinstance > 0)
@@ -241,7 +241,7 @@ char INIstorage::EditEntry(const char* section, const char* key, const char* nva
 
   iter = psec->_entries.Iterator(key);
   if(iter == psec->_entries.Back()) return -4; //if key doesn't exist at this point, fail
-  _SNODE* entnode = psec->_entries.UnsafeValue(iter);
+  _SNODE* entnode = psec->_entries.Value(iter);
   _SNODE* entroot = entnode;
   if(keyinstance > entnode->instances.Capacity()) return -5; //if keyinstance is not valid, fail
   if(keyinstance != 0)

@@ -41,7 +41,8 @@ TESTDEF::RETPAIR test_ARRAYCIRCULAR()
 
   {
     int i = 26;
-    for(auto v : a)
+    const auto& ref = a;
+    for(auto& v : ref)
       TEST(v == --i);
   }
 

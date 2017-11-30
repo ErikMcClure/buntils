@@ -89,7 +89,7 @@ void INIsection::_addEntry(const char* key, const char* data)
       _last=LLAddAfter(p,_last);
   } else {
     assert(_last!=0 && _root!=0);
-    _NODE* r=_entries.UnsafeValue(iter);
+    _NODE* r=_entries.Value(iter);
     _NODE* t=!r->instances.Capacity()?r:r->instances.Back();
     LLInsertAfter(p,t,_last);
     r->instances.Insert(p,r->instances.Capacity());

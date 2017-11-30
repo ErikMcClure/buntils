@@ -70,7 +70,7 @@ TESTDEF::RETPAIR test_DYNARRAY()
   TEST(z[3] == 1);
   DynArray<char> n(2);
   DynArray<bool> m(2);
-  auto fverify = [&__testret](DynArray<bool>& m, DynArray<char>& n) {
+  auto fverify = [&__testret](const DynArray<bool>& m, DynArray<char>& n) {
     TEST(m.Length() == n.Length());
     for(size_t i = 0; i < n.Length(); ++i)
       TEST(m[i] == (n[i] != 0));

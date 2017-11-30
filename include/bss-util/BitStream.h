@@ -130,7 +130,7 @@ namespace bss {
     size_t len;
     bssDeserialize(len, s);
     d.resize(len);
-    s.read(const_cast<char*>(d.c_str()), len);
+    s.read(d.data(), len);
   }
   template<>
   void bssDeserialize<Str>(Str& d, std::istream& s) { bssDeserialize<std::string>(d, s); }

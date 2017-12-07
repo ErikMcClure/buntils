@@ -12,7 +12,7 @@ namespace bss {
     struct LQ_QNode {
       inline LQ_QNode() : next(0) {} // This lets item have a proper default constructor
       template<typename U>
-      inline LQ_QNode(U && item) : next(0), item(std::forward<U>(item)) {}
+      inline LQ_QNode(U && Item) : next(0), item(std::forward<U>(Item)) {}
       LQ_QNode* next;
       T item;
     };

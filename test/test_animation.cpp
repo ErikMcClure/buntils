@@ -73,6 +73,8 @@ TESTDEF::RETPAIR test_ANIMATION()
     auto v0 = s0.GetValues();
     auto v1 = s1.GetValues();
     auto v2 = s2.GetValues();
+    static_assert(std::is_same<decltype(std::make_tuple()), decltype(v0)>::value, "Wrong VALUE tuple");
+    static_assert(std::is_same<decltype(std::make_tuple()), decltype(v1)>::value, "Wrong VALUE tuple");
     static_assert(std::is_same<std::tuple<float>, decltype(v2)>::value, "Wrong VALUE tuple");
     TEST(std::get<0>(v2) == 15.0f);
 

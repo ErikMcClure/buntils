@@ -14,7 +14,7 @@ TESTDEF::RETPAIR test_THREAD()
   uint64_t m;
   Semaphore s;
 
-  Thread t([](uint64_t& m, Semaphore& s) { s.Wait(); m = HighPrecisionTimer::CloseProfiler(m); }, std::ref(m), std::ref(s));
+  Thread t([](uint64_t& p, Semaphore& sem) { sem.Wait(); p = HighPrecisionTimer::CloseProfiler(p); }, std::ref(m), std::ref(s));
   TEST(t.join(2) == -1);
   m = HighPrecisionTimer::OpenProfiler();
   s.Notify();

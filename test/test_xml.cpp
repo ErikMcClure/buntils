@@ -145,11 +145,9 @@ TESTDEF::RETPAIR test_XML()
   TEST(xml[(size_t)0]->GetName() == Str("foo"));
   TEST(xml[(size_t)0]->GetAttributes() == 0);
   TEST(xml[(size_t)0]->GetNodes() == 5);
-  const XMLNode* n = xml[1];
   TEST(xml[1]->GetName() == Str("foo"));
   TEST(xml[1]->GetAttributes() == 2);
   TEST(xml[1]->GetNodes() == 0);
-  n = xml[2];
   TEST(xml[2]->GetName() == Str("bobasdfghqwertyuiopasdfzcvxnm"));
   TEST(xml[2]->GetAttributes() == 0);
   TEST(xml[2]->GetNodes() == 0);

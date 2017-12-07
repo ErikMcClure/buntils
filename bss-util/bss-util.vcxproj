@@ -363,6 +363,8 @@
       <MinimalRebuild>true</MinimalRebuild>
       <SmallerTypeCheck>true</SmallerTypeCheck>
       <LanguageStandard>stdcpplatest</LanguageStandard>
+      <PrecompiledHeaderFile>bss-util/bss_util.h</PrecompiledHeaderFile>
+      <PrecompiledHeaderOutputFile>%(PrecompiledHeaderFile)32_d.pch</PrecompiledHeaderOutputFile>
     </ClCompile>
     <Link>
       <AdditionalDependencies>psapi.lib;shlwapi.lib;%(AdditionalDependencies)</AdditionalDependencies>
@@ -389,6 +391,8 @@
       <BasicRuntimeChecks>EnableFastChecks</BasicRuntimeChecks>
       <MinimalRebuild>true</MinimalRebuild>
       <LanguageStandard>stdcpplatest</LanguageStandard>
+      <PrecompiledHeaderFile>bss-util/bss_util.h</PrecompiledHeaderFile>
+      <PrecompiledHeaderOutputFile>%(PrecompiledHeaderFile)_d.pch</PrecompiledHeaderOutputFile>
     </ClCompile>
     <Link>
       <AdditionalDependencies>psapi.lib;shlwapi.lib;%(AdditionalDependencies)</AdditionalDependencies>
@@ -422,6 +426,8 @@
       <RuntimeTypeInfo>false</RuntimeTypeInfo>
       <StringPooling>true</StringPooling>
       <LanguageStandard>stdcpplatest</LanguageStandard>
+      <PrecompiledHeaderFile>bss-util/bss_util.h</PrecompiledHeaderFile>
+      <PrecompiledHeaderOutputFile>%(PrecompiledHeaderFile)_32.pch</PrecompiledHeaderOutputFile>
     </ClCompile>
     <Link>
       <AdditionalDependencies>psapi.lib;shlwapi.lib;%(AdditionalDependencies)</AdditionalDependencies>
@@ -494,6 +500,8 @@
       <DisableLanguageExtensions>false</DisableLanguageExtensions>
       <RuntimeTypeInfo>false</RuntimeTypeInfo>
       <LanguageStandard>stdcpplatest</LanguageStandard>
+      <PrecompiledHeaderFile>bss-util/bss_util.h</PrecompiledHeaderFile>
+      <PrecompiledHeaderOutputFile>%(PrecompiledHeaderFile).pch</PrecompiledHeaderOutputFile>
     </ClCompile>
     <Link>
       <AdditionalDependencies>psapi.lib;shlwapi.lib;%(AdditionalDependencies)</AdditionalDependencies>
@@ -706,15 +714,6 @@ xcopy "$(TargetDir)$(TargetName).pdb" "$(VcpkgRoot)bin" /c /y /q /i  2&gt;nul 1&
 xcopy "..\include\*.h" "$(VcpkgRoot)include" /c /y /q /i /s  2&gt;nul 1&gt;nul
 EXIT 0</Command>
     </PostBuildEvent>
-    <ClCompile>
-      <AdditionalOptions Condition="'$(Configuration)|$(Platform)'=='Release|x64'"> %(AdditionalOptions)</AdditionalOptions>
-      <PrecompiledHeaderFile Condition="'$(Configuration)|$(Platform)'=='Release|x64'">bss-util/bss_util.h</PrecompiledHeaderFile>
-      <PrecompiledHeaderOutputFile Condition="'$(Configuration)|$(Platform)'=='Release|x64'">%(PrecompiledHeaderFile).pch</PrecompiledHeaderOutputFile>
-    </ClCompile>
-    <ClCompile>
-      <PrecompiledHeaderFile Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">bss-util/bss_util.h</PrecompiledHeaderFile>
-      <PrecompiledHeaderOutputFile Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">%(PrecompiledHeaderFile)32.pch</PrecompiledHeaderOutputFile>
-    </ClCompile>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(VcpkgEnabled)'=='Release-Static|true'">
     <PostBuildEvent>
@@ -731,15 +730,6 @@ xcopy "$(TargetDir)$(TargetName).pdb" "$(VcpkgRoot)debug\bin" /c /y /q /i
 xcopy "..\include\*.h" "$(VcpkgRoot)include" /c /y /q /i /s
 EXIT 0</Command>
     </PostBuildEvent>
-    <ClCompile>
-      <AdditionalOptions Condition="'$(Configuration)|$(Platform)'=='Debug|x64'"> %(AdditionalOptions)</AdditionalOptions>
-      <PrecompiledHeaderFile Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">bss-util/bss_util.h</PrecompiledHeaderFile>
-      <PrecompiledHeaderOutputFile Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">%(PrecompiledHeaderFile)_d.pch</PrecompiledHeaderOutputFile>
-    </ClCompile>
-    <ClCompile>
-      <PrecompiledHeaderFile Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">bss-util/bss_util.h</PrecompiledHeaderFile>
-      <PrecompiledHeaderOutputFile Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">%(PrecompiledHeaderFile)32_d.pch</PrecompiledHeaderOutputFile>
-    </ClCompile>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(VcpkgEnabled)'=='Debug-Static|true'">
     <PostBuildEvent>

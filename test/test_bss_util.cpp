@@ -164,26 +164,28 @@ TESTDEF::RETPAIR test_bss_util()
   // Linux really hates wchar_t, so getting it to assign the right character is exceedingly difficult. We manually assign 1585 instead.
   TEST(strccount<wchar_t>(TESTUNICODESTR, (wchar_t)1585) == 5);
 
-  int ia = 0;
-  int ib = 1;
-  std::pair<int, int> sa(1, 2);
-  std::pair<int, int> sb(2, 1);
-  std::unique_ptr<int[]> ua(new int[2]);
-  std::unique_ptr<int[]> ub((int*)0);
-  std::string ta("first");
-  std::string tb("second");
-  std::swap(ia, ib);
-  TEST(ia == 1);
-  TEST(ib == 0);
-  std::swap(sa, sb);
-  TEST((sa == std::pair<int, int>(2, 1)));
-  TEST((sb == std::pair<int, int>(1, 2)));
-  std::swap(ua, ub);
-  TEST(ua.get() == 0);
-  TEST(ub.get() != 0);
-  std::swap(ta, tb);
-  TEST(ta == "second");
-  TEST(tb == "first");
+  {
+    int ia = 0;
+    int ib = 1;
+    std::pair<int, int> sa(1, 2);
+    std::pair<int, int> sb(2, 1);
+    std::unique_ptr<int[]> ua(new int[2]);
+    std::unique_ptr<int[]> ub((int*)0);
+    std::string ta("first");
+    std::string tb("second");
+    std::swap(ia, ib);
+    TEST(ia == 1);
+    TEST(ib == 0);
+    std::swap(sa, sb);
+    TEST((sa == std::pair<int, int>(2, 1)));
+    TEST((sb == std::pair<int, int>(1, 2)));
+    std::swap(ua, ub);
+    TEST(ua.get() == 0);
+    TEST(ub.get() != 0);
+    std::swap(ta, tb);
+    TEST(ta == "second");
+    TEST(tb == "first");
+  }
 
   TEST((IntDiv<int, int>(10, 5) == 2));
   TEST((IntDiv<int, int>(9, 5) == 1));
@@ -215,12 +217,14 @@ TESTDEF::RETPAIR test_bss_util()
   TEST(fCompare(bssFMod(90.0f, PI_DOUBLEf), 2.0354057f, 100));
   TEST(fCompare(bssFMod(-90.0f, PI_DOUBLEf), 4.2477796f, 10));
 
-  int r[] = { -1,0,2,3,4,5,6 };
-  int rr[] = { 6,5,4,3,2,0,-1 };
-  std::reverse(std::begin(r), std::end(r));
-  TESTARRAY(r, return (r[0] == rr[0]);)
+  {
+    int r[] = { -1,0,2,3,4,5,6 };
+    int rr[] = { 6,5,4,3,2,0,-1 };
+    std::reverse(std::begin(r), std::end(r));
+    TESTARRAY(r, return (r[0] == rr[0]);)
+  }
 
-    const char* LTRIM = "    trim ";
+  const char* LTRIM = "    trim ";
   TEST(!strcmp(strltrim(LTRIM), "trim "));
   char RTRIM[] = { ' ','t','r','i','m',' ',' ',0 }; // :|
   TEST(!strcmp(strrtrim(RTRIM), " trim"));
@@ -243,7 +247,7 @@ TESTDEF::RETPAIR test_bss_util()
     value = fbnext(value);
   }
 
-    TEST(tsign((int64_t)0) == 1)
+  TEST(tsign((int64_t)0) == 1)
     TEST(tsign(-28738597) == -1)
     TEST(tsign(INT_MIN) == -1)
     TEST(tsign(INT_MAX) == 1)
@@ -305,26 +309,26 @@ TESTDEF::RETPAIR test_bss_util()
     TEST(!fCompare(0.1, DBL_EPSILON))
 
     TEST(fsign(0.0f) == 1.0f);
-    TEST(fsign(1.0f) == 1.0f);
-    TEST(fsign(5.0f) == 1.0f);
-    TEST(fsign(987421594.2387f) == 1.0f);
-    TEST(fsign(0.0001) == 1.0f);
-    TEST(fsign(-1.0f) == -1.0f);
-    TEST(fsign(-5.0f) == -1.0f);
-    TEST(fsign(-4857928.2738f) == -1.0f);
-    TEST(fsign(-0.0001f) == -1.0f);
-    TEST(fsign(0.0) == 1.0);
-    TEST(fsign(1.0) == 1.0);
-    TEST(fsign(5.0) == 1.0);
-    TEST(fsign(987421594.2387) == 1.0);
-    TEST(fsign(0.0001) == 1.0);
-    TEST(fsign(-1.0) == -1.0);
-    TEST(fsign(-5.0) == -1.0);
-    TEST(fsign(-4857928.2738) == -1.0);
-    TEST(fsign(-0.0001) == -1.0);
+  TEST(fsign(1.0f) == 1.0f);
+  TEST(fsign(5.0f) == 1.0f);
+  TEST(fsign(987421594.2387f) == 1.0f);
+  TEST(fsign(0.0001) == 1.0f);
+  TEST(fsign(-1.0f) == -1.0f);
+  TEST(fsign(-5.0f) == -1.0f);
+  TEST(fsign(-4857928.2738f) == -1.0f);
+  TEST(fsign(-0.0001f) == -1.0f);
+  TEST(fsign(0.0) == 1.0);
+  TEST(fsign(1.0) == 1.0);
+  TEST(fsign(5.0) == 1.0);
+  TEST(fsign(987421594.2387) == 1.0);
+  TEST(fsign(0.0001) == 1.0);
+  TEST(fsign(-1.0) == -1.0);
+  TEST(fsign(-5.0) == -1.0);
+  TEST(fsign(-4857928.2738) == -1.0);
+  TEST(fsign(-0.0001) == -1.0);
 
-    // This tests our average aggregation formula, which lets you average extremely large numbers while maintaining a fair amount of precision.
-    uint64_t total = 0;
+  // This tests our average aggregation formula, which lets you average extremely large numbers while maintaining a fair amount of precision.
+  uint64_t total = 0;
   uint32_t nc;
   double avg = 0;
   double diff = 0.0;
@@ -334,7 +338,7 @@ TESTDEF::RETPAIR test_bss_util()
     avg = bssAvg<double>(avg, (double)(nc*nc), nc);
     diff = bssmax(diff, fabs((total / (double)nc) - avg));
   }
-  TEST(diff<FLT_EPSILON * 2);
+  TEST(diff < FLT_EPSILON * 2);
 
   // FastSqrt testing ground
   //
@@ -441,21 +445,23 @@ TESTDEF::RETPAIR test_bss_util()
   TEST(DistSqr(2, 2, 5, 6) == 5 * 5);
   TEST(Dist(2, 2, 5, 6) == 5); // Yes, you can actually do distance calculations using integers, since we use FastSqrt's integer extension.
 
-  int64_t stuff = 2987452983472384720;
-  uint16_t find = 43271;
-  TEST(ByteSearch(&stuff, 8, &find, 1) == (((char*)&stuff) + 3));
-  TEST(ByteSearch(&stuff, 8, &find, 2) == (((char*)&stuff) + 3));
-  TEST(ByteSearch(&stuff, 5, &find, 1) == (((char*)&stuff) + 3));
-  TEST(ByteSearch(&stuff, 5, &find, 2) == (((char*)&stuff) + 3));
-  TEST(ByteSearch(&stuff, 4, &find, 1) == (((char*)&stuff) + 3));
-  TEST(!ByteSearch(&stuff, 4, &find, 2));
-  TEST(!ByteSearch(&stuff, 3, &find, 2));
-  TEST(!ByteSearch(&stuff, 0, &find, 1));
-  TEST(!ByteSearch(&stuff, 2, &find, 3));
-  find = 27344;
-  TEST(ByteSearch(&stuff, 2, &find, 2));
-  find = 41;
-  TEST(ByteSearch(&stuff, 8, &find, 1) == (((char*)&stuff) + 7));
+  {
+    int64_t stuff = 2987452983472384720;
+    uint16_t find = 43271;
+    TEST(ByteSearch(&stuff, 8, &find, 1) == (((char*)&stuff) + 3));
+    TEST(ByteSearch(&stuff, 8, &find, 2) == (((char*)&stuff) + 3));
+    TEST(ByteSearch(&stuff, 5, &find, 1) == (((char*)&stuff) + 3));
+    TEST(ByteSearch(&stuff, 5, &find, 2) == (((char*)&stuff) + 3));
+    TEST(ByteSearch(&stuff, 4, &find, 1) == (((char*)&stuff) + 3));
+    TEST(!ByteSearch(&stuff, 4, &find, 2));
+    TEST(!ByteSearch(&stuff, 3, &find, 2));
+    TEST(!ByteSearch(&stuff, 0, &find, 1));
+    TEST(!ByteSearch(&stuff, 2, &find, 3));
+    find = 27344;
+    TEST(ByteSearch(&stuff, 2, &find, 2));
+    find = 41;
+    TEST(ByteSearch(&stuff, 8, &find, 1) == (((char*)&stuff) + 7));
+  }
 
   testbitcount<uint8_t>(__testret);
   testbitcount<uint16_t>(__testret);
@@ -551,7 +557,7 @@ TESTDEF::RETPAIR test_bss_util()
       {
         TEST(_bssmultiplyextract<int8_t>((int8_t)i, (int8_t)j, k) == bssMultiplyExtract<int8_t>((int8_t)i, (int8_t)j, k));
       }
-  
+
   TEST(_bssmultiplyextract<uint64_t>(0, 0, 0) == 0);
   TEST(_bssmultiplyextract<uint64_t>(1, 1, 0) == 1);
   TEST(_bssmultiplyextract<uint64_t>(1, 1, 1) == 0);

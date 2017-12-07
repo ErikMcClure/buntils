@@ -49,7 +49,7 @@ namespace bss {
     template<typename U>
     inline constexpr NSphere(const NSphere<U, 2>& copy) : c(copy.c), r(copy.r) { }
     inline constexpr explicit NSphere(const Vector<T, 2>& center, T radius) : c(center), r(radius) { }
-    inline constexpr explicit NSphere(T x, T y, T radius) : c(x, y), r(radius) { }
+    inline constexpr explicit NSphere(T X, T Y, T radius) : c(X, Y), r(radius) { }
     inline constexpr explicit NSphere(const T(&e)[2], T radius) : c(e), r(radius) { }
     inline constexpr explicit NSphere(const std::array<T, 2>& e, T radius) : c(e), r(radius) { }
     inline constexpr NSphere() {}
@@ -105,7 +105,7 @@ namespace bss {
     template<typename U>
     inline constexpr NSphere(const NSphere<U, 3>& copy) : c(copy.c), r(copy.r) { }
     inline constexpr explicit NSphere(const Vector<T, 3>& center, T radius) : c(center), r(radius) { }
-    inline constexpr explicit NSphere(T x, T y, T z, T radius) : c(x, y, z), r(radius) { }
+    inline constexpr explicit NSphere(T X, T Y, T Z, T radius) : c(X, Y, Z), r(radius) { }
     inline constexpr explicit NSphere(const T(&e)[3], T radius) : c(e), r(radius) { }
     inline constexpr explicit NSphere(const std::array<T, 3>& e, T radius) : c(e), r(radius) { }
     inline constexpr NSphere() {}
@@ -516,8 +516,8 @@ namespace bss {
 
       if(inner > 0) // Check if contained inside inner circle
       {
-        T tr = inner - R;
-        if(tr > 0 && D2 < (tr*tr))
+        T ti = inner - R;
+        if(ti > 0 && D2 < (ti*ti))
           return false; // completely inside inner exclusion zone
       }
 

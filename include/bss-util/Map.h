@@ -37,7 +37,7 @@ namespace bss {
     inline CT Get(CKEYREF key) const 
     {
       CT retval = GetNear(key, true);
-      return (retval != (CT)(-1) && !CFunc(std::get<0>(_array[retval]), key)) ? retval : (CT)(-1);
+      return (retval != (CT)(-1) && !CFunc(key, std::get<0>(_array[retval]))) ? retval : (CT)(-1);
     }
     inline constref GetData(CKEYREF key) const { return DataIndex(GetNear(key, true)); } //this has no checking
     inline constref DataIndex(CT index) const { return std::get<1>(_array[index]); }
@@ -60,7 +60,7 @@ namespace bss {
       if(retval != (CT)(-1))
       {
         auto&[k, v] = _array[retval];
-        if(!CFunc(k, key))
+        if(!CFunc(key, k))
           v = data;
       }
       return retval;

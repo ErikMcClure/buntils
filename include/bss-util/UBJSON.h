@@ -71,6 +71,7 @@ namespace bss {
       case TYPE_FLOAT: Float = (float)n; break;
       case TYPE_BIGNUM:
       case TYPE_DOUBLE: Double = (double)n; break;
+      default: assert(false); break;
       }
     }
     UBJSONTuple();
@@ -350,6 +351,7 @@ namespace bss {
       case UBJSONTuple::TYPE_FLOAT: obj = (T)tuple.Float; break;
       case UBJSONTuple::TYPE_DOUBLE: obj = (T)tuple.Double; break;
       case UBJSONTuple::TYPE_BIGNUM: break;// we can't deal with bignum
+      default: assert(false); break;
       }
     }
     static void ParseBool(Serializer<UBJSONEngine>& e, bool& obj, const char* id)
@@ -369,6 +371,7 @@ namespace bss {
       case UBJSONTuple::TYPE_INT32: obj = tuple.Int32 != 0; break;
       case UBJSONTuple::TYPE_INT64: obj = tuple.Int64 != 0; break;
       case UBJSONTuple::TYPE_BIGNUM: break;
+      default: assert(false); break;
       }
     }
 

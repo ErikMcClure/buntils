@@ -19,7 +19,7 @@
 namespace bss {
   namespace internal {
   // A generalization of the binary search that allows for auxiliary arguments to be passed into the comparison function
-    template<typename T, typename D, typename CT_, char(*CompEQ)(const char&, const char&), char CompValue, typename... Args>
+    template<typename T, typename D, typename CT_, bool(*CompEQ)(const char&, const char&), char CompValue, typename... Args>
     struct binsearch_aux_t
     {
       template<char(*CompF)(const D&, const T&, Args...)>
@@ -50,7 +50,7 @@ namespace bss {
   }
 
   // Performs a binary search on "arr" between first and last. if CompEQ=NEQ and char CompValue=-1, uses an upper bound, otherwise uses lower bound.
-  template<typename T, typename D, typename CT_, char(*CompF)(const D&, const T&), char(*CompEQ)(const char&, const char&), char CompValue>
+  template<typename T, typename D, typename CT_, char(*CompF)(const D&, const T&), bool(*CompEQ)(const char&, const char&), char CompValue>
   BSS_FORCEINLINE CT_ BinarySearchNear(const T* arr, const D& data, CT_ first, CT_ last) { return internal::binsearch_aux_t<T, D, CT_, CompEQ, CompValue>::template BinarySearchNear<CompF>(arr, data, first, last); }
 
   // Either gets the element that matches the value in question or one immediately before the closest match. Could return an invalid -1 value.

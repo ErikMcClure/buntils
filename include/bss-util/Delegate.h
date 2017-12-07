@@ -19,7 +19,7 @@ namespace bss {
   public:
     inline Delegate(const Delegate& copy) noexcept : _src(copy._src), _stub(copy._stub) {}
     inline Delegate(void* src, R(*stub)(void*, Args...)) noexcept : _src(src), _stub(stub) {}
-    inline Delegate(std::function<R(Args...)>& src) noexcept : _src(&src), _stub(&stublambda) {}
+    inline Delegate(std::function<R(Args...)>& src) noexcept : _src(&src), _stub(&StubLambda) {}
     inline Delegate() noexcept : _src(0), _stub(0) {}
     inline R operator()(Args ... args) const { return (*_stub)(_src, args...); }
     inline Delegate& operator=(const Delegate& right) noexcept { _src = right._src; _stub = right._stub; return *this; }
@@ -28,28 +28,28 @@ namespace bss {
     inline FUNCTYPE RawFunc() const { return _stub; }
 
     template<class T, RTYPE(T::*F)(Args...)>
-    inline static Delegate From(T* src) noexcept { return Delegate(src, &stub<T, F>); }
+    inline static Delegate From(T* src) noexcept { return Delegate(src, &Stub<T, F>); }
     template<class T, RTYPE(T::*F)(Args...) const>
-    inline static Delegate From(const T* src) noexcept { return Delegate(const_cast<T*>(src), &stubconst<T, F>); }
+    inline static Delegate From(const T* src) noexcept { return Delegate(const_cast<T*>(src), &StubConst<T, F>); }
     template<RTYPE(*F)(Args...)>
-    inline static Delegate FromC() noexcept { return Delegate(0, &stubstateless<F>); }
+    inline static Delegate FromC() noexcept { return Delegate(0, &StubStateless<F>); }
     template<class T, RTYPE(*F)(T*, Args...)>
-    inline static Delegate FromC(T* src) noexcept { return Delegate((void*)src, (FUNCTYPE)&stubC<T, F>); }
+    inline static Delegate FromC(T* src) noexcept { return Delegate((void*)src, (FUNCTYPE)&StubC<T, F>); }
     template<class T, RTYPE(*F)(const T*, Args...)>
-    inline static Delegate FromC(const T* src) noexcept { return Delegate(const_cast<T*>(src), &stubconstC<T, F>); }
+    inline static Delegate FromC(const T* src) noexcept { return Delegate(const_cast<T*>(src), &StubConstC<T, F>); }
 
     template <class T, RTYPE(T::*F)(Args...)>
-    static R stub(void* src, Args... args) { return (static_cast<T*>(src)->*F)(args...); }
+    static R Stub(void* src, Args... args) { return (static_cast<T*>(src)->*F)(args...); }
     template <class T, RTYPE(T::*F)(Args...) const>
-    static R stubconst(void* src, Args... args) { return (static_cast<const T*>(src)->*F)(args...); }
-    static R stublambda(void* src, Args... args) { return (*static_cast<std::function<R(Args...)>*>(src))(args...); }
+    static R StubConst(void* src, Args... args) { return (static_cast<const T*>(src)->*F)(args...); }
+    static R StubLambda(void* src, Args... args) { return (*static_cast<std::function<R(Args...)>*>(src))(args...); }
     template <RTYPE(*F)(Args...)>
-    static R stubstateless(void* src, Args... args) { return (*F)(args...); }
+    static R StubStateless(void* src, Args... args) { return (*F)(args...); }
     template <class T, RTYPE(*F)(T*, Args...)>
-    static R stubC(void* src, Args... args) { return (*F)(static_cast<T*>(src), args...); }
+    static R StubC(void* src, Args... args) { return (*F)(static_cast<T*>(src), args...); }
     template <class T, RTYPE(*F)(const T*, Args...)>
-    static R stubconstC(void* src, Args... args) { return (*F)(static_cast<const T*>(src), args...); }
-    static R stubembed(void* src, Args... args) { return ((COREFUNC)src)(args...); }
+    static R StubConstC(void* src, Args... args) { return (*F)(static_cast<const T*>(src), args...); }
+    static R StubEmbed(void* src, Args... args) { return ((COREFUNC)src)(args...); }
 
   protected:
     void* _src;

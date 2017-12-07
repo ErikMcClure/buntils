@@ -70,18 +70,18 @@ TESTDEF::RETPAIR test_DYNARRAY()
   TEST(z[3] == 1);
   DynArray<char> n(2);
   DynArray<bool> m(2);
-  auto fverify = [&__testret](const DynArray<bool>& m, DynArray<char>& n) {
-    TEST(m.Length() == n.Length());
-    for(size_t i = 0; i < n.Length(); ++i)
-      TEST(m[i] == (n[i] != 0));
+  auto fverify = [&__testret](const DynArray<bool>& a, DynArray<char>& b) {
+    TEST(a.Length() == b.Length());
+    for(size_t i = 0; i < b.Length(); ++i)
+      TEST(a[i] == (b[i] != 0));
 
     int c = 0;
-    for(auto v : m)
-      TEST(v == (n[c++] != 0));
-    TEST(c == n.Length());
+    for(auto v : a)
+      TEST(v == (b[c++] != 0));
+    TEST(c == b.Length());
 
-    for(auto v = m.end(); v != m.begin();)
-      TEST(*(--v) == (n[--c] != 0));
+    for(auto v = a.end(); v != a.begin();)
+      TEST(*(--v) == (b[--c] != 0));
   };
   auto fadd = [&](bool v) { m.Add(v); n.Add(v); fverify(m, n); };
   auto fremove = [&](size_t i) { m.Remove(i); n.Remove(i); fverify(m, n); };
@@ -151,7 +151,6 @@ TESTDEF::RETPAIR test_DYNARRAY()
     return true;
   };
   auto f2 = [](DynArray<DEBUG_CDT<true>, uint32_t, ARRAY_SAFE>& arr, uint32_t s) { for(uint32_t i = s; i < arr.Length(); ++i) { arr[i]._index = i; } };
-  int peek;
 
   assert(!DEBUG_CDT_SAFE::Tracker.Length());
   {
@@ -165,12 +164,9 @@ TESTDEF::RETPAIR test_DYNARRAY()
     TEST(b.Length() == 9);
     TEST(DEBUG_CDT<true>::count == 9);
     f2(b, 0);
-    peek = DEBUG_CDT<true>::count;
     b.SetLength(19);
     f2(b, 9);
-    peek = DEBUG_CDT<true>::count;
     TEST(f(b));
-    peek = DEBUG_CDT<true>::count;
     TEST(DEBUG_CDT<true>::count == 19);
     TEST(b.Length() == 19);
     DynArray<DEBUG_CDT<true>, uint32_t, ARRAY_SAFE> c(b);

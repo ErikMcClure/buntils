@@ -27,6 +27,7 @@ UBJSONTuple::UBJSONTuple(const UBJSONTuple& copy) : Type(copy.Type), Length(copy
     break;
   default:
     Int64 = copy.Int64;
+    break;
   }
 }
 UBJSONTuple::UBJSONTuple(UBJSONTuple&& mov) : Type(mov.Type), Length(mov.Length)
@@ -45,6 +46,7 @@ UBJSONTuple::UBJSONTuple(UBJSONTuple&& mov) : Type(mov.Type), Length(mov.Length)
     break;
   default:
     Int64 = mov.Int64;
+    break;
   }
   mov.Type = TYPE_NONE;
 }
@@ -64,6 +66,8 @@ UBJSONTuple::~UBJSONTuple()
     break;
   case TYPE_OBJECT:
     Object.~DynArray();
+    break;
+  default:
     break;
   }
 }

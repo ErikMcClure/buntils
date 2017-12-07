@@ -178,14 +178,14 @@ namespace bss {
     inline CHAR& GetChar(size_t index) { return BASE::operator[](index); }
     inline void RecalcSize() { BASE::resize(STRCT::SLEN(_internalPtr())); }
     inline StrT Trim() const { StrT r(*this); r = _ltrim(_rtrim(r._internalPtr(), r.size())); return r; }
-    inline StrT& ReplaceChar(CHAR search, CHAR replace)
+    inline StrT& ReplaceChar(CHAR search, CHAR repl)
     {
       CHAR* pmod = _internalPtr();
       size_t sz = BASE::size();
 
       for(size_t i = 0; i < sz; ++i)
         if(pmod[i] == search)
-          pmod[i] = replace;
+          pmod[i] = repl;
 
       return *this;
     }

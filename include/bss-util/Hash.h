@@ -166,7 +166,8 @@ namespace bss {
 
     Hash(const Hash& copy) : Alloc(copy), n_buckets(0), flags(0), keys(0), vals(0), size(0), n_occupied(0), upper_bound(0)
     {
-      _docopy(copy);
+      if(copy.n_buckets > 0)
+        _docopy(copy);
     }
     Hash(Hash&& mov) : Alloc(std::move(mov))
     {
@@ -174,15 +175,15 @@ namespace bss {
       bssFill(mov, 0);
     }
     template<bool U = std::is_void_v<typename Alloc::policy_type>, std::enable_if_t<!U, int> = 0>
-    Hash(khint_t n_buckets, typename Alloc::policy_type* policy) : Alloc(policy), n_buckets(0), flags(0), keys(0), vals(0), size(0), n_occupied(0), upper_bound(0)
+    Hash(khint_t nbuckets, typename Alloc::policy_type* policy) : Alloc(policy), n_buckets(0), flags(0), keys(0), vals(0), size(0), n_occupied(0), upper_bound(0)
     {
-      if(n_buckets > 0)
-        _resize(n_buckets);
+      if(nbuckets > 0)
+        _resize(nbuckets);
     }
-    explicit Hash(khint_t n_buckets = 0) : n_buckets(0), flags(0), keys(0), vals(0), size(0), n_occupied(0), upper_bound(0)
+    explicit Hash(khint_t nbuckets = 0) : n_buckets(0), flags(0), keys(0), vals(0), size(0), n_occupied(0), upper_bound(0)
     {
-      if(n_buckets > 0)
-        _resize(n_buckets);
+      if(nbuckets > 0)
+        _resize(nbuckets);
     }
     ~Hash()
     {
@@ -263,7 +264,7 @@ namespace bss {
     inline typename std::enable_if<U, bool>::type Set(const Key& key, const FakeData& newvalue) { return _setvalue<const Data&>(Iterator(key), newvalue); }
     template<bool U = IsMap>
     inline typename std::enable_if<U, bool>::type Set(const Key& key, FakeData&& newvalue) { return _setvalue<Data&&>(Iterator(key), std::move(newvalue)); }
-    inline void SetCapacity(khint_t size) { if(n_buckets < size) _resize(size); }
+    inline void SetCapacity(khint_t capacity) { if(n_buckets < capacity) _resize(capacity); }
     inline bool Remove(const Key& key)
     {
       khiter_t iterator = Iterator(key);
@@ -460,12 +461,12 @@ namespace bss {
           memset(new_flags, 2, new_n_buckets);
           if(n_buckets < new_n_buckets)
           {	/* expand */
-            Key *new_keys = _realloc<Key>(flags, keys, new_n_buckets);
+            Key *new_keys = _realloc<Key>(keys, new_n_buckets);
             if(!new_keys) { Alloc::deallocate((char*)new_flags, new_n_buckets); return -1; }
             keys = new_keys;
             if constexpr(IsMap)
             {
-              Data *new_vals = _realloc<Data>(flags, vals, new_n_buckets);
+              Data *new_vals = _realloc<Data>(vals, new_n_buckets);
               if(!new_vals) { Alloc::deallocate((char*)new_flags, new_n_buckets); return -1; }
               vals = new_vals;
             }
@@ -508,9 +509,9 @@ namespace bss {
         }
         if(n_buckets > new_n_buckets)
         { /* shrink the hash table */
-          keys = _realloc<Key>(flags, keys, new_n_buckets);
+          keys = _realloc<Key>(keys, new_n_buckets);
           if constexpr(IsMap)
-            vals = _realloc<Data>(flags, vals, new_n_buckets);
+            vals = _realloc<Data>(vals, new_n_buckets);
         }
         if(flags)
           Alloc::deallocate((char*)flags, n_buckets); /* free the working space */
@@ -607,7 +608,7 @@ namespace bss {
       }
     }
     template<typename T>
-    inline T* _realloc(khint8_t* flags, T* src, khint_t new_n_buckets) noexcept
+    inline T* _realloc(T* src, khint_t new_n_buckets) noexcept
     {
       if constexpr(ArrayType == ARRAY_SIMPLE || ArrayType == ARRAY_CONSTRUCT)
         return (T*)Alloc::allocate(new_n_buckets * sizeof(T), (char*)src, n_buckets * sizeof(T));
@@ -646,8 +647,8 @@ namespace bss {
     inline HashIns(const HashIns& copy) = default;
     inline HashIns(HashIns&& mov) = default;
     template<bool U = std::is_void_v<typename Alloc::policy_type>, std::enable_if_t<!U, int> = 0>
-    inline HashIns(khint_t size, typename Alloc::policy_type* policy) : BASE(size, policy) {}
-    inline explicit HashIns(khint_t size = 0) : BASE(size) {}
+    inline HashIns(khint_t capacity, typename Alloc::policy_type* policy) : BASE(capacity, policy) {}
+    inline explicit HashIns(khint_t capacity = 0) : BASE(capacity) {}
 
     inline HashIns& operator =(const HashIns& right) = default;
     inline HashIns& operator =(HashIns&& mov) = default;

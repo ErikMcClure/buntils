@@ -88,7 +88,10 @@ namespace bss {
       while(k > 0)
       {
         parent = CBH_PARENT(k);
-        if(CFunc(_array[parent], val) > 0) break;
+        
+        if(CFunc(val, _array[parent]) < 0)
+          break;
+
         _array[k] = std::move(_array[parent]);
         MFUNC::MFunc(_array[k], k, p);
         k = parent;

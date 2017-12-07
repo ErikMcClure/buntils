@@ -58,7 +58,7 @@ namespace bss {
       const float* r = FRECT(item);
       char axis = 0;
 
-      while(h = *p)
+      while((h = *p) != nullptr)
       {
         h->total[0] += r[0] + r[2];
         h->total[1] += r[1] + r[3];
@@ -234,7 +234,7 @@ namespace bss {
       KDNode<T>* par;
       char i;
 
-      while(item = next)
+      while((item = next) != nullptr)
       {
         next = FLIST(item).next;
         itemr = FRECT(item);

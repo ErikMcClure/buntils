@@ -15,7 +15,7 @@ TESTDEF::RETPAIR test_LITERALS()
   TESTSTATIC(1_sz == (size_t)1);
   TESTSTATIC(~0_sz == (size_t)~0);
   TEST(5_recip == bss::Rational<int64_t>(1, 5));
-  TEST(1_recip == 1LL);
+  TEST(1_recip == bss::Rational<int64_t>(1));
   TESTSTATIC(1_sz == (size_t)1);
   TESTSTATIC(0_deg == 0.0);
   TESTSTATIC(1_deg == (PI / 180.0));

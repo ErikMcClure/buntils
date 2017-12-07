@@ -70,9 +70,14 @@ TESTDEF::RETPAIR test_TRBTREE()
   Shuffle(testnums);
 
   blah.Clear();
+  bool valid = true;
   for(size_t i = 0; i < TESTNUM; ++i)
-    blah.Insert(testnums[i]);
+  {
+    auto p = blah.Insert(testnums[i]);
+    valid = valid && blah.Validate(p);
+  }
 
+  TEST(valid);
   assert(verifytree(blah.Front(), same));
   TEST(blah.DEBUGVERIFY() >= 0);
   TEST(!blah.Get(-1));
@@ -89,9 +94,17 @@ TESTDEF::RETPAIR test_TRBTREE()
   TEST(num == TESTNUM);
 
   TEST(blah.Remove(4));
+  for(auto i : blah)
+    assert(blah.Validate(i));
   TEST(blah.GetNear(4)->value == 3);
   TEST(blah.GetNear(4, false)->value == 5);
   blah.Insert(4);
+  auto p2 = blah.Get(4);
+  TEST(blah.Validate(p2));
+  p2->value = -4;
+  TEST(!blah.Validate(p2));
+  p2->value = 4;
+  TEST(blah.Validate(p2));
 
   Shuffle(testnums);
   for(size_t i = 0; i<TESTNUM; ++i)

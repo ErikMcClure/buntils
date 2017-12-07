@@ -729,14 +729,14 @@ namespace bss {
     inline constexpr Vector(T X, T Y, T Z, T W) : x(X), y(Y), z(Z), w(W) {}
     inline constexpr Vector() {}
     inline T Length() const { return FastSqrt<T>(Dot(*this)); }
-    inline Vector<T, 4> Normalize() const { Vector<T, 4> r; NVectorNormalize<T, 4>(v, r.v); return r; }
+    inline Vector<T, 4> Normalize() const { Vector<T, 4> ret; NVectorNormalize<T, 4>(v, ret.v); return ret; }
     inline Vector<T, 4> Abs() const { return Vector<T, 4>(NVectorAbsCall(x), NVectorAbsCall(y), NVectorAbsCall(z), NVectorAbsCall(w)); }
-    inline T Dot(const Vector<T, 4>& r) const { return NVectorDot<T, 4>(v, r.v); }
-    inline T Distance(const Vector<T, 4>& r) const { return FastSqrt<T>(DistanceSq(r)); }
-    inline T DistanceSq(const Vector<T, 4>& r) const { T tz = (r.z - z); T ty = (r.y - y); T tx = (r.x - x); T tw = (r.w - w); return (T)((tx*tx) + (ty*ty) + (tz*tz) + (tw*tw)); }
-    template<int K> inline void Outer(const Vector<T, K>& r, T(&out)[4][K]) const { MatrixMultiply<T, 4, 1, K>(v_column, r.v_row, out); }
+    inline T Dot(const Vector<T, 4>& right) const { return NVectorDot<T, 4>(v, right.v); }
+    inline T Distance(const Vector<T, 4>& right) const { return FastSqrt<T>(DistanceSq(right)); }
+    inline T DistanceSq(const Vector<T, 4>& right) const { T tz = (right.z - z); T ty = (right.y - y); T tx = (right.x - x); T tw = (right.w - w); return (T)((tx*tx) + (ty*ty) + (tz*tz) + (tw*tw)); }
+    template<int K> inline void Outer(const Vector<T, K>& right, T(&out)[4][K]) const { MatrixMultiply<T, 4, 1, K>(v_column, right.v_row, out); }
 
-    template<typename U> inline Vector<T, 4>& operator=(const Vector<U, 4>& r) { x = (T)r.x; y = (T)r.y; z = (T)r.z; w = (T)r.w; return *this; }
+    template<typename U> inline Vector<T, 4>& operator=(const Vector<U, 4>& copy) { x = (T)copy.x; y = (T)copy.y; z = (T)copy.z; w = (T)copy.w; return *this; }
 
     typedef T SerializerArray;
     template<typename Engine>
@@ -992,16 +992,16 @@ namespace bss {
   {
     template<typename U>
     inline Matrix(const Matrix<U, 4, 4>& copy) : a((T)copy.a), b((T)copy.b), c((T)copy.c), d((T)copy.d), e((T)copy.e), f((T)copy.f), g((T)copy.g), h((T)copy.h), i((T)copy.i), j((T)copy.j), k((T)copy.k), l((T)copy.l), m((T)copy.m), n((T)copy.n), o((T)copy.o), p((T)copy.p) {}
-    inline Matrix(const std::initializer_list<T>& l) { assert(l.size() == (4 * 4)); T* p = (T*)v; int k = 0; for(const T* u = l.begin(); u != l.end() && k < 4 * 4; ++u) p[k++] = *u; }
-    inline explicit Matrix(const T(&m)[4][4]) { memcpy(v, m, sizeof(T) * 4 * 4); }
+    inline Matrix(const std::initializer_list<T>& list) { assert(list.size() == (4 * 4)); T* ptr = (T*)v; int index = 0; for(const T* u = list.begin(); u != list.end() && index < 4 * 4; ++u) ptr[index++] = *u; }
+    inline explicit Matrix(const T(&mat)[4][4]) { memcpy(v, mat, sizeof(T) * 4 * 4); }
     inline constexpr Matrix() {}
     inline void Transpose(Matrix& mat) const { Transpose(mat.v); }
     inline void Transpose(T(&out)[4][4]) const { SetSubMatrix<T, 4, 4, true>::M4x4(out, a, b, c, d, e, f, g, h, i, j, k, l, m, n, o, p); }
-    inline Matrix Transpose() const { Matrix m; Transpose(v, m.v); return m; }
+    inline Matrix Transpose() const { Matrix mat; Transpose(v, mat.v); return mat; }
     inline T Determinant() const { return MatrixDeterminant<T, 4>(v); }
     inline void Inverse(Matrix& mat) const { Inverse(mat.v); }
     inline void Inverse(T(&out)[4][4]) const { MatrixInvert4x4<T>((T*)v, (T*)out); }
-    inline Matrix Inverse() const { Matrix m; Inverse(m.v); return m; }
+    inline Matrix Inverse() const { Matrix mat; Inverse(mat.v); return mat; }
 
     // Note: The assignment operator here isn't a memcpy() so the compiler can inline the assignment and then remove it entirely if applicable.
     inline Matrix<T, 4, 4>& operator=(const Matrix<T, 4, 4>& r) { a = r.a; b = r.b; c = r.c; d = r.d; e = r.e; f = r.f; g = r.g; h = r.h; i = r.i; j = r.j; k = r.k; l = r.l; m = r.m; n = r.n; o = r.o; p = r.p; return *this; }

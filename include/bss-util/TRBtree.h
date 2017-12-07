@@ -61,6 +61,11 @@ namespace bss {
       };
       char color; // 0 - black, 1 - red, -1 - duplicate
 
+      // Returns false if this node was changed such that it is now out of order and needs to be re-inserted, otherwise returns true.
+      template<char(*CFunc)(const T&, const T&)>
+      inline bool Validate() { return (!prev || (CFunc(*static_cast<T*>(this), *prev) >= 0)) && (!next || (CFunc(*static_cast<T*>(this), *next) <= 0)); }
+
+      // Removes a node from the given abstract tree
       static void RemoveNode(T* node, T*& root, T*& first, T*& last, T* pNIL)
       {
         assert(node != pNIL);
@@ -98,6 +103,7 @@ namespace bss {
         assert(pNIL->color == 0);
       }
 
+      // Inserts a node into the given abstract tree
       template<char(*CFunc)(const T&, const T&)>
       static void InsertNode(T* node, T*& root, T*& first, T*& last, T* pNIL)
       {
@@ -158,6 +164,7 @@ namespace bss {
         }
       }
 
+      // Verifies this node structure satisifies the red-black tree constraints
       inline static int DEBUGVERIFY(const TRB_NodeBase<T>* n, const TRB_NodeBase<T>* NIL)
       {
         if(n == NIL)
@@ -388,9 +395,9 @@ namespace bss {
   template<typename T, char(*CFunc)(const T&, const T&) = CompT<T>, typename Alloc = StandardAllocator<TRB_Node<T>>>
   class BSS_COMPILER_DLLEXPORT TRBtree : protected Alloc
   {
+  public:
     BSS_FORCEINLINE static char CompNode(const TRB_Node<T>& l, const TRB_Node<T>& r) { return CFunc(l.value, r.value); }
 
-  public:
     inline TRBtree(TRBtree&& mov) : Alloc(std::move(mov)), _first(mov._first), _last(mov._last), _root(mov._root), NIL(mov.NIL)
     {
       mov._first = 0;
@@ -469,6 +476,7 @@ namespace bss {
     inline LLIterator<const TRB_Node<T>> end() const { return LLIterator<const TRB_Node<T>>(0); }
     inline LLIterator<TRB_Node<T>> begin() { return LLIterator<TRB_Node<T>>(_first); }
     inline LLIterator<TRB_Node<T>> end() { return LLIterator<TRB_Node<T>>(0); }
+    inline static bool Validate(TRB_Node<T>* node) { return node->template Validate<CompNode>(); }
 
     inline TRBtree& operator=(TRBtree&& mov)
     {

@@ -126,7 +126,7 @@ TESTDEF::RETPAIR test_STR()
   TEST(vec1[7] == 0);
   vec1.clear();
 #endif
-  Str::ParseTokens<int>("1234,235,2,6,1,0,,39,ahjs", ",", vec1, [](const char* s)->int { return atoi(s) + 1; });
+  Str::ParseTokens<int>("1234,235,2,6,1,0,,39,ahjs", ",", vec1, [](const char* str)->int { return atoi(str) + 1; });
   TEST(vec1.size() == 8);
   TEST(vec1[0] == 1235);
   TEST(vec1[1] == 236);

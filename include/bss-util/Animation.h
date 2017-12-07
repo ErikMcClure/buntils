@@ -622,13 +622,13 @@ namespace bss {
     }
     static inline T QuadraticInterpolateBase(const AniFrame<T, AniQuadData<T, LENGTH>>* v, size_t l, size_t cur, double t, const T& init)
     {
-      double s = GetProgress<T, AniQuadData<T, LENGTH>>(v, l, cur, t);
+      double st = GetProgress<T, AniQuadData<T, LENGTH>>(v, l, cur, t);
       const T& p0 = (!cur ? init : v[cur - 1].value);
       const T& p1 = v[cur].cp; // we store the control point in the end point, not the start point, which allows us to properly use the init value.
       const T& p2 = v[cur].value;
       auto f = [&](double s) -> double { return GaussianQuadrature<double, 3>(0.0, s, &LENGTH, p0, p1, p2) - s; };
       auto fd = [&](double s) -> double { return LENGTH(s, p0, p1, p2); };
-      return Bezier<T>(NewtonRaphsonBisection<double>(s, 0.0, 1.0, f, fd, FLT_EPS), p0, p1, p2);
+      return Bezier<T>(NewtonRaphsonBisection<double>(st, 0.0, 1.0, f, fd, FLT_EPS), p0, p1, p2);
     }
     static inline T QuadraticInterpolate(const AniFrame<T, AniQuadData<T, LENGTH>>* v, size_t l, size_t cur, double t, const T& init)
     {
@@ -684,7 +684,7 @@ namespace bss {
     }
     static inline T CubicInterpolateBase(const AniFrame<T, AniCubicData<T, LENGTH>>* v, size_t l, size_t cur, double t, const T& init)
     {
-      double s = GetProgress<T, AniCubicData<T, LENGTH>>(v, l, cur, t);
+      double st = GetProgress<T, AniCubicData<T, LENGTH>>(v, l, cur, t);
       const T& p0 = (!cur ? init : v[cur - 1].value);
       const T& p1 = v[cur].p1; // we store the control point in the end point, not the start point, which allows us to properly use the init value.
       const T& p2 = v[cur].p2;
@@ -692,7 +692,7 @@ namespace bss {
       double p0_cache = LENGTH(0.0, p0, p1, p2, p3);
       auto f = [&](double s) -> double { return GaussianQuadrature<double, 5>(0.0, s, &LENGTH, p0, p1, p2, p3) - s; };
       auto fd = [&](double s) -> double { return LENGTH(s, p0, p1, p2, p3); };
-      return Bezier(NewtonRaphsonBisection<double>(s, 0.0, 1.0, f, fd, FLT_EPS), p0, p1, p2, p3);
+      return Bezier(NewtonRaphsonBisection<double>(st, 0.0, 1.0, f, fd, FLT_EPS), p0, p1, p2, p3);
     }
     static inline double CubicInterpolate(const AniFrame<T, AniCubicData<T, LENGTH>>* v, size_t l, size_t cur, double t, const T& init)
     {

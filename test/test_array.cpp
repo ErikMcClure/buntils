@@ -138,13 +138,13 @@ TESTDEF::RETPAIR test_ARRAY()
   {
     int abc[2][3][4] = { 0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23 };
     ArrayMultiRef<int, int, int, int> ref((int*)abc, 2, 3, 4);
-    auto f = [](int z, int y, int x) { return x + 4 * (y + 3 * z); };
-    TEST(f(0, 0, 0) == abc[0][0][0]);
-    TEST(f(1, 2, 3) == abc[1][2][3]);
-    TEST(f(1, 0, 3) == abc[1][0][3]);
-    TEST(ref.GetIndice(0, 0, 0) == f(0, 0, 0));
-    TEST(ref.GetIndice(1, 2, 3) == f(1, 2, 3));
-    TEST(ref.GetIndice(1, 0, 3) == f(1, 0, 3));
+    auto f6 = [](int z, int y, int x) { return x + 4 * (y + 3 * z); };
+    TEST(f6(0, 0, 0) == abc[0][0][0]);
+    TEST(f6(1, 2, 3) == abc[1][2][3]);
+    TEST(f6(1, 0, 3) == abc[1][0][3]);
+    TEST(ref.GetIndice(0, 0, 0) == f6(0, 0, 0));
+    TEST(ref.GetIndice(1, 2, 3) == f6(1, 2, 3));
+    TEST(ref.GetIndice(1, 0, 3) == f6(1, 0, 3));
     TEST(ref(0, 0, 0) == abc[0][0][0]);
     TEST(ref(1, 2, 3) == abc[1][2][3]);
     TEST(ref(1, 0, 3) == abc[1][0][3]);

@@ -16,8 +16,8 @@ TESTDEF::RETPAIR test_BINARYHEAP()
   int a2[] = { 7,33,55,7,45,1,43,4,3243,25,3,6,9,14,5,16,17,22,90,95,99,32 };
   const int a2_SZ = sizeof(a2) / sizeof(int);
 
-  auto arrtest = [&](int* a, int* b, size_t count) {
-    TESTCOUNTALL(count, a[i] == b[i]);
+  auto arrtest = [&__testret](int* u, int* v, size_t count) {
+    TESTCOUNTALL(count, u[i] == v[i]);
   };
 
   std::sort(std::begin(a2), std::end(a2));
@@ -38,8 +38,8 @@ TESTDEF::RETPAIR test_BINARYHEAP()
     arrtest(&b[0], c, c.Length());
   }
 
-  std::for_each(b.begin(), b.end(), [](int& a) { a += 1; });
-  std::for_each(c.begin(), c.end(), [](int& a) { a += 1; });
+  std::for_each(b.begin(), b.end(), [](int& x) { x += 1; });
+  std::for_each(c.begin(), c.end(), [](int& x) { x += 1; });
   arrtest(&b[0], c, c.Length());
 
   for(size_t i = 0; i < a2_SZ; ++i)

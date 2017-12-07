@@ -27,11 +27,11 @@ TESTDEF::RETPAIR test_INISTORAGE()
       fseek(f, 0, SEEK_END);
       size_t size = (size_t)ftell(f);
       fseek(f, 0, SEEK_SET);
-      Str ini(size + 1);
-      size = fread(ini.UnsafeString(), sizeof(char), size, f); //reads in the entire file
-      ini.UnsafeString()[size] = '\0';
+      Str str(size + 1);
+      size = fread(str.UnsafeString(), sizeof(char), size, f); //reads in the entire file
+      str.UnsafeString()[size] = '\0';
       fclose(f);
-      TEST(!strcmp(ini, s));
+      TEST(!strcmp(str, s));
     }
   };
   auto fn3 = [&]() {

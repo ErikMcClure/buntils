@@ -218,7 +218,7 @@ namespace bss {
 
       if(e.engine.cur != 0)
       {
-        internal::serializer::PushValue<XMLValue*> push(e.engine.curvalue, e.engine.curvalue);
+        internal::serializer::PushValue<XMLValue*> push2(e.engine.curvalue, e.engine.curvalue);
         if(id && !e.engine.curvalue)
           e.engine.curvalue = &e.engine.cur->GetValue();
 

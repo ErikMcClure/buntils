@@ -32,14 +32,15 @@ namespace bss {
         inline PushValue(const PushValue&) = delete;
         inline PushValue(T& src, T nvalue) noexcept : _value(src), _src(src) { src = nvalue; }
         inline ~PushValue() { _src = _value; }
-        
+
       private:
         T _value;
         T& _src;
       };
 
       template<class E>
-      struct ConvRef {
+      struct ConvRef
+      {
         template<class T, class BASE>
         struct Value
         {
@@ -176,7 +177,7 @@ namespace bss {
         static inline bool Read(Serializer<Engine>& e, std::tuple<Args...>& obj, int64_t count) { return false; }
         static inline void Parse(Serializer<Engine>& e, std::tuple<Args...>& obj, const char* id)
         {
-          Engine::template ParseArray<std::tuple<Args...>, std::tuple_element_t<sizeof...(Args) - 1, std::tuple<Args...>>, &Add, &Read>(e, obj, id);
+          Engine::template ParseArray<std::tuple<Args...>, std::tuple_element_t<sizeof...(Args)-1, std::tuple<Args...>>, &Add, &Read>(e, obj, id);
         }
         static inline void Serialize(Serializer<Engine>& e, const std::tuple<Args...>& obj, const char* id)
         {
@@ -325,17 +326,36 @@ namespace bss {
     }
 
     template<int I, typename... Args>
+    struct _findparse {
+      inline static void F(Serializer<Engine>& e, uint16_t index, const std::tuple<std::pair<const char*, Args&>...>& args) {
+        if (index == I)
+          ActionBind<std::remove_reference_t<typename std::tuple_element_t<I, std::tuple<std::pair<const char*, Args&>...>>::second_type>>::Parse(e, std::get<I>(args).second, std::get<I>(args).first);
+        else
+          _findparse<I - 1, Args...>::F(e, index, args);
+      }
+    };
+
+    template<typename... Args>
+    struct _findparse<0, Args...> {
+      inline static void F(Serializer<Engine>& e, uint16_t index, const std::tuple<std::pair<const char*, Args&>...>& args) {
+        if (index == 0)
+          ActionBind<std::remove_reference_t<typename std::tuple_element_t<0, std::tuple<std::pair<const char*, Args&>...>>::second_type>>::Parse(e, std::get<0>(args).second, std::get<0>(args).first);
+      }
+    };
+
+    /*template<int I, typename... Args>
     inline static void r_findparse(Serializer<Engine>& e, uint16_t index, const std::tuple<std::pair<const char*, Args&>...>& args)
     {
       if(index == I)
         return ActionBind<std::remove_reference_t<typename std::tuple_element_t<I, std::tuple<std::pair<const char*, Args&>...>>::second_type>>::Parse(e, std::get<I>(args).second, std::get<I>(args).first);
       if constexpr(I > 0)
-        return r_findparse<I - 1, Args...>(e, index, args);
-    }
+        r_findparse<I - 1, Args...>(e, index, args);
+    }*/
     template<typename... Args> // This function must be static due to some corner cases on certain parsers
     inline static void FindParse(Serializer<Engine>& e, const char* key, const Trie<uint16_t>& t, const std::tuple<std::pair<const char*, Args&>...>& args)
     {
-      r_findparse<sizeof...(Args)-1, Args...>(e, t[key], args);
+      _findparse<sizeof...(Args)-1, Args...>::F(e, t[key], args);
+      //r_findparse<sizeof...(Args)-1, Args...>(e, t[key], args);
     }
 
     template<class T>
@@ -403,16 +423,16 @@ namespace bss {
     static void Begin(Serializer<EmptyEngine>& e) {}
     static void End(Serializer<EmptyEngine>& e) {}
     template<typename T>
-    static void Serialize(Serializer<EmptyEngine>& e, const T& t, const char* id) { }
+    static void Serialize(Serializer<EmptyEngine>& e, const T& t, const char* id) {}
     template<typename T>
-    static void SerializeArray(Serializer<EmptyEngine>& e, const T& t, size_t size, const char* id) { }
+    static void SerializeArray(Serializer<EmptyEngine>& e, const T& t, size_t size, const char* id) {}
     template<typename T, size_t... S> // OPTIONAL. Throw an error if not supported
     static void SerializeTuple(Serializer<EmptyEngine>& e, const T& t, const char* id, std::index_sequence<S...>) { throw std::runtime_error("Serialization of tuples not supported!"); }
     template<typename T>
-    static void SerializeNumber(Serializer<EmptyEngine>& e, T t, const char* id) { }
-    static void SerializeBool(Serializer<EmptyEngine>& e, bool t, const char* id) { }
+    static void SerializeNumber(Serializer<EmptyEngine>& e, T t, const char* id) {}
+    static void SerializeBool(Serializer<EmptyEngine>& e, bool t, const char* id) {}
     template<typename T>
-    static void Parse(Serializer<EmptyEngine>& e, T& t, const char* id) { }
+    static void Parse(Serializer<EmptyEngine>& e, T& t, const char* id) {}
     template<typename T, typename E, void(*Add)(Serializer<EmptyEngine>& e, T& obj, int& n), bool(*Read)(Serializer<EmptyEngine>& e, T& obj, int64_t count)>
     static void ParseArray(Serializer<EmptyEngine>& e, T& obj, const char* id) {}
     template<typename T>

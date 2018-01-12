@@ -42,21 +42,6 @@ namespace bss {
   template<typename T, int I = 0, char(*CompF)(const std::tuple_element_t<I, T>&, const std::tuple_element_t<I, T>&) = &CompT<std::tuple_element_t<I, T>>>
   BSS_FORCEINLINE char CompTuple(const T& left, const T& right) { return CompF(std::get<I>(left), std::get<I>(right)); }
 
-  template<typename I, typename... Args>
-  BSS_FORCEINLINE char CompAllIndice(const std::tuple<Args...>& left, const std::tuple<Args...>& right)
-  {
-    char c = CompT(std::get<sizeof...(Args) - I - 1>(left), std::get<sizeof...(Args)-I - 1>(right));
-    if constexpr(I > 0)
-    {
-      if(!c)
-        return CompAllIndice<I - 1, Args...>(left, right);
-    }
-    return c;
-  }
-
-  template<typename... Args>
-  BSS_FORCEINLINE char CompAll(const std::tuple<Args...>& left, const std::tuple<Args...>& right) { return CompAllIndice(left, right); }
-  
   template<typename T>
   BSS_FORCEINLINE char CompStr(const T& left, const T& right)
   {

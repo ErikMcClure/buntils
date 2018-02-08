@@ -21,6 +21,7 @@
 - Added iterator to `ArrayCircular`
 - Added serialization support to `Array`, `ArrayCircular`, `ArraySort`, `CompactArray`, `Map`, `Queue`, `Stack`, `BinaryHeap`, and `PriorityQueue`
 - Added `std::tuple` support to `Serializer`
+- Removed deprecated std::iterator
 
 ## 0.5.1
 - Replace most instances of `uint32_t` with `size_t`

@@ -145,9 +145,15 @@ namespace bss {
 
   // Iterator for doubly linked list where the item is itself. Does not support remove; use postfix-- or the equivelent
   template<typename T>
-  class BSS_COMPILER_DLLEXPORT LLIterator : public std::iterator<std::bidirectional_iterator_tag, T, ptrdiff_t, T*, T*>
+  class BSS_COMPILER_DLLEXPORT LLIterator
   {
   public:
+    using iterator_category = std::bidirectional_iterator_tag;
+    using value_type = T;
+    using difference_type = ptrdiff_t;
+    using pointer = T*;
+    using reference = T*;
+
     inline LLIterator() : cur(0) {}
     inline explicit LLIterator(T* node) : cur(node) {}
     inline T* operator*() const { return cur; }

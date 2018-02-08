@@ -89,9 +89,15 @@ namespace bss {
     template<bool ISCONST,
       typename U = typename std::conditional<ISCONST, typename std::add_const<T>::type, T>::type,
       typename D = typename std::conditional<ISCONST, typename std::add_const<LinkedArray>::type, LinkedArray>::type>
-    class BSS_COMPILER_DLLEXPORT cLAIter : public std::iterator<std::bidirectional_iterator_tag, typename D::value_type, ptrdiff_t, U*, U&>
+    class BSS_COMPILER_DLLEXPORT cLAIter
     {
     public:
+      using iterator_category = std::bidirectional_iterator_tag;
+      using value_type = typename D::value_type;
+      using difference_type = ptrdiff_t;
+      using pointer = U*;
+      using reference = U&;
+
       inline explicit cLAIter(D& src) : _src(src), cur((CT_)-1) {}
       inline cLAIter(D& src, CT_ start) : _src(src), cur(start) {}
       inline cLAIter(const cLAIter& copy, CT_ start) : _src(copy._src), cur(start) {}

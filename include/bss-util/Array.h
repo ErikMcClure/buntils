@@ -454,7 +454,7 @@ namespace bss {
       VariableArray(size_t n, T* p) : _p(p ? p : (T*)malloc(n * sizeof(T))), _heap((size_t(!p) << ((sizeof(size_t) << 3) - 1)) | (n&HEAPMASK)) {
         if constexpr(!std::is_trivially_default_constructible<T>::value)
           for(size_t i = 0; i < n; ++i)
-            new(p + i) T();
+            new(_p + i) T();
       }
       ~VariableArray()
       {

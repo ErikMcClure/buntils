@@ -62,11 +62,17 @@ namespace bss {
     };
 
     template<typename U>
-    class BSS_COMPILER_DLLEXPORT _BIT_ITER : public std::iterator<std::bidirectional_iterator_tag, U>
+    class BSS_COMPILER_DLLEXPORT _BIT_ITER
     {
-      typedef typename U::Ty T;
+      using iterator_category = std::bidirectional_iterator_tag;
+      using value_type = std::remove_const_t<U>;
+      using difference_type = ptrdiff_t;
+      using pointer = U*;
+      using reference = U&;
+
+      typedef typename U::Ty Ty;
     public:
-      inline _BIT_ITER(const U& src) : _bits(const_cast<T*>(&src.GetState().first)), _bit(src.GetState().second) {}
+      inline _BIT_ITER(const U& src) : _bits(const_cast<Ty*>(&src.GetState().first)), _bit(src.GetState().second) {}
       inline std::conditional_t<std::is_const_v<U>, bool, U> operator*() { return U(_bit, *_bits); }
       inline _BIT_ITER& operator++() { _incthis(); return *this; } //prefix
       inline _BIT_ITER operator++(int) { _BIT_ITER r(*this); ++*this; return r; } //postfix
@@ -91,12 +97,12 @@ namespace bss {
         if(!_bit)
         {
           --_bits;
-          _bit = (1 << ((sizeof(T) << 3) - 1));
+          _bit = (1 << ((sizeof(Ty) << 3) - 1));
         }
       }
 
-      T* _bits;
-      T _bit;
+      Ty* _bits;
+      Ty _bit;
     };
   }
 

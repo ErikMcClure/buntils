@@ -328,12 +328,14 @@ namespace bss {
 
     friend struct HashIterator;
     template<typename U>
-    struct BSS_TEMPLATE_DLLEXPORT HashIterator : public std::iterator<std::bidirectional_iterator_tag, 
-      std::conditional_t<IsMap, std::tuple<Key, U>, Key>,
-      ptrdiff_t, 
-      std::conditional_t<IsMap, std::tuple<const Key&, U&>, const Key&>,
-      std::conditional_t<IsMap, std::tuple<const Key*, U*>, const Key*>>
+    struct BSS_TEMPLATE_DLLEXPORT HashIterator
     {
+      using iterator_category = std::bidirectional_iterator_tag;
+      using value_type = std::conditional_t<IsMap, std::tuple<Key, U>, Key>;
+      using difference_type = ptrdiff_t;
+      using reference = std::conditional_t<IsMap, std::tuple<const Key&, U&>, const Key&>;
+      using pointer = std::conditional_t<IsMap, std::tuple<const Key*, U*>, const Key*>;
+
       typedef std::conditional_t<std::is_const_v<U>, const Hash*, Hash*> PTR;
       inline HashIterator(khiter_t c, PTR s) : cur(c), src(s) { _next(); }
       inline std::conditional_t<IsMap, std::tuple<const Key&, U&>, const Key&> operator*() const

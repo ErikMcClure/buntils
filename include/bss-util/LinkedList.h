@@ -15,10 +15,13 @@ namespace bss {
 
   // Generic Iterator for LinkedList
   template<typename T>
-  class BSS_COMPILER_DLLEXPORT LLIter : public std::iterator<std::bidirectional_iterator_tag, T>
+  class BSS_COMPILER_DLLEXPORT LLIter
   {
-    typedef typename std::iterator<std::bidirectional_iterator_tag, T>::pointer pointer;
-    typedef typename std::iterator<std::bidirectional_iterator_tag, T>::reference reference;
+    using iterator_category = std::bidirectional_iterator_tag;
+    using value_type = T;
+    using difference_type = ptrdiff_t;
+    using pointer = T*;
+    using reference = T&;
 
   public:
     inline LLIter() : cur(0) {}

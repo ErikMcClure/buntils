@@ -130,12 +130,17 @@ namespace bss {
     }
 
     template<bool CONST>
-    struct BSS_TEMPLATE_DLLEXPORT CircularIterator : public std::iterator<std::bidirectional_iterator_tag, std::conditional_t<CONST, const T, T>>
+    struct BSS_TEMPLATE_DLLEXPORT CircularIterator
     {
+      using iterator_category = std::bidirectional_iterator_tag;
+      using value_type = T;
+      using difference_type = ptrdiff_t;
+      using pointer = std::conditional_t<CONST, const T*, T*>;
+      using reference = std::conditional_t<CONST, const T&, T&>;
       typedef std::conditional_t<CONST, const ArrayCircular*, ArrayCircular*> ptr;
 
       inline CircularIterator(CT c, ptr s) : cur(c), src(s) { }
-      inline std::conditional_t<CONST, const T&, T&> operator*() { return (*src)[cur]; }
+      inline reference operator*() { return (*src)[cur]; }
       inline CircularIterator& operator++() { ++cur; return *this; } //prefix
       inline CircularIterator operator++(int) { CircularIterator r(*this); ++*this; return r; } //postfix
       inline CircularIterator& operator--() { --cur; return *this; }

@@ -153,5 +153,19 @@ TESTDEF::RETPAIR test_ARRAY()
         for(int x = 0; x < 4; ++x)
           TEST(ref(z, y, x) == abc[z][y][x]);
   }
+
+  VARARRAY(char, vtest, 6);
+
+  int testcounts[] = { 0, 1, 7, 15, 0xFFFF + 1 };
+  for(auto i : testcounts)
+  {
+    {
+      DEBUG_CDT<true>::count = 0;
+      VARARRAY(DEBUG_CDT<true>, vtest, i); // Note: This leaks memory, but this is a test so we ignore that.
+      TEST(DEBUG_CDT<true>::count == i);
+    }
+    TEST(!DEBUG_CDT<true>::count);
+  }
+
   ENDTEST;
 }

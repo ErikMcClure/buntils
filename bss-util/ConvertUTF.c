@@ -110,29 +110,28 @@ static const UTF8 firstByteMark[7] = { 0x00, 0x00, 0xC0, 0xE0, 0xF0, 0xF8, 0xFC 
 * into an inline function.
 */
 
-BSS_DLLEXPORT size_t UTF32toUTF16(const int*BSS_RESTRICT input, ptrdiff_t srclen, wchar_t*BSS_RESTRICT output, size_t buflen)
+BSS_DLLEXPORT size_t UTF32toUTF16(const char32_t*BSS_RESTRICT input, ptrdiff_t srclen, wchar_t*BSS_RESTRICT output, size_t buflen)
 {
   if(!srclen) return 0;
-  char result = 0;
-  const UTF32* source = (unsigned int*)input;
-  UTF16* target = (unsigned short*)output;
+  const UTF32* source = (UTF32*)input;
+  UTF16* target = (UTF16*)output;
   UTF16* targetEnd = target + buflen;
   if(srclen < 0) srclen = PTRDIFF_MAX;
   buflen = 1;
-  while(*input && (input - (const int*)source) < srclen)
+  while(*input && (input - (const char32_t*)source) < srclen)
   {
     buflen += 1 + (*input > UNI_MAX_BMP);
     ++input;
   }
   if(!output) return buflen;
-  const UTF32* sourceEnd = ((input - (const int*)source) < srclen) ? sourceEnd = ++input : source + srclen;
+  const UTF32* sourceEnd = ((input - (const char32_t*)source) < srclen) ? sourceEnd = ++input : source + srclen;
 
   while(source < sourceEnd)
   {
     UTF32 ch;
     if(target >= targetEnd)
     {
-      result = -3; break;
+      break;
     }
     ch = *source++;
     if(ch <= UNI_MAX_BMP)
@@ -173,7 +172,7 @@ BSS_DLLEXPORT size_t UTF32toUTF16(const int*BSS_RESTRICT input, ptrdiff_t srclen
       if(target + 1 >= targetEnd)
       {
         --source; /* Back up source pointer! */
-        result = -3; break;
+        break;
       }
       ch -= halfBase;
       *target++ = (UTF16)((ch >> halfShift) + UNI_SUR_HIGH_START);
@@ -183,13 +182,12 @@ BSS_DLLEXPORT size_t UTF32toUTF16(const int*BSS_RESTRICT input, ptrdiff_t srclen
   return (size_t)(((wchar_t*)target) - output);
 }
 
-BSS_DLLEXPORT size_t UTF16toUTF32(const wchar_t*BSS_RESTRICT input, ptrdiff_t srclen, int*BSS_RESTRICT output, size_t buflen)
+BSS_DLLEXPORT size_t UTF16toUTF32(const wchar_t*BSS_RESTRICT input, ptrdiff_t srclen, char32_t*BSS_RESTRICT output, size_t buflen)
 {
   if(!srclen) return 0;
-  char result = 0;
-  const UTF16* source = (unsigned short*)input;
+  const UTF16* source = (UTF16*)input;
   const UTF16* sourceEnd = source;
-  UTF32* target = (unsigned int*)output;
+  UTF32* target = (UTF32*)output;
   UTF32* targetEnd = target + buflen;
   if(srclen < 0) srclen = wcslen(input) + 1;
   if(!output) return srclen;
@@ -223,7 +221,6 @@ BSS_DLLEXPORT size_t UTF16toUTF32(const wchar_t*BSS_RESTRICT input, ptrdiff_t sr
       else
       { /* We don't have the 16 bits following the high surrogate. */
         --source; /* return to the high surrogate */
-        result = -2;
         break;
       }
     }
@@ -240,26 +237,25 @@ BSS_DLLEXPORT size_t UTF16toUTF32(const wchar_t*BSS_RESTRICT input, ptrdiff_t sr
     if(target >= targetEnd)
     {
       source = oldSource; /* Back up source pointer! */
-      result = -3; break;
+      break;
     }
     *target++ = ch;
   }
-  return (size_t)(((int*)target) - output);
+  return (size_t)(((char32_t*)target) - output);
 }
 
 /* --------------------------------------------------------------------- */
 
-BSS_DLLEXPORT size_t UTF32toUTF8(const int*BSS_RESTRICT input, ptrdiff_t srclen, char*BSS_RESTRICT output, size_t buflen)
+BSS_DLLEXPORT size_t UTF32toUTF8(const char32_t*BSS_RESTRICT input, ptrdiff_t srclen, char*BSS_RESTRICT output, size_t buflen)
 {
   if(!srclen) return 0;
-  char result = 0;
-  const UTF32* source = (unsigned int*)input;
+  const UTF32* source = (UTF32*)input;
   const UTF32* sourceEnd = source + srclen;
-  UTF8* target = (unsigned char*)output;
+  UTF8* target = (UTF8*)output;
   UTF8* targetEnd = target + buflen;
   if(srclen < 0) srclen = PTRDIFF_MAX;
   buflen = 1;
-  while(*input && (input - (const int*)source) < srclen)
+  while(*input && (input - (const char32_t*)source) < srclen)
   {
     if(*input < (UTF32)0x80)
       buflen += 1;
@@ -274,7 +270,7 @@ BSS_DLLEXPORT size_t UTF32toUTF8(const int*BSS_RESTRICT input, ptrdiff_t srclen,
     ++input;
   }
   if(!output) return buflen;
-  if((input - (const int*)source) < srclen)
+  if((input - (const char32_t*)source) < srclen)
     sourceEnd = ++input; // increment to include null terminator if we hit one
 
   while(source < sourceEnd)
@@ -318,14 +314,13 @@ BSS_DLLEXPORT size_t UTF32toUTF8(const int*BSS_RESTRICT input, ptrdiff_t srclen,
     {
       bytesToWrite = 3;
       ch = UNI_REPLACEMENT_CHAR;
-      result = -1;
     }
 
     target += bytesToWrite;
     if(target > targetEnd)
     {
       --source; /* Back up source pointer! */
-      target -= bytesToWrite; result = -3; break;
+      target -= bytesToWrite; break;
     }
     switch(bytesToWrite)
     { /* note: everything falls through. */
@@ -397,10 +392,9 @@ char isLegalUTF8Sequence(const UTF8 *source, const UTF8 *sourceEnd)
 }
 
 /* --------------------------------------------------------------------- */
-BSS_DLLEXPORT size_t UTF8toUTF32(const char*BSS_RESTRICT input, ptrdiff_t srclen, int*BSS_RESTRICT output, size_t buflen)
+BSS_DLLEXPORT size_t UTF8toUTF32(const char*BSS_RESTRICT input, ptrdiff_t srclen, char32_t*BSS_RESTRICT output, size_t buflen)
 {
   if(!srclen) return 0;
-  char result = 0;
   const UTF8* source = (UTF8*)input;
   UTF32* target = (UTF32*)output;
   UTF32* targetEnd = target + buflen;
@@ -412,7 +406,7 @@ BSS_DLLEXPORT size_t UTF8toUTF32(const char*BSS_RESTRICT input, ptrdiff_t srclen
     ++input;
   }
   if(!output) return buflen;
-  const UTF8* sourceEnd = ((input - (const char*)source) < srclen) ? ++input : source + srclen;
+  const UTF8* sourceEnd = ((input - (const char*)source) < srclen) ? (UTF8*)(++input) : (source + srclen);
 
   while(source < sourceEnd)
   {
@@ -420,12 +414,11 @@ BSS_DLLEXPORT size_t UTF8toUTF32(const char*BSS_RESTRICT input, ptrdiff_t srclen
     unsigned short extraBytesToRead = trailingBytesForUTF8[*source];
     if(extraBytesToRead >= sourceEnd - source)
     {
-      result = -2; break;
+      break;
     }
     /* Do this check whether lenient or strict */
     if(!isLegalUTF8(source, extraBytesToRead + 1))
     {
-      result = -1;
       break;
     }
     /*
@@ -445,7 +438,7 @@ BSS_DLLEXPORT size_t UTF8toUTF32(const char*BSS_RESTRICT input, ptrdiff_t srclen
     if(target >= targetEnd)
     {
       source -= (extraBytesToRead + 1); /* Back up the source pointer! */
-      result = -3; break;
+      break;
     }
     if(ch <= UNI_MAX_LEGAL_UTF32)
     {
@@ -473,11 +466,10 @@ BSS_DLLEXPORT size_t UTF8toUTF32(const char*BSS_RESTRICT input, ptrdiff_t srclen
     }
     else
     { /* i.e., ch > UNI_MAX_LEGAL_UTF32 */
-      result = -1;
       *target++ = UNI_REPLACEMENT_CHAR;
     }
   }
-  return (size_t)(((int*)target) - output);
+  return (size_t)(((char32_t*)target) - output);
 }
 
 /* ---------------------------------------------------------------------

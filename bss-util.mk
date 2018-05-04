@@ -8,7 +8,7 @@ INCLUDE_DIRS := include
 LIBRARY_DIRS := 
 LIBRARIES := rt :libfontconfig.so.1
 
-CPPFLAGS += -fPIC -D BSS_UTIL_EXPORTS -std=c++17 -DLIBICONV_PLUG -Wall -Wshadow -Wno-attributes -Wno-unknown-pragmas -Wno-reorder -Wno-missing-braces -Wno-unused-function -Wno-char-subscripts
+CPPFLAGS += -fPIC -D BSS_UTIL_EXPORTS -std=c++17 -DLIBICONV_PLUG -Wall -Wshadow -Wno-attributes -Wno-unknown-pragmas -Wno-reorder -Wno-missing-braces -Wno-unused-function -Wno-char-subscripts -fsanitize=signed-integer-overflow -fuse-ld=gold -Wno-class-memaccess
 LDFLAGS += -shared
 
 include base.mk

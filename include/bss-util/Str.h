@@ -27,7 +27,7 @@ namespace bss {
     public:
       typedef char CHAR;
       typedef wchar_t OTHER_C;
-      typedef int OTHER_C2;
+      typedef char32_t OTHER_C2;
 
       static BSS_FORCEINLINE const CHAR* SCHR(const CHAR* str, int val) { return strchr(str, val); }
       static BSS_FORCEINLINE size_t SLEN(const CHAR* str) { return strlen(str); }
@@ -47,9 +47,9 @@ namespace bss {
     public:
       typedef wchar_t CHAR;
       typedef char OTHER_C;
-      typedef int OTHER_C2;
+      typedef char32_t OTHER_C2;
 
-      static BSS_FORCEINLINE const CHAR* SCHR(const CHAR* str, wchar_t val) { return wcschr(str, val); }
+      static BSS_FORCEINLINE const CHAR* SCHR(const CHAR* str, CHAR val) { return wcschr(str, val); }
       static BSS_FORCEINLINE size_t SLEN(const CHAR* str) { return wcslen(str); }
       static BSS_FORCEINLINE CHAR* STOK(CHAR* str, const CHAR* delim, CHAR** context) { return WCSTOK(str, delim, context); }
 #ifdef BSS_COMPILER_GCC
@@ -72,14 +72,14 @@ namespace bss {
     };
 
     template<>
-    class STR_CT<int>
+    class STR_CT<char32_t>
     {
     public:
-      typedef int CHAR;
+      typedef char32_t CHAR;
       typedef char OTHER_C;
       typedef wchar_t OTHER_C2;
 
-      static BSS_FORCEINLINE const CHAR* SCHR(const CHAR* str, int val) { while(*str && *str != val) ++str; return str; }
+      static BSS_FORCEINLINE const CHAR* SCHR(const CHAR* str, CHAR val) { while(*str && *str != val) ++str; return str; }
       static BSS_FORCEINLINE size_t SLEN(const CHAR* str) { const CHAR* i = str; while(*i) ++i; return (size_t)(i - str); }
       static BSS_FORCEINLINE CHAR* STOK(CHAR* str, const CHAR* delim, CHAR** context)
       {

@@ -160,7 +160,7 @@ TESTDEF::RETPAIR test_bss_util_c()
   TEST(GetWorkingSet() != 0);
   TEST(GetPeakWorkingSet() != 0);
 
-  int outstr[1024];
+  char32_t outstr[1024];
   wchar_t wstr[1024];
   char instr[1024];
   for(size_t i = 0; i < 1023; ++i) instr[i] = (char)bssRandInt(0, 256);
@@ -170,7 +170,7 @@ TESTDEF::RETPAIR test_bss_util_c()
   TEST(len < 1024);
   TEST(UTF8toUTF32(instr, -1, outstr, len) <= len);
 
-  for(size_t i = 0; i < 255; ++i) outstr[i] = (int)bssRandInt(0, 0xFFFFFFFF);
+  for(size_t i = 0; i < 255; ++i) outstr[i] = (char32_t)bssRandInt(0, 0xFFFFFFFF);
   outstr[255] = 0;
 
   len = UTF32toUTF8(outstr, -1, 0, 0);
@@ -197,22 +197,22 @@ TESTDEF::RETPAIR test_bss_util_c()
 #endif
 
   const char* conversion1 = "conversion";
-  const int conversion3[] = { 'c', 'o', 'n','v','e','r','s','i','o','n',0 };
+  const char32_t conversion3[] = { 'c', 'o', 'n','v','e','r','s','i','o','n',0 };
 
-  testconvfunc<char, int>(conversion1, 10, conversion3, &UTF8toUTF32, __testret);
-  testconvfunc<int, char>(conversion3, 10, conversion1, &UTF32toUTF8, __testret);
-  testconvzero<char, int>(&UTF8toUTF32, __testret);
-  testconvzero<int, char>(&UTF32toUTF8, __testret);
+  testconvfunc<char, char32_t>(conversion1, 10, conversion3, &UTF8toUTF32, __testret);
+  testconvfunc<char32_t, char>(conversion3, 10, conversion1, &UTF32toUTF8, __testret);
+  testconvzero<char, char32_t>(&UTF8toUTF32, __testret);
+  testconvzero<char32_t, char>(&UTF32toUTF8, __testret);
 
 #ifdef BSS_PLATFORM_WIN32
   const wchar_t* conversion2 = L"conversion";
 
-  testconvfunc<wchar_t, int>(conversion2, 10, conversion3, &UTF16toUTF32, __testret);
-  testconvfunc<int, wchar_t>(conversion3, 10, conversion2, &UTF32toUTF16, __testret);
+  testconvfunc<wchar_t, char32_t>(conversion2, 10, conversion3, &UTF16toUTF32, __testret);
+  testconvfunc<char32_t, wchar_t>(conversion3, 10, conversion2, &UTF32toUTF16, __testret);
   testconvfunc<wchar_t, char>(conversion2, 10, conversion1, &UTF16toUTF8, __testret);
   testconvfunc<char, wchar_t>(conversion1, 10, conversion2, &UTF8toUTF16, __testret);
-  testconvzero<wchar_t, int>(&UTF16toUTF32, __testret);
-  testconvzero<int, wchar_t>(&UTF32toUTF16, __testret);
+  testconvzero<wchar_t, char32_t>(&UTF16toUTF32, __testret);
+  testconvzero<char32_t, wchar_t>(&UTF32toUTF16, __testret);
   testconvzero<wchar_t, char>(&UTF16toUTF8, __testret);
   testconvzero<char, wchar_t>(&UTF8toUTF16, __testret);
 #endif

@@ -6,6 +6,7 @@
 
 #include "compiler.h"
 #include <wchar.h>
+#include <uchar.h>
 #include <stddef.h>
 
 #ifdef  __cplusplus
@@ -14,10 +15,10 @@ extern "C" {
 
   extern BSS_DLLEXPORT size_t UTF8toUTF16(const char*BSS_RESTRICT input, ptrdiff_t srclen, wchar_t*BSS_RESTRICT output, size_t buflen);
   extern BSS_DLLEXPORT size_t UTF16toUTF8(const wchar_t*BSS_RESTRICT input, ptrdiff_t srclen, char*BSS_RESTRICT output, size_t buflen);
-  extern BSS_DLLEXPORT size_t UTF8toUTF32(const char*BSS_RESTRICT input, ptrdiff_t srclen, int*BSS_RESTRICT output, size_t buflen);
-  extern BSS_DLLEXPORT size_t UTF32toUTF8(const int*BSS_RESTRICT input, ptrdiff_t srclen, char*BSS_RESTRICT output, size_t buflen);
-  extern BSS_DLLEXPORT size_t UTF32toUTF16(const int*BSS_RESTRICT input, ptrdiff_t srclen, wchar_t*BSS_RESTRICT output, size_t buflen);
-  extern BSS_DLLEXPORT size_t UTF16toUTF32(const wchar_t*BSS_RESTRICT input, ptrdiff_t srclen, int*BSS_RESTRICT output, size_t buflen);
+  extern BSS_DLLEXPORT size_t UTF8toUTF32(const char*BSS_RESTRICT input, ptrdiff_t srclen, char32_t*BSS_RESTRICT output, size_t buflen);
+  extern BSS_DLLEXPORT size_t UTF32toUTF8(const char32_t*BSS_RESTRICT input, ptrdiff_t srclen, char*BSS_RESTRICT output, size_t buflen);
+  extern BSS_DLLEXPORT size_t UTF32toUTF16(const char32_t*BSS_RESTRICT input, ptrdiff_t srclen, wchar_t*BSS_RESTRICT output, size_t buflen);
+  extern BSS_DLLEXPORT size_t UTF16toUTF32(const wchar_t*BSS_RESTRICT input, ptrdiff_t srclen, char32_t*BSS_RESTRICT output, size_t buflen);
 
 #ifdef  __cplusplus
 }

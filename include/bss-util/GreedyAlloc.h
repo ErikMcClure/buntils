@@ -62,18 +62,18 @@ namespace bss {
       for(;;)
       {
         _lock.RLock();
-        r = _curpos.fetch_add(sz, std::memory_order_relaxed);
+        r = _curpos.fetch_add(sz, std::memory_order_acq_rel);
         size_t rend = r + sz;
-        root = _root.load(std::memory_order_relaxed);
+        root = _root.load(std::memory_order_acquire);
 
         if(rend >= root->size)
         {
           if(_lock.AttemptUpgrade())
           {
-            if(rend >= root->size) // We do another check in here to ensure another thread didn't already resize the root for us.
+            if(rend >= _root.load(std::memory_order_acquire)->size) // We do another check in here to ensure another thread didn't already resize the root for us.
             {
               _allocChunk(fbnext(rend));
-              _curpos.store(0, std::memory_order_relaxed);
+              _curpos.store(0, std::memory_order_release);
             }
             _lock.Downgrade();
           }
@@ -101,7 +101,7 @@ namespace bss {
     {
       _lock.Lock();
       Node* root = _root.load(std::memory_order_acquire);
-      _curpos.store(0, std::memory_order_relaxed);
+      _curpos.store(0, std::memory_order_release);
 
       if(!root->next)
         return _lock.Unlock();

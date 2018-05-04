@@ -134,9 +134,9 @@ void Profiler::_heatOut(PROF_HEATNODE& heat, PROF_TRIENODE* node, ProfilerInt id
     for(ProfilerInt i = 0; i < 16; ++i)
       _heatOut(nheat, node->_children[i], id | (i << (4 * idlevel)), 0);
 
-    double total = 0.0; // Create the [code] node
+    double t = 0.0; // Create the [code] node
     for(ProfilerInt i = 0; i < nheat._children.Length(); ++i)
-      total += nheat._children[i].avg;
+      t += nheat._children[i].avg;
 
     if(nheat._children.Length() > 0)
       nheat._children.Insert(PROF_HEATNODE(0, node->codeavg));

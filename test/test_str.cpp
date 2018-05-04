@@ -137,7 +137,7 @@ TESTDEF::RETPAIR test_STR()
   TEST(vec1[6] == 40);
   TEST(vec1[7] == 1);
 
-  StrT<int> u32("jkl");
+  StrT<char32_t> u32("jkl");
   TEST(u32[0] == 'j');
   TEST(u32[1] == 'k');
   TEST(u32[2] == 'l');

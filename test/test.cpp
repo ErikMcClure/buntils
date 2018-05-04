@@ -168,7 +168,7 @@ int main(int argc, char** argv)
   const size_t NUMTESTS = sizeof(tests) / sizeof(TESTDEF);
 
   std::cout << "Black Sphere Studios - Utility Library v" << (size_t)bssVersion.Major << '.' << (size_t)bssVersion.Minor << '.' <<
-    (size_t)bssVersion.Revision << ": Unit Tests\nCopyright (c)2017 Black Sphere Studios\n" << std::endl;
+    (size_t)bssVersion.Revision << ": Unit Tests\nCopyright (c)2018 Black Sphere Studios\n" << std::endl;
   assert(bssVersion.version == ((uint64_t)bssVersion.Major << 48) + ((uint64_t)bssVersion.Minor << 32) + ((uint64_t)bssVersion.Revision << 16));
   const int COLUMNS[3] = { 24, 11, 8 };
   printf("%-*s %-*s %-*s\n", COLUMNS[0], "Test Name", COLUMNS[1], "Subtests", COLUMNS[2], "Pass/Fail");

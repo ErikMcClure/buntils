@@ -2,5 +2,5 @@
 
 void TEST_C_COMPILE()
 {
-  int v = bssVersion.version;
+  unsigned long long v = bssVersion.version;
 }

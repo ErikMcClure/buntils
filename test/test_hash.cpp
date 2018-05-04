@@ -49,7 +49,7 @@ TESTDEF::RETPAIR test_HASH()
       set.GetKey(0);
       TEST(set.Exists(0));
       size_t count = 0;
-      for(auto k : set)
+      for([[maybe_unused]] auto k : set)
         count++;
       TEST(set.Length() == 5);
       TEST(set.Length() == count);
@@ -70,7 +70,7 @@ TESTDEF::RETPAIR test_HASH()
       val.Remove(-3);
       TEST(val[-3] == -1);
       size_t count = 0;
-      for(auto [k, v] : val)
+      for([[maybe_unused]] auto [k, v] : val)
         count++;
       TEST(val.Length() == count);
     }

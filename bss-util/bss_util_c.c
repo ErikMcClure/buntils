@@ -184,29 +184,6 @@ size_t UTF16toUTF8(const wchar_t*BSS_RESTRICT input, ptrdiff_t srclen, char*BSS_
 * remains attached.
 */
 
-#define UNI_REPLACEMENT_CHAR (unsigned int)0x0000FFFD
-#define UNI_MAX_BMP (unsigned int)0x0000FFFF
-#define UNI_MAX_UTF16 (unsigned int)0x0010FFFF
-#define UNI_MAX_UTF32 (unsigned int)0x7FFFFFFF
-#define UNI_MAX_LEGAL_UTF32 (unsigned int)0x0010FFFF
-#define UNI_SUR_HIGH_START  (unsigned int)0xD800
-#define UNI_SUR_HIGH_END    (unsigned int)0xDBFF
-#define UNI_SUR_LOW_START   (unsigned int)0xDC00
-#define UNI_SUR_LOW_END     (unsigned int)0xDFFF
-
-static const char trailingBytesForUTF8[256] = {
-  0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0, 0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
-  0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0, 0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
-  0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0, 0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
-  0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0, 0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
-  0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0, 0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
-  0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0, 0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
-  1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1, 1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,
-  2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2, 3,3,3,3,3,3,3,3,4,4,4,4,5,5,5,5
-};
-
-static const unsigned int offsetsFromUTF8[6] = { 0x00000000UL, 0x00003080UL, 0x000E2080UL, 0x03C82080UL, 0xFA082080UL, 0x82082080UL };
-
 static char isLegalUTF8(const unsigned char *source, int length) {
   unsigned char a;
   const unsigned char *srcptr = source + length;

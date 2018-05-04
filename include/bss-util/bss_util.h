@@ -344,14 +344,14 @@ namespace bss {
   // Flips the endianness of a memory location
   BSS_FORCEINLINE void FlipEndian(uint8_t* target, uint8_t n) noexcept
   {
-    uint8_t t;
+    uint8_t tmp;
     uint8_t end = (n >> 1);
     --n;
     for(uint8_t i = 0; i < end; ++i)
     {
-      t = target[n - i];
+      tmp = target[n - i];
       target[n - i] = target[i];
-      target[i] = t;
+      target[i] = tmp;
     }
   }
 

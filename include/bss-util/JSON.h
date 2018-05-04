@@ -23,26 +23,26 @@ namespace bss {
     static void Begin(Serializer<JSONEngine>& e) {}
     static void End(Serializer<JSONEngine>& e) {}
     template<typename T>
-    static void Serialize(Serializer<JSONEngine>& e, const T& t, const char* id);
+    static void Serialize(Serializer<JSONEngine>& e, const T& obj, const char* id);
     template<typename T>
-    static void SerializeArray(Serializer<JSONEngine>& e, const T& t, size_t size, const char* id);
+    static void SerializeArray(Serializer<JSONEngine>& e, const T& obj, size_t size, const char* id);
     template<typename T, size_t... S>
-    static void SerializeTuple(Serializer<JSONEngine>& e, const T& t, const char* id, std::index_sequence<S...>);
+    static void SerializeTuple(Serializer<JSONEngine>& e, const T& obj, const char* id, std::index_sequence<S...>);
     template<typename T>
-    static void SerializeNumber(Serializer<JSONEngine>& e, T t, const char* id);
-    static void SerializeBool(Serializer<JSONEngine>& e, bool t, const char* id)
+    static void SerializeNumber(Serializer<JSONEngine>& e, T obj, const char* id);
+    static void SerializeBool(Serializer<JSONEngine>& e, bool obj, const char* id)
     {
       WriteJSONComma(*e.out, e.engine.pretty);
       WriteJSONId(id, *e.out, e.engine.pretty);
-      (*e.out) << (t ? "true" : "false");
+      (*e.out) << (obj ? "true" : "false");
     }
 
     template<typename T>
-    static void Parse(Serializer<JSONEngine>& e, T& t, const char* id);
+    static void Parse(Serializer<JSONEngine>& e, T& obj, const char* id);
     template<typename T, typename E, void (*Add)(Serializer<JSONEngine>& e, T& obj, int& n), bool (*Read)(Serializer<JSONEngine>& e, T& obj, int64_t count)>
     static void ParseArray(Serializer<JSONEngine>& e, T& obj, const char* id);
     template<typename T>
-    static void ParseNumber(Serializer<JSONEngine>& e, T& t, const char* id);
+    static void ParseNumber(Serializer<JSONEngine>& e, T& obj, const char* id);
     static void ParseBool(Serializer<JSONEngine>& e, bool& target, const char* id)
     {
       std::istream& s = *e.in;
@@ -154,9 +154,9 @@ namespace bss {
     JSONValue(const BASE& v) : BASE(v) {}
     JSONValue(BASE&& v) : BASE(std::move(v)) {}
     template<typename T>
-    explicit JSONValue(const T& t) : BASE(t) {}
+    explicit JSONValue(const T& obj) : BASE(obj) {}
     template<typename T>
-    explicit JSONValue(T&& t) : BASE(internal::serializer::ConvRef<JSONValue>::Value<T, BASE>::f(t)) {}
+    explicit JSONValue(T&& obj) : BASE(internal::serializer::ConvRef<JSONValue>::Value<T, BASE>::f(obj)) {}
     ~JSONValue() {}
     BASE& operator=(const BASE& right) { BASE::operator=(right); return *this; }
     BASE& operator=(BASE&& right) { BASE::operator=(std::move(right)); return *this; }
@@ -293,7 +293,7 @@ namespace bss {
     }
   }
   template<typename T>
-  void JSONEngine::Parse(Serializer<JSONEngine>& e, T& t, const char* id) { ParseJSONBase<T>(e, t, *e.in); }
+  void JSONEngine::Parse(Serializer<JSONEngine>& e, T& obj, const char* id) { ParseJSONBase<T>(e, obj, *e.in); }
   template<typename F>
   void JSONEngine::ParseMany(Serializer<JSONEngine>& e, F && f)
   {
@@ -444,7 +444,7 @@ namespace bss {
     s << ']';
   }
   template<typename T, size_t... S>
-  void JSONEngine::SerializeTuple(Serializer<JSONEngine>& e, const T& t, const char* id, std::index_sequence<S...>)
+  void JSONEngine::SerializeTuple(Serializer<JSONEngine>& e, const T& obj, const char* id, std::index_sequence<S...>)
   {
     std::ostream& s = *e.out;
     WriteJSONComma(s, e.engine.pretty);
@@ -452,7 +452,7 @@ namespace bss {
     internal::serializer::PushValue<size_t> push(e.engine.pretty, WriteJSONPretty(e.engine.pretty));
     s << '[';
 
-    int X[] = { (Serializer<JSONEngine>::template ActionBind<std::tuple_element_t<S, T>>::Serialize(e, std::get<S>(t), 0), 0)... };
+    int X[] = { (Serializer<JSONEngine>::template ActionBind<std::tuple_element_t<S, T>>::Serialize(e, std::get<S>(obj), 0), 0)... };
 
     s << ']';
   }
@@ -466,9 +466,9 @@ namespace bss {
   }
 
   template<typename T>
-  void JSONEngine::Serialize(Serializer<JSONEngine>& e, const T& t, const char* id)
+  void JSONEngine::Serialize(Serializer<JSONEngine>& e, const T& obj, const char* id)
   {
-    WriteJSONBase<T>(e, id, t, *e.out);
+    WriteJSONBase<T>(e, id, obj, *e.out);
   }
 }
 

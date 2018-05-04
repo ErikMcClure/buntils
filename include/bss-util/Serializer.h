@@ -70,37 +70,37 @@ namespace bss {
       template<class Engine, class T>
       struct Action // Arbitrary value
       {
-        static inline void Parse(Serializer<Engine>& e, T& t, const char* id)
+        static inline void Parse(Serializer<Engine>& e, T& obj, const char* id)
         {
           if constexpr(is_serializer_array<T>::value)
           {
             static_assert(is_serializable<Engine, T>::value, "object missing Serialize<Engine>(Serializer<Engine>&, const char*) function!");
-            t.template Serialize<Engine>(e, id);
+            obj.template Serialize<Engine>(e, id);
           }
           else if constexpr(std::is_same<bool, T>::value)
-            Engine::ParseBool(e, t, id);
+            Engine::ParseBool(e, obj, id);
           else if constexpr(std::is_arithmetic<T>::value)
-            Engine::template ParseNumber<T>(e, t, id);
+            Engine::template ParseNumber<T>(e, obj, id);
           else if constexpr(std::is_enum<T>::value)
-            Engine::template ParseNumber<typename make_integral<T>::type>(e, reinterpret_cast<typename make_integral<T>::type&>(t), id);
+            Engine::template ParseNumber<typename make_integral<T>::type>(e, reinterpret_cast<typename make_integral<T>::type&>(obj), id);
           else
-            Engine::template Parse<T>(e, t, id);
+            Engine::template Parse<T>(e, obj, id);
         }
-        static inline void Serialize(Serializer<Engine>& e, const T& t, const char* id)
+        static inline void Serialize(Serializer<Engine>& e, const T& obj, const char* id)
         {
           if constexpr(is_serializer_array<T>::value)
           {
             static_assert(is_serializable<Engine, T>::value, "object missing Serialize<Engine>(Serializer<Engine>&, const char*) function!");
-            const_cast<T&>(t).template Serialize<Engine>(e, id);
+            const_cast<T&>(obj).template Serialize<Engine>(e, id);
           }
           else if constexpr(std::is_same<bool, T>::value)
-            Engine::SerializeBool(e, t, id);
+            Engine::SerializeBool(e, obj, id);
           else if constexpr(std::is_arithmetic<T>::value)
-            Engine::template SerializeNumber<T>(e, t, id);
+            Engine::template SerializeNumber<T>(e, obj, id);
           else if constexpr(std::is_enum<T>::value)
-            Engine::template SerializeNumber<typename make_integral<T>::type>(e, reinterpret_cast<const typename make_integral<T>::type&>(t), id);
+            Engine::template SerializeNumber<typename make_integral<T>::type>(e, reinterpret_cast<const typename make_integral<T>::type&>(obj), id);
           else
-            Engine::template Serialize<T>(e, t, id);
+            Engine::template Serialize<T>(e, obj, id);
         }
       };
 
@@ -121,8 +121,8 @@ namespace bss {
       template<class Engine, class STORE>
       struct Action<Engine, internal::_BIT_REF<STORE>> // Bit reference used in some classes
       {
-        static inline void Parse(Serializer<Engine>& e, internal::_BIT_REF<STORE>& t, const char* id) { bool b = t; Engine::ParseBool(e, b, id); t = b; }
-        static inline void Serialize(Serializer<Engine>& e, internal::_BIT_REF<STORE> t, const char* id) { Engine::SerializeBool(e, t, id); }
+        static inline void Parse(Serializer<Engine>& e, internal::_BIT_REF<STORE>& obj, const char* id) { bool b = obj; Engine::ParseBool(e, b, id); obj = b; }
+        static inline void Serialize(Serializer<Engine>& e, internal::_BIT_REF<STORE> obj, const char* id) { Engine::SerializeBool(e, obj, id); }
       };
 
       template<class Engine, class T, size_t I> // For fixed-length arrays
@@ -269,7 +269,7 @@ namespace bss {
     template<typename T, typename... Args>
     inline void EvaluateType(std::pair<const char*, Args&>... args)
     {
-      static Trie<uint16_t> t(sizeof...(Args), (args.first)...);
+      static Trie<uint16_t> trie(sizeof...(Args), (args.first)...);
 
       if(out) // Serializing
         int X[] = { (ActionBind<Args>::Serialize(*this, args.second, args.first), 0)... };
@@ -281,7 +281,7 @@ namespace bss {
         else
         {
           auto tmp = std::make_tuple<std::pair<const char*, Args&>...>(std::move(args)...);
-          Engine::template ParseMany(*this, [&](Serializer<Engine>& e, const char* id) { Serializer<Engine>::template FindParse<Args...>(e, id, t, tmp); });
+          Engine::template ParseMany(*this, [&](Serializer<Engine>& e, const char* id) { Serializer<Engine>::template FindParse<Args...>(e, id, trie, tmp); });
         }
       }
     }
@@ -352,10 +352,10 @@ namespace bss {
         r_findparse<I - 1, Args...>(e, index, args);
     }*/
     template<typename... Args> // This function must be static due to some corner cases on certain parsers
-    inline static void FindParse(Serializer<Engine>& e, const char* key, const Trie<uint16_t>& t, const std::tuple<std::pair<const char*, Args&>...>& args)
+    inline static void FindParse(Serializer<Engine>& e, const char* key, const Trie<uint16_t>& trie, const std::tuple<std::pair<const char*, Args&>...>& args)
     {
-      _findparse<sizeof...(Args)-1, Args...>::F(e, t[key], args);
-      //r_findparse<sizeof...(Args)-1, Args...>(e, t[key], args);
+      _findparse<sizeof...(Args)-1, Args...>::F(e, trie[key], args);
+      //r_findparse<sizeof...(Args)-1, Args...>(e, trie[key], args);
     }
 
     template<class T>
@@ -423,21 +423,21 @@ namespace bss {
     static void Begin(Serializer<EmptyEngine>& e) {}
     static void End(Serializer<EmptyEngine>& e) {}
     template<typename T>
-    static void Serialize(Serializer<EmptyEngine>& e, const T& t, const char* id) {}
+    static void Serialize(Serializer<EmptyEngine>& e, const T& obj, const char* id) {}
     template<typename T>
-    static void SerializeArray(Serializer<EmptyEngine>& e, const T& t, size_t size, const char* id) {}
+    static void SerializeArray(Serializer<EmptyEngine>& e, const T& obj, size_t size, const char* id) {}
     template<typename T, size_t... S> // OPTIONAL. Throw an error if not supported
-    static void SerializeTuple(Serializer<EmptyEngine>& e, const T& t, const char* id, std::index_sequence<S...>) { throw std::runtime_error("Serialization of tuples not supported!"); }
+    static void SerializeTuple(Serializer<EmptyEngine>& e, const T& obj, const char* id, std::index_sequence<S...>) { throw std::runtime_error("Serialization of tuples not supported!"); }
     template<typename T>
-    static void SerializeNumber(Serializer<EmptyEngine>& e, T t, const char* id) {}
-    static void SerializeBool(Serializer<EmptyEngine>& e, bool t, const char* id) {}
+    static void SerializeNumber(Serializer<EmptyEngine>& e, T obj, const char* id) {}
+    static void SerializeBool(Serializer<EmptyEngine>& e, bool obj, const char* id) {}
     template<typename T>
-    static void Parse(Serializer<EmptyEngine>& e, T& t, const char* id) {}
+    static void Parse(Serializer<EmptyEngine>& e, T& obj, const char* id) {}
     template<typename T, typename E, void(*Add)(Serializer<EmptyEngine>& e, T& obj, int& n), bool(*Read)(Serializer<EmptyEngine>& e, T& obj, int64_t count)>
     static void ParseArray(Serializer<EmptyEngine>& e, T& obj, const char* id) {}
     template<typename T>
-    static void ParseNumber(Serializer<EmptyEngine>& e, T& t, const char* id) {}
-    static void ParseBool(Serializer<EmptyEngine>& e, bool& t, const char* id) {}
+    static void ParseNumber(Serializer<EmptyEngine>& e, T& obj, const char* id) {}
+    static void ParseBool(Serializer<EmptyEngine>& e, bool& obj, const char* id) {}
     template<typename F>
     static void ParseMany(Serializer<EmptyEngine>& e, F && f) { f(e, ""); }
   };

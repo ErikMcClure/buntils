@@ -38,8 +38,8 @@ namespace bss {
         new(_array + (_length++)) T(*i);
     }
     inline ~DynArray() { BASE::_setLength(_array, _length, 0); }
-    BSS_FORCEINLINE CT Add(const T& t) { _checkSize(); new(_array + _length) T(t); return _length++; }
-    BSS_FORCEINLINE CT Add(T&& t) { _checkSize(); new(_array + _length) T(std::move(t)); return _length++; }
+    BSS_FORCEINLINE CT Add(const T& item) { _checkSize(); new(_array + _length) T(item); return _length++; }
+    BSS_FORCEINLINE CT Add(T&& item) { _checkSize(); new(_array + _length) T(std::move(item)); return _length++; }
     template<typename... Args>
     BSS_FORCEINLINE CT AddConstruct(Args&&... args) { _checkSize(); new(_array + _length) T(std::forward<Args>(args)...); return _length++; }
     inline void Remove(CT index)
@@ -48,8 +48,8 @@ namespace bss {
       BASE::_remove(_array, _length--, index);
     }
     BSS_FORCEINLINE void RemoveLast() { Remove(_length - 1); }
-    BSS_FORCEINLINE void Insert(const T& t, CT index = 0) { _insert(t, index); }
-    BSS_FORCEINLINE void Insert(T&& t, CT index = 0) { _insert(std::move(t), index); }
+    BSS_FORCEINLINE void Insert(const T& item, CT index = 0) { _insert(item, index); }
+    BSS_FORCEINLINE void Insert(T&& item, CT index = 0) { _insert(std::move(item), index); }
     BSS_FORCEINLINE void Set(const Slice<const T, CT>& slice) { Set(slice.start, slice.length); }
     BSS_FORCEINLINE void Set(const T* p, CT n)
     {
@@ -190,7 +190,7 @@ namespace bss {
         Add(*i);
     }
     inline ~DynArray() {}
-    BSS_FORCEINLINE CT Add(bool t) { _checkSize(); GetBit(_length++) = t; return _length - 1; }
+    BSS_FORCEINLINE CT Add(bool item) { _checkSize(); GetBit(_length++) = item; return _length - 1; }
     BSS_FORCEINLINE CT AddConstruct() { _checkSize(); _array[_length] = false; return _length++; }
     inline void Remove(CT index)
     {
@@ -199,11 +199,11 @@ namespace bss {
       --_length;
     }
     BSS_FORCEINLINE void RemoveLast() { --_length; }
-    BSS_FORCEINLINE void Insert(bool t, CT index = 0)
+    BSS_FORCEINLINE void Insert(bool item, CT index = 0)
     {
       _shiftInsert(index);
       ++_length;
-      GetBit(index) = t;
+      GetBit(index) = item;
     }
     BSS_FORCEINLINE bool Empty() const { return !_length; }
     BSS_FORCEINLINE void Clear() { SetLength(0); }
@@ -352,10 +352,10 @@ namespace bss {
     inline ArbitraryArray(ArbitraryArray&& mov) : BASE(std::move(mov)), _length(mov._length), _element(mov._element) {}
     inline ArbitraryArray(CT size = 0, CT element = 1) : BASE(size*element), _length(0), _element(element) {}
     template<typename T>
-    inline CT Add(const T& t)
+    inline CT Add(const T& item)
     {
       if((_length*_element) >= _capacity) BASE::_setCapacity(T_FBNEXT(_length)*_element);
-      memcpy(_array + (_length*_element), &t, std::min<CT>(sizeof(T), _element));
+      memcpy(_array + (_length*_element), &item, std::min<CT>(sizeof(T), _element));
       return _length++;
     }
     inline void Remove(CT index)

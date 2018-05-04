@@ -22,13 +22,13 @@ namespace bss {
     static void Begin(Serializer<TOMLEngine>& e) {}
     static void End(Serializer<TOMLEngine>& e) {}
     template<typename T>
-    static void Parse(Serializer<TOMLEngine>& e, T& t, const char* id);
+    static void Parse(Serializer<TOMLEngine>& e, T& obj, const char* id);
     template<typename F>
     static void ParseMany(Serializer<TOMLEngine>& e, F && f);
     template<typename T, typename E, void (*Add)(Serializer<TOMLEngine>& e, T& obj, int& n), bool (*Read)(Serializer<TOMLEngine>& e, T& obj, int64_t count)>
     static void ParseArray(Serializer<TOMLEngine>& e, T& obj, const char* id);
     template<typename T>
-    static void ParseNumber(Serializer<TOMLEngine>& e, T& t, const char* id);
+    static void ParseNumber(Serializer<TOMLEngine>& e, T& obj, const char* id);
     static void ParseBool(Serializer<TOMLEngine>& e, bool& target, const char* id)
     {
       static const char* val = "true";
@@ -55,20 +55,20 @@ namespace bss {
     }
 
     template<typename T>
-    static void Serialize(Serializer<TOMLEngine>& e, const T& t, const char* id);
+    static void Serialize(Serializer<TOMLEngine>& e, const T& obj, const char* id);
     template<typename T>
-    static void SerializeArray(Serializer<TOMLEngine>& e, const T& t, size_t size, const char* id);
+    static void SerializeArray(Serializer<TOMLEngine>& e, const T& obj, size_t size, const char* id);
     template<typename T, size_t... S>
-    static void SerializeTuple(Serializer<TOMLEngine>& e, const T& t, const char* id, std::index_sequence<S...>);
+    static void SerializeTuple(Serializer<TOMLEngine>& e, const T& obj, const char* id, std::index_sequence<S...>);
     template<typename T>
-    static void SerializeNumber(Serializer<TOMLEngine>& e, T t, const char* id);
-    static void SerializeBool(Serializer<TOMLEngine>& e, bool t, const char* id)
+    static void SerializeNumber(Serializer<TOMLEngine>& e, T obj, const char* id);
+    static void SerializeBool(Serializer<TOMLEngine>& e, bool obj, const char* id)
     {
       if(e.engine.state == 1)
         return;
       std::ostream& s = *e.out;
       WriteTOMLId(e, id, s);
-      s << (t ? "true" : "false");
+      s << (obj ? "true" : "false");
       if(e.engine.state != STATE_INLINE_TABLE && id)
         s << std::endl;
     }
@@ -356,9 +356,9 @@ namespace bss {
     TOMLValue(const BASE& v) : BASE(v) {}
     TOMLValue(BASE&& v) : BASE(std::move(v)) {}
     template<typename T>
-    explicit TOMLValue(const T& t) : BASE(t) {}
+    explicit TOMLValue(const T& v) : BASE(v) {}
     template<typename T>
-    explicit TOMLValue(T&& t) : BASE(internal::serializer::ConvRef<TOMLValue>::Value<T, BASE>::f(t)) {}
+    explicit TOMLValue(T&& v) : BASE(internal::serializer::ConvRef<TOMLValue>::Value<T, BASE>::f(v)) {}
     ~TOMLValue() {}
     BASE& operator=(const BASE& right) { BASE::operator=(right); return *this; }
     BASE& operator=(BASE&& right) { BASE::operator=(std::move(right)); return *this; }
@@ -407,25 +407,30 @@ namespace bss {
     static const char TIME[] = "%H:%M:%S";
     static const char ZONE[] = "%H:%M";
     const std::time_get<char>& tg = std::use_facet<std::time_get<char>>(s.getloc());
+
     std::tm t = { 0 };
     std::ios_base::iostate err = std::ios_base::goodbit;
     TOMLEngine::ParseTOMLEatWhitespace(s);
     tg.get(s, 0, s, err, &t, DATE, std::end(DATE) - 1);
+
     if(err == std::ios_base::goodbit)
     {
       if(s.peek() == 'T')
       {
         s.get();
         tg.get(s, 0, s, err, &t, TIME, std::end(TIME) - 1);
+
         if(err == std::ios_base::goodbit)
         {
           char sign = s.peek();
+
           if(sign == '+' || sign == '-')
           {
             s.get();
             std::tm tz = { 0 };
             tg.get(s, 0, s, err, &tz, ZONE, std::end(ZONE) - 1);
             std::chrono::minutes offset(0);
+
             if(err == std::ios_base::goodbit)
               offset = (sign == '+' ? 1 : -1) * (std::chrono::hours{ tz.tm_hour } +std::chrono::minutes{ tz.tm_min });
 
@@ -433,6 +438,7 @@ namespace bss {
               days { DaysFromCivil(t.tm_year + 1900, t.tm_mon + 1, t.tm_mday) } +
               std::chrono::hours { t.tm_hour } +std::chrono::minutes { t.tm_min } +std::chrono::seconds { t.tm_sec } -
               offset };
+
             return;
           }
           else if(sign == 'Z')
@@ -528,8 +534,10 @@ namespace bss {
       target = 0.0;
       TOMLEngine::ParseNumber<double>(e, target.get<double>(), 0);
       double ipart;
+
       if(modf(target.get<double>(), &ipart) == 0.0)
         target = (int64_t)ipart;
+
       break;
     case 't':
     case 'f':
@@ -545,15 +553,15 @@ namespace bss {
   inline void ParseTOML(T& obj, const char* s) { std::istringstream ss(s); ParseTOML<T>(obj, ss); }
 
   template<typename T>
-  void TOMLEngine::Parse(Serializer<TOMLEngine>& e, T& t, const char* id)
+  void TOMLEngine::Parse(Serializer<TOMLEngine>& e, T& obj, const char* id)
   {
     if(e.engine.state == STATE_BEGIN && id && id[0])
     {
-      TOMLWrapper<T> wrap(t, id);
+      TOMLWrapper<T> wrap(obj, id);
       ParseTOMLBase<TOMLWrapper<T>>(e, wrap, *e.in);
     }
     else
-      ParseTOMLBase<T>(e, t, *e.in);
+      ParseTOMLBase<T>(e, obj, *e.in);
   }
 
   template<typename T, typename E, void (*Add)(Serializer<TOMLEngine>& e, T& obj, int& n), bool (*Read)(Serializer<TOMLEngine>& e, T& obj, int64_t count)>
@@ -640,7 +648,7 @@ namespace bss {
   }
 
   template<typename T>
-  void TOMLEngine::SerializeArray(Serializer<TOMLEngine>& e, const T& t, size_t size, const char* id)
+  void TOMLEngine::SerializeArray(Serializer<TOMLEngine>& e, const T& obj, size_t size, const char* id)
   {
     if(e.engine.state == STATE_TABLE)
       return;
@@ -650,8 +658,8 @@ namespace bss {
     internal::serializer::PushValue<bool> push(e.engine.first, true);
     s << '[';
 
-    auto begin = std::begin(t);
-    auto end = std::end(t);
+    auto begin = std::begin(obj);
+    auto end = std::end(obj);
     for(; begin != end; ++begin)
       Serializer<TOMLEngine>::ActionBind<remove_cvref_t<decltype(*begin)>>::Serialize(e, *begin, 0);
 
@@ -661,7 +669,7 @@ namespace bss {
   }
 
   template<typename T, size_t... S>
-  void TOMLEngine::SerializeTuple(Serializer<TOMLEngine>& e, const T& t, const char* id, std::index_sequence<S...>)
+  void TOMLEngine::SerializeTuple(Serializer<TOMLEngine>& e, const T& obj, const char* id, std::index_sequence<S...>)
   {
     if(e.engine.state == STATE_TABLE)
       return;
@@ -671,7 +679,7 @@ namespace bss {
     internal::serializer::PushValue<bool> push(e.engine.first, true);
     s << '[';
 
-    int X[] = { (Serializer<TOMLEngine>::ActionBind<std::tuple_element_t<S, T>>::Serialize(e, std::get<S>(t), 0), 0)... };
+    int X[] = { (Serializer<TOMLEngine>::ActionBind<std::tuple_element_t<S, T>>::Serialize(e, std::get<S>(obj), 0), 0)... };
 
     s << ']';
     if(e.engine.state != STATE_INLINE_TABLE && id)

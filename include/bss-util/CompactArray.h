@@ -43,9 +43,9 @@ namespace bss {
       SetLength(list.size());
       auto end = list.end();
       CT j = 0;
-      CT l = Length();
+      CT len = Length();
 
-      for(auto i = list.begin(); i != end && j < l; ++i)
+      for(auto i = list.begin(); i != end && j < len; ++i)
         new(_array + (j++)) T(*i);
     }
     inline ~CompactArray() 
@@ -53,18 +53,18 @@ namespace bss {
       if(!(_length&COMPACTFLAG) && _array != 0)
         Alloc::deallocate(_array, _capacity);
     }
-    inline CT Add(T t) 
+    inline CT Add(T item) 
     {
       SetCapacity(Length() + 1);
-      new(end()) T(t); 
+      new(end()) T(item);
       return (_length++)&COMPACTMASK; 
     }
     inline void Remove(CT index) { RemoveRangeSimple<T, CT>(begin(), (_length--)&COMPACTMASK, index, 1); }
     BSS_FORCEINLINE void RemoveLast() { Remove(Length() - 1); }
-    BSS_FORCEINLINE void Insert(T t, CT index = 0)
+    BSS_FORCEINLINE void Insert(T item, CT index = 0)
     {
       SetCapacity(Length() + 1);
-      InsertRangeSimple<T, CT>(begin(), (_length++)&COMPACTMASK, index, &t, 1);
+      InsertRangeSimple<T, CT>(begin(), (_length++)&COMPACTMASK, index, &item, 1);
     }
     BSS_FORCEINLINE void Set(const Slice<const T, CT>& slice) { Set(slice.start, slice.length); }
     BSS_FORCEINLINE void Set(const T* p, CT n)

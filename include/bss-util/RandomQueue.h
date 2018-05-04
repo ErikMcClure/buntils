@@ -24,8 +24,8 @@ namespace bss {
     RandomQueue(const RandomQueue& copy) = default;
     RandomQueue(RandomQueue&& mov) = default;
     explicit RandomQueue(CT size = 0) : BASE(size) {}
-    BSS_FORCEINLINE void Push(const T& t) { BASE::Add(t); }
-    BSS_FORCEINLINE void Push(T&& t) { BASE::Add(std::move(t)); }
+    BSS_FORCEINLINE void Push(const T& item) { BASE::Add(item); }
+    BSS_FORCEINLINE void Push(T&& item) { BASE::Add(std::move(item)); }
     template<class ENGINE>
     inline T Pop(ENGINE& e)
     {

@@ -71,8 +71,8 @@ namespace bss {
         Alloc::deallocate(tmp, 1);
       }
     }
-    BSS_FORCEINLINE void Push(const T& t) { _produce<const T&>(t); }
-    BSS_FORCEINLINE void Push(T&& t) { _produce<T&&>(std::move(t)); }
+    BSS_FORCEINLINE void Push(const T& item) { _produce<const T&>(item); }
+    BSS_FORCEINLINE void Push(T&& item) { _produce<T&&>(std::move(item)); }
     inline bool Pop(T& result)
     {
       QNODE* div = _div.load(std::memory_order_acquire);
@@ -102,11 +102,11 @@ namespace bss {
 
   protected:
     template<typename U>
-    void _produce(U && t)
+    void _produce(U && item)
     {
       QNODE* last = _last.load(std::memory_order_acquire);
       last->next = Alloc::allocate(1);
-      new((QNODE*)last->next) QNODE(std::forward<U>(t));
+      new((QNODE*)last->next) QNODE(std::forward<U>(item));
       _last.store(last->next, std::memory_order_release); // publish it
       internal::LocklessQueue_Length<LENGTH>::_incLength(); // If we are tracking length, atomically increment it
 
@@ -164,8 +164,8 @@ namespace bss {
         Alloc::deallocate(tmp, 1);
       }
     }
-    BSS_FORCEINLINE void Push(const T& t) { _produce<const T&>(t); }
-    BSS_FORCEINLINE void Push(T&& t) { _produce<T&&>(std::move(t)); }
+    BSS_FORCEINLINE void Push(const T& item) { _produce<const T&>(item); }
+    BSS_FORCEINLINE void Push(T&& item) { _produce<T&&>(std::move(item)); }
     inline bool Pop(T& result)
     {
       if(!_div->next) return false; // Remove some contending pressure
@@ -201,10 +201,10 @@ namespace bss {
     }
   protected:
     template<typename U>
-    void _produce(U && t)
+    void _produce(U && item)
     {
       QNODE* nval = Alloc::allocate(1);
-      new(nval) QNODE(std::forward<U>(t));
+      new(nval) QNODE(std::forward<U>(item));
 
       while(_pflag.test_and_set(std::memory_order_acquire));
       _last->next = nval;
@@ -228,8 +228,8 @@ namespace bss {
     MicroLockQueue(MicroLockQueue&& mov) : internal::LocklessQueue_Length<LENGTH>(std::move(mov)), _div(mov._div), _last(mov._last), _alloc(std::move(mov._alloc)) { mov._div=mov._last=0; }
     inline MicroLockQueue() { _last.store(_div.p = _alloc.Alloc(1), std::memory_order_relaxed); new(_div.p) QNODE(); assert(_last.is_lock_free());}
     inline ~MicroLockQueue() { } // Don't need to clean up because the allocator will destroy everything by itself
-    BSS_FORCEINLINE void Push(const T& t) { _produce<const T&>(t); }
-    BSS_FORCEINLINE void Push(T&& t) { _produce<T&&>(std::move(t)); }
+    BSS_FORCEINLINE void Push(const T& item) { _produce<const T&>(item); }
+    BSS_FORCEINLINE void Push(T&& item) { _produce<T&&>(std::move(item)); }
     inline bool Pop(T& result)
     {
       bss_PTag<QNODE> ref ={0, 0};

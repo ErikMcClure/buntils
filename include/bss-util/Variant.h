@@ -60,9 +60,9 @@ namespace bss {
     Variant(const Variant& v) : _tag(v._tag) { _constructU<Variant, Arg, Args...>(v); }
     Variant(Variant&& v) : _tag(v._tag) { _constructU<Variant, Arg, Args...>(std::move(v)); }
     template<typename T>
-    explicit Variant(const T& t) { _construct(t); }
+    explicit Variant(const T& v) { _construct(v); }
     template<typename T>
-    explicit Variant(T&& t) { _construct(std::forward<T>(t)); }
+    explicit Variant(T&& v) { _construct(std::forward<T>(v)); }
     ~Variant() { _destruct(); }
     Variant& operator=(const Variant& right) { _assign(right); return *this; }
     Variant& operator=(Variant&& right) { _assign(std::move(right)); return *this; }

@@ -272,12 +272,12 @@ namespace bss {
       static Trie<uint16_t> trie(sizeof...(Args), (args.first)...);
 
       if(out) // Serializing
-        int X[] = { (ActionBind<Args>::Serialize(*this, args.second, args.first), 0)... };
+        (ActionBind<Args>::Serialize(*this, args.second, args.first), ...);
 
       if(in) // Parsing
       {
         if(Engine::Ordered())
-          int X[] = { (ActionBind<Args>::Parse(*this, args.second, args.first), 0)... };
+          (ActionBind<Args>::Parse(*this, args.second, args.first), ...);
         else
         {
           auto tmp = std::make_tuple<std::pair<const char*, Args&>...>(std::move(args)...);

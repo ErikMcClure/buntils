@@ -192,8 +192,8 @@ namespace bss {
     return x - floor(x / m)*m;
   }
 
-  /* Trims space from left end of string by returning a different pointer. It is possible to use const char or const wchar_t as a type
-     here because the string itself is not modified. */
+  // Trims space from left end of string by returning a different pointer. It is possible to use const char or const wchar_t as a type
+  // here because the string itself is not modified.
   template<typename T>
   inline T* strltrim(T* str) noexcept
   {
@@ -220,12 +220,6 @@ namespace bss {
   {
     return strrtrim(strltrim(str));
   }
-
-  template<typename T>
-  BSS_FORCEINLINE constexpr T max_args(T arg) noexcept { return arg; }
-
-  template<typename T, typename ...Tx>
-  BSS_FORCEINLINE constexpr T max_args(T arg, Tx... args) noexcept { return std::max<T>(arg, max_args<Tx...>(args...)); }
 
   template<typename T>
   inline int ToArgV(T** argv, T* cmdline)
@@ -399,14 +393,16 @@ namespace bss {
   // Returns -1.0 if the sign bit is negative, or 1.0 if it is positive.
   BSS_FORCEINLINE float fsign(float f) noexcept
   {
-    uint32_t i = (reinterpret_cast<uint32_t&>(f)&(1u << ((sizeof(float) << 3) - 1))) | 0x3f800000;
-    return reinterpret_cast<float&>(i);
+    union { float f; uint32_t i; } u = { f };
+    u.i = (u.i&(1u << ((sizeof(float) << 3) - 1))) | 0x3f800000;
+    return u.f;
   }
 
   BSS_FORCEINLINE double fsign(double f) noexcept
   {
-    uint64_t i = (reinterpret_cast<uint64_t&>(f)&(1ULL << ((sizeof(double) << 3) - 1))) | 0x3FF0000000000000;
-    return reinterpret_cast<double&>(i);
+    union { double f; uint64_t i; } u = { f };
+    u.i = (u.i&(1ULL << ((sizeof(double) << 3) - 1))) | 0x3FF0000000000000;
+    return u.f;
   }
 
   // Gets the shortest distance between two angles in radians
@@ -525,25 +521,25 @@ namespace bss {
 
   // This is a super fast floating point comparison function with a significantly higher tolerance and no
   // regard towards the size of the floats.
-  inline bool fWideCompare(float fleft, float fright) noexcept
+  inline bool fWideCompare(float leftf, float rightf) noexcept
   {
-    int32_t left = *reinterpret_cast<int32_t*>(&fleft); //This maps our float to an int so we can do bitshifting operations on it
-    int32_t right = *reinterpret_cast<int32_t*>(&fright); //see above
-    uint8_t dif = abs((0x7F800000 & left) - (0x7F800000 & right)) >> 23; // This grabs the 8 exponent bits and subtracts them.
+    union { float f; int32_t i; } left = { leftf };
+    union { float f; int32_t i; } right = { rightf };
+    uint8_t dif = abs((0x7F800000 & left.i) - (0x7F800000 & right.i)) >> 23; // This grabs the 8 exponent bits and subtracts them.
     if(dif > 1) // An exponent difference of 2 or greater means the numbers are different.
       return false;
-    return !dif ? ((0x007FFF80 & left) == (0x007FFF80 & right)) : !(abs((0x007FFF80 & left) - (0x007FFF80 & right)) - 0x007FFF80); //If there is no difference in exponent we tear off the last 7 bits and compare the value, otherwise we tear off the last 7 bits, subtract, and then subtract the highest possible significand to compensate for the extra exponent.
+    return !dif ? ((0x007FFF80 & left.i) == (0x007FFF80 & right.i)) : !(abs((0x007FFF80 & left.i) - (0x007FFF80 & right.i)) - 0x007FFF80); //If there is no difference in exponent we tear off the last 7 bits and compare the value, otherwise we tear off the last 7 bits, subtract, and then subtract the highest possible significand to compensate for the extra exponent.
   }
 
   // Highly optimized traditional tolerance based approach to comparing floating point numbers, found here: http://www.randydillon.org/Papers/2007/everfast.htm
   inline bool fCompare(float af, float bf, int32_t maxDiff = 1) noexcept
   {
+    union { float f; int32_t i; } a = { af };
+    union { float f; int32_t i; } b = { bf };
     //assert(af!=0.0f && bf!=0.0f); // Use fSmall for this
-    int32_t ai = *reinterpret_cast<int32_t*>(&af);
-    int32_t bi = *reinterpret_cast<int32_t*>(&bf);
-    int32_t test = (-(int32_t)(((uint32_t)(ai^bi)) >> 31));
+    int32_t test = (-(int32_t)(((uint32_t)(a.i^b.i)) >> 31));
     assert((0 == test) || (0xFFFFFFFF == (uint32_t)test));
-    int32_t diff = ((ai + test) ^ (test & 0x7fffffff)) - bi;
+    int32_t diff = ((a.i + test) ^ (test & 0x7fffffff)) - b.i;
     int32_t v1 = maxDiff + diff;
     int32_t v2 = maxDiff - diff;
     return (v1 | v2) >= 0;
@@ -551,12 +547,12 @@ namespace bss {
 
   inline bool fCompare(double af, double bf, int64_t maxDiff = 1) noexcept
   {
+    union { double f; int64_t i; } a = { af };
+    union { double f; int64_t i; } b = { bf };
     //assert(af!=0.0 && bf!=0.0); // Use fSmall for this
-    int64_t ai = *reinterpret_cast<int64_t*>(&af);
-    int64_t bi = *reinterpret_cast<int64_t*>(&bf);
-    int64_t test = (-(int64_t)(((uint64_t)(ai^bi)) >> 63));
+    int64_t test = (-(int64_t)(((uint64_t)(a.i^b.i)) >> 63));
     assert((0 == test) || (0xFFFFFFFFFFFFFFFF == (uint64_t)test));
-    int64_t diff = ((ai + test) ^ (test & 0x7fffffffffffffff)) - bi;
+    int64_t diff = ((a.i + test) ^ (test & 0x7fffffffffffffff)) - b.i;
     int64_t v1 = maxDiff + diff;
     int64_t v2 = maxDiff - diff;
     return (v1 | v2) >= 0;
@@ -565,17 +561,19 @@ namespace bss {
   // This determines if a float is sufficiently close to 0
   BSS_FORCEINLINE bool fSmall(float f, float eps = FLT_EPS) noexcept
   {
-    uint32_t i = ((*reinterpret_cast<uint32_t*>(&f)) & 0x7FFFFFFF); //0x7FFFFFFF strips off the sign bit (which is always the highest bit)
-    uint32_t e = *reinterpret_cast<uint32_t*>(&eps);
-    return i <= e;
+    union { float f; uint32_t i; } u = { f };
+    union { float f; uint32_t i; } e = { eps };
+    u.i = (u.i & 0x7FFFFFFF); //0x7FFFFFFF strips off the sign bit (which is always the highest bit)
+    return u.i <= e.i;
   }
 
   // This determines if a double is sufficiently close to 0
   BSS_FORCEINLINE bool fSmall(double f, double eps = DBL_EPS) noexcept
   {
-    uint64_t i = ((*reinterpret_cast<uint64_t*>(&f)) & 0x7FFFFFFFFFFFFFFF); //0x7FFFFFFFFFFFFFFF strips off the sign bit (which is always the highest bit)
-    uint64_t e = *reinterpret_cast<uint64_t*>(&eps);
-    return i <= e;
+    union { double f; uint64_t i; } u = { f };
+    union { double f; uint64_t i; } e = { eps };
+    u.i = (u.i & 0x7FFFFFFFFFFFFFFF); //0x7FFFFFFFFFFFFFFF strips off the sign bit (which is always the highest bit)
+    return u.i <= e.i;
   }
 
   inline bool fCompareSmall(float af, float bf, int32_t maxDiff = 1, float eps = FLT_EPS) noexcept
@@ -606,17 +604,13 @@ namespace bss {
   inline float fFastSqrt(float number) noexcept
   {
     const float f = 1.5F;
-    int32_t i;
-    float x, y;
 
-    x = number * 0.5F;
-    y = number;
-    i = *reinterpret_cast<int32_t*>(&y);
-    i = 0x5f3759df - (i >> 1);
-    y = *(float *)&i;
-    y = y * (f - (x * y * y));
-    y = y * (f - (x * y * y)); //extra iteration for added accuracy
-    return number * y;
+    float x = number * 0.5F;
+    union { float f; int32_t i; } y = { number };
+    y.i = 0x5f3759df - (y.i >> 1);
+    y.f = y.f * (f - (x * y.f * y.f));
+    y.f = y.f * (f - (x * y.f * y.f)); //extra iteration for added accuracy
+    return number * y.f;
   }
 
   // Adaptation of the class fast square root approximation for double precision, based on http://www.azillionmonkeys.com/qed/sqroot.html
@@ -1025,7 +1019,7 @@ namespace bss {
   struct is_specialization_of : std::false_type {};
   template <template <typename...> class Template, typename... Args>
   struct is_specialization_of<Template<Args...>, Template> : std::true_type {};
-
+  
   template <typename T>
   struct is_specialization_of_array : std::false_type {};
   template <typename T, int N>

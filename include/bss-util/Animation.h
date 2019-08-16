@@ -118,8 +118,8 @@ namespace bss {
     typedef A ANI;
 
   protected:
-    template<size_t ...S> BSS_FORCEINLINE void _interpolate(std::index_sequence<S...>) { int X[] = { (std::get<S>(_states).template Interpolate<A, T>(_ani, _dest, _time), 0)... }; }
-    template<size_t ...S> BSS_FORCEINLINE void _reset(std::index_sequence<S...>) { int X[] = { (std::get<S>(_states).template Reset<T>(_dest), 0)... }; }
+    template<size_t ...S> BSS_FORCEINLINE void _interpolate(std::index_sequence<S...>) { (std::get<S>(_states).template Interpolate<A, T>(_ani, _dest, _time), ...); }
+    template<size_t ...S> BSS_FORCEINLINE void _reset(std::index_sequence<S...>) { (std::get<S>(_states).template Reset<T>(_dest), ...); }
     template<int I, typename X, typename... Xs>
     BSS_FORCEINLINE void _getvalues(VALUES& v) const
     {
@@ -536,7 +536,7 @@ namespace bss {
     static const int STATEALIGN = alignof(AniState<AniStateBase, Animation<Args...>, typename Args::STATE...>);
 
   protected:
-    template<size_t ...S> BSS_FORCEINLINE double _calclength(std::index_sequence<S...>) const { return bss::max_args((std::get<S>(*this).End())...); }
+    template<size_t ...S> BSS_FORCEINLINE double _calclength(std::index_sequence<S...>) const { return std::max({ (std::get<S>(*this).End())... }); }
     template<class T> BSS_FORCEINLINE void _checklength() { _calc = std::max<double>(_calc, std::get<T>(*this).End()); }
   };
 

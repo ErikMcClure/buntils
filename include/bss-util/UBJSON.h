@@ -446,7 +446,7 @@ namespace bss {
       UBJSONTuple::WriteTypeCount(s, UBJSONTuple::TYPE_NONE, sizeof...(S));
 
       internal::serializer::PushValue<UBJSONTuple::TYPE> push(e.engine.type, UBJSONTuple::TYPE_NONE);
-      int X[] = { (Serializer<UBJSONEngine>::ActionBind<std::tuple_element_t<S, T>>::Serialize(e, std::get<S>(t), 0), 0)... };
+      (Serializer<UBJSONEngine>::ActionBind<std::tuple_element_t<S, T>>::Serialize(e, std::get<S>(t), 0), ...);
     }
 
     template<typename T>

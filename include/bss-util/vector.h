@@ -15,7 +15,7 @@ namespace bss {
 
   // Find the dot product of two n-dimensional vectors
   template<typename T, int N>
-  BSS_FORCEINLINE T NVectorDot(const T(&l)[N], const T(&r)[N])
+  [[nodiscard]] BSS_FORCEINLINE T NVectorDot(const T(&l)[N], const T(&r)[N])
   {
     T ret = 0;
     for(int i = 0; i < N; ++i)
@@ -24,20 +24,20 @@ namespace bss {
   }
 
   template<>
-  BSS_FORCEINLINE float NVectorDot<float, 4>(const float(&l)[4], const float(&r)[4])
+  [[nodiscard]] BSS_FORCEINLINE float NVectorDot<float, 4>(const float(&l)[4], const float(&r)[4])
   {
     return (sseVec(l)*sseVec(r)).Sum();
   }
 
   template<>
-  BSS_FORCEINLINE int NVectorDot<int, 4>(const int(&l)[4], const int(&r)[4])
+  [[nodiscard]] BSS_FORCEINLINE int NVectorDot<int, 4>(const int(&l)[4], const int(&r)[4])
   {
     return (sseVeci(l)*sseVeci(r)).Sum();
   }
 
   // Get the squared distance between two n-dimensional vectors
   template<typename T, int N>
-  inline T NVectorDistanceSq(const T(&l)[N], const T(&r)[N])
+  [[nodiscard]] inline T NVectorDistanceSq(const T(&l)[N], const T(&r)[N])
   {
     T tp = r[0] - l[0];
     T ret = tp*tp;
@@ -49,7 +49,7 @@ namespace bss {
     return ret;
   }
   template<typename T, int N>
-  BSS_FORCEINLINE T NVectorDistance(const T(&l)[N], const T(&r)[N]) { return FastSqrt<T>(NVectorDistanceSq<T, N>(l, r)); }
+  [[nodiscard]] BSS_FORCEINLINE T NVectorDistance(const T(&l)[N], const T(&r)[N]) { return FastSqrt<T>(NVectorDistanceSq<T, N>(l, r)); }
 
   template<typename T, int N>
   BSS_FORCEINLINE void NVectorNormalize(const T(&v)[N], T(&out)[N])
@@ -68,7 +68,7 @@ namespace bss {
   }
 
   template<typename T>
-  BSS_FORCEINLINE T NVectorAbsCall(const T v)
+  [[nodiscard]] BSS_FORCEINLINE T NVectorAbsCall(const T v)
   {
     return abs((typename std::conditional<std::is_integral<T>::value, typename std::make_signed<typename std::conditional<std::is_integral<T>::value, T, int>::type>::type, T>::type)v);
   }
@@ -82,7 +82,7 @@ namespace bss {
 
   // Find the area of an n-dimensional triangle using Heron's formula
   template<typename T, int N>
-  inline T NTriangleArea(const T(&x1)[N], const T(&x2)[N], const T(&x3)[N])
+  [[nodiscard]] inline T NTriangleArea(const T(&x1)[N], const T(&x2)[N], const T(&x3)[N])
   {
     T a = NVectorDistance(x1, x2);
     T b = NVectorDistance(x1, x3);
@@ -376,7 +376,7 @@ namespace bss {
 
   // Multiply a 1x4 vector on the left with a 4x4 matrix on the right, resulting in a 1x4 vector held in an sseVec.
   template<typename T>
-  BSS_FORCEINLINE sseVecT<T> MatrixMultiply1x4(const T(&l)[4], const T(&r)[4][4])
+  [[nodiscard]] BSS_FORCEINLINE sseVecT<T> MatrixMultiply1x4(const T(&l)[4], const T(&r)[4][4])
   {
     return (sseVecT<T>(r[0])*sseVecT<T>(l[0])) + (sseVecT<T>(r[1])*sseVecT<T>(l[1])) + (sseVecT<T>(r[2])*sseVecT<T>(l[2])) + (sseVecT<T>(r[3])*sseVecT<T>(l[3]));
   }
@@ -437,22 +437,22 @@ namespace bss {
     template<typename T>
     struct BSS_COMPILER_DLLEXPORT __MatrixDeterminant<T, 2>
     {
-      BSS_FORCEINLINE static T MD(const T(&x)[2][2]) { return D(x[0][0], x[0][1], x[1][0], x[1][1]); }
-      BSS_FORCEINLINE static T D(T a, T b, T c, T d) { return (a*d) - (b*c); }
+      [[nodiscard]] BSS_FORCEINLINE static T MD(const T(&x)[2][2]) { return D(x[0][0], x[0][1], x[1][0], x[1][1]); }
+      [[nodiscard]] BSS_FORCEINLINE static T D(T a, T b, T c, T d) { return (a*d) - (b*c); }
     };
 
     template<typename T>
     struct BSS_COMPILER_DLLEXPORT __MatrixDeterminant<T, 3>
     {
-      BSS_FORCEINLINE static T MD(const T(&x)[3][3]) { return D(x[0][0], x[0][1], x[0][2], x[1][0], x[1][1], x[1][2], x[2][0], x[2][1], x[2][2]); }
-      BSS_FORCEINLINE static T D(T a, T b, T c, T d, T e, T f, T g, T h, T i) { return a*(e*i - f*h) - b*(i*d - f*g) + c*(d*h - e*g); }
+      [[nodiscard]] BSS_FORCEINLINE static T MD(const T(&x)[3][3]) { return D(x[0][0], x[0][1], x[0][2], x[1][0], x[1][1], x[1][2], x[2][0], x[2][1], x[2][2]); }
+      [[nodiscard]] BSS_FORCEINLINE static T D(T a, T b, T c, T d, T e, T f, T g, T h, T i) { return a*(e*i - f*h) - b*(i*d - f*g) + c*(d*h - e*g); }
     };
 
     template<>
     struct BSS_COMPILER_DLLEXPORT __MatrixDeterminant<float, 3>
     {
-      BSS_FORCEINLINE static float MD(const float(&x)[3][3]) { return D(x[0][0], x[0][1], x[0][2], x[1][0], x[1][1], x[1][2], x[2][0], x[2][1], x[2][2]); }
-      BSS_FORCEINLINE static float D(float a, float b, float c, float d, float e, float f, float g, float h, float i)
+      [[nodiscard]] BSS_FORCEINLINE static float MD(const float(&x)[3][3]) { return D(x[0][0], x[0][1], x[0][2], x[1][0], x[1][1], x[1][2], x[2][0], x[2][1], x[2][2]); }
+      [[nodiscard]] BSS_FORCEINLINE static float D(float a, float b, float c, float d, float e, float f, float g, float h, float i)
       {
         sseVec u(a, b, c, 0);
         sseVec v(e, i, d, f);
@@ -468,7 +468,7 @@ namespace bss {
     template<typename T>
     struct BSS_COMPILER_DLLEXPORT __MatrixDeterminant<T, 4>
     {
-      BSS_FORCEINLINE static T MD(const T(&x)[4][4])
+      [[nodiscard]] BSS_FORCEINLINE static T MD(const T(&x)[4][4])
       {
         return x[0][0] * __MatrixDeterminant<T, 3>::D(x[1][1], x[1][2], x[1][3],
           x[2][1], x[2][2], x[2][3],
@@ -489,8 +489,8 @@ namespace bss {
     struct BSS_COMPILER_DLLEXPORT __MatrixDeterminant<float, 4>
     {
       template<uint8_t I>
-      BSS_FORCEINLINE static BSS_SSE_M128 _mm_ror_ps(BSS_SSE_M128 vec) { return (((I) % 4) ? (BSS_SSE_SHUFFLE_PS(vec, vec, _MM_SHUFFLE((uint8_t)(I + 3) % 4, (uint8_t)(I + 2) % 4, (uint8_t)(I + 1) % 4, (uint8_t)(I + 0) % 4))) : vec); }
-      BSS_FORCEINLINE static float MD(const float(&x)[4][4])
+      [[nodiscard]] BSS_FORCEINLINE static BSS_SSE_M128 _mm_ror_ps(BSS_SSE_M128 vec) { return (((I) % 4) ? (BSS_SSE_SHUFFLE_PS(vec, vec, _MM_SHUFFLE((uint8_t)(I + 3) % 4, (uint8_t)(I + 2) % 4, (uint8_t)(I + 1) % 4, (uint8_t)(I + 0) % 4))) : vec); }
+      [[nodiscard]] BSS_FORCEINLINE static float MD(const float(&x)[4][4])
       {
         //   Copyright (c) 2001 Intel Corporation.
         //
@@ -531,7 +531,7 @@ namespace bss {
   }
 
   template<typename T, int N>
-  BSS_FORCEINLINE T MatrixDeterminant(const T(&x)[N][N]) { return internal::__MatrixDeterminant<T, N>::MD(x); }
+  [[nodiscard]] BSS_FORCEINLINE T MatrixDeterminant(const T(&x)[N][N]) { return internal::__MatrixDeterminant<T, N>::MD(x); }
 
   template<typename T, int N>
   BSS_FORCEINLINE void FromQuaternion(T(&q)[4], T(&out)[N][N])
@@ -596,12 +596,12 @@ namespace bss {
     inline explicit constexpr Vector(const std::array<T, N>& e) { for(int i = 0; i < N; ++i) v[i] = e[i]; }
     inline Vector(const std::initializer_list<T>& e) { int k = 0; for(const T* i = e.begin(); i != e.end() && k < N; ++i) v[k++] = *i; }
     inline constexpr Vector() {}
-    inline T Length() const { return FastSqrt<T>(Dot(*this)); }
-    inline Vector<T, N> Normalize() const { Vector<T, N> ret(*this); NVectorNormalize(v, ret.v); return ret; }
-    inline Vector<T, N> Abs() const { Vector<T, N> ret(*this); NVectorAbs(v, ret.v); return ret; }
-    inline T Dot(const Vector<T, N>& r) const { return NVectorDot<T, N>(v, r.v); }
-    inline T Distance(const Vector<T, N>& r) const { return FastSqrt<T>(DistanceSq(r)); }
-    inline T DistanceSq(const Vector<T, N>& r) const { return NVectorDistanceSq<T, N>(v, r.v); }
+    [[nodiscard]] inline T Length() const { return FastSqrt<T>(Dot(*this)); }
+    [[nodiscard]] inline Vector<T, N> Normalize() const { Vector<T, N> ret(*this); NVectorNormalize(v, ret.v); return ret; }
+    [[nodiscard]] inline Vector<T, N> Abs() const { Vector<T, N> ret(*this); NVectorAbs(v, ret.v); return ret; }
+    [[nodiscard]] inline T Dot(const Vector<T, N>& r) const { return NVectorDot<T, N>(v, r.v); }
+    [[nodiscard]] inline T Distance(const Vector<T, N>& r) const { return FastSqrt<T>(DistanceSq(r)); }
+    [[nodiscard]] inline T DistanceSq(const Vector<T, N>& r) const { return NVectorDistanceSq<T, N>(v, r.v); }
     template<int K> inline void Outer(const Vector<T, K>& r, T(&out)[N][K]) const { MatrixMultiply<T, N, 1, K>(v_column, r.v_row, out); }
 
     inline Vector<T, N>& operator=(const Vector<T, N>& r) { for(int i = 0; i < N; ++i) v[i] = r.v[i]; return *this; }
@@ -634,16 +634,16 @@ namespace bss {
     inline Vector(const std::initializer_list<T>& e) { int k = 0; for(const T* i = e.begin(); i != e.end() && k < 2; ++i) v[k++] = *i; }
     inline constexpr Vector(T X, T Y) : x(X), y(Y) {}
     inline constexpr Vector() {}
-    inline T Length() const { return FastSqrt<T>(Dot(*this)); }
-    inline Vector<T, 2> Normalize() const { T l = Length(); return Vector<T, 2>(x / l, y / l); }
-    inline Vector<T, 2> Abs() const { return Vector<T, 2>(NVectorAbsCall(x), NVectorAbsCall(y)); }
-    inline T Dot(const Vector<T, 2>& r) const { return DotProduct(r.x, r.y, x, y); }
-    inline T Distance(const Vector<T, 2>& r) const { return FastSqrt<T>(DistanceSq(r)); }
-    inline T DistanceSq(const Vector<T, 2>& r) const { return bss::DistSqr<T>(r.x, r.y, x, y); }
-    inline Vector<T, 2> Rotate(T R, const Vector<T, 2>& center) const { return Rotate(R, center.x, center.y); }
-    inline Vector<T, 2> Rotate(T R, T X, T Y) const { T tx = x; T ty = y; RotatePoint(tx, ty, R, X, Y); return Vector<T, 2>(tx, ty); }
-    inline T Cross(const Vector<T, 2>& r) const { return CrossProduct(r.x, r.y, x, y); }
-    inline T Cross(T X, T Y) const { return CrossProduct(X, Y, x, y); }
+    [[nodiscard]] inline T Length() const { return FastSqrt<T>(Dot(*this)); }
+    [[nodiscard]] inline Vector<T, 2> Normalize() const { T l = Length(); return Vector<T, 2>(x / l, y / l); }
+    [[nodiscard]] inline Vector<T, 2> Abs() const { return Vector<T, 2>(NVectorAbsCall(x), NVectorAbsCall(y)); }
+    [[nodiscard]] inline T Dot(const Vector<T, 2>& r) const { return DotProduct(r.x, r.y, x, y); }
+    [[nodiscard]] inline T Distance(const Vector<T, 2>& r) const { return FastSqrt<T>(DistanceSq(r)); }
+    [[nodiscard]] inline T DistanceSq(const Vector<T, 2>& r) const { return bss::DistSqr<T>(r.x, r.y, x, y); }
+    [[nodiscard]] inline Vector<T, 2> Rotate(T R, const Vector<T, 2>& center) const { return Rotate(R, center.x, center.y); }
+    [[nodiscard]] inline Vector<T, 2> Rotate(T R, T X, T Y) const { T tx = x; T ty = y; RotatePoint(tx, ty, R, X, Y); return Vector<T, 2>(tx, ty); }
+    [[nodiscard]] inline T Cross(const Vector<T, 2>& r) const { return CrossProduct(r.x, r.y, x, y); }
+    [[nodiscard]] inline T Cross(T X, T Y) const { return CrossProduct(X, Y, x, y); }
     template<int K> inline void Outer(const Vector<T, K>& r, T(&out)[2][K]) const { MatrixMultiply<T, 2, 1, K>(v_column, r.v_row, out); }
 
     template<typename U> inline Vector<T, 2>& operator=(const Vector<U, 2>& r) { x = (T)r.x; y = (T)r.y; return *this; }
@@ -681,14 +681,14 @@ namespace bss {
     inline Vector(const std::initializer_list<T>& e) { int k = 0; for(const T* i = e.begin(); i != e.end() && k < 3; ++i) v[k++] = *i; }
     inline constexpr Vector(T X, T Y, T Z) : x(X), y(Y), z(Z) {}
     inline constexpr Vector() {}
-    inline T Length() const { return FastSqrt((x*x) + (y*y) + (z*z)); }
-    inline Vector<T, 3> Normalize() const { T l = Length(); return Vector<T, 3>(x / l, y / l, z / l); }
-    inline Vector<T, 3> Abs() const { return Vector<T, 3>(NVectorAbsCall(x), NVectorAbsCall(y), NVectorAbsCall(z)); }
-    inline T Dot(const Vector<T, 3>& r) const { return (x*r.x) + (y*r.y) + (z*r.z); }
-    inline T Distance(const Vector<T, 3>& r) const { return FastSqrt<T>(DistanceSq(r)); }
-    inline T DistanceSq(const Vector<T, 3>& r) const { T tz = (r.z - z); T ty = (r.y - y); T tx = (r.x - x); return (T)((tx*tx) + (ty*ty) + (tz*tz)); }
-    inline Vector<T, 3> Cross(const Vector<T, 3>& r) const { return Cross(r.x, r.y, r.z); }
-    inline Vector<T, 3> Cross(T X, T Y, T Z) const { return Vector<T, 3>(y*Z - z*Y, z*X - x*Z, x*Y - X*y); }
+    [[nodiscard]] inline T Length() const { return FastSqrt((x*x) + (y*y) + (z*z)); }
+    [[nodiscard]] inline Vector<T, 3> Normalize() const { T l = Length(); return Vector<T, 3>(x / l, y / l, z / l); }
+    [[nodiscard]] inline Vector<T, 3> Abs() const { return Vector<T, 3>(NVectorAbsCall(x), NVectorAbsCall(y), NVectorAbsCall(z)); }
+    [[nodiscard]] inline T Dot(const Vector<T, 3>& r) const { return (x*r.x) + (y*r.y) + (z*r.z); }
+    [[nodiscard]] inline T Distance(const Vector<T, 3>& r) const { return FastSqrt<T>(DistanceSq(r)); }
+    [[nodiscard]] inline T DistanceSq(const Vector<T, 3>& r) const { T tz = (r.z - z); T ty = (r.y - y); T tx = (r.x - x); return (T)((tx*tx) + (ty*ty) + (tz*tz)); }
+    [[nodiscard]] inline Vector<T, 3> Cross(const Vector<T, 3>& r) const { return Cross(r.x, r.y, r.z); }
+    [[nodiscard]] inline Vector<T, 3> Cross(T X, T Y, T Z) const { return Vector<T, 3>(y*Z - z*Y, z*X - x*Z, x*Y - X*y); }
     template<int K> inline void Outer(const Vector<T, K>& r, T(&out)[3][K]) const { MatrixMultiply<T, 3, 1, K>(v_column, r.v_row, out); }
 
     template<typename U> inline Vector<T, 3>& operator=(const Vector<U, 3>& r) { x = (T)r.x; y = (T)r.y; z = (T)r.z; return *this; }
@@ -728,12 +728,12 @@ namespace bss {
     inline Vector(const std::initializer_list<T>& e) { int k = 0; for(const T* i = e.begin(); i != e.end() && k < 4; ++i) v[k++] = *i; }
     inline constexpr Vector(T X, T Y, T Z, T W) : x(X), y(Y), z(Z), w(W) {}
     inline constexpr Vector() {}
-    inline T Length() const { return FastSqrt<T>(Dot(*this)); }
-    inline Vector<T, 4> Normalize() const { Vector<T, 4> ret; NVectorNormalize<T, 4>(v, ret.v); return ret; }
-    inline Vector<T, 4> Abs() const { return Vector<T, 4>(NVectorAbsCall(x), NVectorAbsCall(y), NVectorAbsCall(z), NVectorAbsCall(w)); }
-    inline T Dot(const Vector<T, 4>& right) const { return NVectorDot<T, 4>(v, right.v); }
-    inline T Distance(const Vector<T, 4>& right) const { return FastSqrt<T>(DistanceSq(right)); }
-    inline T DistanceSq(const Vector<T, 4>& right) const { T tz = (right.z - z); T ty = (right.y - y); T tx = (right.x - x); T tw = (right.w - w); return (T)((tx*tx) + (ty*ty) + (tz*tz) + (tw*tw)); }
+    [[nodiscard]] inline T Length() const { return FastSqrt<T>(Dot(*this)); }
+    [[nodiscard]] inline Vector<T, 4> Normalize() const { Vector<T, 4> ret; NVectorNormalize<T, 4>(v, ret.v); return ret; }
+    [[nodiscard]] inline Vector<T, 4> Abs() const { return Vector<T, 4>(NVectorAbsCall(x), NVectorAbsCall(y), NVectorAbsCall(z), NVectorAbsCall(w)); }
+    [[nodiscard]] inline T Dot(const Vector<T, 4>& right) const { return NVectorDot<T, 4>(v, right.v); }
+    [[nodiscard]] inline T Distance(const Vector<T, 4>& right) const { return FastSqrt<T>(DistanceSq(right)); }
+    [[nodiscard]] inline T DistanceSq(const Vector<T, 4>& right) const { T tz = (right.z - z); T ty = (right.y - y); T tx = (right.x - x); T tw = (right.w - w); return (T)((tx*tx) + (ty*ty) + (tz*tz) + (tw*tw)); }
     template<int K> inline void Outer(const Vector<T, K>& right, T(&out)[4][K]) const { MatrixMultiply<T, 4, 1, K>(v_column, right.v_row, out); }
 
     template<typename U> inline Vector<T, 4>& operator=(const Vector<U, 4>& copy) { x = (T)copy.x; y = (T)copy.y; z = (T)copy.z; w = (T)copy.w; return *this; }
@@ -812,7 +812,7 @@ namespace bss {
     inline constexpr Matrix() {}
     inline void Transpose(T(&out)[N][M]) const { Transpose(v, out); }
     inline void Transpose(Matrix& mat) const { Transpose(v, mat.v); }
-    inline Matrix<T, M, N> Transpose() const { Matrix<T, M, N> m; Transpose(v, m.v); return m; }
+    [[nodiscard]] inline Matrix<T, M, N> Transpose() const { Matrix<T, M, N> m; Transpose(v, m.v); return m; }
 
     inline Matrix<T, M, N>& operator=(const Matrix<T, M, N>& r) { memcpy(v, r.v, sizeof(T)*M*N); return *this; }
     template<typename U> inline Matrix<T, M, N>& operator=(const Matrix<U, M, N>& r) { T* p = v; U* cp = r.v; for(int i = 0; i < M*N; ++i) p[i] = (T)cp[i]; return *this; }
@@ -865,11 +865,11 @@ namespace bss {
     inline constexpr Matrix() {}
     inline void Transpose(Matrix& mat) const { Transpose(mat.v); }
     inline void Transpose(T(&out)[2][2]) const { SetSubMatrix<T, 2, 2, true>::M2x2(out, a, b, c, d); }
-    inline Matrix Transpose() const { Matrix m; Transpose(v, m.v); return m; }
-    inline T Determinant() const { return MatrixDeterminant<T, 2>(v); }
+    [[nodiscard]] inline Matrix Transpose() const { Matrix m; Transpose(v, m.v); return m; }
+    [[nodiscard]] inline T Determinant() const { return MatrixDeterminant<T, 2>(v); }
     inline void Inverse(Matrix& mat) const { Inverse(mat.v); }
     inline void Inverse(T(&out)[2][2]) const { T invd = ((T)1) / Determinant(); SetSubMatrix<T, 2, 2>::M2x2(out, d*invd, -b*invd, -c*invd, a*invd); }
-    inline Matrix Inverse() const { Matrix m; Inverse(m.v); return m; }
+    [[nodiscard]] inline Matrix Inverse() const { Matrix m; Inverse(m.v); return m; }
 
     inline Matrix<T, 2, 2>& operator=(const Matrix<T, 2, 2>& r) { a = r.a; b = r.b; c = r.c; d = r.d; return *this; }
     template<typename U> inline Matrix<T, 2, 2>& operator=(const Matrix<U, 2, 2>& r) { a = (T)r.a; b = (T)r.b; c = (T)r.c; d = (T)r.d; return *this; }
@@ -912,8 +912,8 @@ namespace bss {
     inline constexpr Matrix() {}
     inline void Transpose(Matrix& mat) const { Transpose(mat.v); }
     inline void Transpose(T(&out)[3][3]) const { SetSubMatrix<T, 3, 3, true>::M3x3(out, a, b, c, d, e, f, g, h, i); }
-    inline Matrix Transpose() const { Matrix m; Transpose(v, m.v); return m; }
-    inline T Determinant() const { return MatrixDeterminant<T, 3>(v); }
+    [[nodiscard]] inline Matrix Transpose() const { Matrix m; Transpose(v, m.v); return m; }
+    [[nodiscard]] inline T Determinant() const { return MatrixDeterminant<T, 3>(v); }
     inline void Inverse(Matrix& mat) const { Inverse(mat.v); }
     inline void Inverse(T(&out)[3][3]) const
     {
@@ -997,11 +997,11 @@ namespace bss {
     inline constexpr Matrix() {}
     inline void Transpose(Matrix& mat) const { Transpose(mat.v); }
     inline void Transpose(T(&out)[4][4]) const { SetSubMatrix<T, 4, 4, true>::M4x4(out, a, b, c, d, e, f, g, h, i, j, k, l, m, n, o, p); }
-    inline Matrix Transpose() const { Matrix mat; Transpose(v, mat.v); return mat; }
-    inline T Determinant() const { return MatrixDeterminant<T, 4>(v); }
+    [[nodiscard]] inline Matrix Transpose() const { Matrix mat; Transpose(v, mat.v); return mat; }
+    [[nodiscard]] inline T Determinant() const { return MatrixDeterminant<T, 4>(v); }
     inline void Inverse(Matrix& mat) const { Inverse(mat.v); }
     inline void Inverse(T(&out)[4][4]) const { MatrixInvert4x4<T>((T*)v, (T*)out); }
-    inline Matrix Inverse() const { Matrix mat; Inverse(mat.v); return mat; }
+    [[nodiscard]] inline Matrix Inverse() const { Matrix mat; Inverse(mat.v); return mat; }
 
     // Note: The assignment operator here isn't a memcpy() so the compiler can inline the assignment and then remove it entirely if applicable.
     inline Matrix<T, 4, 4>& operator=(const Matrix<T, 4, 4>& r) { a = r.a; b = r.b; c = r.c; d = r.d; e = r.e; f = r.f; g = r.g; h = r.h; i = r.i; j = r.j; k = r.k; l = r.l; m = r.m; n = r.n; o = r.o; p = r.p; return *this; }

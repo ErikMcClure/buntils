@@ -679,7 +679,7 @@ namespace bss {
     internal::serializer::PushValue<bool> push(e.engine.first, true);
     s << '[';
 
-    int X[] = { (Serializer<TOMLEngine>::ActionBind<std::tuple_element_t<S, T>>::Serialize(e, std::get<S>(obj), 0), 0)... };
+    (Serializer<TOMLEngine>::ActionBind<std::tuple_element_t<S, T>>::Serialize(e, std::get<S>(obj), 0), ...);
 
     s << ']';
     if(e.engine.state != STATE_INLINE_TABLE && id)

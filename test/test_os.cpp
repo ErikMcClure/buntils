@@ -14,23 +14,6 @@ using namespace bss;
 TESTDEF::RETPAIR test_OS()
 {
   BEGINTEST;
-  TEST(FolderExists("../bin") || FolderExists("bin"));
-#ifdef BSS_PLATFORM_WIN32
-  TEST(FolderExistsW(BSS__L("C:/windows/")));
-#else
-  TEST(FolderExists(BSS__L("/usr/")));
-#endif
-  TEST(!FolderExists("abasdfwefs"));
-  FILE* f;
-  FOPEN(f, "blank.txt", "w+");
-  fclose(f);
-  TEST(FileExists("blank.txt"));
-  TEST(!FileExists("testaskdjlhfs.sdkj"));
-#ifdef BSS_PLATFORM_WIN32
-  TEST(!FolderExistsW(BSS__L("abasdfwefs/alkjsdfs/sdfjkd/alkjsdfs/sdfjkd/alkjsdfs/sdfjkd/")));
-  TEST(FileExistsW(BSS__L("blank.txt")));
-  TEST(!FileExistsW(BSS__L("testaskdjlhfs.sdkj")));
-#endif
 
   //Str cmd(GetCommandLineW());
   Str cmd("\"\"C:/fake/f\"\"ile/p\"ath.txt\"\" -r 2738 283.5 -a\"a\" 3 \"-no indice\"");
@@ -57,34 +40,6 @@ TESTDEF::RETPAIR test_OS()
       TEST(!strcmp(p[0], "\"C:/fake/f\"\"ile/p\"ath.txt\""));
     }
   });
-
-  TEST(CreateDir("testdir/recurse/recurseagain", false));
-  TEST(!FolderExists("testdir/recurse/recurseagain"));
-  TEST(!CreateDir("dontrecurse", false));
-  TEST(FolderExists("dontrecurse"));
-  TEST(!CreateDir("testdir/recurse/recurseagain"));
-  TEST(FolderExists("testdir/recurse/recurseagain"));
-  TEST(DelDir("testdir/recurse", false));
-  TEST(!DelDir("testdir/recurse"));
-  TEST(!DelDir("dontrecurse", false));
-  TEST(!FolderExists("dontrecurse"));
-  TEST(!FolderExists("testdir/recurse/recurseagain"));
-  TEST(!FolderExists("testdir/recurse"));
-  TEST(FolderExists("testdir"));
-  TEST(!DelDir("testdir"));
-  TEST(!FolderExists("testdir"));
-  std::vector<Str> files;
-  ListDir(".", files, 1);
-  // There should be at least two files, test.exe and bss-util.dll
-  TEST(files.size()>2);
-
-  //TEST(FileExists("testlink"));
-  //TEST(FileExists(BSS__L("testlink")));
-  //TEST(FolderExists("IGNORE/symlink/"));
-  //TEST(FolderExists(BSS__L("IGNORE/symlink/")));
-  //{
-  //std::unique_ptr<char[],bssDLLDelete<char[]>> p = FileDialog(true,0,BSS__L("test"));
-  //}
 
 #ifdef BSS_PLATFORM_WIN32
   int64_t sz = GetRegistryValue(HKEY_CURRENT_USER, "Control Panel\\Desktop", "CursorBlinkRate", 0, 0);

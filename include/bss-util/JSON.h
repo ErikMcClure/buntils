@@ -452,7 +452,7 @@ namespace bss {
     internal::serializer::PushValue<size_t> push(e.engine.pretty, WriteJSONPretty(e.engine.pretty));
     s << '[';
 
-    int X[] = { (Serializer<JSONEngine>::template ActionBind<std::tuple_element_t<S, T>>::Serialize(e, std::get<S>(obj), 0), 0)... };
+    (Serializer<JSONEngine>::template ActionBind<std::tuple_element_t<S, T>>::Serialize(e, std::get<S>(obj), 0), ...);
 
     s << ']';
   }

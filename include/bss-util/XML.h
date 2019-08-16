@@ -187,7 +187,7 @@ namespace bss {
     static void SerializeTuple(Serializer<XMLEngine>& e, const T& t, const char* id, std::index_sequence<S...>)
     {
       internal::serializer::PushValue<const char*> push(e.engine.arrayID, id);
-      int X[] = { (Serializer<XMLEngine>::ActionBind<std::tuple_element_t<S, T>>::Serialize(e, std::get<S>(t), 0),0)... };
+      (Serializer<XMLEngine>::ActionBind<std::tuple_element_t<S, T>>::Serialize(e, std::get<S>(t), 0), ...);
     }
     template<typename T>
     static void SerializeNumber(Serializer<XMLEngine>& e, T t, const char* id)

@@ -237,7 +237,7 @@ char INIstorage::EditEntry(const char* section, const char* key, const char* nva
     return 0;
   } //If it wasn't an insert we need to find the entry before the other two possible cases
 
-  typedef INIsection::_NODE _SNODE; //This makes things a bit easier
+  using _SNODE = INIsection::_NODE; //This makes things a bit easier
 
   iter = psec->_entries.Iterator(key);
   if(iter == psec->_entries.Back()) return -4; //if key doesn't exist at this point, fail

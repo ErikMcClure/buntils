@@ -108,7 +108,7 @@ TESTDEF::RETPAIR test_bss_GRAPH()
   }
 
   {
-    typedef __edge_MaxFlow<__edge_LowerBound<void>> EDGE;
+    using EDGE = __edge_MaxFlow<__edge_LowerBound<void>>;
     EDGE m[16] = { { 0,0,0 }, { 0,4,1 }, { 0,5,2 }, { 0,0,0 },
     { 0,0,0 }, { 0,0,0 }, { 0,2,0 }, { 0,2,0 },
     { 0,0,0 }, { 0,0,0 }, { 0,0,0 }, { 0,2,0 },

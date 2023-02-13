@@ -347,9 +347,9 @@ namespace bss {
   // Represents an arbitrary TOML value in any of the standard storage types recognized by the format.
   struct TOMLValue : public Variant<Str, double, int64_t, bool, std::chrono::system_clock::time_point, DynArray<TOMLValue, size_t, ARRAY_SAFE>, Hash<Str, TOMLValue, ARRAY_SAFE>>
   {
-    typedef DynArray<TOMLValue, size_t, ARRAY_SAFE> TOMLArray;
-    typedef Hash<Str, TOMLValue, ARRAY_SAFE> TOMLTable; // All objects in TOML are tables
-    typedef Variant<Str, double, int64_t, bool, std::chrono::system_clock::time_point, TOMLArray, TOMLTable> BASE;
+    using TOMLArray = DynArray<TOMLValue, size_t, ARRAY_SAFE>;
+    using TOMLTable = Hash<Str, TOMLValue, ARRAY_SAFE>; // All objects in TOML are tables
+    using BASE = Variant<Str, double, int64_t, bool, std::chrono::system_clock::time_point, TOMLArray, TOMLTable>;
 
   public:
     TOMLValue() : BASE() {}

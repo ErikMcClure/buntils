@@ -17,13 +17,13 @@ namespace bss {
   class BSS_COMPILER_DLLEXPORT Map : protected ArraySort<std::tuple<Key, Data>, &CompTuple<std::tuple<Key, Data>, 0, CFunc>, CType, ArrayType, Alloc>
   {
   protected:
-    typedef std::tuple<Key, Data> pair_t;
-    typedef ArraySort<pair_t, &CompTuple<pair_t, 0, CFunc>, CType, ArrayType, Alloc> BASE;
-    typedef const Data& constref;
-    typedef const Key& CKEYREF;
+    using pair_t = std::tuple<Key, Data>;
+    using BASE = ArraySort<pair_t, &CompTuple<pair_t, 0, CFunc>, CType, ArrayType, Alloc>;
+    using constref = const Data&;
+    using CKEYREF = const Key&;
     using BASE::_array;
-    typedef typename BASE::CT CT;
-    typedef typename BASE::Ty Ty;
+    using CT = typename BASE::CT;
+    using Ty = typename BASE::Ty;
 
   public:
     explicit Map(CT init = 1) : BASE(init) {}

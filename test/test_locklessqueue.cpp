@@ -68,8 +68,8 @@ TESTDEF::RETPAIR test_LOCKLESSQUEUE()
   const int NUMTHREADS = 18;
   Thread threads[NUMTHREADS];
 
-  //typedef LocklessQueue<uint32_t,true,true,size_t,size_t> LLQUEUE_SCSP; 
-  typedef LocklessQueue<uint16_t, size_t> LLQUEUE_SCSP;
+  //using LLQUEUE_SCSP = LocklessQueue<uint32_t,true,true,size_t,size_t>; 
+  using LLQUEUE_SCSP = LocklessQueue<uint16_t, size_t>;
   {
     LLQUEUE_SCSP q; // single consumer single producer test
     uint64_t ppp = HighPrecisionTimer::OpenProfiler();
@@ -91,7 +91,7 @@ TESTDEF::RETPAIR test_LOCKLESSQUEUE()
 
   for(size_t k = 0; k < 1; ++k)
   {
-    typedef MicroLockQueue<uint16_t, size_t> LLQUEUE_MCMP;
+    using LLQUEUE_MCMP = MicroLockQueue<uint16_t, size_t>;
     for(size_t j = 2; j <= NUMTHREADS; j = fbnext(j))
     {
       lq_c = 1;

@@ -17,7 +17,7 @@ namespace bss {
   class ThreadPool
   {
     typedef void(*FN)(void*);
-    typedef std::pair<FN, void*> TASK;
+    using TASK = std::pair<FN, void*>;
 
     ThreadPool(const ThreadPool&) = delete;
     ThreadPool& operator=(const ThreadPool&) = delete;

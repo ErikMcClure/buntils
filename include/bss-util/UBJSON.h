@@ -41,8 +41,8 @@ namespace bss {
       TYPE_TYPE = '$',
       TYPE_COUNT = '#',
     };
-    typedef DynArray<UBJSONTuple, size_t, ARRAY_CONSTRUCT> UBJSONArray;
-    typedef DynArray<std::pair<Str, UBJSONTuple>, size_t, ARRAY_CONSTRUCT> UBJSONObject;
+    using UBJSONArray = DynArray<UBJSONTuple, size_t, ARRAY_CONSTRUCT>;
+    using UBJSONObject = DynArray<std::pair<Str, UBJSONTuple>, size_t, ARRAY_CONSTRUCT>;
 
     UBJSONTuple(const UBJSONTuple& copy);
     UBJSONTuple(UBJSONTuple&& mov);

@@ -14,10 +14,10 @@ namespace bss {
   class BSS_COMPILER_DLLEXPORT ArraySort
   {
   protected:
-    typedef T Ty;
-    typedef CType CT;
-    typedef const T& constref;
-    typedef T&& moveref;
+    using Ty = T;
+    using CT = CType;
+    using constref = const T&;
+    using moveref = T&&;
 
   public:
     inline ArraySort(const ArraySort& copy) : _array(copy._array) {}
@@ -94,7 +94,7 @@ namespace bss {
     inline ArraySort& operator=(ArraySort&& mov) { _array = std::move(mov._array); return *this; }
     inline ArraySort& operator=(const Slice<const T, CType>& copy) { _array = copy; return *this; }
 
-    typedef std::conditional_t<internal::is_pair_array<T>::value, void, T> SerializerArray;
+    using SerializerArray = std::conditional_t<internal::is_pair_array<T>::value, void, T>;
     template<typename Engine>
     void Serialize(Serializer<Engine>& s, const char* id)
     {

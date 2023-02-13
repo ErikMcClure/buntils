@@ -21,7 +21,7 @@
 
 struct TESTDEF
 {
-  typedef std::pair<size_t, size_t> RETPAIR;
+  using RETPAIR = std::pair<size_t, size_t>;
   const char* NAME;
   RETPAIR(*FUNC)();
 };
@@ -175,7 +175,6 @@ TESTDEF::RETPAIR test_RWLOCK();
 TESTDEF::RETPAIR test_SCHEDULER();
 TESTDEF::RETPAIR test_Serializer();
 TESTDEF::RETPAIR test_SINGLETON();
-TESTDEF::RETPAIR test_SMARTPTR();
 TESTDEF::RETPAIR test_BSS_STACK();
 TESTDEF::RETPAIR test_STR();
 TESTDEF::RETPAIR test_STREAM();

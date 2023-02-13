@@ -63,9 +63,6 @@
     <ClInclude Include="..\include\bss-util\Thread.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="..\include\bss-util\SmartPtr.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
     <ClInclude Include="..\include\bss-util\Str.h">
       <Filter>Header Files</Filter>
     </ClInclude>

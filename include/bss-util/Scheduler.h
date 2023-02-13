@@ -12,7 +12,7 @@ namespace bss {
   template<typename F, typename ST = size_t, typename Alloc = StandardAllocator<std::pair<double, F>>> //std::function<double(void)>
   class BSS_COMPILER_DLLEXPORT Scheduler : protected HighPrecisionTimer, protected BinaryHeap<std::pair<double, F>, ST, CompTFirst<double, F, CompTInv<double>>, ARRAY_SAFE, Alloc>
   {
-    typedef BinaryHeap<std::pair<double, F>, ST, CompTFirst<double, F, CompTInv<double>>, ARRAY_SAFE> BASE;
+    using BASE = BinaryHeap<std::pair<double, F>, ST, CompTFirst<double, F, CompTInv<double>>, ARRAY_SAFE>;
   public:
     // Constructor
     template<bool U = std::is_void_v<typename Alloc::policy_type>, std::enable_if_t<!U, int> = 0>

@@ -13,8 +13,8 @@ namespace bss {
   class BSS_COMPILER_DLLEXPORT CompactArray final : Alloc
   {
   protected:
-    typedef T Ty;
-    typedef CType CT;
+    using Ty = T;
+    using CT = CType;
     static_assert(std::is_unsigned<CT>::value, "CT must be unsigned");
     static const CT COMPACTFLAG = CT(1) << ((sizeof(CT) << 3) - 1);
     static const CT COMPACTMASK = ~COMPACTFLAG;
@@ -141,7 +141,7 @@ namespace bss {
       return *this; 
     }
 
-    typedef T SerializerArray;
+    using SerializerArray = T;
     template<typename Engine>
     void Serialize(Serializer<Engine>& s, const char* id)
     {

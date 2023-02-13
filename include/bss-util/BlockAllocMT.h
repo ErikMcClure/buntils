@@ -12,7 +12,7 @@ namespace bss {
   template<class T>
   class BSS_COMPILER_DLLEXPORT LocklessBlockPolicy
   {
-    typedef BlockAlloc::Node Node;
+    using Node = BlockAlloc::Node;
   public:
     inline LocklessBlockPolicy(LocklessBlockPolicy&& mov) : _root(mov._root)
     {

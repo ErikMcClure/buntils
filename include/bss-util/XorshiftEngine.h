@@ -44,9 +44,9 @@ namespace bss {
     class xorshift_engine_base
     {
     public:
-      BSS_FORCEINLINE static T base_min() { return std::numeric_limits<T>::min(); }
-      BSS_FORCEINLINE static T base_max() { return std::numeric_limits<T>::max(); }
-      BSS_FORCEINLINE static T base_transform(uint64_t x) { return (T)x; }
+      BSS_FORCEINLINE static constexpr T base_min() { return std::numeric_limits<T>::min(); }
+      BSS_FORCEINLINE static constexpr T base_max() { return std::numeric_limits<T>::max(); }
+      BSS_FORCEINLINE static constexpr T base_transform(uint64_t x) { return (T)x; }
     };
 
     // DISABLED: There is no nice way of mapping randomly generated values to floating point values because floating point has a log2 distribution and denormals.
@@ -104,10 +104,10 @@ namespace bss {
         xorshift1024star(_state);
     }
 
-    inline static T min() { return internal::xorshift_engine_base<T>::base_min(); }
-    inline static T max() { return internal::xorshift_engine_base<T>::base_max(); }
+    inline constexpr static T min() { return internal::xorshift_engine_base<T>::base_min(); }
+    inline constexpr static T max() { return internal::xorshift_engine_base<T>::base_max(); }
 
-    inline T operator()() { return internal::xorshift_engine_base<T>::base_transform(xorshift1024star(_state)); } // Truncate to return_value size.
+    inline constexpr T operator()() { return internal::xorshift_engine_base<T>::base_transform(xorshift1024star(_state)); } // Truncate to return_value size.
     bool operator ==(const XorshiftEngine& r) const
     {
       for(int i = 0; i < 17; ++i)
@@ -117,7 +117,7 @@ namespace bss {
     }
     bool operator !=(const XorshiftEngine& r) const { return !operator==(r); }
 
-    typedef T result_type;
+    using result_type = T;
 
   protected:
     uint64_t _state[17];

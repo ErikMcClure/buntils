@@ -25,7 +25,7 @@ namespace bss {
       T val;
     };
 
-    typedef _INInode<INIentry> _NODE;
+    using _NODE = _INInode<INIentry>;
     template<class T>
     struct INIiterator : LLIterator<_INInode<T>> {
       using LLIterator<_INInode<T>>::cur;

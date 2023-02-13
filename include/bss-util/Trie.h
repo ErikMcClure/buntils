@@ -25,12 +25,12 @@ namespace bss {
   template<typename T = uint8_t, bool IGNORECASE = false>
   class BSS_COMPILER_DLLEXPORT Trie : protected Array<internal::TRIE_NODE<T>, T>
   {
-    typedef Array<internal::TRIE_NODE<T>, T> BASE;
+    using BASE = Array<internal::TRIE_NODE<T>, T>;
     using BASE::_array;
     using BASE::_capacity;
-    typedef internal::TRIE_NODE<T> TNODE;
-    typedef std::pair<T, const char*> PAIR;
-    typedef typename std::conditional<IGNORECASE, BinaryHeap<PAIR, T, CompTSecond<T, const char*, CompIStr<const char*>>>, BinaryHeap<PAIR, T, CompTSecond<T, const char*, CompStr<const char*>>>>::type SORTING_HEAP;
+    using TNODE = internal::TRIE_NODE<T>;
+    using PAIR = std::pair<T, const char*>;
+    using SORTING_HEAP = typename std::conditional<IGNORECASE, BinaryHeap<PAIR, T, CompTSecond<T, const char*, CompIStr<const char*>>>, BinaryHeap<PAIR, T, CompTSecond<T, const char*, CompStr<const char*>>>>::type;
 
   public:
     inline Trie(Trie&& mov) : BASE(std::move(mov)), _length(mov._length) { mov._length = 0; }

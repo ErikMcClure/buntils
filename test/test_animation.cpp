@@ -30,9 +30,9 @@ TESTDEF::RETPAIR test_ANIMATION()
   BEGINTEST;
   RCounter c;
   {
-    typedef AniData<RefCounter*, void, ARRAY_SAFE> PtrAni;
-    typedef AniDataInterval<ref_ptr<RefCounter>, ARRAY_SAFE> RefAni;
-    typedef AniDataSmooth<float> FloatAni;
+    using PtrAni = AniData<RefCounter*, void, ARRAY_SAFE>;
+    using RefAni = AniDataInterval<ref_ptr<RefCounter>, ARRAY_SAFE>;
+    using FloatAni = AniDataSmooth<float>;
 
     c.Grab();
     Animation<PtrAni> a0;

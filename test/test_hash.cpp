@@ -75,7 +75,7 @@ TESTDEF::RETPAIR test_HASH()
       TEST(val.Length() == count);
     }
     {
-      typedef std::pair<uint64_t, int32_t> HASHTESTPAIR;
+      using HASHTESTPAIR = std::pair<uint64_t, int32_t>;
       Hash<HASHTESTPAIR> set;
       set.Insert(HASHTESTPAIR(0, 0));
       set.Insert(HASHTESTPAIR(1ULL << 34, 3));

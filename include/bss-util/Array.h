@@ -103,8 +103,8 @@ namespace bss {
   class BSS_COMPILER_DLLEXPORT ArrayBase : protected Alloc
   {
   public:
-    typedef CType CT; // There are cases when you need access to these types even if you don't inherit (see RandomQueue in bss_algo.h)
-    typedef T Ty;
+    using CT = CType; // There are cases when you need access to these types even if you don't inherit (see RandomQueue in bss_algo.h)
+    using Ty = T;
     static_assert(std::is_integral<CT>::value, "CType must be integral");
 
     inline ArrayBase(ArrayBase&& mov) : Alloc(std::move(mov)), _array(mov._array), _capacity(mov._capacity)
@@ -267,9 +267,9 @@ namespace bss {
   class BSS_COMPILER_DLLEXPORT Array : protected ArrayBase<T, CType, ArrayType, Alloc>
   {
   protected:
-    typedef ArrayBase<T, CType, ArrayType, Alloc> BASE;
-    typedef typename BASE::CT CT;
-    typedef typename BASE::Ty Ty;
+    using BASE = ArrayBase<T, CType, ArrayType, Alloc>;
+    using CT = typename BASE::CT;
+    using Ty = typename BASE::Ty;
     using BASE::_array;
     using BASE::_capacity;
 
@@ -367,7 +367,7 @@ namespace bss {
     }
     BSS_FORCEINLINE Array operator +(const Array& add) const noexcept { Array r(*this); return (r += add); }
 
-    typedef std::conditional_t<internal::is_pair_array<T>::value, void, T> SerializerArray;
+    using SerializerArray = std::conditional_t<internal::is_pair_array<T>::value, void, T>;
     template<typename Engine>
     void Serialize(Serializer<Engine>& s, const char* id)
     {

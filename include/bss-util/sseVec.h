@@ -842,11 +842,11 @@ BSS_ALIGNED_STRUCT(16) sseVecT<int64_t>
   BSS_SSE_M128i64 xmm;
 };
 
-typedef sseVecT<float> sseVec;
-typedef sseVecT<double> sseVecd;
+using sseVec = sseVecT<float>;
+using sseVecd = sseVecT<double>;
 typedef sseVecT<char> sseVeci8;
 typedef sseVecT<int16_t> sseVeci16;
-typedef sseVecT<int32_t> sseVeci;
+using sseVeci = sseVecT<int32_t>;
 typedef sseVecT<int64_t> sseVeci64;
 }
 

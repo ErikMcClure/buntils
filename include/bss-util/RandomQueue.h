@@ -14,11 +14,11 @@ namespace bss {
   class BSS_COMPILER_DLLEXPORT RandomQueue : protected DynArray<T, CType, ArrayType, Alloc>
   {
   protected:
-    typedef DynArray<T, CType, ArrayType, Alloc> BASE;
+    using BASE = DynArray<T, CType, ArrayType, Alloc>;
     using BASE::_array;
     using BASE::_length;
-    typedef typename BASE::CT CT;
-    typedef typename BASE::Ty Ty;
+    using CT = typename BASE::CT;
+    using Ty = typename BASE::Ty;
 
   public:
     RandomQueue(const RandomQueue& copy) = default;
@@ -69,7 +69,7 @@ namespace bss {
   template<typename T, typename F>
   inline void PoissonDiskSample(T(&rect)[4], T mindist, F && f, size_t pointsPerIteration = 30)
   {
-    typedef std::array<T, 2> GRID;
+    using GRID = std::array<T, 2>;
     //Create the grid
     T cell = mindist / (T)SQRT_TWO;
     T w = rect[2] - rect[0];

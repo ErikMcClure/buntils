@@ -25,8 +25,8 @@ namespace bss {
     class STR_CT<char>
     {
     public:
-      typedef char CHAR;
-      typedef wchar_t OTHER_C;
+      using CHAR = char;
+      using OTHER_C = wchar_t;
       typedef char32_t OTHER_C2;
 
       static BSS_FORCEINLINE const CHAR* SCHR(const CHAR* str, int val) { return strchr(str, val); }
@@ -45,8 +45,8 @@ namespace bss {
     class STR_CT<wchar_t>
     {
     public:
-      typedef wchar_t CHAR;
-      typedef char OTHER_C;
+      using CHAR = wchar_t;
+      using OTHER_C = char;
       typedef char32_t OTHER_C2;
 
       static BSS_FORCEINLINE const CHAR* SCHR(const CHAR* str, CHAR val) { return wcschr(str, val); }
@@ -75,8 +75,8 @@ namespace bss {
     class STR_CT<char32_t>
     {
     public:
-      typedef char32_t CHAR;
-      typedef char OTHER_C;
+      using CHAR = char32_t;
+      using OTHER_C = char;
       typedef wchar_t OTHER_C2;
 
       static BSS_FORCEINLINE const CHAR* SCHR(const CHAR* str, CHAR val) { while(*str && *str != val) ++str; return str; }
@@ -107,11 +107,11 @@ namespace bss {
   template<typename T = char, typename Alloc = std::allocator<T>>
   class BSS_COMPILER_DLLEXPORT StrT : public std::basic_string<T, std::char_traits<T>, Alloc> //If the constructors aren't inlined, it causes heap corruption errors because the basic_string constructors are inlined
   { //Note that you can take off BSS_COMPILER_DLLEXPORT but you'll pay for it with even more unnecessary 4251 warnings.
-    typedef internal::STR_CT<T> STRCT;
-    typedef typename STRCT::CHAR CHAR;
-    typedef typename STRCT::OTHER_C OTHER_C;
+    using STRCT = internal::STR_CT<T>;
+    using CHAR = typename STRCT::CHAR;
+    using OTHER_C = typename STRCT::OTHER_C;
     typedef typename STRCT::OTHER_C2 OTHER_C2;
-    typedef std::basic_string<T, std::char_traits<T>, Alloc> BASE;
+    using BASE = std::basic_string<T, std::char_traits<T>, Alloc>;
 
   public:
     inline StrT() : BASE() {}
@@ -314,19 +314,19 @@ namespace bss {
 #pragma warning(pop)
 
 #ifdef BSS_PLATFORM_WIN32
-  typedef StrT<wchar_t, std::allocator<wchar_t>> StrW;
+  using StrW = StrT<wchar_t, std::allocator<wchar_t>>;
   inline StrW StrWF(const wchar_t* string, ...) { va_list vl; va_start(vl, string); StrW r = StrW::StrTF(string, vl); va_end(vl); return r; }
-  typedef wchar_t bsschar;
+  using bsschar = wchar_t;
 #else
-  typedef char bsschar;
+  using bsschar = char;
 #endif
-  typedef StrT<char, std::allocator<char>> Str;
+  using Str = StrT<char, std::allocator<char>>;
   inline Str StrF(const char* string, ...) { va_list vl; va_start(vl, string); Str r = Str::StrTF(string, vl); va_end(vl); return r; }
 
 #ifdef _UNICODE
-  typedef StrW TStr;
+  using TStr = StrW;
 #else
-  typedef Str TStr;
+  using TStr = Str;
 #endif
 
   // This is a slightly more useful ToString method that performs a true no-op on actual strings

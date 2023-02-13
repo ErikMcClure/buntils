@@ -386,7 +386,7 @@ namespace bss {
       return !ret ? SGNCOMPARE(l.weight, r.weight) : ret;
     }
 
-    typedef bss::ArraySort<BSSFONT, &BSSFONT::Comp> BSSFONTARRAY;
+    using BSSFONTARRAY = bss::ArraySort<BSSFONT, &BSSFONT::Comp>;
 
     WCHAR elfFullName[LF_FULLFACESIZE];
     short weight;

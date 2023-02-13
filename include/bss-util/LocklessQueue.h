@@ -44,7 +44,7 @@ namespace bss {
   template<typename T, typename LENGTH = void, typename Alloc = PolymorphicAllocator<internal::LQ_QNode<T>, BlockPolicy>>
   class LocklessQueue : public internal::LocklessQueue_Length<LENGTH>, public Alloc
   {
-    typedef internal::LQ_QNode<T> QNODE;
+    using QNODE = internal::LQ_QNode<T>;
     LocklessQueue(const LocklessQueue&) = delete;
     LocklessQueue& operator=(const LocklessQueue&) = delete;
 
@@ -129,7 +129,7 @@ namespace bss {
   template<typename T, typename LENGTH = void, typename Alloc = PolymorphicAllocator<internal::LQ_QNode<T>, LocklessBlockPolicy>>
   class MicroLockQueue : public internal::LocklessQueue_Length<LENGTH>, Alloc
   {
-    typedef internal::LQ_QNode<T> QNODE;
+    using QNODE = internal::LQ_QNode<T>;
     MicroLockQueue(const MicroLockQueue&) = delete;
     MicroLockQueue& operator=(const MicroLockQueue&) = delete;
 

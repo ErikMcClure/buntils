@@ -64,7 +64,7 @@ TESTDEF::RETPAIR test_AVLTREE()
   {
     Shuffle(testnums);
     BlockPolicy<DEBUG_CDT<false>> dalloc(TESTNUM);
-    typedef std::unique_ptr<DEBUG_CDT<false>, std::function<void(DEBUG_CDT<false>*)>> AVL_D;
+    using AVL_D = std::unique_ptr<DEBUG_CDT<false>, std::function<void(DEBUG_CDT<false>*)>>;
     AVLTree<int, AVL_D, CompT<int>, PolymorphicAllocator<AVLNode<std::pair<int, AVL_D>>, BlockPolicy>> dtree;
     for(size_t i = 0; i<TESTNUM; ++i)
     {

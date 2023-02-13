@@ -13,7 +13,7 @@ namespace bss {
   class BSS_COMPILER_DLLEXPORT Delegate
   {
     inline Delegate(std::function<R(Args...)>&& src) = delete; // Don't do Delegate([&](){ return; }) or it'll go out of scope.
-      typedef R RTYPE;
+      using RTYPE = R;
     typedef R(*FUNCTYPE)(void*, Args...);
     typedef RTYPE(*COREFUNC)(Args...);
   public:

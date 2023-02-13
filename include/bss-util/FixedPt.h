@@ -18,13 +18,13 @@ namespace bss {
   inline T fixedpt_add(T x, T y) { return x + SafeShift<T, S_X - S_Y>(y); }
   template<typename T>
   inline T fixedpt_mul(T x, T y, T S_Y) { return bssMultiplyExtract<T>(x, y, S_Y); } // The result has a scaling factor of 2^S_X * 2^S_Y = 2^(S_X + S_Y). To convert this back into 2^S_X, we divide by 2^S_Y, which is equivilent to shifting right by S_Y
-  //inline T fixedpt_mul(T x, T y) { typedef typename BitLimit<sizeof(T) << 4>::SIGNED U; return ((U)x * (U)y) >> S_Y; }
+  //inline T fixedpt_mul(T x, T y) { using S_Y = typename BitLimit<sizeof(T) << 4>::SIGNED U; return ((U)x * (U)y) >>; }
   template<typename T> // Resulting decimal bits after this when T is a 32-bit int is 30 - S
   inline T fixedpt_recip(T x) { return ((T)1 << ((sizeof(T) << 3) - 2)) / x; }
   template<typename T>
   inline T fixedpt_div(T x, T y, T S_Y)
   { // The result here has a scaling factor of 2^S_X / 2^S_Y = 2^(S_X - S_Y). By shifting left S_Y before the division, we end up with an S_X scaling factor.
-    typedef typename BitLimit<sizeof(T) << 4>::SIGNED U;
+    using U = typename BitLimit<sizeof(T) << 4>::SIGNED;
     return (U(x) << S_Y) / (U)y;
   }
   template<> // For 64-bit, we can't divide a 128-bit number, so we use the reciprocal instead, which sacrifices just two bits of precision.
@@ -55,7 +55,7 @@ namespace bss {
   template<uint8_t D = 12, typename T = int32_t, bool SATURATE = false>
   class Fixed
   {
-    typedef internal::__FixedBits<T> BITS;
+    using BITS = internal::__FixedBits<T>;
     static_assert(!SATURATE, "Saturation is not implemented.");
     static_assert(std::is_signed<T>::value, "T must be a signed integral type.");
 

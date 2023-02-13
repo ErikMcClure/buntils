@@ -18,6 +18,7 @@
 #define __BSS_UTIL_H__
 
 #include "bss_util_c.h"
+#include "Str.h"
 #include "defines.h"
 #include <assert.h>
 #include <cmath>
@@ -81,7 +82,7 @@ namespace bss {
 #else
       void > ::type > ::type > ::type > ::type SIGNED;
 #endif
-    typedef typename std::make_unsigned<SIGNED>::type UNSIGNED;
+    using UNSIGNED = typename std::make_unsigned<SIGNED>::type;
 
     static constexpr UNSIGNED UNSIGNED_MIN = 0;
     static constexpr UNSIGNED UNSIGNED_MAX = (((UNSIGNED)2) << (BITS - 1)) - ((UNSIGNED)1); //these are all done carefully to ensure no overflow is ever utilized unless appropriate and it respects an arbitrary bit limit. We use 2<<(BITS-1) here to avoid shifting more bits than there are bits in the type.
@@ -722,7 +723,7 @@ namespace bss {
   template<typename Tx>
   inline uint8_t BitCount(Tx v) noexcept
   {
-    typedef typename make_integral<Tx>::type T;
+    using T = typename make_integral<Tx>::type;
     static_assert(std::is_integral<T>::value, "T must be integral");
     v = v - ((v >> 1) & (T)~(T)0 / 3);                           // temp
     v = (v & (T)~(T)0 / 15 * 3) + ((v >> 2) & (T)~(T)0 / 15 * 3);      // temp
@@ -928,7 +929,7 @@ namespace bss {
     template<class T>
     inline T _bssmultiplyextract(T xs, T ys, T shift) noexcept
     {
-      typedef typename std::make_unsigned<T>::type U;
+      using U = typename std::make_unsigned<T>::type;
       U x = bssAbs<T>(xs);
       U y = bssAbs<T>(ys);
       static const U halfbits = (sizeof(U) << 2);
@@ -964,7 +965,7 @@ namespace bss {
   template<class T>
   BSS_FORCEINLINE T bssMultiplyExtract(T x, T y, T shift) noexcept
   {
-    typedef typename std::conditional<std::is_signed<T>::value, typename BitLimit<sizeof(T) << 4>::SIGNED, typename BitLimit<sizeof(T) << 4>::UNSIGNED>::type U;
+    using U = typename std::conditional<std::is_signed<T>::value, typename BitLimit<sizeof(T) << 4>::SIGNED, typename BitLimit<sizeof(T) << 4>::UNSIGNED>::type;
     return (T)(((U)x * (U)y) >> shift);
   }
 #ifndef BSS_HASINT128
@@ -1026,7 +1027,7 @@ namespace bss {
   struct is_specialization_of_array<std::array<T, N>> : std::true_type {};
 
   // Implements remove_cvref from the C++20 standard
-  template<class T> struct remove_cvref { typedef std::remove_cv_t<std::remove_reference_t<T>> type; };
+  template<class T> struct remove_cvref { using type = std::remove_cv_t<std::remove_reference_t<T>>; };
   template<class T> using remove_cvref_t = typename remove_cvref<T>::type;
 
   // Type safe memset functions
@@ -1070,7 +1071,7 @@ namespace bss {
   template<class _Ty>
   struct bssDLLDelete
   {	// default deleter for unique_ptr
-    typedef bssDLLDelete<_Ty> _Myt;
+    using _Myt = bssDLLDelete<_Ty>;
 
     void operator()(_Ty *_Ptr) const
     {
@@ -1085,7 +1086,7 @@ namespace bss {
   template<class _Ty>
   struct bssDLLDelete<_Ty[]>
   {	// default deleter for unique_ptr to array of unknown size
-    typedef bssDLLDelete<_Ty> _Myt;
+    using _Myt = bssDLLDelete<_Ty>;
 
     void operator()(_Ty *_Ptr) const
     {

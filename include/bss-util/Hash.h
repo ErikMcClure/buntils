@@ -138,13 +138,13 @@ namespace bss {
   }
 
   namespace internal {
-    template<class T> struct _HashGET { typedef T* GET; static BSS_FORCEINLINE GET F(T& s) { return &s; } };
-    template<class T> struct _HashGET<std::unique_ptr<T>> { typedef T* GET; static BSS_FORCEINLINE GET F(std::unique_ptr<T>& s) { return s.get(); } };
-    template<> struct _HashGET<Str> { typedef const char* GET; static BSS_FORCEINLINE GET F(Str& s) { return s.c_str(); } };
-    template<> struct _HashGET<std::string> { typedef const char* GET; static BSS_FORCEINLINE GET F(std::string& s) { return s.c_str(); } };
+    template<class T> struct _HashGET { using GET = T*; static BSS_FORCEINLINE GET F(T& s) { return &s; } };
+    template<class T> struct _HashGET<std::unique_ptr<T>> { using GET = T*; static BSS_FORCEINLINE GET F(std::unique_ptr<T>& s) { return s.get(); } };
+    template<> struct _HashGET<Str> { using GET = const char*; static BSS_FORCEINLINE GET F(Str& s) { return s.c_str(); } };
+    template<> struct _HashGET<std::string> { using GET = const char*; static BSS_FORCEINLINE GET F(std::string& s) { return s.c_str(); } };
 #ifdef BSS_PLATFORM_WIN32
-    template<> struct _HashGET<StrW> { typedef const wchar_t* GET; static BSS_FORCEINLINE GET F(StrW& s) { return s.c_str(); } };
-    template<> struct _HashGET<std::wstring> { typedef const wchar_t* GET; static BSS_FORCEINLINE GET F(std::wstring& s) { return s.c_str(); } };
+    template<> struct _HashGET<StrW> { using GET = const wchar_t*; static BSS_FORCEINLINE GET F(StrW& s) { return s.c_str(); } };
+    template<> struct _HashGET<std::wstring> { using GET = const wchar_t*; static BSS_FORCEINLINE GET F(std::wstring& s) { return s.c_str(); } };
 #endif
   }
 
@@ -159,10 +159,10 @@ namespace bss {
   {
   public:
     static constexpr bool IsMap = !std::is_void<Data>::value;
-    typedef Key KEY;
-    typedef Data DATA;
-    typedef typename std::conditional<IsMap, Data, char>::type FakeData;
-    typedef std::conditional_t<std::is_integral_v<FakeData> || std::is_enum_v<FakeData> || std::is_pointer_v<FakeData> || std::is_member_pointer_v<FakeData>, FakeData, typename internal::_HashGET<FakeData>::GET> GET;
+    using KEY = Key;
+    using DATA = Data;
+    using FakeData = typename std::conditional<IsMap, Data, char>::type;
+    using GET = std::conditional_t<std::is_integral_v<FakeData> || std::is_enum_v<FakeData> || std::is_pointer_v<FakeData> || std::is_member_pointer_v<FakeData>, FakeData, typename internal::_HashGET<FakeData>::GET>;
 
     Hash(const Hash& copy) : Alloc(copy), n_buckets(0), flags(0), keys(0), vals(0), size(0), n_occupied(0), upper_bound(0)
     {
@@ -336,7 +336,7 @@ namespace bss {
       using reference = std::conditional_t<IsMap, std::tuple<const Key&, U&>, const Key&>;
       using pointer = std::conditional_t<IsMap, std::tuple<const Key*, U*>, const Key*>;
 
-      typedef std::conditional_t<std::is_const_v<U>, const Hash*, Hash*> PTR;
+      using PTR = std::conditional_t<std::is_const_v<U>, const Hash*, Hash*>;
       inline HashIterator(khiter_t c, PTR s) : cur(c), src(s) { _next(); }
       inline std::conditional_t<IsMap, std::tuple<const Key&, U&>, const Key&> operator*() const
       {
@@ -371,7 +371,7 @@ namespace bss {
     BSS_FORCEINLINE HashIterator<FakeData> begin() { return HashIterator<FakeData>(Front(), this); }
     BSS_FORCEINLINE HashIterator<FakeData> end() { return HashIterator<FakeData>(Back(), this); }
 
-    typedef std::conditional_t<IsMap, void, Key> SerializerArray;
+    using SerializerArray = std::conditional_t<IsMap, void, Key>;
     template<typename Engine>
     void Serialize(Serializer<Engine>& s, const char* id)
     {
@@ -644,7 +644,7 @@ namespace bss {
   class BSS_COMPILER_DLLEXPORT HashIns : public Hash<K, T, ArrayType, &KH_AUTO_HASH<K, true>, &KH_AUTO_EQUAL<K, true>, Alloc>
   {
   public:
-    typedef Hash<K, T, ArrayType, &KH_AUTO_HASH<K, true>, &KH_AUTO_EQUAL<K, true>, Alloc> BASE;
+    using BASE = Hash<K, T, ArrayType, &KH_AUTO_HASH<K, true>, &KH_AUTO_EQUAL<K, true>, Alloc>;
 
     inline HashIns(const HashIns& copy) = default;
     inline HashIns(HashIns&& mov) = default;

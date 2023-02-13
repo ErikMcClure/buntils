@@ -224,7 +224,7 @@ void Profiler::_timeFormat(std::ostream& stream, double avg, double variance, ui
   else if(avg >= 1000000000.0)
     stream << (avg / 1000000.0) << " ms";
   else if(avg >= 1000000.0)
-    stream << (avg / 1000.0) << L" \x039Cs";
+    stream << (avg / 1000.0) << " us";
   else
     stream << avg << " ns";
 }

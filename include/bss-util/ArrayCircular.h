@@ -13,9 +13,9 @@ namespace bss {
   class BSS_COMPILER_DLLEXPORT ArrayCircular : protected ArrayBase<T, CType, ArrayType, Alloc>
   {
   protected:
-    typedef ArrayBase<T, CType, ArrayType, Alloc> BASE;
-    typedef typename BASE::CT CT;
-    typedef typename BASE::Ty Ty;
+    using BASE = ArrayBase<T, CType, ArrayType, Alloc>;
+    using CT = typename BASE::CT;
+    using Ty = typename BASE::Ty;
     using BASE::_array;
     using BASE::_capacity;
     static_assert(std::is_signed<CT>::value, "CType must be signed");
@@ -137,7 +137,7 @@ namespace bss {
       using difference_type = ptrdiff_t;
       using pointer = std::conditional_t<CONST, const T*, T*>;
       using reference = std::conditional_t<CONST, const T&, T&>;
-      typedef std::conditional_t<CONST, const ArrayCircular*, ArrayCircular*> ptr;
+      using ptr = std::conditional_t<CONST, const ArrayCircular*, ArrayCircular*>;
 
       inline CircularIterator(CT c, ptr s) : cur(c), src(s) { }
       inline reference operator*() { return (*src)[cur]; }
@@ -157,7 +157,7 @@ namespace bss {
     BSS_FORCEINLINE CircularIterator<false> begin() { return CircularIterator<false>(0, this); }
     BSS_FORCEINLINE CircularIterator<false> end() { return CircularIterator<false>(_length, this); }
 
-    typedef std::conditional_t<internal::is_pair_array<T>::value, void, T> SerializerArray;
+    using SerializerArray = std::conditional_t<internal::is_pair_array<T>::value, void, T>;
     template<typename Engine>
     void Serialize(Serializer<Engine>& s, const char* id)
     {

@@ -31,10 +31,10 @@ namespace bss {
     class BSS_COMPILER_DLLEXPORT AVLTreeDataField
     {
     public:
-      typedef std::pair<Key, Data> KeyData;
-      typedef AVLNode<KeyData> Node;
-      typedef Data KeyGet;
-      typedef Data DataGet;
+      using KeyData = std::pair<Key, Data>;
+      using Node = AVLNode<KeyData>;
+      using KeyGet = Data;
+      using DataGet = Data;
 
     protected:
       BSS_FORCEINLINE static void _setData(Node* BSS_RESTRICT old, Node* BSS_RESTRICT cur)
@@ -63,10 +63,10 @@ namespace bss {
     class BSS_COMPILER_DLLEXPORT AVLTreeDataField<Key, void>
     {
     public:
-      typedef Key KeyData;
-      typedef AVLNode<KeyData> Node;
-      typedef Key KeyGet;
-      typedef char DataGet;
+      using KeyData = Key;
+      using Node = AVLNode<KeyData>;
+      using KeyGet = Key;
+      using DataGet = char;
 
     protected:
       BSS_FORCEINLINE static void _setData(Node* BSS_RESTRICT old, Node* BSS_RESTRICT cur) {}
@@ -85,11 +85,11 @@ namespace bss {
     AVLTree(const AVLTree& copy) = delete;
     AVLTree& operator=(const AVLTree& copy) = delete;
   protected:
-    typedef internal::AVLTreeDataField<Key, Data> Base;
-    typedef typename Base::KeyData KeyData;
-    typedef typename Base::Node Node;
-    typedef typename Base::KeyGet KeyGet;
-    typedef typename Base::DataGet DataGet;
+    using Base = internal::AVLTreeDataField<Key, Data>;
+    using KeyData = typename Base::KeyData;
+    using Node = typename Base::Node;
+    using KeyGet = typename Base::KeyGet;
+    using DataGet = typename Base::DataGet;
 
   public:
     inline AVLTree(AVLTree&& mov) : Alloc(std::move(mov)), _root(mov._root) { mov._root = 0; }

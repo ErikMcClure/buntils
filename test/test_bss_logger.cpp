@@ -21,10 +21,8 @@ TESTDEF::RETPAIR test_bss_LOG()
     wss.clear();
     //di.AddTarget(wss);
 
-    di.GetStream() << BSS__L("黑色球体工作室");
     di.GetStream() << "Black Sphere Studios";
     di.ClearTargets();
-    di.GetStream() << BSS__L("黑色球体工作室");
   };
   Logger a(BSS__L("黑色球体工作室.txt"), &ss); //Supposedly 黑色球体工作室 is Black Sphere Studios in Chinese, but the literal translation appears to be Black Ball Studio. Oh well.
   Logger b("logtest.txt");

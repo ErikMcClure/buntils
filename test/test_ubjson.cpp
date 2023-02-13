@@ -30,7 +30,7 @@ enum TEST_ENUM : char {
 
 struct ubjsontest
 {
-  typedef Variant<ubjsontest2, double> VAR;
+  using VAR = Variant<ubjsontest2, double>;
 
   TEST_ENUM a;
   short b;

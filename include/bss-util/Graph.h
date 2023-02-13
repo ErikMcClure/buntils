@@ -59,7 +59,7 @@ namespace bss {
   {
     static BSS_FORCEINLINE bool _baseCheck(const char* b) { return (*b) != 0; }
     static BSS_FORCEINLINE LLBase<Edge<E, CT>>& _altGet(Edge<E, CT>* p) { return p->alt; }
-    typedef typename std::conditional<std::is_void<E>::value, char, E>::type EDATA;
+    using EDATA = typename std::conditional<std::is_void<E>::value, char, E>::type;
     using internal::__Graph__InternalVertex<V, CT>::_setDataV;
     using internal::__Graph__InternalVertex<V, CT>::_setVertex;
     using internal::__Graph__InternalVertex<V, CT>::_addVertex;
@@ -159,11 +159,11 @@ namespace bss {
       mov._nedges = 0; 
       return *this; 
     }
-    typedef CT CT_;
-    typedef E E_;
-    typedef V V_;
-    typedef Node<E, V, CT> N_;
-    typedef Edge<E, CT> EDGE_;
+    using CT_ = CT;
+    using E_ = E;
+    using V_ = V;
+    using N_ = Node<E, V, CT>;
+    using EDGE_ = Edge<E, CT>;
 
   protected:
     template<typename D, bool(*ISEDGE)(const D*)>
@@ -199,8 +199,8 @@ namespace bss {
   template<typename E, typename V, typename CT, typename ALLOC, typename NODEALLOC, ARRAY_TYPE ArrayType>
   inline void MaxFlow_PushRelabel(Graph<internal::__edge_MaxFlow<E>, V, CT, ALLOC, NODEALLOC, ArrayType>& graph, CT s, CT t)
   {
-    typedef Edge<internal::__edge_MaxFlow<E>, CT>* PEDGE;
-    typedef std::pair<CT, CT> PAIR;
+    using PEDGE = Edge<internal::__edge_MaxFlow<E>, CT>*;
+    using PAIR = std::pair<CT, CT>;
     CT len = graph.NumNodes(); // Setup
     CT cap = graph.Capacity();
     VARARRAY(int, excess, cap);
@@ -408,9 +408,9 @@ namespace bss {
   template<typename G, bool(*FACTION)(typename G::CT_)>
   inline void BreadthFirstGraph(G& graph, typename G::CT_ root, typename G::CT_* queue)
   {
-    typedef typename G::CT_ CT;
-    typedef typename std::make_signed<CT>::type SST;
-    typedef Edge<typename G::E_, CT> E;
+    using CT = typename G::CT_;
+    using SST = typename std::make_signed<CT>::type;
+    using E = Edge<typename G::E_, CT>;
     auto& n = graph.GetNodes();
 
     if((*FACTION)(root))

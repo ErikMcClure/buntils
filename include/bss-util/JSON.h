@@ -145,9 +145,9 @@ namespace bss {
 
   struct JSONValue : public Variant<Str, double, int64_t, bool, DynArray<JSONValue, size_t, ARRAY_SAFE>, DynArray<std::pair<Str, JSONValue>, size_t, ARRAY_SAFE>>
   {
-    typedef DynArray<JSONValue, size_t, ARRAY_SAFE> JSONArray;
-    typedef DynArray<std::pair<Str, JSONValue>, size_t, ARRAY_SAFE> JSONObject;
-    typedef Variant<Str, double, int64_t, bool, JSONArray, JSONObject> BASE;
+    using JSONArray = DynArray<JSONValue, size_t, ARRAY_SAFE>;
+    using JSONObject = DynArray<std::pair<Str, JSONValue>, size_t, ARRAY_SAFE>;
+    using BASE = Variant<Str, double, int64_t, bool, JSONArray, JSONObject>;
 
   public:
     JSONValue() : BASE() {}

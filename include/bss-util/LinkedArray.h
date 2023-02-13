@@ -23,9 +23,9 @@ namespace bss {
   class BSS_COMPILER_DLLEXPORT LinkedArray
   {
   public:
-    typedef internal::LINKEDNODE<T, CType> TLNODE;
-    typedef CType CT_;
-    typedef T value_type;
+    using TLNODE = internal::LINKEDNODE<T, CType>;
+    using CT_ = CType;
+    using value_type = T;
 
     inline LinkedArray() : _ref(1), _length(0), _start(-1), _end(-1), _freelist(-1) { _setupChunk(0); }
     inline LinkedArray(const LinkedArray& copy) : _ref(copy._ref), _length(copy._length), _start(copy._start), _end(copy._end), _freelist(copy._freelist) {}

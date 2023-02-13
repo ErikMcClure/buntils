@@ -157,7 +157,6 @@ int main(int argc, char** argv)
     { "TRBtree.h", &test_TRBTREE },
     { "Trie.h", &test_TRIE },
     { "XML.h", &test_XML },
-    { "SmartPtr.h", &test_SMARTPTR },
     { "Delegate.h", &test_DELEGATE },
     { "os.h", &test_OS },
     { "profile.h", &test_PROFILE },

@@ -12,7 +12,7 @@ namespace bss {
   class BSS_COMPILER_DLLEXPORT Queue : protected ArrayCircular<T, CType, ArrayType, Alloc>
   {
   protected:
-    typedef ArrayCircular<T, CType, ArrayType, Alloc> BASE;
+    using BASE = ArrayCircular<T, CType, ArrayType, Alloc>;
     using BASE::_length;
 
   public:

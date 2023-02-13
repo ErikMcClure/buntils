@@ -25,7 +25,7 @@ namespace bss {
   template<typename Arg, typename... Args>
   class BSS_COMPILER_DLLEXPORT Variant
   {
-    typedef Variant<Arg, Args...> SELF;
+    using SELF = Variant<Arg, Args...>;
 
     // Compile-time max sizeof
     template<typename A, typename... Ax>
@@ -38,11 +38,11 @@ namespace bss {
     template<typename A, typename... Ax>
     struct max_alignof {
       static constexpr size_t value = (max_alignof<Ax...>::value > alignof(A)) ? max_alignof<Ax...>::value : alignof(A);
-      typedef std::conditional<(max_alignof<Ax...>::value > alignof(A)), A, typename max_alignof<Ax...>::type> type;
+      using type = std::conditional<(max_alignof<Ax...>::value > alignof(A)), A, typename max_alignof<Ax...>::type>;
     };
 
     template<typename A>
-    struct max_alignof<A> { static constexpr size_t value = alignof(A); typedef A type; };
+    struct max_alignof<A> { static constexpr size_t value = alignof(A); using type = A; };
 
     template<typename X, typename... Ts> struct getpos;
 
@@ -122,7 +122,7 @@ namespace bss {
     template<typename U>
     inline void _construct(U && v)
     { 
-      typedef remove_cvref_t<U> T;
+      using T = remove_cvref_t<U>;
       if constexpr(std::is_same<T, Variant>::value)
       {
         _tag = v._tag;
@@ -139,7 +139,7 @@ namespace bss {
     template<typename U>
     inline void _assign(U && v)
     { 
-      typedef remove_cvref_t<U> T;
+      using T = remove_cvref_t<U>;
       if constexpr(std::is_same<T, Variant>::value)
       {
         if(_tag == v._tag)

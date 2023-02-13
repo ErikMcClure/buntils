@@ -29,7 +29,7 @@ namespace bss {
     template<class U>
     inline NSphere& operator=(const NSphere<U, N>& other) { c = other.c; r = other.r; return *this; }
 
-    typedef T SerializerArray;
+    using SerializerArray = T;
     template<typename Engine>
     void Serialize(Serializer<Engine>& s, const char* id) { s.EvaluateFixedArray(v, id); }
 
@@ -79,7 +79,7 @@ namespace bss {
     template<class U>
     inline NSphere& operator=(const NSphere<U, 2>& other) { c = other.c; r = other.r; return *this; }
 
-    typedef T SerializerArray;
+    using SerializerArray = T;
     template<typename Engine>
     void Serialize(Serializer<Engine>& s, const char* id) { s.EvaluateFixedArray(v, id); }
 
@@ -122,7 +122,7 @@ namespace bss {
     template<class U>
     inline NSphere& operator=(const NSphere<U, 3>& other) { c = other.c; r = other.r; return *this; }
 
-    typedef T SerializerArray;
+    using SerializerArray = T;
     template<typename Engine>
     void Serialize(Serializer<Engine>& s, const char* id) { s.EvaluateFixedArray(v, id); }
 
@@ -149,7 +149,7 @@ namespace bss {
   template<class T, int N>
   struct LineN
   {
-    typedef Vector<T, N> V;
+    using V = Vector<T, N>;
     inline constexpr LineN() {}
     template<class U>
     inline constexpr LineN(const LineN<U, N>& other) : p1(other.p1), p2(other.p2) {}
@@ -160,7 +160,7 @@ namespace bss {
     template<class U>
     inline LineN& operator=(const LineN<U, N>& other) { p1 = other.p1; p2 = other.p2; }
 
-    typedef T SerializerArray;
+    using SerializerArray = T;
     template<typename Engine>
     void Serialize(Serializer<Engine>& s, const char* id) { s.EvaluateFixedArray(v, id); }
 
@@ -177,7 +177,7 @@ namespace bss {
   template<class T>
   struct LineN<T, 2>
   {
-    typedef Vector<T, 2> V;
+    using V = Vector<T, 2>;
     inline constexpr LineN() {}
     template<class U>
     inline constexpr LineN(const LineN<U, 2>& other) : p1(other.p1), p2(other.p2) {}
@@ -192,7 +192,7 @@ namespace bss {
     template<class U>
     inline LineN& operator=(const LineN<U, 2>& other) { p1 = other.p1; p2 = other.p2; }
 
-    typedef T SerializerArray;
+    using SerializerArray = T;
     template<typename Engine>
     void Serialize(Serializer<Engine>& s, const char* id) { s.EvaluateFixedArray(v, id); }
 
@@ -215,7 +215,7 @@ namespace bss {
   template<class T>
   struct LineN<T, 3>
   {
-    typedef Vector<T, 3> V;
+    using V = Vector<T, 3>;
     inline constexpr LineN() {}
     template<class U>
     inline constexpr LineN(const LineN<U, 3>& other) : p1(other.p1), p2(other.p2) {}
@@ -228,7 +228,7 @@ namespace bss {
     template<class U>
     inline LineN& operator=(const LineN<U, 3>& other) { p1 = other.p1; p2 = other.p2; }
 
-    typedef T SerializerArray;
+    using SerializerArray = T;
     template<typename Engine>
     void Serialize(Serializer<Engine>& s, const char* id) { s.EvaluateFixedArray(v, id); }
 
@@ -255,7 +255,7 @@ namespace bss {
   template<class T>
   struct Rect
   {
-    typedef Vector<T, 2> V;
+    using V = Vector<T, 2>;
 
     inline constexpr Rect() {} //The following constructors allow for implicit conversion between rect types
     inline constexpr Rect(const Rect& other) : left(other.left), top(other.top), right(other.right), bottom(other.bottom) {}
@@ -349,7 +349,7 @@ namespace bss {
     template<class U>
     inline Rect& operator =(const Rect<U>& _right) { left = (T)_right.left; top = (T)_right.top; right = (T)_right.right; bottom = (T)_right.bottom; return *this; }
 
-    typedef T SerializerArray;
+    using SerializerArray = T;
     template<typename Engine>
     void Serialize(Serializer<Engine>& s, const char* id) { s.EvaluateFixedArray(ltrb, id); }
 
@@ -381,14 +381,14 @@ namespace bss {
   template<class T>
   struct Triangle
   {
-    typedef Vector<T, 2> V;
+    using V = Vector<T, 2>;
     inline constexpr Triangle() { }
     template<class U>
     inline constexpr Triangle(const Triangle<U>& other) { for(int i = 0; i < 3; ++i) v[i] = other.v[i]; }
     inline T Area() const { return (v[1] - v[0]).Cross(v[2] - v[0]) / ((T)2); }
     BSS_FORCEINLINE bool ContainsPoint(T X, T Y) const { return TriangleContainsPoint(v, X, Y); }
 
-    typedef T SerializerArray;
+    using SerializerArray = T;
     template<typename Engine>
     void Serialize(Serializer<Engine>& s, const char* id) { s.EvaluateFixedArray(v, id); }
 
@@ -399,7 +399,7 @@ namespace bss {
   template<class T>
   struct Ellipse
   {
-    typedef Vector<T, 2> V;
+    using V = Vector<T, 2>;
     inline constexpr Ellipse() {}
     template<class U>
     inline constexpr Ellipse(const Ellipse<U>& other) : pos(other.pos), axes(other.axes) {}
@@ -416,7 +416,7 @@ namespace bss {
     BSS_FORCEINLINE bool CircleCollide(T X, T Y, T R) const { return EllipseCircleCollide(x, y, a, b, X, Y, R); }
     BSS_FORCEINLINE bool CircleCollide(const Circle<T>& c) const { return EllipseCircleCollide(x, y, a, b, c.x, c.y, c.r); }
 
-    typedef T SerializerArray;
+    using SerializerArray = T;
     template<typename Engine>
     void Serialize(Serializer<Engine>& s, const char* id) { s.EvaluateFixedArray(v, id); }
 
@@ -439,7 +439,7 @@ namespace bss {
   template<class T>
   struct CircleSector
   {
-    typedef Vector<T, 2> V;
+    using V = Vector<T, 2>;
     template<class U>
     inline constexpr CircleSector(const CircleSector<U>& other) : x((T)other.x), y((T)other.y), inner((T)other.inner), outer((T)other.outer), min((T)other.min), range((T)other.range) {}
     inline constexpr CircleSector(T X, T Y, T Inner, T Outer, T Min, T Range) : x(X), y(Y), inner(Inner), outer(Outer), min(bssFMod<T>(Min, (T)PI_DOUBLE)), range(Range) {}
@@ -450,7 +450,7 @@ namespace bss {
     inline T ArcLengthInner() const { return range*inner; }
     inline bool ContainsPoint(T X, T Y) { return RadiusSectorContainsPoint(X - x, Y - y, inner, outer, min, range); }
 
-    typedef T SerializerArray;
+    using SerializerArray = T;
     template<typename Engine>
     void Serialize(Serializer<Engine>& s, const char* id) { s.EvaluateFixedArray(v, id); }
 
@@ -682,7 +682,7 @@ namespace bss {
   template<class T>
   struct Polygon
   {
-    typedef Vector<T, 2> V;
+    using V = Vector<T, 2>;
 
     inline Polygon(const Polygon<T>& copy) : _verts(copy._verts) {}
     inline Polygon(Polygon<T>&& mov) : _verts(std::move(mov._verts)) {}
@@ -741,7 +741,7 @@ namespace bss {
     template<size_t N>
     inline void SetVertices(const V(&vertices)[N]) { SetVertices(vertices, N); }
 
-    typedef T SerializerArray;
+    using SerializerArray = T;
     template<typename Engine>
     void Serialize(Serializer<Engine>& s, const char* id) { _verts.Serialize(s, id); }
 

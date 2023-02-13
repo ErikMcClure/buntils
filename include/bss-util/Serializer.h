@@ -377,7 +377,7 @@ namespace bss {
     template<class T>
     inline bool BulkRead(T && begin, T && end, int64_t count)
     {
-      typedef remove_cvref_t<decltype(*begin)> Element;
+      using Element = remove_cvref_t<decltype(*begin)>;
       if constexpr(std::is_trivially_constructible_v<Element> && (std::is_base_of_v<std::random_access_iterator_tag, T> || std::is_array_v<T> || std::is_pointer_v<T>))
       {
         if(begin == end)
@@ -394,7 +394,7 @@ namespace bss {
     template<class T>
     inline bool BulkWrite(T && begin, T && end, int64_t count)
     {
-      typedef remove_cvref_t<decltype(*begin)> Element;
+      using Element = remove_cvref_t<decltype(*begin)>;
       if constexpr(std::is_trivially_constructible_v<Element> && (std::is_base_of_v<std::random_access_iterator_tag, T> || std::is_array_v<T> || std::is_pointer_v<T>))
       {
         if(begin != end)

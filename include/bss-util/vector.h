@@ -386,7 +386,7 @@ namespace bss {
   {
     if constexpr(N == 4 && P == 4 && (std::is_same_v<T, float> || std::is_same_v<T, int32_t>))
     {
-      typedef sseVecT<T> SSE;
+      using SSE = sseVecT<T>;
       assert(!(((size_t)l) % 16));
       assert(!(((size_t)r) % 16));
       assert(!(((size_t)out) % 16));
@@ -612,7 +612,7 @@ namespace bss {
       return std::array<T, sizeof...(K)>{ v[K]... };
     }
 
-    typedef T SerializerArray;
+    using SerializerArray = T;
     template<typename Engine>
     void Serialize(Serializer<Engine>& s, const char* id) { s.EvaluateFixedArray(v, id); }
 
@@ -658,7 +658,7 @@ namespace bss {
 
     inline Vector<T, 2> yx() const { return Vector<T, 2>(y, x); }
 
-    typedef T SerializerArray;
+    using SerializerArray = T;
     template<typename Engine>
     void Serialize(Serializer<Engine>& s, const char* id) { s.EvaluateFixedArray(v, id); }
 
@@ -693,7 +693,7 @@ namespace bss {
 
     template<typename U> inline Vector<T, 3>& operator=(const Vector<U, 3>& r) { x = (T)r.x; y = (T)r.y; z = (T)r.z; return *this; }
 
-    typedef T SerializerArray;
+    using SerializerArray = T;
     template<typename Engine>
     void Serialize(Serializer<Engine>& s, const char* id) { s.EvaluateFixedArray(v, id); }
 
@@ -738,7 +738,7 @@ namespace bss {
 
     template<typename U> inline Vector<T, 4>& operator=(const Vector<U, 4>& copy) { x = (T)copy.x; y = (T)copy.y; z = (T)copy.z; w = (T)copy.w; return *this; }
 
-    typedef T SerializerArray;
+    using SerializerArray = T;
     template<typename Engine>
     void Serialize(Serializer<Engine>& s, const char* id) { s.EvaluateFixedArray(v, id); }
 
@@ -848,7 +848,7 @@ namespace bss {
       return m;
     }
 
-    typedef T SerializerArray;
+    using SerializerArray = T;
     template<typename Engine>
     void Serialize(Serializer<Engine>& s, const char* id) { s.EvaluateFixedArray(v, id); }
 
@@ -892,7 +892,7 @@ namespace bss {
     BSS_FORCEINLINE static void Identity(T(&n)[2][2]) { Diagonal(1, 1, n); }
     BSS_FORCEINLINE static Matrix Identity() { Matrix m; Identity(m); return m; }
 
-    typedef T SerializerArray;
+    using SerializerArray = T;
     template<typename Engine>
     void Serialize(Serializer<Engine>& s, const char* id) { s.EvaluateFixedArray(v, id); }
 
@@ -977,7 +977,7 @@ namespace bss {
     static BSS_FORCEINLINE void Identity(T(&m)[3][3]) { Diagonal(1, 1, 1, m); }
     static BSS_FORCEINLINE Matrix Identity() { Matrix m; Identity(m); return m; }
 
-    typedef T SerializerArray;
+    using SerializerArray = T;
     template<typename Engine>
     void Serialize(Serializer<Engine>& s, const char* id) { s.EvaluateFixedArray(v, id); }
 
@@ -1052,7 +1052,7 @@ namespace bss {
     static BSS_FORCEINLINE void Identity(T(&m)[4][4]) { Diagonal(1, 1, 1, 1, m); }
     static BSS_FORCEINLINE Matrix Identity() { Matrix m; Identity(m); return m; }
 
-    typedef T SerializerArray;
+    using SerializerArray = T;
     template<typename Engine>
     void Serialize(Serializer<Engine>& s, const char* id) { s.EvaluateFixedArray(v, id); }
 

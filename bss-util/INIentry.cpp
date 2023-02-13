@@ -49,7 +49,7 @@ void INIentry::Set(const char* data)
 void INIentry::SetInt(int64_t i)
 {
   _ivalue = i;
-  _dvalue = i;
+  _dvalue = (double)i;
   _svalue = std::to_string(i);
 }
 void INIentry::SetFloat(double d)

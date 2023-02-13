@@ -25,9 +25,9 @@ namespace bss {
   class BSS_COMPILER_DLLEXPORT BinaryHeap : protected DynArray<T, CType, ArrayType, Alloc>, protected MFUNC
   {
   protected:
-    typedef DynArray<T, CType, ArrayType, Alloc> BASE;
-    typedef typename BASE::CT CT;
-    typedef typename BASE::Ty Ty;
+    using BASE = DynArray<T, CType, ArrayType, Alloc>;
+    using CT = typename BASE::CT;
+    using Ty = typename BASE::Ty;
     using BASE::_array;
     using BASE::_capacity;
     using BASE::_length;

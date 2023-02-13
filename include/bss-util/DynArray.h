@@ -14,15 +14,15 @@ namespace bss {
   class BSS_COMPILER_DLLEXPORT DynArray : protected ArrayBase<T, CType, ArrayType, Alloc>
   {
   protected:
-    typedef ArrayBase<T, CType, ArrayType, Alloc> BASE;
+    using BASE = ArrayBase<T, CType, ArrayType, Alloc>;
     using BASE::_array;
     using BASE::_capacity;
     template<class U, typename C, ARRAY_TYPE AT, typename A>
     friend class StreamBufDynArray;
 
   public:
-    typedef typename BASE::CT CT;
-    typedef typename BASE::Ty Ty;
+    using CT = typename BASE::CT;
+    using Ty = typename BASE::Ty;
 
     inline DynArray(const DynArray& copy) : BASE(copy._capacity, copy), _length(copy._length) { BASE::_copy(_array, copy._array, _length); }
     inline DynArray(DynArray&& mov) : BASE(std::move(mov)), _length(mov._length) { mov._length = 0; }
@@ -122,7 +122,7 @@ namespace bss {
       r._length = _length + add._length;
       return r;
     }
-    typedef std::conditional_t<internal::is_pair_array<T>::value, void, T> SerializerArray;
+    using SerializerArray = std::conditional_t<internal::is_pair_array<T>::value, void, T>;
     template<typename Engine>
     void Serialize(Serializer<Engine>& s, const char* id)
     {
@@ -167,11 +167,11 @@ namespace bss {
   class BSS_COMPILER_DLLEXPORT DynArray<bool, CType, ArrayType, Alloc> : protected ArrayBase<uint8_t, CType, ArrayType, typename Alloc::template rebind<uint8_t>>
   {
   protected:
-    typedef uint8_t STORE;
-    typedef ArrayBase<STORE, CType, ArrayType, typename Alloc::template rebind<uint8_t>> BASE;
-    typedef typename BASE::CT CT;
-    typedef typename BASE::Ty Ty;
-    typedef internal::_BIT_REF<STORE> BITREF;
+    using STORE = uint8_t;
+    using BASE = ArrayBase<STORE, CType, ArrayType, typename Alloc::template rebind<uint8_t>>;
+    using CT = typename BASE::CT;
+    using Ty = typename BASE::Ty;
+    using BITREF = internal::_BIT_REF<STORE>;
     using BASE::_array;
     using BASE::_capacity;
     static const CT DIV_AMT = (sizeof(STORE) << 3);
@@ -277,7 +277,7 @@ namespace bss {
       return r;
     }*/
 
-    typedef Ty SerializerArray;
+    using SerializerArray = Ty;
     template<typename Engine>
     void Serialize(Serializer<Engine>& s, const char* id)
     {
@@ -341,9 +341,9 @@ namespace bss {
   class BSS_COMPILER_DLLEXPORT ArbitraryArray : protected ArrayBase<uint8_t, CType, ARRAY_SIMPLE, Alloc>
   {
   protected:
-    typedef ArrayBase<uint8_t, CType, ARRAY_SIMPLE, Alloc> BASE;
-    typedef typename BASE::CT CT;
-    typedef typename BASE::Ty Ty;
+    using BASE = ArrayBase<uint8_t, CType, ARRAY_SIMPLE, Alloc>;
+    using CT = typename BASE::CT;
+    using Ty = typename BASE::Ty;
     using BASE::_array;
     using BASE::_capacity;
 

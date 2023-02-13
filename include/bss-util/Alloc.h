@@ -39,8 +39,8 @@ namespace bss {
     };
 
   public:
-    typedef T value_type;
-    typedef void policy_type;
+    using value_type = T;
+    using policy_type = void;
     template<class U> using rebind = StandardAllocator<U, ALIGN>;
     StandardAllocator() = default;
     template <class U> constexpr StandardAllocator(const StandardAllocator<U>&) noexcept {}
@@ -99,8 +99,8 @@ namespace bss {
   // Implementation of a null allocation policy. Doesn't free anything, always returns 0 on all allocations.
   template<typename T>
   struct BSS_COMPILER_DLLEXPORT NullAllocator {
-    typedef T value_type;
-    typedef void policy_type;
+    using value_type = T;
+    using policy_type = void;
     template<class U> using rebind = NullAllocator<U>;
     NullAllocator() = default;
     template <class U> constexpr NullAllocator(const NullAllocator<U>&) noexcept {}
@@ -113,8 +113,8 @@ namespace bss {
   template<typename T, template <typename> class Policy>
   struct PolymorphicAllocator
   {
-    typedef T value_type;
-    typedef Policy<T> policy_type;
+    using value_type = T;
+    using policy_type = Policy<T>;
     template<class U> using rebind = PolymorphicAllocator<U, Policy>;
     PolymorphicAllocator() noexcept : _policy(DefaultPolicy()) {}
     PolymorphicAllocator(const PolymorphicAllocator&) = default;

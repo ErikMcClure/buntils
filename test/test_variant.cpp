@@ -6,7 +6,7 @@
 
 using namespace bss;
 
-typedef Variant<int, bool, Variant<double, Str>, Str> VTYPE;
+using VTYPE = Variant<int, bool, Variant<double, Str>, Str>;
 
 int test_VTYPE(VTYPE& v)
 {
@@ -66,7 +66,7 @@ TESTDEF::RETPAIR test_VARIANT()
   {
     DEBUG_CDT<false>::count = 0;
     DEBUG_CDT<true>::count = 0;
-    typedef Variant<DEBUG_CDT<true>, DEBUG_CDT<false>> VDEBUG;
+    using VDEBUG = Variant<DEBUG_CDT<true>, DEBUG_CDT<false>>;
     //DEBUG_CDT<true> d1;
     DEBUG_CDT<false> d2;
     //const DEBUG_CDT<true> d3;

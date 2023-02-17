@@ -1,4 +1,4 @@
-# Black Sphere Studios Utility Library
+# Bunny Utility Library
  
 This is a collection of miscellaneous utility code used to simplify common tasks in C/C++ programs.
 

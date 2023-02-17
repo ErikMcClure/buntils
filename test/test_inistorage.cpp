@@ -1,10 +1,10 @@
-// Copyright ©2018 Black Sphere Studios
-// For conditions of distribution and use, see copyright notice in "bss_util.h"
+// Copyright ©2018 Erik McClure
+// For conditions of distribution and use, see copyright notice in "buntils.h"
 
 #include "test.h"
-#include "bss-util/INIstorage.h"
+#include "buntils/INIstorage.h"
 
-using namespace bss;
+using namespace bun;
 
 #define INI_E(s,k,v,nk,ns) TEST(!ini.EditEntry(TXT(s),TXT(k),TXT(v),nk,ns))
 #define INI_NE(s,k,v,nk,ns) TEST(ini.EditEntry(TXT(s),TXT(k),TXT(v),nk,ns)<0)

@@ -1,32 +1,32 @@
 @ECHO OFF
-md "..\Packages\bss-util"
+md "..\Packages\buntils"
 
 :: So, uh, apparently XCOPY deletes empty subdirectories in your destination.
-XCOPY "*.cpp" "..\Packages\bss-util" /S /C /I /R /Y
-XCOPY "*.c" "..\Packages\bss-util" /S /C /I /R /Y
-XCOPY "test\*.h" "..\Packages\bss-util\test" /S /C /I /R /Y
-XCOPY "test\*.rc" "..\Packages\bss-util\test" /S /C /I /R /Y
-XCOPY "test\*.ico" "..\Packages\bss-util\test" /S /C /I /R /Y
-XCOPY "*.vcxproj" "..\Packages\bss-util" /S /C /I /R /Y
-XCOPY "*.filters" "..\Packages\bss-util" /S /C /I /R /Y
-XCOPY "*.sln" "..\Packages\bss-util" /S /C /I /R /Y
-XCOPY "bss-util\*.rc" "..\Packages\bss-util\bss-util" /C /I /R /Y
+XCOPY "*.cpp" "..\Packages\buntils" /S /C /I /R /Y
+XCOPY "*.c" "..\Packages\buntils" /S /C /I /R /Y
+XCOPY "test\*.h" "..\Packages\buntils\test" /S /C /I /R /Y
+XCOPY "test\*.rc" "..\Packages\buntils\test" /S /C /I /R /Y
+XCOPY "test\*.ico" "..\Packages\buntils\test" /S /C /I /R /Y
+XCOPY "*.vcxproj" "..\Packages\buntils" /S /C /I /R /Y
+XCOPY "*.filters" "..\Packages\buntils" /S /C /I /R /Y
+XCOPY "*.sln" "..\Packages\buntils" /S /C /I /R /Y
+XCOPY "buntils\*.rc" "..\Packages\buntils\buntils" /C /I /R /Y
 
-md "..\Packages\bss-util\include"
-md "..\Packages\bss-util\bin"
-md "..\Packages\bss-util\bin32"
-md "..\Packages\bss-util\test"
+md "..\Packages\buntils\include"
+md "..\Packages\buntils\bin"
+md "..\Packages\buntils\bin32"
+md "..\Packages\buntils\test"
 
-XCOPY "*.md" "..\Packages\bss-util" /C /I /Y
-XCOPY "LICENSE*" "..\Packages\bss-util" /C /I /Y
-XCOPY "include\*.h" "..\Packages\bss-util\include" /S /C /I /R /Y
-XCOPY "bin\bss-util*.dll" "..\Packages\bss-util\bin" /C /I /Y
-XCOPY "bin\bss-util*.lib" "..\Packages\bss-util\bin" /C /I /Y
-XCOPY "bin\bss-util*.pdb" "..\Packages\bss-util\bin" /C /I /Y
-XCOPY "bin32\bss-util*.dll" "..\Packages\bss-util\bin32" /C /I /Y
-XCOPY "bin32\bss-util*.lib" "..\Packages\bss-util\bin32" /C /I /Y
-XCOPY "bin32\bss-util*.pdb" "..\Packages\bss-util\bin32" /C /I /Y
-XCOPY "bin\test.exe" "..\Packages\bss-util\bin" /C /I /Y
-XCOPY "bin32\test.exe" "..\Packages\bss-util\bin32" /C /I /Y
+XCOPY "*.md" "..\Packages\buntils" /C /I /Y
+XCOPY "LICENSE*" "..\Packages\buntils" /C /I /Y
+XCOPY "include\*.h" "..\Packages\buntils\include" /S /C /I /R /Y
+XCOPY "bin\buntils*.dll" "..\Packages\buntils\bin" /C /I /Y
+XCOPY "bin\buntils*.lib" "..\Packages\buntils\bin" /C /I /Y
+XCOPY "bin\buntils*.pdb" "..\Packages\buntils\bin" /C /I /Y
+XCOPY "bin32\buntils*.dll" "..\Packages\buntils\bin32" /C /I /Y
+XCOPY "bin32\buntils*.lib" "..\Packages\buntils\bin32" /C /I /Y
+XCOPY "bin32\buntils*.pdb" "..\Packages\buntils\bin32" /C /I /Y
+XCOPY "bin\test.exe" "..\Packages\buntils\bin" /C /I /Y
+XCOPY "bin32\test.exe" "..\Packages\buntils\bin32" /C /I /Y
 
 Pause

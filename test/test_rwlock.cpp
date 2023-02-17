@@ -1,11 +1,11 @@
-// Copyright ©2018 Black Sphere Studios
-// For conditions of distribution and use, see copyright notice in "bss_util.h"
+// Copyright ©2018 Erik McClure
+// For conditions of distribution and use, see copyright notice in "buntils.h"
 
 #include "test.h"
-#include "bss-util/RWLock.h"
-#include "bss-util/Thread.h"
+#include "buntils/RWLock.h"
+#include "buntils/Thread.h"
 
-using namespace bss;
+using namespace bun;
 
 TESTDEF::RETPAIR test_RWLOCK()
 {

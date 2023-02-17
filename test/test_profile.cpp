@@ -1,12 +1,12 @@
-// Copyright ©2018 Black Sphere Studios
-// For conditions of distribution and use, see copyright notice in "bss_util.h"
+// Copyright ©2018 Erik McClure
+// For conditions of distribution and use, see copyright notice in "buntils.h"
 
 #include "test.h"
-#define BSS_ENABLE_PROFILER
-#include "bss-util/Profiler.h"
-#include "bss-util/algo.h"
+#define BUN_ENABLE_PROFILER
+#include "buntils/Profiler.h"
+#include "buntils/algo.h"
 
-using namespace bss;
+using namespace bun;
 
 TESTDEF::RETPAIR test_PROFILE()
 {
@@ -21,7 +21,7 @@ TESTDEF::RETPAIR test_PROFILE()
       CPU_Barrier();
       __PROFILE_ZONE(control);
       CPU_Barrier();
-      testnums[bssRandInt(0, TESTNUM)] += 1;
+      testnums[bun_RandInt(0, TESTNUM)] += 1;
     }
 
     auto pr = HighPrecisionTimer::OpenProfiler();
@@ -30,7 +30,7 @@ TESTDEF::RETPAIR test_PROFILE()
       PROFILE_BLOCK(outer);
       {
         PROFILE_BLOCK(inner);
-        testnums[bssRandInt(0, TESTNUM)] += 1;
+        testnums[bun_RandInt(0, TESTNUM)] += 1;
       }
     }
     //std::cout << HighPrecisionTimer::CloseProfiler(pr)/100000.0 << std::endl;
@@ -38,7 +38,7 @@ TESTDEF::RETPAIR test_PROFILE()
     for(size_t i = 0; i < 100000; ++i)
     {
       PROFILE_BEGIN(beginend);
-      testnums[bssRandInt(0, TESTNUM)] += 1;
+      testnums[bun_RandInt(0, TESTNUM)] += 1;
       PROFILE_END(beginend);
     }
 

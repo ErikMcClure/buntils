@@ -389,7 +389,7 @@
       <TargetMachine>MachineX86</TargetMachine>
       <StackReserveSize>1000000</StackReserveSize>
       <AssemblyDebug>true</AssemblyDebug>
-      <AdditionalDependencies>../bin32/bss-util32.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalDependencies>../bin32/buntils32.lib;%(AdditionalDependencies)</AdditionalDependencies>
     </Link>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release-Static|Win32'">
@@ -487,7 +487,7 @@
       <OptimizeReferences>true</OptimizeReferences>
       <EnableCOMDATFolding>true</EnableCOMDATFolding>
       <StackReserveSize>10000000</StackReserveSize>
-      <AdditionalDependencies>../bin/bss-util.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalDependencies>../bin/buntils.lib;%(AdditionalDependencies)</AdditionalDependencies>
     </Link>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release-Static|x64'">
@@ -567,8 +567,8 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
-    <ClCompile Include="test_bss_alloc_cache.cpp" />
-    <ClCompile Include="test_bss_alloc_greedy_block.cpp" />
+    <ClCompile Include="test_alloc_cache.cpp" />
+    <ClCompile Include="test_alloc_greedy_block.cpp" />
     <ClCompile Include="test_c.c">
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|x64'">NotUsing</PrecompiledHeader>
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">NotUsing</PrecompiledHeader>
@@ -591,18 +591,18 @@
     <ClCompile Include="test_binaryheap.cpp" />
     <ClCompile Include="test_bitfield.cpp" />
     <ClCompile Include="test_bitstream.cpp" />
-    <ClCompile Include="test_bss_algo.cpp" />
-    <ClCompile Include="test_bss_alloc_block.cpp" />
-    <ClCompile Include="test_bss_alloc_block_mt.cpp" />
-    <ClCompile Include="test_bss_alloc_circular.cpp" />
-    <ClCompile Include="test_bss_alloc_greedy.cpp" />
-    <ClCompile Include="test_bss_defines.cpp" />
-    <ClCompile Include="test_bss_graph.cpp" />
-    <ClCompile Include="test_bss_logger.cpp" />
-    <ClCompile Include="test_bss_sse.cpp" />
-    <ClCompile Include="test_bss_util.cpp" />
-    <ClCompile Include="test_bss_util_c.cpp" />
-    <ClCompile Include="test_bss_vector.cpp" />
+    <ClCompile Include="test_algo.cpp" />
+    <ClCompile Include="test_alloc_block.cpp" />
+    <ClCompile Include="test_alloc_block_mt.cpp" />
+    <ClCompile Include="test_alloc_circular.cpp" />
+    <ClCompile Include="test_alloc_greedy.cpp" />
+    <ClCompile Include="test_defines.cpp" />
+    <ClCompile Include="test_graph.cpp" />
+    <ClCompile Include="test_logger.cpp" />
+    <ClCompile Include="test_sse.cpp" />
+    <ClCompile Include="test_buntils.cpp" />
+    <ClCompile Include="test_buntils_c.cpp" />
+    <ClCompile Include="test_vector.cpp" />
     <ClCompile Include="test_collision.cpp" />
     <ClCompile Include="test_compactarray.cpp" />
     <ClCompile Include="test_delegate.cpp" />

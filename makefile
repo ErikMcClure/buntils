@@ -1,26 +1,26 @@
 .PHONY: all clean distclean
 
 all:
-	make -f bss-util.mk
+	make -f buntils.mk
 	make -f test.mk
 
 clean:
-	make clean -f bss-util.mk
+	make clean -f buntils.mk
 	make clean -f test.mk
 
 dist: all distclean
-	tar -czf bss-util-posix.tar.gz *
+	tar -czf buntils-posix.tar.gz *
 
 distclean:
-	make distclean -f bss-util.mk
+	make distclean -f buntils.mk
 	make distclean -f test.mk
 
 debug:
-	make debug -f bss-util.mk
+	make debug -f buntils.mk
 	make debug -f test.mk
 
 install: all
-	make install -f bss-util.mk
+	make install -f buntils.mk
   
 uninstall:
-	make uninstall -f bss-util.mk
+	make uninstall -f buntils.mk

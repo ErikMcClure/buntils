@@ -1,15 +1,15 @@
-// Copyright ©2018 Black Sphere Studios
-// For conditions of distribution and use, see copyright notice in "bss_util.h"
+// Copyright ©2018 Erik McClure
+// For conditions of distribution and use, see copyright notice in "buntils.h"
 
 #include "test.h"
-#include "bss-util/Thread.h"
-#include "bss-util/algo.h"
+#include "buntils/Thread.h"
+#include "buntils/algo.h"
 
-using namespace bss;
+using namespace bun;
 
-#if defined(BSS_CPU_x86) || defined(BSS_CPU_x64)
+#if defined(BUN_CPU_x86) || defined(BUN_CPU_x64)
 // This is an SSE version of the fast sqrt that calculates x*invsqrt(x) as a speed hack. Sadly, it's still slower and actually LESS accurate than the classic FastSqrt with an added iteration, below, and it isn't even portable. Left here for reference, in case you don't believe me ;)
-BSS_FORCEINLINE float sseFastSqrt(float f)
+BUN_FORCEINLINE float sseFastSqrt(float f)
 {
   float r;
   __m128 in = _mm_load_ss(&f);
@@ -38,13 +38,13 @@ int getuniformint()
     samples[0] = 0;
     for(int i = 1; i<NUM; ++i)
     {
-      int64_t j = bssRandInt(0, i + 1);
+      int64_t j = bun_RandInt(0, i + 1);
       samples[i] = samples[j];
       samples[j] = i;
     }
     if(last == samples[0])
     {
-      int64_t j = 1 + bssRandInt(0, NUM - 1);
+      int64_t j = 1 + bun_RandInt(0, NUM - 1);
       samples[0] = samples[j];
       samples[j] = last;
     }
@@ -174,7 +174,7 @@ default:
 TEST(false);
 }
 
-switch(cObjSwap<const bsschar*>(PANGRAMS[i],5,PANGRAMS[4],PANGRAMS[3],PANGRAMS[2],PANGRAMS[1],PANGRAMS[0]))
+switch(cObjSwap<const bun_char*>(PANGRAMS[i],5,PANGRAMS[4],PANGRAMS[3],PANGRAMS[2],PANGRAMS[1],PANGRAMS[0]))
 {
 case 0:
 TEST(i==4); break;
@@ -241,7 +241,7 @@ int PI_ITERATIONS=500;
 double pi=((PI_ITERATIONS<<1)-1)+(PI_ITERATIONS*PI_ITERATIONS);
 
 const char* MBSTESTSTRINGS[] = { "test","test2","test3","test4","test5","test6" };
-const wchar_t* WCSTESTSTRINGS[] = { BSS__L("test"),BSS__L("test2"),BSS__L("test3"),BSS__L("test4"),BSS__L("test5"),BSS__L("test6") };
+const wchar_t* WCSTESTSTRINGS[] = { BUN__L("test"),BUN__L("test2"),BUN__L("test3"),BUN__L("test4"),BUN__L("test5"),BUN__L("test6") };
 
 struct weird
 {

@@ -11,11 +11,11 @@
 *.vcxproj.user
 /bin/
 /bin32/
-/bss-util/x64/
-/bss-util/Win32/
+/buntils/x64/
+/buntils/Win32/
 /test/x64/
 /test/Win32/
 /ATOMIC.H
-/bss-util.VC.opendb
+/buntils.VC.opendb
 /_hugo/
 /.vs/

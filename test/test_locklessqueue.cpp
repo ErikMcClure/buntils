@@ -1,13 +1,13 @@
-// Copyright ©2018 Black Sphere Studios
-// For conditions of distribution and use, see copyright notice in "bss_util.h"
+// Copyright ©2018 Erik McClure
+// For conditions of distribution and use, see copyright notice in "buntils.h"
 
 #include "test.h"
-#include "bss-util/LocklessQueue.h"
+#include "buntils/LocklessQueue.h"
 #include <algorithm>
-#include "bss-util/Thread.h"
-#include "bss-util/HighPrecisionTimer.h"
+#include "buntils/Thread.h"
+#include "buntils/HighPrecisionTimer.h"
 
-using namespace bss;
+using namespace bun;
 
 std::atomic<size_t> lq_c;
 uint16_t lq_end[TESTNUM];
@@ -75,7 +75,7 @@ TESTDEF::RETPAIR test_LOCKLESSQUEUE()
     uint64_t ppp = HighPrecisionTimer::OpenProfiler();
     lq_c = 1;
     lq_pos = 0;
-    bssFill(lq_end, 0);
+    bun_Fill(lq_end, 0);
     startflag.store(false);
     threads[0] = Thread((VOIDFN)&_locklessqueue_produce<LLQUEUE_SCSP>, &q);
     threads[1] = Thread((VOIDFN)&_locklessqueue_consume<LLQUEUE_SCSP>, &q);
@@ -96,7 +96,7 @@ TESTDEF::RETPAIR test_LOCKLESSQUEUE()
     {
       lq_c = 1;
       lq_pos = 0;
-      bssFill(lq_end, 0);
+      bun_Fill(lq_end, 0);
       LLQUEUE_MCMP q;   // multi consumer multi producer test
       startflag.store(false);
       //threads[0] = std::thread(_locklessqueue_consume<LLQUEUE_MCMP>, &q);

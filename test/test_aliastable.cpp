@@ -1,10 +1,10 @@
-// Copyright ©2018 Black Sphere Studios
-// For conditions of distribution and use, see copyright notice in "bss_util.h"
+// Copyright ©2018 Erik McClure
+// For conditions of distribution and use, see copyright notice in "buntils.h"
 
 #include "test.h"
-#include "bss-util/AliasTable.h"
+#include "buntils/AliasTable.h"
 
-using namespace bss;
+using namespace bun;
 
 TESTDEF::RETPAIR test_ALIASTABLE()
 {
@@ -20,12 +20,12 @@ TESTDEF::RETPAIR test_ALIASTABLE()
     real[i] = counts[i] / double(COUNT);
   for(size_t i = 0; i < 7; ++i)
     TEST(fCompare(p[i], real[i], (1LL << 45)));
-  a(bss_getdefaultengine());
-  a.Get(bss_getdefaultengine());
+  a(bun_getdefaultengine());
+  a.Get(bun_getdefaultengine());
 
   AliasTable<size_t, double> b;
   b = AliasTable<size_t, double>(p);
-  bssFill(counts);
+  bun_Fill(counts);
   for(size_t i = 0; i < COUNT; ++i)
     ++counts[b()];
   for(size_t i = 0; i < 7; ++i)

@@ -1,24 +1,24 @@
-// Copyright ©2018 Black Sphere Studios
-// For conditions of distribution and use, see copyright notice in "bss_util.h"
+// Copyright ©2018 Erik McClure
+// For conditions of distribution and use, see copyright notice in "buntils.h"
 
 #include "test.h"
-#include "bss-util/StringTable.h"
+#include "buntils/StringTable.h"
 #include <fstream>
 
-using namespace bss;
+using namespace bun;
 
 TESTDEF::RETPAIR test_STRTABLE()
 {
   BEGINTEST;
 
-  const int SZ = sizeof(PANGRAMS) / sizeof(const bsschar*);
+  const int SZ = sizeof(PANGRAMS) / sizeof(const bun_char*);
   Str pangrams[SZ];
   const char* pstr[SZ];
   for(size_t i = 0; i < SZ; ++i)
     pstr[i] = (pangrams[i] = PANGRAMS[i]).c_str();
 
   StringTable<char> mbstable(pstr, SZ);
-  StringTable<bsschar> wcstable(PANGRAMS, SZ);
+  StringTable<bun_char> wcstable(PANGRAMS, SZ);
   StringTable<char> mbstable2(pstr, 6);
 
   for(size_t i = 0; i < mbstable.Length(); ++i)
@@ -40,7 +40,7 @@ TESTDEF::RETPAIR test_STRTABLE()
   mbstable.DumpToStream(&fs);
   fs.close();
   fs.open("dump.txt", std::ios_base::in | std::ios_base::binary);
-  StringTable<char> ldtable(&fs, (size_t)bssFileSize("dump.txt"));
+  StringTable<char> ldtable(&fs, (size_t)bun_FileSize("dump.txt"));
   for(size_t i = 0; i < SZ; ++i)
     TEST(!strcmp(ldtable[i], pstr[i]));
   for(size_t i = 0; i < 6; ++i)

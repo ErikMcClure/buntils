@@ -1,13 +1,13 @@
-// Copyright ©2018 Black Sphere Studios
-// For conditions of distribution and use, see copyright notice in "bss_util.h"
+// Copyright ©2018 Erik McClure
+// For conditions of distribution and use, see copyright notice in "buntils.h"
 
 #include "test.h"
-#include "bss-util/TRBtree.h"
-#include "bss-util/algo.h"
-#include "bss-util/BlockAlloc.h"
+#include "buntils/TRBtree.h"
+#include "buntils/algo.h"
+#include "buntils/BlockAlloc.h"
 #include <fstream>
 
-using namespace bss;
+using namespace bun;
 
 bool verifytree(TRB_Node<int>* front, uint32_t& same)
 {

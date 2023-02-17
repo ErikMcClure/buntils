@@ -1,15 +1,15 @@
-// Copyright ©2018 Black Sphere Studios
-// For conditions of distribution and use, see copyright notice in "bss_util.h"
+// Copyright ©2018 Erik McClure
+// For conditions of distribution and use, see copyright notice in "buntils.h"
 
 #include "test.h"
-#include "bss-util/os.h"
-#include "bss-util/Trie.h"
+#include "buntils/os.h"
+#include "buntils/Trie.h"
 #include <string.h>
-#ifdef BSS_PLATFORM_WIN32
-#include "bss-util/win32_includes.h"
+#ifdef BUN_PLATFORM_WIN32
+#include "buntils/win32_includes.h"
 #endif
 
-using namespace bss;
+using namespace bun;
 
 TESTDEF::RETPAIR test_OS()
 {
@@ -41,7 +41,7 @@ TESTDEF::RETPAIR test_OS()
     }
   });
 
-#ifdef BSS_PLATFORM_WIN32
+#ifdef BUN_PLATFORM_WIN32
   int64_t sz = GetRegistryValue(HKEY_CURRENT_USER, "Control Panel\\Desktop", "CursorBlinkRate", 0, 0);
   TEST(sz > 0);
   if(sz > 0)

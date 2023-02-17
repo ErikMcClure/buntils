@@ -1,12 +1,12 @@
-// Copyright ©2018 Black Sphere Studios
-// For conditions of distribution and use, see copyright notice in "bss_util.h"
+// Copyright ©2018 Erik McClure
+// For conditions of distribution and use, see copyright notice in "buntils.h"
 
 #include "test.h"
-#include "bss-util/AATree.h"
-#include "bss-util/algo.h"
+#include "buntils/AATree.h"
+#include "buntils/algo.h"
 #include <iostream>
 
-using namespace bss;
+using namespace bun;
 
 TESTDEF::RETPAIR test_AA_TREE()
 {

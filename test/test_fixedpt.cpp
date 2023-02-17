@@ -1,12 +1,12 @@
-// Copyright ©2018 Black Sphere Studios
-// For conditions of distribution and use, see copyright notice in "bss_util.h"
+// Copyright ©2018 Erik McClure
+// For conditions of distribution and use, see copyright notice in "buntils.h"
 
 #include "test.h"
-#include "bss-util/FixedPt.h"
+#include "buntils/FixedPt.h"
 
-using namespace bss;
+using namespace bun;
 
-TESTDEF::RETPAIR test_bss_FIXEDPT()
+TESTDEF::RETPAIR test_FIXEDPT()
 {
   BEGINTEST;
 

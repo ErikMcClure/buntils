@@ -1,10 +1,10 @@
-// Copyright ©2018 Black Sphere Studios
-// For conditions of distribution and use, see copyright notice in "bss_util.h"
+// Copyright ©2018 Erik McClure
+// For conditions of distribution and use, see copyright notice in "buntils.h"
 
 #include "test.h"
-#include "bss-util/Str.h"
+#include "buntils/Str.h"
 
-using namespace bss;
+using namespace bun;
 
 TESTDEF::RETPAIR test_STR()
 {
@@ -38,8 +38,8 @@ TESTDEF::RETPAIR test_STR()
   TEST(!strcmp(Str(1, "1 2", ' '), "2"));
   TEST(!strcmp(StrF("%s2", "place"), "place2"));
   TEST(!strcmp(StrF("2", "place"), "2"));
-#ifdef BSS_COMPILER_MSVC // We can only run this test meaningfully on windows, because its the only one where it actually makes a difference.
-  TEST(!strcmp(Str(BSS__L("Törkylempijävongahdus")), "TÃ¶rkylempijÃ¤vongahdus"));
+#ifdef BUN_COMPILER_MSVC // We can only run this test meaningfully on windows, because its the only one where it actually makes a difference.
+  TEST(!strcmp(Str(BUN__L("Törkylempijävongahdus")), "TÃ¶rkylempijÃ¤vongahdus"));
 #endif
 
   VARARRAY(char, test2, 6);
@@ -88,7 +88,7 @@ TESTDEF::RETPAIR test_STR()
   TEST(!strcmp(a[1], "of"));
   TEST(!strcmp(a[2], "words"));
 
-#ifdef BSS_COMPILER_MSC
+#ifdef BUN_COMPILER_MSC
   TEST(!strcmp(s2.c_str(), "")); // This is only supposed to happen on VC++, other compilers don't have to do this (GCC in particular doesn't).
 #endif
   Str sdfderp(s + Str("temp") + Str("temp") + Str("temp") + Str("temp"));
@@ -111,7 +111,7 @@ TESTDEF::RETPAIR test_STR()
   TEST(vec1[6] == 39);
   TEST(vec1[7] == 0);
   vec1.clear();
-#ifdef BSS_PLATFORM_WIN32
+#ifdef BUN_PLATFORM_WIN32
   StrW::ParseTokens<int>(L"", L",", vec1, &_wtoi);
   TEST(vec1.size() == 0);
   StrW::ParseTokens<int>(L"1234,235,2,6,1,0,,39,ahjs", L",", vec1, &_wtoi);

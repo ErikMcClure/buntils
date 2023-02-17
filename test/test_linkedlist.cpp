@@ -1,10 +1,10 @@
-// Copyright ©2018 Black Sphere Studios
-// For conditions of distribution and use, see copyright notice in "bss_util.h"
+// Copyright ©2018 Erik McClure
+// For conditions of distribution and use, see copyright notice in "buntils.h"
 
 #include "test.h"
-#include "bss-util/LinkedList.h"
+#include "buntils/LinkedList.h"
 
-using namespace bss;
+using namespace bun;
 
 template<typename Alloc, bool L, bool S>
 bool cmplist(LinkedList<int, Alloc, L, S>& list, const char* nums)

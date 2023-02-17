@@ -1,6 +1,6 @@
-#include "bss-util/bss_util_c.h"
+#include "buntils/buntils_c.h"
 
 void TEST_C_COMPILE()
 {
-  unsigned long long v = bssVersion.version;
+  unsigned long long v = bun_Version.version;
 }

@@ -1,12 +1,12 @@
-// Copyright ©2018 Black Sphere Studios
-// For conditions of distribution and use, see copyright notice in "bss_util.h"
+// Copyright ©2018 Erik McClure
+// For conditions of distribution and use, see copyright notice in "buntils.h"
 
 #include "test.h"
-#include "bss-util/Map.h"
+#include "buntils/Map.h"
 #include <algorithm>
 #include <map>
 
-using namespace bss;
+using namespace bun;
 
 TESTDEF::RETPAIR test_MAP()
 {
@@ -37,7 +37,7 @@ TESTDEF::RETPAIR test_MAP()
   TEST(test.Get(0) == -1);
   TEST(test.Length() == ((sizeof(ins) / sizeof(int)) - 1));
 
-#ifndef BSS_COMPILER_GCC // Once again, GCC demonstrates its amazing ability to NOT DEFINE ANY FUCKING CONSTRUCTORS
+#ifndef BUN_COMPILER_GCC // Once again, GCC demonstrates its amazing ability to NOT DEFINE ANY FUCKING CONSTRUCTORS
   Map<int, FWDTEST> tst;
   tst.Insert(0, FWDTEST());
   FWDTEST lval;

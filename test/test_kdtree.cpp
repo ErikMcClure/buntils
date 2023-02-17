@@ -1,11 +1,11 @@
-// Copyright ©2018 Black Sphere Studios
-// For conditions of distribution and use, see copyright notice in "bss_util.h"
+// Copyright ©2018 Erik McClure
+// For conditions of distribution and use, see copyright notice in "buntils.h"
 
 #include "test.h"
-#include "bss-util/KDTree.h"
-#include "bss-util/BlockAlloc.h"
+#include "buntils/KDTree.h"
+#include "buntils/BlockAlloc.h"
 
-using namespace bss;
+using namespace bun;
 
 struct KDtest {
   float rect[4];
@@ -14,10 +14,10 @@ struct KDtest {
   static int hits;
 };
 int KDtest::hits = 0;
-BSS_FORCEINLINE const float* KDtest_RECT(KDtest* t) { return t->rect; }
-BSS_FORCEINLINE LLBase<KDtest>& KDtest_LIST(KDtest* t) { return *(LLBase<KDtest>*)&t->list; }
-BSS_FORCEINLINE void KDtest_ACTION(KDtest* t) { ++KDtest::hits; }
-BSS_FORCEINLINE KDNode<KDtest>*& KDtest_NODE(KDtest* t) { return t->node; }
+BUN_FORCEINLINE const float* KDtest_RECT(KDtest* t) { return t->rect; }
+BUN_FORCEINLINE LLBase<KDtest>& KDtest_LIST(KDtest* t) { return *(LLBase<KDtest>*)&t->list; }
+BUN_FORCEINLINE void KDtest_ACTION(KDtest* t) { ++KDtest::hits; }
+BUN_FORCEINLINE KDNode<KDtest>*& KDtest_NODE(KDtest* t) { return t->node; }
 
 TESTDEF::RETPAIR test_KDTREE()
 {

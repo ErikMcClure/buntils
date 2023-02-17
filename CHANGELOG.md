@@ -1,4 +1,4 @@
-﻿# Black Sphere Studios Utility Library Changelog
+﻿# Bunny Utility Library Changelog
 
 ## 0.5.2
 - Use constexpr ifs to massively simplify `Variant` implementation
@@ -26,7 +26,7 @@
 ## 0.5.1
 - Replace most instances of `uint32_t` with `size_t`
 - Static build now works with vcpkg
-- `bssVersionInfo` was changed to a 64-bit int with 4 16 bit integers, which makes it easier to serialize/deserialize as an array
+- `bunVersionInfo` was changed to a 64-bit int with 4 16 bit integers, which makes it easier to serialize/deserialize as an array
 - `DynArray` streams have been replaced by a generic read-only array stream and a read-write `DynArray` stream
 - Added a functional buffer stream 
 - Renamed `ArraySlice` to `Slice` and improved support
@@ -36,7 +36,7 @@
 - Added `Collision.h` with 2D collision algorithms between different shapes
 - Added `Geometry.h` with N-dimensional and 2D shape objects
 - Added bit groups to `BitField`
-- Remove `bssSeq` and use standardized `std::index_sequence` instead
+- Remove `bunSeq` and use standardized `std::index_sequence` instead
 - Drop all attempts to support VS2010 and remove legacy code
 - Simplify template boilerplate with `if constexpr`
 - Add aligned allocator support
@@ -71,8 +71,8 @@
 - All public functions that aren't meant to mimic standard library functions are now Capitalized
 - Some function names have been expanded to full words for readability
 - Singleton behavior has been changed, and now does not provide `Instance()` or instantiate the static variable for you to prevent DLL boundary accidents.
-- bssFill added as typesafe alternative to `memset()`
-- Removed `rswap()` and `bssReverse()`, use std::swap and std::reverse instead.
+- bunFill added as typesafe alternative to `memset()`
+- Removed `rswap()` and `bunReverse()`, use std::swap and std::reverse instead.
 - Moved internal entities into the "internal" namespace
 - Moved UTF function declarations to `utf_conv.h`
 - Version info is now an exported symbol, thus accurately reflecting the version of the compiled DLL itself
@@ -84,7 +84,7 @@
 - Added Gauss–Legendre quadrature for approximating integrals
 - Added C-style object functions to `delegate.h`
 - Added `Set()` to DynArray and Array
-- Fixed up headers and #defines so bss-util builds and runs under Linux Subsystem for Windows
+- Fixed up headers and #defines so bun-util builds and runs under Linux Subsystem for Windows
 - Fixed GetNear on TRBTree
 - Add `GetAttribute<TYPE>()` helper functions to `cXML.h`
 - Improve FixedPt class to work on 64-bits with minimal precision loss
@@ -113,13 +113,13 @@
 - Added a universal serializer as `cSerializer.h`, and changed JSON and UBJSON to serializer engines
 - Made linked list operations move safe
 - Fixed `CARRAY_CONSTRUCT` in `cDynArray` and `cArray` and added more vigorous testing to detect similar errors
-- Fixed const bug in `bss_vector.h`
-- added bssmalloc function
+- Fixed const bug in `bun_vector.h`
+- added bunmalloc function
 - Added missing UTF conversion functions and standardized them
-- Added `STRUPR` and fixed `cDisjointSet.h` include in bss_Graph
+- Added `STRUPR` and fixed `cDisjointSet.h` include in bun_Graph
 - Refactored tests into individual cpp files
 - Added GetRegistryValue for windows platforms only
-- Added bssloadfile for quickly loading files into memory
+- Added bunloadfile for quickly loading files into memory
 - Rewrote `cHash` to support `ARRAY_TYPE` and proper safe types, and added hash support for `cStr`.
 - Fixed parsing bug in `cXML` and added more tests
 
@@ -127,18 +127,18 @@
 - Added variant class, an algebriac data type implemented in `variant.h`
 - Added bool array support and tests to UBJSON
 - Added support for variants in both UBJSON and JSON parsing and serialization.
-- Put bss_graph back in bss_util namespace but removed it from `bss_algo.h`
+- Put bun_graph back in bun_util namespace but removed it from `bun_algo.h`
 - Added base64 encoder and decoder using url-safe convention, but no padding.
-- Added stream buffer for `cDynArray`, renamed ``StreamSplitter`.h` to `bss_stream.h`
+- Added stream buffer for `cDynArray`, renamed ``StreamSplitter`.h` to `bun_stream.h`
 - Added option for non-recursive DelDir
-- Fixed comparison bug in `bss_vector.h`
+- Fixed comparison bug in `bun_vector.h`
 - Added AddConstruct function to `cDynArray`
 - Added FromC for stateless functions to `delegate.h`
 - Added a Newton-Raphson root finder method, and a Newton-Raphson Bisection hybrid algorithm that should converge for all well behaved functions.
 - Added cubic function solver
 - Added cubic curve and quadratic curve splitter
 - Removed VC++ __int32 style types
-- Removed custom uint16, uint32, etc. types from bss_util namespace
+- Removed custom uint16, uint32, etc. types from bun_util namespace
 - Standardized all types to C++11 uint32_t format
 - Added `ARRAY_MOVE` so std::unique_ptr can be safely put into an array object so long as it isn't copied.
 - Fixed AddConstruct so it uses perfect forwarding
@@ -149,11 +149,11 @@
 
 ## 0.4.4
 - Fixed static keywords on explicit template specializations. 
-- Fixed divide by zero error in `bss_profiler`.
-- Created a #define version of fbnext that can be used instead of the template version, then removed bss_util references from several files.
+- Fixed divide by zero error in `bun_profiler`.
+- Created a #define version of fbnext that can be used instead of the template version, then removed bun_util references from several files.
 - Added `operator[]` to `cStack`
 - Added `*operator` to `sseVeci`
-- Added `bss_vector.h` and moved n-dimensional vector algorithms from `bss_algo.h` to there.
+- Added `bun_vector.h` and moved n-dimensional vector algorithms from `bun_algo.h` to there.
 - Changed `cArraySimple`/`cArrayConstruct`/`cArraySafe` into just `cArrayBase`<> that takes a template parameter and changed all the template signatures of dependent types. Removed `WArray` since you can use `cArray` now instead.
 - Made ToArgV an inline template function
 - `cHash` now directly implements kh_template_t, which was promoted to a real class
@@ -166,9 +166,9 @@
 - Fixed errant precision issues in some unit tests
 - Fixed some previously unused move constructors
 - `cThreadPool` was completely rewritten to be entirely threadsafe and more extensible, while also eliminating race conditions
-- All random number functions were completely overhauled to use C++ random number engines. `bssrand()` uses a default xorshift_engine to generate high quality random numbers.
+- All random number functions were completely overhauled to use C++ random number engines. `bunrand()` uses a default xorshift_engine to generate high quality random numbers.
 - Fixed regression in TRB_Tree that did not handle duplicate values properly (then adjusted the unit tests to catch it)
-- Removed `bss_literals`
+- Removed `bun_literals`
 - Fixed `Shuffle()` in sseVec and added `Sum()`
 - Added std::initializer_list to `cArray` and `cDynArray`
 - Removed const modifier from operators to prevent breaking move semantics
@@ -195,7 +195,7 @@
 - Replaced `cKhash` specializations with `cHash`, which automatically chooses a hash for you and implements `operator[]`
 - Restored CreateDir, DelDir, and ListDir functions in `os.h`
 - Changed some functions to static so they don't cause link conflicts
-- rewrote how bss_log does levels and renamed it `cLog`
+- rewrote how bun_log does levels and renamed it `cLog`
 - Renamed `cArraySimple.h` to `cArray.h`, but didn't rename the actual class.
 - Added `WriteLog()` using variadic templates to `cLog`
 - delegate now implicitly constructs from an equivalent lambda function
@@ -206,31 +206,31 @@
 - Added a time interpolation helper function
 
 ## 0.4.2
-- Removed `CLASSPROP` from `bss_defines.h`
-- Adjusted a few of the type shortcuts in `bss_defines.h`
+- Removed `CLASSPROP` from `bun_defines.h`
+- Adjusted a few of the type shortcuts in `bun_defines.h`
 - Made animation keyframes more efficient and added the ability to set all keyframes for a certain attribute at once.
 - Gave `cPriorityQueue` and `cBinaryHeap` a `Clear()` function
 - Added Interval AniAttribute for transient discrete animations, like hitboxes.
 - Added SetArray to `cArraySimple`/Construct/Safe
 - Added 16bit and 8bit integer SSE instructions
 - Changed integral distribution using `rand()` to utilize an underlying float distribution because the performance is almost exactly the same.
-- Added a random seed-able mersenne function and gave it a suitable [min,max) wrapper in `bss_algo.h`
+- Added a random seed-able mersenne function and gave it a suitable [min,max) wrapper in `bun_algo.h`
 - Added LLAdd specialization for both root and last
 - Created non-template `cFixedAllocVoid` class that is now instantiated by `cFixedAlloc`.
 - Simplified `cAVLtree`'s method of handling void Data parameters
 - Fixed a few subtle header errors
 - Added AltLLAdd and AltLLRemove to `LLBase.h` to allow arbitrary linked list structures
 - Added `Capacity()` to `cLinkedArray`
-- Tweaked bssmod, added tests for a few missing functions in `bss_util.h`
+- Tweaked bunmod, added tests for a few missing functions in `bun_util.h`
 - Added `cBSS`_queue, which implements an efficient queue using a circular array
 - Added Stati`cNullAlloc`, useful for enforcing correct behavior when substituting array pointers.
 - Improved `cDisjointSet` so it can operate on an outside array pointer, changed `MinSpanningTree()` to use dynamic stack allocation, fixed `GetElements()`
-- Added `bss_graph.h` with an adjacency list representation of a DAG.
-- Added BreadthFirstTree and BreadthFirstGraph in `bss_algo.h` that perform an efficient breadth-first traversal of either a tree or a graph.
+- Added `bun_graph.h` with an adjacency list representation of a DAG.
+- Added BreadthFirstTree and BreadthFirstGraph in `bun_algo.h` that perform an efficient breadth-first traversal of either a tree or a graph.
 - Added Push-Relabel algorithm for solving max-flow problems, a function for reducing a circulation graph to a max-flow graph, and a function for reducing a lower-bound graph to a circulation graph.
 - Added flipendian for dealing with bigendian architectures
 - Added `cBitStream` wrapper that lets you manipulate an ostream with bit-level precision.
-- Added simple bss_Serialize/bss_Deserialize functions for writing and reading basic types to an ostream while taking endianness into account.
+- Added simple bun_Serialize/bun_Deserialize functions for writing and reading basic types to an ostream while taking endianness into account.
 - Completely rewrote `cAnimation` using an attachment system. `AniTypeID.h` has been absorbed into `AniAttribute.h`
 - `cAnimation` can now be serialized and deserialized to an ostream
 - Added `cIDHash` for implementing simple, compact ID systems
@@ -240,20 +240,20 @@
 - Upgraded project to use Visual Studio 2013 variadic templates, but it should still work on earlier versions. `BSS_VARIADIC_TEMPLATES` is now defined if the current compiler supports variadic templates
 - Removed TSignPick, use std::make_signed and std::make_unsigned instead.
 - Renamed ABitLimit to BitLimit, use it to get integral types for specific bit counts
-- Changed a bunch of `bss_util.h` tests to static assertions
+- Changed a bunch of `bun_util.h` tests to static assertions
 - Allocator<> has been removed, because it wasn't standard compatible anyway. Instead, use StandardAllo`cPolicy` and FixedPolicy directly.
 - reallocate was removed from the static allocators. Static allocators are now expected to use realloc on the `allocate()` call, or at least emulate it if the pointer is non-null (deallocate the pointer sent in)
-- Added `bssfmod()` for real modulo operations on floats, fixed edge-case in `angledistsgn()`
+- Added `bunfmod()` for real modulo operations on floats, fixed edge-case in `angledistsgn()`
 - Simplified `cLocklessFixedAlloc` and fixed a bug in the DCAS sync
 - Changed a few function names to enforce more consistency
 - Upgraded all move/copy constructors to properly use c++11 = delete syntax where appropriate
 - Added multi-producer multi-consumer `cMicroLockQueue` (in `cLocklessQueue.h`)
 - `cThread` now inherits from std::thread and augments its existing functions with a timeout join and signalable state.
-- `bss_deprecated.h` has been removed - its contents have been absorbed into `bss_defines.h`
+- `bun_deprecated.h` has been removed - its contents have been absorbed into `bun_defines.h`
 - Removed `cByteQueue`
-- Removed `cBSS`_DebugInfo, it's useful functions are now standalone in `bss_util_c.h`, and it's profiler code is now a static function in `cHighPrecisionTimer`
+- Removed `cBSS`_DebugInfo, it's useful functions are now standalone in `bun_util_c.h`, and it's profiler code is now a static function in `cHighPrecisionTimer`
 - Added `cThreadPool`, `cTaskPool`, and StoredFunction
-- Renamed `cBSS`_Queue.h` -> `bss_queue.h` and `cBSS`_Queue -> `cQueue`, and did the same for `cBSS`_Stack. `bss_fixedpt.h` is now `FixedPt.h` and bss_dual is now `Dual.h`
+- Renamed `cBSS`_Queue.h` -> `bun_queue.h` and `cBSS`_Queue -> `cQueue`, and did the same for `cBSS`_Stack. `bun_fixedpt.h` is now `FixedPt.h` and bun_dual is now `Dual.h`
 
 ## 0.4.1
 - `cDynArray` now supports + and += operations and derives its array as a protected member
@@ -269,14 +269,14 @@
 - Added `Clear()` function in `cFixedAlloc`
 - All allocaters now use single malloc memory allocations.
 - Adjusted `asmcas()` to properly deal with non-integral arguments
-- Added multi-producer multi-consumer lockless fixed allocator in `bss_alloc_fixed_MT.h`
+- Added multi-producer multi-consumer lockless fixed allocator in `bun_alloc_fixed_MT.h`
 - Removed `cLocklessByteQueue`
-- Added `bssGetCPUInfo()`
+- Added `bunGetCPUInfo()`
 - Took QNode out of `cLocklessQueue` and renamed `cLQ`_QNode
 - Made the `cINIstorage` static fixed allocators threadsafe
-- Added n-dimensional vector operations to `bss_algo.h`
+- Added n-dimensional vector operations to `bun_algo.h`
 - `cThread` now deals with the fact that _beginthreadex can return either 0 or -1 on failure because someone at microsoft needs to be fired.
-- Absorbed `bss_dlldef.h` into `bss_defines.h`
+- Absorbed `bun_dlldef.h` into `bun_defines.h`
 - Stati`cAllocPolicy` has been removed and replaced by a minimalistic implementation not designed to work in the standard libraries.
 - Added `cArbitraryArray` and `cScheduler`
 - Removed `cHolder`
@@ -289,18 +289,18 @@
 - Renamed `cUniquePtr.h` to `cSmartPtr.h`, removed `cUniquePtr` and added `cAutoRef`
 - Removed `cSparseArray.h`
 - Changed several `Size()` calls to Capacity to prevent accidents
-- `bss_algo.h` now contains an implementation of Robert Bridson's Fast Poisson Disk Sampling algorithm and an SSE2 optimized 4x4 matrix multiplier.
+- `bun_algo.h` now contains an implementation of Robert Bridson's Fast Poisson Disk Sampling algorithm and an SSE2 optimized 4x4 matrix multiplier.
 - DArray is now WArray because why the hell was it named DArray anyway?
 - `cINIstorage` and `cINIsection` now have proper iterators
-- Added Quadratic and Cubic B-spline interpolations to `bss_algo.h`
+- Added Quadratic and Cubic B-spline interpolations to `bun_algo.h`
 - Tweaked aspects of the animation system, added generic interpolators to `cAniAttributeSmooth`.
 - Renamed LLAdd to LLAddAfter, LLInsertRoot to LLAdd, LLInsertFull to LLInsert and LLInsertAfterFull to LLInsertAfter
 - Changed `cKhash` to have a single Get and GetValue function that returns the value type for integral and pointer types (with a configurable `INVALID` value), or pointers for anything else.
 - Dropped support for command line arguments in `cSetting` (use updated `cCmdLineArgs` instead) and massively simplified the implementation
-- Fixed `cBitArray` and added tests, standardizing the bit reference object and introducing `T_SETBIT` or `bssSetBit()` as a standard way to flip a bit.
+- Fixed `cBitArray` and added tests, standardizing the bit reference object and introducing `T_SETBIT` or `bunSetBit()` as a standard way to flip a bit.
 - Added functional command line processing to `cCmdLineArgs`, along with the option of overloading the default command line parsing with a string.
 - Removed fFastDoubleRound and it's siblings, changed fFastRound to always use SSE2 instructions because they're faster, added fFastTruncate using SSE2 instructions (but if your compiler isn't stupid, it should use SSE automatically)
-- Updated shinyprofiler to a new version, adjusting it's headers so it compiles in GCC and uses bss_util's static lib export and import options
+- Updated shinyprofiler to a new version, adjusting it's headers so it compiles in GCC and uses bun_util's static lib export and import options
 
 ## 0.4
 - Added `SetSizeDiscard()` to `cArraySimple`
@@ -312,14 +312,14 @@
 - Added `Front()`, `Back()`, `begin()`, and `end()` to `cArrayWrap`, `cArraySort`, `cDynArray` and `cBinaryHeap`
 - Changed `cStrT` constructor so that it no longer directly accepts format strings due to serious potential performance penalties and the fact that it messes everything up. `cStrF` and `cStrWF` now return `cStr`/`cStrW` with the proper formatting.
 - Fixed a bunch of windows specific header includes and some missing header dependencies
-- Added a deleter class for unique_ptr that forces a pointer to be deallocated inside the bss_util dll.
+- Added a deleter class for unique_ptr that forces a pointer to be deallocated inside the bun_util dll.
 - Changed FileDialog to utilize the above deleter, so that it now returns a dynamically allocated string that is automatically cleaned up.
-- Cleaned up static usage, template shortcuts GCC didn't like, and implemented a GCC workaround for missing stream move semantics in bss_Log
+- Cleaned up static usage, template shortcuts GCC didn't like, and implemented a GCC workaround for missing stream move semantics in bun_Log
 - Implemented POSIX version of `cHighPrecisionTimer` and added test for it
-- Adjusts bss_DebugInfo to take advantage of POSIX specific profiler timers exposed in `cHighPrecisionTimer` on POSIX systems
+- Adjusts bun_DebugInfo to take advantage of POSIX specific profiler timers exposed in `cHighPrecisionTimer` on POSIX systems
 - Implemented POSIX unicode conversions
 - Fixed minor bug in Fisher-Yates shuffle algorithm (the last element was not being shuffled)
-- Threw out useless `bss_call.h` header and incorporated it into bss_defines.
+- Threw out useless `bun_call.h` header and incorporated it into bun_defines.
 - `cThread` now has move assignment, join-with-timeout, and responds to errors.
 - `cArraySimple`/Construct uses realloc and avoids memory allocation when set to size 0
 - Rebuilt `cBitField` into a non-inheritable class with more powerful management simplified via operators.
@@ -344,8 +344,8 @@
 ## 0.3.84
 - Tweaked internal constant names to be less likely to collide with reserved identifiers
 - Added `GetEntryNode()` and `GetSectionNode()`
-- Added bss_util.rc so windows builds contain version/copyright information.
-- Version numbers are now #define'd in `bss_defines.h` and pasted into the version number struct
+- Added bun_util.rc so windows builds contain version/copyright information.
+- Version numbers are now #define'd in `bun_defines.h` and pasted into the version number struct
 - Removed `DELETE_SAFE` macros because you really should be using unique_ptr for that kind of stuff.
 - Removed `CLONE_ME` macros because its way too easy to just copy+paste that and you never have to modify it again.
 - Changed GetKeyPtrOnly to return `KHVAL` instead of `KHVAL&` so it actually works properly
@@ -355,14 +355,14 @@
 - Added single-consumer, single-producer lockless queue and corresponding tests.
 - Fixed `cAVLTree`'s handling of constructors, destructors and return values, so you can now use standard classes as items.
 - Removed vestigial `cBucketAlloc.h`
-- Replaced ::operator new and ::operator delete with malloc and free in `bss_alloc.h` to maintain consistency.
-- Added more details to `bss_compiler.h` including an attempt to determine endianness.
+- Replaced ::operator new and ::operator delete with malloc and free in `bun_alloc.h` to maintain consistency.
+- Added more details to `bun_compiler.h` including an attempt to determine endianness.
 - Added `Front()`, `Back()`, and `PopLast()` to `cArrayCircular`, which now preserves its state after `SetSize()`
 - Changed `Insert()` to `Push()`, `PopRoot()` to `Pop()`, `RemoveRoot()` to `Discard()`, and `PeekRoot()` to `Peek()` on `cPriorityQueue` and added `Get()`, `Remove()` and unit tests.
 - Added some static assertions
 - Removed `cAutoList.h`
 - Rewrote `cStrTable` using `cArraySimple` and added the ability to append a string, along with unit tests.
-- Added `bss_dual.h` and unit tests for automatic differentiation
+- Added `bun_dual.h` and unit tests for automatic differentiation
 - fixed a few operators in FixedPt
 - Added `AlertBox()` convenience function
 - Fixed VC++ intermediate directories for 64-bit compile
@@ -399,7 +399,7 @@
 - Added sseVec for safe SSE optimized vector operations.
 - Added tests for object-based `cObjSwap` and sseVec.
 - `cKhash` now supports move semantics on insert and setvalue, and no longer uses Traits
-- `bss_traits.h` has been removed
+- `bun_traits.h` has been removed
 - Removed `cFixedSizeAlloc`
 - Renamed `cFixedChunkAlloc` to `cFixedAlloc`
 - Fixed compile crash when using DISABLE_CUSTOM_ALLOCATORS
@@ -415,7 +415,7 @@
 - `cStrT`::SetSize has been removed and `cStrT`::StripChar actually does what it says it does
 - `cStrT`::Recal`cSize` is no longer capable of touching memory that was reserved and modified. If you were using this before with `reserve()`, you should switch to `resize()`.
 - Removed using namespace std; from `StreamSplitter` and fixed broken namespace references
-- `StreamSplitter`, `bss_Log`, and `bss_debuginfo` now only have move semantics. For GCC, `StreamSplitter` has NO move or copy constructors (because stream_buf doesn't).
+- `StreamSplitter`, `bun_Log`, and `bun_debuginfo` now only have move semantics. For GCC, `StreamSplitter` has NO move or copy constructors (because stream_buf doesn't).
 
 ## 0.3.82
 - Added windows-specific Registry manipulation functions
@@ -423,8 +423,8 @@
 - Added AdditiveVariableAllocator
 - Changed all comparisons to use a branch free sign check
 - Fixed `functor.h` so `Call()` actually works.
-- Moved lockless functions from `bss_util.h` to `lockless.h`
-- Created `bss_compiler.h` and put in preliminary compiler detection.
+- Moved lockless functions from `bun_util.h` to `lockless.h`
+- Created `bun_compiler.h` and put in preliminary compiler detection.
 - Changed 32bit/64bit to specific architectures.
 - There is now a 64BIT flag that should be used only when you need to know the pointer size, not when using architecture specific assembly
 - `cLocklessQueue` is now `cLocklessByteQueue`
@@ -437,11 +437,11 @@
 - Custom allocators now verify deallocated pointers and fill them with junk values when possible in debug mode
 - All custom allocators using the `Allocator` class can be disabled by defining `BSS_DISABLE_CUSTOM_ALLOCATORS`. This is useful if a custom allocator does not fill deallocations with junk, or if the junk filling is insufficient, resulting in an invalid memory access bug being masked. Many compilers also have special hooks for detecting out of bounds memory accesses that only work with the default allocation routines.
 - Rewrote `cBinaryHeap`
-- Added bssreverse
+- Added bunreverse
 - removed `cVect.h`
 - Changed `cAutoPtr` to `cUniquePtr`
 - Refactored the entire Compare methodology and introduced methods of doing only LT and GT comparisons.
-- Created `bss_algo.h` and moved `shuffle()` to it.
+- Created `bun_algo.h` and moved `shuffle()` to it.
 - added `for_all()`
 - added binsearch_near and variants
 - Implemented library wide utf8 decoding. Most wchar_t implementations remain, but all char* functions are translated to wchar_t internally. If you happen to recieve strings in wchar_t format, this allows you to avoid unnecessary encoding/decoding while still ensuring all text is utf8 enabled. You should #define _UNICODE in your application if you want to enforce unicode compatability. `cStr` conversion between `cStr` <-> `cStrW` use unicode encoder/decoders, so unicode information is always preserved.
@@ -450,7 +450,7 @@
 - Added non-standard removal specific iterator for linked lists.
 - Extended compiler specific switches and available information
 - Added x86_64 platform to project and configured for 64-bit compilation.
-- Created workarounds for assembly based functions and removed others in x86_64, allowing bss_util to compile in x86_64
+- Created workarounds for assembly based functions and removed others in x86_64, allowing bun_util to compile in x86_64
 - Adjusted some x86 assembly and added `CPU_Barrier()` as an efficient way to prevent CPU re-ordering.
 - Changed hash to use iterators
 - Existing iterator Begin/IterStart functions renamed to `begin()` to support range-based for loops
@@ -481,7 +481,7 @@
 - Changed all GetSize/GetLength to just `Size()`/`Length()`
 - Added `cAutoRef`
 - `cObjSwap` now allows arrays
-- Completely rewrote `bss_Log`
+- Completely rewrote `bun_Log`
 - Added `cArrayCircular`
 - Added check for self-assignment to most assignment operators where necessary
 - Added move semantics to all low-level objects

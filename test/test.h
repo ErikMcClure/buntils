@@ -1,22 +1,22 @@
-// Copyright ©2018 Black Sphere Studios
-// For conditions of distribution and use, see copyright notice in "bss_util.h"
+// Copyright ©2018 Erik McClure
+// For conditions of distribution and use, see copyright notice in "buntils.h"
 
-#ifndef __BSS_TEST_H__
-#define __BSS_TEST_H__
+#ifndef __BUN_TEST_H__
+#define __BUN_TEST_H__
 
-#include "bss-util/Hash.h"
-#include "bss-util/Logger.h"
-#include "bss-util/lockless.h"
-#include "bss-util/Str.h"
-#include "bss-util/RefCounter.h"
-#include "bss-util/algo.h"
+#include "buntils/Hash.h"
+#include "buntils/Logger.h"
+#include "buntils/lockless.h"
+#include "buntils/Str.h"
+#include "buntils/RefCounter.h"
+#include "buntils/algo.h"
 
-#define BSS_ENABLE_PROFILER
+#define BUN_ENABLE_PROFILER
 
-#ifdef BSS_PLATFORM_WIN32
-#define BSS_PFUNC_PRE size_t BSS_COMPILER_STDCALL
+#ifdef BUN_PLATFORM_WIN32
+#define BUN_PFUNC_PRE size_t BUN_COMPILER_STDCALL
 #else
-#define BSS_PFUNC_PRE void*
+#define BUN_PFUNC_PRE void*
 #endif
 
 struct TESTDEF
@@ -28,17 +28,17 @@ struct TESTDEF
 
 const size_t TESTNUM = 50000;
 extern uint16_t testnums[TESTNUM];
-extern bss::Logger _failedtests;
+extern bun::Logger _failedtests;
 extern volatile std::atomic<bool> startflag;
 
 #define BEGINTEST TESTDEF::RETPAIR __testret(0,0); DEBUG_CDT_SAFE::_testret = &__testret; DEBUG_CDT_SAFE::Tracker.Clear();
 #define ENDTEST return __testret
-#define FAILEDTEST(t) BSSLOG(_failedtests,1, "Test #",__testret.first," Failed  < ",TXT(t)," >")
-#define TEST(t) { bss::atomic_xadd(&__testret.first); try { if(t) bss::atomic_xadd(&__testret.second); else FAILEDTEST(t); } catch(...) { FAILEDTEST(t); } }
+#define FAILEDTEST(t) BUNLOG(_failedtests,1, "Test #",__testret.first," Failed  < ",TXT(t)," >")
+#define TEST(t) { bun::atomic_xadd(&__testret.first); try { if(t) bun::atomic_xadd(&__testret.second); else FAILEDTEST(t); } catch(...) { FAILEDTEST(t); } }
 #define TESTSTATIC(t) static_assert(t, "Failed: " TXT(t))
-#define TESTERROR(t, e) { bss::atomic_xadd(&__testret.first); try { (t); FAILEDTEST(t); } catch(e) { bss::atomic_xadd(&__testret.second); } }
+#define TESTERROR(t, e) { bun::atomic_xadd(&__testret.first); try { (t); FAILEDTEST(t); } catch(e) { bun::atomic_xadd(&__testret.second); } }
 #define TESTERR(t) TESTERROR(t,...)
-#define TESTNOERROR(t) { bss::atomic_xadd(&__testret.first); try { (t); bss::atomic_xadd(&__testret.second); } catch(...) { FAILEDTEST(t); } }
+#define TESTNOERROR(t) { bun::atomic_xadd(&__testret.first); try { (t); bun::atomic_xadd(&__testret.second); } catch(...) { FAILEDTEST(t); } }
 #define TESTARRAY(t,f) _ITERFUNC(__testret,t,[&](size_t i) -> bool { f });
 #define TESTALL(t,f) _ITERALL(__testret,t,[&](size_t i) -> bool { f });
 #define TESTCOUNT(c,t) { for(size_t i = 0; i < c; ++i) TEST(t) }
@@ -46,7 +46,7 @@ extern volatile std::atomic<bool> startflag;
 #define TESTFOUR(s,a,b,c,d) TEST(((s)[0]==(a)) && ((s)[1]==(b)) && ((s)[2]==(c)) && ((s)[3]==(d)))
 #define TESTTWO(s,a,b) TEST(((s)[0]==(a)) && ((s)[1]==(b)))
 #define TESTALLFOUR(s,a) TESTFOUR(s,a,a,a,a)
-#define TESTRELFOUR(s,a,b,c,d) TEST(bss::fCompare((s)[0],(a)) && bss::fCompare((s)[1],(b)) && bss::fCompare((s)[2],(c)) && bss::fCompare((s)[3],(d)))
+#define TESTRELFOUR(s,a,b,c,d) TEST(bun::fCompare((s)[0],(a)) && bun::fCompare((s)[1],(b)) && bun::fCompare((s)[2],(c)) && bun::fCompare((s)[3],(d)))
 
 template<class T, size_t SIZE, class F>
 void _ITERFUNC(TESTDEF::RETPAIR& __testret, T(&t)[SIZE], F f) { for(size_t i = 0; i < SIZE; ++i) TEST(f(i)) }
@@ -66,7 +66,7 @@ struct DEBUG_CDT_SAFE
 
   static TESTDEF::RETPAIR* _testret;
   static int count;
-  static bss::Hash<int> Tracker;
+  static bun::Hash<int> Tracker;
   static int ID;
   TESTDEF::RETPAIR& __testret;
   DEBUG_CDT_SAFE* isdead;
@@ -104,7 +104,7 @@ struct DEBUG_CDT : DEBUG_CDT_SAFE {
 // This defines an enormous list of pangrams for a ton of languages, used for text processing in an attempt to expose possible unicode errors.
 extern const char* PANGRAM;
 static const int NPANGRAMS = 29;
-extern const bss::bsschar* PANGRAMS[NPANGRAMS];
+extern const bun::bun_char* PANGRAMS[NPANGRAMS];
 extern const wchar_t* TESTUNICODESTR;
 
 struct FWDTEST {
@@ -115,7 +115,7 @@ struct FWDTEST {
   FWDTEST& operator=(FWDTEST&& right) { return *this; }
 };
 
-struct RCounter : bss::RefCounter
+struct RCounter : bun::RefCounter
 {
   RCounter() {}
   ~RCounter() {}
@@ -132,26 +132,26 @@ TESTDEF::RETPAIR test_BINARYHEAP();
 TESTDEF::RETPAIR test_BITFIELD();
 TESTDEF::RETPAIR test_BITSTREAM();
 TESTDEF::RETPAIR test_COMPACTARRAY();
-TESTDEF::RETPAIR test_bss_algo();
-TESTDEF::RETPAIR test_bss_ALLOC_BLOCK();
-TESTDEF::RETPAIR test_bss_ALLOC_BLOCK_LOCKLESS();
-TESTDEF::RETPAIR test_bss_ALLOC_CACHE();
-TESTDEF::RETPAIR test_bss_ALLOC_RING();
-TESTDEF::RETPAIR test_bss_ALLOC_GREEDY();
-TESTDEF::RETPAIR test_bss_ALLOC_GREEDY_BLOCK();
-TESTDEF::RETPAIR test_bss_deprecated();
-TESTDEF::RETPAIR test_bss_GRAPH();
-TESTDEF::RETPAIR test_bss_LOG();
-TESTDEF::RETPAIR test_bss_SSE();
-TESTDEF::RETPAIR test_bss_util();
-TESTDEF::RETPAIR test_bss_util_c();
+TESTDEF::RETPAIR test_algo();
+TESTDEF::RETPAIR test_ALLOC_BLOCK();
+TESTDEF::RETPAIR test_ALLOC_BLOCK_LOCKLESS();
+TESTDEF::RETPAIR test_ALLOC_CACHE();
+TESTDEF::RETPAIR test_ALLOC_RING();
+TESTDEF::RETPAIR test_ALLOC_GREEDY();
+TESTDEF::RETPAIR test_ALLOC_GREEDY_BLOCK();
+TESTDEF::RETPAIR test_deprecated();
+TESTDEF::RETPAIR test_GRAPH();
+TESTDEF::RETPAIR test_LOG();
+TESTDEF::RETPAIR test_SSE();
+TESTDEF::RETPAIR test_buntils();
+TESTDEF::RETPAIR test_buntils_c();
 TESTDEF::RETPAIR test_COLLISION();
 TESTDEF::RETPAIR test_VECTOR();
 TESTDEF::RETPAIR test_DELEGATE();
 TESTDEF::RETPAIR test_DISJOINTSET();
-TESTDEF::RETPAIR test_bss_DUAL();
+TESTDEF::RETPAIR test_DUAL();
 TESTDEF::RETPAIR test_DYNARRAY();
-TESTDEF::RETPAIR test_bss_FIXEDPT();
+TESTDEF::RETPAIR test_FIXEDPT();
 TESTDEF::RETPAIR test_GEOMETRY();
 TESTDEF::RETPAIR test_HASH();
 TESTDEF::RETPAIR test_HIGHPRECISIONTIMER();
@@ -167,7 +167,7 @@ TESTDEF::RETPAIR test_MAP();
 TESTDEF::RETPAIR test_OS();
 TESTDEF::RETPAIR test_PRIORITYQUEUE();
 TESTDEF::RETPAIR test_PROFILE();
-TESTDEF::RETPAIR test_BSS_QUEUE();
+TESTDEF::RETPAIR test_BUN_QUEUE();
 TESTDEF::RETPAIR test_RATIONAL();
 TESTDEF::RETPAIR test_RANDOMQUEUE();
 TESTDEF::RETPAIR test_REFCOUNTER();
@@ -175,7 +175,7 @@ TESTDEF::RETPAIR test_RWLOCK();
 TESTDEF::RETPAIR test_SCHEDULER();
 TESTDEF::RETPAIR test_Serializer();
 TESTDEF::RETPAIR test_SINGLETON();
-TESTDEF::RETPAIR test_BSS_STACK();
+TESTDEF::RETPAIR test_BUN_STACK();
 TESTDEF::RETPAIR test_STR();
 TESTDEF::RETPAIR test_STREAM();
 TESTDEF::RETPAIR test_STRTABLE();

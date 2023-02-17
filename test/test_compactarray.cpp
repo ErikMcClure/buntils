@@ -1,10 +1,10 @@
-// Copyright ©2018 Black Sphere Studios
-// For conditions of distribution and use, see copyright notice in "bss_util.h"
+// Copyright ©2018 Erik McClure
+// For conditions of distribution and use, see copyright notice in "buntils.h"
 
 #include "test.h"
-#include "bss-util/CompactArray.h"
+#include "buntils/CompactArray.h"
 
-using namespace bss;
+using namespace bun;
 
 static_assert(sizeof(CompactArray<size_t>) == sizeof(size_t) * 3, "CompactArray is not structured correctly");
 static_assert(sizeof(CompactArray<size_t, 1>) == sizeof(size_t) * 3, "CompactArray is not structured correctly");

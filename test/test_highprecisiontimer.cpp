@@ -1,11 +1,11 @@
-// Copyright ©2018 Black Sphere Studios
-// For conditions of distribution and use, see copyright notice in "bss_util.h"
+// Copyright ©2018 Erik McClure
+// For conditions of distribution and use, see copyright notice in "buntils.h"
 
 #include "test.h"
-#include "bss-util/HighPrecisionTimer.h"
+#include "buntils/HighPrecisionTimer.h"
 #include <thread>
 
-using namespace bss;
+using namespace bun;
 
 TESTDEF::RETPAIR test_HIGHPRECISIONTIMER()
 {

@@ -1,11 +1,11 @@
-// Copyright ©2018 Black Sphere Studios
-// For conditions of distribution and use, see copyright notice in "bss_util.h"
+// Copyright ©2018 Erik McClure
+// For conditions of distribution and use, see copyright notice in "buntils.h"
 
 #include "test.h"
-#include "bss-util/UBJSON.h"
+#include "buntils/UBJSON.h"
 #include <fstream>
 
-using namespace bss;
+using namespace bun;
 
 struct ubjsontest2
 {

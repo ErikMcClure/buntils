@@ -1,12 +1,12 @@
-// Copyright ©2018 Black Sphere Studios
-// For conditions of distribution and use, see copyright notice in "bss_util.h"
+// Copyright ©2018 Erik McClure
+// For conditions of distribution and use, see copyright notice in "buntils.h"
 
 #include "test.h"
-#include "bss-util/Dual.h"
+#include "buntils/Dual.h"
 
-using namespace bss;
+using namespace bun;
 
-BSS_FORCEINLINE bool fsmallcomp(double af, double bf, int64_t maxDiff = 1)
+BUN_FORCEINLINE bool fsmallcomp(double af, double bf, int64_t maxDiff = 1)
 {
   if(af == 0.0)
     return fSmall(bf);
@@ -15,7 +15,7 @@ BSS_FORCEINLINE bool fsmallcomp(double af, double bf, int64_t maxDiff = 1)
   return fCompare(af, bf, maxDiff);
 }
 
-TESTDEF::RETPAIR test_bss_DUAL()
+TESTDEF::RETPAIR test_DUAL()
 {
   BEGINTEST;
   // d/dx( e^(x + x^2) + 2x/5 + cos(x*x) + sin(ln(x)+log(x)) ) = e^(x^2+x) (2 x+1)-2 x sin(x^2)+((1+log(10)) cos((1+1/(log(10))) log(x)))/(x log(10))+2/5

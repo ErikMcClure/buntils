@@ -1,12 +1,12 @@
-// Copyright ©2018 Black Sphere Studios
-// For conditions of distribution and use, see copyright notice in "bss_util.h"
+// Copyright ©2018 Erik McClure
+// For conditions of distribution and use, see copyright notice in "buntils.h"
 
 #include "test.h"
-#include "bss-util/XML.h"
+#include "buntils/XML.h"
 #include <fstream>
 #include <sstream>
 
-using namespace bss;
+using namespace bun;
 
 struct XMLtest3
 {
@@ -173,9 +173,9 @@ TESTDEF::RETPAIR test_XML()
   node->AddAttribute("failfail");
   construct.AddNode("bobasdfghqwertyuiopasdfzcvxnm");
   construct.AddNode("foo")->AddAttribute("test")->String = "success";
-  Str compare(bssLoadFile<char, true>("test.xml").first.get());
+  Str compare(LoadFile<char, true>("test.xml").first.get());
   construct.Write("test.xml");
-  Str compare2(bssLoadFile<char, true>("test.xml").first.get());
+  Str compare2(LoadFile<char, true>("test.xml").first.get());
   TEST(compare == compare2);
 
   Str objtest = TXT(

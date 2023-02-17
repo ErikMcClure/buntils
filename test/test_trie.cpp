@@ -1,11 +1,11 @@
-// Copyright ©2018 Black Sphere Studios
-// For conditions of distribution and use, see copyright notice in "bss_util.h"
+// Copyright ©2018 Erik McClure
+// For conditions of distribution and use, see copyright notice in "buntils.h"
 
 #include "test.h"
-#include "bss-util/Trie.h"
-#include "bss-util/algo.h"
+#include "buntils/Trie.h"
+#include "buntils/algo.h"
 
-using namespace bss;
+using namespace bun;
 
 TESTDEF::RETPAIR test_TRIE()
 {
@@ -22,8 +22,8 @@ TESTDEF::RETPAIR test_TRIE()
   const char* randstr[200];
   for(size_t i = 0; i < 200; ++i)
   {
-    for(uint32_t j = bssRandInt(2,20); j>0; --j)
-      randcstr[i]+=(char)bssRandInt('a','z');
+    for(uint32_t j = bun_RandInt(2,20); j>0; --j)
+      randcstr[i]+=(char)bun_RandInt('a','z');
     randstr[i]=randcstr[i];
   }
   Trie<uint32_t> t0(50,randstr);

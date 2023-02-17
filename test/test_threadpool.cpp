@@ -1,11 +1,11 @@
-// Copyright ©2018 Black Sphere Studios
-// For conditions of distribution and use, see copyright notice in "bss_util.h"
+// Copyright ©2018 Erik McClure
+// For conditions of distribution and use, see copyright notice in "buntils.h"
 
 #include "test.h"
-#include "bss-util/ThreadPool.h"
+#include "buntils/ThreadPool.h"
 #include <algorithm>
 
-using namespace bss;
+using namespace bun;
 
 std::atomic<size_t> pq_c;
 uint16_t pq_end[TESTNUM];
@@ -23,7 +23,7 @@ TESTDEF::RETPAIR test_THREADPOOL()
   {
     unsigned int NUM = std::thread::hardware_concurrency();
     ThreadPool pool(NUM);
-    bssFill(pq_end, 0);
+    bun_Fill(pq_end, 0);
     pq_c = 0;
     initcount = 0;
     startflag.store(false, std::memory_order_release);

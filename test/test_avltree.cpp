@@ -1,18 +1,18 @@
-// Copyright ©2018 Black Sphere Studios
-// For conditions of distribution and use, see copyright notice in "bss_util.h"
+// Copyright ©2018 Erik McClure
+// For conditions of distribution and use, see copyright notice in "buntils.h"
 
 #include "test.h"
-#include "bss-util/AVLTree.h"
-#include "bss-util/BlockAlloc.h"
-#include "bss-util/algo.h"
+#include "buntils/AVLTree.h"
+#include "buntils/BlockAlloc.h"
+#include "buntils/algo.h"
 #include <functional>
 
-using namespace bss;
+using namespace bun;
 
 int avltestnum[8];
-BSS_FORCEINLINE bool AVLACTION(AVLNode<int>* n) { static int c = 0; avltestnum[c++] = n->_key; return false; }
-BSS_FORCEINLINE AVLNode<int>* LAVLCHILD(AVLNode<int>* n) { return n->_left; }
-BSS_FORCEINLINE AVLNode<int>* RAVLCHILD(AVLNode<int>* n) { return n->_right; }
+BUN_FORCEINLINE bool AVLACTION(AVLNode<int>* n) { static int c = 0; avltestnum[c++] = n->_key; return false; }
+BUN_FORCEINLINE AVLNode<int>* LAVLCHILD(AVLNode<int>* n) { return n->_left; }
+BUN_FORCEINLINE AVLNode<int>* RAVLCHILD(AVLNode<int>* n) { return n->_right; }
 
 TESTDEF::RETPAIR test_AVLTREE()
 {

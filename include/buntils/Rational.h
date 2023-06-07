@@ -1,4 +1,4 @@
-// Copyright ©2018 Erik McClure
+// Copyright (c)2023 Erik McClure
 // For conditions of distribution and use, see copyright notice in "buntils.h"
 
 #ifndef __RATIONAL_H__BUN__ //These are used in case this header file is used by two different projects dependent on each other, resulting in duplicates which cannot be differentiated by #pragma once
@@ -10,11 +10,9 @@
 
 namespace bun {
   // This class represents a rational number in the form of an integral fraction, and includes conversion routines and simplification.
-  template<typename T = int>
-  class BUN_COMPILER_DLLEXPORT Rational
+  template<typename T = int> requires std::is_integral<T>::value
+  class BUN_COMPILER_DLLEXPORT Rational 
   {
-    static_assert(std::is_integral<T>::value, "T must be an integral type.");
-
   public:
     inline Rational(T n = 0) : _n(n), _d(1) {}
     inline Rational(T n, T d) : _n(n), _d(d) { Simplify(); }

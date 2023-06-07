@@ -1,4 +1,4 @@
-// Copyright ©2018 Erik McClure
+// Copyright (c)2023 Erik McClure
 // For conditions of distribution and use, see copyright notice in "buntils.h"
 
 #ifndef __BUN_QUEUE_H__
@@ -8,18 +8,17 @@
 
 namespace bun {
   // Fast, tiny circular array-based queue. Pop and Peek are only valid if there is an item in the stack; this check must be done by the user.
-  template<class T, typename CType = ptrdiff_t, ARRAY_TYPE ArrayType = ARRAY_SIMPLE, typename Alloc = StandardAllocator<T>>
-  class BUN_COMPILER_DLLEXPORT Queue : protected ArrayCircular<T, CType, ArrayType, Alloc>
+  template<class T, typename CType = ptrdiff_t, typename Alloc = StandardAllocator<T>>
+  class BUN_COMPILER_DLLEXPORT Queue : protected ArrayCircular<T, CType, Alloc>
   {
   protected:
-    using BASE = ArrayCircular<T, CType, ArrayType, Alloc>;
+    using BASE = ArrayCircular<T, CType, Alloc>;
     using BASE::_length;
 
   public:
     inline Queue(const Queue& copy) = default;
     inline Queue(Queue&& mov) = default;
-    template<bool U = std::is_void_v<typename Alloc::policy_type>, std::enable_if_t<!U, int> = 0>
-    inline Queue(CType init, typename Alloc::policy_type* policy) : BASE(init, policy) {}
+    inline Queue(CType init, const Alloc& alloc) : BASE(init, alloc) {}
     inline explicit Queue(CType init = 0) : BASE(init) {}
     inline ~Queue() {}
     // Pushes a value into the queue in FIFO order.

@@ -1,4 +1,4 @@
-// Copyright ©2018 Erik McClure
+// Copyright (c)2023 Erik McClure
 // For conditions of distribution and use, see copyright notice in "buntils.h"
 
 #ifndef __THREAD_POOL_H__BUN__
@@ -29,11 +29,11 @@ namespace bun {
     {
       mov._run.store(0, std::memory_order_release);
     }
-    explicit ThreadPool(size_t count) : _falloc(sizeof(TASK) * 20), _run(0), _tasks(0)
+    explicit ThreadPool(size_t count) : _falloc(sizeof(TASK) * 20), _run(0), _tasks(0), _policy(), _tasklist(PolicyAllocator<internal::LQ_QNode<TASK>, LocklessBlockPolicy>{_policy})
     {
       AddThreads(count);
     }
-    ThreadPool() : _falloc(sizeof(TASK) * 20), _run(0), _tasks(0)
+    ThreadPool() : _falloc(sizeof(TASK) * 20), _run(0), _tasks(0), _policy(), _tasklist(PolicyAllocator<internal::LQ_QNode<TASK>, LocklessBlockPolicy>{_policy})
     {
       AddThreads(IdealWorkerCount());
     }
@@ -120,9 +120,11 @@ namespace bun {
       fn->second->Dealloc(fn);
     }
 
+    
+    LocklessBlockPolicy<internal::LQ_QNode<TASK>> _policy;
     MicroLockQueue<TASK, size_t> _tasklist;
     std::atomic<size_t> _tasks; // Count of tasks still being processed (this includes tasks that have been removed from the queue, but haven't finished yet)
-    DynArray<Thread, size_t, ARRAY_MOVE> _threads;
+    DynArray<Thread, size_t> _threads;
     std::atomic<int32_t> _run;
     Semaphore _lock;
     RingAllocVoid _falloc;

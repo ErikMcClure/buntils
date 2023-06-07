@@ -1,4 +1,4 @@
-// Copyright ©2018 Erik McClure
+// Copyright (c)2023 Erik McClure
 // For conditions of distribution and use, see copyright notice in "buntils.h"
 
 #ifndef __ARRAY_SORT_H__BUN__
@@ -10,7 +10,7 @@
 
 namespace bun {
   // A dynamic array that keeps its contents sorted using insertion sort and uses a binary search to retrieve items.
-  template<typename T, char(*CFunc)(const T&, const T&) = &CompT<T>, typename CType = size_t, ARRAY_TYPE ArrayType = ARRAY_SIMPLE, typename Alloc = StandardAllocator<T>>
+  template<typename T, char(*CFunc)(const T&, const T&) = &CompT<T>, typename CType = size_t, typename Alloc = StandardAllocator<T>>
   class BUN_COMPILER_DLLEXPORT ArraySort
   {
   protected:
@@ -22,10 +22,10 @@ namespace bun {
   public:
     inline ArraySort(const ArraySort& copy) : _array(copy._array) {}
     inline ArraySort(ArraySort&& mov) : _array(std::move(mov._array)) {}
-    inline explicit ArraySort(const Slice<const T, CType>& slice) : _array(slice) {}
-    template<bool U = std::is_void_v<typename Alloc::policy_type>, std::enable_if_t<!U, int> = 0>
-    inline ArraySort(CT size, typename Alloc::policy_type* policy) : _array(size, policy) {}
-    inline explicit ArraySort(CT size = 0) : _array(size) {}
+    inline explicit ArraySort(const std::span<const T>& slice) requires std::is_default_constructible_v<Alloc> : _array(slice) {}
+    inline ArraySort(CT size, const Alloc& alloc) : _array(size, alloc) {}
+    inline explicit ArraySort(CT size) requires std::is_default_constructible_v<Alloc> : _array(size) {}
+    inline explicit ArraySort() requires std::is_default_constructible_v<Alloc> : _array(0) {}
     inline ~ArraySort() {}
     BUN_FORCEINLINE CT Insert(constref item) { CT loc = _insert(item); _array.Insert(item, loc); return loc; }
     BUN_FORCEINLINE CT Insert(moveref item)
@@ -48,7 +48,9 @@ namespace bun {
     inline const T* end() const noexcept { return _array.end(); }
     inline T* begin() noexcept { return _array.begin(); }
     inline T* end() noexcept { return _array.end(); }
-    BUN_FORCEINLINE Slice<T, CT> GetSlice() const noexcept { return _array.GetSlice(); }
+    inline CT size() const noexcept { return _array.size(); }
+    inline T* data() noexcept { return _array.data(); }
+    inline const T* data() const noexcept { return _array.data(); }
 
     CT ReplaceData(CT index, constref item)
     {
@@ -92,7 +94,7 @@ namespace bun {
     BUN_FORCEINLINE T& operator [](CT index) { return _array[index]; }
     inline ArraySort& operator=(const ArraySort& right) { _array = right._array; return *this; }
     inline ArraySort& operator=(ArraySort&& mov) { _array = std::move(mov._array); return *this; }
-    inline ArraySort& operator=(const Slice<const T, CType>& copy) { _array = copy; return *this; }
+    inline ArraySort& operator=(std::span<const T> copy) { _array = copy; return *this; }
 
     using SerializerArray = std::conditional_t<internal::is_pair_array<T>::value, void, T>;
     template<typename Engine>
@@ -140,7 +142,7 @@ namespace bun {
       }
     }
 
-    DynArray<T, CType, ArrayType, Alloc> _array;
+    DynArray<T, CType, Alloc> _array;
   };
 }
 

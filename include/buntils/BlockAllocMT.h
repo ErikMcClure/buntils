@@ -1,4 +1,4 @@
-// Copyright ©2018 Erik McClure
+// Copyright (c)2023 Erik McClure
 // For conditions of distribution and use, see copyright notice in "buntils.h"
 
 #ifndef __BUN_ALLOC_BLOCK_LOCKLESS_H__
@@ -109,8 +109,8 @@ namespace bun {
       const Node* hold = _root;
       while(hold)
       {
-        if(p >= (hold + 1) && p < (((uint8_t*)(hold + 1)) + hold->size))
-          return ((((uint8_t*)p) - ((uint8_t*)(hold + 1))) % sizeof(T)) == 0; //the pointer should be an exact multiple of sizeof(T)
+        if(p >= (hold + 1) && p < (((std::byte*)(hold + 1)) + hold->size))
+          return ((((std::byte*)p) - ((std::byte*)(hold + 1))) % sizeof(T)) == 0; //the pointer should be an exact multiple of sizeof(T)
 
         hold = hold->next;
       }
@@ -130,9 +130,9 @@ namespace bun {
     inline void _initChunk(const Node* chunk) noexcept
     {
       void* hold = 0;
-      uint8_t* memend = ((uint8_t*)(chunk + 1)) + chunk->size;
+      std::byte* memend = ((std::byte*)(chunk + 1)) + chunk->size;
 
-      for(uint8_t* memref = (uint8_t*)(chunk + 1); memref < memend; memref += sizeof(T))
+      for(std::byte* memref = (std::byte*)(chunk + 1); memref < memend; memref += sizeof(T))
       {
         *((void**)(memref)) = hold;
         hold = memref;
@@ -155,8 +155,11 @@ namespace bun {
       } while(!asmcasr<bun_PTag<void>>(&_freelist, nval, prev, prev));
     }
 
+#pragma warning(push)
+#pragma warning(disable:4251)
     BUN_ALIGN(16) volatile bun_PTag<void> _freelist;
     BUN_ALIGN(4) std::atomic_flag _flag;
+#pragma warning(pop)
     Node* _root;
   };
 }

@@ -1,4 +1,4 @@
-// Copyright ©2018 Erik McClure
+// Copyright (c)2023 Erik McClure
 // For conditions of distribution and use, see copyright notice in "buntils.h"
 
 #ifndef __LOCKLESS_H__BUN__
@@ -13,11 +13,11 @@
 #include <atomic>
 
 #ifdef BUN_CPU_x86
-#define BSSASM_PREG ECX
-#define BSSASM_PREGA EAX
+#define BUNASM_PREG ECX
+#define BUNASM_PREGA EAX
 #elif defined(BUN_CPU_x86_64)
-#define BSSASM_PREG RCX
-#define BSSASM_PREGA RAX
+#define BUNASM_PREG RCX
+#define BUNASM_PREGA RAX
 #endif
 
 // These are all implemented using compiler intrinsics on MS compilers because the inline assembly does not behave well when inlined. GCC 
@@ -345,7 +345,7 @@ namespace bun {
     { \
       ASMCAS_FSTMOV(REG_D) \
       __asm mov REG_A, oldval \
-      __asm lock cmpxchg [BSSASM_PREG], REG_D \
+      __asm lock cmpxchg [BUNASM_PREG], REG_D \
     }; \
   }
   

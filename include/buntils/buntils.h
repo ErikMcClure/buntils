@@ -1,5 +1,5 @@
 /* Erik McClure Utility Library
-   Copyright ©2018 Erik McClure
+   Copyright (c)2023 Erik McClure
 
    Licensed under the Apache License, Version 2.0 (the "License");
    you may not use this file except in compliance with the License.
@@ -55,6 +55,18 @@ namespace bun {
   constexpr float FLT_EPS = 1.192092896e-07F;
   constexpr double DBL_EPS = 2.2204460492503131e-016;
 
+  template<typename, typename = void>
+  constexpr bool is_type_complete_v = false;
+
+  template<typename T>
+  constexpr bool is_type_complete_v<T, std::void_t<decltype(sizeof(T))>> = true;
+
+  template<typename, typename = void>
+  constexpr bool is_copy_constructible_or_incomplete_v = true;
+
+  template<typename T>
+  constexpr bool is_copy_constructible_or_incomplete_v<T, std::void_t<decltype(sizeof(T))>> = std::is_copy_constructible_v<T>;
+
   namespace internal {
     template<class T, bool B>
     struct __make_integral { using type = T; };
@@ -67,6 +79,15 @@ namespace bun {
   }
   template<class T>
   struct make_integral : internal::__make_integral<T, std::is_enum<T>::value> {};
+
+  template<size_t N>
+  struct StringLiteral {
+    constexpr StringLiteral(const char(&str)[N]) {
+      std::copy_n(str, N, value);
+    }
+
+    char value[N];
+  };
 
   // Get max size of an arbitrary number of bits, either signed or unsigned (assuming one's or two's complement implementation)
   template<uint8_t BITS>
@@ -271,61 +292,6 @@ namespace bun {
     fn(cur, len);
   }
 
-  namespace internal {
-    template<typename... A>
-    struct __safeFormat
-    {
-      template<int N, typename Arg, typename... Args>
-      BUN_FORCEINLINE static void helper(std::ostream& o, int n, Arg arg, Args... args)
-      {
-        if(sizeof...(Args) == (N - n)) // This works because Args is actually 1 less than the total argument count already.
-          o << arg;
-        else
-          helper<N, Args...>(o, n, args...);
-      }
-      template<int N>
-      BUN_FORCEINLINE static void helper(std::ostream& o, int n) { o << "{INVALID PARAMETER " << n << "}"; }
-
-      template<void(*FN)(std::ostream&, int, A...)>
-      BUN_FORCEINLINE static void F(std::ostream& o, const char* format, A... args)
-      {
-        const char* pos = format;
-        while(format[0])
-        {
-          if(format[0] == '{' && format[1] >= '0' && format[1] <= '9' && (format[2] == '}' || (format[2] >= '0' && format[2] <= '9' && format[3] == '}')))
-          {
-            if(format - pos > 0)
-              o.write(pos, format - pos);
-            int n = 0;
-            if(format[2] == '}')
-            {
-              n = format[1] - '0';
-              format += 3;
-            }
-            else
-            {
-              n = format[2] - '0';
-              n += (format[1] - '0') * 10;
-              format += 4;
-            }
-            pos = format;
-            FN(o, n, args...);
-          }
-          else
-            ++format;
-        }
-        if(format - pos > 0)
-          o.write(pos, format - pos);
-      }
-    };
-  }
-
-  template<typename... Args>
-  inline void SafeFormat(std::ostream& o, const char* format, Args... args)
-  {
-    internal::__safeFormat<Args...>::template F<&internal::__safeFormat<Args...>::template helper<(sizeof...(Args)-1), Args...>>(o, format, args...);
-  }
-
   // Converts 32-bit unicode int to a series of utf8 encoded characters, appending them to the string
   inline void OutputUnicode(std::string& s, int c) noexcept
   {
@@ -337,34 +303,25 @@ namespace bun {
   }
 
   // Flips the endianness of a memory location
-  BUN_FORCEINLINE void FlipEndian(uint8_t* target, uint8_t n) noexcept
+  BUN_FORCEINLINE void FlipEndian(std::byte* target, uint8_t n) noexcept
   {
-    uint8_t tmp;
     uint8_t end = (n >> 1);
     --n;
     for(uint8_t i = 0; i < end; ++i)
-    {
-      tmp = target[n - i];
-      target[n - i] = target[i];
-      target[i] = tmp;
-    }
+      std::swap(target[n - i], target[i]);
   }
 
   template<int I>
-  BUN_FORCEINLINE void FlipEndian(uint8_t* target) noexcept 
+  BUN_FORCEINLINE void FlipEndian(std::byte* target) noexcept
   { 
     if constexpr(I == 2)
-    {
-      uint8_t t = target[0];
-      target[0] = target[1];
-      target[1] = t;
-    }
+      std::swap(target[0], target[1]);
     else if constexpr(I > 2)
       FlipEndian(target, I); 
   }
 
   template<typename T>
-  BUN_FORCEINLINE void FlipEndian(T* target) noexcept { FlipEndian<sizeof(T)>(reinterpret_cast<uint8_t*>(target)); }
+  BUN_FORCEINLINE void FlipEndian(T* target) noexcept { FlipEndian<sizeof(T)>(reinterpret_cast<std::byte*>(target)); }
 
     // This is a bit-shift method of calculating the next number in the fibonacci sequence by approximating the golden ratio with 0.6171875 (1/2 + 1/8 - 1/128)
   template<typename T>
@@ -1102,7 +1059,7 @@ namespace bun {
 #endif
 
   // Simple 128bit integer for x86 instruction set. Replaced with __int128 if possible
-//#ifdef BSS32BIT
+//#ifdef BUN32BIT
 //  struct int128
 //  {
 //    inline static int128& operator+=(const int128& right) { _add(right.ints[0],right.ints[1],right.ints[2],right.ints[3]); return *this; }

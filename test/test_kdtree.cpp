@@ -1,4 +1,4 @@
-// Copyright ©2018 Erik McClure
+// Copyright (c)2023 Erik McClure
 // For conditions of distribution and use, see copyright notice in "buntils.h"
 
 #include "test.h"
@@ -23,7 +23,7 @@ TESTDEF::RETPAIR test_KDTREE()
 {
   BEGINTEST;
   BlockPolicy<KDNode<KDtest>> alloc;
-  KDTree<KDtest, &KDtest_RECT, &KDtest_LIST, &KDtest_NODE, PolymorphicAllocator<KDNode<KDtest>, BlockPolicy>> tree;
+  KDTree<KDtest, &KDtest_RECT, &KDtest_LIST, &KDtest_NODE, PolicyAllocator<KDNode<KDtest>, BlockPolicy>> tree(PolicyAllocator<KDNode<KDtest>, BlockPolicy>{alloc});
   KDtest r1 = { 0,0,1,1,0,0 };
   KDtest r2 = { 1,1,2,2,0,0 };
   KDtest r3 = { 0,0,2,2,0,0 };

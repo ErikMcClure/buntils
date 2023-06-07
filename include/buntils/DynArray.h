@@ -1,4 +1,4 @@
-// Copyright ©2018 Erik McClure
+// Copyright (c)2023 Erik McClure
 // For conditions of distribution and use, see copyright notice in "buntils.h"
 
 #ifndef __DYN_ARRAY_H__BUN__
@@ -9,29 +9,28 @@
 #include "buntils.h"
 
 namespace bun {
-  // Dynamic array implemented using ArrayType (should only be used when constructors could potentially not be needed)
-  template<class T, typename CType = size_t, ARRAY_TYPE ArrayType = ARRAY_SIMPLE, typename Alloc = StandardAllocator<T>>
-  class BUN_COMPILER_DLLEXPORT DynArray : protected ArrayBase<T, CType, ArrayType, Alloc>
+  // Dynamic array
+  template<class T, typename CType = size_t, typename Alloc = StandardAllocator<T>>
+  class BUN_COMPILER_DLLEXPORT DynArray : protected ArrayBase<T, CType, Alloc>
   {
   protected:
-    using BASE = ArrayBase<T, CType, ArrayType, Alloc>;
+    using BASE = ArrayBase<T, CType, Alloc>;
     using BASE::_array;
     using BASE::_capacity;
-    template<class U, typename C, ARRAY_TYPE AT, typename A>
+    template<class U, typename C, typename A>
     friend class StreamBufDynArray;
 
   public:
     using CT = typename BASE::CT;
     using Ty = typename BASE::Ty;
 
-    inline DynArray(const DynArray& copy) : BASE(copy._capacity, copy), _length(copy._length) { BASE::_copy(_array, copy._array, _length); }
+    inline DynArray(const DynArray& copy) requires is_copy_constructible_or_incomplete_v<T> : BASE(copy._capacity, copy), _length(copy._length) { BASE::_copy(_array, copy._array, _length); }
     inline DynArray(DynArray&& mov) : BASE(std::move(mov)), _length(mov._length) { mov._length = 0; }
-    inline explicit DynArray(const Slice<const T, CT>& slice) : BASE(slice.length), _length(slice.length) { BASE::_copy(_array, slice.start, slice.length); }
-    template<bool U = std::is_void_v<typename Alloc::policy_type>, std::enable_if_t<!U, int> = 0>
-    inline DynArray(CT capacity, typename Alloc::policy_type* policy) : BASE(capacity, policy), _length(0) {}
-    inline explicit DynArray(CT capacity) : BASE(capacity), _length(0) {}
-    inline DynArray() : BASE(0), _length(0) {}
-    inline DynArray(const std::initializer_list<T>& list) : BASE(list.size()), _length(0)
+    inline explicit DynArray(std::span<const T> s) requires (is_copy_constructible_or_incomplete_v<T> && std::is_default_constructible_v<Alloc>) : BASE(s.size()), _length(s.size()) { BASE::_copy(_array, s.data(), s.size()); }
+    inline DynArray(CT capacity, const Alloc& alloc) : BASE(capacity, alloc), _length(0) {}
+    inline explicit DynArray(CT capacity) requires std::is_default_constructible_v<Alloc> : BASE(capacity), _length(0) {}
+    inline DynArray() requires std::is_default_constructible_v<Alloc> : BASE(0), _length(0) {}
+    inline DynArray(const std::initializer_list<T>& list) requires std::is_default_constructible_v<Alloc> : BASE(list.size()), _length(0)
     {
       auto end = list.end();
       for(auto i = list.begin(); i != end && _length < _capacity; ++i)
@@ -50,8 +49,8 @@ namespace bun {
     BUN_FORCEINLINE void RemoveLast() { Remove(_length - 1); }
     BUN_FORCEINLINE void Insert(const T& item, CT index = 0) { _insert(item, index); }
     BUN_FORCEINLINE void Insert(T&& item, CT index = 0) { _insert(std::move(item), index); }
-    BUN_FORCEINLINE void Set(const Slice<const T, CT>& slice) { Set(slice.start, slice.length); }
-    BUN_FORCEINLINE void Set(const T* p, CT n)
+    BUN_FORCEINLINE void Set(std::span<const T> slice)  requires is_copy_constructible_or_incomplete_v<T> { Set(slice.data(), slice.size()); }
+    BUN_FORCEINLINE void Set(const T* p, CT n) requires is_copy_constructible_or_incomplete_v<T>
     {
       BASE::_setLength(_array, _length, 0);
       if(n > _capacity)
@@ -79,14 +78,17 @@ namespace bun {
     BUN_FORCEINLINE const T* end() const noexcept { return _array + _length; }
     BUN_FORCEINLINE T* begin() noexcept { return _array; }
     BUN_FORCEINLINE T* end() noexcept { return _array + _length; }
-    BUN_FORCEINLINE Slice<T, CT> GetSlice() const noexcept { return Slice<T, CT>(_array, _length); }
+    inline CT size() const noexcept { return _length; }
+    inline T* data() noexcept { return _array; }
+    inline const T* data() const noexcept { return _array; }
+
 #if defined(BUN_64BIT) && defined(BUN_DEBUG) 
     BUN_FORCEINLINE T& operator [](uint64_t i) { assert(i < _length); return _array[i]; } // for some insane reason, this works on 64-bit, but not on 32-bit
     BUN_FORCEINLINE const T& operator [](uint64_t i) const { assert(i < _length); return _array[i]; }
 #endif
     BUN_FORCEINLINE operator T*() { return _array; }
     BUN_FORCEINLINE operator const T*() const { return _array; }
-    inline DynArray& operator=(const Array<T, CT, ArrayType, Alloc>& copy)
+    inline DynArray& operator=(const Array<T, CT, Alloc>& copy)  requires is_copy_constructible_or_incomplete_v<T>
     {
       BASE::_setLength(_array, _length, 0);
       if(copy._capacity > _capacity)
@@ -95,8 +97,8 @@ namespace bun {
       _length = copy._capacity;
       return *this;
     }
-    inline DynArray& operator=(Array<T, CT, ArrayType, Alloc>&& mov) { BASE::_setLength(_array, _length, 0); BASE::operator=(std::move(mov)); _length = mov._capacity; return *this; }
-    inline DynArray& operator=(const DynArray& copy)
+    inline DynArray& operator=(Array<T, CT, Alloc>&& mov) { BASE::_setLength(_array, _length, 0); BASE::operator=(std::move(mov)); _length = mov._capacity; return *this; }
+    inline DynArray& operator=(const DynArray& copy)  requires is_copy_constructible_or_incomplete_v<T>
     {
       BASE::_setLength(_array, _length, 0);
       if(copy._length > _capacity)
@@ -106,15 +108,15 @@ namespace bun {
       return *this;
     }
     inline DynArray& operator=(DynArray&& mov) { BASE::_setLength(_array, _length, 0); BASE::operator=(std::move(mov)); _length = mov._length; mov._length = 0; return *this; }
-    inline DynArray& operator=(const Slice<const T, CT>& copy) { Set(copy); return *this; }
-    inline DynArray& operator +=(const DynArray& add)
+    inline DynArray& operator=(std::span<const T> copy) requires is_copy_constructible_or_incomplete_v<T> { Set(copy); return *this; }
+    inline DynArray& operator +=(const DynArray& add) requires is_copy_constructible_or_incomplete_v<T>
     {
       BASE::_setCapacity(_length + add._length, _length);
       BASE::_copy(_array + _length, add._array, add._length);
       _length += add._length;
       return *this;
     }
-    inline DynArray operator +(const DynArray& add) const
+    inline DynArray operator +(const DynArray& add) const requires is_copy_constructible_or_incomplete_v<T>
     {
       DynArray r(_length + add._length);
       BASE::_copy(r._array, _array, _length);
@@ -163,12 +165,12 @@ namespace bun {
     CT _length;
   };
   
-  template<typename CType, ARRAY_TYPE ArrayType, typename Alloc>
-  class BUN_COMPILER_DLLEXPORT DynArray<bool, CType, ArrayType, Alloc> : protected ArrayBase<uint8_t, CType, ArrayType, typename Alloc::template rebind<uint8_t>>
+  template<typename CType, typename Alloc> requires std::is_unsigned<CType>::value
+  class BUN_COMPILER_DLLEXPORT DynArray<bool, CType, Alloc> : protected ArrayBase<uint8_t, CType, typename std::allocator_traits<Alloc>::template rebind_alloc<uint8_t>>
   {
   protected:
     using STORE = uint8_t;
-    using BASE = ArrayBase<STORE, CType, ArrayType, typename Alloc::template rebind<uint8_t>>;
+    using BASE = ArrayBase<STORE, CType, typename std::allocator_traits<Alloc>::template rebind_alloc<uint8_t>>;
     using CT = typename BASE::CT;
     using Ty = typename BASE::Ty;
     using BITREF = internal::_BIT_REF<STORE>;
@@ -176,7 +178,6 @@ namespace bun {
     using BASE::_capacity;
     static const CT DIV_AMT = (sizeof(STORE) << 3);
     static const CT MOD_AMT = (sizeof(STORE) << 3) - 1;
-    static_assert(std::is_unsigned<CType>::value, "CType must be an unsigned integral type.");
 
   public:
     inline DynArray(const DynArray& copy) : BASE(copy._capacity), _length(copy._length) { memcpy(_array, copy._array, copy._capacity * sizeof(STORE)); }
@@ -242,7 +243,7 @@ namespace bun {
     BUN_FORCEINLINE bool Back() const { assert(_length > 0); return _array[_length - 1]; }
     BUN_FORCEINLINE BITREF Front() { assert(_length > 0); return GetBit(0); }
     BUN_FORCEINLINE BITREF Back() { assert(_length > 0); return GetBit(_length - 1); }
-    BUN_FORCEINLINE bool operator[](CT index) const { assert(index < _length); return (_array[(index / DIV_AMT)] & (((STORE)1) << (index&MOD_AMT))) != 0; }
+    BUN_FORCEINLINE bool operator[](CT index) const { assert(index < _length); return (_array[(index / DIV_AMT)] & (((STORE)1) << (index&MOD_AMT))) != (STORE)0; }
     BUN_FORCEINLINE BITREF operator[](CT index) { assert(index < _length); return GetBit(index); }
     // This gets the raw storage byte in such a way that unused bits are always set to zero. Useful for debugging.
     inline STORE GetRawByte(CT index) const { assert(index < _capacity); return (index < (_capacity - 1)) ? _array[index] : (_array[index] & ((STORE)(~0) >> ((_capacity*DIV_AMT) - _length))); }
@@ -261,21 +262,6 @@ namespace bun {
       return *this;
     }
     inline DynArray& operator=(DynArray&& mov) { BASE::operator=(std::move(mov)); _length = mov._length; mov._length = 0; return *this; }
-    /*inline DynArray& operator +=(const DynArray& add)
-    {
-      SetCapacity(*this, _length + add._length);
-      memcpybits(_array + (_length/DIV_AMT), _length&MOD_AMT, add._array, 0, add._length);
-      _length += add._length;
-      return *this;
-    }
-    inline DynArray operator +(const DynArray& add) const
-    {
-      DynArray r(_length + add._length);
-      memcpy(r._array, _array, (_maxChunks(_length) / DIV_AMT)*sizeof(STORE));
-      memcpybits(r._array + (_length / DIV_AMT), _length&MOD_AMT, add._array, 0, add._length);
-      r._length = _length + add._length;
-      return r;
-    }*/
 
     using SerializerArray = Ty;
     template<typename Engine>
@@ -337,11 +323,11 @@ namespace bun {
   };
 
   // A dynamic array that can dynamically adjust the size of each element
-  template<typename CType, typename Alloc = StandardAllocator<uint8_t>>
-  class BUN_COMPILER_DLLEXPORT ArbitraryArray : protected ArrayBase<uint8_t, CType, ARRAY_SIMPLE, Alloc>
+  template<typename CType, typename Alloc = StandardAllocator<std::byte>>
+  class BUN_COMPILER_DLLEXPORT ArbitraryArray : protected ArrayBase<std::byte, CType, Alloc>
   {
   protected:
-    using BASE = ArrayBase<uint8_t, CType, ARRAY_SIMPLE, Alloc>;
+    using BASE = ArrayBase<std::byte, CType, Alloc>;
     using CT = typename BASE::CT;
     using Ty = typename BASE::Ty;
     using BASE::_array;
@@ -368,7 +354,7 @@ namespace bun {
     inline void RemoveLast() { --_length; }
     inline void SetElement(const void* newarray, CT element, CT num) // num is a count of how many elements are in the array
     {
-      if(((uint8_t*)newarray) == _array)
+      if(newarray == (const void*)_array)
         return;
 
       _element = element;
@@ -392,7 +378,7 @@ namespace bun {
         return;
 
       CT capacity = element*_length;
-      uint8_t* narray = !_length ? 0 : (uint8_t*)Alloc::allocate(capacity);
+      std::byte* narray = !_length ? nullptr : (std::byte*)std::allocator_traits<Alloc>::allocate(*this,capacity);
       if(narray)
         memset(narray, 0, capacity);
       CT m = std::min<CT>(element, _element);
@@ -400,7 +386,7 @@ namespace bun {
       for(CT i = 0; i < _length; ++i)
         memcpy(narray + (i*element), _array + (i*_element), m);
 
-      BASE::_free(_array);
+      BASE::_dealloc(_array, _capacity);
       _array = narray;
       _capacity = capacity;
       _element = element;

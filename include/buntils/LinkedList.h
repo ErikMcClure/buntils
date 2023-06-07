@@ -1,4 +1,4 @@
-// Copyright ©2018 Erik McClure
+// Copyright (c)2023 Erik McClure
 // For conditions of distribution and use, see copyright notice in "buntils.h"
 
 #ifndef __LINKEDLIST_H__BUN__
@@ -122,8 +122,7 @@ namespace bun {
 
   public:
     // Constructor, takes an optional allocator instance
-    template<bool U = std::is_void_v<typename Alloc::policy_type>, std::enable_if_t<!U, int> = 0>
-    inline explicit LinkedList(typename Alloc::policy_type* policy) : Alloc(policy) {}
+    inline explicit LinkedList(const Alloc& alloc) : Alloc(alloc) {}
     inline LinkedList() {}
     // Copy constructor
     inline LinkedList(const LinkedList<T, Alloc>& copy) : Alloc(copy) { operator =(copy); }
@@ -137,7 +136,7 @@ namespace bun {
     // Appends the item to the end of the list
     inline LLNode<T>* Add(T item)
     {
-      LLNode<T>* node = Alloc::allocate(1);
+      LLNode<T>* node = std::allocator_traits<Alloc>::allocate(*this,1);
       node->item = item;
       _add(node);
       _incsize(); //increment size by one
@@ -229,14 +228,14 @@ namespace bun {
   protected:
     inline LLNode<T>* _createNode(T _item, LLNode<T>* _prev = 0, LLNode<T>* _next = 0)
     {
-      LLNode<T>* retval = Alloc::allocate(1);
+      LLNode<T>* retval = std::allocator_traits<Alloc>::allocate(*this,1);
       retval->item = _item;
       retval->prev = _prev;
       retval->next = _next;
       return retval;
     }
 
-    inline void _deleteNode(LLNode<T>* target) { Alloc::deallocate(target, 1); }
+    inline void _deleteNode(LLNode<T>* target) { std::allocator_traits<Alloc>::deallocate(*this, target, 1); }
   };
 }
 

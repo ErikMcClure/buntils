@@ -1,4 +1,4 @@
-// Copyright ©2018 Erik McClure
+// Copyright (c)2023 Erik McClure
 // For conditions of distribution and use, see copyright notice in "buntils.h"
 
 #ifndef __BUN_FIXED_H__
@@ -52,12 +52,11 @@ namespace bun {
   }
 
   // Adaptive template based class for doing fixed-point math. Default number of decimal bits is 12 (corresponding to a scaling factor of 2^12)
-  template<uint8_t D = 12, typename T = int32_t, bool SATURATE = false>
+  template<uint8_t D = 12, typename T = int32_t, bool SATURATE = false> requires std::is_signed<T>::value
   class Fixed
   {
     using BITS = internal::__FixedBits<T>;
     static_assert(!SATURATE, "Saturation is not implemented.");
-    static_assert(std::is_signed<T>::value, "T must be a signed integral type.");
 
   public:
     inline constexpr Fixed(const Fixed& copy) : _bits(copy._bits) {}

@@ -1,4 +1,4 @@
-// Copyright ©2018 Erik McClure
+// Copyright (c)2023 Erik McClure
 // For conditions of distribution and use, see copyright notice in "buntils.h"
 
 #include "buntils/buntils.h"
@@ -154,7 +154,7 @@ void UBJSONTuple::Write(std::ostream& s, TYPE type) const
   case TYPE_FALSE:
     break;
   case TYPE_ARRAY:
-    if(!Array.Length())
+    if(!Array.size())
     {
       s.put(TYPE_ARRAY_END);
       break;
@@ -166,12 +166,12 @@ void UBJSONTuple::Write(std::ostream& s, TYPE type) const
         type = TYPE_NONE;
         break;
       }
-    WriteTypeCount(s, type, Array.Length());
+    WriteTypeCount(s, type, Array.size());
     for(auto& i : Array)
       i.Write(s, type);
     break;
   case TYPE_OBJECT:
-    if(!Object.Length())
+    if(!Object.size())
     {
       s.put(TYPE_OBJECT_END);
       break;
@@ -183,7 +183,7 @@ void UBJSONTuple::Write(std::ostream& s, TYPE type) const
         type = TYPE_NONE;
         break;
       }
-    WriteTypeCount(s, type, Object.Length());
+    WriteTypeCount(s, type, Object.size());
     for(auto& i : Object)
     {
       WriteLength(s, i.first.size());

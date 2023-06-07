@@ -1,4 +1,4 @@
-// Copyright ©2018 Erik McClure
+// Copyright (c)2023 Erik McClure
 // For conditions of distribution and use, see copyright notice in "buntils.h"
 
 #ifndef __BUN_GRAPH_H__
@@ -54,7 +54,7 @@ namespace bun {
   }
 
   // Represents a graph using an adjacency list. Converts to and from an adjacency matrix representation.
-  template<typename E, typename V, typename CT = uint16_t, typename Alloc = PolymorphicAllocator<Edge<E, CT>, BlockPolicy>, typename NODEALLOC = StandardAllocator<internal::LINKEDNODE<Node<E, V, CT>, CT>>, ARRAY_TYPE ArrayType = ARRAY_SIMPLE>
+  template<typename E, typename V, typename CT = uint16_t, typename Alloc = StandardAllocator<Edge<E, CT>>, typename NODEALLOC = StandardAllocator<internal::LINKEDNODE<Node<E, V, CT>, CT>>>
   class Graph : public Alloc, protected internal::__Graph__InternalEdge<E>, protected internal::__Graph__InternalVertex<V, CT>
   {
     static BUN_FORCEINLINE bool _baseCheck(const char* b) { return (*b) != 0; }
@@ -67,35 +67,34 @@ namespace bun {
     using internal::__Graph__InternalEdge<E>::_getData;
 
     Graph(const Graph&) = delete;
-      Graph& operator=(const Graph&)= delete;
+    Graph& operator=(const Graph&) = delete;
   public:
     inline Graph(Graph&& mov) : Alloc(std::move(mov)), _nodes(std::move(mov._nodes)), _nedges(mov._nedges) { mov._nedges = 0; }
-    template<bool U = std::is_void_v<typename Alloc::policy_type>, std::enable_if_t<!U, int> = 0>
-    inline explicit Graph(typename Alloc::policy_type* policy) : Alloc(policy), _nodes(0), _nedges(0) {}
-    inline Graph() : _nodes(0), _nedges(0) {}
+    inline explicit Graph(const Alloc& alloc) : Alloc(alloc), _nodes(0), _nedges(0) {}
+    inline Graph() requires std::is_default_constructible_v<Alloc> : _nodes(0), _nedges(0) {}
     // Build a matrix out of a standard adjacency matrix
-    inline Graph(CT n, const char* M, const V* nodes) : _nodes(n), _nedges(0) { _construct<char, _baseCheck>(n, M, nodes); }
+    inline Graph(CT n, const char* M, const V* nodes) requires std::is_default_constructible_v<Alloc> : _nodes(n), _nedges(0) { _construct<char, _baseCheck>(n, M, nodes); }
     // Build a matrix out of only a list of nodes
-    inline Graph(CT n, const V* nodes) : _nodes(n), _nedges(0) { for(CT i = 0; i < n; ++i) AddNode(nodes + i); }
-    inline explicit Graph(CT n) : _nodes(n), _nedges(0) { for(CT i = 0; i < n; ++i) AddNode(); }
-    inline ~Graph() { for(CT i = _nodes.Front(); i != (CT)-1; _nodes.Next(i)) while(_nodes[i].to) RemoveEdge(_nodes[i].to); }
+    inline Graph(CT n, const V* nodes)  requires std::is_default_constructible_v<Alloc> : _nodes(n), _nedges(0) { for (CT i = 0; i < n; ++i) AddNode(nodes + i); }
+    inline explicit Graph(CT n) requires std::is_default_constructible_v<Alloc> : _nodes(n), _nedges(0) { for (CT i = 0; i < n; ++i) AddNode(); }
+    inline ~Graph() { for (CT i = _nodes.Front(); i != (CT)-1; _nodes.Next(i)) while (_nodes[i].to) RemoveEdge(_nodes[i].to); }
     inline CT NumNodes() const { return _nodes.Length(); }
     inline CT NumEdges() const { return _nedges; }
     inline CT Capacity() const { return _nodes.Capacity(); }
     inline Node<E, V, CT>* GetNode(CT index) const { return index < _nodes.Length() ? &_nodes[index] : 0; }
-    inline const LinkedArray<Node<E, V, CT>, CT, ArrayType, NODEALLOC>& GetNodes() const { return _nodes; }
-    inline LinkedArray<Node<E, V, CT>, CT, ArrayType, NODEALLOC>& GetNodes() { return _nodes; }
+    inline const LinkedArray<Node<E, V, CT>, CT, NODEALLOC>& GetNodes() const { return _nodes; }
+    inline LinkedArray<Node<E, V, CT>, CT, NODEALLOC>& GetNodes() { return _nodes; }
     inline CT Front() const { return _nodes.Front(); }
     inline CT Back() const { return _nodes.Back(); }
-    inline typename LinkedArray<Node<E, V, CT>, CT, ArrayType, NODEALLOC>::template cLAIter<true> begin() const { return _nodes.begin(); }
-    inline typename LinkedArray<Node<E, V, CT>, CT, ArrayType, NODEALLOC>::template cLAIter<true> end() const { return _nodes.end(); }
-    inline typename LinkedArray<Node<E, V, CT>, CT, ArrayType, NODEALLOC>::template cLAIter<false> begin() { return _nodes.begin(); }
-    inline typename LinkedArray<Node<E, V, CT>, CT, ArrayType, NODEALLOC>::template cLAIter<false> end() { return _nodes.end(); }
+    inline typename LinkedArray<Node<E, V, CT>, CT, NODEALLOC>::template cLAIter<true> begin() const { return _nodes.begin(); }
+    inline typename LinkedArray<Node<E, V, CT>, CT, NODEALLOC>::template cLAIter<true> end() const { return _nodes.end(); }
+    inline typename LinkedArray<Node<E, V, CT>, CT, NODEALLOC>::template cLAIter<false> begin() { return _nodes.begin(); }
+    inline typename LinkedArray<Node<E, V, CT>, CT, NODEALLOC>::template cLAIter<false> end() { return _nodes.end(); }
     inline CT AddNode() { Node<E, V, CT> aux; bun_Fill(aux, 0); return _nodes.Add(aux); }
-    inline CT AddNode(const V* node) { if(!node) return AddNode(); Node<E, V, CT> aux; aux.to = 0; aux.from = 0; _setDataV(aux, node); return _nodes.Add(aux); }
+    inline CT AddNode(const V* node) { if (!node) return AddNode(); Node<E, V, CT> aux; aux.to = 0; aux.from = 0; _setDataV(aux, node); return _nodes.Add(aux); }
     inline Edge<E, CT>* AddEdge(CT from, CT to)
     {
-      Edge<E, CT>* r = Alloc::allocate(1);
+      Edge<E, CT>* r = std::allocator_traits<Alloc>::allocate(*this, 1);
       r->to = to;
       r->from = from;
       LLAdd(r, _nodes[from].to);
@@ -112,15 +111,15 @@ namespace bun {
     inline void RemoveNode(CT index)
     {
       auto& n = _nodes[index];
-      while(n.to) RemoveEdge(n.to);
-      while(n.from) RemoveEdge(n.from);
+      while (n.to) RemoveEdge(n.to);
+      while (n.from) RemoveEdge(n.from);
       _nodes.Remove(index);
     }
     inline void RemoveEdge(Edge<E, CT>* edge)
     {
       LLRemove(edge, _nodes[edge->from].to);
       AltLLRemove<Edge<E, CT>, &Graph::_altGet>(edge, _nodes[edge->to].from);
-      Alloc::deallocate(edge, 1);
+      std::allocator_traits<Alloc>::deallocate(*this, edge, 1);
       --_nedges;
     }
     template<bool ISEDGE(const E*)>
@@ -130,20 +129,20 @@ namespace bun {
       CT len = _nodes.Length();
       Edge<E, CT>* cur = 0;
 
-      if(!matrix)
+      if (!matrix)
         return len;
 
       VARARRAY(CT, hash, _nodes.Capacity());
       CT k = 0;
 
-      for(CT i = _nodes.Front(); i != (CT)-1; _nodes.Next(i))
+      for (CT i = _nodes.Front(); i != (CT)-1; _nodes.Next(i))
         hash[i] = k++; // Build up a hash mapping the IDs to monotonically increasing integers.
 
-      for(CT i = _nodes.Front(); i != (CT)-1; _nodes.Next(i))
+      for (CT i = _nodes.Front(); i != (CT)-1; _nodes.Next(i))
       {
         _setVertex(nodes, i, _nodes[i]);
 
-        for(cur = _nodes[i].to; cur != 0; cur = cur->next)
+        for (cur = _nodes[i].to; cur != 0; cur = cur->next)
           _getData(matrix[(hash[i] * len) + hash[cur->to]], *cur);
       }
       return len;
@@ -151,13 +150,13 @@ namespace bun {
 
     inline const Node<E, V, CT>& operator[](CT index) const { return _nodes[index]; }
     inline Node<E, V, CT>& operator[](CT index) { return _nodes[index]; }
-    inline Graph& operator=(Graph&& mov) 
-    { 
+    inline Graph& operator=(Graph&& mov)
+    {
       Alloc::operator=(std::move(mov));
-      _nodes = std::move(mov._nodes); 
-      _nedges = mov._nedges; 
-      mov._nedges = 0; 
-      return *this; 
+      _nodes = std::move(mov._nodes);
+      _nedges = mov._nedges;
+      mov._nedges = 0;
+      return *this;
     }
     using CT_ = CT;
     using E_ = E;
@@ -171,18 +170,18 @@ namespace bun {
     {
       VARARRAY(CT, k, n);
 
-      for(CT i = 0; i < n; ++i)
+      for (CT i = 0; i < n; ++i)
         k[i] = AddNode(_addVertex(nodes, i));
 
-      for(CT i = 0; i < n; ++i)
+      for (CT i = 0; i < n; ++i)
       {
-        for(CT j = 0; j < n; ++j)
-          if(ISEDGE(M + (i*n) + j))
-            AddEdge(k[i], k[j], M + ((i*n) + j));
+        for (CT j = 0; j < n; ++j)
+          if (ISEDGE(M + (i * n) + j))
+            AddEdge(k[i], k[j], M + ((i * n) + j));
       }
     }
 
-    LinkedArray<Node<E, V, CT>, CT, ArrayType, NODEALLOC> _nodes;
+    LinkedArray<Node<E, V, CT>, CT, NODEALLOC> _nodes;
     CT _nedges;
   };
 
@@ -196,8 +195,8 @@ namespace bun {
   }
 
   // Implementation of the FIFO push-relabel algorithm for solving a maximum-flow graph in O(V^3) time
-  template<typename E, typename V, typename CT, typename ALLOC, typename NODEALLOC, ARRAY_TYPE ArrayType>
-  inline void MaxFlow_PushRelabel(Graph<internal::__edge_MaxFlow<E>, V, CT, ALLOC, NODEALLOC, ArrayType>& graph, CT s, CT t)
+  template<typename E, typename V, typename CT, typename ALLOC, typename NODEALLOC>
+  inline void MaxFlow_PushRelabel(Graph<internal::__edge_MaxFlow<E>, V, CT, ALLOC, NODEALLOC>& graph, CT s, CT t)
   {
     using PEDGE = Edge<internal::__edge_MaxFlow<E>, CT>*;
     using PAIR = std::pair<CT, CT>;
@@ -221,11 +220,11 @@ namespace bun {
     CT* plast = &root;
     CT k = 0; // Build a list of all vertices except s and t
 
-    for(CT i = nodes.Front(); i != (CT)-1; nodes.Next(i))
+    for (CT i = nodes.Front(); i != (CT)-1; nodes.Next(i))
     {
       seen[k] = nodes[i].to;
 
-      if(i != s && i != t)
+      if (i != s && i != t)
       {
         *plast = k;
         v[k].first = i;
@@ -236,7 +235,7 @@ namespace bun {
     assert(k == (len - 2));
 
     // Push as much flow as possible from s
-    for(edge = nodes[s].to; edge != 0; edge = edge->next)
+    for (edge = nodes[s].to; edge != 0; edge = edge->next)
     {
       edge->data.flow = edge->data.capacity;
       excess[edge->to] = edge->data.capacity;
@@ -247,33 +246,33 @@ namespace bun {
     CT lh;
     CT target;
 
-    for(CT c = root; c != (CT)-1;)
+    for (CT c = root; c != (CT)-1;)
     {
       k = v[c].first;
       lh = height[k];
 
-      while(excess[k] > 0) // Discharge current vertex
+      while (excess[k] > 0) // Discharge current vertex
       {
-        if(!seen[k]) //If seen is null, we tried all our neighbors so relabel
+        if (!seen[k]) //If seen is null, we tried all our neighbors so relabel
         {
           send = INT_MAX;
 
-          for(edge = nodes[k].to; edge != 0; edge = edge->next)
+          for (edge = nodes[k].to; edge != 0; edge = edge->next)
           { // First we try to send it forward
-            if(edge->data.capacity - edge->data.flow > 0)
+            if (edge->data.capacity - edge->data.flow > 0)
             {
-              if(height[edge->to] < send) send = height[edge->to];
+              if (height[edge->to] < send) send = height[edge->to];
               height[k] = send + 1; // we have to do this in here because if there is no valid relabel, the height can't change.
             }
           }
 
-          if(send == INT_MAX) // If this is true, our forward relabel failed, so that means we need to try to push things backwards
+          if (send == INT_MAX) // If this is true, our forward relabel failed, so that means we need to try to push things backwards
           {
-            for(edge = nodes[k].from; edge != 0; edge = edge->alt.next)
+            for (edge = nodes[k].from; edge != 0; edge = edge->alt.next)
             {
-              if(edge->data.flow > 0)
+              if (edge->data.flow > 0)
               { // Negate the flow and set capacity to 0 because we're going backwards
-                if(height[edge->from] < send)
+                if (height[edge->from] < send)
                   send = height[edge->from];
 
                 height[k] = send + 1;
@@ -286,14 +285,14 @@ namespace bun {
 
           continue;
         }
-        if(excess[k] > 0)
+        if (excess[k] > 0)
         {// If possible, do a push. We must check whether our current edge is backwards or not
           send = (seen[k]->from == k) ? seen[k]->data.capacity - seen[k]->data.flow : seen[k]->data.flow;
           target = (seen[k]->from == k) ? seen[k]->to : seen[k]->from;
 
-          if(height[k] > height[target] && send > 0)
+          if (height[k] > height[target] && send > 0)
           { // If possible, do a push
-            if(excess[k] < send)
+            if (excess[k] < send)
               send = excess[k]; // send an amount equal to min(excess, capacity - flow)
 
             seen[k]->data.flow += (seen[k]->from == k) ? send : -send; // Negate if the edge is backwards
@@ -304,9 +303,9 @@ namespace bun {
         seen[k] = (seen[k]->from == k) ? seen[k]->next : seen[k]->alt.next;
       }
 
-      if(lh != height[k]) // If the height changed...
+      if (lh != height[k]) // If the height changed...
       {
-        if(last != (CT)-1)  // Move vertex to start of the list, if it's not there already
+        if (last != (CT)-1)  // Move vertex to start of the list, if it's not there already
         {
           v[last].second = v[c].second;
           v[c].second = root;
@@ -331,8 +330,8 @@ namespace bun {
   }
 
   // Reduces a circulation problem to a maximum-flow graph in O(V) time. Returns nonzero if infeasible.
-  template<typename E, typename V, typename CT, typename ALLOC, typename NODEALLOC, ARRAY_TYPE ArrayType>
-  inline int Circulation_MaxFlow(Graph<internal::__edge_MaxFlow<E>, internal::__vertex_Demand<V>, CT, ALLOC, NODEALLOC, ArrayType>& g, CT& s, CT& t)
+  template<typename E, typename V, typename CT, typename ALLOC, typename NODEALLOC>
+  inline int Circulation_MaxFlow(Graph<internal::__edge_MaxFlow<E>, internal::__vertex_Demand<V>, CT, ALLOC, NODEALLOC>& g, CT& s, CT& t)
   {
     int total = 0; // The total demand must be 0
 
@@ -342,19 +341,19 @@ namespace bun {
     auto& n = g.GetNodes();
     internal::__edge_MaxFlow<E> edge = { 0 };
 
-    for(CT i = n.Front(); i != (CT)-1; n.Next(i))
+    for (CT i = n.Front(); i != (CT)-1; n.Next(i))
     {
-      if(i != ss && i != st)
+      if (i != ss && i != st)
       {
         d = n[i].data.demand;
         total += d;
 
-        if(d < 0)
+        if (d < 0)
         {// This is a source
           edge.capacity = -d;
           g.AddEdge(ss, i, &edge);
         }
-        else if(d > 0)
+        else if (d > 0)
         {// this is a sink
           edge.capacity = d;
           g.AddEdge(i, st, &edge);
@@ -376,15 +375,15 @@ namespace bun {
   }
 
   // Reduces a lower-bound circulation problem to a basic circulation problem in O(E) time.
-  template<typename E, typename V, typename CT, typename ALLOC, typename NODEALLOC, ARRAY_TYPE ArrayType>
-  inline void LowerBound_Circulation(Graph<internal::__edge_MaxFlow<internal::__edge_LowerBound<E>>, internal::__vertex_Demand<V>, CT, ALLOC, NODEALLOC, ArrayType>& g)
+  template<typename E, typename V, typename CT, typename ALLOC, typename NODEALLOC>
+  inline void LowerBound_Circulation(Graph<internal::__edge_MaxFlow<internal::__edge_LowerBound<E>>, internal::__vertex_Demand<V>, CT, ALLOC, NODEALLOC>& g)
   {
     Edge<internal::__edge_MaxFlow<internal::__edge_LowerBound<E>>, CT>* e;
     auto& n = g.GetNodes();
     int l;
-    for(CT i = n.Front(); i != (CT)-1; n.Next(i))
+    for (CT i = n.Front(); i != (CT)-1; n.Next(i))
     {
-      for(e = n[i].to; e != 0; e = e->next)
+      for (e = n[i].to; e != 0; e = e->next)
       {
         l = e->data.d.data.lowerbound;
         e->data.capacity -= l;
@@ -413,7 +412,7 @@ namespace bun {
     using E = Edge<typename G::E_, CT>;
     auto& n = graph.GetNodes();
 
-    if((*FACTION)(root))
+    if ((*FACTION)(root))
       return;
 
     VARARRAY(CT, aset, graph.Capacity());
@@ -421,22 +420,22 @@ namespace bun {
 
     // Queue up everything next to the root, checking only for edges that connect the root to itself
     size_t l = 0;
-    for(E* edge = n[root].to; edge != 0; edge = edge->next)
+    for (E* edge = n[root].to; edge != 0; edge = edge->next)
     {
-      if(edge->to != root)
+      if (edge->to != root)
         queue[l++] = edge->to;
     }
 
-    for(size_t i = 0; i != l; ++i) // Go through the queue
+    for (size_t i = 0; i != l; ++i) // Go through the queue
     {
-      if(FACTION(queue[i]))
+      if (FACTION(queue[i]))
         return;
 
       set.Union(root, queue[i]);
 
-      for(E* edge = n[queue[i]].to; edge != 0; edge = edge->next)
+      for (E* edge = n[queue[i]].to; edge != 0; edge = edge->next)
       {
-        if(set.Find(edge->to) != root) //Enqueue the children if they aren't already in the set.
+        if (set.Find(edge->to) != root) //Enqueue the children if they aren't already in the set.
           queue[l++] = edge->to; // Doesn't need to be circular because we can only enqueue n-1 anyway.
       }
     }

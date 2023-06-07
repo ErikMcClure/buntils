@@ -1,14 +1,15 @@
-// Copyright ©2018 Erik McClure
+// Copyright (c)2023 Erik McClure
 // For conditions of distribution and use, see copyright notice in "buntils.h"
 
 #ifndef __BUN_LOG_H__
 #define __BUN_LOG_H__
 
+#include "buntils.h"
+#include "Array.h"
 #include <ostream>
 #include <vector>
 #include <stdarg.h>
-#include "buntils.h"
-#include "Array.h"
+#include <format>
 
 #define BUNLOG(logger,level,...) ((logger).Log(0,__FILE__,__LINE__,(level),__VA_ARGS__))
 
@@ -81,7 +82,7 @@ namespace bun {
       if(level >= _maxlevel)
         return;
 
-      SafeFormat<Args...>(LogHeader(source, file, line, level), format, args...);
+      std::vformat_to(std::ostream_iterator<char>(LogHeader(source, file, line, level)), format, std::make_format_args(source, file, line, level, _tz));
       _stream << std::endl;
     }
     BUN_FORCEINLINE std::ostream& LogHeader(const char* source, const char* file, size_t line, int8_t level)

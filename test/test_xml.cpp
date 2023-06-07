@@ -1,4 +1,4 @@
-// Copyright ©2018 Erik McClure
+// Copyright (c)2023 Erik McClure
 // For conditions of distribution and use, see copyright notice in "buntils.h"
 
 #include "test.h"
@@ -45,7 +45,7 @@ struct XMLtest
   int e[3];
   std::vector<Str> f;
   std::array<bool, 2> g;
-  DynArray<XMLtest2, size_t, ARRAY_SAFE> nested;
+  DynArray<XMLtest2, size_t> nested;
   std::tuple<short, Str, double> tuple;
 
   template<typename Engine>

@@ -1,4 +1,4 @@
-// Copyright ©2018 Erik McClure
+// Copyright (c)2023 Erik McClure
 // For conditions of distribution and use, see copyright notice in "buntils.h"
 
 #ifndef __BUN_STACK_H__
@@ -8,14 +8,13 @@
 
 namespace bun {
   // Fast, tiny array-based stack. Pop and Top are only valid if there is an item in the stack; this check must be done by the user.
-  template<class T, typename CType = size_t, ARRAY_TYPE ArrayType = ARRAY_SIMPLE, typename Alloc = StandardAllocator<T>>
+  template<class T, typename CType = size_t, typename Alloc = StandardAllocator<T>>
   class BUN_COMPILER_DLLEXPORT Stack
   {
   public:
     inline Stack(const Stack& copy) : _array(copy) {}
     inline Stack(Stack&& mov) : _array(std::move(mov)) {}
-    template<bool U = std::is_void_v<typename Alloc::policy_type>, std::enable_if_t<!U, int> = 0>
-    inline Stack(CType init, typename Alloc::policy_type* policy) : _array(init, policy) {}
+    inline Stack(CType init, const Alloc& alloc) : _array(init, alloc) {}
     inline explicit Stack(CType init = 0) : _array(init) {}
     inline ~Stack() {}
     // Pushes an item on to the stack in LIFO order.
@@ -42,12 +41,12 @@ namespace bun {
     inline const T& operator[](CType i) const { return _array[i]; }
     inline T& operator[](CType i) { return _array[i]; }
 
-    typedef typename DynArray<T, CType, ArrayType, Alloc>::SerializerArray SerializerArray;
+    typedef typename DynArray<T, CType, Alloc>::SerializerArray SerializerArray;
     template<typename Engine>
     void Serialize(Serializer<Engine>& s, const char* id) { _array.template Serialize<Engine>(s, id); }
 
   protected:
-    DynArray<T, CType, ArrayType, Alloc> _array;
+    DynArray<T, CType, Alloc> _array;
   };
 }
 

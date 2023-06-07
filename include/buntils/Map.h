@@ -1,4 +1,4 @@
-// Copyright ©2018 Erik McClure
+// Copyright (c)2023 Erik McClure
 // For conditions of distribution and use, see copyright notice in "buntils.h"
 
 #ifndef __MAP_H__BUN__
@@ -12,13 +12,13 @@ namespace bun {
   template<class Key,
     class Data,
     char(*CFunc)(const Key&, const Key&) = CompT<Key>,
-    typename CType = size_t, ARRAY_TYPE ArrayType = ARRAY_SIMPLE,
+    typename CType = size_t, 
     typename Alloc = StandardAllocator<std::tuple<Key, Data>>>
-  class BUN_COMPILER_DLLEXPORT Map : protected ArraySort<std::tuple<Key, Data>, &CompTuple<std::tuple<Key, Data>, 0, CFunc>, CType, ArrayType, Alloc>
+  class BUN_COMPILER_DLLEXPORT Map : protected ArraySort<std::tuple<Key, Data>, &CompTuple<std::tuple<Key, Data>, 0, CFunc>, CType, Alloc>
   {
   protected:
     using pair_t = std::tuple<Key, Data>;
-    using BASE = ArraySort<pair_t, &CompTuple<pair_t, 0, CFunc>, CType, ArrayType, Alloc>;
+    using BASE = ArraySort<pair_t, &CompTuple<pair_t, 0, CFunc>, CType, Alloc>;
     using constref = const Data&;
     using CKEYREF = const Key&;
     using BASE::_array;
@@ -26,6 +26,7 @@ namespace bun {
     using Ty = typename BASE::Ty;
 
   public:
+    explicit Map(CT init, const Alloc& alloc) : BASE(init, alloc) {}
     explicit Map(CT init = 1) : BASE(init) {}
     Map(const Map& copy) = default;
     Map(Map&& mov) = default;
@@ -79,7 +80,9 @@ namespace bun {
     inline pair_t& Front() { return _array.Front(); }
     inline const pair_t& Back() const { return _array.Back(); }
     inline pair_t& Back() { return _array.Back(); }
-    BUN_FORCEINLINE Slice<pair_t, CT> GetSlice() const noexcept { return _array.GetSlice(); }
+    inline CT size() const noexcept { return _array.size(); }
+    inline pair_t* data() noexcept { return _array.data(); }
+    inline const pair_t* data() const noexcept { return _array.data(); }
 
     inline Map& operator =(const Map& right) = default;
     inline Map& operator =(Map&& right) = default;

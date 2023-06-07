@@ -1,4 +1,4 @@
-// Copyright ©2018 Erik McClure
+// Copyright (c)2023 Erik McClure
 // For conditions of distribution and use, see copyright notice in "buntils.h"
 
 #ifndef __JSON_H__BUN__
@@ -143,10 +143,10 @@ namespace bun {
     static const size_t PRETTYFLAG = size_t(1) << ((sizeof(size_t) << 3) - 1);
   };
 
-  struct JSONValue : public Variant<Str, double, int64_t, bool, DynArray<JSONValue, size_t, ARRAY_SAFE>, DynArray<std::pair<Str, JSONValue>, size_t, ARRAY_SAFE>>
+  struct JSONValue : public Variant<Str, double, int64_t, bool, DynArray<JSONValue, size_t>, DynArray<std::pair<Str, JSONValue>, size_t>>
   {
-    using JSONArray = DynArray<JSONValue, size_t, ARRAY_SAFE>;
-    using JSONObject = DynArray<std::pair<Str, JSONValue>, size_t, ARRAY_SAFE>;
+    using JSONArray = DynArray<JSONValue, size_t>;
+    using JSONObject = DynArray<std::pair<Str, JSONValue>, size_t>;
     using BASE = Variant<Str, double, int64_t, bool, JSONArray, JSONObject>;
 
   public:

@@ -1,4 +1,4 @@
-// Copyright ©2018 Erik McClure
+// Copyright (c)2023 Erik McClure
 // For conditions of distribution and use, see copyright notice in "buntils.h"
 
 #include "test.h"
@@ -14,8 +14,8 @@ TESTDEF::RETPAIR test_ALLOC_CACHE()
 
   {
     StandardAllocator<char, 16> alloc;
-    char* p = alloc.allocate(50, 0, 0);
-    p = alloc.allocate(60, p, 50);
+    char* p = alloc.reallocate(50, 0, 0);
+    p = alloc.reallocate(60, p, 50);
     alloc.deallocate(p, 60);
   }
 

@@ -1,4 +1,4 @@
-// Copyright ©2018 Erik McClure
+// Copyright (c)2023 Erik McClure
 // For conditions of distribution and use, see copyright notice in "buntils.h"
 
 #ifndef __HEAP_H__BUN__
@@ -19,13 +19,12 @@ namespace bun {
   template<class T,
     typename CType = size_t,
     char(*CFunc)(const T&, const T&) = CompT<T>,
-    ARRAY_TYPE ArrayType = ARRAY_SIMPLE,
     typename Alloc = StandardAllocator<T>,
     class MFUNC = internal::MFUNC_DEFAULT<T, CType>>
-  class BUN_COMPILER_DLLEXPORT BinaryHeap : protected DynArray<T, CType, ArrayType, Alloc>, protected MFUNC
+  class BUN_COMPILER_DLLEXPORT BinaryHeap : protected DynArray<T, CType, Alloc>, protected MFUNC
   {
   protected:
-    using BASE = DynArray<T, CType, ArrayType, Alloc>;
+    using BASE = DynArray<T, CType, Alloc>;
     using CT = typename BASE::CT;
     using Ty = typename BASE::Ty;
     using BASE::_array;
@@ -38,9 +37,8 @@ namespace bun {
   public:
     inline BinaryHeap(const BinaryHeap& copy) = default;
     inline BinaryHeap(BinaryHeap&& mov) = default;
-    template<bool U = std::is_void_v<typename Alloc::policy_type>, std::enable_if_t<!U, int> = 0>
-    inline explicit BinaryHeap(typename Alloc::policy_type* policy) : BASE(0, policy) {}
-    inline BinaryHeap() : BASE(0) {}
+    inline explicit BinaryHeap(const Alloc& alloc) : BASE(0, alloc) {}
+    inline BinaryHeap() requires std::is_default_constructible_v<Alloc> : BASE(0) {}
     inline BinaryHeap(const T* src, CT length) : BASE(length)
     { 
       _copy(_array, src, sizeof(T)*length);

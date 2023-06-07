@@ -1,4 +1,4 @@
-// Copyright ©2018 Erik McClure
+// Copyright (c)2023 Erik McClure
 // For conditions of distribution and use, see copyright notice in "buntils.h"
 
 #include "test.h"
@@ -48,8 +48,8 @@ struct ubjsontest
   std::string n[2];
   std::vector<int> u;
   DynArray<bool> v;
-  DynArray<Str, size_t, ARRAY_SAFE> w;
-  DynArray<ubjsontest2, size_t, ARRAY_SAFE> z;
+  DynArray<Str, size_t> w;
+  DynArray<ubjsontest2, size_t> z;
   std::vector<VAR> var;
   std::tuple<short, Str, double> tuple;
 
@@ -185,7 +185,7 @@ TESTDEF::RETPAIR test_UBJSON()
   }
   TEST(val.Type == UBJSONTuple::TYPE_OBJECT);
   auto& var1 = val.Object;
-  TEST(var1.Length() == 20);
+  TEST(var1.size() == 20);
   TEST(var1[0].first == "a");
   TEST(var1[0].second.Type == UBJSONTuple::TYPE_UINT8);
   TEST(var1[0].second.UInt8 == 1);

@@ -1,4 +1,4 @@
-// Copyright ©2018 Erik McClure
+// Copyright (c)2023 Erik McClure
 // For conditions of distribution and use, see copyright notice in "buntils.h"
 
 #include "test.h"
@@ -64,7 +64,7 @@ TESTDEF::RETPAIR test_TRBTREE()
 {
   BEGINTEST;
   BlockPolicy<TRB_Node<int>> fixedalloc;
-  TRBtree<int, CompT<int>, PolymorphicAllocator<TRB_Node<int>, BlockPolicy>> blah(&fixedalloc);
+  TRBtree<int, CompT<int>, PolicyAllocator<TRB_Node<int>, BlockPolicy>> blah(PolicyAllocator<TRB_Node<int>, BlockPolicy>{fixedalloc});
 
   uint32_t same = 0;
   Shuffle(testnums);

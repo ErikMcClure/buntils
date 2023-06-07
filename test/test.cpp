@@ -1,4 +1,4 @@
-﻿// Copyright ©2018 Erik McClure
+﻿// Copyright (c)2023 Erik McClure
 // For conditions of distribution and use, see copyright notice in "buntils.h"
 
 #include "test.h"
@@ -92,7 +92,7 @@ int main(int argc, char** argv)
   bun_RandSeed(seed);
   //profile_ring_alloc();
 
-  for(uint16_t i = 0; i<TESTNUM; ++i)
+  for (uint16_t i = 0; i < TESTNUM; ++i)
     testnums[i] = i;
   Shuffle(testnums);
 
@@ -168,7 +168,7 @@ int main(int argc, char** argv)
   const size_t NUMTESTS = sizeof(tests) / sizeof(TESTDEF);
 
   std::cout << "Bunny Utility Library v" << (size_t)bun_Version.Major << '.' << (size_t)bun_Version.Minor << '.' <<
-    (size_t)bun_Version.Revision << ": Unit Tests\nCopyright (c)2018 Erik McClure\n" << std::endl;
+    (size_t)bun_Version.Revision << ": Unit Tests\nCopyright (c)2023 Erik McClure\nSeed: " << seed << "\n" << std::endl;
   assert(bun_Version.version == ((uint64_t)bun_Version.Major << 48) + ((uint64_t)bun_Version.Minor << 32) + ((uint64_t)bun_Version.Revision << 16));
   const int COLUMNS[3] = { 24, 11, 8 };
   printf("%-*s %-*s %-*s\n", COLUMNS[0], "Test Name", COLUMNS[1], "Subtests", COLUMNS[2], "Pass/Fail");
@@ -176,24 +176,24 @@ int main(int argc, char** argv)
   TESTDEF::RETPAIR numpassed;
   std::vector<size_t> failures;
 #ifndef BUN_ISOLATE_TEST
-  for(size_t i = 0; i < NUMTESTS; ++i)
+  for (size_t i = 0; i < NUMTESTS; ++i)
   {
 #else
     {
       size_t i = BUN_ISOLATE_TEST;
 #endif
       numpassed = tests[i].FUNC(); //First is total, second is succeeded
-      if(numpassed.first != numpassed.second) failures.push_back(i);
+      if (numpassed.first != numpassed.second) failures.push_back(i);
 
       printf("%-*s %*s %-*s\n", COLUMNS[0], tests[i].NAME, COLUMNS[1], StrF("%u/%u", numpassed.second, numpassed.first).c_str(), COLUMNS[2], (numpassed.first == numpassed.second) ? "PASS" : "FAIL");
-    }
+  }
 
-    if(failures.empty())
+    if (failures.empty())
       std::cout << "\nAll tests passed successfully!" << std::endl;
     else
     {
       std::cout << "\nThe following tests failed (seed = " << seed << "): " << std::endl;
-      for(size_t i = 0; i < failures.size(); i++)
+      for (size_t i = 0; i < failures.size(); i++)
         std::cout << "  " << tests[failures[i]].NAME << std::endl;
       std::cout << "\nThese failures indicate either a misconfiguration on your system, or a potential bug.\n\nA detailed list of failed tests was written to failedtests.txt" << std::endl;
     }
@@ -201,5 +201,5 @@ int main(int argc, char** argv)
     std::cout << "\nPress Enter to exit the program." << std::endl;
     std::cin.get();
 
-    return 0;
-  }
+    return failures.size();
+}

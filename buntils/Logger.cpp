@@ -66,7 +66,7 @@ void Logger::AddTarget(const char* file)
   _files.push_back(std::unique_ptr<std::ofstream>(new ofstream(BSSPOSIX_WCHAR(file), ios_base::out | ios_base::trunc)));
   AddTarget(*_files.back());
 #else
-  _files.push_back(ofstream(BSSPOSIX_WCHAR(file), ios_base::out | ios_base::trunc));
+  _files.push_back(ofstream(BUNPOSIX_WCHAR(file), ios_base::out | ios_base::trunc));
   AddTarget(_files.back());
 #endif
 }
@@ -196,6 +196,6 @@ void Logger::_header(std::ostream& o, int n, const char* source, const char* fil
 std::ostream& Logger::_logHeader(const char* source, const char* file, size_t line, const char* level)
 {
   file = _trimPath(file);
-  internal::__safeFormat<const char*, const char*, size_t, const char*, long>::F<&_header>(_stream, ((!source && _nullformat != 0) ? _nullformat : _format), source, file, line, level, _tz);
+  std::vformat_to(std::ostream_iterator<char>(_stream), ((!source && _nullformat != 0) ? _nullformat : _format), std::make_format_args(source, file, line, level, _tz));
   return _stream;
 }

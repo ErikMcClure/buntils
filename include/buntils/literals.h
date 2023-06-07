@@ -1,4 +1,4 @@
-// Copyright ©2014 Erik McClure
+// Copyright (c)2014 Erik McClure
 // For conditions of distribution and use, see copyright notice in "buntils.h"
 
 #ifndef __BUN_LITERALS_H__

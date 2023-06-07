@@ -1,4 +1,4 @@
-// Copyright ©2018 Erik McClure
+// Copyright (c)2023 Erik McClure
 // For conditions of distribution and use, see copyright notice in "buntils.h"
 
 #include "test.h"
@@ -78,7 +78,7 @@ struct TOMLtest
   int e[3];
   std::vector<Str> f;
   std::array<bool, 2> g;
-  DynArray<TOMLtest2, size_t, ARRAY_SAFE> nested;
+  DynArray<TOMLtest2, size_t> nested;
   TOMLtest2 inlinetest;
   DynArray<AttackData> Attacks;
   std::tuple<short, Str, double> tuple;

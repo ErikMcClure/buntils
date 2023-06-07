@@ -1,4 +1,4 @@
-// Copyright ©2018 Erik McClure
+// Copyright (c)2023 Erik McClure
 // For conditions of distribution and use, see copyright notice in "buntils.h"
 
 #ifndef __SCHEDULER_H__BUN__
@@ -10,13 +10,12 @@
 namespace bun {
   // Scheduler object that lets you schedule events that happen x milliseconds into the future. If the event returns a number greater than 0,it will be rescheduled. 
   template<typename F, typename ST = size_t, typename Alloc = StandardAllocator<std::pair<double, F>>> //std::function<double(void)>
-  class BUN_COMPILER_DLLEXPORT Scheduler : protected HighPrecisionTimer, protected BinaryHeap<std::pair<double, F>, ST, CompTFirst<double, F, CompTInv<double>>, ARRAY_SAFE, Alloc>
+  class BUN_COMPILER_DLLEXPORT Scheduler : protected HighPrecisionTimer, protected BinaryHeap<std::pair<double, F>, ST, CompTFirst<double, F, CompTInv<double>>, Alloc>
   {
-    using BASE = BinaryHeap<std::pair<double, F>, ST, CompTFirst<double, F, CompTInv<double>>, ARRAY_SAFE>;
+    using BASE = BinaryHeap<std::pair<double, F>, ST, CompTFirst<double, F, CompTInv<double>>>;
   public:
     // Constructor
-    template<bool U = std::is_void_v<typename Alloc::policy_type>, std::enable_if_t<!U, int> = 0>
-    inline explicit Scheduler(typename Alloc::policy_type* policy) : BASE(policy) {}
+    inline explicit Scheduler(const Alloc& alloc) : BASE(alloc) {}
     inline Scheduler() {}
     inline Scheduler(const Scheduler& copy) : BASE(copy), HighPrecisionTimer(copy) {}
     inline Scheduler(Scheduler&& mov) : BASE(std::move(mov)), HighPrecisionTimer(mov) {}

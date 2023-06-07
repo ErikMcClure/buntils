@@ -1,4 +1,4 @@
-// Copyright ©2018 Erik McClure
+// Copyright (c)2023 Erik McClure
 // For conditions of distribution and use, see copyright notice in "buntils.h"
 
 #include "buntils/buntils.h"
@@ -373,20 +373,20 @@ int bun::DelRegistryNodeW(HKEY__* hKeyRoot, const wchar_t* lpSubKey)
 }
 
 namespace bun {
-  struct BSSFONT
+  struct BUNFONT
   {
-    BSSFONT(const ENUMLOGFONTEX* fontex, DWORD elftype) : weight((short)fontex->elfLogFont.lfWeight), italic(fontex->elfLogFont.lfItalic != 0), type((char)elftype)
+    BUNFONT(const ENUMLOGFONTEX* fontex, DWORD elftype) : weight((short)fontex->elfLogFont.lfWeight), italic(fontex->elfLogFont.lfItalic != 0), type((char)elftype)
     {
       memcpy_s(elfFullName, sizeof(wchar_t)*LF_FULLFACESIZE, fontex->elfFullName, sizeof(wchar_t)*LF_FULLFACESIZE);
     }
 
-    static char Comp(const BSSFONT& l, const BSSFONT& r)
+    static char Comp(const BUNFONT& l, const BUNFONT& r)
     {
       char ret = SGNCOMPARE(l.italic, r.italic);
       return !ret ? SGNCOMPARE(l.weight, r.weight) : ret;
     }
 
-    using BSSFONTARRAY = bun::ArraySort<BSSFONT, &BSSFONT::Comp>;
+    using BUNFONTARRAY = bun::ArraySort<BUNFONT, &BUNFONT::Comp>;
 
     WCHAR elfFullName[LF_FULLFACESIZE];
     short weight;
@@ -398,8 +398,8 @@ namespace bun {
 int CALLBACK EnumFont_GetFontPath(const LOGFONT *lpelfe, const TEXTMETRIC *lpntme, DWORD FontType, LPARAM lParam)
 {
   const ENUMLOGFONTEX* info = reinterpret_cast<const ENUMLOGFONTEX*>(lpelfe);
-  bun::BSSFONT::BSSFONTARRAY* fonts = reinterpret_cast<bun::BSSFONT::BSSFONTARRAY*>(lParam);
-  bun::BSSFONT font(info, FontType);
+  bun::BUNFONT::BUNFONTARRAY* fonts = reinterpret_cast<bun::BUNFONT::BUNFONTARRAY*>(lParam);
+  bun::BUNFONT font(info, FontType);
   if(fonts->Find(font) == (size_t)~0)
     fonts->Insert(font);
   return 1;
@@ -431,7 +431,7 @@ std::unique_ptr<char[], bun::bun_DLLDelete<char[]>> bun::GetFontPath(const char*
   LOGFONT font = { 0 };
   font.lfCharSet = DEFAULT_CHARSET;
   UTF8toUTF16(family, -1, font.lfFaceName, LF_FACESIZE - 1);
-  bun::BSSFONT::BSSFONTARRAY fonts;
+  bun::BUNFONT::BUNFONTARRAY fonts;
   EnumFontFamiliesExW(hdc, &font, &EnumFont_GetFontPath, reinterpret_cast<LPARAM>(&fonts), 0);
 
   size_t target = 0;
@@ -510,6 +510,6 @@ std::unique_ptr<char[], bun::bun_DLLDelete<char[]>> bun::GetFontPath(const char*
 #include "buntils/Delegate.h"
 #include "buntils/Hash.h"
 
-bun::Hash<int, bun::Hash<int>, bun::ARRAY_SAFE> hashtest;
+bun::Hash<int, bun::Hash<int>> hashtest;
 static bool testhash = !hashtest[2];
 #endif

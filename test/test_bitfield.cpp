@@ -1,9 +1,9 @@
-// Copyright ©2018 Erik McClure
+// Copyright (c)2023 Erik McClure
 // For conditions of distribution and use, see copyright notice in "buntils.h"
 
 #include "test.h"
 #include "buntils/BitField.h"
-
+#include <memory>
 using namespace bun;
 
 TESTDEF::RETPAIR test_BITFIELD()
@@ -39,6 +39,7 @@ TESTDEF::RETPAIR test_BITFIELD()
   TEST(t == 3);
   t.Set(5, -1);
   TEST(t == 5);
+
 
   const int GROUP1 = 0b1100;
   const int GROUP2 = 0b11;

@@ -1,4 +1,4 @@
-// Copyright ©2018 Erik McClure
+// Copyright (c)2023 Erik McClure
 // For conditions of distribution and use, see copyright notice in "buntils.h"
 
 #ifndef __BUN_ALLOC_BLOCK_H__
@@ -109,8 +109,8 @@ namespace bun {
       const Node* hold = _root;
       while(hold)
       {
-        if(p >= (reinterpret_cast<const uint8_t*>(hold) + _alignsize) && p < (reinterpret_cast<const uint8_t*>(hold) + _alignsize + hold->size))
-          return ((((uint8_t*)p) - (reinterpret_cast<const uint8_t*>(hold) + _alignsize)) % _sz) == 0; //the pointer should be an exact multiple of _sz
+        if(p >= (reinterpret_cast<const std::byte*>(hold) + _alignsize) && p < (reinterpret_cast<const std::byte*>(hold) + _alignsize + hold->size))
+          return ((((std::byte*)p) - (reinterpret_cast<const std::byte*>(hold) + _alignsize)) % _sz) == 0; //the pointer should be an exact multiple of _sz
 
         hold = hold->next;
       }
@@ -133,9 +133,9 @@ namespace bun {
 
     BUN_FORCEINLINE void _initChunk(Node* chunk) noexcept
     {
-      uint8_t* memend = reinterpret_cast<uint8_t*>(chunk) + _alignsize + chunk->size;
+      std::byte* memend = reinterpret_cast<std::byte*>(chunk) + _alignsize + chunk->size;
 
-      for(uint8_t* memref = reinterpret_cast<uint8_t*>(chunk) + _alignsize; memref < memend; memref += _sz)
+      for(std::byte* memref = reinterpret_cast<std::byte*>(chunk) + _alignsize; memref < memend; memref += _sz)
       {
         *((void**)(memref)) = _freelist;
         _freelist = memref;

@@ -1,4 +1,4 @@
-// Copyright ©2018 Erik McClure
+// Copyright (c)2023 Erik McClure
 // For conditions of distribution and use, see copyright notice in "buntils.h"
 
 #include "buntils/buntils.h"
@@ -55,13 +55,15 @@ void XMLFile::Write(std::ostream& stream, bool pretty) const
     _nodes[i]->_write(stream, pretty, 0);
 }
 
-XMLNode::XMLNode(const XMLNode& copy) : _nodes(copy._nodes), _nodehash(copy._nodehash), _attributes(copy._attributes), _attrhash(copy._attrhash),
+XMLNode::XMLNode(const XMLNode& copy) : _nodehash(copy._nodehash), _attributes(copy._attributes), _attrhash(copy._attrhash),
   _value(copy._value), _name(copy._name)
 {
   next = 0;
   prev = 0;
+  for (size_t i = 0; i < copy._nodes.Length(); ++i)
+    AddNode(*copy._nodes[i].get());
 }
-XMLNode::XMLNode(XMLNode&& mov) : _nodes(std::move(mov._nodes)), _nodehash(std::move(mov._nodehash)), _attributes(std::move(mov._attributes)),
+XMLNode::XMLNode(XMLNode&& mov) noexcept : _nodes(std::move(mov._nodes)), _nodehash(std::move(mov._nodehash)), _attributes(std::move(mov._attributes)),
   _attrhash(std::move(mov._attrhash)), _value(std::move(mov._value)), _name(std::move(mov._name))
 {
   next = mov.next;

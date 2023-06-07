@@ -1,4 +1,4 @@
-// Copyright ©2018 Erik McClure
+// Copyright (c)2023 Erik McClure
 // For conditions of distribution and use, see copyright notice in "buntils.h"
 
 #ifndef __ARRAY_CIRCULAR_H__BUN__
@@ -9,11 +9,11 @@
 
 namespace bun {
   // Simple circular array implementation. Unlike most data structures, CType must be signed instead of unsigned
-  template<class T, typename CType = ptrdiff_t, ARRAY_TYPE ArrayType = ARRAY_SIMPLE, typename Alloc = StandardAllocator<T>>
-  class BUN_COMPILER_DLLEXPORT ArrayCircular : protected ArrayBase<T, CType, ArrayType, Alloc>
+  template<class T, typename CType = ptrdiff_t, typename Alloc = StandardAllocator<T>>
+  class BUN_COMPILER_DLLEXPORT ArrayCircular : protected ArrayBase<T, CType, Alloc>
   {
   protected:
-    using BASE = ArrayBase<T, CType, ArrayType, Alloc>;
+    using BASE = ArrayBase<T, CType, Alloc>;
     using CT = typename BASE::CT;
     using Ty = typename BASE::Ty;
     using BASE::_array;
@@ -28,9 +28,9 @@ namespace bun {
       mov._cur = -1;
       mov._length = 0;
     }
-    template<bool U = std::is_void_v<typename Alloc::policy_type>, std::enable_if_t<!U, int> = 0>
-    inline ArrayCircular(CT size, typename Alloc::policy_type* policy) : BASE(size, policy), _cur(-1), _length(0) {}
-    inline explicit ArrayCircular(CT size = 0) : BASE(size), _cur(-1), _length(0) {}
+    inline ArrayCircular(CT size, const Alloc& alloc) : BASE(size, alloc), _cur(-1), _length(0) {}
+    inline explicit ArrayCircular(CT size) requires std::is_default_constructible_v<Alloc> : BASE(size), _cur(-1), _length(0) {}
+    inline explicit ArrayCircular() requires std::is_default_constructible_v<Alloc> : BASE(0), _cur(-1), _length(0) {}
     inline ~ArrayCircular() { Clear(); }
     BUN_FORCEINLINE void Push(const T& item) { _push<const T&>(item); }
     BUN_FORCEINLINE void Push(T&& item) { _push<T&&>(std::move(item)); }
@@ -91,14 +91,14 @@ namespace bun {
           BASE::_copyMove(n + bun_Mod<CT>(_cur - _length + 1, nsize), _array + i, _capacity - i);
           BASE::_copyMove(n, _array, _cur + 1);
         }
-        BASE::_free(_array);
+        BASE::_dealloc(_array, _capacity);
         _array = n;
         _capacity = nsize;
       }
     }
     BUN_FORCEINLINE T& operator[](CT index) { return _array[_modIndex(index)]; } // an index of 0 is the most recent item pushed into the circular array.
     BUN_FORCEINLINE const T& operator[](CT index) const { return _array[_modIndex(index)]; }
-    inline ArrayCircular& operator=(const ArrayCircular& right)
+    inline ArrayCircular& operator=(const ArrayCircular& right) requires is_copy_constructible_or_incomplete_v<T>
     {
       Clear();
       BASE::_setCapacityDiscard(right._capacity);

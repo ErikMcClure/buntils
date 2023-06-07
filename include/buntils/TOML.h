@@ -1,4 +1,4 @@
-// Copyright ©2018 Erik McClure
+// Copyright (c)2023 Erik McClure
 // For conditions of distribution and use, see copyright notice in "buntils.h"
 
 #ifndef __TOML_H__BUN__
@@ -345,10 +345,10 @@ namespace bun {
   inline void ParseTOMLBase(Serializer<TOMLEngine>& e, T& obj, std::istream& s);
 
   // Represents an arbitrary TOML value in any of the standard storage types recognized by the format.
-  struct TOMLValue : public Variant<Str, double, int64_t, bool, std::chrono::system_clock::time_point, DynArray<TOMLValue, size_t, ARRAY_SAFE>, Hash<Str, TOMLValue, ARRAY_SAFE>>
+  struct TOMLValue : public Variant<Str, double, int64_t, bool, std::chrono::system_clock::time_point, DynArray<TOMLValue, size_t>, Hash<Str, TOMLValue>>
   {
-    using TOMLArray = DynArray<TOMLValue, size_t, ARRAY_SAFE>;
-    using TOMLTable = Hash<Str, TOMLValue, ARRAY_SAFE>; // All objects in TOML are tables
+    using TOMLArray = DynArray<TOMLValue, size_t>;
+    using TOMLTable = Hash<Str, TOMLValue>; // All objects in TOML are tables
     using BASE = Variant<Str, double, int64_t, bool, std::chrono::system_clock::time_point, TOMLArray, TOMLTable>;
 
   public:

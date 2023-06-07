@@ -1,4 +1,4 @@
-// Copyright ©2018 Erik McClure
+// Copyright (c)2023 Erik McClure
 // For conditions of distribution and use, see copyright notice in "buntils.h"
 
 #ifndef __XML_H__BUN__
@@ -44,7 +44,7 @@ namespace bun {
   struct BUN_DLLEXPORT XMLNode : LLBase<XMLNode>
   {
     XMLNode(const XMLNode& copy);
-    XMLNode(XMLNode&& mov);
+    XMLNode(XMLNode&& mov) noexcept;
     explicit XMLNode(const char* parse = 0);
     explicit XMLNode(std::istream& stream);
     BUN_FORCEINLINE const char* GetName() const { return _name; }
@@ -64,7 +64,7 @@ namespace bun {
     BUN_FORCEINLINE const XMLValue& GetValue() const { return _value; }
     BUN_FORCEINLINE XMLValue& GetValue() { return _value; }
     BUN_FORCEINLINE void SetName(const char* name) { _name = name; }
-    BUN_FORCEINLINE const Hash<Str, size_t, ARRAY_SAFE>& NodeHash() const { return _nodehash; }
+    BUN_FORCEINLINE const Hash<Str, size_t>& NodeHash() const { return _nodehash; }
     void Clear();
     XMLNode* AddNode(const XMLNode& node);
     XMLNode* AddNode(const char* name);
@@ -105,10 +105,10 @@ namespace bun {
 
     friend class XMLFile;
 
-    DynArray<std::unique_ptr<XMLNode>, size_t, ARRAY_MOVE> _nodes;
-    Hash<Str, size_t, ARRAY_SAFE> _nodehash;
-    DynArray<XMLValue, size_t, ARRAY_MOVE> _attributes;
-    Hash<Str, size_t, ARRAY_SAFE> _attrhash;
+    DynArray<std::unique_ptr<XMLNode>, size_t> _nodes;
+    Hash<Str, size_t> _nodehash;
+    DynArray<XMLValue, size_t> _attributes;
+    Hash<Str, size_t> _attrhash;
     XMLValue _value;
     Str _name;
   };

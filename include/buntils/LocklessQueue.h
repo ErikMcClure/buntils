@@ -1,4 +1,4 @@
-// Copyright ©2018 Erik McClure
+// Copyright (c)2023 Erik McClure
 // For conditions of distribution and use, see copyright notice in "buntils.h"
 
 #ifndef __LOCKLESS_QUEUE_H__
@@ -41,7 +41,7 @@ namespace bun {
   }
 
   // Single-producer single-consumer lockless queue implemented in such a way that it can use a normal single-threaded allocator
-  template<typename T, typename LENGTH = void, typename Alloc = PolymorphicAllocator<internal::LQ_QNode<T>, BlockPolicy>>
+  template<typename T, typename LENGTH = void, typename Alloc = PolicyAllocator<internal::LQ_QNode<T>, BlockPolicy>>
   class LocklessQueue : public internal::LocklessQueue_Length<LENGTH>, public Alloc
   {
     using QNODE = internal::LQ_QNode<T>;
@@ -50,15 +50,14 @@ namespace bun {
 
   public:
     LocklessQueue(LocklessQueue&& mov) : Alloc(std::move(mov)), internal::LocklessQueue_Length<LENGTH>(std::move(mov)), _div(mov._div), _last(mov._last), _first(mov._first) { mov._div = mov._last = mov._first = 0; }
-    template<bool U = std::is_void_v<typename Alloc::policy_type>, std::enable_if_t<!U, int> = 0>
-    inline LocklessQueue(typename Alloc::policy_type* policy) : Alloc(policy)
+    inline LocklessQueue(const Alloc& alloc) : Alloc(alloc)
     {
-      _div = _last = _first = Alloc::allocate(1);
+      _div = _last = _first = std::allocator_traits<Alloc>::allocate(*this,1);
       new((QNODE*)_first) QNODE();
     }
-    inline LocklessQueue()
+    inline LocklessQueue() requires std::is_default_constructible_v<Alloc>
     {
-      _div = _last = _first = Alloc::allocate(1);
+      _div = _last = _first = std::allocator_traits<Alloc>::allocate(*this,1);
       new((QNODE*)_first) QNODE();
       /*assert(_last.is_lock_free()); assert(_div.is_lock_free());*/   // bug in GCC doesn't define is_lock_free
     }
@@ -68,7 +67,7 @@ namespace bun {
       {
         _first = _first->next;
         tmp->~QNODE();
-        Alloc::deallocate(tmp, 1);
+        std::allocator_traits<Alloc>::deallocate(*this, tmp, 1);
       }
     }
     BUN_FORCEINLINE void Push(const T& item) { _produce<const T&>(item); }
@@ -105,7 +104,7 @@ namespace bun {
     void _produce(U && item)
     {
       QNODE* last = _last.load(std::memory_order_acquire);
-      last->next = Alloc::allocate(1);
+      last->next = std::allocator_traits<Alloc>::allocate(*this,1);
       new((QNODE*)last->next) QNODE(std::forward<U>(item));
       _last.store(last->next, std::memory_order_release); // publish it
       internal::LocklessQueue_Length<LENGTH>::_incLength(); // If we are tracking length, atomically increment it
@@ -116,7 +115,7 @@ namespace bun {
         tmp = _first;
         _first = _first->next;
         tmp->~QNODE(); // We have to let item clean itself up
-        Alloc::deallocate(tmp, 1);
+        std::allocator_traits<Alloc>::deallocate(*this, tmp, 1);
       }
     }
 
@@ -126,7 +125,7 @@ namespace bun {
   };
 
   // Multi-producer Multi-consumer microlock queue using a multithreaded allocator
-  template<typename T, typename LENGTH = void, typename Alloc = PolymorphicAllocator<internal::LQ_QNode<T>, LocklessBlockPolicy>>
+  template<typename T, typename LENGTH = void, typename Alloc = PolicyAllocator<internal::LQ_QNode<T>, LocklessBlockPolicy>>
   class MicroLockQueue : public internal::LocklessQueue_Length<LENGTH>, Alloc
   {
     using QNODE = internal::LQ_QNode<T>;
@@ -140,17 +139,16 @@ namespace bun {
       _cflag.clear(std::memory_order_relaxed);
       _pflag.clear(std::memory_order_relaxed);
     }
-    template<bool U = std::is_void_v<typename Alloc::policy_type>, std::enable_if_t<!U, int> = 0>
-    inline explicit MicroLockQueue(typename Alloc::policy_type* policy) : Alloc(policy)
+    inline explicit MicroLockQueue(const Alloc& alloc) : Alloc(alloc)
     {
-      _last = _div = Alloc::allocate(1);
+      _last = _div = std::allocator_traits<Alloc>::allocate(*this,1);
       new(_div)QNODE();
       _cflag.clear(std::memory_order_relaxed);
       _pflag.clear(std::memory_order_relaxed);
     }
-    inline MicroLockQueue()
+    inline MicroLockQueue() requires std::is_default_constructible_v<Alloc>
     {
-      _last = _div = Alloc::allocate(1);
+      _last = _div = std::allocator_traits<Alloc>::allocate(*this,1);
       new(_div)QNODE();
       _cflag.clear(std::memory_order_relaxed);
       _pflag.clear(std::memory_order_relaxed);
@@ -161,7 +159,7 @@ namespace bun {
       {
         _div = _div->next;
         tmp->~QNODE();
-        Alloc::deallocate(tmp, 1);
+        std::allocator_traits<Alloc>::deallocate(*this, tmp, 1);
       }
     }
     BUN_FORCEINLINE void Push(const T& item) { _produce<const T&>(item); }
@@ -180,7 +178,7 @@ namespace bun {
         _div = n;
         _cflag.clear(std::memory_order_release);
         ref->~QNODE(); // We have to let item clean itself up
-        Alloc::deallocate(ref, 1);
+        std::allocator_traits<Alloc>::deallocate(*this, ref, 1);
         internal::LocklessQueue_Length<LENGTH>::_decLength(); // If we are tracking length, atomically decrement it
         return true;
       }
@@ -203,7 +201,7 @@ namespace bun {
     template<typename U>
     void _produce(U && item)
     {
-      QNODE* nval = Alloc::allocate(1);
+      QNODE* nval = std::allocator_traits<Alloc>::allocate(*this,1);
       new(nval) QNODE(std::forward<U>(item));
 
       while(_pflag.test_and_set(std::memory_order_acquire));

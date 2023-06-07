@@ -1,4 +1,4 @@
-// Copyright ©2018 Erik McClure
+// Copyright (c)2023 Erik McClure
 // For conditions of distribution and use, see copyright notice in "buntils.h"
 
 #include "test.h"
@@ -30,8 +30,8 @@ TESTDEF::RETPAIR test_ANIMATION()
   BEGINTEST;
   RCounter c;
   {
-    using PtrAni = AniData<RefCounter*, void, ARRAY_SAFE>;
-    using RefAni = AniDataInterval<ref_ptr<RefCounter>, ARRAY_SAFE>;
+    using PtrAni = AniData<RefCounter*, void>;
+    using RefAni = AniDataInterval<ref_ptr<RefCounter>>;
     using FloatAni = AniDataSmooth<float>;
 
     c.Grab();

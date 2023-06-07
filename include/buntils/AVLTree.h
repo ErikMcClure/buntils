@@ -1,4 +1,4 @@
-// Copyright ©2018 Erik McClure
+// Copyright (c)2023 Erik McClure
 // For conditions of distribution and use, see copyright notice in "buntils.h"
 
 #ifndef __AVLTREE_H__BUN__
@@ -79,7 +79,7 @@ namespace bun {
   }
 
   // AVL Tree implementation
-  template<class Key, class Data, char(*CFunc)(const Key&, const Key&) = CompT<Key>, typename Alloc = PolymorphicAllocator<typename internal::AVLTreeDataField<Key, Data>::Node, BlockPolicy>>
+  template<class Key, class Data, char(*CFunc)(const Key&, const Key&) = CompT<Key>, typename Alloc = PolicyAllocator<typename internal::AVLTreeDataField<Key, Data>::Node, BlockPolicy>>
   class BUN_COMPILER_DLLEXPORT AVLTree : protected Alloc, public internal::AVLTreeDataField<Key, Data>
   {
     AVLTree(const AVLTree& copy) = delete;
@@ -93,9 +93,8 @@ namespace bun {
 
   public:
     inline AVLTree(AVLTree&& mov) : Alloc(std::move(mov)), _root(mov._root) { mov._root = 0; }
-    template<bool U = std::is_void_v<typename Alloc::policy_type>, std::enable_if_t<!U, int> = 0>
-    inline explicit AVLTree(typename Alloc::policy_type* policy) : Alloc(policy), _root(0) {}
-    inline AVLTree() : _root(0) {}
+    inline explicit AVLTree(const Alloc& alloc) : Alloc(alloc), _root(0) {}
+    inline AVLTree() requires std::is_default_constructible_v<Alloc> : _root(0) {}
     inline ~AVLTree() { Clear(); }
     inline void Clear() { _clear(_root); _root = 0; }
     inline Node* GetRoot() { return _root; }
@@ -139,7 +138,7 @@ namespace bun {
       if(node != 0)
       {
         node->~Node();
-        Alloc::deallocate(node, 1);
+        std::allocator_traits<Alloc>::deallocate(*this, node, 1);
         return true;
       }
 
@@ -155,7 +154,7 @@ namespace bun {
       {
         Base::_setData(old, cur);
         old->~Node();
-        Alloc::deallocate(old, 1);
+        std::allocator_traits<Alloc>::deallocate(*this, old, 1);
       }
 
       return (cur != 0);
@@ -183,7 +182,7 @@ namespace bun {
       _clear(node->_left);
       _clear(node->_right);
       node->~Node();
-      Alloc::deallocate(node, 1);
+      std::allocator_traits<Alloc>::deallocate(*this, node, 1);
     }
 
     static void _leftRotate(Node** pnode)
@@ -217,7 +216,7 @@ namespace bun {
 
       if(!root)
       {
-        root = Alloc::allocate(1);
+        root = std::allocator_traits<Alloc>::allocate(*this,1);
         *proot = root;
         new(root) Node();
         Base::_getKey(root->_key) = key;

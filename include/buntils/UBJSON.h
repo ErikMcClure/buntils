@@ -1,4 +1,4 @@
-// Copyright ©2018 Erik McClure
+// Copyright (c)2023 Erik McClure
 // For conditions of distribution and use, see copyright notice in "buntils.h"
 
 #ifndef __UBJSON_H__BUN__
@@ -41,8 +41,8 @@ namespace bun {
       TYPE_TYPE = '$',
       TYPE_COUNT = '#',
     };
-    using UBJSONArray = DynArray<UBJSONTuple, size_t, ARRAY_CONSTRUCT>;
-    using UBJSONObject = DynArray<std::pair<Str, UBJSONTuple>, size_t, ARRAY_CONSTRUCT>;
+    using UBJSONArray = DynArray<UBJSONTuple>;
+    using UBJSONObject = DynArray<std::pair<Str, UBJSONTuple>>;
 
     UBJSONTuple(const UBJSONTuple& copy);
     UBJSONTuple(UBJSONTuple&& mov);

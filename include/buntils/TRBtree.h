@@ -1,4 +1,4 @@
-// Copyright ©2018 Erik McClure
+// Copyright (c)2023 Erik McClure
 // For conditions of distribution and use, see copyright notice in "buntils.h"
 // Insert/delete implementations modified from Arjan van den Boogaard (2004)
 // http://archive.gamedev.net/archive/reference/programming/features/TStorage/TStorage.h
@@ -398,20 +398,20 @@ namespace bun {
   public:
     BUN_FORCEINLINE static char CompNode(const TRB_Node<T>& l, const TRB_Node<T>& r) { return CFunc(l.value, r.value); }
 
+    TRBtree(const TRBtree&) = delete;
     inline TRBtree(TRBtree&& mov) : Alloc(std::move(mov)), _first(mov._first), _last(mov._last), _root(mov._root), NIL(mov.NIL)
     {
       mov._first = 0;
       mov._last = 0;
-      mov.NIL = Alloc::allocate(1);
+      mov.NIL = std::allocator_traits<Alloc>::allocate(*this,1);
       new (NIL) TRB_Node<T>(0);
       mov.NIL->left = mov.NIL;
       mov.NIL->right = mov.NIL;
       mov._root = mov.NIL;
     }
-    template<bool U = std::is_void_v<typename Alloc::policy_type>, std::enable_if_t<!U, int> = 0>
-    inline explicit TRBtree(typename Alloc::policy_type* policy) : Alloc(policy), _first(0), _last(0), NIL(0), _root(0)
+    inline explicit TRBtree(const Alloc& alloc) : Alloc(alloc), _first(0), _last(0), NIL(0), _root(0)
     {
-      NIL = Alloc::allocate(1);
+      NIL = std::allocator_traits<Alloc>::allocate(*this,1);
       new (NIL) TRB_Node<T>(0);
       NIL->left = NIL;
       NIL->right = NIL;
@@ -419,21 +419,21 @@ namespace bun {
     }
     inline TRBtree() : _first(0), _last(0), NIL(0), _root(0)
     {
-      NIL = Alloc::allocate(1);
+      NIL = std::allocator_traits<Alloc>::allocate(*this,1);
       new (NIL) TRB_Node<T>(0);
       NIL->left = NIL;
       NIL->right = NIL;
       _root = NIL;
     }
     // Destructor
-    inline ~TRBtree() { Clear(); NIL->~TRB_Node(); Alloc::deallocate(NIL, 1); }
+    inline ~TRBtree() { Clear(); NIL->~TRB_Node(); std::allocator_traits<Alloc>::deallocate(*this, NIL, 1); }
     // Clears the tree
     inline void Clear()
     {
       for(auto i = begin(); i.IsValid();) // Walk through the tree using the linked list and deallocate everything
       {
         (*i)->~TRB_Node();
-        Alloc::deallocate(*(i++), 1);
+        std::allocator_traits<Alloc>::deallocate(*this, *(i++), 1);
       }
 
       _first = 0;
@@ -449,7 +449,7 @@ namespace bun {
     // Inserts a key with the associated data
     BUN_FORCEINLINE TRB_Node<T>* Insert(const T& value)
     {
-      TRB_Node<T>* node = Alloc::allocate(1);
+      TRB_Node<T>* node = std::allocator_traits<Alloc>::allocate(*this,1);
       new(node) TRB_Node<T>(value, NIL);
       TRB_Node<T>::template InsertNode<CompNode>(node, _root, _first, _last, NIL);
       return node;
@@ -464,7 +464,7 @@ namespace bun {
 
       TRB_Node<T>::RemoveNode(node, _root, _first, _last, NIL);
       node->~TRB_Node();
-      Alloc::deallocate(node, 1);
+      std::allocator_traits<Alloc>::deallocate(*this, node, 1);
       return true;
     }
     // Returns first element

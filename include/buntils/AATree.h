@@ -1,4 +1,4 @@
-// Copyright ©2018 Erik McClure
+// Copyright (c)2023 Erik McClure
 // For conditions of distribution and use, see copyright notice in "buntils.h"
 
 #ifndef __AA_TREE_H__BUN__
@@ -18,18 +18,17 @@ namespace bun {
   };
 
   // An AA tree, similar to a left leaning red-black tree, except not completely stupid.
-  template<typename T, char(*CFunc)(const T&, const T&) = CompT<T>, typename Alloc = PolymorphicAllocator<AANODE<T>, BlockPolicy>>
+  template<typename T, char(*CFunc)(const T&, const T&) = CompT<T>, typename Alloc = PolicyAllocator<AANODE<T>, BlockPolicy>>
   class AATree : Alloc
   {
   public:
-    inline AATree() : _sentinel(Alloc::allocate(1))
+    inline AATree() requires std::is_default_constructible_v<Alloc> : _sentinel(std::allocator_traits<Alloc>::allocate(*this, 1))
     {
       _sentinel->level = 0;
       _sentinel->left = _sentinel->right = _sentinel;
       _root = _sentinel;
     }
-    template<bool U = std::is_void_v<typename Alloc::policy_type>, std::enable_if_t<!U, int> = 0>
-    inline AATree(typename Alloc::policy_type* policy) : Alloc(policy), _sentinel(Alloc::allocate(1))
+    inline AATree(const Alloc& alloc) : Alloc(alloc), _sentinel(std::allocator_traits<Alloc>::allocate(*this, 1))
     {
       _sentinel->level = 0;
       _sentinel->left = _sentinel->right = _sentinel;
@@ -38,7 +37,7 @@ namespace bun {
     inline ~AATree()
     {
       Clear();
-      Alloc::deallocate(_sentinel, 1);
+      std::allocator_traits<Alloc>::deallocate(*this, _sentinel, 1);
     }
     inline void Insert(const T& data) { _insert(_root, data); }
     inline bool Remove(const T& data) { return _remove(_root, data); }
@@ -47,9 +46,9 @@ namespace bun {
     {
       AANODE<T>* cur = _root;
 
-      while(cur != _sentinel)
+      while (cur != _sentinel)
       {
-        switch(CFunc(data, cur->data))
+        switch (CFunc(data, cur->data))
         {
         case -1: cur = cur->left; break;
         case 1: cur = cur->right; break;
@@ -70,11 +69,11 @@ namespace bun {
   protected:
     void _clear(AANODE<T>* n)
     {
-      if(n == _sentinel) return;
+      if (n == _sentinel) return;
       _clear(n->left);
       _clear(n->right);
       n->~AANODE<T>();
-      Alloc::deallocate(n, 1);
+      std::allocator_traits<Alloc>::deallocate(*this, n, 1);
     }
     template<void(*FACTION)(T&)>
     inline void _traverse(AANODE<T>* n)
@@ -85,7 +84,7 @@ namespace bun {
     }
     inline void _skew(AANODE<T>*& n)
     {
-      if(n->level == n->left->level)
+      if (n->level == n->left->level)
       {
         AANODE<T>* l = n->left;
         n->left = l->right;
@@ -95,7 +94,7 @@ namespace bun {
     }
     inline void _split(AANODE<T>*& n)
     {
-      if(n->right->right->level == n->level)
+      if (n->right->right->level == n->level)
       {
         AANODE<T>* r = n->right;
         n->right = r->left;
@@ -106,16 +105,16 @@ namespace bun {
     }
     inline void _insert(AANODE<T>*& n, const T& data)
     {
-      if(n == _sentinel)
+      if (n == _sentinel)
       {
-        n = Alloc::allocate(1);
+        n = std::allocator_traits<Alloc>::allocate(*this, 1);
         n->left = n->right = _sentinel;
         n->data = data;
         n->level = 1;
         return;
       }
 
-      if(CFunc(data, n->data) < 0)
+      if (CFunc(data, n->data) < 0)
         _insert(n->left, data);
       else
         _insert(n->right, data);
@@ -125,13 +124,13 @@ namespace bun {
     }
     inline bool _remove(AANODE<T>*& n, const T& data)
     {
-      if(n == _sentinel)
+      if (n == _sentinel)
         return false;
 
       _last = n;
       bool b = false;
 
-      if(CFunc(data, n->data) < 0)
+      if (CFunc(data, n->data) < 0)
         b = _remove(n->left, data);
       else
       {
@@ -139,19 +138,19 @@ namespace bun {
         b = _remove(n->right, data);
       }
 
-      if(n == _last && _deleted != _sentinel && !CFunc(data, _deleted->data))
+      if (n == _last && _deleted != _sentinel && !CFunc(data, _deleted->data))
       {
         _deleted->data = n->data;
         _deleted = _sentinel;
         n = n->right;
-        Alloc::deallocate(_last);
+        std::allocator_traits<Alloc>::deallocate(*this, _last, 1);
         _last = _sentinel;
         b = true;
       }
-      else if(n->left->level < n->level - 1 || n->right->level < n->level - 1)
+      else if (n->left->level < n->level - 1 || n->right->level < n->level - 1)
       {
         n->level--;
-        if(n->right->level > n->level)
+        if (n->right->level > n->level)
           n->right->level = n->level;
         _skew(n);
         _skew(n->right);

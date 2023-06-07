@@ -1,4 +1,4 @@
-// Copyright ©2018 Erik McClure
+// Copyright (c)2023 Erik McClure
 // For conditions of distribution and use, see copyright notice in "buntils.h"
 
 #ifndef __RANDOM_QUEUE_BUN_H__
@@ -10,11 +10,11 @@
 
 namespace bun {
   // Random queue that pops a random item instead of the last item.
-  template<typename T, typename CType = uint32_t, ARRAY_TYPE ArrayType = ARRAY_SIMPLE, typename Alloc = StandardAllocator<T>>
-  class BUN_COMPILER_DLLEXPORT RandomQueue : protected DynArray<T, CType, ArrayType, Alloc>
+  template<typename T, typename CType = uint32_t, typename Alloc = StandardAllocator<T>>
+  class BUN_COMPILER_DLLEXPORT RandomQueue : protected DynArray<T, CType, Alloc>
   {
   protected:
-    using BASE = DynArray<T, CType, ArrayType, Alloc>;
+    using BASE = DynArray<T, CType, Alloc>;
     using BASE::_array;
     using BASE::_length;
     using CT = typename BASE::CT;

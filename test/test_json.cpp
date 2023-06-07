@@ -1,4 +1,4 @@
-// Copyright ©2018 Erik McClure
+// Copyright (c)2023 Erik McClure
 // For conditions of distribution and use, see copyright notice in "buntils.h"
 
 #include "test.h"
@@ -10,7 +10,7 @@ using namespace bun;
 
 struct JSONtest2
 {
-  DynArray<JSONtest2, uint32_t, ARRAY_SAFE> value;
+  DynArray<JSONtest2, uint32_t> value;
   std::array<int, 2> ia;
 
   template<typename Engine>
@@ -29,8 +29,8 @@ struct JSONtest
   JSONtest2 nested;
   DynArray<uint16_t> foo;
   std::vector<double> bar;
-  DynArray<Str, uint16_t, ARRAY_SAFE> foobar;
-  DynArray<JSONtest, uint32_t, ARRAY_SAFE> nestarray;
+  DynArray<Str, uint16_t> foobar;
+  DynArray<JSONtest, uint32_t> nestarray;
   JSONtest2 nested2;
   bool btrue;
   bool bfalse;

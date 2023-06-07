@@ -1,4 +1,4 @@
-// Copyright ©2018 Erik McClure
+// Copyright (c)2023 Erik McClure
 // For conditions of distribution and use, see copyright notice in "buntils.h"
 
 #ifndef __BUN_GEOMETRY_H__
@@ -731,6 +731,9 @@ namespace bun {
     inline const V* end() const { return _verts.end(); }
     inline V* begin() { return _verts.begin(); }
     inline V* end() { return _verts.end(); }
+    inline size_t size() const noexcept { return _verts.size(); }
+    inline T* data() noexcept { return _verts.data(); }
+    inline const T* data() const noexcept { return _verts.data(); }
     inline void SetVertices(const V* vertices, uint16_t num)
     {
       assert(vertices != _verts.begin());

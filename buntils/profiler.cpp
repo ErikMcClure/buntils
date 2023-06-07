@@ -1,4 +1,4 @@
-// Copyright ©2018 Erik McClure
+// Copyright (c)2023 Erik McClure
 // For conditions of distribution and use, see copyright notice in "buntils.h"
 
 #include "buntils/buntils.h"
@@ -12,6 +12,7 @@ namespace bun {
   namespace internal {
     struct PROF_HEATNODE
     {
+      using ALLOC = PolicyAllocator<struct PROF_HEATNODE, GreedyPolicy>;
       static GreedyPolicy<struct PROF_HEATNODE> _alloc;
       static inline char COMP(const PROF_HEATNODE& l, const PROF_HEATNODE& r) { return SGNCOMPARE(r.avg, l.avg); }
       inline bool DEBUGCHECK()
@@ -26,15 +27,16 @@ namespace bun {
           }
         return true;
       }
-      inline PROF_HEATNODE() : avg(0.0), id(0) {}
-      inline PROF_HEATNODE(Profiler::ProfilerInt ID, double Avg) : avg(Avg), id(ID) {}
+      inline PROF_HEATNODE() : avg(0.0), id(0), _children(0, ALLOC{ _alloc }) {}
+      inline PROF_HEATNODE(Profiler::ProfilerInt ID, double Avg) : avg(Avg), id(ID), _children(0, ALLOC{ _alloc }) {}
       inline PROF_HEATNODE(const PROF_HEATNODE& copy) : _children(copy._children), avg(copy.avg), id(copy.id) {}
       inline PROF_HEATNODE(PROF_HEATNODE&& mov) : _children(std::move(mov._children)), avg(mov.avg), id(mov.id) {}
-      ArraySort<struct PROF_HEATNODE, COMP, size_t, ARRAY_CONSTRUCT, PolymorphicAllocator<struct PROF_HEATNODE, GreedyPolicy>> _children;
-      double avg;
-      Profiler::ProfilerInt id;
       PROF_HEATNODE& operator=(PROF_HEATNODE&& mov) { _children = std::move(mov._children); avg = mov.avg; id = mov.id; return *this; }
       PROF_HEATNODE& operator=(const PROF_HEATNODE& copy) { _children = copy._children; avg = copy.avg; id = copy.id; return *this; }
+
+      ArraySort<struct PROF_HEATNODE, COMP, size_t, PolicyAllocator<struct PROF_HEATNODE, GreedyPolicy>> _children;
+      double avg;
+      Profiler::ProfilerInt id;
     };
     struct PROF_FLATOUT
     {
@@ -62,7 +64,7 @@ void Profiler::AddData(ProfilerInt id, ProfilerData* p)
 }
 void Profiler::WriteToFile(const char* s, uint8_t output)
 {
-  std::ofstream stream(BSSPOSIX_WCHAR(s), std::ios_base::out | std::ios_base::binary | std::ios_base::trunc);
+  std::ofstream stream(BUNPOSIX_WCHAR(s), std::ios_base::out | std::ios_base::binary | std::ios_base::trunc);
   WriteToStream(stream, output);
 }
 void Profiler::WriteToStream(std::ostream& stream, uint8_t output)
@@ -70,20 +72,20 @@ void Profiler::WriteToStream(std::ostream& stream, uint8_t output)
 #ifdef BUN_DEBUG
   if(!__DEBUG_VERIFY(_trie))
   {
-    stream << "ERROR: Infinite value detected in BSS Profiler! Skipping output to avoid infinite loop." << std::endl;
+    stream << "ERROR: Infinite value detected in BUN Profiler! Skipping output to avoid infinite loop." << std::endl;
     return;
   }
 #endif
 
   if(output & OUTPUT_TREE)
   {
-    stream << "BSS Profiler Tree Output: " << std::endl;
+    stream << "BUN Profiler Tree Output: " << std::endl;
     _treeOut(stream, _trie, 0, -1, 0);
     stream << std::endl << std::endl;
   }
   if(output & OUTPUT_FLAT)
   {
-    stream << "BSS Profiler Flat Output: " << std::endl;
+    stream << "BUN Profiler Flat Output: " << std::endl;
     PROF_FLATOUT* avg = (PROF_FLATOUT*)calloc(_data.Capacity(), sizeof(PROF_FLATOUT));
     if(!avg) return;
     _flatOut(avg, _trie, 0, 0);
@@ -102,7 +104,7 @@ void Profiler::WriteToStream(std::ostream& stream, uint8_t output)
   {
     PROF_HEATNODE root;
     _heatOut(root, _trie, 0, 0);
-    stream << "BSS Profiler Heat Output: " << std::endl;
+    stream << "BUN Profiler Heat Output: " << std::endl;
     _heatWrite(stream, root, -1, _heatFindMax(root));
   }
 }

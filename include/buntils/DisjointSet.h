@@ -1,4 +1,4 @@
-// Copyright ©2018 Erik McClure
+// Copyright (c)2023 Erik McClure
 // For conditions of distribution and use, see copyright notice in "buntils.h"
 
 #ifndef __DISJOINT_SET_H__BUN__
@@ -10,10 +10,10 @@
 namespace bun {
   // Represents a disjoint set data structure that uses path compression.
   template<typename T = size_t, typename Alloc = StandardAllocator<typename std::make_signed<T>::type>>
-  class BUN_COMPILER_DLLEXPORT DisjointSet : protected ArrayBase<typename std::make_signed<T>::type, T, ARRAY_SIMPLE, Alloc>
+  class BUN_COMPILER_DLLEXPORT DisjointSet : protected ArrayBase<typename std::make_signed<T>::type, T, Alloc>
   {
   protected:
-    typedef ArrayBase<typename std::make_signed<T>::type, T, ARRAY_SIMPLE, Alloc> ARRAY;
+    typedef ArrayBase<typename std::make_signed<T>::type, T, Alloc> ARRAY;
     typedef typename ARRAY::Ty Ty;
     using ARRAY::_array;
     using ARRAY::_capacity;
@@ -25,13 +25,10 @@ namespace bun {
       memcpy(_array, copy._array, _capacity); 
     }
     inline DisjointSet(DisjointSet&& mov) : ARRAY(std::move(mov)), _numsets(mov._numsets) { mov._numsets = 0; }
-    template<bool U = std::is_void_v<typename Alloc::policy_type>, std::enable_if_t<!U, int> = 0>
-    inline DisjointSet(T num, typename Alloc::policy_type* policy) : ARRAY(num, policy) { Reset(); }
-    inline explicit DisjointSet(T num) : ARRAY(num) { Reset(); }
-    inline DisjointSet(Ty* overload, T num) : ARRAY(0)
-    { // This let's you use an outside array
-      int v = std::is_same<Alloc, NullAllocator<Ty>>::value;
-      assert(v != 0); //You must use NullAllocator if you overload the array pointer
+    inline DisjointSet(T num, const Alloc& alloc) : ARRAY(num, alloc) { Reset(); }
+    inline explicit DisjointSet(T num) requires std::is_default_constructible_v<Alloc> : ARRAY(num) { Reset(); }
+    inline DisjointSet(Ty* overload, T num) requires std::is_same_v<Alloc, NullAllocator<Ty>> : ARRAY(0)
+    {
       _array = overload;
       _capacity = num;
       Reset();

@@ -1,4 +1,4 @@
-// Copyright ©2018 Erik McClure
+// Copyright (c)2023 Erik McClure
 // For conditions of distribution and use, see copyright notice in "buntils.h"
 
 #include "test.h"
@@ -89,7 +89,7 @@ TESTDEF::RETPAIR test_HASH()
       TEST(!set.Exists(HASHTESTPAIR(3, -1)));
     }
     {
-      Hash<int, DEBUG_CDT<true>, ARRAY_SAFE> safe;
+      Hash<int, DEBUG_CDT<true>> safe;
       TEST(!safe[2]);
       safe.Insert(0, DEBUG_CDT<true>());
       safe.Insert(2, DEBUG_CDT<true>());
@@ -153,7 +153,7 @@ TESTDEF::RETPAIR test_HASH()
   }
 
   {
-  Hash<int, std::unique_ptr<int>, ARRAY_MOVE> safe;
+  Hash<int, std::unique_ptr<int>> safe;
   TEST(!safe[2]);
   safe.Insert(0, nullptr);
   safe.Insert(2, nullptr);
@@ -191,7 +191,7 @@ TESTDEF::RETPAIR test_HASH()
   TEST(!safe(10));
   TEST(safe(9));
 
-  Hash<int, std::unique_ptr<int>, ARRAY_MOVE> safe3(std::move(safe));
+  Hash<int, std::unique_ptr<int>> safe3(std::move(safe));
   TEST(!safe3(8));
   TEST(safe3(2));
   TEST(!safe3(10));
@@ -236,7 +236,7 @@ TESTDEF::RETPAIR test_HASH()
     static_assert(std::is_same<decltype(h[0]), void*>::value, "wrong GET type");
   }
   {
-    Hash<int, std::unique_ptr<int>, ARRAY_MOVE> h;
+    Hash<int, std::unique_ptr<int>> h;
     h.Insert(0, std::unique_ptr<int>(new int(1)));
     h.Insert(1, std::unique_ptr<int>(new int(2)));
     TEST(*h[0] == 1);

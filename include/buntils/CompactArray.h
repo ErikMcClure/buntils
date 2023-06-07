@@ -1,4 +1,4 @@
-// Copyright ©2018 Erik McClure
+// Copyright (c)2023 Erik McClure
 // For conditions of distribution and use, see copyright notice in "buntils.h"
 
 #ifndef __COMPACT_ARRAY_H__BUN__
@@ -8,14 +8,13 @@
 #include "buntils.h"
 
 namespace bun {
-  // Array that uses a inline stack for smaller arrays before allocating something on the heap. Can only be used with simple data.
-  template<class T, int I = 2, class CType = size_t, typename Alloc = StandardAllocator<T>>
+  // Array that uses a inline stack for smaller arrays before allocating something on the heap.
+  template<class T, int I = 2, class CType = size_t, typename Alloc = StandardAllocator<T>> requires(std::is_unsigned<CType>::value && std::is_trivially_copyable_v<T>)
   class BUN_COMPILER_DLLEXPORT CompactArray final : Alloc
   {
   protected:
     using Ty = T;
     using CT = CType;
-    static_assert(std::is_unsigned<CT>::value, "CT must be unsigned");
     static const CT COMPACTFLAG = CT(1) << ((sizeof(CT) << 3) - 1);
     static const CT COMPACTMASK = ~COMPACTFLAG;
 
@@ -30,15 +29,14 @@ namespace bun {
       MEMCPY(this, sizeof(CompactArray), &mov, sizeof(CompactArray));
       mov._length = COMPACTFLAG;
     }
-    inline explicit CompactArray(const Slice<const T, CT>& slice) : _length(COMPACTFLAG)
+    inline explicit CompactArray(std::span<const T>& s) requires std::is_default_constructible_v<Alloc> : _length(COMPACTFLAG)
     {
-      SetLength(slice.length);
-      MEMCPY(begin(), Length() * sizeof(T), slice.start, slice.length * sizeof(T));
+      SetLength(s.size());
+      MEMCPY(begin(), Length() * sizeof(T), s.data(), s.size_bytes());
     }
-    template<bool U = std::is_void_v<typename Alloc::policy_type>, std::enable_if_t<!U, int> = 0>
-    inline explicit CompactArray(typename Alloc::policy_type* policy) : Alloc(policy), _length(COMPACTFLAG) { }
-    inline CompactArray() : _length(COMPACTFLAG) { }
-    inline CompactArray(const std::initializer_list<T>& list) : _length(COMPACTFLAG)
+    inline explicit CompactArray(const Alloc& alloc) : Alloc(alloc), _length(COMPACTFLAG) { }
+    inline CompactArray() requires std::is_default_constructible_v<Alloc> : _length(COMPACTFLAG) { }
+    inline CompactArray(const std::initializer_list<T>& list) requires std::is_default_constructible_v<Alloc> : _length(COMPACTFLAG)
     {
       SetLength(list.size());
       auto end = list.end();
@@ -51,7 +49,7 @@ namespace bun {
     inline ~CompactArray() 
     { 
       if(!(_length&COMPACTFLAG) && _array != 0)
-        Alloc::deallocate(_array, _capacity);
+        std::allocator_traits<Alloc>::deallocate(*this, _array, _capacity);
     }
     inline CT Add(T item) 
     {
@@ -66,7 +64,7 @@ namespace bun {
       SetCapacity(Length() + 1);
       InsertRangeSimple<T, CT>(begin(), (_length++)&COMPACTMASK, index, &item, 1);
     }
-    BUN_FORCEINLINE void Set(const Slice<const T, CT>& slice) { Set(slice.start, slice.length); }
+    BUN_FORCEINLINE void Set(std::span<const T> s) { Set(s.data(), s.size()); }
     BUN_FORCEINLINE void Set(const T* p, CT n)
     {
       SetLength(n);
@@ -91,7 +89,7 @@ namespace bun {
 
         if(_length&COMPACTFLAG)
         {
-          T* a = Alloc::allocate(capacity, 0);
+          T* a = std::allocator_traits<Alloc>::allocate(*this, capacity);
           _length = Length();
 
           if(_length)
@@ -102,7 +100,7 @@ namespace bun {
         }
         else
         {
-          _array = Alloc::allocate(capacity, _array, _capacity);
+          _array = standard_realloc<Alloc>(*this,capacity, _array, _capacity);
           _capacity = capacity;
         }
       }
@@ -117,7 +115,9 @@ namespace bun {
     BUN_FORCEINLINE const T* end() const noexcept { return begin() + Length(); }
     BUN_FORCEINLINE T* begin() noexcept { return (_length&COMPACTFLAG) ? _internal : _array; }
     BUN_FORCEINLINE T* end() noexcept { return begin() + Length(); }
-    BUN_FORCEINLINE Slice<T, CT> GetSlice() const noexcept { return Slice<T, CT>(begin(), Length()); }
+    inline CT size() const noexcept { return _length; }
+    inline T* data() noexcept { return _array; }
+    inline const T* data() const noexcept { return _array; }
     BUN_FORCEINLINE operator T*() { return begin(); }
     BUN_FORCEINLINE operator const T*() const { return begin(); }
     inline CompactArray& operator=(const CompactArray& copy)
@@ -129,13 +129,13 @@ namespace bun {
     inline CompactArray& operator=(CompactArray&& mov)
     {
       if(!(_length&COMPACTFLAG) && _array != 0)
-        Alloc::deallocate(_array, _capacity);
+        std::allocator_traits<Alloc>::deallocate(*this, _array, _capacity);
       Alloc::operator=(std::move(mov));
       MEMCPY(this, sizeof(CompactArray), &mov, sizeof(CompactArray));
       mov._length = COMPACTFLAG;
       return *this;
     }
-    inline CompactArray& operator=(const Slice<const T, CT>& copy) 
+    inline CompactArray& operator=(std::span<const T> copy)
     { 
       Set(copy); 
       return *this; 

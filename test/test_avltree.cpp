@@ -1,4 +1,4 @@
-// Copyright ©2018 Erik McClure
+// Copyright (c)2023 Erik McClure
 // For conditions of distribution and use, see copyright notice in "buntils.h"
 
 #include "test.h"
@@ -19,7 +19,7 @@ TESTDEF::RETPAIR test_AVLTREE()
   BEGINTEST;
 
   BlockPolicy<AVLNode<std::pair<int, int>>> fixedavl;
-  AVLTree<int, int, CompT<int>, PolymorphicAllocator<AVLNode<std::pair<int, int>>, BlockPolicy>> avlblah(&fixedavl);
+  AVLTree<int, int, CompT<int>, PolicyAllocator<AVLNode<std::pair<int, int>>, BlockPolicy>> avlblah(PolicyAllocator<AVLNode<std::pair<int, int>>, BlockPolicy>{fixedavl});
 
   //uint64_t prof=HighPrecisionTimer::OpenProfiler();
   for(size_t i = 0; i<TESTNUM; ++i)
@@ -46,7 +46,8 @@ TESTDEF::RETPAIR test_AVLTREE()
     c += (avlblah.GetRef(testnums[i]) == 0);
   TEST(c == TESTNUM);
 
-  AVLTree<int, std::pair<int, int>*>* tree = new AVLTree<int, std::pair<int, int>*>();
+  BlockPolicy<AVLNode<std::pair<int, std::pair<int, int>*>>> fixedavlp;
+  auto tree = new AVLTree<int, std::pair<int, int>*>(PolicyAllocator<AVLNode<std::pair<int, std::pair<int, int>*>>, BlockPolicy>{fixedavlp});
   std::pair<int, int> test(5, 5);
   tree->Insert(test.first, &test);
   tree->Get(test.first, 0);
@@ -65,7 +66,8 @@ TESTDEF::RETPAIR test_AVLTREE()
     Shuffle(testnums);
     BlockPolicy<DEBUG_CDT<false>> dalloc(TESTNUM);
     using AVL_D = std::unique_ptr<DEBUG_CDT<false>, std::function<void(DEBUG_CDT<false>*)>>;
-    AVLTree<int, AVL_D, CompT<int>, PolymorphicAllocator<AVLNode<std::pair<int, AVL_D>>, BlockPolicy>> dtree;
+    BlockPolicy<AVLNode<std::pair<int, AVL_D>>> fixedavld;
+    AVLTree<int, AVL_D, CompT<int>, PolicyAllocator<AVLNode<std::pair<int, AVL_D>>, BlockPolicy>> dtree(PolicyAllocator<AVLNode<std::pair<int, AVL_D>>, BlockPolicy>{fixedavld});
     for(size_t i = 0; i<TESTNUM; ++i)
     {
       auto dp = dalloc.allocate(1);
@@ -107,7 +109,8 @@ TESTDEF::RETPAIR test_AVLTREE()
   }
   TEST(!DEBUG_CDT<false>::count)
 
-    AVLTree<int, void, CompT<int>, PolymorphicAllocator<AVLNode<int>, BlockPolicy>> avlblah2;
+    BlockPolicy<AVLNode<int>> fixedavlkey;
+  AVLTree<int, void, CompT<int>, PolicyAllocator<AVLNode<int>, BlockPolicy>> avlblah2{ PolicyAllocator<AVLNode<int>, BlockPolicy>{fixedavlkey} };
 
   //uint64_t prof=HighPrecisionTimer::OpenProfiler();
   for(size_t i = 0; i<TESTNUM; ++i)

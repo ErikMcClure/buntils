@@ -1,4 +1,4 @@
-// Copyright ©2018 Erik McClure
+// Copyright (c)2023 Erik McClure
 // For conditions of distribution and use, see copyright notice in "buntils.h"
 
 #ifndef __KD_TREE_H__BUN__
@@ -30,25 +30,26 @@ namespace bun {
   };
 
   // KD-tree storing arbitrary rectangles. Requires a function turning T into a float[4] reference, LLBASE<T> list, and an action.
-  template<typename T, const float* (*FRECT)(T*), LLBase<T>& (*FLIST)(T*), KDNode<T>*& (*FNODE)(T*), typename Alloc = PolymorphicAllocator<KDNode<T>, BlockPolicy>>
+  template<typename T, const float* (*FRECT)(T*), LLBase<T>& (*FLIST)(T*), KDNode<T>*& (*FNODE)(T*), typename Alloc = PolicyAllocator<KDNode<T>, BlockPolicy>>
   class KDTree : protected Alloc
   {
     inline KDTree(const KDTree&) = delete;
-    inline KDTree& operator=(const KDTree&)= delete;
+    inline KDTree& operator=(const KDTree&) = delete;
 
   public:
-    template<bool U = std::is_void_v<typename Alloc::policy_type>, std::enable_if_t<!U, int> = 0>
-    inline KDTree(uint32_t rb, typename Alloc::policy_type* policy) : Alloc(policy), _root(0), _rbthreshold(rb) {}
-    inline explicit KDTree(uint32_t rb = RBTHRESHOLD) : _root(0), _rbthreshold(rb) {}
+    inline KDTree(uint32_t rb, const Alloc& alloc) : Alloc(alloc), _root(0), _rbthreshold(rb) {}
+    inline explicit KDTree(uint32_t rb) requires std::is_default_constructible_v<Alloc> : _root(0), _rbthreshold(rb) {}
+    inline explicit KDTree(const Alloc& alloc) : Alloc(alloc), _root(0), _rbthreshold(RBTHRESHOLD) {}
+    inline explicit KDTree() requires std::is_default_constructible_v<Alloc> : _root(0), _rbthreshold(RBTHRESHOLD) {}
     inline KDTree(KDTree&& mov) : Alloc(std::move(mov)), _root(mov._root), _rbthreshold(mov._rbthreshold) { mov._root = 0; }
     inline ~KDTree() { Clear(); }
-    inline void Clear() { if(_root) _destroyNode(_root); _root = 0; }
+    inline void Clear() { if (_root) _destroyNode(_root); _root = 0; }
     template<void(*F)(T*)>
-    void Traverse(float(&rect)[4]) const { if(_root) _traverse<0, 1, F>(_root, rect); }
+    void Traverse(float(&rect)[4]) const { if (_root) _traverse<0, 1, F>(_root, rect); }
     template<typename F>
-    void TraverseAction(float(&rect)[4], F && f) const { if(_root) _traverseAction<0, 1, F>(_root, rect, std::forward<F>(f)); }
+    void TraverseAction(float(&rect)[4], F&& f) const { if (_root) _traverseAction<0, 1, F>(_root, rect, std::forward<F>(f)); }
     template<typename F>
-    void TraverseAll(F && f) { _traverseAll(_root, std::forward<F>(f)); }
+    void TraverseAll(F&& f) { _traverseAll(_root, std::forward<F>(f)); }
     void Insert(T* item)
     {
       KDNode<T>** p = &_root;
@@ -58,18 +59,18 @@ namespace bun {
       const float* r = FRECT(item);
       char axis = 0;
 
-      while((h = *p) != nullptr)
+      while ((h = *p) != nullptr)
       {
         h->total[0] += r[0] + r[2];
         h->total[1] += r[1] + r[3];
         h->num++;
 
-        if(r[axis + 2] < h->div)
+        if (r[axis + 2] < h->div)
         { // Drop into left
           h->balance -= 1;
           p = &h->left;
         }
-        else if(r[axis] > h->div)
+        else if (r[axis] > h->div)
         { // Drop into right
           h->balance += 1;
           p = &h->right;
@@ -80,11 +81,11 @@ namespace bun {
         axis = ((axis + 1) & 1);
         parent = h;
 
-        if(!rb && (abs(h->balance * 100) / h->num) > _rbthreshold)
+        if (!rb && (abs(h->balance * 100) / h->num) > _rbthreshold)
           rb = h;
       }
 
-      if(!h)
+      if (!h)
       {
         h = _allocNode(parent, axis);
         h->total[0] = r[0] + r[2];
@@ -95,7 +96,7 @@ namespace bun {
       }
       _insertItem(h, item);
 
-      if(rb)
+      if (rb)
         Rebalance(rb);
     }
     void Remove(T* item)
@@ -107,19 +108,19 @@ namespace bun {
       _removeItem(node, item); // If the node becomes empty, we'll only remove it after a rebalance is triggered
       ++node->balance; //we're about to subtract one so counter it here for the bottom node (whose balance won't be changed)
 
-      while(node)
+      while (node)
       {
         --node->num;
         node->total[0] -= r[0] + r[2];
         node->total[1] -= r[1] + r[3];
         node->balance += ((node->left == prev) ? 1 : -1); // This is the inverse balance value
 
-        if(node->num > 0 && (abs(node->balance * 100) / node->num) > _rbthreshold)
+        if (node->num > 0 && (abs(node->balance * 100) / node->num) > _rbthreshold)
           rb = node; // It's possible for --node->num to leave it at 0
         node = node->parent;
       }
 
-      if(rb) Rebalance(rb);
+      if (rb) Rebalance(rb);
     }
     inline KDTree& operator=(KDTree&& mov) // Move assignment operator
     {
@@ -138,7 +139,7 @@ namespace bun {
     }
     inline void InsertRoot(T* item)
     {
-      if(!_root)
+      if (!_root)
         _root = _allocNode(0, 0);
 
       const float* r;
@@ -148,7 +149,7 @@ namespace bun {
       ++_root->num;
       _insertItem(_root, item);
     }
-    inline void Solve() { if(_root) _solve(&_root); }
+    inline void Solve() { if (_root) _solve(&_root); }
     inline KDNode<T>* GetRoot() { return _root; }
     inline uint32_t GetRBThreshold() const { return _rbthreshold; }
     inline void SetRBThreshold(uint32_t rbthreshold) { _rbthreshold = rbthreshold; }
@@ -160,8 +161,8 @@ namespace bun {
     {
       KDNode<T>* node = *pnode;
 
-      if(!node->num) 
-      { 
+      if (!node->num)
+      {
         _destroyNode(node);
         *pnode = 0;
         return;
@@ -174,15 +175,15 @@ namespace bun {
       T* item;
       T* next = node->items;
 
-      while((item = next))
+      while ((item = next))
       {
         next = FLIST(item).next;
         r = FRECT(item);
 
-        if(r[node->axis + 2] < node->div) p = &node->left; // Drop into left
-        else if(r[node->axis] > node->div) p = &node->right; // Drop into right
+        if (r[node->axis + 2] < node->div) p = &node->left; // Drop into left
+        else if (r[node->axis] > node->div) p = &node->right; // Drop into right
         else continue;
-        if(!(*p)) // If null create the node
+        if (!(*p)) // If null create the node
           *p = _allocNode(node, ((node->axis + 1) & 1));
 
         _removeItem(node, item);
@@ -192,8 +193,8 @@ namespace bun {
         ++h->num;
       }
 
-      if(node->left) _solve(&node->left);
-      if(node->right) _solve(&node->right);
+      if (node->left) _solve(&node->left);
+      if (node->right) _solve(&node->right);
     }
 
     void _rebalance(KDNode<T>* node, const float(&r)[4], KDNode<T>* const* p, float(&total)[2])
@@ -207,7 +208,7 @@ namespace bun {
       KDNode<T>* parents[4] = { p[0], p[1], p[2], p[3] };
       char axis = node->axis;
 
-      if(node->left)
+      if (node->left)
       {
         node->num -= node->left->num;
         rect[axis + 2] = node->div;
@@ -218,7 +219,7 @@ namespace bun {
         rect[axis + 2] = r[axis + 2]; // Reset so we don't mess up node below
       }
 
-      if(node->right)
+      if (node->right)
       {
         node->num -= node->right->num;
         rect[axis] = node->div;
@@ -234,15 +235,15 @@ namespace bun {
       KDNode<T>* par;
       char i;
 
-      while((item = next) != nullptr)
+      while ((item = next) != nullptr)
       {
         next = FLIST(item).next;
         itemr = FRECT(item);
 
-        if(itemr[0] < r[0]) i = 0; // Check for a violation. We don't bother checking to see if there are multiple violations, because 
-        if(itemr[1] < r[1]) i = 1; // if that happens, we'll catch it on our way back up the stack.
-        if(itemr[2] > r[2]) i = 2;
-        if(itemr[3] > r[3]) i = 3;
+        if (itemr[0] < r[0]) i = 0; // Check for a violation. We don't bother checking to see if there are multiple violations, because 
+        if (itemr[1] < r[1]) i = 1; // if that happens, we'll catch it on our way back up the stack.
+        if (itemr[2] > r[2]) i = 2;
+        if (itemr[3] > r[3]) i = 3;
         else continue;
 
         node->total[0] -= itemr[0] + itemr[2]; // Remove image from us
@@ -261,7 +262,7 @@ namespace bun {
     }
     inline void _checkDestroy(KDNode<T>*& node)
     {
-      if(!node->num)
+      if (!node->num)
       {
         assert(!node->items);
         _destroyNode(node);
@@ -270,14 +271,14 @@ namespace bun {
     }
     inline void _destroyNode(KDNode<T>* node)
     {
-      if(node->left) _destroyNode(node->left);
-      if(node->right) _destroyNode(node->right);
-      Alloc::deallocate(node, 1); //Deallocate node
+      if (node->left) _destroyNode(node->left);
+      if (node->right) _destroyNode(node->right);
+      std::allocator_traits<Alloc>::deallocate(*this, node, 1); //Deallocate node
     }
     template<typename F>
     static void _traverseAll(KDNode<T>* node, const F& f)
     {
-      if(!node) return;
+      if (!node) return;
 
       f(node->items);
       _traverseAll(node->left, f);
@@ -289,41 +290,41 @@ namespace bun {
       T* item = node->items;
       const float* r;
 
-      while(item)
+      while (item)
       {
         r = FRECT(item);
-        if(r[0] <= rect[2] && r[1] <= rect[3] && r[2] >= rect[0] && r[3] >= rect[1])
+        if (r[0] <= rect[2] && r[1] <= rect[3] && r[2] >= rect[0] && r[3] >= rect[1])
           FACTION(item);
         item = FLIST(item).next;
       }
 
-      if(node->div >= rect[cur] && node->left != 0)
+      if (node->div >= rect[cur] && node->left != 0)
         _traverse<next, cur, FACTION>(node->left, rect);
-      if(node->div <= rect[cur + 2] && node->right != 0)
+      if (node->div <= rect[cur + 2] && node->right != 0)
         _traverse<next, cur, FACTION>(node->right, rect);
     }
     template<char cur, char next, typename F>
-    static void _traverseAction(const KDNode<T>* node, const float(&rect)[4], F && f)
+    static void _traverseAction(const KDNode<T>* node, const float(&rect)[4], F&& f)
     {
       T* item = node->items;
       const float* r;
 
-      while(item)
+      while (item)
       {
         r = FRECT(item);
-        if(r[0] <= rect[2] && r[1] <= rect[3] && r[2] >= rect[0] && r[3] >= rect[1])
+        if (r[0] <= rect[2] && r[1] <= rect[3] && r[2] >= rect[0] && r[3] >= rect[1])
           f(item);
         item = FLIST(item).next;
       }
 
-      if(node->div >= rect[cur] && node->left != 0)
+      if (node->div >= rect[cur] && node->left != 0)
         _traverseAction<next, cur>(node->left, rect, std::forward<F>(f));
-      if(node->div <= rect[cur + 2] && node->right != 0)
+      if (node->div <= rect[cur + 2] && node->right != 0)
         _traverseAction<next, cur>(node->right, rect, std::forward<F>(f));
     }
     inline KDNode<T>* _allocNode(KDNode<T>* parent, char axis)
     {
-      KDNode<T>* r = Alloc::allocate(1);
+      KDNode<T>* r = std::allocator_traits<Alloc>::allocate(*this, 1);
       bun_Fill(*r);
       r->parent = parent;
       r->axis = axis;
@@ -335,7 +336,7 @@ namespace bun {
       l.next = node->items;
       l.prev = 0;
 
-      if(node->items)
+      if (node->items)
         FLIST(node->items).prev = item;
 
       node->items = item;
@@ -345,9 +346,9 @@ namespace bun {
     {
       FNODE(item) = 0;
       LLBase<T>& l = FLIST(item);
-      if(l.prev) FLIST(l.prev).next = l.next;
+      if (l.prev) FLIST(l.prev).next = l.next;
       else node->items = l.next;
-      if(l.next) FLIST(l.next).prev = l.prev;
+      if (l.next) FLIST(l.next).prev = l.prev;
     }
 
     KDNode<T>* _root;

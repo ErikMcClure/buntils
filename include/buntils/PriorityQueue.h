@@ -1,4 +1,4 @@
-// Copyright ©2018 Erik McClure
+// Copyright (c)2023 Erik McClure
 // For conditions of distribution and use, see copyright notice in "buntils.h"
 
 #ifndef __PRIORITY_QUEUE_H__BUN__
@@ -11,18 +11,17 @@ namespace bun {
   template<typename K,
     typename D,
     char(*CFunc)(const K&, const K&) = CompT<K>,
-    typename CT_ = size_t, ARRAY_TYPE ArrayType = ARRAY_SIMPLE,
+    typename CT_ = size_t, 
     typename Alloc = StandardAllocator<std::pair<K, D>>>
-  class BUN_COMPILER_DLLEXPORT PriorityQueue : protected BinaryHeap<std::pair<K, D>, CT_, CompTFirst<K, D, CFunc>, ArrayType, Alloc>
+  class BUN_COMPILER_DLLEXPORT PriorityQueue : protected BinaryHeap<std::pair<K, D>, CT_, CompTFirst<K, D, CFunc>, Alloc>
   {
     using PAIR = std::pair<K, D>;
-    using BASE = BinaryHeap<std::pair<K, D>, CT_, CompTFirst<K, D, CFunc>, ArrayType, Alloc>;
+    using BASE = BinaryHeap<std::pair<K, D>, CT_, CompTFirst<K, D, CFunc>, Alloc>;
 
   public:
     PriorityQueue(const PriorityQueue& copy) = default;
     PriorityQueue(PriorityQueue&& mov) = default;
-    template<bool U = std::is_void_v<typename Alloc::policy_type>, std::enable_if_t<!U, int> = 0>
-    explicit PriorityQueue(typename Alloc::policy_type* policy) : BASE(policy) {}
+    explicit PriorityQueue(const Alloc& alloc) : BASE(alloc) {}
     PriorityQueue() {}
     ~PriorityQueue() {}
     BUN_FORCEINLINE void Push(const K& key, D value) { BASE::Insert(PAIR(key, value)); }
@@ -55,19 +54,17 @@ namespace bun {
   template<typename D,
     typename CT_ = size_t,
     char(*CFunc)(const D&, const D&) = CompT<D>,
-    ARRAY_TYPE ArrayType = ARRAY_SIMPLE,
     typename Alloc = StandardAllocator<std::pair<CT_, D>>>
-  class BUN_COMPILER_DLLEXPORT PriorityHeap : protected BinaryHeap<std::pair<CT_, D>, CT_, CompTSecond<CT_, D, CFunc>, ArrayType, Alloc, internal::MFUNC_PRIORITY<std::pair<CT_, D>, CT_>>
+  class BUN_COMPILER_DLLEXPORT PriorityHeap : protected BinaryHeap<std::pair<CT_, D>, CT_, CompTSecond<CT_, D, CFunc>, Alloc, internal::MFUNC_PRIORITY<std::pair<CT_, D>, CT_>>
   {
     using PAIR = std::pair<CT_, D>;
-    using BASE = BinaryHeap<std::pair<CT_, D>, CT_, CompTSecond<CT_, D, CFunc>, ArrayType, Alloc, internal::MFUNC_PRIORITY<std::pair<CT_, D>, CT_>>;
+    using BASE = BinaryHeap<std::pair<CT_, D>, CT_, CompTSecond<CT_, D, CFunc>, Alloc, internal::MFUNC_PRIORITY<std::pair<CT_, D>, CT_>>;
     using BASE::_subarray;
 
   public:
     PriorityHeap(const PriorityHeap& copy) : BASE(copy), _freelist(copy._freelist) { _subarray = copy._subarray; }
     PriorityHeap(PriorityHeap&& mov) : BASE(std::move(mov)), _freelist(mov._freelist) { _subarray = std::move(mov._subarray); }
-    template<bool U = std::is_void_v<typename Alloc::policy_type>, std::enable_if_t<!U, int> = 0>
-    explicit PriorityHeap(typename Alloc::policy_type* policy) : BASE(policy), _freelist((CT_)-1) {}
+    explicit PriorityHeap(const Alloc& alloc) : BASE(alloc), _freelist((CT_)-1) {}
     PriorityHeap() : _freelist((CT_)-1) {}
     ~PriorityHeap() {}
     BUN_FORCEINLINE CT_ Push(const D& value) { CT_ k = _getNext(); BASE::Insert(PAIR(k, value)); return k; }

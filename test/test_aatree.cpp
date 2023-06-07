@@ -1,4 +1,4 @@
-// Copyright ©2018 Erik McClure
+// Copyright (c)2023 Erik McClure
 // For conditions of distribution and use, see copyright notice in "buntils.h"
 
 #include "test.h"
@@ -13,7 +13,7 @@ TESTDEF::RETPAIR test_AA_TREE()
   BEGINTEST;
 
   BlockPolicy<AANODE<int>> fixedaa;
-  AATree<int, CompT<int>, PolymorphicAllocator<AANODE<int>, BlockPolicy>> aat(&fixedaa);
+  AATree<int, CompT<int>, PolicyAllocator<AANODE<int>, BlockPolicy>> aat(PolicyAllocator<AANODE<int>, BlockPolicy>{fixedaa});
 
   XorshiftEngine64 e;
 

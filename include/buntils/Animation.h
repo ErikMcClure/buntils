@@ -1,4 +1,4 @@
-// Copyright ©2018 Erik McClure
+// Copyright (c)2023 Erik McClure
 // For conditions of distribution and use, see copyright notice in "buntils.h"
 
 #ifndef __ANIMATION_H__BUN__
@@ -166,9 +166,9 @@ namespace bun {
     void Interpolate(const A* ani, U* dest, double t)
     {
       const D& data = ani->template Get<D>();
-      Slice<const FRAME> frames = data.Frames();
+      auto frames = data.Frames();
 
-      while(_cur < frames.length && frames[_cur].time <= t)
+      while(_cur < frames.size() && frames[_cur].time <= t)
         (static_cast<T*>(dest)->*FN)(frames[_cur++].value); // We call all the discrete values because many discrete values are interdependent on each other.
     }
 
@@ -192,25 +192,25 @@ namespace bun {
     void Interpolate(const A* ani, U* dest, double t)
     {
       const D& data = ani->template Get<D>();
-      Slice<const FRAME> frames = data.Frames();
+      auto frames = data.Frames();
       INTERPOLATE f = data.GetInterpolation();
 
-      while(_cur < frames.length && frames[_cur].time <= t)
+      while(_cur < frames.size() && frames[_cur].time <= t)
         ++_cur;
 
-      if(_cur >= frames.length)
+      if(_cur >= frames.size())
       { //Resolve the animation, but only if there was more than 1 keyframe, otherwise we'll break it.
-        if(frames.length > 1)
+        if(frames.size() > 1)
         {
           assert(f != 0); // We only check if f is NULL if there are actually frames to process
-          (static_cast<T*>(dest)->*FN)(f(frames.start, frames.length, frames.length - 1, 1.0, _init));
+          (static_cast<T*>(dest)->*FN)(f(frames.data(), frames.size(), frames.size() - 1, 1.0, _init));
         }
       }
       else
       {
         assert(f != 0);
         double hold = !_cur ? 0.0 : frames[_cur - 1].time;
-        (static_cast<T*>(dest)->*FN)(f(frames.start, frames.length, _cur, (t - hold) / (frames[_cur].time - hold), _init));
+        (static_cast<T*>(dest)->*FN)(f(frames.data(), frames.size(), _cur, (t - hold) / (frames[_cur].time - hold), _init));
       }
     }
 
@@ -232,9 +232,9 @@ namespace bun {
     void Interpolate(const A* ani, U* dest, double t)
     {
       const D& data = ani->template Get<D>();
-      Slice<const FRAME> frames = data.Frames();
+      auto frames = data.Frames();
 
-      while(_cur < frames.length && frames[_cur].time <= t)
+      while(_cur < frames.size() && frames[_cur].time <= t)
         _addToQueue(static_cast<T*>(dest), frames[_cur++]); // We call all the discrete values because many discrete values are interdependent on each other.
 
       while(!_queue.Empty() && _queue.Peek().first <= t)
@@ -250,11 +250,11 @@ namespace bun {
         (dest->*REMOVE)(_queue.Pop().second);
     }
 
-    PriorityQueue<double, AUX, CompT<double>, size_t, ARRAY_SIMPLE, QUEUEALLOC> _queue;
+    PriorityQueue<double, AUX, CompT<double>, size_t, QUEUEALLOC> _queue;
     size_t _cur;
   };
 
-  template<typename T, typename D = void, ARRAY_TYPE ArrayType = ARRAY_SIMPLE, int DATAID = 0, typename Alloc = StandardAllocator<AniFrame<T, D>>>
+  template<typename T, typename D = void, int DATAID = 0, typename Alloc = StandardAllocator<AniFrame<T, D>>>
   struct BUN_COMPILER_DLLEXPORT AniData
   {
     using STATE = AniStateDiscrete<AniStateBase, AniData, T, nullptr>;
@@ -266,7 +266,7 @@ namespace bun {
     AniData(const FRAME* src, size_t len) { Set(src, len); }
     BUN_FORCEINLINE double Begin() const { return !_frames.Length() ? 0.0 : _frames.Front().time; }
     BUN_FORCEINLINE double End() const { return !_frames.Length() ? 0.0 : _frames.Back().time; }
-    BUN_FORCEINLINE Slice<const FRAME> Frames() const { return _frames.GetSlice(); }
+    BUN_FORCEINLINE std::span<const FRAME> Frames() const { return _frames; }
     BUN_FORCEINLINE size_t Add(const FRAME& frame) { return _frames.Insert(frame); }
     BUN_FORCEINLINE size_t Add(double time, const T& value)
     {
@@ -275,7 +275,7 @@ namespace bun {
     }
     inline void Set(const FRAME* src, size_t len)
     {
-      _frames = Slice<const FRAME>(src, len);
+      _frames = std::span{ src, len };
 #ifdef BUN_DEBUG
       for(size_t i = 1; i < _frames.Length(); ++i)
         assert(_frames[i - 1].time <= _frames[i].time);
@@ -303,14 +303,14 @@ namespace bun {
     }
 
   protected:
-    ArraySort<FRAME, CompAniFrame, size_t, ArrayType, Alloc> _frames;
+    ArraySort<FRAME, CompAniFrame, size_t, Alloc> _frames;
   };
 
-  template<typename T, typename D = void, ARRAY_TYPE ArrayType = ARRAY_SIMPLE, int DATAID = 0, typename Alloc = StandardAllocator<AniFrame<T, D>>>
-  struct BUN_COMPILER_DLLEXPORT AniDataSmooth : AniData<T, D, ArrayType, DATAID, Alloc>
+  template<typename T, typename D = void, int DATAID = 0, typename Alloc = StandardAllocator<AniFrame<T, D>>>
+  struct BUN_COMPILER_DLLEXPORT AniDataSmooth : AniData<T, D, DATAID, Alloc>
   {
     using STATE = AniStateSmooth<AniStateBase, AniDataSmooth, T, nullptr>;
-    using BASE = AniData<T, D, ArrayType, DATAID, Alloc>;
+    using BASE = AniData<T, D, DATAID, Alloc>;
     using FRAME = typename BASE::FRAME;
     typedef T(*INTERPOLATE)(const FRAME*, size_t, size_t, double, const T&);
 
@@ -345,11 +345,11 @@ namespace bun {
     INTERPOLATE _interpolate;
   };
 
-  template<typename T, ARRAY_TYPE ArrayType = ARRAY_SIMPLE, int DATAID = 0, typename Alloc = StandardAllocator<AniFrame<T, double>>>
-  struct BUN_COMPILER_DLLEXPORT AniDataInterval : AniData<T, double, ArrayType, DATAID, Alloc>
+  template<typename T, int DATAID = 0, typename Alloc = StandardAllocator<AniFrame<T, double>>>
+  struct BUN_COMPILER_DLLEXPORT AniDataInterval : AniData<T, double, DATAID, Alloc>
   {
     using STATE = AniStateInterval<AniStateBase, AniDataInterval, T, char, nullptr, nullptr, StandardAllocator<std::pair<double, char>>>;
-    using BASE = AniData<T, double, ArrayType, DATAID, Alloc>;
+    using BASE = AniData<T, double, DATAID, Alloc>;
     using FRAME = typename BASE::FRAME;
     using BASE::_frames;
     AniDataInterval() : _end(0.0) {}
@@ -357,7 +357,7 @@ namespace bun {
     AniDataInterval(const AniDataInterval& copy) : BASE(copy), _end(copy._end) {}
     AniDataInterval(const FRAME* src, size_t len) : BASE(src, len) {}
     BUN_FORCEINLINE double End() const { return _end; }
-    BUN_FORCEINLINE Slice<const FRAME> Frames() const { return _frames.GetSlice(); }
+    BUN_FORCEINLINE std::span<const FRAME> Frames() const { return _frames; }
     BUN_FORCEINLINE size_t Add(const FRAME& frame)
     {
       size_t r = BASE::Add(frame);

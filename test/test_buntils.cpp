@@ -1,16 +1,17 @@
-﻿// Copyright ©2018 Erik McClure
+﻿// Copyright (c)2023 Erik McClure
 // For conditions of distribution and use, see copyright notice in "buntils.h"
 
 #include "test.h"
 #include "buntils/buntils.h"
 #include <sstream>
 #include <algorithm>
+#include <format>
 
 using namespace bun;
 
-static_assert(std::is_same<make_integral<ARRAY_TYPE>::type, uint8_t>::value, "ARRAY_TYPE does not have underlying type of uint8_t");
 static_assert(std::is_same<make_integral<char>::type, char>::value, "type not preserved");
 static_assert(std::is_same<make_integral<void*>::type, void*>::value, "type not preserved");
+static_assert(std::is_trivially_copyable_v<std::byte>, "wat");
 
 template<uint8_t B, int64_t SMIN, int64_t SMAX, uint64_t UMIN, uint64_t UMAX, typename T>
 inline void TEST_BitLimit()
@@ -591,30 +592,12 @@ TESTDEF::RETPAIR test_buntils()
   TEST(_bunmultiplyextract<int64_t>(0x8000000000000000, 0, 0) == 0);
   TEST(_bunmultiplyextract<int64_t>(0x8000000000000000, 0, 64) == 0);
 
-  std::stringstream ss;
-  SafeFormat(ss, "{10} {0}{1} {2}{3}{4}{{5}}{6}0{7}00{8} {9}", 0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10);
-  std::string s = ss.str();
+  std::string s = std::format("{10} {0}{1} {2}{3}{4}{{5}}{6}0{7}00{8} {9}", 0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10);
   TEST(s == "10 01 234{5}607008 9");
-  ss.str("");
-  SafeFormat(ss, "{00");
-  TEST(ss.str() == "{00");
-  ss.str("");
-  SafeFormat(ss, " {0");
-  TEST(ss.str() == " {0");
-  ss.str("");
-  SafeFormat(ss, "0{");
-  TEST(ss.str() == "0{");
-  ss.str("");
-  SafeFormat(ss, "{");
-  TEST(ss.str() == "{");
-  ss.str("");
-  SafeFormat(ss, "");
-  TEST(ss.str() == "");
-  ss.str("");
-  SafeFormat(ss, "0{000} {%}{s0}");
-  TEST(ss.str() == "0{000} {%}{s0}");
-  ss.str("");
-  SafeFormat(ss, "{0}", 0, 1, 2);
+  s = std::format("0{{000}} {{%}}{0}", "{s0}");
+  TEST(s == "0{000} {%}{s0}");
+  s = std::format("{0}", 0, 1, 2);
+  TEST(s == "0");
 
   ENDTEST;
 }

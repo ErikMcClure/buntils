@@ -1,4 +1,4 @@
-// Copyright ©2018 Erik McClure
+// Copyright (c)2023 Erik McClure
 // For conditions of distribution and use, see copyright notice in "buntils.h"
 
 #ifndef __BUN_ALLOC_REUSE_H__
@@ -129,7 +129,7 @@ namespace bun {
     BUN_ALIGN(16) RWLock _cachelock;
     const size_t _maxsize;
     const size_t _debugalign;
-    HashIns<size_t, bun_PTag<void>, ARRAY_SIMPLE, StandardAllocator<char, 16>> _cache; // Each size in the hash points to a freelist for allocations of that size
+    HashIns<size_t, bun_PTag<void>, StandardAllocator<std::byte, 16>> _cache; // Each size in the hash points to a freelist for allocations of that size
   };
 
 

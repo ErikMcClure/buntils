@@ -1,4 +1,4 @@
-﻿// Copyright ©2018 Erik McClure
+﻿// Copyright (c)2023 Erik McClure
 // For conditions of distribution and use, see copyright notice in "buntils.h"
 
 #ifndef __BUN_DEFINES_H__
@@ -8,8 +8,8 @@
 
 // Version numbers
 #define BUN_VERSION_MAJOR 0
-#define BUN_VERSION_MINOR 5
-#define BUN_VERSION_REVISION 2
+#define BUN_VERSION_MINOR 6
+#define BUN_VERSION_REVISION 0
 
 //sometimes the std versions of these are a bit overboard, so this redefines the MS version, except it will no longer cause conflicts everywhere
 #define bun_max(a,b)            (((a) > (b)) ? (a) : (b))
@@ -58,10 +58,10 @@
 #define ISPOW2(x) (x && !( (x-1) & x ))
 
 #if defined(BUN_PLATFORM_POSIX) || defined(BUN_PLATFORM_MINGW)
-#define BSSPOSIX_WCHAR(s) s
+#define BUNPOSIX_WCHAR(s) s
 #define BUN__L(x)      x
 #elif defined(BUN_PLATFORM_WIN32)
-#define BSSPOSIX_WCHAR(s) bun::StrW(s).c_str()
+#define BUNPOSIX_WCHAR(s) bun::StrW(s).c_str()
 #define BUN__L(x)      L ## x
 #endif
 

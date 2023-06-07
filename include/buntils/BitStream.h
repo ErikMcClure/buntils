@@ -1,4 +1,4 @@
-// Copyright ©2018 Erik McClure
+// Copyright (c)2023 Erik McClure
 // For conditions of distribution and use, see copyright notice in "buntils.h"
 
 #ifndef __BITSTREAM_H__BUN__
@@ -104,7 +104,7 @@ namespace bun {
   void bun_Serialize(T d, std::ostream& s)
   {
 #ifdef BUN_ENDIAN_BIG
-    FlipEndian((char*)&d, sizeof(T));
+    FlipEndian(&d);
 #endif
     s.write((const char*)&d, sizeof(T));
   }
@@ -121,7 +121,7 @@ namespace bun {
   {
     s.read((char*)&d, sizeof(T));
 #ifdef BUN_ENDIAN_BIG
-    FlipEndian((char*)&d, sizeof(T));
+    FlipEndian(&d);
 #endif
   }
   template<>

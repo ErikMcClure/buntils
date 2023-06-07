@@ -1,4 +1,4 @@
-// Copyright ©2018 Erik McClure
+// Copyright (c)2023 Erik McClure
 // For conditions of distribution and use, see copyright notice in "buntils.h"
 
 #include "test.h"
@@ -35,7 +35,7 @@ TESTDEF::RETPAIR test_STREAM()
 
   int acheck[] = { 0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 50000, 50001, 50002, 50003, 50004, 50005, 6, 77777777, 88 };
   int bcheck[] = { 0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 50000, 50001, 50002, 50003, 50004, 50005, 6, 77777777, 88 };
-  DynArray<int> a = DynArray<int>(Slice<int>(acheck));
+  DynArray<int> a = DynArray<int>(std::span<int>(acheck));
   TEST(a.Length() == sizeof(acheck)/sizeof(int));
   DynArray<short> b;
   DynArray<int> c;

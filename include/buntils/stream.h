@@ -1,4 +1,4 @@
-// Copyright ©2018 Erik McClure
+// Copyright (c)2023 Erik McClure
 // For conditions of distribution and use, see copyright notice in "buntils.h"
 
 #ifndef __STREAM_H__BUN__
@@ -133,10 +133,10 @@ namespace bun {
   };
 
   // Read and write stream for DynArray
-  template<class T, typename CType = size_t, ARRAY_TYPE ArrayType = ARRAY_SIMPLE, typename Alloc = StandardAllocator<T>>
+  template<class T, typename CType = size_t, typename Alloc = StandardAllocator<T>>
   class BUN_COMPILER_DLLEXPORT StreamBufDynArray : public std::streambuf
   {
-    using D = DynArray<T, CType, ArrayType, Alloc>;
+    using D = DynArray<T, CType, Alloc>;
     inline StreamBufDynArray(const StreamBufDynArray& copy) = delete;
     inline StreamBufDynArray& operator =(const StreamBufDynArray& right) = delete;
 

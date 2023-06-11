@@ -88,7 +88,7 @@ int main(int argc, char** argv)
   SetWorkDirToCur();
   _failedtests.AddTarget("failedtests.txt");
   uint64_t seed = (uint64_t)time(nullptr);
-  //seed = 1489803649;
+  seed = 1686163994;
   bun_RandSeed(seed);
   //profile_ring_alloc();
 
@@ -103,7 +103,6 @@ int main(int argc, char** argv)
     { "Log.h", &test_LOG },
     { "algo.h", &test_algo },
     { "GreedyAlloc.h", &test_ALLOC_GREEDY },
-    { "RingAlloc.h", &test_ALLOC_RING },
     { "BlockAlloc.h", &test_ALLOC_BLOCK },
     { "BlockAllocMT.h", &test_ALLOC_BLOCK_LOCKLESS },
     { "CacheAlloc.h", &test_ALLOC_CACHE },

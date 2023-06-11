@@ -155,7 +155,7 @@ namespace bun {
     inline BlockPolicySize(BlockPolicySize&& mov) = default;
     inline explicit BlockPolicySize(size_t init = 8) : BlockAlloc(SIZE, init, ALIGN) { static_assert((SIZE >= sizeof(void*)), "SIZE cannot be less than the size of a pointer"); }
     template<class T>
-    BUN_FORCEINLINE T* allocate(size_t cnt, const T* p = 0)
+    BUN_FORCEINLINE T* allocate(size_t cnt, const T* p = nullptr)
     {
       assert(!p);
       static_assert((sizeof(T) <= SIZE), "sizeof(T) must be less than SIZE");
@@ -168,12 +168,12 @@ namespace bun {
     BlockPolicySize& operator=(BlockPolicySize&& mov) = default;
   };
 
-  template<class T>
+  template<class T> requires (sizeof(T) >= sizeof(void*))
   struct BUN_COMPILER_DLLEXPORT BlockPolicy : protected BlockAlloc
   {
     inline BlockPolicy(BlockPolicy&& mov) : BlockAlloc(std::move(mov)) {}
-    inline explicit BlockPolicy(size_t init = 8) : BlockAlloc(sizeof(T), init, alignof(T)) { static_assert((sizeof(T) >= sizeof(void*)), "T cannot be less than the size of a pointer"); }
-    BUN_FORCEINLINE T* allocate(size_t cnt, const T* p = 0, size_t old = 0) noexcept { assert(!p); return BlockAlloc::AllocT<T>(cnt); }
+    inline explicit BlockPolicy(size_t init = 8) : BlockAlloc(sizeof(T), init, alignof(T)) {}
+    BUN_FORCEINLINE T* allocate(size_t cnt, const T* p = nullptr, size_t old = 0) noexcept { assert(!p); return BlockAlloc::AllocT<T>(cnt); }
     BUN_FORCEINLINE void deallocate(T* p, size_t num = 0) noexcept { BlockAlloc::Dealloc(p); }
     BUN_FORCEINLINE void Clear() { BlockAlloc::Clear(); }
     BlockPolicy& operator=(BlockPolicy&& mov) { BlockAlloc::operator=(std::move(mov)); return *this; }

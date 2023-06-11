@@ -9,7 +9,7 @@
 
 namespace bun {
   // Simple circular array implementation. Unlike most data structures, CType must be signed instead of unsigned
-  template<class T, typename CType = ptrdiff_t, typename Alloc = StandardAllocator<T>>
+  template<class T, typename CType = ptrdiff_t, typename Alloc = StandardAllocator<T>>  requires std::is_signed<CType>::value
   class BUN_COMPILER_DLLEXPORT ArrayCircular : protected ArrayBase<T, CType, Alloc>
   {
   protected:
@@ -18,7 +18,6 @@ namespace bun {
     using Ty = typename BASE::Ty;
     using BASE::_array;
     using BASE::_capacity;
-    static_assert(std::is_signed<CT>::value, "CType must be signed");
 
   public:
     // Constructors

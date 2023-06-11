@@ -594,7 +594,6 @@
     <ClCompile Include="test_algo.cpp" />
     <ClCompile Include="test_alloc_block.cpp" />
     <ClCompile Include="test_alloc_block_mt.cpp" />
-    <ClCompile Include="test_alloc_circular.cpp" />
     <ClCompile Include="test_alloc_greedy.cpp" />
     <ClCompile Include="test_defines.cpp" />
     <ClCompile Include="test_graph.cpp" />

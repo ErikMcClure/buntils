@@ -9,56 +9,74 @@
 
 namespace bun {
   /* Multi-producer multi-consumer lockless fixed size allocator */
-  template<class T>
-  class BUN_COMPILER_DLLEXPORT LocklessBlockPolicy
+  class BUN_COMPILER_DLLEXPORT LocklessBlockAllocator
   {
     using Node = BlockAlloc::Node;
   public:
-    inline LocklessBlockPolicy(LocklessBlockPolicy&& mov) : _root(mov._root)
+    inline LocklessBlockAllocator(LocklessBlockAllocator&& mov) : _root(mov._root), _blocksize(mov._blocksize)
     {
+      static_assert((sizeof(bun_PTag<void>) == (sizeof(void*) * 2)), "ABAPointer isn't twice the size of a pointer!");
       _freelist.p = mov._freelist.p;
       _freelist.tag = mov._freelist.tag;
-      mov._freelist.p = mov._root = 0;
+      mov._freelist.p = mov._root = nullptr;
       _flag.clear(std::memory_order_relaxed);
     }
-    inline explicit LocklessBlockPolicy(size_t init = 8) : _root(0)
+    inline LocklessBlockAllocator(size_t blocksize, size_t init) : _root(nullptr), _blocksize(blocksize)
     {
       _flag.clear(std::memory_order_relaxed);
-      //contention=0;
-      _freelist.p = 0;
+      _freelist.p = nullptr;
       _freelist.tag = 0;
-      static_assert((sizeof(T) >= sizeof(void*)), "T cannot be less than the size of a pointer");
-      static_assert((sizeof(bun_PTag<void>) == (sizeof(void*) * 2)), "ABAPointer isn't twice the size of a pointer!");
-      _allocChunk(init * sizeof(T));
+      _allocChunk(init * _blocksize);
     }
-    inline ~LocklessBlockPolicy()
+    inline LocklessBlockAllocator(size_t blocksize) : _root(nullptr), _blocksize(blocksize)
     {
-      Node* hold = _root;
-
-      while((_root = hold))
-      {
-        hold = _root->next;
-        free(_root);
+      _flag.clear(std::memory_order_relaxed);
+      _freelist.p = nullptr;
+      _freelist.tag = 0;
+      _allocChunk(8 * _blocksize);
+    }
+    inline LocklessBlockAllocator() : _root(nullptr), _blocksize(sizeof(void*))
+    {
+      _flag.clear(std::memory_order_relaxed);
+      _freelist.p = nullptr;
+      _freelist.tag = 0;
+      _allocChunk(8 * _blocksize);
+    }
+    inline ~LocklessBlockAllocator()
+    {
+      _destroy();
+    }
+    inline void Clear() noexcept {
+      if (_root) {
+        while (_flag.test_and_set(std::memory_order_acquire));
+        size_t init = _root->size;
+        _destroy();
+        _flag.clear(std::memory_order_relaxed);
+        _freelist.p = nullptr;
+        _freelist.tag = 0;
+        _allocChunk(init);
+        _flag.clear(std::memory_order_release);
       }
     }
-    inline T* allocate(size_t num, const T* p = 0, size_t old = 0) noexcept
+
+    inline void* alloc(size_t blocks, void* p = nullptr, size_t old = 0) noexcept
     {
-      assert(num == 1 && !p);
+      assert(blocks == 1 && !p);
 #ifdef BUN_DISABLE_CUSTOM_ALLOCATORS
-      return bun_Malloc<T>(num);
+      return bun_Malloc(blocks * _blocksize);
 #endif
       bun_PTag<void> ret = { 0, 0 };
       bun_PTag<void> nval;
       asmcasr<bun_PTag<void>>(&_freelist, ret, ret, ret);
 
-      for(;;)
+      for (;;)
       {
-        if(!ret.p)
+        if (!ret.p)
         {
-          if(!_flag.test_and_set(std::memory_order_acquire))
+          if (!_flag.test_and_set(std::memory_order_acquire))
           { // If we get the lock, do a new allocation
-            if(!_freelist.p) // Check this due to race condition where someone finishes a new allocation and unlocks while we were testing that flag.
-              _allocChunk(fbnext(_root->size / sizeof(T)) * sizeof(T));
+            if (!_freelist.p) // Check this due to race condition where someone finishes a new allocation and unlocks while we were testing that flag.
+              _allocChunk(fbnext(_root->size / _blocksize) * _blocksize);
             _flag.clear(std::memory_order_release);
           }
           asmcasr<bun_PTag<void>>(&_freelist, ret, ret, ret); // we could put this in the while loop but then you have to set nval to ret and it's just as messy
@@ -68,21 +86,21 @@ namespace bun {
         nval.p = *((void**)ret.p);
         nval.tag = ret.tag + 1;
 
-        if(asmcasr<bun_PTag<void>>(&_freelist, nval, ret, ret))
+        if (asmcasr<bun_PTag<void>>(&_freelist, nval, ret, ret))
           break;
       }
 
       //assert(_validPointer(ret));
-      return (T*)ret.p;
+      return ret.p;
     }
-    inline void deallocate(T* p, size_t num = 0) noexcept
+    inline void dealloc(void* p, size_t num = 0) noexcept
     {
 #ifdef BUN_DISABLE_CUSTOM_ALLOCATORS
       free(p); return;
 #endif
       assert(_validPointer(p));
 #ifdef BUN_DEBUG
-      memset(p, 0xfd, sizeof(T));
+      memset(p, 0xfd, _blocksize);
 #endif
       _setFreeList(p, p);
       //*((void**)p)=(void*)_freelist;
@@ -90,27 +108,38 @@ namespace bun {
       //  *((void**)p)=(void*)_freelist;
     }
 
-    LocklessBlockPolicy& operator=(LocklessBlockPolicy&& mov) noexcept
+    LocklessBlockAllocator& operator=(LocklessBlockAllocator&& mov) noexcept
     {
       _root = mov._root;
+      _blocksize = mov._blocksize;
       _freelist.p = mov._freelist.p;
       _freelist.tag = mov._freelist.tag;
       mov._freelist.p = mov._root = 0;
       _flag.clear(std::memory_order_relaxed);
       return *this;
     }
-
-    //size_t contention;
+    size_t GetBlockSize() const noexcept { return _blocksize; }
 
   protected:
+    inline void _destroy() noexcept
+    {
+      Node* hold = _root;
+
+      while ((_root = hold))
+      {
+        hold = _root->next;
+        free(_root);
+      }
+    }
+
 #ifdef BUN_DEBUG
     inline bool _validPointer(const void* p) const
     {
       const Node* hold = _root;
-      while(hold)
+      while (hold)
       {
-        if(p >= (hold + 1) && p < (((std::byte*)(hold + 1)) + hold->size))
-          return ((((std::byte*)p) - ((std::byte*)(hold + 1))) % sizeof(T)) == 0; //the pointer should be an exact multiple of sizeof(T)
+        if (p >= (hold + 1) && p < (((std::byte*)(hold + 1)) + hold->size))
+          return ((((std::byte*)p) - ((std::byte*)(hold + 1))) % _blocksize) == 0; //the pointer should be an exact multiple of sizeof(T)
 
         hold = hold->next;
       }
@@ -132,7 +161,7 @@ namespace bun {
       void* hold = 0;
       std::byte* memend = ((std::byte*)(chunk + 1)) + chunk->size;
 
-      for(std::byte* memref = (std::byte*)(chunk + 1); memref < memend; memref += sizeof(T))
+      for (std::byte* memref = (std::byte*)(chunk + 1); memref < memend; memref += _blocksize)
       {
         *((void**)(memref)) = hold;
         hold = memref;
@@ -152,7 +181,7 @@ namespace bun {
         nval.tag = prev.tag + 1;
         *((void**)(target)) = (void*)prev.p;
         //atomic_xadd<size_t>(&contention); //DEBUG
-      } while(!asmcasr<bun_PTag<void>>(&_freelist, nval, prev, prev));
+      } while (!asmcasr<bun_PTag<void>>(&_freelist, nval, prev, prev));
     }
 
 #pragma warning(push)
@@ -161,6 +190,84 @@ namespace bun {
     BUN_ALIGN(4) std::atomic_flag _flag;
 #pragma warning(pop)
     Node* _root;
+    size_t _blocksize;
+  };
+
+  /* Multi-producer multi-consumer lockless fixed size allocator */
+  template<class T> requires ((sizeof(T) >= sizeof(void*)) && (sizeof(bun_PTag<void>) == (sizeof(void*) * 2)))
+  class BUN_COMPILER_DLLEXPORT LocklessBlockPolicy : public LocklessBlockAllocator
+  {
+  public:
+    inline LocklessBlockPolicy(LocklessBlockPolicy&&) = default;
+    inline explicit LocklessBlockPolicy(size_t init = 8) : LocklessBlockAllocator(sizeof(T), init) {}
+    inline ~LocklessBlockPolicy() {}
+
+    inline T* allocate(size_t num, T* p = nullptr, size_t old = 0) noexcept { return reinterpret_cast<T*>(LocklessBlockAllocator::alloc(num, p, old)); }
+    inline void deallocate(T* p, size_t num = 0) noexcept { LocklessBlockAllocator::dealloc(p, num); }
+
+    LocklessBlockPolicy& operator=(LocklessBlockPolicy&&) = default;
+  };
+
+  template<size_t MAXSIZE = sizeof(void*) * 32, class = std::make_index_sequence<bun_Log2(MAXSIZE / sizeof(void*)) + 1>>
+  class BUN_COMPILER_DLLEXPORT LocklessBlockCollection;
+
+  /* A collection of block allocators up to a given size */
+  template<size_t MAXSIZE, size_t... Is>
+  class BUN_COMPILER_DLLEXPORT LocklessBlockCollection<MAXSIZE, std::index_sequence<Is...>>
+  { 
+    static constexpr size_t COUNT = sizeof...(Is);
+
+    inline static constexpr size_t _getindex(size_t n) { return bun_Log2(NextPow2(n) >> 3); }
+
+  public:
+    inline LocklessBlockCollection(LocklessBlockCollection&&) = default;
+    LocklessBlockCollection(): _allocators{ (sizeof(void*) << Is)... } {}
+    inline void* allocate(size_t num, void* p = nullptr, size_t old = 0) noexcept
+    {
+      auto idx = _getindex(num);
+      if (p) {
+        assert(old != 0);
+        auto prev = _getindex(old);
+        if (prev == idx)
+        {
+          if(idx < COUNT)
+            return p;
+        }
+        else
+          deallocate(p, old);
+      }
+
+      if (idx >= COUNT)
+        return realloc(p, num);
+      else
+      {
+        assert(num <= _allocators[idx].GetBlockSize());
+        return _allocators[idx].alloc(1, nullptr, 0);
+      }
+    }
+    template<class T>
+    inline T* allocT(size_t num) { return reinterpret_cast<T*>(allocate(num * sizeof(T))); }
+    inline void deallocate(void* p, size_t num) noexcept
+    {
+      assert(num != 0);
+      auto idx = _getindex(num);
+      if (idx >= COUNT)
+        free(p);
+      else
+        _allocators[idx].dealloc(p, 1);
+    }
+    template<class T>
+    inline void deallocT(T* p, size_t num) { deallocate(p, num * sizeof(T)); }
+    inline void Clear() noexcept {
+      for (int i = 0; i < COUNT; ++i) {
+        _allocators[i].Clear();
+      }
+    }
+
+    LocklessBlockCollection& operator=(LocklessBlockCollection&&) = default;
+
+  protected:
+    LocklessBlockAllocator _allocators[COUNT];
   };
 }
 

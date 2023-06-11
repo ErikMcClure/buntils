@@ -6,7 +6,6 @@
 
 #include "Thread.h"
 #include "LocklessQueue.h"
-#include "RingAlloc.h"
 #include "DynArray.h"
 #include "Delegate.h"
 #include <condition_variable>
@@ -18,22 +17,23 @@ namespace bun {
   {
     typedef void(*FN)(void*);
     using TASK = std::pair<FN, void*>;
+    using ALLOC = LocklessBlockCollection<512>;
 
     ThreadPool(const ThreadPool&) = delete;
     ThreadPool& operator=(const ThreadPool&) = delete;
 
   public:
-    ThreadPool(ThreadPool&& mov) : _falloc(std::move(mov._falloc)), _run(mov._run.load(std::memory_order_relaxed)),
+    ThreadPool(ThreadPool&& mov) : _run(mov._run.load(std::memory_order_relaxed)),
       _tasks(mov._tasks.load(std::memory_order_relaxed)),
       _tasklist(std::move(mov._tasklist)), _threads(std::move(mov._threads))
     {
       mov._run.store(0, std::memory_order_release);
     }
-    explicit ThreadPool(size_t count) : _falloc(sizeof(TASK) * 20), _run(0), _tasks(0), _policy(), _tasklist(PolicyAllocator<internal::LQ_QNode<TASK>, LocklessBlockPolicy>{_policy})
+    explicit ThreadPool(size_t count) :  _run(0), _tasks(0), _policy(), _tasklist(PolicyAllocator<internal::LQ_QNode<TASK>, LocklessBlockPolicy>{_policy})
     {
       AddThreads(count);
     }
-    ThreadPool() : _falloc(sizeof(TASK) * 20), _run(0), _tasks(0), _policy(), _tasklist(PolicyAllocator<internal::LQ_QNode<TASK>, LocklessBlockPolicy>{_policy})
+    ThreadPool() : _run(0), _tasks(0), _policy(), _tasklist(PolicyAllocator<internal::LQ_QNode<TASK>, LocklessBlockPolicy>{_policy})
     {
       AddThreads(IdealWorkerCount());
     }
@@ -61,7 +61,7 @@ namespace bun {
     template<typename R, typename ...Args>
     void AddFunc(R(*f)(Args...), Args... args)
     {
-      std::pair<StoreFunction<R, Args...>, RingAllocVoid*>* fn = _falloc.AllocT<std::pair<StoreFunction<R, Args...>, RingAllocVoid*>>();
+      std::pair<StoreFunction<R, Args...>, ALLOC*>* fn = _falloc.allocT<std::pair<StoreFunction<R, Args...>, ALLOC*>>(1);
       new (&fn->first) StoreFunction<R, Args...>(f, std::forward<Args>(args)...);
       fn->second = &_falloc; // This could just be a pointer to this thread pool, but it's easier if it's a direct pointer to the allocator we need.
       AddTask(_callfn<R, Args...>, fn);
@@ -114,10 +114,10 @@ namespace bun {
     template<typename R, typename ...Args>
     static void _callfn(void* p)
     {
-      std::pair<StoreFunction<R, Args...>, RingAllocVoid*>* fn = (std::pair<StoreFunction<R, Args...>, RingAllocVoid*>*)p;
+      std::pair<StoreFunction<R, Args...>, ALLOC*>* fn = (std::pair<StoreFunction<R, Args...>, ALLOC*>*)p;
       fn->first.Call();
       fn->first.~StoreFunction();
-      fn->second->Dealloc(fn);
+      fn->second->deallocT(fn, 1);
     }
 
     
@@ -127,7 +127,7 @@ namespace bun {
     DynArray<Thread, size_t> _threads;
     std::atomic<int32_t> _run;
     Semaphore _lock;
-    RingAllocVoid _falloc;
+    ALLOC _falloc;
   };
 
   template<typename R, typename ...Args>

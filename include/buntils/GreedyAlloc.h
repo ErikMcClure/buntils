@@ -182,7 +182,7 @@ namespace bun {
   {
     GreedyPolicy() = default;
     inline explicit GreedyPolicy(size_t init, size_t align = 1) : GreedyAlloc(init, align) {}
-    inline T* allocate(std::size_t cnt, T* p = 0, size_t old = 0) noexcept
+    inline T* allocate(std::size_t cnt, T* p = nullptr, size_t old = 0) noexcept
     { 
       if(cnt < old)
         return p;

@@ -46,10 +46,10 @@ namespace bun {
   class BUN_COMPILER_DLLEXPORT ref_ptr
   {
   public:
-    inline ref_ptr(const ref_ptr& copy) : _p(copy._p) { if(_p != 0) _p->Grab(); }
-    inline ref_ptr(ref_ptr&& mov) : _p(mov._p) { mov._p = 0; }
-    inline ref_ptr(T* p = 0) : _p(p) { if(_p != 0) _p->Grab(); }
-    inline ~ref_ptr() { if(_p != 0) _p->Drop(); }
+    inline ref_ptr(const ref_ptr& copy) : _p(copy._p) { if(_p != nullptr) _p->Grab(); }
+    inline ref_ptr(ref_ptr&& mov) : _p(mov._p) { mov._p = nullptr; }
+    inline ref_ptr(T* p = nullptr) : _p(p) { if(_p != nullptr) _p->Grab(); }
+    inline ~ref_ptr() { if(_p != nullptr) _p->Drop(); }
 
     inline bool operator !() const noexcept { return !_p; }
     inline bool operator ==(const T* right) const noexcept { return _p == right; }
@@ -63,20 +63,20 @@ namespace bun {
     inline ref_ptr& operator=(const ref_ptr& right) { return operator=(right._p); }
     inline ref_ptr& operator=(ref_ptr&& right)
     {
-      if(_p != 0) 
+      if(_p != nullptr)
         _p->Drop();
 
       _p = right._p;
-      right._p = 0; 
+      right._p = nullptr;
       return *this; 
     }
     inline ref_ptr& operator=(T* right)
     { 
-      if(_p != 0) 
+      if(_p != nullptr)
         _p->Drop();
 
       _p = right; 
-      if(_p != 0) 
+      if(_p != nullptr)
         _p->Grab(); 
 
       return *this; 

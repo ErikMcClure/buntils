@@ -636,20 +636,16 @@ namespace bun {
   }
 
   // Average aggregation without requiring a total variable that can overflow. Nextnum should be the current avg count incremented by 1.
-  template<typename T, typename CT_> // T must be float or double, CT_ must be integral
+  template<typename T, typename CT_> requires (std::is_integral<CT_>::value && std::is_floating_point<T>::value)
   BUN_FORCEINLINE constexpr T bun_Avg(T curavg, T nvalue, CT_ nextnum) noexcept
   { // USAGE: avg = bun_Avg<double, int>(avg, value, ++total);
-    static_assert(std::is_integral<CT_>::value, "CT_ must be integral");
-    static_assert(std::is_floating_point<T>::value, "T must be float, double, or long double");
     return curavg + ((nvalue - curavg) / (T)nextnum);
   }
 
   // Sum of squares of differences aggregation using an algorithm by Knuth. Nextnum should be the current avg count incremented by 1.
-  template<typename T, typename CT_> // T must be float or double, CT_ must be integral
-  BUN_FORCEINLINE void bun_Variance(T& curvariance, T& avg, T nvalue, CT_ nextnum) noexcept
+  template<typename T, typename CT_> requires (std::is_integral<CT_>::value&& std::is_floating_point<T>::value)
+  BUN_FORCEINLINE constexpr void bun_Variance(T& curvariance, T& avg, T nvalue, CT_ nextnum) noexcept
   { // USAGE: bun_Variance<double, int>(variance, avg, value, ++total); Then use sqrt(variance/(n-1)) to get the actual standard deviation
-    static_assert(std::is_integral<CT_>::value, "CT_ must be integral");
-    static_assert(std::is_floating_point<T>::value, "T must be float, double, or long double");
     T delta = nvalue - avg;
     avg += delta / (T)nvalue;
     curvariance += delta*(nvalue - avg);
@@ -677,11 +673,10 @@ namespace bun {
   }
 
   // Counts the number of bits in v (up to 128-bit types) using the parallel method detailed here: http://graphics.stanford.edu/~seander/bithacks.html#CountBitsSetParallel
-  template<typename Tx>
-  inline uint8_t BitCount(Tx v) noexcept
+  template<typename Tx> requires std::is_integral<typename make_integral<Tx>::type>::value
+  inline constexpr uint8_t BitCount(Tx v) noexcept
   {
     using T = typename make_integral<Tx>::type;
-    static_assert(std::is_integral<T>::value, "T must be integral");
     v = v - ((v >> 1) & (T)~(T)0 / 3);                           // temp
     v = (v & (T)~(T)0 / 15 * 3) + ((v >> 2) & (T)~(T)0 / 15 * 3);      // temp
     v = (v + (v >> 4)) & (T)~(T)0 / 255 * 15;                      // temp
@@ -725,7 +720,7 @@ namespace bun {
     return std::pair<std::unique_ptr<T[]>, size_t>(std::move(a), ln + !!nullterminate);
   }
   // Round a number up to the next power of 2 (32 -> 32, 33 -> 64, etc.)
-  inline uint64_t NextPow2(uint64_t v) noexcept
+  inline constexpr uint64_t NextPow2(uint64_t v) noexcept
   {
     v -= 1;
     v |= (v >> 1);
@@ -737,7 +732,7 @@ namespace bun {
 
     return v + 1;
   }
-  inline uint32_t NextPow2(uint32_t v) noexcept
+  inline constexpr uint32_t NextPow2(uint32_t v) noexcept
   {
     v -= 1;
     v |= (v >> 1);
@@ -748,7 +743,7 @@ namespace bun {
 
     return v + 1;
   }
-  inline uint16_t NextPow2(uint16_t v) noexcept
+  inline constexpr uint16_t NextPow2(uint16_t v) noexcept
   {
     v -= 1;
     v |= (v >> 1);
@@ -758,7 +753,7 @@ namespace bun {
 
     return v + 1;
   }
-  inline uint8_t NextPow2(uint8_t v) noexcept
+  inline constexpr uint8_t NextPow2(uint8_t v) noexcept
   {
     v -= 1;
     v |= (v >> 1);
@@ -769,18 +764,46 @@ namespace bun {
   }
 
 #ifdef BUN_COMPILER_MSC
-  inline uint32_t bun_Log2(uint32_t v) noexcept
+  inline constexpr uint32_t bun_Log2(uint32_t v) noexcept
   {
     if(!v) return 0;
     unsigned long r;
-    _BitScanReverse(&r, v);
+    if (std::is_constant_evaluated()) {
+      const uint32_t b[] = { 0x2, 0xC, 0xF0, 0xFF00, 0xFFFF0000 };
+      const uint32_t S[] = { 1, 2, 4, 8, 16 };
+
+      if (v & b[4]) { v >>= S[4]; r |= S[4]; }
+      if (v & b[3]) { v >>= S[3]; r |= S[3]; }
+      if (v & b[2]) { v >>= S[2]; r |= S[2]; }
+      if (v & b[1]) { v >>= S[1]; r |= S[1]; }
+      if (v & b[0]) { v >>= S[0]; r |= S[0]; }
+    }
+    else {
+      _BitScanReverse(&r, v);
+    }
     return r;
   }
 #elif defined(BUN_COMPILER_GCC)
-  inline uint32_t bun_Log2(uint32_t v) noexcept { return !v ? 0 : ((sizeof(uint32_t) << 3) - 1 - __builtin_clz(v)); }
+  inline uint32_t constexpr bun_Log2(uint32_t v) noexcept { 
+    if (std::is_constant_evaluated()) {
+      const uint32_t b[] = { 0x2, 0xC, 0xF0, 0xFF00, 0xFFFF0000 };
+      const uint32_t S[] = { 1, 2, 4, 8, 16 };
+
+      uint32_t r = 0;
+      if (v & b[4]) { v >>= S[4]; r |= S[4]; }
+      if (v & b[3]) { v >>= S[3]; r |= S[3]; }
+      if (v & b[2]) { v >>= S[2]; r |= S[2]; }
+      if (v & b[1]) { v >>= S[1]; r |= S[1]; }
+      if (v & b[0]) { v >>= S[0]; r |= S[0]; }
+      return r;
+    }
+    else {
+      return !v ? 0 : ((sizeof(uint32_t) << 3) - 1 - __builtin_clz(v));
+    }
+  }
 #else
   // Bit-twiddling hack for base 2 log by Sean Eron Anderson
-  inline uint32_t bun_Log2(uint8_t v) noexcept
+  inline uint32_t constexpr bun_Log2(uint8_t v) noexcept
   {
     const uint32_t b[] = { 0x2, 0xC, 0xF0 };
     const uint32_t S[] = { 1, 2, 4 };
@@ -792,7 +815,7 @@ namespace bun {
 
     return r;
   }
-  inline uint32_t bun_Log2(uint16_t v) noexcept
+  inline uint32_t constexpr bun_Log2(uint16_t v) noexcept
   {
     const uint32_t b[] = { 0x2, 0xC, 0xF0, 0xFF00 };
     const uint32_t S[] = { 1, 2, 4, 8 };
@@ -806,7 +829,7 @@ namespace bun {
     return r;
   }
 
-  inline uint32_t bun_Log2(uint32_t v) noexcept
+  inline uint32_t constexpr bun_Log2(uint32_t v) noexcept
   {
     const uint32_t b[] = { 0x2, 0xC, 0xF0, 0xFF00, 0xFFFF0000 };
     const uint32_t S[] = { 1, 2, 4, 8, 16 };
@@ -821,28 +844,39 @@ namespace bun {
     return r;
   }
 #endif
-  inline uint32_t bun_Log2(uint64_t v) noexcept
+  inline uint32_t constexpr bun_Log2(uint64_t v) noexcept
   {
-#if defined(BUN_COMPILER_MSC) && defined(BUN_64BIT)
-    if(!v) return 0;
-    unsigned long r;
-    _BitScanReverse64(&r, v);
-#elif defined(BUN_COMPILER_GCC) && defined(BUN_64BIT)
-    uint32_t r = !v ? 0 : ((sizeof(uint64_t) << 3) - 1 - __builtin_clz(v));
-#else
-    const uint64_t b[] = { 0x2, 0xC, 0xF0, 0xFF00, 0xFFFF0000, 0xFFFFFFFF00000000 };
-    const uint32_t S[] = { 1, 2, 4, 8, 16, 32 };
-
-    uint32_t r = 0; // result of bun_Log2(v) will go here
-    if(v & b[5]) { v >>= S[5]; r |= S[5]; }
-    if(v & b[4]) { v >>= S[4]; r |= S[4]; }
-    if(v & b[3]) { v >>= S[3]; r |= S[3]; }
-    if(v & b[2]) { v >>= S[2]; r |= S[2]; }
-    if(v & b[1]) { v >>= S[1]; r |= S[1]; }
-    if(v & b[0]) { v >>= S[0]; r |= S[0]; }
+#if (defined(BUN_COMPILER_MSC) || defined(BUN_COMPILER_GCC)) && defined(BUN_64BIT)
+    if (std::is_constant_evaluated()) 
 #endif
+    {
+      const uint64_t b[] = { 0x2, 0xC, 0xF0, 0xFF00, 0xFFFF0000, 0xFFFFFFFF00000000 };
+      const uint32_t S[] = { 1, 2, 4, 8, 16, 32 };
 
-    return r;
+      uint32_t r = 0; // result of bun_Log2(v) will go here
+      if (v & b[5]) { v >>= S[5]; r |= S[5]; }
+      if (v & b[4]) { v >>= S[4]; r |= S[4]; }
+      if (v & b[3]) { v >>= S[3]; r |= S[3]; }
+      if (v & b[2]) { v >>= S[2]; r |= S[2]; }
+      if (v & b[1]) { v >>= S[1]; r |= S[1]; }
+      if (v & b[0]) { v >>= S[0]; r |= S[0]; }
+      return r;
+    }
+#if defined(BUN_COMPILER_MSC) && defined(BUN_64BIT)
+    else
+    {
+      if (!v) return 0;
+      unsigned long r;
+      _BitScanReverse64(&r, v);
+      return r;
+    }
+#elif defined(BUN_COMPILER_GCC) && defined(BUN_64BIT)
+    else
+    {
+      uint32_t r = !v ? 0 : ((sizeof(uint64_t) << 3) - 1 - __builtin_clz(v));
+      return r;
+    }
+#endif
   }
   inline uint32_t bun_Log2_p2(uint32_t v) noexcept //Works only if v is a power of 2
   {

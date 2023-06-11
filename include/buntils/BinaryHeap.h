@@ -78,7 +78,7 @@ namespace bun {
 
     // Percolate up through the heap
     template<typename U>
-    static void PercolateUp(T* _array, CT _length, CT k, U && val, BinaryHeap* p = 0)
+    static void PercolateUp(T* _array, CT _length, CT k, U && val, BinaryHeap* p = nullptr)
     {
       assert(k < _length);
       CT parent;
@@ -100,7 +100,7 @@ namespace bun {
     }
     // Percolate down a heap
     template<typename U>
-    static void PercolateDown(T* _array, CT length, CT k, U && val, BinaryHeap* p = 0)
+    static void PercolateDown(T* _array, CT length, CT k, U && val, BinaryHeap* p = nullptr)
     {
       assert(k < length);
       assert(k < (std::numeric_limits<CT>::max() >> 1));

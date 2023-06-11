@@ -782,7 +782,9 @@ namespace bun {
 
       TOMLEngine::WriteTOMLId(e, id, s);
       time_t time = std::chrono::system_clock::to_time_t(obj);
-      s << std::put_time(gmtime(&time), "%Y-%m-%dT%H:%M:%S+00:00");
+      tm stm;
+      GMTIMEFUNC(&time, &stm);
+      s << std::put_time(&stm, "%Y-%m-%dT%H:%M:%S+00:00");
       if(e.engine.state != STATE_INLINE_TABLE && id)
         s << std::endl;
     }

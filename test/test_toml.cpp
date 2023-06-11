@@ -140,13 +140,15 @@ void dotest_TOML(TOMLtest& o, TESTDEF::RETPAIR& __testret)
   TEST(o.inlinetest.test.f == 123.456f);
 #ifdef BUN_COMPILER_HAS_TIME_GET
   time_t time = std::chrono::system_clock::to_time_t(o.date);
-  std::tm* t = gmtime(&time);
-  TEST(t->tm_year == (2006-1900));
-  TEST(t->tm_mon == 0);
-  TEST(t->tm_mday == 2);
-  TEST(t->tm_hour == 22);
-  TEST(t->tm_min == 4);
-  TEST(t->tm_sec == 5);
+  tm stm;
+  GMTIMEFUNC(&time, &stm);
+
+  TEST(stm.tm_year == (2006-1900));
+  TEST(stm.tm_mon == 0);
+  TEST(stm.tm_mday == 2);
+  TEST(stm.tm_hour == 22);
+  TEST(stm.tm_min == 4);
+  TEST(stm.tm_sec == 5);
 #endif
   TEST(o.test2.a == 5);
   TEST(o.test2.test.f == -3.5f);

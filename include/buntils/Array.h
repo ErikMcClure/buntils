@@ -37,13 +37,12 @@ namespace bun {
 #endif
 
   // Handles the very basic operations of an array. Constructor management is done by classes that inherit this class.
-  template<class T, typename CType = size_t, typename Alloc = StandardAllocator<T>>
+  template<class T, typename CType = size_t, typename Alloc = StandardAllocator<T>> requires std::is_integral<CType>::value
   class BUN_COMPILER_DLLEXPORT ArrayBase : protected Alloc
   {
   public:
     using CT = CType; // There are cases when you need access to these types even if you don't inherit (see RandomQueue in bun_algo.h)
     using Ty = T;
-    static_assert(std::is_integral<CT>::value, "CType must be integral");
 
     inline ArrayBase(ArrayBase&& mov) : Alloc(std::move(mov)), _array(mov._array), _capacity(mov._capacity)
     {

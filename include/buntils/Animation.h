@@ -471,39 +471,35 @@ namespace bun {
       _length = length;
       _calc = _calclength(std::index_sequence_for<Args...>{});
     }
-    template<class T>
-    inline const T& Get() const { static_assert(std::disjunction<std::is_same<T, Args>...>::value, "T is not in this Animation type!"); return std::get<T>(*this); }
-    template<class T>
-    inline T& Get() { static_assert(std::disjunction<std::is_same<T, Args>...>::value, "T is not in this Animation type!"); return std::get<T>(*this); }
-    template<class T>
-    BUN_FORCEINLINE size_t Add(const typename T::FRAME& frame)
+    template<class T> requires std::disjunction<std::is_same<T, Args>...>::value
+    inline const T& Get() const  { return std::get<T>(*this); }
+    template<class T> requires std::disjunction<std::is_same<T, Args>...>::value
+    inline T& Get() { return std::get<T>(*this); }
+    template<class T> requires std::disjunction<std::is_same<T, Args>...>::value
+    BUN_FORCEINLINE size_t Add(const typename T::FRAME& frame) 
     {
-      static_assert(std::disjunction<std::is_same<T, Args>...>::value, "T is not in this Animation type!");
       size_t r = std::get<T>(*this).Add(frame);
       _checklength<T>();
       return r;
     }
-    template<class T>
+    template<class T> requires std::disjunction<std::is_same<T, Args>...>::value
     BUN_FORCEINLINE size_t Add(double time, const typename T::FRAME::VALUE& value)
     {
-      static_assert(std::disjunction<std::is_same<T, Args>...>::value, "T is not in this Animation type!");
       size_t r = std::get<T>(*this).Add(time, value);
       _checklength<T>();
       return r;
     }
-    template<class T>
+    template<class T> requires std::disjunction<std::is_same<T, Args>...>::value
     inline bool Remove(size_t index)
     {
-      static_assert(std::disjunction<std::is_same<T, Args>...>::value, "T is not in this Animation type!");
       if(!std::get<T>(*this).Remove(index))
         return false;
       _calc = _calclength(std::index_sequence_for<Args...>{});
       return true;
     }
-    template<class T>
+    template<class T> requires std::disjunction<std::is_same<T, Args>...>::value
     inline void Set(const typename T::FRAME* src, size_t len)
     {
-      static_assert(std::disjunction<std::is_same<T, Args>...>::value, "T is not in this Animation type!");
       std::get<T>().Set(src, len);
       _calc = _calclength(std::index_sequence_for<Args...>{});
     }

@@ -9,6 +9,7 @@
 #include "RWLock.h"
 #include <string.h>
 
+/* // This doesn't work. Kept here for posterity.
 namespace bun {
   // Primary implementation of a multi-consumer multi-producer lockless ring allocator
   class BUN_COMPILER_DLLEXPORT RingAllocVoid
@@ -33,11 +34,11 @@ namespace bun {
     {
       _cur.store(mov._cur.load(std::memory_order_acquire), std::memory_order_release);
       mov._cur.store(0, std::memory_order_release);
-      mov._list = 0;
+      mov._list = nullptr;
     }
     explicit RingAllocVoid(size_t sz) : _lastsize(sz), _list(0)
     {
-      _gc.p = 0;
+      _gc.p = nullptr;
       _gc.tag = 0;
       _cur.store(_genBucket(sz), std::memory_order_release);
     }
@@ -144,7 +145,7 @@ namespace bun {
         free(hold);
       }
 
-      _gc.p = 0;
+      _gc.p = nullptr;
       _gc.tag = 0;
       _lock.Lock();
       _cur.store(0, std::memory_order_release);
@@ -256,10 +257,10 @@ namespace bun {
   public:
     inline RingAlloc(RingAlloc&& mov) = default;
     inline explicit RingAlloc(size_t init = 8) : RingAllocVoid(init) {}
-    inline T* allocate(size_t cnt, const T* p = 0, size_t old = 0) noexcept { assert(!p); return (T*)RingAllocVoid::Alloc(cnt * sizeof(T)); }
+    inline T* allocate(size_t cnt, const T* p = nullptr, size_t old = 0) noexcept { assert(!p); return (T*)RingAllocVoid::Alloc(cnt * sizeof(T)); }
     inline void deallocate(T* p, size_t num = 0) noexcept { return RingAllocVoid::Dealloc(p); }
     inline RingAlloc& operator=(RingAlloc&& mov) noexcept = default;
   };
-}
+}*/
 
 #endif

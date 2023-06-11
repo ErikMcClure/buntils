@@ -139,7 +139,7 @@ namespace bun {
     CachePolicy() = default;
     inline explicit CachePolicy(size_t maxsize, size_t init = 64, size_t align = 1) : CacheAlloc(maxsize, init, align) {}
 
-    inline T* allocate(std::size_t cnt, T* p = 0, size_t old = 0) noexcept
+    inline T* allocate(std::size_t cnt, T* p = nullptr, size_t old = 0) noexcept
     {
       T* n = CacheAlloc::AllocT<T>(cnt);
       if(p)

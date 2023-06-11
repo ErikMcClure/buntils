@@ -78,8 +78,12 @@ void TEST_ALLOC_FUZZER_THREAD(TESTDEF::RETPAIR& __testret, A<T>& _alloc, int id)
     else
       pass = pass && TEST_ALLOC_FUZZER_REMOVE<A, T, VERIFY>(plist, _alloc, id);
   }
-  while(plist.Length())
+  while (plist.Length())
+  {
+    auto test = plist.Length();
     pass = pass && TEST_ALLOC_FUZZER_REMOVE<A, T, VERIFY>(plist, _alloc, id);
+    assert(plist.Length() == test - 1);
+  }
 
   TEST(pass);
 }

@@ -153,7 +153,9 @@ namespace bun {
     class Data = void,
     khint_t(*HashFunc)(const Key&) = &KH_AUTO_HASH<Key, false>,
     bool(*HashEqual)(const Key&, const Key&) = &KH_AUTO_EQUAL<Key, false>,
-    typename Alloc = StandardAllocator<std::byte>>
+    typename Alloc = StandardAllocator<std::byte>,
+    typename RECURSIVE_KEY = Key,
+    typename RECURSIVE_DATA = Data>
     class BUN_COMPILER_DLLEXPORT Hash : protected Alloc
   {
   public:
@@ -163,7 +165,7 @@ namespace bun {
     using FakeData = typename std::conditional<IsMap, Data, std::byte>::type;
     using GET = std::conditional_t<std::is_integral_v<FakeData> || std::is_enum_v<FakeData> || std::is_pointer_v<FakeData> || std::is_member_pointer_v<FakeData>, FakeData, typename internal::_HashGET<FakeData>::GET>;
 
-    Hash(const Hash& copy) requires(is_copy_constructible_or_incomplete_v<Key> && (!IsMap || is_copy_constructible_or_incomplete_v<Data>)) : Alloc(copy), n_buckets(0), flags(0), keys(0), vals(0), size(0), n_occupied(0), upper_bound(0)
+    Hash(const Hash& copy) requires(std::is_copy_constructible_v<RECURSIVE_KEY> && (!IsMap || std::is_copy_constructible_v<RECURSIVE_DATA>)) : Alloc(copy), n_buckets(0), flags(0), keys(0), vals(0), size(0), n_occupied(0), upper_bound(0)
     {
       if (copy.n_buckets > 0)
         _docopy(copy);
@@ -183,7 +185,7 @@ namespace bun {
       if (nbuckets > 0)
         _resize(nbuckets);
     }
-    Hash(khint_t nbuckets, const Alloc& alloc) requires !IsMap : Alloc(alloc), n_buckets(0), flags(0), keys(0), vals(0), size(0), n_occupied(0), upper_bound(0)
+    Hash(khint_t nbuckets, const Alloc& alloc) requires (!IsMap) : Alloc(alloc), n_buckets(0), flags(0), keys(0), vals(0), size(0), n_occupied(0), upper_bound(0)
     {
       if (nbuckets > 0)
         _resize(nbuckets);
@@ -204,8 +206,8 @@ namespace bun {
     inline khiter_t Insert(const Key& key, FakeData&& value) requires IsMap { return _insert<const Key&, Data&&>(key, std::move(value)); }
     inline khiter_t Insert(Key&& key, const FakeData& value) requires IsMap { return _insert<Key&&, const Data&>(std::move(key), value); }
     inline khiter_t Insert(Key&& key, FakeData&& value) requires IsMap { return _insert<Key&&, Data&&>(std::move(key), std::move(value)); }
-    inline khiter_t Insert(const Key& key) requires !IsMap { int r; return _put<const Key&>(key, &r); }
-    inline khiter_t Insert(Key&& key) requires !IsMap{ int r; return _put<Key&&>(std::move(key), &r); }
+    inline khiter_t Insert(const Key& key) requires (!IsMap) { int r; return _put<const Key&>(key, &r); }
+    inline khiter_t Insert(Key&& key) requires (!IsMap) { int r; return _put<Key&&>(std::move(key), &r); }
 
     void Clear()
     {
@@ -295,7 +297,7 @@ namespace bun {
       return true;
     }
 
-    Hash& operator=(const Hash& copy) requires(is_copy_constructible_or_incomplete_v<Key> && (!IsMap || is_copy_constructible_or_incomplete_v<Data>))
+    Hash& operator=(const Hash& copy) requires(std::is_copy_constructible_v<RECURSIVE_KEY> && (!IsMap || std::is_copy_constructible_v<RECURSIVE_DATA>))
     {
       Clear();
       if (!copy.n_buckets)
@@ -421,7 +423,7 @@ namespace bun {
       else
         assert(vals == 0);
     }
-    inline void _docopy(const Hash& copy) requires(is_copy_constructible_or_incomplete_v<Key> && (!IsMap || is_copy_constructible_or_incomplete_v<Data>))
+    inline void _docopy(const Hash& copy) requires(std::is_copy_constructible_v<RECURSIVE_KEY> && (!IsMap || std::is_copy_constructible_v<RECURSIVE_DATA>))
     {
       _resize(copy.n_buckets);
       assert(n_buckets == copy.n_buckets);
@@ -672,8 +674,8 @@ namespace bun {
     inline HashIns& operator =(const HashIns& right) = default;
     inline HashIns& operator =(HashIns&& mov) = default;
     inline bool operator()(const K& key) const { return BASE::operator()(key); }
-    inline bool operator()(const K& key, typename BASE::FakeData& v) const requires !std::is_void<T>::value { return BASE::operator()(key, v); }
-    inline typename BASE::GET operator[](const K& key) const requires !std::is_void<T>::value{ return BASE::operator[](key); }
+    inline bool operator()(const K& key, typename BASE::FakeData& v) const requires (!std::is_void<T>::value) { return BASE::operator()(key, v); }
+    inline typename BASE::GET operator[](const K& key) const requires (!std::is_void<T>::value) { return BASE::operator[](key); }
   };
 }
 

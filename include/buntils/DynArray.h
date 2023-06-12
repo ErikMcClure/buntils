@@ -10,11 +10,11 @@
 
 namespace bun {
   // Dynamic array
-  template<class T, typename CType = size_t, typename Alloc = StandardAllocator<T>>
-  class BUN_COMPILER_DLLEXPORT DynArray : protected ArrayBase<T, CType, Alloc>
+  template<class T, typename CType = size_t, typename Alloc = StandardAllocator<T>, typename RECURSIVE=T>
+  class BUN_COMPILER_DLLEXPORT DynArray : protected ArrayBase<T, CType, Alloc, RECURSIVE>
   {
   protected:
-    using BASE = ArrayBase<T, CType, Alloc>;
+    using BASE = ArrayBase<T, CType, Alloc, RECURSIVE>;
     using BASE::_array;
     using BASE::_capacity;
     template<class U, typename C, typename A>
@@ -24,9 +24,9 @@ namespace bun {
     using CT = typename BASE::CT;
     using Ty = typename BASE::Ty;
 
-    inline DynArray(const DynArray& copy) requires is_copy_constructible_or_incomplete_v<T> : BASE(copy._capacity, copy), _length(copy._length) { BASE::_copy(_array, copy._array, _length); }
+    inline DynArray(const DynArray& copy) requires std::is_copy_constructible_v<RECURSIVE> : BASE(copy._capacity, copy), _length(copy._length) { BASE::_copy(_array, copy._array, _length); }
     inline DynArray(DynArray&& mov) : BASE(std::move(mov)), _length(mov._length) { mov._length = 0; }
-    inline explicit DynArray(std::span<const T> s) requires (is_copy_constructible_or_incomplete_v<T> && std::is_default_constructible_v<Alloc>) : BASE(s.size()), _length(s.size()) { BASE::_copy(_array, s.data(), s.size()); }
+    inline explicit DynArray(std::span<const T> s) requires (std::is_copy_constructible_v<RECURSIVE> && std::is_default_constructible_v<Alloc>) : BASE(s.size()), _length(s.size()) { BASE::_copy(_array, s.data(), s.size()); }
     inline DynArray(CT capacity, const Alloc& alloc) : BASE(capacity, alloc), _length(0) {}
     inline explicit DynArray(CT capacity) requires std::is_default_constructible_v<Alloc> : BASE(capacity), _length(0) {}
     inline DynArray() requires std::is_default_constructible_v<Alloc> : BASE(0), _length(0) {}
@@ -49,8 +49,8 @@ namespace bun {
     BUN_FORCEINLINE void RemoveLast() { Remove(_length - 1); }
     BUN_FORCEINLINE void Insert(const T& item, CT index = 0) { _insert(item, index); }
     BUN_FORCEINLINE void Insert(T&& item, CT index = 0) { _insert(std::move(item), index); }
-    BUN_FORCEINLINE void Set(std::span<const T> slice)  requires is_copy_constructible_or_incomplete_v<T> { Set(slice.data(), slice.size()); }
-    BUN_FORCEINLINE void Set(const T* p, CT n) requires is_copy_constructible_or_incomplete_v<T>
+    BUN_FORCEINLINE void Set(std::span<const T> slice)  requires std::is_copy_constructible_v<RECURSIVE> { Set(slice.data(), slice.size()); }
+    BUN_FORCEINLINE void Set(const T* p, CT n) requires std::is_copy_constructible_v<RECURSIVE>
     {
       BASE::_setLength(_array, _length, 0);
       if(n > _capacity)
@@ -88,7 +88,7 @@ namespace bun {
 #endif
     BUN_FORCEINLINE operator T*() { return _array; }
     BUN_FORCEINLINE operator const T*() const { return _array; }
-    inline DynArray& operator=(const Array<T, CT, Alloc>& copy)  requires is_copy_constructible_or_incomplete_v<T>
+    inline DynArray& operator=(const Array<T, CT, Alloc>& copy)  requires std::is_copy_constructible_v<RECURSIVE>
     {
       BASE::_setLength(_array, _length, 0);
       if(copy._capacity > _capacity)
@@ -98,7 +98,7 @@ namespace bun {
       return *this;
     }
     inline DynArray& operator=(Array<T, CT, Alloc>&& mov) { BASE::_setLength(_array, _length, 0); BASE::operator=(std::move(mov)); _length = mov._capacity; return *this; }
-    inline DynArray& operator=(const DynArray& copy)  requires is_copy_constructible_or_incomplete_v<T>
+    inline DynArray& operator=(const DynArray& copy)  requires std::is_copy_constructible_v<RECURSIVE>
     {
       BASE::_setLength(_array, _length, 0);
       if(copy._length > _capacity)
@@ -108,15 +108,15 @@ namespace bun {
       return *this;
     }
     inline DynArray& operator=(DynArray&& mov) { BASE::_setLength(_array, _length, 0); BASE::operator=(std::move(mov)); _length = mov._length; mov._length = 0; return *this; }
-    inline DynArray& operator=(std::span<const T> copy) requires is_copy_constructible_or_incomplete_v<T> { Set(copy); return *this; }
-    inline DynArray& operator +=(const DynArray& add) requires is_copy_constructible_or_incomplete_v<T>
+    inline DynArray& operator=(std::span<const T> copy) requires std::is_copy_constructible_v<RECURSIVE> { Set(copy); return *this; }
+    inline DynArray& operator +=(const DynArray& add) requires std::is_copy_constructible_v<RECURSIVE>
     {
       BASE::_setCapacity(_length + add._length, _length);
       BASE::_copy(_array + _length, add._array, add._length);
       _length += add._length;
       return *this;
     }
-    inline DynArray operator +(const DynArray& add) const requires is_copy_constructible_or_incomplete_v<T>
+    inline DynArray operator +(const DynArray& add) const requires std::is_copy_constructible_v<RECURSIVE>
     {
       DynArray r(_length + add._length);
       BASE::_copy(r._array, _array, _length);

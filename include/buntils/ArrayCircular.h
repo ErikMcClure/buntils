@@ -9,11 +9,11 @@
 
 namespace bun {
   // Simple circular array implementation. Unlike most data structures, CType must be signed instead of unsigned
-  template<class T, typename CType = ptrdiff_t, typename Alloc = StandardAllocator<T>>  requires std::is_signed<CType>::value
-  class BUN_COMPILER_DLLEXPORT ArrayCircular : protected ArrayBase<T, CType, Alloc>
+  template<class T, typename CType = ptrdiff_t, typename Alloc = StandardAllocator<T>, typename RECURSIVE=T>  requires std::is_signed<CType>::value
+  class BUN_COMPILER_DLLEXPORT ArrayCircular : protected ArrayBase<T, CType, Alloc, RECURSIVE>
   {
   protected:
-    using BASE = ArrayBase<T, CType, Alloc>;
+    using BASE = ArrayBase<T, CType, Alloc, RECURSIVE>;
     using CT = typename BASE::CT;
     using Ty = typename BASE::Ty;
     using BASE::_array;
@@ -21,7 +21,7 @@ namespace bun {
 
   public:
     // Constructors
-    inline ArrayCircular(const ArrayCircular& copy) : BASE(0, copy), _cur(-1), _length(0) { operator=(copy); }
+    inline ArrayCircular(const ArrayCircular& copy) requires std::is_copy_constructible_v<RECURSIVE> : BASE(0, copy), _cur(-1), _length(0) { operator=(copy); }
     inline ArrayCircular(ArrayCircular&& mov) : BASE(std::move(mov)), _cur(mov._cur), _length(mov._length)
     { 
       mov._cur = -1;
@@ -97,7 +97,7 @@ namespace bun {
     }
     BUN_FORCEINLINE T& operator[](CT index) { return _array[_modIndex(index)]; } // an index of 0 is the most recent item pushed into the circular array.
     BUN_FORCEINLINE const T& operator[](CT index) const { return _array[_modIndex(index)]; }
-    inline ArrayCircular& operator=(const ArrayCircular& right) requires is_copy_constructible_or_incomplete_v<T>
+    inline ArrayCircular& operator=(const ArrayCircular& right) requires std::is_copy_constructible_v<RECURSIVE>
     {
       Clear();
       BASE::_setCapacityDiscard(right._capacity);

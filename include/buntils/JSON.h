@@ -13,6 +13,7 @@
 #include <istream>
 #include <ostream>
 #include <utility>
+#include <variant>
 
 namespace bun {
   class JSONEngine
@@ -143,10 +144,10 @@ namespace bun {
     static const size_t PRETTYFLAG = size_t(1) << ((sizeof(size_t) << 3) - 1);
   };
 
-  struct JSONValue : public Variant<Str, double, int64_t, bool, DynArray<JSONValue, size_t>, DynArray<std::pair<Str, JSONValue>, size_t>>
+  struct JSONValue : public Variant<Str, double, int64_t, bool, DynArray<JSONValue, size_t, StandardAllocator<JSONValue>, std::monostate>, DynArray<std::pair<Str, JSONValue>, size_t, StandardAllocator<std::pair<Str, JSONValue>>, std::monostate>>
   {
-    using JSONArray = DynArray<JSONValue, size_t>;
-    using JSONObject = DynArray<std::pair<Str, JSONValue>, size_t>;
+    using JSONArray = DynArray<JSONValue, size_t, StandardAllocator<JSONValue>, std::monostate>;
+    using JSONObject = DynArray<std::pair<Str, JSONValue>, size_t, StandardAllocator<std::pair<Str, JSONValue>>, std::monostate>;
     using BASE = Variant<Str, double, int64_t, bool, JSONArray, JSONObject>;
 
   public:

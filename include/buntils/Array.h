@@ -37,7 +37,7 @@ namespace bun {
 #endif
 
   // Handles the very basic operations of an array. Constructor management is done by classes that inherit this class.
-  template<class T, typename CType = size_t, typename Alloc = StandardAllocator<T>> requires std::is_integral<CType>::value
+  template<class T, typename CType = size_t, typename Alloc = StandardAllocator<T>, typename RECURSIVE=T> requires std::is_integral<CType>::value
   class BUN_COMPILER_DLLEXPORT ArrayBase : protected Alloc
   {
   public:
@@ -150,7 +150,7 @@ namespace bun {
         _setLength(src, n, 0);
       }
     }
-    static void _copy(T* BUN_RESTRICT dest, const T* BUN_RESTRICT src, CType n) requires is_copy_constructible_or_incomplete_v<T>
+    static void _copy(T* BUN_RESTRICT dest, const T* BUN_RESTRICT src, CType n) requires std::is_copy_constructible_v<RECURSIVE>
     {
       if (dest == nullptr || src == nullptr || !n)
         return;
@@ -158,7 +158,7 @@ namespace bun {
 
       if constexpr (std::is_trivially_copyable_v<T>)
         memcpy(dest, src, sizeof(T) * n);
-      else if constexpr (is_copy_constructible_or_incomplete_v<T>)
+      else if constexpr (std::is_copy_constructible_v<RECURSIVE>)
       {
         for (CType i = 0; i < n; ++i)
           new(dest + i) T(src[i]);
@@ -209,18 +209,18 @@ namespace bun {
   };
 
   // Wrapper for underlying arrays that expose the array, making them independently usable without blowing up everything that inherits them
-  template<class T, typename CType = size_t, typename Alloc = StandardAllocator<T>>
-  class BUN_COMPILER_DLLEXPORT Array : protected ArrayBase<T, CType, Alloc>
+  template<class T, typename CType = size_t, typename Alloc = StandardAllocator<T>, typename RECURSIVE=T>
+  class BUN_COMPILER_DLLEXPORT Array : protected ArrayBase<T, CType, Alloc, RECURSIVE>
   {
   protected:
-    using BASE = ArrayBase<T, CType, Alloc>;
+    using BASE = ArrayBase<T, CType, Alloc, RECURSIVE>;
     using CT = typename BASE::CT;
     using Ty = typename BASE::Ty;
     using BASE::_array;
     using BASE::_capacity;
 
   public:
-    inline Array(const Array& copy) requires is_copy_constructible_or_incomplete_v<T> : BASE(copy._capacity, copy) { BASE::_copy(_array, copy._array, _capacity); }
+    inline Array(const Array& copy) requires std::is_copy_constructible_v<RECURSIVE> : BASE(copy._capacity, copy) { BASE::_copy(_array, copy._array, _capacity); }
     inline Array(Array&& mov) : BASE(std::move(mov)) {}
     inline Array(const std::initializer_list<T>& list) : BASE(list.size())
     {
@@ -245,8 +245,8 @@ namespace bun {
     BUN_FORCEINLINE void RemoveLast() { Remove(_capacity - 1); }
     BUN_FORCEINLINE void Insert(const T& item, CT index = 0) { _insert(item, index); }
     BUN_FORCEINLINE void Insert(T&& item, CT index = 0) { _insert(std::move(item), index); }
-    BUN_FORCEINLINE void Set(std::span<const T> s) requires is_copy_constructible_or_incomplete_v<T> { Set(s.data(), s.size()); }
-    BUN_FORCEINLINE void Set(const T* p, CT n) requires is_copy_constructible_or_incomplete_v<T>
+    BUN_FORCEINLINE void Set(std::span<const T> s) requires std::is_copy_constructible_v<RECURSIVE> { Set(s.data(), s.size()); }
+    BUN_FORCEINLINE void Set(const T* p, CT n) requires std::is_copy_constructible_v<RECURSIVE>
     {
       BASE::_setLength(_array, _capacity, 0);
       BASE::_setCapacityDiscard(n);
@@ -288,7 +288,7 @@ namespace bun {
     inline T* data() noexcept { return _array; }
     inline const T* data() const noexcept { return _array; }
 
-    BUN_FORCEINLINE Array& operator=(const Array& copy) noexcept requires is_copy_constructible_or_incomplete_v<T>
+    BUN_FORCEINLINE Array& operator=(const Array& copy) noexcept requires std::is_copy_constructible_v<RECURSIVE>
     {
       BASE::_setLength(_array, _capacity, 0);
       BASE::_setCapacityDiscard(copy._capacity);
@@ -301,19 +301,19 @@ namespace bun {
       BASE::operator=(std::move(mov));
       return *this;
     }
-    BUN_FORCEINLINE Array& operator=(std::span<const T> copy) noexcept requires is_copy_constructible_or_incomplete_v<T>
+    BUN_FORCEINLINE Array& operator=(std::span<const T> copy) noexcept requires std::is_copy_constructible_v<RECURSIVE>
     {
       Set(copy);
       return *this;
     }
-    BUN_FORCEINLINE Array& operator +=(const Array& add) noexcept requires is_copy_constructible_or_incomplete_v<T>
+    BUN_FORCEINLINE Array& operator +=(const Array& add) noexcept requires std::is_copy_constructible_v<RECURSIVE>
     {
       CT old = _capacity;
       BASE::_setCapacity(_capacity + add._capacity, _capacity);
       BASE::_copy(_array + old, add._array, add._capacity);
       return *this;
     }
-    BUN_FORCEINLINE Array operator +(const Array& add) const noexcept requires is_copy_constructible_or_incomplete_v<T> { Array r(*this); return (r += add); }
+    BUN_FORCEINLINE Array operator +(const Array& add) const noexcept requires std::is_copy_constructible_v<RECURSIVE> { Array r(*this); return (r += add); }
 
     using SerializerArray = std::conditional_t<internal::is_pair_array<T>::value, void, T>;
     template<typename Engine>

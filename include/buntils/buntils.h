@@ -32,6 +32,7 @@
 #include <limits>
 #include <ostream>
 #include <utility>
+#include <algorithm>
 #ifdef BUN_PLATFORM_WIN32
 #include <intrin.h>
 #endif
@@ -122,14 +123,14 @@ namespace bun {
   BUN_FORCEINLINE T* bun_CAlloc(size_t sz) { return reinterpret_cast<T*>(calloc(sz, sizeof(T))); }
 
   // template inferred version of T_GETBIT and T_GETBITRANGE
-  template<class T>
-  inline constexpr T GetBitMask(int bit) noexcept { return T_GETBIT(T, bit); }
-  template<class T>
-  inline constexpr T GetBitMask(int low, int high) noexcept { return T_GETBITRANGE(T, low, high); }
-  template<class T>
+  template<class T> requires std::is_integral<T>::value
+  inline constexpr T GetBitMask(int bit) noexcept { using U = std::make_unsigned<T>::type; return T_GETBIT(U, bit); }
+  template<class T> requires std::is_integral<T>::value
+  inline constexpr T GetBitMask(int low, int high) noexcept { using U = std::make_unsigned<T>::type; return T_GETBITRANGE(U, low, high); }
+  template<class T> requires std::is_integral<T>::value
   BUN_FORCEINLINE T bun_SetBit(T word, T bit, bool v) noexcept { return (((word) & (~(bit))) | ((T)(-(typename std::make_signed<T>::type)v) & (bit))); }
 
-  template<class T>
+  template<class T> requires std::is_integral<T>::value
   BUN_FORCEINLINE constexpr bool bun_GetBit(T* p, size_t index) { return (p[index / (sizeof(T) << 3)] & (1 << (index % (sizeof(T) << 3)))) != 0; }
 
   // Replaces one character with another in a string
@@ -175,17 +176,15 @@ namespace bun {
   
   // This yields mathematically correct integer division (i/div) towards negative infinity, but only if div is a positive integer. This
   // implementation obviously must have integral types for T and D, but can be explicitely specialized to handle vectors or other structs.
-  template<typename T, typename D>
+  template<typename T, typename D> requires (std::is_integral<T>::value && std::is_integral<D>::value)
   inline T IntDiv(T i, D div) noexcept
   {
-    static_assert(std::is_integral<T>::value, "T must be integral");
-    static_assert(std::is_integral<D>::value, "D must be integral");
     assert(div > 0);
     return (i / div) - ((i < 0)&((i%div) != 0)); // If i is negative and has a nonzero remainder, subtract one to correct the truncation.
   }
 
   // Performs a compile-time safe shift (positive number shifts left, negative number shifts right), preventing undefined behavior.
-  template<typename T, int S>
+  template<typename T, int S> requires std::is_integral<T>::value
   BUN_FORCEINLINE T SafeShift(T v) noexcept
   {
     if constexpr(S > 0)
@@ -197,20 +196,18 @@ namespace bun {
   }
 
   // Performs a mathematically correct modulo, unlike the modulo operator, which doesn't actually perform modulo, it performs a remainder operation. THANKS GUYS!
-  template<typename T> //T must be integral
+  template<typename T> requires (std::is_signed<T>::value && std::is_integral<T>::value)
   BUN_FORCEINLINE T bun_Mod(T x, T m) noexcept
   {
-    static_assert(std::is_signed<T>::value && std::is_integral<T>::value, "T must be a signed integral type or this function is pointless");
     x %= m;
     return (x + ((-(T)(x < 0))&m));
     //return (x+((x<0)*m)); // This is a tad slower
   }
 
   // Performs a mathematically correct floating point modulo, unlike fmod, which performs a remainder operation, not a modulo operation.
-  template<typename T> //T must be floating point
+  template<typename T> requires std::is_floating_point<T>::value
   BUN_FORCEINLINE T bun_FMod(T x, T m) noexcept
   {
-    static_assert(std::is_floating_point<T>::value, "T must be a floating point type");
     return x - floor(x / m)*m;
   }
 
@@ -324,20 +321,17 @@ namespace bun {
   BUN_FORCEINLINE void FlipEndian(T* target) noexcept { FlipEndian<sizeof(T)>(reinterpret_cast<std::byte*>(target)); }
 
     // This is a bit-shift method of calculating the next number in the fibonacci sequence by approximating the golden ratio with 0.6171875 (1/2 + 1/8 - 1/128)
-  template<typename T>
+  template<typename T> requires std::is_integral<T>::value
   BUN_FORCEINLINE constexpr T fbnext(T x) noexcept
   {
-    static_assert(std::is_integral<T>::value, "T must be integral");
     return T_FBNEXT(x);
     //return x + 1 + (x>>1) + (x>>3) - (x>>7) + (x>>10) - (x>>13) - (x>>17) - (x>>21) + (x>>24); // 0.61803394 (but kind of pointless)
   }
 
   // Gets the sign of any integer (0 is assumed to be positive)
-  template<typename T>
+  template<typename T> requires (std::is_signed<T>::value && std::is_integral<T>::value)
   BUN_FORCEINLINE constexpr T tsign(T n) noexcept
   {
-    static_assert(std::is_integral<T>::value, "T must be a signed integer.");
-    static_assert(std::is_signed<T>::value, "T must be a signed integer.");
     return 1 | (n >> ((sizeof(T) << 3) - 1));
   }
 
@@ -364,18 +358,16 @@ namespace bun {
   }
 
   // Gets the shortest distance between two angles in radians
-  template<typename T>
+  template<typename T> requires std::is_floating_point<T>::value
   BUN_FORCEINLINE T AngleDist(T a, T b) noexcept
   {
-    static_assert(std::is_floating_point<T>::value, "T must be float, double, or long double");
     return ((T)PI) - fabs(fmod(fabs(a - b), ((T)PI_DOUBLE)) - ((T)PI));
   }
 
   // Gets the SIGNED shortest distance between two angles starting with (a - b) in radians
-  template<typename T>
+  template<typename T> requires std::is_floating_point<T>::value
   BUN_FORCEINLINE T AngleDistSigned(T a, T b) noexcept
   {
-    static_assert(std::is_floating_point<T>::value, "T must be float, double, or long double");
     return fmod(bun_FMod(b - a, (T)PI_DOUBLE) + ((T)PI), (T)PI_DOUBLE) - ((T)PI);
   }
 
@@ -591,7 +583,7 @@ namespace bun {
   }
 
   // bit-twiddling based method of calculating an integral square root from Wilco Dijkstra - http://www.finesse.demon.co.uk/steven/sqrt.html
-  template<typename T, size_t bits> // WARNING: bits should be HALF the actual number of bits in (T)!
+  template<typename T, size_t bits> requires std::is_integral<T>::value // WARNING: bits should be HALF the actual number of bits in (T)!
   inline T IntFastSqrt(T n) noexcept
   {
     static_assert(std::is_integral<T>::value, "T must be integral");
@@ -609,7 +601,7 @@ namespace bun {
     }
     return root >> 1;
   }
-  template<typename T>
+  template<typename T> requires std::is_integral<T>::value
   BUN_FORCEINLINE T IntFastSqrt(T n) noexcept
   {
     return IntFastSqrt<T, sizeof(T) << 2>(n); //done to ensure loop gets unwound (the bit conversion here is <<2 because the function wants HALF the bits in T, so <<3 >>1 -> <<2)
@@ -897,22 +889,22 @@ namespace bun {
     return r;
   }
 
-  template<class T, bool U = std::is_signed<T>::value>
-  BUN_FORCEINLINE typename std::enable_if<U, typename std::make_unsigned<T>::type>::type bun_Abs(T x) noexcept
+  template<class T> requires std::is_integral<T>::value
+  BUN_FORCEINLINE typename std::make_unsigned<T>::type bun_Abs(T x) noexcept
   {
-    static_assert(std::is_signed<T>::value, "T must be signed for this to work properly.");
-    T const mask = x >> ((sizeof(T) << 3) - 1); // Uses a bit twiddling hack to take absolute value without branching: https://graphics.stanford.edu/~seander/bithacks.html#IntegerAbs
-    return (x + mask) ^ mask;
+    if constexpr(std::is_signed<T>::value)
+    {
+      T const mask = x >> ((sizeof(T) << 3) - 1); // Uses a bit twiddling hack to take absolute value without branching: https://graphics.stanford.edu/~seander/bithacks.html#IntegerAbs
+      return (x + mask) ^ mask;
+    }
+    else
+      return x;
   }
 
-  template<class T, bool U = std::is_signed<T>::value>
-  BUN_FORCEINLINE typename std::enable_if<!U, T>::type bun_Abs(T x) noexcept { return x; }
-
-  template<class T>
+  template<class T> requires (std::is_integral<T>::value && std::is_unsigned<T>::value)
   inline typename std::make_signed<T>::type bun_Negate(T x, char negate) noexcept
   {
-    static_assert(std::is_unsigned<T>::value, "T must be unsigned for this to work properly.");
-    return (x ^ -negate) + negate;
+    return static_cast<T>(x ^ -negate) + negate;
   }
 
   namespace internal {

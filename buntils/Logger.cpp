@@ -63,7 +63,7 @@ void Logger::AddTarget(const char* file)
 {
   if(!file) return;
 #ifdef BUN_COMPILER_GCC 
-  _files.push_back(std::unique_ptr<std::ofstream>(new ofstream(BSSPOSIX_WCHAR(file), ios_base::out | ios_base::trunc)));
+  _files.push_back(std::unique_ptr<std::ofstream>(new ofstream(BUNPOSIX_WCHAR(file), ios_base::out | ios_base::trunc)));
   AddTarget(*_files.back());
 #else
   _files.push_back(ofstream(BUNPOSIX_WCHAR(file), ios_base::out | ios_base::trunc));

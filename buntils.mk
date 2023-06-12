@@ -6,9 +6,9 @@ C_SRCS := $(wildcard $(SRCDIR)/*.c)
 CXX_SRCS := $(wildcard $(SRCDIR)/*.cpp)
 INCLUDE_DIRS := include
 LIBRARY_DIRS := 
-LIBRARIES := rt :libfontconfig.so.1
+LIBRARIES := rt
 
-CPPFLAGS += -fPIC -D BSS_UTIL_EXPORTS -std=c++17 -DLIBICONV_PLUG -Wall -Wshadow -Wno-attributes -Wno-unknown-pragmas -Wno-reorder -Wno-missing-braces -Wno-unused-function -Wno-char-subscripts -fsanitize=signed-integer-overflow -fuse-ld=gold -Wno-class-memaccess
+CPPFLAGS += -fPIC -D BSS_UTIL_EXPORTS -std=c++20 -DLIBICONV_PLUG -Wall -Wshadow -Wno-attributes -Wno-unknown-pragmas -Wno-reorder -Wno-missing-braces -Wno-unused-function -Wno-char-subscripts -fsanitize=signed-integer-overflow -fuse-ld=gold -Wno-class-memaccess
 LDFLAGS += -shared
 
 include base.mk

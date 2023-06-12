@@ -10,6 +10,7 @@
 #include <vector>
 #include <stdarg.h>
 #include <format>
+#include <iterator>
 
 #define BUNLOG(logger,level,...) ((logger).Log(0,__FILE__,__LINE__,(level),__VA_ARGS__))
 

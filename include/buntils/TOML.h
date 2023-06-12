@@ -345,10 +345,10 @@ namespace bun {
   inline void ParseTOMLBase(Serializer<TOMLEngine>& e, T& obj, std::istream& s);
 
   // Represents an arbitrary TOML value in any of the standard storage types recognized by the format.
-  struct TOMLValue : public Variant<Str, double, int64_t, bool, std::chrono::system_clock::time_point, DynArray<TOMLValue, size_t>, Hash<Str, TOMLValue>>
+  struct TOMLValue : public Variant<Str, double, int64_t, bool, std::chrono::system_clock::time_point, DynArray<TOMLValue, size_t, StandardAllocator<TOMLValue>, std::monostate>, Hash<Str, TOMLValue, &KH_AUTO_HASH<Str, false>, &KH_AUTO_EQUAL<Str, false>, StandardAllocator<std::byte>, Str, std::monostate>>
   {
-    using TOMLArray = DynArray<TOMLValue, size_t>;
-    using TOMLTable = Hash<Str, TOMLValue>; // All objects in TOML are tables
+    using TOMLArray = DynArray<TOMLValue, size_t, StandardAllocator<TOMLValue>, std::monostate>;
+    using TOMLTable = Hash<Str, TOMLValue, &KH_AUTO_HASH<Str, false>, &KH_AUTO_EQUAL<Str, false>, StandardAllocator<std::byte>, Str, std::monostate>; // All objects in TOML are tables
     using BASE = Variant<Str, double, int64_t, bool, std::chrono::system_clock::time_point, TOMLArray, TOMLTable>;
 
   public:

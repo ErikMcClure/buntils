@@ -10,7 +10,7 @@ using namespace bun;
 
 struct JSONtest2
 {
-  DynArray<JSONtest2, uint32_t> value;
+  DynArray<JSONtest2, uint32_t, StandardAllocator<JSONtest2>, std::monostate> value;
   std::array<int, 2> ia;
 
   template<typename Engine>
@@ -30,7 +30,7 @@ struct JSONtest
   DynArray<uint16_t> foo;
   std::vector<double> bar;
   DynArray<Str, uint16_t> foobar;
-  DynArray<JSONtest, uint32_t> nestarray;
+  DynArray<JSONtest, uint32_t, StandardAllocator<JSONtest>, std::monostate> nestarray;
   JSONtest2 nested2;
   bool btrue;
   bool bfalse;

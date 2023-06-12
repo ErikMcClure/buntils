@@ -13,6 +13,7 @@
 #include <ostream>
 #include <limits>
 #include <functional>
+#include <variant>
 
 namespace bun {
   struct BUN_DLLEXPORT UBJSONTuple
@@ -41,8 +42,8 @@ namespace bun {
       TYPE_TYPE = '$',
       TYPE_COUNT = '#',
     };
-    using UBJSONArray = DynArray<UBJSONTuple>;
-    using UBJSONObject = DynArray<std::pair<Str, UBJSONTuple>>;
+    using UBJSONArray = DynArray<UBJSONTuple, size_t, StandardAllocator<UBJSONTuple>, std::monostate>;
+    using UBJSONObject = DynArray<std::pair<Str, UBJSONTuple>, size_t, StandardAllocator<std::pair<Str, UBJSONTuple>>, std::monostate>;
 
     UBJSONTuple(const UBJSONTuple& copy);
     UBJSONTuple(UBJSONTuple&& mov);

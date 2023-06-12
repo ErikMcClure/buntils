@@ -129,9 +129,9 @@ namespace bun {
     inline StrT(const OTHER_C* text, size_t count) : BASE() { if(text != 0) _convStr(text, count); }
     inline StrT(const OTHER_C2* text) : BASE() { if(text != 0) _convStr2(text, -1); }
     inline StrT(const OTHER_C2* text, size_t count) : BASE() { if(text != 0) _convStr2(text, count); }
-    StrT(uint16_t index, const CHAR* text, const CHAR delim) : BASE() //Creates a new string from the specified chunk
+    StrT(unsigned short index, const CHAR* text, const CHAR delim) : BASE() //Creates a new string from the specified chunk
     {
-      for(uint16_t i = 0; i < index; ++i)
+      for(unsigned short i = 0; i < index; ++i)
       {
         if(text) text = STRCT::SCHR(text, (int)delim);
         if(text) text++;

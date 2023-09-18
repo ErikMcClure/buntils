@@ -717,7 +717,7 @@ BUN_ALIGNED_STRUCT(16) sseVecT<int32_t>
   BUN_FORCEINLINE sseVecT(BUN_SSE_M128i v) : xmm(v) {} //__fastcall is obviously useless here since we're dealing with xmm registers
   BUN_FORCEINLINE explicit sseVecT(BUN_SSE_M128 v) : xmm(BUN_SSE_TPS_EPI32(v)) {}
   BUN_FORCEINLINE explicit sseVecT(BUN_SSE_M128d v) : xmm(BUN_SSE_TPD_EPI32(v)) {}
-  BUN_FORCEINLINE sseVecT(BUN_SSE_M128 v, char round) : xmm(BUN_SSE_PS_EPI32(v)) {}
+  BUN_FORCEINLINE sseVecT(BUN_SSE_M128 v, [[maybe_unused]] char round) : xmm(BUN_SSE_PS_EPI32(v)) {}
   BUN_FORCEINLINE sseVecT(int v) : xmm(BUN_SSE_SET1_EPI32(v)) {}
   //BUN_FORCEINLINE sseVecT<int>(const int*BUN_RESTRICT v) : xmm(BUN_SSE_LOAD_ASI128(v)) { assert(!(((size_t)v)%16)); }
   BUN_FORCEINLINE explicit sseVecT(const int(&v)[4]) : xmm(BUN_SSE_LOAD_ASI128((BUN_SSE_M128i*)v)) { assert(!(((size_t)v) % 16)); }

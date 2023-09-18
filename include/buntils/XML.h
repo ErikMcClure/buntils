@@ -27,15 +27,15 @@ namespace bun {
     inline XMLValue& operator=(XMLValue&& mov) { Name = std::move(mov.Name); String = std::move(mov.String); Float = mov.Float; Integer = mov.Integer; return *this; }
 
     BUN_FORCEINLINE operator bool() const { return Integer != 0; } // If the string is "true" the integer gets set to 1 by the parser.
-    BUN_FORCEINLINE operator char() const { return (char)Integer; }
-    BUN_FORCEINLINE operator short() const { return (short)Integer; }
-    BUN_FORCEINLINE operator int() const { return (int)Integer; }
-    BUN_FORCEINLINE operator int64_t() const { return (int64_t)Integer; }
-    BUN_FORCEINLINE operator uint8_t() const { return (uint8_t)Integer; }
-    BUN_FORCEINLINE operator uint16_t() const { return (uint16_t)Integer; }
-    BUN_FORCEINLINE operator uint32_t() const { return (uint32_t)Integer; }
-    BUN_FORCEINLINE operator uint64_t() const { return (uint64_t)Integer; }
-    BUN_FORCEINLINE operator float() const { return (float)Float; }
+    BUN_FORCEINLINE operator char() const { return static_cast<char>(Integer); }
+    BUN_FORCEINLINE operator short() const { return static_cast<short>(Integer); }
+    BUN_FORCEINLINE operator int() const { return static_cast<int>(Integer); }
+    BUN_FORCEINLINE operator int64_t() const { return static_cast<int64_t>(Integer); }
+    BUN_FORCEINLINE operator uint8_t() const { return static_cast<uint8_t>(Integer); }
+    BUN_FORCEINLINE operator uint16_t() const { return static_cast<uint16_t>(Integer); }
+    BUN_FORCEINLINE operator uint32_t() const { return static_cast<uint32_t>(Integer); }
+    BUN_FORCEINLINE operator uint64_t() const { return static_cast<uint64_t>(Integer); }
+    BUN_FORCEINLINE operator float() const { return static_cast<float>(Float); }
     BUN_FORCEINLINE operator double() const { return Float; }
     BUN_FORCEINLINE operator const char*() const { return String; }
   };
@@ -254,7 +254,7 @@ namespace bun {
       }
     }
     template<typename T>
-    static void ParseNumber(Serializer<XMLEngine>& e, T& t, const char* id)
+    static void ParseNumber(Serializer<XMLEngine>& e, T& t, [[maybe_unused]] const char* id)
     {
       const XMLValue* v = e.engine.curvalue;
 
@@ -263,7 +263,7 @@ namespace bun {
       else
         t = static_cast<T>(v->Integer);
     }
-    static void ParseBool(Serializer<XMLEngine>& e, bool& t, const char* id)
+    static void ParseBool(Serializer<XMLEngine>& e, bool& t, [[maybe_unused]] const char* id)
     {
       const XMLValue* v = e.engine.curvalue;
 

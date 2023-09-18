@@ -28,9 +28,9 @@ namespace bun {
       BUN_FORCEINLINE bool operator!=(bool right) const { return right != operator bool(); }
       BUN_FORCEINLINE bool operator&&(bool right) const { return right && operator bool(); }
       BUN_FORCEINLINE bool operator||(bool right) const { return right || operator bool(); }
-      BUN_FORCEINLINE char operator|(char right) const { return right | (char)operator bool(); }
-      BUN_FORCEINLINE char operator&(char right) const { return right & (char)operator bool(); }
-      BUN_FORCEINLINE char operator^(char right) const { return right ^ (char)operator bool(); }
+      BUN_FORCEINLINE char operator|(char right) const { return right | static_cast<char>(operator bool()); }
+      BUN_FORCEINLINE char operator&(char right) const { return right & static_cast<char>(operator bool()); }
+      BUN_FORCEINLINE char operator^(char right) const { return right ^ static_cast<char>(operator bool()); }
       BUN_FORCEINLINE std::pair<const T&, T> GetState() const { return std::pair<const T&, T>(_bits, _bit); }
 
       typedef T Ty;

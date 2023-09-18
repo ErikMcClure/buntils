@@ -80,7 +80,7 @@ void Profiler::WriteToStream(std::ostream& stream, uint8_t output)
   if(output & OUTPUT_TREE)
   {
     stream << "BUN Profiler Tree Output: " << std::endl;
-    _treeOut(stream, _trie, 0, -1, 0);
+    _treeOut(stream, _trie, 0, (size_t)~0, 0);
     stream << std::endl << std::endl;
   }
   if(output & OUTPUT_FLAT)
@@ -105,13 +105,13 @@ void Profiler::WriteToStream(std::ostream& stream, uint8_t output)
     PROF_HEATNODE root;
     _heatOut(root, _trie, 0, 0);
     stream << "BUN Profiler Heat Output: " << std::endl;
-    _heatWrite(stream, root, -1, _heatFindMax(root));
+    _heatWrite(stream, root, (size_t)~0, _heatFindMax(root));
   }
 }
 void Profiler::_treeOut(std::ostream& stream, PROF_TRIENODE* node, ProfilerInt id, size_t level, ProfilerInt idlevel)
 {
   if(!node) return;
-  if(node->total != (uint64_t)-1)
+  if(node->total != (uint64_t)~0)
   {
     for(size_t i = 0; i < level * 2; ++i) stream.put(' ');
     stream << '[' << _trimPath(_data[id]->file) << ':' << _data[id]->line << "] " << _data[id]->name << ": ";

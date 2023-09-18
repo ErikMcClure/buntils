@@ -224,6 +224,8 @@
 #endif
 #endif
 
+#pragma warning(push)
+#pragma warning(disable:4201)
 typedef union BUN_VERSION_INFO {
   struct {
     unsigned short Build;
@@ -234,5 +236,6 @@ typedef union BUN_VERSION_INFO {
   unsigned short v[4];
   unsigned long long version;
 } bun_VersionInfo;
+#pragma warning(pop)
 
 #endif

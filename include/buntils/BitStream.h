@@ -100,13 +100,12 @@ namespace bun {
   };
 
   // This is a function that takes a basic type and serializes it, converting it to little-endian format if necessary
-  template<class T>
-  void bun_Serialize(T d, std::ostream& s)
+  void bun_Serialize(auto d, std::ostream& s)
   {
 #ifdef BUN_ENDIAN_BIG
     FlipEndian(&d);
 #endif
-    s.write((const char*)&d, sizeof(T));
+    s.write((const char*)&d, sizeof(decltype(d)));
   }
   template<>
   void bun_Serialize<const char*>(const char* d, std::ostream& s)

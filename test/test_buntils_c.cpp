@@ -29,7 +29,7 @@ std::string arbitraryview(const CHAR* src, size_t len)
 {
   std::string r;
   for(size_t i = 0; i < len; ++i)
-    r += (char)src[i];
+    r += static_cast<char>(src[i]);
   return r;
 }
 template<typename FROM, typename TO>
@@ -163,14 +163,14 @@ TESTDEF::RETPAIR test_buntils_c()
   char32_t outstr[1024];
   wchar_t wstr[1024];
   char instr[1024];
-  for(size_t i = 0; i < 1023; ++i) instr[i] = (char)bun_RandInt(0, 256);
+  for(size_t i = 0; i < 1023; ++i) instr[i] = static_cast<char>(bun_RandInt(0, 256));
   instr[1023] = 0;
 
   size_t len = UTF8toUTF32(instr, -1, 0, 0);
   TEST(len < 1024);
   TEST(UTF8toUTF32(instr, -1, outstr, len) <= len);
 
-  for(size_t i = 0; i < 255; ++i) outstr[i] = (char32_t)bun_RandInt(0, 0xFFFFFFFF);
+  for(size_t i = 0; i < 255; ++i) outstr[i] = static_cast<char32_t>(bun_RandInt(0, 0xFFFFFFFF));
   outstr[255] = 0;
 
   len = UTF32toUTF8(outstr, -1, 0, 0);

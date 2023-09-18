@@ -214,7 +214,7 @@ namespace bun {
         r = n;
       if(r > 0)
         MEMCPY(pptr(), r, s, r);
-      pbump(r);
+      pbump(static_cast<int>(r));
       _fixlength();
       n -= r;
       s += r;
@@ -299,7 +299,7 @@ namespace bun {
         r = n;
       if(r > 0)
         MEMCPY(pptr(), r, s, r);
-      pbump(r);
+      pbump(static_cast<int>(r));
       n -= r;
       s += r;
       if(n)

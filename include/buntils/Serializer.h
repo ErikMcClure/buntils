@@ -358,14 +358,11 @@ namespace bun {
       //r_findparse<sizeof...(Args)-1, Args...>(e, trie[key], args);
     }
 
-    template<class T>
-    static inline void FixedAdd(Serializer<Engine>& e, T& obj, int& n) { if(n < (std::end(obj) - std::begin(obj))) Serializer<Engine>::template ActionBind<remove_cvref_t<decltype(obj[0])>>::Parse(e, obj[n++], 0); }
+    static inline void FixedAdd(Serializer<Engine>& e, auto& obj, int& n) { if(n < (std::end(obj) - std::begin(obj))) Serializer<Engine>::template ActionBind<remove_cvref_t<decltype(obj[0])>>::Parse(e, obj[n++], 0); }
 
-    template<class T>
-    static inline bool FixedRead(Serializer<Engine>& e, T& obj, int64_t count) { return e.BulkRead(std::begin(obj), std::end(obj), count); }
+    static inline bool FixedRead(Serializer<Engine>& e, auto& obj, int64_t count) { return e.BulkRead(std::begin(obj), std::end(obj), count); }
 
-    template<class T>
-    static inline bool DisabledRead(Serializer<Engine>& e, T& obj, int64_t count) { return false; }
+    static inline bool DisabledRead(Serializer<Engine>& e, auto& obj, int64_t count) { return false; }
 
     template<class T, class C, void (T::*SET)(C)>
     static inline bool DynamicRead(Serializer<Engine>& e, T& obj, int64_t count)
@@ -420,24 +417,24 @@ namespace bun {
   {
   public:
     static constexpr bool Ordered() { return false; }
-    static void Begin(Serializer<EmptyEngine>& e) {}
-    static void End(Serializer<EmptyEngine>& e) {}
+    static void Begin(Serializer<EmptyEngine>&) {}
+    static void End(Serializer<EmptyEngine>&) {}
     template<typename T>
-    static void Serialize(Serializer<EmptyEngine>& e, const T& obj, const char* id) {}
+    static void Serialize(Serializer<EmptyEngine>&, const T&, const char*) {}
     template<typename T>
-    static void SerializeArray(Serializer<EmptyEngine>& e, const T& obj, size_t size, const char* id) {}
+    static void SerializeArray(Serializer<EmptyEngine>&, const T&, size_t, const char*) {}
     template<typename T, size_t... S> // OPTIONAL. Throw an error if not supported
-    static void SerializeTuple(Serializer<EmptyEngine>& e, const T& obj, const char* id, std::index_sequence<S...>) { throw std::runtime_error("Serialization of tuples not supported!"); }
+    static void SerializeTuple(Serializer<EmptyEngine>&, const T&, const char*, std::index_sequence<S...>) { throw std::runtime_error("Serialization of tuples not supported!"); }
     template<typename T>
-    static void SerializeNumber(Serializer<EmptyEngine>& e, T obj, const char* id) {}
-    static void SerializeBool(Serializer<EmptyEngine>& e, bool obj, const char* id) {}
+    static void SerializeNumber(Serializer<EmptyEngine>&, T, const char*) {}
+    static void SerializeBool(Serializer<EmptyEngine>&, bool, const char*) {}
     template<typename T>
-    static void Parse(Serializer<EmptyEngine>& e, T& obj, const char* id) {}
-    template<typename T, typename E, void(*Add)(Serializer<EmptyEngine>& e, T& obj, int& n), bool(*Read)(Serializer<EmptyEngine>& e, T& obj, int64_t count)>
-    static void ParseArray(Serializer<EmptyEngine>& e, T& obj, const char* id) {}
+    static void Parse(Serializer<EmptyEngine>&, T&, const char*) {}
+    template<typename T, typename E, void(*Add)(Serializer<EmptyEngine>&, T&, int&), bool(*Read)(Serializer<EmptyEngine>&, T&, int64_t)>
+    static void ParseArray(Serializer<EmptyEngine>&, T&, const char*) {}
     template<typename T>
-    static void ParseNumber(Serializer<EmptyEngine>& e, T& obj, const char* id) {}
-    static void ParseBool(Serializer<EmptyEngine>& e, bool& obj, const char* id) {}
+    static void ParseNumber(Serializer<EmptyEngine>&, T&, const char*) {}
+    static void ParseBool(Serializer<EmptyEngine>&, bool&, const char*) {}
     template<typename F>
     static void ParseMany(Serializer<EmptyEngine>& e, F && f) { f(e, ""); }
   };

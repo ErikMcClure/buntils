@@ -260,7 +260,7 @@ int64_t bun::GetRegistryValueW(HKEY__* hKeyRoot, const wchar_t* szKey, const wch
 {
   HKEY__* hKey;
   LRESULT e = RegOpenKeyExW(hKeyRoot, szKey, 0, KEY_READ, &hKey);
-  if(!hKey) return -2;
+  if(e != ERROR_SUCCESS || !hKey) return -2;
   LSTATUS r = RegQueryValueExW(hKey, szValue, 0, 0, data, &sz);
   RegCloseKey(hKey);
   if(r == ERROR_SUCCESS)
@@ -375,7 +375,7 @@ int bun::DelRegistryNodeW(HKEY__* hKeyRoot, const wchar_t* lpSubKey)
 namespace bun {
   struct BUNFONT
   {
-    BUNFONT(const ENUMLOGFONTEX* fontex, DWORD elftype) : weight((short)fontex->elfLogFont.lfWeight), italic(fontex->elfLogFont.lfItalic != 0), type((char)elftype)
+    BUNFONT(const ENUMLOGFONTEX* fontex, DWORD elftype) : weight(static_cast<short>(fontex->elfLogFont.lfWeight)), italic(fontex->elfLogFont.lfItalic != 0), type(static_cast<char>(elftype))
     {
       memcpy_s(elfFullName, sizeof(wchar_t)*LF_FULLFACESIZE, fontex->elfFullName, sizeof(wchar_t)*LF_FULLFACESIZE);
     }

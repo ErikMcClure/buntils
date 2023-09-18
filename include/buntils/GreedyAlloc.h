@@ -195,7 +195,7 @@ namespace bun {
       }
       return n;
     }
-    inline void deallocate(T* p, std::size_t num = 0) noexcept { GreedyAlloc::Dealloc(p); }
+    inline void deallocate(T* p, [[maybe_unused]] std::size_t num = 0) noexcept { GreedyAlloc::Dealloc(p); }
     inline void Clear() noexcept { GreedyAlloc::Clear(); }
   };
 }

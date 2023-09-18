@@ -292,7 +292,7 @@ namespace bun {
   // Converts 32-bit unicode int to a series of utf8 encoded characters, appending them to the string
   inline void OutputUnicode(std::string& s, int c) noexcept
   {
-    if(c < 0x0080) s += c;
+    if(c < 0x0080) s += static_cast<char>(c);
     else if(c < 0x0800) { s += (0xC0 | c >> (6 * 1)); s += (0x80 | (c & 0x3F)); }
     else if(c < 0x10000) { s += (0xE0 | c >> (6 * 2)); s += (0x80 | (c & 0x0FC0) >> (6 * 1)); s += (0x80 | (c & 0x3F)); }
     else if(c < 0x10FFFF) { s += (0xF0 | c >> (6 * 3)); s += (0x80 | (c & 0x03F000) >> (6 * 2)); s += (0x80 | (c & 0x0FC0) >> (6 * 1)); s += (0x80 | (c & 0x3F)); }

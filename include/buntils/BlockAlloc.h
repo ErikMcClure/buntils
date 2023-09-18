@@ -155,15 +155,14 @@ namespace bun {
     inline BlockPolicySize(BlockPolicySize&& mov) = default;
     inline explicit BlockPolicySize(size_t init = 8) : BlockAlloc(SIZE, init, ALIGN) { static_assert((SIZE >= sizeof(void*)), "SIZE cannot be less than the size of a pointer"); }
     template<class T>
-    BUN_FORCEINLINE T* allocate(size_t cnt, const T* p = nullptr)
+    BUN_FORCEINLINE T* allocate(size_t cnt, [[maybe_unused]] const T* p = nullptr)
     {
       assert(!p);
       static_assert((sizeof(T) <= SIZE), "sizeof(T) must be less than SIZE");
       static_assert((alignof(T) <= ALIGN) && !(ALIGN % alignof(T)), "alignof(T) must be less than ALIGN and be a multiple of it");
       return BlockAlloc::AllocT<T>(cnt);
     }
-    template<class T>
-    BUN_FORCEINLINE void deallocate(T* p, size_t num = 0) noexcept { BlockAlloc::Dealloc(p); }
+    BUN_FORCEINLINE void deallocate(auto* p, [[maybe_unused]] size_t num = 0) noexcept { BlockAlloc::Dealloc(p); }
     BUN_FORCEINLINE void Clear() { BlockAlloc::Clear(); }
     BlockPolicySize& operator=(BlockPolicySize&& mov) = default;
   };
@@ -173,8 +172,8 @@ namespace bun {
   {
     inline BlockPolicy(BlockPolicy&& mov) : BlockAlloc(std::move(mov)) {}
     inline explicit BlockPolicy(size_t init = 8) : BlockAlloc(sizeof(T), init, alignof(T)) {}
-    BUN_FORCEINLINE T* allocate(size_t cnt, const T* p = nullptr, size_t old = 0) noexcept { assert(!p); return BlockAlloc::AllocT<T>(cnt); }
-    BUN_FORCEINLINE void deallocate(T* p, size_t num = 0) noexcept { BlockAlloc::Dealloc(p); }
+    BUN_FORCEINLINE T* allocate(size_t cnt, const T* p = nullptr, [[maybe_unused]] size_t old = 0) noexcept { assert(!p); return BlockAlloc::AllocT<T>(cnt); }
+    BUN_FORCEINLINE void deallocate(T* p, [[maybe_unused]] size_t num = 0) noexcept { BlockAlloc::Dealloc(p); }
     BUN_FORCEINLINE void Clear() { BlockAlloc::Clear(); }
     BlockPolicy& operator=(BlockPolicy&& mov) { BlockAlloc::operator=(std::move(mov)); return *this; }
   };

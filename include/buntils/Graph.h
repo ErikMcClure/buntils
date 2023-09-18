@@ -35,8 +35,8 @@ namespace bun {
       static BUN_FORCEINLINE void _setDataE(VoidData<E>& t, const E* d) { t.data = *d; }
     };
     template<> struct __Graph__InternalEdge<void> {
-      static BUN_FORCEINLINE void _getData(char& target, const VoidData<void>& t) { target = 1; }
-      static BUN_FORCEINLINE void _setDataE(VoidData<void>& t, const void* d) {}
+      static BUN_FORCEINLINE void _getData(char& target, const VoidData<void>&) { target = 1; }
+      static BUN_FORCEINLINE void _setDataE(VoidData<void>&, const void*) {}
     };
 
     template<typename V, typename CT>
@@ -47,9 +47,9 @@ namespace bun {
     };
     template<typename CT>
     struct __Graph__InternalVertex<void, CT> {
-      static BUN_FORCEINLINE void _setDataV(VoidData<void>& t, const void* d) {}
-      static BUN_FORCEINLINE void _setVertex(void* v, CT i, const VoidData<void>& t) {}
-      static BUN_FORCEINLINE const void* _addVertex(const void* v, CT i) { return 0; }
+      static BUN_FORCEINLINE void _setDataV(VoidData<void>&, const void*) {}
+      static BUN_FORCEINLINE void _setVertex(void*, CT, const VoidData<void>&) {}
+      static BUN_FORCEINLINE const void* _addVertex(const void*, CT) { return 0; }
     };
   }
 

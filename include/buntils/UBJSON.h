@@ -64,14 +64,14 @@ namespace bun {
       switch(Type)
       {
       case TYPE_CHAR:
-      case TYPE_INT8: Int8 = (char)n; break;
-      case TYPE_UINT8: UInt8 = (uint8_t)n; break;
-      case TYPE_INT16: Int16 = (short)n; break;
-      case TYPE_INT32: Int32 = (int32_t)n; break;
-      case TYPE_INT64: Int64 = (int64_t)n; break;
-      case TYPE_FLOAT: Float = (float)n; break;
+      case TYPE_INT8: Int8 = static_cast<char>(n); break;
+      case TYPE_UINT8: UInt8 = static_cast<uint8_t>(n); break;
+      case TYPE_INT16: Int16 = static_cast<short>(n); break;
+      case TYPE_INT32: Int32 = static_cast<int32_t>(n); break;
+      case TYPE_INT64: Int64 = static_cast<int64_t>(n); break;
+      case TYPE_FLOAT: Float = static_cast<float>(n); break;
       case TYPE_BIGNUM:
-      case TYPE_DOUBLE: Double = (double)n; break;
+      case TYPE_DOUBLE: Double = static_cast<double>(n); break;
       default: assert(false); break;
       }
     }
@@ -271,8 +271,8 @@ namespace bun {
   public:
     UBJSONEngine() : type(UBJSONTuple::TYPE_NONE) {}
     static constexpr bool Ordered() { return false; }
-    static void Begin(Serializer<UBJSONEngine>& e) {}
-    static void End(Serializer<UBJSONEngine>& e) {}
+    static void Begin(Serializer<UBJSONEngine>&) {}
+    static void End(Serializer<UBJSONEngine>&) {}
     template<typename T>
     static void Parse(Serializer<UBJSONEngine>& e, T& obj, const char* id)
     {
@@ -333,7 +333,7 @@ namespace bun {
       assert(tuple.Type == UBJSONTuple::TYPE_ARRAY);
     }
     template<typename T>
-    static void ParseNumber(Serializer<UBJSONEngine>& e, T& obj, const char* id)
+    static void ParseNumber(Serializer<UBJSONEngine>& e, T& obj, [[maybe_unused]] const char* id)
     {
       UBJSONTuple tuple;
       tuple.Parse(*e.in, e.engine.type);
@@ -355,7 +355,7 @@ namespace bun {
       default: assert(false); break;
       }
     }
-    static void ParseBool(Serializer<UBJSONEngine>& e, bool& obj, const char* id)
+    static void ParseBool(Serializer<UBJSONEngine>& e, bool& obj, [[maybe_unused]] const char* id)
     {
       UBJSONTuple tuple;
       tuple.Parse(*e.in, e.engine.type);

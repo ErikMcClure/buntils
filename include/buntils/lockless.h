@@ -168,7 +168,7 @@ namespace bun {
     };
 #ifdef BUN_64BIT
     template<typename T> struct ASMCAS_REGPICK_READ<T, 16> {
-      BUN_FORCEINLINE static bool asmcas(volatile T *dest, T newval, T oldval, T& retval)
+      BUN_FORCEINLINE static bool asmcas(volatile T *dest, T newval, [[maybe_unused]] T oldval, T& retval)
       {
         assert(!(((size_t)dest) % 16));
         char r = _InterlockedCompareExchange128((volatile int64_t*)dest, ((int64_t*)&newval)[1], ((int64_t*)&newval)[0], (int64_t*)&retval); return r != 0;

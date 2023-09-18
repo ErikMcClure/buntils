@@ -59,7 +59,7 @@ namespace bun {
       }
     }
 
-    inline void* alloc(size_t blocks, void* p = nullptr, size_t old = 0) noexcept
+    inline void* alloc(size_t blocks, void* p = nullptr, [[maybe_unused]] size_t old = 0) noexcept
     {
       assert(blocks == 1 && !p);
 #ifdef BUN_DISABLE_CUSTOM_ALLOCATORS
@@ -93,7 +93,7 @@ namespace bun {
       //assert(_validPointer(ret));
       return ret.p;
     }
-    inline void dealloc(void* p, size_t num = 0) noexcept
+    inline void dealloc(void* p, [[maybe_unused]] size_t num = 0) noexcept
     {
 #ifdef BUN_DISABLE_CUSTOM_ALLOCATORS
       free(p); return;

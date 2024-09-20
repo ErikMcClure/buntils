@@ -172,7 +172,7 @@ namespace bun {
     {
       T pair;
       std::get<0>(pair) = name;
-      Serializer<Engine>::template ActionBind<remove_cvref_t<std::tuple_element_t<1, T>>>::Parse(e, std::get<1>(pair), name);
+      Serializer<Engine>::template ActionBind<std::remove_cvref_t<std::tuple_element_t<1, T>>>::Parse(e, std::get<1>(pair), name);
       Push(pair);
     }
     template<typename Engine>

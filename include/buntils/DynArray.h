@@ -23,7 +23,7 @@ namespace bun {
   public:
     using CT = typename BASE::CT;
     using Ty = typename BASE::Ty;
-
+    
     inline DynArray(const DynArray& copy) requires std::is_copy_constructible_v<RECURSIVE> : BASE(copy._capacity, copy), _length(copy._length) { BASE::_copy(_array, copy._array, _length); }
     inline DynArray(DynArray&& mov) : BASE(std::move(mov)), _length(mov._length) { mov._length = 0; }
     inline explicit DynArray(std::span<const T> s) requires (std::is_copy_constructible_v<RECURSIVE> && std::is_default_constructible_v<Alloc>) : BASE(s.size()), _length(s.size()) { BASE::_copy(_array, s.data(), s.size()); }
@@ -140,7 +140,7 @@ namespace bun {
     {
       T pair;
       std::get<0>(pair) = name;
-      Serializer<Engine>::template ActionBind<remove_cvref_t<std::tuple_element_t<1, T>>>::Parse(e, std::get<1>(pair), name);
+      Serializer<Engine>::template ActionBind<std::remove_cvref_t<std::tuple_element_t<1, T>>>::Parse(e, std::get<1>(pair), name);
       Add(pair);
     }
     template<typename Engine>

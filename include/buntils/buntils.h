@@ -1009,10 +1009,6 @@ namespace bun {
   template <typename T, int N>
   struct is_specialization_of_array<std::array<T, N>> : std::true_type {};
 
-  // Implements remove_cvref from the C++20 standard
-  template<class T> struct remove_cvref { using type = std::remove_cv_t<std::remove_reference_t<T>>; };
-  template<class T> using remove_cvref_t = typename remove_cvref<T>::type;
-
   // Type safe memset functions
   template<typename T>
   BUN_FORCEINLINE void bun_Fill(T& p, unsigned char val = 0)

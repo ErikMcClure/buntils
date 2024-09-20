@@ -293,7 +293,7 @@ namespace bun {
       {
         auto end = std::end(obj);
         for(auto begin = std::begin(obj); begin != end; ++begin)
-          ActionBind<remove_cvref_t<std::tuple_element_t<1, remove_cvref_t<decltype(*begin)>>>>::Serialize(*this, std::get<1>(*begin), ToString(std::get<0>(*begin)));
+          ActionBind<std::remove_cvref_t<std::tuple_element_t<1, std::remove_cvref_t<decltype(*begin)>>>>::Serialize(*this, std::get<1>(*begin), ToString(std::get<0>(*begin)));
       }
 
       if(in)
@@ -358,7 +358,7 @@ namespace bun {
       //r_findparse<sizeof...(Args)-1, Args...>(e, trie[key], args);
     }
 
-    static inline void FixedAdd(Serializer<Engine>& e, auto& obj, int& n) { if(n < (std::end(obj) - std::begin(obj))) Serializer<Engine>::template ActionBind<remove_cvref_t<decltype(obj[0])>>::Parse(e, obj[n++], 0); }
+    static inline void FixedAdd(Serializer<Engine>& e, auto& obj, int& n) { if(n < (std::end(obj) - std::begin(obj))) Serializer<Engine>::template ActionBind<std::remove_cvref_t<decltype(obj[0])>>::Parse(e, obj[n++], 0); }
 
     static inline bool FixedRead(Serializer<Engine>& e, auto& obj, int64_t count) { return e.BulkRead(std::begin(obj), std::end(obj), count); }
 
@@ -374,7 +374,7 @@ namespace bun {
     template<class T>
     inline bool BulkRead(T && begin, T && end, int64_t count)
     {
-      using Element = remove_cvref_t<decltype(*begin)>;
+      using Element = std::remove_cvref_t<decltype(*begin)>;
       if constexpr(std::is_trivially_constructible_v<Element> && (std::is_base_of_v<std::random_access_iterator_tag, T> || std::is_array_v<T> || std::is_pointer_v<T>))
       {
         if(begin == end)
@@ -391,7 +391,7 @@ namespace bun {
     template<class T>
     inline bool BulkWrite(T && begin, T && end, int64_t count)
     {
-      using Element = remove_cvref_t<decltype(*begin)>;
+      using Element = std::remove_cvref_t<decltype(*begin)>;
       if constexpr(std::is_trivially_constructible_v<Element> && (std::is_base_of_v<std::random_access_iterator_tag, T> || std::is_array_v<T> || std::is_pointer_v<T>))
       {
         if(begin != end)

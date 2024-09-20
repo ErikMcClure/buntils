@@ -122,7 +122,7 @@ namespace bun {
     template<typename U>
     inline void _construct(U && v)
     { 
-      using T = remove_cvref_t<U>;
+      using T = std::remove_cvref_t<U>;
       if constexpr(std::is_same<T, Variant>::value)
       {
         _tag = v._tag;
@@ -139,7 +139,7 @@ namespace bun {
     template<typename U>
     inline void _assign(U && v)
     { 
-      using T = remove_cvref_t<U>;
+      using T = std::remove_cvref_t<U>;
       if constexpr(std::is_same<T, Variant>::value)
       {
         if(_tag == v._tag)

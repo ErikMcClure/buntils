@@ -23,7 +23,7 @@ namespace bun {
     {
       inline LocklessQueue_Length(const LocklessQueue_Length& copy) : _length(copy._length.load(std::memory_order_relaxed)) {}
       inline LocklessQueue_Length() : _length(0) {}
-      inline CT_ Length() const { return _length; }
+      inline CT_ size() const { return _length; }
 
       LocklessQueue_Length& operator=(const LocklessQueue_Length& copy) { _length.store(copy._length.load(std::memory_order_relaxed), std::memory_order_relaxed); return *this; }
 
@@ -120,8 +120,8 @@ namespace bun {
     }
 
     QNODE* _first;
-    BUN_ALIGN(64) std::atomic<QNODE*> _div; // Align to try and get them on different cache lines
-    BUN_ALIGN(64) std::atomic<QNODE*> _last;
+    alignas(64) std::atomic<QNODE*> _div; // Align to try and get them on different cache lines
+    alignas(64) std::atomic<QNODE*> _last;
   };
 
   // Multi-producer Multi-consumer microlock queue using a multithreaded allocator
@@ -211,10 +211,10 @@ namespace bun {
       internal::LocklessQueue_Length<LENGTH>::_incLength(); // If we are tracking length, atomically increment it
     }
 
-    BUN_ALIGN(64) QNODE* _div; // Align to try and get them on different cache lines
-    BUN_ALIGN(64) QNODE* _last;
-    BUN_ALIGN(64) std::atomic_flag _cflag;
-    BUN_ALIGN(64) std::atomic_flag _pflag;
+    alignas(64) QNODE* _div; // Align to try and get them on different cache lines
+    alignas(64) QNODE* _last;
+    alignas(64) std::atomic_flag _cflag;
+    alignas(64) std::atomic_flag _pflag;
   };
 
   // Multi-producer Multi-consumer lockless queue using a multithreaded allocator
@@ -270,8 +270,8 @@ namespace bun {
     }
 
     LocklessBlockAlloc<QNODE> _alloc;
-    BUN_ALIGN(64) bun_PTag<QNODE> _div; // Align to try and get them on different cache lines
-    BUN_ALIGN(64) std::atomic<QNODE*> _last;
+    alignas(64) bun_PTag<QNODE> _div; // Align to try and get them on different cache lines
+    alignas(64) std::atomic<QNODE*> _last;
   };*/
 }
 

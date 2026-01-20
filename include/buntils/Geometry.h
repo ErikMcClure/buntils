@@ -689,7 +689,7 @@ namespace bun {
     inline Polygon() {}
     template<class U>
     inline Polygon(const Polygon<U>& other) : _verts(other._verts.Capacity()) { for(size_t i = 0; i < other._verts.Capacity(); ++i) _verts[i] = other._verts[i]; }
-    inline Polygon(const V* vertices, size_t num) : _verts(num) { if(_verts != 0) memcpy(_verts.begin(), vertices, _verts.Capacity() * sizeof(V)); }
+    inline Polygon(std::span<V> vertices) : _verts(num) { if(_verts != 0) memcpy(_verts.begin(), vertices, _verts.Capacity() * sizeof(V)); }
     template <uint32_t num>
     inline Polygon(const V(&vertices)[num]) : _verts(num) { if(_verts != 0) memcpy(_verts.begin(), vertices, _verts.Capacity() * sizeof(V)); }
     template<class U>

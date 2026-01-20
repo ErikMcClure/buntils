@@ -17,7 +17,6 @@ namespace bun {
     using CT = typename BASE::CT;
     using Ty = typename BASE::Ty;
     using BASE::_array;
-    using BASE::_capacity;
 
   public:
     // Constructors
@@ -54,18 +53,18 @@ namespace bun {
     inline T& Front() { assert(_length > 0); return _array[_cur]; }
     inline const T& Back() const { assert(_length > 0); return _array[_modIndex(_length - 1)]; }
     inline T& Back() { assert(_length > 0); return _array[_modIndex(_length - 1)]; }
-    inline CT Capacity() const { return _capacity; }
-    inline CT Length() const { return _length; }
+    BUN_FORCEINLINE CT Capacity() const { return _array.size(); }
+    BUN_FORCEINLINE CT size() const { return _length; }
     inline void Clear()
     {
-      if(_length == _capacity) // Dump the whole thing
+      if(_length == _array.size()) // Dump the whole thing
         BASE::_setLength(_array, _length, 0);
       else if(_cur - _length >= -1) // The current used chunk is contiguous
         BASE::_setLength(_array + _cur - _length + 1, _length, 0);
       else // We have two seperate chunks that must be dealt with
       {
         CT i = _modIndex(_length - 1);
-        BASE::_setLength(_array + i, _capacity - i, 0);
+        BASE::_setLength(_array + i, Capacity() - i, 0);
         BASE::_setLength(_array, _cur + 1, 0); // We can only have two seperate chunks if it crosses over the 0 mark at some point, so this always starts at 0
       }
 
@@ -74,12 +73,12 @@ namespace bun {
     }
     inline void SetCapacity(CT nsize) // Will preserve the array but only if it got larger
     {
-      if(nsize < _capacity)
+      if(nsize < Capacity())
       {
         Clear(); // Getting the right destructors here is complicated and trying to preserve the array when it's shrinking is meaningless.
         BASE::_setCapacityDiscard(nsize);
       }
-      else if(nsize > _capacity)
+      else if(nsize > Capacity())
       {
         T* n = BASE::_getAlloc(nsize, 0, 0);
         if(_cur - _length >= -1) // If true the chunk is contiguous
@@ -87,12 +86,12 @@ namespace bun {
         else
         {
           CT i = _modIndex(_length - 1);
-          BASE::_copyMove(n + bun_Mod<CT>(_cur - _length + 1, nsize), _array + i, _capacity - i);
+          BASE::_copyMove(n + bun_Mod<CT>(_cur - _length + 1, nsize), _array + i, Capacity() - i);
           BASE::_copyMove(n, _array, _cur + 1);
         }
-        BASE::_dealloc(_array, _capacity);
+        BASE::_dealloc(_array, Capacity());
         _array = n;
-        _capacity = nsize;
+        Capacity() = nsize;
       }
     }
     BUN_FORCEINLINE T& operator[](CT index) { return _array[_modIndex(index)]; } // an index of 0 is the most recent item pushed into the circular array.
@@ -100,18 +99,18 @@ namespace bun {
     inline ArrayCircular& operator=(const ArrayCircular& right) requires std::is_copy_constructible_v<RECURSIVE>
     {
       Clear();
-      BASE::_setCapacityDiscard(right._capacity);
+      BASE::_setCapacityDiscard(right.Capacity());
       _cur = right._cur;
       _length = right._length;
 
-      if(_length == _capacity) // Copy the whole thing
+      if(_length == Capacity()) // Copy the whole thing
         BASE::_copy(_array, right._array, _length);
       else if(_cur - _length >= -1) // The current used chunk is contiguous
         BASE::_copy(_array + _cur - _length + 1, right._array + _cur - _length + 1, _length);
       else // We have two seperate chunks that must be dealt with
       {
         CT i = _modIndex(_length - 1);
-        BASE::_copy(_array + i, right._array + i, _capacity - i);
+        BASE::_copy(_array + i, right._array + i, Capacity() - i);
         BASE::_copy(_array, right._array, _cur + 1);
       }
 
@@ -186,9 +185,9 @@ namespace bun {
     template<typename U> // Note that _cur+1 can never be negative so we don't need to use bun_Mod
     inline void _push(U && item)
     {
-      _cur = ((_cur + 1) % _capacity);
+      _cur = ((_cur + 1) % Capacity());
 
-      if(_length < _capacity)
+      if(_length < Capacity())
       {
         new(_array + _cur) T(std::forward<U>(item));
         ++_length;
@@ -196,7 +195,7 @@ namespace bun {
       else
         _array[_cur] = std::forward<U>(item);
     }
-    BUN_FORCEINLINE CT _modIndex(CT index) const { return bun_Mod<CT>(_cur - index, _capacity); }
+    BUN_FORCEINLINE CT _modIndex(CT index) const { return bun_Mod<CT>(_cur - index, Capacity()); }
 
     CT _cur;
     CT _length;

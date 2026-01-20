@@ -7,69 +7,198 @@
 #include "defines.h"
 #include <string.h>
 #include <utility>
-
-#define SGNCOMPARE(left,right) (((left)>(right))-((left)<(right)))
-#define PRICOMPARE(left,right,p) (SGNCOMPARE(left,right)<<p)
+#include <compare>
+#include <ranges>
+#define SGNCOMPARE(left, right) (((left) > (right)) - ((left) < (right)))
 
 namespace bun {
-  template<typename T> // Returns -1,0,1 if l<r,l==r,l>r, respectively
-  BUN_FORCEINLINE char CompT(const T& left, const T& right) noexcept { return SGNCOMPARE(left, right); }
+  template<class F, typename L, typename R = L, class Ord = std::partial_ordering>
+  // We can't do the three_way_comparable_with check here because some comparisons extract comparable elements
+  // from otherwise incomparable L and R types. Unfortunately this results in nonsensical invocable errors when
+  // std::compare_three_way fails the three_way_comparable check.
+  concept Comparison = /*std::three_way_comparable_with<L, R, Ord> &&*/ std::invocable<F&, L, R> &&
+                       std::_Compares_as<std::invoke_result_t<F&, L, R>, Ord>;
 
-  template<typename T> // Returns -1,0,1 if l<r,l==r,l>r, respectively
-  BUN_FORCEINLINE char CompTInv(const T& left, const T& right) noexcept { return SGNCOMPARE(right, left); }
-
-  template<typename T> // Returns -1 if l<r or 0 otherwise
-  BUN_FORCEINLINE char CompT_LT(const T& left, const T& right) noexcept { return -(left < right); }
-
-  template<typename T> // Returns 1 if l>r or 0 otherwise
-  BUN_FORCEINLINE char CompT_GT(const T& left, const T& right) noexcept { return (left > right); }
-
-  template<typename T>
-  BUN_FORCEINLINE bool CompT_EQ(const T& left, const T& right) noexcept { return (left == right); }
-
-  template<typename T>
-  BUN_FORCEINLINE bool CompT_NEQ(const T& left, const T& right) noexcept { return (left != right); }
-
-  template<typename T1, typename T2, char(*CompF)(const T1&, const T1&) = &CompT<T1>>
-  BUN_FORCEINLINE char CompTFirst(const std::pair<T1,T2>& left, const std::pair<T1, T2>& right) noexcept { return CompF(left.first, right.first); }
-
-  template<typename T1, typename T2, char(*CompS)(const T2&, const T2&) = &CompT<T2>>
-  BUN_FORCEINLINE char CompTSecond(const std::pair<T1, T2>& left, const std::pair<T1, T2>& right) noexcept { return CompS(left.second, right.second); }
-
-  template<typename T1, typename T2, char(*CompF)(const T1&, const T1&) = &CompT<T1>, char(*CompS)(const T2&, const T2&) = &CompT<T2>>
-  BUN_FORCEINLINE char CompTBoth(const std::pair<T1, T2>& left, const std::pair<T1, T2>& right) noexcept { char c = CompF(left.first, right.first); return !c ? CompS(left.second, right.second) : c; }
-
-  template<typename T, int I = 0, char(*CompF)(const std::tuple_element_t<I, T>&, const std::tuple_element_t<I, T>&) = &CompT<std::tuple_element_t<I, T>>>
-  BUN_FORCEINLINE char CompTuple(const T& left, const T& right) { return CompF(std::get<I>(left), std::get<I>(right)); }
-
-  template<typename T>
-  BUN_FORCEINLINE char CompStr(const T& left, const T& right)
+  // Used to store the comparison object using EBO
+  template<class T> class CompressedBase : private T
   {
-    int result = strcmp(left, right);
-    return SGNCOMPARE(result, 0);
-  }
-  template<typename T>
-  BUN_FORCEINLINE char CompIStr(const T& left, const T& right)
+  protected:
+    constexpr BUN_FORCEINLINE CompressedBase()
+      requires std::is_default_constructible_v<T>
+    {}
+    constexpr BUN_FORCEINLINE CompressedBase(const CompressedBase&) = default;
+    constexpr BUN_FORCEINLINE CompressedBase(CompressedBase&&)      = default;
+    constexpr BUN_FORCEINLINE CompressedBase(const T& s) : T(s) {}
+    constexpr BUN_FORCEINLINE CompressedBase(T&& s) : T(std::move(s)) {}
+
+    [[nodiscard]] constexpr BUN_FORCEINLINE T& _getbase() noexcept { return *this; }
+    [[nodiscard]] constexpr BUN_FORCEINLINE const T& _getbase() const noexcept { return *this; }
+  };
+
+  // Inverts the normal three-way comparison by swapping the arguments
+  struct inv_three_way
   {
-    int result = STRICMP(left, right);
-    return SGNCOMPARE(result, 0);
-  }
-  template<typename T>
-  BUN_FORCEINLINE bool CompStrLT(const T& left, const T& right) { return strcmp(left, right) < 0; }
-  template<typename T>
-  BUN_FORCEINLINE bool CompIStrLT(const T& left, const T& right) { return STRICMP(left, right) < 0; }
-  template<typename T>
-  BUN_FORCEINLINE char CompStrW(const T& left, const T& right)
+    template<typename L, typename R>
+      requires std::three_way_comparable_with<L, R>
+    [[nodiscard]] constexpr BUN_FORCEINLINE auto operator()(L&& _Left, R&& _Right) const
+      noexcept(std::forward<R>(_Right) <=> std::forward<L>(_Left))
+    {
+      return std::forward<R>(_Right) <=> std::forward<L>(_Left);
+    }
+
+    using is_transparent = int;
+  };
+
+  // Assumes both arguments are pairs and does a comparison between the first elements
+  template<typename L1, typename R1, Comparison<L1, R1> C = std::compare_three_way> struct first_three_way : protected C
   {
-    int result = wcscmp(left, right);
-    return SGNCOMPARE(result, 0);
-  }
-  template<typename T>
-  BUN_FORCEINLINE char CompIStrW(const T& left, const T& right)
+    first_three_way(const C& c) : C(c) {}
+    first_three_way(C&& c) : C(std::move(c)) {}
+    first_three_way(const first_three_way&) = default;
+    first_three_way(first_three_way&&)      = default;
+
+    template<typename L2, typename R2>
+    [[nodiscard]] constexpr BUN_FORCEINLINE auto operator()(const std::pair<L1, L2>& l, const std::pair<R1, R2>& r) const
+    {
+      return _getf()(l.first, r.first);
+    }
+
+    [[nodiscard]] constexpr BUN_FORCEINLINE const C& _getf() const noexcept { return *this; }
+
+    using is_transparent = int;
+  };
+
+  // Assumes both arguments are pairs and does a comparison between the second elements
+  template<typename L2, typename R2, Comparison<L2, R2> C = std::compare_three_way> struct second_three_way : protected C
   {
-    int result = WCSICMP(left, right);
-    return SGNCOMPARE(result, 0);
-  }
+    second_three_way(const C& c) : C(c) {}
+    second_three_way(C&& c) : C(std::move(c)) {}
+    second_three_way(const second_three_way&) = default;
+    second_three_way(second_three_way&&)      = default;
+
+    template<typename L1, typename R1>
+    [[nodiscard]] constexpr BUN_FORCEINLINE auto operator()(const std::pair<L1, L2>& l, const std::pair<R1, R2>& r) const
+    {
+      return _getf()(l.second, r.second);
+    }
+
+    [[nodiscard]] constexpr BUN_FORCEINLINE const C& _getf() const noexcept { return *this; }
+
+    using is_transparent = int;
+  };
+
+  // Assumes both arguments are pairs and compares both elements, in order
+  template<typename L, typename R, Comparison<typename L::first_type, typename R::first_type> FC = std::compare_three_way,
+           Comparison<typename L::second_type, typename R::second_type> SC = std::compare_three_way>
+  struct BUN_EMPTY_BASES both_three_way : protected FC, protected SC
+  {
+    both_three_way(const both_three_way&) = default;
+    both_three_way(both_three_way&&)      = default;
+
+    [[nodiscard]] constexpr BUN_FORCEINLINE auto operator()(const L& l, const R& r) const
+    {
+      auto c = _getf()(l.first, r.first);
+      return (c == 0) ? _gets()(l.second, r.second) : c;
+    }
+
+    [[nodiscard]] constexpr BUN_FORCEINLINE const FC& _getf() const noexcept { return *this; }
+    [[nodiscard]] constexpr BUN_FORCEINLINE const SC& _gets() const noexcept { return *this; }
+
+    using is_transparent = int;
+  };
+
+  // Assumes both arguments are tuples and does a comparison between the ith element
+  template<typename L, typename R, size_t I = 0,
+           Comparison<std::tuple_element_t<I, L>, std::tuple_element_t<I, R>> C = std::compare_three_way>
+  struct tuple_three_way : protected C
+  {
+    tuple_three_way(const C& c) : C(c) {}
+    tuple_three_way(C&& c) : C(std::move(c)) {}
+    tuple_three_way(const tuple_three_way&) = default;
+    tuple_three_way(tuple_three_way&&)      = default;
+
+    [[nodiscard]] constexpr BUN_FORCEINLINE auto operator()(const L& l, const R& r) const
+    {
+      return _getf()(std::tuple_element_t<I, L>(std::get<I>(l)), std::tuple_element_t<I, R>(std::get<I>(r)));
+    }
+
+    [[nodiscard]] constexpr BUN_FORCEINLINE const C& _getf() const noexcept { return *this; }
+
+    using is_transparent = int;
+  };
+
+  // Performs a three-way lexographic comparison between strings, either ascii or wide.
+  struct string_three_way
+  {
+    template<typename L, typename R>
+      requires std::convertible_to<std::decay_t<std::remove_cvref_t<L>>, char*> &&
+               std::convertible_to<std::decay_t<std::remove_cvref_t<R>>, char*>
+    [[nodiscard]] constexpr BUN_FORCEINLINE auto operator()(L&& l, R&& r) const noexcept
+    {
+      int result = strcmp(std::forward<L>(l), std::forward<R>(r));
+
+      if(result > 0)
+      {
+        return std::strong_ordering::greater;
+      }
+
+      return (result < 0) ? std::strong_ordering::less : std::strong_ordering::equal;
+    }
+
+    template<typename L, typename R>
+      requires std::convertible_to<std::decay_t<std::remove_cvref_t<L>>, wchar_t*> &&
+               std::convertible_to<std::decay_t<std::remove_cvref_t<R>>, wchar_t*>
+    [[nodiscard]] constexpr BUN_FORCEINLINE auto operator()(L&& l, R&& r) const noexcept
+    {
+      int result = wcscmp(std::forward<L>(l), std::forward<R>(r));
+
+      if(result > 0)
+      {
+        return std::strong_ordering::greater;
+      }
+
+      return (result < 0) ? std::strong_ordering::less : std::strong_ordering::equal;
+    }
+
+    using is_transparent = int;
+  };
+
+  // Performs a case-insensitive three-way lexographic comparison between strings, either ascii or wide.
+  struct string_three_way_insensitive
+  {
+    template<typename L, typename R>
+      requires std::convertible_to<std::decay_t<std::remove_cvref_t<L>>, char*> &&
+               std::convertible_to<std::decay_t<std::remove_cvref_t<R>>, char*>
+    [[nodiscard]] constexpr BUN_FORCEINLINE auto operator()(L&& l, R&& r) const noexcept
+    {
+      int result = stricmp(std::forward<L>(l), std::forward<R>(r));
+
+      if(result > 0)
+      {
+        return std::strong_ordering::greater;
+      }
+
+      return (result < 0) ? std::strong_ordering::less : std::strong_ordering::equal;
+    }
+
+    template<typename L, typename R>
+      requires std::convertible_to<std::decay_t<std::remove_cvref_t<L>>, wchar_t*> &&
+               std::convertible_to<std::decay_t<std::remove_cvref_t<R>>, wchar_t*>
+    [[nodiscard]] constexpr BUN_FORCEINLINE auto operator()(L&& l, R&& r) const noexcept
+    {
+      int result = wcsicmp(std::forward<L>(l), std::forward<R>(r));
+
+      if(result > 0)
+      {
+        return std::strong_ordering::greater;
+      }
+
+      return (result < 0) ? std::strong_ordering::less : std::strong_ordering::equal;
+    }
+
+    using is_transparent = int;
+  };
+
 }
 
 #endif

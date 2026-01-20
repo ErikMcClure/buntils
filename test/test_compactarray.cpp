@@ -17,28 +17,28 @@ TESTDEF::RETPAIR test_COMPACTARRAY()
   CompactArray<size_t> x;
   TEST(x.begin() != 0);
   TEST(x.Capacity() == 2);
-  TEST(x.Length() == 0);
+  TEST(x.size() == 0);
   x.Add(99);
   TEST(x.Front() == 99);
   TEST(x.Back() == 99);
   TEST(x[0] == 99);
   TEST(x.Capacity() == 2);
-  TEST(x.Length() == 1);
+  TEST(x.size() == 1);
   x.Insert(98, 1);
   TEST(x[0] == 99);
   TEST(x[1] == 98);
   TEST(x.Front() == 99);
   TEST(x.Back() == 98);
   TEST(x.Capacity() == 2);
-  TEST(x.Length() == 2);
+  TEST(x.size() == 2);
   x.RemoveLast();
   TEST(x.Capacity() == 2);
-  TEST(x.Length() == 1);
+  TEST(x.size() == 1);
   x.Insert(98, 0);
   TEST(x[0] == 98);
   TEST(x[1] == 99);
   TEST(x.Capacity() == 2);
-  TEST(x.Length() == 2);
+  TEST(x.size() == 2);
   x.Insert(97, 1);
   TEST(x[0] == 98);
   TEST(x[1] == 97);
@@ -46,9 +46,9 @@ TESTDEF::RETPAIR test_COMPACTARRAY()
   TEST(x.Front() == 98);
   TEST(x.Back() == 99);
   TEST(x.Capacity() > 2);
-  TEST(x.Length() == 3);
+  TEST(x.size() == 3);
   x.RemoveLast();
-  TEST(x.Length() == 2);
+  TEST(x.size() == 2);
 
   x.SetLength(5);
   x[0] = 1;
@@ -75,7 +75,7 @@ TESTDEF::RETPAIR test_COMPACTARRAY()
   
   int zvars[5] = { 4, 3, 2, 1, 5 };
   y.Set(zvars, 3);
-  TEST(y.Length() == 3);
+  TEST(y.size() == 3);
   TEST(y[0] == 4);
   TEST(y[1] == 3);
   TEST(y[2] == 2);

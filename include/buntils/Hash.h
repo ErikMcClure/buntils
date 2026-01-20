@@ -165,37 +165,37 @@ namespace bun {
     using FakeData = typename std::conditional<IsMap, Data, std::byte>::type;
     using GET = std::conditional_t<std::is_integral_v<FakeData> || std::is_enum_v<FakeData> || std::is_pointer_v<FakeData> || std::is_member_pointer_v<FakeData>, FakeData, typename internal::_HashGET<FakeData>::GET>;
 
-    Hash(const Hash& copy) requires(std::is_copy_constructible_v<RECURSIVE_KEY> && (!IsMap || std::is_copy_constructible_v<RECURSIVE_DATA>)) : Alloc(copy), n_buckets(0), flags(0), keys(0), vals(0), size(0), n_occupied(0), upper_bound(0)
+    Hash(const Hash& copy) requires(std::is_copy_constructible_v<RECURSIVE_KEY> && (!IsMap || std::is_copy_constructible_v<RECURSIVE_DATA>)) : Alloc(copy), n_buckets(0), flags(0), keys(0), vals(0), sz(0), n_occupied(0), upper_bound(0)
     {
       if (copy.n_buckets > 0)
         _docopy(copy);
     }
-    Hash(Hash&& mov) : Alloc(std::move(mov)), n_buckets(mov.n_buckets), flags(mov.flags), keys(mov.keys), vals(mov.vals), size(mov.size), n_occupied(mov.n_occupied), upper_bound(mov.upper_bound)
+    Hash(Hash&& mov) : Alloc(std::move(mov)), n_buckets(mov.n_buckets), flags(mov.flags), keys(mov.keys), vals(mov.vals), sz(mov.sz), n_occupied(mov.n_occupied), upper_bound(mov.upper_bound)
     {
       mov.n_buckets = 0;
       mov.flags = 0;
       mov.keys = 0;
       mov.vals = 0;
-      mov.size = 0;
+      mov.sz = 0;
       mov.n_occupied = 0;
       mov.upper_bound = 0;
     }
-    Hash(khint_t nbuckets, const Alloc& alloc) requires IsMap : Alloc(alloc), n_buckets(0), flags(0), keys(0), vals(0), size(0), n_occupied(0), upper_bound(0)
+    Hash(khint_t nbuckets, const Alloc& alloc) requires IsMap : Alloc(alloc), n_buckets(0), flags(0), keys(0), vals(0), sz(0), n_occupied(0), upper_bound(0)
     {
       if (nbuckets > 0)
         _resize(nbuckets);
     }
-    Hash(khint_t nbuckets, const Alloc& alloc) requires (!IsMap) : Alloc(alloc), n_buckets(0), flags(0), keys(0), vals(0), size(0), n_occupied(0), upper_bound(0)
+    Hash(khint_t nbuckets, const Alloc& alloc) requires (!IsMap) : Alloc(alloc), n_buckets(0), flags(0), keys(0), vals(0), sz(0), n_occupied(0), upper_bound(0)
     {
       if (nbuckets > 0)
         _resize(nbuckets);
     }
-    explicit Hash(khint_t nbuckets) requires std::is_default_constructible_v<Alloc> : n_buckets(0), flags(0), keys(0), vals(0), size(0), n_occupied(0), upper_bound(0)
+    explicit Hash(khint_t nbuckets) requires std::is_default_constructible_v<Alloc> : n_buckets(0), flags(0), keys(0), vals(0), sz(0), n_occupied(0), upper_bound(0)
     {
       if (nbuckets > 0)
         _resize(nbuckets);
     }
-    Hash() requires std::is_default_constructible_v<Alloc> : n_buckets(0), flags(0), keys(0), vals(0), size(0), n_occupied(0), upper_bound(0) {}
+    Hash() requires std::is_default_constructible_v<Alloc> : n_buckets(0), flags(0), keys(0), vals(0), sz(0), n_occupied(0), upper_bound(0) {}
     ~Hash()
     {
       Clear(); // calls all destructors.
@@ -224,7 +224,7 @@ namespace bun {
           }
         }
         memset(flags, 2, n_buckets);
-        size = n_occupied = 0;
+        sz = n_occupied = 0;
       }
     }
     inline khiter_t Iterator(const Key& key) const { return _get(key); }
@@ -278,7 +278,7 @@ namespace bun {
       _delete(iterator);
       return true;
     }
-    BUN_FORCEINLINE khint_t Length() const { return size; }
+    BUN_FORCEINLINE khint_t size() const { return sz; }
     BUN_FORCEINLINE khint_t Capacity() const { return n_buckets; }
     BUN_FORCEINLINE khiter_t Front() const { return 0; }
     BUN_FORCEINLINE khiter_t Back() const { return n_buckets; }
@@ -307,7 +307,7 @@ namespace bun {
         flags = 0;
         keys = 0;
         vals = 0;
-        size = 0;
+        sz = 0;
         n_occupied = 0;
         upper_bound = 0;
         return *this;
@@ -326,7 +326,7 @@ namespace bun {
       flags = mov.flags;
       keys = mov.keys;
       vals = mov.vals;
-      size = mov.size;
+      sz = mov.sz;
       n_occupied = mov.n_occupied;
       upper_bound = mov.upper_bound;
 
@@ -334,7 +334,7 @@ namespace bun {
       mov.flags = 0;
       mov.keys = 0;
       mov.vals = 0;
-      mov.size = 0;
+      mov.sz = 0;
       mov.n_occupied = 0;
       mov.upper_bound = 0;
       return *this;
@@ -390,7 +390,7 @@ namespace bun {
     void Serialize(Serializer<Engine>& s, const char* id)
     {
       if constexpr (!IsMap)
-        s.template EvaluateArray<Hash, Key, &_serializeAdd<Engine>, size_t, nullptr>(*this, size, id);
+        s.template EvaluateArray<Hash, Key, &_serializeAdd<Engine>, size_t, nullptr>(*this, sz, id);
       else
         s.template EvaluateKeyValue<Hash>(*this, [this](Serializer<Engine>& e, const char* name)
           {
@@ -440,7 +440,7 @@ namespace bun {
       }
 
       assert(n_buckets == copy.n_buckets);
-      size = copy.size;
+      sz = copy.sz;
       n_occupied = copy.n_occupied;
       upper_bound = copy.upper_bound;
     }
@@ -464,9 +464,9 @@ namespace bun {
       {
         kroundup32(new_n_buckets);
         if (new_n_buckets < 4) new_n_buckets = 32;
-        if (size >= (khint_t)(new_n_buckets * __ac_HASH_UPPER + 0.5)) j = 0;	/* requested size is too small */
+        if (sz >= (khint_t)(new_n_buckets * __ac_HASH_UPPER + 0.5)) j = 0;	/* requested sz is too small */
         else
-        { /* hash table size to be changed (shrink or expand); rehash */
+        { /* hash table sz to be changed (shrink or expand); rehash */
           new_flags = _allocate<khint8_t>(new_n_buckets);
           if (!new_flags) return -1;
           memset(new_flags, 2, new_n_buckets);
@@ -528,7 +528,7 @@ namespace bun {
           _deallocate(flags, n_buckets); /* free the working space */
         flags = new_flags;
         n_buckets = new_n_buckets;
-        n_occupied = size;
+        n_occupied = sz;
         upper_bound = (khint_t)(n_buckets * __ac_HASH_UPPER + 0.5);
       }
       return 0;
@@ -540,7 +540,7 @@ namespace bun {
       khint_t x;
       if (n_occupied >= upper_bound)
       { /* update the hash table */
-        if (n_buckets > (size << 1))
+        if (n_buckets > (sz << 1))
         {
           \
             if (_resize(n_buckets - 1) < 0)
@@ -577,14 +577,14 @@ namespace bun {
       { /* not present at all */
         new(keys + x) Key(std::move(key));
         __ac_set_isboth_false(flags, x);
-        ++size; ++n_occupied;
+        ++sz; ++n_occupied;
         *ret = 1;
       }
       else if (__ac_isdel(flags, x))
       { /* deleted */
         new(keys + x) Key(std::move(key));
         __ac_set_isboth_false(flags, x);
-        ++size;
+        ++sz;
         *ret = 2;
       }
       else *ret = 0; /* Don't touch keys[x] if present and not deleted */
@@ -615,14 +615,14 @@ namespace bun {
         if constexpr (IsMap)
           vals[x].~Data();
         __ac_set_isdel_true(flags, x);
-        --size;
+        --sz;
       }
     }
     template<typename T>
     inline T* _realloc(T* src, khint_t old, khint_t new_n) noexcept
     {
       if constexpr (std::is_trivially_copyable_v<T>)
-        return reinterpret_cast<T*>(standard_realloc<Alloc>(*this, new_n * sizeof(T), reinterpret_cast<std::byte*>(src), old * sizeof(T)));
+        return reinterpret_cast<T*>(standard_realloc<Alloc>(*this, new_n * sizeof(T), std::span(reinterpret_cast<std::byte*>(src), old * sizeof(T))).data());
       else
       {
         T* n = _allocate<T>(new_n);
@@ -652,7 +652,7 @@ namespace bun {
       std::allocator_traits<Alloc>::deallocate(*this, reinterpret_cast<std::byte*>(p), n * sizeof(T));
     }
 
-    khint_t n_buckets, size, n_occupied, upper_bound;
+    khint_t n_buckets, sz, n_occupied, upper_bound;
     khint8_t* flags;
     Key* keys;
     Data* vals;

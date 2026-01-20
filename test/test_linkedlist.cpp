@@ -40,7 +40,7 @@ TESTDEF::RETPAIR test_LINKEDLIST()
   TEST(cmplist(test, "23"));
   test.Insert(0, 0);
   TEST(cmplist(test, "230"));
-  TEST(test.Length() == 3);
+  TEST(test.size() == 3);
 
   LinkedList<int, StandardAllocator<LLNode<int>>, false, true> test2;
 
@@ -62,7 +62,7 @@ TESTDEF::RETPAIR test_LINKEDLIST()
   TEST(cmplist(test2, "32"));
   test2.Insert(0, 0);
   TEST(cmplist(test2, "032"));
-  TEST(test2.Length() == 3);
+  TEST(test2.size() == 3);
 
   LinkedList<int> test3;
 

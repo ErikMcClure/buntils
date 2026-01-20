@@ -14,7 +14,7 @@ TESTDEF::RETPAIR test_ARRAYCIRCULAR()
   TEST(a.Capacity() == 25);
   for(int i = 0; i < 25; ++i)
     a.Push(i);
-  TEST(a.Length() == 25);
+  TEST(a.size() == 25);
 
   {
     int i = 25;
@@ -25,7 +25,7 @@ TESTDEF::RETPAIR test_ARRAYCIRCULAR()
   TEST(a.Pop() == 23);
   a.Push(987);
   TEST(a.Pop() == 987);
-  TEST(a.Length() == 23);
+  TEST(a.size() == 23);
   a.Push(23);
   a.Push(24);
   for(int i = 0; i < 50; ++i)

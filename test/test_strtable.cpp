@@ -21,7 +21,7 @@ TESTDEF::RETPAIR test_STRTABLE()
   StringTable<bun_char> wcstable(PANGRAMS, SZ);
   StringTable<char> mbstable2(pstr, 6);
 
-  for(size_t i = 0; i < mbstable.Length(); ++i)
+  for(size_t i = 0; i < mbstable.size(); ++i)
     TEST(!strcmp(mbstable[i], pstr[i]));
 
   mbstable += mbstable2;

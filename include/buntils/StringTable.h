@@ -54,7 +54,7 @@ namespace bun {
     // Destructor
     inline ~StringTable() {}
     // Gets number of strings in table (index cannot be greater then this)
-    inline CT_ Length() const { return _indices.Capacity(); }
+    inline CT_ size() const { return _indices.Capacity(); }
     // Gets total length of all strings
     inline CT_ TotalWordCapacity() const { return _strings.Capacity(); }
     // Returns string with the corresponding index. Strings are returned null-terminated, but the index bound is not checked.

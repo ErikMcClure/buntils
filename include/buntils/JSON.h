@@ -440,7 +440,7 @@ namespace bun {
     auto begin = std::begin(obj);
     auto end = std::end(obj);
     for(; begin != end; ++begin)
-      Serializer<JSONEngine>::template ActionBind<remove_cvref_t<decltype(*begin)>>::Serialize(e, *begin, 0);
+      Serializer<JSONEngine>::template ActionBind<std::remove_cvref_t<decltype(*begin)>>::Serialize(e, *begin, 0);
     
     s << ']';
   }

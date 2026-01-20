@@ -77,7 +77,7 @@ void dotest_XML(XMLtest& o, TESTDEF::RETPAIR& __testret)
   TEST(o.btrue == true);
   TEST(o.bfalse == false);
   TEST(o.test == "tEsT");
-  TEST(o.d.Length() == 6);
+  TEST(o.d.size() == 6);
   TEST(o.d[0] == 1e-6);
   TEST(o.d[1] == -2.0);
   TEST(o.d[2] == 0.3);
@@ -98,7 +98,7 @@ void dotest_XML(XMLtest& o, TESTDEF::RETPAIR& __testret)
   TEST(o.test2.test.size() == 2);
   TEST(o.test2.test[0].f == -3.5f);
   TEST(o.test2.test[1].f == 14.6f);
-  TEST(o.nested.Length() == 3);
+  TEST(o.nested.size() == 3);
   TEST(o.nested[0].a == 2);
   TEST(o.nested[0].test.size() == 2);
   TEST(o.nested[0].test[0].f == 80.9f);

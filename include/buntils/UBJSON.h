@@ -417,7 +417,7 @@ namespace bun {
         s.put(UBJSONTuple::TYPE_ARRAY_END);
         return;
       }
-      UBJSONTuple::TYPE ty = internal::WriteUBJSONType<remove_cvref_t<decltype(*std::begin(obj))>>::t;
+      UBJSONTuple::TYPE ty = internal::WriteUBJSONType<std::remove_cvref_t<decltype(*std::begin(obj))>>::t;
       UBJSONTuple::WriteTypeCount(s, ty, size);
 
       if(ty != UBJSONTuple::TYPE_CHAR || ty != UBJSONTuple::TYPE_UINT8 || ty != UBJSONTuple::TYPE_INT8 || !e.BulkWrite(std::begin(obj), std::end(obj), size))
@@ -426,7 +426,7 @@ namespace bun {
         auto end = std::end(obj);
         internal::serializer::PushValue<UBJSONTuple::TYPE> push(e.engine.type, ty);
         for(; begin != end; ++begin)
-          Serializer<UBJSONEngine>::ActionBind<remove_cvref_t<decltype(*begin)>>::Serialize(e, *begin, 0);
+          Serializer<UBJSONEngine>::ActionBind<std::remove_cvref_t<decltype(*begin)>>::Serialize(e, *begin, 0);
       }
 
       if(size < 0)

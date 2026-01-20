@@ -19,7 +19,7 @@ TESTDEF::RETPAIR test_AVLTREE()
   BEGINTEST;
 
   BlockPolicy<AVLNode<std::pair<int, int>>> fixedavl;
-  AVLTree<int, int, CompT<int>, PolicyAllocator<AVLNode<std::pair<int, int>>, BlockPolicy>> avlblah(PolicyAllocator<AVLNode<std::pair<int, int>>, BlockPolicy>{fixedavl});
+  AVLTree<int, int, std::compare_three_way, PolicyAllocator<AVLNode<std::pair<int, int>>, BlockPolicy>> avlblah(PolicyAllocator<AVLNode<std::pair<int, int>>, BlockPolicy>{fixedavl});
 
   //uint64_t prof=HighPrecisionTimer::OpenProfiler();
   for(size_t i = 0; i<TESTNUM; ++i)
@@ -67,7 +67,7 @@ TESTDEF::RETPAIR test_AVLTREE()
     BlockPolicy<DEBUG_CDT<false>> dalloc(TESTNUM);
     using AVL_D = std::unique_ptr<DEBUG_CDT<false>, std::function<void(DEBUG_CDT<false>*)>>;
     BlockPolicy<AVLNode<std::pair<int, AVL_D>>> fixedavld;
-    AVLTree<int, AVL_D, CompT<int>, PolicyAllocator<AVLNode<std::pair<int, AVL_D>>, BlockPolicy>> dtree(PolicyAllocator<AVLNode<std::pair<int, AVL_D>>, BlockPolicy>{fixedavld});
+    AVLTree<int, AVL_D, std::compare_three_way, PolicyAllocator<AVLNode<std::pair<int, AVL_D>>, BlockPolicy>> dtree(PolicyAllocator<AVLNode<std::pair<int, AVL_D>>, BlockPolicy>{fixedavld});
     for(size_t i = 0; i<TESTNUM; ++i)
     {
       auto dp = dalloc.allocate(1);
@@ -110,7 +110,7 @@ TESTDEF::RETPAIR test_AVLTREE()
   TEST(!DEBUG_CDT<false>::count)
 
     BlockPolicy<AVLNode<int>> fixedavlkey;
-  AVLTree<int, void, CompT<int>, PolicyAllocator<AVLNode<int>, BlockPolicy>> avlblah2{ PolicyAllocator<AVLNode<int>, BlockPolicy>{fixedavlkey} };
+  AVLTree<int, void, std::compare_three_way, PolicyAllocator<AVLNode<int>, BlockPolicy>> avlblah2{ PolicyAllocator<AVLNode<int>, BlockPolicy>{fixedavlkey} };
 
   //uint64_t prof=HighPrecisionTimer::OpenProfiler();
   for(size_t i = 0; i<TESTNUM; ++i)

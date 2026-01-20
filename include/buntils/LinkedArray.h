@@ -53,7 +53,7 @@ namespace bun {
       --_length;
       return pcur.val;
     }
-    inline CT_ Length() const { return _length; }
+    inline CT_ size() const { return _length; }
     inline CT_ Capacity() const { return _ref.Capacity(); }
     inline void SetCapacity(CT_ size)
     {

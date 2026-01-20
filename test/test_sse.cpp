@@ -26,8 +26,8 @@ inline int PriCompare(const int(&li)[4], const int(&ri)[4])
 
 BUN_FORCEINLINE int PriComp(int l1, int l2, int l3, int l4, int r1, int r2, int r3, int r4)
 {
-  BUN_ALIGN(16) int li[4] = { l1,l2,l3,l4 };
-  BUN_ALIGN(16) int ri[4] = { r1,r2,r3,r4 };
+  alignas(16) int li[4] = { l1,l2,l3,l4 };
+  alignas(16) int ri[4] = { r1,r2,r3,r4 };
   return PriCompare<1, 2, 4, 8>(li, ri);
 }
 
@@ -133,7 +133,7 @@ TESTDEF::RETPAIR test_SSE()
     sseVeci c6(xw >= r);
     CPU_Barrier();
     TEST(r == 0x7F7FD4BB);
-    BUN_ALIGN(16) int rv[4] = { -1, -1, -1, -1 };
+    alignas(16) int rv[4] = { -1, -1, -1, -1 };
     sseVeci::ZeroVector().Set(rv);
     TESTALLFOUR(rv, 0);
     xz.Set(rv);
@@ -180,13 +180,13 @@ TESTDEF::RETPAIR test_SSE()
     TESTFOUR(rv, 4, 3, 2, 1);
     TEST(sseVeci(1, 2, 3, 4).Sum() == 10);
 
-    BUN_ALIGN(16) short rw[8] = { 0, 1, 2, 3, 4, 5, 6, 7 };
+    alignas(16) short rw[8] = { 0, 1, 2, 3, 4, 5, 6, 7 };
     sseVeci16 w1(rw);
     sseVeci16 w2(rw);
     sseVeci16 w3(((w1 + w2)&(sseVeci16(4) | sseVeci16(2))) - w2);
     sseVeci16 w4(w3<w1);
 
-    BUN_ALIGN(16) float ch[4] = { 1.0f, 0.5f, 0.5f, 1.0f };
+    alignas(16) float ch[4] = { 1.0f, 0.5f, 0.5f, 1.0f };
     uint32_t chr = flttoint(ch);
     TEST(chr == 0xFF7F7FFF);
     inttoflt(chr, ch);
@@ -195,7 +195,7 @@ TESTDEF::RETPAIR test_SSE()
   }
 
   {
-    BUN_ALIGN(16) float arr[4] = { -1, -2, -3, -5 };
+    alignas(16) float arr[4] = { -1, -2, -3, -5 };
     float uarr[4] = { -1, -2, -3, -4 };
     sseVec u(1, 2, 3, 4);
     sseVec v(5);
@@ -240,7 +240,7 @@ TESTDEF::RETPAIR test_SSE()
   }
 
   {
-    BUN_ALIGN(16) double arr[2] = { -1, -2 };
+    alignas(16) double arr[2] = { -1, -2 };
     double uarr[2] = { -1, -2 };
     sseVecd u(1, 2);
     sseVecd v(5);
@@ -283,7 +283,7 @@ TESTDEF::RETPAIR test_SSE()
   }
 
   {
-    BUN_ALIGN(16) int64_t arr[2] = { -1, -2 };
+    alignas(16) int64_t arr[2] = { -1, -2 };
     int64_t uarr[2] = { -1, 2 };
     sseVeci64 u(1, 2);
     sseVeci64 v(5);

@@ -238,11 +238,11 @@ namespace bun {
       } while(!asmcasr<bun_PTag<Bucket>>(&_gc, nval, prev, prev));
     }
 
-    BUN_ALIGN(16) bun_PTag<Bucket> _gc; // Contains a list of empty buckets that can be used to replace _root
+    alignas(16) bun_PTag<Bucket> _gc; // Contains a list of empty buckets that can be used to replace _root
 #pragma warning(push)
 #pragma warning(disable:4251)
-    BUN_ALIGN(16) std::atomic<Bucket*> _cur; // Current bucket
-    BUN_ALIGN(64) RWLock _lock;
+    alignas(16) std::atomic<Bucket*> _cur; // Current bucket
+    alignas(64) RWLock _lock;
 #pragma warning(pop)
     size_t _lastsize; // Last size used for a bucket.
     Bucket* _list; // root of permanent list of all buckets.

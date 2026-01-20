@@ -59,7 +59,7 @@ TESTDEF::RETPAIR test_ARRAY()
   };
   auto f2 = [](Array<DEBUG_CDT<true>, uint32_t>& arr, uint32_t s) { for(uint32_t i = s; i < arr.Capacity(); ++i) arr[i]._index = i; };
 
-  assert(!DEBUG_CDT_SAFE::Tracker.Length());
+  assert(!DEBUG_CDT_SAFE::Tracker.size());
   {
     DEBUG_CDT<true>::count = 0;
     Array<DEBUG_CDT<true>, uint32_t> b(10);
@@ -92,7 +92,7 @@ TESTDEF::RETPAIR test_ARRAY()
     TEST(DEBUG_CDT<true>::count == 59);
   }
   TEST(!DEBUG_CDT<true>::count);
-  TEST(!DEBUG_CDT_SAFE::Tracker.Length());
+  TEST(!DEBUG_CDT_SAFE::Tracker.size());
 
   auto f3 = [](Array<DEBUG_CDT<false>, uint32_t>& arr)->bool {
     for(size_t i = 0; i < arr.Capacity(); ++i)
@@ -133,7 +133,7 @@ TESTDEF::RETPAIR test_ARRAY()
     TEST(DEBUG_CDT<false>::count == 59);
   }
   TEST(!DEBUG_CDT<false>::count);
-  TEST(!DEBUG_CDT_SAFE::Tracker.Length());
+  TEST(!DEBUG_CDT_SAFE::Tracker.size());
 
   {
     int abc[2][3][4] = { 0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23 };

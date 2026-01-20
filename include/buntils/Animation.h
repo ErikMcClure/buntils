@@ -30,6 +30,9 @@ namespace bun {
         GenPair("data", data)
         );
     }
+
+    bool operator==(const AniFrame& r) const { return time == r.time; }
+    std::partial_ordering operator<=>(const AniFrame& r) const { return time <=> r.time; }
   };
 
   template<typename T>
@@ -49,6 +52,9 @@ namespace bun {
         GenPair("value", value)
         );
     }
+
+    bool operator==(const AniFrame& r) const { return time == r.time; }
+    std::partial_ordering operator<=>(const AniFrame& r) const { return time <=> r.time; }
   };
 
   class BUN_COMPILER_DLLEXPORT AniStateBase
@@ -250,7 +256,7 @@ namespace bun {
         (dest->*REMOVE)(_queue.Pop().second);
     }
 
-    PriorityQueue<double, AUX, CompT<double>, size_t, QUEUEALLOC> _queue;
+    PriorityQueue<double, AUX, std::compare_three_way, size_t, QUEUEALLOC> _queue;
     size_t _cur;
   };
 
@@ -264,8 +270,8 @@ namespace bun {
     AniData(AniData&& mov) : _frames(std::move(mov._frames)) {}
     AniData(const AniData& copy) : _frames(copy._frames) {}
     AniData(const FRAME* src, size_t len) { Set(src, len); }
-    BUN_FORCEINLINE double Begin() const { return !_frames.Length() ? 0.0 : _frames.Front().time; }
-    BUN_FORCEINLINE double End() const { return !_frames.Length() ? 0.0 : _frames.Back().time; }
+    BUN_FORCEINLINE double Begin() const { return !_frames.size() ? 0.0 : _frames.Front().time; }
+    BUN_FORCEINLINE double End() const { return !_frames.size() ? 0.0 : _frames.Back().time; }
     BUN_FORCEINLINE std::span<const FRAME> Frames() const { return _frames; }
     BUN_FORCEINLINE size_t Add(const FRAME& frame) { return _frames.Insert(frame); }
     BUN_FORCEINLINE size_t Add(double time, const T& value)
@@ -277,7 +283,7 @@ namespace bun {
     {
       _frames = std::span{ src, len };
 #ifdef BUN_DEBUG
-      for(size_t i = 1; i < _frames.Length(); ++i)
+      for(size_t i = 1; i < _frames.size(); ++i)
         assert(_frames[i - 1].time <= _frames[i].time);
 #endif
     }
@@ -294,8 +300,6 @@ namespace bun {
       return *this;
     }
 
-    BUN_FORCEINLINE static char CompAniFrame(const FRAME& left, const FRAME& right) { return SGNCOMPARE(left.time, right.time); }
-
     template<typename Engine>
     void Serialize(Serializer<Engine>& e, const char*)
     {
@@ -303,7 +307,7 @@ namespace bun {
     }
 
   protected:
-    ArraySort<FRAME, CompAniFrame, size_t, Alloc> _frames;
+    ArraySort<FRAME, std::compare_three_way, size_t, Alloc> _frames;
   };
 
   template<typename T, typename D = void, int DATAID = 0, typename Alloc = StandardAllocator<AniFrame<T, D>>>
@@ -405,7 +409,7 @@ namespace bun {
     void _recalcLength()
     {
       _end = 0.0;
-      for(size_t i = 0; i < _frames.Length(); ++i)
+      for(size_t i = 0; i < _frames.size(); ++i)
         _checkIndex(i);
     }
     void _checkIndex(size_t i)

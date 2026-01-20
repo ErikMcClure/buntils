@@ -21,7 +21,7 @@
 
 struct TESTDEF
 {
-  using RETPAIR = std::pair<size_t, size_t>;
+  using RETPAIR = std::pair<std::atomic_size_t, std::atomic_size_t>;
   const char* NAME;
   RETPAIR(*FUNC)();
 };
@@ -31,14 +31,14 @@ extern uint16_t testnums[TESTNUM];
 extern bun::Logger _failedtests;
 extern volatile std::atomic<bool> startflag;
 
-#define BEGINTEST TESTDEF::RETPAIR __testret(0,0); DEBUG_CDT_SAFE::_testret = &__testret; DEBUG_CDT_SAFE::Tracker.Clear();
-#define ENDTEST return __testret
-#define FAILEDTEST(t) BUNLOG(_failedtests,1, "Test #",__testret.first," Failed  < ",TXT(t)," >")
-#define TEST(t) { bun::atomic_xadd(&__testret.first); try { if(t) bun::atomic_xadd(&__testret.second); else FAILEDTEST(t); } catch(...) { FAILEDTEST(t); } }
+#define BEGINTEST TESTDEF::RETPAIR __testret{}; DEBUG_CDT_SAFE::_testret = &__testret; DEBUG_CDT_SAFE::Tracker.Clear();
+#define ENDTEST return TESTDEF::RETPAIR(__testret.first.load(std::memory_order_relaxed), __testret.second.load(std::memory_order_relaxed))
+#define FAILEDTEST(t) BUNLOG(_failedtests,1, "Test #",__testret.first.load(std::memory_order_relaxed)," Failed  < ",TXT(t)," >")
+#define TEST(t) { __testret.first.fetch_add(1); try { if(t) __testret.second.fetch_add(1); else FAILEDTEST(t); } catch(...) { FAILEDTEST(t); } }
 #define TESTSTATIC(t) static_assert(t, "Failed: " TXT(t))
-#define TESTERROR(t, e) { bun::atomic_xadd(&__testret.first); try { (t); FAILEDTEST(t); } catch(e) { bun::atomic_xadd(&__testret.second); } }
+#define TESTERROR(t, e) { __testret.first.fetch_add(1); try { (t); FAILEDTEST(t); } catch(e) { __testret.second.fetch_add(1); } }
 #define TESTERR(t) TESTERROR(t,...)
-#define TESTNOERROR(t) { bun::atomic_xadd(&__testret.first); try { (t); bun::atomic_xadd(&__testret.second); } catch(...) { FAILEDTEST(t); } }
+#define TESTNOERROR(t) { __testret.first.fetch_add(1); try { (t); __testret.second.fetch_add(1); } catch(...) { FAILEDTEST(t); } }
 #define TESTARRAY(t,f) _ITERFUNC(__testret,t,[&](size_t i) -> bool { f });
 #define TESTALL(t,f) _ITERALL(__testret,t,[&](size_t i) -> bool { f });
 #define TESTCOUNT(c,t) { for(size_t i = 0; i < c; ++i) TEST(t) }

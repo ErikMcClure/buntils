@@ -184,7 +184,7 @@ namespace bun {
   }
 
   template<class A> requires std::is_trivially_copyable_v<typename A::value_type>
-  inline A::value_type* standard_realloc(A& allocator, size_t n, typename A::value_type* oldptr, size_t oldsize)
+  inline std::span<typename A::value_type> standard_realloc(A& allocator, size_t n, std::span<typename A::value_type> old)
   {
     using T = A::value_type;
     constexpr bool has_realloc = requires(const A& a, int n, T* oldptr, size_t oldsize)
@@ -193,16 +193,16 @@ namespace bun {
     };
 
     if constexpr (has_realloc)
-      return allocator.reallocate(n, oldptr, oldsize);
+      return std::span(allocator.reallocate(n, old.data(), old.size()), n);
     else
     {
       auto p = std::allocator_traits<A>::allocate(allocator, n);
-      if (oldptr && oldsize > 0)
+      if (old.data() != nullptr && old.size() > 0)
       {
-        MEMCPY(p, n * sizeof(T), oldptr, std::min(oldsize, n) * sizeof(T));
-        std::allocator_traits<A>::deallocate(allocator, oldptr, oldsize);
+        MEMCPY(p, n * sizeof(T), old.data(), std::min(old.size(), n) * sizeof(T));
+        std::allocator_traits<A>::deallocate(allocator, old.data(), old.size());
       }
-      return p;
+      return std::span(p, n);
     }
   }
 }

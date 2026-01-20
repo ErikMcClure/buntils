@@ -175,7 +175,7 @@ template<typename T, int N> void VECTOR_N_TEST(TESTDEF::RETPAIR& __testret)
   TEST(l == FastSqrt<T>(ans[16][0]));
   l = c.Dot(c);
   TEST(l == ans[17][0]);
-  l = c.Length();
+  l = c.size();
   TEST(l == FastSqrt<T>(ans[17][0]));
   if(!std::is_integral<T>::value)
   {
@@ -702,9 +702,9 @@ TESTDEF::RETPAIR test_VECTOR()
   }
 
   // Test n-dimensional vector functions
-  BUN_ALIGN(16) float v[4] = { 2, -3, 4, -5 };
-  BUN_ALIGN(16) float u[4] = { 1, -2, -1, 2 };
-  BUN_ALIGN(16) float w[4] = { 0, 0, 0, 0 };
+  alignas(16) float v[4] = { 2, -3, 4, -5 };
+  alignas(16) float u[4] = { 1, -2, -1, 2 };
+  alignas(16) float w[4] = { 0, 0, 0, 0 };
   TEST(fCompare(NVectorDistanceSq(v, w), 54.0f));
   TEST(fCompare(NVectorDistance(v, w), 7.34846922835f));
   TEST(fCompare(NVectorDistance(u, v), NVectorDistance(v, u)));
@@ -732,12 +732,12 @@ TESTDEF::RETPAIR test_VECTOR()
   //NVectDiv(v, u, w);
   //TESTRELFOUR(w, 2, 1.5f, -4, -2.5f);
 
-  //BUN_ALIGN(16) float m1[4][4]={ { 1, 2, 4, 8 }, { 16, 32, 64, 128 }, { -1, -2, -4, -8 }, { -16, -32, -64, -128 } };
-  //BUN_ALIGN(16) float m2[4][4]={ { 8, 4, 2, 1 }, { 16, 32, 64, 128 }, { -1, -32, -4, -16 }, { -8, -2, -64, -128 } };
-  //BUN_ALIGN(16) float m3[4][4]={ 0 };
-  //BUN_ALIGN(16) float m4[4][4]={ 0 };
-  //BUN_ALIGN(16) float m5[4][4]={ { -28, -76, -398, -831 }, { -448, -1216, -6368, -13296 }, { 28, 76, 398, 831 }, { 448, 1216, 6368, 13296 } };
-  //BUN_ALIGN(16) float m6[4][4]={ { 54, 108, 216, 432 }, { -1584, -3168, -6336, -12672 }, { -253, -506, -1012, -2024 }, { 2072, 4144, 8288, 16576 } };
+  //alignas(16) float m1[4][4]={ { 1, 2, 4, 8 }, { 16, 32, 64, 128 }, { -1, -2, -4, -8 }, { -16, -32, -64, -128 } };
+  //alignas(16) float m2[4][4]={ { 8, 4, 2, 1 }, { 16, 32, 64, 128 }, { -1, -32, -4, -16 }, { -8, -2, -64, -128 } };
+  //alignas(16) float m3[4][4]={ 0 };
+  //alignas(16) float m4[4][4]={ 0 };
+  //alignas(16) float m5[4][4]={ { -28, -76, -398, -831 }, { -448, -1216, -6368, -13296 }, { 28, 76, 398, 831 }, { 448, 1216, 6368, 13296 } };
+  //alignas(16) float m6[4][4]={ { 54, 108, 216, 432 }, { -1584, -3168, -6336, -12672 }, { -253, -506, -1012, -2024 }, { 2072, 4144, 8288, 16576 } };
   //Mult4x4(m3, m1, m2);
   //Mult4x4(m4, m2, m1);
   //TEST(!memcmp(m3, m5, sizeof(float)*4*4));

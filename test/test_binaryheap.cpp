@@ -25,7 +25,7 @@ TESTDEF::RETPAIR test_BINARYHEAP()
   arrtest(a2, a3, a2_SZ);
 
   std::sort(std::begin(a2), std::end(a2), [](int x, int y)->bool { return x>y; });
-  BinaryHeap<int, uint32_t, CompTInv<int>>::HeapSort(a3);
+  BinaryHeap<int, uint32_t, inv_three_way>::HeapSort(a3);
   arrtest(a2, a3, a2_SZ);
 
   std::vector<int> b;
@@ -35,23 +35,23 @@ TESTDEF::RETPAIR test_BINARYHEAP()
     b.push_back(a[i]);
     std::push_heap(b.begin(), b.end());
     c.Insert(a[i]);
-    arrtest(&b[0], c, c.Length());
+    arrtest(&b[0], c, c.size());
   }
 
   std::for_each(b.begin(), b.end(), [](int& x) { x += 1; });
   std::for_each(c.begin(), c.end(), [](int& x) { x += 1; });
-  arrtest(&b[0], c, c.Length());
+  arrtest(&b[0], c, c.size());
 
   for(size_t i = 0; i < a2_SZ; ++i)
   {
     std::pop_heap(b.begin(), b.end() - i);
     c.Remove(0);
 
-    //for(uint32_t j = 0; j < c.Length(); ++j)
+    //for(uint32_t j = 0; j < c.size(); ++j)
     //  fill[j]=c[j]; //Let's us visualize C's array
-    //for(uint32_t j = 0; j < c.Length(); ++j)
+    //for(uint32_t j = 0; j < c.size(); ++j)
     //  assert(c[j]==b[j]);
-    arrtest(&b[0], c, c.Length());
+    arrtest(&b[0], c, c.size());
   }
   ENDTEST;
 }

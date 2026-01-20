@@ -106,16 +106,16 @@ void VerifyUBJSON(const ubjsontest& t1, const ubjsontest& t2, TESTDEF::RETPAIR& 
   for(size_t i = 0; i < t1.u.size(); ++i)
     TEST(t1.u[i] == t2.u[i]);
 
-  TEST(t1.v.Length() == t2.v.Length());
-  for(size_t i = 0; i < t1.v.Length(); ++i)
+  TEST(t1.v.size() == t2.v.size());
+  for(size_t i = 0; i < t1.v.size(); ++i)
     TEST(t1.v[i] == t2.v[i]);
 
-  TEST(t1.w.Length() == t2.w.Length());
-  for(size_t i = 0; i < t1.w.Length(); ++i)
+  TEST(t1.w.size() == t2.w.size());
+  for(size_t i = 0; i < t1.w.size(); ++i)
     TEST(t1.w[i] == t2.w[i]);
 
-  TEST(t1.z.Length() == t2.z.Length());
-  for(size_t i = 0; i < t1.z.Length(); ++i)
+  TEST(t1.z.size() == t2.z.size());
+  for(size_t i = 0; i < t1.z.size(); ++i)
   {
     TEST(t1.z[i].a == t2.z[i].a);
     TEST(t1.z[i].c == t2.z[i].c);

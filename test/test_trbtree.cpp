@@ -64,7 +64,8 @@ TESTDEF::RETPAIR test_TRBTREE()
 {
   BEGINTEST;
   BlockPolicy<TRB_Node<int>> fixedalloc;
-  TRBtree<int, CompT<int>, PolicyAllocator<TRB_Node<int>, BlockPolicy>> blah(PolicyAllocator<TRB_Node<int>, BlockPolicy>{fixedalloc});
+  TRBtree<int, std::compare_three_way, PolicyAllocator<TRB_Node<int>, BlockPolicy>> blah(
+    PolicyAllocator<TRB_Node<int>, BlockPolicy>{ fixedalloc });
 
   uint32_t same = 0;
   Shuffle(testnums);

@@ -177,18 +177,18 @@ void UBJSONTuple::Write(std::ostream& s, TYPE type) const
       break;
     }
     type = Object[0].second.Type;
-    for(auto& i : Object)
-      if(type != i.second.Type)
+    for(auto&[_, t] : Object)
+      if(type != t.Type)
       {
         type = TYPE_NONE;
         break;
       }
     WriteTypeCount(s, type, Object.size());
-    for(auto& i : Object)
+    for(auto&[str, t] : Object)
     {
-      WriteLength(s, i.first.size());
-      s.write(i.first.data(), i.first.size());
-      i.second.Write(s, type);
+      WriteLength(s, str.size());
+      s.write(str.data(), str.size());
+      t.Write(s, type);
     }
     break;
   case TYPE_CHAR:

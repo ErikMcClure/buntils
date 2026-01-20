@@ -51,8 +51,8 @@ TESTDEF::RETPAIR test_HASH()
       size_t count = 0;
       for([[maybe_unused]] auto k : set)
         count++;
-      TEST(set.Length() == 5);
-      TEST(set.Length() == count);
+      TEST(set.size() == 5);
+      TEST(set.size() == count);
     }
     {
       Hash<int, int> val;
@@ -72,7 +72,7 @@ TESTDEF::RETPAIR test_HASH()
       size_t count = 0;
       for([[maybe_unused]] auto [k, v] : val)
         count++;
-      TEST(val.Length() == count);
+      TEST(val.size() == count);
     }
     {
       using HASHTESTPAIR = std::pair<uint64_t, int32_t>;

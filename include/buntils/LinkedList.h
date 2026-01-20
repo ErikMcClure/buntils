@@ -44,7 +44,7 @@ namespace bun {
   // Adaptive class template for Size usage
     template<bool size> struct LList_SIZE {};
     template<> struct LList_SIZE<true> {
-      inline size_t Length() const { return _length; }
+      inline size_t size() const { return _length; }
 
     protected:
       size_t _length;

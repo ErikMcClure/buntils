@@ -45,7 +45,7 @@
 #define BUN_COMPILER_NAKED
 #define BUN_FORCEINLINE inline
 #define BUN_RESTRICT __restrict__
-#define BUN_ALIGNED(sn, n) sn
+#define BUN_EMPTY_BASES 
 #define MSC_FASTCALL BUN_COMPILER_FASTCALL
 #define GCC_FASTCALL 
 #define BUN_UNREACHABLE() 
@@ -66,8 +66,7 @@
 #define BUN_COMPILER_NAKED __attribute__((naked)) // Will only work on ARM, AVR, MCORE, RX and SPU. 
 #define BUN_FORCEINLINE __attribute__((always_inline)) inline
 #define BUN_RESTRICT __restrict__
-#define BUN_ALIGN(n) __attribute__((aligned(n)))
-#define BUN_ALIGNED(sn, n) sn BUN_ALIGN(n)
+#define BUN_EMPTY_BASES
 #define BUN_COMPILER_HAS_TIME_GET
 
 #define MSC_FASTCALL 
@@ -87,8 +86,7 @@
 #define BUN_COMPILER_NAKED __attribute__((naked)) // Will only work on ARM, AVR, MCORE, RX and SPU. 
 #define BUN_FORCEINLINE __attribute__((always_inline)) inline
 #define BUN_RESTRICT __restrict__
-#define BUN_ALIGN(n) __attribute__((aligned(n)))
-#define BUN_ALIGNED(sn, n) sn BUN_ALIGN(n)
+#define BUN_EMPTY_BASES
 
 #if __GNUC__ >= 5 && __GNUC_MINOR__ >= 1
 #define BUN_COMPILER_HAS_TIME_GET
@@ -120,10 +118,8 @@
 #define BUN_COMPILER_NAKED __declspec(naked) 
 #define BUN_FORCEINLINE __forceinline
 #define BUN_RESTRICT __restrict
-#define BUN_ALIGN(n) __declspec(align(n))
-#define BUN_ALIGNED(sn, n) BUN_ALIGN(n) sn
 #define BUN_VERIFY_HEAP _ASSERTE(_CrtCheckMemory())
-#define FUNCPTRCC(m,CC) CC m
+#define BUN_EMPTY_BASES __declspec(empty_bases)
 #define MSC_FASTCALL BUN_COMPILER_FASTCALL
 #define GCC_FASTCALL 
 #define BUN_SSE_ENABLED
@@ -139,10 +135,6 @@
 #if defined(__MINGW32__) || defined(__MINGW64__)
 #define BUN_PLATFORM_MINGW // Should also define WIN32, use only for minGW specific bugs
 #endif
-
-#define BUN_ALIGNED_STRUCT(n) struct BUN_ALIGN(n)
-#define BUN_ALIGNED_CLASS(n) class BUN_ALIGN(n)
-#define BUN_ALIGNED_UNION(n) union BUN_ALIGN(n)
 
 // Platform detection
 #if defined(WIN32) || defined(_WIN32) || defined(_WIN64) || defined(__TOS_WIN__) || defined(__WINDOWS__)

@@ -46,8 +46,10 @@ Logger::Logger(const wchar_t* logfile, std::ostream* log) : _levels(6), _split(n
 Logger::~Logger()
 {
   ClearTargets();
-  for(size_t i = 0; i < _backup.size(); ++i) //restore stream buffer backups so we don't blow up someone else's stream when destroying ourselves
-    _backup[i].first.rdbuf(_backup[i].second);
+  // restore stream buffer backups so we don't blow up someone else's stream when destroying ourselves
+  for (auto [out, buf] : _backup) {
+    out.rdbuf(buf);
+  }
   if(_split != 0) delete _split;
 }
 void Logger::Assimilate(std::ostream& stream)
@@ -82,11 +84,11 @@ void Logger::AddTarget(const wchar_t* file)
 void Logger::ClearTargets()
 {
   if(_split != 0) _split->ClearTargets();
-  for(size_t i = 0; i < _files.size(); ++i)
+  for(auto& file : _files)
 #ifdef BUN_COMPILER_GCC 
-    _files[i]->close();
+    file->close();
 #else
-    _files[i].close();
+    file.close();
 #endif
   _files.clear();
 }
@@ -176,8 +178,8 @@ int Logger::PrintLogV(const char* source, const char* file, size_t line, int8_t 
   size_t _length = (size_t)internal::STR_CT<char>::VPCF(format, vltemp) + 1; // If we didn't copy vl here, it would get modified by vsnprintf and blow up.
   va_end(vltemp);
   VARARRAY(char, buf, _length);
-  int r = internal::STR_CT<char>::VPF(buf, _length, format, args);
-  _stream << buf << std::endl;
+  int r = internal::STR_CT<char>::VPF(buf.data(), _length, format, args);
+  _stream << buf.data() << std::endl;
   return r;
 }
 void Logger::_header(std::ostream& o, int n, const char* source, const char* file, size_t line, const char* level, long tz)

@@ -99,8 +99,8 @@ namespace bun {
     PROF_TRIENODE* _allocNode();
     void _treeOut(std::ostream& stream, PROF_TRIENODE* node, ProfilerInt id, size_t level, ProfilerInt idlevel);
     void _heatOut(internal::PROF_HEATNODE& heat, PROF_TRIENODE* node, ProfilerInt id, ProfilerInt idlevel);
-    void _heatWrite(std::ostream& stream, internal::PROF_HEATNODE& node, size_t level, double max);
-    double _heatFindMax(internal::PROF_HEATNODE& heat);
+    void _heatWrite(std::ostream& stream, const internal::PROF_HEATNODE& node, size_t level, double max);
+    double _heatFindMax(const internal::PROF_HEATNODE& heat);
     static void _flatOut(internal::PROF_FLATOUT* avg, PROF_TRIENODE* node, ProfilerInt id, ProfilerInt idlevel);
     static const char* _trimPath(const char* path);
     static void _timeFormat(std::ostream& stream, double avg, double variance, uint64_t num);

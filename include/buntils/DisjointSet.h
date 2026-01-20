@@ -16,13 +16,12 @@ namespace bun {
     typedef ArrayBase<typename std::make_signed<T>::type, T, Alloc> ARRAY;
     typedef typename ARRAY::Ty Ty;
     using ARRAY::_array;
-    using ARRAY::_capacity;
 
   public:
     // Construct a disjoint set with num initial sets
     inline DisjointSet(const DisjointSet& copy) : ARRAY(copy.Capacity(), copy), _numsets(copy._numsets) 
     { 
-      memcpy(_array, copy._array, _capacity); 
+      memcpy(_array, copy._array, _array.size()); 
     }
     inline DisjointSet(DisjointSet&& mov) : ARRAY(std::move(mov)), _numsets(mov._numsets) { mov._numsets = 0; }
     inline DisjointSet(T num, const Alloc& alloc) : ARRAY(num, alloc) { Reset(); }
@@ -30,7 +29,7 @@ namespace bun {
     inline DisjointSet(Ty* overload, T num) requires std::is_same_v<Alloc, NullAllocator<Ty>> : ARRAY(0)
     {
       _array = overload;
-      _capacity = num;
+      _array.size() = num;
       Reset();
     }
     // Union (combine) two disjoint sets into one set. Returns false if set1 or set2 aren't set names.
@@ -60,7 +59,7 @@ namespace bun {
     // Returns the set name that x belongs to.
     inline Ty Find(T x)
     {
-      assert(x < _capacity);
+      assert(x < _array.size());
 
       Ty r = x;
       while(_array[r] >= 0)
@@ -82,31 +81,31 @@ namespace bun {
       return r;
     }
 
-    inline T Length() const { return _capacity; }
+    inline T size() const { return _array.size(); }
     inline T NumSets() const { return _numsets; }
     // Returns true if x is a valid set name
-    inline bool IsSetName(T x) { return x < _capacity && _array[x] < 0; }
+    inline bool IsSetName(T x) { return x < _array.size() && _array[x] < 0; }
     // Returns the number of elements in a given set. Returns -1 on failure.
     inline Ty NumElements(T set) 
     { 
-      if(set >= _capacity) 
+      if(set >= _array.size()) 
         return -1; 
       return -_array[Find(set)]; // Number of elements is simply the weight of the root node
     } 
     // Adds n elements to the disjoint set.
     inline void AddSets(T n)
     {
-      T i = _capacity;
-      SetCapacity(_capacity + n);
+      T i = _array.size();
+      SetCapacity(_array.size() + n);
 
-      for(; i < _capacity; ++i)
+      for(; i < _array.size(); ++i)
         _array[i] = -1;
     }
     // Resets the disjoint set
     inline void Reset()
     {
-      bun_FillN(_array, _capacity, -1); // Initialize all sets to be root nodes of trees of size 1
-      _numsets = _capacity;
+      bun_FillN(_array, _array.size(), -1); // Initialize all sets to be root nodes of trees of size 1
+      _numsets = _array.size();
     }
 
     // Returns an array containing the elements in the given set.
@@ -131,7 +130,7 @@ namespace bun {
       set = Find(set); // Get the root element of our set
       T j = 0;
 
-      for(T i = 0; i < _capacity; ++i)
+      for(T i = 0; i < _array.size(); ++i)
       {
         if(Find(i) == set) // Does this element belong to our set?
           target[j++] = i; // If so, add it
@@ -141,29 +140,30 @@ namespace bun {
 
     // Constructs a minimum spanning tree using Kruskal's algorithm, given a sorted list of edges (smallest first).
     template<class ITER>
-    inline static Array<std::pair<T, T>, T> MinSpanningTree(T numverts, ITER edges, ITER edgeslast)
+    inline static Array<std::pair<T, T>, T> MinSpanningTree(T numverts, std::ranges::input_range auto&& edges)
     {
       Array<std::pair<T, T>, T> ret(numverts - 1); // A nice result in combinatorics tells us that all trees have exactly n-1 edges.
-      ret.SetCapacity(MinSpanningTree(numverts, edges, edgeslast, ret)); // This will always be <= n-1 so the SetCapacity is basically free.
+      ret.SetCapacity(MinSpanningTree(numverts, edges, ret)); // This will always be <= n-1 so the SetCapacity is basically free.
       return ret;
     }
 
     // Actual function definition that uses an out array that must be at least n-1 elements long.
-    template<class ITER>
-    static T MinSpanningTree(T numverts, ITER edges, ITER edgeslast, std::pair<T, T>* out)
+    static T MinSpanningTree(T numverts, std::ranges::input_range auto&& edges, std::ranges::output_range<std::pair<T, T>> auto&& out)
     {
       VARARRAY(Ty, arr, numverts); // Allocate everything on the stack
       DisjointSet<T, NullAllocator<Ty>> set(arr, numverts);
       T num = 0;
 
-      for(; edges != edgeslast; ++edges)
+      for(auto [to, from] : edges)
       {
-        Ty a = set.Find((*edges).first);
-        Ty b = set.Find((*edges).second);
+        Ty a = set.Find(to);
+        Ty b = set.Find(from);
 
         if(a != b)
         {
-          out[num++] = *edges;
+          *out = *edges;
+          ++out;
+          ++num;
           bool inv = set.Union(a, b);
           assert(inv);
         }
@@ -175,8 +175,8 @@ namespace bun {
 
     inline DisjointSet& operator=(const DisjointSet& copy) 
     {
-      SetCapacityDiscard(copy._capacity);
-      memcpy(_array, copy._array, _capacity * sizeof(T));
+      SetCapacityDiscard(copy._array.size());
+      memcpy(_array.data(), copy._array.data(), _array.size() * sizeof(T));
       _numsets = copy._numsets;
       return *this;
     }
@@ -188,7 +188,7 @@ namespace bun {
     }
 
   protected:
-    BUN_FORCEINLINE bool _invalidIndex(T s) const { return s >= _capacity || _array[s] >= 0; }
+    BUN_FORCEINLINE bool _invalidIndex(T s) const { return s >= _array.size() || _array[s] >= 0; }
 
     T _numsets;
   };

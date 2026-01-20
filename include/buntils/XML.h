@@ -48,19 +48,19 @@ namespace bun {
     explicit XMLNode(const char* parse = 0);
     explicit XMLNode(std::istream& stream);
     BUN_FORCEINLINE const char* GetName() const { return _name; }
-    BUN_FORCEINLINE const XMLNode* GetNode(size_t index) const { return index >= _nodes.Length() ? 0 : _nodes[index].get(); }
-    BUN_FORCEINLINE XMLNode* GetNode(size_t index) { return index >= _nodes.Length() ? 0 : _nodes[index].get(); }
+    BUN_FORCEINLINE const XMLNode* GetNode(size_t index) const { return index >= _nodes.size() ? nullptr : _nodes[index].get(); }
+    BUN_FORCEINLINE XMLNode* GetNode(size_t index) { return index >= _nodes.size() ? nullptr : _nodes[index].get(); }
     BUN_FORCEINLINE const XMLNode* GetNode(const char* name) const { return GetNode(_nodehash[name]); }
     BUN_FORCEINLINE XMLNode* GetNode(const char* name) { return GetNode(_nodehash[name]); }
-    BUN_FORCEINLINE size_t GetNodes() const { return _nodes.Length(); }
-    BUN_FORCEINLINE const XMLValue* GetAttribute(size_t index) const { return index >= _attributes.Length() ? 0 : (_attributes + index); }
-    BUN_FORCEINLINE XMLValue* GetAttribute(size_t index) { return index >= _attributes.Length() ? 0 : (_attributes + index); }
+    BUN_FORCEINLINE size_t GetNodes() const { return _nodes.size(); }
+    BUN_FORCEINLINE const XMLValue* GetAttribute(size_t index) const { return index >= _attributes.size() ? nullptr : (_attributes.data() + index); }
+    BUN_FORCEINLINE XMLValue* GetAttribute(size_t index) { return index >= _attributes.size() ? nullptr : (_attributes.data() + index); }
     BUN_FORCEINLINE const XMLValue* GetAttribute(const char* name) const { return GetAttribute(_attrhash[name]); }
     BUN_FORCEINLINE XMLValue* GetAttribute(const char* name) { return GetAttribute(_attrhash[name]); }
-    BUN_FORCEINLINE const char* GetAttributeString(const char* name) const { const XMLValue* r = GetAttribute(_attrhash[name]); return !r ? 0 : r->String.c_str(); }
+    BUN_FORCEINLINE const char* GetAttributeString(const char* name) const { const XMLValue* r = GetAttribute(_attrhash[name]); return !r ? nullptr : r->String.c_str(); }
     BUN_FORCEINLINE const int64_t GetAttributeInt(const char* name) const { const XMLValue* r = GetAttribute(_attrhash[name]); return !r ? 0 : r->Integer; }
     BUN_FORCEINLINE const double GetAttributeFloat(const char* name) const { const XMLValue* r = GetAttribute(_attrhash[name]); return !r ? 0 : r->Float; }
-    BUN_FORCEINLINE size_t GetAttributes() const { return _attributes.Length(); }
+    BUN_FORCEINLINE size_t GetAttributes() const { return _attributes.size(); }
     BUN_FORCEINLINE const XMLValue& GetValue() const { return _value; }
     BUN_FORCEINLINE XMLValue& GetValue() { return _value; }
     BUN_FORCEINLINE void SetName(const char* name) { _name = name; }
@@ -181,7 +181,7 @@ namespace bun {
       auto begin = std::begin(t);
       auto end = std::end(t);
       for(; begin != end; ++begin)
-        Serializer<XMLEngine>::ActionBind<remove_cvref_t<decltype(*begin)>>::Serialize(e, *begin, 0);
+        Serializer<XMLEngine>::ActionBind<std::remove_cvref_t<decltype(*begin)>>::Serialize(e, *begin, 0);
     }
     template<typename T, size_t... S>
     static void SerializeTuple(Serializer<XMLEngine>& e, const T& t, const char* id, std::index_sequence<S...>)

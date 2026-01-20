@@ -39,14 +39,12 @@ namespace bun {
     inline bool Empty() const { return !_length; }
     inline void Clear() { _length = 0; }
     BUN_FORCEINLINE void SetLength(CT length) { BASE::SetLength(length); }
-    inline CT Length() const { return _length; }
+    inline CT size() const { return _length; }
     inline const T* begin() const { return _array; }
     inline const T* end() const { return _array + _length; }
     inline T* begin() { return _array; }
     inline T* end() { return _array + _length; }
 
-    inline operator T*() { return _array; }
-    inline operator const T*() const { return _array; }
     inline RandomQueue& operator=(const RandomQueue& copy) = default;
     inline RandomQueue& operator=(RandomQueue&& mov) = default;
     inline RandomQueue& operator +=(const RandomQueue& add) { BASE::operator+=(add); return *this; }

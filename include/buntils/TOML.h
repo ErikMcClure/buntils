@@ -661,7 +661,7 @@ namespace bun {
     auto begin = std::begin(obj);
     auto end = std::end(obj);
     for(; begin != end; ++begin)
-      Serializer<TOMLEngine>::ActionBind<remove_cvref_t<decltype(*begin)>>::Serialize(e, *begin, 0);
+      Serializer<TOMLEngine>::ActionBind<std::remove_cvref_t<decltype(*begin)>>::Serialize(e, *begin, 0);
 
     s << ']';
     if(e.engine.state != STATE_INLINE_TABLE && id)

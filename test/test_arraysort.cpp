@@ -46,6 +46,6 @@ TESTDEF::RETPAIR test_ARRAYSORT()
     ArraySort<int> slicetest;
   int slices[4] = { 0, 1, 2, 3 };
   slicetest = std::span<int>(slices, 4);
-  TEST(slicetest.Length() == 4);
+  TEST(slicetest.size() == 4);
   ENDTEST;
 }

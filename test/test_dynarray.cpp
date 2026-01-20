@@ -46,13 +46,13 @@ TESTDEF::RETPAIR test_DYNARRAY()
   y.AddConstruct<int>(10);
   y.Add(11);
   auto z = x + y;
-  TEST(z.Length() == 11);
+  TEST(z.size() == 11);
   TEST(z[3] == 4);
   TEST(z[8] == 9);
   TEST(z[9] == 10);
   TEST(z[10] == 11);
   z += y;
-  TEST(z.Length() == 14);
+  TEST(z.size() == 14);
   TEST(z[3] == 4);
   TEST(z[11] == 9);
   TEST(z[12] == 10);
@@ -60,25 +60,25 @@ TESTDEF::RETPAIR test_DYNARRAY()
 
   int zvars[5] = { 4, 3, 2, 1, 5 };
   y.Set(zvars, 3);
-  TEST(y.Length() == 3);
+  TEST(y.size() == 3);
   TEST(y[0] == 4);
   TEST(y[1] == 3);
   TEST(y[2] == 2);
 
   z = std::span<int>{ zvars, 5 };
-  TEST(z.Length() == 5);
+  TEST(z.size() == 5);
   TEST(z[3] == 1);
   DynArray<char> n(2);
   DynArray<bool> m(2);
   auto fverify = [&__testret](const DynArray<bool>& a, DynArray<char>& b) {
-    TEST(a.Length() == b.Length());
-    for(size_t i = 0; i < b.Length(); ++i)
+    TEST(a.size() == b.size());
+    for(size_t i = 0; i < b.size(); ++i)
       TEST(a[i] == (b[i] != 0));
 
     int c = 0;
     for(auto v : a)
       TEST(v == (b[c++] != 0));
-    TEST(c == b.Length());
+    TEST(c == b.size());
 
     for(auto v = a.end(); v != a.begin();)
       TEST(*(--v) == (b[--c] != 0));
@@ -125,7 +125,7 @@ TESTDEF::RETPAIR test_DYNARRAY()
   DynArray<char> nnn(n);
   fverify(mmm, nnn);
 
-  for(size_t i = 0; i < m.Length(); ++i)
+  for(size_t i = 0; i < m.size(); ++i)
   {
     fset(i, false);
     fset(i, true);
@@ -135,24 +135,24 @@ TESTDEF::RETPAIR test_DYNARRAY()
   for(size_t i = 0; i < 10; ++i)
     finsert(i, (i % 2) != 0);
 
-  fremove(m.Length() - 1);
+  fremove(m.size() - 1);
   fremove(8);
   fremove(7);
   fremove(0);
 
-  while(m.Length() > 0) fremove((m.Length() * 3) % m.Length());
+  while(m.size() > 0) fremove((m.size() * 3) % m.size());
 
-  TEST(!m.Length());
+  TEST(!m.size());
 
   auto f = [](DynArray<DEBUG_CDT<true>, uint32_t>& arr)->bool {
-    for(size_t i = 0; i < arr.Length(); ++i)
+    for(size_t i = 0; i < arr.size(); ++i)
       if(arr[i]._index != i)
         return false;
     return true;
   };
-  auto f2 = [](DynArray<DEBUG_CDT<true>, uint32_t>& arr, uint32_t s) { for(uint32_t i = s; i < arr.Length(); ++i) { arr[i]._index = i; } };
+  auto f2 = [](DynArray<DEBUG_CDT<true>, uint32_t>& arr, uint32_t s) { for(uint32_t i = s; i < arr.size(); ++i) { arr[i]._index = i; } };
 
-  assert(!DEBUG_CDT_SAFE::Tracker.Length());
+  assert(!DEBUG_CDT_SAFE::Tracker.size());
   {
     DEBUG_CDT<true>::count = 0;
     DynArray<DEBUG_CDT<true>, uint32_t> b(10);
@@ -160,15 +160,15 @@ TESTDEF::RETPAIR test_DYNARRAY()
     f2(b, 0);
     b.Remove(5);
     for(size_t i = 0; i < 5; ++i) TEST(b[i]._index == i);
-    for(size_t i = 5; i < b.Length(); ++i) TEST(b[i]._index == (i + 1));
-    TEST(b.Length() == 9);
+    for(size_t i = 5; i < b.size(); ++i) TEST(b[i]._index == (i + 1));
+    TEST(b.size() == 9);
     TEST(DEBUG_CDT<true>::count == 9);
     f2(b, 0);
     b.SetLength(19);
     f2(b, 9);
     TEST(f(b));
     TEST(DEBUG_CDT<true>::count == 19);
-    TEST(b.Length() == 19);
+    TEST(b.size() == 19);
     DynArray<DEBUG_CDT<true>, uint32_t> c(b);
     TEST(f(c));
     TEST(DEBUG_CDT<true>::count == 38);
@@ -180,21 +180,21 @@ TESTDEF::RETPAIR test_DYNARRAY()
     f2(b, 0);
     b.Insert(DEBUG_CDT<true>(), 5);
     for(size_t i = 0; i < 5; ++i) TEST(b[i]._index == i);
-    for(size_t i = 6; i < b.Length(); ++i) TEST(b[i]._index == (i - 1));
+    for(size_t i = 6; i < b.size(); ++i) TEST(b[i]._index == (i - 1));
     TEST(DEBUG_CDT<true>::count == 58);
-    b.Insert(DEBUG_CDT<true>(), b.Length());
+    b.Insert(DEBUG_CDT<true>(), b.size());
     TEST(DEBUG_CDT<true>::count == 59);
   }
   TEST(!DEBUG_CDT<true>::count);
-  TEST(!DEBUG_CDT_SAFE::Tracker.Length());
+  TEST(!DEBUG_CDT_SAFE::Tracker.size());
 
   auto f3 = [](DynArray<DEBUG_CDT<false>, uint32_t>& arr)->bool {
-    for(size_t i = 0; i < arr.Length(); ++i)
+    for(size_t i = 0; i < arr.size(); ++i)
       if(arr[i]._index != i)
         return false;
     return true;
   };
-  auto f4 = [](DynArray<DEBUG_CDT<false>, uint32_t>& arr, uint32_t s) { for(uint32_t i = s; i < arr.Length(); ++i) { arr[i]._index = i; } };
+  auto f4 = [](DynArray<DEBUG_CDT<false>, uint32_t>& arr, uint32_t s) { for(uint32_t i = s; i < arr.size(); ++i) { arr[i]._index = i; } };
   {
     DEBUG_CDT<false>::count = 0;
     DynArray<DEBUG_CDT<false>, uint32_t> b(10);
@@ -202,15 +202,15 @@ TESTDEF::RETPAIR test_DYNARRAY()
     f4(b, 0);
     b.Remove(5);
     for(size_t i = 0; i < 5; ++i) TEST(b[i]._index == i);
-    for(size_t i = 5; i < b.Length(); ++i) TEST(b[i]._index == (i + 1));
-    TEST(b.Length() == 9);
+    for(size_t i = 5; i < b.size(); ++i) TEST(b[i]._index == (i + 1));
+    TEST(b.size() == 9);
     TEST(DEBUG_CDT<false>::count == 9);
     f4(b, 0);
     b.SetLength(19);
     f4(b, 9);
     TEST(f3(b));
     TEST(DEBUG_CDT<false>::count == 19);
-    TEST(b.Length() == 19);
+    TEST(b.size() == 19);
     DynArray<DEBUG_CDT<false>, uint32_t> c(b);
     TEST(f3(c));
     TEST(DEBUG_CDT<false>::count == 38);
@@ -222,13 +222,13 @@ TESTDEF::RETPAIR test_DYNARRAY()
     f4(b, 0);
     b.Insert(DEBUG_CDT<false>(), 5);
     for(size_t i = 0; i < 5; ++i) TEST(b[i]._index == i);
-    for(size_t i = 6; i < b.Length(); ++i) TEST(b[i]._index == (i - 1));
+    for(size_t i = 6; i < b.size(); ++i) TEST(b[i]._index == (i - 1));
     TEST(DEBUG_CDT<false>::count == 58);
-    b.Insert(DEBUG_CDT<false>(), b.Length());
+    b.Insert(DEBUG_CDT<false>(), b.size());
     TEST(DEBUG_CDT<false>::count == 59);
   }
   TEST(!DEBUG_CDT<false>::count);
-  TEST(!DEBUG_CDT_SAFE::Tracker.Length());
+  TEST(!DEBUG_CDT_SAFE::Tracker.size());
 
   ArbitraryArray<int> u(0);
   int ua[5] = { 1,2,3,4,5 };

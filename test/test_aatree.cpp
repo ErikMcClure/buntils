@@ -13,7 +13,7 @@ TESTDEF::RETPAIR test_AA_TREE()
   BEGINTEST;
 
   BlockPolicy<AANODE<int>> fixedaa;
-  AATree<int, CompT<int>, PolicyAllocator<AANODE<int>, BlockPolicy>> aat(PolicyAllocator<AANODE<int>, BlockPolicy>{fixedaa});
+  AATree<int, std::compare_three_way, PolicyAllocator<AANODE<int>, BlockPolicy>> aat(PolicyAllocator<AANODE<int>, BlockPolicy>{fixedaa});
 
   XorshiftEngine64 e;
 

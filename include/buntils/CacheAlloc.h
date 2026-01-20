@@ -126,7 +126,7 @@ namespace bun {
       } while(!asmcasr<bun_PTag<void>>(freelist, nval, prev, prev));
     }
 
-    BUN_ALIGN(16) RWLock _cachelock;
+    alignas(16) RWLock _cachelock;
     const size_t _maxsize;
     const size_t _debugalign;
     HashIns<size_t, bun_PTag<void>, StandardAllocator<std::byte, 16>> _cache; // Each size in the hash points to a freelist for allocations of that size

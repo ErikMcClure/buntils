@@ -14,7 +14,7 @@ namespace bun {
   {
   public:
     // Block Chunk Alloc
-    BUN_ALIGN(alignof(T)) union Node
+    union alignas(alignof(T)) Node
     {
       struct {
         size_t size;

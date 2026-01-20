@@ -15,11 +15,11 @@ TESTDEF::RETPAIR test_SCHEDULER()
   s.Add(0.0, [&]()->double { ret[0] = true; return 0.0; });
   s.Add(0.0, [&]()->double { ret[1] = true; return 10000000.0; });
   s.Add(10000000.0, [&]()->double { ret[2] = false; return 0.0; });
-  TEST(s.Length() == 3);
+  TEST(s.size() == 3);
   s.Update();
   TEST(ret[0]);
   TEST(ret[1]);
   TEST(ret[2]);
-  TEST(s.Length() == 2);
+  TEST(s.size() == 2);
   ENDTEST;
 }

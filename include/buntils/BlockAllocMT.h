@@ -180,14 +180,14 @@ namespace bun {
       {
         nval.tag = prev.tag + 1;
         *((void**)(target)) = (void*)prev.p;
-        //atomic_xadd<size_t>(&contention); //DEBUG
+        //contention.fetch_add(1); //DEBUG
       } while (!asmcasr<bun_PTag<void>>(&_freelist, nval, prev, prev));
     }
 
 #pragma warning(push)
 #pragma warning(disable:4251)
-    BUN_ALIGN(16) volatile bun_PTag<void> _freelist;
-    BUN_ALIGN(4) std::atomic_flag _flag;
+    alignas(16) volatile bun_PTag<void> _freelist;
+    alignas(4) std::atomic_flag _flag;
 #pragma warning(pop)
     Node* _root;
     size_t _blocksize;
@@ -259,8 +259,8 @@ namespace bun {
     template<class T>
     inline void deallocT(T* p, size_t num) { deallocate(p, num * sizeof(T)); }
     inline void Clear() noexcept {
-      for (int i = 0; i < COUNT; ++i) {
-        _allocators[i].Clear();
+      for (auto& alloc : _allocators) {
+        alloc.Clear();
       }
     }
 

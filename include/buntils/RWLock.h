@@ -17,6 +17,7 @@ namespace bun {
   // Write-preferring Readers-Writer lock, although writer starvation is still theoretically possible if an infinite number of new readers attempt to acquire the lock
   class BUN_COMPILER_DLLEXPORT RWLock {
   public:
+    static_assert(std::atomic<size_t>::is_always_lock_free);
     static_assert(ATOMIC_POINTER_LOCK_FREE == 2, "This lock does not function properly on this architecture!");
     inline RWLock() : l(0) // Note: if required, the fetch_or behavior can be emulated by checking a write lock, incrementing the read lock, then checking the write lock again.
     {
@@ -33,18 +34,18 @@ namespace bun {
     {
       //assert(debugEmplace());
 
-      while(asmbts<size_t>((size_t*)&l, WBIT)); // While the returned value includes the flag bit, another writer is performing an operation
-      while((l.load(std::memory_order_relaxed)&WMASK) > 0); // Wait for any remaining readers to flush
+      while (l.fetch_or(WFLAG, std::memory_order_acquire) & WFLAG); // While the returned value includes the flag bit, another writer is performing an operation
+      while((l.load(std::memory_order_acquire)&WMASK) > 0); // Wait for any remaining readers to flush
     }
 
     // Attempts to acquire the lock, but if another writer already got the lock, aborts the attempt.
     BUN_FORCEINLINE bool AttemptLock() noexcept
     {
-      if(asmbts<size_t>((size_t*)&l, WBIT)) // If another writer already has the lock, give up
+      if(l.fetch_or(WFLAG, std::memory_order_acquire) & WFLAG) // If another writer already has the lock, give up
         return false;
 
       //assert(debugEmplace());
-      while((l.load(std::memory_order_relaxed)&WMASK) > 0); // Wait for any remaining readers to flush
+      while((l.load(std::memory_order_acquire)&WMASK) > 0); // Wait for any remaining readers to flush
       return true;
     }
 
@@ -61,7 +62,7 @@ namespace bun {
     BUN_FORCEINLINE void Unlock() noexcept
     {
       //assert(debugErase() == 1);
-      assert(l.load(std::memory_order_relaxed)&WFLAG);
+      assert(l.load(std::memory_order_acquire)&WFLAG);
       l.fetch_and(WMASK, std::memory_order_release);
     }
 
@@ -72,7 +73,7 @@ namespace bun {
       while(l.fetch_add(ONE_READER, std::memory_order_acquire)&WFLAG) // Oppurtunistically acquire a read lock and check to see if the writer flag is set
       {
         if(l.fetch_sub(ONE_READER, std::memory_order_release)&WFLAG) // If the writer flag is set, release our lock to let the writer through
-          while(l.load(std::memory_order_relaxed)&WFLAG); // Wait until the writer flag is no longer set before looping for another attempt
+          while(l.load(std::memory_order_acquire)&WFLAG); // Wait until the writer flag is no longer set before looping for another attempt
       }
     }
 
@@ -91,7 +92,7 @@ namespace bun {
     BUN_FORCEINLINE size_t RUnlock() noexcept
     {
       //assert(debugErase() == 1);
-      assert((l.load(std::memory_order_relaxed)&WMASK) > 0);
+      assert((l.load(std::memory_order_acquire)&WMASK) > 0);
       return l.fetch_sub(ONE_READER, std::memory_order_release);
     }
 
@@ -99,25 +100,25 @@ namespace bun {
     BUN_FORCEINLINE void Upgrade() noexcept
     {
       //assert(debugCount() == 1);
-      assert((l.load(std::memory_order_relaxed)&WMASK) > 0);
-      while(asmbts<size_t>((size_t*)&l, WBIT)) // Attempt to acquire the write lock
+      assert((l.load(std::memory_order_acquire)&WMASK) > 0);
+      while(l.fetch_or(WFLAG, std::memory_order_acquire) & WFLAG) // Attempt to acquire the write lock
       {
         RUnlock(); // if we fail, we MUST release our own read lock so the other writer can proceed.
-        while(l.load(std::memory_order_relaxed)&WFLAG); // Wait until the writer flag is no longer set before looping for another attempt
+        while(l.load(std::memory_order_acquire)&WFLAG); // Wait until the writer flag is no longer set before looping for another attempt
         l.fetch_add(ONE_READER, std::memory_order_acquire); // Acquire a read lock before our next upgrade attempt - if the attempt fails, we'll release this.
       }
-      while((l.load(std::memory_order_relaxed)&WMASK) > ONE_READER); // Only flush to a single read lock, which will be our own
+      while((l.load(std::memory_order_acquire)&WMASK) > ONE_READER); // Only flush to a single read lock, which will be our own
     }
 
     // Attempts to upgrade a read lock to a write lock, but aborts if an existing writer has already locked it.
     BUN_FORCEINLINE bool AttemptUpgrade() noexcept
     {
-      assert((l.load(std::memory_order_relaxed)&WMASK) > 0);
-      if(asmbts<size_t>((size_t*)&l, WBIT))
+      assert((l.load(std::memory_order_acquire)&WMASK) > 0);
+      if(l.fetch_or(WFLAG, std::memory_order_acquire) & WFLAG)
         return false;
 
       //assert(debugCount() == 1);
-      while((l.load(std::memory_order_relaxed)&WMASK) > ONE_READER); // Only flush to a single read lock, which will be our own
+      while((l.load(std::memory_order_acquire)&WMASK) > ONE_READER); // Only flush to a single read lock, which will be our own
       return true;
     }
 
@@ -125,7 +126,7 @@ namespace bun {
     BUN_FORCEINLINE void Downgrade() noexcept
     {
       //assert(debugCount() == 1);
-      assert(l.load(std::memory_order_relaxed)&WFLAG);
+      assert(l.load(std::memory_order_acquire)&WFLAG);
       l.fetch_and(WMASK, std::memory_order_release); // Even though this actually does the same thing as Unlock, we force you to call this function instead so the debug checks are valid.
     }
 

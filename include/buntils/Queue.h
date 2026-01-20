@@ -36,7 +36,7 @@ namespace bun {
     // Returns the underlying capacity of the circular array
     BUN_FORCEINLINE CType Capacity() const { return BASE::Capacity(); }
     // Returns how many items are currently in the queue. Calling Pop or Peek when this is 0 is illegal.
-    BUN_FORCEINLINE CType Length() const { return _length; }
+    BUN_FORCEINLINE CType size() const { return _length; }
 
     inline Queue& operator=(const Queue& copy) = default;
     inline Queue& operator=(Queue&& mov) = default;

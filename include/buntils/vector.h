@@ -278,7 +278,7 @@ namespace bun {
     // copyright notice and this statement appear in all copies.  
     // Intel makes no representations about the suitability of this software for 
     // any purpose, and specifically disclaims all warranties. 
-    static const BUN_ALIGN(16) uint32_t _Sign_PNNP[4] = { 0x00000000, 0x80000000, 0x80000000, 0x00000000 };
+    static const alignas(16) uint32_t _Sign_PNNP[4] = { 0x00000000, 0x80000000, 0x80000000, 0x00000000 };
 
     // The inverse is calculated using "Divide and Conquer" technique. The 
     // original matrix is divide into four 2x2 sub-matrices. Since each 
@@ -786,7 +786,7 @@ namespace bun {
     inline Vector<T, 4> wzxy() const { return Vector<T, 4>(w, z, x, y); }
     inline Vector<T, 4> wzyx() const { return Vector<T, 4>(w, z, y, x); }
 
-    BUN_ALIGNED_UNION(16)
+    union alignas(16)
     {
       T v[4];
       T v_column[4][1];
@@ -1056,11 +1056,12 @@ namespace bun {
     template<typename Engine>
     void Serialize(Serializer<Engine>& s, const char* id) { s.EvaluateFixedArray(v, id); }
 
-    BUN_ALIGNED_UNION(16)
+    union alignas(16)
     {
       T v[4][4];
       struct { T a, b, c, d, e, f, g, h, i, j, k, l, m, n, o, p; };
     };
+
   };
 
   template<typename T, typename U, int N> inline Vector<T, N> operator +(const Vector<T, N>& l, const Vector<U, N>& r) { Vector<T, N> n(l); n += r; return n; }

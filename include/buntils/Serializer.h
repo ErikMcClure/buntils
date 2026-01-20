@@ -367,7 +367,7 @@ namespace bun {
     template<class T, class C, void (T::*SET)(C)>
     static inline bool DynamicRead(Serializer<Engine>& e, T& obj, int64_t count)
     {
-      (obj.*SET)(count);
+      (obj.*SET)(static_cast<C>(count));
       return e.BulkRead(std::begin(obj), std::end(obj), count);
     }
 

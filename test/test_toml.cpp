@@ -119,7 +119,7 @@ void dotest_TOML(TOMLtest& o, TESTDEF::RETPAIR& __testret)
   TEST(o.c == 0.28);
   TEST(o.btrue == true);
   TEST(o.bfalse == false);
-  TEST(o.d.Length() == 6);
+  TEST(o.d.size() == 6);
   TEST(o.d[0] == 1e-6);
   TEST(o.d[1] == -2.0);
   TEST(o.d[2] == 0.3);
@@ -152,15 +152,15 @@ void dotest_TOML(TOMLtest& o, TESTDEF::RETPAIR& __testret)
 #endif
   TEST(o.test2.a == 5);
   TEST(o.test2.test.f == -3.5f);
-  TEST(o.nested.Length() == 2);
+  TEST(o.nested.size() == 2);
   TEST(o.nested[0].a == 2);
   TEST(o.nested[0].test.f == 80.9f);
   TEST(o.nested[1].a == 3);
   TEST(o.nested[1].test.f == -12.21f);
-  TEST(o.Attacks.Length() == 2);
-  for(size_t i = 0; i < o.Attacks.Length(); ++i)
+  TEST(o.Attacks.size() == 2);
+  for(size_t i = 0; i < o.Attacks.size(); ++i)
   {
-    TEST(o.Attacks[i].box.circles.Length() == 1);
+    TEST(o.Attacks[i].box.circles.size() == 1);
     TEST(o.Attacks[i].box.circles[0].x == 0);
     TEST(o.Attacks[i].box.circles[0].y == 0);
     TEST(o.Attacks[i].box.circles[0].outer == 100);

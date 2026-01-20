@@ -78,10 +78,10 @@ namespace bun {
     inline Graph(CT n, const V* nodes)  requires std::is_default_constructible_v<Alloc> : _nodes(n), _nedges(0) { for (CT i = 0; i < n; ++i) AddNode(nodes + i); }
     inline explicit Graph(CT n) requires std::is_default_constructible_v<Alloc> : _nodes(n), _nedges(0) { for (CT i = 0; i < n; ++i) AddNode(); }
     inline ~Graph() { for (CT i = _nodes.Front(); i != (CT)-1; _nodes.Next(i)) while (_nodes[i].to) RemoveEdge(_nodes[i].to); }
-    inline CT NumNodes() const { return _nodes.Length(); }
+    inline CT NumNodes() const { return _nodes.size(); }
     inline CT NumEdges() const { return _nedges; }
     inline CT Capacity() const { return _nodes.Capacity(); }
-    inline Node<E, V, CT>* GetNode(CT index) const { return index < _nodes.Length() ? &_nodes[index] : 0; }
+    inline Node<E, V, CT>* GetNode(CT index) const { return index < _nodes.size() ? &_nodes[index] : 0; }
     inline const LinkedArray<Node<E, V, CT>, CT, NODEALLOC>& GetNodes() const { return _nodes; }
     inline LinkedArray<Node<E, V, CT>, CT, NODEALLOC>& GetNodes() { return _nodes; }
     inline CT Front() const { return _nodes.Front(); }
@@ -126,7 +126,7 @@ namespace bun {
     void FromMatrix(CT n, const E* matrix, const V* nodes) { _construct<E, ISEDGE>(n, matrix, nodes); }
     CT ToMatrix(EDATA* matrix, V* nodes) const
     {
-      CT len = _nodes.Length();
+      CT len = _nodes.size();
       Edge<E, CT>* cur = 0;
 
       if (!matrix)
@@ -248,7 +248,7 @@ namespace bun {
 
     for (CT c = root; c != (CT)-1;)
     {
-      k = v[c].first;
+      auto[k, _] = v[c];
       lh = height[k];
 
       while (excess[k] > 0) // Discharge current vertex

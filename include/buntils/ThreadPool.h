@@ -41,13 +41,13 @@ namespace bun {
     {
       Wait();
       _run.store(-_run.load(std::memory_order_acquire), std::memory_order_release); // Negate the stop count, then wait for it to reach 0
-      _lock.Notify(_threads.Length());
+      _lock.Notify(_threads.size());
       while(_run.load(std::memory_order_acquire) < 0);
     }
     void AddTask(FN f, void* arg, size_t instances = 1)
     {
       if(!instances)
-        instances = (size_t)_threads.Length();
+        instances = (size_t)_threads.size();
 
       TASK task(f, arg);
       _tasks.fetch_add(instances, std::memory_order_release);
@@ -80,7 +80,8 @@ namespace bun {
       TASK task; // It is absolutely crucial that the main thread also process tasks to avoid the issue of orphaned tasks
       while(_run.load(std::memory_order_acquire) > 0 && _tasklist.Pop(task))
       {
-        (*task.first)(task.second);
+        auto [f, ptr] = task;
+        (*f)(ptr);
         _tasks.fetch_sub(1, std::memory_order_release);
       }
 
@@ -103,7 +104,8 @@ namespace bun {
         TASK task;
         while(pool._tasklist.Pop(task))
         {
-          (*task.first)(task.second);
+          auto [f, ptr] = task;
+          (*f)(ptr);
           pool._tasks.fetch_sub(1, std::memory_order_release);
         }
       }

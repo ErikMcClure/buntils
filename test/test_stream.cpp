@@ -36,11 +36,11 @@ TESTDEF::RETPAIR test_STREAM()
   int acheck[] = { 0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 50000, 50001, 50002, 50003, 50004, 50005, 6, 77777777, 88 };
   int bcheck[] = { 0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 50000, 50001, 50002, 50003, 50004, 50005, 6, 77777777, 88 };
   DynArray<int> a = DynArray<int>(std::span<int>(acheck));
-  TEST(a.Length() == sizeof(acheck)/sizeof(int));
+  TEST(a.size() == sizeof(acheck)/sizeof(int));
   DynArray<short> b;
   DynArray<int> c;
 
-  StreamBufArray<int> readbuf(a.begin(), a.Length());
+  StreamBufArray<int> readbuf(a.begin(), a.size());
   std::istream read(&readbuf);
   read.get();
   read.unget();
@@ -74,23 +74,23 @@ TESTDEF::RETPAIR test_STREAM()
   f(idyn, rwdyn, sizeof(short));
   f(rwdyn, odyn, sizeof(int));
 
-  TEST(a.Length()*2 == b.Length());
-  TEST(b.Length() == c.Length()*2);
-  if(a.Length() * 2 == b.Length())
-    TEST(!memcmp(a.begin(), b.begin(), a.Length() * sizeof(int)));
-  if(b.Length() == c.Length() * 2)
-    TEST(!memcmp(b.begin(), c.begin(), b.Length() * sizeof(short)));
+  TEST(a.size()*2 == b.size());
+  TEST(b.size() == c.size()*2);
+  if(a.size() * 2 == b.size())
+    TEST(!memcmp(a.begin(), b.begin(), a.size() * sizeof(int)));
+  if(b.size() == c.size() * 2)
+    TEST(!memcmp(b.begin(), c.begin(), b.size() * sizeof(short)));
 
   DynArray<uint8_t> dbuf;
   {
-    StreamBufArray<uint8_t> dynbuf(dbuf.begin(), dbuf.Length());
+    StreamBufArray<uint8_t> dynbuf(dbuf.begin(), dbuf.size());
     std::istream dynstream(&dynbuf);
     TEST(dynstream.get() == -1);
     TEST(dynstream.eof());
   }
   dbuf.Add('h');
   {
-    StreamBufArray<uint8_t> dynbuf(dbuf.begin(), dbuf.Length());
+    StreamBufArray<uint8_t> dynbuf(dbuf.begin(), dbuf.size());
     std::istream dynstream(&dynbuf);
     TEST(dynstream.get() == 'h');
     dynstream.unget();
@@ -105,7 +105,7 @@ TESTDEF::RETPAIR test_STREAM()
   dbuf.Add('l');
   dbuf.Add('o');
   {
-    StreamBufArray<uint8_t> dynbuf(dbuf.begin(), dbuf.Length());
+    StreamBufArray<uint8_t> dynbuf(dbuf.begin(), dbuf.size());
     std::istream dynstream(&dynbuf);
     char buf[8] = { 0 };
     dynstream.get(buf, 8);

@@ -11,9 +11,13 @@ namespace bun {
   template<class KeyData> // If data is non-void, KeyData is std::pair<Key,Data>, otherwise it's just Key
   struct BUN_COMPILER_DLLEXPORT AVLNode
   {
-    inline AVLNode() : _key(), _left(0), _right(0), _balance(0) {} // Empty constructor is important so we initialize the data as empty if it exists.
+    inline AVLNode() :
+      _key(),
+      _left(0),
+      _right(0),
+      _balance(0) {} // Empty constructor is important so we initialize the data as empty if it exists.
 #pragma warning(push)
-#pragma warning(disable:4251)
+#pragma warning(disable : 4251)
     KeyData _key;
 #pragma warning(pop)
     AVLNode<KeyData>* _left;
@@ -21,57 +25,57 @@ namespace bun {
     int _balance;
 
   private:
-    inline AVLNode(const AVLNode&) = delete; // This is to keep the compiler from defining a copy or assignment constructor that could conflict with move-only structures, like unique_ptr
-    AVLNode& operator =(const AVLNode&) = delete;
+    inline AVLNode(const AVLNode&) = delete; // This is to keep the compiler from defining a copy or assignment constructor
+                                             // that could conflict with move-only structures, like unique_ptr
+    AVLNode& operator=(const AVLNode&) = delete;
   };
 
   namespace internal {
-  // Adaptive function definitions to allow for an optional Data field
-    template<class Key, class Data>
-    class BUN_COMPILER_DLLEXPORT AVLTreeDataField
+    // Adaptive function definitions to allow for an optional Data field
+    template<class Key, class Data> class BUN_COMPILER_DLLEXPORT AVLTreeDataField
     {
     public:
       using KeyData = std::pair<Key, Data>;
-      using Node = AVLNode<KeyData>;
-      using KeyGet = Data;
+      using Node    = AVLNode<KeyData>;
+      using KeyGet  = Data;
       using DataGet = Data;
 
     protected:
       BUN_FORCEINLINE static void _setData(Node* BUN_RESTRICT old, Node* BUN_RESTRICT cur)
-      { 
+      {
         assert(old != cur);
         if(cur != 0)
           cur->_key.second = std::move(old->_key.second);
       }
-      template<typename U>
-      BUN_FORCEINLINE static void _setRaw(U && data, Node* cur) { if(cur != 0) cur->_key.second = std::forward<U>(data); }
+      template<typename U> BUN_FORCEINLINE static void _setRaw(U&& data, Node* cur)
+      {
+        if(cur != 0)
+          cur->_key.second = std::forward<U>(data);
+      }
       BUN_FORCEINLINE static KeyGet& _getData(KeyData& cur) { return cur.second; }
       BUN_FORCEINLINE static Key& _getKey(KeyData& cur) { return cur.first; }
       BUN_FORCEINLINE static void _swapData(Node* BUN_RESTRICT retval, Node* BUN_RESTRICT root)
       {
         assert(retval != root);
-        if(retval != 0) // We have to actually swap the data so that retval returns the correct data so it can be used in ReplaceKey
+        if(retval !=
+           0) // We have to actually swap the data so that retval returns the correct data so it can be used in ReplaceKey
         {
-          Data h(std::move(retval->_key.second));
-          retval->_key.second = std::move(root->_key.second);
-          root->_key.second = std::move(h);
+          std::swap(retval->_key.second, root->_key.second);
         }
       }
     };
 
-    template<class Key>
-    class BUN_COMPILER_DLLEXPORT AVLTreeDataField<Key, void>
+    template<class Key> class BUN_COMPILER_DLLEXPORT AVLTreeDataField<Key, void>
     {
     public:
       using KeyData = Key;
-      using Node = AVLNode<KeyData>;
-      using KeyGet = Key;
+      using Node    = AVLNode<KeyData>;
+      using KeyGet  = Key;
       using DataGet = char;
 
     protected:
       BUN_FORCEINLINE static void _setData(Node* BUN_RESTRICT old, Node* BUN_RESTRICT cur) {}
-      template<typename U>
-      BUN_FORCEINLINE static void _setRaw(U && data, Node* cur) {}
+      template<typename U> BUN_FORCEINLINE static void _setRaw(U&& data, Node* cur) {}
       BUN_FORCEINLINE static KeyGet& _getData(KeyData& cur) { return cur; }
       BUN_FORCEINLINE static Key& _getKey(KeyData& cur) { return cur; }
       BUN_FORCEINLINE static void _swapData(Node* BUN_RESTRICT retval, Node* BUN_RESTRICT root) {}
@@ -79,38 +83,63 @@ namespace bun {
   }
 
   // AVL Tree implementation
-  template<class Key, class Data, char(*CFunc)(const Key&, const Key&) = CompT<Key>, typename Alloc = PolicyAllocator<typename internal::AVLTreeDataField<Key, Data>::Node, BlockPolicy>>
-  class BUN_COMPILER_DLLEXPORT AVLTree : protected Alloc, public internal::AVLTreeDataField<Key, Data>
+  template<class Key, class Data, Comparison<Key, Key> Comp = std::compare_three_way,
+           typename Alloc = PolicyAllocator<typename internal::AVLTreeDataField<Key, Data>::Node, BlockPolicy>>
+  class BUN_COMPILER_DLLEXPORT BUN_EMPTY_BASES AVLTree :
+    protected Alloc,
+    protected CompressedBase<Comp>,
+    public internal::AVLTreeDataField<Key, Data>
   {
-    AVLTree(const AVLTree& copy) = delete;
+    AVLTree(const AVLTree& copy)            = delete;
     AVLTree& operator=(const AVLTree& copy) = delete;
+
   protected:
-    using Base = internal::AVLTreeDataField<Key, Data>;
+    using Base    = internal::AVLTreeDataField<Key, Data>;
     using KeyData = typename Base::KeyData;
-    using Node = typename Base::Node;
-    using KeyGet = typename Base::KeyGet;
+    using Node    = typename Base::Node;
+    using KeyGet  = typename Base::KeyGet;
     using DataGet = typename Base::DataGet;
+    using CompressedBase<Comp>::_getbase;
 
   public:
     inline AVLTree(AVLTree&& mov) : Alloc(std::move(mov)), _root(mov._root) { mov._root = 0; }
-    inline explicit AVLTree(const Alloc& alloc) : Alloc(alloc), _root(0) {}
-    inline AVLTree() requires std::is_default_constructible_v<Alloc> : _root(0) {}
+    inline explicit AVLTree(const Alloc& alloc, const Comp& c) : Alloc(alloc), CompressedBase<Comp>(c), _root(0) {}
+    inline explicit AVLTree(const Alloc& alloc)
+      requires std::is_default_constructible_v<Comp>
+      : AVLTree(alloc, Comp())
+    {}
+    inline explicit AVLTree(const Comp& c)
+      requires std::is_default_constructible_v<Alloc>
+      : AVLTree(Alloc(), c)
+    {}
+    inline AVLTree()
+      requires std::is_default_constructible_v<Alloc> && std::is_default_constructible_v<Comp>
+      : AVLTree(Alloc(), Comp())
+    {}
     inline ~AVLTree() { Clear(); }
-    inline void Clear() { _clear(_root); _root = 0; }
+    inline void Clear()
+    {
+      _clear(_root);
+      _root = 0;
+    }
     inline Node* GetRoot() { return _root; }
-    template<typename F> // std::function<void(std::pair<key,data>)> (we infer _traverse's template argument here, otherwise GCC explodes)
-    BUN_FORCEINLINE void Traverse(F lambda) { _traverse(lambda, _root); }
+    template<typename F> // std::function<void(std::pair<key,data>)> (we infer _traverse's template argument here, otherwise
+                         // GCC explodes)
+    BUN_FORCEINLINE void Traverse(F lambda)
+    {
+      _traverse(lambda, _root);
+    }
     BUN_FORCEINLINE Node* Insert(Key key, const DataGet& data)
     {
       char change = 0;
-      Node* cur = _insert(key, &_root, change);
+      Node* cur   = _insert(key, &_root, change);
       Base::template _setRaw<const DataGet&>(data, cur); // WHO COMES UP WITH THIS SYNTAX?!
       return cur;
     }
     BUN_FORCEINLINE Node* Insert(Key key, DataGet&& data)
     {
       char change = 0;
-      Node* cur = _insert(key, &_root, change);
+      Node* cur   = _insert(key, &_root, change);
       Base::template _setRaw<DataGet&&>(std::move(data), cur);
       return cur;
     }
@@ -133,7 +162,7 @@ namespace bun {
     inline bool Remove(const Key key)
     {
       char change = 0;
-      Node* node = _remove(key, &_root, change);
+      Node* node  = _remove(key, &_root, change);
 
       if(node != 0)
       {
@@ -147,8 +176,8 @@ namespace bun {
     inline bool ReplaceKey(const Key oldkey, const Key newkey)
     {
       char change = 0;
-      Node* old = _remove(oldkey, &_root, change);
-      Node* cur = _insert(newkey, &_root, change);
+      Node* old   = _remove(oldkey, &_root, change);
+      Node* cur   = _insert(newkey, &_root, change);
 
       if(old != 0)
       {
@@ -160,11 +189,16 @@ namespace bun {
       return (cur != 0);
     }
 
-    inline AVLTree& operator=(AVLTree&& mov) { Clear(); _root = mov._root; mov._root = 0; return *this; }
+    inline AVLTree& operator=(AVLTree&& mov)
+    {
+      Clear();
+      _root     = mov._root;
+      mov._root = 0;
+      return *this;
+    }
 
   protected:
-    template<typename F>
-    BUN_FORCEINLINE static void _traverse(F lambda, Node* node)
+    template<typename F> BUN_FORCEINLINE static void _traverse(F lambda, Node* node)
     {
       if(!node)
         return;
@@ -188,11 +222,11 @@ namespace bun {
     static void _leftRotate(Node** pnode)
     {
       Node* node = *pnode;
-      Node* r = node->_right;
+      Node* r    = node->_right;
 
       node->_right = r->_left;
-      r->_left = node;
-      *pnode = r;
+      r->_left     = node;
+      *pnode       = r;
 
       r->_left->_balance -= (1 + bun_max(r->_balance, 0));
       r->_balance -= (1 - bun_min(r->_left->_balance, 0));
@@ -201,30 +235,30 @@ namespace bun {
     static void _rightRotate(Node** pnode)
     {
       Node* node = *pnode;
-      Node* r = node->_left;
+      Node* r    = node->_left;
 
       node->_left = r->_right;
-      r->_right = node;
-      *pnode = r;
+      r->_right   = node;
+      *pnode      = r;
 
       r->_right->_balance += (1 - bun_min(r->_balance, 0));
       r->_balance += (1 + bun_max(r->_right->_balance, 0));
     }
-    Node* _insert(Key key, Node** proot, char& change) //recursive insertion function
+    Node* _insert(Key key, Node** proot, char& change) // recursive insertion function
     {
       Node* root = *proot;
 
       if(!root)
       {
-        root = std::allocator_traits<Alloc>::allocate(*this,1);
+        root   = std::allocator_traits<Alloc>::allocate(*this, 1);
         *proot = root;
         new(root) Node();
         Base::_getKey(root->_key) = key;
-        change = 1;
+        change                    = 1;
         return root;
       }
 
-      char result = CFunc(Base::_getKey(root->_key), key);
+      auto result  = _getbase()(Base::_getKey(root->_key), key);
       Node* retval = 0;
 
       if(result < 0)
@@ -249,12 +283,13 @@ namespace bun {
 
       while(cur)
       {
-        switch(CFunc(Base::_getKey(cur->_key), key)) //This is faster then if/else statements because FUCK IF I KNOW!
-        {
-        case -1: cur = cur->_left; break;
-        case 1: cur = cur->_right; break;
-        default: return cur;
-        }
+        auto result = _getbase()(Base::_getKey(cur->_key), key);
+        if(result < 0)
+          cur = cur->_left;
+        else if(result > 0)
+          cur = cur->_right;
+        else
+          return cur;
       }
 
       return 0;
@@ -263,17 +298,18 @@ namespace bun {
     inline Node* _near(const Key& key) const
     {
       Node* prev = 0;
-      Node* cur = _root;
+      Node* cur  = _root;
 
       while(cur)
       {
-        prev = cur;
-        switch(CFunc(Base::_getKey(cur->_key), key)) //This is faster then if/else statements because FUCK IF I KNOW!
-        {
-        case -1: cur = cur->_left; break;
-        case 1: cur = cur->_right; break;
-        default: return cur;
-        }
+        prev        = cur;
+        auto result = _getbase()(Base::_getKey(cur->_key), key);
+        if(result < 0)
+          cur = cur->_left;
+        else if(result > 0)
+          cur = cur->_right;
+        else
+          return cur;
       }
 
       return prev;
@@ -292,16 +328,17 @@ namespace bun {
           retval = 1;
         }
         else
-        { // LL 
+        { // LL
           retval = !_root->_left->_balance ? 0 : 1;
-          //retval = (_root->_left->_balance<0)+(_root->_left->_balance>0); //Does the same thing as above without branching (useless)
+          // retval = (_root->_left->_balance<0)+(_root->_left->_balance>0); //Does the same thing as above without
+          // branching (useless)
           _rightRotate(root);
         }
       }
       else if(_root->_balance > 1)
       {
         if(_root->_right->_balance == -1)
-        { //RL
+        { // RL
           _rightRotate(&_root->_right);
           _leftRotate(root);
           retval = 1;
@@ -309,7 +346,8 @@ namespace bun {
         else
         { // RR
           retval = !_root->_right->_balance ? 0 : 1;
-          //retval = (_root->_right->_balance<0)+(_root->_right->_balance>0); //Does the same thing as above without branching (useless)
+          // retval = (_root->_right->_balance<0)+(_root->_right->_balance>0); //Does the same thing as above without
+          // branching (useless)
           _leftRotate(root);
         }
       }
@@ -317,7 +355,7 @@ namespace bun {
       return retval;
     }
 
-    Node* _remove(const Key& key, Node** proot, char& change) //recursive removal function
+    Node* _remove(const Key& key, Node** proot, char& change) // recursive removal function
     {
       Node* root = *proot;
 
@@ -327,7 +365,7 @@ namespace bun {
         return 0;
       }
 
-      char result = CFunc(Base::_getKey(root->_key), key);
+      auto result  = _getbase()(Base::_getKey(root->_key), key);
       Node* retval = 0;
 
       if(result < 0)
@@ -342,14 +380,14 @@ namespace bun {
       }
       else
       {
-        if(!root->_left && !root->_right) //leaf node
+        if(!root->_left && !root->_right) // leaf node
         {
           *proot = 0;
           change = 1;
           return root;
         }
         else if(!root->_left || !root->_right)
-        { //one child
+        { // one child
           *proot = !root->_left ? root->_right : root->_left;
           change = 1;
           return root;
@@ -361,7 +399,9 @@ namespace bun {
             successor = successor->_left;
 
           Base::_getKey(root->_key) = Base::_getKey(successor->_key);
-          retval = _remove(Base::_getKey(successor->_key), &root->_right, result); //this works because we're always removing something from the right side, which means we should always subtract 1 or 0.
+          retval                    = _remove(Base::_getKey(successor->_key), &root->_right,
+                                              result); // this works because we're always removing something from the right side, which means
+                                                       // we should always subtract 1 or 0.
           Base::_swapData(retval, root);
 
           change = 1;

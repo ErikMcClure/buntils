@@ -86,10 +86,10 @@ void dotest_JSON(JSONtest& o, TESTDEF::RETPAIR& __testret)
   TEST(o.fixed[1] == 23.1f);
   TEST(o.fixed[2] == -3.0f);
   TEST(o.test.length() > 0);
-  TEST(o.nested.value.Length() == 2);
+  TEST(o.nested.value.size() == 2);
   TEST(o.nested.ia[0] == -1);
   TEST(o.nested.ia[1] == 2);
-  TEST(o.foo.Length() == 6);
+  TEST(o.foo.size() == 6);
   TEST(o.foo[0] == 5);
   TEST(o.foo[1] == 6);
   TEST(o.foo[2] == 4);
@@ -102,13 +102,13 @@ void dotest_JSON(JSONtest& o, TESTDEF::RETPAIR& __testret)
   TEST(o.bar[2] == 0.49873);
   TEST(o.bar[3] == 90);
   TEST(o.bar[4] == 4);
-  TEST(o.foobar.Length() == 2);
+  TEST(o.foobar.size() == 2);
   TEST(o.foobar[0] == "moar");
   TEST(o.foobar[1] == "");
-  TEST(o.nestarray.Length() == 2);
+  TEST(o.nestarray.size() == 2);
   TEST(o.nestarray[1].b == 34);
-  TEST(o.nested2.value.Length() == 0);
-  TEST(o.hash.Length() == 3);
+  TEST(o.nested2.value.size() == 0);
+  TEST(o.hash.size() == 3);
   TEST(o.hash[40] == 44);
   TEST(o.hash[41] == 45);
   TEST(o.hash[42] == 46);
@@ -192,7 +192,7 @@ TESTDEF::RETPAIR test_JSON()
   fs3.close();
 
   auto& var1 = var.get<JSONValue::JSONObject>();
-  TEST(var1.Length() == 21);
+  TEST(var1.size() == 21);
   TEST(var1[0].first == "a");
   TEST(var1[0].second.is<int64_t>());
   TEST(var1[1].first == "b");
@@ -210,7 +210,7 @@ TESTDEF::RETPAIR test_JSON()
   TEST(var1[5].second.is<JSONValue::JSONArray>());
 
   auto& var2 = var1[5].second.get<JSONValue::JSONArray>();
-  TEST(var2.Length() == 6);
+  TEST(var2.size() == 6);
   TEST(var2[0].get<int64_t>() == 5);
   TEST(var2[1].get<int64_t>() == 6);
   TEST(var2[2].get<int64_t>() == 4);
@@ -222,7 +222,7 @@ TESTDEF::RETPAIR test_JSON()
   TEST(var1[6].second.is<JSONValue::JSONArray>());
 
   auto& var3 = var1[6].second.get<JSONValue::JSONArray>();
-  TEST(var3.Length() == 5);
+  TEST(var3.size() == 5);
   TEST(var3[0].is<double>());
   TEST(var3[0].get<double>() == 3.3);
   TEST(var3[1].is<double>());
@@ -238,7 +238,7 @@ TESTDEF::RETPAIR test_JSON()
   TEST(var1[7].second.is<JSONValue::JSONArray>());
 
   auto& var4 = var1[7].second.get<JSONValue::JSONArray>();
-  TEST(var4.Length() == 2);
+  TEST(var4.size() == 2);
   TEST(var4[0].is<Str>());
   TEST(var4[0].get<Str>() == "moar");
   TEST(var4[1].is<Str>());

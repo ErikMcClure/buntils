@@ -372,7 +372,7 @@ BUN_FORCEINLINE BUN_SSE_M128 BUN_SSE_CAST_SI128_PS(BUN_SSE_M128i x) { return *re
 #define BUN_SSE_CMPGT_EPI16 _mm_cmpgt_epi16
 #define BUN_SSE_SI128_SI16 (short)_mm_cvtsi128_si32
 
-BUN_FORCEINLINE __m128i BUN_SSE_SET_EPI64(int64_t y, int64_t x) { BUN_ALIGN(16) int64_t vv[2] = { x, y }; return BUN_SSE_LOAD_ASI128((BUN_SSE_M128i*)vv); }
+BUN_FORCEINLINE __m128i BUN_SSE_SET_EPI64(int64_t y, int64_t x) { alignas(16) int64_t vv[2] = { x, y }; return BUN_SSE_LOAD_ASI128((BUN_SSE_M128i*)vv); }
 #define BUN_SSE_SET1_EPI64(x) BUN_SSE_SET_EPI64(x, x)
 #define BUN_SSE_ADD_EPI64 _mm_add_epi64
 #define BUN_SSE_SUB_EPI64 _mm_sub_epi64
@@ -502,7 +502,7 @@ template<typename T> struct sseVecT {};
 
 // 32-bit floating point operations
 template<>
-BUN_ALIGNED_STRUCT(16) sseVecT<float>
+struct alignas(16) sseVecT<float>
 {
   BUN_FORCEINLINE sseVecT(BUN_SSE_M128 v) : xmm(v) {}
   BUN_FORCEINLINE explicit sseVecT(BUN_SSE_M128i v) : xmm(BUN_SSE_EPI32_PS(v)) {}
@@ -552,7 +552,7 @@ BUN_ALIGNED_STRUCT(16) sseVecT<float>
 
 // 64-bit double operations
 template<>
-BUN_ALIGNED_STRUCT(16) sseVecT<double>
+struct alignas(16) sseVecT<double>
 {
   BUN_FORCEINLINE sseVecT(BUN_SSE_M128d v) : xmm(v) {}
   BUN_FORCEINLINE sseVecT(double v) : xmm(BUN_SSE_SET1_PD(v)) {}
@@ -598,7 +598,7 @@ BUN_ALIGNED_STRUCT(16) sseVecT<double>
 
 // 8-bit signed integer operations
 template<>
-BUN_ALIGNED_STRUCT(16) sseVecT<char>
+struct alignas(16) sseVecT<char>
 {
   BUN_FORCEINLINE sseVecT(BUN_SSE_M128i8 v) : xmm(v) {} //__fastcall is obviously useless here since we're dealing with xmm registers
   BUN_FORCEINLINE sseVecT(char v) : xmm(BUN_SSE_SET1_EPI8(v)) {}
@@ -652,7 +652,7 @@ BUN_ALIGNED_STRUCT(16) sseVecT<char>
 
 // 16-bit signed integer operations
 template<>
-BUN_ALIGNED_STRUCT(16) sseVecT<int16_t>
+struct alignas(16) sseVecT<int16_t>
 {
   BUN_FORCEINLINE sseVecT(BUN_SSE_M128i16 v) : xmm(v) {} //__fastcall is obviously useless here since we're dealing with xmm registers
   BUN_FORCEINLINE sseVecT(int16_t v) : xmm(BUN_SSE_SET1_EPI16(v)) {}
@@ -712,7 +712,7 @@ BUN_ALIGNED_STRUCT(16) sseVecT<int16_t>
 
 // 32-bit signed integer operations
 template<>
-BUN_ALIGNED_STRUCT(16) sseVecT<int32_t>
+struct alignas(16) sseVecT<int32_t>
 {
   BUN_FORCEINLINE sseVecT(BUN_SSE_M128i v) : xmm(v) {} //__fastcall is obviously useless here since we're dealing with xmm registers
   BUN_FORCEINLINE explicit sseVecT(BUN_SSE_M128 v) : xmm(BUN_SSE_TPS_EPI32(v)) {}
@@ -786,7 +786,7 @@ BUN_ALIGNED_STRUCT(16) sseVecT<int32_t>
 
 // 64-bit signed integer operations
 template<>
-BUN_ALIGNED_STRUCT(16) sseVecT<int64_t>
+struct alignas(16) sseVecT<int64_t>
 {
   BUN_FORCEINLINE sseVecT(BUN_SSE_M128i64 v) : xmm(v) {} //__fastcall is obviously useless here since we're dealing with xmm registers
   BUN_FORCEINLINE sseVecT(int64_t v) : xmm(BUN_SSE_SET1_EPI64(v)) {}
@@ -826,9 +826,9 @@ BUN_ALIGNED_STRUCT(16) sseVecT<int64_t>
 #ifdef BUN_64BIT
   BUN_FORCEINLINE void Set(int64_t& v) const { v = BUN_SSE_SI128_SI64(xmm); }
 #else
-  BUN_FORCEINLINE void Set(int64_t& v) const { BUN_ALIGN(16) int64_t store[2]; BUN_SSE_STORE_ASI128((BUN_SSE_M128i*)store, xmm); v = store[0]; }
+  BUN_FORCEINLINE void Set(int64_t& v) const { alignas(16) int64_t store[2]; BUN_SSE_STORE_ASI128((BUN_SSE_M128i*)store, xmm); v = store[0]; }
 #endif
-  BUN_FORCEINLINE int64_t Sum() const { BUN_SSE_M128i64 x = BUN_SSE_ADD_EPI64(xmm, Swap()); BUN_ALIGN(16) int64_t store[2]; BUN_SSE_STORE_ASI128((BUN_SSE_M128i*)store, x); return store[0]; }
+  BUN_FORCEINLINE int64_t Sum() const { BUN_SSE_M128i64 x = BUN_SSE_ADD_EPI64(xmm, Swap()); alignas(16) int64_t store[2]; BUN_SSE_STORE_ASI128((BUN_SSE_M128i*)store, x); return store[0]; }
   BUN_FORCEINLINE sseVecT<int64_t> Swap() const { return (BUN_SSE_M128i64)BUN_SSE_SHUFFLE_EPI32(xmm, BUN_SSE_SHUFFLE(2, 3, 0, 1)); }
 
   static sseVecT<int64_t> ZeroVector() { return sseVecT<int64_t>(BUN_SSE_SETZERO_SI128()); }

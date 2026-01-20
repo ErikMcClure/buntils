@@ -35,7 +35,7 @@ TESTDEF::RETPAIR test_MAP()
 
   TEST(test.Remove(0) == 0);
   TEST(test.Get(0) == -1);
-  TEST(test.Length() == ((sizeof(ins) / sizeof(int)) - 1));
+  TEST(test.size() == ((sizeof(ins) / sizeof(int)) - 1));
 
 #ifndef BUN_COMPILER_GCC // Once again, GCC demonstrates its amazing ability to NOT DEFINE ANY FUCKING CONSTRUCTORS
   Map<int, FWDTEST> tst;

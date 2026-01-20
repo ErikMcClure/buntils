@@ -9,7 +9,7 @@ using namespace bun;
 TESTDEF::RETPAIR test_PRIORITYQUEUE()
 {
   BEGINTEST;
-  PriorityQueue<int, Str, CompTInv<int>, uint32_t> q;
+  PriorityQueue<int, Str, inv_three_way, uint32_t> q;
 
   q.Push(5, "5");
   q.Push(3, "3");

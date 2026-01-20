@@ -52,60 +52,6 @@ namespace bun {
 
   namespace internal {
     template<typename T, int size>
-    struct ATOMIC_XADDPICK { };
-
-#ifdef BUN_PLATFORM_WIN32
-    template<typename T> struct ATOMIC_XADDPICK<T, 1> { BUN_FORCEINLINE static T atomic_xadd(volatile T* p, T v) { return (T)_InterlockedExchangeAdd8((volatile char*)p, v); } };
-    template<typename T> struct ATOMIC_XADDPICK<T, 2> { BUN_FORCEINLINE static T atomic_xadd(volatile T* p, T v) { return (T)_InterlockedExchangeAdd16((volatile short*)p, v); } };
-    template<typename T> struct ATOMIC_XADDPICK<T, 4> { BUN_FORCEINLINE static T atomic_xadd(volatile T* p, T v) { return (T)_InterlockedExchangeAdd((volatile long*)p, v); } };
-    template<typename T> struct ATOMIC_XADDPICK<T, 8> { BUN_FORCEINLINE static T atomic_xadd(volatile T* p, T v) { return (T)_InterlockedExchangeAdd64((volatile int64_t*)p, v); } };
-#elif defined(BUN_COMPILER_GCC) || defined(BUN_COMPILER_CLANG)
-#define ATOMIC_XADDPICK_MACRO(INST,SIZE)  template<typename T> \
-  struct ATOMIC_XADDPICK<T,SIZE> \
-  { \
-    static BUN_FORCEINLINE T atomic_xadd(volatile T* p, T val) \
-    { \
-        __asm__ __volatile__("lock " INST " %0,%1" :"+r" (val),"+m" (*p): : "memory"); \
-        return val; \
-    } \
-  }
-
-    ATOMIC_XADDPICK_MACRO("xaddb", 1);
-    ATOMIC_XADDPICK_MACRO("xaddw", 2);
-    ATOMIC_XADDPICK_MACRO("xaddl", 4);
-#ifdef BUN_CPU_x86_64
-    ATOMIC_XADDPICK_MACRO("xaddq", 8);
-#endif
-#endif
-
-    template<typename T, int size>
-    struct ATOMIC_XCHGPICK { };
-
-#ifdef BUN_PLATFORM_WIN32
-    template<typename T> struct ATOMIC_XCHGPICK<T, 1> { static BUN_FORCEINLINE T atomic_xchg(volatile T* p, T val) { return (T)_InterlockedExchange8((volatile char*)p, (char)val); } };
-    template<typename T> struct ATOMIC_XCHGPICK<T, 2> { static BUN_FORCEINLINE T atomic_xchg(volatile T* p, T val) { return (T)_InterlockedExchange16((volatile short*)p, (short)val); } };
-    template<typename T> struct ATOMIC_XCHGPICK<T, 4> { static BUN_FORCEINLINE T atomic_xchg(volatile T* p, T val) { return (T)_InterlockedExchange((volatile long*)p, (long)val); } };
-    template<typename T> struct ATOMIC_XCHGPICK<T, 8> { static BUN_FORCEINLINE T atomic_xchg(volatile T* p, T val) { return (T)_InterlockedExchange64((volatile int64_t*)p, (int64_t)val); } };
-#elif defined(BUN_COMPILER_GCC) || defined(BUN_COMPILER_CLANG)
-#define ATOMIC_XCHGPICK_MACRO(INST,SIZE,TYPE)  template<typename T> \
-  struct ATOMIC_XCHGPICK<T,SIZE> \
-  { \
-    static BUN_FORCEINLINE T atomic_xchg(volatile T* ptr, T x) \
-    { \
-		__asm__ __volatile__(INST " %0,%1" :"=r" ((TYPE)x) :"m" (*(volatile TYPE*)ptr), "0" ((TYPE)x) :"memory"); \
-		return x; \
-    } \
-  }
-
-    ATOMIC_XCHGPICK_MACRO("xchgb", 1, uint8_t);
-    ATOMIC_XCHGPICK_MACRO("xchgw", 2, uint16_t);
-    ATOMIC_XCHGPICK_MACRO("xchgl", 4, uint32_t);
-#ifdef BUN_CPU_x86_64
-    ATOMIC_XCHGPICK_MACRO("xchgq", 8, unsigned long long);
-#endif
-#endif
-
-    template<typename T, int size>
     struct ASMCAS_REGPICK_WRITE { };
 
 #ifdef BUN_PLATFORM_WIN32
@@ -195,92 +141,6 @@ namespace bun {
 #endif
 #endif
 
-    template<typename T, int size>
-    struct ASMBTS_PICK { };
-
-#ifdef BUN_PLATFORM_WIN32
-    template<typename T> struct ASMBTS_PICK<T, 4> {
-      BUN_FORCEINLINE static bool asmbts(T* pval, T bit) { return _interlockedbittestandset((long*)pval, (long)bit) != 0; }
-    };
-    template<typename T> struct ASMBTS_PICK<T, 8> {
-      BUN_FORCEINLINE static bool asmbts(T* pval, T bit) { return _interlockedbittestandset64((long long*)pval, (long long)bit) != 0; }
-    };
-#else
-    template<typename T> struct ASMBTS_PICK<T, 4> {
-      BUN_FORCEINLINE static bool asmbts(T* pval, T bit)
-      {
-        uint8_t retval;
-        __asm__ __volatile__(
-          "lock bts %[bit], %[x]\n\t"
-          "setc     %b[rv]\n\t"
-          : [x] "+m" (*pval), [rv] "=rm"(retval)
-          : [bit] "ri" (bit));
-        return retval != 0;
-      }
-    };
-    template<typename T> struct ASMBTS_PICK<T, 8> {
-      BUN_FORCEINLINE static bool asmbts(T* pval, T bit)
-      {
-        uint8_t retval;
-        __asm__ __volatile__(
-          "lock bts %[bit], %[x]\n\t"
-          "setc     %b[rv]\n\t"
-          : [x] "+m" (*pval), [rv] "=rm"(retval)
-          : [bit] "ri" (bit));
-        return retval != 0;
-      }
-    };
-#endif
-
-    template<typename T, int size>
-    struct ASMBTR_PICK { };
-
-#ifdef BUN_PLATFORM_WIN32
-    template<typename T> struct ASMBTR_PICK<T, 4> {
-      BUN_FORCEINLINE static bool asmbtr(T* pval, T bit) { return _interlockedbittestandreset((long*)pval, (long)bit) != 0; }
-    };
-    template<typename T> struct ASMBTR_PICK<T, 8> {
-      BUN_FORCEINLINE static bool asmbtr(T* pval, T bit) { return _interlockedbittestandreset64((long long*)pval, (long long)bit) != 0; }
-    };
-#else
-    template<typename T> struct ASMBTR_PICK<T, 4> {
-      BUN_FORCEINLINE static bool asmbtr(T* pval, T bit)
-      {
-        uint8_t retval;
-        __asm__ __volatile__(
-          "lock btr %[bit], %[x]\n\t"
-          "setc     %b[rv]\n\t"
-          : [x] "+m" (*pval), [rv] "=rm"(retval)
-          : [bit] "ri" (bit));
-        return retval != 0;
-      }
-    };
-    template<typename T> struct ASMBTR_PICK<T, 8> {
-      BUN_FORCEINLINE static bool asmbtr(T* pval, T bit)
-      {
-        uint8_t retval;
-        __asm__ __volatile__(
-          "lock btr %[bit], %[x]\n\t"
-          "setc     %b[rv]\n\t"
-          : [x] "+m" (*pval), [rv] "=rm"(retval)
-          : [bit] "ri" (bit));
-        return retval != 0;
-      }
-    };
-#endif
-
-  }
-
-  template<typename T> // This performs an atomic addition, and returns the value of the variable BEFORE the addition. This is faster if p is 32-bit aligned.
-  BUN_FORCEINLINE T atomic_xadd(volatile T* p, T val = 1)
-  {
-    return internal::ATOMIC_XADDPICK<T, sizeof(T)>::atomic_xadd(p, val);
-  }
-
-  template<typename T> // This performs an atomic exchange, and returns the old value of *p. This is faster if p is 32-bit aligned.
-  BUN_FORCEINLINE T atomic_xchg(volatile T* p, T val)
-  {
-    return internal::ATOMIC_XCHGPICK<T, sizeof(T)>::atomic_xchg(p, val);
   }
 
   // Provides assembly level Compare and Exchange operation. Returns 1 if successful or 0 on failure. Implemented via
@@ -297,18 +157,6 @@ namespace bun {
   inline bool asmcasr(volatile T *pval, T newval, T oldval, T& retval)
   {
     return internal::ASMCAS_REGPICK_READ<T, sizeof(T)>::asmcas(pval, newval, oldval, retval);
-  }
-
-  template<typename T>
-  inline bool asmbts(T* pval, T bit)
-  {
-    return internal::ASMBTS_PICK<T, sizeof(T)>::asmbts(pval, bit);
-  }
-
-  template<typename T>
-  inline bool asmbtr(T* pval, T bit)
-  {
-    return internal::ASMBTR_PICK<T, sizeof(T)>::asmbtr(pval, bit);
   }
 
   /*

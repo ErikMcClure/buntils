@@ -45,14 +45,14 @@ void XMLFile::Write(const char* file, bool pretty) const
 }
 void XMLFile::Write(std::ostream& stream, bool pretty) const
 {
-  if(_attributes.Length() > 0)
+  if(_attributes.size() > 0)
   {
     stream << "<?";
     _writeAttribute(stream);
     stream << "?>";
   }
-  for(size_t i = 0; i < _nodes.Length(); ++i)
-    _nodes[i]->_write(stream, pretty, 0);
+  for(auto& node : _nodes)
+    node->_write(stream, pretty, 0);
 }
 
 XMLNode::XMLNode(const XMLNode& copy) : _nodehash(copy._nodehash), _attributes(copy._attributes), _attrhash(copy._attrhash),
@@ -60,8 +60,8 @@ XMLNode::XMLNode(const XMLNode& copy) : _nodehash(copy._nodehash), _attributes(c
 {
   next = 0;
   prev = 0;
-  for (size_t i = 0; i < copy._nodes.Length(); ++i)
-    AddNode(*copy._nodes[i].get());
+  for (auto& node : copy._nodes)
+    AddNode(*node.get());
 }
 XMLNode::XMLNode(XMLNode&& mov) noexcept : _nodes(std::move(mov._nodes)), _nodehash(std::move(mov._nodehash)), _attributes(std::move(mov._attributes)),
   _attrhash(std::move(mov._attrhash)), _value(std::move(mov._value)), _name(std::move(mov._name))
@@ -81,8 +81,8 @@ XMLNode& XMLNode::operator=(const XMLNode& copy)
   _attrhash = copy._attrhash;
   _value = copy._value;
   _name = copy._name;
-  for(size_t i = 0; i < copy._nodes.Length(); ++i)
-    AddNode(*copy._nodes[i].get());
+  for (auto& node : copy._nodes)
+    AddNode(*node.get());
   return *this;
 }
 XMLNode& XMLNode::operator=(XMLNode&& mov)
@@ -102,12 +102,12 @@ XMLValue* XMLNode::AddAttribute(const XMLValue& value) { return _addAttribute(XM
 XMLValue* XMLNode::AddAttribute(const char* name) { XMLValue v; v.Name = name; return _addAttribute(std::move(v)); }
 bool XMLNode::RemoveNode(size_t index)
 {
-  if(index >= _nodes.Length()) 
+  if(index >= _nodes.size()) 
     return false;
   khiter_t iter = _nodehash.Iterator(_nodes[index]->_name);
   if(_nodes[index]->next)
   {
-    for(size_t i = 0; i < _nodes.Length(); ++i)
+    for(size_t i = 0; i < _nodes.size(); ++i)
     {
       if(_nodes[i].get() == _nodes[index]->next)
       {
@@ -126,7 +126,7 @@ bool XMLNode::RemoveNode(size_t index)
 bool XMLNode::RemoveNode(const char* name) { return RemoveNode(_nodehash[name]); }
 bool XMLNode::RemoveAttribute(size_t index)
 {
-  if(index >= _nodes.Length()) 
+  if(index >= _nodes.size()) 
     return false;
   _attrhash.Remove(_nodes[index]->_name);
   _nodes.Remove(index);
@@ -149,12 +149,12 @@ XMLNode* XMLNode::_addNode(std::unique_ptr<XMLNode> && n)
   khiter_t iter = _nodehash.Iterator(n->_name);
 
   if(!_nodehash.ExistsIter(iter))
-    _nodehash.Insert(n->_name, _nodes.Length());
+    _nodehash.Insert(n->_name, _nodes.size());
   else
   {
     XMLNode* target = _nodes[_nodehash.GetValue(iter)].get();
     LLInsert<XMLNode>(n.get(), target);
-    _nodehash.SetValue(iter, _nodes.Length());
+    _nodehash.SetValue(iter, _nodes.size());
   }
 
   _nodes.Add(std::move(n));
@@ -167,7 +167,7 @@ XMLValue* XMLNode::_addAttribute(XMLValue && v)
   if(!_attrhash.ExistsIter(iter))
   {
     _attributes.Add(std::move(v));
-    _attrhash.Insert(_attributes.Back().Name, _attributes.Length() - 1);
+    _attrhash.Insert(_attributes.Back().Name, _attributes.size() - 1);
     return &_attributes.Back();
   }
 
@@ -349,10 +349,10 @@ void XMLNode::_writeAttribute(std::ostream& stream) const
 {
   stream << _name;
 
-  for(size_t i = 0; i < _attributes.Length(); ++i)
+  for (auto& attribute : _attributes)
   {
-    stream << ' ' << _attributes[i].Name << "=\"";
-    _writeString(stream, _attributes[i].String, true);
+    stream << ' ' << attribute.Name << "=\"";
+    _writeString(stream, attribute.String, true);
     stream.put('"');
   }
 }
@@ -394,7 +394,7 @@ void XMLNode::_write(std::ostream& stream, bool pretty, int depth) const
   _writeAttribute(stream);
   bool content = _value.String.Trim().length() > 0;
 
-  if(!content && !_nodes.Length()) // If there is no content and no nodes, assume this is a self-closing tag.
+  if(!content && !_nodes.size()) // If there is no content and no nodes, assume this is a self-closing tag.
   {
     stream << "/>";
     return;
@@ -403,10 +403,10 @@ void XMLNode::_write(std::ostream& stream, bool pretty, int depth) const
   stream.put('>');
   if(content) _writeString(stream, _value.String, false);
 
-  for(size_t i = 0; i < _nodes.Length(); ++i)
-    _nodes[i]->_write(stream, pretty, depth + 1);
+  for(auto& node : _nodes)
+    node->_write(stream, pretty, depth + 1);
 
-  if(_nodes.Length() > 0 && pretty)
+  if(_nodes.size() > 0 && pretty)
   {
     stream << std::endl;
     for(int i = 0; i < depth; ++i) stream.put('\t');

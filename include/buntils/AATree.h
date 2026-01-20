@@ -2,14 +2,13 @@
 // For conditions of distribution and use, see copyright notice in "buntils.h"
 
 #ifndef __AA_TREE_H__BUN__
-#define __AA_TREE_H__BUN__
+  #define __AA_TREE_H__BUN__
 
-#include "compare.h"
-#include "BlockAllocMT.h"
+  #include "compare.h"
+  #include "BlockAllocMT.h"
 
 namespace bun {
-  template<typename T>
-  struct AANODE
+  template<typename T> struct AANODE
   {
     int level;
     AANODE* left;
@@ -18,21 +17,31 @@ namespace bun {
   };
 
   // An AA tree, similar to a left leaning red-black tree, except not completely stupid.
-  template<typename T, char(*CFunc)(const T&, const T&) = CompT<T>, typename Alloc = PolicyAllocator<AANODE<T>, BlockPolicy>>
-  class AATree : Alloc
+  template<typename T, Comparison<T, T> Comp = std::compare_three_way,
+           typename Alloc = PolicyAllocator<AANODE<T>, BlockPolicy>>
+  class BUN_EMPTY_BASES AATree : protected Alloc, protected CompressedBase<Comp>
   {
+    using CompressedBase<Comp>::_getbase;
+
   public:
-    inline AATree() requires std::is_default_constructible_v<Alloc> : _sentinel(std::allocator_traits<Alloc>::allocate(*this, 1))
+    inline AATree()
+      requires std::is_default_constructible_v<Alloc> && std::is_default_constructible_v<Comp>
+      : AATree(Alloc(), Comp())
+    {}
+    inline explicit AATree(Alloc&& alloc)
+      requires std::is_default_constructible_v<Comp>
+      : AATree(std::forward<Alloc>(alloc), Comp())
+    {}
+    inline explicit AATree(const Comp& f)
+      requires std::is_default_constructible_v<Alloc>
+      : AATree(Alloc(), f)
+    {}
+    inline AATree(const Alloc& alloc, const Comp& f) :
+      Alloc(alloc), CompressedBase<Comp>(f), _sentinel(std::allocator_traits<Alloc>::allocate(*this, 1))
     {
       _sentinel->level = 0;
       _sentinel->left = _sentinel->right = _sentinel;
-      _root = _sentinel;
-    }
-    inline AATree(const Alloc& alloc) : Alloc(alloc), _sentinel(std::allocator_traits<Alloc>::allocate(*this, 1))
-    {
-      _sentinel->level = 0;
-      _sentinel->left = _sentinel->right = _sentinel;
-      _root = _sentinel;
+      _root                              = _sentinel;
     }
     inline ~AATree()
     {
@@ -46,14 +55,15 @@ namespace bun {
     {
       AANODE<T>* cur = _root;
 
-      while (cur != _sentinel)
+      while(cur != _sentinel)
       {
-        switch (CFunc(data, cur->data))
-        {
-        case -1: cur = cur->left; break;
-        case 1: cur = cur->right; break;
-        default: return cur;
-        }
+        auto r = _getbase()(data, cur->data);
+        if(r < 0)
+          cur = cur->left;
+        else if(r > 0)
+          cur = cur->right;
+        else
+          return cur;
       }
 
       return 0;
@@ -63,20 +73,19 @@ namespace bun {
     inline AANODE<T>* GetRoot() { return _root == _sentinel ? 0 : _root; }
     inline bool IsEmpty() { return _root == _sentinel; }
     // Does an in-order traversal of the tree, applying FACTION to each node's data object.
-    template<void(*FACTION)(T&)>
-    inline void Traverse() { _traverse<FACTION>(_root); }
+    template<void (*FACTION)(T&)> inline void Traverse() { _traverse<FACTION>(_root); }
 
   protected:
     void _clear(AANODE<T>* n)
     {
-      if (n == _sentinel) return;
+      if(n == _sentinel)
+        return;
       _clear(n->left);
       _clear(n->right);
       n->~AANODE<T>();
       std::allocator_traits<Alloc>::deallocate(*this, n, 1);
     }
-    template<void(*FACTION)(T&)>
-    inline void _traverse(AANODE<T>* n)
+    template<void (*FACTION)(T&)> inline void _traverse(AANODE<T>* n)
     {
       _traverse(n->left);
       FACTION(n->data);
@@ -84,37 +93,37 @@ namespace bun {
     }
     inline void _skew(AANODE<T>*& n)
     {
-      if (n->level == n->left->level)
+      if(n->level == n->left->level)
       {
         AANODE<T>* l = n->left;
-        n->left = l->right;
-        l->right = n;
-        n = l;
+        n->left      = l->right;
+        l->right     = n;
+        n            = l;
       }
     }
     inline void _split(AANODE<T>*& n)
     {
-      if (n->right->right->level == n->level)
+      if(n->right->right->level == n->level)
       {
         AANODE<T>* r = n->right;
-        n->right = r->left;
-        r->left = n;
+        n->right     = r->left;
+        r->left      = n;
         r->level++;
         n = r;
       }
     }
     inline void _insert(AANODE<T>*& n, const T& data)
     {
-      if (n == _sentinel)
+      if(n == _sentinel)
       {
-        n = std::allocator_traits<Alloc>::allocate(*this, 1);
+        n       = std::allocator_traits<Alloc>::allocate(*this, 1);
         n->left = n->right = _sentinel;
-        n->data = data;
-        n->level = 1;
+        n->data            = data;
+        n->level           = 1;
         return;
       }
 
-      if (CFunc(data, n->data) < 0)
+      if(_getbase()(data, n->data) < 0)
         _insert(n->left, data);
       else
         _insert(n->right, data);
@@ -124,33 +133,33 @@ namespace bun {
     }
     inline bool _remove(AANODE<T>*& n, const T& data)
     {
-      if (n == _sentinel)
+      if(n == _sentinel)
         return false;
 
-      _last = n;
+      _last  = n;
       bool b = false;
 
-      if (CFunc(data, n->data) < 0)
+      if(_getbase()(data, n->data) < 0)
         b = _remove(n->left, data);
       else
       {
         _deleted = n;
-        b = _remove(n->right, data);
+        b        = _remove(n->right, data);
       }
 
-      if (n == _last && _deleted != _sentinel && !CFunc(data, _deleted->data))
+      if(n == _last && _deleted != _sentinel && (_getbase()(data, _deleted->data) == 0))
       {
         _deleted->data = n->data;
-        _deleted = _sentinel;
-        n = n->right;
+        _deleted       = _sentinel;
+        n              = n->right;
         std::allocator_traits<Alloc>::deallocate(*this, _last, 1);
         _last = _sentinel;
-        b = true;
+        b     = true;
       }
-      else if (n->left->level < n->level - 1 || n->right->level < n->level - 1)
+      else if(n->left->level < n->level - 1 || n->right->level < n->level - 1)
       {
         n->level--;
-        if (n->right->level > n->level)
+        if(n->right->level > n->level)
           n->right->level = n->level;
         _skew(n);
         _skew(n->right);
@@ -171,16 +180,14 @@ namespace bun {
 
 #endif
 
-
-/* This deletion method doesn't work because nodes get moved around after deletion, making swapping two nodes in memory almost impossible. In order to preserve memory locations, an entirely different deletion method is required
-static AANODE<T>* lastNode = 0;
-static AANODE<T>** deletedNode = &_sentinel;
-bool r = true;
+/* This deletion method doesn't work because nodes get moved around after deletion, making swapping two nodes in memory
+almost impossible. In order to preserve memory locations, an entirely different deletion method is required static
+AANODE<T>* lastNode = 0; static AANODE<T>** deletedNode = &_sentinel; bool r = true;
 
 if(*n != _sentinel)
 {
 lastNode = *n;
-if(CFunc(data, (*n)->data) < 0)
+if(_getbase()(data, (*n)->data) < 0)
 r = _remove(&(*n)->left, data);
 else
 {
@@ -188,13 +195,14 @@ deletedNode = n;
 r = _remove(&(*n)->right, data);
 }
 
-if(*n == lastNode) // Instead of swapping values here, we swap the actual nodes, then delete the one we actually want to delete.
+if(*n == lastNode) // Instead of swapping values here, we swap the actual nodes, then delete the one we actually want to
+delete.
 {
-if(deletedNode == &_sentinel || CFunc(data, (*deletedNode)->data) != 0)
+if(deletedNode == &_sentinel || _getbase()(data, (*deletedNode)->data) != 0)
 return false;   // not found
-AANODE<T>* hold = *deletedNode; // store current value of deletedNode (do this before we set n, because deletedNode can actually equal n)
-*n = (*n)->right; // Set n's parent to point to n->right, orphaning n. Since lastNode is equal to n, lastNode is now pointing to the orphan.
-if(hold != lastNode)
+AANODE<T>* hold = *deletedNode; // store current value of deletedNode (do this before we set n, because deletedNode can
+actually equal n) *n = (*n)->right; // Set n's parent to point to n->right, orphaning n. Since lastNode is equal to n,
+lastNode is now pointing to the orphan. if(hold != lastNode)
 {
 lastNode->left = hold->left; // Copy all of the deletedNode's values over to our orphaned node
 lastNode->right = hold->right;
@@ -219,7 +227,7 @@ _split((*n)->right);
 return r;*/
 
 //
-//struct node * inOrderSuccessor(struct node *root, struct node *n)
+// struct node * inOrderSuccessor(struct node *root, struct node *n)
 //{
 //  // step 1 of the above algorithm
 //  if(n->right != nullptr)

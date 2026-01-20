@@ -29,7 +29,7 @@ namespace bun {
     BUN_FORCEINLINE void Discard() { _array.RemoveLast(); }
     BUN_FORCEINLINE void Clear() { _array.Clear(); }
     // Gets how many items are on the stack. If this is 0, Push and Pop cannot be called.
-    BUN_FORCEINLINE CType Length() const { return _array.Length(); }
+    BUN_FORCEINLINE CType size() const { return _array.size(); }
     // Sets how many items are on the stack. Is usually used to truncate the stack, but can also be used to extend it. The stack
     // will follow the same rules that govern extending it's base array, so in a simple array, the values will be uninitialized.
     BUN_FORCEINLINE void SetLength(CType length) { _array.SetLength(length); }

@@ -75,8 +75,8 @@ namespace bun {
     size_t gw = ((size_t)ceil(w / cell)) + 4; //gives us buffer room so we don't have to worry about going outside the grid
     size_t gh = ((size_t)ceil(h / cell)) + 4;
     VARARRAY(GRID, grid, (gw*gh));    //grid height
-    uint64_t* ig = reinterpret_cast<uint64_t*>((GRID*)grid);
-    bun_FillN<GRID>(grid, gw*gh, 0xFF);
+    uint64_t* ig = reinterpret_cast<uint64_t*>(grid.data());
+    bun_FillN(grid, 0xFF);
     assert(!(~ig[0]));
 
     RandomQueue<std::array<T, 2>> list;

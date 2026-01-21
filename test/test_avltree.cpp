@@ -26,7 +26,7 @@ TESTDEF::RETPAIR test_AVLTREE()
     avlblah.Insert(testnums[i], testnums[i]);
   //std::cout << HighPrecisionTimer::CloseProfiler(prof) << std::endl;
 
-  Shuffle(testnums);
+  shuffle_testnums();
   //prof=HighPrecisionTimer::OpenProfiler();
   uint32_t c = 0;
   for(size_t i = 0; i<TESTNUM; ++i)
@@ -34,7 +34,7 @@ TESTDEF::RETPAIR test_AVLTREE()
   TEST(c == TESTNUM);
   //std::cout << HighPrecisionTimer::CloseProfiler(prof) << std::endl;
 
-  Shuffle(testnums);
+  shuffle_testnums();
   //prof=HighPrecisionTimer::OpenProfiler();
   for(size_t i = 0; i<TESTNUM; ++i)
     avlblah.Remove(testnums[i]);
@@ -63,7 +63,7 @@ TESTDEF::RETPAIR test_AVLTREE()
   DEBUG_CDT<false>::count = 0;
 
   {
-    Shuffle(testnums);
+    shuffle_testnums();
     BlockPolicy<DEBUG_CDT<false>> dalloc(TESTNUM);
     using AVL_D = std::unique_ptr<DEBUG_CDT<false>, std::function<void(DEBUG_CDT<false>*)>>;
     BlockPolicy<AVLNode<std::pair<int, AVL_D>>> fixedavld;
@@ -75,19 +75,19 @@ TESTDEF::RETPAIR test_AVLTREE()
       dtree.Insert(testnums[i], AVL_D(dp, [&](DEBUG_CDT<false>* p) {p->~DEBUG_CDT<false>(); dalloc.deallocate(p, 1); }));
     }
 
-    Shuffle(testnums);
+    shuffle_testnums();
     c = 0;
     for(size_t i = 0; i<TESTNUM; ++i)
       c += (dtree.GetRef(testnums[i]) != 0);
     TEST(c == TESTNUM);
 
-    Shuffle(testnums);
+    shuffle_testnums();
     c = 0;
     for(size_t i = 0; i<TESTNUM; ++i)
       c += dtree.ReplaceKey(testnums[i], testnums[i]);
     TEST(c == TESTNUM);
 
-    Shuffle(testnums);
+    shuffle_testnums();
     c = 0;
     AVL_D* r;
     for(size_t i = 0; i<TESTNUM; ++i)
@@ -97,7 +97,7 @@ TESTDEF::RETPAIR test_AVLTREE()
     }
     TEST(c == TESTNUM);
 
-    Shuffle(testnums);
+    shuffle_testnums();
     for(size_t i = 0; i<TESTNUM; ++i)
       dtree.Remove(testnums[i]);
 
@@ -117,7 +117,7 @@ TESTDEF::RETPAIR test_AVLTREE()
     avlblah2.Insert(testnums[i]);
   //std::cout << HighPrecisionTimer::CloseProfiler(prof) << std::endl;
 
-  Shuffle(testnums);
+  shuffle_testnums();
   //prof=HighPrecisionTimer::OpenProfiler();
   c = 0;
   for(size_t i = 0; i<TESTNUM; ++i)
@@ -125,7 +125,7 @@ TESTDEF::RETPAIR test_AVLTREE()
   TEST(c == TESTNUM);
   //std::cout << HighPrecisionTimer::CloseProfiler(prof) << std::endl;
 
-  Shuffle(testnums);
+  shuffle_testnums();
   //prof=HighPrecisionTimer::OpenProfiler();
   for(size_t i = 0; i<TESTNUM; ++i)
     avlblah2.Remove(testnums[i]);

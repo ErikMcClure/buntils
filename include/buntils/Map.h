@@ -8,28 +8,11 @@
 #include <tuple>
 
 namespace bun {
-  template<typename K, typename D, Comparison<K, K> C> struct _map_three_way : protected C
-  {
-    _map_three_way(const C& c) : C(c) {}
-    _map_three_way(C&& c) : C(std::move(c)) {}
-    _map_three_way(const _map_three_way&) = default;
-    _map_three_way(_map_three_way&&)      = default;
-
-    [[nodiscard]] constexpr BUN_FORCEINLINE auto operator()(const std::tuple<K, D>& l, const K& r) const
-    {
-      return _getf()(std::get<0>(l), r);
-    }
-
-    [[nodiscard]] constexpr BUN_FORCEINLINE const C& _getf() const noexcept { return *this; }
-
-    using is_transparent = int;
-  };
 
   // A map class implemented as an associative sorted array
   template<class Key, class Data, Comparison<Key, Key> Comp = std::compare_three_way, typename CType = size_t,
            typename Alloc = StandardAllocator<std::tuple<Key, Data>>>
   class BUN_COMPILER_DLLEXPORT Map :
-    protected _map_three_way<Key, Data, Comp>,
     protected ArraySort<std::tuple<Key, Data>, tuple_three_way<std::tuple<Key, Data>, std::tuple<Key, Data>, 0, Comp>,
                         CType, Alloc>
   {
@@ -41,15 +24,28 @@ namespace bun {
     using BASE::_array;
     using CT = typename BASE::CT;
     using Ty = typename BASE::Ty;
-    using BASE::_getbase;
 
-    [[nodiscard]] constexpr BUN_FORCEINLINE const _map_three_way<Key, Data, Comp>& _getmapcomp() const noexcept
+    [[nodiscard]] constexpr BUN_FORCEINLINE const Comp& _getcomp() const noexcept { return BASE::_getbase()._getf(); }
+
+    template<typename K, typename D, Comparison<K, K> C> struct _map_three_way : protected C
     {
-      return *this;
-    }
+      _map_three_way(const C& c) : C(c) {}
+      _map_three_way(C&& c) : C(std::move(c)) {}
+      _map_three_way(const _map_three_way&) = default;
+      _map_three_way(_map_three_way&&)      = default;
+
+      [[nodiscard]] constexpr BUN_FORCEINLINE auto operator()(const std::tuple<K, D>& l, const K& r) const
+      {
+        return _getf()(std::get<0>(l), r);
+      }
+
+      [[nodiscard]] constexpr BUN_FORCEINLINE const C& _getf() const noexcept { return *this; }
+
+      using is_transparent = int;
+    };
 
   public:
-    inline Map(CT init, const Alloc& alloc, const Comp& c) : BASE(init, alloc, c), _map_three_way<Key, Data, Comp>(c) {}
+    inline Map(CT init, const Alloc& alloc, const Comp& c) : BASE(init, alloc, c) {}
     inline explicit Map(CT init, const Alloc& alloc)
       requires std::is_default_constructible_v<Comp>
       : Map(init, alloc, Comp())
@@ -76,7 +72,7 @@ namespace bun {
     inline CT Get(CKEYREF key) const
     {
       CT retval = GetNear(key, true);
-      return (retval != (CT)(-1) && (_getbase()(key, std::get<0>(_array[retval])) == 0)) ? retval : (CT)(-1);
+      return (retval != (CT)(~0) && (_getcomp()(std::get<0>(_array[retval]), key) == 0)) ? retval : (CT)(~0);
     }
     inline constref GetData(CKEYREF key) const { return DataIndex(GetNear(key, true)); } // this has no checking
     inline constref DataIndex(CT index) const { return std::get<1>(_array[index]); }
@@ -96,29 +92,29 @@ namespace bun {
     inline CT ReplaceKey(CT index, CKEYREF key)
     {
       if(index < 0 || index >= size())
-        return (CT)(-1);
+        return (CT)(~0);
       return BASE::ReplaceData(index, pair_t(key, std::get<1>(_array[index])));
     }
-    BUN_FORCEINLINE void Expand(CT size) { BASE::Expand(size); }
     inline CT Set(CKEYREF key, constref data)
     {
       CT retval = GetNear(key, true);
-      if(retval != (CT)(-1))
+      if(retval != (CT)(~0))
       {
         auto& [k, v] = _array[retval];
-        if(_getbase()(key, k) == 0)
+        if(_getcomp()(k, key) == 0)
           v = data;
       }
       return retval;
     }
     CT GetNear(CKEYREF key, bool before) const
     {
-      CT retval = before ? BinarySearchNear<true, const decltype(BASE::_array)&, Key>(_array, key, _getmapcomp()) :
-                           BinarySearchNear<false, const decltype(BASE::_array)&, Key>(_array, key, _getmapcomp());
+      auto mapper = _map_three_way<Key, Data, Comp>(_getcomp());
+      CT retval   = before ? BinarySearchNear<true, const decltype(BASE::_array)&, Key>(_array, key, std::move(mapper)) - 1:
+                             BinarySearchNear<false, const decltype(BASE::_array)&, Key>(_array, key, std::move(mapper));
 
       return (retval < size()) ?
                retval :
-               (CT)(-1); // This is only needed for before=false in case it returns a value outside the range.
+               (CT)(~0); // This is only needed for before=false in case it returns a value outside the range.
     }
     inline const pair_t* begin() const { return _array.begin(); }
     inline const pair_t* end() const { return _array.end(); }

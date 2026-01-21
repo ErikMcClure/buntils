@@ -175,7 +175,7 @@ template<typename T, int N> void VECTOR_N_TEST(TESTDEF::RETPAIR& __testret)
   TEST(l == FastSqrt<T>(ans[16][0]));
   l = c.Dot(c);
   TEST(l == ans[17][0]);
-  l = c.size();
+  l = c.Length();
   TEST(l == FastSqrt<T>(ans[17][0]));
   if(!std::is_integral<T>::value)
   {

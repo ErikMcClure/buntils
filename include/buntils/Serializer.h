@@ -269,7 +269,7 @@ namespace bun {
     template<typename T, typename... Args>
     inline void EvaluateType(std::pair<const char*, Args&>... args)
     {
-      static Trie<uint16_t> trie(sizeof...(Args), (args.first)...);
+      static Trie<uint16_t> trie({ (args.first)... });
 
       if(out) // Serializing
         (ActionBind<Args>::Serialize(*this, args.second, args.first), ...);

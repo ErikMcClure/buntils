@@ -238,9 +238,9 @@ namespace bun {
     int64_t Length;
     union
     {
-      char Int8;
+      int8_t Int8;
       uint8_t UInt8;
-      short Int16;
+      int16_t Int16;
       int32_t Int32;
       int64_t Int64;
       float Float;
@@ -254,9 +254,9 @@ namespace bun {
   namespace internal {
     template<class T> struct WriteUBJSONType { static const UBJSONTuple::TYPE t = internal::serializer::is_serializer_array<T>::value ? UBJSONTuple::TYPE_ARRAY : UBJSONTuple::TYPE_OBJECT; };
     template<> struct WriteUBJSONType<uint8_t> { static const UBJSONTuple::TYPE t = UBJSONTuple::TYPE_UINT8; };
-    template<> struct WriteUBJSONType<char> { static const UBJSONTuple::TYPE t = UBJSONTuple::TYPE_INT8; };
+    template<> struct WriteUBJSONType<int8_t> { static const UBJSONTuple::TYPE t = UBJSONTuple::TYPE_INT8; };
     template<> struct WriteUBJSONType<bool> { static const UBJSONTuple::TYPE t = UBJSONTuple::TYPE_NONE; };
-    template<> struct WriteUBJSONType<short> { static const UBJSONTuple::TYPE t = UBJSONTuple::TYPE_INT16; };
+    template<> struct WriteUBJSONType<int16_t> { static const UBJSONTuple::TYPE t = UBJSONTuple::TYPE_INT16; };
     template<> struct WriteUBJSONType<int32_t> { static const UBJSONTuple::TYPE t = UBJSONTuple::TYPE_INT32; };
     template<> struct WriteUBJSONType<int64_t> { static const UBJSONTuple::TYPE t = UBJSONTuple::TYPE_INT64; };
     template<> struct WriteUBJSONType<float> { static const UBJSONTuple::TYPE t = UBJSONTuple::TYPE_FLOAT; };
@@ -283,7 +283,7 @@ namespace bun {
         switch(tuple.Type) // we will shove just about anything we possibly can into a string
         {
         case UBJSONTuple::TYPE_NULL: break;
-        case UBJSONTuple::TYPE_CHAR: obj.assign(&tuple.Int8, 1);
+        case UBJSONTuple::TYPE_CHAR: obj.assign(reinterpret_cast<char*>(&tuple.Int8), 1);
         case UBJSONTuple::TYPE_INT8: obj = std::to_string((int)tuple.Int8); break;
         case UBJSONTuple::TYPE_UINT8: obj = std::to_string(tuple.UInt8); break;
         case UBJSONTuple::TYPE_INT16: obj = std::to_string(tuple.Int16); break;

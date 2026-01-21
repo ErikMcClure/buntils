@@ -10,6 +10,8 @@ using namespace bun;
 
 TESTDEF::RETPAIR test_PROFILE()
 {
+  std::array<uint16_t, 50000> profnums = {};
+
   BEGINTEST;
   { // If you don't scope the PROFILE_FUNC, it won't actually return until AFTER PROFILE_OUTPUT gets called.
     PROFILE_FUNC();
@@ -21,7 +23,7 @@ TESTDEF::RETPAIR test_PROFILE()
       CPU_Barrier();
       __PROFILE_ZONE(control);
       CPU_Barrier();
-      testnums[bun_RandInt(0, TESTNUM)] += 1;
+      profnums[bun_RandInt(0, TESTNUM)] += 1;
     }
 
     auto pr = HighPrecisionTimer::OpenProfiler();
@@ -30,7 +32,7 @@ TESTDEF::RETPAIR test_PROFILE()
       PROFILE_BLOCK(outer);
       {
         PROFILE_BLOCK(inner);
-        testnums[bun_RandInt(0, TESTNUM)] += 1;
+        profnums[bun_RandInt(0, TESTNUM)] += 1;
       }
     }
     //std::cout << HighPrecisionTimer::CloseProfiler(pr)/100000.0 << std::endl;
@@ -38,7 +40,7 @@ TESTDEF::RETPAIR test_PROFILE()
     for(size_t i = 0; i < 100000; ++i)
     {
       PROFILE_BEGIN(beginend);
-      testnums[bun_RandInt(0, TESTNUM)] += 1;
+      profnums[bun_RandInt(0, TESTNUM)] += 1;
       PROFILE_END(beginend);
     }
 

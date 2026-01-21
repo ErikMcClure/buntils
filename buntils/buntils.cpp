@@ -54,7 +54,7 @@ unsigned long long bun_FileSize(const char* path)
 #else // BUN_PLATFORM_POSIX
   struct stat path_stat;
   if(::stat(path, &path_stat) != 0 || !S_ISREG(path_stat.st_mode))
-    return (unsigned long long)-1;
+    return (unsigned long long)std::numeric_limits<unsigned long long>::max();
 
   return (unsigned long long)path_stat.st_size;
 #endif
@@ -67,7 +67,7 @@ unsigned long long bun_FileSizeW(const wchar_t* path)
 
   if(GetFileAttributesExW(path, GetFileExInfoStandard, &fad) == FALSE ||
      (fad.dwFileAttributes & FILE_ATTRIBUTE_DIRECTORY) != 0)
-    return (unsigned long long)-1;
+    return (unsigned long long)~0;
 
   return (static_cast<unsigned long long>(fad.nFileSizeHigh) << (sizeof(fad.nFileSizeLow) * 8)) + fad.nFileSizeLow;
 #else // BUN_PLATFORM_POSIX
@@ -403,8 +403,7 @@ namespace bun {
 
     std::strong_ordering operator<=>(const BUNFONT& r) const
     {
-      char comp = SGNCOMPARE(italic, r.italic);
-      auto ret  = comp <=> 0;
+      auto ret  = SGNCOMPARE(italic, r.italic) <=> 0;
       return (ret == 0) ? (weight <=> r.weight) : ret;
     }
     bool operator==(const BUNFONT& r) const = default;

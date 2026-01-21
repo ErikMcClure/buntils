@@ -41,7 +41,7 @@ namespace bun {
     template<typename L, typename R>
       requires std::three_way_comparable_with<L, R>
     [[nodiscard]] constexpr BUN_FORCEINLINE auto operator()(L&& _Left, R&& _Right) const
-      noexcept(std::forward<R>(_Right) <=> std::forward<L>(_Left))
+      noexcept(noexcept(std::forward<R>(_Right) <=> std::forward<L>(_Left)))
     {
       return std::forward<R>(_Right) <=> std::forward<L>(_Left);
     }
@@ -52,6 +52,7 @@ namespace bun {
   // Assumes both arguments are pairs and does a comparison between the first elements
   template<typename L1, typename R1, Comparison<L1, R1> C = std::compare_three_way> struct first_three_way : protected C
   {
+    first_three_way() = default;
     first_three_way(const C& c) : C(c) {}
     first_three_way(C&& c) : C(std::move(c)) {}
     first_three_way(const first_three_way&) = default;
@@ -71,6 +72,7 @@ namespace bun {
   // Assumes both arguments are pairs and does a comparison between the second elements
   template<typename L2, typename R2, Comparison<L2, R2> C = std::compare_three_way> struct second_three_way : protected C
   {
+    second_three_way() = default;
     second_three_way(const C& c) : C(c) {}
     second_three_way(C&& c) : C(std::move(c)) {}
     second_three_way(const second_three_way&) = default;
@@ -92,6 +94,7 @@ namespace bun {
            Comparison<typename L::second_type, typename R::second_type> SC = std::compare_three_way>
   struct BUN_EMPTY_BASES both_three_way : protected FC, protected SC
   {
+    both_three_way()                      = default;
     both_three_way(const both_three_way&) = default;
     both_three_way(both_three_way&&)      = default;
 
@@ -112,6 +115,7 @@ namespace bun {
            Comparison<std::tuple_element_t<I, L>, std::tuple_element_t<I, R>> C = std::compare_three_way>
   struct tuple_three_way : protected C
   {
+    tuple_three_way() = default;
     tuple_three_way(const C& c) : C(c) {}
     tuple_three_way(C&& c) : C(std::move(c)) {}
     tuple_three_way(const tuple_three_way&) = default;
@@ -131,8 +135,8 @@ namespace bun {
   struct string_three_way
   {
     template<typename L, typename R>
-      requires std::convertible_to<std::decay_t<std::remove_cvref_t<L>>, char*> &&
-               std::convertible_to<std::decay_t<std::remove_cvref_t<R>>, char*>
+      requires(std::convertible_to<L, const char*> && std::convertible_to<R, const char*>) ||
+              (std::convertible_to<L, char*> && std::convertible_to<R, char*>)
     [[nodiscard]] constexpr BUN_FORCEINLINE auto operator()(L&& l, R&& r) const noexcept
     {
       int result = strcmp(std::forward<L>(l), std::forward<R>(r));
@@ -146,8 +150,8 @@ namespace bun {
     }
 
     template<typename L, typename R>
-      requires std::convertible_to<std::decay_t<std::remove_cvref_t<L>>, wchar_t*> &&
-               std::convertible_to<std::decay_t<std::remove_cvref_t<R>>, wchar_t*>
+      requires(std::convertible_to<L, const wchar_t*> && std::convertible_to<R, const wchar_t*>) ||
+              (std::convertible_to<L, wchar_t*> && std::convertible_to<R, wchar_t*>)
     [[nodiscard]] constexpr BUN_FORCEINLINE auto operator()(L&& l, R&& r) const noexcept
     {
       int result = wcscmp(std::forward<L>(l), std::forward<R>(r));
@@ -167,11 +171,11 @@ namespace bun {
   struct string_three_way_insensitive
   {
     template<typename L, typename R>
-      requires std::convertible_to<std::decay_t<std::remove_cvref_t<L>>, char*> &&
-               std::convertible_to<std::decay_t<std::remove_cvref_t<R>>, char*>
+      requires(std::convertible_to<L, const char*> && std::convertible_to<R, const char*>) ||
+              (std::convertible_to<L, char*> && std::convertible_to<R, char*>)
     [[nodiscard]] constexpr BUN_FORCEINLINE auto operator()(L&& l, R&& r) const noexcept
     {
-      int result = stricmp(std::forward<L>(l), std::forward<R>(r));
+      int result = STRICMP(std::forward<L>(l), std::forward<R>(r));
 
       if(result > 0)
       {
@@ -182,11 +186,11 @@ namespace bun {
     }
 
     template<typename L, typename R>
-      requires std::convertible_to<std::decay_t<std::remove_cvref_t<L>>, wchar_t*> &&
-               std::convertible_to<std::decay_t<std::remove_cvref_t<R>>, wchar_t*>
+      requires(std::convertible_to<L, const wchar_t*> && std::convertible_to<R, const wchar_t*>) ||
+              (std::convertible_to<L, wchar_t*> && std::convertible_to<R, wchar_t*>)
     [[nodiscard]] constexpr BUN_FORCEINLINE auto operator()(L&& l, R&& r) const noexcept
     {
-      int result = wcsicmp(std::forward<L>(l), std::forward<R>(r));
+      int result = WCSICMP(std::forward<L>(l), std::forward<R>(r));
 
       if(result > 0)
       {

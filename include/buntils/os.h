@@ -15,7 +15,7 @@ struct HKEY__; //Include WinReg.h to get access to the root key handles (e.g. HK
 namespace bun {
   BUN_COMPILER_DLLEXPORT extern void AlertBox(const char* text, const char* caption, int type = 0);
   BUN_COMPILER_DLLEXPORT extern std::unique_ptr<char[], bun_DLLDelete<char[]>> FileDialog(bool open, unsigned long flags, const char* file, const char* filter = "All Files (*.*)\0*.*\0", const char* initdir = 0, const char* defext = 0);
-  BUN_COMPILER_DLLEXPORT extern std::unique_ptr<char[], bun_DLLDelete<char[]>> GetFontPath(const char* family, int weight, bool italic);
+  BUN_COMPILER_DLLEXPORT extern std::unique_ptr<char[], bun_DLLDelete<char[]>> GetFontPath(const char* family, int16_t weight, bool italic);
 
 #ifdef BUN_PLATFORM_WIN32
   BUN_COMPILER_DLLEXPORT extern void AlertBoxW(const wchar_t* text, const wchar_t* caption, int type = 0);

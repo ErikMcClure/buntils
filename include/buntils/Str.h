@@ -187,9 +187,9 @@ namespace bun {
       if(text != 0)
         _convStr2(text, count);
     }
-    StrT(unsigned short index, const CHAR* text, const CHAR delim) : BASE() // Creates a new string from the specified chunk
+    StrT(uint16_t index, const CHAR* text, const CHAR delim) : BASE() // Creates a new string from the specified chunk
     {
-      for(unsigned short i = 0; i < index; ++i)
+      for(uint16_t i = 0; i < index; ++i)
       {
         if(text)
           text = STRCT::SCHR(text, (int)delim);

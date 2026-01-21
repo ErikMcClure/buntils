@@ -51,7 +51,7 @@ struct ubjsontest
   DynArray<Str, size_t> w;
   DynArray<ubjsontest2, size_t> z;
   std::vector<VAR> var;
-  std::tuple<short, Str, double> tuple;
+  std::tuple<int16_t, Str, double> tuple;
 
   template<typename Engine>
   void Serialize(Serializer<Engine>& engine, const char*)

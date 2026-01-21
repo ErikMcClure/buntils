@@ -27,9 +27,9 @@ namespace bun {
     inline XMLValue& operator=(XMLValue&& mov) { Name = std::move(mov.Name); String = std::move(mov.String); Float = mov.Float; Integer = mov.Integer; return *this; }
 
     BUN_FORCEINLINE operator bool() const { return Integer != 0; } // If the string is "true" the integer gets set to 1 by the parser.
-    BUN_FORCEINLINE operator char() const { return static_cast<char>(Integer); }
-    BUN_FORCEINLINE operator short() const { return static_cast<short>(Integer); }
-    BUN_FORCEINLINE operator int() const { return static_cast<int>(Integer); }
+    BUN_FORCEINLINE operator int8_t() const { return static_cast<int8_t>(Integer); }
+    BUN_FORCEINLINE operator int16_t() const { return static_cast<int16_t>(Integer); }
+    BUN_FORCEINLINE operator int32_t() const { return static_cast<int32_t>(Integer); }
     BUN_FORCEINLINE operator int64_t() const { return static_cast<int64_t>(Integer); }
     BUN_FORCEINLINE operator uint8_t() const { return static_cast<uint8_t>(Integer); }
     BUN_FORCEINLINE operator uint16_t() const { return static_cast<uint16_t>(Integer); }

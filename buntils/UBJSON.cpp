@@ -84,9 +84,9 @@ int64_t UBJSONTuple::ParseLength(std::istream& s)
     switch(s.get())
     {
     case TYPE_CHAR: // you aren't supposed to do this but we'll deal with it anyway
-    case TYPE_INT8: ret = ParseInteger<char>(s); break;
+    case TYPE_INT8: ret = ParseInteger<int8_t>(s); break;
     case TYPE_UINT8: ret = ParseInteger<uint8_t>(s); break;
-    case TYPE_INT16: ret = ParseInteger<short>(s); break;
+    case TYPE_INT16: ret = ParseInteger<int16_t>(s); break;
     case TYPE_INT32: ret = ParseInteger<int32_t>(s); break;
     case TYPE_INT64: ret = ParseInteger<int64_t>(s); break;
     case TYPE_NO_OP: continue; // try again

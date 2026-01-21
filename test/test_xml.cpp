@@ -46,7 +46,7 @@ struct XMLtest
   std::vector<Str> f;
   std::array<bool, 2> g;
   DynArray<XMLtest2, size_t> nested;
-  std::tuple<short, Str, double> tuple;
+  std::tuple<int16_t, Str, double> tuple;
 
   template<typename Engine>
   void Serialize(Serializer<Engine>& s, const char*)

@@ -80,7 +80,7 @@ namespace bun {
       _subarray = std::move(mov._subarray);
     }
     PriorityHeap(const Alloc& alloc, Comp&& c) :
-      BASE(alloc, second_three_way<D, D, Comp>(std::forward<Comp>(c))), _freelist((CT_)-1)
+      BASE(alloc, second_three_way<D, D, Comp>(std::forward<Comp>(c))), _freelist((CT_)~0)
     {}
 
     explicit PriorityHeap(Comp&& c)
@@ -141,7 +141,7 @@ namespace bun {
   protected:
     CT_ _getNext()
     {
-      if(_freelist == (CT_)-1)
+      if(_freelist == (CT_)~0)
       {
         CT_ size = _subarray.Capacity();
         _subarray.SetCapacity(fbnext(size));

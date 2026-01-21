@@ -257,7 +257,7 @@ namespace bun {
       target = Str();
       ParseJSONBase<Str>(e, target.get<Str>(), s);
       break;
-    case '0':
+    case '0': 
     case '1':
     case '2':
     case '3':

@@ -62,7 +62,7 @@ namespace bun {
           cur = cur->left;
         else if(r > 0)
           cur = cur->right;
-        else
+        else [[unlikely]]
           return cur;
       }
 

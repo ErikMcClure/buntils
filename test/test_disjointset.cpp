@@ -30,7 +30,7 @@ TESTDEF::RETPAIR test_DISJOINTSET()
   E[8].second = 2;
   E[9].second = 3;
   Shuffle(E); // Shuffle our edges
-  auto tree = DisjointSet<uint32_t>::MinSpanningTree(5, std::begin(E), std::end(E));
+  auto tree = DisjointSet<uint32_t>::MinSpanningTree(5, E);
   TEST(tree.Capacity() == 4);
 
   DisjointSet<uint32_t> s(5);
@@ -39,6 +39,9 @@ TESTDEF::RETPAIR test_DISJOINTSET()
   s.Union(1, 2);
   TEST((s.NumElements(3) == 4));
   VARARRAY(uint32_t, elements, s.NumElements(3));
+  std::vector<uint32_t> abc;
+
+  s.GetElements(3, abc);
   TEST((s.GetElements(3, elements) == 4));
   TEST(elements[0] == 1);
   TEST(elements[1] == 2);

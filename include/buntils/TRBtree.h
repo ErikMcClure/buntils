@@ -98,11 +98,11 @@ namespace bun {
         };
         T* children[2];
       };
-      char color; // 0 - black, 1 - red, -1 - duplicate
+      int8_t color; // 0 - black, 1 - red, -1 - duplicate
 
       // Returns false if this node was changed such that it is now out of order and needs to be re-inserted, otherwise
       // returns true.
-      inline bool Validate(Comparison<T, T> auto&& f)
+      inline bool Validate(Comparison<const T&, const T&> auto&& f)
       {
         return (!prev || (f(*static_cast<T*>(this), *prev) >= 0)) && (!next || (f(*static_cast<T*>(this), *next) <= 0));
       }
@@ -162,17 +162,17 @@ namespace bun {
         node->right = pNIL;
         T* cur      = root;
         T* parent   = 0;
-        int c;
+        decltype(f(*node, *cur)) c;
 
         while(cur != pNIL)
         {
           parent = cur;
-          auto c = f(*node, *cur);
+          c = f(*node, *cur);
           if(c < 0)
             cur = cur->left;
           else if(c > 0)
             cur = cur->right;
-          else // duplicate
+          else [[unlikely]] // duplicate
           {
             LLInsertAfter(node, cur, last);
             node->color = -1; // set color to duplicate
@@ -436,23 +436,6 @@ namespace bun {
         return node->parent;
       }
     };
-
-    template<typename T, Comparison<T, T> C> struct TRB_Node_ThreeWay : protected C
-    {
-      TRB_Node_ThreeWay(const C& c) : C(c) {}
-      TRB_Node_ThreeWay(C&& c) : C(std::move(c)) {}
-      TRB_Node_ThreeWay(const TRB_Node_ThreeWay&) = default;
-      TRB_Node_ThreeWay(TRB_Node_ThreeWay&&)      = default;
-
-      [[nodiscard]] constexpr BUN_FORCEINLINE auto operator()(const TRB_Node<T>& l, const TRB_Node<T>& r) const
-      {
-        return _getf()(std::forward<T>(l.value), std::forward<T>(r.value));
-      }
-
-      [[nodiscard]] constexpr BUN_FORCEINLINE const C& _getf() const noexcept { return *this; }
-
-      using is_transparent = int;
-    };
   }
 
   // Threaded Red-black tree node with a value
@@ -466,16 +449,33 @@ namespace bun {
 #pragma warning(pop)
   };
 
+  namespace internal {
+    template<typename T, Comparison<T, T> C> struct TRB_Node_ThreeWay : protected C
+    {
+      TRB_Node_ThreeWay() = default;
+      TRB_Node_ThreeWay(const C& c) : C(c) {}
+      TRB_Node_ThreeWay(C&& c) : C(std::move(c)) {}
+      TRB_Node_ThreeWay(const TRB_Node_ThreeWay&) = default;
+      TRB_Node_ThreeWay(TRB_Node_ThreeWay&&)      = default;
+
+      [[nodiscard]] constexpr BUN_FORCEINLINE auto operator()(const TRB_Node<T>& l, const TRB_Node<T>& r) const
+      {
+        return _getf()(l.value, r.value);
+      }
+
+      [[nodiscard]] constexpr BUN_FORCEINLINE const C& _getf() const noexcept { return *this; }
+
+      using is_transparent = int;
+    };
+  }
+
   // Threaded Red-black tree implementation
   template<typename T, Comparison<T, T> Comp = std::compare_three_way, typename Alloc = StandardAllocator<TRB_Node<T>>>
   class BUN_COMPILER_DLLEXPORT BUN_EMPTY_BASES TRBtree :
     protected Alloc,
-    protected Comp,
     protected internal::TRB_Node_ThreeWay<T, Comp>
   {
-    [[nodiscard]] constexpr BUN_FORCEINLINE Comp& _getcomp() noexcept { return *this; }
     [[nodiscard]] constexpr BUN_FORCEINLINE const Comp& _getcomp() const noexcept { return *this; }
-    [[nodiscard]] constexpr BUN_FORCEINLINE internal::TRB_Node_ThreeWay<T, Comp>& _getnodecomp() noexcept { return *this; }
     [[nodiscard]] constexpr BUN_FORCEINLINE const internal::TRB_Node_ThreeWay<T, Comp>& _getnodecomp() const noexcept
     {
       return *this;
@@ -485,7 +485,6 @@ namespace bun {
     TRBtree(const TRBtree&) = delete;
     inline TRBtree(TRBtree&& mov) :
       Alloc(std::move(mov)),
-      Comp(std::move(mov)),
       internal::TRB_Node_ThreeWay<T, Comp>(std::move(mov)),
       _first(mov._first),
       _last(mov._last),
@@ -501,7 +500,7 @@ namespace bun {
       mov._root      = mov.NIL;
     }
     inline explicit TRBtree(const Alloc& alloc, const Comp& comp) :
-      Alloc(alloc), Comp(comp), TRB_Node_ThreeWay(comp), _first(0), _last(0), NIL(0), _root(0)
+      Alloc(alloc), internal::TRB_Node_ThreeWay<T, Comp>(comp), _first(0), _last(0), NIL(0), _root(0)
     {
       NIL = std::allocator_traits<Alloc>::allocate(*this, 1);
       new(NIL) TRB_Node<T>(0);
@@ -542,11 +541,11 @@ namespace bun {
       _root  = NIL;
     }
     // Retrieves a given node by key if it exists
-    BUN_FORCEINLINE TRB_Node<T>* Get(const T& value) const { return GetNode(value, _root, NIL); }
+    BUN_FORCEINLINE TRB_Node<T>* Get(const T& value) const { return GetNode(value, _root, NIL, _getcomp()); }
     // Retrieves the node closest to the given key.
     BUN_FORCEINLINE TRB_Node<T>* GetNear(const T& value, bool before = true) const
     {
-      return GetNodeNear(value, before, _root, NIL);
+      return GetNodeNear(value, before, _root, NIL, _getcomp());
     }
     // Gets the root node
     BUN_FORCEINLINE const TRB_Node<T>* GetRoot() const { return _root; }
@@ -559,7 +558,7 @@ namespace bun {
       return node;
     }
     // Searches for a node with the given key and removes it if found, otherwise returns false.
-    BUN_FORCEINLINE bool Remove(const T& value) { return Remove(GetNode(value, _root, NIL)); }
+    BUN_FORCEINLINE bool Remove(const T& value) { return Remove(GetNode(value, _root, NIL, _getcomp())); }
     // Removes the given node. Returns false if node is null
     BUN_FORCEINLINE bool Remove(TRB_Node<T>* node)
     {
@@ -580,7 +579,10 @@ namespace bun {
     inline LLIterator<const TRB_Node<T>> end() const { return LLIterator<const TRB_Node<T>>(0); }
     inline LLIterator<TRB_Node<T>> begin() { return LLIterator<TRB_Node<T>>(_first); }
     inline LLIterator<TRB_Node<T>> end() { return LLIterator<TRB_Node<T>>(0); }
-    inline static bool Validate(TRB_Node<T>* node) { return node->Validate(_getnodecomp()); }
+    inline static bool Validate(TRB_Node<T>* node, const Comp& comp)
+    {
+      return node->Validate<internal::TRB_Node_ThreeWay<T, Comp>>(internal::TRB_Node_ThreeWay<T, Comp>(comp));
+    }
 
     inline TRBtree& operator=(TRBtree&& mov)
     {
@@ -597,38 +599,38 @@ namespace bun {
       return *this;
     }
 
-    static TRB_Node<T>* GetNode(const T& x, TRB_Node<T>* const& root, TRB_Node<T>* pNIL)
+    static TRB_Node<T>* GetNode(const T& x, TRB_Node<T>* const& root, TRB_Node<T>* pNIL, const Comp& comp)
     {
       TRB_Node<T>* cur = root;
 
       while(cur != pNIL)
       {
-        auto c = _getcomp()(x, cur->value);
+        auto c = comp(x, cur->value);
         if(c < 0)
           cur = cur->left;
         else if(c > 0)
           cur = cur->right;
-        else
+        else [[unlikely]]
           return cur;
       }
 
       return 0;
     }
-    static TRB_Node<T>* GetNodeNear(const T& x, bool before, TRB_Node<T>* const& root, TRB_Node<T>* pNIL)
+    static TRB_Node<T>* GetNodeNear(const T& x, bool before, TRB_Node<T>* const& root, TRB_Node<T>* pNIL, const Comp& comp)
     {
       TRB_Node<T>* cur    = root;
       TRB_Node<T>* parent = pNIL;
-      char res            = 0;
+      decltype(comp(x, cur->value)) res;
 
       while(cur != pNIL)
       {
         parent = cur;
-        auto c = _getcomp()(x, cur->value);
-        if(c < 0)
+        res    = comp(x, cur->value);
+        if(res < 0)
           cur = cur->left;
-        else if(c > 0)
+        else if(res > 0)
           cur = cur->right;
-        else
+        else [[unlikely]]
           return cur;
       }
 

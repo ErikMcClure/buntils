@@ -19,7 +19,7 @@ TESTDEF::RETPAIR test_MAP()
   uint32_t count = 0;
   TESTARRAY(ins, return test.Insert(ins[i], count++) != -1;);
   std::sort(std::begin(ins), std::end(ins));
-  for(size_t i = 0; i < sizeof(get) / sizeof(int); ++i)
+  for(size_t i = 0; i < std::ranges::size(get); ++i)
   {
     auto[k, v] = test[test.Get(get[i])];
     TEST(v == res[i]);
@@ -35,7 +35,7 @@ TESTDEF::RETPAIR test_MAP()
 
   TEST(test.Remove(0) == 0);
   TEST(test.Get(0) == -1);
-  TEST(test.size() == ((sizeof(ins) / sizeof(int)) - 1));
+  TEST(test.size() == (std::ranges::size(ins) - 1));
 
 #ifndef BUN_COMPILER_GCC // Once again, GCC demonstrates its amazing ability to NOT DEFINE ANY FUCKING CONSTRUCTORS
   Map<int, FWDTEST> tst;

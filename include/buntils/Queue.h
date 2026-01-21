@@ -49,7 +49,7 @@ namespace bun {
     template<typename U>
     void _push(U && value) 
     { 
-      if(_length >= BASE::_capacity)
+      if(_length >= Capacity())
         BASE::SetCapacity(T_FBNEXT(_length));
       BASE::_push(std::forward<U>(value)); 
     }

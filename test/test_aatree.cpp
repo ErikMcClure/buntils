@@ -14,17 +14,15 @@ TESTDEF::RETPAIR test_AA_TREE()
 
   BlockPolicy<AANODE<int>> fixedaa;
   AATree<int, std::compare_three_way, PolicyAllocator<AANODE<int>, BlockPolicy>> aat(PolicyAllocator<AANODE<int>, BlockPolicy>{fixedaa});
-
-  XorshiftEngine64 e;
-
-  Shuffle(testnums, TESTNUM, e);
+  
+  shuffle_testnums();
 
   //uint64_t prof=HighPrecisionTimer::OpenProfiler();
   for(size_t i = 0; i<TESTNUM; ++i)
     aat.Insert(testnums[i]);
   //std::cout << HighPrecisionTimer::CloseProfiler(prof) << std::endl;
 
-  Shuffle(testnums, TESTNUM, e);
+  shuffle_testnums();
   //prof=HighPrecisionTimer::OpenProfiler();
   size_t c = 0;
   for(size_t i = 0; i<TESTNUM; ++i)
@@ -32,7 +30,7 @@ TESTDEF::RETPAIR test_AA_TREE()
   TEST(c == TESTNUM);
   //std::cout << HighPrecisionTimer::CloseProfiler(prof) << std::endl;
 
-  Shuffle(testnums, TESTNUM, e);
+  shuffle_testnums();
   //prof=HighPrecisionTimer::OpenProfiler();
   c = 0;
   for(size_t i = 0; i<TESTNUM; ++i)

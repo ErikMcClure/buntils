@@ -71,7 +71,7 @@ namespace bun {
       }
 
       _cur = *r;
-      if(_cur->total == (uint64_t)-1)
+      if(_cur->total == (uint64_t)~0)
         _cur->total = 0;
       _cur->inner = 0;
       return HighPrecisionTimer::OpenProfiler();

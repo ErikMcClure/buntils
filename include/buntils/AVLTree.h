@@ -131,21 +131,21 @@ namespace bun {
     }
     BUN_FORCEINLINE Node* Insert(Key key, const DataGet& data)
     {
-      char change = 0;
+      int8_t change = 0;
       Node* cur   = _insert(key, &_root, change);
       Base::template _setRaw<const DataGet&>(data, cur); // WHO COMES UP WITH THIS SYNTAX?!
       return cur;
     }
     BUN_FORCEINLINE Node* Insert(Key key, DataGet&& data)
     {
-      char change = 0;
+      int8_t change = 0;
       Node* cur   = _insert(key, &_root, change);
       Base::template _setRaw<DataGet&&>(std::move(data), cur);
       return cur;
     }
     BUN_FORCEINLINE Node* Insert(Key key)
     {
-      char change = 0;
+      int8_t change = 0;
       return _insert(key, &_root, change);
     }
     BUN_FORCEINLINE Node* Near(const Key key) const { return _near(key); }
@@ -161,7 +161,7 @@ namespace bun {
     }
     inline bool Remove(const Key key)
     {
-      char change = 0;
+      int8_t change = 0;
       Node* node  = _remove(key, &_root, change);
 
       if(node != 0)
@@ -175,7 +175,7 @@ namespace bun {
     }
     inline bool ReplaceKey(const Key oldkey, const Key newkey)
     {
-      char change = 0;
+      int8_t change = 0;
       Node* old   = _remove(oldkey, &_root, change);
       Node* cur   = _insert(newkey, &_root, change);
 
@@ -244,7 +244,7 @@ namespace bun {
       r->_right->_balance += (1 - bun_min(r->_balance, 0));
       r->_balance += (1 + bun_max(r->_right->_balance, 0));
     }
-    Node* _insert(Key key, Node** proot, char& change) // recursive insertion function
+    Node* _insert(Key key, Node** proot, int8_t& change) // recursive insertion function
     {
       Node* root = *proot;
 
@@ -260,20 +260,27 @@ namespace bun {
 
       auto result  = _getbase()(Base::_getKey(root->_key), key);
       Node* retval = 0;
+      int8_t shift = 0;
 
       if(result < 0)
+      {
         retval = _insert(key, &root->_left, change);
+        shift  = -1;
+      }
       else if(result > 0)
+      {
         retval = _insert(key, &root->_right, change);
-      else
+        shift  = 1;
+      }
+      else [[unlikely]]
       {
         change = 0;
         return 0;
       }
 
-      result *= change;
-      root->_balance += result;
-      change = (result && root->_balance) ? (1 - _rebalance(proot)) : 0;
+      shift *= change;
+      root->_balance += shift;
+      change = (shift && root->_balance) ? (1 - _rebalance(proot)) : 0;
       return retval;
     }
 
@@ -288,7 +295,7 @@ namespace bun {
           cur = cur->_left;
         else if(result > 0)
           cur = cur->_right;
-        else
+        else [[unlikely]]
           return cur;
       }
 
@@ -308,7 +315,7 @@ namespace bun {
           cur = cur->_left;
         else if(result > 0)
           cur = cur->_right;
-        else
+        else [[unlikely]]
           return cur;
       }
 
@@ -355,7 +362,7 @@ namespace bun {
       return retval;
     }
 
-    Node* _remove(const Key& key, Node** proot, char& change) // recursive removal function
+    Node* _remove(const Key& key, Node** proot, int8_t& change) // recursive removal function
     {
       Node* root = *proot;
 
@@ -367,18 +374,19 @@ namespace bun {
 
       auto result  = _getbase()(Base::_getKey(root->_key), key);
       Node* retval = 0;
+      int8_t shift = 0;
 
       if(result < 0)
       {
         retval = _remove(key, &root->_left, change);
-        result *= change;
+        shift = change * -1;
       }
       else if(result > 0)
       {
         retval = _remove(key, &root->_right, change);
-        result *= change;
+        shift  = change * 1;
       }
-      else
+      else [[unlikely]]
       {
         if(!root->_left && !root->_right) // leaf node
         {
@@ -400,16 +408,16 @@ namespace bun {
 
           Base::_getKey(root->_key) = Base::_getKey(successor->_key);
           retval                    = _remove(Base::_getKey(successor->_key), &root->_right,
-                                              result); // this works because we're always removing something from the right side, which means
+                                              shift); // this works because we're always removing something from the right side, which means
                                                        // we should always subtract 1 or 0.
           Base::_swapData(retval, root);
 
           change = 1;
         }
       }
-      root->_balance -= result;
+      root->_balance -= shift;
 
-      change = (result) ? ((root->_balance) ? _rebalance(proot) : 1) : 0;
+      change = (shift) ? ((root->_balance) ? _rebalance(proot) : 1) : 0;
       return retval;
     }
 

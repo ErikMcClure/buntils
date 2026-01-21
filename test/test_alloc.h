@@ -24,7 +24,7 @@ bool TEST_ALLOC_FUZZER_REMOVE(std::conditional_t<VERIFY, bun::Map<T*, size_t>, b
     if(reinterpret_cast<uint8_t*>(p)[i] != (uint8_t)((i + id) & 0xFF))
       pass = false;
   }
-  bun::bun_FillN(p, s, 0xfd);
+  bun::bun_FillN(std::span<T>(p, s), 0xfd);
   _alloc.deallocate(p, s);
   if constexpr(VERIFY)
     plist.RemoveIndex(index);

@@ -43,7 +43,7 @@ TESTDEF::RETPAIR test_STR()
 #endif
 
   VARARRAY(char, test2, 6);
-  char* test3 = test2;
+  char* test3 = test2.data();
   const char* test4 = "test4";
 
   static_assert(std::is_same_v<decltype(ToString(s)), const Str&>, "Invalid ToString specialization");

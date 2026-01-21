@@ -36,7 +36,7 @@ namespace bun {
       memcpy(_probcopy.get(), problist, sizeof(F)*count);
 
 #ifdef BUN_DEBUG
-      bun_FillN<UINT>(_alias.get(), _count, -1);
+      bun_FillN(std::span(_alias.get(), _count), -1);
 #endif
       std::unique_ptr<UINT[]> small(new UINT[_count]); //Small and large stacks as simple arrays
       UINT n_small = 0;

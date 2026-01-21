@@ -192,9 +192,9 @@ void UBJSONTuple::Write(std::ostream& s, TYPE type) const
     }
     break;
   case TYPE_CHAR:
-  case TYPE_INT8: WriteInteger<char>(Int8, s); break;
+  case TYPE_INT8: WriteInteger<int8_t>(Int8, s); break;
   case TYPE_UINT8: WriteInteger<uint8_t>(UInt8, s); break;
-  case TYPE_INT16: WriteInteger<short>(Int16, s); break;
+  case TYPE_INT16: WriteInteger<int16_t>(Int16, s); break;
   case TYPE_INT32: WriteInteger<int32_t>(Int32, s); break;
   case TYPE_INT64: WriteInteger<int64_t>(Int64, s); break;
   case TYPE_FLOAT: WriteInteger<float>(Float, s); break;

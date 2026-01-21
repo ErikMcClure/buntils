@@ -74,7 +74,7 @@ TESTDEF::RETPAIR test_COMPACTARRAY()
   y.Add(11);
   
   int zvars[5] = { 4, 3, 2, 1, 5 };
-  y.Set(zvars, 3);
+  y.Set(std::span(zvars).subspan(0, 3));
   TEST(y.size() == 3);
   TEST(y[0] == 4);
   TEST(y[1] == 3);

@@ -26,6 +26,8 @@ struct TESTDEF
   RETPAIR(*FUNC)();
 };
 
+extern void shuffle_testnums();
+
 const size_t TESTNUM = 50000;
 extern uint16_t testnums[TESTNUM];
 extern bun::Logger _failedtests;
@@ -89,12 +91,8 @@ struct DEBUG_CDT : DEBUG_CDT_SAFE {
 
   inline DEBUG_CDT& operator=(DEBUG_CDT&& right) { _index = right._index; this->~DEBUG_CDT(); _id = right._id; right._id = 0; return *this; }
   inline DEBUG_CDT& operator=(const DEBUG_CDT& right) { _index = right._index; return *this; }
-  inline bool operator<(const DEBUG_CDT& other) const { return _index<other._index; }
-  inline bool operator>(const DEBUG_CDT& other) const { return _index>other._index; }
-  inline bool operator<=(const DEBUG_CDT& other) const { return _index <= other._index; }
-  inline bool operator>=(const DEBUG_CDT& other) const { return _index >= other._index; }
+  inline std::strong_ordering operator<=>(const DEBUG_CDT& other) const { return _index <=> other._index; }
   inline bool operator==(const DEBUG_CDT& other) const { return _index == other._index; }
-  inline bool operator!=(const DEBUG_CDT& other) const { return _index != other._index; }
   void donothing(float f) {}
 
   int _id;

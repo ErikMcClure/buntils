@@ -30,18 +30,15 @@ namespace bun {
   }
 
   // Handles the very basic operations of an array. Constructor management is done by classes that inherit this class.
-  template<class T, typename CType = size_t, typename Alloc = StandardAllocator<T>, typename RECURSIVE = T>
-    requires std::is_integral<CType>::value
+  template<class T, typename Alloc = StandardAllocator<T>, typename RECURSIVE = T>
   class BUN_COMPILER_DLLEXPORT ArrayBase : protected Alloc
   {
   public:
-    using CT =
-      CType; // There are cases when you need access to these types even if you don't inherit (see RandomQueue in bun_algo.h)
     using Ty = T;
 
     inline ArrayBase(ArrayBase&& mov) : Alloc(std::move(mov)), _array(mov._array) { mov._array = std::span<T>(); }
-    inline ArrayBase(CT capacity, const Alloc& alloc) : Alloc(alloc) { _array = _getAlloc(capacity, _array); }
-    inline explicit ArrayBase(CT capacity)
+    inline ArrayBase(size_t capacity, const Alloc& alloc) : Alloc(alloc) { _array = _getAlloc(capacity, _array); }
+    inline explicit ArrayBase(size_t capacity)
       requires std::is_default_constructible_v<Alloc>
     {
       _array = _getAlloc(capacity, _array);
@@ -60,13 +57,14 @@ namespace bun {
     }
 
   protected:
-    BUN_FORCEINLINE void _setCapacity(CT capacity) noexcept { _array = _getAlloc(capacity, _array); }
-    BUN_FORCEINLINE void _setCapacityDiscard(CT capacity) noexcept
+    BUN_FORCEINLINE void _setCapacity(size_t capacity) noexcept { _array = _getAlloc(capacity, _array); }
+    BUN_FORCEINLINE void _setCapacityDiscard(size_t capacity) noexcept
     {
       _dealloc(_array);
       _array = _getAlloc(capacity, std::span<T>());
     }
-
+    template<typename CType>
+      requires std::is_integral<CType>::value
     static void _setLength(T* dest, CType old, CType n) noexcept
     {
       if constexpr(std::is_destructible_v<T> && !std::is_trivially_destructible_v<T>)
@@ -85,7 +83,7 @@ namespace bun {
       }
     }
 
-    inline void _setCapacity(CT capacity, CT length) noexcept
+    inline void _setCapacity(size_t capacity, size_t length) noexcept
     {
       if constexpr(std::is_trivially_copyable_v<T>)
         _setCapacity(capacity);
@@ -99,7 +97,7 @@ namespace bun {
       }
     }
 
-    inline std::span<T> _getAlloc(CT n, std::span<T> prev) noexcept
+    inline std::span<T> _getAlloc(size_t n, std::span<T> prev) noexcept
     {
       if(!n)
       {
@@ -107,7 +105,7 @@ namespace bun {
         return std::span<T>();
       }
       if constexpr(std::is_trivially_copyable_v<T>)
-        return standard_realloc<Alloc>(*this, (size_t)n, prev);
+        return standard_realloc<Alloc>(*this, n, prev);
       else
       {
         auto old = prev.size();
@@ -115,7 +113,7 @@ namespace bun {
         if(!prev.empty() && old > 0)
         {
           auto count = std::min(old, n);
-          for(CType i = 0; i < count; ++i)
+          for(size_t i = 0; i < count; ++i)
             new(p + i) T(std::move(prev[i]));
           _dealloc(prev);
         }
@@ -127,6 +125,9 @@ namespace bun {
       if(!p.empty())
         std::allocator_traits<Alloc>::deallocate(*this, p.data(), p.size());
     }
+
+    template<typename CType>
+      requires std::is_integral<CType>::value
     static void _copyMove(T* BUN_RESTRICT dest, T* BUN_RESTRICT src, CType n) noexcept
     {
       if(dest == nullptr || src == nullptr || !n)
@@ -139,9 +140,12 @@ namespace bun {
       {
         for(CType i = 0; i < n; ++i)
           new(dest + i) T(std::move(src[i]));
-        _setLength(src, n, 0);
+        _setLength<CType>(src, n, 0);
       }
     }
+
+    template<typename CType>
+      requires std::is_integral<CType>::value
     static void _copy(T* BUN_RESTRICT dest, const T* BUN_RESTRICT src, CType n)
       requires std::is_copy_constructible_v<RECURSIVE>
     {
@@ -159,7 +163,10 @@ namespace bun {
       else
         static_assert(std::is_void_v<T>, "_copy shouldn't exist");
     }
-    template<typename U> static void _insert(T* dest, CType length, CType index, U&& item) noexcept
+
+    template<typename U, typename CType>
+      requires std::is_integral<CType>::value
+    static void _insert(T* dest, CType length, CType index, U&& item) noexcept
     {
       assert(index >= 0 && length >= index && dest != 0);
 
@@ -180,6 +187,9 @@ namespace bun {
           new(dest + index) T(std::forward<U>(item));
       }
     }
+
+    template<typename CType>
+      requires std::is_integral<CType>::value
     static void _remove(T* dest, CType length, CType index) noexcept
     {
       assert(index >= 0 && length > index);
@@ -204,11 +214,12 @@ namespace bun {
   // Wrapper for underlying arrays that expose the array, making them independently usable without blowing up everything
   // that inherits them
   template<class T, typename CType = size_t, typename Alloc = StandardAllocator<T>, typename RECURSIVE = T>
-  class BUN_COMPILER_DLLEXPORT Array : protected ArrayBase<T, CType, Alloc, RECURSIVE>
+    requires std::is_unsigned<CType>::value
+  class BUN_COMPILER_DLLEXPORT Array : protected ArrayBase<T, Alloc, RECURSIVE>
   {
   protected:
-    using BASE = ArrayBase<T, CType, Alloc, RECURSIVE>;
-    using CT   = typename BASE::CT;
+    using BASE = ArrayBase<T, Alloc, RECURSIVE>;
+    using CT   = typename CType;
     using Ty   = typename BASE::Ty;
     using BASE::_array;
 
@@ -225,27 +236,27 @@ namespace bun {
       auto end = list.end();
       size_t c = 0;
       for(auto i = list.begin(); i != end && c < _array.size(); ++i)
-        new(_array + (c++)) T(*i);
+        new(_array.data() + (c++)) T(*i);
       BASE::_setCapacity(c, _array.size());
     }
     inline Array(CT capacity, const Alloc& alloc) : BASE(capacity, alloc)
     {
-      BASE::_setLength(_array.data(), 0, _array.size());
+      BASE::template _setLength<size_t>(_array.data(), 0, _array.size());
     }
     inline explicit Array(CT capacity)
       requires std::is_default_constructible_v<Alloc>
       : BASE(capacity)
     {
-      BASE::_setLength(_array.data(), 0, _array.size());
+      BASE::template _setLength<size_t>(_array.data(), 0, _array.size());
     }
     inline explicit Array()
       requires std::is_default_constructible_v<Alloc>
       : BASE(0)
     {
-      BASE::_setLength(_array.data(), 0, _array.size());
+      BASE::template _setLength<size_t>(_array.data(), 0, _array.size());
     }
     inline explicit Array(std::span<const T> s) : BASE(s.size()) { BASE::_copy(_array.data(), s.data(), s.size()); }
-    inline ~Array() { BASE::_setLength(_array.data(), _array.size(), 0); }
+    inline ~Array() { BASE::template _setLength<size_t>(_array.data(), _array.size(), 0); }
     BUN_FORCEINLINE CT Add(const T& item)
     {
       _insert(item, _array.size());
@@ -258,7 +269,7 @@ namespace bun {
     }
     BUN_FORCEINLINE void Remove(CT index)
     {
-      BASE::_remove(_array.data(), _array.size(),
+      BASE::_remove(_array.data(), static_cast<CT>(_array.size()),
                     index); // we don't bother reallocating the array because it got smaller, so we just ignore part of it.
       BASE::_setCapacity(_array.size() - 1, _array.size());
     }
@@ -268,37 +279,32 @@ namespace bun {
     BUN_FORCEINLINE void Set(std::span<const T> s)
       requires std::is_copy_constructible_v<RECURSIVE>
     {
-      Set(s.data(), s.size());
-    }
-    BUN_FORCEINLINE void Set(const T* p, CT n)
-      requires std::is_copy_constructible_v<RECURSIVE>
-    {
-      BASE::_setLength(_array.data(), _array.size(), 0);
-      BASE::_setCapacityDiscard(n);
-      BASE::_copy(_array.data(), p, _array.size());
+      BASE::template _setLength<size_t>(_array.data(), _array.size(), 0);
+      BASE::_setCapacityDiscard(s.size());
+      BASE::_copy(_array.data(), s.data(), _array.size());
     }
     BUN_FORCEINLINE bool Empty() const noexcept { return !_array.size(); }
     BUN_FORCEINLINE void Clear() noexcept { SetCapacity(0); }
-    BUN_FORCEINLINE void SetCapacity(CT capacity) noexcept
+    BUN_FORCEINLINE void SetCapacity(size_t capacity) noexcept
     {
       if(capacity == _array.size())
         return;
-      CT old = _array.size();
+      auto old = _array.size();
       if(capacity < _array.size())
-        BASE::_setLength(_array.data(), _array.size(), capacity);
+        BASE::template _setLength<size_t>(_array.data(), _array.size(), capacity);
       BASE::_setCapacity(capacity, _array.size());
       if(capacity > old)
-        BASE::_setLength(_array.data(), old, capacity);
+        BASE::template _setLength<size_t>(_array.data(), old, capacity);
     }
-    BUN_FORCEINLINE void SetCapacityDiscard(CT capacity) noexcept
+    BUN_FORCEINLINE void SetCapacityDiscard(size_t capacity) noexcept
     {
       if(capacity == _array.size())
         return;
-      BASE::_setLength(_array.data(), _array.size(), 0);
+      BASE::template _setLength<size_t>(_array.data(), _array.size(), 0);
       BASE::_setCapacityDiscard(capacity);
-      BASE::_setLength(_array.data(), 0, _array.size());
+      BASE::template _setLength<size_t>(_array.data(), 0, _array.size());
     }
-    BUN_FORCEINLINE CT Capacity() const noexcept { return static_cast<CT>(_array.size()); }
+    BUN_FORCEINLINE size_t Capacity() const noexcept { return _array.size(); }
     inline const T& Front() const noexcept
     {
       assert(_array.size() > 0);
@@ -321,12 +327,12 @@ namespace bun {
     }
     BUN_FORCEINLINE const T& operator[](CType i) const
     {
-      assert(i < _array.size());
+      assert(i < size());
       return _array[i];
     }
     BUN_FORCEINLINE T& operator[](CType i)
     {
-      assert(i < _array.size());
+      assert(i < size());
       return _array[i];
     }
     inline const T* begin() const noexcept { return _array.data(); }
@@ -340,14 +346,14 @@ namespace bun {
     BUN_FORCEINLINE Array& operator=(const Array& copy) noexcept
       requires std::is_copy_constructible_v<RECURSIVE>
     {
-      BASE::_setLength(_array.data(), _array.size(), 0);
+      BASE::template _setLength<size_t>(_array.data(), _array.size(), 0);
       BASE::_setCapacityDiscard(copy._array.size());
       BASE::_copy(_array.data(), copy._array.data(), _array.size());
       return *this;
     }
     BUN_FORCEINLINE Array& operator=(Array&& mov) noexcept
     {
-      BASE::_setLength(_array.data(), _array.size(), 0);
+      BASE::template _setLength<size_t>(_array.data(), _array.size(), 0);
       BASE::operator=(std::move(mov));
       return *this;
     }
@@ -360,9 +366,9 @@ namespace bun {
     BUN_FORCEINLINE Array& operator+=(const Array& add) noexcept
       requires std::is_copy_constructible_v<RECURSIVE>
     {
-      CT old = _array.size();
+      auto old = _array.size();
       BASE::_setCapacity(_array.size() + add._array.size(), _array.size());
-      BASE::_copy(_array.data() + old, add._array, add._array.size());
+      BASE::_copy(_array.data() + old, add._array.data(), add._array.size());
       return *this;
     }
     BUN_FORCEINLINE Array operator+(const Array& add) const noexcept
@@ -399,7 +405,7 @@ namespace bun {
     }
     template<typename U> inline void _insert(U&& item, CT index)
     {
-      CT length = _array.size();
+      CT length = static_cast<CT>(_array.size());
       BASE::_setCapacity(_array.size() + 1, _array.size());
       BASE::_insert(_array.data(), length, index, std::forward<U>(item));
     }

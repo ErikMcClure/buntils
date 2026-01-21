@@ -19,7 +19,8 @@ namespace bun {
   }
 
   // This is a binary max-heap implemented using an array. Use inv_three_way to change it into a min-heap, or to make it use pairs.
-  template<class T, Comparison<T, T> Comp, typename CType = size_t, typename Alloc = StandardAllocator<T>,
+  template<class T, Comparison<T, T> Comp = std::compare_three_way, typename CType = size_t,
+           typename Alloc = StandardAllocator<T>,
            class MFUNC = internal::MFUNC_DEFAULT<T, CType>>
   class BUN_COMPILER_DLLEXPORT BUN_EMPTY_BASES BinaryHeap :
     private Comp,
@@ -78,7 +79,6 @@ namespace bun {
       return std::move(r);
     }
     inline bool Empty() { return !_length; }
-    inline CT size() { return _length; }
     inline void Clear() { _length = 0; }
     // Inserts a value
     inline void Insert(const T& val) { _insert(val); }
@@ -111,12 +111,12 @@ namespace bun {
           break;
 
         a[k] = std::move(a[parent]);
-        MFUNC::MFunc(a[k], k, p);
+        MFUNC::MFunc(a[k], static_cast<CType>(k), p);
         k = parent;
       }
 
       a[k] = std::forward<U>(val);
-      MFUNC::MFunc(a[k], k, p);
+      MFUNC::MFunc(a[k], static_cast<CType>(k), p);
     }
     // Percolate down a heap
     template<typename U>
@@ -135,7 +135,7 @@ namespace bun {
           break;
 
         a[k] = std::move(a[i]);
-        MFUNC::MFunc(a[k], k, p);
+        MFUNC::MFunc(a[k], static_cast<CType>(k), p);
         k = i;
         assert(k < (std::numeric_limits<CT>::max() >> 1));
       }
@@ -145,23 +145,27 @@ namespace bun {
            0) // Check if left child is also invalid (can only happen at the very end of the array)
       {
         a[k] = std::move(a[i]);
-        MFUNC::MFunc(a[k], k, p);
+        MFUNC::MFunc(a[k], static_cast<CType>(k), p);
         k = i;
       }
 
       a[k] = std::forward<U>(val);
-      MFUNC::MFunc(a[k], k, p);
+      MFUNC::MFunc(a[k], static_cast<CType>(k), p);
     }
-    inline const T* begin() const { return _array; }
-    inline const T* end() const { return _array + _length; }
-    inline T* begin() { return _array; }
-    inline T* end() { return _array + _length; }
+    inline const T* begin() const { return BASE::begin(); }
+    inline const T* end() const { return BASE::end(); }
+    inline T* begin() { return BASE::begin(); }
+    inline T* end() { return BASE::end(); }
+    inline CT size() { return _length; }
+    inline T* data() { return BASE::data(); }
+    inline const T* data() const { return BASE::data(); }
+
     inline BinaryHeap& operator=(const BinaryHeap&) = default;
     inline BinaryHeap& operator=(BinaryHeap&&)      = default;
 
     inline static void Heapify(std::span<T> src, const Comp& f)
     {
-      for(CT i = src.length() / 2; i > 0;)
+      for(size_t i = src.size() / 2; i > 0;)
       {
         T store = src[--i];
         PercolateDown(src, i, store, f);
@@ -169,7 +173,7 @@ namespace bun {
     }
     inline static void HeapSort(std::span<T> src, const Comp& f)
     {
-      Heapify(src);
+      Heapify(src, f);
       auto length = src.size();
 
       while(length > 1)
@@ -192,7 +196,7 @@ namespace bun {
       BASE::_checkSize();
       new(_array.data() + _length) T();
       CT k = _length++;
-      PercolateUp(_array.subspan(_length), k, std::forward<U>(val), _getcomp(), this);
+      PercolateUp(_array.subspan(0, _length), k, std::forward<U>(val), _getcomp(), this);
     }
 
     // Sets a key and percolates
@@ -202,9 +206,9 @@ namespace bun {
         return false;
 
       if(_getcomp()(_array[index], static_cast<const T&>(val)) <= 0) // in this case we percolate up
-        PercolateUp(_array.subspan(_length), index, std::forward<U>(val), _getcomp(), this);
+        PercolateUp(_array.subspan(0, _length), index, std::forward<U>(val), _getcomp(), this);
       else
-        PercolateDown(_array.subspan(_length), index, std::forward<U>(val), _getcomp(), this);
+        PercolateDown(_array.subspan(0, _length), index, std::forward<U>(val), _getcomp(), this);
 
       return true;
     }

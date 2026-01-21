@@ -10,8 +10,9 @@
 
 namespace bun {
   template<typename T>
-  concept IntrusiveLinkedList = std::same_as<std::remove_cvref_t<decltype(std::declval<T>().next)>, T*> &&
-                                std::same_as<std::remove_cvref_t<decltype(std::declval<T>().prev)>, T*>;
+  concept IntrusiveLinkedList =
+    std::same_as<std::remove_cvref_t<decltype(std::declval<T>().next)>, std::remove_cvref_t<T>*> &&
+    std::same_as<std::remove_cvref_t<decltype(std::declval<T>().prev)>, std::remove_cvref_t<T>*>;
 
   // A base node for a doubly-linked list. The given parameter T may be any class that publically inherits LLBase
   template<typename T> struct BUN_COMPILER_DLLEXPORT LLBase

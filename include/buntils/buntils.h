@@ -33,6 +33,7 @@
 #include <ostream>
 #include <utility>
 #include <algorithm>
+#include <ranges>
 #ifdef BUN_PLATFORM_WIN32
 #include <intrin.h>
 #endif
@@ -200,7 +201,7 @@ namespace bun {
   BUN_FORCEINLINE T bun_Mod(T x, T m) noexcept
   {
     x %= m;
-    return (x + ((-(T)(x < 0))&m));
+    return (x + ((-static_cast<T>(x < 0)) & m));
     //return (x+((x<0)*m)); // This is a tad slower
   }
 
@@ -361,14 +362,15 @@ namespace bun {
   template<typename T> requires std::is_floating_point<T>::value
   BUN_FORCEINLINE T AngleDist(T a, T b) noexcept
   {
-    return ((T)PI) - fabs(fmod(fabs(a - b), ((T)PI_DOUBLE)) - ((T)PI));
+    return static_cast<T>(PI) - fabs(fmod(fabs(a - b), static_cast<T>(PI_DOUBLE)) - static_cast<T>(PI));
   }
 
   // Gets the SIGNED shortest distance between two angles starting with (a - b) in radians
   template<typename T> requires std::is_floating_point<T>::value
   BUN_FORCEINLINE T AngleDistSigned(T a, T b) noexcept
   {
-    return fmod(bun_FMod(b - a, (T)PI_DOUBLE) + ((T)PI), (T)PI_DOUBLE) - ((T)PI);
+    return fmod(bun_FMod(b - a, static_cast<T>(PI_DOUBLE)) + static_cast<T>(PI), static_cast<T>(PI_DOUBLE)) -
+           static_cast<T>(PI);
   }
 
   // Smart compilers will use SSE2 instructions to eliminate the massive overhead of int -> float conversions. This uses SSE2 instructions
@@ -592,7 +594,7 @@ namespace bun {
     for(size_t i = bits; i > 0;)
     {
       --i;
-      t = ((root + (((T)1) << (i))) << (i));
+      t = ((root + (static_cast<T>(1) << (i))) << (i));
       if(n >= t)
       {
         n -= t;
@@ -631,7 +633,7 @@ namespace bun {
   template<typename T, typename CT_> requires (std::is_integral<CT_>::value && std::is_floating_point<T>::value)
   BUN_FORCEINLINE constexpr T bun_Avg(T curavg, T nvalue, CT_ nextnum) noexcept
   { // USAGE: avg = bun_Avg<double, int>(avg, value, ++total);
-    return curavg + ((nvalue - curavg) / (T)nextnum);
+    return curavg + ((nvalue - curavg) / static_cast<T> (nextnum));
   }
 
   // Sum of squares of differences aggregation using an algorithm by Knuth. Nextnum should be the current avg count incremented by 1.
@@ -639,7 +641,7 @@ namespace bun {
   BUN_FORCEINLINE constexpr void bun_Variance(T& curvariance, T& avg, T nvalue, CT_ nextnum) noexcept
   { // USAGE: bun_Variance<double, int>(variance, avg, value, ++total); Then use sqrt(variance/(n-1)) to get the actual standard deviation
     T delta = nvalue - avg;
-    avg += delta / (T)nvalue;
+    avg += delta / static_cast<T> (nvalue);
     curvariance += delta*(nvalue - avg);
   }
 
@@ -938,18 +940,18 @@ namespace bun {
         }
       }
 
-      if(shift >= (T)(sizeof(U) << 3))
-        return ((T)high) >> (shift - (sizeof(U) << 3));
+      if(shift >= static_cast<T>(sizeof(U) << 3))
+        return static_cast<T>(high) >> (shift - (sizeof(U) << 3));
       low = (low >> shift);
       high = (high << ((sizeof(T) << 3) - shift)) & (-(shift > 0)); // shifting left by 64 bits is undefined, so we use a bit trick to set high to zero if shift is 0 without branching.
-      return (T)(low | high);
+      return static_cast<T>(low | high);
     }
   }
   template<class T>
   BUN_FORCEINLINE T bun_MultiplyExtract(T x, T y, T shift) noexcept
   {
     using U = typename std::conditional<std::is_signed<T>::value, typename BitLimit<sizeof(T) << 4>::SIGNED, typename BitLimit<sizeof(T) << 4>::UNSIGNED>::type;
-    return (T)(((U)x * (U)y) >> shift);
+    return static_cast<T>(((U)x * (U)y) >> shift);
   }
 #ifndef BUN_HASINT128
   template<>
@@ -1009,31 +1011,23 @@ namespace bun {
   template <typename T, int N>
   struct is_specialization_of_array<std::array<T, N>> : std::true_type {};
 
+  template<typename R>
+  concept sized_random_access_range = std::ranges::sized_range<R> && std::ranges::random_access_range<R>;
+  template<typename R>
+  concept sized_contiguous_range = std::ranges::sized_range<R> && std::ranges::contiguous_range<R>;
+  template<typename R, typename T>
+  concept sized_output_range = std::ranges::sized_range<R> && std::ranges::output_range<R, T>;
+
   // Type safe memset functions
   template<typename T>
   BUN_FORCEINLINE void bun_Fill(T& p, unsigned char val = 0)
   {
     memset(&p, val, sizeof(T));
   }
-  template<typename T, int I>
-  BUN_FORCEINLINE void bun_Fill(T (&p)[I], int val = 0)
+  template<sized_contiguous_range R>
+  BUN_FORCEINLINE void bun_FillN(R&& p, unsigned char val = 0)
   {
-    memset(p, val, sizeof(T)*I);
-  }
-  template<typename T, int I>
-  BUN_FORCEINLINE void bun_Fill(std::array<T, I>& p, int val = 0)
-  {
-    memset(p.data(), val, sizeof(T)*I);
-  }
-  template<typename T, int I, int J>
-  BUN_FORCEINLINE void bun_Fill(T(&p)[I][J], int val = 0)
-  {
-    memset(p, val, sizeof(T)*I*J);
-  }
-  template<typename T>
-  BUN_FORCEINLINE void bun_FillN(T* p, size_t n, unsigned char val = 0)
-  {
-    memset(p, val, sizeof(T)*n);
+    memset(std::ranges::data(p), val, sizeof(std::ranges::range_value_t<R>)*std::ranges::size(p));
   }
 
   template<class T, class SUBCLASS>

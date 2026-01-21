@@ -77,10 +77,15 @@ namespace bun {
     // Build a matrix out of only a list of nodes
     inline Graph(CT n, const V* nodes)  requires std::is_default_constructible_v<Alloc> : _nodes(n), _nedges(0) { for (CT i = 0; i < n; ++i) AddNode(nodes + i); }
     inline explicit Graph(CT n) requires std::is_default_constructible_v<Alloc> : _nodes(n), _nedges(0) { for (CT i = 0; i < n; ++i) AddNode(); }
-    inline ~Graph() { for (CT i = _nodes.Front(); i != (CT)-1; _nodes.Next(i)) while (_nodes[i].to) RemoveEdge(_nodes[i].to); }
+    inline ~Graph()
+    {
+      for(CT i = _nodes.Front(); i != (CT)~0; _nodes.Next(i))
+        while(_nodes[i].to)
+          RemoveEdge(_nodes[i].to);
+    }
     inline CT NumNodes() const { return _nodes.size(); }
     inline CT NumEdges() const { return _nedges; }
-    inline CT Capacity() const { return _nodes.Capacity(); }
+    inline size_t Capacity() const { return _nodes.Capacity(); }
     inline Node<E, V, CT>* GetNode(CT index) const { return index < _nodes.size() ? &_nodes[index] : 0; }
     inline const LinkedArray<Node<E, V, CT>, CT, NODEALLOC>& GetNodes() const { return _nodes; }
     inline LinkedArray<Node<E, V, CT>, CT, NODEALLOC>& GetNodes() { return _nodes; }
@@ -135,10 +140,10 @@ namespace bun {
       VARARRAY(CT, hash, _nodes.Capacity());
       CT k = 0;
 
-      for (CT i = _nodes.Front(); i != (CT)-1; _nodes.Next(i))
+      for(CT i = _nodes.Front(); i != (CT)~0; _nodes.Next(i))
         hash[i] = k++; // Build up a hash mapping the IDs to monotonically increasing integers.
 
-      for (CT i = _nodes.Front(); i != (CT)-1; _nodes.Next(i))
+      for(CT i = _nodes.Front(); i != (CT)~0; _nodes.Next(i))
       {
         _setVertex(nodes, i, _nodes[i]);
 
@@ -201,15 +206,15 @@ namespace bun {
     using PEDGE = Edge<internal::__edge_MaxFlow<E>, CT>*;
     using PAIR = std::pair<CT, CT>;
     CT len = graph.NumNodes(); // Setup
-    CT cap = graph.Capacity();
+    size_t cap = graph.Capacity();
     VARARRAY(int, excess, cap);
     VARARRAY(CT, height, cap);
     VARARRAY(PEDGE, seen, cap);
     VARARRAY(PAIR, v, (len - 2)); //integer based singly-linked list.
-    bun_FillN<int>(excess, cap);
-    bun_FillN<CT>(height, cap);
-    bun_FillN<PEDGE>(seen, cap);
-    bun_FillN<PAIR>(v, (len - 2), -1);
+    bun_FillN(excess);
+    bun_FillN(height);
+    bun_FillN(seen);
+    bun_FillN(v, -1);
     PEDGE edge;
     auto& nodes = graph.GetNodes();
 
@@ -242,11 +247,11 @@ namespace bun {
     }
 
     int send;
-    CT last = -1;
+    CT last = ~0;
     CT lh;
     CT target;
 
-    for (CT c = root; c != (CT)-1;)
+    for(CT c = root; c != (CT)~0;)
     {
       auto[k, _] = v[c];
       lh = height[k];
@@ -305,7 +310,7 @@ namespace bun {
 
       if (lh != height[k]) // If the height changed...
       {
-        if (last != (CT)-1)  // Move vertex to start of the list, if it's not there already
+        if(last != (CT)~0) // Move vertex to start of the list, if it's not there already
         {
           v[last].second = v[c].second;
           v[c].second = root;
@@ -341,7 +346,7 @@ namespace bun {
     auto& n = g.GetNodes();
     internal::__edge_MaxFlow<E> edge = { 0 };
 
-    for (CT i = n.Front(); i != (CT)-1; n.Next(i))
+    for(CT i = n.Front(); i != (CT)~0; n.Next(i))
     {
       if (i != ss && i != st)
       {
@@ -381,7 +386,7 @@ namespace bun {
     Edge<internal::__edge_MaxFlow<internal::__edge_LowerBound<E>>, CT>* e;
     auto& n = g.GetNodes();
     int l;
-    for (CT i = n.Front(); i != (CT)-1; n.Next(i))
+    for(CT i = n.Front(); i != (CT)~0; n.Next(i))
     {
       for (e = n[i].to; e != 0; e = e->next)
       {
@@ -416,7 +421,7 @@ namespace bun {
       return;
 
     VARARRAY(CT, aset, graph.Capacity());
-    DisjointSet<CT, NullAllocator<SST>> set(reinterpret_cast<SST*>((CT*)aset), graph.Capacity());
+    DisjointSet<CT, NullAllocator<SST>> set(reinterpret_cast<SST*>(aset.data()), graph.Capacity());
 
     // Queue up everything next to the root, checking only for edges that connect the root to itself
     size_t l = 0;

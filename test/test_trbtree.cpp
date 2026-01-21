@@ -24,25 +24,6 @@ bool verifytree(TRB_Node<int>* front, uint32_t& same)
   }
   return !pass;
 }
-void serialize_testnum(const char* file)
-{
-  std::fstream f;
-  f.open(file, std::ios::trunc | std::ios::out);
-  for(size_t i = 0; i < TESTNUM; ++i)
-    f << testnums[i] << std::endl;
-  f.close();
-}
-void deserialize_testnum(const char* file)
-{
-  std::fstream f;
-  f.open(file, std::ios::in);
-  for(size_t i = 0; i < TESTNUM && !f.eof(); ++i)
-  {
-    f >> testnums[i];
-    f.get();
-  }
-  f.close();
-}
 
 bool verify_unique_testnums()
 {
@@ -68,14 +49,16 @@ TESTDEF::RETPAIR test_TRBTREE()
     PolicyAllocator<TRB_Node<int>, BlockPolicy>{ fixedalloc });
 
   uint32_t same = 0;
-  Shuffle(testnums);
+  shuffle_testnums();
 
   blah.Clear();
   bool valid = true;
   for(size_t i = 0; i < TESTNUM; ++i)
   {
+    if(testnums[i] >= TESTNUM)
+      std::cout << "BIG: " << i << " = " << testnums[i] << std::endl;
     auto p = blah.Insert(testnums[i]);
-    valid = valid && blah.Validate(p);
+    valid  = valid && blah.Validate(p, std::compare_three_way{});
   }
 
   TEST(valid);
@@ -84,7 +67,7 @@ TESTDEF::RETPAIR test_TRBTREE()
   TEST(!blah.Get(-1));
   TEST(!blah.Get(TESTNUM + 1));
 
-    Shuffle(testnums);
+    shuffle_testnums();
   int num = 0;
   for(size_t i = 0; i<TESTNUM; ++i)
   {
@@ -96,21 +79,21 @@ TESTDEF::RETPAIR test_TRBTREE()
 
   TEST(blah.Remove(4));
   for(auto i : blah)
-    assert(blah.Validate(i));
+    assert(blah.Validate(i, std::compare_three_way{}));
   TEST(blah.GetNear(4)->value == 3);
   TEST(blah.GetNear(4, false)->value == 5);
   blah.Insert(4);
   auto p2 = blah.Get(4);
-  TEST(blah.Validate(p2));
+  TEST(blah.Validate(p2, std::compare_three_way{}));
   p2->value = -4;
-  TEST(!blah.Validate(p2));
+  TEST(!blah.Validate(p2, std::compare_three_way{}));
   p2->value = 4;
-  TEST(blah.Validate(p2));
+  TEST(blah.Validate(p2, std::compare_three_way{}));
 
-  Shuffle(testnums);
+  shuffle_testnums();
   for(size_t i = 0; i<TESTNUM; ++i)
     blah.Insert(testnums[i]);
-  Shuffle(testnums);
+  shuffle_testnums();
   for(size_t i = 0; i<TESTNUM; ++i)
     blah.Insert(testnums[i]);
 
@@ -118,7 +101,7 @@ TESTDEF::RETPAIR test_TRBTREE()
   TEST(blah.DEBUGVERIFY() >= 0);
   TEST(same == (TESTNUM * 2));
 
-  Shuffle(testnums);
+  shuffle_testnums();
   num = 0;
   int n2 = 0;
   int n3 = 0;

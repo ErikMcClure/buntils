@@ -19,8 +19,8 @@ TESTDEF::RETPAIR test_OS()
   Str cmd("\"\"C:/fake/f\"\"ile/p\"ath.txt\"\" -r 2738 283.5 -a\"a\" 3 \"-no indice\"");
   int argc = ToArgV<char>(0, cmd.UnsafeString());
   VARARRAY(char*, argv, argc);
-  ToArgV((char**)argv, cmd.UnsafeString());
-  ProcessCmdArgs(argc, argv, [&__testret](const char* const* p, size_t n)
+  ToArgV((char**)argv.data(), cmd.UnsafeString());
+  ProcessCmdArgs(argc, argv.data(), [&__testret](const char* const* p, size_t n)
   {
     switch(hash_fnv1a(p[0]))
     {
@@ -48,9 +48,9 @@ TESTDEF::RETPAIR test_OS()
   {
     VARARRAY(wchar_t, buf, (sz / 2) + 1);
     buf[sz / 2] = 0;
-    sz = GetRegistryValue(HKEY_CURRENT_USER, "Control Panel\\Desktop", "CursorBlinkRate", reinterpret_cast<unsigned char*>((wchar_t*)buf), (unsigned long)sz);
+    sz = GetRegistryValue(HKEY_CURRENT_USER, "Control Panel\\Desktop", "CursorBlinkRate", reinterpret_cast<unsigned char*>((wchar_t*)buf.data()), (unsigned long)sz);
     TEST(sz >= 0);
-    int blinkrate = atoi(Str(buf));
+    int blinkrate = atoi(Str(buf.data()));
     TEST(blinkrate > 0);
   }
 

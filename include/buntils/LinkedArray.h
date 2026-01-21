@@ -44,9 +44,11 @@ namespace bun {
       assert(index < _ref.Capacity());
       TLNODE& pcur = _ref[index];
 
-      if(pcur.next == (CT_)-1) _end = pcur.prev; //you're the end, reassign
+      if(pcur.next == (CT_)~0)
+        _end = pcur.prev; // you're the end, reassign
       else _ref[pcur.next].prev = pcur.prev;
-      if(pcur.prev == (CT_)-1) _start = pcur.next; //you're the root, reassign
+      if(pcur.prev == (CT_)~0)
+        _start = pcur.next; // you're the root, reassign
       else _ref[pcur.prev].next = pcur.next;
 
       _addFreeList(index);
@@ -54,13 +56,13 @@ namespace bun {
       return pcur.val;
     }
     inline CT_ size() const { return _length; }
-    inline CT_ Capacity() const { return _ref.Capacity(); }
-    inline void SetCapacity(CT_ size)
+    inline size_t Capacity() const { return _ref.Capacity(); }
+    inline void SetCapacity(size_t size)
     {
       if(size < _ref.Capacity())
         return;
 
-      CT_ hold = _ref.Capacity(); 
+      size_t hold = _ref.Capacity(); 
       _ref.SetCapacity(size);
       _setupChunk(hold); 
     }
@@ -97,7 +99,7 @@ namespace bun {
       using pointer = U*;
       using reference = U&;
 
-      inline explicit cLAIter(D& src) : _src(src), cur((CT_)-1) {}
+      inline explicit cLAIter(D& src) : _src(src), cur((CT_)~0) {}
       inline cLAIter(D& src, CT_ start) : _src(src), cur(start) {}
       inline cLAIter(const cLAIter& copy, CT_ start) : _src(copy._src), cur(start) {}
       BUN_FORCEINLINE U& operator*() const { return _src[cur]; }
@@ -108,8 +110,8 @@ namespace bun {
       BUN_FORCEINLINE cLAIter operator--(int) { cLAIter r = *this; --*this; return r; } //postfix
       BUN_FORCEINLINE bool operator==(const cLAIter& _Right) const { return (cur == _Right.cur); }
       BUN_FORCEINLINE bool operator!=(const cLAIter& _Right) const { return (cur != _Right.cur); }
-      BUN_FORCEINLINE bool operator!() const { return cur == (CT_)-1; }
-      BUN_FORCEINLINE bool IsValid() { return cur != (CT_)-1; }
+      BUN_FORCEINLINE bool operator!() const { return cur == (CT_)~0; }
+      BUN_FORCEINLINE bool IsValid() { return cur != (CT_)~0; }
       BUN_FORCEINLINE void Remove() { _src.Remove(cur); } // Only use this in the form (i++).Remove(), so you don't blow up the iterator.
 
       CT_ cur;
@@ -131,12 +133,14 @@ namespace bun {
 
       TLNODE& pcur = _ref[cur];
       pcur.val = std::forward<U>(item);
-      pcur.next = (CT_)-1;
-      pcur.prev = (index == (CT_)-1) ? _end : index;
+      pcur.next    = (CT_)~0;
+      pcur.prev    = (index == (CT_)~0) ? _end : index;
 
-      if(pcur.prev == (CT_)-1) _start = cur;
+      if(pcur.prev == (CT_)~0)
+        _start = cur;
       else { pcur.next = _ref[pcur.prev].next; _ref[pcur.prev].next = cur; }
-      if(pcur.next == (CT_)-1) _end = cur;
+      if(pcur.next == (CT_)~0)
+        _end = cur;
       else _ref[pcur.next].prev = cur;
 
       ++_length;
@@ -150,11 +154,13 @@ namespace bun {
       TLNODE& pcur = _ref[cur];
       pcur.val = std::forward<U>(item);
       pcur.next = index;
-      pcur.prev = (index == (CT_)-1) ? _end : (CT_)-1; //This allows one to insert after the end with this function
+      pcur.prev    = (index == (CT_)~0) ? _end : (CT_)~0; // This allows one to insert after the end with this function
 
-      if(pcur.next == (CT_)-1) _end = cur;
+      if(pcur.next == (CT_)~0)
+        _end = cur;
       else { pcur.prev = _ref[pcur.next].prev; _ref[pcur.next].prev = cur; }
-      if(pcur.prev == (CT_)-1) _start = cur;
+      if(pcur.prev == (CT_)~0)
+        _start = cur;
       else { _ref[pcur.prev].next = cur; }
 
       ++_length;
@@ -165,15 +171,15 @@ namespace bun {
       _ref[index].next = _freelist;
       _freelist = index;
     }
-    inline void _setupChunk(CT_ start)
+    inline void _setupChunk(size_t start)
     {
-      CT_ i = _ref.Capacity();
-      while(i > start) //this trick lets us run backwards without worrying about the unsigned problem.
+      CT_ i = static_cast<CT_>(_ref.Capacity());
+      while(i > static_cast<CT_>(start)) //this trick lets us run backwards without worrying about the unsigned problem.
         _addFreeList(--i);
     }
     inline CT_ _insertPrep()
     {
-      if(_freelist == (CT_)-1)
+      if(_freelist == (CT_)~0)
         SetCapacity(fbnext(_ref.Capacity()));
 
       CT_ cur = _freelist;

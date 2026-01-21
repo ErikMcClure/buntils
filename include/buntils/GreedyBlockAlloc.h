@@ -14,7 +14,7 @@ namespace bun {
   {
   public:
     // Block Chunk Alloc
-    union alignas(alignof(T)) Node
+    union alignas(std::max({ alignof(T), alignof(size_t) })) Node
     {
       struct {
         size_t size;

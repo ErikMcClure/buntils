@@ -9,10 +9,11 @@ using namespace bun;
 
 TESTDEF::RETPAIR test_TRIE()
 {
+
+  Trie<uint8_t> simple({ "tick", "on" });
   BEGINTEST;
   const char* strs[] = { "fail","on","tex","rot","ro","ti","ontick","ondestroy","te","tick" };
-  Trie<uint8_t> t(9, "tick", "on", "tex", "rot", "ro", "ti", "ontick", "ondestroy", "te", "tick");
-  Trie<uint8_t> t2(9, strs);
+  Trie<uint8_t> t({ "tick", "on", "tex", "rot", "ro", "ti", "ontick", "ondestroy", "te", "tick" });
   Trie<uint8_t> t3(strs);
   TEST(t3["fail"] == 0);
   TEST(t3["tick"] == 9);
@@ -31,7 +32,7 @@ TESTDEF::RETPAIR test_TRIE()
   for(size_t i = 0; i < 50; ++i)
     hashtest.Insert(randstr[i],i);
   uint32_t dm;
-  Shuffle(testnums);
+  shuffle_testnums();
   auto prof = HighPrecisionTimer::OpenProfiler();
   CPU_Barrier();
   for(size_t i = 0; i < TESTNUM; ++i)
@@ -47,7 +48,7 @@ TESTDEF::RETPAIR test_TRIE()
   constexpr char* randcstr[10] = { "aj32k4SX90xj", "k24ht4ki2@j", "fa9udj", "ljafkl3a2k3K", "zkjslww", "xnwmwnps", "lhisknw", "tjdksnx", "nhjnxiw", "yhwwonzlk28" };
   Trie<uint32_t> t0(9, randcstr);
   uint32_t dm;
-  Shuffle(testnums);
+  shuffle_testnums();
   auto prof = HighPrecisionTimer::OpenProfiler();
   Hash<const char*, uint8_t> hashtest;
   for(size_t i = 0; i < 9; ++i)
@@ -104,13 +105,13 @@ TESTDEF::RETPAIR test_TRIE()
   }
   TEST(t[strs[9]] == 0);
 
-  const char* casestr[] = { "tIck", "On", "tEX", "ROT", "RO", "ti", "ONtick", "ONdestROY", "te", "tick", "fail" };
-  Trie<uint8_t, false> tcase(10, casestr);
-  Trie<uint8_t, true> tins(10, "tIck", "On", "tEX", "ROT", "RO", "ti", "ONtick", "ONdestROY", "te", "tick");
+  const char* casestr[] = { "tIck", "On", "tEX", "ROT", "RO", "ti", "ONtick", "ONdestROY", "te", "tick" };
+  Trie<uint8_t, false> tcase(casestr);
+  Trie<uint8_t, true> tins(casestr);
 
-  for(size_t i = 0; i < 11; ++i)
+  for(size_t i = 0; i < std::ranges::size(casestr); ++i)
   {
-    switch(tcase[casestr[i]]) // Deliberatly meant to test for one failure
+    switch(tcase[casestr[i]])
     {
     case 0:
       TEST(i == 0); break;
@@ -132,12 +133,11 @@ TESTDEF::RETPAIR test_TRIE()
       TEST(i == 8); break;
     case 9:
       TEST(i == 9); break;
-    default:
-      TEST(i == 10); break;
-    case 10:
-      TEST(false); break;
     }
   }
+
+  TEST(tcase["fail"] > 9);
+
   TEST(tcase[strs[9]] == 9);
   TEST(tins["rot"] == 3);
 

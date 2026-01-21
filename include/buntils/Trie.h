@@ -7,6 +7,7 @@
 #include "BinaryHeap.h"
 #include "algo.h"
 #include <stdarg.h>
+#include "compare.h"
 
 namespace bun {
   namespace internal {
@@ -18,47 +19,42 @@ namespace bun {
       T clen;   // Number of siblings this node has
       T word;   // This stores the original index of the word that this node corresponds to, but only if chr is nullptr
                 // (indicating the end of a word)
+
+      bool operator==(const TRIE_NODE& r) const { return chr == r.chr; }
+      std::strong_ordering operator<=>(const TRIE_NODE& r) const { return chr <=> r.chr; }
+      bool operator==(const char& r) const { return chr == r; }
+      std::strong_ordering operator<=>(const char& r) const { return chr <=> r; }
+      inline operator char() const { return chr; }
     };
+
+    static_assert(std::three_way_comparable_with<bun::internal::TRIE_NODE<uint16_t>, char, std::partial_ordering>);
   }
 
   // A static trie optimized for looking up small collections of words.
   template<typename T = uint8_t, bool IGNORECASE = false>
+    requires std::is_unsigned_v<T>
   class BUN_COMPILER_DLLEXPORT Trie : protected Array<internal::TRIE_NODE<T>, T>
   {
     using BASE = Array<internal::TRIE_NODE<T>, T>;
     using BASE::_array;
-    using BASE::_capacity;
     using TNODE = internal::TRIE_NODE<T>;
     using PAIR  = std::pair<T, const char*>;
-    using SORTING_HEAP = typename std::conditional<IGNORECASE, BinaryHeap<PAIR, std::compare_three_way, T>,
-                                BinaryHeap<PAIR, std::compare_three_way, T>>::type;
 
   public:
     inline Trie(Trie&& mov) : BASE(std::move(mov)), _length(mov._length) { mov._length = 0; }
     inline Trie(const Trie& copy) : BASE(copy), _length(copy._length) {}
-    inline Trie(T num, ...) : BASE(num), _length(num)
+    inline Trie(std::initializer_list<const char*> init) :
+      BASE(static_cast<T>(init.size())), _length(static_cast<T>(init.size()))
     {
-      _fill(0, num);
-      VARARRAY(PAIR, s, num);
-      va_list vl;
-      va_start(vl, num);
-      for(T i = 0; i < num; ++i)
-      {
-        s[i].first  = i;
-        s[i].second = va_arg(vl, const char*);
-      }
-      va_end(vl);
-      SORTING_HEAP::HeapSort(s, num); // sort into alphabetical order
-      _init(num, s, 0, 0);            // Put into our recursive initializer
+      _construct(init.size(), init.begin());
     }
-    inline Trie(T num, const char* const* initstr) : BASE(num), _length(num) { _construct(num, initstr); }
-    template<int SZ> inline Trie(const char* const (&initstr)[SZ]) : BASE(SZ), _length(SZ) { _construct(SZ, initstr); }
+    template<size_t SZ> inline Trie(const char* const (&initstr)[SZ]) : BASE(SZ), _length(SZ) { _construct(SZ, initstr); }
     inline ~Trie() {}
     T Get(const char* word) const
     {
       assert(word != 0);
       std::span<TNODE> cur = _array; // root is always 0
-      T r        = 0;
+      T r                  = 0;
       char c;
       while((c = *(word++)))
       {
@@ -66,14 +62,15 @@ namespace bun {
           c = tolower(c);
 
         if(cur[0].clen > 1) // This is faster than a switch statement
-          r = BinarySearchExact<std::span<TNODE>, char>(cur.subspan(0, cur->clen), c, &Trie::_CompTNode);
+          r = static_cast<T>(
+            BinarySearchExact<std::span<TNODE>, char>(cur.subspan(0, cur[0].clen), c, std::compare_three_way{}));
         else if(cur[0].clen == 1)
-          r = (T) - (cur[0].chr != c);
+          r = static_cast<T>(-(cur[0].chr != c));
         else
-          return (T)-1;
+          return std::numeric_limits<T>::max();
 
-        if(r == (T)-1)
-          return (T)-1;
+        if(r == std::numeric_limits<T>::max())
+          return std::numeric_limits<T>::max();
         cur = _array.subspan(cur[r].child);
       }
       return cur[0].word;
@@ -82,7 +79,7 @@ namespace bun {
     {
       assert(word != 0);
       std::span<TNODE> cur = _array; // root is always 0
-      T r        = 0;
+      T r                  = 0;
       char c;
       while((len--) > 0)
       {
@@ -91,21 +88,21 @@ namespace bun {
           c = tolower(c);
 
         if(cur[0].clen > 1) // This is faster than a switch statement
-          r = BinarySearchExact<std::span<TNODE>, char>(cur.subspan(0, cur->clen), c, &Trie::_CompTNode);
+          r = BinarySearchExact<std::span<TNODE>, char>(cur.subspan(0, cur->clen), c);
         else if(cur[0].clen == 1)
           r = (T) - (cur[0].chr != c);
         else
-          return (T)-1;
+          return std::numeric_limits<T>::max();
 
-        if(r == (T)-1)
-          return (T)-1;
+        if(r == std::numeric_limits<T>::max())
+          return std::numeric_limits<T>::max();
         cur = _array.subspan(cur[r].child);
       }
       return cur[0].word;
     }
-    inline const TNODE* Internal() const { return _array; }
+    inline const TNODE* data() const { return _array.data(); }
     inline T size() { return _length; }
-    inline T Capacity() { return BASE::Capacity(); }
+    inline size_t Capacity() { return BASE::Capacity(); }
     inline T operator[](const char* word) const { return Get(word); }
     inline Trie& operator=(const Trie& copy)
     {
@@ -120,29 +117,32 @@ namespace bun {
       mov._length = 0;
       return *this;
     }
-    static inline char _CompTNode(const TNODE& t, const char& c) { return SGNCOMPARE(t.chr, c); }
 
   protected:
-    void _construct(T num, const char* const* initstr)
+    void _construct(size_t num, const char* const* initstr)
     {
       _fill(0, num);
       VARARRAY(PAIR, s, num);
 
-      for(T i = 0; i < num; ++i)
+      for(size_t i = 0; i < num; ++i)
       {
-        s[i].first  = i;
+        s[i].first  = static_cast<T>(i);
         s[i].second = initstr[i];
       }
 
-      SORTING_HEAP::HeapSort(s, num); // sort into alphabetical order
-      _init(num, s, 0, 0);            // Put into our recursive initializer
+      using SORTING_FUNC =
+        second_three_way<const char*, const char*,
+                         typename std::conditional<IGNORECASE, string_three_way_insensitive, string_three_way>::type>;
+
+      BinaryHeap<PAIR, SORTING_FUNC, T>::HeapSort(s, SORTING_FUNC{}); // sort into alphabetical order
+      _init(static_cast<T>(num), s.data(), 0, 0);                     // Put into our recursive initializer
     }
-    BUN_FORCEINLINE void _fill(T s, T e) // Zeros out a range of nodes
+    BUN_FORCEINLINE void _fill(size_t s, size_t e) // Zeros out a range of nodes
     {
-      for(T i = s; i < e; ++i)
+      for(size_t i = s; i < e; ++i)
       {
-        _array[i].word  = (T)-1;
-        _array[i].child = (T)-1;
+        _array[i].word  = std::numeric_limits<T>::max();
+        _array[i].child = std::numeric_limits<T>::max();
         _array[i].clen  = 0;
         _array[i].chr   = 0;
       }
@@ -150,11 +150,11 @@ namespace bun {
     BUN_FORCEINLINE void _checkSize(T r)
     {
       assert(r < (std::numeric_limits<T>::max() - 2));
-      if(r >= _capacity)
+      if(r >= Capacity())
       {
-        T s = _capacity;
-        BASE::_setCapacity(_capacity << 1);
-        _fill(s, _capacity);
+        size_t s = Capacity();
+        BASE::_setCapacity(Capacity() << 1);
+        _fill(s, Capacity());
       }
     }
     T _init(T len, PAIR const* str, T cnt, T level)
@@ -205,5 +205,17 @@ namespace bun {
     T _length;
   };
 }
+
+template<typename T, template<class> class TQual, template<class> class UQual>
+struct std::basic_common_reference<bun::internal::TRIE_NODE<T>, char, TQual, UQual>
+{
+  using type = char;
+};
+
+template<typename T, template<class> class TQual, template<class> class UQual>
+struct std::basic_common_reference<char, bun::internal::TRIE_NODE<T>, TQual, UQual>
+{
+  using type = char;
+};
 
 #endif

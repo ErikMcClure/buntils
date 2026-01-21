@@ -1,4 +1,4 @@
-// Copyright (c)2023 Erik McClure
+// Copyright (c)2026 Erik McClure
 // For conditions of distribution and use, see copyright notice in "buntils.h"
 
 #include "buntils/buntils.h"
@@ -47,7 +47,8 @@ namespace bun {
         return *this;
       }
 
-      ArraySort<PROF_HEATNODE, std::compare_three_way, size_t, PolicyAllocator<PROF_HEATNODE, GreedyPolicy>> _children;
+      ArraySort<struct PROF_HEATNODE, std::compare_three_way, size_t, PolicyAllocator<struct PROF_HEATNODE, GreedyPolicy>>
+        _children;
       double avg;
       Profiler::ProfilerInt id;
     };

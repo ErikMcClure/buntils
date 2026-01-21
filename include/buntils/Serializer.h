@@ -1,4 +1,4 @@
-// Copyright (c)2023 Erik McClure
+// Copyright (c)2026 Erik McClure
 // For conditions of distribution and use, see copyright notice in "buntils.h"
 
 #ifndef __SERIALIZER_H__BUN__
@@ -9,6 +9,7 @@
 #include <array>
 #include <vector>
 #include <type_traits>
+#include <sstream>
 #include "Trie.h"
 #include "Variant.h"
 #include "BitField.h"
@@ -281,7 +282,7 @@ namespace bun {
         else
         {
           auto tmp = std::make_tuple<std::pair<const char*, Args&>...>(std::move(args)...);
-          Engine::template ParseMany(*this, [&](Serializer<Engine>& e, const char* id) { Serializer<Engine>::template FindParse<Args...>(e, id, trie, tmp); });
+          Engine::ParseMany(*this, [&](Serializer<Engine>& e, const char* id) { Serializer<Engine>::template FindParse<Args...>(e, id, trie, tmp); });
         }
       }
     }
@@ -297,7 +298,7 @@ namespace bun {
       }
 
       if(in)
-        Engine::template ParseMany(*this, std::forward<F>(insert));
+        Engine::ParseMany(*this, std::forward<F>(insert));
     }
 
     template<typename T, typename E, void(*Add)(Serializer<Engine>& e, T& obj, int& n), class C, void (T::*SET)(C)>
@@ -424,7 +425,11 @@ namespace bun {
     template<typename T>
     static void SerializeArray(Serializer<EmptyEngine>&, const T&, size_t, const char*) {}
     template<typename T, size_t... S> // OPTIONAL. Throw an error if not supported
-    static void SerializeTuple(Serializer<EmptyEngine>&, const T&, const char*, std::index_sequence<S...>) { throw std::runtime_error("Serialization of tuples not supported!"); }
+    static void SerializeTuple(Serializer<EmptyEngine>&, const T&, const char*, std::index_sequence<S...>)
+    {
+      assert(false);
+      abort();
+    }
     template<typename T>
     static void SerializeNumber(Serializer<EmptyEngine>&, T, const char*) {}
     static void SerializeBool(Serializer<EmptyEngine>&, bool, const char*) {}

@@ -1,4 +1,4 @@
-// Copyright (c)2023 Erik McClure
+// Copyright (c)2026 Erik McClure
 // For conditions of distribution and use, see copyright notice in "buntils.h"
 
 #include "buntils/buntils.h"
@@ -91,13 +91,13 @@ int64_t UBJSONTuple::ParseLength(std::istream& s)
     case TYPE_INT64: ret = ParseInteger<int64_t>(s); break;
     case TYPE_NO_OP: continue; // try again
     default:
-      throw std::runtime_error("Invalid length type");
+      THROW_OR_ABORT("Invalid length type");
     }
     break;
   }
 
   if(ret < 0)
-    throw std::runtime_error("Negative length is not allowed.");
+    THROW_OR_ABORT("Negative length is not allowed.");
   return ret;
 }
 
@@ -116,7 +116,7 @@ int64_t UBJSONTuple::ParseTypeCount(std::istream& s, TYPE& type)
     return ParseLength(s);
   }
   else if(type != TYPE_NONE)
-    throw std::runtime_error("A type was specified, but no count was given. A count MUST follow a type!");
+    THROW_OR_ABORT("A type was specified, but no count was given. A count MUST follow a type!");
   return -1;
 }
 
@@ -134,7 +134,7 @@ void UBJSONTuple::WriteTypeCount(std::ostream& s, TYPE type, int64_t count)
     WriteLength(s, count);
   }
   else if(type != TYPE_NONE)
-    throw std::runtime_error("A type was specified, but no count was given. A count MUST follow a type!");
+    THROW_OR_ABORT("A type was specified, but no count was given. A count MUST follow a type!");
 }
 
 void UBJSONTuple::Write(std::ostream& s, TYPE type) const
@@ -147,7 +147,7 @@ void UBJSONTuple::Write(std::ostream& s, TYPE type) const
   switch(Type)
   {
   default:
-    throw std::runtime_error("Unexpected type encountered.");
+    THROW_OR_ABORT("Unexpected type encountered.");
   case TYPE_NO_OP:
   case TYPE_NULL:
   case TYPE_TRUE:

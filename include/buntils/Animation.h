@@ -1,4 +1,4 @@
-// Copyright (c)2023 Erik McClure
+// Copyright (c)2026 Erik McClure
 // For conditions of distribution and use, see copyright notice in "buntils.h"
 
 #ifndef __ANIMATION_H__BUN__
@@ -689,7 +689,6 @@ namespace bun {
       const T& p1 = v[cur].p1; // we store the control point in the end point, not the start point, which allows us to properly use the init value.
       const T& p2 = v[cur].p2;
       const T& p3 = v[cur].value;
-      double p0_cache = LENGTH(0.0, p0, p1, p2, p3);
       auto f = [&](double s) -> double { return GaussianQuadrature<double, 5>(0.0, s, &LENGTH, p0, p1, p2, p3) - s; };
       auto fd = [&](double s) -> double { return LENGTH(s, p0, p1, p2, p3); };
       return Bezier(NewtonRaphsonBisection<double>(st, 0.0, 1.0, f, fd, FLT_EPS), p0, p1, p2, p3);

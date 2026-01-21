@@ -1,4 +1,4 @@
-// Copyright (c)2023 Erik McClure
+// Copyright (c)2026 Erik McClure
 // For conditions of distribution and use, see copyright notice in "buntils.h"
 
 #ifndef __BUN_QUEUE_H__
@@ -41,7 +41,7 @@ namespace bun {
     inline Queue& operator=(const Queue& copy) = default;
     inline Queue& operator=(Queue&& mov) = default;
 
-    using BASE::SerializerArray;
+    using typename BASE::SerializerArray;
     template<typename Engine>
     void Serialize(Serializer<Engine>& s, const char* id) { BASE::template Serialize<Engine>(s, id); }
 

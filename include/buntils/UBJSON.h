@@ -1,4 +1,4 @@
-// Copyright (c)2023 Erik McClure
+// Copyright (c)2026 Erik McClure
 // For conditions of distribution and use, see copyright notice in "buntils.h"
 
 #ifndef __UBJSON_H__BUN__
@@ -107,8 +107,7 @@ namespace bun {
 
       switch(Type)
       {
-      default:
-        throw std::runtime_error("Unexpected character while parsing value.");
+      default: THROW_OR_ABORT("Unexpected character while parsing value.");
       case TYPE_NO_OP:
       case TYPE_NULL:
       case TYPE_TRUE:
@@ -393,7 +392,7 @@ namespace bun {
         if(!e.engine.type)
           e.out->put(UBJSONTuple::TYPE_OBJECT);
         else if(e.engine.type != UBJSONTuple::TYPE_OBJECT)
-          throw std::runtime_error("Expecting a type other than object in the object serializing function!");
+          THROW_OR_ABORT("Expecting a type other than object in the object serializing function!");
 
         internal::serializer::PushValue<UBJSONTuple::TYPE> push(e.engine.type, UBJSONTuple::TYPE_NONE);
         static_assert(internal::serializer::is_serializable<UBJSONEngine, T>::value, "object missing Serialize<Engine>(Serializer<Engine>&, const char*) function!");

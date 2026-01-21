@@ -1,4 +1,4 @@
-// Copyright (c)2023 Erik McClure
+// Copyright (c)2026 Erik McClure
 // For conditions of distribution and use, see copyright notice in "buntils.h"
 
 #ifndef __VARIANT_H__BUN__
@@ -72,16 +72,16 @@ namespace bun {
     Variant& operator=(T&& right) { _assign(std::forward<T>(right)); return *this; }
 
     template<typename T>
+      requires(getpos<T, Arg, Args...>::value != -1)
     T& get()
     {
-      static_assert(getpos<T, Arg, Args...>::value != -1, "Type does not exist in Variant");
       assert((getpos<T, Arg, Args...>::value == _tag));
       return *reinterpret_cast<T*>(_store);
     }
     template<typename T>
+      requires(getpos<T, Arg, Args...>::value != -1)
     const T& get() const
     {
-      static_assert(getpos<T, Arg, Args...>::value != -1, "Type does not exist in Variant");
       assert((getpos<T, Arg, Args...>::value == _tag));
       return *reinterpret_cast<const T*>(_store);
     }
@@ -96,9 +96,9 @@ namespace bun {
     template<typename T>
     inline bool is() const { return getpos<T, Arg, Args...>::value == _tag; }
     template<typename T>
+      requires(getpos<T, Arg, Args...>::value != -1)
     inline void typeset()
     {
-      static_assert(getpos<T, Arg, Args...>::value != -1, "Type does not exist in Variant");
       _destruct();
       _tag = getpos<T, Arg, Args...>::value;
       new(_store) T();

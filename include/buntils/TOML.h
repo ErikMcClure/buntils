@@ -1,4 +1,4 @@
-// Copyright (c)2023 Erik McClure
+// Copyright (c)2026 Erik McClure
 // For conditions of distribution and use, see copyright notice in "buntils.h"
 
 #ifndef __TOML_H__BUN__
@@ -9,6 +9,7 @@
 #include "Variant.h"
 #include "Hash.h"
 #include <chrono>
+#include <fstream>
 #include <sstream>
 #include <locale>
 #include <iomanip>

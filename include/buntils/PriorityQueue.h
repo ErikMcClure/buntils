@@ -1,4 +1,4 @@
-// Copyright (c)2023 Erik McClure
+// Copyright (c)2026 Erik McClure
 // For conditions of distribution and use, see copyright notice in "buntils.h"
 
 #ifndef __PRIORITY_QUEUE_H__BUN__
@@ -47,7 +47,7 @@ namespace bun {
     inline PriorityQueue& operator=(const PriorityQueue& copy) = default;
     inline PriorityQueue& operator=(PriorityQueue&& mov)       = default;
 
-    using BASE::SerializerArray;
+    using typename BASE::SerializerArray;
     template<typename Engine> void Serialize(Serializer<Engine>& s, const char* id)
     {
       BASE::template Serialize<Engine>(s, id);
@@ -132,7 +132,7 @@ namespace bun {
       return *this;
     }
 
-    using BASE::SerializerArray;
+    using typename BASE::SerializerArray;
     template<typename Engine> void Serialize(Serializer<Engine>& s, const char* id)
     {
       BASE::template Serialize<Engine>(s, id);

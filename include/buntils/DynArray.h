@@ -1,4 +1,4 @@
-// Copyright (c)2023 Erik McClure
+// Copyright (c)2026 Erik McClure
 // For conditions of distribution and use, see copyright notice in "buntils.h"
 
 #ifndef __DYN_ARRAY_H__BUN__
@@ -23,14 +23,14 @@ namespace bun {
     using Ty = typename BASE::Ty;
 
     inline DynArray(const DynArray& copy)
-      requires std::is_copy_constructible_v<RECURSIVE>
+      requires is_copy_constructible_or_incomplete_v<RECURSIVE>
       : BASE(copy._array.size(), copy), _length(copy._length)
     {
       BASE::_copy(_array.data(), copy._array.data(), _length);
     }
     inline DynArray(DynArray&& mov) : BASE(std::move(mov)), _length(mov._length) { mov._length = 0; }
     inline explicit DynArray(std::span<const T> s)
-      requires(std::is_copy_constructible_v<RECURSIVE> && std::is_default_constructible_v<Alloc>)
+      requires(is_copy_constructible_or_incomplete_v<RECURSIVE> && std::is_default_constructible_v<Alloc>)
       : BASE(s.size()), _length(s.size())
     {
       BASE::_copy(_array.data(), s.data(), s.size());
@@ -144,7 +144,7 @@ namespace bun {
       return _array[i];
     }
     inline DynArray& operator=(const Array<T, CT, Alloc>& copy)
-      requires std::is_copy_constructible_v<RECURSIVE>
+      requires is_copy_constructible_or_incomplete_v<RECURSIVE>
     {
       BASE::template _setLength<CType>(_array.data(), _length, 0);
       if(copy.size() > _array.size())
@@ -161,7 +161,7 @@ namespace bun {
       return *this;
     }
     inline DynArray& operator=(const DynArray& copy)
-      requires std::is_copy_constructible_v<RECURSIVE>
+      requires is_copy_constructible_or_incomplete_v<RECURSIVE>
     {
       BASE::template _setLength<CType>(_array.data(), _length, 0);
       if(copy._length > _array.size())
@@ -442,7 +442,6 @@ namespace bun {
       STORE mask  = (STORE)(~0) << off;
       STORE store = _array[ind];
       _array[ind] = ((_array[ind] & mask) << 1) | (_array[ind] & (~mask));
-      STORE test  = _array[ind];
 
       for(CT i = ind + 1; i < len; ++i)
       {
@@ -467,7 +466,7 @@ namespace bun {
   {
   protected:
     using BASE = ArrayBase<std::byte, Alloc>;
-    using CT   = typename CType;
+    using CT   = CType;
     using Ty   = typename BASE::Ty;
     using BASE::_array;
 

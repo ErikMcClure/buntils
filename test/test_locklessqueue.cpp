@@ -1,4 +1,4 @@
-// Copyright (c)2023 Erik McClure
+// Copyright (c)2026 Erik McClure
 // For conditions of distribution and use, see copyright notice in "buntils.h"
 
 #include "test.h"
@@ -25,6 +25,8 @@ void _locklessqueue_consume(void* p)
   }
 }
 
+#pragma warning(push)
+#pragma warning(disable : 4267)
 template<class T>
 void _locklessqueue_produce(void* p)
 {
@@ -36,6 +38,8 @@ void _locklessqueue_produce(void* p)
     q->Push(c);
   }
 }
+#pragma warning(pop)
+
 typedef void(*VOIDFN)(void*);
 
 TESTDEF::RETPAIR test_LOCKLESSQUEUE()

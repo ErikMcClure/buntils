@@ -1,4 +1,4 @@
-// Copyright (c)2023 Erik McClure
+// Copyright (c)2026 Erik McClure
 // For conditions of distribution and use, see copyright notice in "buntils.h"
 
 #ifndef __BUN_GEOMETRY_H__
@@ -231,7 +231,7 @@ namespace bun {
     template<class U> inline constexpr LineN(const LineN<U, 2>& other) : p1(other.p1), p2(other.p2) {}
     inline constexpr LineN(const V& P1, const V& P2) : p1(P1), p2(P2) {}
     inline constexpr LineN(T X1, T Y1, T X2, T Y2) : x1(X1), y1(Y1), x2(X2), y2(Y2) {}
-    inline constexpr LineN(const V& P1, T X2, T Y2) : p1(P1), x2(X2), y2(Y2) {}
+    inline constexpr LineN(const V& P1, T X2, T Y2) : x1(P1.x), y1(P1.y), x2(X2), y2(Y2) {}
     BUN_FORCEINLINE T Length() const { return Dist<T>(x1, y1, x2, y2); }
     BUN_FORCEINLINE V ParametricPoint(T s) const { return p1 + (p2 - p1) * s; }
     BUN_FORCEINLINE LineN Rotate(T r, const V& center) const { return Rotate(r, center.x, center.y); }
@@ -272,7 +272,7 @@ namespace bun {
     template<class U> inline constexpr LineN(const LineN<U, 3>& other) : p1(other.p1), p2(other.p2) {}
     inline constexpr LineN(const V& P1, const V& P2) : p1(P1), p2(P2) {}
     inline constexpr LineN(T X1, T Y1, T Z1, T X2, T Y2, T Z2) : x1(X1), y1(Y1), z1(Z1), x2(X2), y2(Y2), z2(Z2) {}
-    inline constexpr LineN(const V& P1, T X2, T Y2, T Z2) : p1(P1), x2(X2), y2(Y2), z2(Z2) {}
+    inline constexpr LineN(const V& P1, T X2, T Y2, T Z2) : x1(P1.x), y1(P1.y), z1(P1.z), x2(X2), y2(Y2), z2(Z2) {}
     inline T Length() const { return p1.Distance(p2); }
     inline V ParametricPoint(T s) const { return p1 + (p2 - p1) * s; }
 
@@ -1032,8 +1032,8 @@ namespace bun {
     inline V* begin() { return _verts.begin(); }
     inline V* end() { return _verts.end(); }
     inline size_t size() const noexcept { return _verts.size(); }
-    inline T* data() noexcept { return _verts.data(); }
-    inline const T* data() const noexcept { return _verts.data(); }
+    inline V* data() noexcept { return _verts.data(); }
+    inline const V* data() const noexcept { return _verts.data(); }
     inline void SetVertices(std::span<V> vertices) { _verts = vertices; }
 
     using SerializerArray = T;

@@ -1,4 +1,4 @@
-// Copyright (c)2023 Erik McClure
+// Copyright (c)2026 Erik McClure
 // For conditions of distribution and use, see copyright notice in "buntils.h"
 
 #ifndef __RANDOM_QUEUE_BUN_H__
@@ -50,7 +50,7 @@ namespace bun {
     inline RandomQueue& operator +=(const RandomQueue& add) { BASE::operator+=(add); return *this; }
     inline const RandomQueue operator +(const RandomQueue& add) const { RandomQueue r(*this); return (r += add); }
 
-    using BASE::SerializerArray;
+    using typename BASE::SerializerArray;
     template<typename Engine>
     void Serialize(Serializer<Engine>& s, const char* id) { BASE::template Serialize<Engine>(s, id); }
   };

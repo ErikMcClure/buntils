@@ -1,4 +1,4 @@
-// Copyright (c)2023 Erik McClure
+// Copyright (c)2026 Erik McClure
 // For conditions of distribution and use, see copyright notice in "buntils.h"
 
 #include "buntils/buntils.h"
@@ -172,7 +172,7 @@ long GetTimeZoneMinutes()
   case 1:                                      // None or unknown daylight savings time
     return -(dtime.Bias + dtime.StandardBias); // This should be negated because the equation is UTC = local time + bias, so
                                                // that means UTC - bias = local time
-  case 2: // Using daylight savings time
+  case 2:                                      // Using daylight savings time
     return -(dtime.Bias + dtime.DaylightBias);
   }
   return 0; // error
@@ -395,15 +395,15 @@ namespace bun {
   {
     BUNFONT(const ENUMLOGFONTEX* fontex, DWORD elftype) :
       weight(static_cast<short>(fontex->elfLogFont.lfWeight)),
-      italic(fontex->elfLogFont.lfItalic != 0),
-      type(static_cast<char>(elftype))
+      type(static_cast<char>(elftype)),
+      italic(fontex->elfLogFont.lfItalic != 0)
     {
       memcpy_s(elfFullName, sizeof(wchar_t) * LF_FULLFACESIZE, fontex->elfFullName, sizeof(wchar_t) * LF_FULLFACESIZE);
     }
 
     std::strong_ordering operator<=>(const BUNFONT& r) const
     {
-      auto ret  = SGNCOMPARE(italic, r.italic) <=> 0;
+      auto ret = SGNCOMPARE(italic, r.italic) <=> 0;
       return (ret == 0) ? (weight <=> r.weight) : ret;
     }
     bool operator==(const BUNFONT& r) const = default;

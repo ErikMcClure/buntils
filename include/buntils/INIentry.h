@@ -27,9 +27,9 @@ namespace bun {
     BUN_FORCEINLINE bool IsValid() const { return !_key.empty(); }
 
     BUN_FORCEINLINE operator bool() const { return _ivalue != 0; }
-    BUN_FORCEINLINE operator char() const { return static_cast<char>(_ivalue); }
-    BUN_FORCEINLINE operator short() const { return static_cast<short>(_ivalue); }
-    BUN_FORCEINLINE operator int() const { return static_cast<int>(_ivalue); }
+    BUN_FORCEINLINE operator int8_t() const { return static_cast<int8_t>(_ivalue); }
+    BUN_FORCEINLINE operator int16_t() const { return static_cast<int16_t>(_ivalue); }
+    BUN_FORCEINLINE operator int32_t() const { return static_cast<int32_t>(_ivalue); }
     BUN_FORCEINLINE operator int64_t() const { return static_cast<int64_t>(_ivalue); }
     BUN_FORCEINLINE operator uint8_t() const { return static_cast<uint8_t>(_ivalue); }
     BUN_FORCEINLINE operator uint16_t() const { return static_cast<uint16_t>(_ivalue); }

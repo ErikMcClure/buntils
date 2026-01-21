@@ -28,7 +28,7 @@ struct bunCPUInfo bunGetCPUInfo()
 #ifdef BUN_COMPILER_MSC
   SYSTEM_INFO sysinfo;
   GetSystemInfo(&sysinfo);
-  r.cores = (unsigned short)sysinfo.dwNumberOfProcessors;
+  r.cores = (unsigned int)sysinfo.dwNumberOfProcessors;
   __cpuid(info, 1);
 #elif defined(BUN_COMPILER_GCC)
   r.cores = sysconf(_SC_NPROCESSORS_ONLN);

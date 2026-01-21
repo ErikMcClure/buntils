@@ -247,7 +247,7 @@ struct weird
 {
 void* p1;
 int64_t i;
-short offset;
+int16_t offset;
 char blah;
 inline bool valid() { return i==-1 && offset == -1 && blah == -1; }
 inline bool invalid() { return i==0 && offset == 0 && blah == 0; }

@@ -64,9 +64,9 @@ namespace bun {
       switch(Type)
       {
       case TYPE_CHAR:
-      case TYPE_INT8: Int8 = static_cast<char>(n); break;
+      case TYPE_INT8: Int8 = static_cast<int8_t>(n); break;
       case TYPE_UINT8: UInt8 = static_cast<uint8_t>(n); break;
-      case TYPE_INT16: Int16 = static_cast<short>(n); break;
+      case TYPE_INT16: Int16 = static_cast<int16_t>(n); break;
       case TYPE_INT32: Int32 = static_cast<int32_t>(n); break;
       case TYPE_INT64: Int64 = static_cast<int64_t>(n); break;
       case TYPE_FLOAT: Float = static_cast<float>(n); break;
@@ -167,9 +167,9 @@ namespace bun {
         break;
       }
       case TYPE_CHAR:
-      case TYPE_INT8: Int8 = ParseInteger<char>(s); break;
+      case TYPE_INT8: Int8 = ParseInteger<int8_t>(s); break;
       case TYPE_UINT8: UInt8 = ParseInteger<uint8_t>(s); break;
-      case TYPE_INT16: Int16 = ParseInteger<short>(s); break;
+      case TYPE_INT16: Int16 = ParseInteger<int16_t>(s); break;
       case TYPE_INT32: Int32 = ParseInteger<int32_t>(s); break;
       case TYPE_INT64: Int64 = ParseInteger<int64_t>(s); break;
       case TYPE_FLOAT: Float = ParseInteger<float>(s); break;
@@ -207,8 +207,8 @@ namespace bun {
     inline static TYPE GetIntType(T obj)
     {
       if(CheckIntType<uint8_t, T>(obj)) return TYPE_UINT8;
-      if(CheckIntType<char, T>(obj)) return TYPE_INT8;
-      if(CheckIntType<short, T>(obj)) return TYPE_INT16;
+      if(CheckIntType<int8_t, T>(obj)) return TYPE_INT8;
+      if(CheckIntType<int16_t, T>(obj)) return TYPE_INT16;
       if(CheckIntType<int32_t, T>(obj)) return TYPE_INT32;
       if(CheckIntType<int64_t, T>(obj)) return TYPE_INT64;
       return TYPE_BIGNUM;

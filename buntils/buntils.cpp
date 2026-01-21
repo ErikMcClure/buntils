@@ -83,7 +83,7 @@ std::unique_ptr<char[], bun::bun_DLLDelete<char[]>> bun::FileDialog(bool open, u
   StrW wfilter;
   size_t c;
   const char* i;
-  for(i = filter; *((const short*)i) != 0; ++i)
+  for(i = filter; *((const wchar_t*)i) != 0; ++i)
     ;
   c = i - filter + 1; //+1 to include null terminator
   wfilter.reserve(MultiByteToWideChar(CP_UTF8, 0, filter, (int)c, 0, 0));
@@ -394,8 +394,8 @@ namespace bun {
   struct BUNFONT
   {
     BUNFONT(const ENUMLOGFONTEX* fontex, DWORD elftype) :
-      weight(static_cast<short>(fontex->elfLogFont.lfWeight)),
-      type(static_cast<char>(elftype)),
+      weight(static_cast<int16_t>(fontex->elfLogFont.lfWeight)),
+      type(static_cast<uint8_t>(elftype)),
       italic(fontex->elfLogFont.lfItalic != 0)
     {
       memcpy_s(elfFullName, sizeof(wchar_t) * LF_FULLFACESIZE, fontex->elfFullName, sizeof(wchar_t) * LF_FULLFACESIZE);
@@ -411,8 +411,8 @@ namespace bun {
     using BUNFONTARRAY = bun::ArraySort<BUNFONT, std::compare_three_way>;
 
     WCHAR elfFullName[LF_FULLFACESIZE];
-    short weight;
-    char type;
+    int16_t weight;
+    uint8_t type;
     bool italic;
   };
 }
@@ -429,7 +429,7 @@ int CALLBACK EnumFont_GetFontPath(const LOGFONT* lpelfe, const TEXTMETRIC* lpntm
 
 // This function tries to match the closest possible weight to the desired weight, using a hueristic based on Firefox's
 // method: https://developer.mozilla.org/en-US/docs/Web/CSS/font-weight
-bool weightbiascheck(short weight, short target, short cur)
+bool weightbiascheck(int16_t weight, int16_t target, int16_t cur)
 {
   if(weight > 500) // bold bias
   {
@@ -448,7 +448,7 @@ bool weightbiascheck(short weight, short target, short cur)
   return abs(cur - weight) < abs(target - weight); // Otherwise, just minimize the difference to the desired weight
 }
 
-std::unique_ptr<char[], bun::bun_DLLDelete<char[]>> bun::GetFontPath(const char* family, int weight, bool italic)
+std::unique_ptr<char[], bun::bun_DLLDelete<char[]>> bun::GetFontPath(const char* family, int16_t weight, bool italic)
 {
   HDC hdc        = GetDC(0);
   LOGFONT font   = { 0 };

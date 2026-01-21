@@ -24,8 +24,8 @@ namespace bun {
     };
     struct KDNode* parent;
     T* items;
-    short balance;
-    unsigned char axis; // This could be absorbed into num to allow balance to become a full 32-bit int.
+    int16_t balance;
+    uint8_t axis; // This could be absorbed into num to allow balance to become a full 32-bit int.
     float total[2]; //holds the true accumulations. This may cause precision problems, but calculating and updating the true average is more expensive
   };
 
@@ -57,7 +57,7 @@ namespace bun {
       KDNode<T>* parent = 0;
       KDNode<T>* rb = 0;
       const float* r = FRECT(item);
-      unsigned char axis = 0;
+      uint8_t axis      = 0;
 
       while ((h = *p) != nullptr)
       {
@@ -233,7 +233,7 @@ namespace bun {
       T* next = node->items;
       const float* itemr;
       KDNode<T>* par;
-      unsigned char i;
+      uint8_t i;
 
       while ((item = next) != nullptr)
       {

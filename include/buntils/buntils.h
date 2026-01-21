@@ -102,8 +102,8 @@ namespace bun {
   {
     static constexpr uint16_t BYTES = ((T_CHARGETMSB(BITS) >> 3) << (0 + ((BITS % 8) > 0))) + (BITS < 8);
     typedef typename std::conditional<sizeof(char) == BYTES, char,  //rounds the type up if necessary.
-      typename std::conditional<sizeof(short) == BYTES, short,
-      typename std::conditional<sizeof(int) == BYTES, int,
+      typename std::conditional<sizeof(int16_t) == BYTES, int16_t,
+      typename std::conditional<sizeof(int32_t) == BYTES, int32_t,
       typename std::conditional<sizeof(int64_t) == BYTES, int64_t,
 #ifdef BUN_HASINT128
       typename std::conditional<sizeof(__int128) == BYTES, __int128, void>::type>::type>::type>::type>::type SIGNED;

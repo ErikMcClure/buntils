@@ -81,7 +81,7 @@ struct TOMLtest
   DynArray<TOMLtest2, size_t> nested;
   TOMLtest2 inlinetest;
   DynArray<AttackData> Attacks;
-  std::tuple<short, Str, double> tuple;
+  std::tuple<int16_t, Str, double> tuple;
 #ifdef BUN_COMPILER_HAS_TIME_GET
   std::chrono::system_clock::time_point date;
 #endif

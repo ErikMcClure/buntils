@@ -175,8 +175,8 @@ int main(int argc, char** argv)
   };
 
   // TODO: replace with std::print from C++23
-  std::cout << std::vformat("Bunny Utility Library v{}.{}.{}: Unit Tests\nCopyright (c)2026 Erik McClure\nSeed: {}\n",
-                            std::make_format_args(bun_Version.Major, bun_Version.Minor, bun_Version.Revision, seed))
+  std::cout << std::format("Bunny Utility Library v{}.{}.{}: Unit Tests\nCopyright (c)2026 Erik McClure\nSeed: {}\n",
+                           bun_Version.Major, bun_Version.Minor, bun_Version.Revision, seed)
             << std::endl;
 
   assert(bun_Version.version == ((uint64_t)bun_Version.Major << 48) + ((uint64_t)bun_Version.Minor << 32) +
@@ -198,10 +198,8 @@ int main(int argc, char** argv)
     if(total != passed)
       failures.push_back(i);
 
-    const int COL[3] = { 24, 16, 4 };
-    auto ratio = std::format("{}/{}", passed, total);
-    std::cout << std::vformat("{: <{}} {: ^{}} {: >{}}", std::make_format_args(tests[i].NAME, COL[0], ratio, COL[1],
-                                                                               (total == passed) ? "PASS" : "FAIL", COL[2]))
+    std::cout << std::format("{: <{}} {: ^{}} {: >{}}", tests[i].NAME, 24, std::format("{}/{}", passed, total), 16,
+                             (total == passed) ? "PASS" : "FAIL", 4)
               << std::endl;
   }
 

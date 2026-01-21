@@ -212,7 +212,7 @@ BUN_FORCEINLINE int32_t BUN_SSE_SI128_SI32(bun_si128 x) { return (int32_t)x.v[0]
 #define BUN_SSE_CMPEQ_EPI8 bun::ArrayMap<int8_t, 16, _sse_array_cmp<int8_t, _sse_array_cmpeq<int8_t>>>
 #define BUN_SSE_CMPLT_EPI8 bun::ArrayMap<int8_t, 16, _sse_array_cmp<int8_t, _sse_array_cmplt<int8_t>>>
 #define BUN_SSE_CMPGT_EPI8 bun::ArrayMap<int8_t, 16, _sse_array_cmp<int8_t, _sse_array_cmpgt<int8_t>>>
-#define BUN_SSE_SI128_SI8 (char)BUN_SSE_SI128_SI32
+#define BUN_SSE_SI128_SI8 (int8_t)BUN_SSE_SI128_SI32
 
 #define BUN_SSE_SET_EPI16(a, b, c, d, e, f, g, h) BUN_SSE_M128i16{h, g, f, e, d, c, b, a}
 #define BUN_SSE_SET1_EPI16(a) BUN_SSE_M128i16{a, a, a, a, a, a, a, a}
@@ -225,7 +225,7 @@ BUN_FORCEINLINE int32_t BUN_SSE_SI128_SI32(bun_si128 x) { return (int32_t)x.v[0]
 #define BUN_SSE_CMPEQ_EPI16 bun::ArrayMap<int16_t, 8, _sse_array_cmp<int16_t, _sse_array_cmpeq<int16_t>>>
 #define BUN_SSE_CMPLT_EPI16 bun::ArrayMap<int16_t, 8, _sse_array_cmp<int16_t, _sse_array_cmplt<int16_t>>>
 #define BUN_SSE_CMPGT_EPI16 bun::ArrayMap<int16_t, 8, _sse_array_cmp<int16_t, _sse_array_cmpgt<int16_t>>>
-#define BUN_SSE_SI128_SI16 (short)BUN_SSE_SI128_SI32
+#define BUN_SSE_SI128_SI16 (int16_t)BUN_SSE_SI128_SI32
 
 #define BUN_SSE_SET_EPI64(a, b) BUN_SSE_M128i64{b, a}
 #define BUN_SSE_SET1_EPI64(a) BUN_SSE_M128i64{a, a}

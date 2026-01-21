@@ -1,4 +1,4 @@
-// Copyright (c)2023 Erik McClure
+// Copyright (c)2026 Erik McClure
 // For conditions of distribution and use, see copyright notice in "buntils.h"
 
 #ifndef __ARRAY_CIRCULAR_H__BUN__
@@ -15,14 +15,14 @@ namespace bun {
   {
   protected:
     using BASE = ArrayBase<T, Alloc, RECURSIVE>;
-    using CT   = typename CType;
+    using CT   = CType;
     using Ty   = typename BASE::Ty;
     using BASE::_array;
 
   public:
     // Constructors
     inline ArrayCircular(const ArrayCircular& copy)
-      requires std::is_copy_constructible_v<RECURSIVE>
+      requires is_copy_constructible_or_incomplete_v<RECURSIVE>
       : BASE(0, copy), _cur(-1), _length(0)
     {
       operator=(copy);
@@ -130,7 +130,7 @@ namespace bun {
     } // an index of 0 is the most recent item pushed into the circular array.
     BUN_FORCEINLINE const T& operator[](CT index) const { return _array[_modIndex(index)]; }
     inline ArrayCircular& operator=(const ArrayCircular& right)
-      requires std::is_copy_constructible_v<RECURSIVE>
+      requires is_copy_constructible_or_incomplete_v<RECURSIVE>
     {
       Clear();
       BASE::_setCapacityDiscard(right.Capacity());
@@ -231,7 +231,7 @@ namespace bun {
     {
       T x;
       Serializer<Engine>::template ActionBind<T>::Parse(e, x, 0);
-      Push(x);
+      obj.Push(x);
     }
 
     template<typename U> // Note that _cur+1 can never be negative so we don't need to use bun_Mod

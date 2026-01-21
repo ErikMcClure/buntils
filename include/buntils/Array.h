@@ -1,4 +1,4 @@
-// Copyright (c)2023 Erik McClure
+// Copyright (c)2026 Erik McClure
 // For conditions of distribution and use, see copyright notice in "buntils.h"
 
 #ifndef __ARRAY_H__BUN__
@@ -219,13 +219,13 @@ namespace bun {
   {
   protected:
     using BASE = ArrayBase<T, Alloc, RECURSIVE>;
-    using CT   = typename CType;
+    using CT   = CType;
     using Ty   = typename BASE::Ty;
     using BASE::_array;
 
   public:
     inline Array(const Array& copy)
-      requires std::is_copy_constructible_v<RECURSIVE>
+      requires is_copy_constructible_or_incomplete_v<RECURSIVE>
       : BASE(copy._array.size(), copy)
     {
       BASE::_copy(_array.data(), copy._array.data(), _array.size());
@@ -344,7 +344,7 @@ namespace bun {
     inline const T* data() const noexcept { return _array.data(); }
 
     BUN_FORCEINLINE Array& operator=(const Array& copy) noexcept
-      requires std::is_copy_constructible_v<RECURSIVE>
+      requires is_copy_constructible_or_incomplete_v<RECURSIVE>
     {
       BASE::template _setLength<size_t>(_array.data(), _array.size(), 0);
       BASE::_setCapacityDiscard(copy._array.size());
@@ -358,7 +358,7 @@ namespace bun {
       return *this;
     }
     BUN_FORCEINLINE Array& operator=(std::span<const T> copy) noexcept
-      requires std::is_copy_constructible_v<RECURSIVE>
+      requires is_copy_constructible_or_incomplete_v<RECURSIVE>
     {
       Set(copy);
       return *this;

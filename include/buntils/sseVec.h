@@ -1,4 +1,4 @@
-// Copyright (c)2023 Erik McClure
+// Copyright (c)2026 Erik McClure
 // For conditions of distribution and use, see copyright notice in "buntils.h"
 
 #ifndef __BUN_SSE_H__
@@ -44,9 +44,9 @@ BUN_FORCEINLINE std::array<T, I> _sse_array_single(const std::array<T, I>& a, co
 }
 
 template<class T, size_t TI, class D, size_t DI>
+  requires(DI >= TI)
 BUN_FORCEINLINE std::array<D, DI> _sse_array_cvt(const std::array<T, TI>& a)
 {
-  static_assert(DI >= TI, "DI can't be less than TI");
   std::array<D, DI> r;
   for(size_t i = 0; i < TI; ++i)
     r[i] = (D)a[i];
@@ -372,7 +372,7 @@ BUN_FORCEINLINE BUN_SSE_M128 BUN_SSE_CAST_SI128_PS(BUN_SSE_M128i x) { return *re
 #define BUN_SSE_CMPGT_EPI16 _mm_cmpgt_epi16
 #define BUN_SSE_SI128_SI16 (short)_mm_cvtsi128_si32
 
-BUN_FORCEINLINE __m128i BUN_SSE_SET_EPI64(int64_t y, int64_t x) { alignas(16) int64_t vv[2] = { x, y }; return BUN_SSE_LOAD_ASI128((BUN_SSE_M128i*)vv); }
+BUN_FORCEINLINE __m128i BUN_SSE_SET_EPI64(int64_t y, int64_t x) { BUN_ALIGN(16) int64_t vv[2] = { x, y }; return BUN_SSE_LOAD_ASI128((BUN_SSE_M128i*)vv); }
 #define BUN_SSE_SET1_EPI64(x) BUN_SSE_SET_EPI64(x, x)
 #define BUN_SSE_ADD_EPI64 _mm_add_epi64
 #define BUN_SSE_SUB_EPI64 _mm_sub_epi64
@@ -600,6 +600,9 @@ struct alignas(16) sseVecT<double>
 template<>
 struct alignas(16) sseVecT<char>
 {
+#ifndef BUN_SSE_ENABLED
+  BUN_FORCEINLINE sseVecT(bun_si128 v) : xmm(v) {}
+#endif
   BUN_FORCEINLINE sseVecT(BUN_SSE_M128i8 v) : xmm(v) {} //__fastcall is obviously useless here since we're dealing with xmm registers
   BUN_FORCEINLINE sseVecT(char v) : xmm(BUN_SSE_SET1_EPI8(v)) {}
   BUN_FORCEINLINE explicit sseVecT(const char(&v)[16]) : xmm(BUN_SSE_LOAD_ASI128((BUN_SSE_M128i*)v)) { assert(!(((size_t)v) % 16)); }
@@ -826,9 +829,9 @@ struct alignas(16) sseVecT<int64_t>
 #ifdef BUN_64BIT
   BUN_FORCEINLINE void Set(int64_t& v) const { v = BUN_SSE_SI128_SI64(xmm); }
 #else
-  BUN_FORCEINLINE void Set(int64_t& v) const { alignas(16) int64_t store[2]; BUN_SSE_STORE_ASI128((BUN_SSE_M128i*)store, xmm); v = store[0]; }
+  BUN_FORCEINLINE void Set(int64_t& v) const { BUN_ALIGN(16) int64_t store[2]; BUN_SSE_STORE_ASI128((BUN_SSE_M128i*)store, xmm); v = store[0]; }
 #endif
-  BUN_FORCEINLINE int64_t Sum() const { BUN_SSE_M128i64 x = BUN_SSE_ADD_EPI64(xmm, Swap()); alignas(16) int64_t store[2]; BUN_SSE_STORE_ASI128((BUN_SSE_M128i*)store, x); return store[0]; }
+  BUN_FORCEINLINE int64_t Sum() const { BUN_SSE_M128i64 x = BUN_SSE_ADD_EPI64(xmm, Swap()); BUN_ALIGN(16) int64_t store[2]; BUN_SSE_STORE_ASI128((BUN_SSE_M128i*)store, x); return store[0]; }
   BUN_FORCEINLINE sseVecT<int64_t> Swap() const { return (BUN_SSE_M128i64)BUN_SSE_SHUFFLE_EPI32(xmm, BUN_SSE_SHUFFLE(2, 3, 0, 1)); }
 
   static sseVecT<int64_t> ZeroVector() { return sseVecT<int64_t>(BUN_SSE_SETZERO_SI128()); }

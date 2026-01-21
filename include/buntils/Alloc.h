@@ -1,4 +1,4 @@
-// Copyright (c)2023 Erik McClure
+// Copyright (c)2026 Erik McClure
 // For conditions of distribution and use, see copyright notice in "buntils.h"
 
 #ifndef __BUN_ALLOC_H__
@@ -173,7 +173,7 @@ namespace bun {
   template <class T, class U, template <typename> class PT, template <typename> class PU>
   bool operator==(PolicyAllocator<T, PT> const& a, PolicyAllocator<U, PU> const& b) noexcept
   {
-    if constexpr (std::is_same_v<PT, PU>)
+    if constexpr (std::is_same_v<PT<T>, PU<U>>)
     {
       return a._policy == b._policy;
     }

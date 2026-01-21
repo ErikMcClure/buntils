@@ -1,4 +1,4 @@
-// Copyright (c)2023 Erik McClure
+// Copyright (c)2026 Erik McClure
 // For conditions of distribution and use, see copyright notice in "buntils.h"
 // Insert/delete implementations modified from Arjan van den Boogaard (2004)
 // http://archive.gamedev.net/archive/reference/programming/features/TStorage/TStorage.h

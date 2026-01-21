@@ -1,4 +1,4 @@
-// Copyright (c)2023 Erik McClure
+// Copyright (c)2026 Erik McClure
 // For conditions of distribution and use, see copyright notice in "buntils.h"
 
 #ifndef __ARRAY_SORT_H__BUN__
@@ -157,7 +157,7 @@ namespace bun {
     {
       T x;
       Serializer<Engine>::template ActionBind<T>::Parse(e, x, 0);
-      Insert(x);
+      obj.Insert(x);
     }
     template<typename U> CT _insert(U&& item)
     {

@@ -1,4 +1,4 @@
-// Copyright (c)2023 Erik McClure
+// Copyright (c)2026 Erik McClure
 // For conditions of distribution and use, see copyright notice in "buntils.h"
 
 #ifndef __HASH_H__BUN__
@@ -165,7 +165,10 @@ namespace bun {
     using FakeData = typename std::conditional<IsMap, Data, std::byte>::type;
     using GET = std::conditional_t<std::is_integral_v<FakeData> || std::is_enum_v<FakeData> || std::is_pointer_v<FakeData> || std::is_member_pointer_v<FakeData>, FakeData, typename internal::_HashGET<FakeData>::GET>;
 
-    Hash(const Hash& copy) requires(std::is_copy_constructible_v<RECURSIVE_KEY> && (!IsMap || std::is_copy_constructible_v<RECURSIVE_DATA>)) : Alloc(copy), n_buckets(0), flags(0), keys(0), vals(0), sz(0), n_occupied(0), upper_bound(0)
+    Hash(const Hash& copy)
+      requires(is_copy_constructible_or_incomplete_v<RECURSIVE_KEY> &&
+               (!IsMap || is_copy_constructible_or_incomplete_v<RECURSIVE_DATA>))
+      : Alloc(copy), n_buckets(0), flags(0), keys(0), vals(0), sz(0), n_occupied(0), upper_bound(0)
     {
       if (copy.n_buckets > 0)
         _docopy(copy);
@@ -297,7 +300,9 @@ namespace bun {
       return true;
     }
 
-    Hash& operator=(const Hash& copy) requires(std::is_copy_constructible_v<RECURSIVE_KEY> && (!IsMap || std::is_copy_constructible_v<RECURSIVE_DATA>))
+    Hash& operator=(const Hash& copy)
+      requires(is_copy_constructible_or_incomplete_v<RECURSIVE_KEY> &&
+               (!IsMap || is_copy_constructible_or_incomplete_v<RECURSIVE_DATA>))
     {
       Clear();
       if (!copy.n_buckets)

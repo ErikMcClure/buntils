@@ -1,5 +1,5 @@
 /* Erik McClure Utility Library
-   Copyright (c)2023 Erik McClure
+   Copyright (c)2026 Erik McClure
 
    Licensed under the Apache License, Version 2.0 (the "License");
    you may not use this file except in compliance with the License.
@@ -70,17 +70,22 @@ namespace bun {
   constexpr bool is_copy_constructible_or_incomplete_v<T, std::void_t<decltype(sizeof(T))>> = std::is_copy_constructible_v<T>;
 
   namespace internal {
-    template<class T, bool B>
-    struct __make_integral { using type = T; };
-    template<class T>
-    struct __make_integral<T, true> { using type = typename std::underlying_type<T>::type; };
-
     template<class> struct is_pair_array : std::false_type {};
     template<class K, class V> struct is_pair_array<std::pair<K, V>> : std::true_type {};
     template<class K, class V> struct is_pair_array<std::tuple<K, V>> : std::true_type {};
   }
   template<class T>
-  struct make_integral : internal::__make_integral<T, std::is_enum<T>::value> {};
+  struct make_integral
+  {
+    using type = T;
+  };
+
+  template<class T>
+    requires(std::is_enum_v<T>)
+  struct make_integral<T>
+  {
+    using type = typename std::underlying_type<T>::type;
+  };
 
   template<size_t N>
   struct StringLiteral {
@@ -136,9 +141,9 @@ namespace bun {
 
   // Replaces one character with another in a string
   template<typename T>
+    requires std::is_integral<T>::value
   inline T* strreplace(T* string, const T find, const T replace) noexcept
   {
-    static_assert(std::is_integral<T>::value, "T must be integral");
     if(!string) return 0;
     size_t curpos = (size_t)~0; //this will wrap around to 0 when we increment
 
@@ -156,9 +161,9 @@ namespace bun {
 
   // Counts number of occurences of character c in string, up to the null terminator
   template<typename T>
+    requires std::is_integral<T>::value
   inline size_t strccount(const T* string, T c) noexcept
   {
-    static_assert(std::is_integral<T>::value, "T must be integral");
     size_t ret = 0;
     while(*string) { if(*string == c) ++ret; ++string; }
     return ret;
@@ -166,9 +171,9 @@ namespace bun {
 
   // Counts number of occurences of character c in string, up to length characters
   template<typename T>
+    requires std::is_integral<T>::value
   inline size_t strccount(const T* string, T c, size_t length) noexcept
   {
-    static_assert(std::is_integral<T>::value, "T must be integral");
     size_t ret = 0;
     for(size_t i = 0; (i < length) && ((*string) != 0); ++i)
       if(string[i] == c) ++ret;
@@ -215,18 +220,18 @@ namespace bun {
   // Trims space from left end of string by returning a different pointer. It is possible to use const char or const wchar_t as a type
   // here because the string itself is not modified.
   template<typename T>
+    requires std::is_integral<T>::value
   inline T* strltrim(T* str) noexcept
   {
-    static_assert(std::is_integral<T>::value, "T must be integral");
     for(; *str > 0 && *str < 33; ++str);
     return str;
   }
 
   // Trims space from right end of string by inserting a null terminator in the appropriate location
   template<typename T>
+    requires std::is_integral<T>::value
   inline T* strrtrim(T* str) noexcept
   {
-    static_assert(std::is_integral<T>::value, "T must be integral");
     T* inter = str + strlen(str);
 
     for(; inter > str && *inter < 33; --inter);
@@ -588,7 +593,6 @@ namespace bun {
   template<typename T, size_t bits> requires std::is_integral<T>::value // WARNING: bits should be HALF the actual number of bits in (T)!
   inline T IntFastSqrt(T n) noexcept
   {
-    static_assert(std::is_integral<T>::value, "T must be integral");
     T root = 0, t;
 
     for(size_t i = bits; i > 0;)

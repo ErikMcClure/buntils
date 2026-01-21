@@ -1,4 +1,4 @@
-﻿// Copyright (c)2023 Erik McClure
+﻿// Copyright (c)2026 Erik McClure
 // For conditions of distribution and use, see copyright notice in "buntils.h"
 
 #ifndef __BUN_DEFINES_H__
@@ -30,8 +30,13 @@
 #endif
 #define CONCAT(...) __VA_ARGS__
 
+#ifdef __cpp_exceptions
+  #define THROW_OR_ABORT(msg) throw std::runtime_error(msg)
+#else
+  #define THROW_OR_ABORT(msg) { assert(false); abort(); }
+#endif
 
-// These yield float/int ranges using rand(). However, rand() is a horrible RNG, so unless you have a good reason, use bun_rand() instead.
+    // These yield float/int ranges using rand(). However, rand() is a horrible RNG, so unless you have a good reason, use bun_rand() instead.
 #ifndef RANDFLOATGEN
 #define RANDFLOATGEN(min,max) (((max) - (min)) * (rand()/(RAND_MAX+1.0)) + (min))
 #endif

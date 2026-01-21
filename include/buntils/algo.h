@@ -1,4 +1,4 @@
-// Copyright (c)2023 Erik McClure
+// Copyright (c)2026 Erik McClure
 // For conditions of distribution and use, see copyright notice in "buntils.h"
 
 #ifndef __BUN_ALGO_H__
@@ -317,7 +317,11 @@ namespace bun {
                   \  1  0  0  0 /   \ p4 /  */
   template<typename T, typename D> inline T BezierCurve(D t, const T& p1, const T& p2, const T& p3, const T& p4)
   {
-    static constexpr float m[4][4] = { -1.0f, 3.0f, -3.0f, 1.0f, 3.0f, -6.0f, 3.0f, 0, -3.0f, 3, 0, 0, 1.0f, 0, 0, 0 };
+    static constexpr float m[4][4] = { { -1.0f, 3.0f, -3.0f, 1.0f },
+                                       { 3.0f, -6.0f, 3.0f, 0 },
+                                       { -3.0f, 3, 0, 0 },
+                                       { 1.0f, 0, 0, 0 }
+    };
     const float p[4]               = { p1, p2, p3, p4 };
     return StaticGenericSpline<T, D, m>(t, p);
   }
@@ -605,11 +609,10 @@ namespace bun {
 
   // Performs Gauss–Legendre quadrature for simple polynomials, using 1-5 sampling points on the interval [a, b] with
   // optional supplemental arguments.
-  template<typename T, int N, typename... D> inline T GaussianQuadrature(T a, T b, T (*f)(T, D...), D... args)
+  template<typename T, int N, typename... D>
+    requires(N >= 1 && N < 5)
+  inline T GaussianQuadrature(T a, T b, T (*f)(T, D...), D... args)
   {
-    static_assert(N <= 5, "Too many points for Guassian Quadrature!");
-    static_assert(N < 1, "Too few points for Guassian Quadrature!");
-
     static const T points[5][5] = {
       0,
       0,

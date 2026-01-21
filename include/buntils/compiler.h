@@ -1,4 +1,4 @@
-// Copyright (c)2023 Erik McClure
+// Copyright (c)2026 Erik McClure
 // For conditions of distribution and use, see copyright notice in "buntils.h"
 
 #ifndef __BUN_COMPILER_H__
@@ -45,6 +45,7 @@
 #define BUN_COMPILER_NAKED
 #define BUN_FORCEINLINE inline
 #define BUN_RESTRICT __restrict__
+#define BUN_ALIGN(n) __attribute__((aligned(n)))
 #define BUN_EMPTY_BASES 
 #define MSC_FASTCALL BUN_COMPILER_FASTCALL
 #define GCC_FASTCALL 
@@ -66,12 +67,13 @@
 #define BUN_COMPILER_NAKED __attribute__((naked)) // Will only work on ARM, AVR, MCORE, RX and SPU. 
 #define BUN_FORCEINLINE __attribute__((always_inline)) inline
 #define BUN_RESTRICT __restrict__
+#define BUN_ALIGN(n) __attribute__((aligned(n)))
 #define BUN_EMPTY_BASES
 #define BUN_COMPILER_HAS_TIME_GET
 
 #define MSC_FASTCALL 
 #define GCC_FASTCALL BUN_COMPILER_FASTCALL
-//#define BUN_SSE_ENABLED
+#define BUN_SSE_ENABLED
 
 #elif defined __GNUC__ // GCC
 #define BUN_COMPILER_GCC
@@ -86,6 +88,7 @@
 #define BUN_COMPILER_NAKED __attribute__((naked)) // Will only work on ARM, AVR, MCORE, RX and SPU. 
 #define BUN_FORCEINLINE __attribute__((always_inline)) inline
 #define BUN_RESTRICT __restrict__
+#define BUN_ALIGN(n) __attribute__((aligned(n)))
 #define BUN_EMPTY_BASES
 
 #if __GNUC__ >= 5 && __GNUC_MINOR__ >= 1
@@ -118,14 +121,20 @@
 #define BUN_COMPILER_NAKED __declspec(naked) 
 #define BUN_FORCEINLINE __forceinline
 #define BUN_RESTRICT __restrict
+#define BUN_ALIGN(n) __declspec(align(n))
 #define BUN_VERIFY_HEAP _ASSERTE(_CrtCheckMemory())
 #define BUN_EMPTY_BASES __declspec(empty_bases)
 #define MSC_FASTCALL BUN_COMPILER_FASTCALL
 #define GCC_FASTCALL 
-#define BUN_SSE_ENABLED
 #define BUN_COMPILER_HAS_TIME_GET
 
-#define BUN_UNREACHABLE() __assume(0)
+#if (defined(_M_AMD64) || defined(_M_X64))
+  #define BUN_SSE_ENABLED
+#elif _M_IX86_FP == 2
+  #define BUN_SSE_ENABLED
+#endif
+
+  #define BUN_UNREACHABLE() __assume(0)
 #define BUN_ASSUME(x) __assume(x)
 #if (_MANAGED == 1) || (_M_CEE == 1)
 #define MSC_MANAGED

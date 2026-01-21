@@ -1,4 +1,4 @@
-// Copyright (c)2023 Erik McClure
+// Copyright (c)2026 Erik McClure
 // For conditions of distribution and use, see copyright notice in "buntils.h"
 
 #ifndef __BUN_VECTOR_H__
@@ -278,7 +278,7 @@ namespace bun {
     // copyright notice and this statement appear in all copies.  
     // Intel makes no representations about the suitability of this software for 
     // any purpose, and specifically disclaims all warranties. 
-    static const alignas(16) uint32_t _Sign_PNNP[4] = { 0x00000000, 0x80000000, 0x80000000, 0x00000000 };
+    static const BUN_ALIGN(16) uint32_t _Sign_PNNP[4] = { 0x00000000, 0x80000000, 0x80000000, 0x00000000 };
 
     // The inverse is calculated using "Divide and Conquer" technique. The 
     // original matrix is divide into four 2x2 sub-matrices. Since each 
@@ -588,7 +588,6 @@ namespace bun {
   template<typename T, int N>
   struct BUN_COMPILER_DLLEXPORT Vector
   {
-
     template<typename U>
     inline constexpr Vector(const Vector<U, N>& copy) { for(int i = 0; i < N; ++i) v[i] = (T)copy.v[i]; }
     inline explicit constexpr Vector(T scalar) { for(int i = 0; i < N; ++i) v[i] = scalar; }

@@ -1,4 +1,4 @@
-// Copyright (c)2023 Erik McClure
+// Copyright (c)2026 Erik McClure
 // For conditions of distribution and use, see copyright notice in "buntils.h"
 
 #ifndef __BUN_TEST_H__
@@ -36,12 +36,15 @@ extern volatile std::atomic<bool> startflag;
 #define BEGINTEST TESTDEF::RETPAIR __testret{}; DEBUG_CDT_SAFE::_testret = &__testret; DEBUG_CDT_SAFE::Tracker.Clear();
 #define ENDTEST return TESTDEF::RETPAIR(__testret.first.load(std::memory_order_relaxed), __testret.second.load(std::memory_order_relaxed))
 #define FAILEDTEST(t) BUNLOG(_failedtests,1, "Test #",__testret.first.load(std::memory_order_relaxed)," Failed  < ",TXT(t)," >")
-#define TEST(t) { __testret.first.fetch_add(1); try { if(t) __testret.second.fetch_add(1); else FAILEDTEST(t); } catch(...) { FAILEDTEST(t); } }
 #define TESTSTATIC(t) static_assert(t, "Failed: " TXT(t))
-#define TESTERROR(t, e) { __testret.first.fetch_add(1); try { (t); FAILEDTEST(t); } catch(e) { __testret.second.fetch_add(1); } }
-#define TESTERR(t) TESTERROR(t,...)
-#define TESTNOERROR(t) { __testret.first.fetch_add(1); try { (t); __testret.second.fetch_add(1); } catch(...) { FAILEDTEST(t); } }
-#define TESTARRAY(t,f) _ITERFUNC(__testret,t,[&](size_t i) -> bool { f });
+#ifdef __cpp_exceptions
+  #define TEST(t) { __testret.first.fetch_add(1); try { if(t) __testret.second.fetch_add(1); else FAILEDTEST(t); } catch(...) { FAILEDTEST(t); } }
+  #define TESTNOERROR(t) { __testret.first.fetch_add(1); try { (t); __testret.second.fetch_add(1); } catch(...) { FAILEDTEST(t); } }
+#else
+  #define TEST(t) { __testret.first.fetch_add(1); { if(t) __testret.second.fetch_add(1); else FAILEDTEST(t); } }
+  #define TESTNOERROR(t)
+#endif
+#define TESTARRAY(t, f) _ITERFUNC(__testret, t, [&](size_t i) -> bool { f });
 #define TESTALL(t,f) _ITERALL(__testret,t,[&](size_t i) -> bool { f });
 #define TESTCOUNT(c,t) { for(size_t i = 0; i < c; ++i) TEST(t) }
 #define TESTCOUNTALL(c,t) { bool __val=true; for(size_t i = 0; i < c; ++i) __val=__val&&(t); TEST(__val); }
@@ -51,7 +54,7 @@ extern volatile std::atomic<bool> startflag;
 #define TESTRELFOUR(s,a,b,c,d) TEST(bun::fCompare((s)[0],(a)) && bun::fCompare((s)[1],(b)) && bun::fCompare((s)[2],(c)) && bun::fCompare((s)[3],(d)))
 
 template<class T, size_t SIZE, class F>
-void _ITERFUNC(TESTDEF::RETPAIR& __testret, T(&t)[SIZE], F f) { for(size_t i = 0; i < SIZE; ++i) TEST(f(i)) }
+void _ITERFUNC(TESTDEF::RETPAIR& __testret, T(&t)[SIZE], F f) { for(size_t i = 0; i < SIZE; ++i) TEST(f(i)); }
 template<class T, size_t SIZE, class F>
 void _ITERALL(TESTDEF::RETPAIR& __testret, T(&t)[SIZE], F f) { bool __val = true; for(size_t i = 0; i < SIZE; ++i) __val = __val && (f(i)); TEST(__val); }
 
@@ -60,8 +63,8 @@ struct DEBUG_CDT_SAFE
   DEBUG_CDT_SAFE(const DEBUG_CDT_SAFE& copy) : _safe(copy._safe), __testret(*_testret) { isdead = this; }
   explicit DEBUG_CDT_SAFE(bool safe) : _safe(safe), __testret(*_testret) { isdead = this; }
   ~DEBUG_CDT_SAFE() { 
-    if(_safe) 
-      TEST(isdead == this) 
+    if(_safe)
+      TEST(isdead == this); 
   }
 
   inline DEBUG_CDT_SAFE& operator=(const DEBUG_CDT_SAFE& right) { return *this; }

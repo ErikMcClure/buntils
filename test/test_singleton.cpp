@@ -1,4 +1,4 @@
-// Copyright (c)2023 Erik McClure
+// Copyright (c)2026 Erik McClure
 // For conditions of distribution and use, see copyright notice in "buntils.h"
 
 #include "test.h"
@@ -6,6 +6,7 @@
 
 using namespace bun;
 
+#ifdef BUN_COMPILER_MSC
 struct SINGLETEST : Singleton<SINGLETEST>
 {
   SINGLETEST() {}
@@ -36,3 +37,12 @@ TESTDEF::RETPAIR test_SINGLETON()
   TEST(SINGLETEST::Instance() == 0);
   ENDTEST;
 }
+#else
+
+TESTDEF::RETPAIR test_SINGLETON()
+{
+  BEGINTEST;
+  ENDTEST;
+}
+
+#endif

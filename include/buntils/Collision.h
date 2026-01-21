@@ -1,4 +1,4 @@
-// Copyright (c)2023 Erik McClure
+// Copyright (c)2026 Erik McClure
 // For conditions of distribution and use, see copyright notice in "buntils.h"
 
 #ifndef __BUN_COLLISION_H__
@@ -588,7 +588,7 @@ namespace bun {
     {
       cur = ((point.y - verts[i - 1].y) * (verts[i].x - verts[i - 1].x)) -
             ((point.x - verts[i - 1].x) * (verts[i].y - verts[i - 1].y));
-      if(cur < 0 && last > 0 || cur > 0 && last < 0)
+      if((cur < 0 && last > 0) || (cur > 0 && last < 0))
         return false; // This is written so that being on the line counts as an intersection.
     }
 

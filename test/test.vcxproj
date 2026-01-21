@@ -567,15 +567,8 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
-    <ClCompile Include="test_algo.cpp" />
-    <ClCompile Include="test_aliastable.cpp" />
-    <ClCompile Include="test_alloc_block.cpp" />
-    <ClCompile Include="test_alloc_block_mt.cpp" />
     <ClCompile Include="test_alloc_cache.cpp" />
-    <ClCompile Include="test_alloc_greedy.cpp" />
     <ClCompile Include="test_alloc_greedy_block.cpp" />
-    <ClCompile Include="test_animation.cpp" />
-    <ClCompile Include="test_array.cpp" />
     <ClCompile Include="test_c.c">
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|x64'">NotUsing</PrecompiledHeader>
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">NotUsing</PrecompiledHeader>
@@ -589,6 +582,68 @@
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|x64'">Create</PrecompiledHeader>
     </ClCompile>
     <ClCompile Include="test_aatree.cpp" />
+    <ClCompile Include="test_aliastable.cpp" />
+    <ClCompile Include="test_animation.cpp" />
+    <ClCompile Include="test_array.cpp" />
+    <ClCompile Include="test_arraycircular.cpp" />
+    <ClCompile Include="test_arraysort.cpp" />
+    <ClCompile Include="test_avltree.cpp" />
+    <ClCompile Include="test_binaryheap.cpp" />
+    <ClCompile Include="test_bitfield.cpp" />
+    <ClCompile Include="test_bitstream.cpp" />
+    <ClCompile Include="test_algo.cpp" />
+    <ClCompile Include="test_alloc_block.cpp" />
+    <ClCompile Include="test_alloc_block_mt.cpp" />
+    <ClCompile Include="test_alloc_greedy.cpp" />
+    <ClCompile Include="test_defines.cpp" />
+    <ClCompile Include="test_graph.cpp" />
+    <ClCompile Include="test_logger.cpp" />
+    <ClCompile Include="test_sse.cpp" />
+    <ClCompile Include="test_buntils.cpp" />
+    <ClCompile Include="test_buntils_c.cpp" />
+    <ClCompile Include="test_vector.cpp" />
+    <ClCompile Include="test_collision.cpp" />
+    <ClCompile Include="test_compactarray.cpp" />
+    <ClCompile Include="test_delegate.cpp" />
+    <ClCompile Include="test_disjointset.cpp" />
+    <ClCompile Include="test_dual.cpp" />
+    <ClCompile Include="test_dynarray.cpp" />
+    <ClCompile Include="test_fixedpt.cpp" />
+    <ClCompile Include="test_geometry.cpp" />
+    <ClCompile Include="test_hash.cpp" />
+    <ClCompile Include="test_highprecisiontimer.cpp" />
+    <ClCompile Include="test_inistorage.cpp" />
+    <ClCompile Include="test_json.cpp" />
+    <ClCompile Include="test_kdtree.cpp" />
+    <ClCompile Include="test_linkedarray.cpp" />
+    <ClCompile Include="test_linkedlist.cpp" />
+    <ClCompile Include="test_literals.cpp" />
+    <ClCompile Include="test_lockless.cpp" />
+    <ClCompile Include="test_locklessqueue.cpp" />
+    <ClCompile Include="test_map.cpp" />
+    <ClCompile Include="test_os.cpp" />
+    <ClCompile Include="test_priorityqueue.cpp" />
+    <ClCompile Include="test_profile.cpp" />
+    <ClCompile Include="test_queue.cpp" />
+    <ClCompile Include="test_randomqueue.cpp" />
+    <ClCompile Include="test_rational.cpp" />
+    <ClCompile Include="test_refcounter.cpp" />
+    <ClCompile Include="test_rwlock.cpp" />
+    <ClCompile Include="test_scheduler.cpp" />
+    <ClCompile Include="test_serializer.cpp" />
+    <ClCompile Include="test_singleton.cpp" />
+    <ClCompile Include="test_stack.cpp" />
+    <ClCompile Include="test_str.cpp" />
+    <ClCompile Include="test_stream.cpp" />
+    <ClCompile Include="test_strtable.cpp" />
+    <ClCompile Include="test_thread.cpp" />
+    <ClCompile Include="test_threadpool.cpp" />
+    <ClCompile Include="test_toml.cpp" />
+    <ClCompile Include="test_trbtree.cpp" />
+    <ClCompile Include="test_trie.cpp" />
+    <ClCompile Include="test_ubjson.cpp" />
+    <ClCompile Include="test_variant.cpp" />
+    <ClCompile Include="test_xml.cpp" />
     <ClCompile Include="util.cpp" />
   </ItemGroup>
   <ItemGroup>
@@ -596,6 +651,7 @@
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="test.h" />
+    <ClInclude Include="test_alloc.h" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

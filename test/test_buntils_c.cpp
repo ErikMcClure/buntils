@@ -37,31 +37,31 @@ void testconvfunc(const FROM* from, size_t szfrom, const TO* to, size_t(f)(const
 {
   size_t len = f(from, -1, 0, 0);
   VARARRAY(TO, target1, len);
-  len = f(from, -1, target1, len);
+  len = f(from, -1, target1.data(), len);
   TEST(len == szfrom + 1);
   TEST(target1[len - 1] == 0);
-  TEST(arbitrarycomp<TO>(target1, to));
+  TEST(arbitrarycomp<TO>(target1.data(), to));
 
   len = f(from, szfrom + 1, 0, 0);
   VARARRAY(TO, target2, len);
-  len = f(from, szfrom + 1, target2, len);
+  len = f(from, szfrom + 1, target2.data(), len);
   TEST(len == szfrom + 1);
   TEST(target2[len - 1] == 0);
-  TEST(arbitrarycomp<TO>(target2, to));
+  TEST(arbitrarycomp<TO>(target2.data(), to));
 
   len = f(from, szfrom, 0, 0);
   VARARRAY(TO, target3, len);
-  len = f(from, szfrom, target3, len);
+  len = f(from, szfrom, target3.data(), len);
   TEST(len == szfrom);
   TEST(target3[len - 1] != 0);
-  TEST(arbitrarycomp<TO>(target3, to, len));
+  TEST(arbitrarycomp<TO>(target3.data(), to, len));
 
   len = f(from, szfrom - 1, 0, 0);
   VARARRAY(TO, target4, len);
-  len = f(from, szfrom - 1, target4, len);
+  len = f(from, szfrom - 1, target4.data(), len);
   TEST(len == szfrom - 1);
   TEST(target4[len - 1] != 0);
-  TEST(arbitrarycomp<TO>(target4, to, len));
+  TEST(arbitrarycomp<TO>(target4.data(), to, len));
 }
 template<typename FROM, typename TO>
 void testconvzero(size_t(f)(const FROM*BUN_RESTRICT, ptrdiff_t, TO*BUN_RESTRICT, size_t), TESTDEF::RETPAIR& __testret)
@@ -178,11 +178,11 @@ TESTDEF::RETPAIR test_buntils_c()
   TEST(UTF32toUTF8(outstr, -1, instr, len) <= len);
 
 #ifdef BUN_PLATFORM_WIN32
-  for(size_t i = 0; i < sizeof(PANGRAMS) / sizeof(const bun_char*); ++i)
+  for(auto pangram : PANGRAMS)
   {
-    size_t l = UTF16toUTF32(PANGRAMS[i], -1, 0, 0);
+    size_t l = UTF16toUTF32(pangram, -1, 0, 0);
     assert(l < 1024);
-    UTF16toUTF32(PANGRAMS[i], -1, outstr, l);
+    UTF16toUTF32(pangram, -1, outstr, l);
     l = UTF32toUTF8(outstr, -1, 0, 0);
     assert(l < 1024);
     UTF32toUTF8(outstr, -1, instr, l);
@@ -192,7 +192,7 @@ TESTDEF::RETPAIR test_buntils_c()
     l = UTF32toUTF16(outstr, -1, 0, 0);
     assert(l < 1024);
     UTF32toUTF16(outstr, -1, wstr, l);
-    TEST(!wcscmp(wstr, PANGRAMS[i]));
+    TEST(!wcscmp(wstr, pangram));
   }
 #endif
 

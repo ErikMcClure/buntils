@@ -20,9 +20,6 @@ namespace bun {
   using std::ranges::random_access_range;
   using std::ranges::range_value_t;
 
-  template<typename R>
-  concept sized_random_access_range = std::ranges::sized_range<R> && random_access_range<R>;
-
   // Performs a binary search on "arr" between first and last. if CompEQ=NEQ and char CompValue=-1, uses an upper bound,
   // otherwise uses lower bound.
   template<bool BEFORE, random_access_range R, typename D, Comparison<range_value_t<R>, D> C, typename CT_ = size_t>
@@ -60,11 +57,12 @@ namespace bun {
     return first;
   }
 
-  template<bool BEFORE, random_access_range R, typename D, Comparison<range_value_t<R>, D> C, typename CT_ = size_t>
-  constexpr BUN_FORCEINLINE CT_ BinarySearchNear(R&& arr, const D& data, C && f = std::compare_three_way{})
+  template<bool BEFORE, random_access_range R, typename D, Comparison<range_value_t<R>, D> C>
+  constexpr BUN_FORCEINLINE std::ranges::range_size_t<R> BinarySearchNear(R&& arr, const D& data,
+                                                                          C&& f = std::compare_three_way{})
   {
-    return BinarySearchNear<BEFORE, R, D, C, CT_>(std::forward<R>(arr), data, 0, std::ranges::size(arr),
-                                                  std::forward<C>(f));
+    return BinarySearchNear<BEFORE, R, D, C, std::ranges::range_size_t<R>>(std::forward<R>(arr), data, 0,
+                                                                           std::ranges::size(arr), std::forward<C>(f));
   }
 
   // Either gets the element that matches the value in question or one immediately before the closest match. Could return an
@@ -78,11 +76,13 @@ namespace bun {
            1;
   }
 
-  template<sized_random_access_range R, Comparison<range_value_t<R>, range_value_t<R>> C, typename CT_ = size_t>
-  constexpr BUN_FORCEINLINE CT_ BinarySearchBefore(R&& arr, const range_value_t<R>& data, C&& f = std::compare_three_way{})
+  template<sized_random_access_range R, Comparison<range_value_t<R>, range_value_t<R>> C>
+  constexpr BUN_FORCEINLINE std::ranges::range_size_t<R> BinarySearchBefore(R&& arr, const range_value_t<R>& data,
+                                                                            C&& f = std::compare_three_way{})
   {
-    return BinarySearchNear<true, R, range_value_t<R>, C, CT_>(std::forward<R>(arr), data, 0, std::ranges::size(arr),
-                                                               std::forward<C>(f)) -
+    return BinarySearchNear<true, R, range_value_t<R>, C, std::ranges::range_size_t<R>>(std::forward<R>(arr), data, 0,
+                                                                                        std::ranges::size(arr),
+                                                                                        std::forward<C>(f)) -
            1;
   }
 
@@ -95,11 +95,13 @@ namespace bun {
                                                                 std::forward<C>(f));
   }
 
-  template<sized_random_access_range R, Comparison<range_value_t<R>, range_value_t<R>> C, typename CT_ = size_t>
-  constexpr BUN_FORCEINLINE CT_ BinarySearchAfter(R&& arr, const range_value_t<R>& data, C&& f = std::compare_three_way{})
+  template<sized_random_access_range R, Comparison<range_value_t<R>, range_value_t<R>> C>
+  constexpr BUN_FORCEINLINE std::ranges::range_size_t<R> BinarySearchAfter(R&& arr, const range_value_t<R>& data,
+                                                                           C&& f = std::compare_three_way{})
   {
-    return BinarySearchNear<false, R, range_value_t<R>, C, CT_>(std::forward<R>(arr), data, 0, std::ranges::size(arr),
-                                                                std::forward<C>(f));
+    return BinarySearchNear<false, R, range_value_t<R>, C, std::ranges::range_size_t<R>>(std::forward<R>(arr), data, 0,
+                                                                                         std::ranges::size(arr),
+                                                                                         std::forward<C>(f));
   }
 
   // Returns index of the item, if it exists, or -1
@@ -116,21 +118,22 @@ namespace bun {
       m = f + ((l - f) >> 1);
 
       auto r = c(arr[m], data);
-      if(r < 0) // This is faster than a switch statement
+      if(r < 0)
         f = m + 1;
       else if(r > 0)
         l = m - 1;
-      else
+      else [[unlikely]]
         return m;
     }
 
-    return (CT_)-1;
+    return (CT_)~0;
   }
 
-  template<sized_random_access_range R, typename D, Comparison<range_value_t<R>, D> C, typename CT_ = size_t>
-  BUN_FORCEINLINE CT_ BinarySearchExact(const R&& arr, const D& data, C c = std::compare_three_way{})
+  template<sized_random_access_range R, typename D, Comparison<range_value_t<R>, D> C>
+  BUN_FORCEINLINE std::ranges::range_size_t<R> BinarySearchExact(R&& arr, const D& data,
+                                                                 C c = std::compare_three_way{})
   {
-    return BinarySearchExact<R, D, C, CT_>(std::forward<R>(arr), data, 0, std::ranges::size(arr), c);
+    return BinarySearchExact<R, D, C, std::ranges::range_size_t<R>>(std::forward<R>(arr), data, 0, std::ranges::size(arr), c);
   }
 
   // Generates a canonical function for the given real type with the maximum number of bits.
@@ -156,22 +159,22 @@ namespace bun {
   inline void bun_RandSeed(uint64_t s) { bun_getdefaultengine().seed(s); }
 
   // Shuffler using Fisher-Yates/Knuth Shuffle algorithm based on Durstenfeld's implementation.
-  template<typename T, typename CT, typename ENGINE> inline void Shuffle(T* p, CT size, ENGINE& e)
+  template<typename T, typename CT, typename ENGINE> inline constexpr void Shuffle(T* p, CT size, ENGINE& e)
   {
     for(CT i = size; i > 0; --i)
       std::swap(p[i - 1], p[bun_rand<CT, ENGINE>(0, i, e)]);
   }
-  template<typename T, typename CT, typename ENGINE, CT size> inline void Shuffle(T (&p)[size], ENGINE& e)
+  template<typename T, typename CT, typename ENGINE, CT size> inline constexpr void Shuffle(T (&p)[size], ENGINE& e)
   {
     Shuffle<T, CT, ENGINE>(p, size, e);
   }
 
   /* Shuffler using default random number generator.*/
-  template<typename T> BUN_FORCEINLINE void Shuffle(T* p, int size)
+  template<typename T> BUN_FORCEINLINE constexpr void Shuffle(T* p, int size)
   {
     Shuffle<T, int, XorshiftEngine<uint64_t>>(p, size, bun_getdefaultengine());
   }
-  template<typename T, int size> BUN_FORCEINLINE void Shuffle(T (&p)[size]) { Shuffle<T>(p, size); }
+  template<typename T, int size> BUN_FORCEINLINE constexpr void Shuffle(T (&p)[size]) { Shuffle<T>(p, size); }
 
   static const double ZIGNOR_R = 3.442619855899;
 
@@ -378,7 +381,7 @@ namespace bun {
     // T x1_2 = 0;
     // T x2_2 = x2*x2;
     // T x3_2 = 1;
-    T H = ((T)1 / (T)2);
+    T H = (static_cast<T>(1) / static_cast<T>(2));
     // T A = ((H - 0)(0 - 1) + (1 - 0)(x2 - 0)) / ((0 - 1)(x2_2 - 0) + (x2 - 0)(1 - 0));
     T A = (x - H) / (x - (x * x));
     // T B = ((H - 0) - A(x2_2 - 0)) / (x2 - 0);
@@ -454,7 +457,7 @@ namespace bun {
     // P_2)| = 0 -> -½(2·t(9·t - 7) + 1) = 0 -> 2·t(9·t - 7) = -1 Solving the derivative for 0 to maximize the error value,
     // we get t = (1/18)(7±sqrt(31)). Only the + result is inside [0,1], so we plug that into t·(1 - t)·½(6·t - 1) =
     // 77/486+(31 sqrt(31))/972 ~ 0.336008945728118
-    const T term = (T)0.336008945728118;
+    const T term = static_cast<T>(0.336008945728118);
 
     T r = 0;
     T M;
@@ -545,7 +548,7 @@ namespace bun {
 
     T u = FastSqrt<T>(-p / 3);
     T v = acos(-FastSqrt<T>(-27 / p3) * q / 2) / 3;
-    T m = cos(v), n = sin(v) * ((T)1.732050808);
+    T m = cos(v), n = sin(v) * static_cast<T>(1.732050808);
     r[0] = offset + u * (m + m);
     r[1] = offset - u * (n + m);
     r[2] = offset + u * (n - m);

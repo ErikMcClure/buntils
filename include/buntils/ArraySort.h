@@ -61,8 +61,8 @@ namespace bun {
     inline void Clear() { _array.Clear(); }
     inline void Discard(CType num) { _array.SetLength((num > _array.size()) ? 0 : (_array.size() - num)); }
     BUN_FORCEINLINE bool Empty() const { return _array.Empty(); }
-    BUN_FORCEINLINE void SetCapacity(CT capacity) { _array.SetCapacity(capacity); }
-    BUN_FORCEINLINE CT Capacity() const { return _array.Capacity(); }
+    BUN_FORCEINLINE void SetCapacity(size_t capacity) { _array.SetCapacity(capacity); }
+    BUN_FORCEINLINE size_t Capacity() const { return _array.Capacity(); }
     inline const T& Front() const { return _array.Front(); }
     inline T& Front() { return _array.Front(); }
     inline const T& Back() const { return _array.Back(); }
@@ -101,14 +101,14 @@ namespace bun {
 
     BUN_FORCEINLINE CT Find(constref item) const
     {
-      return BinarySearchExact<const decltype(_array)&, T, const Comp&, CT>(_array, item, _getbase());
+      return BinarySearchExact<const decltype(_array)&, T, const Comp&>(_array, item, _getbase());
     }
 
     // Can actually return -1 if there isn't anything in the array
     inline CT FindNear(constref item, bool before = true) const
     {
-      CT retval = before ? BinarySearchBefore<const decltype(_array)&, const Comp&, CT>(_array, item, _getbase()) :
-                           BinarySearchAfter<const decltype(_array)&, const Comp&, CT>(_array, item, _getbase());
+      CT retval = before ? BinarySearchBefore<const decltype(_array)&, const Comp&>(_array, item, _getbase()) :
+                           BinarySearchAfter<const decltype(_array)&, const Comp&>(_array, item, _getbase());
       return (retval < _array.size()) ?
                retval :
                (CT)(-1); // This is only needed for before=false in case it returns a value outside the range.
@@ -172,7 +172,7 @@ namespace bun {
         else if(_getbase()(static_cast<constref>(item), _array.Back()) >= 0)
           loc = _array.size();
         else
-          loc = BinarySearchAfter<const decltype(_array)&, const Comp&, CT>(_array, std::forward<U>(item), _getbase());
+          loc = BinarySearchAfter<const decltype(_array)&, const Comp&>(_array, std::forward<U>(item), _getbase());
 
         return loc;
       }

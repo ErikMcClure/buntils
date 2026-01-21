@@ -10,26 +10,33 @@
 namespace bun {
   // Represents a disjoint set data structure that uses path compression.
   template<typename T = size_t, typename Alloc = StandardAllocator<typename std::make_signed<T>::type>>
-  class BUN_COMPILER_DLLEXPORT DisjointSet : protected ArrayBase<typename std::make_signed<T>::type, T, Alloc>
+    requires std::is_integral<T>::value
+  class BUN_COMPILER_DLLEXPORT DisjointSet : protected ArrayBase<typename std::make_signed<T>::type, Alloc>
   {
   protected:
-    typedef ArrayBase<typename std::make_signed<T>::type, T, Alloc> ARRAY;
+    typedef ArrayBase<typename std::make_signed<T>::type, Alloc> ARRAY;
     typedef typename ARRAY::Ty Ty;
     using ARRAY::_array;
 
   public:
     // Construct a disjoint set with num initial sets
-    inline DisjointSet(const DisjointSet& copy) : ARRAY(copy.Capacity(), copy), _numsets(copy._numsets) 
-    { 
-      memcpy(_array, copy._array, _array.size()); 
+    inline DisjointSet(const DisjointSet& copy) : ARRAY(copy._array.size(), copy), _numsets(copy._numsets)
+    {
+      memcpy(_array.data(), copy._array.data(), _array.size());
     }
     inline DisjointSet(DisjointSet&& mov) : ARRAY(std::move(mov)), _numsets(mov._numsets) { mov._numsets = 0; }
     inline DisjointSet(T num, const Alloc& alloc) : ARRAY(num, alloc) { Reset(); }
-    inline explicit DisjointSet(T num) requires std::is_default_constructible_v<Alloc> : ARRAY(num) { Reset(); }
-    inline DisjointSet(Ty* overload, T num) requires std::is_same_v<Alloc, NullAllocator<Ty>> : ARRAY(0)
+    inline explicit DisjointSet(T num)
+      requires std::is_default_constructible_v<Alloc>
+      : ARRAY(num)
     {
-      _array = overload;
-      _array.size() = num;
+      Reset();
+    }
+    inline DisjointSet(Ty* overload, size_t num)
+      requires std::is_same_v<Alloc, NullAllocator<Ty>>
+      : ARRAY(0)
+    {
+      _array = std::span(overload, num);
       Reset();
     }
     // Union (combine) two disjoint sets into one set. Returns false if set1 or set2 aren't set names.
@@ -73,8 +80,8 @@ namespace bun {
         while(t != r)
         {
           _array[x] = r;
-          x = t;
-          t = _array[t];
+          x         = t;
+          t         = _array[t];
         }
       }
 
@@ -86,17 +93,17 @@ namespace bun {
     // Returns true if x is a valid set name
     inline bool IsSetName(T x) { return x < _array.size() && _array[x] < 0; }
     // Returns the number of elements in a given set. Returns -1 on failure.
-    inline Ty NumElements(T set) 
-    { 
-      if(set >= _array.size()) 
-        return -1; 
+    inline Ty NumElements(T set)
+    {
+      if(set >= _array.size())
+        return -1;
       return -_array[Find(set)]; // Number of elements is simply the weight of the root node
-    } 
+    }
     // Adds n elements to the disjoint set.
     inline void AddSets(T n)
     {
       T i = _array.size();
-      SetCapacity(_array.size() + n);
+      ARRAY::_setCapacity(_array.size() + n);
 
       for(; i < _array.size(); ++i)
         _array[i] = -1;
@@ -104,56 +111,56 @@ namespace bun {
     // Resets the disjoint set
     inline void Reset()
     {
-      bun_FillN(_array, _array.size(), -1); // Initialize all sets to be root nodes of trees of size 1
-      _numsets = _array.size();
+      bun_FillN(_array, -1); // Initialize all sets to be root nodes of trees of size 1
+      _numsets = static_cast<T>(_array.size());
     }
 
-    // Returns an array containing the elements in the given set.
-    inline std::unique_ptr<T[]> GetElements(T set)
+    // Fills target with the elements of the given set, up to the size of target. To ensure target is big enough for all
+    // elements, call NumElements(set)
+    inline Ty GetElements(T set, sized_output_range<T> auto&& target)
     {
-      Ty len = NumElements(set);
+      auto sz = std::ranges::size(target);
+      if(sz == 0)
+        return 0;
 
-      if(len < 0)
-        return std::unique_ptr<T[]>();
-
-      T* ret = new T[len];
-      T j = GetElements(set, ret);
-      assert(j <= len);
-      return std::unique_ptr<T[]>(ret);
-    }
-
-    // Fills target with the elements of the given set. target must be at least NumElements(set) long. If target is null, returns NumElements(set)
-    inline Ty GetElements(T set, T* target)
-    {
-      if(!target)
-        return NumElements(set);
       set = Find(set); // Get the root element of our set
       T j = 0;
 
+      auto out = std::ranges::begin(target);
       for(T i = 0; i < _array.size(); ++i)
       {
         if(Find(i) == set) // Does this element belong to our set?
-          target[j++] = i; // If so, add it
+        {
+          // If so, add it
+          *out++ = i;
+          j++;
+
+          if(j >= sz)
+            return j;
+        }
       }
       return j;
     }
 
     // Constructs a minimum spanning tree using Kruskal's algorithm, given a sorted list of edges (smallest first).
-    template<class ITER>
     inline static Array<std::pair<T, T>, T> MinSpanningTree(T numverts, std::ranges::input_range auto&& edges)
     {
-      Array<std::pair<T, T>, T> ret(numverts - 1); // A nice result in combinatorics tells us that all trees have exactly n-1 edges.
-      ret.SetCapacity(MinSpanningTree(numverts, edges, ret)); // This will always be <= n-1 so the SetCapacity is basically free.
+      Array<std::pair<T, T>, T> ret(numverts -
+                                    1); // A nice result in combinatorics tells us that all trees have exactly n-1 edges.
+      ret.SetCapacity(
+        MinSpanningTree(numverts, edges, ret)); // This will always be <= n-1 so the SetCapacity is basically free.
       return ret;
     }
 
     // Actual function definition that uses an out array that must be at least n-1 elements long.
-    static T MinSpanningTree(T numverts, std::ranges::input_range auto&& edges, std::ranges::output_range<std::pair<T, T>> auto&& out)
+    static T MinSpanningTree(T numverts, std::ranges::input_range auto&& edges,
+                             std::ranges::output_range<std::pair<T, T>> auto&& target)
     {
       VARARRAY(Ty, arr, numverts); // Allocate everything on the stack
-      DisjointSet<T, NullAllocator<Ty>> set(arr, numverts);
+      DisjointSet<T, NullAllocator<Ty>> set(arr.data(), numverts);
       T num = 0;
 
+      auto out = std::ranges::begin(target);
       for(auto [to, from] : edges)
       {
         Ty a = set.Find(to);
@@ -161,8 +168,7 @@ namespace bun {
 
         if(a != b)
         {
-          *out = *edges;
-          ++out;
+          *out++ = *edges;
           ++num;
           bool inv = set.Union(a, b);
           assert(inv);
@@ -170,19 +176,20 @@ namespace bun {
       }
 
       assert(num < numverts);
-      return num; // If the edges are disconnected it'll return a forest of minimum spanning trees with a number of edges less than n-1.
+      return num; // If the edges are disconnected it'll return a forest of minimum spanning trees with a number of edges
+                  // less than n-1.
     }
 
-    inline DisjointSet& operator=(const DisjointSet& copy) 
+    inline DisjointSet& operator=(const DisjointSet& copy)
     {
-      SetCapacityDiscard(copy._array.size());
+      ARRAY::_setCapacityDiscard(copy._array.size());
       memcpy(_array.data(), copy._array.data(), _array.size() * sizeof(T));
       _numsets = copy._numsets;
       return *this;
     }
-    inline DisjointSet& operator=(DisjointSet&& mov) 
+    inline DisjointSet& operator=(DisjointSet&& mov)
     {
-      ARRAY::operator=(std::move(mov)); 
+      ARRAY::operator=(std::move(mov));
       _numsets = mov._numsets;
       return *this;
     }

@@ -148,7 +148,7 @@ void Profiler::_heatOut(PROF_HEATNODE& heat, PROF_TRIENODE* node, ProfilerInt id
 {
   if(!node)
     return;
-  if(node->total != (uint64_t)-1)
+  if(node->total != (uint64_t)~0)
   {
     auto k               = heat._children.Insert(PROF_HEATNODE(id, node->avg));
     PROF_HEATNODE& nheat = heat._children[k];
@@ -198,8 +198,9 @@ void Profiler::_heatWrite(std::ostream& stream, const PROF_HEATNODE& node, size_
     size_t num  = fFastTruncate(std::min(node.avg / mag1, 10.0));
     num += fFastTruncate(std::min(node.avg / mag2, 10.0));
     num += fFastTruncate(std::min(node.avg / mag3, 10.0));
-    char bar[BARLENGTH + 1] = {};
-    bun_FillN<char>(bar, BARLENGTH, ' ');
+    char bar[BARLENGTH + 1];
+    bun_FillN(bar, ' ');
+    bar[BARLENGTH] = 0;
     for(size_t i = 0; i < num; ++i)
     {
       switch(i / BARLENGTH)
@@ -220,7 +221,7 @@ void Profiler::_flatOut(PROF_FLATOUT* avg, PROF_TRIENODE* node, ProfilerInt id, 
 {
   if(!node)
     return;
-  if(node->total != (uint64_t)-1)
+  if(node->total != (uint64_t)~0)
   {
     if(node->total >
        0) // if node->total is zero the equation will detonate, and this can easily happen for any node that doesn't get run.
@@ -261,7 +262,7 @@ Profiler::PROF_TRIENODE* Profiler::_allocNode()
 {
   PROF_TRIENODE* r = _alloc.allocate(1);
   bun_Fill(*r, 0);
-  r->total = (uint64_t)-1;
+  r->total = (uint64_t)~0;
   ++_totalnodes;
   return r;
 }

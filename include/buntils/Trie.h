@@ -62,8 +62,8 @@ namespace bun {
           c = tolower(c);
 
         if(cur[0].clen > 1) // This is faster than a switch statement
-          r = static_cast<T>(
-            BinarySearchExact<std::span<TNODE>, char>(cur.subspan(0, cur[0].clen), c, std::compare_three_way{}));
+          r = static_cast<T>(BinarySearchExact<std::span<TNODE>, char, std::compare_three_way>(cur.subspan(0, cur[0].clen), c,
+                                                                                             std::compare_three_way{}));
         else if(cur[0].clen == 1)
           r = static_cast<T>(-(cur[0].chr != c));
         else
@@ -88,7 +88,8 @@ namespace bun {
           c = tolower(c);
 
         if(cur[0].clen > 1) // This is faster than a switch statement
-          r = BinarySearchExact<std::span<TNODE>, char>(cur.subspan(0, cur->clen), c);
+          r = BinarySearchExact<std::span<TNODE>, char, std::compare_three_way>(cur.subspan(0, cur[0].clen), c,
+                                                                                std::compare_three_way{});
         else if(cur[0].clen == 1)
           r = (T) - (cur[0].chr != c);
         else

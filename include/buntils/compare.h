@@ -49,8 +49,22 @@ namespace bun {
     using is_transparent = int;
   };
 
+  // Preserves the arguments as pointers and dereferences them before comparison
+  struct indirect_three_way
+  {
+    template<typename L, typename R>
+      requires std::three_way_comparable_with<L, R>
+    [[nodiscard]] constexpr BUN_FORCEINLINE auto operator()(const L* _Left, const R* _Right) const
+      noexcept(noexcept(*_Left <=> *_Right))
+    {
+      return *_Left <=> *_Right;
+    }
+
+    using is_transparent = int;
+  };
+
   // Assumes both arguments are pairs and does a comparison between the first elements
-  template<typename L1, typename R1, Comparison<L1, R1> C = std::compare_three_way> struct first_three_way : protected C
+  template<typename L1, typename R1 = L1, Comparison<L1, R1> C = std::compare_three_way> struct first_three_way : protected C
   {
     first_three_way() = default;
     first_three_way(const C& c) : C(c) {}
@@ -70,7 +84,7 @@ namespace bun {
   };
 
   // Assumes both arguments are pairs and does a comparison between the second elements
-  template<typename L2, typename R2, Comparison<L2, R2> C = std::compare_three_way> struct second_three_way : protected C
+  template<typename L2, typename R2 = L2, Comparison<L2, R2> C = std::compare_three_way> struct second_three_way : protected C
   {
     second_three_way() = default;
     second_three_way(const C& c) : C(c) {}
@@ -90,7 +104,7 @@ namespace bun {
   };
 
   // Assumes both arguments are pairs and compares both elements, in order
-  template<typename L, typename R, Comparison<typename L::first_type, typename R::first_type> FC = std::compare_three_way,
+  template<typename L, typename R = L, Comparison<typename L::first_type, typename R::first_type> FC = std::compare_three_way,
            Comparison<typename L::second_type, typename R::second_type> SC = std::compare_three_way>
   struct BUN_EMPTY_BASES both_three_way : protected FC, protected SC
   {
@@ -110,8 +124,29 @@ namespace bun {
     using is_transparent = int;
   };
 
+  // Specialization to handle when LC == RC
+  template<typename L, typename R,
+           Comparison<typename L::first_type, typename R::first_type> C>
+  struct BUN_EMPTY_BASES both_three_way<L, R, C, C> : protected C
+  {
+    both_three_way()                      = default;
+    both_three_way(const both_three_way&) = default;
+    both_three_way(both_three_way&&)      = default;
+
+    [[nodiscard]] constexpr BUN_FORCEINLINE auto operator()(const L& l, const R& r) const
+    {
+      auto c = _getf()(l.first, r.first);
+      return (c == 0) ? _gets()(l.second, r.second) : c;
+    }
+
+    [[nodiscard]] constexpr BUN_FORCEINLINE const C& _getf() const noexcept { return *this; }
+    [[nodiscard]] constexpr BUN_FORCEINLINE const C& _gets() const noexcept { return *this; }
+
+    using is_transparent = int;
+  };
+
   // Assumes both arguments are tuples and does a comparison between the ith element
-  template<typename L, typename R, size_t I = 0,
+  template<typename L, typename R = L, size_t I = 0,
            Comparison<std::tuple_element_t<I, L>, std::tuple_element_t<I, R>> C = std::compare_three_way>
   struct tuple_three_way : protected C
   {

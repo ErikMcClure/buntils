@@ -330,16 +330,20 @@
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
     <IntDir>$(Platform)\$(Configuration)\</IntDir>
+    <PublicIncludeDirectories>../include</PublicIncludeDirectories>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release-STD|Win32'">
     <IntDir>$(Platform)\$(Configuration)\</IntDir>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release-Static|Win32'">
     <IntDir>$(Platform)\$(Configuration)\</IntDir>
+    <PublicIncludeDirectories>../include</PublicIncludeDirectories>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
     <IntDir>$(Platform)\$(Configuration)\</IntDir>
     <TargetName>$(ProjectName)32</TargetName>
+    <PublicIncludeDirectories>../include</PublicIncludeDirectories>
+    <AllProjectIncludesArePublic>false</AllProjectIncludesArePublic>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release-Clang|Win32'">
     <IntDir>$(Platform)\$(Configuration)\</IntDir>
@@ -347,6 +351,23 @@
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug-Static|Win32'">
     <IntDir>$(Platform)\$(Configuration)\</IntDir>
+    <PublicIncludeDirectories>../include</PublicIncludeDirectories>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
+    <PublicIncludeDirectories>../include</PublicIncludeDirectories>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug-Static|x64'">
+    <PublicIncludeDirectories>../include</PublicIncludeDirectories>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
+    <PublicIncludeDirectories>../include</PublicIncludeDirectories>
+    <AllProjectIncludesArePublic>false</AllProjectIncludesArePublic>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release-Static|x64'">
+    <PublicIncludeDirectories>../include</PublicIncludeDirectories>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release-Clang|x64'">
+    <PublicIncludeDirectories>../include</PublicIncludeDirectories>
   </PropertyGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
     <ClCompile>

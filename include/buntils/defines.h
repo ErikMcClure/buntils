@@ -9,7 +9,7 @@
 // Version numbers
 #define BUN_VERSION_MAJOR 0
 #define BUN_VERSION_MINOR 7
-#define BUN_VERSION_REVISION 0
+#define BUN_VERSION_REVISION 1
 
 //sometimes the std versions of these are a bit overboard, so this redefines the MS version, except it will no longer cause conflicts everywhere
 #define bun_max(a,b)            (((a) > (b)) ? (a) : (b))

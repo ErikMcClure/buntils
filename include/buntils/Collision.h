@@ -9,6 +9,10 @@
 namespace bun {
   /**************** Sphere ****************/
 
+#include <cassert>
+#include <cstdint>
+#include <span>
+#include "compiler.h"
   template<class T, int N> inline bool SphereContainsPoint(const Vector<T, N>& p, const Vector<T, N>& center, T radius)
   {
     return NVectorDistanceSq(p.v, center.v) < radius * radius;
@@ -580,7 +584,7 @@ namespace bun {
     assert(PolygonIsConvex<T>(verts));
 
     //(y - y0)*(x1 - x0) - (x - x0)*(y1 - y0) where x,y is the point being tested and 0 and 1 are vertices on the polygon,
-    //returns negative if on the right, 0 if its on the line, and positive if its on the left
+    // returns negative if on the right, 0 if its on the line, and positive if its on the left
     T last = ((point.y - verts[0].y) * (verts[verts.size() - 1].x - verts[0].x)) -
              ((point.x - verts[0].x) * (verts[verts.size() - 1].y - verts[0].y));
     T cur;

@@ -4,8 +4,8 @@
 #ifndef __BUN_ALLOC_RING_H__
 #define __BUN_ALLOC_RING_H__
 
-#include "lockless.h"
 #include "LLBase.h"
+#include "lockless.h"
 #include "RWLock.h"
 #include <string.h>
 
@@ -69,8 +69,9 @@ namespace bun {
           cur->reserved.fetch_sub(n, std::memory_order_release);
           cur->lock.RUnlock();
 
-          if(!r) // If r was zero, it's theoretically possible for this bucket to get orphaned, so we send it into the _checkRecycle function
-            _checkRecycle(cur); // Even if someone else acquires the lock before this runs, either the allocation will succeed or this check will
+          if(!r) // If r was zero, it's theoretically possible for this bucket to get orphaned, so we send it into the
+_checkRecycle function _checkRecycle(cur); // Even if someone else acquires the lock before this runs, either the allocation
+will succeed or this check will
 
           if(_lock.AttemptUpgrade())
           {
@@ -141,7 +142,8 @@ namespace bun {
       {
         hold = _list;
         _list = _list->list.next;
-        //assert(!hold->lock.ReaderCount()); // This check only works in single-threaded scenarios for testing purposes. In real world scenarios, ReaderCount can sporadically be nonzero due to attempted readlocks that haven't been undone yet.
+        //assert(!hold->lock.ReaderCount()); // This check only works in single-threaded scenarios for testing purposes. In
+real world scenarios, ReaderCount can sporadically be nonzero due to attempted readlocks that haven't been undone yet.
         free(hold);
       }
 
@@ -151,8 +153,8 @@ namespace bun {
       _cur.store(0, std::memory_order_release);
       _lock.Unlock();
     }
-    // It is crucial that only allocation sizes are passed into this, or the ring allocator will simply keep allocating larger and larger buckets forever
-    Bucket* _genBucket(size_t num) noexcept
+    // It is crucial that only allocation sizes are passed into this, or the ring allocator will simply keep allocating
+larger and larger buckets forever Bucket* _genBucket(size_t num) noexcept
     {
       if(_lastsize < num)
         _lastsize = num;
@@ -173,7 +175,8 @@ namespace bun {
         if(hold->sz < num) // If a bucket is too small for this allocation, destroy it
         {
           AltLLRemove<Bucket, &_getBucket>(hold, _list);
-          //assert(!hold->lock.ReaderCount()); // This check only works in single-threaded scenarios for testing purposes. In real world scenarios, ReaderCount can sporadically be nonzero due to attempted readlocks that haven't been undone yet.
+          //assert(!hold->lock.ReaderCount()); // This check only works in single-threaded scenarios for testing purposes.
+In real world scenarios, ReaderCount can sporadically be nonzero due to attempted readlocks that haven't been undone yet.
           free(hold);
           prev = nval;
         }
@@ -214,8 +217,8 @@ namespace bun {
           {
             if(b == _cur.load(std::memory_order_acquire)) // If we get the lock, verify we are still the current bucket
             {
-              b->reserved.store(0, std::memory_order_release); // If we are, we can "recycle" this bucket by just resetting the reserved to 0.
-              b->lock.Unlock(); // Now we can unlock because we have been "recycled" into the current bucket.
+              b->reserved.store(0, std::memory_order_release); // If we are, we can "recycle" this bucket by just resetting
+the reserved to 0. b->lock.Unlock(); // Now we can unlock because we have been "recycled" into the current bucket.
               _lock.Downgrade();
               return;
             }
@@ -230,8 +233,8 @@ namespace bun {
     {
       bun_PTag<Bucket> prev = { 0, 0 };
       bun_PTag<Bucket> nval = { b, 0 };
-      asmcasr<bun_PTag<Bucket>>(&_gc, prev, prev, prev); // This will almost always fail but it only serves to get the value of _gc
-      do
+      asmcasr<bun_PTag<Bucket>>(&_gc, prev, prev, prev); // This will almost always fail but it only serves to get the value
+of _gc do
       {
         b->next = prev.p;
         nval.tag = prev.tag + 1;
@@ -257,9 +260,9 @@ namespace bun {
   public:
     inline RingAlloc(RingAlloc&& mov) = default;
     inline explicit RingAlloc(size_t init = 8) : RingAllocVoid(init) {}
-    inline T* allocate(size_t cnt, const T* p = nullptr, size_t old = 0) noexcept { assert(!p); return (T*)RingAllocVoid::Alloc(cnt * sizeof(T)); }
-    inline void deallocate(T* p, size_t num = 0) noexcept { return RingAllocVoid::Dealloc(p); }
-    inline RingAlloc& operator=(RingAlloc&& mov) noexcept = default;
+    inline T* allocate(size_t cnt, const T* p = nullptr, size_t old = 0) noexcept { assert(!p); return
+(T*)RingAllocVoid::Alloc(cnt * sizeof(T)); } inline void deallocate(T* p, size_t num = 0) noexcept { return
+RingAllocVoid::Dealloc(p); } inline RingAlloc& operator=(RingAlloc&& mov) noexcept = default;
   };
 }*/
 

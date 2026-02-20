@@ -25,7 +25,12 @@ TESTDEF::RETPAIR test_RWLOCK()
   {
     lock.RLock();
     size_t steps = 0;
-    Thread t([&]() { lock.RLock(); ++steps; lock.RUnlock(); ++steps; });
+    Thread t([&]() {
+      lock.RLock();
+      ++steps;
+      lock.RUnlock();
+      ++steps;
+    });
     t.join();
     TEST(steps == 2);
     lock.RUnlock();
@@ -42,7 +47,8 @@ TESTDEF::RETPAIR test_RWLOCK()
       lock.Unlock();
       steps.fetch_add(1, std::memory_order_relaxed);
     });
-    while(steps.load(std::memory_order_relaxed) == 0);
+    while(steps.load(std::memory_order_relaxed) == 0)
+      ;
     TEST(steps.load(std::memory_order_relaxed) == 1);
     lock.RUnlock();
     t.join();
@@ -62,7 +68,8 @@ TESTDEF::RETPAIR test_RWLOCK()
       lock.RUnlock();
       steps.fetch_add(1, std::memory_order_relaxed);
     });
-    while(steps.load(std::memory_order_relaxed) == 0);
+    while(steps.load(std::memory_order_relaxed) == 0)
+      ;
     TEST(steps.load(std::memory_order_relaxed) == 1);
     lock.Unlock();
     t.join();

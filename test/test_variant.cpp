@@ -65,23 +65,23 @@ TESTDEF::RETPAIR test_VARIANT()
 
   {
     DEBUG_CDT<false>::count = 0;
-    DEBUG_CDT<true>::count = 0;
-    using VDEBUG = Variant<DEBUG_CDT<true>, DEBUG_CDT<false>>;
-    //DEBUG_CDT<true> d1;
+    DEBUG_CDT<true>::count  = 0;
+    using VDEBUG            = Variant<DEBUG_CDT<true>, DEBUG_CDT<false>>;
+    // DEBUG_CDT<true> d1;
     DEBUG_CDT<false> d2;
-    //const DEBUG_CDT<true> d3;
+    // const DEBUG_CDT<true> d3;
     const DEBUG_CDT<false> d4;
-    //DEBUG_CDT<true> d5;
+    // DEBUG_CDT<true> d5;
     DEBUG_CDT<false> d6;
-    //const DEBUG_CDT<true> d7;
+    // const DEBUG_CDT<true> d7;
     const DEBUG_CDT<false> d8;
-    //VDEBUG vd1(d1);
+    // VDEBUG vd1(d1);
     VDEBUG vd2(d2);
-    //VDEBUG vd3(std::move(d1));
+    // VDEBUG vd3(std::move(d1));
     VDEBUG vd4(std::move(d2));
-    //VDEBUG vd5(d3);
+    // VDEBUG vd5(d3);
     VDEBUG vd6(d4);
-    //VDEBUG vd7(std::move(d3));
+    // VDEBUG vd7(std::move(d3));
     VDEBUG vd8(std::move(d4));
     vd2 = d6;
     vd4 = std::move(d6);

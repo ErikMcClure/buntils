@@ -109,8 +109,8 @@ namespace bun {
     CT GetNear(CKEYREF key, bool before) const
     {
       auto mapper = _map_three_way<Key, Data, Comp>(_getcomp());
-      CT retval   = before ? BinarySearchNear<true, const decltype(BASE::_array)&, Key>(_array, key, std::move(mapper)) - 1:
-                             BinarySearchNear<false, const decltype(BASE::_array)&, Key>(_array, key, std::move(mapper));
+      CT retval = before ? BinarySearchNear<true, const decltype(BASE::_array)&, Key>(_array, key, std::move(mapper)) - 1 :
+                           BinarySearchNear<false, const decltype(BASE::_array)&, Key>(_array, key, std::move(mapper));
 
       return (retval < size()) ?
                retval :

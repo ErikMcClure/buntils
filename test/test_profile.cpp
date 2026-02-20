@@ -35,7 +35,7 @@ TESTDEF::RETPAIR test_PROFILE()
         profnums[bun_RandInt(0, TESTNUM)] += 1;
       }
     }
-    //std::cout << HighPrecisionTimer::CloseProfiler(pr)/100000.0 << std::endl;
+    // std::cout << HighPrecisionTimer::CloseProfiler(pr)/100000.0 << std::endl;
 
     for(size_t i = 0; i < 100000; ++i)
     {
@@ -43,7 +43,6 @@ TESTDEF::RETPAIR test_PROFILE()
       profnums[bun_RandInt(0, TESTNUM)] += 1;
       PROFILE_END(beginend);
     }
-
   }
   PROFILE_OUTPUT("testprofile.txt", 7);
   ENDTEST;

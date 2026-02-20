@@ -2,17 +2,16 @@
 // For conditions of distribution and use, see copyright notice in "buntils.h"
 
 #include "test.h"
-#include "buntils/Trie.h"
 #include "buntils/algo.h"
+#include "buntils/Trie.h"
 
 using namespace bun;
 
 TESTDEF::RETPAIR test_TRIE()
 {
-
   Trie<uint8_t> simple({ "tick", "on" });
   BEGINTEST;
-  const char* strs[] = { "fail","on","tex","rot","ro","ti","ontick","ondestroy","te","tick" };
+  const char* strs[] = { "fail", "on", "tex", "rot", "ro", "ti", "ontick", "ondestroy", "te", "tick" };
   Trie<uint8_t> t({ "tick", "on", "tex", "rot", "ro", "ti", "ontick", "ondestroy", "te", "tick" });
   Trie<uint8_t> t3(strs);
   TEST(t3["fail"] == 0);
@@ -45,13 +44,9 @@ TESTDEF::RETPAIR test_TRIE()
   */
 
   /*
-  constexpr char* randcstr[10] = { "aj32k4SX90xj", "k24ht4ki2@j", "fa9udj", "ljafkl3a2k3K", "zkjslww", "xnwmwnps", "lhisknw", "tjdksnx", "nhjnxiw", "yhwwonzlk28" };
-  Trie<uint32_t> t0(9, randcstr);
-  uint32_t dm;
-  shuffle_testnums();
-  auto prof = HighPrecisionTimer::OpenProfiler();
-  Hash<const char*, uint8_t> hashtest;
-  for(size_t i = 0; i < 9; ++i)
+  constexpr char* randcstr[10] = { "aj32k4SX90xj", "k24ht4ki2@j", "fa9udj", "ljafkl3a2k3K", "zkjslww", "xnwmwnps",
+  "lhisknw", "tjdksnx", "nhjnxiw", "yhwwonzlk28" }; Trie<uint32_t> t0(9, randcstr); uint32_t dm; shuffle_testnums(); auto
+  prof = HighPrecisionTimer::OpenProfiler(); Hash<const char*, uint8_t> hashtest; for(size_t i = 0; i < 9; ++i)
     hashtest.Insert(randcstr[i], i);
   CPU_Barrier();
   for(size_t i = 0; i < TESTNUM; ++i)
@@ -81,26 +76,16 @@ TESTDEF::RETPAIR test_TRIE()
   {
     switch(t[strs[i]]) // Deliberatly meant to test for one failure
     {
-    case 0:
-      TEST(false); break;
-    case 1:
-      TEST(i == 1); break;
-    case 2:
-      TEST(i == 2); break;
-    case 3:
-      TEST(i == 3); break;
-    case 4:
-      TEST(i == 4); break;
-    case 5:
-      TEST(i == 5); break;
-    case 6:
-      TEST(i == 6); break;
-    case 7:
-      TEST(i == 7); break;
-    case 8:
-      TEST(i == 8); break;
-    default:
-      TEST(i == 0);
+    case 0: TEST(false); break;
+    case 1: TEST(i == 1); break;
+    case 2: TEST(i == 2); break;
+    case 3: TEST(i == 3); break;
+    case 4: TEST(i == 4); break;
+    case 5: TEST(i == 5); break;
+    case 6: TEST(i == 6); break;
+    case 7: TEST(i == 7); break;
+    case 8: TEST(i == 8); break;
+    default: TEST(i == 0);
     }
   }
   TEST(t[strs[9]] == 0);
@@ -113,26 +98,16 @@ TESTDEF::RETPAIR test_TRIE()
   {
     switch(tcase[casestr[i]])
     {
-    case 0:
-      TEST(i == 0); break;
-    case 1:
-      TEST(i == 1); break;
-    case 2:
-      TEST(i == 2); break;
-    case 3:
-      TEST(i == 3); break;
-    case 4:
-      TEST(i == 4); break;
-    case 5:
-      TEST(i == 5); break;
-    case 6:
-      TEST(i == 6); break;
-    case 7:
-      TEST(i == 7); break;
-    case 8:
-      TEST(i == 8); break;
-    case 9:
-      TEST(i == 9); break;
+    case 0: TEST(i == 0); break;
+    case 1: TEST(i == 1); break;
+    case 2: TEST(i == 2); break;
+    case 3: TEST(i == 3); break;
+    case 4: TEST(i == 4); break;
+    case 5: TEST(i == 5); break;
+    case 6: TEST(i == 6); break;
+    case 7: TEST(i == 7); break;
+    case 8: TEST(i == 8); break;
+    case 9: TEST(i == 9); break;
     }
   }
 
@@ -145,26 +120,16 @@ TESTDEF::RETPAIR test_TRIE()
   {
     switch(tins[strs[i]]) // Deliberatly meant to test for one failure
     {
-    case 0:
-      TEST(false); break;
-    case 1:
-      TEST(i == 1); break;
-    case 2:
-      TEST(i == 2); break;
-    case 3:
-      TEST(i == 3); break;
-    case 4:
-      TEST(i == 4); break;
-    case 5:
-      TEST(i == 5); break;
-    case 6:
-      TEST(i == 6); break;
-    case 7:
-      TEST(i == 7); break;
-    case 8:
-      TEST(i == 8); break;
-    default:
-      TEST(i == 0);
+    case 0: TEST(false); break;
+    case 1: TEST(i == 1); break;
+    case 2: TEST(i == 2); break;
+    case 3: TEST(i == 3); break;
+    case 4: TEST(i == 4); break;
+    case 5: TEST(i == 5); break;
+    case 6: TEST(i == 6); break;
+    case 7: TEST(i == 7); break;
+    case 8: TEST(i == 8); break;
+    default: TEST(i == 0);
     }
   }
   TEST(tins[strs[9]] == 0);

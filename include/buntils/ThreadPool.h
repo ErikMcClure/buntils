@@ -4,10 +4,10 @@
 #ifndef __THREAD_POOL_H__BUN__
 #define __THREAD_POOL_H__BUN__
 
-#include "Thread.h"
-#include "LocklessQueue.h"
-#include "DynArray.h"
 #include "Delegate.h"
+#include "DynArray.h"
+#include "LocklessQueue.h"
+#include "Thread.h"
 #include <condition_variable>
 #include <mutex>
 
@@ -15,34 +15,40 @@ namespace bun {
   // Stores a pool of threads that execute tasks.
   class ThreadPool
   {
-    typedef void(*FN)(void*);
-    using TASK = std::pair<FN, void*>;
+    typedef void (*FN)(void*);
+    using TASK  = std::pair<FN, void*>;
     using ALLOC = LocklessBlockCollection<512>;
 
-    ThreadPool(const ThreadPool&) = delete;
+    ThreadPool(const ThreadPool&)            = delete;
     ThreadPool& operator=(const ThreadPool&) = delete;
 
   public:
-    ThreadPool(ThreadPool&& mov) : _run(mov._run.load(std::memory_order_relaxed)),
+    ThreadPool(ThreadPool&& mov) :
+      _run(mov._run.load(std::memory_order_relaxed)),
       _tasks(mov._tasks.load(std::memory_order_relaxed)),
-      _tasklist(std::move(mov._tasklist)), _threads(std::move(mov._threads))
+      _tasklist(std::move(mov._tasklist)),
+      _threads(std::move(mov._threads))
     {
       mov._run.store(0, std::memory_order_release);
     }
-    explicit ThreadPool(size_t count) :  _run(0), _tasks(0), _policy(), _tasklist(PolicyAllocator<internal::LQ_QNode<TASK>, LocklessBlockPolicy>{_policy})
+    explicit ThreadPool(size_t count) :
+      _run(0), _tasks(0), _policy(), _tasklist(PolicyAllocator<internal::LQ_QNode<TASK>, LocklessBlockPolicy>{ _policy })
     {
       AddThreads(count);
     }
-    ThreadPool() : _run(0), _tasks(0), _policy(), _tasklist(PolicyAllocator<internal::LQ_QNode<TASK>, LocklessBlockPolicy>{_policy})
+    ThreadPool() :
+      _run(0), _tasks(0), _policy(), _tasklist(PolicyAllocator<internal::LQ_QNode<TASK>, LocklessBlockPolicy>{ _policy })
     {
       AddThreads(IdealWorkerCount());
     }
     ~ThreadPool()
     {
       Wait();
-      _run.store(-_run.load(std::memory_order_acquire), std::memory_order_release); // Negate the stop count, then wait for it to reach 0
+      _run.store(-_run.load(std::memory_order_acquire),
+                 std::memory_order_release); // Negate the stop count, then wait for it to reach 0
       _lock.Notify(_threads.size());
-      while(_run.load(std::memory_order_acquire) < 0);
+      while(_run.load(std::memory_order_acquire) < 0)
+        ;
     }
     void AddTask(FN f, void* arg, size_t instances = 1)
     {
@@ -58,12 +64,12 @@ namespace bun {
       _lock.Notify(instances);
     }
 
-    template<typename R, typename ...Args>
-    void AddFunc(R(*f)(Args...), Args... args)
+    template<typename R, typename... Args> void AddFunc(R (*f)(Args...), Args... args)
     {
       std::pair<StoreFunction<R, Args...>, ALLOC*>* fn = _falloc.allocT<std::pair<StoreFunction<R, Args...>, ALLOC*>>(1);
-      new (&fn->first) StoreFunction<R, Args...>(f, std::forward<Args>(args)...);
-      fn->second = &_falloc; // This could just be a pointer to this thread pool, but it's easier if it's a direct pointer to the allocator we need.
+      new(&fn->first) StoreFunction<R, Args...>(f, std::forward<Args>(args)...);
+      fn->second = &_falloc; // This could just be a pointer to this thread pool, but it's easier if it's a direct pointer
+                             // to the allocator we need.
       AddTask(_callfn<R, Args...>, fn);
     }
 
@@ -85,7 +91,8 @@ namespace bun {
         _tasks.fetch_sub(1, std::memory_order_release);
       }
 
-      while(_tasks.load(std::memory_order_relaxed) > 0); // Wait until all tasks actually stop processing
+      while(_tasks.load(std::memory_order_relaxed) > 0)
+        ; // Wait until all tasks actually stop processing
     }
     inline size_t Busy() const { return _tasks.load(std::memory_order_relaxed); }
 
@@ -113,8 +120,7 @@ namespace bun {
       pool._run.fetch_add(1, std::memory_order_release);
     }
 
-    template<typename R, typename ...Args>
-    static void _callfn(void* p)
+    template<typename R, typename... Args> static void _callfn(void* p)
     {
       std::pair<StoreFunction<R, Args...>, ALLOC*>* fn = (std::pair<StoreFunction<R, Args...>, ALLOC*>*)p;
       fn->first.Call();
@@ -122,20 +128,23 @@ namespace bun {
       fn->second->deallocT(fn, 1);
     }
 
-    
     LocklessBlockPolicy<internal::LQ_QNode<TASK>> _policy;
     MicroLockQueue<TASK, size_t> _tasklist;
-    std::atomic<size_t> _tasks; // Count of tasks still being processed (this includes tasks that have been removed from the queue, but haven't finished yet)
+    std::atomic<size_t> _tasks; // Count of tasks still being processed (this includes tasks that have been removed from the
+                                // queue, but haven't finished yet)
     DynArray<Thread, size_t> _threads;
     std::atomic<int32_t> _run;
     Semaphore _lock;
     ALLOC _falloc;
   };
 
-  template<typename R, typename ...Args>
-  class Future : StoreFunction<R, Args...>
+  template<typename R, typename... Args> class Future : StoreFunction<R, Args...>
   {
-    inline Future(ThreadPool& pool, R(*f)(Args...), Args&&... args) : StoreFunction<R, Args...>(f, std::forward<Args>(args)...) { pool.AddTask(_eval, this); }
+    inline Future(ThreadPool& pool, R (*f)(Args...), Args&&... args) :
+      StoreFunction<R, Args...>(f, std::forward<Args>(args)...)
+    {
+      pool.AddTask(_eval, this);
+    }
     ~Future() { assert(_finished.load(std::memory_order_acquire)); }
     R* Result() { return _finished.load(std::memory_order_acquire) ? &result : 0; }
 
@@ -146,7 +155,7 @@ namespace bun {
     static void _eval(void* arg)
     {
       Future<R, Args...>* p = (Future<R, Args...>*)arg;
-      p->result = p->Call();
+      p->result             = p->Call();
       p->_finished.store(true, std::memory_order_release);
     }
   };

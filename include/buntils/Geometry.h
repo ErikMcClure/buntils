@@ -4,8 +4,8 @@
 #ifndef __BUN_GEOMETRY_H__
 #define __BUN_GEOMETRY_H__
 
-#include "Collision.h"
 #include "Array.h"
+#include "Collision.h"
 
 namespace bun {
   // Represents an N-dimensional sphere

@@ -4,10 +4,10 @@
 #ifndef __TRIE_H__
 #define __TRIE_H__
 
-#include "BinaryHeap.h"
 #include "algo.h"
-#include <stdarg.h>
+#include "BinaryHeap.h"
 #include "compare.h"
+#include <stdarg.h>
 
 namespace bun {
   namespace internal {
@@ -62,7 +62,8 @@ namespace bun {
           c = tolower(c);
 
         if(cur[0].clen > 1) // This is faster than a switch statement
-          r = static_cast<T>(BinarySearchExact<std::span<TNODE>, char, std::compare_three_way>(cur.subspan(0, cur[0].clen), c,
+          r =
+            static_cast<T>(BinarySearchExact<std::span<TNODE>, char, std::compare_three_way>(cur.subspan(0, cur[0].clen), c,
                                                                                              std::compare_three_way{}));
         else if(cur[0].clen == 1)
           r = static_cast<T>(-(cur[0].chr != c));

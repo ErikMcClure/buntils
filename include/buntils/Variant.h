@@ -5,71 +5,93 @@
 #define __VARIANT_H__BUN__
 
 #include "compiler.h"
-#include <type_traits>
 #include <assert.h>
 #include <stddef.h>
+#include <type_traits>
 #include <utility>
 
 namespace bun {
-  template<class Engine>
-  class Serializer;
+  template<class Engine> class Serializer;
 
   namespace internal {
     namespace serializer {
-      template<typename... Args>
-      struct ActionVariantRef;
+      template<typename... Args> struct ActionVariantRef;
     }
   }
 
   // algebriac union using variadic templates
-  template<typename Arg, typename... Args>
-  class BUN_COMPILER_DLLEXPORT Variant
+  template<typename Arg, typename... Args> class BUN_COMPILER_DLLEXPORT Variant
   {
     using SELF = Variant<Arg, Args...>;
 
     // Compile-time max sizeof
-    template<typename A, typename... Ax>
-    struct max_sizeof { static constexpr size_t value = (max_sizeof<Ax...>::value > sizeof(A)) ? max_sizeof<Ax...>::value : sizeof(A); };
+    template<typename A, typename... Ax> struct max_sizeof
+    {
+      static constexpr size_t value = (max_sizeof<Ax...>::value > sizeof(A)) ? max_sizeof<Ax...>::value : sizeof(A);
+    };
 
-    template<typename A>
-    struct max_sizeof<A> { static constexpr size_t value = sizeof(A); };
+    template<typename A> struct max_sizeof<A>
+    {
+      static constexpr size_t value = sizeof(A);
+    };
 
     // Compile-time max alignment
-    template<typename A, typename... Ax>
-    struct max_alignof {
+    template<typename A, typename... Ax> struct max_alignof
+    {
       static constexpr size_t value = (max_alignof<Ax...>::value > alignof(A)) ? max_alignof<Ax...>::value : alignof(A);
       using type = std::conditional<(max_alignof<Ax...>::value > alignof(A)), A, typename max_alignof<Ax...>::type>;
     };
 
-    template<typename A>
-    struct max_alignof<A> { static constexpr size_t value = alignof(A); using type = A; };
+    template<typename A> struct max_alignof<A>
+    {
+      static constexpr size_t value = alignof(A);
+      using type                    = A;
+    };
 
     template<typename X, typename... Ts> struct getpos;
 
-    template<typename X>
-    struct getpos<X> { static const int value = -1; };
+    template<typename X> struct getpos<X>
+    {
+      static const int value = -1;
+    };
 
-    template<typename X, typename... Ts>
-    struct getpos<X, X, Ts...> { static const int value = 0; };
+    template<typename X, typename... Ts> struct getpos<X, X, Ts...>
+    {
+      static const int value = 0;
+    };
 
-    template<typename X, typename T, typename... Ts>
-    struct getpos<X, T, Ts...> { static const int value = getpos<X, Ts...>::value != -1 ? getpos<X, Ts...>::value + 1 : -1; };
+    template<typename X, typename T, typename... Ts> struct getpos<X, T, Ts...>
+    {
+      static const int value = getpos<X, Ts...>::value != -1 ? getpos<X, Ts...>::value + 1 : -1;
+    };
 
   public:
     Variant() : _tag(-1) {}
     Variant(const Variant& v) : _tag(v._tag) { _constructU<Variant, Arg, Args...>(v); }
     Variant(Variant&& v) : _tag(v._tag) { _constructU<Variant, Arg, Args...>(std::move(v)); }
-    template<typename T>
-    explicit Variant(const T& v) { _construct(v); }
-    template<typename T>
-    explicit Variant(T&& v) { _construct(std::forward<T>(v)); }
+    template<typename T> explicit Variant(const T& v) { _construct(v); }
+    template<typename T> explicit Variant(T&& v) { _construct(std::forward<T>(v)); }
     ~Variant() { _destruct(); }
-    Variant& operator=(const Variant& right) { _assign(right); return *this; }
-    Variant& operator=(Variant&& right) { _assign(std::move(right)); return *this; }
-    template<typename T>
-    Variant& operator=(const T& right) { _assign(right); return *this; }
-    template<typename T>
-    Variant& operator=(T&& right) { _assign(std::forward<T>(right)); return *this; }
+    Variant& operator=(const Variant& right)
+    {
+      _assign(right);
+      return *this;
+    }
+    Variant& operator=(Variant&& right)
+    {
+      _assign(std::move(right));
+      return *this;
+    }
+    template<typename T> Variant& operator=(const T& right)
+    {
+      _assign(right);
+      return *this;
+    }
+    template<typename T> Variant& operator=(T&& right)
+    {
+      _assign(std::forward<T>(right));
+      return *this;
+    }
 
     template<typename T>
       requires(getpos<T, Arg, Args...>::value != -1)
@@ -85,16 +107,11 @@ namespace bun {
       assert((getpos<T, Arg, Args...>::value == _tag));
       return *reinterpret_cast<const T*>(_store);
     }
-    template<typename T>
-    const T convert() const { return _convert<T, Arg, Args...>(); }
-    template<typename T>
-    T convert() { return _convert<T, Arg, Args...>(); }
-    template<typename T>
-    T* convertP() { return _convertP<T, Arg, Args...>(); }
-    template<typename T>
-    inline static bool contains() { return getpos<T, Arg, Args...>::value != -1; }
-    template<typename T>
-    inline bool is() const { return getpos<T, Arg, Args...>::value == _tag; }
+    template<typename T> const T convert() const { return _convert<T, Arg, Args...>(); }
+    template<typename T> T convert() { return _convert<T, Arg, Args...>(); }
+    template<typename T> T* convertP() { return _convertP<T, Arg, Args...>(); }
+    template<typename T> inline static bool contains() { return getpos<T, Arg, Args...>::value != -1; }
+    template<typename T> inline bool is() const { return getpos<T, Arg, Args...>::value == _tag; }
     template<typename T>
       requires(getpos<T, Arg, Args...>::value != -1)
     inline void typeset()
@@ -105,23 +122,24 @@ namespace bun {
     }
     inline int tag() const { return _tag; }
 
-    template<typename T>
-    static int type() { return getpos<T, Arg, Args...>::value; }
+    template<typename T> static int type() { return getpos<T, Arg, Args...>::value; }
 
-    template<typename T>
-    struct Type { static constexpr int value = getpos<T, Arg, Args...>::value; };
+    template<typename T> struct Type
+    {
+      static constexpr int value = getpos<T, Arg, Args...>::value;
+    };
 
-    template<typename Engine>
-    void Serialize(Serializer<Engine>& e, const char*)
+    template<typename Engine> void Serialize(Serializer<Engine>& e, const char*)
     {
       internal::serializer::ActionVariantRef<Arg, Args...> ref(*this);
-      e.template EvaluateType<Variant>(std::pair<const char*, int&>("t", _tag), std::pair<const char*, internal::serializer::ActionVariantRef<Arg, Args...>&>("o", ref));
+      e.template EvaluateType<Variant>(std::pair<const char*, int&>("t", _tag),
+                                       std::pair<const char*, internal::serializer::ActionVariantRef<Arg, Args...>&>("o",
+                                                                                                                     ref));
     }
 
   protected:
-    template<typename U>
-    inline void _construct(U && v)
-    { 
+    template<typename U> inline void _construct(U&& v)
+    {
       using T = std::remove_cvref_t<U>;
       if constexpr(std::is_same<T, Variant>::value)
       {
@@ -136,9 +154,8 @@ namespace bun {
       }
     }
 
-    template<typename U>
-    inline void _assign(U && v)
-    { 
+    template<typename U> inline void _assign(U&& v)
+    {
       using T = std::remove_cvref_t<U>;
       if constexpr(std::is_same<T, Variant>::value)
       {
@@ -166,8 +183,7 @@ namespace bun {
     }
 
     inline void _destruct() { _destroy<Arg, Args...>(); }
-    template<typename T, typename... Tx>
-    inline void _destroy()
+    template<typename T, typename... Tx> inline void _destroy()
     {
       static_assert(getpos<T, Arg, Args...>::value != -1, "impossible result in destroy");
       if(_tag == getpos<T, Arg, Args...>::value)
@@ -180,8 +196,7 @@ namespace bun {
           assert(_tag == -1);
       }
     }
-    template<class U, typename T, typename... Tx>
-    inline void _constructU(const typename std::remove_reference<U>::type& v)
+    template<class U, typename T, typename... Tx> inline void _constructU(const typename std::remove_reference<U>::type& v)
     {
       if(_tag == getpos<T, Arg, Args...>::value)
         new(_store) T(*reinterpret_cast<const T*>(v._store));
@@ -193,8 +208,7 @@ namespace bun {
           assert(_tag == -1);
       }
     }
-    template<class U, typename T, typename... Tx>
-    inline void _constructU(typename std::remove_reference<U>::type&& v)
+    template<class U, typename T, typename... Tx> inline void _constructU(typename std::remove_reference<U>::type&& v)
     {
       if(_tag == getpos<T, Arg, Args...>::value)
         new(_store) T((T&&)(*reinterpret_cast<T*>(v._store)));
@@ -206,8 +220,7 @@ namespace bun {
           assert(_tag == -1);
       }
     }
-    template<class U, typename T, typename... Tx>
-    inline void _assignU(const typename std::remove_reference<U>::type& v)
+    template<class U, typename T, typename... Tx> inline void _assignU(const typename std::remove_reference<U>::type& v)
     {
       if(_tag == getpos<T, Arg, Args...>::value)
         *reinterpret_cast<T*>(_store) = *reinterpret_cast<const T*>(v._store);
@@ -219,8 +232,7 @@ namespace bun {
           assert(false);
       }
     }
-    template<class U, typename T, typename... Tx>
-    inline void _assignU(typename std::remove_reference<U>::type&& v)
+    template<class U, typename T, typename... Tx> inline void _assignU(typename std::remove_reference<U>::type&& v)
     {
       if(_tag == getpos<T, Arg, Args...>::value)
         *reinterpret_cast<T*>(_store) = (T&&)(*reinterpret_cast<const T*>(v._store));
@@ -232,8 +244,7 @@ namespace bun {
           assert(false);
       }
     }
-    template<class U, typename T, typename... Tx>
-    inline U _convert()
+    template<class U, typename T, typename... Tx> inline U _convert()
     {
       if(_tag == getpos<T, Arg, Args...>::value)
         return static_cast<U>(*reinterpret_cast<T*>(_store));
@@ -246,8 +257,7 @@ namespace bun {
         return *reinterpret_cast<U*>(_store);
       }
     }
-    template<class U, typename T, typename... Tx>
-    inline U* _convertP()
+    template<class U, typename T, typename... Tx> inline U* _convertP()
     {
       if(_tag == getpos<T, Arg, Args...>::value)
         return static_cast<U*>(reinterpret_cast<T*>(_store));
@@ -265,7 +275,8 @@ namespace bun {
     union
     {
       char _store[max_sizeof<Arg, Args...>::value]; // actual storage
-      typename max_alignof<Arg, Args...>::type _align; // simply ensures we have the correct alignment for the type with the largest alignment
+      typename max_alignof<Arg, Args...>::type
+        _align; // simply ensures we have the correct alignment for the type with the largest alignment
     };
   };
 }

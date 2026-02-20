@@ -11,7 +11,7 @@ namespace bun {
   struct BUN_DLLEXPORT INIentry
   {
     INIentry(const INIentry&) = default;
-    INIentry(INIentry&&) = default;
+    INIentry(INIentry&&)      = default;
     INIentry();
     INIentry(const char* key, const char* svalue, int64_t ivalue, double dvalue);
     INIentry(const char* key, const char* data);
@@ -20,7 +20,7 @@ namespace bun {
     void SetInt(int64_t data);
     void SetFloat(double data);
     BUN_FORCEINLINE const char* GetKey() const { return _key; }
-    //BUN_FORCEINLINE uint32_t GetIndex() const { return _index; }
+    // BUN_FORCEINLINE uint32_t GetIndex() const { return _index; }
     BUN_FORCEINLINE const char* GetString() const { return _svalue; }
     BUN_FORCEINLINE int64_t GetInt() const { return _ivalue; }
     BUN_FORCEINLINE double GetDouble() const { return _dvalue; }
@@ -39,13 +39,25 @@ namespace bun {
     BUN_FORCEINLINE operator double() const { return _dvalue; }
     BUN_FORCEINLINE operator const char*() const { return _svalue; }
 
-    bool operator ==(INIentry &other) const; //these can't be inlined because the compare function is different.
-    inline bool operator !=(INIentry &other) const { return !operator==(other); }
-    INIentry& operator=(INIentry&&) = default;
+    bool operator==(INIentry& other) const; // these can't be inlined because the compare function is different.
+    inline bool operator!=(INIentry& other) const { return !operator==(other); }
+    INIentry& operator=(INIentry&&)      = default;
     INIentry& operator=(const INIentry&) = default;
-    inline INIentry& operator=(const char* s) { Set(s); return *this; }
-    inline INIentry& operator=(int64_t s) { SetInt(s); return *this; }
-    inline INIentry& operator=(double s) { SetFloat(s); return *this; }
+    inline INIentry& operator=(const char* s)
+    {
+      Set(s);
+      return *this;
+    }
+    inline INIentry& operator=(int64_t s)
+    {
+      SetInt(s);
+      return *this;
+    }
+    inline INIentry& operator=(double s)
+    {
+      SetFloat(s);
+      return *this;
+    }
 
   private:
     Str _key;

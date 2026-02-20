@@ -16,12 +16,15 @@ TESTDEF::RETPAIR test_deprecated()
   TIME64(&tmval);
   TEST(tmval != 0);
   tm tms;
-  TEST([&]()->bool { GMTIMEFUNC(&tmval, &tms); return true; }())
-    //TESTERR(GMTIMEFUNC(0,&tms));
-    //char buf[12];
-    //#define VSPRINTF(dest,length,format,list) _vsnprintf_s(dest,length,length,format,list)
-    //#define VSWPRINTF(dest,length,format,list) _vsnwprintf_s(dest,length,length,format,list)
-    FILE* f = 0;
+  TEST([&]() -> bool {
+    GMTIMEFUNC(&tmval, &tms);
+    return true;
+  }())
+  // TESTERR(GMTIMEFUNC(0,&tms));
+  // char buf[12];
+  // #define VSPRINTF(dest,length,format,list) _vsnprintf_s(dest,length,length,format,list)
+  // #define VSWPRINTF(dest,length,format,list) _vsnwprintf_s(dest,length,length,format,list)
+  FILE* f = 0;
   FOPEN(f, "__valtest.txt", "wb");
   TEST(f != 0);
   if(f != 0)
@@ -56,9 +59,9 @@ TESTDEF::RETPAIR test_deprecated()
 
   TEST(!STRICMP("fOObAr", "Foobar"));
 
-  //#define STRTOK(str,delim,context) strtok_s(str,delim,context)
-  //#define WCSTOK(str,delim,context) wcstok_s(str,delim,context)
-  //#define SSCANF sscanf_s
+  // #define STRTOK(str,delim,context) strtok_s(str,delim,context)
+  // #define WCSTOK(str,delim,context) wcstok_s(str,delim,context)
+  // #define SSCANF sscanf_s
 
   ENDTEST;
 }

@@ -6,9 +6,9 @@
 
 #include "Alloc.h"
 #include "buntils.h"
-#include <string.h>
 #include <initializer_list>
 #include <span>
+#include <string.h>
 
 namespace bun {
   template<class Engine> class Serializer;

@@ -17,7 +17,7 @@ TESTDEF::RETPAIR test_RATIONAL()
   TEST(tr3.N() == 21 && tr3.D() == 110);
   tr3 = (tr - tr2);
   TEST(tr3.N() == 1 && tr3.D() == 110);
-  tr3 = (tr*tr2);
+  tr3 = (tr * tr2);
   TEST(tr3.N() == 1 && tr3.D() == 110);
   tr3 = (tr / tr2);
   TEST(tr3.N() == 11 && tr3.D() == 10);
@@ -29,10 +29,10 @@ TESTDEF::RETPAIR test_RATIONAL()
   TEST(tr3.N() == 3 && tr3.D() == 10);
   tr3 = (tr / 3);
   TEST(tr3.N() == 1 && tr3.D() == 30);
-  TEST((tr<3));
-  TEST(!(tr>3));
-  TEST(!(tr<tr2));
-  TEST((tr>tr2));
+  TEST((tr < 3));
+  TEST(!(tr > 3));
+  TEST(!(tr < tr2));
+  TEST((tr > tr2));
   TEST(!(tr == 3));
   TEST((tr != 3));
   TEST(!(tr == tr2));

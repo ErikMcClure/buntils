@@ -6,13 +6,13 @@
 
 using namespace bun;
 
-static_assert(std::is_member_pointer<void(TESTDEF::*)()>::value, "member failure");
+static_assert(std::is_member_pointer<void (TESTDEF::*)()>::value, "member failure");
 
 TESTDEF::RETPAIR test_HASH()
 {
   BEGINTEST;
-  Hash<int, void(TESTDEF::*)()> membertest;
-  void(TESTDEF::*a)() = membertest[0];
+  Hash<int, void (TESTDEF::*)()> membertest;
+  void (TESTDEF::*a)() = membertest[0];
 
   {
     Hash<int, Logger*> hasherint;
@@ -36,7 +36,7 @@ TESTDEF::RETPAIR test_HASH()
     HashIns<const char*, Logger*> hasher3(std::move(hasher));
     check = hasher2.Get("Video");
     TEST(check == (Logger*)5);
-    //uint64_t diff = HighPrecisionTimer::CloseProfiler(ID);
+    // uint64_t diff = HighPrecisionTimer::CloseProfiler(ID);
 
     {
       Hash<const void*> set;
@@ -153,60 +153,60 @@ TESTDEF::RETPAIR test_HASH()
   }
 
   {
-  Hash<int, std::unique_ptr<int>> safe;
-  TEST(!safe[2]);
-  safe.Insert(0, nullptr);
-  safe.Insert(2, nullptr);
-  safe.Insert(-3, nullptr);
-  safe.Insert(1234, nullptr);
-  safe.Insert(2874984, nullptr);
-  safe.Insert(-28383, nullptr);
-  safe.Insert(8, nullptr);
-  TEST(safe.Exists(2));
-  TEST(safe(0));
-  TEST(safe(2));
-  TEST(safe(-3));
-  TEST(safe(1234));
-  TEST(safe(2874984));
-  TEST(safe(-28383));
-  TEST(safe(8));
-  safe.Insert(9, nullptr);
-  safe.Insert(10, nullptr);
-  TEST(safe(0));
-  TEST(safe(2));
-  TEST(safe(10));
-  TEST(safe(9));
-  TEST(safe(2874984));
-  TEST(safe(-28383));
-  TEST(safe(8));
-  safe.Remove(8);
-  TEST(!safe(8));
-  TEST(safe(2));
-  TEST(safe(10));
-  TEST(safe(9));
+    Hash<int, std::unique_ptr<int>> safe;
+    TEST(!safe[2]);
+    safe.Insert(0, nullptr);
+    safe.Insert(2, nullptr);
+    safe.Insert(-3, nullptr);
+    safe.Insert(1234, nullptr);
+    safe.Insert(2874984, nullptr);
+    safe.Insert(-28383, nullptr);
+    safe.Insert(8, nullptr);
+    TEST(safe.Exists(2));
+    TEST(safe(0));
+    TEST(safe(2));
+    TEST(safe(-3));
+    TEST(safe(1234));
+    TEST(safe(2874984));
+    TEST(safe(-28383));
+    TEST(safe(8));
+    safe.Insert(9, nullptr);
+    safe.Insert(10, nullptr);
+    TEST(safe(0));
+    TEST(safe(2));
+    TEST(safe(10));
+    TEST(safe(9));
+    TEST(safe(2874984));
+    TEST(safe(-28383));
+    TEST(safe(8));
+    safe.Remove(8);
+    TEST(!safe(8));
+    TEST(safe(2));
+    TEST(safe(10));
+    TEST(safe(9));
 
-  safe.Remove(10);
-  TEST(!safe(8));
-  TEST(safe(2));
-  TEST(!safe(10));
-  TEST(safe(9));
+    safe.Remove(10);
+    TEST(!safe(8));
+    TEST(safe(2));
+    TEST(!safe(10));
+    TEST(safe(9));
 
-  Hash<int, std::unique_ptr<int>> safe3(std::move(safe));
-  TEST(!safe3(8));
-  TEST(safe3(2));
-  TEST(!safe3(10));
-  TEST(safe3(9));
+    Hash<int, std::unique_ptr<int>> safe3(std::move(safe));
+    TEST(!safe3(8));
+    TEST(safe3(2));
+    TEST(!safe3(10));
+    TEST(safe3(9));
 
-  TEST(safe3(-3));
-  safe3.Remove(-3);
-  TEST(!safe3(8));
-  TEST(safe3(2));
-  TEST(!safe3(10));
-  TEST(safe3(9));
-  TEST(!safe3(-3));
-  safe = std::move(safe3);
-  TEST(safe(2));
-  TEST(safe(9));
+    TEST(safe3(-3));
+    safe3.Remove(-3);
+    TEST(!safe3(8));
+    TEST(safe3(2));
+    TEST(!safe3(10));
+    TEST(safe3(9));
+    TEST(!safe3(-3));
+    safe = std::move(safe3);
+    TEST(safe(2));
+    TEST(safe(9));
   }
   {
     Hash<int, Str> h;

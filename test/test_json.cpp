@@ -2,9 +2,9 @@
 // For conditions of distribution and use, see copyright notice in "buntils.h"
 
 #include "test.h"
+#include "buntils/Geometry.h"
 #include "buntils/JSON.h"
 #include <fstream>
-#include "buntils/Geometry.h"
 
 using namespace bun;
 
@@ -13,8 +13,7 @@ struct JSONtest2
   DynArray<JSONtest2, uint32_t, StandardAllocator<JSONtest2>, std::monostate> value;
   std::array<int, 2> ia;
 
-  template<typename Engine>
-  void Serialize(Serializer<Engine>& s, const char*)
+  template<typename Engine> void Serialize(Serializer<Engine>& s, const char*)
   {
     s.template EvaluateType<JSONtest2>(GenPair("value", value), GenPair("ia", ia));
   }
@@ -44,36 +43,20 @@ struct JSONtest
   Ellipse<int> ellipse;
   std::tuple<short, Str, double> tuple;
 
-  template<typename Engine>
-  void Serialize(Serializer<Engine>& s, const char*)
+  template<typename Engine> void Serialize(Serializer<Engine>& s, const char*)
   {
-    s.template EvaluateType<JSONtest>(
-      GenPair("a", a),
-      GenPair("b", b),
-      GenPair("c", c),
-      GenPair("test", test),
-      GenPair("nested", nested),
-      GenPair("foo", foo),
-      GenPair("bar", bar),
-      GenPair("foobar", foobar),
-      GenPair("nestarray", nestarray),
-      GenPair("nested2", nested2),
-      GenPair("btrue", btrue),
-      GenPair("bfalse", bfalse),
-      GenPair("fixed", fixed),
-      GenPair("hash", hash),
-      GenPair("matrix", matrix),
-      GenPair("polygon", polygon),
-      GenPair("triangle", triangle),
-      GenPair("sector", sector),
-      GenPair("circle", circle),
-      GenPair("ellipse", ellipse),
-      GenPair("tuple", tuple)
-      );
+    s.template EvaluateType<JSONtest>(GenPair("a", a), GenPair("b", b), GenPair("c", c), GenPair("test", test),
+                                      GenPair("nested", nested), GenPair("foo", foo), GenPair("bar", bar),
+                                      GenPair("foobar", foobar), GenPair("nestarray", nestarray),
+                                      GenPair("nested2", nested2), GenPair("btrue", btrue), GenPair("bfalse", bfalse),
+                                      GenPair("fixed", fixed), GenPair("hash", hash), GenPair("matrix", matrix),
+                                      GenPair("polygon", polygon), GenPair("triangle", triangle), GenPair("sector", sector),
+                                      GenPair("circle", circle), GenPair("ellipse", ellipse), GenPair("tuple", tuple));
   }
 };
 
-static_assert(internal::serializer::is_serializable<JSONEngine, JSONtest>::value, "object missing Serialize<Engine>(Serializer<Engine>&, const char*) function!");
+static_assert(internal::serializer::is_serializable<JSONEngine, JSONtest>::value,
+              "object missing Serialize<Engine>(Serializer<Engine>&, const char*) function!");
 
 void dotest_JSON(JSONtest& o, TESTDEF::RETPAIR& __testret)
 {
@@ -149,7 +132,7 @@ void dotest_JSON(JSONtest& o, TESTDEF::RETPAIR& __testret)
   TEST(o.ellipse.v[1] == 2);
   TEST(o.ellipse.v[2] == 3);
   TEST(o.ellipse.v[3] == 4);
-  auto[a, b, c] = o.tuple;
+  auto [a, b, c] = o.tuple;
   TEST(a == 1);
   TEST(b == "2");
   TEST(c == 3.0);
@@ -158,9 +141,10 @@ void dotest_JSON(JSONtest& o, TESTDEF::RETPAIR& __testret)
 TESTDEF::RETPAIR test_JSON()
 {
   BEGINTEST;
-  const char* json = "{ \"a\": -5, \"b\": 342  ,\"c\":23.7193 , \"btrue\": true, \"bfalse\": false, \"fixed\": [0.2, 23.1, -3, 4.0], \"test\":\"\\u01A8string {,};[]\\\"st\\\"'\\\n\\\r\\/\\u0FA8nb\\\"\", \"nested\" : { \"value\": [ { }, { } ], \"ia\":[  -1,2 ] }, \"foo\": [5 ,6, 4,2 ,  2,3,], \"bar\": [3.3,1.6543,0.49873,90, 4], \"foobar\":[\"moar\",\"\"], \"nestarray\": [null, { \"a\":, \"b\":34, }], \"nested2\": null, \"hash\": { \"40\" : 44, \"41\" : 45, \"42\" : 46, }, \"matrix\": [ [1,2,3],[4,5,6] ], \"polygon\": [[1,2],[3,4],[5,6]], \"triangle\": [[1,2],[3,4],[5,6]], \"sector\": [1,2,3,4,5,6], \"circle\": [1,2,3], \"ellipse\": [1,2,3,4], \"tuple\":[1, \"2\", 3.0] }";
+  const char* json =
+    "{ \"a\": -5, \"b\": 342  ,\"c\":23.7193 , \"btrue\": true, \"bfalse\": false, \"fixed\": [0.2, 23.1, -3, 4.0], \"test\":\"\\u01A8string {,};[]\\\"st\\\"'\\\n\\\r\\/\\u0FA8nb\\\"\", \"nested\" : { \"value\": [ { }, { } ], \"ia\":[  -1,2 ] }, \"foo\": [5 ,6, 4,2 ,  2,3,], \"bar\": [3.3,1.6543,0.49873,90, 4], \"foobar\":[\"moar\",\"\"], \"nestarray\": [null, { \"a\":, \"b\":34, }], \"nested2\": null, \"hash\": { \"40\" : 44, \"41\" : 45, \"42\" : 46, }, \"matrix\": [ [1,2,3],[4,5,6] ], \"polygon\": [[1,2],[3,4],[5,6]], \"triangle\": [[1,2],[3,4],[5,6]], \"sector\": [1,2,3,4,5,6], \"circle\": [1,2,3], \"ellipse\": [1,2,3,4], \"tuple\":[1, \"2\", 3.0] }";
   JSONtest o;
-  o.btrue = false;
+  o.btrue  = false;
   o.bfalse = true;
 
   ParseJSON(o, json);
@@ -170,7 +154,7 @@ TESTDEF::RETPAIR test_JSON()
   std::fstream fs("out.json");
 
   JSONtest o2;
-  o2.btrue = false;
+  o2.btrue  = false;
   o2.bfalse = true;
   ParseJSON(o2, fs);
   dotest_JSON(o2, __testret);
@@ -180,7 +164,7 @@ TESTDEF::RETPAIR test_JSON()
   std::fstream fs2("pretty.json");
 
   JSONtest o3;
-  o3.btrue = false;
+  o3.btrue  = false;
   o3.bfalse = true;
   ParseJSON(o3, fs2);
   dotest_JSON(o3, __testret);
@@ -258,7 +242,7 @@ TESTDEF::RETPAIR test_JSON()
   WriteJSON<JSONValue>(var, "out2.json", 0);
 
   JSONtest o4;
-  o4.btrue = false;
+  o4.btrue  = false;
   o4.bfalse = true;
   std::fstream fs4("out2.json");
   ParseJSON(o4, fs4);

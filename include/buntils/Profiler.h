@@ -4,25 +4,32 @@
 #ifndef __PROFILER_H__BUN__
 #define __PROFILER_H__BUN__
 
-#include "HighPrecisionTimer.h"
 #include "Array.h"
 #include "BlockAlloc.h"
+#include "HighPrecisionTimer.h"
 #include <cmath>
 
 #ifndef BUN_ENABLE_PROFILER
-#define PROFILE_BEGIN(name)
-#define PROFILE_END(name)
-#define PROFILE_BLOCK(name)
-#define PROFILE_FUNC()
-#define PROFILE_OUTPUT(file,output)
+  #define PROFILE_BEGIN(name)
+  #define PROFILE_END(name)
+  #define PROFILE_BLOCK(name)
+  #define PROFILE_FUNC()
+  #define PROFILE_OUTPUT(file, output)
 #else
-#define __PROFILE_STATBLOCK(name,str) static bun::Profiler::ProfilerData PROFDATA_##name(str,__FILE__,__LINE__)
-#define __PROFILE_ZONE(name) bun::ProfilerBlock BLOCK_##name(PROFDATA_##name .id, bun::Profiler::profiler.GetCur())
-#define PROFILE_BEGIN(name) __PROFILE_STATBLOCK(name, TXT(name)); bun::Profiler::PROF_TRIENODE* PROFCACHE_##name = bun::Profiler::profiler.GetCur(); uint64_t PROFTIME_##name = bun::Profiler::profiler.StartProfile(PROFDATA_##name .id)
-#define PROFILE_END(name) bun::Profiler::profiler.EndProfile(PROFTIME_##name, PROFCACHE_##name)
-#define PROFILE_BLOCK(name) __PROFILE_STATBLOCK(name, TXT(name)); __PROFILE_ZONE(name);
-#define PROFILE_FUNC() __PROFILE_STATBLOCK(func, __FUNCTION__); __PROFILE_ZONE(func)
-#define PROFILE_OUTPUT(file,output) bun::Profiler::profiler.WriteToFile(file,output)
+  #define __PROFILE_STATBLOCK(name, str) static bun::Profiler::ProfilerData PROFDATA_##name(str, __FILE__, __LINE__)
+  #define __PROFILE_ZONE(name)           bun::ProfilerBlock BLOCK_##name(PROFDATA_##name.id, bun::Profiler::profiler.GetCur())
+  #define PROFILE_BEGIN(name)                                                          \
+    __PROFILE_STATBLOCK(name, TXT(name));                                              \
+    bun::Profiler::PROF_TRIENODE* PROFCACHE_##name = bun::Profiler::profiler.GetCur(); \
+    uint64_t PROFTIME_##name                       = bun::Profiler::profiler.StartProfile(PROFDATA_##name.id)
+  #define PROFILE_END(name) bun::Profiler::profiler.EndProfile(PROFTIME_##name, PROFCACHE_##name)
+  #define PROFILE_BLOCK(name)             \
+    __PROFILE_STATBLOCK(name, TXT(name)); \
+    __PROFILE_ZONE(name);
+  #define PROFILE_FUNC()                     \
+    __PROFILE_STATBLOCK(func, __FUNCTION__); \
+    __PROFILE_ZONE(func)
+  #define PROFILE_OUTPUT(file, output) bun::Profiler::profiler.WriteToFile(file, output)
 #endif
 
 namespace bun {
@@ -40,7 +47,7 @@ namespace bun {
       PROF_TRIENODE* _children[16];
       double avg;
       double codeavg;
-      //double variance; 
+      // double variance;
       uint64_t total; // If total is -1 this isn't a terminating node
       uint64_t inner;
     };
@@ -53,8 +60,8 @@ namespace bun {
       ProfilerInt id;
 
       inline ProfilerData(const char* Name, const char* File, size_t Line) : name(Name), file(File), line(Line), id(++total)
-      { 
-        Profiler::profiler.AddData(id, this); 
+      {
+        Profiler::profiler.AddData(id, this);
       }
     };
 
@@ -64,7 +71,7 @@ namespace bun {
 
       while(id > 0)
       {
-        r = &(*r)->_children[id % 16];
+        r  = &(*r)->_children[id % 16];
         id = (id >> 4);
         if(!*r)
           *r = _allocNode();
@@ -78,16 +85,22 @@ namespace bun {
     }
     BUN_FORCEINLINE void EndProfile(uint64_t time, PROF_TRIENODE* old)
     {
-      time = HighPrecisionTimer::CloseProfiler(time);
-      _cur->avg = bun_Avg<double, uint64_t>(_cur->avg, (double)time, ++_cur->total);
+      time          = HighPrecisionTimer::CloseProfiler(time);
+      _cur->avg     = bun_Avg<double, uint64_t>(_cur->avg, (double)time, ++_cur->total);
       _cur->codeavg = bun_Avg<double, uint64_t>(_cur->codeavg, (double)(time - _cur->inner), _cur->total);
-      _cur = old;
+      _cur          = old;
       _cur->inner += time;
     }
     BUN_FORCEINLINE PROF_TRIENODE* GetRoot() { return _trie; }
     BUN_FORCEINLINE PROF_TRIENODE* GetCur() { return _cur; }
     void AddData(ProfilerInt id, ProfilerData* p);
-    enum OUTPUT_DATA : uint8_t { OUTPUT_FLAT = 1, OUTPUT_TREE = 2, OUTPUT_HEATMAP = 4, OUTPUT_ALL = 1 | 2 | 4 };
+    enum OUTPUT_DATA : uint8_t
+    {
+      OUTPUT_FLAT    = 1,
+      OUTPUT_TREE    = 2,
+      OUTPUT_HEATMAP = 4,
+      OUTPUT_ALL     = 1 | 2 | 4
+    };
     void WriteToFile(const char* s, uint8_t output);
     void WriteToStream(std::ostream& stream, uint8_t output);
 
@@ -130,7 +143,9 @@ namespace bun {
 
   struct ProfilerBlock
   {
-    BUN_FORCEINLINE ProfilerBlock(Profiler::ProfilerInt id, Profiler::PROF_TRIENODE* cache) : _cache(cache), _time(Profiler::profiler.StartProfile(id)) {}
+    BUN_FORCEINLINE ProfilerBlock(Profiler::ProfilerInt id, Profiler::PROF_TRIENODE* cache) :
+      _cache(cache), _time(Profiler::profiler.StartProfile(id))
+    {}
     BUN_FORCEINLINE ~ProfilerBlock() { Profiler::profiler.EndProfile(_time, _cache); }
     Profiler::PROF_TRIENODE* _cache;
     uint64_t _time;

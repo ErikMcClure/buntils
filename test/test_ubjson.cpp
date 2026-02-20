@@ -13,18 +13,14 @@ struct ubjsontest2
   Str c;
   double d;
 
-  template<typename Engine>
-  void Serialize(Serializer<Engine>& e, const char*)
+  template<typename Engine> void Serialize(Serializer<Engine>& e, const char*)
   {
-    e.template EvaluateType<ubjsontest2>(
-      GenPair("a", a),
-      GenPair("c", c),
-      GenPair("d", d)
-      );
+    e.template EvaluateType<ubjsontest2>(GenPair("a", a), GenPair("c", c), GenPair("d", d));
   }
 };
 
-enum TEST_ENUM : char {
+enum TEST_ENUM : char
+{
   TEST_ENUM_VALUE = 1
 };
 
@@ -53,31 +49,14 @@ struct ubjsontest
   std::vector<VAR> var;
   std::tuple<int16_t, Str, double> tuple;
 
-  template<typename Engine>
-  void Serialize(Serializer<Engine>& engine, const char*)
+  template<typename Engine> void Serialize(Serializer<Engine>& engine, const char*)
   {
-    engine.template EvaluateType<ubjsontest>(
-      GenPair("a", (char&)a),
-      GenPair("b", b),
-      GenPair("c", c),
-      GenPair("d", d),
-      GenPair("e", e),
-      GenPair("f", f),
-      GenPair("g", g),
-      GenPair("h", h),
-      GenPair("i", i),
-      GenPair("x", x),
-      GenPair("y", y),
-      GenPair("p", p),
-      GenPair("m", m),
-      GenPair("n", n),
-      GenPair("u", u),
-      GenPair("v", v),
-      GenPair("w", w),
-      GenPair("z", z),
-      GenPair("var", var),
-      GenPair("tuple", tuple)
-      );
+    engine.template EvaluateType<ubjsontest>(GenPair("a", (char&)a), GenPair("b", b), GenPair("c", c), GenPair("d", d),
+                                             GenPair("e", e), GenPair("f", f), GenPair("g", g), GenPair("h", h),
+                                             GenPair("i", i), GenPair("x", x), GenPair("y", y), GenPair("p", p),
+                                             GenPair("m", m), GenPair("n", n), GenPair("u", u), GenPair("v", v),
+                                             GenPair("w", w), GenPair("z", z), GenPair("var", var),
+                                             GenPair("tuple", tuple));
   }
 };
 
@@ -133,14 +112,12 @@ void VerifyUBJSON(const ubjsontest& t1, const ubjsontest& t2, TESTDEF::RETPAIR& 
       TEST(t1.var[i].get<ubjsontest2>().c == t2.var[i].get<ubjsontest2>().c);
       TEST(t1.var[i].get<ubjsontest2>().d == t2.var[i].get<ubjsontest2>().d);
       break;
-    case ubjsontest::VAR::Type<double>::value:
-      TEST(t1.var[i].get<double>() == t2.var[i].get<double>());
-      break;
+    case ubjsontest::VAR::Type<double>::value: TEST(t1.var[i].get<double>() == t2.var[i].get<double>()); break;
     }
   }
 
-  auto[a1, b1, c1] = t1.tuple;
-  auto[a2, b2, c2] = t2.tuple;
+  auto [a1, b1, c1] = t1.tuple;
+  auto [a2, b2, c2] = t2.tuple;
   TEST(a1 == a2);
   TEST(b1 == b2);
   TEST(c1 == c2);
@@ -149,17 +126,26 @@ void VerifyUBJSON(const ubjsontest& t1, const ubjsontest& t2, TESTDEF::RETPAIR& 
 TESTDEF::RETPAIR test_UBJSON()
 {
   BEGINTEST;
-  ubjsontest t1 = { TEST_ENUM_VALUE, -2, 3, -4, 253, 30000, 7, 8,
-    { 9, "foo", 10.0 }, 11.0f, 12.0, "bar",
-    { 13, 14, 15 },
-    { "fizz", "buzz" },
-    { 16, 17, 18, 19, 20 },
-    { true, false, true, false, false, true },
-    { "stuff", "crap", "things" },
-    { { 21, "22", 23.0 }, { 24, "25", 26.0 } },
-    { ubjsontest::VAR(ubjsontest2{ 27, "28", 29.0 }), ubjsontest::VAR(30.0) },
-    { 31, "32", 33.0 }
-  };
+  ubjsontest t1 = { TEST_ENUM_VALUE,
+                    -2,
+                    3,
+                    -4,
+                    253,
+                    30000,
+                    7,
+                    8,
+                    { 9, "foo", 10.0 },
+                    11.0f,
+                    12.0,
+                    "bar",
+                    { 13, 14, 15 },
+                    { "fizz", "buzz" },
+                    { 16, 17, 18, 19, 20 },
+                    { true, false, true, false, false, true },
+                    { "stuff", "crap", "things" },
+                    { { 21, "22", 23.0 }, { 24, "25", 26.0 } },
+                    { ubjsontest::VAR(ubjsontest2{ 27, "28", 29.0 }), ubjsontest::VAR(30.0) },
+                    { 31, "32", 33.0 } };
 
   {
     Serializer<UBJSONEngine> s;
@@ -169,7 +155,7 @@ TESTDEF::RETPAIR test_UBJSON()
 
   {
     Serializer<UBJSONEngine> s;
-    ubjsontest t2 = { TEST_ENUM_VALUE, 0, 0, 0, 0, 0, 0, 0, {0}, 0, 0, "", {0,0,0}, {"",""} };
+    ubjsontest t2 = { TEST_ENUM_VALUE, 0, 0, 0, 0, 0, 0, 0, { 0 }, 0, 0, "", { 0, 0, 0 }, { "", "" } };
     std::fstream fsi("out.ubj", std::ios_base::in | std::ios_base::binary);
     s.Parse(t2, fsi);
     fsi.close();
@@ -238,14 +224,14 @@ TESTDEF::RETPAIR test_UBJSON()
   TEST(var1[18].second.Type == UBJSONTuple::TYPE_ARRAY);
   TEST(var1[19].first == "tuple");
   TEST(var1[19].second.Type == UBJSONTuple::TYPE_ARRAY);
-  
+
   {
     std::fstream fso2("out2.ubj", std::ios_base::out | std::ios_base::trunc | std::ios_base::binary);
     Serializer<UBJSONEngine> s;
     s.Serialize(val, fso2);
   }
 
-  ubjsontest t3 = { TEST_ENUM_VALUE, 0, 0, 0, 0, 0, 0, 0,{ 0 }, 0, 0, "",{ 0,0,0 },{ "","" } };
+  ubjsontest t3 = { TEST_ENUM_VALUE, 0, 0, 0, 0, 0, 0, 0, { 0 }, 0, 0, "", { 0, 0, 0 }, { "", "" } };
   {
     std::fstream fsi3("out2.ubj", std::ios_base::in | std::ios_base::binary);
     Serializer<UBJSONEngine> s;

@@ -15,7 +15,8 @@ struct cAnimObj
   int test2;
   float fl;
   void donothing(RefCounter*) { ++test; }
-  RefCounter* retnothing(ref_ptr<RefCounter> p) {
+  RefCounter* retnothing(ref_ptr<RefCounter> p)
+  {
     ++test2;
     p->Grab();
     return (RefCounter*)p;
@@ -30,8 +31,8 @@ TESTDEF::RETPAIR test_ANIMATION()
   BEGINTEST;
   RCounter c;
   {
-    using PtrAni = AniData<RefCounter*, void>;
-    using RefAni = AniDataInterval<ref_ptr<RefCounter>>;
+    using PtrAni   = AniData<RefCounter*, void>;
+    using RefAni   = AniDataInterval<ref_ptr<RefCounter>>;
     using FloatAni = AniDataSmooth<float>;
 
     c.Grab();
@@ -54,19 +55,23 @@ TESTDEF::RETPAIR test_ANIMATION()
     TEST(a2.GetLength() == 2.0);
 
     a0.SetLoop(0.0);
-    //std::stringstream ss;
-    //a.Serialize(ss);
+    // std::stringstream ss;
+    // a.Serialize(ss);
 
-    //Animation<StandardAllocator<char>> aa;
-    //aa.Deserialize(ss);
-    //for(size_t i = 0; i<6; ++i) c.Grab(); // compensate for the pointer we just copied over
+    // Animation<StandardAllocator<char>> aa;
+    // aa.Deserialize(ss);
+    // for(size_t i = 0; i<6; ++i) c.Grab(); // compensate for the pointer we just copied over
 
     cAnimObj obj;
-    //a.GetAttribute<3>()->AddKeyFrame(KeyFrame<3>(0.0, [&](){ c.Grab(); obj.test++; }));
-    //a.GetAttribute<3>()->AddKeyFrame(KeyFrame<3>(0.6, [&](){ c.Drop(); }));
-    //a.Attach(Delegate<void,AniAttribute*>::From<cAnimObj,&cAnimObj::TypeIDRegFunc>(&obj));
-    AniState<cAnimObj, Animation<PtrAni>, AniStateDiscrete<cAnimObj, PtrAni, RefCounter*, &cAnimObj::donothing>> s0(&obj, &a0);
-    AniState<cAnimObj, Animation<RefAni>, AniStateInterval<cAnimObj, RefAni, ref_ptr<RefCounter>, RefCounter*, &cAnimObj::retnothing, &cAnimObj::remnothing>> s1(&obj, &a1);
+    // a.GetAttribute<3>()->AddKeyFrame(KeyFrame<3>(0.0, [&](){ c.Grab(); obj.test++; }));
+    // a.GetAttribute<3>()->AddKeyFrame(KeyFrame<3>(0.6, [&](){ c.Drop(); }));
+    // a.Attach(Delegate<void,AniAttribute*>::From<cAnimObj,&cAnimObj::TypeIDRegFunc>(&obj));
+    AniState<cAnimObj, Animation<PtrAni>, AniStateDiscrete<cAnimObj, PtrAni, RefCounter*, &cAnimObj::donothing>> s0(&obj,
+                                                                                                                    &a0);
+    AniState<
+      cAnimObj, Animation<RefAni>,
+      AniStateInterval<cAnimObj, RefAni, ref_ptr<RefCounter>, RefCounter*, &cAnimObj::retnothing, &cAnimObj::remnothing>>
+      s1(&obj, &a1);
     AniState<cAnimObj, Animation<FloatAni>, AniStateSmooth<cAnimObj, FloatAni, float, &cAnimObj::setfloat>> s2(&obj, &a2);
 
     s2.SetValues(std::tuple<float>{ 15.0f });

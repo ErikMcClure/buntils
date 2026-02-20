@@ -6,10 +6,10 @@
 
 using namespace bun;
 
-#define INI_E(s,k,v,nk,ns) TEST(!ini.EditEntry(TXT(s),TXT(k),TXT(v),nk,ns))
-#define INI_NE(s,k,v,nk,ns) TEST(ini.EditEntry(TXT(s),TXT(k),TXT(v),nk,ns)<0)
-#define INI_R(s,k,nk,ns) TEST(!ini.EditEntry(TXT(s),TXT(k),0,nk,ns))
-#define INI_G(s,k,nk,ns) TEST(!ini.EditEntry(TXT(s),TXT(k),TXT(v),nk,ns))
+#define INI_E(s, k, v, nk, ns)  TEST(!ini.EditEntry(TXT(s), TXT(k), TXT(v), nk, ns))
+#define INI_NE(s, k, v, nk, ns) TEST(ini.EditEntry(TXT(s), TXT(k), TXT(v), nk, ns) < 0)
+#define INI_R(s, k, nk, ns)     TEST(!ini.EditEntry(TXT(s), TXT(k), 0, nk, ns))
+#define INI_G(s, k, nk, ns)     TEST(!ini.EditEntry(TXT(s), TXT(k), TXT(v), nk, ns))
 
 TESTDEF::RETPAIR test_INISTORAGE()
 {
@@ -17,10 +17,12 @@ TESTDEF::RETPAIR test_INISTORAGE()
 
   INIstorage ini("inistorage.ini");
 
-  auto fn = [&](INIentry* e, const char* s, int i) -> bool { return (e != 0 && !strcmp(e->GetString(), s) && e->GetInt() == i); };
+  auto fn = [&](INIentry* e, const char* s, int i) -> bool {
+    return (e != 0 && !strcmp(e->GetString(), s) && e->GetInt() == i);
+  };
   auto fn2 = [&](const char* s) {
     FILE* f;
-    FOPEN(f, "inistorage.ini", "rb"); //this will create the file if it doesn't already exist
+    FOPEN(f, "inistorage.ini", "rb"); // this will create the file if it doesn't already exist
     TEST(f != 0);
     if(f != 0)
     {
@@ -28,7 +30,7 @@ TESTDEF::RETPAIR test_INISTORAGE()
       size_t size = (size_t)ftell(f);
       fseek(f, 0, SEEK_SET);
       Str str(size + 1);
-      size = fread(str.UnsafeString(), sizeof(char), size, f); //reads in the entire file
+      size                     = fread(str.UnsafeString(), sizeof(char), size, f); // reads in the entire file
       str.UnsafeString()[size] = '\0';
       fclose(f);
       TEST(!strcmp(str, s));
@@ -217,7 +219,8 @@ TESTDEF::RETPAIR test_INISTORAGE()
 
   fn3();
   ini.EndINIEdit();
-  fn2("[1]\nb=2\nc=4\na=1\na=2\na=3\na=4\nb=1\nc=1\nc=2\nd=1\n\n[2]\na=1\na=2\nb=1\n\n[1]\n\n[2]\na=1\na=2\nb=1\n\n[2]\n\n[2]");
+  fn2(
+    "[1]\nb=2\nc=4\na=1\na=2\na=3\na=4\nb=1\nc=1\nc=2\nd=1\n\n[2]\na=1\na=2\nb=1\n\n[1]\n\n[2]\na=1\na=2\nb=1\n\n[2]\n\n[2]");
 
   Str comp;
   for(auto i = ini.Front(); i != 0; i = i->next)
@@ -227,8 +230,11 @@ TESTDEF::RETPAIR test_INISTORAGE()
       comp = comp + '\n' + j->val.GetKey() + '=' + j->val.GetString();
   }
 
-  // Due to organizational optimizations these come out in a slightly different order than in the INI, depending on when they were added.
-  TEST(!strcmp(comp, "\n[1]\nb=2\nb=1\nc=4\nc=1\nc=2\na=1\na=2\na=3\na=4\nd=1\n[1]\n[2]\na=1\na=2\nb=1\n[2]\na=1\na=2\nb=1\n[2]\n[2]"));
+  // Due to organizational optimizations these come out in a slightly different order than in the INI, depending on when
+  // they were added.
+  TEST(!strcmp(
+    comp,
+    "\n[1]\nb=2\nb=1\nc=4\nc=1\nc=2\na=1\na=2\na=3\na=4\nd=1\n[1]\n[2]\na=1\na=2\nb=1\n[2]\na=1\na=2\nb=1\n[2]\n[2]"));
 
   TEST(!remove("inistorage.ini"));
   ENDTEST;

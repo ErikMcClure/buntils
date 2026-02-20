@@ -2,8 +2,8 @@
 // For conditions of distribution and use, see copyright notice in "buntils.h"
 
 #include "test.h"
-#include "test_alloc.h"
 #include "buntils/GreedyBlockAlloc.h"
+#include "test_alloc.h"
 
 using namespace bun;
 

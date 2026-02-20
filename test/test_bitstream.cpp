@@ -13,10 +13,10 @@ TESTDEF::RETPAIR test_BITSTREAM()
 
   std::stringstream s;
   {
-    int a = -1;
+    int a   = -1;
     short b = 8199;
-    char c = 31;
-    char d = -63;
+    char c  = 31;
+    char d  = -63;
     BitStream<std::ostream> so(s);
     so << a;
     so << b;

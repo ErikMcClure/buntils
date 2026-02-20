@@ -7,23 +7,23 @@
 #include "defines.h"
 #include <stdint.h>
 #ifndef BUN_PLATFORM_WIN32
-#include <time.h>
+  #include <time.h>
 
-#ifdef _POSIX_MONOTONIC_CLOCK
-#ifdef CLOCK_MONOTONIC_RAW
-#define BUN_POSIX_CLOCK CLOCK_MONOTONIC_RAW
-#else
-#define BUN_POSIX_CLOCK CLOCK_MONOTONIC
-#endif
-#else
-#define BUN_POSIX_CLOCK CLOCK_REALTIME
-#endif
+  #ifdef _POSIX_MONOTONIC_CLOCK
+    #ifdef CLOCK_MONOTONIC_RAW
+      #define BUN_POSIX_CLOCK CLOCK_MONOTONIC_RAW
+    #else
+      #define BUN_POSIX_CLOCK CLOCK_MONOTONIC
+    #endif
+  #else
+    #define BUN_POSIX_CLOCK CLOCK_REALTIME
+  #endif
 
-#ifdef _POSIX_CPUTIME
-#define BUN_POSIX_CLOCK_PROFILER CLOCK_PROCESS_CPUTIME_ID
-#else
-#define BUN_POSIX_CLOCK_PROFILER BUN_POSIX_CLOCK
-#endif
+  #ifdef _POSIX_CPUTIME
+    #define BUN_POSIX_CLOCK_PROFILER CLOCK_PROCESS_CPUTIME_ID
+  #else
+    #define BUN_POSIX_CLOCK_PROFILER BUN_POSIX_CLOCK
+  #endif
 #endif
 
 namespace bun {
@@ -31,17 +31,20 @@ namespace bun {
   class BUN_DLLEXPORT HighPrecisionTimer
   {
   public:
-    // Starts the timer and takes an initial sample. If you want to reset the time or delta to zero later, call ResetTime() or ResetDelta()
+    // Starts the timer and takes an initial sample. If you want to reset the time or delta to zero later, call ResetTime()
+    // or ResetDelta()
     HighPrecisionTimer(const HighPrecisionTimer& copy) = default;
     HighPrecisionTimer();
-    // Resamples the timer, updating the current time and setting the delta to the difference between the last time and the current time.
+    // Resamples the timer, updating the current time and setting the delta to the difference between the last time and the
+    // current time.
     double Update();
     // Resamples the timer, but warps the resulting increment by the timewarp argument
     double Update(double timewarp);
     // Updates the timer to prime it for the next update, but overrides the delta for this tick with a custom value.
     void Override(uint64_t nsdelta);
     void Override(double delta);
-    // Gets the difference in milliseconds between the last call to Update() and the one before it. Does NOT resample the timer.
+    // Gets the difference in milliseconds between the last call to Update() and the one before it. Does NOT resample the
+    // timer.
     inline double GetDelta() const { return _delta; }
     // Gets the delta in nanoseconds
     inline uint64_t GetDeltaNS() const { return _nsDelta; }
@@ -50,13 +53,17 @@ namespace bun {
     // Gets the current time that has elapsed in nanoseconds, as a precise 64-bit integer.
     inline uint64_t GetTimeNS() const { return _nsTime; }
     // Resets the time to 0 (preserves delta)
-    inline void ResetTime() { _time = 0; _nsTime = 0; }
+    inline void ResetTime()
+    {
+      _time   = 0;
+      _nsTime = 0;
+    }
     // Resets the delta to 0, and resamples the timer.
-    inline void ResetDelta() 
+    inline void ResetDelta()
     {
       _queryTime(&_curTime);
-      _delta = 0; 
-      _nsDelta = 0; 
+      _delta   = 0;
+      _nsDelta = 0;
     }
 
     HighPrecisionTimer& operator=(const HighPrecisionTimer&) = default;
@@ -80,7 +87,7 @@ namespace bun {
       uint64_t compare;
 #ifdef BUN_PLATFORM_WIN32
       _queryTime(&compare);
-      return ((compare - begin) * 1000000000) / _getFrequency(); //convert to nanoseconds
+      return ((compare - begin) * 1000000000) / _getFrequency(); // convert to nanoseconds
 #else
       _queryTime(&compare, BUN_POSIX_CLOCK_PROFILER);
       return compare - begin;
@@ -89,9 +96,9 @@ namespace bun {
 
   protected:
     double _delta; // milliseconds
-    double _time; // milliseconds
+    double _time;  // milliseconds
     uint64_t _curTime;
-    uint64_t _nsTime; // total time passed in nanoseconds
+    uint64_t _nsTime;  // total time passed in nanoseconds
     uint64_t _nsDelta; // Delta in nanoseconds;
 
 #ifdef BUN_PLATFORM_WIN32

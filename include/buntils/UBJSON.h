@@ -4,15 +4,15 @@
 #ifndef __UBJSON_H__BUN__
 #define __UBJSON_H__BUN__
 
-#include "DynArray.h"
-#include "Str.h"
 #include "buntils.h"
+#include "DynArray.h"
 #include "Serializer.h"
-#include <sstream>
-#include <istream>
-#include <ostream>
-#include <limits>
+#include "Str.h"
 #include <functional>
+#include <istream>
+#include <limits>
+#include <ostream>
+#include <sstream>
 #include <variant>
 
 namespace bun {
@@ -20,36 +20,36 @@ namespace bun {
   {
     enum TYPE : char
     {
-      TYPE_NONE = 0, // Distinct from "NULL", this means there is no type specified
-      TYPE_NULL = 'Z',
-      TYPE_NO_OP = 'N',
-      TYPE_TRUE = 'T',
-      TYPE_FALSE = 'F',
-      TYPE_INT8 = 'i',
-      TYPE_UINT8 = 'U',
-      TYPE_INT16 = 'I',
-      TYPE_INT32 = 'l',
-      TYPE_INT64 = 'L',
-      TYPE_FLOAT = 'd',
-      TYPE_DOUBLE = 'D',
-      TYPE_BIGNUM = 'H',
-      TYPE_CHAR = 'C',
-      TYPE_STRING = 'S',
-      TYPE_OBJECT = '{',
-      TYPE_ARRAY = '[',
+      TYPE_NONE       = 0, // Distinct from "NULL", this means there is no type specified
+      TYPE_NULL       = 'Z',
+      TYPE_NO_OP      = 'N',
+      TYPE_TRUE       = 'T',
+      TYPE_FALSE      = 'F',
+      TYPE_INT8       = 'i',
+      TYPE_UINT8      = 'U',
+      TYPE_INT16      = 'I',
+      TYPE_INT32      = 'l',
+      TYPE_INT64      = 'L',
+      TYPE_FLOAT      = 'd',
+      TYPE_DOUBLE     = 'D',
+      TYPE_BIGNUM     = 'H',
+      TYPE_CHAR       = 'C',
+      TYPE_STRING     = 'S',
+      TYPE_OBJECT     = '{',
+      TYPE_ARRAY      = '[',
       TYPE_OBJECT_END = '}',
-      TYPE_ARRAY_END = ']',
-      TYPE_TYPE = '$',
-      TYPE_COUNT = '#',
+      TYPE_ARRAY_END  = ']',
+      TYPE_TYPE       = '$',
+      TYPE_COUNT      = '#',
     };
     using UBJSONArray = DynArray<UBJSONTuple, size_t, StandardAllocator<UBJSONTuple>, std::monostate>;
-    using UBJSONObject = DynArray<std::pair<Str, UBJSONTuple>, size_t, StandardAllocator<std::pair<Str, UBJSONTuple>>, std::monostate>;
+    using UBJSONObject =
+      DynArray<std::pair<Str, UBJSONTuple>, size_t, StandardAllocator<std::pair<Str, UBJSONTuple>>, std::monostate>;
 
     UBJSONTuple(const UBJSONTuple& copy);
     UBJSONTuple(UBJSONTuple&& mov);
     UBJSONTuple(TYPE type, int64_t length, const char* s);
-    template<class T>
-    UBJSONTuple(TYPE type, T n) : Type(type), Length(-1), Int64(0)
+    template<class T> UBJSONTuple(TYPE type, T n) : Type(type), Length(-1), Int64(0)
     {
       if(Type == TYPE_NONE)
       {
@@ -83,8 +83,7 @@ namespace bun {
     void Write(std::ostream& s, TYPE type) const;
     static void WriteTypeCount(std::ostream& s, TYPE type, int64_t count);
 
-    template<class T>
-    inline static T ParseInteger(std::istream& s)
+    template<class T> inline static T ParseInteger(std::istream& s)
     {
       T v;
       s.read((char*)&v, sizeof(T));
@@ -111,12 +110,11 @@ namespace bun {
       case TYPE_NO_OP:
       case TYPE_NULL:
       case TYPE_TRUE:
-      case TYPE_FALSE:
-        break;
+      case TYPE_FALSE: break;
       case TYPE_ARRAY:
       {
         int64_t count = ParseTypeCount(s, ty);
-        new (&Array) UBJSONArray(std::is_null_pointer_v<FnAdd> ? bun_max(count, 1) : 0);
+        new(&Array) UBJSONArray(std::is_null_pointer_v<FnAdd> ? bun_max(count, 1) : 0);
 
         if constexpr(!std::is_null_pointer_v<FnBulk>)
           if(count >= 0 && (ty == TYPE_CHAR || ty == TYPE_UINT8 || ty == TYPE_INT8) && bulkadd(ty, count))
@@ -142,7 +140,7 @@ namespace bun {
       case TYPE_OBJECT:
       {
         int64_t count = ParseTypeCount(s, ty);
-        new (&Object) UBJSONObject(std::is_null_pointer_v<FnInsert> ? bun_max(count, 1) : 0);
+        new(&Object) UBJSONObject(std::is_null_pointer_v<FnInsert> ? bun_max(count, 1) : 0);
         Str buf;
         while(!!s && s.peek() != -1 && (count > 0 || count < 0) && (count > 0 || s.peek() != TYPE_OBJECT_END))
         {
@@ -187,8 +185,7 @@ namespace bun {
       }
     }
 
-    template<class T>
-    inline static void WriteInteger(T v, std::ostream& s)
+    template<class T> inline static void WriteInteger(T v, std::ostream& s)
     {
 #ifdef BUN_ENDIAN_LITTLE
       FlipEndian<T>(&v);
@@ -196,21 +193,29 @@ namespace bun {
       s.write((char*)&v, sizeof(T));
     }
 
-    template<class T, typename FROM>
-    inline static constexpr bool CheckIntType(const FROM& obj)
+    template<class T, typename FROM> inline static constexpr bool CheckIntType(const FROM& obj)
     {
-      return (obj >= (FROM)std::numeric_limits<typename std::conditional<std::is_unsigned<FROM>::value && sizeof(FROM) == sizeof(T), FROM, T>::type>::min() &&
-        obj <= (FROM)std::numeric_limits<typename std::conditional<std::is_signed<FROM>::value && sizeof(FROM) == sizeof(T), FROM, T>::type>::max());
+      return (
+        obj >=
+          (FROM)std::numeric_limits<
+            typename std::conditional<std::is_unsigned<FROM>::value && sizeof(FROM) == sizeof(T), FROM, T>::type>::min() &&
+        obj <=
+          (FROM)std::numeric_limits<
+            typename std::conditional<std::is_signed<FROM>::value && sizeof(FROM) == sizeof(T), FROM, T>::type>::max());
     }
 
-    template<typename T>
-    inline static TYPE GetIntType(T obj)
+    template<typename T> inline static TYPE GetIntType(T obj)
     {
-      if(CheckIntType<uint8_t, T>(obj)) return TYPE_UINT8;
-      if(CheckIntType<int8_t, T>(obj)) return TYPE_INT8;
-      if(CheckIntType<int16_t, T>(obj)) return TYPE_INT16;
-      if(CheckIntType<int32_t, T>(obj)) return TYPE_INT32;
-      if(CheckIntType<int64_t, T>(obj)) return TYPE_INT64;
+      if(CheckIntType<uint8_t, T>(obj))
+        return TYPE_UINT8;
+      if(CheckIntType<int8_t, T>(obj))
+        return TYPE_INT8;
+      if(CheckIntType<int16_t, T>(obj))
+        return TYPE_INT16;
+      if(CheckIntType<int32_t, T>(obj))
+        return TYPE_INT32;
+      if(CheckIntType<int64_t, T>(obj))
+        return TYPE_INT64;
       return TYPE_BIGNUM;
     }
 
@@ -251,29 +256,65 @@ namespace bun {
   };
 
   namespace internal {
-    template<class T> struct WriteUBJSONType { static const UBJSONTuple::TYPE t = internal::serializer::is_serializer_array<T>::value ? UBJSONTuple::TYPE_ARRAY : UBJSONTuple::TYPE_OBJECT; };
-    template<> struct WriteUBJSONType<uint8_t> { static const UBJSONTuple::TYPE t = UBJSONTuple::TYPE_UINT8; };
-    template<> struct WriteUBJSONType<int8_t> { static const UBJSONTuple::TYPE t = UBJSONTuple::TYPE_INT8; };
-    template<> struct WriteUBJSONType<bool> { static const UBJSONTuple::TYPE t = UBJSONTuple::TYPE_NONE; };
-    template<> struct WriteUBJSONType<int16_t> { static const UBJSONTuple::TYPE t = UBJSONTuple::TYPE_INT16; };
-    template<> struct WriteUBJSONType<int32_t> { static const UBJSONTuple::TYPE t = UBJSONTuple::TYPE_INT32; };
-    template<> struct WriteUBJSONType<int64_t> { static const UBJSONTuple::TYPE t = UBJSONTuple::TYPE_INT64; };
-    template<> struct WriteUBJSONType<float> { static const UBJSONTuple::TYPE t = UBJSONTuple::TYPE_FLOAT; };
-    template<> struct WriteUBJSONType<double> { static const UBJSONTuple::TYPE t = UBJSONTuple::TYPE_DOUBLE; };
-    template<> struct WriteUBJSONType<const char*> { static const UBJSONTuple::TYPE t = UBJSONTuple::TYPE_STRING; };
-    template<> struct WriteUBJSONType<std::string> { static const UBJSONTuple::TYPE t = UBJSONTuple::TYPE_STRING; };
-    template<> struct WriteUBJSONType<Str> { static const UBJSONTuple::TYPE t = UBJSONTuple::TYPE_STRING; };
+    template<class T> struct WriteUBJSONType
+    {
+      static const UBJSONTuple::TYPE t = internal::serializer::is_serializer_array<T>::value ? UBJSONTuple::TYPE_ARRAY :
+                                                                                               UBJSONTuple::TYPE_OBJECT;
+    };
+    template<> struct WriteUBJSONType<uint8_t>
+    {
+      static const UBJSONTuple::TYPE t = UBJSONTuple::TYPE_UINT8;
+    };
+    template<> struct WriteUBJSONType<int8_t>
+    {
+      static const UBJSONTuple::TYPE t = UBJSONTuple::TYPE_INT8;
+    };
+    template<> struct WriteUBJSONType<bool>
+    {
+      static const UBJSONTuple::TYPE t = UBJSONTuple::TYPE_NONE;
+    };
+    template<> struct WriteUBJSONType<int16_t>
+    {
+      static const UBJSONTuple::TYPE t = UBJSONTuple::TYPE_INT16;
+    };
+    template<> struct WriteUBJSONType<int32_t>
+    {
+      static const UBJSONTuple::TYPE t = UBJSONTuple::TYPE_INT32;
+    };
+    template<> struct WriteUBJSONType<int64_t>
+    {
+      static const UBJSONTuple::TYPE t = UBJSONTuple::TYPE_INT64;
+    };
+    template<> struct WriteUBJSONType<float>
+    {
+      static const UBJSONTuple::TYPE t = UBJSONTuple::TYPE_FLOAT;
+    };
+    template<> struct WriteUBJSONType<double>
+    {
+      static const UBJSONTuple::TYPE t = UBJSONTuple::TYPE_DOUBLE;
+    };
+    template<> struct WriteUBJSONType<const char*>
+    {
+      static const UBJSONTuple::TYPE t = UBJSONTuple::TYPE_STRING;
+    };
+    template<> struct WriteUBJSONType<std::string>
+    {
+      static const UBJSONTuple::TYPE t = UBJSONTuple::TYPE_STRING;
+    };
+    template<> struct WriteUBJSONType<Str>
+    {
+      static const UBJSONTuple::TYPE t = UBJSONTuple::TYPE_STRING;
+    };
   }
 
   class UBJSONEngine
   {
   public:
     UBJSONEngine() : type(UBJSONTuple::TYPE_NONE) {}
-    static constexpr bool Ordered() { return false; }
+    static consteval bool Ordered() { return false; }
     static void Begin(Serializer<UBJSONEngine>&) {}
     static void End(Serializer<UBJSONEngine>&) {}
-    template<typename T>
-    static void Parse(Serializer<UBJSONEngine>& e, T& obj, const char* id)
+    template<typename T> static void Parse(Serializer<UBJSONEngine>& e, T& obj, const char* id)
     {
       if constexpr(std::is_base_of<std::string, T>::value)
       {
@@ -291,48 +332,46 @@ namespace bun {
         case UBJSONTuple::TYPE_FLOAT: obj = std::to_string(tuple.Float); break;
         case UBJSONTuple::TYPE_DOUBLE: obj = std::to_string(tuple.Double); break;
         case UBJSONTuple::TYPE_BIGNUM:
-        case UBJSONTuple::TYPE_STRING:
-          obj = tuple.String;
-          break;
+        case UBJSONTuple::TYPE_STRING: obj = tuple.String; break;
         }
       }
       else if constexpr(std::is_same<T, UBJSONTuple>::value)
         obj.Parse(*e.in, e.engine.type);
       else
       {
-        static_assert(internal::serializer::is_serializable<UBJSONEngine, T>::value, "object missing Serialize<Engine>(Serializer<Engine>&, const char*) function!");
+        static_assert(internal::serializer::is_serializable<UBJSONEngine, T>::value,
+                      "object missing Serialize<Engine>(Serializer<Engine>&, const char*) function!");
         obj.template Serialize<UBJSONEngine>(e, 0);
       }
     }
-    template<typename F>
-    static void ParseMany(Serializer<UBJSONEngine>& e, F && f)
+    template<typename F> static void ParseMany(Serializer<UBJSONEngine>& e, F&& f)
     {
       UBJSONTuple tuple;
-      tuple.Parse(*e.in, e.engine.type, nullptr,
-        [&](UBJSONTuple::TYPE ty, const char* id, size_t len)
-      {
-        internal::serializer::PushValue<UBJSONTuple::TYPE> push(e.engine.type, ty);
-        f(e, id);
-      }, nullptr);
+      tuple.Parse(
+        *e.in, e.engine.type, nullptr,
+        [&](UBJSONTuple::TYPE ty, const char* id, size_t len) {
+          internal::serializer::PushValue<UBJSONTuple::TYPE> push(e.engine.type, ty);
+          f(e, id);
+        },
+        nullptr);
       assert(tuple.Type == UBJSONTuple::TYPE_OBJECT);
     }
-    template<typename T, typename E, void(*Add)(Serializer<UBJSONEngine>& e, T& obj, int& n), bool(*Read)(Serializer<UBJSONEngine>& e, T& obj, int64_t count)>
+    template<typename T, typename E, void (*Add)(Serializer<UBJSONEngine>& e, T& obj, int& n),
+             bool (*Read)(Serializer<UBJSONEngine>& e, T& obj, int64_t count)>
     static void ParseArray(Serializer<UBJSONEngine>& e, T& obj, const char* id)
     {
       int num = 0;
       UBJSONTuple tuple;
-      tuple.Parse(*e.in, e.engine.type,
-        [&](UBJSONTuple::TYPE ty)
-      {
-        internal::serializer::PushValue<UBJSONTuple::TYPE> push(e.engine.type, ty);
-        Add(e, obj, num);
-      },
-        nullptr,
-        [&](UBJSONTuple::TYPE, int64_t count)->bool { return Read(e, obj, count); });
+      tuple.Parse(
+        *e.in, e.engine.type,
+        [&](UBJSONTuple::TYPE ty) {
+          internal::serializer::PushValue<UBJSONTuple::TYPE> push(e.engine.type, ty);
+          Add(e, obj, num);
+        },
+        nullptr, [&](UBJSONTuple::TYPE, int64_t count) -> bool { return Read(e, obj, count); });
       assert(tuple.Type == UBJSONTuple::TYPE_ARRAY);
     }
-    template<typename T>
-    static void ParseNumber(Serializer<UBJSONEngine>& e, T& obj, [[maybe_unused]] const char* id)
+    template<typename T> static void ParseNumber(Serializer<UBJSONEngine>& e, T& obj, [[maybe_unused]] const char* id)
     {
       UBJSONTuple tuple;
       tuple.Parse(*e.in, e.engine.type);
@@ -350,7 +389,7 @@ namespace bun {
       case UBJSONTuple::TYPE_INT64: obj = (T)tuple.Int64; break;
       case UBJSONTuple::TYPE_FLOAT: obj = (T)tuple.Float; break;
       case UBJSONTuple::TYPE_DOUBLE: obj = (T)tuple.Double; break;
-      case UBJSONTuple::TYPE_BIGNUM: break;// we can't deal with bignum
+      case UBJSONTuple::TYPE_BIGNUM: break; // we can't deal with bignum
       default: assert(false); break;
       }
     }
@@ -375,8 +414,7 @@ namespace bun {
       }
     }
 
-    template<typename T>
-    static void Serialize(Serializer<UBJSONEngine>& e, const T& obj, const char* id)
+    template<typename T> static void Serialize(Serializer<UBJSONEngine>& e, const T& obj, const char* id)
     {
       UBJSONTuple::WriteId(*e.out, id);
       if constexpr(std::is_base_of<std::string, T>::value)
@@ -395,14 +433,14 @@ namespace bun {
           THROW_OR_ABORT("Expecting a type other than object in the object serializing function!");
 
         internal::serializer::PushValue<UBJSONTuple::TYPE> push(e.engine.type, UBJSONTuple::TYPE_NONE);
-        static_assert(internal::serializer::is_serializable<UBJSONEngine, T>::value, "object missing Serialize<Engine>(Serializer<Engine>&, const char*) function!");
+        static_assert(internal::serializer::is_serializable<UBJSONEngine, T>::value,
+                      "object missing Serialize<Engine>(Serializer<Engine>&, const char*) function!");
         const_cast<T&>(obj).template Serialize<UBJSONEngine>(e, 0);
 
         e.out->put(UBJSONTuple::TYPE_OBJECT_END);
       }
     }
-    template<typename T>
-    static void SerializeArray(Serializer<UBJSONEngine>& e, const T& obj, size_t size, const char* id)
+    template<typename T> static void SerializeArray(Serializer<UBJSONEngine>& e, const T& obj, size_t size, const char* id)
     {
       std::ostream& s = *e.out;
       UBJSONTuple::WriteId(s, id);
@@ -419,10 +457,11 @@ namespace bun {
       UBJSONTuple::TYPE ty = internal::WriteUBJSONType<std::remove_cvref_t<decltype(*std::begin(obj))>>::t;
       UBJSONTuple::WriteTypeCount(s, ty, size);
 
-      if(ty != UBJSONTuple::TYPE_CHAR || ty != UBJSONTuple::TYPE_UINT8 || ty != UBJSONTuple::TYPE_INT8 || !e.BulkWrite(std::begin(obj), std::end(obj), size))
+      if(ty != UBJSONTuple::TYPE_CHAR || ty != UBJSONTuple::TYPE_UINT8 || ty != UBJSONTuple::TYPE_INT8 ||
+         !e.BulkWrite(std::begin(obj), std::end(obj), size))
       {
         auto begin = std::begin(obj);
-        auto end = std::end(obj);
+        auto end   = std::end(obj);
         internal::serializer::PushValue<UBJSONTuple::TYPE> push(e.engine.type, ty);
         for(; begin != end; ++begin)
           Serializer<UBJSONEngine>::ActionBind<std::remove_cvref_t<decltype(*begin)>>::Serialize(e, *begin, 0);
@@ -449,8 +488,7 @@ namespace bun {
       (Serializer<UBJSONEngine>::ActionBind<std::tuple_element_t<S, T>>::Serialize(e, std::get<S>(t), 0), ...);
     }
 
-    template<typename T>
-    static void SerializeNumber(Serializer<UBJSONEngine>& e, T t, const char* id)
+    template<typename T> static void SerializeNumber(Serializer<UBJSONEngine>& e, T t, const char* id)
     {
       UBJSONTuple::WriteId(*e.out, id);
       UBJSONTuple tuple(e.engine.type, t);

@@ -13,30 +13,31 @@ TESTDEF::RETPAIR test_AA_TREE()
   BEGINTEST;
 
   BlockPolicy<AANODE<int>> fixedaa;
-  AATree<int, std::compare_three_way, PolicyAllocator<AANODE<int>, BlockPolicy>> aat(PolicyAllocator<AANODE<int>, BlockPolicy>{fixedaa});
-  
+  AATree<int, std::compare_three_way, PolicyAllocator<AANODE<int>, BlockPolicy>> aat(
+    PolicyAllocator<AANODE<int>, BlockPolicy>{ fixedaa });
+
   shuffle_testnums();
 
-  //uint64_t prof=HighPrecisionTimer::OpenProfiler();
-  for(size_t i = 0; i<TESTNUM; ++i)
+  // uint64_t prof=HighPrecisionTimer::OpenProfiler();
+  for(size_t i = 0; i < TESTNUM; ++i)
     aat.Insert(testnums[i]);
-  //std::cout << HighPrecisionTimer::CloseProfiler(prof) << std::endl;
+  // std::cout << HighPrecisionTimer::CloseProfiler(prof) << std::endl;
 
   shuffle_testnums();
-  //prof=HighPrecisionTimer::OpenProfiler();
+  // prof=HighPrecisionTimer::OpenProfiler();
   size_t c = 0;
-  for(size_t i = 0; i<TESTNUM; ++i)
+  for(size_t i = 0; i < TESTNUM; ++i)
     c += (aat.Get(testnums[i]) != 0);
   TEST(c == TESTNUM);
-  //std::cout << HighPrecisionTimer::CloseProfiler(prof) << std::endl;
+  // std::cout << HighPrecisionTimer::CloseProfiler(prof) << std::endl;
 
   shuffle_testnums();
-  //prof=HighPrecisionTimer::OpenProfiler();
+  // prof=HighPrecisionTimer::OpenProfiler();
   c = 0;
-  for(size_t i = 0; i<TESTNUM; ++i)
+  for(size_t i = 0; i < TESTNUM; ++i)
   {
-    //if(testnums[i] == 20159)
-    //  std::cout << (aat.Get(testnums[i])!=0) << std::endl;
+    // if(testnums[i] == 20159)
+    //   std::cout << (aat.Get(testnums[i])!=0) << std::endl;
 
     if(!aat.Remove(testnums[i]))
     {
@@ -47,16 +48,16 @@ TESTDEF::RETPAIR test_AA_TREE()
       c++;
     }
 
-    //c+=aat.Remove(testnums[i]);
+    // c+=aat.Remove(testnums[i]);
   }
   TEST(c == TESTNUM);
-  //std::cout << HighPrecisionTimer::CloseProfiler(prof) << std::endl;
+  // std::cout << HighPrecisionTimer::CloseProfiler(prof) << std::endl;
 
   TEST(aat.GetRoot() == 0);
   aat.Clear();
 
   c = 0;
-  for(size_t i = 0; i<TESTNUM; ++i) // Test that no numbers are in the tree
+  for(size_t i = 0; i < TESTNUM; ++i) // Test that no numbers are in the tree
     c += (aat.Get(testnums[i]) == 0);
   TEST(c == TESTNUM);
 

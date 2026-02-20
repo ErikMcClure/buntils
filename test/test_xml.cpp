@@ -12,21 +12,18 @@ struct XMLtest3
 {
   float f;
 
-  template<typename Engine>
-  void Serialize(Serializer<Engine>& s, const char*)
+  template<typename Engine> void Serialize(Serializer<Engine>& s, const char*)
   {
     s.template EvaluateType<XMLtest3>(GenPair("f", f));
   }
 };
-
 
 struct XMLtest2
 {
   uint16_t a;
   std::vector<XMLtest3> test;
 
-  template<typename Engine>
-  void Serialize(Serializer<Engine>& s, const char*)
+  template<typename Engine> void Serialize(Serializer<Engine>& s, const char*)
   {
     s.template EvaluateType<XMLtest2>(GenPair("a", a), GenPair("test", test));
   }
@@ -48,24 +45,12 @@ struct XMLtest
   DynArray<XMLtest2, size_t> nested;
   std::tuple<int16_t, Str, double> tuple;
 
-  template<typename Engine>
-  void Serialize(Serializer<Engine>& s, const char*)
+  template<typename Engine> void Serialize(Serializer<Engine>& s, const char*)
   {
-    s.template EvaluateType<XMLtest>(
-      GenPair("a", a),
-      GenPair("b", b),
-      GenPair("c", c),
-      GenPair("test", test),
-      GenPair("test2", test2),
-      GenPair("btrue", btrue),
-      GenPair("bfalse", bfalse),
-      GenPair("d", d),
-      GenPair("e", e),
-      GenPair("f", f),
-      GenPair("g", g),
-      GenPair("nested", nested),
-      GenPair("tuple", tuple)
-      );
+    s.template EvaluateType<XMLtest>(GenPair("a", a), GenPair("b", b), GenPair("c", c), GenPair("test", test),
+                                     GenPair("test2", test2), GenPair("btrue", btrue), GenPair("bfalse", bfalse),
+                                     GenPair("d", d), GenPair("e", e), GenPair("f", f), GenPair("g", g),
+                                     GenPair("nested", nested), GenPair("tuple", tuple));
   }
 };
 
@@ -108,7 +93,7 @@ void dotest_XML(XMLtest& o, TESTDEF::RETPAIR& __testret)
   TEST(o.nested[1].test[0].f == -12.21f);
   TEST(o.nested[2].a == 4);
   TEST(o.nested[2].test.size() == 0);
-  auto[a, b, c] = o.tuple;
+  auto [a, b, c] = o.tuple;
   TEST(a == -3);
   TEST(b == "2");
   TEST(c == 1.0);
@@ -118,7 +103,8 @@ TESTDEF::RETPAIR test_XML()
 {
   BEGINTEST;
 
-  XMLFile test2("<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n<room fancyname=\"Space\" desc=\"This is space.\" startroom=\"0xFFFFFFFFFFFFFFFF\" north=\"TESTROOMNORTH\" roomid=\"TESTROOM\" />\n<room roomid = \"TESTROOMNORTH\" nm:fancyname = \"-200000\" desc = \"This is the room to the north.\" south = \"TESTROOM\" />");
+  XMLFile test2(
+    "<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n<room fancyname=\"Space\" desc=\"This is space.\" startroom=\"0xFFFFFFFFFFFFFFFF\" north=\"TESTROOMNORTH\" roomid=\"TESTROOM\" />\n<room roomid = \"TESTROOMNORTH\" nm:fancyname = \"-200000\" desc = \"This is the room to the north.\" south = \"TESTROOM\" />");
 
   TEST(!strcmp(test2[(size_t)0]->GetAttribute("roomid")->String, "TESTROOM"));
   TEST(!strcmp(test2[(size_t)0]->GetAttribute((size_t)0)->String, "Space"));
@@ -139,7 +125,8 @@ TESTDEF::RETPAIR test_XML()
   TEST(!test2[1]->GetAttributeString(0));
   TEST(!test2[1]->GetAttributeInt(0));
 
-  Str strXML = "<?xml version=\"1.0\" encoding=\"UTF-8\"?><foo>abc&amp;<bar></bar>zxy<bar2><!-- comment --></bar2  ><   bar/> <  test    />  <!-- comment --><test test=\"attr\" /><!-- comment --></foo> <foo again=\"true\" fail></foo> <bobasdfghqwertyuiopasdfzcvxnm></bobasdfghqwertyuiopasdfzcvxnm><!-- comment --><foo test=\"test\" test=\"success\" /><!-- comment -->";
+  Str strXML =
+    "<?xml version=\"1.0\" encoding=\"UTF-8\"?><foo>abc&amp;<bar></bar>zxy<bar2><!-- comment --></bar2  ><   bar/> <  test    />  <!-- comment --><test test=\"attr\" /><!-- comment --></foo> <foo again=\"true\" fail></foo> <bobasdfghqwertyuiopasdfzcvxnm></bobasdfghqwertyuiopasdfzcvxnm><!-- comment --><foo test=\"test\" test=\"success\" /><!-- comment -->";
   XMLFile xml(strXML);
   TEST(xml.GetNodes() == 4);
   TEST(xml[(size_t)0]->GetName() == Str("foo"));
@@ -154,22 +141,22 @@ TESTDEF::RETPAIR test_XML()
   TEST(xml[3]->GetName() == Str("foo"));
   TEST(xml[3]->GetAttributes() == 1);
   TEST(xml[3]->GetNodes() == 0);
-  
+
   xml.Write("test.xml");
 
   XMLFile construct;
   construct.SetName("xml");
-  construct.AddAttribute("version")->String = "1.0";
+  construct.AddAttribute("version")->String  = "1.0";
   construct.AddAttribute("encoding")->String = "UTF-8";
-  XMLNode* node = construct.AddNode("foo");
+  XMLNode* node                              = construct.AddNode("foo");
   node->SetValue("abc&zxy   ");
   node->AddNode("bar");
   node->AddNode("bar2");
   node->AddNode("bar");
   node->AddNode("test");
   node->AddNode("test")->AddAttribute("test")->String = "attr";
-  node = construct.AddNode("foo");
-  node->AddAttribute("again")->String = "true";
+  node                                                = construct.AddNode("foo");
+  node->AddAttribute("again")->String                 = "true";
   node->AddAttribute("failfail");
   construct.AddNode("bobasdfghqwertyuiopasdfzcvxnm");
   construct.AddNode("foo")->AddAttribute("test")->String = "success";
@@ -223,17 +210,18 @@ TESTDEF::RETPAIR test_XML()
 
     std::stringstream ss2;
     s.Serialize(obj, ss2, "xmltest");
-    
+
     XMLtest obj2;
     s.Parse(obj2, ss2, "xmltest");
     dotest_XML(obj2, __testret);
   }
 
-  // Ensure that, even if we can't recover from various errors, the parser does not crash or go into an infinite loop due to bad data
+  // Ensure that, even if we can't recover from various errors, the parser does not crash or go into an infinite loop due to
+  // bad data
   for(size_t i = 1; i < strXML.length(); ++i)
   {
     XMLFile x(strXML.substr(0, i).c_str());
-    TEST(xml.GetName() != 0); //keep this from getting optimized out
+    TEST(xml.GetName() != 0); // keep this from getting optimized out
   }
 
   // Feed in an enormous amount of random gibberish to try and crash the parser

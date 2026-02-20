@@ -2,15 +2,14 @@
 // For conditions of distribution and use, see copyright notice in "buntils.h"
 
 #include "test.h"
-#include "buntils/buntils_c.h"
 #include "buntils/algo.h"
+#include "buntils/buntils_c.h"
 #include <functional>
 #include <thread>
 
 using namespace bun;
 
-template<typename CHAR>
-bool arbitrarycomp(const CHAR* l, const CHAR* r, ptrdiff_t n = -1)
+template<typename CHAR> bool arbitrarycomp(const CHAR* l, const CHAR* r, ptrdiff_t n = -1)
 {
   assert(l && r);
   while(*l && *r && --n)
@@ -24,8 +23,7 @@ bool arbitrarycomp(const CHAR* l, const CHAR* r, ptrdiff_t n = -1)
   return *l == *r;
 }
 
-template<typename CHAR>
-std::string arbitraryview(const CHAR* src, size_t len)
+template<typename CHAR> std::string arbitraryview(const CHAR* src, size_t len)
 {
   std::string r;
   for(size_t i = 0; i < len; ++i)
@@ -33,7 +31,8 @@ std::string arbitraryview(const CHAR* src, size_t len)
   return r;
 }
 template<typename FROM, typename TO>
-void testconvfunc(const FROM* from, size_t szfrom, const TO* to, size_t(f)(const FROM*BUN_RESTRICT, ptrdiff_t, TO*BUN_RESTRICT, size_t), TESTDEF::RETPAIR& __testret)
+void testconvfunc(const FROM* from, size_t szfrom, const TO* to,
+                  size_t(f)(const FROM* BUN_RESTRICT, ptrdiff_t, TO* BUN_RESTRICT, size_t), TESTDEF::RETPAIR& __testret)
 {
   size_t len = f(from, -1, 0, 0);
   VARARRAY(TO, target1, len);
@@ -64,10 +63,10 @@ void testconvfunc(const FROM* from, size_t szfrom, const TO* to, size_t(f)(const
   TEST(arbitrarycomp<TO>(target4.data(), to, len));
 }
 template<typename FROM, typename TO>
-void testconvzero(size_t(f)(const FROM*BUN_RESTRICT, ptrdiff_t, TO*BUN_RESTRICT, size_t), TESTDEF::RETPAIR& __testret)
+void testconvzero(size_t(f)(const FROM* BUN_RESTRICT, ptrdiff_t, TO* BUN_RESTRICT, size_t), TESTDEF::RETPAIR& __testret)
 {
-  FROM fzero = 0;
-  TO tzero = 0;
+  FROM fzero   = 0;
+  TO tzero     = 0;
   TO target[1] = { 1 };
 
   size_t len = f(&fzero, -1, 0, 0);
@@ -75,12 +74,12 @@ void testconvzero(size_t(f)(const FROM*BUN_RESTRICT, ptrdiff_t, TO*BUN_RESTRICT,
   TEST(target[0] == 0);
 
   target[0] = 1;
-  len = f(&fzero, 1, 0, 0);
+  len       = f(&fzero, 1, 0, 0);
   TEST(f(&fzero, 1, target, len) == 1);
   TEST(target[0] == 0);
 
   target[0] = 1;
-  len = f(&fzero, 0, 0, 0);
+  len       = f(&fzero, 0, 0, 0);
   TEST(f(&fzero, 0, target, len) == 0);
   TEST(target[0] == 1);
 }
@@ -97,14 +96,14 @@ TESTDEF::RETPAIR test_buntils_c()
   TEST(test.v[3] == 4);
 
   //_MM_SET_DENORMALS_ZERO_MODE(_MM_DENORMALS_ZERO_ON);
-  //int a=0;
-  //uint64_t prof = HighPrecisionTimer::OpenProfiler();
-  //CPU_Barrier();
-  //for(size_t i = 0; i < 1000000; ++i) {
+  // int a=0;
+  // uint64_t prof = HighPrecisionTimer::OpenProfiler();
+  // CPU_Barrier();
+  // for(size_t i = 0; i < 1000000; ++i) {
   //  a+= bun_RandInt(9,12);
   //}
-  //CPU_Barrier();
-  //std::cout << HighPrecisionTimer::CloseProfiler(prof) << " :( " << a << std::endl;
+  // CPU_Barrier();
+  // std::cout << HighPrecisionTimer::CloseProfiler(prof) << " :( " << a << std::endl;
 
   //{
   //  float aaaa = 0;
@@ -117,12 +116,16 @@ TESTDEF::RETPAIR test_buntils_c()
   //  std::cout << aaaa;
   //}
 
-  std::function<void()> b([]() { int i = 0; i += 1; return; });
+  std::function<void()> b([]() {
+    int i = 0;
+    i += 1;
+    return;
+  });
   b = std::move(std::function<void()>([]() { return; }));
 
   bunCPUInfo info = bunGetCPUInfo();
   TEST(info.cores == std::thread::hardware_concurrency());
-  TEST(info.sse>2); // You'd better support at least SSE2
+  TEST(info.sse > 2); // You'd better support at least SSE2
 #ifdef BUN_64BIT
   TEST(info.flags & 2); // You also have to support cmpxchg16b or lockless.h will explode
 #else
@@ -163,14 +166,16 @@ TESTDEF::RETPAIR test_buntils_c()
   char32_t outstr[1024];
   wchar_t wstr[1024];
   char instr[1024];
-  for(size_t i = 0; i < 1023; ++i) instr[i] = static_cast<char>(bun_RandInt(0, 256));
+  for(size_t i = 0; i < 1023; ++i)
+    instr[i] = static_cast<char>(bun_RandInt(0, 256));
   instr[1023] = 0;
 
   size_t len = UTF8toUTF32(instr, -1, 0, 0);
   TEST(len < 1024);
   TEST(UTF8toUTF32(instr, -1, outstr, len) <= len);
 
-  for(size_t i = 0; i < 255; ++i) outstr[i] = static_cast<char32_t>(bun_RandInt(0, 0xFFFFFFFF));
+  for(size_t i = 0; i < 255; ++i)
+    outstr[i] = static_cast<char32_t>(bun_RandInt(0, 0xFFFFFFFF));
   outstr[255] = 0;
 
   len = UTF32toUTF8(outstr, -1, 0, 0);
@@ -196,8 +201,8 @@ TESTDEF::RETPAIR test_buntils_c()
   }
 #endif
 
-  const char* conversion1 = "conversion";
-  const char32_t conversion3[] = { 'c', 'o', 'n','v','e','r','s','i','o','n',0 };
+  const char* conversion1      = "conversion";
+  const char32_t conversion3[] = { 'c', 'o', 'n', 'v', 'e', 'r', 's', 'i', 'o', 'n', 0 };
 
   testconvfunc<char, char32_t>(conversion1, 10, conversion3, &UTF8toUTF32, __testret);
   testconvfunc<char32_t, char>(conversion3, 10, conversion1, &UTF32toUTF8, __testret);

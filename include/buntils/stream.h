@@ -4,43 +4,56 @@
 #ifndef __STREAM_H__BUN__
 #define __STREAM_H__BUN__
 
+#include "DynArray.h"
+#include "Str.h"
 #include <sstream>
 #include <streambuf>
 #include <vector>
-#include "Str.h"
-#include "DynArray.h"
 
 /* modifies the basic_ostream so it takes wchar_t and converts it into UTF */
 template<class _Traits>
-inline std::basic_ostream<char, _Traits>& operator<<(std::basic_ostream<char, _Traits>& _Ostr, const wchar_t *_Val)
+inline std::basic_ostream<char, _Traits>& operator<<(std::basic_ostream<char, _Traits>& _Ostr, const wchar_t* _Val)
 {
   _Ostr << bun::Str(_Val).c_str();
   return _Ostr;
 }
 
 namespace bun {
-  /* Stream buffer that can output to any number of possible external streams, and auto-converts all wchar_t* input to UTF-8 */
+  /* Stream buffer that can output to any number of possible external streams, and auto-converts all wchar_t* input to UTF-8
+   */
 #pragma warning(push)
-#pragma warning(disable:4251)
+#pragma warning(disable : 4251)
   class BUN_COMPILER_DLLEXPORT StreamSplitter : public std::basic_stringbuf<char>
   {
-    inline StreamSplitter(const StreamSplitter& copy) = delete;
-      inline StreamSplitter& operator =(const StreamSplitter& right) = delete;
+    inline StreamSplitter(const StreamSplitter& copy)             = delete;
+    inline StreamSplitter& operator=(const StreamSplitter& right) = delete;
+
   public:
 #ifndef BUN_COMPILER_GCC
-    inline StreamSplitter(StreamSplitter&& mov) : std::basic_stringbuf<char>(std::move(mov)), _targets(std::move(mov._targets)) {}//, _wtargets(move(copy._wtargets)) {}
+    inline StreamSplitter(StreamSplitter&& mov) :
+      std::basic_stringbuf<char>(std::move(mov)), _targets(std::move(mov._targets))
+    {} //, _wtargets(move(copy._wtargets)) {}
 #endif
-    inline explicit StreamSplitter(std::ios_base::openmode _Mode = std::ios_base::out) : std::basic_stringbuf<char>(_Mode) {}
-    inline void AddTarget(std::ostream* stream) { sync(); _targets.push_back(stream); }
-    inline void ClearTargets() { sync(); _targets.clear(); } //_wtargets.clear(); }
+    inline explicit StreamSplitter(std::ios_base::openmode _Mode = std::ios_base::out) : std::basic_stringbuf<char>(_Mode)
+    {}
+    inline void AddTarget(std::ostream* stream)
+    {
+      sync();
+      _targets.push_back(stream);
+    }
+    inline void ClearTargets()
+    {
+      sync();
+      _targets.clear();
+    } //_wtargets.clear(); }
 
 #ifndef BUN_COMPILER_GCC
-    inline StreamSplitter& operator =(StreamSplitter&& right) 
-    { 
+    inline StreamSplitter& operator=(StreamSplitter&& right)
+    {
       std::basic_stringbuf<char>::operator=(std::move(right));
-      _targets = std::move(right._targets); 
+      _targets = std::move(right._targets);
       /*_wtargets=std::move(right._wtargets);*/
-      return *this; 
+      return *this;
     }
 #endif
 
@@ -52,54 +65,70 @@ namespace bun {
       for(size_t i = 0; i < _targets.size(); ++i)
         _targets[i]->write(basic_stringbuf<char>::pbase(), length).flush();
 
-      std::basic_stringbuf<char>::seekpos(0, std::ios_base::out); //Flush the buffer (make it overwrite itself because we no longer need what's in there)
+      std::basic_stringbuf<char>::seekpos(
+        0, std::ios_base::out); // Flush the buffer (make it overwrite itself because we no longer need what's in there)
       return std::basic_stringbuf<char>::sync();
     }
 
-  protected: // basic_stringbuf has move semantics, not copy semantics. Of course, VC++ doesn't actually warn you about this. Anywhere.
+  protected: // basic_stringbuf has move semantics, not copy semantics. Of course, VC++ doesn't actually warn you about
+             // this. Anywhere.
     std::vector<std::ostream*> _targets;
   };
-    
+
   // Implementation of a read-only memory stream buffer
-  template<class T>
-  class BUN_COMPILER_DLLEXPORT StreamBufArray : public std::streambuf
+  template<class T> class BUN_COMPILER_DLLEXPORT StreamBufArray : public std::streambuf
   {
-    inline StreamBufArray(const StreamBufArray& copy) = delete;
-    inline StreamBufArray& operator =(const StreamBufArray& right) = delete;
+    inline StreamBufArray(const StreamBufArray& copy)             = delete;
+    inline StreamBufArray& operator=(const StreamBufArray& right) = delete;
 
   public:
-    StreamBufArray(StreamBufArray&& mov) : std::streambuf(std::move(mov)), _begin(mov._begin), _cur(mov._cur), _end(mov._end)
-    { 
+    StreamBufArray(StreamBufArray&& mov) :
+      std::streambuf(std::move(mov)), _begin(mov._begin), _cur(mov._cur), _end(mov._end)
+    {
       mov._begin = 0;
-      mov._cur = 0;
-      mov._end = 0;
+      mov._cur   = 0;
+      mov._end   = 0;
     }
-    StreamBufArray(const T* src, size_t sz) : _begin(reinterpret_cast<const char*>(src)), _cur(reinterpret_cast<const char*>(src)), _end(reinterpret_cast<const char*>(src + sz)) {}
+    StreamBufArray(const T* src, size_t sz) :
+      _begin(reinterpret_cast<const char*>(src)),
+      _cur(reinterpret_cast<const char*>(src)),
+      _end(reinterpret_cast<const char*>(src + sz))
+    {}
 
-    inline StreamBufArray& operator =(StreamBufArray&& right)
+    inline StreamBufArray& operator=(StreamBufArray&& right)
     {
       std::streambuf::operator=(std::move(right));
-      _begin = right._begin;
-      _cur = right._cur;
-      _end = right._end;
+      _begin       = right._begin;
+      _cur         = right._cur;
+      _end         = right._end;
       right._begin = 0;
-      right._cur = 0;
-      right._end = 0;
+      right._cur   = 0;
+      right._end   = 0;
       return *this;
     }
 
   protected:
-    inline virtual int_type uflow() override { return (_cur == _end) ? traits_type::eof() : traits_type::to_int_type(*_cur++); }
-    inline virtual int_type underflow() override { return (_cur == _end) ? traits_type::eof() : traits_type::to_int_type(*_cur); }
+    inline virtual int_type uflow() override
+    {
+      return (_cur == _end) ? traits_type::eof() : traits_type::to_int_type(*_cur++);
+    }
+    inline virtual int_type underflow() override
+    {
+      return (_cur == _end) ? traits_type::eof() : traits_type::to_int_type(*_cur);
+    }
     inline virtual int_type pbackfail(int_type ch) override
     {
       if(_cur == _begin || (ch != traits_type::eof() && ch != _cur[-1]))
         return traits_type::eof();
       return traits_type::to_int_type(*--_cur);
     }
-    inline virtual std::streamsize showmanyc() override { assert(_cur <= _end); return _end - _cur; }
+    inline virtual std::streamsize showmanyc() override
+    {
+      assert(_cur <= _end);
+      return _end - _cur;
+    }
     inline virtual std::streamsize xsgetn(char* s, std::streamsize n) override
-    { 
+    {
       std::streamsize r = _end - _cur;
       if(r > n)
         r = n;
@@ -108,20 +137,17 @@ namespace bun {
       _cur += r;
       return r;
     }
-    virtual pos_type seekpos(pos_type sp_, std::ios_base::openmode which_) override { return seekoff(off_type(sp_), std::ios_base::beg, which_); }
+    virtual pos_type seekpos(pos_type sp_, std::ios_base::openmode which_) override
+    {
+      return seekoff(off_type(sp_), std::ios_base::beg, which_);
+    }
     virtual pos_type seekoff(off_type off, std::ios_base::seekdir way, std::ios_base::openmode which_) override
-    {	// change position by offset, according to way and mode
+    { // change position by offset, according to way and mode
       switch(way)
       {
-      case std::ios_base::cur:
-        _cur += off;
-        break;
-      case std::ios_base::end:
-        _cur = _end + off;
-        break;
-      case std::ios_base::beg:
-        _cur = _begin + off;
-        break;
+      case std::ios_base::cur: _cur += off; break;
+      case std::ios_base::end: _cur = _end + off; break;
+      case std::ios_base::beg: _cur = _begin + off; break;
       }
 
       return _cur - _begin;
@@ -136,38 +162,39 @@ namespace bun {
   template<class T, typename CType = size_t, typename Alloc = StandardAllocator<T>>
   class BUN_COMPILER_DLLEXPORT StreamBufDynArray : public std::streambuf
   {
-    using D = DynArray<T, CType, Alloc>;
-    inline StreamBufDynArray(const StreamBufDynArray& copy) = delete;
-    inline StreamBufDynArray& operator =(const StreamBufDynArray& right) = delete;
+    using D                                                             = DynArray<T, CType, Alloc>;
+    inline StreamBufDynArray(const StreamBufDynArray& copy)             = delete;
+    inline StreamBufDynArray& operator=(const StreamBufDynArray& right) = delete;
 
   public:
-    StreamBufDynArray(StreamBufDynArray&& mov) : std::streambuf(std::move(mov)), _ref(mov._ref){}
+    StreamBufDynArray(StreamBufDynArray&& mov) : std::streambuf(std::move(mov)), _ref(mov._ref) {}
     StreamBufDynArray(D& ref, CType begin = 0) : _ref(ref)
     {
-      setg(reinterpret_cast<char*>(_ref.begin() + begin), reinterpret_cast<char*>(_ref.begin() + begin), reinterpret_cast<char*>(_ref.end()));
+      setg(reinterpret_cast<char*>(_ref.begin() + begin), reinterpret_cast<char*>(_ref.begin() + begin),
+           reinterpret_cast<char*>(_ref.end()));
       setp(reinterpret_cast<char*>(_ref.end()), reinterpret_cast<char*>(_ref.begin() + _ref.Capacity()));
     }
 
   protected:
-    inline virtual pos_type seekpos(pos_type sp_, std::ios_base::openmode which_) override { return seekoff(off_type(sp_), std::ios_base::beg, which_); }
+    inline virtual pos_type seekpos(pos_type sp_, std::ios_base::openmode which_) override
+    {
+      return seekoff(off_type(sp_), std::ios_base::beg, which_);
+    }
     inline virtual pos_type seekoff(off_type off, std::ios_base::seekdir way, std::ios_base::openmode which_) override
-    {	// change position by offset, according to way and mode
+    { // change position by offset, according to way and mode
       switch(way)
       {
-      case std::ios_base::cur:
-        setg(eback(), gptr() + off, egptr());
-        break;
-      case std::ios_base::end:
-        setg(eback(), egptr() + off, egptr());
-        break;
-      case std::ios_base::beg:
-        setg(eback(), eback() + off, egptr());
-        break;
+      case std::ios_base::cur: setg(eback(), gptr() + off, egptr()); break;
+      case std::ios_base::end: setg(eback(), egptr() + off, egptr()); break;
+      case std::ios_base::beg: setg(eback(), eback() + off, egptr()); break;
       }
 
       return gptr() - eback();
     }
-    inline virtual int_type underflow() override { return gptr() == egptr() ? traits_type::eof() : traits_type::to_int_type(*gptr()); }
+    inline virtual int_type underflow() override
+    {
+      return gptr() == egptr() ? traits_type::eof() : traits_type::to_int_type(*gptr());
+    }
     inline virtual std::streamsize xsgetn(char* s, std::streamsize n) override
     {
       std::streamsize r = egptr() - gptr();
@@ -182,13 +209,16 @@ namespace bun {
     void _fixlength()
     {
       _ref._length = (pptr() - eback()) / sizeof(T); // Only set length to the number of fully written indexes
-      setg(eback(), gptr(), reinterpret_cast<char*>(_ref.end())); // We cast back from end() because we might not have finished writing through all the bytes in T
+      setg(eback(), gptr(),
+           reinterpret_cast<char*>(
+             _ref.end())); // We cast back from end() because we might not have finished writing through all the bytes in T
     }
     void _expand(CType sz)
     {
       ptrdiff_t goff = gptr() - eback();
       _ref.SetCapacity(std::max<CType>(fbnext(_ref._length), (sz / sizeof(T)) + _ref._length + 1));
-      setg(reinterpret_cast<char*>(_ref.begin()), reinterpret_cast<char*>(_ref.begin() + goff), reinterpret_cast<char*>(_ref.end()));
+      setg(reinterpret_cast<char*>(_ref.begin()), reinterpret_cast<char*>(_ref.begin() + goff),
+           reinterpret_cast<char*>(_ref.end()));
       setp(reinterpret_cast<char*>(_ref.end()), reinterpret_cast<char*>(_ref.begin() + _ref.Capacity()));
     }
     inline virtual int_type overflow(int_type ch) override
@@ -225,35 +255,35 @@ namespace bun {
 
     D& _ref;
   };
-  
+
   // Generic read/write streambuffer that performs an operation on the input and output.
   class StreamBufFunction : public std::streambuf
   {
-    inline StreamBufFunction(const StreamBufFunction& copy) = delete;
-    inline StreamBufFunction& operator =(const StreamBufFunction& right) = delete;
+    inline StreamBufFunction(const StreamBufFunction& copy)             = delete;
+    inline StreamBufFunction& operator=(const StreamBufFunction& right) = delete;
 
   public:
     StreamBufFunction(StreamBufFunction&&) = default;
-    StreamBufFunction(std::istream& in, size_t bufsize = DEFAULTBUFSIZE) : _ibuf(new char[bufsize]), _obuf(new char[bufsize]), _sz(bufsize), _in(&in), _out(0)
+    StreamBufFunction(std::istream& in, size_t bufsize = DEFAULTBUFSIZE) :
+      _ibuf(new char[bufsize]), _obuf(new char[bufsize]), _sz(bufsize), _in(&in), _out(0)
     {
       setg(_obuf.get() + _sz, _obuf.get() + _sz, _obuf.get() + _sz);
     }
-    StreamBufFunction(std::ostream& out, size_t bufsize = DEFAULTBUFSIZE) : _ibuf(new char[bufsize]), _obuf(new char[bufsize]), _sz(bufsize), _in(0), _out(&out)
+    StreamBufFunction(std::ostream& out, size_t bufsize = DEFAULTBUFSIZE) :
+      _ibuf(new char[bufsize]), _obuf(new char[bufsize]), _sz(bufsize), _in(0), _out(&out)
     {
       setp(_obuf.get() + _sz, _obuf.get() + _sz);
     }
-    ~StreamBufFunction()
-    {
-    }
+    ~StreamBufFunction() {}
     StreamBufFunction& operator=(StreamBufFunction&&) = default;
 
     static const size_t DEFAULTBUFSIZE = (std::size_t)1 << 18;
 
   protected:
-    inline virtual int_type sync() override 
-    { 
-      assert(_out != 0); 
-      if(_out) 
+    inline virtual int_type sync() override
+    {
+      assert(_out != 0);
+      if(_out)
         _out->flush();
       return 0;
     }
@@ -307,7 +337,7 @@ namespace bun {
       return r;
     }
     virtual void _onwrite() = 0; // should read input from _in when appropriate.
-    virtual void _onread() = 0; // should write output to _out when appropriate.
+    virtual void _onread()  = 0; // should write output to _out when appropriate.
 
     std::unique_ptr<char[]> _ibuf;
     std::unique_ptr<char[]> _obuf;

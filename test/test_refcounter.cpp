@@ -10,7 +10,11 @@ struct REF_TEST : DEBUG_CDT<false>, RefCounter
 {
   REF_TEST(TESTDEF::RETPAIR& t) : __testret(t) {}
   ~REF_TEST() { TEST(true); }
-  virtual void DestroyThis() { TEST(true); RefCounter::DestroyThis(); }
+  virtual void DestroyThis()
+  {
+    TEST(true);
+    RefCounter::DestroyThis();
+  }
 
   TESTDEF::RETPAIR& __testret;
 };

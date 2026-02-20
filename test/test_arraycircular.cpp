@@ -35,19 +35,19 @@ TESTDEF::RETPAIR test_ARRAYCIRCULAR()
   a.SetCapacity(26);
   for(int i = 0; i < 25; ++i)
     TEST(a[i] == (24 - (i % 25)));
-  a.Push(25); //This should overwrite 0
+  a.Push(25); // This should overwrite 0
   TEST(a[0] == 25);
   TEST(a[-1] == 0);
 
   {
-    int i = 26;
+    int i           = 26;
     const auto& ref = a;
     for(auto& v : ref)
       TEST(v == --i);
   }
 
-  //const ArrayCircular<int>& b=a;
-  //b[0]=5; // Should cause error
+  // const ArrayCircular<int>& b=a;
+  // b[0]=5; // Should cause error
 
   ENDTEST;
 }

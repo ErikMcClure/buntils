@@ -2,8 +2,8 @@
 // For conditions of distribution and use, see copyright notice in "buntils.h"
 
 #include "test.h"
-#include "buntils/DisjointSet.h"
 #include "buntils/algo.h"
+#include "buntils/DisjointSet.h"
 
 using namespace bun;
 
@@ -13,16 +13,16 @@ TESTDEF::RETPAIR test_DISJOINTSET()
 
   std::pair<uint32_t, uint32_t> E[10]; // Initialize a complete tree with an arbitrary order.
   bun_Fill(E, 0);
-  E[0].first = 1;
-  E[1].first = 2;
-  E[2].first = 3;
-  E[3].first = 4;
-  E[4].first = 2;
-  E[5].first = 3;
-  E[6].first = 4;
-  E[7].first = 3;
-  E[8].first = 4;
-  E[9].first = 4;
+  E[0].first  = 1;
+  E[1].first  = 2;
+  E[2].first  = 3;
+  E[3].first  = 4;
+  E[4].first  = 2;
+  E[5].first  = 3;
+  E[6].first  = 4;
+  E[7].first  = 3;
+  E[8].first  = 4;
+  E[9].first  = 4;
   E[4].second = 1;
   E[5].second = 1;
   E[6].second = 1;

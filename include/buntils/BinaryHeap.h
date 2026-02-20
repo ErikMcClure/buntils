@@ -6,8 +6,8 @@
 
 #include "compare.h"
 #include "DynArray.h"
-#include <memory>
 #include <limits>
+#include <memory>
 
 namespace bun {
   namespace internal {
@@ -18,10 +18,10 @@ namespace bun {
     };
   }
 
-  // This is a binary max-heap implemented using an array. Use inv_three_way to change it into a min-heap, or to make it use pairs.
+  // This is a binary max-heap implemented using an array. Use inv_three_way to change it into a min-heap, or to make it use
+  // pairs.
   template<class T, Comparison<T, T> Comp = std::compare_three_way, typename CType = size_t,
-           typename Alloc = StandardAllocator<T>,
-           class MFUNC = internal::MFUNC_DEFAULT<T, CType>>
+           typename Alloc = StandardAllocator<T>, class MFUNC = internal::MFUNC_DEFAULT<T, CType>>
   class BUN_COMPILER_DLLEXPORT BUN_EMPTY_BASES BinaryHeap :
     private Comp,
     protected MFUNC,
@@ -130,7 +130,7 @@ namespace bun {
       for(i = CBH_RIGHT(k); i < a.size(); i = CBH_RIGHT(i))
       {
         if(f(a[i - 1], a[i]) > 0) // f (left,right) and return true if left > right
-          --i;                                       // left is greater than right so pick that one
+          --i;                    // left is greater than right so pick that one
 
         if(f(static_cast<const T&>(val), a[i]) > 0)
           break;
@@ -179,12 +179,12 @@ namespace bun {
 
       while(length > 1)
       {
-        T store       = src[--length];
+        T store     = src[--length];
         src[length] = src[0];
         PercolateDown(src.subspan(0, length), 0, store, f);
       }
     }
-    
+
     using typename BASE::SerializerArray;
     template<typename Engine> void Serialize(Serializer<Engine>& s, const char* id)
     {

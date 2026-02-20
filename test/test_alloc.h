@@ -4,22 +4,23 @@
 #ifndef __BUN_TEST_ALLOC_H__
 #define __BUN_TEST_ALLOC_H__
 
-#include "buntils/Map.h"
-#include "buntils/algo.h"
 #include "test.h"
-#include "buntils/Thread.h"
+#include "buntils/algo.h"
 #include "buntils/CacheAlloc.h"
 #include "buntils/literals.h"
+#include "buntils/Map.h"
+#include "buntils/Thread.h"
 
-#pragma warning(disable:4101)
+#pragma warning(disable : 4101)
 
-template<template <typename> class A, typename T, bool VERIFY>
-bool TEST_ALLOC_FUZZER_REMOVE(std::conditional_t<VERIFY, bun::Map<T*, size_t>, bun::DynArray<std::tuple<T*, size_t>>>& plist, A<T>& _alloc, int id)
+template<template<typename> class A, typename T, bool VERIFY>
+bool TEST_ALLOC_FUZZER_REMOVE(
+  std::conditional_t<VERIFY, bun::Map<T*, size_t>, bun::DynArray<std::tuple<T*, size_t>>>& plist, A<T>& _alloc, int id)
 {
-  bool pass = true;
+  bool pass    = true;
   size_t index = (size_t)bun::bun_RandInt(0, plist.size());
-  auto&[p, s] = plist[index];
-  for(size_t i = 0; i<s * sizeof(T); ++i)
+  auto& [p, s] = plist[index];
+  for(size_t i = 0; i < s * sizeof(T); ++i)
   {
     if(reinterpret_cast<uint8_t*>(p)[i] != (uint8_t)((i + id) & 0xFF))
       pass = false;
@@ -36,37 +37,38 @@ bool TEST_ALLOC_FUZZER_REMOVE(std::conditional_t<VERIFY, bun::Map<T*, size_t>, b
   return pass;
 }
 
-template<template <typename> class A, typename T, int MAXSIZE, int TRIALS, bool VERIFY>
+template<template<typename> class A, typename T, int MAXSIZE, int TRIALS, bool VERIFY>
 void TEST_ALLOC_FUZZER_THREAD(TESTDEF::RETPAIR& __testret, A<T>& _alloc, int id)
 {
   bool pass = true;
   std::conditional_t<VERIFY, bun::Map<T*, size_t>, bun::DynArray<std::tuple<T*, size_t>>> plist;
-  
-  while(!startflag.load());
+
+  while(!startflag.load())
+    ;
   for(size_t k = 0; k < TRIALS; ++k)
   {
     if(bun::bun_RandInt(0, 10) < 5 || plist.size() < 3)
     {
       size_t sz = (size_t)bun::bun_RandInt(1, MAXSIZE);
-      T* test = _alloc.allocate(sz);
-      //if constexpr(std::is_base_of<CacheAlloc, A<T>>::value) _alloc.VERIFY();
+      T* test   = _alloc.allocate(sz);
+      // if constexpr(std::is_base_of<CacheAlloc, A<T>>::value) _alloc.VERIFY();
       for(size_t i = 0; i < (sz * sizeof(T)); ++i)
         reinterpret_cast<uint8_t*>(test)[i] = (uint8_t)((i + id) & 0xFF);
-      //if constexpr(std::is_base_of<CacheAlloc, A<T>>::value) _alloc.VERIFY();
+      // if constexpr(std::is_base_of<CacheAlloc, A<T>>::value) _alloc.VERIFY();
 
       if constexpr(VERIFY)
       {
         size_t before = plist.GetNear(test, true);
-        size_t after = before + 1;
+        size_t after  = before + 1;
         if(before != ~0_sz)
         {
-          auto[p, s] = plist[before];
+          auto [p, s] = plist[before];
           if((reinterpret_cast<char*>(p) + (s * sizeof(T))) > reinterpret_cast<char*>(test))
             pass = false;
         }
         if(after < plist.size())
         {
-          auto[p, s] = plist[after];
+          auto [p, s] = plist[after];
           if((reinterpret_cast<char*>(test) + (sz * sizeof(T))) > reinterpret_cast<char*>(p))
             pass = false;
         }
@@ -78,28 +80,28 @@ void TEST_ALLOC_FUZZER_THREAD(TESTDEF::RETPAIR& __testret, A<T>& _alloc, int id)
     else
       pass = pass && TEST_ALLOC_FUZZER_REMOVE<A, T, VERIFY>(plist, _alloc, id);
   }
-  while (plist.size())
+  while(plist.size())
   {
     auto test = plist.size();
-    pass = pass && TEST_ALLOC_FUZZER_REMOVE<A, T, VERIFY>(plist, _alloc, id);
+    pass      = pass && TEST_ALLOC_FUZZER_REMOVE<A, T, VERIFY>(plist, _alloc, id);
     assert(plist.size() == test - 1);
   }
 
   TEST(pass);
 }
 
-template<template <typename> class A, typename T, int MAXSIZE, int TRIALS, typename... Args>
+template<template<typename> class A, typename T, int MAXSIZE, int TRIALS, typename... Args>
 void TEST_ALLOC_FUZZER(TESTDEF::RETPAIR& __testret, Args... args)
 {
   startflag.store(true);
-  for(int k = 0; k<10; ++k)
+  for(int k = 0; k < 10; ++k)
   {
     A<T> _alloc(args...);
     TEST_ALLOC_FUZZER_THREAD<A, T, MAXSIZE, TRIALS, true>(__testret, _alloc, 1);
   }
 }
 
-template<template <typename> class A, typename T, int MAXSIZE, int TRIALS, typename... Args>
+template<template<typename> class A, typename T, int MAXSIZE, int TRIALS, typename... Args>
 void TEST_ALLOC_MT(TESTDEF::RETPAIR& __testret, Args... args)
 {
   A<T> _alloc(args...);
@@ -109,7 +111,8 @@ void TEST_ALLOC_MT(TESTDEF::RETPAIR& __testret, Args... args)
   {
     startflag.store(false);
     for(int i = 0; i < NUM; ++i)
-      threads[i] = bun::Thread(&TEST_ALLOC_FUZZER_THREAD<A, T, MAXSIZE, TRIALS, false>, std::ref(__testret), std::ref(_alloc), i + 1);
+      threads[i] =
+        bun::Thread(&TEST_ALLOC_FUZZER_THREAD<A, T, MAXSIZE, TRIALS, false>, std::ref(__testret), std::ref(_alloc), i + 1);
     startflag.store(true);
 
     for(int i = 0; i < NUM; ++i)

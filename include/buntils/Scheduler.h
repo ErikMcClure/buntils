@@ -4,17 +4,20 @@
 #ifndef __SCHEDULER_H__BUN__
 #define __SCHEDULER_H__BUN__
 
-#include "HighPrecisionTimer.h"
 #include "BinaryHeap.h"
+#include "HighPrecisionTimer.h"
 
 namespace bun {
-  // Scheduler object that lets you schedule events that happen x milliseconds into the future. If the event returns a number greater than 0,it will be rescheduled. 
-  template<typename F, typename ST = size_t, typename Alloc = StandardAllocator<std::pair<double, F>>> //std::function<double(void)>
+  // Scheduler object that lets you schedule events that happen x milliseconds into the future. If the event returns a
+  // number greater than 0,it will be rescheduled.
+  template<typename F, typename ST = size_t,
+           typename Alloc = StandardAllocator<std::pair<double, F>>> // std::function<double(void)>
   class BUN_COMPILER_DLLEXPORT Scheduler :
     protected HighPrecisionTimer,
     protected BinaryHeap<std::pair<double, F>, first_three_way<double, double, inv_three_way>, ST, Alloc>
   {
     using BASE = BinaryHeap<std::pair<double, F>, first_three_way<double, double, inv_three_way>, ST, Alloc>;
+
   public:
     // Constructor
     inline explicit Scheduler(const Alloc& alloc) : BASE(alloc) {}
@@ -41,7 +44,9 @@ namespace bun {
         if(r == 0.0)
           BASE::Remove(0);
         else
-          BASE::Set(0, std::pair<double, F>(r + _time, BASE::Peek().second)); // This is why we don't use the actual priority queue data structure
+          BASE::Set(0,
+                    std::pair<double, F>(
+                      r + _time, BASE::Peek().second)); // This is why we don't use the actual priority queue data structure
       }
     }
   };

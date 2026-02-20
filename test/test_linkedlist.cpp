@@ -6,11 +6,10 @@
 
 using namespace bun;
 
-template<typename Alloc, bool L, bool S>
-bool cmplist(LinkedList<int, Alloc, L, S>& list, const char* nums)
+template<typename Alloc, bool L, bool S> bool cmplist(LinkedList<int, Alloc, L, S>& list, const char* nums)
 {
   auto cur = list.begin();
-  bool r = true;
+  bool r   = true;
   while(cur.IsValid() && *nums != 0 && r)
     r = (*(cur++) == (*(nums++) - '0'));
   return r;

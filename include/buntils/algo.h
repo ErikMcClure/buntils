@@ -4,14 +4,14 @@
 #ifndef __BUN_ALGO_H__
 #define __BUN_ALGO_H__
 
+#include "Array.h"
 #include "compare.h"
 #include "sseVec.h"
 #include "XorshiftEngine.h"
-#include "Array.h"
 #include <algorithm>
-#include <utility>
-#include <random>
 #include <array>
+#include <random>
+#include <utility>
 #ifdef BUN_COMPILER_GCC
   #include <alloca.h>
 #endif
@@ -130,10 +130,10 @@ namespace bun {
   }
 
   template<sized_random_access_range R, typename D, Comparison<range_value_t<R>, D> C>
-  BUN_FORCEINLINE std::ranges::range_size_t<R> BinarySearchExact(R&& arr, const D& data,
-                                                                 C c = std::compare_three_way{})
+  BUN_FORCEINLINE std::ranges::range_size_t<R> BinarySearchExact(R&& arr, const D& data, C c = std::compare_three_way{})
   {
-    return BinarySearchExact<R, D, C, std::ranges::range_size_t<R>>(std::forward<R>(arr), data, 0, std::ranges::size(arr), c);
+    return BinarySearchExact<R, D, C, std::ranges::range_size_t<R>>(std::forward<R>(arr), data, 0, std::ranges::size(arr),
+                                                                    c);
   }
 
   // Generates a canonical function for the given real type with the maximum number of bits.
@@ -320,8 +320,7 @@ namespace bun {
     static constexpr float m[4][4] = { { -1.0f, 3.0f, -3.0f, 1.0f },
                                        { 3.0f, -6.0f, 3.0f, 0 },
                                        { -3.0f, 3, 0, 0 },
-                                       { 1.0f, 0, 0, 0 }
-    };
+                                       { 1.0f, 0, 0, 0 } };
     const float p[4]               = { p1, p2, p3, p4 };
     return StaticGenericSpline<T, D, m>(t, p);
   }

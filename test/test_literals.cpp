@@ -20,7 +20,7 @@ TESTDEF::RETPAIR test_LITERALS()
   TESTSTATIC(0_deg == 0.0);
   TESTSTATIC(1_deg == (PI / 180.0));
   TESTSTATIC(180_deg == PI);
-  TESTSTATIC(360_deg == PI*2.0);
+  TESTSTATIC(360_deg == PI * 2.0);
   TESTSTATIC(0_rad == 0.0);
   TESTSTATIC(1_rad == (180.0 / PI));
   ENDTEST;

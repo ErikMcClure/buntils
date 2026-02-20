@@ -2,9 +2,9 @@
 // For conditions of distribution and use, see copyright notice in "buntils.h"
 
 #include "buntils/buntils.h"
-#include "buntils/Str.h"
-#include "buntils/os.h"
 #include "buntils/ArraySort.h"
+#include "buntils/os.h"
+#include "buntils/Str.h"
 #ifdef BUN_PLATFORM_WIN32
   #include "buntils/win32_includes.h"
   #include <Commdlg.h>

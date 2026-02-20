@@ -33,10 +33,10 @@ TESTDEF::RETPAIR test_STREAM()
   TEST(ss2.str() == "2 b c ");
   TEST(ss3.str() == "3 c ");
 
-  int acheck[] = { 0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 50000, 50001, 50002, 50003, 50004, 50005, 6, 77777777, 88 };
-  int bcheck[] = { 0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 50000, 50001, 50002, 50003, 50004, 50005, 6, 77777777, 88 };
+  int acheck[]    = { 0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 50000, 50001, 50002, 50003, 50004, 50005, 6, 77777777, 88 };
+  int bcheck[]    = { 0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 50000, 50001, 50002, 50003, 50004, 50005, 6, 77777777, 88 };
   DynArray<int> a = DynArray<int>(std::span<int>(acheck));
-  TEST(a.size() == sizeof(acheck)/sizeof(int));
+  TEST(a.size() == sizeof(acheck) / sizeof(int));
   DynArray<short> b;
   DynArray<int> c;
 
@@ -44,10 +44,10 @@ TESTDEF::RETPAIR test_STREAM()
   std::istream read(&readbuf);
   read.get();
   read.unget();
-  read.read((char*)bcheck, sizeof(int)*2);
+  read.read((char*)bcheck, sizeof(int) * 2);
   read.get();
   read.unget();
-  read.read((char*)(bcheck + 2), sizeof(bcheck) - sizeof(int)*2);
+  read.read((char*)(bcheck + 2), sizeof(bcheck) - sizeof(int) * 2);
   TEST(!memcmp(acheck, bcheck, sizeof(bcheck)));
 
   StreamBufDynArray<int> idynbuf(a);
@@ -74,8 +74,8 @@ TESTDEF::RETPAIR test_STREAM()
   f(idyn, rwdyn, sizeof(short));
   f(rwdyn, odyn, sizeof(int));
 
-  TEST(a.size()*2 == b.size());
-  TEST(b.size() == c.size()*2);
+  TEST(a.size() * 2 == b.size());
+  TEST(b.size() == c.size() * 2);
   if(a.size() * 2 == b.size())
     TEST(!memcmp(a.begin(), b.begin(), a.size() * sizeof(int)));
   if(b.size() == c.size() * 2)
@@ -116,4 +116,4 @@ TESTDEF::RETPAIR test_STREAM()
   }
 
   ENDTEST;
-}//*/
+} //*/

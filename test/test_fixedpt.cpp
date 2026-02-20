@@ -24,7 +24,8 @@ TESTDEF::RETPAIR test_FIXEDPT()
     TEST(fCompare(res, fp));
     fp *= 6.847399;
     res *= 6.847399f;
-    TEST(fCompare(res, fp, 215)); // We start approaching the edge of our fixed point range here so things predictably get out of whack
+    TEST(fCompare(
+      res, fp, 215)); // We start approaching the edge of our fixed point range here so things predictably get out of whack
     res = fp;
     fp /= 748.9272;
     res /= 748.9272f;
@@ -43,7 +44,8 @@ TESTDEF::RETPAIR test_FIXEDPT()
     TEST(fCompare(res, fp));
     fp *= 6.847399;
     res *= 6.847399f;
-    TEST(fCompare(res, fp, 215)); // We start approaching the edge of our fixed point range here so things predictably get out of whack
+    TEST(fCompare(
+      res, fp, 215)); // We start approaching the edge of our fixed point range here so things predictably get out of whack
     res = fp;
     fp /= 748.9272;
     res /= 748.9272f;

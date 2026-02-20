@@ -11,19 +11,18 @@ namespace bun {
   // Multithreaded allocator that matches exact allocation sizes with a hash, backed with a greedy allocator.
   class BUN_COMPILER_DLLEXPORT CacheAlloc : protected GreedyAlloc
   {
-    CacheAlloc(const CacheAlloc& copy) = delete;
+    CacheAlloc(const CacheAlloc& copy)            = delete;
     CacheAlloc& operator=(const CacheAlloc& copy) = delete;
-    
+
   public:
-    inline CacheAlloc(CacheAlloc&& mov) : GreedyAlloc(std::move(mov)), _maxsize(mov._maxsize), _debugalign(mov._debugalign) {}
-    inline explicit CacheAlloc(size_t maxsize = 8192, size_t init = 64, size_t align = 1) : GreedyAlloc(init, align), _maxsize(maxsize), _debugalign(bun_max(align, sizeof(size_t))) {}
+    inline CacheAlloc(CacheAlloc&& mov) : GreedyAlloc(std::move(mov)), _maxsize(mov._maxsize), _debugalign(mov._debugalign)
+    {}
+    inline explicit CacheAlloc(size_t maxsize = 8192, size_t init = 64, size_t align = 1) :
+      GreedyAlloc(init, align), _maxsize(maxsize), _debugalign(bun_max(align, sizeof(size_t)))
+    {}
     inline ~CacheAlloc() {}
 
-    template<typename T>
-    inline T* AllocT(size_t num) noexcept
-    {
-      return (T*)Alloc(num * sizeof(T));
-    }
+    template<typename T> inline T* AllocT(size_t num) noexcept { return (T*)Alloc(num * sizeof(T)); }
     inline void* Alloc(size_t sz) noexcept
     {
       char* p;
@@ -45,7 +44,7 @@ namespace bun {
         }
         assert(_cache.ExistsIter(i));
         bun_PTag<void>& freelist = _cache.Value(i);
-        bun_PTag<void> ret = { 0, 0 };
+        bun_PTag<void> ret       = { 0, 0 };
         bun_PTag<void> nval;
         asmcasr<bun_PTag<void>>(&freelist, ret, ret, ret);
         assert(!ret.p || _verifyDEBUG(ret.p));
@@ -63,7 +62,7 @@ namespace bun {
             break;
           }
 
-          nval.p = *((void**)ret.p);
+          nval.p   = *((void**)ret.p);
           nval.tag = ret.tag + 1;
 
           if(asmcasr<bun_PTag<void>>(&freelist, nval, ret, ret))
@@ -85,7 +84,7 @@ namespace bun {
     {
 #ifdef BUN_DEBUG
       void* r = p;
-      p = reinterpret_cast<char*>(p) - _debugalign;
+      p       = reinterpret_cast<char*>(p) - _debugalign;
       assert(*reinterpret_cast<size_t*>(p) == sz);
 #endif
       if(sz > _maxsize)
@@ -121,7 +120,7 @@ namespace bun {
 
       do
       {
-        nval.tag = prev.tag + 1;
+        nval.tag            = prev.tag + 1;
         *((void**)(target)) = (void*)prev.p;
       } while(!asmcasr<bun_PTag<void>>(freelist, nval, prev, prev));
     }
@@ -129,12 +128,11 @@ namespace bun {
     alignas(16) RWLock _cachelock;
     const size_t _maxsize;
     const size_t _debugalign;
-    HashIns<size_t, bun_PTag<void>, StandardAllocator<std::byte, 16>> _cache; // Each size in the hash points to a freelist for allocations of that size
+    HashIns<size_t, bun_PTag<void>, StandardAllocator<std::byte, 16>>
+      _cache; // Each size in the hash points to a freelist for allocations of that size
   };
 
-
-  template<typename T>
-  struct BUN_COMPILER_DLLEXPORT CachePolicy : protected CacheAlloc
+  template<typename T> struct BUN_COMPILER_DLLEXPORT CachePolicy : protected CacheAlloc
   {
     CachePolicy() = default;
     inline explicit CachePolicy(size_t maxsize, size_t init = 64, size_t align = 1) : CacheAlloc(maxsize, init, align) {}
@@ -153,8 +151,9 @@ namespace bun {
       return n;
     }
     inline void deallocate(T* p, std::size_t num = 0) noexcept { CacheAlloc::Dealloc(p, num * sizeof(T)); }
-    inline void Clear() noexcept { }
-    void VERIFY() {
+    inline void Clear() noexcept {}
+    void VERIFY()
+    {
       _cachelock.RLock();
       for(khiter_t i : _cache)
       {
@@ -164,7 +163,7 @@ namespace bun {
           if(!_verifyDEBUG(p))
           {
             printf("%p: %zu", p, _cache.GetKey(i));
-            //DUMP();
+            // DUMP();
             abort();
           }
           p = *((void**)p);

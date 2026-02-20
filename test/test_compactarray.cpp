@@ -72,7 +72,7 @@ TESTDEF::RETPAIR test_COMPACTARRAY()
   CompactArray<int> y;
   y.Add(9);
   y.Add(11);
-  
+
   int zvars[5] = { 4, 3, 2, 1, 5 };
   y.Set(std::span(zvars).subspan(0, 3));
   TEST(y.size() == 3);

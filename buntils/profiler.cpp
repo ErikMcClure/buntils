@@ -2,10 +2,10 @@
 // For conditions of distribution and use, see copyright notice in "buntils.h"
 
 #include "buntils/buntils.h"
-#include "buntils/Profiler.h"
-#include "buntils/Str.h"
 #include "buntils/ArraySort.h"
 #include "buntils/GreedyAlloc.h"
+#include "buntils/Profiler.h"
+#include "buntils/Str.h"
 #include <fstream>
 
 namespace bun {

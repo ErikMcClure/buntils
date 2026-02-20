@@ -5,10 +5,10 @@
 #define __BUN_COMPARE_H__
 
 #include "defines.h"
-#include <string.h>
-#include <utility>
 #include <compare>
 #include <ranges>
+#include <string.h>
+#include <utility>
 #define SGNCOMPARE(left, right) (((left) > (right)) - ((left) < (right)))
 
 namespace bun {
@@ -64,7 +64,8 @@ namespace bun {
   };
 
   // Assumes both arguments are pairs and does a comparison between the first elements
-  template<typename L1, typename R1 = L1, Comparison<L1, R1> C = std::compare_three_way> struct first_three_way : protected C
+  template<typename L1, typename R1 = L1, Comparison<L1, R1> C = std::compare_three_way>
+  struct first_three_way : protected C
   {
     first_three_way() = default;
     first_three_way(const C& c) : C(c) {}
@@ -84,7 +85,8 @@ namespace bun {
   };
 
   // Assumes both arguments are pairs and does a comparison between the second elements
-  template<typename L2, typename R2 = L2, Comparison<L2, R2> C = std::compare_three_way> struct second_three_way : protected C
+  template<typename L2, typename R2 = L2, Comparison<L2, R2> C = std::compare_three_way>
+  struct second_three_way : protected C
   {
     second_three_way() = default;
     second_three_way(const C& c) : C(c) {}
@@ -104,7 +106,8 @@ namespace bun {
   };
 
   // Assumes both arguments are pairs and compares both elements, in order
-  template<typename L, typename R = L, Comparison<typename L::first_type, typename R::first_type> FC = std::compare_three_way,
+  template<typename L, typename R = L,
+           Comparison<typename L::first_type, typename R::first_type> FC   = std::compare_three_way,
            Comparison<typename L::second_type, typename R::second_type> SC = std::compare_three_way>
   struct BUN_EMPTY_BASES both_three_way : protected FC, protected SC
   {
@@ -125,8 +128,7 @@ namespace bun {
   };
 
   // Specialization to handle when LC == RC
-  template<typename L, typename R,
-           Comparison<typename L::first_type, typename R::first_type> C>
+  template<typename L, typename R, Comparison<typename L::first_type, typename R::first_type> C>
   struct BUN_EMPTY_BASES both_three_way<L, R, C, C> : protected C
   {
     both_three_way()                      = default;

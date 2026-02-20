@@ -7,8 +7,8 @@
 #include "DynArray.h"
 #include "Hash.h"
 #include "LLBase.h"
-#include "Str.h"
 #include "Serializer.h"
+#include "Str.h"
 #include <sstream>
 
 namespace bun {
@@ -16,17 +16,36 @@ namespace bun {
   struct BUN_COMPILER_DLLEXPORT XMLValue
   {
     XMLValue(const XMLValue& copy) : Name(copy.Name), String(copy.String), Float(copy.Float), Integer(copy.Integer) {}
-    XMLValue(XMLValue&& mov) : Name(std::move(mov.Name)), String(std::move(mov.String)), Float(std::move(mov.Float)), Integer(std::move(mov.Integer)) {}
+    XMLValue(XMLValue&& mov) :
+      Name(std::move(mov.Name)), String(std::move(mov.String)), Float(std::move(mov.Float)), Integer(std::move(mov.Integer))
+    {}
     XMLValue() : Float(0.0), Integer(0) {}
     Str Name;
     Str String;
     double Float;
     int64_t Integer;
 
-    inline XMLValue& operator=(const XMLValue& copy) { Name = copy.Name; String = copy.String; Float = copy.Float; Integer = copy.Integer; return *this; }
-    inline XMLValue& operator=(XMLValue&& mov) { Name = std::move(mov.Name); String = std::move(mov.String); Float = mov.Float; Integer = mov.Integer; return *this; }
+    inline XMLValue& operator=(const XMLValue& copy)
+    {
+      Name    = copy.Name;
+      String  = copy.String;
+      Float   = copy.Float;
+      Integer = copy.Integer;
+      return *this;
+    }
+    inline XMLValue& operator=(XMLValue&& mov)
+    {
+      Name    = std::move(mov.Name);
+      String  = std::move(mov.String);
+      Float   = mov.Float;
+      Integer = mov.Integer;
+      return *this;
+    }
 
-    BUN_FORCEINLINE operator bool() const { return Integer != 0; } // If the string is "true" the integer gets set to 1 by the parser.
+    BUN_FORCEINLINE operator bool() const
+    {
+      return Integer != 0;
+    } // If the string is "true" the integer gets set to 1 by the parser.
     BUN_FORCEINLINE operator int8_t() const { return static_cast<int8_t>(Integer); }
     BUN_FORCEINLINE operator int16_t() const { return static_cast<int16_t>(Integer); }
     BUN_FORCEINLINE operator int32_t() const { return static_cast<int32_t>(Integer); }
@@ -48,18 +67,39 @@ namespace bun {
     explicit XMLNode(const char* parse = 0);
     explicit XMLNode(std::istream& stream);
     BUN_FORCEINLINE const char* GetName() const { return _name; }
-    BUN_FORCEINLINE const XMLNode* GetNode(size_t index) const { return index >= _nodes.size() ? nullptr : _nodes[index].get(); }
+    BUN_FORCEINLINE const XMLNode* GetNode(size_t index) const
+    {
+      return index >= _nodes.size() ? nullptr : _nodes[index].get();
+    }
     BUN_FORCEINLINE XMLNode* GetNode(size_t index) { return index >= _nodes.size() ? nullptr : _nodes[index].get(); }
     BUN_FORCEINLINE const XMLNode* GetNode(const char* name) const { return GetNode(_nodehash[name]); }
     BUN_FORCEINLINE XMLNode* GetNode(const char* name) { return GetNode(_nodehash[name]); }
     BUN_FORCEINLINE size_t GetNodes() const { return _nodes.size(); }
-    BUN_FORCEINLINE const XMLValue* GetAttribute(size_t index) const { return index >= _attributes.size() ? nullptr : (_attributes.data() + index); }
-    BUN_FORCEINLINE XMLValue* GetAttribute(size_t index) { return index >= _attributes.size() ? nullptr : (_attributes.data() + index); }
+    BUN_FORCEINLINE const XMLValue* GetAttribute(size_t index) const
+    {
+      return index >= _attributes.size() ? nullptr : (_attributes.data() + index);
+    }
+    BUN_FORCEINLINE XMLValue* GetAttribute(size_t index)
+    {
+      return index >= _attributes.size() ? nullptr : (_attributes.data() + index);
+    }
     BUN_FORCEINLINE const XMLValue* GetAttribute(const char* name) const { return GetAttribute(_attrhash[name]); }
     BUN_FORCEINLINE XMLValue* GetAttribute(const char* name) { return GetAttribute(_attrhash[name]); }
-    BUN_FORCEINLINE const char* GetAttributeString(const char* name) const { const XMLValue* r = GetAttribute(_attrhash[name]); return !r ? nullptr : r->String.c_str(); }
-    BUN_FORCEINLINE const int64_t GetAttributeInt(const char* name) const { const XMLValue* r = GetAttribute(_attrhash[name]); return !r ? 0 : r->Integer; }
-    BUN_FORCEINLINE const double GetAttributeFloat(const char* name) const { const XMLValue* r = GetAttribute(_attrhash[name]); return !r ? 0 : r->Float; }
+    BUN_FORCEINLINE const char* GetAttributeString(const char* name) const
+    {
+      const XMLValue* r = GetAttribute(_attrhash[name]);
+      return !r ? nullptr : r->String.c_str();
+    }
+    BUN_FORCEINLINE const int64_t GetAttributeInt(const char* name) const
+    {
+      const XMLValue* r = GetAttribute(_attrhash[name]);
+      return !r ? 0 : r->Integer;
+    }
+    BUN_FORCEINLINE const double GetAttributeFloat(const char* name) const
+    {
+      const XMLValue* r = GetAttribute(_attrhash[name]);
+      return !r ? 0 : r->Float;
+    }
     BUN_FORCEINLINE size_t GetAttributes() const { return _attributes.size(); }
     BUN_FORCEINLINE const XMLValue& GetValue() const { return _value; }
     BUN_FORCEINLINE XMLValue& GetValue() { return _value; }
@@ -90,8 +130,8 @@ namespace bun {
     BUN_FORCEINLINE const XMLValue* operator()(const char* name) const { return GetAttribute(name); }
 
   protected:
-    XMLNode* _addNode(std::unique_ptr<XMLNode> && n);
-    XMLValue* _addAttribute(XMLValue && v);
+    XMLNode* _addNode(std::unique_ptr<XMLNode>&& n);
+    XMLValue* _addAttribute(XMLValue&& v);
     bool _parse(std::istream& stream, Str& buf);
     void _parseInner(std::istream& stream, Str& buf);
     void _parseAttribute(Str& buf);
@@ -128,7 +168,7 @@ namespace bun {
     void Read(std::istream& stream);
 
     inline XMLFile& operator=(const XMLFile& copy) = default;
-    inline XMLFile& operator=(XMLFile&& mov) = default;
+    inline XMLFile& operator=(XMLFile&& mov)       = default;
     BUN_FORCEINLINE const XMLNode* operator[](size_t index) const { return GetNode(index); }
     BUN_FORCEINLINE const XMLNode* operator[](const char* name) const { return GetNode(name); }
     BUN_FORCEINLINE const XMLValue* operator()(size_t index) const { return GetAttribute(index); }
@@ -142,13 +182,13 @@ namespace bun {
   {
   public:
     XMLEngine() : pretty(true), arrayID(0), cur(0), curvalue(0), curindices(0) {}
-    static constexpr bool Ordered() { return false; }
+    static consteval bool Ordered() { return false; }
     static void Begin(Serializer<XMLEngine>& e)
     {
       e.engine.file.Clear();
-      e.engine.arrayID = 0;
-      e.engine.cur = &e.engine.file;
-      e.engine.curvalue = 0;
+      e.engine.arrayID    = 0;
+      e.engine.cur        = &e.engine.file;
+      e.engine.curvalue   = 0;
       e.engine.curindices = 0;
 
       if(e.in)
@@ -159,27 +199,26 @@ namespace bun {
       if(e.out)
         e.engine.file.Write(*e.out, e.engine.pretty);
     }
-    template<typename T>
-    static void Serialize(Serializer<XMLEngine>& e, const T& t, const char* id)
+    template<typename T> static void Serialize(Serializer<XMLEngine>& e, const T& t, const char* id)
     {
       if constexpr(std::is_base_of<std::string, T>::value)
       {
         XMLValue* v = id ? e.engine.cur->AddAttribute(id) : &e.engine.cur->AddNode(e.engine.arrayID)->GetValue();
-        v->String = t.c_str();
+        v->String   = t.c_str();
       }
       else
       {
         internal::serializer::PushValue<XMLNode*> push(e.engine.cur, e.engine.cur->AddNode(!id ? e.engine.arrayID : id));
-        static_assert(internal::serializer::is_serializable<XMLEngine, T>::value, "object missing Serialize<Engine>(Serializer<Engine>&, const char*) function!");
+        static_assert(internal::serializer::is_serializable<XMLEngine, T>::value,
+                      "object missing Serialize<Engine>(Serializer<Engine>&, const char*) function!");
         const_cast<T&>(t).template Serialize<XMLEngine>(e, id);
       }
     }
-    template<typename T>
-    static void SerializeArray(Serializer<XMLEngine>& e, const T& t, size_t size, const char* id)
+    template<typename T> static void SerializeArray(Serializer<XMLEngine>& e, const T& t, size_t size, const char* id)
     {
       internal::serializer::PushValue<const char*> push(e.engine.arrayID, id);
       auto begin = std::begin(t);
-      auto end = std::end(t);
+      auto end   = std::end(t);
       for(; begin != end; ++begin)
         Serializer<XMLEngine>::ActionBind<std::remove_cvref_t<decltype(*begin)>>::Serialize(e, *begin, 0);
     }
@@ -189,10 +228,12 @@ namespace bun {
       internal::serializer::PushValue<const char*> push(e.engine.arrayID, id);
       (Serializer<XMLEngine>::ActionBind<std::tuple_element_t<S, T>>::Serialize(e, std::get<S>(t), 0), ...);
     }
-    template<typename T>
-    static void SerializeNumber(Serializer<XMLEngine>& e, T t, const char* id)
+    template<typename T> static void SerializeNumber(Serializer<XMLEngine>& e, T t, const char* id)
     {
-      XMLValue* v = id ? e.engine.cur->AddAttribute(id) : &e.engine.cur->AddNode(e.engine.arrayID)->GetValue(); // We don't need to update e.engine.cur here because there's nothing else to serialize
+      XMLValue* v =
+        id ? e.engine.cur->AddAttribute(id) :
+             &e.engine.cur->AddNode(e.engine.arrayID)
+                ->GetValue(); // We don't need to update e.engine.cur here because there's nothing else to serialize
       std::ostringstream ss(std::ios_base::out);
 
       if constexpr(std::is_floating_point<T>::value)
@@ -204,11 +245,10 @@ namespace bun {
     static void SerializeBool(Serializer<XMLEngine>& e, bool t, const char* id)
     {
       XMLValue* v = id ? e.engine.cur->AddAttribute(id) : &e.engine.cur->AddNode(e.engine.arrayID)->GetValue();
-      v->String = t ? "true" : "false";
+      v->String   = t ? "true" : "false";
     }
 
-    template<typename T>
-    static void Parse(Serializer<XMLEngine>& e, T& obj, const char* id)
+    template<typename T> static void Parse(Serializer<XMLEngine>& e, T& obj, const char* id)
     {
       internal::serializer::PushValue<XMLNode*> push(e.engine.cur, e.engine.cur);
       if(id && !e.engine.curvalue)
@@ -224,17 +264,19 @@ namespace bun {
           obj = e.engine.curvalue->String;
         else
         {
-          static_assert(internal::serializer::is_serializable<XMLEngine, T>::value, "object missing Serialize<Engine>(Serializer<Engine>&, const char*) function!");
+          static_assert(internal::serializer::is_serializable<XMLEngine, T>::value,
+                        "object missing Serialize<Engine>(Serializer<Engine>&, const char*) function!");
           obj.template Serialize<XMLEngine>(e, id);
         }
       }
     }
-    template<typename T, typename E, void (*Add)(Serializer<XMLEngine>& e, T& obj, int& n), bool (*Read)(Serializer<XMLEngine>& e, T& obj, int64_t count)>
+    template<typename T, typename E, void (*Add)(Serializer<XMLEngine>& e, T& obj, int& n),
+             bool (*Read)(Serializer<XMLEngine>& e, T& obj, int64_t count)>
     static void ParseArray(Serializer<XMLEngine>& e, T& obj, const char* id)
     {
       if(id && !e.engine.curvalue)
       {
-        int n = 0;
+        int n    = 0;
         auto end = std::end(*e.engine.cur);
 
         for(auto begin = std::begin(*e.engine.cur); begin != end; ++begin)
@@ -253,8 +295,7 @@ namespace bun {
         Add(e, obj, e.engine.curindices->Value(i));
       }
     }
-    template<typename T>
-    static void ParseNumber(Serializer<XMLEngine>& e, T& t, [[maybe_unused]] const char* id)
+    template<typename T> static void ParseNumber(Serializer<XMLEngine>& e, T& t, [[maybe_unused]] const char* id)
     {
       const XMLValue* v = e.engine.curvalue;
 
@@ -274,26 +315,26 @@ namespace bun {
       else
         t = !!v->Integer;
     }
-    template<typename F>
-    static void ParseMany(Serializer<XMLEngine>& e, F && f)
+    template<typename F> static void ParseMany(Serializer<XMLEngine>& e, F&& f)
     {
       Hash<const char*, int> indices;
       internal::serializer::PushValue<Hash<const char*, int>*> push(e.engine.curindices, &indices);
-      size_t n = e.engine.cur->GetAttributes();
+      size_t n      = e.engine.cur->GetAttributes();
       XMLValue* old = e.engine.curvalue;
       for(size_t i = 0; i < n; ++i)
         f(e, (e.engine.curvalue = e.engine.cur->GetAttribute(i))->Name);
 
       XMLNode* oldnode = e.engine.cur;
-      auto end = std::end(*oldnode); // Iterate through each UNIQUE key. The array parser will iterate through all the nodes.
+      auto end =
+        std::end(*oldnode); // Iterate through each UNIQUE key. The array parser will iterate through all the nodes.
       for(auto begin = std::begin(*oldnode); begin != end; ++begin)
       {
-        e.engine.cur = begin[0].get();
+        e.engine.cur      = begin[0].get();
         e.engine.curvalue = &e.engine.cur->GetValue();
         f(e, e.engine.cur->GetName());
       }
       e.engine.curvalue = old;
-      e.engine.cur = oldnode;
+      e.engine.cur      = oldnode;
     }
 
     XMLFile file;
@@ -304,7 +345,5 @@ namespace bun {
     bool pretty;
   };
 }
-
-
 
 #endif

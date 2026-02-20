@@ -6,8 +6,8 @@
 #ifndef __TRB_TREE_H__BUN__
 #define __TRB_TREE_H__BUN__
 
-#include "compare.h"
 #include "Alloc.h"
+#include "compare.h"
 #include "LLBase.h"
 
 namespace bun {
@@ -167,7 +167,7 @@ namespace bun {
         while(cur != pNIL)
         {
           parent = cur;
-          c = f(*node, *cur);
+          c      = f(*node, *cur);
           if(c < 0)
             cur = cur->left;
           else if(c > 0)
@@ -471,9 +471,7 @@ namespace bun {
 
   // Threaded Red-black tree implementation
   template<typename T, Comparison<T, T> Comp = std::compare_three_way, typename Alloc = StandardAllocator<TRB_Node<T>>>
-  class BUN_COMPILER_DLLEXPORT BUN_EMPTY_BASES TRBtree :
-    protected Alloc,
-    protected internal::TRB_Node_ThreeWay<T, Comp>
+  class BUN_COMPILER_DLLEXPORT BUN_EMPTY_BASES TRBtree : protected Alloc, protected internal::TRB_Node_ThreeWay<T, Comp>
   {
     [[nodiscard]] constexpr BUN_FORCEINLINE const Comp& _getcomp() const noexcept { return *this; }
     [[nodiscard]] constexpr BUN_FORCEINLINE const internal::TRB_Node_ThreeWay<T, Comp>& _getnodecomp() const noexcept

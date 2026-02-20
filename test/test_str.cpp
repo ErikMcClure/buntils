@@ -38,12 +38,13 @@ TESTDEF::RETPAIR test_STR()
   TEST(!strcmp(Str(1, "1 2", ' '), "2"));
   TEST(!strcmp(StrF("%s2", "place"), "place2"));
   TEST(!strcmp(StrF("2", "place"), "2"));
-#ifdef BUN_COMPILER_MSVC // We can only run this test meaningfully on windows, because its the only one where it actually makes a difference.
+#ifdef BUN_COMPILER_MSVC // We can only run this test meaningfully on windows, because its the only one where it actually
+                         // makes a difference.
   TEST(!strcmp(Str(BUN__L("Törkylempijävongahdus")), "TÃ¶rkylempijÃ¤vongahdus"));
 #endif
 
   VARARRAY(char, test2, 6);
-  char* test3 = test2.data();
+  char* test3       = test2.data();
   const char* test4 = "test4";
 
   static_assert(std::is_same_v<decltype(ToString(s)), const Str&>, "Invalid ToString specialization");
@@ -60,7 +61,7 @@ TESTDEF::RETPAIR test_STR()
   TEST(ToString((size_t)3) == "3");
   TEST(ToString((short)-3) == "-3");
   TEST(ToString(0) == "0");
-  
+
   s4.GetChar(6) = 'b';
   TEST(!strcmp(s4, "blah  bblah"));
   s4.GetChar(0) = 'a';
@@ -89,7 +90,9 @@ TESTDEF::RETPAIR test_STR()
   TEST(!strcmp(a[2], "words"));
 
 #ifdef BUN_COMPILER_MSC
-  TEST(!strcmp(s2.c_str(), "")); // This is only supposed to happen on VC++, other compilers don't have to do this (GCC in particular doesn't).
+  TEST(!strcmp(
+    s2.c_str(),
+    "")); // This is only supposed to happen on VC++, other compilers don't have to do this (GCC in particular doesn't).
 #endif
   Str sdfderp(s + Str("temp") + Str("temp") + Str("temp") + Str("temp"));
 
@@ -126,7 +129,7 @@ TESTDEF::RETPAIR test_STR()
   TEST(vec1[7] == 0);
   vec1.clear();
 #endif
-  Str::ParseTokens<int>("1234,235,2,6,1,0,,39,ahjs", ",", vec1, [](const char* str)->int { return atoi(str) + 1; });
+  Str::ParseTokens<int>("1234,235,2,6,1,0,,39,ahjs", ",", vec1, [](const char* str) -> int { return atoi(str) + 1; });
   TEST(vec1.size() == 8);
   TEST(vec1[0] == 1235);
   TEST(vec1[1] == 236);
@@ -142,6 +145,4 @@ TESTDEF::RETPAIR test_STR()
   TEST(u32[1] == 'k');
   TEST(u32[2] == 'l');
   ENDTEST;
-
-
 }

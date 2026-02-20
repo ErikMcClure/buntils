@@ -4,8 +4,8 @@
 #ifndef __AVLTREE_H__BUN__
 #define __AVLTREE_H__BUN__
 
-#include "compare.h"
 #include "BlockAlloc.h"
+#include "compare.h"
 
 namespace bun {
   template<class KeyData> // If data is non-void, KeyData is std::pair<Key,Data>, otherwise it's just Key
@@ -132,14 +132,14 @@ namespace bun {
     BUN_FORCEINLINE Node* Insert(Key key, const DataGet& data)
     {
       int8_t change = 0;
-      Node* cur   = _insert(key, &_root, change);
+      Node* cur     = _insert(key, &_root, change);
       Base::template _setRaw<const DataGet&>(data, cur); // WHO COMES UP WITH THIS SYNTAX?!
       return cur;
     }
     BUN_FORCEINLINE Node* Insert(Key key, DataGet&& data)
     {
       int8_t change = 0;
-      Node* cur   = _insert(key, &_root, change);
+      Node* cur     = _insert(key, &_root, change);
       Base::template _setRaw<DataGet&&>(std::move(data), cur);
       return cur;
     }
@@ -162,7 +162,7 @@ namespace bun {
     inline bool Remove(const Key key)
     {
       int8_t change = 0;
-      Node* node  = _remove(key, &_root, change);
+      Node* node    = _remove(key, &_root, change);
 
       if(node != 0)
       {
@@ -176,8 +176,8 @@ namespace bun {
     inline bool ReplaceKey(const Key oldkey, const Key newkey)
     {
       int8_t change = 0;
-      Node* old   = _remove(oldkey, &_root, change);
-      Node* cur   = _insert(newkey, &_root, change);
+      Node* old     = _remove(oldkey, &_root, change);
+      Node* cur     = _insert(newkey, &_root, change);
 
       if(old != 0)
       {
@@ -379,7 +379,7 @@ namespace bun {
       if(result < 0)
       {
         retval = _remove(key, &root->_left, change);
-        shift = change * -1;
+        shift  = change * -1;
       }
       else if(result > 0)
       {
@@ -409,7 +409,7 @@ namespace bun {
           Base::_getKey(root->_key) = Base::_getKey(successor->_key);
           retval                    = _remove(Base::_getKey(successor->_key), &root->_right,
                                               shift); // this works because we're always removing something from the right side, which means
-                                                       // we should always subtract 1 or 0.
+                                                      // we should always subtract 1 or 0.
           Base::_swapData(retval, root);
 
           change = 1;

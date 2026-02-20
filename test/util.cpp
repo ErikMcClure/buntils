@@ -2,13 +2,15 @@
 // For conditions of distribution and use, see copyright notice in "buntils.h"
 
 #include "test.h"
-#include "buntils/Thread.h"
 #include "buntils/algo.h"
+#include "buntils/Thread.h"
 
 using namespace bun;
 
 #if defined(BUN_CPU_x86) || defined(BUN_CPU_x64)
-// This is an SSE version of the fast sqrt that calculates x*invsqrt(x) as a speed hack. Sadly, it's still slower and actually LESS accurate than the classic FastSqrt with an added iteration, below, and it isn't even portable. Left here for reference, in case you don't believe me ;)
+// This is an SSE version of the fast sqrt that calculates x*invsqrt(x) as a speed hack. Sadly, it's still slower and
+// actually LESS accurate than the classic FastSqrt with an added iteration, below, and it isn't even portable. Left here
+// for reference, in case you don't believe me ;)
 BUN_FORCEINLINE float sseFastSqrt(float f)
 {
   float r;
@@ -18,33 +20,34 @@ BUN_FORCEINLINE float sseFastSqrt(float f)
 }
 #endif
 
-template<typename T>
-T calceps()
+template<typename T> T calceps()
 {
   T e = (T)0.5;
-  while((T)(1.0 + (e / 2.0)) != 1.0) { e /= (T)2.0; }
+  while((T)(1.0 + (e / 2.0)) != 1.0)
+  {
+    e /= (T)2.0;
+  }
   return e;
 }
 
-
 int getuniformint()
 {
-  static const int NUM = 8;
-  static int cur = NUM;
+  static const int NUM    = 8;
+  static int cur          = NUM;
   static int samples[NUM] = { 0 };
   if(cur >= NUM)
   {
-    int last = samples[NUM - 1];
+    int last   = samples[NUM - 1];
     samples[0] = 0;
-    for(int i = 1; i<NUM; ++i)
+    for(int i = 1; i < NUM; ++i)
     {
-      int64_t j = bun_RandInt(0, i + 1);
+      int64_t j  = bun_RandInt(0, i + 1);
       samples[i] = samples[j];
       samples[j] = i;
     }
     if(last == samples[0])
     {
-      int64_t j = 1 + bun_RandInt(0, NUM - 1);
+      int64_t j  = 1 + bun_RandInt(0, NUM - 1);
       samples[0] = samples[j];
       samples[j] = last;
     }
@@ -52,8 +55,6 @@ int getuniformint()
   }
   return samples[cur++];
 }
-
-
 
 /*template<class Alloc, int MAX, int SZ>
 void profile_push(Alloc& a, std::atomic<void*>* q)
@@ -133,10 +134,7 @@ c=(mem[b]>0)?(c+3):mem[c+2];
 }
 }*/
 
-
 // --- The rest of this file is archived dead code ---
-
-
 
 /*struct OBJSWAP_TEST {
 uint32_t i;
@@ -226,22 +224,23 @@ TEST(i==2);
 ENDTEST;
 }*/
 
-//void destroynode(std::pair<int,int>* data)
+// void destroynode(std::pair<int,int>* data)
 //{
-//  delete data;
-//}
+//   delete data;
+// }
 //
-//struct sp {
-//  int x;
-//  int y;
-//};
+// struct sp {
+//   int x;
+//   int y;
+// };
 
 /*
 int PI_ITERATIONS=500;
 double pi=((PI_ITERATIONS<<1)-1)+(PI_ITERATIONS*PI_ITERATIONS);
 
 const char* MBSTESTSTRINGS[] = { "test","test2","test3","test4","test5","test6" };
-const wchar_t* WCSTESTSTRINGS[] = { BUN__L("test"),BUN__L("test2"),BUN__L("test3"),BUN__L("test4"),BUN__L("test5"),BUN__L("test6") };
+const wchar_t* WCSTESTSTRINGS[] = {
+BUN__L("test"),BUN__L("test2"),BUN__L("test3"),BUN__L("test4"),BUN__L("test5"),BUN__L("test6") };
 
 struct weird
 {
@@ -275,113 +274,113 @@ std::cout<<*(cur++);
 std::cout<<std::endl;
 }*/
 
-//const char* FAKESTRINGLIST[5] = { "FOO", "BAR", "MEH", "SILLY", "EXACERBATION" };
+// const char* FAKESTRINGLIST[5] = { "FOO", "BAR", "MEH", "SILLY", "EXACERBATION" };
 
-//int main3(int argc, char** argv)
-//{  
-//char* romanstuff = inttoroman(3333);
-
-//int prev=0;
-//int cur=1;
-//int res=0;
-//int target=227000;
-//while(cur<=target || !isprime(cur))
+// int main3(int argc, char** argv)
 //{
-//  res=cur;
-//  cur+=prev;
-//  prev=res;
+// char* romanstuff = inttoroman(3333);
+
+// int prev=0;
+// int cur=1;
+// int res=0;
+// int target=227000;
+// while(cur<=target || !isprime(cur))
+//{
+//   res=cur;
+//   cur+=prev;
+//   prev=res;
 ////}
 
-//std::vector<int> prime_divisors;
+// std::vector<int> prime_divisors;
 
-//int check=2;
-//int newnum=cur+1;
-//while(check*check<=newnum)
+// int check=2;
+// int newnum=cur+1;
+// while(check*check<=newnum)
 //{
-//  if (isprime(check) && newnum % check == 0)           
-//  {
-//    prime_divisors.push_back(check);
-//  }
-//  ++check;
-//}
+//   if (isprime(check) && newnum % check == 0)
+//   {
+//     prime_divisors.push_back(check);
+//   }
+//   ++check;
+// }
 //
-//int sum=0;
-//for(size_t i = 0; i < prime_divisors.size(); ++i) sum+=prime_divisors[i];
+// int sum=0;
+// for(size_t i = 0; i < prime_divisors.size(); ++i) sum+=prime_divisors[i];
 
 //	return 0;
 //}
 
-//int rometoint(std::string roman) {
-//  int total = 0;
-//  int ascii = 0;
-//  std::unique_ptr<int[]> cache(new int[roman.length()]);
+// int rometoint(std::string roman) {
+//   int total = 0;
+//   int ascii = 0;
+//   std::unique_ptr<int[]> cache(new int[roman.length()]);
 //
-//  for(size_t i = 0; i < roman.length(); i++)
-//  {
-//    ascii = int(toupper(roman[i]));
+//   for(size_t i = 0; i < roman.length(); i++)
+//   {
+//     ascii = int(toupper(roman[i]));
 //
-//    switch(ascii)
-//    {
-//    case 73:
-//      cache[i] = 1;
-//      break;
-//    case 86:
-//      cache[i] = 5;
-//      break;
-//    case 88:
-//      cache[i] = 10;
-//      break;
-//    case 76:
-//      cache[i] = 50;
-//      break;
-//    case 67:
-//      cache[i] = 100;
-//      break;
-//    case 68:
-//      cache[i] = 500;
-//      break;
-//    case 77:
-//      cache[i] = 1000;
-//      break;
-//    default:
-//      cache[i] = 0;
-//      break;
-//    }
-//  }
+//     switch(ascii)
+//     {
+//     case 73:
+//       cache[i] = 1;
+//       break;
+//     case 86:
+//       cache[i] = 5;
+//       break;
+//     case 88:
+//       cache[i] = 10;
+//       break;
+//     case 76:
+//       cache[i] = 50;
+//       break;
+//     case 67:
+//       cache[i] = 100;
+//       break;
+//     case 68:
+//       cache[i] = 500;
+//       break;
+//     case 77:
+//       cache[i] = 1000;
+//       break;
+//     default:
+//       cache[i] = 0;
+//       break;
+//     }
+//   }
 //
-//  if(roman.length() == 1)
-//  {
-//    return (cache[0]);
-//  }
+//   if(roman.length() == 1)
+//   {
+//     return (cache[0]);
+//   }
 //
-//  for(size_t i = 0; i < (roman.length() - 1); i++)
-//  {
-//    if(cache[i] >= cache[i + 1])
-//    {
-//      total += cache[i];
-//    }
-//    else
-//    {
-//      total -= cache[i];
-//    }
-//  }
+//   for(size_t i = 0; i < (roman.length() - 1); i++)
+//   {
+//     if(cache[i] >= cache[i + 1])
+//     {
+//       total += cache[i];
+//     }
+//     else
+//     {
+//       total -= cache[i];
+//     }
+//   }
 //
-//  total += cache[roman.length() - 1];
-//  return (total);
-//}
+//   total += cache[roman.length() - 1];
+//   return (total);
+// }
 
-//inline bool backwardscheck(const char* begin, int length)
+// inline bool backwardscheck(const char* begin, int length)
 //{
-//  int mid = length/2;
-//  --length;
-//  for(size_t i = 0; i <= mid; ++i)
-//    if(begin[i]!=begin[length-i]) return false;
+//   int mid = length/2;
+//   --length;
+//   for(size_t i = 0; i <= mid; ++i)
+//     if(begin[i]!=begin[length-i]) return false;
 //
-//  return true;
-//}
+//   return true;
+// }
 
 // This is painfully slow and I don't even know why its here.
-//inline bool isprime(int number)
+// inline bool isprime(int number)
 //{
 //  if(number % 2 == 0) return number == 2;
 //  int stop = number / 2;
@@ -390,63 +389,61 @@ std::cout<<std::endl;
 //  return true;
 //}
 
-//inline int addrecursive(int start,int prev)
+// inline int addrecursive(int start,int prev)
 //{
-//  int retval=numarray[start]==prev?1:0;
-//}
+//   int retval=numarray[start]==prev?1:0;
+// }
 
-
-//double x=0; // initial position
-//double t=0;
-//uint32_t steps=100;
-//double step=5.0/steps;
-//for(size_t i = 0; i < steps; ++i)
+// double x=0; // initial position
+// double t=0;
+// uint32_t steps=100;
+// double step=5.0/steps;
+// for(size_t i = 0; i < steps; ++i)
 //{
-//  double fx = 1 - x*x;
-//  //x = x + fx*step;
-//  double xt = x + fx*step;
-//  double fxt = 1 - xt*xt;
-//  x = x + 0.5*(fx + fxt)*step;
-//  if(i%10==9) 
-//    std::cout << x << std::endl;
-//}
-//std::cin.get();
-//return 0;
+//   double fx = 1 - x*x;
+//   //x = x + fx*step;
+//   double xt = x + fx*step;
+//   double fxt = 1 - xt*xt;
+//   x = x + 0.5*(fx + fxt)*step;
+//   if(i%10==9)
+//     std::cout << x << std::endl;
+// }
+// std::cin.get();
+// return 0;
 
-//char* inttoroman(int in)
+// char* inttoroman(int in)
 //{
-//  int charnum = 0;
-//  int i2 = 0;
-//  int hold = in;
+//   int charnum = 0;
+//   int i2 = 0;
+//   int hold = in;
 //
-//  for(int j = 1000; j>0; j /= 5)
-//  {
-//    charnum += (i2 = (hold / j));
-//    hold -= i2*j;
-//    j /= 2;
-//    if(!j) break;
-//    charnum += (i2 = (hold / j));
-//    hold -= i2*j;
-//  }
+//   for(int j = 1000; j>0; j /= 5)
+//   {
+//     charnum += (i2 = (hold / j));
+//     hold -= i2*j;
+//     j /= 2;
+//     if(!j) break;
+//     charnum += (i2 = (hold / j));
+//     hold -= i2*j;
+//   }
 //
-//  char* str = new char[charnum + 1];
-//  for(size_t i = 0; i<charnum + 1; ++i) str[i] = 0;
+//   char* str = new char[charnum + 1];
+//   for(size_t i = 0; i<charnum + 1; ++i) str[i] = 0;
 //
-//  int count = -1;
-//  while(in >= 1000) { str[++count] = 'M'; in -= 1000; };
-//  while(in >= 900) { str[++count] = 'C'; str[++count] = 'M'; in -= 900; };
-//  while(in >= 500) { str[++count] = 'D'; in -= 500; };
-//  while(in >= 400) { str[++count] = 'C'; str[++count] = 'D'; in -= 400; };
-//  while(in >= 100) { str[++count] = 'C'; in -= 100; };
-//  while(in >= 90) { str[++count] = 'X'; str[++count] = 'C'; in -= 90; };
-//  while(in >= 50) { str[++count] = 'L'; in -= 50; };
-//  while(in >= 40) { str[++count] = 'X'; str[++count] = 'L'; in -= 40; };
-//  while(in >= 10) { str[++count] = 'X'; in -= 10; };
-//  while(in >= 9) { str[++count] = 'I'; str[++count] = 'X'; in -= 9; };
-//  while(in >= 5) { str[++count] = 'V'; in -= 5; };
-//  while(in >= 4) { str[++count] = 'I'; str[++count] = 'V'; in -= 4; };
-//  while(in >= 1) { str[++count] = 'I'; in -= 1; };
+//   int count = -1;
+//   while(in >= 1000) { str[++count] = 'M'; in -= 1000; };
+//   while(in >= 900) { str[++count] = 'C'; str[++count] = 'M'; in -= 900; };
+//   while(in >= 500) { str[++count] = 'D'; in -= 500; };
+//   while(in >= 400) { str[++count] = 'C'; str[++count] = 'D'; in -= 400; };
+//   while(in >= 100) { str[++count] = 'C'; in -= 100; };
+//   while(in >= 90) { str[++count] = 'X'; str[++count] = 'C'; in -= 90; };
+//   while(in >= 50) { str[++count] = 'L'; in -= 50; };
+//   while(in >= 40) { str[++count] = 'X'; str[++count] = 'L'; in -= 40; };
+//   while(in >= 10) { str[++count] = 'X'; in -= 10; };
+//   while(in >= 9) { str[++count] = 'I'; str[++count] = 'X'; in -= 9; };
+//   while(in >= 5) { str[++count] = 'V'; in -= 5; };
+//   while(in >= 4) { str[++count] = 'I'; str[++count] = 'V'; in -= 4; };
+//   while(in >= 1) { str[++count] = 'I'; in -= 1; };
 //
-//  return str;
-//}
-
+//   return str;
+// }

@@ -2,12 +2,13 @@
 // For conditions of distribution and use, see copyright notice in "buntils.h"
 
 #include "test.h"
-#include "buntils/KDTree.h"
 #include "buntils/BlockAlloc.h"
+#include "buntils/KDTree.h"
 
 using namespace bun;
 
-struct KDtest {
+struct KDtest
+{
   float rect[4];
   LLBase<int> list;
   KDNode<KDtest>* node;
@@ -23,12 +24,13 @@ TESTDEF::RETPAIR test_KDTREE()
 {
   BEGINTEST;
   BlockPolicy<KDNode<KDtest>> alloc;
-  KDTree<KDtest, &KDtest_RECT, &KDtest_LIST, &KDtest_NODE, PolicyAllocator<KDNode<KDtest>, BlockPolicy>> tree(PolicyAllocator<KDNode<KDtest>, BlockPolicy>{alloc});
-  KDtest r1 = { 0,0,1,1,0,0 };
-  KDtest r2 = { 1,1,2,2,0,0 };
-  KDtest r3 = { 0,0,2,2,0,0 };
-  KDtest r4 = { 0.5,0.5,1.5,1.5,0,0 };
-  KDtest r5 = { 0.5,0.5,0.75,0.75,0,0 };
+  KDTree<KDtest, &KDtest_RECT, &KDtest_LIST, &KDtest_NODE, PolicyAllocator<KDNode<KDtest>, BlockPolicy>> tree(
+    PolicyAllocator<KDNode<KDtest>, BlockPolicy>{ alloc });
+  KDtest r1 = { 0, 0, 1, 1, 0, 0 };
+  KDtest r2 = { 1, 1, 2, 2, 0, 0 };
+  KDtest r3 = { 0, 0, 2, 2, 0, 0 };
+  KDtest r4 = { 0.5, 0.5, 1.5, 1.5, 0, 0 };
+  KDtest r5 = { 0.5, 0.5, 0.75, 0.75, 0, 0 };
   tree.Insert(&r1);
   tree.Insert(&r2);
   tree.Remove(&r1);
@@ -45,10 +47,10 @@ TESTDEF::RETPAIR test_KDTREE()
   tree.InsertRoot(&r4);
   tree.InsertRoot(&r5);
   tree.Solve();
-  float c1[4] = { -1,-1,-0.5,-0.5 };
+  float c1[4] = { -1, -1, -0.5, -0.5 };
   tree.Traverse<&KDtest_ACTION>(c1);
   TEST(KDtest::hits == 0);
-  float c2[4] = { -1,-1,0,0 };
+  float c2[4] = { -1, -1, 0, 0 };
   tree.Traverse<&KDtest_ACTION>(c2);
   TEST(KDtest::hits == 2);
   tree.Remove(&r1);

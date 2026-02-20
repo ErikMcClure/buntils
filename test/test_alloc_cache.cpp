@@ -2,9 +2,9 @@
 // For conditions of distribution and use, see copyright notice in "buntils.h"
 
 #include "test.h"
-#include "test_alloc.h"
 #include "buntils/CacheAlloc.h"
 #include "buntils/Thread.h"
+#include "test_alloc.h"
 
 using namespace bun;
 
@@ -15,7 +15,7 @@ TESTDEF::RETPAIR test_ALLOC_CACHE()
   {
     StandardAllocator<char, 16> alloc;
     char* p = alloc.reallocate(50, 0, 0);
-    p = alloc.reallocate(60, p, 50);
+    p       = alloc.reallocate(60, p, 50);
     alloc.deallocate(p, 60);
   }
 

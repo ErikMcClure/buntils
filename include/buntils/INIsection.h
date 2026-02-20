@@ -4,11 +4,11 @@
 #ifndef __INISECTION_H__BUN__
 #define __INISECTION_H__BUN__
 
-#include "INIentry.h"
-#include "Hash.h"
 #include "Array.h"
-#include "LLBase.h"
 #include "BlockAllocMT.h"
+#include "Hash.h"
+#include "INIentry.h"
+#include "LLBase.h"
 
 namespace bun {
   class INIstorage;
@@ -18,23 +18,22 @@ namespace bun {
   {
   public:
     // Internal INI linked list node
-    template<class T>
-    struct BUN_COMPILER_DLLEXPORT _INInode : public LLBase<_INInode<T>>
+    template<class T> struct BUN_COMPILER_DLLEXPORT _INInode : public LLBase<_INInode<T>>
     {
       Array<_INInode<T>*> instances; // If this is not the only instance, points to an array of all the other instances
       T val;
     };
 
     using _NODE = _INInode<INIentry>;
-    template<class T>
-    struct INIiterator : LLIterator<_INInode<T>> {
+    template<class T> struct INIiterator : LLIterator<_INInode<T>>
+    {
       using LLIterator<_INInode<T>>::cur;
       inline explicit INIiterator(_INInode<T>* node) : LLIterator<_INInode<T>>(node) {}
       inline T& operator*() const { return cur->val; }
       inline T* operator->() const { return &cur->val; }
     };
 
-// Constructors
+    // Constructors
     INIsection(const INIsection& copy);
     INIsection(INIsection&& mov);
     INIsection();
@@ -49,7 +48,8 @@ namespace bun {
     size_t GetNumEntries(const char* section) const;
     // Gets the specified key node for iteration with the given index. Returns null on failure.
     _NODE* GetEntryNode(const char* key, size_t instance = 0) const;
-    // Changes the specified entry data with the given index, if data is nullptr the entry is deleted. if instance is -1 the entry is inserted.
+    // Changes the specified entry data with the given index, if data is nullptr the entry is deleted. if instance is -1 the
+    // entry is inserted.
     inline char EditEntry(const char* key, const char* data, size_t instance = 0);
     // Gets the root node of the section linked list
     inline const _NODE* Front() const { return _root; }

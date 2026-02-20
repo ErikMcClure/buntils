@@ -11,6 +11,5 @@ TESTDEF::RETPAIR test_LOCKLESS()
   BEGINTEST;
   CPU_Barrier();
 
-
   ENDTEST;
 }

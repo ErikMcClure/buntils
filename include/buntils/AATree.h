@@ -4,8 +4,8 @@
 #ifndef __AA_TREE_H__BUN__
   #define __AA_TREE_H__BUN__
 
-  #include "compare.h"
   #include "BlockAllocMT.h"
+  #include "compare.h"
 
 namespace bun {
   template<typename T> struct AANODE

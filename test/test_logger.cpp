@@ -3,8 +3,8 @@
 
 #include "test.h"
 #include "buntils/Logger.h"
-#include <sstream>
 #include <fstream>
+#include <sstream>
 
 using namespace bun;
 
@@ -19,7 +19,7 @@ TESTDEF::RETPAIR test_LOG()
     ss.clear();
     fs.clear();
     wss.clear();
-    //di.AddTarget(wss);
+    // di.AddTarget(wss);
 
     di.GetStream() << "Erik McClure";
     di.ClearTargets();

@@ -10,7 +10,7 @@ TESTDEF::RETPAIR test_ALIASTABLE()
 {
   BEGINTEST;
   const size_t COUNT = 4000000;
-  double p[7] = { 0.1,0.2,0.3,0.05,0.05,0.15,0.15 };
+  double p[7]        = { 0.1, 0.2, 0.3, 0.05, 0.05, 0.15, 0.15 };
   AliasTable<size_t, double> a(p);
   size_t counts[7] = { 0 };
   for(size_t i = 0; i < COUNT; ++i)

@@ -13,20 +13,20 @@ TESTDEF::RETPAIR test_MAP()
   BEGINTEST;
   Map<int, uint32_t> test;
   test.Clear();
-  int ins[] = { 0,5,6,237,289,12,3 };
-  int get[] = { 0,3,5,6,12 };
-  uint32_t res[] = { 0,6,1,2,5,3,4 };
+  int ins[]      = { 0, 5, 6, 237, 289, 12, 3 };
+  int get[]      = { 0, 3, 5, 6, 12 };
+  uint32_t res[] = { 0, 6, 1, 2, 5, 3, 4 };
   uint32_t count = 0;
   TESTARRAY(ins, return test.Insert(ins[i], count++) != -1;);
   std::sort(std::begin(ins), std::end(ins));
   for(size_t i = 0; i < std::ranges::size(get); ++i)
   {
-    auto[k, v] = test[test.Get(get[i])];
+    auto [k, v] = test[test.Get(get[i])];
     TEST(v == res[i]);
   }
 
   size_t j = 0;
-  for(auto[k, v] : test)
+  for(auto [k, v] : test)
   {
     TEST(k == ins[j]);
     TEST(v == res[j]);

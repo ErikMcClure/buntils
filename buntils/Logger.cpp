@@ -10,23 +10,43 @@
 using namespace bun;
 using namespace std;
 
-const char* Logger::DEFAULTFORMAT = "{4} [{0}] ({1}:{2}) {3}";
+const char* Logger::DEFAULTFORMAT     = "{4} [{0}] ({1}:{2}) {3}";
 const char* Logger::DEFAULTNULLFORMAT = "{4} ({1}:{2}) {3}";
 
-Logger::Logger(Logger&& mov) : _levels(std::move(mov._levels)), _split(mov._split), _tz(GetTimeZoneMinutes()), _files(std::move(mov._files)),
-  _backup(std::move(mov._backup)), _stream(_split), _maxlevel(mov._maxlevel), _format(mov._format), _nullformat(mov._nullformat)
+Logger::Logger(Logger&& mov) :
+  _levels(std::move(mov._levels)),
+  _split(mov._split),
+  _tz(GetTimeZoneMinutes()),
+  _files(std::move(mov._files)),
+  _backup(std::move(mov._backup)),
+  _stream(_split),
+  _maxlevel(mov._maxlevel),
+  _format(mov._format),
+  _nullformat(mov._nullformat)
 {
   mov._split = 0;
 }
-Logger::Logger(std::ostream* log) : _levels(6), _split(new StreamSplitter()), _tz(GetTimeZoneMinutes()), _stream(_split), _maxlevel(127),
-  _format(DEFAULTFORMAT), _nullformat(DEFAULTNULLFORMAT)
+Logger::Logger(std::ostream* log) :
+  _levels(6),
+  _split(new StreamSplitter()),
+  _tz(GetTimeZoneMinutes()),
+  _stream(_split),
+  _maxlevel(127),
+  _format(DEFAULTFORMAT),
+  _nullformat(DEFAULTNULLFORMAT)
 {
   _levelDefaults();
   if(log != 0)
     AddTarget(*log);
 }
-Logger::Logger(const char* logfile, std::ostream* log) : _levels(6), _split(new StreamSplitter()), _tz(GetTimeZoneMinutes()), _stream(_split),
-  _maxlevel(127), _format(DEFAULTFORMAT), _nullformat(DEFAULTNULLFORMAT)
+Logger::Logger(const char* logfile, std::ostream* log) :
+  _levels(6),
+  _split(new StreamSplitter()),
+  _tz(GetTimeZoneMinutes()),
+  _stream(_split),
+  _maxlevel(127),
+  _format(DEFAULTFORMAT),
+  _nullformat(DEFAULTNULLFORMAT)
 {
   _levelDefaults();
   AddTarget(logfile);
@@ -34,8 +54,14 @@ Logger::Logger(const char* logfile, std::ostream* log) : _levels(6), _split(new 
     AddTarget(*log);
 }
 #ifdef BUN_PLATFORM_WIN32
-Logger::Logger(const wchar_t* logfile, std::ostream* log) : _levels(6), _split(new StreamSplitter()), _tz(GetTimeZoneMinutes()), _stream(_split),
-  _maxlevel(127), _format(DEFAULTFORMAT), _nullformat(DEFAULTNULLFORMAT)
+Logger::Logger(const wchar_t* logfile, std::ostream* log) :
+  _levels(6),
+  _split(new StreamSplitter()),
+  _tz(GetTimeZoneMinutes()),
+  _stream(_split),
+  _maxlevel(127),
+  _format(DEFAULTFORMAT),
+  _nullformat(DEFAULTNULLFORMAT)
 {
   _levelDefaults();
   AddTarget(logfile);
@@ -47,24 +73,29 @@ Logger::~Logger()
 {
   ClearTargets();
   // restore stream buffer backups so we don't blow up someone else's stream when destroying ourselves
-  for (auto [out, buf] : _backup) {
+  for(auto [out, buf] : _backup)
+  {
     out.rdbuf(buf);
   }
-  if(_split != 0) delete _split;
+  if(_split != 0)
+    delete _split;
 }
 void Logger::Assimilate(std::ostream& stream)
 {
   _backup.push_back(std::pair<std::ostream&, std::streambuf*>(stream, stream.rdbuf()));
-  if(_split != 0) stream.rdbuf(_split);
+  if(_split != 0)
+    stream.rdbuf(_split);
 }
 void Logger::AddTarget(std::ostream& stream)
 {
-  if(_split != 0) _split->AddTarget(&stream);
+  if(_split != 0)
+    _split->AddTarget(&stream);
 }
 void Logger::AddTarget(const char* file)
 {
-  if(!file) return;
-#ifdef BUN_COMPILER_GCC 
+  if(!file)
+    return;
+#ifdef BUN_COMPILER_GCC
   _files.push_back(std::unique_ptr<std::ofstream>(new ofstream(BUNPOSIX_WCHAR(file), ios_base::out | ios_base::trunc)));
   AddTarget(*_files.back());
 #else
@@ -75,7 +106,8 @@ void Logger::AddTarget(const char* file)
 #ifdef BUN_PLATFORM_WIN32
 void Logger::AddTarget(const wchar_t* file)
 {
-  if(!file) return;
+  if(!file)
+    return;
   _files.push_back(ofstream(file, ios_base::out | ios_base::trunc));
   AddTarget(_files.back());
 }
@@ -83,9 +115,10 @@ void Logger::AddTarget(const wchar_t* file)
 
 void Logger::ClearTargets()
 {
-  if(_split != 0) _split->ClearTargets();
+  if(_split != 0)
+    _split->ClearTargets();
   for(auto& file : _files)
-#ifdef BUN_COMPILER_GCC 
+#ifdef BUN_COMPILER_GCC
     file->close();
 #else
     file.close();
@@ -93,15 +126,9 @@ void Logger::ClearTargets()
   _files.clear();
 }
 
-void Logger::SetFormat(const char* format)
-{
-  _format = format;
-}
+void Logger::SetFormat(const char* format) { _format = format; }
 
-void Logger::SetNullFormat(const char* format)
-{
-  _nullformat = format;
-}
+void Logger::SetNullFormat(const char* format) { _nullformat = format; }
 
 void Logger::SetLevel(uint8_t level, const char* str)
 {
@@ -109,10 +136,7 @@ void Logger::SetLevel(uint8_t level, const char* str)
     _levels.SetCapacity(level + 1);
   _levels[level] = str;
 }
-void Logger::SetMaxLevel(uint8_t level)
-{
-  _maxlevel = level;
-}
+void Logger::SetMaxLevel(uint8_t level) { _maxlevel = level; }
 
 bool Logger::_writeDateTime(long timez, std::ostream& log, bool timeonly)
 {
@@ -123,19 +147,23 @@ bool Logger::_writeDateTime(long timez, std::ostream& log, bool timeonly)
   if(GMTIMEFUNC(&rawtime, ptm) != 0)
     return false;
 
-  long m = ptm->tm_hour * 60 + ptm->tm_min + 1440 + timez; //+1440 ensures this is never negative because % does not properly respond to negative numbers.
+  long m = ptm->tm_hour * 60 + ptm->tm_min + 1440 +
+           timez; //+1440 ensures this is never negative because % does not properly respond to negative numbers.
   long h = ((m / 60) % 24);
   m %= 60;
 
-  char logchar = log.fill();
+  char logchar             = log.fill();
   std::streamsize logwidth = log.width();
   log.fill('0');
-  //Write date if we need to
-  if(!timeonly) log << std::setw(4) << ptm->tm_year + 1900 << std::setw(1) << '-' << std::setw(2) << ptm->tm_mon + 1 << std::setw(1) << '-' << std::setw(2) << ptm->tm_mday << std::setw(1) << ' ';
-  //Write time and flush stream
-  log << std::setw(1) << h << std::setw(0) << ':' << std::setw(2) << m << std::setw(0) << ':' << std::setw(2) << ptm->tm_sec;
+  // Write date if we need to
+  if(!timeonly)
+    log << std::setw(4) << ptm->tm_year + 1900 << std::setw(1) << '-' << std::setw(2) << ptm->tm_mon + 1 << std::setw(1)
+        << '-' << std::setw(2) << ptm->tm_mday << std::setw(1) << ' ';
+  // Write time and flush stream
+  log << std::setw(1) << h << std::setw(0) << ':' << std::setw(2) << m << std::setw(0) << ':' << std::setw(2)
+      << ptm->tm_sec;
 
-  //Reset values of stream
+  // Reset values of stream
   log.width(logwidth);
   log.fill(logchar);
 
@@ -143,19 +171,19 @@ bool Logger::_writeDateTime(long timez, std::ostream& log, bool timeonly)
 }
 Logger& Logger::operator=(Logger&& right)
 {
-  _tz = GetTimeZoneMinutes();
-  _files = std::move(right._files);
-  _backup = std::move(right._backup);
-  _split = right._split;
+  _tz          = GetTimeZoneMinutes();
+  _files       = std::move(right._files);
+  _backup      = std::move(right._backup);
+  _split       = right._split;
   right._split = 0;
   _stream.rdbuf(_split);
   return *this;
 }
 const char* Logger::_trimPath(const char* path)
 {
-  const char* r = strrchr(path, '/');
+  const char* r  = strrchr(path, '/');
   const char* r2 = strrchr(path, '\\');
-  r = std::max(r, r2);
+  r              = std::max(r, r2);
   return (!r) ? path : (r + 1);
 }
 void Logger::_levelDefaults()
@@ -175,7 +203,8 @@ int Logger::PrintLogV(const char* source, const char* file, size_t line, int8_t 
 
   va_list vltemp;
   va_copy(vltemp, args);
-  size_t _length = (size_t)internal::STR_CT<char>::VPCF(format, vltemp) + 1; // If we didn't copy vl here, it would get modified by vsnprintf and blow up.
+  size_t _length = (size_t)internal::STR_CT<char>::VPCF(format, vltemp) +
+                   1; // If we didn't copy vl here, it would get modified by vsnprintf and blow up.
   va_end(vltemp);
   VARARRAY(char, buf, _length);
   int r = internal::STR_CT<char>::VPF(buf.data(), _length, format, args);
@@ -198,6 +227,7 @@ void Logger::_header(std::ostream& o, int n, const char* source, const char* fil
 std::ostream& Logger::_logHeader(const char* source, const char* file, size_t line, const char* level)
 {
   file = _trimPath(file);
-  std::vformat_to(std::ostream_iterator<char>(_stream), ((!source && _nullformat != 0) ? _nullformat : _format), std::make_format_args(source, file, line, level, _tz));
+  std::vformat_to(std::ostream_iterator<char>(_stream), ((!source && _nullformat != 0) ? _nullformat : _format),
+                  std::make_format_args(source, file, line, level, _tz));
   return _stream;
 }

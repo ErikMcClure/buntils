@@ -9,14 +9,14 @@
 
 namespace bun {
   // A simplified single-threaded greedy allocator specifically designed for high-speed block allocations.
-  template<class T>
-  class BUN_COMPILER_DLLEXPORT GreedyBlockPolicy
+  template<class T> class BUN_COMPILER_DLLEXPORT GreedyBlockPolicy
   {
   public:
     // Block Chunk Alloc
     union alignas(std::max({ alignof(T), alignof(size_t) })) Node
     {
-      struct {
+      struct
+      {
         size_t size;
         Node* next;
       };
@@ -25,13 +25,10 @@ namespace bun {
 
     inline GreedyBlockPolicy(GreedyBlockPolicy&& mov) : _root(mov._root), _curpos(mov._curpos)
     {
-      mov._root = 0;
+      mov._root   = 0;
       mov._curpos = 0;
     }
-    inline explicit GreedyBlockPolicy(size_t init = 8) : _root(0), _curpos(0)
-    {
-      _allocChunk(init);
-    }
+    inline explicit GreedyBlockPolicy(size_t init = 8) : _root(0), _curpos(0) { _allocChunk(init); }
 
     inline ~GreedyBlockPolicy()
     {
@@ -55,7 +52,7 @@ namespace bun {
       if(_curpos > _root->size)
       {
         _allocChunk(fbnext(_curpos));
-        r = 0;
+        r       = 0;
         _curpos = sz;
       }
       T* p = reinterpret_cast<T*>(reinterpret_cast<uint8_t*>(_root + 1) + r);
@@ -69,12 +66,16 @@ namespace bun {
       return;
 #endif
 #ifdef BUN_DEBUG
-      Node* cur = _root;
+      Node* cur  = _root;
       bool found = false;
 
       while(cur)
       {
-        if(p >= reinterpret_cast<uint8_t*>(cur + 1) && p < (reinterpret_cast<uint8_t*>(cur + 1) + cur->size)) { found = true; break; }
+        if(p >= reinterpret_cast<uint8_t*>(cur + 1) && p < (reinterpret_cast<uint8_t*>(cur + 1) + cur->size))
+        {
+          found = true;
+          break;
+        }
         cur = cur->next;
       }
 
@@ -99,13 +100,14 @@ namespace bun {
         _root = hold;
       }
 
-      _allocChunk(nsize); //consolidates all memory into one chunk to try and take advantage of data locality
+      _allocChunk(nsize); // consolidates all memory into one chunk to try and take advantage of data locality
     }
+
   protected:
     BUN_FORCEINLINE void _allocChunk(size_t nsize) noexcept
     {
-      nsize = AlignSize(nsize, sizeof(T));
-      nsize = AlignSize(nsize, alignof(T));
+      nsize        = AlignSize(nsize, sizeof(T));
+      nsize        = AlignSize(nsize, alignof(T));
       Node* retval = reinterpret_cast<Node*>(ALIGNEDALLOC(sizeof(Node) + nsize, alignof(T)));
       assert(retval != 0);
       retval->next = _root;
@@ -116,7 +118,8 @@ namespace bun {
 #ifdef BUN_DEBUG
     BUN_FORCEINLINE static bool _prepDEBUG(Node* root) noexcept
     {
-      if(!root) return false;
+      if(!root)
+        return false;
       memset(reinterpret_cast<uint8_t*>(root + 1), 0xfd, root->size);
       return true;
     }

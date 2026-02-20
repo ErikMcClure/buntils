@@ -4,15 +4,15 @@
 #ifndef __BUN_LOG_H__
 #define __BUN_LOG_H__
 
-#include "buntils.h"
 #include "Array.h"
-#include <ostream>
-#include <vector>
-#include <stdarg.h>
+#include "buntils.h"
 #include <format>
 #include <iterator>
+#include <ostream>
+#include <stdarg.h>
+#include <vector>
 
-#define BUNLOG(logger,level,...) ((logger).Log(0,__FILE__,__LINE__,(level),__VA_ARGS__))
+#define BUNLOG(logger, level, ...) ((logger).Log(0, __FILE__, __LINE__, (level), __VA_ARGS__))
 
 namespace bun {
   class StreamSplitter;
@@ -20,7 +20,7 @@ namespace bun {
   // Log class that can be converted into a stream and redirected to various different stream targets
   class BUN_DLLEXPORT Logger
   {
-    Logger(const Logger& copy) = delete;
+    Logger(const Logger& copy)             = delete;
     Logger& operator=(const Logger& right) = delete;
 
   public:
@@ -39,7 +39,7 @@ namespace bun {
     void Assimilate(std::ostream& stream);
     // Adds a target stream to post logs to
     void AddTarget(std::ostream& stream);
-    //void AddTarget(std::wostream& stream);
+    // void AddTarget(std::wostream& stream);
     void AddTarget(const char* file);
 #ifdef BUN_PLATFORM_WIN32
     void AddTarget(const wchar_t* file);
@@ -78,12 +78,14 @@ namespace bun {
       _writeLog(LogHeader(source, file, line, level), args...);
     }
     template<typename... Args>
-    BUN_FORCEINLINE void LogFormat(const char* source, const char* file, size_t line, int8_t level, const char* format, Args... args)
+    BUN_FORCEINLINE void LogFormat(const char* source, const char* file, size_t line, int8_t level, const char* format,
+                                   Args... args)
     {
       if(level >= _maxlevel)
         return;
 
-      std::vformat_to(std::ostream_iterator<char>(LogHeader(source, file, line, level)), format, std::make_format_args(source, file, line, level, _tz));
+      std::vformat_to(std::ostream_iterator<char>(LogHeader(source, file, line, level)), format,
+                      std::make_format_args(source, file, line, level, _tz));
       _stream << std::endl;
     }
     BUN_FORCEINLINE std::ostream& LogHeader(const char* source, const char* file, size_t line, int8_t level)
@@ -97,11 +99,15 @@ namespace bun {
     static const char* DEFAULTNULLFORMAT;
 
   protected:
-    template<typename Arg, typename... Args>
-    static inline void _writeLog(std::ostream& o, Arg arg, Args... args) { o << arg; _writeLog(o, args...); }
+    template<typename Arg, typename... Args> static inline void _writeLog(std::ostream& o, Arg arg, Args... args)
+    {
+      o << arg;
+      _writeLog(o, args...);
+    }
     static inline void _writeLog(std::ostream& o) { o << std::endl; }
     std::ostream& _logHeader(const char* source, const char* file, size_t line, const char* level);
-    static void _header(std::ostream& o, int n, const char* source, const char* file, size_t line, const char* level, long tz);
+    static void _header(std::ostream& o, int n, const char* source, const char* file, size_t line, const char* level,
+                        long tz);
     static bool _writeDateTime(long timezone, std::ostream& log, bool timeonly);
     void _levelDefaults();
 
@@ -112,11 +118,12 @@ namespace bun {
     const char* _nullformat;
     long _tz;
 #pragma warning(push)
-#pragma warning(disable:4251)
+#pragma warning(disable : 4251)
     std::vector<std::pair<std::ostream&, std::streambuf*>> _backup;
     std::ostream _stream;
 
-#ifdef BUN_COMPILER_GCC // Until GCC fixes its fucking broken standard implementation, we're going to have to do this the hard way.
+#ifdef BUN_COMPILER_GCC // Until GCC fixes its fucking broken standard implementation, we're going to have to do this the
+                        // hard way.
     std::vector<std::unique_ptr<std::ofstream>> _files;
 #else
     std::vector<std::ofstream> _files;

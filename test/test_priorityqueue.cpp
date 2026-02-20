@@ -36,7 +36,7 @@ TESTDEF::RETPAIR test_PRIORITYQUEUE()
   q.Push(4, "4");
 
   TEST(q.Get(0).first == q.Peek().first)
-    q.Discard();
+  q.Discard();
   TEST(!q.Empty());
   TEST(q.Pop().first == 2);
   TEST(q.Pop().first == 4);

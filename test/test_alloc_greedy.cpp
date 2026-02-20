@@ -2,9 +2,9 @@
 // For conditions of distribution and use, see copyright notice in "buntils.h"
 
 #include "test.h"
-#include "test_alloc.h"
 #include "buntils/GreedyAlloc.h"
 #include "buntils/Thread.h"
+#include "test_alloc.h"
 
 using namespace bun;
 

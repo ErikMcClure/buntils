@@ -2,40 +2,37 @@
 // For conditions of distribution and use, see copyright notice in "buntils.h"
 
 #include "test.h"
-#include "test_alloc.h"
 #include "buntils/BlockAllocMT.h"
 #include "buntils/Thread.h"
+#include "test_alloc.h"
 
 using namespace bun;
 
-template<class T>
-struct MTALLOCWRAP : LocklessBlockPolicy<T> { inline MTALLOCWRAP(size_t init = 8) : LocklessBlockPolicy<T>(init) {} inline void Clear() {} };
+template<class T> struct MTALLOCWRAP : LocklessBlockPolicy<T>
+{
+  inline MTALLOCWRAP(size_t init = 8) : LocklessBlockPolicy<T>(init) {}
+  inline void Clear() {}
+};
 
-template<class T, size_t MAXSIZE = 32>
-class BUN_COMPILER_DLLEXPORT LocklessBlockCollectionPolicy
+template<class T, size_t MAXSIZE = 32> class BUN_COMPILER_DLLEXPORT LocklessBlockCollectionPolicy
 {
 public:
-  LocklessBlockCollectionPolicy() = default;
+  LocklessBlockCollectionPolicy()                                       = default;
   inline LocklessBlockCollectionPolicy(LocklessBlockCollectionPolicy&&) = default;
   inline T* allocate(size_t num, T* p = nullptr, size_t old = 0) noexcept
   {
     return reinterpret_cast<T*>(_collection.allocate(num * sizeof(T), p, old * sizeof(T)));
   }
-  inline void deallocate(T* p, size_t num = 0) noexcept
-  {
-    _collection.deallocate(p, num * sizeof(T));
-  }
-  inline void Clear() noexcept
-  {
-    _collection.Clear();
-  }
+  inline void deallocate(T* p, size_t num = 0) noexcept { _collection.deallocate(p, num * sizeof(T)); }
+  inline void Clear() noexcept { _collection.Clear(); }
 
   LocklessBlockCollectionPolicy& operator=(LocklessBlockCollectionPolicy&&) = default;
+
 protected:
   LocklessBlockCollection<MAXSIZE * sizeof(T)> _collection;
 };
 
-typedef void(*ALLOCFN)(TESTDEF::RETPAIR&, MTALLOCWRAP<size_t>&);
+typedef void (*ALLOCFN)(TESTDEF::RETPAIR&, MTALLOCWRAP<size_t>&);
 TESTDEF::RETPAIR test_ALLOC_BLOCK_LOCKLESS()
 {
   BEGINTEST;
@@ -45,11 +42,11 @@ TESTDEF::RETPAIR test_ALLOC_BLOCK_LOCKLESS()
   {
     LocklessBlockCollection<64> alloc;
     void* p = alloc.allocate(8, 0, 0);
-    p = alloc.allocate(9, p, 8);
-    p = alloc.allocate(16, p, 9);
-    p = alloc.allocate(17, p, 16);
-    p = alloc.allocate(32, p, 17);
-    p = alloc.allocate(50, p, 32);
+    p       = alloc.allocate(9, p, 8);
+    p       = alloc.allocate(16, p, 9);
+    p       = alloc.allocate(17, p, 16);
+    p       = alloc.allocate(32, p, 17);
+    p       = alloc.allocate(50, p, 32);
     alloc.deallocate(p, 50);
   }
 

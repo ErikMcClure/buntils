@@ -4,16 +4,16 @@
 #ifndef __BUN_ALLOC_GREEDY_H__
 #define __BUN_ALLOC_GREEDY_H__
 
-#include <atomic>
 #include "Alloc.h"
 #include "buntils.h"
 #include "RWLock.h"
+#include <atomic>
 
 namespace bun {
   // Lockless dynamic greedy allocator that can allocate any number of bytes
   class BUN_COMPILER_DLLEXPORT GreedyAlloc
   {
-    GreedyAlloc(const GreedyAlloc& copy) = delete;
+    GreedyAlloc(const GreedyAlloc& copy)            = delete;
     GreedyAlloc& operator=(const GreedyAlloc& copy) = delete;
 
     struct Node
@@ -23,14 +23,17 @@ namespace bun {
     };
 
   public:
-    inline GreedyAlloc(GreedyAlloc&& mov) : _root(mov._root.load(std::memory_order_relaxed)), _curpos(mov._curpos.load(std::memory_order_relaxed)), 
-      _alignsize(mov._alignsize), _align(mov._align)
-    { 
+    inline GreedyAlloc(GreedyAlloc&& mov) :
+      _root(mov._root.load(std::memory_order_relaxed)),
+      _curpos(mov._curpos.load(std::memory_order_relaxed)),
+      _alignsize(mov._alignsize),
+      _align(mov._align)
+    {
       mov._root.store(nullptr, std::memory_order_relaxed);
-      mov._curpos = 0; 
+      mov._curpos = 0;
     }
-    inline explicit GreedyAlloc(size_t init = 64, size_t align = 1) : _root(0), _curpos(0), _align(align),
-      _alignsize(AlignSize(sizeof(Node), align))
+    inline explicit GreedyAlloc(size_t init = 64, size_t align = 1) :
+      _root(0), _curpos(0), _align(align), _alignsize(AlignSize(sizeof(Node), align))
     {
       _allocChunk(init);
     }
@@ -45,11 +48,7 @@ namespace bun {
         ALIGNEDFREE(_root.load(std::memory_order_relaxed));
       }
     }
-    template<typename T>
-    inline T* AllocT(size_t num) noexcept
-    {
-      return (T*)Alloc(num * sizeof(T));
-    }
+    template<typename T> inline T* AllocT(size_t num) noexcept { return (T*)Alloc(num * sizeof(T)); }
     inline void* Alloc(size_t sz) noexcept
     {
       sz = AlignSize(sz, _align);
@@ -62,15 +61,17 @@ namespace bun {
       for(;;)
       {
         _lock.RLock();
-        r = _curpos.fetch_add(sz, std::memory_order_acq_rel);
+        r           = _curpos.fetch_add(sz, std::memory_order_acq_rel);
         size_t rend = r + sz;
-        root = _root.load(std::memory_order_acquire);
+        root        = _root.load(std::memory_order_acquire);
 
         if(rend >= root->size)
         {
           if(_lock.AttemptUpgrade())
           {
-            if(rend >= _root.load(std::memory_order_acquire)->size) // We do another check in here to ensure another thread didn't already resize the root for us.
+            if(rend >=
+               _root.load(std::memory_order_acquire)
+                 ->size) // We do another check in here to ensure another thread didn't already resize the root for us.
             {
               _allocChunk(fbnext(rend));
               _curpos.store(0, std::memory_order_release);
@@ -82,7 +83,7 @@ namespace bun {
         else
           break;
       }
-      
+
       void* retval = reinterpret_cast<uint8_t*>(root) + _alignsize + r;
       _lock.RUnlock();
       return retval;
@@ -90,11 +91,12 @@ namespace bun {
     void Dealloc(void* p) noexcept
     {
 #ifdef BUN_DISABLE_CUSTOM_ALLOCATORS
-      ALIGNEDFREE(p); return;
+      ALIGNEDFREE(p);
+      return;
 #endif
       assert(_verifyDEBUG(p));
 #ifdef BUN_DEBUG
-      //memset(p,0xFEEEFEEE,sizeof(T)); //No way to know how big this is
+        // memset(p,0xFEEEFEEE,sizeof(T)); //No way to know how big this is
 #endif
     }
     void Clear() noexcept
@@ -118,7 +120,7 @@ namespace bun {
       }
 
       _root.store(nullptr, std::memory_order_release);
-      _allocChunk(nsize); //consolidates all memory into one chunk to try and take advantage of data locality
+      _allocChunk(nsize); // consolidates all memory into one chunk to try and take advantage of data locality
       _lock.Unlock();
     }
 
@@ -146,12 +148,17 @@ namespace bun {
     bool _verifyDEBUG(void* p)
     {
       _lock.RLock();
-      Node* cur = _root.load(std::memory_order_relaxed);
+      Node* cur  = _root.load(std::memory_order_relaxed);
       bool found = false;
 
       while(cur)
       {
-        if(p >= (reinterpret_cast<uint8_t*>(cur) + _alignsize) && p < (reinterpret_cast<uint8_t*>(cur) + _alignsize + cur->size)) { found = true; break; }
+        if(p >= (reinterpret_cast<uint8_t*>(cur) + _alignsize) &&
+           p < (reinterpret_cast<uint8_t*>(cur) + _alignsize + cur->size))
+        {
+          found = true;
+          break;
+        }
         cur = cur->next;
       }
 
@@ -161,14 +168,15 @@ namespace bun {
 #ifdef BUN_DEBUG
     BUN_FORCEINLINE static bool _prepDEBUG(Node* root, size_t alignsize) noexcept
     {
-      if(!root) return false;
+      if(!root)
+        return false;
       memset(reinterpret_cast<uint8_t*>(root) + alignsize, 0xfd, root->size);
       return true;
     }
 #endif
 
 #pragma warning(push)
-#pragma warning(disable:4251)
+#pragma warning(disable : 4251)
     std::atomic<Node*> _root;
     std::atomic<size_t> _curpos;
 #pragma warning(pop)
@@ -177,16 +185,15 @@ namespace bun {
     const size_t _alignsize;
   };
 
-  template<typename T>
-  struct BUN_COMPILER_DLLEXPORT GreedyPolicy : protected GreedyAlloc
+  template<typename T> struct BUN_COMPILER_DLLEXPORT GreedyPolicy : protected GreedyAlloc
   {
     GreedyPolicy() = default;
     inline explicit GreedyPolicy(size_t init, size_t align = 1) : GreedyAlloc(init, align) {}
     inline T* allocate(std::size_t cnt, T* p = nullptr, size_t old = 0) noexcept
-    { 
+    {
       if(cnt < old)
         return p;
-      T* n = GreedyAlloc::AllocT<T>(cnt); 
+      T* n = GreedyAlloc::AllocT<T>(cnt);
       if(p)
       {
         assert(old > 0);
@@ -199,6 +206,5 @@ namespace bun {
     inline void Clear() noexcept { GreedyAlloc::Clear(); }
   };
 }
-
 
 #endif

@@ -15,7 +15,7 @@ TESTDEF::RETPAIR test_LINKEDARRAY()
   size_t b = _arr.InsertAfter(6, a);
   _arr.InsertBefore(5, b);
   TEST(_arr.size() == 3);
-  int v[] = { 4,5,6 };
+  int v[]  = { 4, 5, 6 };
   size_t c = 0;
   for(auto i = _arr.begin(); i != _arr.end(); ++i)
     TEST(*i == v[c++]);
@@ -29,5 +29,4 @@ TESTDEF::RETPAIR test_LINKEDARRAY()
   _arr.Clear();
   TEST(!_arr.size());
   ENDTEST;
-
 }

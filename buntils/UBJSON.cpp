@@ -3,8 +3,8 @@
 
 #include "buntils/buntils.h"
 #include "buntils/UBJSON.h"
-#include <sstream>
 #include <fstream>
+#include <sstream>
 #include <string>
 
 using namespace bun;
@@ -19,15 +19,9 @@ UBJSONTuple::UBJSONTuple(const UBJSONTuple& copy) : Type(copy.Type), Length(copy
     String = new char[Length + 1];
     MEMCPY(String, Length + 1, copy.String, copy.Length + 1);
     break;
-  case TYPE_ARRAY:
-    new (&Array) UBJSONArray(copy.Array);
-    break;
-  case TYPE_OBJECT:
-    new (&Object) UBJSONObject(copy.Object);
-    break;
-  default:
-    Int64 = copy.Int64;
-    break;
+  case TYPE_ARRAY: new(&Array) UBJSONArray(copy.Array); break;
+  case TYPE_OBJECT: new(&Object) UBJSONObject(copy.Object); break;
+  default: Int64 = copy.Int64; break;
   }
 }
 UBJSONTuple::UBJSONTuple(UBJSONTuple&& mov) : Type(mov.Type), Length(mov.Length)
@@ -35,23 +29,17 @@ UBJSONTuple::UBJSONTuple(UBJSONTuple&& mov) : Type(mov.Type), Length(mov.Length)
   switch(Type)
   {
   case TYPE_STRING:
-  case TYPE_BIGNUM:
-    String = mov.String;
-    break;
-  case TYPE_ARRAY:
-    new (&Array) UBJSONArray(std::move(mov.Array));
-    break;
-  case TYPE_OBJECT:
-    new (&Object) UBJSONObject(std::move(mov.Object));
-    break;
-  default:
-    Int64 = mov.Int64;
-    break;
+  case TYPE_BIGNUM: String = mov.String; break;
+  case TYPE_ARRAY: new(&Array) UBJSONArray(std::move(mov.Array)); break;
+  case TYPE_OBJECT: new(&Object) UBJSONObject(std::move(mov.Object)); break;
+  default: Int64 = mov.Int64; break;
   }
   mov.Type = TYPE_NONE;
 }
 UBJSONTuple::UBJSONTuple() : Type(TYPE_NONE), Length(-1), Int64(0) {}
-UBJSONTuple::UBJSONTuple(TYPE type, int64_t length, const char* s) : Type(type), Length(length), String(const_cast<char*>(s)) {}
+UBJSONTuple::UBJSONTuple(TYPE type, int64_t length, const char* s) :
+  Type(type), Length(length), String(const_cast<char*>(s))
+{}
 UBJSONTuple::~UBJSONTuple()
 {
   switch(Type)
@@ -61,20 +49,12 @@ UBJSONTuple::~UBJSONTuple()
     if(String != 0)
       delete[] String;
     break;
-  case TYPE_ARRAY:
-    Array.~DynArray();
-    break;
-  case TYPE_OBJECT:
-    Object.~DynArray();
-    break;
-  default:
-    break;
+  case TYPE_ARRAY: Array.~DynArray(); break;
+  case TYPE_OBJECT: Object.~DynArray(); break;
+  default: break;
   }
 }
-void UBJSONTuple::Parse(std::istream& s, TYPE ty)
-{
-  Parse(s, ty, nullptr, nullptr, nullptr);
-}
+void UBJSONTuple::Parse(std::istream& s, TYPE ty) { Parse(s, ty, nullptr, nullptr, nullptr); }
 
 int64_t UBJSONTuple::ParseLength(std::istream& s)
 {
@@ -90,8 +70,7 @@ int64_t UBJSONTuple::ParseLength(std::istream& s)
     case TYPE_INT32: ret = ParseInteger<int32_t>(s); break;
     case TYPE_INT64: ret = ParseInteger<int64_t>(s); break;
     case TYPE_NO_OP: continue; // try again
-    default:
-      THROW_OR_ABORT("Invalid length type");
+    default: THROW_OR_ABORT("Invalid length type");
     }
     break;
   }
@@ -146,13 +125,11 @@ void UBJSONTuple::Write(std::ostream& s, TYPE type) const
 
   switch(Type)
   {
-  default:
-    THROW_OR_ABORT("Unexpected type encountered.");
+  default: THROW_OR_ABORT("Unexpected type encountered.");
   case TYPE_NO_OP:
   case TYPE_NULL:
   case TYPE_TRUE:
-  case TYPE_FALSE:
-    break;
+  case TYPE_FALSE: break;
   case TYPE_ARRAY:
     if(!Array.size())
     {
@@ -177,14 +154,14 @@ void UBJSONTuple::Write(std::ostream& s, TYPE type) const
       break;
     }
     type = Object[0].second.Type;
-    for(auto&[_, t] : Object)
+    for(auto& [_, t] : Object)
       if(type != t.Type)
       {
         type = TYPE_NONE;
         break;
       }
     WriteTypeCount(s, type, Object.size());
-    for(auto&[str, t] : Object)
+    for(auto& [str, t] : Object)
     {
       WriteLength(s, str.size());
       s.write(str.data(), str.size());

@@ -2,8 +2,8 @@
 // For conditions of distribution and use, see copyright notice in "buntils.h"
 
 #include "test.h"
-#include "buntils/TOML.h"
 #include "buntils/Geometry.h"
+#include "buntils/TOML.h"
 #include <fstream>
 
 using namespace bun;
@@ -12,39 +12,33 @@ struct TOMLtest3
 {
   float f;
 
-  template<typename Engine>
-  void Serialize(Serializer<Engine>& s, const char*)
+  template<typename Engine> void Serialize(Serializer<Engine>& s, const char*)
   {
     s.template EvaluateType<TOMLtest3>(GenPair("f", f));
   }
 };
 
-struct Hitbox {
+struct Hitbox
+{
   DynArray<CircleSector<float>> circles;
   DynArray<Rect<float>> rects;
   DynArray<Polygon<float>> polygons;
 
-  template<typename Engine>
-  void Serialize(Serializer<Engine>& e, const char*)
+  template<typename Engine> void Serialize(Serializer<Engine>& e, const char*)
   {
-    e.template EvaluateType<Hitbox>(
-      GenPair("circles", circles),
-      GenPair("rects", rects),
-      GenPair("polygons", polygons)
-      );
+    e.template EvaluateType<Hitbox>(GenPair("circles", circles), GenPair("rects", rects), GenPair("polygons", polygons));
   }
 };
 
-struct AttackData {
+struct AttackData
+{
   Hitbox box;
 
-  template<typename Engine>
-  void Serialize(Serializer<Engine>& e, const char*)
+  template<typename Engine> void Serialize(Serializer<Engine>& e, const char*)
   {
     e.template EvaluateType<Hitbox>(GenPair("box", box));
   }
 };
-
 
 struct TOMLtest2
 {
@@ -53,15 +47,10 @@ struct TOMLtest2
   std::vector<Str> j;
   TOMLtest3 testarray;
 
-  template<typename Engine>
-  void Serialize(Serializer<Engine>& s, const char*)
+  template<typename Engine> void Serialize(Serializer<Engine>& s, const char*)
   {
-    s.template EvaluateType<TOMLtest2>(
-      GenPair("a", a),
-      GenPair("test", test),
-      GenPair("j", j),
-      GenPair("testarray", testarray)
-      );
+    s.template EvaluateType<TOMLtest2>(GenPair("a", a), GenPair("test", test), GenPair("j", j),
+                                       GenPair("testarray", testarray));
   }
 };
 
@@ -86,29 +75,16 @@ struct TOMLtest
   std::chrono::system_clock::time_point date;
 #endif
 
-  template<typename Engine>
-  void Serialize(Serializer<Engine>& s, const char* id)
+  template<typename Engine> void Serialize(Serializer<Engine>& s, const char* id)
   {
-    s.template EvaluateType<TOMLtest>(
-      GenPair("a", a),
-      GenPair("b", b),
-      GenPair("c", c),
-      GenPair("test", test),
-      GenPair("test2", test2),
-      GenPair("btrue", btrue),
-      GenPair("bfalse", bfalse),
-      GenPair("d", d),
-      GenPair("e", e),
-      GenPair("f", f),
-      GenPair("g", g),
-      GenPair("nested", nested),
-      GenPair("tuple", tuple),
+    s.template EvaluateType<TOMLtest>(GenPair("a", a), GenPair("b", b), GenPair("c", c), GenPair("test", test),
+                                      GenPair("test2", test2), GenPair("btrue", btrue), GenPair("bfalse", bfalse),
+                                      GenPair("d", d), GenPair("e", e), GenPair("f", f), GenPair("g", g),
+                                      GenPair("nested", nested), GenPair("tuple", tuple),
 #ifdef BUN_COMPILER_HAS_TIME_GET
-      GenPair("date", date),
+                                      GenPair("date", date),
 #endif
-      GenPair("inlinetest", inlinetest),
-      GenPair("Attacks", Attacks)
-      );
+                                      GenPair("inlinetest", inlinetest), GenPair("Attacks", Attacks));
   }
 };
 
@@ -143,7 +119,7 @@ void dotest_TOML(TOMLtest& o, TESTDEF::RETPAIR& __testret)
   tm stm;
   GMTIMEFUNC(&time, &stm);
 
-  TEST(stm.tm_year == (2006-1900));
+  TEST(stm.tm_year == (2006 - 1900));
   TEST(stm.tm_mon == 0);
   TEST(stm.tm_mday == 2);
   TEST(stm.tm_hour == 22);
@@ -168,7 +144,7 @@ void dotest_TOML(TOMLtest& o, TESTDEF::RETPAIR& __testret)
     TEST(fCompare(o.Attacks[i].box.circles[0].min, 5.18319f, 1000));
     TEST(fCompare(o.Attacks[i].box.circles[0].range, 2.2f, 1000));
   }
-  auto[a, b, c] = o.tuple;
+  auto [a, b, c] = o.tuple;
   TEST(a == -3);
   TEST(b == "2");
   TEST(c == 1.0);
@@ -217,7 +193,8 @@ f = -56.65\n\
 f = -3.5\n\
 ";
 
-  const char tomlfile2[] = "nested = [{ a = 2, test = { f = 80.9 }, j = [\"C:\\test\", \"/usr/blah\"], testarray = { f = 0 } }, { a = 3, test = { f = -12.21 }, j = [], testarray = { f = -56.65 } }]";
+  const char tomlfile2[] =
+    "nested = [{ a = 2, test = { f = 80.9 }, j = [\"C:\\test\", \"/usr/blah\"], testarray = { f = 0 } }, { a = 3, test = { f = -12.21 }, j = [], testarray = { f = -56.65 } }]";
 
   TOMLtest tomltest;
   ParseTOML(tomltest, tomlfile);
@@ -260,9 +237,8 @@ f = -3.5\n\
   auto& t3inline = t3["inlinetest"]->get<TOMLValue::TOMLTable>();
   TEST(t3inline["a"]->get<int64_t>() == 6);
   auto& t3t2 = t3["test2"]->get<TOMLValue::TOMLTable>();
-  auto p = t3t2["a"];
+  auto p     = t3t2["a"];
   TEST(t3t2["a"]->get<int64_t>() == 5);
-
 
   ENDTEST;
 }

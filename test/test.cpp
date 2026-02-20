@@ -3,9 +3,9 @@
 
 #include "test.h"
 #include "buntils/algo.h"
-#include <time.h>
-#include <iostream>
 #include <filesystem>
+#include <iostream>
+#include <time.h>
 
 #ifdef BUN_COMPILER_MSC
   #if defined(BUN_STATIC_LIB)

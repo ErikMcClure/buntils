@@ -43,9 +43,9 @@ TESTDEF::RETPAIR test_ARRAYSORT()
   }
   TEST(!DEBUG_CDT<true>::count)
 
-    ArraySort<int> slicetest;
+  ArraySort<int> slicetest;
   int slices[4] = { 0, 1, 2, 3 };
-  slicetest = std::span<int>(slices, 4);
+  slicetest     = std::span<int>(slices, 4);
   TEST(slicetest.size() == 4);
   ENDTEST;
 }

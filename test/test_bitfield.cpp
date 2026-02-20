@@ -40,7 +40,6 @@ TESTDEF::RETPAIR test_BITFIELD()
   t.Set(5, -1);
   TEST(t == 5);
 
-
   const int GROUP1 = 0b1100;
   const int GROUP2 = 0b11;
   BitField<int> g;

@@ -4,14 +4,14 @@
 #ifndef __STR_H__BUN__
 #define __STR_H__BUN__
 
+#include "defines.h"
+#include "utf_conv.h"
+#include <assert.h>
+#include <stdarg.h>
+#include <stddef.h>
 #include <string>
 #include <string.h>
-#include <stdarg.h>
 #include <vector>
-#include <assert.h>
-#include <stddef.h>
-#include "utf_conv.h"
-#include "defines.h"
 #ifdef BUN_COMPILER_GCC
   #include <stdio.h>
 #endif

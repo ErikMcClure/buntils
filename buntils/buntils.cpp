@@ -504,35 +504,35 @@ std::unique_ptr<char[], bun::bun_DLLDelete<char[]>> bun::GetFontPath(const char*
 }
 
 #else
-
-std::unique_ptr<char[], bun::bun_DLLDelete<char[]>> bun::GetFontPath(const char* family, int weight, bool italic)
-{
-  FcConfig* config = FcInitLoadConfigAndFonts();
-  std::unique_ptr<char[], bun::bun_DLLDelete<char[]>> p(nullptr);
-
-  FcPattern* pat = FcNameParse((const FcChar8*)family);
-  FcConfigSubstitute(config, pat, FcMatchPattern);
-  FcDefaultSubstitute(pat);
-
-  // find the font
-  FcResult result;
-  FcPattern* font = FcFontMatch(config, pat, &result);
-  if(font)
+namespace bun {
+  std::unique_ptr<char[], bun_DLLDelete<char[]>> GetFontPath(const char* family, int weight, bool italic)
   {
-    FcChar8* file = NULL;
-    if(FcPatternGetString(font, FC_FILE, 0, &file) == FcResultMatch)
+    FcConfig* config = FcInitLoadConfigAndFonts();
+    std::unique_ptr<char[], bun_DLLDelete<char[]>> p(nullptr);
+
+    FcPattern* pat = FcNameParse((const FcChar8*)family);
+    FcConfigSubstitute(config, pat, FcMatchPattern);
+    FcDefaultSubstitute(pat);
+
+    // find the font
+    FcResult result;
+    FcPattern* font = FcFontMatch(config, pat, &result);
+    if(font)
     {
-      size_t len = strlen((char*)file);
-      p.reset(new char[len]);
-      memcpy(p.get(), file, len);
+      FcChar8* file = NULL;
+      if(FcPatternGetString(font, FC_FILE, 0, &file) == FcResultMatch)
+      {
+        size_t len = strlen((char*)file);
+        p.reset(new char[len]);
+        memcpy(p.get(), file, len);
+      }
+      FcPatternDestroy(font);
     }
-    FcPatternDestroy(font);
+
+    FcPatternDestroy(pat);
+    return p;
   }
-
-  FcPatternDestroy(pat);
-  return p;
 }
-
 #endif
 
 #ifdef BUN_DEBUG

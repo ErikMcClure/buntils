@@ -6,12 +6,12 @@
 
 #ifdef BUN_COMPILER_MSC
   #include <intrin.h>
+  #include <intrin0.inl.h>
 #endif
 
 #include "compiler.h"
 #include <cassert>
 #include <cstdint>
-#include <intrin0.inl.h>
 
 #ifdef BUN_CPU_x86
   #define BUNASM_PREG  ECX

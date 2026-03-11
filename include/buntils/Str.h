@@ -12,6 +12,7 @@
 #include <string>
 #include <string.h>
 #include <vector>
+#include <cstdint>
 #ifdef BUN_COMPILER_GCC
   #include <stdio.h>
 #endif

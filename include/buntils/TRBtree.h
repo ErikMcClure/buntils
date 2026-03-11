@@ -155,14 +155,14 @@ namespace bun {
       static void InsertNode(T* node, T*& root, T*& first, T*& last, T* pNIL, Comparison<const T&, const T&> auto&& f)
       {
         assert(node != pNIL);
-        node->color = 1;
-        node->next  = 0;
-        node->prev  = 0;
-        node->left  = pNIL;
-        node->right = pNIL;
-        T* cur      = root;
-        T* parent   = 0;
-        decltype(f(*node, *cur)) c;
+        node->color                = 1;
+        node->next                 = 0;
+        node->prev                 = 0;
+        node->left                 = pNIL;
+        node->right                = pNIL;
+        T* cur                     = root;
+        T* parent                  = 0;
+        decltype(f(*node, *cur)) c = std::strong_ordering::equivalent;
 
         while(cur != pNIL)
         {
@@ -579,7 +579,7 @@ namespace bun {
     inline LLIterator<TRB_Node<T>> end() { return LLIterator<TRB_Node<T>>(0); }
     inline static bool Validate(TRB_Node<T>* node, const Comp& comp)
     {
-      return node->Validate<internal::TRB_Node_ThreeWay<T, Comp>>(internal::TRB_Node_ThreeWay<T, Comp>(comp));
+      return node->template Validate<internal::TRB_Node_ThreeWay<T, Comp>>(internal::TRB_Node_ThreeWay<T, Comp>(comp));
     }
 
     inline TRBtree& operator=(TRBtree&& mov)
@@ -616,9 +616,9 @@ namespace bun {
     }
     static TRB_Node<T>* GetNodeNear(const T& x, bool before, TRB_Node<T>* const& root, TRB_Node<T>* pNIL, const Comp& comp)
     {
-      TRB_Node<T>* cur    = root;
-      TRB_Node<T>* parent = pNIL;
-      decltype(comp(x, cur->value)) res;
+      TRB_Node<T>* cur                     = root;
+      TRB_Node<T>* parent                  = pNIL;
+      std::invoke_result_t<Comp, T, T> res = std::strong_ordering::equivalent;
 
       while(cur != pNIL)
       {

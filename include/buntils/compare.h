@@ -12,12 +12,17 @@
 #define SGNCOMPARE(left, right) (((left) > (right)) - ((left) < (right)))
 
 namespace bun {
-  template<class F, typename L, typename R = L, class Ord = std::partial_ordering>
+  template<class, typename, typename, typename, typename = void> constexpr bool is_invocable_or_incomplete_v = true;
+
+  template<class F, typename L, typename R, class Ord>
+  constexpr bool is_invocable_or_incomplete_v<F, L, R, Ord, std::void_t<decltype(sizeof(L))>> =
+    std::invocable<F, L, R> && std::same_as<std::common_comparison_category_t<std::invoke_result_t<F, L, R>, Ord>, Ord>;
+
   // We can't do the three_way_comparable_with check here because some comparisons extract comparable elements
   // from otherwise incomparable L and R types. Unfortunately this results in nonsensical invocable errors when
   // std::compare_three_way fails the three_way_comparable check.
-  concept Comparison = /*std::three_way_comparable_with<L, R, Ord> &&*/ std::invocable<F&, L, R> &&
-                       std::same_as<std::common_comparison_category_t<std::invoke_result_t<F&, L, R>, Ord>, Ord>;
+  template<class F, typename L, typename R = L, class Ord = std::partial_ordering>
+  concept Comparison = /*std::three_way_comparable_with<L, R, Ord> &&*/ is_invocable_or_incomplete_v<F&, L, R, Ord>;
 
   // Used to store the comparison object using EBO
   template<class T> class CompressedBase : private T

@@ -37,7 +37,7 @@ namespace bun {
     BUN_FORCEINLINE void Push(K&& key, D value) { BASE::Insert(PAIR(std::move(key), value)); }
     BUN_FORCEINLINE const PAIR& Peek() { return BASE::Peek(); }
     BUN_FORCEINLINE void Discard() { BASE::Remove(0); }
-    BUN_FORCEINLINE PAIR Pop() { return std::move(BASE::Pop()); }
+    BUN_FORCEINLINE PAIR Pop() { return BASE::Pop(); }
     BUN_FORCEINLINE bool Empty() { return BASE::Empty(); }
     BUN_FORCEINLINE const PAIR& Get(CT_ index) { return BASE::Get(index); }
     BUN_FORCEINLINE bool Remove(CT_ index) { return BASE::Remove(index); }

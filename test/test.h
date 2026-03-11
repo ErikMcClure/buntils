@@ -10,6 +10,7 @@
 #include "buntils/Logger.h"
 #include "buntils/RefCounter.h"
 #include "buntils/Str.h"
+#include <atomic>
 
 #define BUN_ENABLE_PROFILER
 

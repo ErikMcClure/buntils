@@ -17,7 +17,7 @@ namespace bun {
   // from otherwise incomparable L and R types. Unfortunately this results in nonsensical invocable errors when
   // std::compare_three_way fails the three_way_comparable check.
   concept Comparison = /*std::three_way_comparable_with<L, R, Ord> &&*/ std::invocable<F&, L, R> &&
-                       std::_Compares_as<std::invoke_result_t<F&, L, R>, Ord>;
+                       std::same_as<std::common_comparison_category_t<std::invoke_result_t<F&, L, R>, Ord>, Ord>;
 
   // Used to store the comparison object using EBO
   template<class T> class CompressedBase : private T

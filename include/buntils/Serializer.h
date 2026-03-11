@@ -182,7 +182,7 @@ namespace bun {
         }
         static inline bool Read(Serializer<Engine>& e, std::vector<T, Alloc>& obj, int64_t count)
         {
-          obj.resize(count);
+          obj.resize(static_cast<size_t>(count));
           return e.BulkRead(std::begin(obj), std::end(obj), count);
         }
         static inline void Parse(Serializer<Engine>& e, std::vector<T, Alloc>& obj, const char* id)

@@ -90,7 +90,7 @@ namespace bun {
     }
     BUN_FORCEINLINE std::ostream& LogHeader(const char* source, const char* file, size_t line, int8_t level)
     {
-      assert((level < 0) || (level < _levels.Capacity()));
+      assert((level < 0) || (level < static_cast<int8_t>(_levels.Capacity())));
       return _logHeader(source, file, line, (level < 0) ? "" : _levels[level]);
     }
     static const char* _trimPath(const char* path);

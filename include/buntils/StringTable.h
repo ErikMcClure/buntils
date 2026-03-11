@@ -33,7 +33,7 @@ namespace bun {
 
       _strings.SetCapacity(bytes / sizeof(T));
       stream->read(reinterpret_cast<char*>(_strings.data()), _strings.Capacity() * sizeof(T));
-      _strings[(stream->gcount() / sizeof(T)) - 1] = '\0'; // make sure the end is a null terminator
+      _strings[static_cast<CT_>(stream->gcount() / sizeof(T)) - 1] = '\0'; // make sure the end is a null terminator
 
       _indices.SetCapacity(strccount<T>(_strings.data(), 0, _strings.Capacity()));
       bun_FillN(_indices, 0);

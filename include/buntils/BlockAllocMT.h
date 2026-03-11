@@ -68,7 +68,7 @@ namespace bun {
 #endif
       bun_PTag<void> ret = { 0, 0 };
       bun_PTag<void> nval;
-      asmcasr<bun_PTag<void>>(&_freelist, ret, ret, ret);
+      asmcasr<void>(&_freelist, ret, ret, ret);
 
       for(;;)
       {
@@ -81,7 +81,7 @@ namespace bun {
               _allocChunk(fbnext(_root->size / _blocksize) * _blocksize);
             _flag.clear(std::memory_order_release);
           }
-          asmcasr<bun_PTag<void>>(
+          asmcasr<void>(
             &_freelist, ret, ret,
             ret); // we could put this in the while loop but then you have to set nval to ret and it's just as messy
           continue;
@@ -90,7 +90,7 @@ namespace bun {
         nval.p   = *((void**)ret.p);
         nval.tag = ret.tag + 1;
 
-        if(asmcasr<bun_PTag<void>>(&_freelist, nval, ret, ret))
+        if(asmcasr<void>(&_freelist, nval, ret, ret))
           break;
       }
 
@@ -187,14 +187,14 @@ namespace bun {
     {
       bun_PTag<void> prev = { 0, 0 };
       bun_PTag<void> nval = { p, 0 };
-      asmcasr<bun_PTag<void>>(&_freelist, prev, prev, prev);
+      asmcasr<void>(&_freelist, prev, prev, prev);
 
       do
       {
         nval.tag            = prev.tag + 1;
         *((void**)(target)) = (void*)prev.p;
         // contention.fetch_add(1); //DEBUG
-      } while(!asmcasr<bun_PTag<void>>(&_freelist, nval, prev, prev));
+      } while(!asmcasr<void>(&_freelist, nval, prev, prev));
     }
 
 #pragma warning(push)
@@ -224,7 +224,7 @@ namespace bun {
 
     LocklessBlockPolicy& operator=(LocklessBlockPolicy&&) = default;
   };
-
+  
   template<size_t MAXSIZE = sizeof(void*) * 32, class = std::make_index_sequence<bun_Log2(MAXSIZE / sizeof(void*)) + 1>>
   class BUN_COMPILER_DLLEXPORT LocklessBlockCollection;
 

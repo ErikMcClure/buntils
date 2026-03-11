@@ -15,10 +15,13 @@ UBJSONTuple::UBJSONTuple(const UBJSONTuple& copy) : Type(copy.Type), Length(copy
   {
   case TYPE_STRING:
   case TYPE_BIGNUM:
+  {
     assert(copy.Length >= 0);
-    String = new char[Length + 1];
-    MEMCPY(String, Length + 1, copy.String, copy.Length + 1);
+    size_t len = static_cast<size_t>(Length);
+    String     = new char[len + 1];
+    MEMCPY(String, len + 1, copy.String, static_cast<size_t>(copy.Length) + 1);
     break;
+  }
   case TYPE_ARRAY: new(&Array) UBJSONArray(copy.Array); break;
   case TYPE_OBJECT: new(&Object) UBJSONObject(copy.Object); break;
   default: Int64 = copy.Int64; break;

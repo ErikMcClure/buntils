@@ -114,7 +114,7 @@ namespace bun {
       case TYPE_ARRAY:
       {
         int64_t count = ParseTypeCount(s, ty);
-        new(&Array) UBJSONArray(std::is_null_pointer_v<FnAdd> ? bun_max(count, 1) : 0);
+        new(&Array) UBJSONArray(std::is_null_pointer_v<FnAdd> ? static_cast<size_t>(bun_max(count, 1)) : 0);
 
         if constexpr(!std::is_null_pointer_v<FnBulk>)
           if(count >= 0 && (ty == TYPE_CHAR || ty == TYPE_UINT8 || ty == TYPE_INT8) && bulkadd(ty, count))
@@ -140,23 +140,23 @@ namespace bun {
       case TYPE_OBJECT:
       {
         int64_t count = ParseTypeCount(s, ty);
-        new(&Object) UBJSONObject(std::is_null_pointer_v<FnInsert> ? bun_max(count, 1) : 0);
+        new(&Object) UBJSONObject(std::is_null_pointer_v<FnInsert> ? static_cast<size_t>(bun_max(count, 1)) : 0);
         Str buf;
         while(!!s && s.peek() != -1 && (count > 0 || count < 0) && (count > 0 || s.peek() != TYPE_OBJECT_END))
         {
           int64_t length = ParseLength(s);
-          buf.reserve(length + 1);
+          buf.reserve(static_cast<size_t>(length) + 1);
           s.read(buf.UnsafeString(), length);
           buf.UnsafeString()[length] = 0;
 
           if constexpr(std::is_null_pointer_v<FnInsert>)
           {
             Object.AddConstruct();
-            Object.Back().first.assign(buf.data(), length);
+            Object.Back().first.assign(buf.data(), static_cast<size_t>(length));
             Object.Back().second.Parse(s, ty);
           }
           else
-            insert(ty, buf.data(), length);
+            insert(ty, buf.data(), static_cast<size_t>(length));
 
           --count;
         }

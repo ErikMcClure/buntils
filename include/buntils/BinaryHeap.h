@@ -123,8 +123,8 @@ namespace bun {
     template<typename U>
     static void PercolateDown(std::span<T> a, size_t k, U&& val, const Comp& f, BinaryHeap* p = nullptr)
     {
-      assert(k < a.size());
-      assert(k < (std::numeric_limits<CT>::max() >> 1));
+      assert(k < static_cast<size_t>(a.size()));
+      assert(k < static_cast<size_t>((std::numeric_limits<CT>::max() >> 1)));
       size_t i;
 
       for(i = CBH_RIGHT(k); i < a.size(); i = CBH_RIGHT(i))
@@ -138,7 +138,7 @@ namespace bun {
         a[k] = std::move(a[i]);
         MFUNC::MFunc(a[k], static_cast<CType>(k), p);
         k = i;
-        assert(k < (std::numeric_limits<CT>::max() >> 1));
+        assert(k < static_cast<size_t>(std::numeric_limits<CT>::max() >> 1));
       }
 
       if(i >= a.size() && --i < a.size() &&

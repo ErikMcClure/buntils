@@ -46,7 +46,7 @@ namespace bun {
         bun_PTag<void>& freelist = _cache.Value(i);
         bun_PTag<void> ret       = { 0, 0 };
         bun_PTag<void> nval;
-        asmcasr<bun_PTag<void>>(&freelist, ret, ret, ret);
+        asmcasr<void>(&freelist, ret, ret, ret);
         assert(!ret.p || _verifyDEBUG(ret.p));
 
         for(;;)
@@ -65,7 +65,7 @@ namespace bun {
           nval.p   = *((void**)ret.p);
           nval.tag = ret.tag + 1;
 
-          if(asmcasr<bun_PTag<void>>(&freelist, nval, ret, ret))
+          if(asmcasr<void>(&freelist, nval, ret, ret))
             break;
         }
 
@@ -116,13 +116,13 @@ namespace bun {
     {
       bun_PTag<void> prev = { 0, 0 };
       bun_PTag<void> nval = { p, 0 };
-      asmcasr<bun_PTag<void>>(freelist, prev, prev, prev);
+      asmcasr<void>(freelist, prev, prev, prev);
 
       do
       {
         nval.tag            = prev.tag + 1;
         *((void**)(target)) = (void*)prev.p;
-      } while(!asmcasr<bun_PTag<void>>(freelist, nval, prev, prev));
+      } while(!asmcasr<void>(freelist, nval, prev, prev));
     }
 
     alignas(16) RWLock _cachelock;

@@ -133,7 +133,7 @@ namespace bun {
       if(r > n)
         r = n;
       if(r > 0)
-        MEMCPY(s, n, _cur, r);
+        MEMCPY(s, static_cast<size_t>(n), _cur, static_cast<size_t> (r));
       _cur += r;
       return r;
     }
@@ -201,7 +201,7 @@ namespace bun {
       if(r > n)
         r = n;
       if(r > 0)
-        MEMCPY(s, n, gptr(), r);
+        MEMCPY(s, static_cast<size_t>(n), gptr(), static_cast<size_t>(r));
       setg(eback(), gptr() + r, egptr());
       return r;
     }
@@ -238,12 +238,12 @@ namespace bun {
     inline virtual std::streamsize xsputn(const char* s, std::streamsize n) override
     {
       if(pptr() == epptr())
-        _expand(n);
+        _expand(static_cast<CType>(n));
       std::streamsize r = epptr() - pptr();
       if(r > n)
         r = n;
       if(r > 0)
-        MEMCPY(pptr(), r, s, r);
+        MEMCPY(pptr(), static_cast<size_t>(r), s, static_cast<size_t> (r));
       pbump(static_cast<int>(r));
       _fixlength();
       n -= r;
@@ -301,7 +301,7 @@ namespace bun {
       if(r > n)
         r = n;
       if(r > 0)
-        MEMCPY(s, n, gptr(), r);
+        MEMCPY(s, static_cast<size_t>(n), gptr(), static_cast<size_t>(r));
       setg(eback(), gptr() + r, egptr());
       return r;
     }
@@ -328,7 +328,7 @@ namespace bun {
       if(r > n)
         r = n;
       if(r > 0)
-        MEMCPY(pptr(), r, s, r);
+        MEMCPY(pptr(), static_cast<size_t>(r), s, static_cast<size_t>(r));
       pbump(static_cast<int>(r));
       n -= r;
       s += r;

@@ -920,7 +920,7 @@ namespace bun {
   {
     if(!v)
       return 0;
-    unsigned long r;
+    unsigned long r = 0;
     if(std::is_constant_evaluated())
     {
       const uint32_t b[] = { 0x2, 0xC, 0xF0, 0xFF00, 0xFFFF0000 };

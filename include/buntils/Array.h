@@ -535,7 +535,9 @@ namespace bun {
 }
 
 #define VARARRAY(Type, Name, n)                \
-  bun::internal::VariableArray<Type> Name((n), \
-                                          (((n) * sizeof(Type)) > 0xFFFF) ? nullptr : (Type*)ALLOCA((n) * sizeof(Type)));
+  bun::internal::VariableArray<Type> Name(static_cast<size_t>(n), \
+                                          (((n) * sizeof(Type)) > 0xFFFF) ? \
+                                                 nullptr :                       \
+                                                 (Type*)ALLOCA(static_cast<size_t>(n) * sizeof(Type)));
 
 #endif

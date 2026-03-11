@@ -11,6 +11,24 @@
 
 namespace bun {
   namespace internal {
+    template<typename T> struct TRIE_NODE;
+  }
+}
+
+template<typename T, template<class> class TQual, template<class> class UQual>
+struct std::basic_common_reference<bun::internal::TRIE_NODE<T>, char, TQual, UQual>
+{
+  using type = char;
+};
+
+template<typename T, template<class> class TQual, template<class> class UQual>
+struct std::basic_common_reference<char, bun::internal::TRIE_NODE<T>, TQual, UQual>
+{
+  using type = char;
+};
+
+namespace bun {
+  namespace internal {
     // Trie node
     template<typename T = uint8_t> struct BUN_COMPILER_DLLEXPORT TRIE_NODE
     {
@@ -207,17 +225,5 @@ namespace bun {
     T _length;
   };
 }
-
-template<typename T, template<class> class TQual, template<class> class UQual>
-struct std::basic_common_reference<bun::internal::TRIE_NODE<T>, char, TQual, UQual>
-{
-  using type = char;
-};
-
-template<typename T, template<class> class TQual, template<class> class UQual>
-struct std::basic_common_reference<char, bun::internal::TRIE_NODE<T>, TQual, UQual>
-{
-  using type = char;
-};
 
 #endif

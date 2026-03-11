@@ -43,7 +43,7 @@ TESTDEF::RETPAIR test_OS()
   if(sz > 0)
   {
     VARARRAY(wchar_t, buf, (sz / 2) + 1);
-    buf[sz / 2] = 0;
+    buf[static_cast<size_t>(sz) / 2] = 0;
     sz          = GetRegistryValue(HKEY_CURRENT_USER, "Control Panel\\Desktop", "CursorBlinkRate",
                                    reinterpret_cast<unsigned char*>((wchar_t*)buf.data()), (unsigned long)sz);
     TEST(sz >= 0);

@@ -500,7 +500,7 @@ std::unique_ptr<char[], bun::bun_DLLDelete<char[]>> bun::GetFontPath(const char*
       }
     }
   }
-  return std::move(p);
+  return p;
 }
 
 #else
@@ -530,7 +530,7 @@ std::unique_ptr<char[], bun::bun_DLLDelete<char[]>> bun::GetFontPath(const char*
   }
 
   FcPatternDestroy(pat);
-  return std::move(p);
+  return p;
 }
 
 #endif

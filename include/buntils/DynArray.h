@@ -480,7 +480,7 @@ namespace bun {
     inline ArbitraryArray(CT size = 0, CT element = 1) : BASE(size * element), _length(0), _element(element) {}
     template<typename T> inline CT Add(const T& item)
     {
-      if((_length * _element) >= _array.size())
+      if(static_cast<size_t>(_length * _element) >= _array.size())
         BASE::_setCapacity(T_FBNEXT(_length) * _element);
       memcpy(_array.data() + (_length * _element), &item, std::min<CT>(sizeof(T), _element));
       return _length++;
@@ -488,7 +488,7 @@ namespace bun {
     inline void Remove(CT index)
     {
       index *= _element;
-      assert(_array.size() > 0 && index < _array.size());
+      assert(_array.size() > 0 && static_cast<size_t>(index) < _array.size());
       memmove(_array.data() + index, _array.data() + index + _element, _array.size() - index - _element);
       --_length;
     }
@@ -501,7 +501,7 @@ namespace bun {
       _element = element;
       _length  = num;
 
-      if((_length * _element) > _array.size())
+      if(static_cast<size_t>(_length * _element) > _array.size())
         BASE::_setCapacityDiscard(static_cast<size_t>(_length * _element));
 
       if(!_array.empty())

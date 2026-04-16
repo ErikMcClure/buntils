@@ -11,7 +11,7 @@
 
 namespace bun {
   namespace internal {
-    template<typename T> struct BUN_COMPILER_DLLEXPORT _BIT_REF
+    template<std::integral T> struct BUN_COMPILER_DLLEXPORT _BIT_REF
     {
       inline constexpr _BIT_REF(const _BIT_REF& copy) = default;
       inline constexpr _BIT_REF(T bit, T& bits) : _bit(bit), _bits(bits) {}
@@ -40,7 +40,7 @@ namespace bun {
       T _bit;
     };
 
-    template<typename T> struct BUN_COMPILER_DLLEXPORT _BIT_GROUP
+    template<std::integral T> struct BUN_COMPILER_DLLEXPORT _BIT_GROUP
     {
       inline constexpr _BIT_GROUP(const _BIT_GROUP& copy) = default;
       inline constexpr _BIT_GROUP(T group, T& bits) : _group(group), _bits(bits) {}
@@ -67,8 +67,7 @@ namespace bun {
       using difference_type   = ptrdiff_t;
       using pointer           = U*;
       using reference         = U&;
-
-      typedef typename U::Ty Ty;
+      using Ty                = std::make_unsigned_t<typename U::Ty>;
 
     public:
       inline _BIT_ITER(const U& src) : _bits(const_cast<Ty*>(&src.GetState().first)), _bit(src.GetState().second) {}
@@ -124,7 +123,7 @@ namespace bun {
   }
 
   // Generic implementation of using an integral type's component bits to store flags.
-  template<typename T = uint32_t> class BUN_COMPILER_DLLEXPORT BitField
+  template<std::integral T = uint32_t> class BUN_COMPILER_DLLEXPORT BitField
   {
   public:
     // Initializes the bitfield with the given flag values, if any

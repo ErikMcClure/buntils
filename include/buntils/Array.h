@@ -63,8 +63,7 @@ namespace bun {
       _dealloc(_array);
       _array = _getAlloc(capacity, std::span<T>());
     }
-    template<typename CType>
-      requires std::is_integral<CType>::value
+    template<std::integral CType>
     static void _setLength(T* dest, CType old, CType n) noexcept
     {
       if constexpr(std::is_destructible_v<T> && !std::is_trivially_destructible_v<T>)
@@ -126,8 +125,7 @@ namespace bun {
         std::allocator_traits<Alloc>::deallocate(*this, p.data(), p.size());
     }
 
-    template<typename CType>
-      requires std::is_integral<CType>::value
+    template<std::integral CType>
     static void _copyMove(T* BUN_RESTRICT dest, T* BUN_RESTRICT src, CType n) noexcept
     {
       if(dest == nullptr || src == nullptr || !n)
@@ -144,8 +142,7 @@ namespace bun {
       }
     }
 
-    template<typename CType>
-      requires std::is_integral<CType>::value
+    template<std::integral CType>
     static void _copy(T* BUN_RESTRICT dest, const T* BUN_RESTRICT src, CType n)
       requires std::is_copy_constructible_v<RECURSIVE>
     {
@@ -164,8 +161,7 @@ namespace bun {
         static_assert(std::is_void_v<T>, "_copy shouldn't exist");
     }
 
-    template<typename U, typename CType>
-      requires std::is_integral<CType>::value
+    template<typename U, std::integral CType>
     static void _insert(T* dest, CType length, CType index, U&& item) noexcept
     {
       assert(index >= 0 && length >= index && dest != 0);
@@ -188,8 +184,7 @@ namespace bun {
       }
     }
 
-    template<typename CType>
-      requires std::is_integral<CType>::value
+    template<std::integral CType>
     static void _remove(T* dest, CType length, CType index) noexcept
     {
       assert(index >= 0 && length > index);
@@ -213,8 +208,7 @@ namespace bun {
 
   // Wrapper for underlying arrays that expose the array, making them independently usable without blowing up everything
   // that inherits them
-  template<class T, typename CType = size_t, typename Alloc = StandardAllocator<T>, typename RECURSIVE = T>
-    requires std::is_unsigned<CType>::value
+  template<class T, std::unsigned_integral CType = size_t, typename Alloc = StandardAllocator<T>, typename RECURSIVE = T>
   class BUN_COMPILER_DLLEXPORT Array : protected ArrayBase<T, Alloc, RECURSIVE>
   {
   protected:

@@ -140,37 +140,32 @@ namespace bun {
   template<typename T> BUN_FORCEINLINE T* bun_CAlloc(size_t sz) { return reinterpret_cast<T*>(calloc(sz, sizeof(T))); }
 
   // template inferred version of T_GETBIT and T_GETBITRANGE
-  template<class T>
-    requires std::is_integral<T>::value
+  template<std::integral T>
   inline constexpr T GetBitMask(int bit) noexcept
   {
     using U = std::make_unsigned<T>::type;
     return T_GETBIT(U, bit);
   }
-  template<class T>
-    requires std::is_integral<T>::value
+  template<std::integral T>
   inline constexpr T GetBitMask(int low, int high) noexcept
   {
     using U = std::make_unsigned<T>::type;
     return T_GETBITRANGE(U, low, high);
   }
-  template<class T>
-    requires std::is_integral<T>::value
+  template<std::integral T>
   BUN_FORCEINLINE T bun_SetBit(T word, T bit, bool v) noexcept
   {
     return (((word) & (~(bit))) | ((T)(-(typename std::make_signed<T>::type)v) & (bit)));
   }
 
-  template<class T>
-    requires std::is_integral<T>::value
+  template<std::integral T>
   BUN_FORCEINLINE constexpr bool bun_GetBit(T* p, size_t index)
   {
     return (p[index / (sizeof(T) << 3)] & (1 << (index % (sizeof(T) << 3)))) != 0;
   }
 
   // Replaces one character with another in a string
-  template<typename T>
-    requires std::is_integral<T>::value
+  template<std::integral T>
   inline T* strreplace(T* string, const T find, const T replace) noexcept
   {
     if(!string)
@@ -189,8 +184,7 @@ namespace bun {
   #endif
 
   // Counts number of occurences of character c in string, up to the null terminator
-  template<typename T>
-    requires std::is_integral<T>::value
+  template<std::integral T>
   inline size_t strccount(const T* string, T c) noexcept
   {
     size_t ret = 0;
@@ -204,8 +198,7 @@ namespace bun {
   }
 
   // Counts number of occurences of character c in string, up to length characters
-  template<typename T>
-    requires std::is_integral<T>::value
+  template<std::integral T>
   inline size_t strccount(const T* string, T c, size_t length) noexcept
   {
     size_t ret = 0;
@@ -218,8 +211,7 @@ namespace bun {
   // This yields mathematically correct integer division (i/div) towards negative infinity, but only if div is a positive
   // integer. This implementation obviously must have integral types for T and D, but can be explicitely specialized to
   // handle vectors or other structs.
-  template<typename T, typename D>
-    requires(std::is_integral<T>::value && std::is_integral<D>::value)
+  template<std::integral T, std::integral D>
   inline T IntDiv(T i, D div) noexcept
   {
     assert(div > 0);
@@ -230,8 +222,7 @@ namespace bun {
 
   // Performs a compile-time safe shift (positive number shifts left, negative number shifts right), preventing undefined
   // behavior.
-  template<typename T, int S>
-    requires std::is_integral<T>::value
+  template<std::integral T, int S>
   BUN_FORCEINLINE T SafeShift(T v) noexcept
   {
     if constexpr(S > 0)
@@ -244,8 +235,7 @@ namespace bun {
 
   // Performs a mathematically correct modulo, unlike the modulo operator, which doesn't actually perform modulo, it
   // performs a remainder operation. THANKS GUYS!
-  template<typename T>
-    requires(std::is_signed<T>::value && std::is_integral<T>::value)
+  template<std::signed_integral T>
   BUN_FORCEINLINE T bun_Mod(T x, T m) noexcept
   {
     x %= m;
@@ -255,8 +245,7 @@ namespace bun {
 
   // Performs a mathematically correct floating point modulo, unlike fmod, which performs a remainder operation, not a
   // modulo operation.
-  template<typename T>
-    requires std::is_floating_point<T>::value
+  template<std::floating_point T>
   BUN_FORCEINLINE T bun_FMod(T x, T m) noexcept
   {
     return x - floor(x / m) * m;
@@ -264,8 +253,7 @@ namespace bun {
 
   // Trims space from left end of string by returning a different pointer. It is possible to use const char or const wchar_t
   // as a type here because the string itself is not modified.
-  template<typename T>
-    requires std::is_integral<T>::value
+  template<std::integral T>
   inline T* strltrim(T* str) noexcept
   {
     for(; *str > 0 && *str < 33; ++str)
@@ -274,8 +262,7 @@ namespace bun {
   }
 
   // Trims space from right end of string by inserting a null terminator in the appropriate location
-  template<typename T>
-    requires std::is_integral<T>::value
+  template<std::integral T>
   inline T* strrtrim(T* str) noexcept
   {
     T* inter = str + strlen(str);
@@ -397,8 +384,7 @@ namespace bun {
 
   // This is a bit-shift method of calculating the next number in the fibonacci sequence by approximating the golden ratio
   // with 0.6171875 (1/2 + 1/8 - 1/128)
-  template<typename T>
-    requires std::is_integral<T>::value
+  template<std::integral T>
   BUN_FORCEINLINE constexpr T fbnext(T x) noexcept
   {
     return T_FBNEXT(x);
@@ -407,8 +393,7 @@ namespace bun {
   }
 
   // Gets the sign of any integer (0 is assumed to be positive)
-  template<typename T>
-    requires(std::is_signed<T>::value && std::is_integral<T>::value)
+  template<std::signed_integral T>
   BUN_FORCEINLINE constexpr T tsign(T n) noexcept
   {
     return 1 | (n >> ((sizeof(T) << 3) - 1));
@@ -441,16 +426,14 @@ namespace bun {
   }
 
   // Gets the shortest distance between two angles in radians
-  template<typename T>
-    requires std::is_floating_point<T>::value
+  template<std::floating_point T>
   BUN_FORCEINLINE T AngleDist(T a, T b) noexcept
   {
     return static_cast<T>(PI) - fabs(fmod(fabs(a - b), static_cast<T>(PI_DOUBLE)) - static_cast<T>(PI));
   }
 
   // Gets the SIGNED shortest distance between two angles starting with (a - b) in radians
-  template<typename T>
-    requires std::is_floating_point<T>::value
+  template<std::floating_point T>
   BUN_FORCEINLINE T AngleDistSigned(T a, T b) noexcept
   {
     return fmod(bun_FMod(b - a, static_cast<T>(PI_DOUBLE)) + static_cast<T>(PI), static_cast<T>(PI_DOUBLE)) -
@@ -730,8 +713,7 @@ namespace bun {
 
   // bit-twiddling based method of calculating an integral square root from Wilco Dijkstra -
   // http://www.finesse.demon.co.uk/steven/sqrt.html
-  template<typename T, size_t bits>
-    requires std::is_integral<T>::value // WARNING: bits should be HALF the actual number of bits in (T)!
+  template<std::integral T, size_t bits> // WARNING: bits should be HALF the actual number of bits in (T)!
   inline T IntFastSqrt(T n) noexcept
   {
     T root = 0, t;
@@ -748,8 +730,7 @@ namespace bun {
     }
     return root >> 1;
   }
-  template<typename T>
-    requires std::is_integral<T>::value
+  template<std::integral T>
   BUN_FORCEINLINE T IntFastSqrt(T n) noexcept
   {
     return IntFastSqrt<T, sizeof(T) << 2>(n); // done to ensure loop gets unwound (the bit conversion here is <<2 because
@@ -778,8 +759,7 @@ namespace bun {
 
   // Average aggregation without requiring a total variable that can overflow. Nextnum should be the current avg count
   // incremented by 1.
-  template<typename T, typename CT_>
-    requires(std::is_integral<CT_>::value && std::is_floating_point<T>::value)
+  template<std::floating_point T, std::integral CT_>
   BUN_FORCEINLINE constexpr T bun_Avg(T curavg, T nvalue, CT_ nextnum) noexcept
   { // USAGE: avg = bun_Avg<double, int>(avg, value, ++total);
     return curavg + ((nvalue - curavg) / static_cast<T>(nextnum));
@@ -787,8 +767,7 @@ namespace bun {
 
   // Sum of squares of differences aggregation using an algorithm by Knuth. Nextnum should be the current avg count
   // incremented by 1.
-  template<typename T, typename CT_>
-    requires(std::is_integral<CT_>::value && std::is_floating_point<T>::value)
+  template<std::floating_point T, std::integral CT_>
   BUN_FORCEINLINE constexpr void bun_Variance(T& curvariance, T& avg, T nvalue, CT_ nextnum) noexcept
   { // USAGE: bun_Variance<double, int>(variance, avg, value, ++total); Then use sqrt(variance/(n-1)) to get the actual
     // standard deviation
@@ -835,7 +814,7 @@ namespace bun {
   // Unlike FastSqrt, these are useless unless you are on a CPU without SSE instructions, or have a terrible std
   // implementation.
   //// Fast sin function with 0.078% error when extra precision is left in. See
-  ///http://www.devmaster.net/forums/showthread.php?t=5784
+  /// http://www.devmaster.net/forums/showthread.php?t=5784
   // inline float FastSin(float x)
   //{
   //   x-= (int)(x*(1/(float)PI_DOUBLE))*(float)PI_DOUBLE;
@@ -874,6 +853,7 @@ namespace bun {
   // Round a number up to the next power of 2 (32 -> 32, 33 -> 64, etc.)
   inline constexpr uint64_t NextPow2(uint64_t v) noexcept
   {
+    assert(v > 0);
     v -= 1;
     v |= (v >> 1);
     v |= (v >> 2);
@@ -886,6 +866,7 @@ namespace bun {
   }
   inline constexpr uint32_t NextPow2(uint32_t v) noexcept
   {
+    assert(v > 0);
     v -= 1;
     v |= (v >> 1);
     v |= (v >> 2);
@@ -897,6 +878,7 @@ namespace bun {
   }
   inline constexpr uint16_t NextPow2(uint16_t v) noexcept
   {
+    assert(v > 0);
     v -= 1;
     v |= (v >> 1);
     v |= (v >> 2);
@@ -907,6 +889,7 @@ namespace bun {
   }
   inline constexpr uint8_t NextPow2(uint8_t v) noexcept
   {
+    assert(v > 0);
     v -= 1;
     v |= (v >> 1);
     v |= (v >> 2);
@@ -1168,8 +1151,7 @@ namespace bun {
     return r;
   }
 
-  template<class T>
-    requires std::is_integral<T>::value
+  template<std::integral T>
   BUN_FORCEINLINE typename std::make_unsigned<T>::type bun_Abs(T x) noexcept
   {
     if constexpr(std::is_signed<T>::value)
@@ -1182,8 +1164,7 @@ namespace bun {
       return x;
   }
 
-  template<class T>
-    requires(std::is_integral<T>::value && std::is_unsigned<T>::value)
+  template<std::unsigned_integral T>
   inline typename std::make_signed<T>::type bun_Negate(T x, char negate) noexcept
   {
     return static_cast<T>(x ^ -negate) + negate;
@@ -1229,7 +1210,7 @@ namespace bun {
       return static_cast<T>(low | high);
     }
   }
-  template<class T> BUN_FORCEINLINE T bun_MultiplyExtract(T x, T y, T shift) noexcept
+  template<std::integral T> BUN_FORCEINLINE T bun_MultiplyExtract(T x, T y, T shift) noexcept
   {
     using U = typename std::conditional<std::is_signed<T>::value, typename BitLimit<sizeof(T) << 4>::SIGNED,
                                         typename BitLimit<sizeof(T) << 4>::UNSIGNED>::type;
@@ -1246,7 +1227,7 @@ namespace bun {
   }
   #endif
 
-  template<class I> inline I DaysFromCivil(I y, unsigned m, unsigned d) noexcept
+  template<std::integral I> inline I DaysFromCivil(I y, unsigned m, unsigned d) noexcept
   {
     static_assert(std::numeric_limits<unsigned>::digits >= 18,
                   "This algorithm has not been ported to a 16 bit unsigned integer");

@@ -275,7 +275,7 @@ namespace bun {
 
   /* Implementation of a uniform cubic B-spline interpolation. A uniform cubic B-spline matrix is:
                   / -1  3 -3  1 \         / p1 \
-   [t^3,t²,t,1] * |  3 -6  3  0 | * 1/6 * | p2 |
+   [t^3,tÂ²,t,1] * |  3 -6  3  0 | * 1/6 * | p2 |
                   | -3  0  3  0 |         | p3 |
                   \  1  4  1  0 /         \ p4 / */
   template<typename T, typename D> inline T UniformCubicBSpline(D t, const T& p1, const T& p2, const T& p3, const T& p4)
@@ -288,7 +288,7 @@ namespace bun {
 
   /* Implementation of a basic cubic interpolation. The B-spline matrix for this is
                   / -1  3 -3  1 \       / p1 \
-   [t^3,t²,t,1] * |  2 -5  4 -1 | * ½ * | p2 |
+   [t^3,tÂ²,t,1] * |  2 -5  4 -1 | * Â½ * | p2 |
                   | -1  0  1  0 |       | p3 |
                   \  0  2  0  0 /       \ p4 /  */
   template<typename T, typename D> inline T CubicBSpline(D t, const T& p1, const T& p2, const T& p3, const T& p4)
@@ -312,7 +312,7 @@ namespace bun {
 
   /* Implementation of a bezier curve. The B-spline matrix for this is
                   / -1  3 -3  1 \   / p1 \
-   [t^3,t²,t,1] * |  3 -6  3  0 | * | p2 |
+   [t^3,tÂ²,t,1] * |  3 -6  3  0 | * | p2 |
                   | -3  3  0  0 |   | p3 |
                   \  1  0  0  0 /   \ p4 /  */
   template<typename T, typename D> inline T BezierCurve(D t, const T& p1, const T& p2, const T& p3, const T& p4)
@@ -368,8 +368,8 @@ namespace bun {
     T x1_2 = x1 * x1;
     T x2_2 = x2 * x2;
     T x3_2 = x3 * x3;
-    T A    = ((y2 - y1)(x1 - x3) + (y3 - y1)(x2 - x1)) / ((x1 - x3)(x2_2 - x1_2) + (x2 - x1)(x3_2 - x1_2));
-    T B    = ((y2 - y1) - A(x2_2 - x1_2)) / (x2 - x1);
+    T A    = ((y2 - y1) * (x1 - x3) + (y3 - y1) * (x2 - x1)) / ((x1 - x3) * (x2_2 - x1_2) + (x2 - x1) * (x3_2 - x1_2));
+    T B    = ((y2 - y1) - A * (x2_2 - x1_2)) / (x2 - x1);
     T C    = y1 - A * x1_2 - B * x1;
     return A * t * t + B * t + C;
   }
@@ -424,9 +424,10 @@ namespace bun {
     }
   }
 
-  // Solves a quadratic equation of the form at² + bt + c
+  // Solves a quadratic equation of the form atÂ² + bt + c
   template<typename T> inline void SolveQuadratic(T a, T b, T c, T (&r)[2])
   {
+    assert((b * b) > (4 * a * c));
     T d  = FastSqrt<T>(b * b - 4 * a * c);
     r[0] = (-b - d) / (2 * a);
     r[1] = (-b + d) / (2 * a);
@@ -454,18 +455,18 @@ namespace bun {
   template<typename T, int I>
   inline T ApproxCubicError(const T (&P0)[I], const T (&P1)[I], const T (&P2)[I], const T (&P3)[I])
   {
-    // The error for a quadratic approximating a cubic (sharing the anchor points) is: t·(1 - t)·|2·C - 3·C1 + P1 + 3·t·(P2
-    // - 3·C2 + 3·C1 - P1)|    where |v| is the modulus: sqrt(v[0]² + v[1]²) If we choose C = (3·C2 - P2 + 3·C1 - P1)/4 we
-    // get f(t) = t·(1 - t)·½(6·t - 1)|(3·C_1 - 3·C_2 - P_1 + P_2)| f'(t) = -½(2·t(9·t - 7) + 1) |(3·C_1 - 3·C_2 - P_1 +
-    // P_2)| = 0 -> -½(2·t(9·t - 7) + 1) = 0 -> 2·t(9·t - 7) = -1 Solving the derivative for 0 to maximize the error value,
-    // we get t = (1/18)(7±sqrt(31)). Only the + result is inside [0,1], so we plug that into t·(1 - t)·½(6·t - 1) =
+    // The error for a quadratic approximating a cubic (sharing the anchor points) is: tÂ·(1 - t)Â·|2Â·C - 3Â·C1 + P1 + 3Â·tÂ·(P2
+    // - 3Â·C2 + 3Â·C1 - P1)|    where |v| is the modulus: sqrt(v[0]Â² + v[1]Â²) If we choose C = (3Â·C2 - P2 + 3Â·C1 - P1)/4 we
+    // get f(t) = tÂ·(1 - t)Â·Â½(6Â·t - 1)|(3Â·C_1 - 3Â·C_2 - P_1 + P_2)| f'(t) = -Â½(2Â·t(9Â·t - 7) + 1) |(3Â·C_1 - 3Â·C_2 - P_1 +
+    // P_2)| = 0 -> -Â½(2Â·t(9Â·t - 7) + 1) = 0 -> 2Â·t(9Â·t - 7) = -1 Solving the derivative for 0 to maximize the error value,
+    // we get t = (1/18)(7Â±sqrt(31)). Only the + result is inside [0,1], so we plug that into tÂ·(1 - t)Â·Â½(6Â·t - 1) =
     // 77/486+(31 sqrt(31))/972 ~ 0.336008945728118
     const T term = static_cast<T>(0.336008945728118);
 
     T r = 0;
     T M;
 
-    for(int i = 0; i < I; ++i) // 3·C_1 - 3·C_2 - P_1 + P_2
+    for(int i = 0; i < I; ++i) // 3Â·C_1 - 3Â·C_2 - P_1 + P_2
     {
       M = T(3) * P1[i] - T(3) * P2[i] - P0[i] + P3[i];
       r += M * M;
@@ -494,7 +495,7 @@ namespace bun {
     }
     else
     {
-      T C[2]; // (3·(P2 + P1) - P3 - P0) / 4
+      T C[2]; // (3Â·(P2 + P1) - P3 - P0) / 4
       for(int i = 0; i < 2; ++i)
         C[i] = (3 * (N2[i] + N1[i]) - N3[i] - P0[i]) / 4;
       fn(P0, C, N3);
@@ -508,7 +509,7 @@ namespace bun {
     }
     else
     {
-      T C[2]; // (3·(P2 + P1) - P3 - P0) / 4
+      T C[2]; // (3Â·(P2 + P1) - P3 - P0) / 4
       for(int i = 0; i < 2; ++i)
         C[i] = (3 * (R2[i] + R1[i]) - P3[i] - N3[i]) / 4;
       fn(N3, C, P3);
@@ -526,7 +527,7 @@ namespace bun {
     ApproxCubicR<T, FN>(t, P0, P1, P2, P3, fn, maxerror); // Call recursive function that does the actual splitting
   }
 
-  // Solves a cubic equation of the form at^3 + bt² + ct + d by normalizing it (dividing everything by a).
+  // Solves a cubic equation of the form at^3 + btÂ² + ct + d by normalizing it (dividing everything by a).
   template<typename T> inline int solveCubic(T at, T bt, T ct, T dt, T (&r)[3])
   {
     T a      = bt / at;
@@ -606,7 +607,7 @@ namespace bun {
               // root.
   }
 
-  // Performs Gauss–Legendre quadrature for simple polynomials, using 1-5 sampling points on the interval [a, b] with
+  // Performs Gauss-Legendre quadrature for simple polynomials, using 1-5 sampling points on the interval [a, b] with
   // optional supplemental arguments.
   template<typename T, int N, typename... D>
     requires(N >= 1 && N < 5)

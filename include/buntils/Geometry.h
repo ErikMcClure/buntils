@@ -80,7 +80,7 @@ namespace bun {
     BUN_FORCEINLINE bool CircleCollide(T X, T Y, T R) const { return RadiusContainsPoint(r + R, X - x, Y - y); }
     BUN_FORCEINLINE bool CircleCollide(const Vector<T, 2>& C, T R) const
     {
-      return RadiusContainsPoint(r + R, C.x - x, C.x - y);
+      return RadiusContainsPoint(r + R, C.x - x, C.y - y);
     }
     BUN_FORCEINLINE bool LineCollide(T X1, T Y1, T X2, T Y2) const
     {
@@ -1023,7 +1023,7 @@ namespace bun {
     inline const V& operator[](size_t i) const { return _verts[i]; }
     inline V& operator[](size_t i) { return _verts[i]; }
 
-    inline const V* GetVertices() const { return _verts; }
+    inline const V* GetVertices() const { return _verts.data(); }
     inline Array<V>& GetArray() { return _verts; }
     inline const Array<V>& GetArray() const { return _verts; }
     inline size_t GetCount() const { return _verts.Capacity(); }

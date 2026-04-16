@@ -30,6 +30,7 @@ namespace bun {
     BUN_FORCEINLINE T D() const { return _d; }
     inline void Simplify()
     {
+      assert(_d != 0);
       if(!_n)
       {
         _d = 1;
@@ -204,7 +205,17 @@ namespace bun {
     }
     inline bool operator==(T i) const { return _d == 1 && i == _n; }
     inline bool operator!=(T i) const { return _d != 1 || i != _n; }
-    inline Rational Abs() const { return Rational(abs(_n), _d); }
+    inline Rational Abs() const
+    {
+      if constexpr(std::is_unsigned<T>::value)
+      {
+        return *this;
+      }
+      else
+      {
+        return Rational(abs(_n), _d);
+      }
+    }
     inline operator float() const
     {
       return operator double();

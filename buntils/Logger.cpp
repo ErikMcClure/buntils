@@ -10,8 +10,8 @@
 using namespace bun;
 using namespace std;
 
-const char* Logger::DEFAULTFORMAT     = "{4} [{0}] ({1}:{2}) {3}";
-const char* Logger::DEFAULTNULLFORMAT = "{4} ({1}:{2}) {3}";
+const char* Logger::DEFAULTFORMAT     = " [{0}] ({1}:{2}) {3}";
+const char* Logger::DEFAULTNULLFORMAT = " ({1}:{2}) {3}";
 
 Logger::Logger(Logger&& mov) :
   _levels(std::move(mov._levels)),
@@ -227,7 +227,8 @@ void Logger::_header(std::ostream& o, int n, const char* source, const char* fil
 std::ostream& Logger::_logHeader(const char* source, const char* file, size_t line, const char* level)
 {
   file = _trimPath(file);
+  _writeDateTime(_tz, _stream, true);
   std::vformat_to(std::ostream_iterator<char>(_stream), ((!source && _nullformat != 0) ? _nullformat : _format),
-                  std::make_format_args(source, file, line, level, _tz));
+                  std::make_format_args(source, file, line, level));
   return _stream;
 }

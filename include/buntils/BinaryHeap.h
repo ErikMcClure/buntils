@@ -67,7 +67,11 @@ namespace bun {
     template<CT I> inline explicit BinaryHeap(const T (&src)[I]) : BinaryHeap(src, I) {}
     template<CT I> inline explicit BinaryHeap(const std::array<T, I>& src) : BinaryHeap(src, I) {}
     inline ~BinaryHeap() {}
-    inline const T& Peek() { return _array[0]; }
+    inline const T& Peek()
+    {
+      assert(_length > 0);
+      return _array[0];
+    }
     inline const T& Get(CT index)
     {
       assert(index < _length);
@@ -75,6 +79,7 @@ namespace bun {
     }
     inline T Pop()
     {
+      assert(_length > 0);
       T r = std::move(_array[0]);
       Remove(0);
       return std::move(r);

@@ -36,7 +36,7 @@ namespace bun {
     BUN_FORCEINLINE T Pop() { return Pop(bun_getdefaultengine()); }
     inline void Remove(CT index) { _array[index] = std::move(_array[--_length]); }
     inline bool Empty() const { return !_length; }
-    inline void Clear() { _length = 0; }
+    inline void Clear() { BASE::Clear(); }
     BUN_FORCEINLINE void SetLength(CT length) { BASE::SetLength(length); }
     inline CT size() const { return _length; }
     inline const T* begin() const { return _array; }

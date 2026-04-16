@@ -114,7 +114,7 @@ namespace bun {
       _alias.reset(new UINT[copy._count]);
       _prob.reset(new F[copy._count]);
       memcpy(_alias.get(), copy._alias.get(), sizeof(UINT) * copy._count);
-      memcpy(_prob.get(), copy._prob.get(), sizeof(UINT) * copy._count);
+      memcpy(_prob.get(), copy._prob.get(), sizeof(F) * copy._count);
       return *this;
     }
     inline AliasTable& operator=(AliasTable&& mov)

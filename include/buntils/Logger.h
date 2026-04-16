@@ -85,7 +85,7 @@ namespace bun {
         return;
 
       std::vformat_to(std::ostream_iterator<char>(LogHeader(source, file, line, level)), format,
-                      std::make_format_args(source, file, line, level, _tz));
+                      std::make_format_args(args...));
       _stream << std::endl;
     }
     BUN_FORCEINLINE std::ostream& LogHeader(const char* source, const char* file, size_t line, int8_t level)

@@ -263,7 +263,7 @@ namespace bun {
       const char* inter = str + buf.size();
       if(str != inter)
       {
-        for(; inter > str && *inter < 33; --inter)
+        for(--inter; inter >= str && *inter < 33; --inter)
           ;
         buf.resize((inter - str) + 1);
       }

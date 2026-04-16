@@ -292,7 +292,7 @@ namespace bun {
   }
   template<typename T> BUN_FORCEINLINE T LineSegmentPointDistance(T X1, T Y1, T X2, T Y2, T pX, T pY)
   {
-    return LineSegmentPointDistanceSqr(X1, Y1, X2, Y2, pX, pY);
+    return bun::FastSqrt<T>(LineSegmentPointDistanceSqr(X1, Y1, X2, Y2, pX, pY));
   }
   template<typename T>
   inline bool LineSegmentLineSegmentIntersect(T x1, T y1, T x2, T y2, T X1, T Y1, T X2, T Y2, Vector<T, 2>& retpoint)
@@ -478,7 +478,7 @@ namespace bun {
   template<typename T> inline void EllipseNearestPoint(T A, T B, T cx, T cy, T& outX, T& outY)
   {
     // f(t) = (A*A - B*B)cos(t)sin(t) - x*A*sin(t) + y*B*cos(t)
-    // f'(t) = (A*A - B*B)(cos²(t) - sin²(t)) - x*a*cos(t) - y*B*sin(t)
+    // f'(t) = (A*A - B*B)(cosÂ²(t) - sinÂ²(t)) - x*a*cos(t) - y*B*sin(t)
     // x(t) = [A*cos(t),B*sin(t)]
     T A2 = A * A;
     T B2 = B * B;

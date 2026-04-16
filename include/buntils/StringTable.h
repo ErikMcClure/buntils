@@ -62,7 +62,7 @@ namespace bun {
       assert(index < _indices.Capacity());
       return _strings.data() + _indices[index];
     }
-    inline void AppendString(const char* s)
+    inline void AppendString(const T* s)
     {
       CT_ last = internal::STR_CT<T>::SLEN(_strings.data() + _indices[_indices.Capacity() - 1]) + 1 +
                  _indices[_indices.Capacity() - 1];
@@ -72,7 +72,7 @@ namespace bun {
       _indices[_indices.Capacity() - 1] = last; // Add another indice and set its value appropriately
       last                              = _strings.Capacity();
       _strings.SetCapacity(_strings.Capacity() + sz); // Allocate more space in string buffer
-      memcpy(_strings.data() + last, s, sz);          // Copy over new string (including null terminator)
+      memcpy(_strings.data() + last, s, sz * sizeof(T));          // Copy over new string (including null terminator)
     };
     // Returns index array
     inline const CT_* GetIndices() const { return _indices; }

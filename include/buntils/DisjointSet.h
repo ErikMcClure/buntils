@@ -107,6 +107,7 @@ namespace bun {
 
       for(; i < _array.size(); ++i)
         _array[i] = -1;
+      _numsets += n;
     }
     // Resets the disjoint set
     inline void Reset()
@@ -143,7 +144,9 @@ namespace bun {
     }
 
     // Constructs a minimum spanning tree using Kruskal's algorithm, given a sorted list of edges (smallest first).
-    inline static Array<std::pair<T, T>, T> MinSpanningTree(T numverts, std::ranges::input_range auto&& edges)
+    template<std::ranges::input_range R>
+    inline static Array<std::pair<T, T>, T> MinSpanningTree(T numverts, R && edges)
+      requires std::same_as<std::ranges::range_value_t<R>, std::pair<T, T>>
     {
       Array<std::pair<T, T>, T> ret(numverts -
                                     1); // A nice result in combinatorics tells us that all trees have exactly n-1 edges.
@@ -153,8 +156,10 @@ namespace bun {
     }
 
     // Actual function definition that uses an out array that must be at least n-1 elements long.
-    static T MinSpanningTree(T numverts, std::ranges::input_range auto&& edges,
+    template<std::ranges::input_range R>
+    static T MinSpanningTree(T numverts, R && edges,
                              std::ranges::output_range<std::pair<T, T>> auto&& target)
+      requires std::same_as<std::ranges::range_value_t<R>, std::pair<T, T>>
     {
       VARARRAY(Ty, arr, numverts); // Allocate everything on the stack
       DisjointSet<T, NullAllocator<Ty>> set(arr.data(), numverts);
@@ -168,7 +173,7 @@ namespace bun {
 
         if(a != b)
         {
-          *out++ = *edges;
+          *out++ = { to, from };
           ++num;
           bool inv = set.Union(a, b);
           assert(inv);

@@ -73,7 +73,11 @@ namespace bun {
     inline AANODE<T>* GetRoot() { return _root == _sentinel ? 0 : _root; }
     inline bool IsEmpty() { return _root == _sentinel; }
     // Does an in-order traversal of the tree, applying FACTION to each node's data object.
-    template<void (*FACTION)(T&)> inline void Traverse() { _traverse<FACTION>(_root); }
+    template<void (*FACTION)(T&)> inline void Traverse()
+    {
+      if(_root != _sentinel)
+        _traverse<FACTION>(_root);
+    }
 
   protected:
     void _clear(AANODE<T>* n)

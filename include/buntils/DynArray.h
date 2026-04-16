@@ -242,8 +242,7 @@ namespace bun {
     CT _length;
   };
 
-  template<typename CType, typename Alloc>
-    requires std::is_unsigned<CType>::value
+  template<std::unsigned_integral CType, typename Alloc>
   class BUN_COMPILER_DLLEXPORT DynArray<bool, CType, Alloc> :
     protected ArrayBase<uint8_t, typename std::allocator_traits<Alloc>::template rebind_alloc<uint8_t>>
   {

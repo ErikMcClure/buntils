@@ -9,8 +9,8 @@
 
 namespace bun {
   // Array that uses a inline stack for smaller arrays before allocating something on the heap.
-  template<class T, int I = 2, class CType = size_t, typename Alloc = StandardAllocator<T>>
-    requires(std::is_unsigned<CType>::value && std::is_trivially_copyable_v<T>)
+  template<class T, int I = 2, std::unsigned_integral CType = size_t, typename Alloc = StandardAllocator<T>>
+    requires std::is_trivially_copyable_v<T>
   class BUN_COMPILER_DLLEXPORT CompactArray final : Alloc
   {
   protected:

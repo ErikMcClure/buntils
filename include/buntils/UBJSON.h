@@ -456,9 +456,9 @@ namespace bun {
       }
       UBJSONTuple::TYPE ty = internal::WriteUBJSONType<std::remove_cvref_t<decltype(*std::begin(obj))>>::t;
       UBJSONTuple::WriteTypeCount(s, ty, size);
-
-      if(ty != UBJSONTuple::TYPE_CHAR || ty != UBJSONTuple::TYPE_UINT8 || ty != UBJSONTuple::TYPE_INT8 ||
-         !e.BulkWrite(std::begin(obj), std::end(obj), size))
+        
+      if(!((ty == UBJSONTuple::TYPE_CHAR || ty == UBJSONTuple::TYPE_UINT8 || ty == UBJSONTuple::TYPE_INT8) &&
+           e.BulkWrite(std::begin(obj), std::end(obj), size)))
       {
         auto begin = std::begin(obj);
         auto end   = std::end(obj);

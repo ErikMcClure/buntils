@@ -49,8 +49,7 @@ namespace bun {
   }
 
   // A static trie optimized for looking up small collections of words.
-  template<typename T = uint8_t, bool IGNORECASE = false>
-    requires std::is_unsigned_v<T>
+  template<std::unsigned_integral T = uint8_t, bool IGNORECASE = false>
   class BUN_COMPILER_DLLEXPORT Trie : protected Array<internal::TRIE_NODE<T>, T>
   {
     using BASE = Array<internal::TRIE_NODE<T>, T>;

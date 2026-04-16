@@ -42,7 +42,7 @@ namespace bun {
       assert(_length != 0);
       return BASE::Back();
     }
-    BUN_FORCEINLINE void Discard() { --_length; }
+    BUN_FORCEINLINE void Discard() requires std::is_trivially_destructible_v<T> { --_length; }
     // Returns true if there are no values in the queue (indicating that Pop() and Peek() cannot be called)
     BUN_FORCEINLINE bool Empty() { return !_length; }
     BUN_FORCEINLINE void Clear() { BASE::Clear(); }
